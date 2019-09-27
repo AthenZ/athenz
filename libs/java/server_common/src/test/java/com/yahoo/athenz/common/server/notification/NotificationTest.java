@@ -2,10 +2,7 @@ package com.yahoo.athenz.common.server.notification;
 
 import org.testng.annotations.Test;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static org.testng.Assert.*;
 
@@ -61,6 +58,9 @@ public class NotificationTest {
 
         assertEquals(obj.hashCode(), obj3.hashCode());
 
-
+        Notification obj4 = new Notification("TEST_TYPE");
+        List<String> testlist = Arrays.asList("user.a", "user.a", "user.b");
+        obj4.getRecipients().addAll(testlist);
+        assertEquals(obj4.getRecipients().size(), 2);
     }
 }

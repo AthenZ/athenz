@@ -40,11 +40,11 @@ public class NotificationManager {
     private NotificationService notificationService;
     private ScheduledExecutorService scheduledExecutor;
     private final DBService dbService;
-    private String userDomain;
-    private String userDomainPrefix;
+    private final String userDomainPrefix;
 
-    NotificationManager(final DBService dbService) {
+    NotificationManager(final DBService dbService, final String userDomainPrefix) {
         this.dbService = dbService;
+        this.userDomainPrefix = userDomainPrefix;
         String notificationServiceFactoryClass = System.getProperty(ZMSConsts.ZMS_PROP_NOTIFICATION_SERVICE_FACTORY_CLASS);
         if (notificationServiceFactoryClass != null) {
             NotificationServiceFactory notificationServiceFactory;
@@ -59,17 +59,16 @@ public class NotificationManager {
     }
 
     private void init() {
-        userDomain = System.getProperty(ZMSConsts.ZMS_PROP_USER_DOMAIN, ZMSConsts.USER_DOMAIN);
-        userDomainPrefix = userDomain + ".";
         if (notificationService != null) {
             scheduledExecutor = Executors.newScheduledThreadPool(1);
             scheduledExecutor.scheduleAtFixedRate(new PendingMembershipApprovalReminder(), 0, 1, TimeUnit.DAYS);
         }
     }
 
-    NotificationManager(final DBService dbService, final NotificationServiceFactory notificationServiceFactory) {
+    NotificationManager(final DBService dbService, final NotificationServiceFactory notificationServiceFactory, final String userDomainPrefix) {
         this.dbService = dbService;
         this.notificationServiceFactory = notificationServiceFactory;
+        this.userDomainPrefix = userDomainPrefix;
         notificationService = this.notificationServiceFactory.create();
         init();
     }
@@ -88,17 +87,17 @@ public class NotificationManager {
                 Role domainRole = dbService.getRole(ZMSConsts.SYS_AUTH_AUDIT_DOMAIN, ZMSConsts.AUDIT_APPROVER_ROLE_PREFIX + org + "." + domain, false, true, false);
                 Role orgRole = dbService.getRole(ZMSConsts.SYS_AUTH_AUDIT_DOMAIN, ZMSConsts.AUDIT_APPROVER_ROLE_PREFIX + org, false, true, false);
                 if (domainRole != null) {
-                    recipients.addAll(domainRole.getRoleMembers().stream()
+                    recipients.addAll(domainRole.getRoleMembers().stream().filter(m -> m.getMemberName().startsWith(userDomainPrefix))
                             .map(RoleMember::getMemberName).collect(Collectors.toSet()));
                 }
                 if (orgRole != null) {
-                    recipients.addAll(orgRole.getRoleMembers().stream()
+                    recipients.addAll(orgRole.getRoleMembers().stream().filter(m -> m.getMemberName().startsWith(userDomainPrefix))
                             .map(RoleMember::getMemberName).collect(Collectors.toSet()));
                 }
             } else if (selfserve == Boolean.TRUE) {
                 // get admin role from the request domain
                 Role adminRole = dbService.getRole(domain, "admin", false, true, false);
-                recipients.addAll(adminRole.getRoleMembers().stream()
+                recipients.addAll(adminRole.getRoleMembers().stream().filter(m -> m.getMemberName().startsWith(userDomainPrefix))
                         .map(RoleMember::getMemberName).collect(Collectors.toSet()));
             }
             Notification notification = createNotification(NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL, recipients, details);
@@ -111,16 +110,17 @@ public class NotificationManager {
         AthenzDomain domain;
         Notification notification = new Notification(notificationType);
         notification.setDetails(details);
+        int idx;
         for (String recipient : recipients) {
-            if (recipient.contains(":role.")) {
+            idx = recipient.indexOf(":role.");
+            if (idx != -1) {
                 //recipient is of type role. Extract role members
-                recDomain = recipient.substring(0, recipient.indexOf(":"));
+                recDomain = recipient.substring(0, idx);
                 domain = dbService.getAthenzDomain(recDomain, false);
                 for (Role role : domain.getRoles()) {
                     if (role.getName().equals(recipient)) {
-                        for (RoleMember member : role.getRoleMembers()) {
-                            notification.addRecipient(member.getMemberName());
-                        }
+                        notification.getRecipients().addAll(role.getRoleMembers().stream().filter(m -> m.getMemberName().startsWith(userDomainPrefix))
+                                .map(RoleMember::getMemberName).collect(Collectors.toSet()));
                         break;
                     }
                 }

@@ -461,7 +461,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     private void setNotificationManager() {
-        notificationManager = new NotificationManager(dbService);
+        notificationManager = new NotificationManager(dbService, userDomainPrefix);
     }
 
     void loadSystemProperties() {
