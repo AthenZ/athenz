@@ -51,6 +51,11 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
+      <artifactId>athenz-cert-refresher</artifactId>
+      <version>${project.parent.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
       <artifactId>athenz-client-common</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
