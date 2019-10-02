@@ -121,7 +121,7 @@ public class EmailNotificationService implements NotificationService {
                 break;
 
             case NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL_REMINDER:
-                subject = MEMBERSHIP_APPROVAL_REMINDER_SUBJECT;
+                subject = RB.getString(MEMBERSHIP_APPROVAL_REMINDER_SUBJECT);
                 break;
         }
         return subject;
