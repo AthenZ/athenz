@@ -19,6 +19,7 @@ package com.yahoo.athenz.common.server.notification;
 public interface NotificationService {
 
     String NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL = "MEMBERSHIP_APPROVAL";
+    String NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL_REMINDER = "MEMBERSHIP_APPROVAL_REMINDER";
     String NOTIFICATION_DETAILS_DOMAIN = "domain";
     String NOTIFICATION_DETAILS_ROLE = "role";
     String NOTIFICATION_DETAILS_MEMBER = "member";
