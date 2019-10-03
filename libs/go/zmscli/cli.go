@@ -237,7 +237,11 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 				return cli.DeleteUser(args[0])
 			}
 		case "list-pending-members":
-			return cli.ListPendingDomainRoleMembers()
+			principal := ""
+			if argc == 1 {
+				principal = args[0]
+			}
+			return cli.ListPendingDomainRoleMembers(principal)
 		case "help":
 			return cli.helpCommand(args)
 		default:
@@ -486,10 +490,8 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 				return cli.DeleteProviderResourceGroupRoles(dn, args[0], args[1], args[2])
 			}
 		case "set-domain-meta":
-			if argc == 2 || argc == 3 {
-				descr := args[0]
-				org := args[1]
-				return cli.SetDomainMeta(dn, descr, org)
+			if argc == 2 {
+				return cli.SetDomainMeta(dn, args[0])
 			}
 		case "set-aws-account", "set-domain-account":
 			if argc == 1 {
@@ -518,6 +520,10 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 		case "set-cert-dns-domain":
 			if argc == 1 {
 				return cli.SetDomainCertDnsDomain(dn, args[0])
+			}
+		case "set-org-name":
+			if argc == 1 {
+				return cli.SetDomainOrgName(dn, args[0])
 			}
 		case "set-domain-template":
 			if argc >= 1 {
@@ -549,11 +555,11 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 			}
 		case "set-role-self-serve":
 			if argc == 2 {
-				selfserve, err := strconv.ParseBool(args[1])
+				selfServe, err := strconv.ParseBool(args[1])
 				if err != nil {
 					return nil, err
 				}
-				return cli.SetRoleSelfserve(dn, args[0], selfserve)
+				return cli.SetRoleSelfServe(dn, args[0], selfServe)
 			}
 		case "put-membership-decision":
 			if argc == 4 {
@@ -561,12 +567,12 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 				if err != nil {
 					return nil, err
 				}
-				value, err := getTimestamp(args[2])
+				expiry, err := getTimestamp(args[2])
 				if err != nil {
 					return nil, err
 				}
-				return cli.PutTempMembershipDecision(dn, args[0], args[1], value, approval)
-			} else {
+				return cli.PutTempMembershipDecision(dn, args[0], args[1], expiry, approval)
+			} else if argc == 3 {
 				approval, err := strconv.ParseBool(args[2])
 				if err != nil {
 					return nil, err
@@ -687,15 +693,14 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("     add a subdomain hosted in domain coretech with " + cli.UserDomain + ".john, " + cli.UserDomain + ".jane and the caller as administrators\n")
 	case "set-domain-meta":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   " + domain_param + " set-domain-meta description org\n")
+		buf.WriteString("   " + domain_param + " set-domain-meta description\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain        : name of the domain being updated\n")
 		}
 		buf.WriteString("   description   : set the description for the domain\n")
-		buf.WriteString("   org           : set the organization of the domain\n")
 		buf.WriteString(" examples:\n")
-		buf.WriteString("   " + domain_example + " set-domain-meta \"Coretech Hosted\" cloud.services\n")
+		buf.WriteString("   " + domain_example + " set-domain-meta \"Coretech Hosted\"\n")
 	case "set-aws-account", "set-domain-account":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domain_param + " set-aws-account account-id\n")
@@ -746,6 +751,16 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   cert-domain-name      : set the x.509 certificate dns domain name for the domain\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domain_example + " set-cert-dns-domain athenz.cloud\n")
+	case "set-org-name":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domain_param + " set-org-name org-name\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain        : name of the domain being updated\n")
+		}
+		buf.WriteString("   org-name      : set the org name for audit approvers\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domain_example + " set-org-name ads\n")
 	case "import-domain":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   import-domain domain [file.yaml [admin ...]] - no file means stdin\n")
@@ -1555,27 +1570,27 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domain_example + " set-role-self-serve readers true\n")
 	case "list-pending-members":
-		buf.WriteString(" This command prints a list of pending members by domain and role which are yet to be approved / rejected.\n")
 		buf.WriteString(" syntax:\n")
+		buf.WriteString("   list-pending-members [principal]\n")
+		buf.WriteString(" parameters:\n")
+		buf.WriteString("   principal : list of principal to list pending members for\n")
+		buf.WriteString(" examples:\n")
 		buf.WriteString("   list-pending-members\n")
+		buf.WriteString("   list-pending-members user.john\n")
 	case "put-membership-decision":
-		buf.WriteString(" This command lets approvers to either approve or reject membership for given domain and role.\n")
-		buf.WriteString(" Applicable in case of audit enabled roles or selfserve roles.\n")
-		buf.WriteString(" Audit enabled roles can only be acted upon by delegated approvers in sys.auth.audit domain.\n")
-		buf.WriteString(" Selfserve roles can only be acted upon by domain admins.\n")
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   " + domain_param + " put-membership-decision role member expiration approval \n")
-		buf.WriteString("   " + "or \n")
-		buf.WriteString("   " + domain_param + " put-membership-decision role member approval \n")
+		buf.WriteString("   " + domain_param + " put-membership-decision role member [expiration] approval\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
-			buf.WriteString("   domain        : name of the domain that role belongs to\n")
+			buf.WriteString("   domain     : name of the domain that role belongs to\n")
 		}
-		buf.WriteString("   role    : name of the role to be modified\n")
-		buf.WriteString("   member  : name of the member\n")
-		buf.WriteString("   approval: true/false depicting whether membership is approved or rejected\n")
+		buf.WriteString("   role       : name of the role to be modified\n")
+		buf.WriteString("   member     : name of the member\n")
+		buf.WriteString("   expiration : expiration date format yyyy-mm-ddThh:mm:ss.msecZ\n")
+		buf.WriteString("   approval   : true/false depicting whether membership is approved or rejected\n")
 		buf.WriteString(" examples:\n")
-		buf.WriteString("   " + domain_example + " put-membership-decision readers user.john true\n")
+		buf.WriteString("   " + domain_example + " put-membership-decision readers " + cli.UserDomain + ".john true\n")
+		buf.WriteString("   " + domain_example + " put-membership-decision readers " + cli.UserDomain + ".john 2020-03-02T15:04:05.999Z true\n")
 	default:
 		if interactive {
 			buf.WriteString("Unknown command. Type 'help' to see available commands")
@@ -1598,11 +1613,12 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   lookup-domain-by-role role-member role-name\n")
 	buf.WriteString("   add-domain domain product-id [admin ...] - to add top level domains\n")
 	buf.WriteString("   add-domain domain [admin ...] - to add sub domains\n")
-	buf.WriteString("   set-domain-meta description org\n")
+	buf.WriteString("   set-domain-meta description\n")
 	buf.WriteString("   set-audit-enabled audit-enabled\n")
 	buf.WriteString("   set-aws-account account-id\n")
 	buf.WriteString("   set-product-id product-id\n")
 	buf.WriteString("   set-application-id application-id\n")
+	buf.WriteString("   set-org-name org-name\n")
 	buf.WriteString("   set-cert-dns-domain cert-dns-domain\n")
 	buf.WriteString("   import-domain domain [file.yaml [admin ...]] - no file means stdin\n")
 	buf.WriteString("   export-domain domain [file.yaml] - no file means stdout\n")

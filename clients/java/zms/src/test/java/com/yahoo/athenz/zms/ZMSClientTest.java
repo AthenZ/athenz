@@ -3025,7 +3025,7 @@ public class ZMSClientTest {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
-        RoleMeta meta = new RoleMeta().setSelfserve(true);
+        RoleMeta meta = new RoleMeta().setSelfServe(true);
         try {
             Mockito.when(c.putRoleMeta("domain1", "role1", AUDIT_REF, meta)).thenThrow(new NullPointerException());
             client.putRoleMeta("domain1", "role1", AUDIT_REF, meta);
@@ -3040,8 +3040,8 @@ public class ZMSClientTest {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
-        RoleMeta meta = new RoleMeta().setSelfserve(true);
-        Role r = new Role().setName("role1").setSelfserve(true);
+        RoleMeta meta = new RoleMeta().setSelfServe(true);
+        Role r = new Role().setName("role1").setSelfServe(true);
         Mockito.when(c.putRoleMeta("domain1", "role1", AUDIT_REF, meta)).thenReturn(r);
         client.putRoleMeta("domain1", "role1", AUDIT_REF, meta);
         assertTrue(true);

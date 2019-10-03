@@ -543,7 +543,7 @@ public class FileConnection implements ObjectStoreConnection {
                 RoleMember rm;
                 while (roleit.hasNext()) {
                     rm = roleit.next();
-                    if (rm != null && rm.getActive() == Boolean.FALSE) {
+                    if (rm != null && rm.getApproved() == Boolean.FALSE) {
                         roleit.remove();
                     }
                 }
@@ -1541,11 +1541,11 @@ public class FileConnection implements ObjectStoreConnection {
             while (rmIter.hasNext()) {
                 roleMember = rmIter.next();
                 // check whether the member exists and is in inactive state
-                if (roleMember.getMemberName().equals(member.getMemberName()) && !roleMember.getActive()) {
+                if (roleMember.getMemberName().equals(member.getMemberName()) && !roleMember.getApproved()) {
                     //if membership is approved, set rolemember to active
-                    if (member.getActive() == Boolean.TRUE) {
+                    if (member.getApproved() == Boolean.TRUE) {
                         roleMember.setExpiration(member.getExpiration());
-                        roleMember.setActive(true);
+                        roleMember.setApproved(true);
                     } else {
                         // if membership is not approved, delete the role member from the role
                         rmIter.remove();
@@ -1561,7 +1561,6 @@ public class FileConnection implements ObjectStoreConnection {
     @Override
     public Map<String, List<DomainRoleMember>> getPendingDomainRoleMembersList(String principal) {
 
-        DomainStruct auditDom = getDomainStruct(ZMSConsts.SYS_AUTH_AUDIT_DOMAIN);
         List<String> orgs = new ArrayList<>();
         DomainStruct domain;
 
@@ -1573,13 +1572,14 @@ public class FileConnection implements ObjectStoreConnection {
         MemberRole memberRole;
 
         Map<String, List<DomainRoleMember>> domainRoleMembersMap = null;
+        RoleMember rm = new RoleMember().setMemberName(principal).setActive(true).setApproved(true);
 
-        RoleMember rm = new RoleMember().setMemberName(principal).setActive(true);
+        DomainStruct auditDom = getDomainStruct(ZMSConsts.SYS_AUTH_AUDIT_BY_ORG);
         if (auditDom != null && auditDom.getRoles() != null && !auditDom.getRoles().isEmpty()) {
             for (Role role : auditDom.getRoles().values()) {
-                if (role.getName().startsWith(ZMSConsts.SYS_AUTH_AUDIT_DOMAIN + ":role." + ZMSConsts.AUDIT_APPROVER_ROLE_PREFIX)
-                        && role.getRoleMembers().contains(rm)) {
-                    orgs.add(role.getName().substring(role.getName().indexOf(":role.") + 6).split("[.]")[1]);
+                if (role.getRoleMembers().contains(rm)) {
+                    int idx = role.getName().indexOf(":role.");
+                    orgs.add(role.getName().substring(idx + 6));
                 }
             }
         }
@@ -1598,7 +1598,7 @@ public class FileConnection implements ObjectStoreConnection {
                     domainRoleMembers.setMembers(domainRoleMemberList);
                     for (Role role : domain.getRoles().values()) {
                         for (RoleMember roleMember : role.getRoleMembers()) {
-                            if (roleMember.getActive() == Boolean.FALSE) {
+                            if (roleMember.getApproved() == Boolean.FALSE) {
                                 domainRoleMember = new DomainRoleMember();
                                 domainRoleMember.setMemberName(roleMember.getMemberName());
                                 memberRoles = new ArrayList<>();
@@ -1628,38 +1628,46 @@ public class FileConnection implements ObjectStoreConnection {
         String[] fnames = getDomainList();
         Set<String> roleNames = new HashSet<>();
         for (String name : fnames) {
-            roleNames = getPendingMembershipApproverRolesForDomain(name, roleNames);
+            getPendingMembershipApproverRolesForDomain(name, roleNames);
         }
         return roleNames;
     }
 
-    public Set<String> getPendingMembershipApproverRolesForDomain(String domain, Set<String> roleNames) {
+    void getPendingMembershipApproverRolesForDomain(String domain, Set<String> roleNames) {
 
-        DomainStruct dom;
-        DomainStruct auditDom = getDomainStruct(ZMSConsts.SYS_AUTH_AUDIT_DOMAIN);
-        dom = getDomainStruct(domain);
-        if (dom != null) {
-            for (Role role : dom.getRoles().values()) {
-                if (role.getAuditEnabled() == Boolean.TRUE) {
-                    for (RoleMember roleMember : role.getRoleMembers()) {
-                        if (roleMember != null && roleMember.getActive() == Boolean.FALSE) {
-                            for (Role arole : auditDom.getRoles().values()) {
-                                if (arole != null && arole.getName().contains(ZMSConsts.AUDIT_APPROVER_ROLE_PREFIX + dom.getMeta().getOrg())) {
-                                    roleNames.add(arole.getName());
-                                }
+        DomainStruct dom = getDomainStruct(domain);
+        if (dom == null) {
+            return;
+        }
+
+        DomainStruct auditDomByOrg = getDomainStruct(ZMSConsts.SYS_AUTH_AUDIT_BY_ORG);
+        DomainStruct auditDomByDomain = getDomainStruct(ZMSConsts.SYS_AUTH_AUDIT_BY_DOMAIN);
+
+        for (Role role : dom.getRoles().values()) {
+            if (role.getAuditEnabled() == Boolean.TRUE) {
+                for (RoleMember roleMember : role.getRoleMembers()) {
+                    if (roleMember.getApproved() == Boolean.FALSE) {
+                        for (Role auditRole : auditDomByOrg.getRoles().values()) {
+                            if (auditRole.getName().equals(ZMSConsts.SYS_AUTH_AUDIT_BY_ORG + ":role." + dom.getMeta().getOrg())) {
+                                roleNames.add(auditRole.getName());
+                                break;
+                            }
+                        }
+                        for (Role auditRole : auditDomByDomain.getRoles().values()) {
+                            if (auditRole.getName().equals(ZMSConsts.SYS_AUTH_AUDIT_BY_DOMAIN + ":role." + dom.getName())) {
+                                roleNames.add(auditRole.getName());
+                                break;
                             }
                         }
                     }
-                } else if (role.getSelfserve() == Boolean.TRUE) {
-                    for (RoleMember roleMember : role.getRoleMembers()) {
-                        if (roleMember != null && roleMember.getActive() == Boolean.FALSE) {
-                            roleNames.add(dom.getName() + ":role.admin");
-                        }
+                }
+            } else if (role.getSelfServe() == Boolean.TRUE) {
+                for (RoleMember roleMember : role.getRoleMembers()) {
+                    if (roleMember.getApproved() == Boolean.FALSE) {
+                        roleNames.add(dom.getName() + ":role.admin");
                     }
                 }
             }
         }
-        return roleNames;
     }
-
 }

@@ -3419,7 +3419,7 @@ public class DBService {
 
     void auditLogRoleMeta(StringBuilder auditDetails, Role role) {
         auditDetails.append("{\"name\": \"").append(role.getName())
-                .append("\", \"selfserve\": \"").append(role.getSelfserve())
+                .append("\", \"selfserve\": \"").append(role.getSelfServe())
                 .append("\"}");
     }
 
@@ -3553,7 +3553,7 @@ public class DBService {
 
     void updateRoleMetaFields(Role role, RoleMeta meta) {
 
-        role.setSelfserve(meta.getSelfserve());
+        role.setSelfServe(meta.getSelfServe());
     }
 
     public void executePutRoleMeta(ResourceContext ctx, String domainName, String roleName, RoleMeta meta, String auditRef, String caller) {
@@ -3577,7 +3577,7 @@ public class DBService {
                         .setName(rolefromdb.getName())
                         .setAuditEnabled(rolefromdb.getAuditEnabled())
                         .setTrust(rolefromdb.getTrust())
-                        .setSelfserve(rolefromdb.getSelfserve());
+                        .setSelfServe(rolefromdb.getSelfServe());
 
                 // then we're going to apply the updated fields
                 // from the given object
@@ -3635,7 +3635,7 @@ public class DBService {
     }
 
     void executePutMembershipDecision(ResourceContext ctx, String domainName, String roleName,
-                              RoleMember roleMember, String auditRef, String caller) {
+            RoleMember roleMember, String auditRef, String caller) {
 
         // our exception handling code does the check for retry count
         // and throws the exception it had received when the retry
@@ -3643,12 +3643,11 @@ public class DBService {
 
         for (int retryCount = defaultRetryCount; ; retryCount--) {
 
-            try (ObjectStoreConnection con = store.getConnection(true, true)) {
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
 
                 String principal = getPrincipalName(ctx);
 
-                // process our confirm role member support. since this is a "single"
-                // operation, we are not using any transactions.
+                // process our confirm role member support
 
                 if (!con.confirmRoleMember(domainName, roleName, roleMember,
                         principal, auditRef)) {
@@ -3657,15 +3656,14 @@ public class DBService {
                             roleMember.getMemberName() + " and role: " + roleName, caller);
                 }
 
-                // update our role and domain time-stamps, and invalidate local cache entry
+                // update our domain time-stamp and save changes
 
                 con.updateRoleModTimestamp(domainName, roleName);
-                con.updateDomainModTimestamp(domainName);
-                cacheStore.invalidate(domainName);
+                saveChanges(con, domainName);
 
                 // audit log the request
 
-                String status = roleMember.getActive() ? "approved" : "rejected";
+                String status = roleMember.getApproved() == Boolean.TRUE ? "approved" : "rejected";
 
                 StringBuilder auditDetails = new StringBuilder("{\"member\": \"").append(roleMember.getMemberName())
                         .append("\",\"decision\": \"").append(status).append("\"");
@@ -3690,12 +3688,14 @@ public class DBService {
         }
     }
 
-    DomainRoleMembership getPendingDomainRoleMembersList(ResourceContext ctx) {
+    DomainRoleMembership getPendingDomainRoleMembersList(final String principal) {
+
         DomainRoleMembership domainRoleMembership = new DomainRoleMembership();
         List<DomainRoleMembers> domainRoleMembersList = new ArrayList<>();
         DomainRoleMembers domainRoleMembers;
+
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
-            Map<String, List<DomainRoleMember>> domainRoleMembersMap = con.getPendingDomainRoleMembersList(getPrincipalName(ctx));
+            Map<String, List<DomainRoleMember>> domainRoleMembersMap = con.getPendingDomainRoleMembersList(principal);
             if (domainRoleMembersMap != null) {
                 for (String domain : domainRoleMembersMap.keySet()) {
                     domainRoleMembers = new DomainRoleMembers();

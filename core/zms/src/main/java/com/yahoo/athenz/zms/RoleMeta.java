@@ -13,14 +13,14 @@ import com.yahoo.rdl.*;
 public class RoleMeta {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    public Boolean selfserve;
+    public Boolean selfServe;
 
-    public RoleMeta setSelfserve(Boolean selfserve) {
-        this.selfserve = selfserve;
+    public RoleMeta setSelfServe(Boolean selfServe) {
+        this.selfServe = selfServe;
         return this;
     }
-    public Boolean getSelfserve() {
-        return selfserve;
+    public Boolean getSelfServe() {
+        return selfServe;
     }
 
     @Override
@@ -30,7 +30,7 @@ public class RoleMeta {
                 return false;
             }
             RoleMeta a = (RoleMeta) another;
-            if (selfserve == null ? a.selfserve != null : !selfserve.equals(a.selfserve)) {
+            if (selfServe == null ? a.selfServe != null : !selfServe.equals(a.selfServe)) {
                 return false;
             }
         }

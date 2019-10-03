@@ -478,7 +478,7 @@ type RoleAuditLog struct {
 	Created rdl.Timestamp `json:"created"`
 
 	//
-	// log action - either add or delete
+	// log action - e.g. add, delete, approve, etc
 	//
 	Action string `json:"action"`
 
@@ -573,16 +573,26 @@ type RoleMember struct {
 	Expiration *rdl.Timestamp `json:"expiration,omitempty" rdl:"optional"`
 
 	//
+	// Flag to indicate whether membership is active
+	//
+	Active *bool `json:"active,omitempty" rdl:"optional"`
+
+	//
 	// Flag to indicate whether membership is approved either by delegates ( in
 	// case of auditEnabled roles ) or by domain admins ( in case of selfserve roles
 	// )
 	//
-	Active *bool `json:"active,omitempty" rdl:"optional"`
+	Approved *bool `json:"approved,omitempty" rdl:"optional"`
 
 	//
 	// audit reference string for the change as supplied by admin
 	//
 	AuditRef string `json:"auditRef,omitempty" rdl:"optional"`
+
+	//
+	// for pending membership requests, the request time
+	//
+	RequestTime *rdl.Timestamp `json:"requestTime,omitempty" rdl:"optional"`
 }
 
 //
@@ -605,6 +615,10 @@ func (self *RoleMember) Init() *RoleMember {
 	if self.Active == nil {
 		d := true
 		self.Active = &d
+	}
+	if self.Approved == nil {
+		d := true
+		self.Approved = &d
 	}
 	return self
 }
@@ -693,7 +707,7 @@ type Role struct {
 	// themselves in the role, but it has to be approved by domain admins to be
 	// effective.
 	//
-	Selfserve *bool `json:"selfserve,omitempty" rdl:"optional"`
+	SelfServe *bool `json:"selfServe,omitempty" rdl:"optional"`
 }
 
 //
@@ -832,11 +846,16 @@ type Membership struct {
 	Expiration *rdl.Timestamp `json:"expiration,omitempty" rdl:"optional"`
 
 	//
+	// Flag to indicate whether membership is active
+	//
+	Active *bool `json:"active,omitempty" rdl:"optional"`
+
+	//
 	// Flag to indicate whether membership is approved either by delegates ( in
 	// case of auditEnabled roles ) or by domain admins ( in case of selfserve roles
 	// )
 	//
-	Active *bool `json:"active,omitempty" rdl:"optional"`
+	Approved *bool `json:"approved,omitempty" rdl:"optional"`
 
 	//
 	// audit reference string for the change as supplied by admin
@@ -868,6 +887,10 @@ func (self *Membership) Init() *Membership {
 	if self.Active == nil {
 		d := true
 		self.Active = &d
+	}
+	if self.Approved == nil {
+		d := true
+		self.Approved = &d
 	}
 	return self
 }
@@ -1271,7 +1294,7 @@ type RoleMeta struct {
 	// themselves in the role, but it has to be approved by domain admins to be
 	// effective.
 	//
-	Selfserve *bool `json:"selfserve,omitempty" rdl:"optional"`
+	SelfServe *bool `json:"selfServe,omitempty" rdl:"optional"`
 }
 
 //

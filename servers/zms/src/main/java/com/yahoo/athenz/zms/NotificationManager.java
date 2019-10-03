@@ -79,33 +79,44 @@ public class NotificationManager {
         }
     }
 
-    void generateAndSendPostPutMembershipNotification(String domain, String org, Boolean auditEnabled, Boolean selfserve, Map<String, String> details) {
-        if (isNotificationFeatureAvailable()) {
-            Set<String> recipients = new HashSet<>();
-            if (auditEnabled == Boolean.TRUE) {
-                //get recipient role(s) from audit domain
-                Role domainRole = dbService.getRole(ZMSConsts.SYS_AUTH_AUDIT_DOMAIN, ZMSConsts.AUDIT_APPROVER_ROLE_PREFIX + org + "." + domain, false, true, false);
-                Role orgRole = dbService.getRole(ZMSConsts.SYS_AUTH_AUDIT_DOMAIN, ZMSConsts.AUDIT_APPROVER_ROLE_PREFIX + org, false, true, false);
-                if (domainRole != null) {
-                    recipients.addAll(domainRole.getRoleMembers().stream().filter(m -> m.getMemberName().startsWith(userDomainPrefix))
-                            .map(RoleMember::getMemberName).collect(Collectors.toSet()));
-                }
-                if (orgRole != null) {
-                    recipients.addAll(orgRole.getRoleMembers().stream().filter(m -> m.getMemberName().startsWith(userDomainPrefix))
-                            .map(RoleMember::getMemberName).collect(Collectors.toSet()));
-                }
-            } else if (selfserve == Boolean.TRUE) {
-                // get admin role from the request domain
-                Role adminRole = dbService.getRole(domain, "admin", false, true, false);
-                recipients.addAll(adminRole.getRoleMembers().stream().filter(m -> m.getMemberName().startsWith(userDomainPrefix))
+    void generateAndSendPostPutMembershipNotification(final String domain, final String org,
+             Boolean auditEnabled, Boolean selfServe, Map<String, String> details) {
+
+        if (!isNotificationFeatureAvailable()) {
+            return;
+        }
+
+        Set<String> recipients = new HashSet<>();
+        if (auditEnabled == Boolean.TRUE) {
+
+            //get recipient role(s) from audit domain
+
+            Role domainRole = dbService.getRole(ZMSConsts.SYS_AUTH_AUDIT_BY_DOMAIN,
+                    domain, false, true, false);
+            Role orgRole = dbService.getRole(ZMSConsts.SYS_AUTH_AUDIT_BY_ORG,
+                    org, false, true, false);
+            if (domainRole != null) {
+                recipients.addAll(domainRole.getRoleMembers().stream().filter(m -> m.getMemberName().startsWith(userDomainPrefix))
                         .map(RoleMember::getMemberName).collect(Collectors.toSet()));
             }
-            Notification notification = createNotification(NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL, recipients, details);
-            notificationService.notify(notification);
+            if (orgRole != null) {
+                recipients.addAll(orgRole.getRoleMembers().stream().filter(m -> m.getMemberName().startsWith(userDomainPrefix))
+                        .map(RoleMember::getMemberName).collect(Collectors.toSet()));
+            }
+        } else if (selfServe == Boolean.TRUE) {
+            // get admin role from the request domain
+            Role adminRole = dbService.getRole(domain, "admin", false, true, false);
+            recipients.addAll(adminRole.getRoleMembers().stream().filter(m -> m.getMemberName().startsWith(userDomainPrefix))
+                    .map(RoleMember::getMemberName).collect(Collectors.toSet()));
         }
+        Notification notification = createNotification(NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL,
+                recipients, details);
+        notificationService.notify(notification);
     }
 
-    Notification createNotification(String notificationType, Set<String> recipients, Map<String, String> details) {
+    Notification createNotification(String notificationType, Set<String> recipients, Map<String,
+            String> details) {
+
         String recDomain;
         AthenzDomain domain;
         Notification notification = new Notification(notificationType);
@@ -129,7 +140,7 @@ public class NotificationManager {
             }
         }
         if (notification.getRecipients() == null || notification.getRecipients().isEmpty()) {
-            LOGGER.error("Notification requires atleast 1 recipient.");
+            LOGGER.error("Notification requires at least 1 recipient.");
             return null;
         }
         return notification;

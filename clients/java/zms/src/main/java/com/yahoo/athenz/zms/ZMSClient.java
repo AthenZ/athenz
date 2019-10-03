@@ -55,38 +55,38 @@ public class ZMSClient implements Closeable {
     private Principal principal = null;
     private boolean principalCheckDone = false;
     protected ZMSRDLGeneratedClient client = null;
-    
+
     private static final String STR_ENV_ROOT = "ROOT";
     private static final String STR_DEF_ROOT = "/home/athenz";
     private static final String HTTP_RFC1123_DATE_FORMAT = "EEE, d MMM yyyy HH:mm:ss zzz";
-    
-    public static final String ZMS_CLIENT_PROP_ATHENZ_CONF     = "athenz.athenz_conf";
-    public static final String ZMS_CLIENT_PROP_READ_TIMEOUT    = "athenz.zms.client.read_timeout";
+
+    public static final String ZMS_CLIENT_PROP_ATHENZ_CONF = "athenz.athenz_conf";
+    public static final String ZMS_CLIENT_PROP_READ_TIMEOUT = "athenz.zms.client.read_timeout";
     public static final String ZMS_CLIENT_PROP_CONNECT_TIMEOUT = "athenz.zms.client.connect_timeout";
 
-    public static final String ZMS_CLIENT_PROP_CERT_ALIAS                       = "athenz.zms.client.cert_alias";
-    
-    public static final String ZMS_CLIENT_PROP_KEYSTORE_PATH                    = "athenz.zms.client.keystore_path";
-    public static final String ZMS_CLIENT_PROP_KEYSTORE_TYPE                    = "athenz.zms.client.keystore_type";
-    public static final String ZMS_CLIENT_PROP_KEYSTORE_PASSWORD                = "athenz.zms.client.keystore_password";
-    public static final String ZMS_CLIENT_PROP_KEYSTORE_PWD_APP_NAME            = "athenz.zms.client.keystore_pwd_app_name";
-    
-    public static final String ZMS_CLIENT_PROP_KEY_MANAGER_PASSWORD             = "athenz.zms.client.keymanager_password";
-    public static final String ZMS_CLIENT_PROP_KEY_MANAGER_PWD_APP_NAME         = "athenz.zms.client.keymanager_pwd_app_name";
-    
-    public static final String ZMS_CLIENT_PROP_TRUSTSTORE_PATH                  = "athenz.zms.client.truststore_path";
-    public static final String ZMS_CLIENT_PROP_TRUSTSTORE_TYPE                  = "athenz.zms.client.truststore_type";
-    public static final String ZMS_CLIENT_PROP_TRUSTSTORE_PASSWORD              = "athenz.zms.client.truststore_password";
-    public static final String ZMS_CLIENT_PROP_TRUSTSTORE_PWD_APP_NAME          = "athenz.zms.client.truststore_pwd_app_name";
+    public static final String ZMS_CLIENT_PROP_CERT_ALIAS = "athenz.zms.client.cert_alias";
 
-    public static final String ZMS_CLIENT_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS  = "athenz.zms.client.private_keystore_factory_class";
-    public static final String ZMS_CLIENT_PROP_CLIENT_PROTOCOL                  = "athenz.zms.client.client_ssl_protocol";
-    public static final String ZMS_CLIENT_PKEY_STORE_FACTORY_CLASS              = "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory";
-    public static final String ZMS_CLIENT_DEFAULT_CLIENT_SSL_PROTOCOL           = "TLSv1.2";
+    public static final String ZMS_CLIENT_PROP_KEYSTORE_PATH = "athenz.zms.client.keystore_path";
+    public static final String ZMS_CLIENT_PROP_KEYSTORE_TYPE = "athenz.zms.client.keystore_type";
+    public static final String ZMS_CLIENT_PROP_KEYSTORE_PASSWORD = "athenz.zms.client.keystore_password";
+    public static final String ZMS_CLIENT_PROP_KEYSTORE_PWD_APP_NAME = "athenz.zms.client.keystore_pwd_app_name";
+
+    public static final String ZMS_CLIENT_PROP_KEY_MANAGER_PASSWORD = "athenz.zms.client.keymanager_password";
+    public static final String ZMS_CLIENT_PROP_KEY_MANAGER_PWD_APP_NAME = "athenz.zms.client.keymanager_pwd_app_name";
+
+    public static final String ZMS_CLIENT_PROP_TRUSTSTORE_PATH = "athenz.zms.client.truststore_path";
+    public static final String ZMS_CLIENT_PROP_TRUSTSTORE_TYPE = "athenz.zms.client.truststore_type";
+    public static final String ZMS_CLIENT_PROP_TRUSTSTORE_PASSWORD = "athenz.zms.client.truststore_password";
+    public static final String ZMS_CLIENT_PROP_TRUSTSTORE_PWD_APP_NAME = "athenz.zms.client.truststore_pwd_app_name";
+
+    public static final String ZMS_CLIENT_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS = "athenz.zms.client.private_keystore_factory_class";
+    public static final String ZMS_CLIENT_PROP_CLIENT_PROTOCOL = "athenz.zms.client.client_ssl_protocol";
+    public static final String ZMS_CLIENT_PKEY_STORE_FACTORY_CLASS = "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory";
+    public static final String ZMS_CLIENT_DEFAULT_CLIENT_SSL_PROTOCOL = "TLSv1.2";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ZMSClient.class);
     private static final Authority PRINCIPAL_AUTHORITY = new PrincipalAuthority();
-    
+
     private static PrivateKeyStore PRIVATE_KEY_STORE = loadServicePrivateKey();
 
     static PrivateKeyStore loadServicePrivateKey() {
@@ -94,7 +94,7 @@ public class ZMSClient implements Closeable {
                 ZMS_CLIENT_PKEY_STORE_FACTORY_CLASS);
         return SSLUtils.loadServicePrivateKey(pkeyFactoryClass);
     }
-    
+
     /**
      * Constructs a new ZMSClient object with default settings.
      * The url for ZMS Server is automatically retrieved from the athenz
@@ -109,7 +109,7 @@ public class ZMSClient implements Closeable {
     public ZMSClient() {
         initClient(null, null);
     }
-    
+
     /**
      * Constructs a new ZMSClient object with the given ZMS Server url. The client
      * can only be used to retrieve objects from ZMS that do not require any authentication
@@ -118,12 +118,13 @@ public class ZMSClient implements Closeable {
      * change these values by using the athenz.zms.client.read_timeout and
      * athenz.zms.client.connect_timeout system properties. The values specified
      * for timeouts must be in milliseconds.
+     *
      * @param url ZMS Server url (e.g. https://server1.athenzcompany.com:4443/zms/v1)
      */
     public ZMSClient(String url) {
         initClient(url, null);
     }
-    
+
     /**
      * Constructs a new ZMSClient object with the given ZMS Server url and
      * given principal. The credentials from the principal object will be used
@@ -132,14 +133,15 @@ public class ZMSClient implements Closeable {
      * change these values by using the athenz.zms.client.read_timeout and
      * athenz.zms.client.connect_timeout system properties. The values specified
      * for timeouts must be in milliseconds.
-     * @param url ZMS Server url (e.g. https://server1.athenzcompany.com:4443/zms/v1)
+     *
+     * @param url      ZMS Server url (e.g. https://server1.athenzcompany.com:4443/zms/v1)
      * @param identity Principal object that includes credentials
      */
     public ZMSClient(String url, Principal identity) {
         initClient(url, null);
         addCredentials(identity);
     }
-    
+
     /**
      * Constructs a new ZMSClient object with default settings and given
      * principal object for credentials. The url for ZMS Server is
@@ -149,33 +151,35 @@ public class ZMSClient implements Closeable {
      * change these values by using the athenz.zms.client.read_timeout and
      * athenz.zms.client.connect_timeout system properties. The values specified
      * for timeouts must be in milliseconds.
+     *
      * @param identity Principal object that includes credentials
      */
     public ZMSClient(Principal identity) {
         initClient(null, null);
         addCredentials(identity);
     }
-    
+
     /**
      * Constructs a new ZMSClient object with the given SSLContext object
      * and ZMS Server Url. Default read and connect timeout values are 30000ms (30sec).
      * The application can change these values by using the athenz.zms.client.read_timeout
      * and athenz.zms.client.connect_timeout system properties. The values specified
      * for timeouts must be in milliseconds.
-     * @param url ZMS Server url (e.g. https://server1.athenzcompany.com:4443/zms/v1)
+     *
+     * @param url        ZMS Server url (e.g. https://server1.athenzcompany.com:4443/zms/v1)
      * @param sslContext SSLContext that includes service's private key and x.509 certificate
-     * for authenticating requests
+     *                   for authenticating requests
      */
     public ZMSClient(String url, SSLContext sslContext) {
-        
+
         // verify we have a valid ssl context specified
-        
+
         if (sslContext == null) {
             throw new IllegalArgumentException("SSLContext object must be specified");
         }
         initClient(url, sslContext);
     }
-    
+
     /**
      * Close the ZMSClient object and release any allocated resources.
      */
@@ -189,7 +193,8 @@ public class ZMSClient implements Closeable {
      * If already set, the existing value of the property will be updated.
      * Setting a null value into a property effectively removes the property
      * from the property bag.
-     * @param name property name.
+     *
+     * @param name  property name.
      * @param value property value. null value removes the property with the given name.
      */
     public void setProperty(String name, Object value) {
@@ -197,42 +202,44 @@ public class ZMSClient implements Closeable {
             client.setProperty(name, value);
         }
     }
-    
+
     public void setZMSRDLGeneratedClient(ZMSRDLGeneratedClient client) {
         this.client = client;
     }
-    
+
     /**
      * Set the client credentials using the specified header and token.
+     *
      * @param credHeader authentication header name
-     * @param credToken authentication credentials
+     * @param credToken  authentication credentials
      */
     public void addCredentials(String credHeader, String credToken) {
         client.addCredentials(credHeader, credToken);
     }
-    
+
     /**
      * Sets or overrides the current principal identity set in the client.
+     *
      * @param identity Principal identity for authenticating requests
      * @return self ZMSClient object
      */
     public ZMSClient addCredentials(Principal identity) {
-        
+
         // make sure the principal has proper authority assigned
-        
+
         if (identity == null || identity.getAuthority() == null) {
             throw new IllegalArgumentException("Principal must be valid object with authority field");
         }
-        
+
         // if we already have a principal set, we're going to
         // clear our credentials first
-        
+
         if (principal != null) {
             client.addCredentials(principal.getAuthority().getHeader(), null);
         }
-        
+
         // now we're going to update our principal and set credentials
-        
+
         principal = identity;
         principalCheckDone = false;
 
@@ -240,19 +247,20 @@ public class ZMSClient implements Closeable {
         // identity object is valid
         final Authority authority = principal.getAuthority();
         client.addCredentials(authority.getHeader(), principal.getCredentials());
-        
+
         // final check if the authority does not support authorization
         // by the zms server then it's most likely a user authority and
         // we need to get a principal token
-            
+
         principalCheckDone = authority.allowAuthorization();
         return this;
     }
-    
+
     /**
      * Clear the principal identity set for the client. Unless a new principal is set
      * using the addCredentials method, the client can only be used to requests data
      * from the ZMS Server that doesn't require any authentication.
+     *
      * @return self ZMSClient object
      */
     public ZMSClient clearCredentials() {
@@ -263,7 +271,7 @@ public class ZMSClient implements Closeable {
         }
         return this;
     }
-    
+
     /**
      * If the current principal is the user principal then request
      * a UserToken from ZMS and set the UserToken as the principal
@@ -272,18 +280,18 @@ public class ZMSClient implements Closeable {
     private void updatePrincipal() {
 
         /* if the check has already been done then we have nothing to do */
-        
+
         if (principalCheckDone) {
             return;
         }
-        
+
         /* make sure we have a principal specified */
-        
+
         if (principal == null) {
             principalCheckDone = true;
             return;
         }
-        
+
         /* so at this point we have some credentials specified
          * but it's not the principal authority so we're going
          * to ask ZMS to return a UserToken for us.
@@ -298,12 +306,12 @@ public class ZMSClient implements Closeable {
     }
 
     String lookupZMSUrl() {
-        
+
         String rootDir = System.getenv(STR_ENV_ROOT);
         if (rootDir == null) {
             rootDir = STR_DEF_ROOT;
         }
-        
+
         String confFileName = System.getProperty(ZMS_CLIENT_PROP_ATHENZ_CONF,
                 rootDir + "/conf/athenz/athenz.conf");
         String url = null;
@@ -315,29 +323,30 @@ public class ZMSClient implements Closeable {
             LOGGER.error("Unable to extract ZMS Url from {} exc: {}",
                     confFileName, ex.getMessage());
         }
-        
+
         return url;
     }
-    
+
     /**
      * Initialize the client for class constructors
-     * @param url ZMS Server url
+     *
+     * @param url        ZMS Server url
      * @param sslContext SSLContext for service authentication
      */
     private void initClient(String url, SSLContext sslContext) {
 
         /* if we have no url specified then we're going to retrieve
          * the value from our configuration package */
-        
+
         if (url == null) {
             zmsUrl = lookupZMSUrl();
         } else {
             zmsUrl = url;
         }
-        
+
         /* verify if the url is ending with /zms/v1 and if it's
          * not we'll automatically append it */
-        
+
         if (zmsUrl != null && !zmsUrl.isEmpty()) {
             if (!zmsUrl.endsWith("/zms/v1")) {
                 if (zmsUrl.charAt(zmsUrl.length() - 1) != '/') {
@@ -346,18 +355,18 @@ public class ZMSClient implements Closeable {
                 zmsUrl += "zms/v1";
             }
         }
-        
+
         /* determine our read and connect timeouts */
-        
+
         int readTimeout = Integer.parseInt(System.getProperty(ZMS_CLIENT_PROP_READ_TIMEOUT, "30000"));
         int connectTimeout = Integer.parseInt(System.getProperty(ZMS_CLIENT_PROP_CONNECT_TIMEOUT, "30000"));
 
         /* if we are not given a url then use the default value */
- 
+
         if (sslContext == null) {
             sslContext = createSSLContext();
         }
-        
+
         ClientBuilder builder = ClientBuilder.newBuilder();
         if (sslContext != null) {
             builder = builder.sslContext(sslContext);
@@ -367,18 +376,18 @@ public class ZMSClient implements Closeable {
         ClientConfig clientConfig = new ClientConfig(jacksonJsonProvider);
 
         Client rsClient = builder.property(ClientProperties.CONNECT_TIMEOUT, connectTimeout)
-            .property(ClientProperties.READ_TIMEOUT, readTimeout)
-            .withConfig(clientConfig)
-            .build();
+                .property(ClientProperties.READ_TIMEOUT, readTimeout)
+                .withConfig(clientConfig)
+                .build();
         client = new ZMSRDLGeneratedClient(zmsUrl, rsClient);
     }
-    
+
     SSLContext createSSLContext() {
-        
+
         // to create the SSL context we must have the keystore path
         // specified. If it's not specified, then we are not going
         // to create our ssl context
-        
+
         String keyStorePath = System.getProperty(ZMS_CLIENT_PROP_KEYSTORE_PATH);
         if (keyStorePath == null || keyStorePath.isEmpty()) {
             return null;
@@ -396,7 +405,7 @@ public class ZMSClient implements Closeable {
             keyManagerPassword = keyManagerPwd.toCharArray();
         }
         String keyManagerPasswordAppName = System.getProperty(ZMS_CLIENT_PROP_KEY_MANAGER_PWD_APP_NAME);
-        
+
         // truststore
         String trustStorePath = System.getProperty(ZMS_CLIENT_PROP_TRUSTSTORE_PATH);
         String trustStoreType = System.getProperty(ZMS_CLIENT_PROP_TRUSTSTORE_TYPE);
@@ -406,7 +415,7 @@ public class ZMSClient implements Closeable {
             trustStorePassword = trustStorePwd.toCharArray();
         }
         String trustStorePasswordAppName = System.getProperty(ZMS_CLIENT_PROP_TRUSTSTORE_PWD_APP_NAME);
-        
+
         // alias and protocol details
         String certAlias = System.getProperty(ZMS_CLIENT_PROP_CERT_ALIAS);
         String clientProtocol = System.getProperty(ZMS_CLIENT_PROP_CLIENT_PROTOCOL,
@@ -414,7 +423,7 @@ public class ZMSClient implements Closeable {
 
         ClientSSLContextBuilder builder = new SSLUtils.ClientSSLContextBuilder(clientProtocol)
                 .privateKeyStore(PRIVATE_KEY_STORE).keyStorePath(keyStorePath);
-        
+
         builder.certAlias(certAlias);
 
         if (null != keyStoreType && !keyStoreType.isEmpty()) {
@@ -439,12 +448,13 @@ public class ZMSClient implements Closeable {
     public String getZmsUrl() {
         return zmsUrl;
     }
-    
+
     /**
      * Generate a role name as expected by ZMS Server can be used to
      * set the role object's name field (e.g. role.setName(name))
+     *
      * @param domain name of the domain
-     * @param role name of the role
+     * @param role   name of the role
      * @return full role name
      */
     public String generateRoleName(String domain, String role) {
@@ -454,6 +464,7 @@ public class ZMSClient implements Closeable {
     /**
      * Generate a policy name as expected by ZMS Server can be used to
      * set the policy object's name field (e.g. policy.setName(name))
+     *
      * @param domain name of the domain
      * @param policy name of the policy
      * @return full policy name
@@ -464,9 +475,10 @@ public class ZMSClient implements Closeable {
 
     /**
      * Generate a service name as expected by ZMS Server can be used to
-     * set the service identity object's name field 
+     * set the service identity object's name field
      * (e.g. serviceIdentity.setName(name))
-     * @param domain name of the domain
+     *
+     * @param domain  name of the domain
      * @param service name of the service
      * @return full service identity name
      */
@@ -476,6 +488,7 @@ public class ZMSClient implements Closeable {
 
     /**
      * Retrieve the specified domain object
+     *
      * @param domain name of the domain to be retrieved
      * @return Domain object
      * @throws ZMSClientException in case of failure
@@ -493,32 +506,34 @@ public class ZMSClient implements Closeable {
 
     /**
      * Retrieve the list of domains provisioned on the ZMS Server
+     *
      * @return list of Domains
      * @throws ZMSClientException in case of failure
      */
     public DomainList getDomainList() {
         return getDomainList(null, null, null, null, null, null, null);
     }
-    
+
     /**
      * Retrieve the list of domains provisioned on the ZMS Server
      * filters based on the specified arguments
-     * @param limit number of domain objects to return
-     * @param skip exclude all the domains including the specified one from the return set
-     * @param prefix return domains starting with this value
-     * @param depth maximum depth of the domain (0 - top level domains only)
-     * @param account return domain that has the specified account name. If account name
-     *        is specified all other optional attributes are ignored since there must be
-     *        only one domain matching the specified account name.
-     * @param productId return domain that has the specified product id. If product id
-     *        is specified all other optional attributes are ignored since there must be
-     *        only one domain matching the specified product id.
+     *
+     * @param limit         number of domain objects to return
+     * @param skip          exclude all the domains including the specified one from the return set
+     * @param prefix        return domains starting with this value
+     * @param depth         maximum depth of the domain (0 - top level domains only)
+     * @param account       return domain that has the specified account name. If account name
+     *                      is specified all other optional attributes are ignored since there must be
+     *                      only one domain matching the specified account name.
+     * @param productId     return domain that has the specified product id. If product id
+     *                      is specified all other optional attributes are ignored since there must be
+     *                      only one domain matching the specified product id.
      * @param modifiedSince return domains only modified since this date
      * @return list of domain names
      * @throws ZMSClientException in case of failure
      */
     public DomainList getDomainList(Integer limit, String skip, String prefix, Integer depth,
-            String account, Integer productId, Date modifiedSince) {
+                                    String account, Integer productId, Date modifiedSince) {
         updatePrincipal();
         String modSinceStr = null;
         if (modifiedSince != null) {
@@ -533,12 +548,13 @@ public class ZMSClient implements Closeable {
             throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
         }
     }
-    
+
     /**
      * Retrieve the list of domains provisioned on the ZMS Server
      * filters based on the specified arguments
+     *
      * @param roleMember name of the principal
-     * @param roleName name of the role where the principal is a member of
+     * @param roleName   name of the role where the principal is a member of
      * @return list of domain names
      * @throws ZMSClientException in case of failure
      */
@@ -552,13 +568,14 @@ public class ZMSClient implements Closeable {
             throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
         }
     }
-    
+
     /**
      * Create/Update Top level domain. If updating a domain the provided
      * object must contain all attributes as it will replace the full domain
      * object configured on the server (not just some of the attributes).
+     *
      * @param auditRef string containing audit specification or ticket number
-     * @param detail TopLevelDomain object to be created in ZMS
+     * @param detail   TopLevelDomain object to be created in ZMS
      * @return created Domain object
      * @throws ZMSClientException in case of failure
      */
@@ -578,9 +595,10 @@ public class ZMSClient implements Closeable {
      * subdomain the provided object must contain all attributes as it will
      * replace the full domain object configured on the server (not just some
      * of the attributes).
-     * @param parent name of the parent domain
+     *
+     * @param parent   name of the parent domain
      * @param auditRef string containing audit specification or ticket number
-     * @param detail SubDomain object to be created in ZMS
+     * @param detail   SubDomain object to be created in ZMS
      * @return created Domain object
      * @throws ZMSClientException in case of failure
      */
@@ -597,9 +615,10 @@ public class ZMSClient implements Closeable {
 
     /**
      * Create a top-level user-domain - this is user.&lt;userid&gt; domain.
-     * @param name domain to be created, this is the &lt;userid&gt;
+     *
+     * @param name     domain to be created, this is the &lt;userid&gt;
      * @param auditRef string containing audit specification or ticket number
-     * @param detail UserDomain object to be created in ZMS
+     * @param detail   UserDomain object to be created in ZMS
      * @return created Domain object
      * @throws ZMSClientException in case of failure
      */
@@ -613,10 +632,11 @@ public class ZMSClient implements Closeable {
             throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
         }
     }
-    
+
     /**
      * Delete a top level domain
-     * @param name domain name to be deleted from ZMS
+     *
+     * @param name     domain name to be deleted from ZMS
      * @param auditRef string containing audit specification or ticket number
      * @throws ZMSClientException in case of failure
      */
@@ -633,8 +653,9 @@ public class ZMSClient implements Closeable {
 
     /**
      * Delete a sub-domain
-     * @param parent name of the parent domain
-     * @param name sub-domain to be deleted
+     *
+     * @param parent   name of the parent domain
+     * @param name     sub-domain to be deleted
      * @param auditRef string containing audit specification or ticket number
      * @throws ZMSClientException in case of failure
      */
@@ -651,7 +672,8 @@ public class ZMSClient implements Closeable {
 
     /**
      * Delete a top-level user-domain (user.&lt;userid&gt;)
-     * @param name domain to be deleted, this is the &lt;userid&gt;
+     *
+     * @param name     domain to be deleted, this is the &lt;userid&gt;
      * @param auditRef string containing audit specification or ticket number
      */
     public void deleteUserDomain(String name, String auditRef) {
@@ -664,12 +686,13 @@ public class ZMSClient implements Closeable {
             throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
         }
     }
-    
+
     /**
      * Set the domain meta parameters
-     * @param name domain name to be modified
+     *
+     * @param name     domain name to be modified
      * @param auditRef string containing audit specification or ticket number
-     * @param detail meta parameters to be set on the domain
+     * @param detail   meta parameters to be set on the domain
      */
     public void putDomainMeta(String name, String auditRef, DomainMeta detail) {
         updatePrincipal();
@@ -684,10 +707,11 @@ public class ZMSClient implements Closeable {
 
     /**
      * Set the domain system meta parameters
-     * @param name domain name to be modified
+     *
+     * @param name      domain name to be modified
      * @param attribute system attribute being modified in this request
-     * @param auditRef string containing audit specification or ticket number
-     * @param detail meta parameters to be set on the domain
+     * @param auditRef  string containing audit specification or ticket number
+     * @param detail    meta parameters to be set on the domain
      */
     public void putDomainSystemMeta(String name, String attribute, String auditRef, DomainMeta detail) {
         updatePrincipal();
@@ -702,6 +726,7 @@ public class ZMSClient implements Closeable {
 
     /**
      * Retrieve the list of roles defined for the specified domain
+     *
      * @param domainName name of the domain
      * @return list of role names
      * @throws ZMSClientException in case of failure
@@ -720,9 +745,10 @@ public class ZMSClient implements Closeable {
     /**
      * Retrieve the list of roles defined for the specified domain
      * filtered based on the parameters specified
+     *
      * @param domainName name of the domain
-     * @param limit number of roles to return
-     * @param skip exclude all the roles including the specified one from the return set
+     * @param limit      number of roles to return
+     * @param skip       exclude all the roles including the specified one from the return set
      * @return list of role names
      * @throws ZMSClientException in case of failure
      */
@@ -740,8 +766,9 @@ public class ZMSClient implements Closeable {
     /**
      * Retrieve the list of roles defined for the specified domain. The roles
      * will contain their attributes and, if specified, the list of members.
+     *
      * @param domainName name of the domain
-     * @param members include all members for group roles as well
+     * @param members    include all members for group roles as well
      * @return list of roles
      * @throws ZMSClientException in case of failure
      */
@@ -755,11 +782,12 @@ public class ZMSClient implements Closeable {
             throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
         }
     }
-    
+
     /**
      * Retrieve the specified role
+     *
      * @param domainName name of the domain
-     * @param roleName name of the role
+     * @param roleName   name of the role
      * @return role object
      * @throws ZMSClientException in case of failure
      */
@@ -769,25 +797,27 @@ public class ZMSClient implements Closeable {
 
     /**
      * Retrieve the specified role
+     *
      * @param domainName name of the domain
-     * @param roleName name of the role
-     * @param auditLog include audit log for the role changes in the response
+     * @param roleName   name of the role
+     * @param auditLog   include audit log for the role changes in the response
      * @return role object
      * @throws ZMSClientException in case of failure
      */
     public Role getRole(String domainName, String roleName, boolean auditLog) {
         return getRole(domainName, roleName, auditLog, false, false);
     }
-    
+
 
     /**
      * Retrieve the specified role
+     *
      * @param domainName name of the domain
-     * @param roleName name of the role
-     * @param auditLog include audit log for the role changes in the response
-     * @param expand if the requested role is a delegated/trust role, this flag
-     * will instruct the ZMS server to automatically retrieve the members of the
-     * role from the delegated domain and return as part of the role object
+     * @param roleName   name of the role
+     * @param auditLog   include audit log for the role changes in the response
+     * @param expand     if the requested role is a delegated/trust role, this flag
+     *                   will instruct the ZMS server to automatically retrieve the members of the
+     *                   role from the delegated domain and return as part of the role object
      * @return role object
      * @throws ZMSClientException in case of failure
      */
@@ -797,14 +827,15 @@ public class ZMSClient implements Closeable {
 
     /**
      * Retrieve the specified role
+     *
      * @param domainName name of the domain
-     * @param roleName name of the role
-     * @param auditLog include audit log for the role changes in the response
-     * @param expand if the requested role is a delegated/trust role, this flag
-     *               will instruct the ZMS server to automatically retrieve the members of the
-     *               role from the delegated domain and return as part of the role object
-     * @param pending if this flag is set, then all members for that role will be retrieved
-     *                including pending members
+     * @param roleName   name of the role
+     * @param auditLog   include audit log for the role changes in the response
+     * @param expand     if the requested role is a delegated/trust role, this flag
+     *                   will instruct the ZMS server to automatically retrieve the members of the
+     *                   role from the delegated domain and return as part of the role object
+     * @param pending    if this flag is set, then all members for that role will be retrieved
+     *                   including pending members
      * @return role object
      * @throws ZMSClientException in case of failure
      */
@@ -818,15 +849,16 @@ public class ZMSClient implements Closeable {
             throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
         }
     }
-    
+
     /**
      * Create/Update a new role in the specified domain. If updating a role
      * the provided object must contain all attributes as it will replace
      * the full role object configured on the server (not just some of the attributes).
+     *
      * @param domainName name of the domain
-     * @param roleName name of the role
-     * @param auditRef string containing audit specification or ticket number
-     * @param role role object to be added to the domain
+     * @param roleName   name of the role
+     * @param auditRef   string containing audit specification or ticket number
+     * @param role       role object to be added to the domain
      * @throws ZMSClientException in case of failure
      */
     public void putRole(String domainName, String roleName, String auditRef, Role role) {
@@ -842,9 +874,10 @@ public class ZMSClient implements Closeable {
 
     /**
      * Delete the specified role from domain
+     *
      * @param domainName name of the domain
-     * @param roleName name of the role
-     * @param auditRef string containing audit specification or ticket number
+     * @param roleName   name of the role
+     * @param auditRef   string containing audit specification or ticket number
      * @throws ZMSClientException in case of failure
      */
     public void deleteRole(String domainName, String roleName, String auditRef) {
@@ -861,8 +894,9 @@ public class ZMSClient implements Closeable {
     /**
      * Get membership details for the specified member in the given role
      * in a specified domain
+     *
      * @param domainName name of the domain
-     * @param roleName name of the role
+     * @param roleName   name of the role
      * @param memberName name of the member
      * @return Membership object
      * @throws ZMSClientException in case of failure
@@ -880,27 +914,29 @@ public class ZMSClient implements Closeable {
 
     /**
      * Add a new member in the specified role.
+     *
      * @param domainName name of the domain
-     * @param roleName name of the role
+     * @param roleName   name of the role
      * @param memberName name of the member to be added
-     * @param auditRef string containing audit specification or ticket number
+     * @param auditRef   string containing audit specification or ticket number
      * @throws ZMSClientException in case of failure
      */
     public void putMembership(String domainName, String roleName, String memberName, String auditRef) {
         putMembership(domainName, roleName, memberName, null, auditRef);
     }
-    
+
     /**
      * Add a temporary member in the specified role with expiration
+     *
      * @param domainName name of the domain
-     * @param roleName name of the role
+     * @param roleName   name of the role
      * @param memberName name of the member to be added
      * @param expiration timestamp when this membership will expire (optional)
-     * @param auditRef string containing audit specification or ticket number
+     * @param auditRef   string containing audit specification or ticket number
      * @throws ZMSClientException in case of failure
      */
     public void putMembership(String domainName, String roleName, String memberName,
-            Timestamp expiration, String auditRef) {
+                              Timestamp expiration, String auditRef) {
         Membership mbr = new Membership().setRoleName(roleName)
                 .setMemberName(memberName).setExpiration(expiration)
                 .setIsMember(true);
@@ -916,10 +952,11 @@ public class ZMSClient implements Closeable {
 
     /**
      * Remove the specified member from the role
+     *
      * @param domainName name of the domain
-     * @param roleName name of the role
+     * @param roleName   name of the role
      * @param memberName name of the member to be removed
-     * @param auditRef string containing audit specification or ticket number
+     * @param auditRef   string containing audit specification or ticket number
      * @throws ZMSClientException in case of failure
      */
     public void deleteMembership(String domainName, String roleName, String memberName, String auditRef) {
@@ -935,6 +972,7 @@ public class ZMSClient implements Closeable {
 
     /**
      * Get list of users defined in the system
+     *
      * @return list of user names
      * @throws ZMSClientException in case of failure
      */
@@ -948,13 +986,14 @@ public class ZMSClient implements Closeable {
             throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
         }
     }
-    
+
     /**
      * Remove the specified user from Athens system. This will delete any
      * user.{name} domain plus all of its subdomains (if exist) and remove
      * the user from any role in the system. This command requires authorization
      * from the Athens sys.auth domain (delete action on resource user).
-     * @param name name of the user
+     *
+     * @param name     name of the user
      * @param auditRef string containing audit specification or ticket number
      * @throws ZMSClientException in case of failure
      */
@@ -968,10 +1007,11 @@ public class ZMSClient implements Closeable {
             throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
         }
     }
-    
+
     /**
      * Retrieve the list of policies defined for the specified domain. The policies
      * will contain their attributes and, if specified, the list of assertions.
+     *
      * @param domainName name of the domain
      * @param assertions include all assertion for policies as well
      * @return list of policies
@@ -990,6 +1030,7 @@ public class ZMSClient implements Closeable {
 
     /**
      * Get list of policies defined in the specified domain
+     *
      * @param domainName name of the domain
      * @return list of policy names
      * @throws ZMSClientException in case of failure
@@ -1008,9 +1049,10 @@ public class ZMSClient implements Closeable {
     /**
      * Get list of policies defined in the specified domain filtered
      * based on the specified arguments
+     *
      * @param domainName name of the domain
-     * @param limit number of policies to return
-     * @param skip exclude all the policies including the specified one from the return set
+     * @param limit      number of policies to return
+     * @param skip       exclude all the policies including the specified one from the return set
      * @return list of policy names
      * @throws ZMSClientException in case of failure
      */
@@ -1027,8 +1069,9 @@ public class ZMSClient implements Closeable {
 
     /**
      * Return the specified policy object assertion
-     * @param domainName name of the domain
-     * @param policyName name of the policy
+     *
+     * @param domainName  name of the domain
+     * @param policyName  name of the policy
      * @param assertionId the id of the assertion to be retrieved
      * @return Assertion object
      * @throws ZMSClientException in case of failure
@@ -1046,10 +1089,11 @@ public class ZMSClient implements Closeable {
 
     /**
      * Add the specified assertion to the specified policy
+     *
      * @param domainName name of the domain
      * @param policyName name of the policy
-     * @param auditRef string containing audit specification or ticket number
-     * @param assertion Assertion object to be added to the policy
+     * @param auditRef   string containing audit specification or ticket number
+     * @param assertion  Assertion object to be added to the policy
      * @return updated assertion object that includes the server assigned id
      * @throws ZMSClientException in case of failure
      */
@@ -1066,10 +1110,11 @@ public class ZMSClient implements Closeable {
 
     /**
      * Delete specified assertion from the given policy
-     * @param domainName name of the domain
-     * @param policyName name of the policy
+     *
+     * @param domainName  name of the domain
+     * @param policyName  name of the policy
      * @param assertionId the id of the assertion to be deleted
-     * @param auditRef string containing audit specification or ticket number
+     * @param auditRef    string containing audit specification or ticket number
      * @throws ZMSClientException in case of failure
      */
     public void deleteAssertion(String domainName, String policyName, Long assertionId, String auditRef) {
@@ -1085,6 +1130,7 @@ public class ZMSClient implements Closeable {
 
     /**
      * Return the specified policy object
+     *
      * @param domainName name of the domain
      * @param policyName name of the policy to be retrieved
      * @return Policy object
@@ -1105,10 +1151,11 @@ public class ZMSClient implements Closeable {
      * Create/Update a new policy in the specified domain. If updating a policy
      * the provided object must contain all attributes as it will replace the
      * full policy object configured on the server (not just some of the attributes).
+     *
      * @param domainName name of the domain
      * @param policyName name of the policy
-     * @param auditRef string containing audit specification or ticket number
-     * @param policy Policy object with details
+     * @param auditRef   string containing audit specification or ticket number
+     * @param policy     Policy object with details
      * @throws ZMSClientException in case of failure
      */
     public void putPolicy(String domainName, String policyName, String auditRef, Policy policy) {
@@ -1122,11 +1169,12 @@ public class ZMSClient implements Closeable {
         }
     }
 
-    /** 
+    /**
      * Delete specified policy from a domain
+     *
      * @param domainName name of the domain
      * @param policyName name of the policy to be deleted
-     * @param auditRef string containing audit specification or ticket number
+     * @param auditRef   string containing audit specification or ticket number
      * @throws ZMSClientException in case of failure
      */
     public void deletePolicy(String domainName, String policyName, String auditRef) {
@@ -1144,14 +1192,15 @@ public class ZMSClient implements Closeable {
      * Create/Update a new service in the specified domain.  If updating a service
      * the provided object must contain all attributes as it will replace the
      * full service object configured on the server (not just some of the attributes).
-     * @param domainName name of the domain
+     *
+     * @param domainName  name of the domain
      * @param serviceName name of the service
-     * @param auditRef string containing audit specification or ticket number
-     * @param service ServiceIdentity object with all service details
+     * @param auditRef    string containing audit specification or ticket number
+     * @param service     ServiceIdentity object with all service details
      * @throws ZMSClientException in case of failure
      */
-    public void putServiceIdentity(String domainName, String serviceName, 
-            String auditRef, ServiceIdentity service) {
+    public void putServiceIdentity(String domainName, String serviceName,
+                                   String auditRef, ServiceIdentity service) {
         updatePrincipal();
         try {
             client.putServiceIdentity(domainName, serviceName, auditRef, service);
@@ -1164,7 +1213,8 @@ public class ZMSClient implements Closeable {
 
     /**
      * Retrieve the specified service object from a domain
-     * @param domainName name of the domain
+     *
+     * @param domainName  name of the domain
      * @param serviceName name of the service to be retrieved
      * @return ServiceIdentity object
      * @throws ZMSClientException in case of failure
@@ -1182,9 +1232,10 @@ public class ZMSClient implements Closeable {
 
     /**
      * Delete the specified service from a domain
-     * @param domainName name of the domain
+     *
+     * @param domainName  name of the domain
      * @param serviceName name of the service to be deleted
-     * @param auditRef string containing audit specification or ticket number
+     * @param auditRef    string containing audit specification or ticket number
      * @throws ZMSClientException in case of failure
      */
     public void deleteServiceIdentity(String domainName, String serviceName, String auditRef) {
@@ -1201,9 +1252,10 @@ public class ZMSClient implements Closeable {
     /**
      * Retrieve the list of services defined for the specified domain. The services
      * will contain their attributes and, if specified, the list of publickeys and hosts.
+     *
      * @param domainName name of the domain
      * @param publicKeys include all public keys for services as well
-     * @param hosts include all configured hosts for services as well
+     * @param hosts      include all configured hosts for services as well
      * @return list of services
      * @throws ZMSClientException in case of failure
      */
@@ -1217,9 +1269,10 @@ public class ZMSClient implements Closeable {
             throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
         }
     }
-    
+
     /**
      * Retrieve the full list of services defined in a domain
+     *
      * @param domainName name of the domain
      * @return list of all service names
      * @throws ZMSClientException in case of failure
@@ -1231,9 +1284,10 @@ public class ZMSClient implements Closeable {
     /**
      * Retrieve the list of services defined in a domain filtered
      * based on the specified arguments
+     *
      * @param domainName name of the domain
-     * @param limit number of services to return
-     * @param skip exclude all the services including the specified one from the return set
+     * @param limit      number of services to return
+     * @param skip       exclude all the services including the specified one from the return set
      * @return list of service names
      * @throws ZMSClientException in case of failure
      */
@@ -1250,9 +1304,10 @@ public class ZMSClient implements Closeable {
 
     /**
      * Retrieve the specified public key from the given service object
-     * @param domainName name of the domain
+     *
+     * @param domainName  name of the domain
      * @param serviceName name of the service
-     * @param keyId the identifier of the public key to be retrieved
+     * @param keyId       the identifier of the public key to be retrieved
      * @return PublicKeyEntry object
      * @throws ZMSClientException in case of failure
      */
@@ -1269,15 +1324,16 @@ public class ZMSClient implements Closeable {
 
     /**
      * Update or add (if doesn't already exist) the specified public key in the service object
-     * @param domainName name of the domain
-     * @param serviceName name of the service
-     * @param keyId the identifier of the public key to be updated
-     * @param auditRef string containing audit specification or ticket number
+     *
+     * @param domainName     name of the domain
+     * @param serviceName    name of the service
+     * @param keyId          the identifier of the public key to be updated
+     * @param auditRef       string containing audit specification or ticket number
      * @param publicKeyEntry that contains the public key details
      * @throws ZMSClientException in case of failure
      */
     public void putPublicKeyEntry(String domainName, String serviceName, String keyId, String auditRef,
-            PublicKeyEntry publicKeyEntry) {
+                                  PublicKeyEntry publicKeyEntry) {
         updatePrincipal();
         try {
             client.putPublicKeyEntry(domainName, serviceName, keyId, auditRef, publicKeyEntry);
@@ -1291,10 +1347,11 @@ public class ZMSClient implements Closeable {
     /**
      * Delete the specified public key from the service object. If the key doesn't exist then
      * it is treated as a successful operation and no exception will be thrown.
-     * @param domainName name of the domain
+     *
+     * @param domainName  name of the domain
      * @param serviceName name of the service
-     * @param keyId the identifier of the public key to be deleted
-     * @param auditRef string containing audit specification or ticket number
+     * @param keyId       the identifier of the public key to be deleted
+     * @param auditRef    string containing audit specification or ticket number
      * @throws ZMSClientException in case of failure
      */
     public void deletePublicKeyEntry(String domainName, String serviceName, String keyId, String auditRef) {
@@ -1310,10 +1367,11 @@ public class ZMSClient implements Closeable {
 
     /**
      * Create/update an entity object in ZMS
+     *
      * @param domainName name of the domain
      * @param entityName name of the entity
-     * @param auditRef string containing audit specification or ticket number
-     * @param entity entity object with details
+     * @param auditRef   string containing audit specification or ticket number
+     * @param entity     entity object with details
      * @throws ZMSClientException in case of failure
      */
     public void putEntity(String domainName, String entityName, String auditRef, Entity entity) {
@@ -1329,6 +1387,7 @@ public class ZMSClient implements Closeable {
 
     /**
      * Retrieve the specified entity from the ZMS Server
+     *
      * @param domainName name of the domain
      * @param entityName name of the entity
      * @return Entity object with details
@@ -1347,9 +1406,10 @@ public class ZMSClient implements Closeable {
 
     /**
      * Delete the specified entity from the ZMS Server
+     *
      * @param domainName name of the domain
      * @param entityName name of the entity
-     * @param auditRef string containing audit specification or ticket number
+     * @param auditRef   string containing audit specification or ticket number
      * @throws ZMSClientException in case of failure
      */
     public void deleteEntity(String domainName, String entityName, String auditRef) {
@@ -1365,6 +1425,7 @@ public class ZMSClient implements Closeable {
 
     /**
      * Retrieve the list of entities defined for the specified domain
+     *
      * @param domainName name of the domain
      * @return list of entity names
      * @throws ZMSClientException in case of failure
@@ -1379,14 +1440,15 @@ public class ZMSClient implements Closeable {
             throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
         }
     }
-    
+
     /**
      * Register a new provider service for a given tenant domain
-     * @param tenantDomain name of the tenant domain
+     *
+     * @param tenantDomain    name of the tenant domain
      * @param providerService name of the provider service
-     *        format: provider-domain-name.provider-service-name, ex: "sports.storage"
-     * @param auditRef string containing audit specification or ticket number
-     * @param tenant Tenancy object with tenant details
+     *                        format: provider-domain-name.provider-service-name, ex: "sports.storage"
+     * @param auditRef        string containing audit specification or ticket number
+     * @param tenant          Tenancy object with tenant details
      * @throws ZMSClientException in case of failure
      */
     public void putTenancy(String tenantDomain, String providerService, String auditRef, Tenancy tenant) {
@@ -1402,10 +1464,11 @@ public class ZMSClient implements Closeable {
 
     /**
      * Delete the specified provider service from a tenant domain
-     * @param tenantDomain name of the tenant domain
+     *
+     * @param tenantDomain    name of the tenant domain
      * @param providerService name of the provider service,
-     *        format: provider-domain-name.provider-service-name, ex: "sports.storage"
-     * @param auditRef string containing audit specification or ticket number
+     *                        format: provider-domain-name.provider-service-name, ex: "sports.storage"
+     * @param auditRef        string containing audit specification or ticket number
      * @throws ZMSClientException in case of failure
      */
     public void deleteTenancy(String tenantDomain, String providerService, String auditRef) {
@@ -1421,11 +1484,12 @@ public class ZMSClient implements Closeable {
 
     /**
      * Register a new tenant domain for the provider service
-     * @param providerDomain provider domain name
+     *
+     * @param providerDomain  provider domain name
      * @param providerService provider service name
-     * @param tenantDomain name of the tenant domain
-     * @param auditRef string containing audit specification or ticket number
-     * @param tenant Tenancy object with tenant details
+     * @param tenantDomain    name of the tenant domain
+     * @param auditRef        string containing audit specification or ticket number
+     * @param tenant          Tenancy object with tenant details
      * @throws ZMSClientException in case of failure
      */
     public void putTenant(String providerDomain, String providerService, String tenantDomain, String auditRef, Tenancy tenant) {
@@ -1441,10 +1505,11 @@ public class ZMSClient implements Closeable {
 
     /**
      * Delete the specified tenant from provider service
-     * @param providerDomain provider domain name
+     *
+     * @param providerDomain  provider domain name
      * @param providerService provider service name
-     * @param tenantDomain name of the tenant domain
-     * @param auditRef string containing audit specification or ticket number
+     * @param tenantDomain    name of the tenant domain
+     * @param auditRef        string containing audit specification or ticket number
      * @throws ZMSClientException in case of failure
      */
     public void deleteTenant(String providerDomain, String providerService, String tenantDomain, String auditRef) {
@@ -1460,16 +1525,17 @@ public class ZMSClient implements Closeable {
 
     /**
      * Create tenant roles for the specified tenant resource group.
-     * @param providerDomain name of the provider domain
+     *
+     * @param providerDomain      name of the provider domain
      * @param providerServiceName name of the provider service
-     * @param tenantDomain name of the tenant's domain
-     * @param resourceGroup name of the resource group
-     * @param auditRef string containing audit specification or ticket number
-     * @param tenantRoles Tenant roles
+     * @param tenantDomain        name of the tenant's domain
+     * @param resourceGroup       name of the resource group
+     * @param auditRef            string containing audit specification or ticket number
+     * @param tenantRoles         Tenant roles
      * @throws ZMSClientException in case of failure
      */
     public void putTenantResourceGroupRoles(String providerDomain, String providerServiceName, String tenantDomain,
-            String resourceGroup, String auditRef, TenantResourceGroupRoles tenantRoles) {
+                                            String resourceGroup, String auditRef, TenantResourceGroupRoles tenantRoles) {
         updatePrincipal();
         try {
             client.putTenantResourceGroupRoles(providerDomain, providerServiceName, tenantDomain,
@@ -1483,15 +1549,16 @@ public class ZMSClient implements Closeable {
 
     /**
      * Retrieve the list of tenant roles defined for a tenant resource group in a domain
-     * @param providerDomain name of the provider domain
+     *
+     * @param providerDomain      name of the provider domain
      * @param providerServiceName name of the provider service
-     * @param tenantDomain name of the tenant's domain
-     * @param resourceGroup name of the resource group
+     * @param tenantDomain        name of the tenant's domain
+     * @param resourceGroup       name of the resource group
      * @return list of tenant roles
      * @throws ZMSClientException in case of failure
      */
     public TenantResourceGroupRoles getTenantResourceGroupRoles(String providerDomain, String providerServiceName,
-            String tenantDomain, String resourceGroup) {
+                                                                String tenantDomain, String resourceGroup) {
         updatePrincipal();
         try {
             return client.getTenantResourceGroupRoles(providerDomain, providerServiceName,
@@ -1505,15 +1572,16 @@ public class ZMSClient implements Closeable {
 
     /**
      * Delete tenant roles for the specified tenant resource group in a domain
-     * @param providerDomain name of the provider domain
+     *
+     * @param providerDomain      name of the provider domain
      * @param providerServiceName name of the provider service
-     * @param tenantDomain name of tenant's domain
-     * @param resourceGroup name of the resource group
-     * @param auditRef string containing audit specification or ticket number
+     * @param tenantDomain        name of tenant's domain
+     * @param resourceGroup       name of the resource group
+     * @param auditRef            string containing audit specification or ticket number
      * @throws ZMSClientException in case of failure
      */
     public void deleteTenantResourceGroupRoles(String providerDomain, String providerServiceName, String tenantDomain,
-            String resourceGroup, String auditRef) {
+                                               String resourceGroup, String auditRef) {
         updatePrincipal();
         try {
             client.deleteTenantResourceGroupRoles(providerDomain, providerServiceName, tenantDomain,
@@ -1526,12 +1594,13 @@ public class ZMSClient implements Closeable {
     }
 
     /**
-     * Requests the ZMS to indicate whether or not the specific request for the 
+     * Requests the ZMS to indicate whether or not the specific request for the
      * specified resource with authentication details will be granted or not.
-     * @param action value of the action to be carried out (e.g. "UPDATE", "DELETE")
-     * @param resource resource name. Resource is defined as {DomainName}:{Entity}"
+     *
+     * @param action      value of the action to be carried out (e.g. "UPDATE", "DELETE")
+     * @param resource    resource name. Resource is defined as {DomainName}:{Entity}"
      * @param trustDomain (optional) if the access checks involves cross domain check only
-     *        check the specified trusted domain and ignore all others
+     *                    check the specified trusted domain and ignore all others
      * @return Access object indicating whether or not the request will be granted or not
      * @throws ZMSClientException in case of failure
      */
@@ -1540,13 +1609,14 @@ public class ZMSClient implements Closeable {
     }
 
     /**
-     * Requests the ZMS to indicate whether or not the specific request for the 
+     * Requests the ZMS to indicate whether or not the specific request for the
      * specified resource with authentication details will be granted or not.
-     * @param action value of the action to be carried out (e.g. "UPDATE", "DELETE")
-     * @param resource resource name. Resource is defined as {DomainName}:{Entity}"
+     *
+     * @param action      value of the action to be carried out (e.g. "UPDATE", "DELETE")
+     * @param resource    resource name. Resource is defined as {DomainName}:{Entity}"
      * @param trustDomain (optional) if the access checks involves cross domain check only
-     *        check the specified trusted domain and ignore all others
-     * @param principal (optional) carry out the access check for specified principal
+     *                    check the specified trusted domain and ignore all others
+     * @param principal   (optional) carry out the access check for specified principal
      * @return Access object indicating whether or not the request will be granted or not
      * @throws ZMSClientException in case of failure
      */
@@ -1562,13 +1632,14 @@ public class ZMSClient implements Closeable {
 
 
     /**
-     * Requests the ZMS to indicate whether or not the specific request for the 
+     * Requests the ZMS to indicate whether or not the specific request for the
      * specified resource with authentication details will be granted or not.
-     * @param action value of the action to be carried out (e.g. "UPDATE", "DELETE")
-     * @param resource resource string.
+     *
+     * @param action      value of the action to be carried out (e.g. "UPDATE", "DELETE")
+     * @param resource    resource string.
      * @param trustDomain (optional) if the access checks involves cross domain check only
-     *        check the specified trusted domain and ignore all others
-     * @param principal (optional) carry out the access check for specified principal
+     *                    check the specified trusted domain and ignore all others
+     * @param principal   (optional) carry out the access check for specified principal
      * @return Access object indicating whether or not the request will be granted or not
      * @throws ZMSClientException in case of failure
      */
@@ -1581,29 +1652,30 @@ public class ZMSClient implements Closeable {
             throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
         }
     }
-    
+
     /**
      * Retrieve the list of all domain data from the ZMS Server that
      * is signed with ZMS's private key. It will pass an optional matchingTag
      * so that ZMS can skip returning domains if no changes have taken
      * place since that tag was issued.
-     * @param domainName name of the domain. if specified, the server will
-     *        only return this domain in the result set
-     * @param metaOnly (can be null) must have value of true or false (default).
-     *        if set to true, zms server will only return meta information
-     *        about each domain (description, last modified timestamp, etc) and
-     *        no role/policy/service details will be returned.
-     * @param matchingTag (can be null) contains modified timestamp received
-     *        with last request. If null, then return all domains.
+     *
+     * @param domainName      name of the domain. if specified, the server will
+     *                        only return this domain in the result set
+     * @param metaOnly        (can be null) must have value of true or false (default).
+     *                        if set to true, zms server will only return meta information
+     *                        about each domain (description, last modified timestamp, etc) and
+     *                        no role/policy/service details will be returned.
+     * @param matchingTag     (can be null) contains modified timestamp received
+     *                        with last request. If null, then return all domains.
      * @param responseHeaders contains the "tag" returned for modification
-     *        time of the domains, map key = "tag", List should
-     *        contain a single value timestamp String to be used
-     *        with subsequent call as matchingTag to this API
+     *                        time of the domains, map key = "tag", List should
+     *                        contain a single value timestamp String to be used
+     *                        with subsequent call as matchingTag to this API
      * @return list of domains signed by ZMS Server
      * @throws ZMSClientException in case of failure
      */
     public SignedDomains getSignedDomains(String domainName, String metaOnly, String matchingTag,
-            Map<String, List<String>> responseHeaders) {
+                                          Map<String, List<String>> responseHeaders) {
         return getSignedDomains(domainName, metaOnly, null, matchingTag, responseHeaders);
     }
 
@@ -1612,29 +1684,30 @@ public class ZMSClient implements Closeable {
      * is signed with ZMS's private key. It will pass an optional matchingTag
      * so that ZMS can skip returning domains if no changes have taken
      * place since that tag was issued.
-     * @param domainName name of the domain. if specified, the server will
-     *        only return this domain in the result set
-     * @param metaOnly (can be null) must have value of true or false (default).
-     *        if set to true, zms server will only return meta information
-     *        about each domain (description, last modified timestamp, etc) and
-     *        no role/policy/service details will be returned.
-     * @param metaAttr (can be null) if metaOnly option is set to true, this
-     *        parameter can filter the results based on the presence of the
-     *        requested attribute. Allowed values are: account, ypmid, and all.
-     *        account - only return domains that have the account value set
-     *        ypmid - only return domains that have the ypmid value set
-     *        all - return all domains (no filtering).
-     * @param matchingTag (can be null) contains modified timestamp received
-     *        with last request. If null, then return all domains.
+     *
+     * @param domainName      name of the domain. if specified, the server will
+     *                        only return this domain in the result set
+     * @param metaOnly        (can be null) must have value of true or false (default).
+     *                        if set to true, zms server will only return meta information
+     *                        about each domain (description, last modified timestamp, etc) and
+     *                        no role/policy/service details will be returned.
+     * @param metaAttr        (can be null) if metaOnly option is set to true, this
+     *                        parameter can filter the results based on the presence of the
+     *                        requested attribute. Allowed values are: account, ypmid, and all.
+     *                        account - only return domains that have the account value set
+     *                        ypmid - only return domains that have the ypmid value set
+     *                        all - return all domains (no filtering).
+     * @param matchingTag     (can be null) contains modified timestamp received
+     *                        with last request. If null, then return all domains.
      * @param responseHeaders contains the "tag" returned for modification
-     *        time of the domains, map key = "tag", List should
-     *        contain a single value timestamp String to be used
-     *        with subsequent call as matchingTag to this API
+     *                        time of the domains, map key = "tag", List should
+     *                        contain a single value timestamp String to be used
+     *                        with subsequent call as matchingTag to this API
      * @return list of domains signed by ZMS Server
      * @throws ZMSClientException in case of failure
      */
     public SignedDomains getSignedDomains(String domainName, String metaOnly, String metaAttr,
-            String matchingTag, Map<String, List<String>> responseHeaders) {
+                                          String matchingTag, Map<String, List<String>> responseHeaders) {
         updatePrincipal();
         try {
             return client.getSignedDomains(domainName, metaOnly, metaAttr, matchingTag, responseHeaders);
@@ -1650,23 +1723,25 @@ public class ZMSClient implements Closeable {
      * can be used for authenticating other ZMS operations. The client internally
      * automatically calls this method and uses the UserToken if the ZMSClient
      * object was initialized with a user principal.
+     *
      * @param userName name of the user. This is only used to verify that it matches
-     * the user name from the credentials and is optional. The caller can just pass
-     * the string "_self_" as the userName to bypass this optional check.
+     *                 the user name from the credentials and is optional. The caller can just pass
+     *                 the string "_self_" as the userName to bypass this optional check.
      * @return ZMS generated User Token
      * @throws ZMSClientException in case of failure
      */
     public UserToken getUserToken(String userName) {
         return getUserToken(userName, null, null);
     }
-    
+
     /**
      * For the specified user credentials return the corresponding User Token that
      * can be used for authenticating other ZMS operations by any of the specified
      * authorized services.
-     * @param userName name of the user
+     *
+     * @param userName     name of the user
      * @param serviceNames comma separated list of authorized service names
-     * @param header boolean flag whether or not return authority header name
+     * @param header       boolean flag whether or not return authority header name
      * @return ZMS generated User Token
      * @throws ZMSClientException in case of failure
      */
@@ -1679,12 +1754,13 @@ public class ZMSClient implements Closeable {
             throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
         }
     }
-    
+
     /**
      * For the specified user credentials return the corresponding User Token that
      * can be used for authenticating other ZMS operations by any of the specified
      * authorized services.
-     * @param userName name of the user
+     *
+     * @param userName     name of the user
      * @param serviceNames comma separated list of authorized service names
      * @return ZMS generated User Token
      * @throws ZMSClientException in case of failure
@@ -1692,14 +1768,15 @@ public class ZMSClient implements Closeable {
     public UserToken getUserToken(String userName, String serviceNames) {
         return getUserToken(userName, serviceNames, null);
     }
-    
+
     /**
      * For the specified domain in domainName, a list of default administrators
      * can be passed to this method and will be added to the domain's admin role
      * In addition this method will ensure that the admin role and policy exist and
      * are properly set up
-     * @param domainName - name of the domain to add default administrators to
-     * @param auditRef - string containing audit specification or ticket number
+     *
+     * @param domainName    - name of the domain to add default administrators to
+     * @param auditRef      - string containing audit specification or ticket number
      * @param defaultAdmins - list of names to be added as default administrators
      * @throws ZMSClientException in case of failure
      */
@@ -1713,10 +1790,11 @@ public class ZMSClient implements Closeable {
             throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
         }
     }
-    
+
     /**
      * The client will validate the given serviceToken against the ZMS Server
      * and if the token is valid, it will return a Principal object.
+     *
      * @param serviceToken token to be validated.
      * @return Principal object if the token is successfully validated or
      * @throws ZMSClientException in case of failure
@@ -1724,17 +1802,18 @@ public class ZMSClient implements Closeable {
     public Principal getPrincipal(String serviceToken) {
         return getPrincipal(serviceToken, PRINCIPAL_AUTHORITY.getHeader());
     }
-    
+
     /**
      * The client will validate the given serviceToken against the ZMS Server
      * and if the token is valid, it will return a Principal object.
+     *
      * @param serviceToken token to be validated.
-     * @param tokenHeader name of the authorization header for the token
+     * @param tokenHeader  name of the authorization header for the token
      * @return Principal object if the token is successfully validated or
      * @throws ZMSClientException in case of failure
      */
     public Principal getPrincipal(String serviceToken, String tokenHeader) {
-        
+
         if (serviceToken == null) {
             throw new ZMSClientException(401, "Null service token provided");
         }
@@ -1742,10 +1821,10 @@ public class ZMSClient implements Closeable {
         if (tokenHeader == null) {
             tokenHeader = PRINCIPAL_AUTHORITY.getHeader();
         }
-        
+
         // verify that service token is valid before sending the data to
         // the ZMS server
-        
+
         PrincipalToken token;
         try {
             token = new PrincipalToken(serviceToken);
@@ -1753,13 +1832,13 @@ public class ZMSClient implements Closeable {
             throw new ZMSClientException(ZMSClientException.UNAUTHORIZED,
                     "Invalid service token provided: " + ex.getMessage());
         }
-        
+
         Principal servicePrincipal = SimplePrincipal.create(token.getDomain(), token.getName(),
                 serviceToken, 0, PRINCIPAL_AUTHORITY);
 
         client.addCredentials(tokenHeader, serviceToken);
         principalCheckDone = true;
-        
+
         ServicePrincipal validatedPrincipal;
         try {
             validatedPrincipal = client.getServicePrincipal();
@@ -1768,41 +1847,42 @@ public class ZMSClient implements Closeable {
         } catch (Exception ex) {
             throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
         }
-        
+
         if (validatedPrincipal == null) {
             throw new ZMSClientException(ZMSClientException.UNAUTHORIZED, "Invalid service token provided");
         }
-        
+
         // before returning let's validate that domain, name and
         // credentials match to what was passed to 
-        
+
         if (!servicePrincipal.getDomain().equalsIgnoreCase(validatedPrincipal.getDomain())) {
             throw new ZMSClientException(ZMSClientException.UNAUTHORIZED, "Validated principal domain name mismatch");
         }
-        
+
         if (!servicePrincipal.getName().equalsIgnoreCase(validatedPrincipal.getService())) {
             throw new ZMSClientException(ZMSClientException.UNAUTHORIZED, "Validated principal service name mismatch");
         }
-        
+
         return servicePrincipal;
     }
-    
+
     /**
      * Create provider roles for the specified tenant resource group in the tenant domain.
      * If the principal requesting this operation has been authorized by the provider
      * service itself, then the corresponding tenant roles will be created in the provider
      * domain as well thus completing the tenancy on-boarding process in one call.
-     * @param tenantDomain name of the tenant's domain
-     * @param providerDomain name of the provider domain
+     *
+     * @param tenantDomain        name of the tenant's domain
+     * @param providerDomain      name of the provider domain
      * @param providerServiceName name of the provider service
-     * @param resourceGroup name of the resource group
-     * @param auditRef string containing audit specification or ticket number
-     * @param providerRoles Provider roles
+     * @param resourceGroup       name of the resource group
+     * @param auditRef            string containing audit specification or ticket number
+     * @param providerRoles       Provider roles
      * @throws ZMSClientException in case of failure
      */
     public void putProviderResourceGroupRoles(String tenantDomain, String providerDomain,
-            String providerServiceName, String resourceGroup, String auditRef,
-            ProviderResourceGroupRoles providerRoles) {
+                                              String providerServiceName, String resourceGroup, String auditRef,
+                                              ProviderResourceGroupRoles providerRoles) {
         updatePrincipal();
         try {
             client.putProviderResourceGroupRoles(tenantDomain, providerDomain, providerServiceName,
@@ -1813,21 +1893,22 @@ public class ZMSClient implements Closeable {
             throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
         }
     }
-    
+
     /**
      * Delete the provider roles for the specified tenant resource group from the tenant domain.
      * If the principal requesting this operation has been authorized by the provider
      * service itself, then the corresponding tenant roles will be deleted from the provider
      * domain as well thus completing the process in one call.
-     * @param tenantDomain name of tenant's domain
-     * @param providerDomain name of the provider domain
+     *
+     * @param tenantDomain        name of tenant's domain
+     * @param providerDomain      name of the provider domain
      * @param providerServiceName name of the provider service
-     * @param resourceGroup name of the resource group
-     * @param auditRef string containing audit specification or ticket number
+     * @param resourceGroup       name of the resource group
+     * @param auditRef            string containing audit specification or ticket number
      * @throws ZMSClientException in case of failure
      */
     public void deleteProviderResourceGroupRoles(String tenantDomain, String providerDomain,
-            String providerServiceName, String resourceGroup, String auditRef) {
+                                                 String providerServiceName, String resourceGroup, String auditRef) {
         updatePrincipal();
         try {
             client.deleteProviderResourceGroupRoles(tenantDomain, providerDomain, providerServiceName,
@@ -1838,18 +1919,19 @@ public class ZMSClient implements Closeable {
             throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
         }
     }
-    
+
     /**
      * Retrieve the list of provider roles defined for a tenant resource group in a domain
-     * @param tenantDomain name of the tenant's domain
-     * @param providerDomain name of the provider domain
+     *
+     * @param tenantDomain        name of the tenant's domain
+     * @param providerDomain      name of the provider domain
      * @param providerServiceName name of the provider service
-     * @param resourceGroup name of the resource group
+     * @param resourceGroup       name of the resource group
      * @return list of provider roles
      * @throws ZMSClientException in case of failure
      */
     public ProviderResourceGroupRoles getProviderResourceGroupRoles(String tenantDomain,
-            String providerDomain, String providerServiceName, String resourceGroup) {
+                                                                    String providerDomain, String providerServiceName, String resourceGroup) {
         updatePrincipal();
         try {
             return client.getProviderResourceGroupRoles(tenantDomain, providerDomain, providerServiceName,
@@ -1860,9 +1942,10 @@ public class ZMSClient implements Closeable {
             throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
         }
     }
-    
+
     /**
      * Check the data for the specified domain object
+     *
      * @param domain name of the domain to be checked
      * @return DomainDataCheck object
      * @throws ZMSClientException in case of failure
@@ -1877,11 +1960,12 @@ public class ZMSClient implements Closeable {
             throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
         }
     }
-    
+
     /**
      * Retrieve the the specified solution template provisioned on the ZMS Server.
      * The template object will include the list of roles and policies that will
      * be provisioned in the domain when the template is applied.
+     *
      * @param template name of the solution template to be retrieved
      * @return template object
      * @throws ZMSClientException in case of failure
@@ -1899,6 +1983,7 @@ public class ZMSClient implements Closeable {
 
     /**
      * Retrieve the list of solution templates provisioned on the ZMS Server
+     *
      * @return list of template names
      * @throws ZMSClientException in case of failure
      */
@@ -1912,11 +1997,12 @@ public class ZMSClient implements Closeable {
             throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
         }
     }
-    
+
     /**
      * Provision the specified solution template roles and policies in the domain
-     * @param domain name of the domain to be updated
-     * @param auditRef string containing audit specification or ticket number
+     *
+     * @param domain    name of the domain to be updated
+     * @param auditRef  string containing audit specification or ticket number
      * @param templates contains list of template names to be provisioned in the domain
      * @throws ZMSClientException in case of failure
      */
@@ -1933,9 +2019,10 @@ public class ZMSClient implements Closeable {
 
     /**
      * Provision the specified solution template roles and policies in the domain
-     * @param domain name of the domain to be updated
-     * @param template name of the template to be applied
-     * @param auditRef string containing audit specification or ticket number
+     *
+     * @param domain    name of the domain to be updated
+     * @param template  name of the template to be applied
+     * @param auditRef  string containing audit specification or ticket number
      * @param templates containing the single template (must match the template parameter) to be provisioned in the domain
      * @throws ZMSClientException in case of failure
      */
@@ -1949,10 +2036,11 @@ public class ZMSClient implements Closeable {
             throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
         }
     }
-    
+
     /**
      * Delete the specified solution template roles and policies from the domain
-     * @param domain name of the domain to be updated
+     *
+     * @param domain   name of the domain to be updated
      * @param template is the name of the provisioned template to be deleted
      * @param auditRef string containing audit specification or ticket number
      * @throws ZMSClientException in case of failure
@@ -1967,9 +2055,10 @@ public class ZMSClient implements Closeable {
             throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
         }
     }
-    
+
     /**
      * Retrieve the list of solution template provisioned for a domain
+     *
      * @param domain name of the domain
      * @return TemplateList object that includes the list of provisioned solution template names
      * @throws ZMSClientException in case of failure
@@ -1984,15 +2073,16 @@ public class ZMSClient implements Closeable {
             throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
         }
     }
-    
+
     /**
      * Retrieve the list of resources as defined in their respective assertions
      * that the given principal has access to through their role membership
+     *
      * @param principal the principal name (e.g. user.joe). Must have special
-     * privileges to execute this query without specifying the principal.
-     * Check with Athenz Service Administrators if you have a use case to
-     * request all principals from Athenz Service
-     * @param action optional field specifying what action to filter assertions on
+     *                  privileges to execute this query without specifying the principal.
+     *                  Check with Athenz Service Administrators if you have a use case to
+     *                  request all principals from Athenz Service
+     * @param action    optional field specifying what action to filter assertions on
      * @return ResourceAccessList object that lists the set of assertions per principal
      * @throws ZMSClientException in case of failure
      */
@@ -2006,9 +2096,10 @@ public class ZMSClient implements Closeable {
             throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
         }
     }
-    
+
     /**
      * Retrieve the quota deatails for the specified domain
+     *
      * @param domainName name of the domain
      * @return quota object
      * @throws ZMSClientException in case of failure
@@ -2023,12 +2114,13 @@ public class ZMSClient implements Closeable {
             throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
         }
     }
-    
+
     /**
      * Create/Update the quota details for the specified domain
+     *
      * @param domainName name of the domain
-     * @param auditRef string containing audit specification or ticket number
-     * @param quota object to be set for the domain
+     * @param auditRef   string containing audit specification or ticket number
+     * @param quota      object to be set for the domain
      * @throws ZMSClientException in case of failure
      */
     public void putQuota(String domainName, String auditRef, Quota quota) {
@@ -2044,8 +2136,9 @@ public class ZMSClient implements Closeable {
 
     /**
      * Delete the specified quota details for the specified domain
+     *
      * @param domainName name of the domain
-     * @param auditRef string containing audit specification or ticket number
+     * @param auditRef   string containing audit specification or ticket number
      * @throws ZMSClientException in case of failure
      */
     public void deleteQuota(String domainName, String auditRef) {
@@ -2061,9 +2154,10 @@ public class ZMSClient implements Closeable {
 
     /**
      * Delete the specified user from all roles in the given domain
+     *
      * @param domainName name of the domain
      * @param memberName name of the member to be removed from all roles
-     * @param auditRef string containing audit specification or ticket number
+     * @param auditRef   string containing audit specification or ticket number
      * @throws ZMSClientException in case of failure
      */
     public void deleteDomainRoleMember(String domainName, String memberName, String auditRef) {
@@ -2080,6 +2174,7 @@ public class ZMSClient implements Closeable {
     /**
      * Retrieve the list of all members provisioned for a domain
      * in regular roles
+     *
      * @param domainName name of the domain
      * @return DomainRoleMembers object that includes the list of members with their roles
      * @throws ZMSClientException in case of failure
@@ -2097,11 +2192,12 @@ public class ZMSClient implements Closeable {
 
     /**
      * Set the role system meta parameters
+     *
      * @param domainName domain name containing the role to be modified
-     * @param roleName role name to be modified
-     * @param attribute role meta attribute being modified in this request
-     * @param auditRef string containing audit specification or ticket number
-     * @param meta meta parameters to be set on the role
+     * @param roleName   role name to be modified
+     * @param attribute  role meta attribute being modified in this request
+     * @param auditRef   string containing audit specification or ticket number
+     * @param meta       meta parameters to be set on the role
      */
     public void putRoleSystemMeta(String domainName, String roleName, String attribute, String auditRef, RoleSystemMeta meta) {
         updatePrincipal();
@@ -2116,10 +2212,11 @@ public class ZMSClient implements Closeable {
 
     /**
      * Set the role meta parameters
+     *
      * @param domainName domain name containing the role to be modified
-     * @param roleName role name to be modified
-     * @param auditRef string containing audit specification or ticket number
-     * @param meta meta parameters to be set on the role
+     * @param roleName   role name to be modified
+     * @param auditRef   string containing audit specification or ticket number
+     * @param meta       meta parameters to be set on the role
      */
     public void putRoleMeta(String domainName, String roleName, String auditRef, RoleMeta meta) {
         updatePrincipal();
@@ -2134,21 +2231,41 @@ public class ZMSClient implements Closeable {
 
     /**
      * Approve or reject addition of a member in the specified role optionally with expiration
+     *
      * @param domainName name of the domain
-     * @param roleName name of the role
+     * @param roleName   name of the role
      * @param memberName name of the member to be added
      * @param expiration timestamp when this membership will expire (optional)
-     * @param approval flag indicating whether this membership is approved or rejected
-     * @param auditRef string containing audit specification or ticket number
+     * @param approval   flag indicating whether this membership is approved or rejected
+     * @param auditRef   string containing audit specification or ticket number
      * @throws ZMSClientException in case of failure
      */
     public void putMembershipDecision(String domainName, String roleName, String memberName,
-                              Timestamp expiration, boolean approval, String auditRef) {
+                                      Timestamp expiration, boolean approval, String auditRef) {
         Membership mbr = new Membership().setRoleName(roleName)
-                .setMemberName(memberName).setExpiration(expiration).setActive(approval);
+                .setMemberName(memberName).setExpiration(expiration).setApproved(approval);
         updatePrincipal();
         try {
             client.putMembershipDecision(domainName, roleName, memberName, auditRef, mbr);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Return all the list of pending requests for the given principal. If the principal
+     * is null, the server will return the list for the authenticated principal
+     * making the call
+     * @param principal name of the approver principal (optional)
+     * @return DomainRoleMembership object listing all pending users
+     * @throws ZMSClientException in case of failure
+     */
+    public DomainRoleMembership getPendingDomainRoleMembersList(String principal) {
+        updatePrincipal();
+        try {
+            return client.getPendingDomainRoleMembersList(principal);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {

@@ -14,15 +14,17 @@ type RoleAuditLog Struct {
     MemberName member; //name of the role member
     ResourceName admin; //name of the principal executing the change
     Timestamp created; //timestamp of the entry
-    String action; //log action - either add or delete
+    String action; //log action - e.g. add, delete, approve, etc
     String auditRef (optional); //audit reference string for the change as supplied by admin
 }
 
 type RoleMember Struct {
     MemberName memberName; //name of the member
     Timestamp expiration (optional); //the expiration timestamp
-    Bool active (optional, default=true); //Flag to indicate whether membership is approved either by delegates ( in case of auditEnabled roles ) or by domain admins ( in case of selfserve roles )
+    Bool active (optional, default=true); //Flag to indicate whether membership is active
+    Bool approved (optional, default=true); //Flag to indicate whether membership is approved either by delegates ( in case of auditEnabled roles ) or by domain admins ( in case of selfserve roles )
     String auditRef (optional); //audit reference string for the change as supplied by admin
+    Timestamp requestTime (optional); //for pending membership requests, the request time
 }
 
 //The representation for a Role with set of members.
@@ -34,7 +36,7 @@ type Role Struct {
     DomainName trust (optional); //a trusted domain to delegate membership decisions to
     Array<RoleAuditLog> auditLog (optional); //an audit log for role membership changes
     Bool auditEnabled (optional, default=false); //Flag indicates whether or not role updates should require GRC approval. If true, the auditRef parameter must be supplied(not empty) for any API defining it.
-    Bool selfserve ( optional, default=false); // Flag indicates whether or not role allows self service. Users can add themselves in the role, but it has to be approved by domain admins to be effective.
+    Bool selfServe (optional, default=false); //Flag indicates whether or not role allows self service. Users can add themselves in the role, but it has to be approved by domain admins to be effective.
 }
 
 //The representation for a list of roles with full details
@@ -48,7 +50,8 @@ type Membership Struct {
     Bool isMember (optional, default=true); //flag to indicate whether or the user is a member or not
     ResourceName roleName (optional); //name of the role
     Timestamp expiration (optional); //the expiration timestamp
-    Bool active (optional, default=true); //Flag to indicate whether membership is approved either by delegates ( in case of auditEnabled roles ) or by domain admins ( in case of selfserve roles )
+    Bool active (optional, default=true); //Flag to indicate whether membership is active
+    Bool approved (optional, default=true); //Flag to indicate whether membership is approved either by delegates ( in case of auditEnabled roles ) or by domain admins ( in case of selfserve roles )
     String auditRef (optional); //audit reference string for the change as supplied by admin
 }
 
@@ -81,5 +84,5 @@ type RoleSystemMeta Struct {
 
 //Set of metadata attributes that all roles may have and can be changed by domain admins.
 type RoleMeta Struct {
-    Bool selfserve (optional, default=false); //Flag indicates whether or not role allows self service. Users can add themselves in the role, but it has to be approved by domain admins to be effective.
+    Bool selfServe (optional, default=false); //Flag indicates whether or not role allows self service. Users can add themselves in the role, but it has to be approved by domain admins to be effective.
 }

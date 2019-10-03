@@ -309,9 +309,9 @@ func (cli Zms) SetRoleAuditEnabled(dn string, rn string, auditEnabled bool) (*st
 	return &s, nil
 }
 
-func (cli Zms) SetRoleSelfserve(dn string, rn string, selfserve bool) (*string, error) {
+func (cli Zms) SetRoleSelfServe(dn string, rn string, selfServe bool) (*string, error) {
 	meta := zms.RoleMeta{
-		Selfserve: &selfserve,
+		SelfServe: &selfServe,
 	}
 	err := cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
 	if err != nil {
@@ -347,7 +347,7 @@ func (cli Zms) PutMembershipDecision(dn string, rn string, mbr string, approval 
 	var member zms.Membership
 	member.MemberName = zms.MemberName(validatedUser)
 	member.RoleName = zms.ResourceName(rn)
-	member.Active = &approval
+	member.Approved = &approval
 	err := cli.Zms.PutMembershipDecision(zms.DomainName(dn), zms.EntityName(rn), zms.MemberName(validatedUser), cli.AuditRef, &member)
 	if err != nil {
 		return nil, err

@@ -403,14 +403,13 @@ func (cli Zms) SetCompleteDomainMeta(dn string, descr string, org string, auditE
 	return cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, &meta)
 }
 
-func (cli Zms) SetDomainMeta(dn string, descr string, org string) (*string, error) {
+func (cli Zms) SetDomainMeta(dn string, descr string) (*string, error) {
 	domain, err := cli.Zms.GetDomain(zms.DomainName(dn))
 	if err != nil {
 		return nil, err
 	}
 	meta := zms.DomainMeta{
 		Description:   descr,
-		Org:           zms.ResourceName(org),
 		ApplicationId: domain.ApplicationId,
 	}
 	err = cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, &meta)
@@ -442,6 +441,18 @@ func (cli Zms) SetDomainAccount(dn string, account string) (*string, error) {
 		return nil, err
 	}
 	s := "[domain " + dn + " account successfully updated]\n"
+	return &s, nil
+}
+
+func (cli Zms) SetDomainOrgName(dn string, org string) (*string, error) {
+	meta := zms.DomainMeta{
+		Org: zms.ResourceName(org),
+	}
+	err := cli.Zms.PutDomainSystemMeta(zms.DomainName(dn), zms.SimpleName("org"), cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " org name successfully updated]\n"
 	return &s, nil
 }
 
@@ -493,8 +504,8 @@ func (cli Zms) SetDefaultAdmins(dn string, admins []string) (*string, error) {
 	return &s, nil
 }
 
-func (cli Zms) ListPendingDomainRoleMembers() (*string, error) {
-	domainMembership, err := cli.Zms.GetPendingDomainRoleMembersList()
+func (cli Zms) ListPendingDomainRoleMembers(principal string) (*string, error) {
+	domainMembership, err := cli.Zms.GetPendingDomainRoleMembersList(zms.EntityName(principal))
 	if err != nil {
 		return nil, err
 	}

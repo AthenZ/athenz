@@ -113,15 +113,17 @@ func init() {
 	tRoleAuditLog.Field("member", "MemberName", false, nil, "name of the role member")
 	tRoleAuditLog.Field("admin", "ResourceName", false, nil, "name of the principal executing the change")
 	tRoleAuditLog.Field("created", "Timestamp", false, nil, "timestamp of the entry")
-	tRoleAuditLog.Field("action", "String", false, nil, "log action - either add or delete")
+	tRoleAuditLog.Field("action", "String", false, nil, "log action - e.g. add, delete, approve, etc")
 	tRoleAuditLog.Field("auditRef", "String", true, nil, "audit reference string for the change as supplied by admin")
 	sb.AddType(tRoleAuditLog.Build())
 
 	tRoleMember := rdl.NewStructTypeBuilder("Struct", "RoleMember")
 	tRoleMember.Field("memberName", "MemberName", false, nil, "name of the member")
 	tRoleMember.Field("expiration", "Timestamp", true, nil, "the expiration timestamp")
-	tRoleMember.Field("active", "Bool", true, true, "Flag to indicate whether membership is approved either by delegates ( in case of auditEnabled roles ) or by domain admins ( in case of selfserve roles )")
+	tRoleMember.Field("active", "Bool", true, true, "Flag to indicate whether membership is active")
+	tRoleMember.Field("approved", "Bool", true, true, "Flag to indicate whether membership is approved either by delegates ( in case of auditEnabled roles ) or by domain admins ( in case of selfserve roles )")
 	tRoleMember.Field("auditRef", "String", true, nil, "audit reference string for the change as supplied by admin")
+	tRoleMember.Field("requestTime", "Timestamp", true, nil, "for pending membership requests, the request time")
 	sb.AddType(tRoleMember.Build())
 
 	tRole := rdl.NewStructTypeBuilder("Struct", "Role")
@@ -133,7 +135,7 @@ func init() {
 	tRole.Field("trust", "DomainName", true, nil, "a trusted domain to delegate membership decisions to")
 	tRole.ArrayField("auditLog", "RoleAuditLog", true, "an audit log for role membership changes")
 	tRole.Field("auditEnabled", "Bool", true, false, "Flag indicates whether or not role updates should require GRC approval. If true, the auditRef parameter must be supplied(not empty) for any API defining it.")
-	tRole.Field("selfserve", "Bool", true, false, "Flag indicates whether or not role allows self service. Users can add themselves in the role, but it has to be approved by domain admins to be effective.")
+	tRole.Field("selfServe", "Bool", true, false, "Flag indicates whether or not role allows self service. Users can add themselves in the role, but it has to be approved by domain admins to be effective.")
 	sb.AddType(tRole.Build())
 
 	tRoles := rdl.NewStructTypeBuilder("Struct", "Roles")
@@ -147,7 +149,8 @@ func init() {
 	tMembership.Field("isMember", "Bool", true, true, "flag to indicate whether or the user is a member or not")
 	tMembership.Field("roleName", "ResourceName", true, nil, "name of the role")
 	tMembership.Field("expiration", "Timestamp", true, nil, "the expiration timestamp")
-	tMembership.Field("active", "Bool", true, true, "Flag to indicate whether membership is approved either by delegates ( in case of auditEnabled roles ) or by domain admins ( in case of selfserve roles )")
+	tMembership.Field("active", "Bool", true, true, "Flag to indicate whether membership is active")
+	tMembership.Field("approved", "Bool", true, true, "Flag to indicate whether membership is approved either by delegates ( in case of auditEnabled roles ) or by domain admins ( in case of selfserve roles )")
 	tMembership.Field("auditRef", "String", true, nil, "audit reference string for the change as supplied by admin")
 	sb.AddType(tMembership.Build())
 
@@ -180,7 +183,7 @@ func init() {
 
 	tRoleMeta := rdl.NewStructTypeBuilder("Struct", "RoleMeta")
 	tRoleMeta.Comment("Set of metadata attributes that all roles may have and can be changed by domain admins.")
-	tRoleMeta.Field("selfserve", "Bool", true, false, "Flag indicates whether or not role allows self service. Users can add themselves in the role, but it has to be approved by domain admins to be effective.")
+	tRoleMeta.Field("selfServe", "Bool", true, false, "Flag indicates whether or not role allows self service. Users can add themselves in the role, but it has to be approved by domain admins to be effective.")
 	sb.AddType(tRoleMeta.Build())
 
 	tAssertionEffect := rdl.NewEnumTypeBuilder("Enum", "AssertionEffect")
@@ -1488,9 +1491,10 @@ func init() {
 	mGetStatus.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetStatus.Build())
 
-	mGetPendingDomainRoleMembersList := rdl.NewResourceBuilder("DomainRoleMembership", "GET", "/pendingDomainRoleMembersList")
-	mGetPendingDomainRoleMembersList.Comment("List of domains containing roles and corresponding members to be approved by calling principal")
+	mGetPendingDomainRoleMembersList := rdl.NewResourceBuilder("DomainRoleMembership", "GET", "/pending_members")
+	mGetPendingDomainRoleMembersList.Comment("List of domains containing roles and corresponding members to be approved by either calling or specified principal")
 	mGetPendingDomainRoleMembersList.Name("getPendingDomainRoleMembersList")
+	mGetPendingDomainRoleMembersList.Input("principal", "EntityName", false, "principal", "", true, nil, "If present, return pending list for this principal")
 	mGetPendingDomainRoleMembersList.Auth("", "", true, "")
 	mGetPendingDomainRoleMembersList.Exception("BAD_REQUEST", "ResourceError", "")
 	mGetPendingDomainRoleMembersList.Exception("FORBIDDEN", "ResourceError", "")

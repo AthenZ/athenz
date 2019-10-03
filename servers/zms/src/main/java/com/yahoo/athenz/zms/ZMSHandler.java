@@ -86,7 +86,7 @@ public interface ZMSHandler {
     void putQuota(ResourceContext context, String name, String auditRef, Quota quota);
     void deleteQuota(ResourceContext context, String name, String auditRef);
     Status getStatus(ResourceContext context);
-    DomainRoleMembership getPendingDomainRoleMembersList(ResourceContext context);
+    DomainRoleMembership getPendingDomainRoleMembersList(ResourceContext context, String principal);
     Schema getRdlSchema(ResourceContext context);
     ResourceContext newResourceContext(HttpServletRequest request, HttpServletResponse response);
 }

@@ -180,7 +180,7 @@ public final class ZMSConsts {
     public static final String DB_COLUMN_KEY_ID            = "key_id";
     public static final String DB_COLUMN_SVC_USER          = "svc_user";
     public static final String DB_COLUMN_SVC_GROUP         = "svc_group";
-    public static final String DB_COLUMN_EXECTUABLE        = "executable";
+    public static final String DB_COLUMN_EXECUTABLE        = "executable";
     public static final String DB_COLUMN_PROVIDER_ENDPOINT = "provider_endpoint";
     public static final String DB_COLUMN_VALUE             = "value";
     public static final String DB_COLUMN_DOMAIN_ID         = "domain_id";
@@ -195,6 +195,7 @@ public final class ZMSConsts {
     public static final String DB_COLUMN_CERT_DNS_DOMAIN   = "cert_dns_domain";
     public static final String DB_COLUMN_SELF_SERVE        = "self_serve";
     public static final String DB_COLUMN_EXPIRATION        = "expiration";
+    public static final String DB_COLUMN_ACTIVE            = "active";
 
     public static final String ADMIN_POLICY_NAME = "admin";
     public static final String ADMIN_ROLE_NAME   = "admin";
@@ -230,9 +231,9 @@ public final class ZMSConsts {
 
     public static final int STRING_BLDR_SIZE_DEFAULT = 512;
 
-    public static final String ZMS_JSON_PARSER_ERROR_RESPONSE = "{\"code\":400,\"message\":\"Invalid Object: checkout https://github.com/yahoo/athenz/core/zms for object defintions\"}";
+    public static final String ZMS_JSON_PARSER_ERROR_RESPONSE = "{\"code\":400,\"message\":\"Invalid Object: checkout https://github.com/yahoo/athenz/core/zms for object definitions\"}";
 
-    public static final String AUDIT_APPROVER_ROLE_PREFIX = "approver.";
-    public static final String SYS_AUTH_AUDIT_DOMAIN = "sys.auth.audit";
+    public static final String SYS_AUTH_AUDIT_BY_ORG    = "sys.auth.audit.org";
+    public static final String SYS_AUTH_AUDIT_BY_DOMAIN = "sys.auth.audit.domain";
 }
 
