@@ -2113,13 +2113,13 @@ public class ZMSResources {
     }
 
     @GET
-    @Path("/pendingDomainRoleMembersList")
+    @Path("/pending_members")
     @Produces(MediaType.APPLICATION_JSON)
-    public DomainRoleMembership getPendingDomainRoleMembersList() {
+    public DomainRoleMembership getPendingDomainRoleMembersList(@QueryParam("principal") String principal) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            return this.delegate.getPendingDomainRoleMembersList(context);
+            return this.delegate.getPendingDomainRoleMembersList(context, principal);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {

@@ -25,6 +25,9 @@ public class Membership {
     public Boolean active;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Boolean approved;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String auditRef;
 
     public Membership setMemberName(String memberName) {
@@ -62,6 +65,13 @@ public class Membership {
     public Boolean getActive() {
         return active;
     }
+    public Membership setApproved(Boolean approved) {
+        this.approved = approved;
+        return this;
+    }
+    public Boolean getApproved() {
+        return approved;
+    }
     public Membership setAuditRef(String auditRef) {
         this.auditRef = auditRef;
         return this;
@@ -92,6 +102,9 @@ public class Membership {
             if (active == null ? a.active != null : !active.equals(a.active)) {
                 return false;
             }
+            if (approved == null ? a.approved != null : !approved.equals(a.approved)) {
+                return false;
+            }
             if (auditRef == null ? a.auditRef != null : !auditRef.equals(a.auditRef)) {
                 return false;
             }
@@ -108,6 +121,9 @@ public class Membership {
         }
         if (active == null) {
             active = true;
+        }
+        if (approved == null) {
+            approved = true;
         }
         return this;
     }

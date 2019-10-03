@@ -148,7 +148,7 @@ public class SignUtils {
             }
             appendArray(struct, ATTR_ROLE_MEMBERS, roleMembersArray);
         }
-        appendObject(struct, ATTR_SELF_SERVE, role.getSelfserve());
+        appendObject(struct, ATTR_SELF_SERVE, role.getSelfServe());
         appendObject(struct, ATTR_TRUST, role.getTrust());
         return struct;
     }

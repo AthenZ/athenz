@@ -2702,9 +2702,9 @@ func (client ZMSClient) GetStatus() (*Status, error) {
 	}
 }
 
-func (client ZMSClient) GetPendingDomainRoleMembersList() (*DomainRoleMembership, error) {
+func (client ZMSClient) GetPendingDomainRoleMembersList(principal EntityName) (*DomainRoleMembership, error) {
 	var data *DomainRoleMembership
-	url := client.URL + "/pendingDomainRoleMembersList"
+	url := client.URL + "/pending_members" + encodeParams(encodeStringParam("principal", string(principal), ""))
 	resp, err := client.httpGet(url, nil)
 	if err != nil {
 		return data, err

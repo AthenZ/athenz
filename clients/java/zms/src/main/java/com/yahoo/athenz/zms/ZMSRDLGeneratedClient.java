@@ -1744,8 +1744,11 @@ public class ZMSRDLGeneratedClient {
 
     }
 
-    public DomainRoleMembership getPendingDomainRoleMembersList() {
-        WebTarget target = base.path("/pendingDomainRoleMembersList");
+    public DomainRoleMembership getPendingDomainRoleMembersList(String principal) {
+        WebTarget target = base.path("/pending_members");
+        if (principal != null) {
+            target = target.queryParam("principal", principal);
+        }
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {
             invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),

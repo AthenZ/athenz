@@ -32,7 +32,7 @@ public class Role {
     public Boolean auditEnabled;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    public Boolean selfserve;
+    public Boolean selfServe;
 
     public Role setName(String name) {
         this.name = name;
@@ -83,12 +83,12 @@ public class Role {
     public Boolean getAuditEnabled() {
         return auditEnabled;
     }
-    public Role setSelfserve(Boolean selfserve) {
-        this.selfserve = selfserve;
+    public Role setSelfServe(Boolean selfServe) {
+        this.selfServe = selfServe;
         return this;
     }
-    public Boolean getSelfserve() {
-        return selfserve;
+    public Boolean getSelfServe() {
+        return selfServe;
     }
 
     @Override
@@ -119,7 +119,7 @@ public class Role {
             if (auditEnabled == null ? a.auditEnabled != null : !auditEnabled.equals(a.auditEnabled)) {
                 return false;
             }
-            if (selfserve == null ? a.selfserve != null : !selfserve.equals(a.selfserve)) {
+            if (selfServe == null ? a.selfServe != null : !selfServe.equals(a.selfServe)) {
                 return false;
             }
         }

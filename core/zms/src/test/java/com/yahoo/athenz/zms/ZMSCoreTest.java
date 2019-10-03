@@ -116,8 +116,15 @@ public class ZMSCoreTest {
         List<RoleMember> roleMembers = new ArrayList<>();
         roleMembers.add(new RoleMember().setMemberName("member1"));
 
-        Role r = new Role().setName("sys.auth:role.admin").setMembers(members).setRoleMembers(roleMembers).setAuditEnabled(true)
-                .setModified(Timestamp.fromMillis(123456789123L)).setTrust("domain.admin").setAuditLog(rall);
+        Role r = new Role()
+                .setName("sys.auth:role.admin")
+                .setMembers(members)
+                .setRoleMembers(roleMembers)
+                .setAuditEnabled(true)
+                .setModified(Timestamp.fromMillis(123456789123L))
+                .setTrust("domain.admin")
+                .setAuditLog(rall)
+                .setSelfServe(false);
         Result result = validator.validate(r, "Role");
         assertTrue(result.valid);
 
@@ -128,14 +135,34 @@ public class ZMSCoreTest {
         assertEquals(r.getAuditLog(), rall);
         assertEquals(r.getRoleMembers(), roleMembers);
         assertTrue(r.getAuditEnabled());
+        assertFalse(r.getSelfServe());
 
-        Role r2 = new Role().setName("sys.auth:role.admin").setMembers(members).setRoleMembers(roleMembers)
-                .setModified(Timestamp.fromMillis(123456789123L)).setTrust("domain.admin").setAuditLog(rall);
-        assertFalse(r2.equals(r));
-        r2.setAuditEnabled(true);
-        r2.setSelfserve(false);
+        Role r2 = new Role()
+                .setName("sys.auth:role.admin")
+                .setMembers(members)
+                .setRoleMembers(roleMembers)
+                .setAuditEnabled(true)
+                .setModified(Timestamp.fromMillis(123456789123L))
+                .setTrust("domain.admin")
+                .setAuditLog(rall)
+                .setSelfServe(false);
+
         assertTrue(r2.equals(r));
         assertTrue(r.equals(r));
+
+        r2.setAuditEnabled(false);
+        assertFalse(r2.equals(r));
+        r2.setAuditEnabled(null);
+        assertFalse(r2.equals(r));
+        r2.setAuditEnabled(true);
+        assertTrue(r2.equals(r));
+
+        r2.setSelfServe(true);
+        assertFalse(r2.equals(r));
+        r2.setSelfServe(null);
+        assertFalse(r2.equals(r));
+        r2.setSelfServe(false);
+        assertTrue(r2.equals(r));
         
         r2.setAuditLog(null);
         assertFalse(r2.equals(r));
@@ -501,8 +528,12 @@ public class ZMSCoreTest {
 
         dd2.setAuditEnabled(true);
         assertFalse(dd2.equals(dd));
+        dd2.setAuditEnabled(null);
+        assertFalse(dd2.equals(dd));
 
         dd2.setAuditEnabled(false);
+        assertTrue(dd2.equals(dd));
+
         dd2.setCertDnsDomain(null);
         assertFalse(dd2.equals(dd));
 
@@ -1047,7 +1078,13 @@ public class ZMSCoreTest {
         Schema schema = ZMSSchema.instance();
         Validator validator = new Validator(schema);
 
-        RoleMember rm = new RoleMember().setMemberName("user.test1").setExpiration(Timestamp.fromMillis(123456789123L)).setAuditRef("audit-ref");
+        RoleMember rm = new RoleMember()
+                .setMemberName("user.test1")
+                .setExpiration(Timestamp.fromMillis(123456789123L))
+                .setAuditRef("audit-ref")
+                .setActive(false)
+                .setApproved(true)
+                .setRequestTime(Timestamp.fromMillis(123456789124L));
         assertTrue(rm.equals(rm));
 
         Result result = validator.validate(rm, "RoleMember");
@@ -1055,27 +1092,74 @@ public class ZMSCoreTest {
 
         assertEquals(rm.getMemberName(), "user.test1");
         assertEquals(rm.getExpiration().millis(), 123456789123L);
+        assertEquals(rm.getAuditRef(), "audit-ref");
+        assertFalse(rm.getActive());
+        assertTrue(rm.getApproved());
+        assertEquals(rm.getRequestTime().millis(), 123456789124L);
 
-        RoleMember rm2 = new RoleMember();
-        rm2.setActive(true);
-        assertFalse(rm2.equals(rm));
+        RoleMember rm2 = new RoleMember()
+                .setMemberName("user.test1")
+                .setExpiration(Timestamp.fromMillis(123456789123L))
+                .setAuditRef("audit-ref")
+                .setActive(false)
+                .setApproved(true)
+                .setRequestTime(Timestamp.fromMillis(123456789124L));
+        assertTrue(rm2.equals(rm));
 
         rm2.setMemberName("user.test2");
         assertFalse(rm2.equals(rm));
-
-        rm2.setMemberName("user.test1");
+        rm2.setMemberName(null);
         assertFalse(rm2.equals(rm));
+        rm2.setMemberName("user.test1");
+        assertTrue(rm2.equals(rm));
 
         rm2.setExpiration(Timestamp.fromMillis(123456789124L));
         assertFalse(rm2.equals(rm));
-
-        rm2.setExpiration(Timestamp.fromMillis(123456789123L));
+        rm2.setExpiration(null);
         assertFalse(rm2.equals(rm));
+        rm2.setExpiration(Timestamp.fromMillis(123456789123L));
+        assertTrue(rm2.equals(rm));
 
+        rm2.setRequestTime(Timestamp.fromMillis(123456789125L));
+        assertFalse(rm2.equals(rm));
+        rm2.setRequestTime(null);
+        assertFalse(rm2.equals(rm));
+        rm2.setRequestTime(Timestamp.fromMillis(123456789124L));
+        assertTrue(rm2.equals(rm));
+
+        rm2.setAuditRef("audit2-ref");
+        assertFalse(rm2.equals(rm));
+        rm2.setAuditRef(null);
+        assertFalse(rm2.equals(rm));
         rm2.setAuditRef("audit-ref");
         assertTrue(rm2.equals(rm));
 
+        rm2.setActive(true);
+        assertFalse(rm2.equals(rm));
+        rm2.setActive(null);
+        assertFalse(rm2.equals(rm));
+        rm2.setActive(false);
+        assertTrue(rm2.equals(rm));
+
+        rm2.setApproved(false);
+        assertFalse(rm2.equals(rm));
+        rm2.setApproved(null);
+        assertFalse(rm2.equals(rm));
+        rm2.setApproved(true);
+        assertTrue(rm2.equals(rm));
+
         assertFalse(rm2.equals(null));
+
+        RoleMember rm3 = new RoleMember();
+        rm3.init();
+        assertTrue(rm3.getActive());
+        assertTrue(rm3.getApproved());
+
+        rm3.setActive(false);
+        rm3.setApproved(false);
+        rm3.init();
+        assertFalse(rm3.getActive());
+        assertFalse(rm3.getApproved());
     }
 
     @Test
@@ -1212,13 +1296,18 @@ public class ZMSCoreTest {
 
         Membership ms = new Membership().init();
         assertTrue(ms.getIsMember());
+        assertTrue(ms.getActive());
+        assertTrue(ms.getApproved());
 
         ms.setMemberName("test.member").setIsMember(false).setRoleName("test.role")
-                .setExpiration(Timestamp.fromMillis(100)).setAuditRef("audit-ref");
+                .setExpiration(Timestamp.fromMillis(100)).setAuditRef("audit-ref")
+                .setActive(true).setApproved(false);
 
         // init second time does not change state
         ms.init();
         assertFalse(ms.getIsMember());
+        assertTrue(ms.getActive());
+        assertFalse(ms.getApproved());
 
         Result result = validator.validate(ms, "Membership");
         assertTrue(result.valid);
@@ -1228,24 +1317,55 @@ public class ZMSCoreTest {
         assertEquals(ms.getRoleName(), "test.role");
         assertEquals(ms.getExpiration(), Timestamp.fromMillis(100));
         assertTrue(ms.getActive());
+        assertFalse(ms.getApproved());
+        assertEquals(ms.getAuditRef(), "audit-ref");
 
         Membership ms2 = new Membership().setMemberName("test.member").setIsMember(false)
-                .setExpiration(Timestamp.fromMillis(100)).setRoleName("test.role").setActive(true).setAuditRef("audit-ref");
+                .setExpiration(Timestamp.fromMillis(100)).setRoleName("test.role")
+                .setActive(true).setAuditRef("audit-ref").setApproved(false);
 
         assertTrue(ms2.equals(ms));
         assertTrue(ms.equals(ms));
 
         ms2.setExpiration(null);
         assertFalse(ms2.equals(ms));
+        ms2.setExpiration(Timestamp.fromMillis(100));
+        assertTrue(ms2.equals(ms));
+
         ms2.setRoleName(null);
         assertFalse(ms2.equals(ms));
+        ms2.setRoleName("test.role");
+        assertTrue(ms2.equals(ms));
+
         ms2.setIsMember(null);
         assertFalse(ms2.equals(ms));
+        ms2.setIsMember(false);
+        assertTrue(ms2.equals(ms));
+
         ms2.setMemberName(null);
         assertFalse(ms2.equals(ms));
+        ms2.setMemberName("test.member");
+        assertTrue(ms2.equals(ms));
+
+        ms2.setAuditRef(null);
+        assertFalse(ms2.equals(ms));
+        ms2.setAuditRef("audit-ref");
+        assertTrue(ms2.equals(ms));
+
+        ms2.setActive(null);
+        assertFalse(ms2.equals(ms));
+        ms2.setActive(true);
+        assertTrue(ms2.equals(ms));
+
+        ms2.setApproved(null);
+        assertFalse(ms2.equals(ms));
+        ms2.setApproved(true);
+        assertFalse(ms2.equals(ms));
+        ms2.setApproved(false);
+        assertTrue(ms2.equals(ms));
+
         assertFalse(ms2.equals(null));
         assertFalse(ms.equals(new String()));
-
     }
 
     @Test
@@ -1925,6 +2045,7 @@ public class ZMSCoreTest {
         assertEquals("role1", mbr1.getRoleName());
         assertEquals(Timestamp.fromMillis(100), mbr1.getExpiration());
         assertFalse(mbr1.getActive());
+        assertEquals(mbr1.getAuditRef(), "audit-ref");
 
         assertTrue(mbr1.equals(mbr1));
         assertFalse(mbr1.equals(null));
@@ -1983,6 +2104,14 @@ public class ZMSCoreTest {
 
         list2.add(new MemberRole().setRoleName("role1"));
         assertTrue(mbr2.equals(mbr1));
+
+        MemberRole mbr3 = new MemberRole();
+        mbr3.init();
+        assertTrue(mbr3.getActive());
+
+        mbr3.setActive(false);
+        mbr3.init();
+        assertFalse(mbr3.getActive());
     }
 
     @Test
@@ -2138,15 +2267,15 @@ public class ZMSCoreTest {
         Result result = validator.validate(rm, "RoleMeta");
         assertTrue(result.valid);
 
-        assertFalse(rm.getSelfserve());
+        assertFalse(rm.getSelfServe());
 
         RoleMeta rm2 = new RoleMeta();
         assertFalse(rm2.equals(rm));
-        rm2.setSelfserve(false);
+        rm2.setSelfServe(false);
         assertTrue(rm2.equals(rm));
         assertTrue(rm.equals(rm));
 
-        rm2.setSelfserve(null);
+        rm2.setSelfServe(null);
         assertFalse(rm2.equals(rm));
 
         assertFalse(rm2.equals(null));
@@ -2193,7 +2322,11 @@ public class ZMSCoreTest {
         domainRoleMembersList2.add(domainRoleMembers2);
 
         drm2.setDomainRoleMembersList(domainRoleMembersList2);
-
         assertTrue(drm.equals(drm2));
+        assertTrue(drm.equals(drm));
+
+        drm2.setDomainRoleMembersList(null);
+        assertFalse(drm2.equals(drm));
+        assertFalse(drm2.equals(null));
     }
 }

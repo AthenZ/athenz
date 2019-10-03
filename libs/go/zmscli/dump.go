@@ -121,6 +121,9 @@ func (cli Zms) dumpRole(buf *bytes.Buffer, role zms.Role, auditLog bool, indent1
 			if memberItem.Expiration != nil {
 				buf.WriteString(" " + memberItem.Expiration.String())
 			}
+			if memberItem.Approved != nil && *memberItem.Approved == false {
+				buf.WriteString(" (pending)")
+			}
 			buf.WriteString("\n")
 		}
 	}
@@ -496,6 +499,7 @@ func (cli Zms) dumpQuota(buf *bytes.Buffer, quota *zms.Quota) {
 }
 
 func (cli Zms) dumpDomainRoleMembers(buf *bytes.Buffer, domainRoleMembers *zms.DomainRoleMembers) {
+	buf.WriteString(string(domainRoleMembers.DomainName) + "\n")
 	for _, roleMember := range domainRoleMembers.Members {
 		buf.WriteString(indent_level1_dash + string(roleMember.MemberName) + "\n")
 		for _, role := range roleMember.MemberRoles {

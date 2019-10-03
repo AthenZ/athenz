@@ -97,14 +97,16 @@ public class ZMSSchema {
             .field("member", "MemberName", false, "name of the role member")
             .field("admin", "ResourceName", false, "name of the principal executing the change")
             .field("created", "Timestamp", false, "timestamp of the entry")
-            .field("action", "String", false, "log action - either add or delete")
+            .field("action", "String", false, "log action - e.g. add, delete, approve, etc")
             .field("auditRef", "String", true, "audit reference string for the change as supplied by admin");
 
         sb.structType("RoleMember")
             .field("memberName", "MemberName", false, "name of the member")
             .field("expiration", "Timestamp", true, "the expiration timestamp")
-            .field("active", "Bool", true, "Flag to indicate whether membership is approved either by delegates ( in case of auditEnabled roles ) or by domain admins ( in case of selfserve roles )", true)
-            .field("auditRef", "String", true, "audit reference string for the change as supplied by admin");
+            .field("active", "Bool", true, "Flag to indicate whether membership is active", true)
+            .field("approved", "Bool", true, "Flag to indicate whether membership is approved either by delegates ( in case of auditEnabled roles ) or by domain admins ( in case of selfserve roles )", true)
+            .field("auditRef", "String", true, "audit reference string for the change as supplied by admin")
+            .field("requestTime", "Timestamp", true, "for pending membership requests, the request time");
 
         sb.structType("Role")
             .comment("The representation for a Role with set of members.")
@@ -115,7 +117,7 @@ public class ZMSSchema {
             .field("trust", "DomainName", true, "a trusted domain to delegate membership decisions to")
             .arrayField("auditLog", "RoleAuditLog", true, "an audit log for role membership changes")
             .field("auditEnabled", "Bool", true, "Flag indicates whether or not role updates should require GRC approval. If true, the auditRef parameter must be supplied(not empty) for any API defining it.", false)
-            .field("selfserve", "Bool", true, "Flag indicates whether or not role allows self service. Users can add themselves in the role, but it has to be approved by domain admins to be effective.", false);
+            .field("selfServe", "Bool", true, "Flag indicates whether or not role allows self service. Users can add themselves in the role, but it has to be approved by domain admins to be effective.", false);
 
         sb.structType("Roles")
             .comment("The representation for a list of roles with full details")
@@ -127,7 +129,8 @@ public class ZMSSchema {
             .field("isMember", "Bool", true, "flag to indicate whether or the user is a member or not", true)
             .field("roleName", "ResourceName", true, "name of the role")
             .field("expiration", "Timestamp", true, "the expiration timestamp")
-            .field("active", "Bool", true, "Flag to indicate whether membership is approved either by delegates ( in case of auditEnabled roles ) or by domain admins ( in case of selfserve roles )", true)
+            .field("active", "Bool", true, "Flag to indicate whether membership is active", true)
+            .field("approved", "Bool", true, "Flag to indicate whether membership is approved either by delegates ( in case of auditEnabled roles ) or by domain admins ( in case of selfserve roles )", true)
             .field("auditRef", "String", true, "audit reference string for the change as supplied by admin");
 
         sb.structType("DefaultAdmins")
@@ -154,7 +157,7 @@ public class ZMSSchema {
 
         sb.structType("RoleMeta")
             .comment("Set of metadata attributes that all roles may have and can be changed by domain admins.")
-            .field("selfserve", "Bool", true, "Flag indicates whether or not role allows self service. Users can add themselves in the role, but it has to be approved by domain admins to be effective.", false);
+            .field("selfServe", "Bool", true, "Flag indicates whether or not role allows self service. Users can add themselves in the role, but it has to be approved by domain admins to be effective.", false);
 
         sb.enumType("AssertionEffect")
             .comment("Every assertion can have the effect of ALLOW or DENY.")
@@ -1756,9 +1759,10 @@ public class ZMSSchema {
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
-        sb.resource("DomainRoleMembership", "GET", "/pendingDomainRoleMembersList")
-            .comment("List of domains containing roles and corresponding members to be approved by calling principal")
+        sb.resource("DomainRoleMembership", "GET", "/pending_members")
+            .comment("List of domains containing roles and corresponding members to be approved by either calling or specified principal")
             .name("getPendingDomainRoleMembersList")
+            .queryParam("principal", "principal", "EntityName", null, "If present, return pending list for this principal")
             .auth("", "", true)
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")

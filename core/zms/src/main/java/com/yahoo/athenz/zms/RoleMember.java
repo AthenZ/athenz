@@ -19,7 +19,13 @@ public class RoleMember {
     public Boolean active;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Boolean approved;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String auditRef;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Timestamp requestTime;
 
     public RoleMember setMemberName(String memberName) {
         this.memberName = memberName;
@@ -42,12 +48,26 @@ public class RoleMember {
     public Boolean getActive() {
         return active;
     }
+    public RoleMember setApproved(Boolean approved) {
+        this.approved = approved;
+        return this;
+    }
+    public Boolean getApproved() {
+        return approved;
+    }
     public RoleMember setAuditRef(String auditRef) {
         this.auditRef = auditRef;
         return this;
     }
     public String getAuditRef() {
         return auditRef;
+    }
+    public RoleMember setRequestTime(Timestamp requestTime) {
+        this.requestTime = requestTime;
+        return this;
+    }
+    public Timestamp getRequestTime() {
+        return requestTime;
     }
 
     @Override
@@ -66,7 +86,13 @@ public class RoleMember {
             if (active == null ? a.active != null : !active.equals(a.active)) {
                 return false;
             }
+            if (approved == null ? a.approved != null : !approved.equals(a.approved)) {
+                return false;
+            }
             if (auditRef == null ? a.auditRef != null : !auditRef.equals(a.auditRef)) {
+                return false;
+            }
+            if (requestTime == null ? a.requestTime != null : !requestTime.equals(a.requestTime)) {
                 return false;
             }
         }
@@ -79,6 +105,9 @@ public class RoleMember {
     public RoleMember init() {
         if (active == null) {
             active = true;
+        }
+        if (approved == null) {
+            approved = true;
         }
         return this;
     }

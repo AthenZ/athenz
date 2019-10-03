@@ -186,7 +186,7 @@ public class NotificationManagerTest {
         rm = new RoleMember().setMemberName("dom2.testsvc1").setActive(true);
         roleMembers.add(rm);
 
-        Role domainRole = new Role().setName("sys.auth.audit:role.approver.neworg.testdomain1").setRoleMembers(roleMembers);
+        Role domainRole = new Role().setName("sys.auth.audit.domain:role.testdomain1").setRoleMembers(roleMembers);
 
         roleMembers = new ArrayList<>();
         rm = new RoleMember().setMemberName("user.orgapprover1").setActive(true);
@@ -198,10 +198,10 @@ public class NotificationManagerTest {
         rm = new RoleMember().setMemberName("dom2.testsvc1").setActive(true);
         roleMembers.add(rm);
 
-        Role orgRole = new Role().setName("sys.auth.audit:role.approver.neworg").setRoleMembers(roleMembers);
+        Role orgRole = new Role().setName("sys.auth.audit.org:role.neworg").setRoleMembers(roleMembers);
 
-        Mockito.when(dbsvc.getRole("sys.auth.audit", "approver.neworg.testdomain1", false, true, false)).thenReturn(domainRole);
-        Mockito.when(dbsvc.getRole("sys.auth.audit", "approver.neworg", false, true, false)).thenReturn(orgRole);
+        Mockito.when(dbsvc.getRole("sys.auth.audit.domain", "testdomain1", false, true, false)).thenReturn(domainRole);
+        Mockito.when(dbsvc.getRole("sys.auth.audit.org", "neworg", false, true, false)).thenReturn(orgRole);
 
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
@@ -241,10 +241,10 @@ public class NotificationManagerTest {
         rm = new RoleMember().setMemberName("dom2.testsvc1").setActive(true);
         roleMembers.add(rm);
 
-        Role orgRole = new Role().setName("sys.auth.audit:role.approver.neworg").setRoleMembers(roleMembers);
+        Role orgRole = new Role().setName("sys.auth.audit.org:role.neworg").setRoleMembers(roleMembers);
 
-        Mockito.when(dbsvc.getRole("sys.auth.audit", "approver.neworg.testdomain1", false, true, false)).thenReturn(null);
-        Mockito.when(dbsvc.getRole("sys.auth.audit", "approver.neworg", false, true, false)).thenReturn(orgRole);
+        Mockito.when(dbsvc.getRole("sys.auth.audit.domain", "testdomain1", false, true, false)).thenReturn(null);
+        Mockito.when(dbsvc.getRole("sys.auth.audit.org", "neworg", false, true, false)).thenReturn(orgRole);
 
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
@@ -283,10 +283,10 @@ public class NotificationManagerTest {
         rm = new RoleMember().setMemberName("dom2.testsvc1").setActive(true);
         roleMembers.add(rm);
 
-        Role domainRole = new Role().setName("sys.auth.audit:role.approver.neworg").setRoleMembers(roleMembers);
+        Role domainRole = new Role().setName("sys.auth.audit.org:role.neworg").setRoleMembers(roleMembers);
 
-        Mockito.when(dbsvc.getRole("sys.auth.audit", "approver.neworg.testdomain1", false, true, false)).thenReturn(domainRole);
-        Mockito.when(dbsvc.getRole("sys.auth.audit", "approver.neworg", false, true, false)).thenReturn(null);
+        Mockito.when(dbsvc.getRole("sys.auth.audit.domain", "testdomain1", false, true, false)).thenReturn(domainRole);
+        Mockito.when(dbsvc.getRole("sys.auth.audit.org", "neworg", false, true, false)).thenReturn(null);
 
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
