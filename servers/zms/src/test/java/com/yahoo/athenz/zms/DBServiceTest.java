@@ -99,7 +99,10 @@ public class DBServiceTest {
         Mockito.when(mockServletRequest.isSecure()).thenReturn(true);
         
         System.setProperty(ZMSConsts.ZMS_PROP_FILE_NAME, "src/test/resources/zms.properties");
-        System.setProperty(ZMSConsts.ZMS_PROP_NOTIFICATION_SERVICE_FACTORY_CLASS, "com.yahoo.athenz.zms.notification.MockNotificationServiceFactory");
+        System.setProperty(ZMSConsts.ZMS_PROP_NOTIFICATION_SERVICE_FACTORY_CLASS,
+                "com.yahoo.athenz.zms.notification.MockNotificationServiceFactory");
+        System.setProperty(ZMSConsts.ZMS_PROP_AUDIT_REF_CHECK_OBJECTS,
+                "role,policy,service,domain,entity,tenancy,template");
         initializeZms();
     }
 
@@ -282,11 +285,10 @@ public class DBServiceTest {
         Domain domain = new Domain().setAuditEnabled(true).setEnabled(true);
         Mockito.doReturn(domain).when(mockFileConn).getDomain(domainName);
         
-        String auditCheck   = "testaudit";
-        String caller     = "testCheckDomainAuditEnabledFlagTrueRefValid";
+        String auditCheck = "testaudit";
+        String caller = "testCheckDomainAuditEnabledFlagTrueRefValid";
         String principal = "testprincipal";
-        Domain dom = zms.dbService.checkDomainAuditEnabled(mockFileConn, domainName, auditCheck, caller, principal);
-        assertNotNull(dom);
+        zms.dbService.checkDomainAuditEnabled(mockFileConn, domainName, auditCheck, caller, principal, DBService.AUDIT_TYPE_DOMAIN);
     }
 
     @Test
@@ -295,6 +297,7 @@ public class DBServiceTest {
             // currently in the filestore that we're using for our unit
             // we don't have an implementation for this method
             zms.dbService.getResourceAccessList("principal", "UPDATE");
+            fail();
         } catch (Exception ex) {
             assertTrue(true);
         }
@@ -326,7 +329,8 @@ public class DBServiceTest {
         String caller = "testCheckDomainAuditEnabledFlagTrueRefNull";
         String principal = "testprincipal";
         try {
-            zms.dbService.checkDomainAuditEnabled(mockFileConn, domainName, null, caller, principal);
+            zms.dbService.checkDomainAuditEnabled(mockFileConn, domainName, null, caller, principal, DBService.AUDIT_TYPE_DOMAIN);
+            fail();
         } catch (ResourceException ex) {
             assertEquals(400, ex.getCode());
             assertTrue(ex.getMessage().contains("Audit reference required"));
@@ -340,11 +344,12 @@ public class DBServiceTest {
         Domain domain = new Domain().setAuditEnabled(true).setEnabled(true);
         Mockito.doReturn(domain).when(mockFileConn).getDomain(domainName);
         
-        String auditCheck = "";  // empty string
+        String auditCheck = "";
         String caller = "testCheckDomainAuditEnabledFlagTrueRefEmpty";
         String principal = "testprincipal";
         try {
-            zms.dbService.checkDomainAuditEnabled(mockFileConn, domainName, auditCheck, caller, principal);
+            zms.dbService.checkDomainAuditEnabled(mockFileConn, domainName, auditCheck, caller, principal, DBService.AUDIT_TYPE_DOMAIN);
+            fail();
         } catch (ResourceException ex) {
             assertEquals(400, ex.getCode());
             assertTrue(ex.getMessage().contains("Audit reference required"));
@@ -361,8 +366,7 @@ public class DBServiceTest {
         String auditCheck = "testaudit";
         String caller = "testCheckDomainAuditEnabledFlagFalseRefValid";
         String principal = "testprincipal";
-        Domain dom = zms.dbService.checkDomainAuditEnabled(mockFileConn, domainName, auditCheck, caller, principal);
-        assertNotNull(dom);
+        zms.dbService.checkDomainAuditEnabled(mockFileConn, domainName, auditCheck, caller, principal, DBService.AUDIT_TYPE_DOMAIN);
     }
 
     @Test
@@ -374,8 +378,7 @@ public class DBServiceTest {
         
         String caller = "testCheckDomainAuditEnabledFlagFalseRefNull";
         String principal = "testprincipal";
-        Domain dom = zms.dbService.checkDomainAuditEnabled(mockFileConn, domainName, null, caller, principal);
-        assertNotNull(dom);
+        zms.dbService.checkDomainAuditEnabled(mockFileConn, domainName, null, caller, principal, DBService.AUDIT_TYPE_DOMAIN);
     }
 
     private void checkRoleMember(final List<String> checkList, List<RoleMember> members) {
@@ -399,11 +402,10 @@ public class DBServiceTest {
         Domain domain = new Domain().setAuditEnabled(false).setEnabled(true);
         Mockito.doReturn(domain).when(mockFileConn).getDomain(domainName);
         
-        String auditCheck   = "";
-        String caller     = "testCheckDomainAuditEnabledFlagFalseRefEmpty";
+        String auditCheck = "";
+        String caller = "testCheckDomainAuditEnabledFlagFalseRefEmpty";
         String principal = "testprincipal";
-        Domain dom = zms.dbService.checkDomainAuditEnabled(mockFileConn, domainName, auditCheck, caller, principal);
-        assertNotNull(dom);
+        zms.dbService.checkDomainAuditEnabled(mockFileConn, domainName, auditCheck, caller, principal, DBService.AUDIT_TYPE_DOMAIN);
     }
     
     @Test
@@ -413,11 +415,11 @@ public class DBServiceTest {
         Domain domain = new Domain().setAuditEnabled(false).setEnabled(true);
         Mockito.doReturn(domain).when(mockFileConn).getDomain(domainName);
         
-        String auditCheck   = "testaudit";
-        String caller     = "testCheckDomainAuditEnabledDefault";
+        String auditCheck = "testaudit";
+        String caller = "testCheckDomainAuditEnabledDefault";
         String principal = "testprincipal";
         try {
-            zms.dbService.checkDomainAuditEnabled(mockFileConn, "unknown_domain", auditCheck, caller, principal);
+            zms.dbService.checkDomainAuditEnabled(mockFileConn, "unknown_domain", auditCheck, caller, principal, DBService.AUDIT_TYPE_DOMAIN);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 404);
@@ -431,8 +433,8 @@ public class DBServiceTest {
         Domain domain = new Domain().setAuditEnabled(true).setEnabled(true);
         Mockito.doReturn(domain).when(mockFileConn).getDomain(domainName);
 
-        String auditCheck   = "testaudit";
-        String caller     = "testCheckDomainAuditEnabledFlagTrueRefValid";
+        String auditCheck = "testaudit";
+        String caller = "testCheckDomainAuditEnabledFlagTrueRefValid";
         String principal = "testprincipal";
 
         AuditReferenceValidator mockAuditReferenceValidator = Mockito.mock(AuditReferenceValidator.class);
@@ -441,8 +443,7 @@ public class DBServiceTest {
 
         Mockito.when(zms.dbService.auditReferenceValidator.validateReference(auditCheck, principal, caller)).thenReturn(true);
 
-        Domain dom = zms.dbService.checkDomainAuditEnabled(mockFileConn, domainName, auditCheck, caller, principal);
-        assertNotNull(dom);
+        zms.dbService.checkDomainAuditEnabled(mockFileConn, domainName, auditCheck, caller, principal, DBService.AUDIT_TYPE_DOMAIN);
 
         zms.dbService.auditReferenceValidator = null;
     }
@@ -454,8 +455,8 @@ public class DBServiceTest {
         Domain domain = new Domain().setAuditEnabled(true).setEnabled(true);
         Mockito.doReturn(domain).when(mockFileConn).getDomain(domainName);
 
-        String auditCheck   = "testaudit";
-        String caller     = "testCheckDomainAuditEnabledFlagTrueRefValid";
+        String auditCheck = "testaudit";
+        String caller = "testCheckDomainAuditEnabledFlagTrueRefValid";
         String principal = "testprincipal";
 
         AuditReferenceValidator mockAuditReferenceValidator = Mockito.mock(AuditReferenceValidator.class);
@@ -465,7 +466,7 @@ public class DBServiceTest {
         Mockito.when(zms.dbService.auditReferenceValidator.validateReference(auditCheck, principal, caller)).thenReturn(false);
 
         try {
-            zms.dbService.checkDomainAuditEnabled(mockFileConn, domainName, auditCheck, caller, principal);
+            zms.dbService.checkDomainAuditEnabled(mockFileConn, domainName, auditCheck, caller, principal, DBService.AUDIT_TYPE_DOMAIN);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -3829,7 +3830,8 @@ public class DBServiceTest {
         String caller = "testCheckRoleAuditEnabledFlagTrueRefNull";
         String principal = "testprincipal";
         try {
-            zms.dbService.checkRoleAuditEnabled(mockFileConn, domainName, roleName,null, caller, principal);
+            zms.dbService.checkRoleAuditEnabled(mockFileConn, role, null, caller, principal);
+            fail();
         } catch (ResourceException ex) {
             assertEquals(400, ex.getCode());
             assertTrue(ex.getMessage().contains("Audit reference required"));
@@ -3848,7 +3850,8 @@ public class DBServiceTest {
         String caller = "testCheckRoleAuditEnabledFlagTrueRefEmpty";
         String principal = "testprincipal";
         try {
-            zms.dbService.checkRoleAuditEnabled(mockFileConn, domainName, roleName, auditCheck, caller, principal);
+            zms.dbService.checkRoleAuditEnabled(mockFileConn, role, auditCheck, caller, principal);
+            fail();
         } catch (ResourceException ex) {
             assertEquals(400, ex.getCode());
             assertTrue(ex.getMessage().contains("Audit reference required"));
@@ -3866,8 +3869,7 @@ public class DBServiceTest {
         String auditCheck = "testaudit";
         String caller = "testCheckRoleAuditEnabledFlagFalseRefValid";
         String principal = "testprincipal";
-        Role rol = zms.dbService.checkRoleAuditEnabled(mockFileConn, domainName, roleName, auditCheck, caller, principal);
-        assertNotNull(rol);
+        zms.dbService.checkRoleAuditEnabled(mockFileConn, role, auditCheck, caller, principal);
     }
 
     @Test
@@ -3880,27 +3882,7 @@ public class DBServiceTest {
 
         String caller = "testCheckRoleAuditEnabledFlagFalseRefNull";
         String principal = "testprincipal";
-        Role rol = zms.dbService.checkRoleAuditEnabled(mockFileConn, domainName, roleName,null, caller, principal);
-        assertNotNull(rol);
-    }
-
-    @Test
-    public void testCheckRoleAuditEnabledNullRole() {
-
-        String domainName = "audit-test-domain-name";
-        String roleName = "invalid";
-        Role role = new Role().setAuditEnabled(false);
-        Mockito.doReturn(null).when(mockFileConn).getRole(domainName, roleName);
-
-        String caller = "testCheckRoleAuditEnabledNullRole";
-        String principal = "testprincipal";
-        try{
-            zms.dbService.checkRoleAuditEnabled(mockFileConn, domainName, roleName,null, caller, principal);
-            fail();
-        }catch(ResourceException r){
-            assertEquals(r.getCode(), 404);
-        }
-
+        zms.dbService.checkRoleAuditEnabled(mockFileConn, role, null, caller, principal);
     }
 
     @Test
@@ -3917,7 +3899,7 @@ public class DBServiceTest {
         String caller = "testCheckRoleAuditEnabledFlagTrueRefValidationFail";
         String principal = "testprincipal";
         try {
-            zms.dbService.checkRoleAuditEnabled(mockFileConn, domainName, roleName,"auditref", caller, principal);
+            zms.dbService.checkRoleAuditEnabled(mockFileConn, role, "auditref", caller, principal);
             fail();
         } catch (ResourceException ex) {
             assertEquals(400, ex.getCode());
@@ -3938,8 +3920,7 @@ public class DBServiceTest {
 
         String caller = "testCheckRoleAuditEnabledFlagTrueValidatorNull";
         String principal = "testprincipal";
-        Role r = zms.dbService.checkRoleAuditEnabled(mockFileConn, domainName, roleName,"auditref", caller, principal);
-        assertNotNull(r);
+        zms.dbService.checkRoleAuditEnabled(mockFileConn, role, "auditref", caller, principal);
     }
 
     @Test
@@ -4087,6 +4068,7 @@ public class DBServiceTest {
         ObjectStore saveStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
         Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockFileConn);
+        Mockito.when(mockFileConn.getRole(domainName, roleName)).thenReturn(role1);
         Mockito.when(mockFileConn.confirmRoleMember(anyString(), anyString(), any(), anyString(),
                 anyString())).thenReturn(false);
         try {

@@ -101,6 +101,15 @@ public final class ZMSConsts {
     public static final String ZMS_AUDIT_LOGGER_FACTORY_CLASS           = "com.yahoo.athenz.common.server.log.impl.DefaultAuditLoggerFactory";
 
     public static final String ZMS_PROP_AUDIT_REF_VALIDATOR_FACTORY_CLASS = "athenz.zms.audit_ref_validator_factory_class";
+    public static final String ZMS_PROP_AUDIT_REF_CHECK_OBJECTS           = "athenz.zms.audit_ref_check_objects";
+
+    public static final String ZMS_AUDIT_TYPE_ROLE     = "role";
+    public static final String ZMS_AUDIT_TYPE_POLICY   = "policy";
+    public static final String ZMS_AUDIT_TYPE_SERVICE  = "service";
+    public static final String ZMS_AUDIT_TYPE_DOMAIN   = "domain";
+    public static final String ZMS_AUDIT_TYPE_ENTITY   = "entity";
+    public static final String ZMS_AUDIT_TYPE_TENANCY  = "tenancy";
+    public static final String ZMS_AUDIT_TYPE_TEMPLATE = "template";
 
     public static final String ZMS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS = "athenz.zms.private_key_store_factory_class";
     public static final String ZMS_PRIVATE_KEY_STORE_FACTORY_CLASS      = "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory";

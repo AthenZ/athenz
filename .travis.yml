@@ -3,7 +3,7 @@ services:
 - docker
 language: java
 jdk:
-- oraclejdk8
+- openjdk8
 cache:
   directories:
   - "$HOME/.m2"

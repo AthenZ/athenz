@@ -158,9 +158,12 @@ public class ZMSImplTest {
                 "src/test/resources/solution_templates.json");
         System.setProperty(ZMSConsts.ZMS_PROP_NOAUTH_URI_LIST,
                 "uri1,uri2,uri3+uri4");
-        System.setProperty(ZMSConsts.ZMS_PROP_NOTIFICATION_SERVICE_FACTORY_CLASS, "com.yahoo.athenz.zms.notification.MockNotificationServiceFactory");
+        System.setProperty(ZMSConsts.ZMS_PROP_NOTIFICATION_SERVICE_FACTORY_CLASS,
+                "com.yahoo.athenz.zms.notification.MockNotificationServiceFactory");
+        System.setProperty(ZMSConsts.ZMS_PROP_AUDIT_REF_CHECK_OBJECTS,
+                "role,policy,service,domain,entity,tenancy,template");
         auditLogger = new DefaultAuditLogger();
-        
+
         initializeZms();
     }
 
@@ -5196,7 +5199,7 @@ public class ZMSImplTest {
     }
     
     @Test
-    public void testPutDefaultAdmins_NoAdminRole() {
+    public void testPutDefaultAdminsNoAdminRole() {
 
         TopLevelDomain sportsDomain = createTopLevelDomainObject("sports",
                 "Test domain for sports", "testOrg", adminUser);
@@ -7372,19 +7375,14 @@ public class ZMSImplTest {
 
     @Test
     public void testPutTenancyMismatchObject() {
-        String tenantDomain    = "testPutTenancyMissingAuditRef";
-        String providerDomain  = "providerTestPutTenancyMissingAuditRef";
+        String tenantDomain    = "testPutTenancyMismatchObject";
+        String providerDomain  = "providerTestPutTenancyMismatchObject";
         String providerService = "storage";
 
         // create tenant and provider domains
 
         setupTenantDomainProviderService(tenantDomain, providerDomain, providerService,
                 "http://localhost:8090/provider");
-
-        // modify the tenant domain to require auditing
-
-        DomainMeta meta = createDomainMetaObject("Tenant Domain", null, true, true, null, 0);
-        zms.putDomainMeta(mockDomRsrcCtx, tenantDomain, auditRef, meta);
 
         Tenancy tenant = createTenantObject(tenantDomain + "test", providerDomain + "." + providerService);
         try {
@@ -15722,7 +15720,7 @@ public class ZMSImplTest {
     }
 
     private void setupPrincipalRoleSystemMetaDelete(ZMSImpl zms, final String principal,
-                                                    final String domainName, final String attributeName) {
+            final String domainName, final String attributeName) {
 
         Role role = createRoleObject("sys.auth", "metaroleadmin", null, principal, null);
         zms.putRole(mockDomRsrcCtx, "sys.auth", "metaroleadmin", auditRef, role);
@@ -15777,18 +15775,14 @@ public class ZMSImplTest {
         assertTrue(resRole1.getAuditEnabled());
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "rolesystemmetadom1", auditRef);
-
     }
 
     @Test
     public void testPutRoleSystemMetaMissingAuditRef() {
 
-
         TopLevelDomain dom1 = createTopLevelDomainObject("rolesystemmetadom1",
                 "Role System Meta Test Domain1", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
-
-        Domain resDom1 = zms.getDomain(mockDomRsrcCtx, "rolesystemmetadom1");
 
         DomainMeta meta = createDomainMetaObject("Domain Meta for Role System Meta test", "NewOrg",
                 true, true, "12345", 1001);
