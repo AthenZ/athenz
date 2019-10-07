@@ -1120,7 +1120,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         metric.stopTiming(timerMetric, domainName, principalDomain);
     }
 
-    Domain deleteDomain(ResourceContext ctx, String auditRef, String domainName, String caller) {
+    void deleteDomain(ResourceContext ctx, String auditRef, String domainName, String caller) {
 
         // make sure we're not deleting any of the reserved system domain
 
@@ -1134,7 +1134,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     domainName + ": " + subDomainList.getNames().size() + " subdomains of it exist", caller);
         }
 
-        return dbService.executeDeleteDomain(ctx, domainName, auditRef, caller);
+        dbService.executeDeleteDomain(ctx, domainName, auditRef, caller);
     }
     
     boolean isVirtualDomain(String domain) {
@@ -4501,14 +4501,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         DomainData domainData = signedDomain.getDomain();
 
-        Boolean enabled = athenzDomain.getDomain().getEnabled();
-        if (enabled == Boolean.FALSE) {
-            domainData.setEnabled(enabled);
+        if (athenzDomain.getDomain().getEnabled() == Boolean.FALSE) {
+            domainData.setEnabled(false);
         }
-        // TODO: to be un-commented after dependent components are updated to not break backward compatibility
-//        if(Boolean.TRUE == athenzDomain.getDomain().getAuditEnabled()){
-//             domainData.setAuditEnabled(athenzDomain.getDomain().getAuditEnabled());
-//        }
+        if (athenzDomain.getDomain().getAuditEnabled() == Boolean.TRUE) {
+            domainData.setAuditEnabled(true);
+        }
         domainData.setAccount(athenzDomain.getDomain().getAccount());
         domainData.setYpmId(athenzDomain.getDomain().getYpmId());
         domainData.setRoles(athenzDomain.getRoles());

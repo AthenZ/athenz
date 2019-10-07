@@ -35,10 +35,10 @@ import com.yahoo.rdl.Timestamp;
 import com.yahoo.rdl.UUID;
 import com.yahoo.athenz.common.server.audit.AuditReferenceValidator;
 
-
 public class DBService {
     
     ObjectStore store;
+    BitSet auditRefSet;
     final String userDomain;
     AuditLogger auditLogger;
     Cache<String, DataCache> cacheStore;
@@ -48,6 +48,14 @@ public class DBService {
     int defaultOpTimeout;
     
     private static final Logger LOG = LoggerFactory.getLogger(DBService.class);
+
+    public static int AUDIT_TYPE_ROLE     = 0;
+    public static int AUDIT_TYPE_POLICY   = 1;
+    public static int AUDIT_TYPE_SERVICE  = 2;
+    public static int AUDIT_TYPE_DOMAIN   = 3;
+    public static int AUDIT_TYPE_ENTITY   = 4;
+    public static int AUDIT_TYPE_TENANCY  = 5;
+    public static int AUDIT_TYPE_TEMPLATE = 6;
 
     private static final String ROLE_PREFIX = "role.";
     private static final String POLICY_PREFIX = "policy.";
@@ -84,12 +92,56 @@ public class DBService {
         if (retrySleepTime < 0) {
             retrySleepTime = 250;
         }
-        
+
+        // check what objects we're going to enforce audit reference flag
+
+        setAuditRefObjectBits();
+        this.auditReferenceValidator = auditReferenceValidator;
+
         // create our quota checker class
         
         quotaCheck = new QuotaChecker();
+    }
 
-        this.auditReferenceValidator = auditReferenceValidator;
+    void setAuditRefObjectBits() {
+
+        auditRefSet = new BitSet();
+
+        // by default we're only going to handle audit enabled roles
+        // the value is a comma separated list of supported objects:
+        // role, policy, service, domain, entity
+
+        final String auditCheck = System.getProperty(ZMSConsts.ZMS_PROP_AUDIT_REF_CHECK_OBJECTS);
+        if (auditCheck == null) {
+            return;
+        }
+
+        String[] objects = auditCheck.split(",");
+        for (String object : objects) {
+            switch (object) {
+                case ZMSConsts.ZMS_AUDIT_TYPE_ROLE:
+                    auditRefSet.set(AUDIT_TYPE_ROLE);
+                    break;
+                case ZMSConsts.ZMS_AUDIT_TYPE_POLICY:
+                    auditRefSet.set(AUDIT_TYPE_POLICY);
+                    break;
+                case ZMSConsts.ZMS_AUDIT_TYPE_SERVICE:
+                    auditRefSet.set(AUDIT_TYPE_SERVICE);
+                    break;
+                case ZMSConsts.ZMS_AUDIT_TYPE_DOMAIN:
+                    auditRefSet.set(AUDIT_TYPE_DOMAIN);
+                    break;
+                case ZMSConsts.ZMS_AUDIT_TYPE_ENTITY:
+                    auditRefSet.set(AUDIT_TYPE_ENTITY);
+                    break;
+                case ZMSConsts.ZMS_AUDIT_TYPE_TENANCY:
+                    auditRefSet.set(AUDIT_TYPE_TENANCY);
+                    break;
+                case ZMSConsts.ZMS_AUDIT_TYPE_TEMPLATE:
+                    auditRefSet.set(AUDIT_TYPE_TEMPLATE);
+                    break;
+            }
+        }
     }
 
     static class DataCache {
@@ -723,7 +775,7 @@ public class DBService {
 
                 // first verify that auditing requirements are met
 
-                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx));
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_POLICY);
 
                 // check that quota is not exceeded
 
@@ -774,7 +826,7 @@ public class DBService {
                 String principal = getPrincipalName(ctx);
                 // first verify that auditing requirements are met
 
-                checkDomainAuditEnabled(con, domainName, auditRef, caller, principal);
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, principal, AUDIT_TYPE_ROLE);
 
                 // check that quota is not exceeded
 
@@ -829,7 +881,7 @@ public class DBService {
 
                 // first verify that auditing requirements are met
 
-                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx));
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_SERVICE);
 
                 // check that quota is not exceeded
 
@@ -880,7 +932,7 @@ public class DBService {
 
                 // first verify that auditing requirements are met
 
-                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx));
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_SERVICE);
 
                 // check to see if this key already exists or not
 
@@ -951,7 +1003,7 @@ public class DBService {
 
                 // first verify that auditing requirements are met
 
-                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx));
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_SERVICE);
 
                 // now process the request
 
@@ -1010,12 +1062,22 @@ public class DBService {
 
                 // first verify that auditing requirements are met
 
-                checkDomainAuditEnabled(con, domainName, auditRef, caller, principal);
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, principal, AUDIT_TYPE_ROLE);
+
+                // make sure the role auditing requires are bet
+
+                Role originalRole = con.getRole(domainName, roleName);
+                if (originalRole == null) {
+                    con.rollbackChanges();
+                    throw ZMSUtils.notFoundError(caller + ": Unknown role: " + roleName, caller);
+                }
+
+                checkRoleAuditEnabled(con, originalRole, auditRef, caller, principal);
 
                 // before inserting a member we need to verify that
                 // this is a group role and not a delegated one.
 
-                if (isTrustRole(con.getRole(domainName, roleName))) {
+                if (isTrustRole(originalRole)) {
                     con.rollbackChanges();
                     throw ZMSUtils.requestError(caller + ": " + roleName +
                             "is a delegated role", caller);
@@ -1072,7 +1134,7 @@ public class DBService {
 
                 // first verify that auditing requirements are met
 
-                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx));
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_ENTITY);
 
                 // check that quota is not exceeded
 
@@ -1131,7 +1193,7 @@ public class DBService {
 
                 // first verify that auditing requirements are met
 
-                checkDomainAuditEnabled(con, domainName, auditRef, caller, principal);
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, principal, AUDIT_TYPE_ROLE);
 
                 // if this is the admin role then we need to make sure
                 // the admin is not himself who happens to be the last
@@ -1188,7 +1250,7 @@ public class DBService {
 
                 // first verify that auditing requirements are met
 
-                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx));
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_SERVICE);
 
                 // process our delete service request
 
@@ -1229,7 +1291,7 @@ public class DBService {
 
                 // first verify that auditing requirements are met
 
-                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx));
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_ENTITY);
 
                 // process our delete role request
 
@@ -1270,7 +1332,7 @@ public class DBService {
 
                 // first verify that auditing requirements are met
 
-                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx));
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_ROLE);
 
                 // process our delete role request
 
@@ -1311,7 +1373,7 @@ public class DBService {
 
                 // first verify that auditing requirements are met
 
-                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx));
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_POLICY);
 
                 // process our delete policy request
 
@@ -1341,10 +1403,19 @@ public class DBService {
     
     /**
      * If the domain has audit enabled, and user did not provide the auditRef,
-     * an exception will be thrown. This is the first check before any write
-     * operation is carried out so we don't really have anything to roll-back
+     * an exception will be thrown
      **/
-    Domain checkDomainAuditEnabled(ObjectStoreConnection con, String domainName, String auditRef, String caller, String principal) {
+    void checkDomainAuditEnabled(ObjectStoreConnection con, final String domainName,
+            final String auditRef, final String caller, final String principal, int objectType) {
+
+        // before retrieving the domain details make sure we are
+        // configured to enforce audit reference field on the given
+        // object type
+
+        if (!auditRefSet.get(objectType)) {
+            con.rollbackChanges();
+            return;
+        }
 
         Domain domain = con.getDomain(domainName);
         if (domain == null) {
@@ -1352,22 +1423,37 @@ public class DBService {
             throw ZMSUtils.notFoundError(caller + ": Unknown domain: " + domainName, caller);
         }
 
+        auditReferenceCheck(con, domain, auditRef, caller, principal);
+    }
+
+    void checkDomainAuditEnabled(ObjectStoreConnection con, Domain domain,
+            final String auditRef, final String caller, final String principal, int objectType) {
+
+        if (!auditRefSet.get(objectType)) {
+            con.rollbackChanges();
+            return;
+        }
+
+        auditReferenceCheck(con, domain, auditRef, caller, principal);
+    }
+
+    void auditReferenceCheck(ObjectStoreConnection con, Domain domain, final String auditRef,
+            final String caller, final String principal) {
+
         if (domain.getAuditEnabled()) {
             if (auditRef == null || auditRef.length() == 0) {
                 con.rollbackChanges();
-                throw ZMSUtils.requestError(caller + ": Audit reference required for domain: " + domainName, caller);
+                throw ZMSUtils.requestError(caller + ": Audit reference required for domain: " + domain.getName(), caller);
             }
 
             if (auditReferenceValidator != null && !auditReferenceValidator.validateReference(auditRef, principal, caller)) {
                 con.rollbackChanges();
-                throw ZMSUtils.requestError(caller + ": Audit reference validation failed for domain: " + domainName + ", auditRef: " + auditRef, caller);
+                throw ZMSUtils.requestError(caller + ": Audit reference validation failed for domain: " + domain.getName() + ", auditRef: " + auditRef, caller);
             }
         }
-        
-        return domain;
     }
-    
-    Domain executeDeleteDomain(ResourceContext ctx, String domainName, String auditRef, String caller) {
+
+    void executeDeleteDomain(ResourceContext ctx, String domainName, String auditRef, String caller) {
 
         // our exception handling code does the check for retry count
         // and throws the exception it had received when the retry
@@ -1379,7 +1465,7 @@ public class DBService {
 
                 // first verify that auditing requirements are met
 
-                Domain domain = checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx));
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_DOMAIN);
 
                 // now process the request
 
@@ -1392,7 +1478,7 @@ public class DBService {
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
                         domainName, null);
 
-                return domain;
+                return;
 
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
@@ -1982,7 +2068,7 @@ public class DBService {
 
                 // first verify that auditing requirements are met
 
-                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx));
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_POLICY);
 
                 // now we need verify our quota check
 
@@ -2036,7 +2122,7 @@ public class DBService {
 
                 // first verify that auditing requirements are met
 
-                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx));
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_POLICY);
 
                 // process our delete assertion. since this is a "single"
                 // operation, we are not using any transactions.
@@ -2120,9 +2206,15 @@ public class DBService {
 
             try (ObjectStoreConnection con = store.getConnection(false, true)) {
 
+                Domain domain = con.getDomain(domainName);
+                if (domain == null) {
+                    con.rollbackChanges();
+                    throw ZMSUtils.notFoundError(caller + ": Unknown domain: " + domainName, caller);
+                }
+
                 // first verify that auditing requirements are met
 
-                Domain domain = checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx));
+                checkDomainAuditEnabled(con, domain, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_DOMAIN);
 
                 // now process the request. first we're going to make a
                 // copy of our domain
@@ -2264,7 +2356,7 @@ public class DBService {
 
                 // first verify that auditing requirements are met
 
-                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx));
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_TEMPLATE);
 
                 // go through our list of templates and add the specified
                 // roles and polices to our domain
@@ -2315,7 +2407,7 @@ public class DBService {
 
                 // first verify that auditing requirements are met
 
-                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx));
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_TEMPLATE);
 
                 // go through our list of templates and add the specified
                 // roles and polices to our domain
@@ -2666,7 +2758,7 @@ public class DBService {
 
                 // first verify that auditing requirements are met
 
-                checkDomainAuditEnabled(con, tenantDomain, auditRef, caller, provSvcDomain + "." + provSvcName);
+                checkDomainAuditEnabled(con, tenantDomain, auditRef, caller, provSvcDomain + "." + provSvcName, AUDIT_TYPE_TENANCY);
 
                 String domainAdminRole = ZMSUtils.roleResourceName(tenantDomain, ZMSConsts.ADMIN_ROLE_NAME);
                 String serviceRoleResourceName = ZMSUtils.getTrustedResourceGroupRolePrefix(provSvcDomain,
@@ -2745,7 +2837,7 @@ public class DBService {
 
                 // first verify that auditing requirements are met
 
-                checkDomainAuditEnabled(con, provSvcDomain, auditRef, caller, getPrincipalName(ctx));
+                checkDomainAuditEnabled(con, provSvcDomain, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_TENANCY);
 
                 String trustedRolePrefix = ZMSUtils.getTrustedResourceGroupRolePrefix(provSvcDomain,
                         provSvcName, tenantDomain, resourceGroup);
@@ -2921,7 +3013,7 @@ public class DBService {
 
                 // first verify that auditing requirements are met
 
-                checkDomainAuditEnabled(con, tenantDomain, auditRef, caller, getPrincipalName(ctx));
+                checkDomainAuditEnabled(con, tenantDomain, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_TENANCY);
 
                 // we're going to create a separate role for each one of tenant roles returned
                 // based on its action and set the caller as a member in each role
@@ -3008,7 +3100,7 @@ public class DBService {
 
                 // first verify that auditing requirements are met
 
-                checkDomainAuditEnabled(con, tenantDomain, auditRef, caller, getPrincipalName(ctx));
+                checkDomainAuditEnabled(con, tenantDomain, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_TENANCY);
 
                 // first let's process and remove any policies that start with our
                 // provider prefix
@@ -3110,7 +3202,7 @@ public class DBService {
 
                 // first verify that auditing requirements are met
 
-                checkDomainAuditEnabled(con, provSvcDomain, auditRef, caller, getPrincipalName(ctx));
+                checkDomainAuditEnabled(con, provSvcDomain, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_TENANCY);
 
                 // find roles and policies matching the prefix
 
@@ -3497,7 +3589,8 @@ public class DBService {
         }
     }
 
-    public void executePutRoleSystemMeta(ResourceContext ctx, String domainName, String roleName, RoleSystemMeta meta, String attribute, boolean deleteAllowed, String auditRef, String caller) {
+    public void executePutRoleSystemMeta(ResourceContext ctx, String domainName, String roleName,
+           RoleSystemMeta meta, String attribute, boolean deleteAllowed, String auditRef, String caller) {
 
         // our exception handling code does the check for retry count
         // and throws the exception it had received when the retry
@@ -3507,23 +3600,29 @@ public class DBService {
 
             try (ObjectStoreConnection con = store.getConnection(false, true)) {
 
+                Domain domain = con.getDomain(domainName);
+                if (domain == null) {
+                    con.rollbackChanges();
+                    throw ZMSUtils.notFoundError(caller + ": Unknown domain: " + domainName, caller);
+                }
+
                 // first verify that auditing requirements are met
 
-                Domain domain = checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx));
+                checkDomainAuditEnabled(con, domain, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_ROLE);
 
-                if (!domain.getAuditEnabled()) {
+                if (domain.getAuditEnabled() != Boolean.TRUE) {
                     throw ZMSUtils.requestError(caller + ": auditEnabled flag not set for domain: " + domainName + " to add it on the role: " + roleName, caller);
                 }
 
-                Role rolefromdb = getRole(con, domainName, roleName, false, false, false);
+                Role originalRole = getRole(con, domainName, roleName, false, false, false);
 
                 // now process the request. first we're going to make a
                 // copy of our role
 
                 Role updatedRole = new Role()
-                        .setName(rolefromdb.getName())
-                        .setAuditEnabled(rolefromdb.getAuditEnabled())
-                        .setTrust(rolefromdb.getTrust());
+                        .setName(originalRole.getName())
+                        .setAuditEnabled(originalRole.getAuditEnabled())
+                        .setTrust(originalRole.getTrust());
 
                 // then we're going to apply the updated fields
                 // from the given object
@@ -3566,18 +3665,22 @@ public class DBService {
 
             try (ObjectStoreConnection con = store.getConnection(false, true)) {
 
-                checkRoleAuditEnabled(con, domainName, roleName, auditRef, caller, getPrincipalName(ctx));
+                Role originalRole = getRole(con, domainName, roleName, false, false, false);
+                if (originalRole == null) {
+                    con.rollbackChanges();
+                    throw ZMSUtils.notFoundError(caller + ": Unknown role: " + roleName, caller);
+                }
 
-                Role rolefromdb = getRole(con, domainName, roleName, false, false, false);
+                checkRoleAuditEnabled(con, originalRole, auditRef, caller, getPrincipalName(ctx));
 
                 // now process the request. first we're going to make a
                 // copy of our role
 
                 Role updatedRole = new Role()
-                        .setName(rolefromdb.getName())
-                        .setAuditEnabled(rolefromdb.getAuditEnabled())
-                        .setTrust(rolefromdb.getTrust())
-                        .setSelfServe(rolefromdb.getSelfServe());
+                        .setName(originalRole.getName())
+                        .setAuditEnabled(originalRole.getAuditEnabled())
+                        .setTrust(originalRole.getTrust())
+                        .setSelfServe(originalRole.getSelfServe());
 
                 // then we're going to apply the updated fields
                 // from the given object
@@ -3607,31 +3710,23 @@ public class DBService {
 
     /**
      * If the role has audit enabled, and user did not provide the auditRef,
-     * an exception will be thrown. This is the first check before any write
-     * operation is carried out so we don't really have anything to roll-back
+     * an exception will be thrown.
      **/
-    Role checkRoleAuditEnabled(ObjectStoreConnection con, String domainName, String roleName, String auditRef, String caller, String principal) {
-
-        Role role = con.getRole(domainName, roleName);
-        if (role == null) {
-            con.rollbackChanges();
-            throw ZMSUtils.notFoundError(caller + ": Unknown role: " + roleName + " in domain: " + domainName, caller);
-        }
+    void checkRoleAuditEnabled(ObjectStoreConnection con, Role role, final String auditRef,
+            final String caller, final String principal) {
 
         if (role.getAuditEnabled() == Boolean.TRUE) {
             if (auditRef == null || auditRef.length() == 0) {
                 con.rollbackChanges();
-                throw ZMSUtils.requestError(caller + ": Audit reference required for role: " + domainName, caller);
+                throw ZMSUtils.requestError(caller + ": Audit reference required for role: " + role.getName(), caller);
             }
 
             if (auditReferenceValidator != null && !auditReferenceValidator.validateReference(auditRef, principal, caller)) {
                 con.rollbackChanges();
-                throw ZMSUtils.requestError(caller + ": Audit reference validation failed for domain: " + domainName + " and role: " + roleName
-                        + ", auditRef: " + auditRef, caller);
+                throw ZMSUtils.requestError(caller + ": Audit reference validation failed for role: " + role.getName() +
+                        ", auditRef: " + auditRef, caller);
             }
         }
-
-        return role;
     }
 
     void executePutMembershipDecision(ResourceContext ctx, String domainName, String roleName,
@@ -3646,6 +3741,16 @@ public class DBService {
             try (ObjectStoreConnection con = store.getConnection(false, true)) {
 
                 String principal = getPrincipalName(ctx);
+
+                // make sure the role auditing requires are bet
+
+                Role originalRole = con.getRole(domainName, roleName);
+                if (originalRole == null) {
+                    con.rollbackChanges();
+                    throw ZMSUtils.notFoundError(caller + ": Unknown role: " + roleName, caller);
+                }
+
+                checkRoleAuditEnabled(con, originalRole, auditRef, caller, principal);
 
                 // process our confirm role member support
 
