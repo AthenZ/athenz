@@ -3819,4 +3819,18 @@ public class DBService {
             return con.getPendingMembershipApproverRoles();
         }
     }
+
+    public void processExpiredPendingMembers(int pendingRoleMemberLifespan, String monitorIdentity) {
+        try (ObjectStoreConnection con = store.getConnection(true, true)) {
+            con.processExpiredPendingMembers(pendingRoleMemberLifespan, monitorIdentity);
+        }
+    }
+
+    public void updateLastNotifiedTimestamp(int pendingRoleMemberLifespan) {
+        try (ObjectStoreConnection con = store.getConnection(true, true)) {
+            con.updateLastNotifiedTimestamp(pendingRoleMemberLifespan);
+        }
+    }
+
+
 }

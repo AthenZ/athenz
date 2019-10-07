@@ -106,7 +106,8 @@ public class ZMSSchema {
             .field("active", "Bool", true, "Flag to indicate whether membership is active", true)
             .field("approved", "Bool", true, "Flag to indicate whether membership is approved either by delegates ( in case of auditEnabled roles ) or by domain admins ( in case of selfserve roles )", true)
             .field("auditRef", "String", true, "audit reference string for the change as supplied by admin")
-            .field("requestTime", "Timestamp", true, "for pending membership requests, the request time");
+            .field("requestTime", "Timestamp", true, "for pending membership requests, the request time")
+            .field("lastNotifiedTime", "Timestamp", true, "for pending membership requests, time when last notification was sent");
 
         sb.structType("Role")
             .comment("The representation for a Role with set of members.")

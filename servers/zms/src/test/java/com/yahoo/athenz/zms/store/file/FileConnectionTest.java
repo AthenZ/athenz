@@ -603,4 +603,29 @@ public class FileConnectionTest {
         }
     }
 
+    @Test
+    public void testProcessExpiredPendingMembers() {
+        File fileDir = new File("/home/athenz/zms_store");
+        File quotaDir = new File("/home/athenz/zms_quota");
+        try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
+            try {
+                fileconnection.processExpiredPendingMembers(30, "sys.auth.monitor");
+            } catch (Exception ex) {
+                assertTrue(true);
+            }
+        }
+    }
+
+    @Test
+    public void testUpdateLastNotifiedTimestamp() {
+        File fileDir = new File("/home/athenz/zms_store");
+        File quotaDir = new File("/home/athenz/zms_quota");
+        try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
+            try {
+                fileconnection.updateLastNotifiedTimestamp(45);
+            } catch (Exception ex) {
+                assertTrue(true);
+            }
+        }
+    }
 }

@@ -88,6 +88,8 @@ public class DBServiceTest {
         return BASE_PRODUCT_ID + domainProductId.nextInt(99999999);
     }
 
+    @Mock private NotificationManager mockNotificationManager;
+
     @BeforeClass
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
@@ -247,6 +249,7 @@ public class DBServiceTest {
         pubKeyK2 = Crypto.ybase64(new String(Files.readAllBytes(path)).getBytes());
 
         zms = zmsInit();
+        zms.notificationManager = mockNotificationManager;
     }
 
     @AfterClass
@@ -4310,5 +4313,23 @@ public class DBServiceTest {
         assertTrue(recipientsRes.contains("user.joe"));
 
         zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testProcessExpiredPendingMembers() {
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockFileConn);
+        Mockito.when(mockFileConn.processExpiredPendingMembers(30, "sys.auth.monitor")).thenReturn(true);
+
+        zms.dbService.processExpiredPendingMembers(30, "sys.auth.monitor");
+        assertTrue(true);
+    }
+
+    @Test
+    public void testUpdateLastNotifiedTimestamp() {
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockFileConn);
+        Mockito.when(mockFileConn.updateLastNotifiedTimestamp(30)).thenReturn(true);
+
+        zms.dbService.updateLastNotifiedTimestamp(30);
+        assertTrue(true);
     }
 }

@@ -264,6 +264,7 @@ public class ZMSImplTest {
         ZMSImpl zmsObj = new ZMSImpl();
         zmsObj.auditLogger = alogger;
         zmsObj.dbService.auditLogger = alogger;
+        zmsObj.notificationManager = mockNotificationManager;
         
         ZMSImpl.serverHostName = "localhost";
 

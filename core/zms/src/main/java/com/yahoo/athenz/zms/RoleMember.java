@@ -26,6 +26,9 @@ public class RoleMember {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Timestamp requestTime;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Timestamp lastNotifiedTime;
 
     public RoleMember setMemberName(String memberName) {
         this.memberName = memberName;
@@ -69,6 +72,13 @@ public class RoleMember {
     public Timestamp getRequestTime() {
         return requestTime;
     }
+    public RoleMember setLastNotifiedTime(Timestamp lastNotifiedTime) {
+        this.lastNotifiedTime = lastNotifiedTime;
+        return this;
+    }
+    public Timestamp getLastNotifiedTime() {
+        return lastNotifiedTime;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -93,6 +103,9 @@ public class RoleMember {
                 return false;
             }
             if (requestTime == null ? a.requestTime != null : !requestTime.equals(a.requestTime)) {
+                return false;
+            }
+            if (lastNotifiedTime == null ? a.lastNotifiedTime != null : !lastNotifiedTime.equals(a.lastNotifiedTime)) {
                 return false;
             }
         }

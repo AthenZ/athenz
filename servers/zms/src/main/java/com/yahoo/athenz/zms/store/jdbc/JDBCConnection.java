@@ -113,7 +113,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_UPDATE_ROLE_MEMBER = "UPDATE role_member "
             + "SET expiration=?, active=?, audit_ref=? WHERE role_id=? AND principal_id=?;";
     private static final String SQL_UPDATE_PENDING_ROLE_MEMBER = "UPDATE pending_role_member "
-            + "SET expiration=?, audit_ref=? WHERE role_id=? AND principal_id=?;";
+            + "SET expiration=?, audit_ref=?, req_time=CURRENT_TIMESTAMP(3) WHERE role_id=? AND principal_id=?;";
     private static final String SQL_INSERT_ROLE_AUDIT_LOG = "INSERT INTO role_audit_log "
             + "(role_id, admin, member, action, audit_ref) VALUES (?,?,?,?,?);";
     private static final String SQL_LIST_ROLE_AUDIT_LOGS = "SELECT * FROM role_audit_log WHERE role_id=?;";
@@ -263,12 +263,20 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_AUDIT_ENABLED_PENDING_MEMBERSHIP_REMINDER_ENTRIES =
             "SELECT distinct d.org, d.name FROM pending_role_member rm " +
             "JOIN role r ON r.role_id=rm.role_id JOIN domain d ON r.domain_id=d.domain_id " +
-            "WHERE r.audit_enabled=true;";
+            "WHERE r.audit_enabled=true AND DATE(rm.last_notified_time) = CURDATE();";
 
     private static final String SQL_SELF_SERVE_PENDING_MEMBERSHIP_REMINDER_DOMAINS =
             "SELECT distinct d.name FROM pending_role_member rm " +
             "JOIN role r ON r.role_id=rm.role_id " +
-            "JOIN domain d ON r.domain_id=d.domain_id WHERE r.self_serve=true;";
+            "JOIN domain d ON r.domain_id=d.domain_id WHERE r.self_serve=true AND DATE(rm.last_notified_time) = CURDATE();";
+
+    private static final String SQL_DELETE_EXPIRED_PENDING_ROLE_MEMBERS = "DELETE FROM pending_role_member WHERE req_time < (CURRENT_DATE - INTERVAL ? DAY);";
+
+    private static final String SQL_GET_EXPIRED_PENDING_ROLE_MEMBERS = "SELECT prm.role_id, p.name FROM principal p JOIN pending_role_member prm " +
+            "ON prm.principal_id=p.principal_id WHERE prm.req_time < (CURRENT_DATE - INTERVAL ? DAY);";
+
+    private static final String SQL_UPDATE_PENDING_ROLE_MEMBERS_NOTIFICATION_TIMESTAMP = "UPDATE pending_role_member SET last_notification_time=CURRENT_TIMESTAMP(3) " +
+            "WHERE DAYOFWEEK(req_time)=DAYOFWEEK(CURRENT_DATE()) AND last_notification_time < CURRENT_DATE;";
 
     private static final String CACHE_DOMAIN    = "d:";
     private static final String CACHE_ROLE      = "r:";
@@ -3699,6 +3707,48 @@ public class JDBCConnection implements ObjectStoreConnection {
         getRecipientRoleForSelfServeMembershipApproval(caller, targetRoles);
 
         return targetRoles;
+    }
+
+    @Override
+    public boolean processExpiredPendingMembers(int pendingRoleMemberLifespan, String monitorIdentity) {
+
+        boolean result = true;
+        String caller = "processExpiredPendingMembers";
+        //update audit log with details before deleting
+        try (PreparedStatement ps = con.prepareStatement(SQL_GET_EXPIRED_PENDING_ROLE_MEMBERS)) {
+            ps.setInt(1, pendingRoleMemberLifespan);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    result = result && insertRoleAuditLog(rs.getInt(1), monitorIdentity, rs.getString(2), "REJECT", "Expired");
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        //delete from pending_role_member
+        int affectedRows = 0;
+        if (result) {
+            try (PreparedStatement ps = con.prepareStatement(SQL_DELETE_EXPIRED_PENDING_ROLE_MEMBERS)) {
+                ps.setInt(1, pendingRoleMemberLifespan);
+                affectedRows = executeUpdate(ps, caller);
+            } catch (SQLException ex) {
+                throw sqlError(ex, caller);
+            }
+        }
+        return (affectedRows > 0);
+    }
+
+    @Override
+    public boolean updateLastNotifiedTimestamp(int pendingRoleMemberLifespan) {
+        String caller = "updateLastNotifiedTimestamp";
+        int affectedRows;
+        try (PreparedStatement ps = con.prepareStatement(SQL_UPDATE_PENDING_ROLE_MEMBERS_NOTIFICATION_TIMESTAMP)) {
+            ps.setInt(1, pendingRoleMemberLifespan);
+            affectedRows = executeUpdate(ps, caller);
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return (affectedRows > 0);
     }
 
     private void getRecipientRoleForSelfServeMembershipApproval(String caller, Set<String> targetRoles) {
