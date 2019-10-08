@@ -1413,7 +1413,6 @@ public class DBService {
         // object type
 
         if (!auditRefSet.get(objectType)) {
-            con.rollbackChanges();
             return;
         }
 
@@ -1430,7 +1429,6 @@ public class DBService {
             final String auditRef, final String caller, final String principal, int objectType) {
 
         if (!auditRefSet.get(objectType)) {
-            con.rollbackChanges();
             return;
         }
 
