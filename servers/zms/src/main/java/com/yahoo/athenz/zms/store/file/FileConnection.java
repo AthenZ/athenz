@@ -1622,7 +1622,7 @@ public class FileConnection implements ObjectStoreConnection {
     }
 
     @Override
-    public Set<String> getPendingMembershipApproverRoles(String server, java.sql.Timestamp timestamp) {
+    public Set<String> getPendingMembershipApproverRoles(String server, long timestamp) {
 
         String[] fnames = getDomainList();
         Set<String> roleNames = new HashSet<>();
@@ -1708,9 +1708,9 @@ public class FileConnection implements ObjectStoreConnection {
     }
 
     @Override
-    public boolean updateLastNotifiedTimestamp(String server, java.sql.Timestamp timestamp) {
+    public boolean updateLastNotifiedTimestamp(String server, long timestamp) {
         String[] fnames = getDomainList();
-        boolean updated = false;
+        boolean updated;
         boolean found = false;
         for (String name : fnames) {
             DomainStruct dom = getDomainStruct(name);

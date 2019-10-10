@@ -15,14 +15,10 @@
  */
 package com.yahoo.athenz.zms;
 
-import java.util.*;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.common.server.audit.AuditReferenceValidator;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.util.StringUtils;
@@ -33,7 +29,10 @@ import com.yahoo.athenz.zms.utils.ZMSUtils;
 import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Timestamp;
 import com.yahoo.rdl.UUID;
-import com.yahoo.athenz.common.server.audit.AuditReferenceValidator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.*;
 
 public class DBService {
     
@@ -237,16 +236,26 @@ public class DBService {
     
     void auditLogRequest(ResourceContext ctx, String domainName, String auditRef,
             String caller, String operation, String entityName, String auditDetails) {
-        
+        auditLogger.log(getAuditLogMsgBuilder(ctx, domainName, auditRef, caller, operation, entityName, auditDetails));
+    }
+
+    void auditLogRequest(String principal, String domainName, String auditRef,
+                         String caller, String operation, String entityName, String auditDetails) {
+        AuditLogMsgBuilder msgBldr = getAuditLogMsgBuilder(null, domainName, auditRef, caller, operation, entityName, auditDetails);
+        msgBldr.who(principal);
+        auditLogger.log(msgBldr);
+    }
+
+    private AuditLogMsgBuilder getAuditLogMsgBuilder(ResourceContext ctx, String domainName, String auditRef, String caller, String operation, String entityName, String auditDetails) {
         AuditLogMsgBuilder msgBldr = ZMSUtils.getAuditLogMsgBuilder(ctx, auditLogger,
                 domainName, auditRef, caller, operation);
         msgBldr.when(Timestamp.fromCurrentTime().toString()).whatEntity(entityName);
         if (auditDetails != null) {
             msgBldr.whatDetails(auditDetails);
         }
-        auditLogger.log(msgBldr);
+        return msgBldr;
     }
-    
+
     Domain makeDomain(ResourceContext ctx, String domainName, String description, String org,
             Boolean auditEnabled, List<String> adminUsers, String account, int productId, String applicationId,
             List<String> solutionTemplates, String auditRef) {
@@ -837,7 +846,7 @@ public class DBService {
                 Role originalRole = getRole(con, domainName, roleName, false, false, false);
 
                 if (originalRole != null && originalRole.getAuditEnabled() == Boolean.TRUE) {
-                    throw ZMSUtils.requestError("Can not update the auditEnabled role ", caller);
+                    throw ZMSUtils.requestError("Can not update the auditEnabled role", caller);
                 }
 
                 // now process the request
@@ -3817,7 +3826,7 @@ public class DBService {
     public Set<String> getPendingMembershipApproverRoles() {
         String server = ZMSImpl.serverHostName;
         try (ObjectStoreConnection con = store.getConnection(true, true)) {
-            java.sql.Timestamp updateTs = new java.sql.Timestamp(new Date().getTime());
+            long updateTs = new Date().getTime();
             if (con.updateLastNotifiedTimestamp(server, updateTs)) {
                 return con.getPendingMembershipApproverRoles(server, updateTs);
             }
@@ -3830,10 +3839,9 @@ public class DBService {
             List<Map<String, String>> membersMapList = con.processExpiredPendingMembers(pendingRoleMemberLifespan, monitorIdentity);
 
             // record each expired member in audit log
-
             for (Map<String, String> membersMap : membersMapList) {
-                auditLogRequest(null, membersMap.get("domain"), "Expired", "processExpiredPendingMembers", "REJECT",
-                        membersMap.get("role"), "{\"member\": \"" + membersMap.get("member") + "\", \"principal\": \"" + monitorIdentity + "\"}");
+                auditLogRequest(monitorIdentity, membersMap.get("domain"), "Expired", "processExpiredPendingMembers", "REJECT",
+                        membersMap.get("role"), "{\"member\": \"" + membersMap.get("member") + "\"}");
             }
         }
     }

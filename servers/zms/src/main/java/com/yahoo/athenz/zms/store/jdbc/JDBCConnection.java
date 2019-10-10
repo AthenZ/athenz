@@ -15,11 +15,7 @@
  */
 package com.yahoo.athenz.zms.store.jdbc;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.SQLTimeoutException;
+import java.sql.*;
 import java.util.*;
 
 import com.yahoo.athenz.zms.*;
@@ -3666,7 +3662,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
 
     @Override
-    public Set<String> getPendingMembershipApproverRoles(String server, java.sql.Timestamp timestamp) {
+    public Set<String> getPendingMembershipApproverRoles(String server, long timestamp) {
 
         final String caller = "getPendingMembershipApproverRoles";
 
@@ -3674,10 +3670,12 @@ public class JDBCConnection implements ObjectStoreConnection {
         int orgDomainId = getDomainId(ZMSConsts.SYS_AUTH_AUDIT_BY_ORG);
         int domDomainId = getDomainId(ZMSConsts.SYS_AUTH_AUDIT_BY_DOMAIN);
 
+        java.sql.Timestamp ts = new java.sql.Timestamp(timestamp);
+
         //Get orgs and domains for audit enabled roles with pending membership
 
         try (PreparedStatement ps = con.prepareStatement(SQL_AUDIT_ENABLED_PENDING_MEMBERSHIP_REMINDER_ENTRIES)) {
-            ps.setTimestamp(1, timestamp);
+            ps.setTimestamp(1, ts);
             ps.setString(2, server);
             try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
@@ -3707,7 +3705,7 @@ public class JDBCConnection implements ObjectStoreConnection {
 
         // get admin roles of pending selfserve requests
 
-        getRecipientRoleForSelfServeMembershipApproval(caller, targetRoles, timestamp, server);
+        getRecipientRoleForSelfServeMembershipApproval(caller, targetRoles, ts, server);
 
         return targetRoles;
     }
@@ -3716,7 +3714,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     public List<Map<String, String>> processExpiredPendingMembers(int pendingRoleMemberLifespan, String monitorIdentity) {
 
         boolean result = true;
-        String caller = "processExpiredPendingMembers";
+        final String caller = "processExpiredPendingMembers";
         //update audit log with details before deleting
         Map<String, String> membersMap;
         String member;
@@ -3750,13 +3748,14 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
 
     @Override
-    public boolean updateLastNotifiedTimestamp(String server, java.sql.Timestamp timestamp) {
-        String caller = "updateLastNotifiedTimestamp";
+    public boolean updateLastNotifiedTimestamp(String server, long timestamp) {
+        final String caller = "updateLastNotifiedTimestamp";
         int affectedRows;
+        java.sql.Timestamp ts = new java.sql.Timestamp(timestamp);
         try (PreparedStatement ps = con.prepareStatement(SQL_UPDATE_PENDING_ROLE_MEMBERS_NOTIFICATION_TIMESTAMP)) {
-            ps.setTimestamp(1, timestamp);
+            ps.setTimestamp(1, ts);
             ps.setString(2, server);
-            ps.setTimestamp(3, timestamp);
+            ps.setTimestamp(3, ts);
 
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {

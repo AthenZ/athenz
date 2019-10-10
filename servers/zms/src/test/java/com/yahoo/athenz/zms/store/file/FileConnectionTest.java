@@ -614,7 +614,7 @@ public class FileConnectionTest {
         File fileDir = new File("/home/athenz/zms_store");
         File quotaDir = new File("/home/athenz/zms_quota");
         try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
-            assertTrue(fileconnection.getPendingMembershipApproverRoles("localhost", null).isEmpty());
+            assertTrue(fileconnection.getPendingMembershipApproverRoles("localhost", 0L).isEmpty());
         }
     }
 
@@ -632,7 +632,7 @@ public class FileConnectionTest {
         File fileDir = new File("/home/athenz/zms_store");
         File quotaDir = new File("/home/athenz/zms_quota");
         try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
-            assertFalse(fileconnection.updateLastNotifiedTimestamp("localhost", null));
+            assertFalse(fileconnection.updateLastNotifiedTimestamp("localhost", 0L));
         }
     }
 }

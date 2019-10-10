@@ -7591,9 +7591,10 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.getString(2))
                 .thenReturn("dom1");
 
-        java.sql.Timestamp ts = new java.sql.Timestamp(new Date().getTime());
+        long timestamp = new Date().getTime();
+        java.sql.Timestamp ts = new java.sql.Timestamp(timestamp);
 
-        Set<String> roles = jdbcConn.getPendingMembershipApproverRoles("localhost", ts);
+        Set<String> roles = jdbcConn.getPendingMembershipApproverRoles("localhost", timestamp);
 
         Mockito.verify(mockPrepStmt, times(1)).setInt(1, 7);
         Mockito.verify(mockPrepStmt, times(4)).setInt(1, 9);
@@ -7634,9 +7635,10 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.getString(2))
                 .thenReturn("mytestdomain");
 
-        java.sql.Timestamp ts = new java.sql.Timestamp(new Date().getTime());
+        long timestamp = new Date().getTime();
+        java.sql.Timestamp ts = new java.sql.Timestamp(timestamp);
 
-        Set<String> roles = jdbcConn.getPendingMembershipApproverRoles("localhost", ts);
+        Set<String> roles = jdbcConn.getPendingMembershipApproverRoles("localhost", timestamp);
 
         Mockito.verify(mockPrepStmt, times(1)).setInt(1, 7);
         Mockito.verify(mockPrepStmt, times(2)).setInt(1, 9);
@@ -7658,7 +7660,7 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Mockito.when(mockResultSet.next()).thenReturn(true).thenThrow(new SQLException("sql error"));
         try {
-            jdbcConn.getPendingMembershipApproverRoles("localhost", null);
+            jdbcConn.getPendingMembershipApproverRoles("localhost", 0L);
             fail();
         } catch (RuntimeException rx) {
             assertTrue(rx.getMessage().contains("sql error"));
@@ -7674,7 +7676,7 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.getInt(1)).thenReturn(7);
         Mockito.when(mockResultSet.getString(1)).thenReturn("org1", null, null, "", "mytestdomain");
         try {
-            jdbcConn.getPendingMembershipApproverRoles("localhost", null);
+            jdbcConn.getPendingMembershipApproverRoles("localhost", 0L);
             fail();
         } catch (RuntimeException rx) {
             assertTrue(rx.getMessage().contains("sql error"));
@@ -7710,7 +7712,7 @@ public class JDBCConnectionTest {
                 .thenReturn("dom1");
 
         try {
-            jdbcConn.getPendingMembershipApproverRoles("localhost", null);
+            jdbcConn.getPendingMembershipApproverRoles("localhost", 0L);
             fail();
         } catch (RuntimeException rx) {
             assertTrue(rx.getMessage().contains("sql error"));
@@ -7876,8 +7878,9 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Mockito.when(mockPrepStmt.executeUpdate())
                 .thenReturn(3); // 3 members updated
-        java.sql.Timestamp ts = new java.sql.Timestamp(new Date().getTime());
-        boolean result = jdbcConn.updateLastNotifiedTimestamp("localhost", ts);
+        long timestamp = new Date().getTime();
+        boolean result = jdbcConn.updateLastNotifiedTimestamp("localhost", timestamp);
+        java.sql.Timestamp ts = new java.sql.Timestamp(timestamp);
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(1, ts);
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "localhost");
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(3, ts);
@@ -7891,7 +7894,7 @@ public class JDBCConnectionTest {
         Mockito.when(mockPrepStmt.executeUpdate())
                 .thenThrow(new SQLException("sql error")); // 3 members updated
         try {
-            jdbcConn.updateLastNotifiedTimestamp("localhost", null);
+            jdbcConn.updateLastNotifiedTimestamp("localhost", 0L);
             fail();
         } catch (RuntimeException rx) {
             assertTrue(rx.getMessage().contains("sql error"));

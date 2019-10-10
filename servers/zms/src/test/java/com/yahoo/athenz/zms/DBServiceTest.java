@@ -4303,8 +4303,8 @@ public class DBServiceTest {
         recipients.add("user.joe");
         recipients.add("unix.moe");
         Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockFileConn);
-        Mockito.when(mockFileConn.updateLastNotifiedTimestamp(anyString(), any(java.sql.Timestamp.class))).thenReturn(true);
-        Mockito.when(mockFileConn.getPendingMembershipApproverRoles(anyString(), any(java.sql.Timestamp.class))).thenReturn(recipients);
+        Mockito.when(mockFileConn.updateLastNotifiedTimestamp(anyString(), anyLong())).thenReturn(true);
+        Mockito.when(mockFileConn.getPendingMembershipApproverRoles(anyString(), anyLong())).thenReturn(recipients);
 
         ObjectStore saveStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
