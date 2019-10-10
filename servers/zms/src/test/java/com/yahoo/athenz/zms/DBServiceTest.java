@@ -39,6 +39,7 @@ import com.yahoo.rdl.Struct;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -4301,8 +4302,9 @@ public class DBServiceTest {
         Set<String> recipients = new HashSet<>();
         recipients.add("user.joe");
         recipients.add("unix.moe");
-        Mockito.when(mockObjStore.getConnection(true, false)).thenReturn(mockFileConn);
-        Mockito.when(mockFileConn.getPendingMembershipApproverRoles()).thenReturn(recipients);
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockFileConn);
+        Mockito.when(mockFileConn.updateLastNotifiedTimestamp(anyString(), any(java.sql.Timestamp.class))).thenReturn(true);
+        Mockito.when(mockFileConn.getPendingMembershipApproverRoles(anyString(), any(java.sql.Timestamp.class))).thenReturn(recipients);
 
         ObjectStore saveStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
@@ -4317,19 +4319,22 @@ public class DBServiceTest {
 
     @Test
     public void testProcessExpiredPendingMembers() {
+
+        List<Map<String, String>> memberMapList = new ArrayList<>();
+        Map<String, String> memberMap = new HashMap<>();
+        memberMap.put("domain", "dom1");
+        memberMap.put("role", "role1");
+        memberMap.put("member", "user.user1");
+        memberMapList.add(memberMap);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
         Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockFileConn);
-        Mockito.when(mockFileConn.processExpiredPendingMembers(30, "sys.auth.monitor")).thenReturn(true);
+        Mockito.when(mockFileConn.processExpiredPendingMembers(30, "sys.auth.monitor")).thenReturn(memberMapList);
 
         zms.dbService.processExpiredPendingMembers(30, "sys.auth.monitor");
-        assertTrue(true);
-    }
 
-    @Test
-    public void testUpdateLastNotifiedTimestamp() {
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockFileConn);
-        Mockito.when(mockFileConn.updateLastNotifiedTimestamp(30)).thenReturn(true);
-
-        zms.dbService.updateLastNotifiedTimestamp(30);
-        assertTrue(true);
+        zms.dbService.store = saveStore;
     }
 }

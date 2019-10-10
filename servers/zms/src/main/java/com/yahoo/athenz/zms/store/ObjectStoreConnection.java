@@ -16,6 +16,7 @@
 package com.yahoo.athenz.zms.store;
 
 import java.io.Closeable;
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -133,9 +134,9 @@ public interface ObjectStoreConnection extends Closeable {
     boolean deleteQuota(String domainName);
 
     Map<String, List<DomainRoleMember>> getPendingDomainRoleMembersList(String principal);
-    Set<String> getPendingMembershipApproverRoles();
+    Set<String> getPendingMembershipApproverRoles(String server, Timestamp timestamp);
 
-    boolean processExpiredPendingMembers(int pendingRoleMemberLifespan, String monitorIdentity);
+    List<Map<String, String>> processExpiredPendingMembers(int pendingRoleMemberLifespan, String monitorIdentity);
 
-    boolean updateLastNotifiedTimestamp(int pendingRoleMemberLifespan);
+    boolean updateLastNotifiedTimestamp(String server, Timestamp timestamp);
 }

@@ -1622,7 +1622,7 @@ public class FileConnection implements ObjectStoreConnection {
     }
 
     @Override
-    public Set<String> getPendingMembershipApproverRoles() {
+    public Set<String> getPendingMembershipApproverRoles(String server, java.sql.Timestamp timestamp) {
 
         String[] fnames = getDomainList();
         Set<String> roleNames = new HashSet<>();
@@ -1671,9 +1671,11 @@ public class FileConnection implements ObjectStoreConnection {
     }
 
     @Override
-    public boolean processExpiredPendingMembers(int pendingRoleMemberLifespan, String monitorIdentity) {
+    public List<Map<String, String>> processExpiredPendingMembers(int pendingRoleMemberLifespan, String monitorIdentity) {
         String[] fnames = getDomainList();
         boolean result = false;
+        List<Map<String, String>> memberMapList = new ArrayList<>();
+        Map<String, String> memberMap = null;
         for (String name : fnames) {
             DomainStruct dom = getDomainStruct(name);
             result = false;
@@ -1687,6 +1689,10 @@ public class FileConnection implements ObjectStoreConnection {
                 while (rmIter.hasNext()) {
                     roleMember = rmIter.next();
                     if (roleMember.getApproved() == Boolean.FALSE && TimeUnit.DAYS.convert(now.getTime() - roleMember.getRequestTime().millis(), TimeUnit.MILLISECONDS) > 30) {
+                        memberMap.put("domain", dom.getName());
+                        memberMap.put("role", role.getName());
+                        memberMap.put("member", roleMember.getMemberName());
+                        memberMapList.add(memberMap);
                         // member is pending for more than 30 days
                         rmIter.remove();
                         //found atleast one member
@@ -1698,13 +1704,14 @@ public class FileConnection implements ObjectStoreConnection {
                 putDomainStruct(name, dom);
             }
         }
-        return result;
+        return memberMapList;
     }
 
     @Override
-    public boolean updateLastNotifiedTimestamp(int pendingRoleMemberLifespan) {
+    public boolean updateLastNotifiedTimestamp(String server, java.sql.Timestamp timestamp) {
         String[] fnames = getDomainList();
-        boolean updated;
+        boolean updated = false;
+        boolean found = false;
         for (String name : fnames) {
             DomainStruct dom = getDomainStruct(name);
             updated = false;
@@ -1716,6 +1723,7 @@ public class FileConnection implements ObjectStoreConnection {
                     if (roleMember.getApproved() == Boolean.FALSE) {
                         roleMember.setLastNotifiedTime(Timestamp.fromCurrentTime());
                         updated = true;
+                        found = true;
                     }
                 }
             }
@@ -1723,6 +1731,6 @@ public class FileConnection implements ObjectStoreConnection {
                 putDomainStruct(name, dom);
             }
         }
-        return true;
+        return found;
     }
 }

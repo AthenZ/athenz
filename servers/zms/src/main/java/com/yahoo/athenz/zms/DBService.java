@@ -3815,22 +3815,26 @@ public class DBService {
     }
 
     public Set<String> getPendingMembershipApproverRoles() {
-        try (ObjectStoreConnection con = store.getConnection(true, false)) {
-            return con.getPendingMembershipApproverRoles();
+        String server = ZMSImpl.serverHostName;
+        try (ObjectStoreConnection con = store.getConnection(true, true)) {
+            java.sql.Timestamp updateTs = new java.sql.Timestamp(new Date().getTime());
+            if (con.updateLastNotifiedTimestamp(server, updateTs)) {
+                return con.getPendingMembershipApproverRoles(server, updateTs);
+            }
         }
+        return null;
     }
 
     public void processExpiredPendingMembers(int pendingRoleMemberLifespan, String monitorIdentity) {
         try (ObjectStoreConnection con = store.getConnection(true, true)) {
-            con.processExpiredPendingMembers(pendingRoleMemberLifespan, monitorIdentity);
+            List<Map<String, String>> membersMapList = con.processExpiredPendingMembers(pendingRoleMemberLifespan, monitorIdentity);
+
+            // record each expired member in audit log
+
+            for (Map<String, String> membersMap : membersMapList) {
+                auditLogRequest(null, membersMap.get("domain"), "Expired", "processExpiredPendingMembers", "REJECT",
+                        membersMap.get("role"), "{\"member\": \"" + membersMap.get("member") + "\", \"principal\": \"" + monitorIdentity + "\"}");
+            }
         }
     }
-
-    public void updateLastNotifiedTimestamp(int pendingRoleMemberLifespan) {
-        try (ObjectStoreConnection con = store.getConnection(true, true)) {
-            con.updateLastNotifiedTimestamp(pendingRoleMemberLifespan);
-        }
-    }
-
-
 }

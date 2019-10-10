@@ -37,7 +37,7 @@ public class FileConnectionTest {
         File fileDir = new File("/home/athenz/zms_store");
         File quotaDir = new File("/home/athenz/zms_quota");
         try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
-            fileconnection.getDomainModTimestamp("DummyDomain1");
+            assertEquals(fileconnection.getDomainModTimestamp("DummyDomain1"), 0);
         }
     }
 
@@ -50,6 +50,7 @@ public class FileConnectionTest {
                 Domain domMock = Mockito.mock(Domain.class);
                 Mockito.when(domMock.getName()).thenReturn("domain1");
                 Mockito.when(fileconnection.getDomainStruct("domain1")).thenReturn(null);
+                fail();
             } catch (Exception ex) {
                 assertTrue(true);
             }
@@ -70,11 +71,7 @@ public class FileConnectionTest {
         File fileDir = new File("/home/athenz/zms_store");
         File quotaDir = new File("/home/athenz/zms_quota");
         try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
-            try {
-                fileconnection.lookupDomainByRole("member1", "role1");
-            } catch (Exception ex) {
-                assertTrue(true);
-            }
+            assertTrue(fileconnection.lookupDomainByRole("member1", "role1").isEmpty());
         }
     }
 
@@ -83,11 +80,7 @@ public class FileConnectionTest {
         File fileDir = new File("/home/athenz/zms_store");
         File quotaDir = new File("/home/athenz/zms_quota");
         try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
-            try {
-                fileconnection.validatePrincipalDomain("principal");
-            } catch (Exception ex) {
-                assertTrue(true);
-            }
+            assertFalse(fileconnection.validatePrincipalDomain("principal"));
         }
     }
 
@@ -98,6 +91,7 @@ public class FileConnectionTest {
         try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
             try {
                 fileconnection.updateDomainModTimestamp("DummyDomain1");
+                fail();
             } catch (Exception ex) {
                 assertTrue(true);
             }
@@ -111,6 +105,7 @@ public class FileConnectionTest {
         try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
             try {
                 fileconnection.insertDomainTemplate("DummyDomain1", "Template1", "param");
+                fail();
             } catch (Exception ex) {
                 assertTrue(true);
             }
@@ -124,6 +119,7 @@ public class FileConnectionTest {
         try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
             try {
                 fileconnection.deleteDomainTemplate("DummyDomain1", "Template1", "param");
+                fail();
             } catch (Exception ex) {
                 assertTrue(true);
             }
@@ -137,6 +133,7 @@ public class FileConnectionTest {
         try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
             try {
                 fileconnection.listEntities("DummyDomain1");
+                fail();
             } catch (Exception ex) {
                 assertTrue(true);
             }
@@ -150,6 +147,7 @@ public class FileConnectionTest {
         try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
             try {
                 fileconnection.listRoleMembers("DummyDomain1", "Role1", false);
+                fail();
             } catch (Exception ex) {
                 assertTrue(true);
             }
@@ -164,6 +162,7 @@ public class FileConnectionTest {
             try {
                 fileconnection.insertRoleMember("DummyDomain1", "Role1",
                         new RoleMember().setMemberName("principal1"), "audit1", "zmsjcltest");
+                fail();
             } catch (Exception ex) {
                 assertTrue(true);
             }
@@ -178,6 +177,7 @@ public class FileConnectionTest {
             Policy policy = new Policy();
             try {
                 fileconnection.updatePolicy("Domain1", policy);
+                fail();
             } catch (Exception ex) {
                 assertTrue(true);
             }
@@ -191,6 +191,7 @@ public class FileConnectionTest {
         try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
             try {
                 fileconnection.deletePolicy("Domain1", "policy1");
+                fail();
             } catch (Exception ex) {
                 assertTrue(true);
             }
@@ -205,6 +206,7 @@ public class FileConnectionTest {
             Assertion assertion = new Assertion();
             try {
                 fileconnection.insertAssertion("Domain1", "policy1", assertion);
+                fail();
             } catch (Exception ex) {
                 assertTrue(true);
             }
@@ -218,6 +220,7 @@ public class FileConnectionTest {
         try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
             try {
                 fileconnection.listAssertions("Domain1", "Policy1");
+                fail();
             } catch (Exception ex) {
                 assertTrue(true);
             }
@@ -232,6 +235,7 @@ public class FileConnectionTest {
             ServiceIdentity service1 = new ServiceIdentity();
             try {
                 fileconnection.updateServiceIdentity("Domain1", service1);
+                fail();
             } catch (Exception ex) {
                 assertTrue(true);
             }
@@ -245,6 +249,7 @@ public class FileConnectionTest {
         try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
             try {
                 fileconnection.deleteServiceIdentity("Domain1", "service1");
+                fail();
             } catch (Exception ex) {
                 assertTrue(true);
             }
@@ -258,6 +263,7 @@ public class FileConnectionTest {
         try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
             try {
                 fileconnection.listPublicKeys("Domain1", "service1");
+                fail();
             } catch (Exception ex) {
                 assertTrue(true);
             }
@@ -271,6 +277,7 @@ public class FileConnectionTest {
         try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
             try {
                 fileconnection.listPublicKeys("Domain1", "service1");
+                fail();
             } catch (Exception ex) {
                 assertTrue(true);
             }
@@ -284,6 +291,7 @@ public class FileConnectionTest {
         try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
             try {
                 fileconnection.insertServiceHost("Domain1", "service1", "athenz.zms.client.zms_url");
+                fail();
             } catch (Exception ex) {
                 assertTrue(true);
             }
@@ -297,6 +305,7 @@ public class FileConnectionTest {
         try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
             try {
                 fileconnection.deleteServiceHost("Domain1", "service1", "athenz.zms.client.zms_url");
+                fail();
             } catch (Exception ex) {
                 assertTrue(true);
             }
@@ -311,6 +320,7 @@ public class FileConnectionTest {
             Entity entity1 = new Entity();
             try {
                 fileconnection.updateEntity("Domain1", entity1);
+                fail();
             } catch (Exception ex) {
                 assertTrue(true);
             }
@@ -324,6 +334,7 @@ public class FileConnectionTest {
         try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
             try {
                 fileconnection.deleteEntity("Domain1", "entity1");
+                fail();
             } catch (Exception ex) {
                 assertTrue(true);
             }
@@ -335,7 +346,7 @@ public class FileConnectionTest {
         File fileDir = new File("/home/athenz/zms_store");
         File quotaDir = new File("/home/athenz/zms_quota");
         try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
-            fileconnection.delete("zms");
+            assertFalse(fileconnection.delete("zms"));
         }
     }
 
@@ -346,6 +357,7 @@ public class FileConnectionTest {
         try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
             try {
                 fileconnection.listResourceAccess("principal1", "UPDATE", "UserDomain1");
+                fail();
             } catch (Exception ex) {
                 assertTrue(true);
             }
@@ -359,6 +371,7 @@ public class FileConnectionTest {
         try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
             try {
                 fileconnection.updatePolicyModTimestamp("domain1", "policy1");
+                fail();
             } catch (Exception ex) {
                 assertTrue(true);
             }
@@ -374,6 +387,7 @@ public class FileConnectionTest {
             role.setAuditEnabled(false);
             try {
                 fileconnection.updateRole("domain1", role);
+                fail();
             } catch (Exception ex) {
                 assertTrue(true);
             }
@@ -387,6 +401,7 @@ public class FileConnectionTest {
         try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
             try {
                 fileconnection.updateRoleModTimestamp("domain1", "role1");
+                fail();
             } catch (Exception ex) {
                 assertTrue(true);
             }
@@ -400,6 +415,7 @@ public class FileConnectionTest {
         try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
             try {
                 fileconnection.deleteRole("domain1", "role1");
+                fail();
             } catch (Exception ex) {
                 assertTrue(true);
             }
@@ -413,6 +429,7 @@ public class FileConnectionTest {
         try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
             try {
                 fileconnection.listServiceHosts("domain1", "service1");
+                fail();
             } catch (Exception ex) {
                 assertTrue(true);
             }
@@ -425,7 +442,7 @@ public class FileConnectionTest {
         File quotaDir = new File("/home/athenz/zms_quota");
         try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
             DomainStruct domain = new DomainStruct();
-            fileconnection.getRoleObject(domain, "role1");
+            assertNull(fileconnection.getRoleObject(domain, "role1"));
         }
     }
 
@@ -435,7 +452,7 @@ public class FileConnectionTest {
         File quotaDir = new File("/home/athenz/zms_quota");
         try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
             DomainStruct domain = new DomainStruct();
-            fileconnection.getPolicyObject(domain, "role1");
+            assertNull(fileconnection.getPolicyObject(domain, "role1"));
         }
     }
 
@@ -446,6 +463,7 @@ public class FileConnectionTest {
         try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
             try {
                 fileconnection.deleteRoleMember("domain1", "role1", "principal", "admin", "zmsjcltest");
+                fail();
             } catch (Exception ex) {
                 assertTrue(true);
             }
@@ -460,6 +478,7 @@ public class FileConnectionTest {
             long assertid = 33456;
             try {
                 fileconnection.getAssertion("domain1", "policy1", assertid);
+                fail();
             } catch (Exception ex) {
                 assertTrue(true);
             }
@@ -474,6 +493,7 @@ public class FileConnectionTest {
             long assertid = 33456;
             try {
                 fileconnection.deleteAssertion("domain1", "policy1", assertid);
+                fail();
             } catch (Exception ex) {
                 assertTrue(true);
             }
@@ -487,6 +507,7 @@ public class FileConnectionTest {
         try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
             try {
                 fileconnection.deletePublicKeyEntry("domain1", "service1", "223");
+                fail();
             } catch (Exception ex) {
                 assertTrue(true);
             }
@@ -501,6 +522,7 @@ public class FileConnectionTest {
             PublicKeyEntry keyEntry = new PublicKeyEntry();
             try {
                 fileconnection.updatePublicKeyEntry("domain1", "service1", keyEntry);
+                fail();
             } catch (Exception ex) {
                 assertTrue(true);
             }
@@ -561,6 +583,7 @@ public class FileConnectionTest {
             try {
                 fileconnection.confirmRoleMember("DummyDomain1", "Role1",
                         new RoleMember().setMemberName("principal1"), "audit1", "zmsjcltest");
+                fail();
             } catch (Exception ex) {
                 assertTrue(true);
             }
@@ -572,11 +595,7 @@ public class FileConnectionTest {
         File fileDir = new File("/home/athenz/zms_store");
         File quotaDir = new File("/home/athenz/zms_quota");
         try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
-            try {
-                fileconnection.getPendingDomainRoleMembersList("user.user1");
-            } catch (Exception ex) {
-                assertTrue(true);
-            }
+            assertNull(fileconnection.getPendingDomainRoleMembersList("user.user1"));
         }
     }
 
@@ -586,7 +605,7 @@ public class FileConnectionTest {
         File quotaDir = new File("/home/athenz/zms_quota");
         try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
             DomainStruct domain = new DomainStruct();
-            fileconnection.getRoleObject(domain, "role1", false);
+            assertNull(fileconnection.getRoleObject(domain, "role1", false));
         }
     }
 
@@ -595,11 +614,7 @@ public class FileConnectionTest {
         File fileDir = new File("/home/athenz/zms_store");
         File quotaDir = new File("/home/athenz/zms_quota");
         try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
-            try {
-                fileconnection.getPendingMembershipApproverRoles();
-            } catch (Exception ex) {
-                assertTrue(true);
-            }
+            assertTrue(fileconnection.getPendingMembershipApproverRoles("localhost", null).isEmpty());
         }
     }
 
@@ -608,11 +623,7 @@ public class FileConnectionTest {
         File fileDir = new File("/home/athenz/zms_store");
         File quotaDir = new File("/home/athenz/zms_quota");
         try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
-            try {
-                fileconnection.processExpiredPendingMembers(30, "sys.auth.monitor");
-            } catch (Exception ex) {
-                assertTrue(true);
-            }
+            assertTrue(fileconnection.processExpiredPendingMembers(30, "sys.auth.monitor").isEmpty());
         }
     }
 
@@ -621,11 +632,7 @@ public class FileConnectionTest {
         File fileDir = new File("/home/athenz/zms_store");
         File quotaDir = new File("/home/athenz/zms_quota");
         try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
-            try {
-                fileconnection.updateLastNotifiedTimestamp(45);
-            } catch (Exception ex) {
-                assertTrue(true);
-            }
+            assertFalse(fileconnection.updateLastNotifiedTimestamp("localhost", null));
         }
     }
 }

@@ -124,21 +124,23 @@ public class NotificationManager {
         Notification notification = new Notification(notificationType);
         notification.setDetails(details);
         int idx;
-        for (String recipient : recipients) {
-            idx = recipient.indexOf(":role.");
-            if (idx != -1) {
-                //recipient is of type role. Extract role members
-                recDomain = recipient.substring(0, idx);
-                domain = dbService.getAthenzDomain(recDomain, false);
-                for (Role role : domain.getRoles()) {
-                    if (role.getName().equals(recipient)) {
-                        notification.getRecipients().addAll(role.getRoleMembers().stream().filter(m -> m.getMemberName().startsWith(userDomainPrefix))
-                                .map(RoleMember::getMemberName).collect(Collectors.toSet()));
-                        break;
+        if (recipients != null) {
+            for (String recipient : recipients) {
+                idx = recipient.indexOf(":role.");
+                if (idx != -1) {
+                    //recipient is of type role. Extract role members
+                    recDomain = recipient.substring(0, idx);
+                    domain = dbService.getAthenzDomain(recDomain, false);
+                    for (Role role : domain.getRoles()) {
+                        if (role.getName().equals(recipient)) {
+                            notification.getRecipients().addAll(role.getRoleMembers().stream().filter(m -> m.getMemberName().startsWith(userDomainPrefix))
+                                    .map(RoleMember::getMemberName).collect(Collectors.toSet()));
+                            break;
+                        }
                     }
+                } else if (recipient.startsWith(userDomainPrefix)) {
+                    notification.addRecipient(recipient);
                 }
-            } else if (recipient.startsWith(userDomainPrefix)) {
-                notification.addRecipient(recipient);
             }
         }
         if (notification.getRecipients() == null || notification.getRecipients().isEmpty()) {
@@ -161,7 +163,6 @@ public class NotificationManager {
     class PendingMembershipApprovalReminder implements Runnable {
         @Override
         public void run() {
-            System.out.println("started thread");
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("PendingMembershipApprovalReminder: Starting pending membership approval reminder thread...");
             }
@@ -180,7 +181,6 @@ public class NotificationManager {
         }
 
         private void sendPendingMembershipApprovalReminders() {
-            dbService.updateLastNotifiedTimestamp(pendingRoleMemberLifespan);
             Set<String> recipients = dbService.getPendingMembershipApproverRoles();
             Notification notification = createNotification(NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL_REMINDER, recipients, null);
             notificationService.notify(notification);
