@@ -102,7 +102,7 @@ public class NotificationManagerTest {
 
         NotificationManager notificationManager = new NotificationManager(dbService, ZMSConsts.USER_DOMAIN_PREFIX);
         Notification notification = notificationManager.createNotification("MEMBERSHIP_APPROVAL", recipients, details);
-
+        notificationManager.shutdown();
         assertNotNull(notification);
         assertFalse(notification.getRecipients().contains("testdom2.svc1"));
     }
@@ -126,7 +126,7 @@ public class NotificationManagerTest {
         Mockito.when(mockAthenzDomain.getRoles()).thenReturn(roles);
 
         NotificationManager notificationManager = new NotificationManager(dbService, ZMSConsts.USER_DOMAIN_PREFIX);
-
+        notificationManager.shutdown();
         Notification notification = notificationManager.createNotification("MEMBERSHIP_APPROVAL", recipients, null);
         assertNull(notification);
     }
@@ -350,6 +350,7 @@ public class NotificationManagerTest {
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
         NotificationServiceFactory testfact = () -> mockNotificationService;
         NotificationManager notificationManager = new NotificationManager(dbService, testfact, ZMSConsts.USER_DOMAIN_PREFIX);
+        notificationManager.shutdown();
         notificationManager.generateAndSendPostPutMembershipNotification("testdomain1", "neworg", false, false, null);
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
         Mockito.verify(mockNotificationService, atLeastOnce()).notify(captor.capture());
@@ -363,6 +364,7 @@ public class NotificationManagerTest {
         NotificationServiceFactory testfact = () -> null;
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
         NotificationManager notificationManager = new NotificationManager(dbService, testfact, ZMSConsts.USER_DOMAIN_PREFIX);
+        notificationManager.shutdown();
         notificationManager.generateAndSendPostPutMembershipNotification("testdomain1", "neworg", false, false, null);
         verify(mockNotificationService, never()).notify(any(Notification.class));
     }

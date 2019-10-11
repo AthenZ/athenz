@@ -158,8 +158,6 @@ public class ZMSImplTest {
                 "src/test/resources/solution_templates.json");
         System.setProperty(ZMSConsts.ZMS_PROP_NOAUTH_URI_LIST,
                 "uri1,uri2,uri3+uri4");
-        System.setProperty(ZMSConsts.ZMS_PROP_NOTIFICATION_SERVICE_FACTORY_CLASS,
-                "com.yahoo.athenz.zms.notification.MockNotificationServiceFactory");
         System.setProperty(ZMSConsts.ZMS_PROP_AUDIT_REF_CHECK_OBJECTS,
                 "role,policy,service,domain,entity,tenancy,template");
         auditLogger = new DefaultAuditLogger();
@@ -264,6 +262,7 @@ public class ZMSImplTest {
         ZMSImpl zmsObj = new ZMSImpl();
         zmsObj.auditLogger = alogger;
         zmsObj.dbService.auditLogger = alogger;
+        zmsObj.notificationManager = mockNotificationManager;
         
         ZMSImpl.serverHostName = "localhost";
 

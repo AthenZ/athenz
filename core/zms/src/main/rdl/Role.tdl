@@ -25,6 +25,7 @@ type RoleMember Struct {
     Bool approved (optional, default=true); //Flag to indicate whether membership is approved either by delegates ( in case of auditEnabled roles ) or by domain admins ( in case of selfserve roles )
     String auditRef (optional); //audit reference string for the change as supplied by admin
     Timestamp requestTime (optional); //for pending membership requests, the request time
+    Timestamp lastNotifiedTime (optional); //for pending membership requests, time when last notification was sent
 }
 
 //The representation for a Role with set of members.

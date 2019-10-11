@@ -15,9 +15,12 @@
  */
 package com.yahoo.athenz.zms.store.file;
 
-import java.util.*;
-
 import com.yahoo.athenz.zms.*;
+import com.yahoo.athenz.zms.store.AthenzDomain;
+import com.yahoo.athenz.zms.store.ObjectStoreConnection;
+import com.yahoo.athenz.zms.utils.ZMSUtils;
+import com.yahoo.rdl.JSON;
+import com.yahoo.rdl.Timestamp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,12 +30,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
-import com.yahoo.athenz.zms.store.AthenzDomain;
-import com.yahoo.athenz.zms.store.ObjectStoreConnection;
-import com.yahoo.athenz.zms.utils.ZMSUtils;
-import com.yahoo.rdl.JSON;
-import com.yahoo.rdl.Timestamp;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public class FileConnection implements ObjectStoreConnection {
 
@@ -1541,7 +1540,7 @@ public class FileConnection implements ObjectStoreConnection {
             while (rmIter.hasNext()) {
                 roleMember = rmIter.next();
                 // check whether the member exists and is in inactive state
-                if (roleMember.getMemberName().equals(member.getMemberName()) && !roleMember.getApproved()) {
+                if (roleMember.getMemberName().equals(member.getMemberName()) && roleMember.getApproved() == Boolean.FALSE) {
                     //if membership is approved, set rolemember to active
                     if (member.getApproved() == Boolean.TRUE) {
                         roleMember.setExpiration(member.getExpiration());
@@ -1623,7 +1622,7 @@ public class FileConnection implements ObjectStoreConnection {
     }
 
     @Override
-    public Set<String> getPendingMembershipApproverRoles() {
+    public Set<String> getPendingMembershipApproverRoles(String server, long timestamp) {
 
         String[] fnames = getDomainList();
         Set<String> roleNames = new HashSet<>();
@@ -1669,5 +1668,101 @@ public class FileConnection implements ObjectStoreConnection {
                 }
             }
         }
+    }
+
+    @Override
+    public List<Map<String, String>> getExpiredPendingMembers(int pendingRoleMemberLifespan) {
+        String[] fnames = getDomainList();
+        boolean result = false;
+        List<Map<String, String>> memberMapList = new ArrayList<>();
+        Map<String, String> memberMap = null;
+        for (String name : fnames) {
+            DomainStruct dom = getDomainStruct(name);
+            result = false;
+            if (dom == null) {
+                continue;
+            }
+            Date now = new Date();
+            for (Role role : dom.getRoles().values()) {
+                Iterator<RoleMember> rmIter = role.getRoleMembers().iterator();
+                RoleMember roleMember;
+                while (rmIter.hasNext()) {
+                    roleMember = rmIter.next();
+                    if (roleMember.getApproved() == Boolean.FALSE && TimeUnit.DAYS.convert(now.getTime() - roleMember.getRequestTime().millis(), TimeUnit.MILLISECONDS) > 30) {
+                        memberMap.put("domain", dom.getName());
+                        memberMap.put("role", role.getName());
+                        memberMap.put("member", roleMember.getMemberName());
+                        memberMap.put("roleId", "5");
+                        memberMap.put("memberId", "7");
+                        memberMapList.add(memberMap);
+                        // member is pending for more than 30 days
+                        rmIter.remove();
+                        //found atleast one member
+                        result = true;
+                    }
+                }
+            }
+            if (result) {
+                putDomainStruct(name, dom);
+            }
+        }
+        return memberMapList;
+    }
+
+    @Override
+    public boolean updateLastNotifiedTimestamp(String server, long timestamp) {
+        String[] fnames = getDomainList();
+        boolean updated;
+        boolean found = false;
+        for (String name : fnames) {
+            DomainStruct dom = getDomainStruct(name);
+            updated = false;
+            if (dom == null) {
+                continue;
+            }
+            for (Role role : dom.getRoles().values()) {
+                for (RoleMember roleMember : role.getRoleMembers()) {
+                    if (roleMember.getApproved() == Boolean.FALSE) {
+                        roleMember.setLastNotifiedTime(Timestamp.fromCurrentTime());
+                        updated = true;
+                        found = true;
+                    }
+                }
+            }
+            if (updated) {
+                putDomainStruct(name, dom);
+            }
+        }
+        return found;
+    }
+
+    @Override
+    public boolean deletePendingRoleMember(int roleId, int principalId, final String admin, final String principal,
+                                           final String auditRef, boolean auditLog, final String caller) {
+        String[] fnames = getDomainList();
+        boolean updated = false;
+        for (String name : fnames) {
+            DomainStruct dom = getDomainStruct(name);
+            updated = false;
+            if (dom == null) {
+                continue;
+            }
+            for (Role role : dom.getRoles().values()) {
+                Iterator<RoleMember> rmIter = role.getRoleMembers().iterator();
+                RoleMember roleMember;
+                while (rmIter.hasNext()) {
+                    roleMember = rmIter.next();
+                    if (roleMember.getApproved() == Boolean.FALSE && principal.equals(roleMember.getMemberName())) {
+                        rmIter.remove();
+                        updated = true;
+                        break;
+                    }
+                }
+            }
+            if (updated) {
+                putDomainStruct(name, dom);
+            }
+        }
+        return updated;
     }
 }

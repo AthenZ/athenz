@@ -30,17 +30,18 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.yahoo.athenz.common.server.notification.NotificationService.NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL;
+import static com.yahoo.athenz.common.server.notification.NotificationService.NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL_REMINDER;
 
 public class NotificationManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NotificationManager.class);
 
-
-    private NotificationServiceFactory notificationServiceFactory;
     private NotificationService notificationService;
     private ScheduledExecutorService scheduledExecutor;
     private final DBService dbService;
     private final String userDomainPrefix;
+    private int pendingRoleMemberLifespan;
+    private String monitorIdentity;
 
     NotificationManager(final DBService dbService, final String userDomainPrefix) {
         this.dbService = dbService;
@@ -59,17 +60,18 @@ public class NotificationManager {
     }
 
     private void init() {
-        if (notificationService != null) {
+        if (isNotificationFeatureAvailable()) {
             scheduledExecutor = Executors.newScheduledThreadPool(1);
             scheduledExecutor.scheduleAtFixedRate(new PendingMembershipApprovalReminder(), 0, 1, TimeUnit.DAYS);
         }
+        pendingRoleMemberLifespan = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_PENDING_ROLE_MEMBER_LIFESPAN, ZMSConsts.ZMS_PENDING_ROLE_MEMBER_LIFESPAN_DEFAULT));
+        monitorIdentity = System.getProperty(ZMSConsts.ZMS_PROP_MONITOR_IDENTITY, ZMSConsts.SYS_AUTH_MONITOR);
     }
 
     NotificationManager(final DBService dbService, final NotificationServiceFactory notificationServiceFactory, final String userDomainPrefix) {
         this.dbService = dbService;
-        this.notificationServiceFactory = notificationServiceFactory;
         this.userDomainPrefix = userDomainPrefix;
-        notificationService = this.notificationServiceFactory.create();
+        notificationService = notificationServiceFactory.create();
         init();
     }
 
@@ -122,21 +124,23 @@ public class NotificationManager {
         Notification notification = new Notification(notificationType);
         notification.setDetails(details);
         int idx;
-        for (String recipient : recipients) {
-            idx = recipient.indexOf(":role.");
-            if (idx != -1) {
-                //recipient is of type role. Extract role members
-                recDomain = recipient.substring(0, idx);
-                domain = dbService.getAthenzDomain(recDomain, false);
-                for (Role role : domain.getRoles()) {
-                    if (role.getName().equals(recipient)) {
-                        notification.getRecipients().addAll(role.getRoleMembers().stream().filter(m -> m.getMemberName().startsWith(userDomainPrefix))
-                                .map(RoleMember::getMemberName).collect(Collectors.toSet()));
-                        break;
+        if (recipients != null) {
+            for (String recipient : recipients) {
+                idx = recipient.indexOf(":role.");
+                if (idx != -1) {
+                    //recipient is of type role. Extract role members
+                    recDomain = recipient.substring(0, idx);
+                    domain = dbService.getAthenzDomain(recDomain, false);
+                    for (Role role : domain.getRoles()) {
+                        if (role.getName().equals(recipient)) {
+                            notification.getRecipients().addAll(role.getRoleMembers().stream().filter(m -> m.getMemberName().startsWith(userDomainPrefix))
+                                    .map(RoleMember::getMemberName).collect(Collectors.toSet()));
+                            break;
+                        }
                     }
+                } else if (recipient.startsWith(userDomainPrefix)) {
+                    notification.addRecipient(recipient);
                 }
-            } else if (recipient.startsWith(userDomainPrefix)) {
-                notification.addRecipient(recipient);
             }
         }
         if (notification.getRecipients() == null || notification.getRecipients().isEmpty()) {
@@ -163,6 +167,8 @@ public class NotificationManager {
                 LOGGER.debug("PendingMembershipApprovalReminder: Starting pending membership approval reminder thread...");
             }
             try {
+                // clean up expired pending members
+                dbService.processExpiredPendingMembers(pendingRoleMemberLifespan, monitorIdentity);
                 sendPendingMembershipApprovalReminders();
             } catch (Throwable t) {
                 LOGGER.error("PendingMembershipApprovalReminder: unable to send pending membership approval reminders: {}",
@@ -176,7 +182,7 @@ public class NotificationManager {
 
         private void sendPendingMembershipApprovalReminders() {
             Set<String> recipients = dbService.getPendingMembershipApproverRoles();
-            Notification notification = createNotification(NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL, recipients, null);
+            Notification notification = createNotification(NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL_REMINDER, recipients, null);
             notificationService.notify(notification);
         }
     }

@@ -52,6 +52,8 @@ public class EmailNotificationService implements NotificationService {
     private static final String MEMBERSHIP_APPROVAL_BODY = "athenz.notification.email.membership.approval.body";
     private static final String MEMBERSHIP_APPROVAL_REMINDER_BODY = "athenz.notification.email.membership.reminder.body";
 
+    private static final String MEMBERSHIP_APPROVAL_FOOTER = "athenz.notification.email.membership.footer";
+
     private static final int SES_RECIPIENTS_LIMIT_PER_MESSAGE = 50;
 
     // can be moved to constructor which can take Locale as input parameter and return appropriate resource bundle
@@ -110,7 +112,12 @@ public class EmailNotificationService implements NotificationService {
                 body = getMembershipApprovalReminderBody();
                 break;
         }
+        body = body + getFooter();
         return body;
+    }
+
+    String getFooter() {
+        return RB.getString(MEMBERSHIP_APPROVAL_FOOTER);
     }
 
     String getSubject(String type) {

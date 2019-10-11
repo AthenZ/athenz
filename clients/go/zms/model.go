@@ -593,6 +593,11 @@ type RoleMember struct {
 	// for pending membership requests, the request time
 	//
 	RequestTime *rdl.Timestamp `json:"requestTime,omitempty" rdl:"optional"`
+
+	//
+	// for pending membership requests, time when last notification was sent
+	//
+	LastNotifiedTime *rdl.Timestamp `json:"lastNotifiedTime,omitempty" rdl:"optional"`
 }
 
 //

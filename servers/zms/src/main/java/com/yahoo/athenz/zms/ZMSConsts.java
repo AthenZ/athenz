@@ -244,5 +244,11 @@ public final class ZMSConsts {
 
     public static final String SYS_AUTH_AUDIT_BY_ORG    = "sys.auth.audit.org";
     public static final String SYS_AUTH_AUDIT_BY_DOMAIN = "sys.auth.audit.domain";
+
+    public static final String ZMS_PROP_PENDING_ROLE_MEMBER_LIFESPAN = "athenz.zms.pending_role_member_lifespan";
+    public static final String ZMS_PENDING_ROLE_MEMBER_LIFESPAN_DEFAULT = "30";
+    public static final String SYS_AUTH_MONITOR = "sys.auth.monitor";
+    public static final String ZMS_PROP_MONITOR_IDENTITY = "athenz.zms.monitor_identity";
+
 }
 

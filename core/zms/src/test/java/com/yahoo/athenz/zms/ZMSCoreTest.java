@@ -1084,7 +1084,8 @@ public class ZMSCoreTest {
                 .setAuditRef("audit-ref")
                 .setActive(false)
                 .setApproved(true)
-                .setRequestTime(Timestamp.fromMillis(123456789124L));
+                .setRequestTime(Timestamp.fromMillis(123456789124L))
+                .setLastNotifiedTime(Timestamp.fromMillis(123456789125L));
         assertTrue(rm.equals(rm));
 
         Result result = validator.validate(rm, "RoleMember");
@@ -1096,6 +1097,7 @@ public class ZMSCoreTest {
         assertFalse(rm.getActive());
         assertTrue(rm.getApproved());
         assertEquals(rm.getRequestTime().millis(), 123456789124L);
+        assertEquals(rm.getLastNotifiedTime().millis(), 123456789125L);
 
         RoleMember rm2 = new RoleMember()
                 .setMemberName("user.test1")
@@ -1103,7 +1105,8 @@ public class ZMSCoreTest {
                 .setAuditRef("audit-ref")
                 .setActive(false)
                 .setApproved(true)
-                .setRequestTime(Timestamp.fromMillis(123456789124L));
+                .setRequestTime(Timestamp.fromMillis(123456789124L))
+                .setLastNotifiedTime(Timestamp.fromMillis(123456789125L));
         assertTrue(rm2.equals(rm));
 
         rm2.setMemberName("user.test2");
@@ -1125,6 +1128,13 @@ public class ZMSCoreTest {
         rm2.setRequestTime(null);
         assertFalse(rm2.equals(rm));
         rm2.setRequestTime(Timestamp.fromMillis(123456789124L));
+        assertTrue(rm2.equals(rm));
+
+        rm2.setLastNotifiedTime(Timestamp.fromMillis(123456789128L));
+        assertFalse(rm2.equals(rm));
+        rm2.setLastNotifiedTime(null);
+        assertFalse(rm2.equals(rm));
+        rm2.setLastNotifiedTime(Timestamp.fromMillis(123456789125L));
         assertTrue(rm2.equals(rm));
 
         rm2.setAuditRef("audit2-ref");

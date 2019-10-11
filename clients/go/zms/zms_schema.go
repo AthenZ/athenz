@@ -124,6 +124,7 @@ func init() {
 	tRoleMember.Field("approved", "Bool", true, true, "Flag to indicate whether membership is approved either by delegates ( in case of auditEnabled roles ) or by domain admins ( in case of selfserve roles )")
 	tRoleMember.Field("auditRef", "String", true, nil, "audit reference string for the change as supplied by admin")
 	tRoleMember.Field("requestTime", "Timestamp", true, nil, "for pending membership requests, the request time")
+	tRoleMember.Field("lastNotifiedTime", "Timestamp", true, nil, "for pending membership requests, time when last notification was sent")
 	sb.AddType(tRoleMember.Build())
 
 	tRole := rdl.NewStructTypeBuilder("Struct", "Role")
