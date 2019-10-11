@@ -69,9 +69,6 @@ public class EmailNotificationServiceTest {
         assertNotNull(body);
         assertTrue(body.contains("https://athenz.example.com/workflow"));
 
-        body = svc.getBody("INVALID", null);
-        assertEquals(body, "");
-
         System.clearProperty("athenz.notification_workflow_url");
     }
 
@@ -86,6 +83,13 @@ public class EmailNotificationServiceTest {
 
         sub = svc.getSubject("INVALID");
         assertEquals(sub, "");
+    }
+
+    @Test
+    public void testGetFooter() {
+        EmailNotificationService svc = new EmailNotificationService();
+        String footer = svc.getFooter();
+        assertNotNull(footer);
     }
 
     @Test
