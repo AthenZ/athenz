@@ -266,9 +266,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             "JOIN role r ON r.role_id=rm.role_id " +
             "JOIN domain d ON r.domain_id=d.domain_id WHERE r.self_serve=true AND rm.last_notified_time=? AND rm.server=?;";
 
-    private static final String SQL_DELETE_EXPIRED_PENDING_ROLE_MEMBERS = "DELETE FROM pending_role_member WHERE req_time < (CURRENT_DATE - INTERVAL ? DAY);";
-
-    private static final String SQL_GET_EXPIRED_PENDING_ROLE_MEMBERS = "SELECT prm.role_id, p.name, r.name, d.name FROM principal p JOIN pending_role_member prm " +
+    private static final String SQL_GET_EXPIRED_PENDING_ROLE_MEMBERS = "SELECT prm.role_id, p.name, r.name, d.name, prm.principal_id FROM principal p JOIN pending_role_member prm " +
             "ON prm.principal_id=p.principal_id JOIN role r ON prm.role_id=r.role_id JOIN domain d ON d.domain_id=r.domain_id " +
             "WHERE prm.req_time < (CURRENT_DATE - INTERVAL ? DAY);";
 
@@ -3516,7 +3514,8 @@ public class JDBCConnection implements ObjectStoreConnection {
         return domainRoleMembers;
     }
 
-    boolean deletePendingRoleMember(int roleId, int principalId, final String admin, final String principal,
+    @Override
+    public boolean deletePendingRoleMember(int roleId, int principalId, final String admin, final String principal,
             final String auditRef, boolean auditLog, final String caller) {
 
         int affectedRows;
@@ -3711,38 +3710,28 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
 
     @Override
-    public List<Map<String, String>> processExpiredPendingMembers(int pendingRoleMemberLifespan, String monitorIdentity) {
+    public List<Map<String, String>> getExpiredPendingMembers(int pendingRoleMemberLifespan) {
 
-        boolean result = true;
-        final String caller = "processExpiredPendingMembers";
+        final String caller = "getExpiredPendingMembers";
         //update audit log with details before deleting
         Map<String, String> membersMap;
-        String member;
+
         List<Map<String, String>> membersMapList = new ArrayList<>();
         try (PreparedStatement ps = con.prepareStatement(SQL_GET_EXPIRED_PENDING_ROLE_MEMBERS)) {
             ps.setInt(1, pendingRoleMemberLifespan);
             try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
                     membersMap = new HashMap<>();
-                    membersMap.put("domain", rs.getString(4));
+                    membersMap.put("roleId", Integer.toString(rs.getInt(1)));
+                    membersMap.put("member", rs.getString(2));
                     membersMap.put("role", rs.getString(3));
-                    member = rs.getString(2);
-                    membersMap.put("member", member);
+                    membersMap.put("domain", rs.getString(4));
+                    membersMap.put("memberId", Integer.toString(rs.getInt(5)));
                     membersMapList.add(membersMap);
-                    result = result && insertRoleAuditLog(rs.getInt(1), monitorIdentity, member, "REJECT", "Expired");
                 }
             }
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
-        }
-        //delete from pending_role_member
-        if (result) {
-            try (PreparedStatement ps = con.prepareStatement(SQL_DELETE_EXPIRED_PENDING_ROLE_MEMBERS)) {
-                ps.setInt(1, pendingRoleMemberLifespan);
-                executeUpdate(ps, caller);
-            } catch (SQLException ex) {
-                throw sqlError(ex, caller);
-            }
         }
         return membersMapList;
     }

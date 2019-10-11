@@ -7721,7 +7721,7 @@ public class JDBCConnectionTest {
     }
 
     @Test
-    public void testProcessExpiredPendingMembers() throws Exception {
+    public void testGetExpiredPendingMembers() throws Exception {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Mockito.when(mockResultSet.next())
                 .thenReturn(true) // first pending member found
@@ -7742,23 +7742,23 @@ public class JDBCConnectionTest {
                 .thenReturn("dom1") //first pending member domain
                 .thenReturn("dom2"); // second pending member domain
 
-        Mockito.when(mockPrepStmt.executeUpdate())
-                .thenReturn(1) // first audit entry
-                .thenReturn(1) // second audit entry
-                .thenReturn(2); // delete members
+        Mockito.when(mockResultSet.getInt(5))
+                .thenReturn(11) //first pending member principal id
+                .thenReturn(13); // second pending member principal id
 
-        List<Map<String, String>> memberMapList = jdbcConn.processExpiredPendingMembers(40, "sys.auth.monitor");
 
-        Mockito.verify(mockPrepStmt, times(2)).setInt(1, 40);// 1 for get, 1 for delete
+        List<Map<String, String>> memberMapList = jdbcConn.getExpiredPendingMembers(40);
 
-        //insert audit log
-        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 4);
-        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 6);
-        Mockito.verify(mockPrepStmt, times(2)).setString(2, "sys.auth.monitor");
-        Mockito.verify(mockPrepStmt, times(1)).setString(3, "user.user1");
-        Mockito.verify(mockPrepStmt, times(1)).setString(3, "user.user2");
-        Mockito.verify(mockPrepStmt, times(2)).setString(4, "REJECT");
-        Mockito.verify(mockPrepStmt, times(2)).setString(5, "Expired");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 40);// 1 for get, 1 for delete
+
+//        //insert audit log
+//        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 4);
+//        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 6);
+//        Mockito.verify(mockPrepStmt, times(2)).setString(2, "sys.auth.monitor");
+//        Mockito.verify(mockPrepStmt, times(1)).setString(3, "user.user1");
+//        Mockito.verify(mockPrepStmt, times(1)).setString(3, "user.user2");
+//        Mockito.verify(mockPrepStmt, times(2)).setString(4, "REJECT");
+//        Mockito.verify(mockPrepStmt, times(2)).setString(5, "Expired");
 
         assertNotNull(memberMapList);
         assertEquals(memberMapList.size(), 2);
@@ -7781,7 +7781,7 @@ public class JDBCConnectionTest {
                 .thenReturn(true) // second pending member found
                 .thenThrow(new SQLException("sql error"));
         try {
-            jdbcConn.processExpiredPendingMembers(30, "sys.auth.monitor");
+            jdbcConn.getExpiredPendingMembers(30);
             fail();
         } catch (RuntimeException rx) {
             assertTrue(rx.getMessage().contains("sql error"));
@@ -7791,12 +7791,11 @@ public class JDBCConnectionTest {
     }
 
     @Test
-    public void testProcessExpiredPendingMembersDeleteError() throws Exception {
+    public void testProcessDeletePendingMembersDeleteError() throws Exception {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Mockito.when(mockResultSet.next())
                 .thenReturn(true) // first pending member found
-                .thenReturn(true) // second pending member found
-                .thenReturn(false);
+                .thenThrow(new SQLException("sql error"));
         Mockito.when(mockResultSet.getInt(1))
                 .thenReturn(4)//first role id
                 .thenReturn(6);//second role id
@@ -7804,71 +7803,47 @@ public class JDBCConnectionTest {
                 .thenReturn("user.user1") //first pending
                 .thenReturn("user.user2"); // second pending
 
+        try {
+            jdbcConn.getExpiredPendingMembers(40);
+            fail();
+        } catch (RuntimeException rx) {
+            assertTrue(rx.getMessage().contains("sql error"));
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testDeletePendingRoleMemberDeleteFail() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
         Mockito.when(mockPrepStmt.executeUpdate())
-                .thenReturn(1) // first audit entry
-                .thenReturn(1) // second audit entry
+                .thenReturn(1) // delete with audit
+                .thenReturn(0) // audit insert
+                .thenReturn(1) // delete without audit successful
+                .thenReturn(0); // delete fail
+
+        assertFalse(jdbcConn.deletePendingRoleMember(5, 7, "", "", "", true, ""));
+        assertTrue(jdbcConn.deletePendingRoleMember(5, 7, "", "", "", false, ""));
+
+        assertFalse(jdbcConn.deletePendingRoleMember(5, 7, "", "", "", false, ""));
+
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testDeletePendingRoleMemberDeleteSqlError() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockPrepStmt.executeUpdate())
                 .thenThrow(new SQLException("sql error"));
 
         try {
-            jdbcConn.processExpiredPendingMembers(40, "sys.auth.monitor");
+            jdbcConn.deletePendingRoleMember(5, 7, "", "", "", true, "");
             fail();
         } catch (RuntimeException rx) {
             assertTrue(rx.getMessage().contains("sql error"));
         }
-        jdbcConn.close();
-    }
-
-    @Test
-    public void testProcessExpiredPendingMembersDeleteFail() throws Exception {
-        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        Mockito.when(mockResultSet.next())
-                .thenReturn(true) // first pending member found
-                .thenReturn(true) // second pending member found
-                .thenReturn(false);
-        Mockito.when(mockResultSet.getInt(1))
-                .thenReturn(4)//first role id
-                .thenReturn(6);//second role id
-        Mockito.when(mockResultSet.getString(2))
-                .thenReturn("user.user1") //first pending
-                .thenReturn("user.user2"); // second pending
-
-        Mockito.when(mockPrepStmt.executeUpdate())
-                .thenReturn(1) // first audit entry
-                .thenReturn(1) // second audit entry
-                .thenReturn(0); // delete members
-
-        assertEquals(jdbcConn.processExpiredPendingMembers(40, "sys.auth.monitor").size(), 2);
-
-        jdbcConn.close();
-    }
-
-    @Test
-    public void testProcessExpiredPendingMembersInsertAuditLogFail() throws Exception {
-        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        Mockito.when(mockResultSet.next())
-                .thenReturn(true) // first pending member found
-                .thenReturn(true) // second pending member found
-                .thenReturn(false);
-        Mockito.when(mockResultSet.getInt(1))
-                .thenReturn(4)//first role id
-                .thenReturn(6);//second role id
-        Mockito.when(mockResultSet.getString(2))
-                .thenReturn("user.user1") //first pending
-                .thenReturn("user.user2"); // second pending
-
-        Mockito.when(mockPrepStmt.executeUpdate())
-                .thenReturn(0); // first audit entry
-
-        jdbcConn.processExpiredPendingMembers(40, "sys.auth.monitor");
-
-        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 40);// 1 for get
-
-        //insert audit log
-        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 4);
-        Mockito.verify(mockPrepStmt, times(1)).setString(2, "sys.auth.monitor");
-        Mockito.verify(mockPrepStmt, times(1)).setString(3, "user.user1");
-        Mockito.verify(mockPrepStmt, times(1)).setString(4, "REJECT");
-        Mockito.verify(mockPrepStmt, times(1)).setString(5, "Expired");
 
         jdbcConn.close();
     }

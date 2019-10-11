@@ -619,11 +619,20 @@ public class FileConnectionTest {
     }
 
     @Test
-    public void testProcessExpiredPendingMembers() {
+    public void testGetExpiredPendingMembers() {
         File fileDir = new File("/home/athenz/zms_store");
         File quotaDir = new File("/home/athenz/zms_quota");
         try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
-            assertTrue(fileconnection.processExpiredPendingMembers(30, "sys.auth.monitor").isEmpty());
+            assertTrue(fileconnection.getExpiredPendingMembers(30).isEmpty());
+        }
+    }
+
+    @Test
+    public void testDeletePendingRoleMember() {
+        File fileDir = new File("/home/athenz/zms_store");
+        File quotaDir = new File("/home/athenz/zms_quota");
+        try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
+            assertFalse(fileconnection.deletePendingRoleMember(5, 7, "", "", "", true, ""));
         }
     }
 

@@ -39,7 +39,6 @@ import com.yahoo.rdl.Struct;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -102,8 +101,6 @@ public class DBServiceTest {
         Mockito.when(mockServletRequest.isSecure()).thenReturn(true);
         
         System.setProperty(ZMSConsts.ZMS_PROP_FILE_NAME, "src/test/resources/zms.properties");
-        System.setProperty(ZMSConsts.ZMS_PROP_NOTIFICATION_SERVICE_FACTORY_CLASS,
-                "com.yahoo.athenz.zms.notification.MockNotificationServiceFactory");
         System.setProperty(ZMSConsts.ZMS_PROP_AUDIT_REF_CHECK_OBJECTS,
                 "role,policy,service,domain,entity,tenancy,template");
         initializeZms();
@@ -3824,6 +3821,25 @@ public class DBServiceTest {
     }
 
     @Test
+    public void testExecutePutRoleMetaFail() {
+
+        List<String> admins = new ArrayList<>();
+        admins.add(adminUser);
+        zms.dbService.makeDomain(mockDomRsrcCtx, "MetaDom1", "test desc", "testOrg", false, admins, "", 1234, "", null, auditRef);
+
+        RoleMeta rm = new RoleMeta();
+        rm.setSelfServe(true);
+        try {
+            zms.dbService.executePutRoleMeta(mockDomRsrcCtx, "MetaDom1", "MetaRole1",
+                    rm, auditRef, "putrolemeta");
+            fail();
+        } catch (ResourceException re) {
+            assertEquals(re.getCode(), 404);
+        }
+        zms.dbService.executeDeleteDomain(mockDomRsrcCtx, "MetaDom1", auditRef, "deletedomain");
+    }
+
+    @Test
     public void testCheckRoleAuditEnabledFlagTrueRefNull() {
 
         String domainName = "audit-test-domain-name";
@@ -4325,16 +4341,41 @@ public class DBServiceTest {
         memberMap.put("domain", "dom1");
         memberMap.put("role", "role1");
         memberMap.put("member", "user.user1");
+        memberMap.put("roleId", "5");
+        memberMap.put("memberId", "7");
         memberMapList.add(memberMap);
 
         ObjectStore saveStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
 
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockFileConn);
-        Mockito.when(mockFileConn.processExpiredPendingMembers(30, "sys.auth.monitor")).thenReturn(memberMapList);
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(mockFileConn);
+        Mockito.when(mockFileConn.getExpiredPendingMembers(30)).thenReturn(memberMapList);
+        Mockito.when(mockFileConn.deletePendingRoleMember(anyInt(), anyInt(), anyString(), anyString(), anyString(), anyBoolean(), anyString())).thenReturn(true);
 
         zms.dbService.processExpiredPendingMembers(30, "sys.auth.monitor");
 
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testProcessExpiredPendingMembersFail() {
+        List<Map<String, String>> memberMapList = new ArrayList<>();
+        Map<String, String> memberMap = new HashMap<>();
+        memberMap.put("domain", "dom1");
+        memberMap.put("role", "role1");
+        memberMap.put("member", "user.user1");
+        memberMap.put("roleId", "5");
+        memberMap.put("memberId", "7");
+        memberMapList.add(memberMap);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(mockFileConn);
+        Mockito.when(mockFileConn.getExpiredPendingMembers(30)).thenReturn(memberMapList);
+        Mockito.when(mockFileConn.deletePendingRoleMember(anyInt(), anyInt(), anyString(), anyString(), anyString(), anyBoolean(), anyString())).thenReturn(false);
+
+        zms.dbService.processExpiredPendingMembers(30, "sys.auth.monitor");
         zms.dbService.store = saveStore;
     }
 }

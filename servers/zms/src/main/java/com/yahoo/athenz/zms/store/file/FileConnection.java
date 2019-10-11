@@ -1671,7 +1671,7 @@ public class FileConnection implements ObjectStoreConnection {
     }
 
     @Override
-    public List<Map<String, String>> processExpiredPendingMembers(int pendingRoleMemberLifespan, String monitorIdentity) {
+    public List<Map<String, String>> getExpiredPendingMembers(int pendingRoleMemberLifespan) {
         String[] fnames = getDomainList();
         boolean result = false;
         List<Map<String, String>> memberMapList = new ArrayList<>();
@@ -1692,6 +1692,8 @@ public class FileConnection implements ObjectStoreConnection {
                         memberMap.put("domain", dom.getName());
                         memberMap.put("role", role.getName());
                         memberMap.put("member", roleMember.getMemberName());
+                        memberMap.put("roleId", "5");
+                        memberMap.put("memberId", "7");
                         memberMapList.add(memberMap);
                         // member is pending for more than 30 days
                         rmIter.remove();
@@ -1732,5 +1734,35 @@ public class FileConnection implements ObjectStoreConnection {
             }
         }
         return found;
+    }
+
+    @Override
+    public boolean deletePendingRoleMember(int roleId, int principalId, final String admin, final String principal,
+                                           final String auditRef, boolean auditLog, final String caller) {
+        String[] fnames = getDomainList();
+        boolean updated = false;
+        for (String name : fnames) {
+            DomainStruct dom = getDomainStruct(name);
+            updated = false;
+            if (dom == null) {
+                continue;
+            }
+            for (Role role : dom.getRoles().values()) {
+                Iterator<RoleMember> rmIter = role.getRoleMembers().iterator();
+                RoleMember roleMember;
+                while (rmIter.hasNext()) {
+                    roleMember = rmIter.next();
+                    if (roleMember.getApproved() == Boolean.FALSE && principal.equals(roleMember.getMemberName())) {
+                        rmIter.remove();
+                        updated = true;
+                        break;
+                    }
+                }
+            }
+            if (updated) {
+                putDomainStruct(name, dom);
+            }
+        }
+        return updated;
     }
 }

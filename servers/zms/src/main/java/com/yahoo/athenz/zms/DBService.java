@@ -3833,13 +3833,30 @@ public class DBService {
     }
 
     public void processExpiredPendingMembers(int pendingRoleMemberLifespan, String monitorIdentity) {
-        try (ObjectStoreConnection con = store.getConnection(true, true)) {
-            List<Map<String, String>> membersMapList = con.processExpiredPendingMembers(pendingRoleMemberLifespan, monitorIdentity);
+        boolean result;
+        final String auditRef = "Expired - auto reject";
+        final String caller = "processExpiredPendingMembers";
 
-            // record each expired member in audit log
+        List<Map<String, String>> membersMapList;
+
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+            membersMapList = con.getExpiredPendingMembers(pendingRoleMemberLifespan);
+        }
+
+        // delete each member and record each expired member in audit log in a transaction
+        try (ObjectStoreConnection con = store.getConnection(false, true)) {
+            int roleId, principalId;
             for (Map<String, String> membersMap : membersMapList) {
-                auditLogRequest(monitorIdentity, membersMap.get("domain"), "Expired", "processExpiredPendingMembers", "REJECT",
-                        membersMap.get("role"), "{\"member\": \"" + membersMap.get("member") + "\"}");
+                roleId = Integer.parseInt(membersMap.get("roleId"));
+                principalId = Integer.parseInt(membersMap.get("memberId"));
+                result = con.deletePendingRoleMember(roleId, principalId, monitorIdentity, membersMap.get("member"), auditRef, true, caller);
+                if (result) {
+                    auditLogRequest(monitorIdentity, membersMap.get("domain"), auditRef, caller, "REJECT", membersMap.get("role"),
+                            "{\"member\": \"" + membersMap.get("member") + "\"}");
+                    con.commitChanges();
+                } else {
+                    con.rollbackChanges();
+                }
             }
         }
     }

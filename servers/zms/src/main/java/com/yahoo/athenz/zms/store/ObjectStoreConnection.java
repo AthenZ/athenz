@@ -135,7 +135,10 @@ public interface ObjectStoreConnection extends Closeable {
     Map<String, List<DomainRoleMember>> getPendingDomainRoleMembersList(String principal);
     Set<String> getPendingMembershipApproverRoles(String server, long timestamp);
 
-    List<Map<String, String>> processExpiredPendingMembers(int pendingRoleMemberLifespan, String monitorIdentity);
+    List<Map<String, String>> getExpiredPendingMembers(int pendingRoleMemberLifespan);
 
     boolean updateLastNotifiedTimestamp(String server, long timestamp);
+
+    boolean deletePendingRoleMember(int roleId, int principalId, final String admin, final String principal,
+                                           final String auditRef, boolean auditLog, final String caller);
 }
