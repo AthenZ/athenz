@@ -24,7 +24,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.util.*;
@@ -39,11 +41,19 @@ public class NotificationManagerTest {
     @Mock private AthenzDomain mockAthenzDomain;
 
     @BeforeClass
-    public void setUp() throws Exception {
+    public void setUp() {
         MockitoAnnotations.initMocks(this);
+    }
+
+    @BeforeMethod
+    public void setUpMethod() {
         System.setProperty(ZMSConsts.ZMS_PROP_NOTIFICATION_SERVICE_FACTORY_CLASS, "com.yahoo.athenz.zms.notification.MockNotificationServiceFactory");
     }
 
+    @AfterMethod(alwaysRun=true)
+    public void clearMethod() {
+        System.clearProperty(ZMSConsts.ZMS_PROP_NOTIFICATION_SERVICE_FACTORY_CLASS);
+    }
     @Test
     public void testSendNotification() {
         DBService dbsvc = Mockito.mock(DBService.class);
@@ -56,7 +66,6 @@ public class NotificationManagerTest {
         NotificationManager notificationManager = new NotificationManager(dbsvc, ZMSConsts.USER_DOMAIN_PREFIX);
         notificationManager.shutdown();
         notificationManager.sendNotification(notification);
-        assertTrue(true);
     }
 
     @Test
@@ -139,7 +148,6 @@ public class NotificationManagerTest {
         } catch (Exception ex) {
             assertTrue(ex.getMessage().contains("Invalid notification service factory"));
         }
-        System.setProperty(ZMSConsts.ZMS_PROP_NOTIFICATION_SERVICE_FACTORY_CLASS, "com.yahoo.athenz.zms.notification.MockNotificationServiceFactory");
     }
 
     @Test
@@ -150,7 +158,6 @@ public class NotificationManagerTest {
         } catch (Exception ex) {
             fail();
         }
-        System.setProperty(ZMSConsts.ZMS_PROP_NOTIFICATION_SERVICE_FACTORY_CLASS, "com.yahoo.athenz.zms.notification.MockNotificationServiceFactory");
     }
 
     @Test

@@ -4334,6 +4334,19 @@ public class DBServiceTest {
     }
 
     @Test
+    public void testGetPendingMembershipNotificationsTimestampUpdateFailed() {
+
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockFileConn);
+        Mockito.when(mockFileConn.updateLastNotifiedTimestamp(anyString(), anyLong())).thenReturn(false);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+        Set<String> recipientsRes = zms.dbService.getPendingMembershipApproverRoles();
+        assertNull(recipientsRes);
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
     public void testProcessExpiredPendingMembers() {
 
         List<Map<String, String>> memberMapList = new ArrayList<>();
