@@ -240,13 +240,14 @@ public class DBService {
     }
 
     void auditLogRequest(String principal, String domainName, String auditRef,
-                         String caller, String operation, String entityName, String auditDetails) {
+            String caller, String operation, String entityName, String auditDetails) {
         AuditLogMsgBuilder msgBldr = getAuditLogMsgBuilder(null, domainName, auditRef, caller, operation, entityName, auditDetails);
         msgBldr.who(principal);
         auditLogger.log(msgBldr);
     }
 
-    private AuditLogMsgBuilder getAuditLogMsgBuilder(ResourceContext ctx, String domainName, String auditRef, String caller, String operation, String entityName, String auditDetails) {
+    private AuditLogMsgBuilder getAuditLogMsgBuilder(ResourceContext ctx, String domainName,
+            String auditRef, String caller, String operation, String entityName, String auditDetails) {
         AuditLogMsgBuilder msgBldr = ZMSUtils.getAuditLogMsgBuilder(ctx, auditLogger,
                 domainName, auditRef, caller, operation);
         msgBldr.when(Timestamp.fromCurrentTime().toString()).whatEntity(entityName);
@@ -1909,10 +1910,10 @@ public class DBService {
         }
     }
     
-    Membership getMembership(String domainName, String roleName, String principal) {
+    Membership getMembership(String domainName, String roleName, String principal, long expiryTimestamp) {
         
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
-            Membership membership = con.getRoleMember(domainName, roleName, principal);
+            Membership membership = con.getRoleMember(domainName, roleName, principal, expiryTimestamp);
             Timestamp expiration = membership.getExpiration();
 
             //need to check expiration and set isMember if expired
@@ -3800,14 +3801,14 @@ public class DBService {
         }
     }
 
-    DomainRoleMembership getPendingDomainRoleMembersList(final String principal) {
+    DomainRoleMembership getPendingDomainRoleMembers(final String principal) {
 
         DomainRoleMembership domainRoleMembership = new DomainRoleMembership();
         List<DomainRoleMembers> domainRoleMembersList = new ArrayList<>();
         DomainRoleMembers domainRoleMembers;
 
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
-            Map<String, List<DomainRoleMember>> domainRoleMembersMap = con.getPendingDomainRoleMembersList(principal);
+            Map<String, List<DomainRoleMember>> domainRoleMembersMap = con.getPendingDomainRoleMembers(principal);
             if (domainRoleMembersMap != null) {
                 for (String domain : domainRoleMembersMap.keySet()) {
                     domainRoleMembers = new DomainRoleMembers();
@@ -3832,30 +3833,30 @@ public class DBService {
         return null;
     }
 
-    public void processExpiredPendingMembers(int pendingRoleMemberLifespan, String monitorIdentity) {
-        boolean result;
+    public void processExpiredPendingMembers(int pendingRoleMemberLifespan, final String monitorIdentity) {
+
         final String auditRef = "Expired - auto reject";
         final String caller = "processExpiredPendingMembers";
 
-        List<Map<String, String>> membersMapList;
-
+        Map<String, List<DomainRoleMember>> memberList;
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
-            membersMapList = con.getExpiredPendingMembers(pendingRoleMemberLifespan);
+            memberList = con.getExpiredPendingDomainRoleMembers(pendingRoleMemberLifespan);
         }
 
         // delete each member and record each expired member in audit log in a transaction
-        try (ObjectStoreConnection con = store.getConnection(false, true)) {
-            int roleId, principalId;
-            for (Map<String, String> membersMap : membersMapList) {
-                roleId = Integer.parseInt(membersMap.get("roleId"));
-                principalId = Integer.parseInt(membersMap.get("memberId"));
-                result = con.deletePendingRoleMember(roleId, principalId, monitorIdentity, membersMap.get("member"), auditRef, true, caller);
-                if (result) {
-                    auditLogRequest(monitorIdentity, membersMap.get("domain"), auditRef, caller, "REJECT", membersMap.get("role"),
-                            "{\"member\": \"" + membersMap.get("member") + "\"}");
-                    con.commitChanges();
-                } else {
-                    con.rollbackChanges();
+
+        for (String domainName : memberList.keySet()) {
+            for (DomainRoleMember domainRoleMember : memberList.get(domainName)) {
+                final String principalName = domainRoleMember.getMemberName();
+                for (MemberRole memberRole : domainRoleMember.getMemberRoles()) {
+                    try (ObjectStoreConnection con = store.getConnection(true, true)) {
+                        if (con.deletePendingRoleMember(domainName, memberRole.getRoleName(),
+                                principalName, monitorIdentity, auditRef)) {
+                            auditLogRequest(monitorIdentity, domainName, auditRef, caller,
+                                    "REJECT", memberRole.getRoleName(),
+                                    "{\"member\": \"" + principalName + "\"}");
+                        }
+                    }
                 }
             }
         }

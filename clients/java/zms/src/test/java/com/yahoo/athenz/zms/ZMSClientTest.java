@@ -1710,10 +1710,10 @@ public class ZMSClientTest {
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
         Membership member1Mock = Mockito.mock(Membership.class);
-        Mockito.when(c.getMembership("MbrGetRoleDom1", "Role1", "user.joe")).thenReturn(member1Mock);
+        Mockito.when(c.getMembership("MbrGetRoleDom1", "Role1", "user.joe", null)).thenReturn(member1Mock);
         client.getMembership("MbrGetRoleDom1", "Role1", "user.doe");
         try {
-            Mockito.when(c.getMembership("MbrGetRoleDom1", "Role2", "user.joe")).thenThrow(new ResourceException(204));
+            Mockito.when(c.getMembership("MbrGetRoleDom1", "Role2", "user.joe", null)).thenThrow(new ResourceException(204));
             client.getMembership("MbrGetRoleDom1", "Role2", "user.joe");
             fail();
         } catch  (ResourceException ex) {
@@ -1721,7 +1721,7 @@ public class ZMSClientTest {
         }
 
         try {
-            Mockito.when(c.getMembership("MbrGetRoleDom1", "Role3", "user.joe")).thenThrow(new NullPointerException());
+            Mockito.when(c.getMembership("MbrGetRoleDom1", "Role3", "user.joe", null)).thenThrow(new NullPointerException());
             client.getMembership("MbrGetRoleDom1", "Role3", "user.joe");
             fail();
         } catch (ResourceException ex) {

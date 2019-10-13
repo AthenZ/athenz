@@ -117,6 +117,15 @@ public class NotificationManagerTest {
     }
 
     @Test
+    public void testCreaeteNotificationNullRecipients() {
+
+        NotificationManager notificationManager = new NotificationManager(dbService, ZMSConsts.USER_DOMAIN_PREFIX);
+        assertNull(notificationManager.createNotification("MEMBERSHIP_APPROVAL", null, null));
+        assertNull(notificationManager.createNotification("MEMBERSHIP_APPROVAL", Collections.EMPTY_SET, null));
+        notificationManager.shutdown();
+    }
+
+    @Test
     public void testCreateNotificationNoValidRecipients() {
         Set<String> recipients = new HashSet<>();
         recipients.add("unix.ykeykey");

@@ -17,18 +17,11 @@ package com.yahoo.athenz.zms.store.file;
 
 import static org.testng.Assert.*;
 import java.io.File;
+
+import com.yahoo.athenz.zms.*;
+import com.yahoo.rdl.Timestamp;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
-
-import com.yahoo.athenz.zms.Assertion;
-import com.yahoo.athenz.zms.AssertionEffect;
-import com.yahoo.athenz.zms.Domain;
-import com.yahoo.athenz.zms.Entity;
-import com.yahoo.athenz.zms.Policy;
-import com.yahoo.athenz.zms.PublicKeyEntry;
-import com.yahoo.athenz.zms.Role;
-import com.yahoo.athenz.zms.RoleMember;
-import com.yahoo.athenz.zms.ServiceIdentity;
 
 public class FileConnectionTest {
 
@@ -595,7 +588,7 @@ public class FileConnectionTest {
         File fileDir = new File("/home/athenz/zms_store");
         File quotaDir = new File("/home/athenz/zms_quota");
         try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
-            assertNull(fileconnection.getPendingDomainRoleMembersList("user.user1"));
+            assertNull(fileconnection.getPendingDomainRoleMembers("user.user1"));
         }
     }
 
@@ -623,16 +616,21 @@ public class FileConnectionTest {
         File fileDir = new File("/home/athenz/zms_store");
         File quotaDir = new File("/home/athenz/zms_quota");
         try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
-            assertTrue(fileconnection.getExpiredPendingMembers(30).isEmpty());
+            assertTrue(fileconnection.getExpiredPendingDomainRoleMembers(30).isEmpty());
         }
     }
 
     @Test
-    public void testDeletePendingRoleMember() {
+    public void testDeletePendingRoleMemberInvalidDomain() {
         File fileDir = new File("/home/athenz/zms_store");
         File quotaDir = new File("/home/athenz/zms_quota");
         try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
-            assertFalse(fileconnection.deletePendingRoleMember(5, 7, "", "", "", true, ""));
+            try {
+                fileconnection.deletePendingRoleMember("", "", "", "", "");
+                fail();
+            } catch (ResourceException ex) {
+                assertEquals(ex.getCode(), 404);
+            }
         }
     }
 
@@ -642,6 +640,18 @@ public class FileConnectionTest {
         File quotaDir = new File("/home/athenz/zms_quota");
         try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
             assertFalse(fileconnection.updateLastNotifiedTimestamp("localhost", 0L));
+        }
+    }
+
+    @Test
+    public void testMatchExpiration() {
+        File fileDir = new File("/home/athenz/zms_store");
+        File quotaDir = new File("/home/athenz/zms_quota");
+        try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
+            assertTrue(fileconnection.matchExpiration(0, null));
+            assertFalse(fileconnection.matchExpiration(10, null));
+            assertTrue(fileconnection.matchExpiration(100, Timestamp.fromMillis(100)));
+            assertFalse(fileconnection.matchExpiration(101, Timestamp.fromMillis(100)));
         }
     }
 }

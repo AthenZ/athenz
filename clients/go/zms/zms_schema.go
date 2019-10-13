@@ -809,6 +809,7 @@ func init() {
 	mGetMembership.Input("domainName", "DomainName", true, "", "", false, nil, "name of the domain")
 	mGetMembership.Input("roleName", "EntityName", true, "", "", false, nil, "name of the role")
 	mGetMembership.Input("memberName", "MemberName", true, "", "", false, nil, "user name to be checked for membership")
+	mGetMembership.Input("expiration", "String", false, "expiration", "", true, nil, "the expiration timestamp")
 	mGetMembership.Auth("", "", true, "")
 	mGetMembership.Exception("BAD_REQUEST", "ResourceError", "")
 	mGetMembership.Exception("FORBIDDEN", "ResourceError", "")

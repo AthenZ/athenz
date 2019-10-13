@@ -699,11 +699,11 @@ public class ZMSResources {
     @GET
     @Path("/domain/{domainName}/role/{roleName}/member/{memberName}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Membership getMembership(@PathParam("domainName") String domainName, @PathParam("roleName") String roleName, @PathParam("memberName") String memberName) {
+    public Membership getMembership(@PathParam("domainName") String domainName, @PathParam("roleName") String roleName, @PathParam("memberName") String memberName, @QueryParam("expiration") String expiration) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            return this.delegate.getMembership(context, domainName, roleName, memberName);
+            return this.delegate.getMembership(context, domainName, roleName, memberName, expiration);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {

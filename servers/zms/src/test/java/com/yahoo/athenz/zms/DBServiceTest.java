@@ -45,6 +45,7 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -4187,7 +4188,7 @@ public class DBServiceTest {
 
     @Test
     public void testGetPendingDomainRoleMembersListNullMap() {
-        DomainRoleMembership domainRoleMembership = zms.dbService.getPendingDomainRoleMembersList("user.user1");
+        DomainRoleMembership domainRoleMembership = zms.dbService.getPendingDomainRoleMembers("user.user1");
         assertNotNull(domainRoleMembership);
         assertNull(domainRoleMembership.getDomainRoleMembersList());
     }
@@ -4250,7 +4251,6 @@ public class DBServiceTest {
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "MetaDom1", auditRef);
     }
-
 
     @Test
     public void testGetPendingMembershipNotifications() {
@@ -4349,46 +4349,83 @@ public class DBServiceTest {
     @Test
     public void testProcessExpiredPendingMembers() {
 
-        List<Map<String, String>> memberMapList = new ArrayList<>();
-        Map<String, String> memberMap = new HashMap<>();
-        memberMap.put("domain", "dom1");
-        memberMap.put("role", "role1");
-        memberMap.put("member", "user.user1");
-        memberMap.put("roleId", "5");
-        memberMap.put("memberId", "7");
-        memberMapList.add(memberMap);
+        Map<String, List<DomainRoleMember>> memberList = new LinkedHashMap<>();
+
+        DomainRoleMember domainRoleMember1 = new DomainRoleMember();
+        domainRoleMember1.setMemberName("user.user1");
+        List<MemberRole> memberRoles1 = new ArrayList<>();
+        memberRoles1.add(new MemberRole().setRoleName("role1"));
+        domainRoleMember1.setMemberRoles(memberRoles1);
+
+        DomainRoleMember domainRoleMember2 = new DomainRoleMember();
+        domainRoleMember2.setMemberName("user.user2");
+        List<MemberRole> memberRoles2 = new ArrayList<>();
+        memberRoles2.add(new MemberRole().setRoleName("role1"));
+        domainRoleMember2.setMemberRoles(memberRoles2);
+
+        List<DomainRoleMember> domainRoleMembers = new ArrayList<>();
+        domainRoleMembers.add(domainRoleMember1);
+        domainRoleMembers.add(domainRoleMember2);
+        memberList.put("dom1", domainRoleMembers);
 
         ObjectStore saveStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
 
         Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(mockFileConn);
-        Mockito.when(mockFileConn.getExpiredPendingMembers(30)).thenReturn(memberMapList);
-        Mockito.when(mockFileConn.deletePendingRoleMember(anyInt(), anyInt(), anyString(), anyString(), anyString(), anyBoolean(), anyString())).thenReturn(true);
+        Mockito.when(mockFileConn.getExpiredPendingDomainRoleMembers(30)).thenReturn(memberList);
+        Mockito.when(mockFileConn.deletePendingRoleMember("dom1", "role1", "user.user1", "sys.auth.monitor",
+                "Expired - auto reject")).thenReturn(true);
+        Mockito.when(mockFileConn.deletePendingRoleMember("dom1", "role1", "user.user2", "sys.auth.monitor",
+                "Expired - auto reject")).thenReturn(false);
 
         zms.dbService.processExpiredPendingMembers(30, "sys.auth.monitor");
-
         zms.dbService.store = saveStore;
     }
 
     @Test
-    public void testProcessExpiredPendingMembersFail() {
-        List<Map<String, String>> memberMapList = new ArrayList<>();
-        Map<String, String> memberMap = new HashMap<>();
-        memberMap.put("domain", "dom1");
-        memberMap.put("role", "role1");
-        memberMap.put("member", "user.user1");
-        memberMap.put("roleId", "5");
-        memberMap.put("memberId", "7");
-        memberMapList.add(memberMap);
+    public void testGetExpiredPendingDomainRoleMembers() {
 
-        ObjectStore saveStore = zms.dbService.store;
-        zms.dbService.store = mockObjStore;
+        String domainName = "expirependingdomain";
+        String roleName = "role1";
 
-        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(mockFileConn);
-        Mockito.when(mockFileConn.getExpiredPendingMembers(30)).thenReturn(memberMapList);
-        Mockito.when(mockFileConn.deletePendingRoleMember(anyInt(), anyInt(), anyString(), anyString(), anyString(), anyBoolean(), anyString())).thenReturn(false);
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Role role1 = createRoleObject(domainName, roleName, null,
+                "user.joe", "user.jane");
+        zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, role1);
+
+        // we're creating one with current time
+
+        zms.dbService.executePutMembership(mockDomRsrcCtx, domainName, roleName,
+                new RoleMember().setMemberName("user.doe")
+                        .setApproved(false)
+                        .setRequestTime(Timestamp.fromCurrentTime()),
+                auditRef, "putMembership");
+
+        // second one is over 31 days old
+
+        zms.dbService.executePutMembership(mockDomRsrcCtx, domainName, roleName,
+                new RoleMember().setMemberName("user.bob")
+                        .setApproved(false)
+                        .setRequestTime(Timestamp.fromMillis(TimeUnit.MILLISECONDS.convert(31, TimeUnit.DAYS))),
+                auditRef, "putMembership");
+
+        // we should have 2 regular and 2 pending users
+
+        Role role = zms.dbService.getRole(domainName, roleName, false, false, true);
+        assertEquals(role.getRoleMembers().size(), 4);
+
+        // now let's expire our entries
 
         zms.dbService.processExpiredPendingMembers(30, "sys.auth.monitor");
-        zms.dbService.store = saveStore;
+
+        // we should get back only three members since one is expired
+
+        role = zms.dbService.getRole(domainName, roleName, false, false, true);
+        assertEquals(role.getRoleMembers().size(), 3);
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 }

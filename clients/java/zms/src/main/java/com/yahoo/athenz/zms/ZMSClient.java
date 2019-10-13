@@ -902,9 +902,24 @@ public class ZMSClient implements Closeable {
      * @throws ZMSClientException in case of failure
      */
     public Membership getMembership(String domainName, String roleName, String memberName) {
+        return getMembership(domainName, roleName, memberName, null);
+    }
+
+    /**
+     * Get membership details for the specified member in the given role
+     * in a specified domain with an optional expiration
+     *
+     * @param domainName name of the domain
+     * @param roleName   name of the role
+     * @param memberName name of the member
+     * @param expiration member expiration
+     * @return Membership object
+     * @throws ZMSClientException in case of failure
+     */
+    public Membership getMembership(String domainName, String roleName, String memberName, String expiration) {
         updatePrincipal();
         try {
-            return client.getMembership(domainName, roleName, memberName);
+            return client.getMembership(domainName, roleName, memberName, expiration);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {

@@ -2586,14 +2586,14 @@ public class ZMSImplTest {
         zms.putRole(mockDomRsrcCtx, "MbrGetRoleDom1", "Role1", auditRef, role1);
 
         Membership member1 = zms.getMembership(mockDomRsrcCtx, "MbrGetRoleDom1", "Role1",
-                "user.joe");
+                "user.joe", null);
         assertNotNull(member1);
         assertEquals(member1.getMemberName(), "user.joe");
         assertEquals(member1.getRoleName(), "MbrGetRoleDom1:role.Role1".toLowerCase());
         assertTrue(member1.getIsMember());
 
         Membership member2 = zms.getMembership(mockDomRsrcCtx, "MbrGetRoleDom1", "Role1",
-                "user.doe");
+                "user.doe", null);
         assertNotNull(member2);
         assertEquals(member2.getMemberName(), "user.doe");
         assertEquals(member2.getRoleName(), "MbrGetRoleDom1:role.Role1".toLowerCase());
@@ -2612,7 +2612,7 @@ public class ZMSImplTest {
         // Tests the getMembership() condition : if (domain == null)...
         try {
             // Should fail because we never created this domain.
-            zms.getMembership(mockDomRsrcCtx, domainName, roleName, memberName1);
+            zms.getMembership(mockDomRsrcCtx, domainName, roleName, memberName1, null);
             fail("notfounderror not thrown.");
         } catch (ResourceException e) {
             assertEquals(e.getCode(), 404);
@@ -2625,7 +2625,7 @@ public class ZMSImplTest {
         // Tests the getMembership() condition: if (collection == null)...
         try {
             // Should fail because we never added a role to this domain.
-            zms.getMembership(mockDomRsrcCtx, domainName, roleName, memberName1);
+            zms.getMembership(mockDomRsrcCtx, domainName, roleName, memberName1, null);
             fail("notfounderror not thrown.");
         } catch (ResourceException e) {
             assertEquals(e.getCode(), 404);
@@ -2640,7 +2640,7 @@ public class ZMSImplTest {
             zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, role1);
             
             // Trying to find a non-existent role.
-            zms.getMembership(mockDomRsrcCtx, domainName, missingRoleName, memberName1);
+            zms.getMembership(mockDomRsrcCtx, domainName, missingRoleName, memberName1, null);
             fail("notfounderror not thrown.");
         } catch (ResourceException e) {
             assertEquals(e.getCode(), 404);
@@ -2781,12 +2781,12 @@ public class ZMSImplTest {
         Membership mbr = generateMembership("Role1", "user.doe", expired);
         zms.putMembership(mockDomRsrcCtx, domainName, "Role1", "user.doe", auditRef, mbr);
         Membership expiredMember = zms.getMembership(mockDomRsrcCtx, domainName,
-                "Role1", "user.doe");
+                "Role1", "user.doe", null);
         
         mbr = generateMembership("Role1", "coretech.storage", notExpired);
         zms.putMembership(mockDomRsrcCtx, domainName, "Role1", "coretech.storage", auditRef, mbr);
         Membership notExpiredMember = zms.getMembership(mockDomRsrcCtx, domainName,
-                "Role1", "coretech.storage");
+                "Role1", "coretech.storage", null);
 
         Role role = zms.getRole(mockDomRsrcCtx, domainName, "Role1", false, false, false);
         assertNotNull(role);
@@ -16468,6 +16468,8 @@ public class ZMSImplTest {
             assertEquals(r.code, 403);
         }
 
+        // first request using specific principal
+
         DomainRoleMembership domainRoleMembership = zms.getPendingDomainRoleMembersList(mockDomRsrcCtx, "user.fury");
 
         assertNotNull(domainRoleMembership);
@@ -16479,9 +16481,33 @@ public class ZMSImplTest {
             for (DomainRoleMember mem : drm.getMembers()) {
                 assertNotNull(mem);
                 assertEquals(mem.getMemberName(), "user.bob");
-                for ( MemberRole mr : mem.getMemberRoles()) {
+                for (MemberRole mr : mem.getMemberRoles()) {
                     assertNotNull(mr);
-                    assertEquals(mr.getRoleName(), "testdomain1:role.testrole1");
+                    assertEquals(mr.getRoleName(), "testrole1");
+                }
+            }
+        }
+
+        // repeat the request using context principal
+
+        Principal mockPrincipal = Mockito.mock(Principal.class);
+        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(mockPrincipal);
+        Mockito.when(mockPrincipal.getDomain()).thenReturn("user");
+        Mockito.when(mockPrincipal.getFullName()).thenReturn("user.fury");
+        domainRoleMembership = zms.getPendingDomainRoleMembersList(mockDomRsrcCtx, null);
+
+        assertNotNull(domainRoleMembership);
+        assertNotNull(domainRoleMembership.getDomainRoleMembersList());
+        assertEquals(domainRoleMembership.getDomainRoleMembersList().size(), 1);
+        for (DomainRoleMembers drm : domainRoleMembership.getDomainRoleMembersList()) {
+            assertEquals(drm.getDomainName(), "testdomain1");
+            assertNotNull(drm.getMembers());
+            for (DomainRoleMember mem : drm.getMembers()) {
+                assertNotNull(mem);
+                assertEquals(mem.getMemberName(), "user.bob");
+                for (MemberRole mr : mem.getMemberRoles()) {
+                    assertNotNull(mr);
+                    assertEquals(mr.getRoleName(), "testrole1");
                 }
             }
         }

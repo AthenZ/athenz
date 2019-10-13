@@ -88,10 +88,11 @@ resource Role DELETE "/domain/{domainName}/role/{roleName}" {
 }
 
 //Get the membership status for a specified user in a role.
-resource Membership GET "/domain/{domainName}/role/{roleName}/member/{memberName}" {
+resource Membership GET "/domain/{domainName}/role/{roleName}/member/{memberName}?expiration={expiration}" {
     DomainName domainName; //name of the domain
     EntityName roleName; //name of the role
     MemberName memberName; //user name to be checked for membership
+    String expiration (optional); //the expiration timestamp
     authenticate;
     exceptions {
         ResourceError BAD_REQUEST;

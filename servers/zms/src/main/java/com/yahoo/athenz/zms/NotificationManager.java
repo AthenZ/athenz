@@ -119,34 +119,38 @@ public class NotificationManager {
     Notification createNotification(String notificationType, Set<String> recipients, Map<String,
             String> details) {
 
-        String recDomain;
-        AthenzDomain domain;
+        if (recipients == null || recipients.isEmpty()) {
+            LOGGER.error("Notification requires at least 1 recipient.");
+            return null;
+        }
+
         Notification notification = new Notification(notificationType);
         notification.setDetails(details);
-        int idx;
-        if (recipients != null) {
-            for (String recipient : recipients) {
-                idx = recipient.indexOf(":role.");
-                if (idx != -1) {
-                    //recipient is of type role. Extract role members
-                    recDomain = recipient.substring(0, idx);
-                    domain = dbService.getAthenzDomain(recDomain, false);
-                    for (Role role : domain.getRoles()) {
-                        if (role.getName().equals(recipient)) {
-                            notification.getRecipients().addAll(role.getRoleMembers().stream().filter(m -> m.getMemberName().startsWith(userDomainPrefix))
-                                    .map(RoleMember::getMemberName).collect(Collectors.toSet()));
-                            break;
-                        }
+
+        for (String recipient : recipients) {
+            int idx = recipient.indexOf(":role.");
+            if (idx != -1) {
+                //recipient is of type role. Extract role members
+                final String recDomain = recipient.substring(0, idx);
+                AthenzDomain domain = dbService.getAthenzDomain(recDomain, false);
+                for (Role role : domain.getRoles()) {
+                    if (role.getName().equals(recipient)) {
+                        notification.getRecipients().addAll(role.getRoleMembers().stream()
+                                .filter(m -> m.getMemberName().startsWith(userDomainPrefix))
+                                .map(RoleMember::getMemberName).collect(Collectors.toSet()));
+                        break;
                     }
-                } else if (recipient.startsWith(userDomainPrefix)) {
-                    notification.addRecipient(recipient);
                 }
+            } else if (recipient.startsWith(userDomainPrefix)) {
+                notification.addRecipient(recipient);
             }
         }
+
         if (notification.getRecipients() == null || notification.getRecipients().isEmpty()) {
             LOGGER.error("Notification requires at least 1 recipient.");
             return null;
         }
+
         return notification;
     }
 
