@@ -602,11 +602,14 @@ public class ZMSRDLGeneratedClient {
 
     }
 
-    public Membership getMembership(String domainName, String roleName, String memberName) {
+    public Membership getMembership(String domainName, String roleName, String memberName, String expiration) {
         WebTarget target = base.path("/domain/{domainName}/role/{roleName}/member/{memberName}")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("roleName", roleName)
             .resolveTemplate("memberName", memberName);
+        if (expiration != null) {
+            target = target.queryParam("expiration", expiration);
+        }
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {
             invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),

@@ -71,9 +71,10 @@ public interface ObjectStoreConnection extends Closeable {
     
     List<RoleMember> listRoleMembers(String domainName, String roleName, Boolean pending);
     int countRoleMembers(String domainName, String roleName);
-    Membership getRoleMember(String domainName, String roleName, String member);
+    Membership getRoleMember(String domainName, String roleName, String member, long expiration);
     boolean insertRoleMember(String domainName, String roleName, RoleMember roleMember, String principal, String auditRef);
     boolean deleteRoleMember(String domainName, String roleName, String member, String principal, String auditRef);
+    boolean deletePendingRoleMember(String domainName, String roleName, String member, String principal, String auditRef);
     boolean confirmRoleMember(String domainName, String roleName, RoleMember roleMember, String principal, String auditRef);
 
     DomainRoleMembers listDomainRoleMembers(String domainName);
@@ -132,13 +133,9 @@ public interface ObjectStoreConnection extends Closeable {
     boolean updateQuota(String domainName, Quota quota);
     boolean deleteQuota(String domainName);
 
-    Map<String, List<DomainRoleMember>> getPendingDomainRoleMembersList(String principal);
+    Map<String, List<DomainRoleMember>> getPendingDomainRoleMembers(String principal);
+    Map<String, List<DomainRoleMember>> getExpiredPendingDomainRoleMembers(int pendingRoleMemberLifespan);
     Set<String> getPendingMembershipApproverRoles(String server, long timestamp);
 
-    List<Map<String, String>> getExpiredPendingMembers(int pendingRoleMemberLifespan);
-
     boolean updateLastNotifiedTimestamp(String server, long timestamp);
-
-    boolean deletePendingRoleMember(int roleId, int principalId, final String admin, final String principal,
-                                           final String auditRef, boolean auditLog, final String caller);
 }

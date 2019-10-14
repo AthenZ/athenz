@@ -1077,9 +1077,9 @@ func (client ZMSClient) DeleteRole(domainName DomainName, roleName EntityName, a
 	}
 }
 
-func (client ZMSClient) GetMembership(domainName DomainName, roleName EntityName, memberName MemberName) (*Membership, error) {
+func (client ZMSClient) GetMembership(domainName DomainName, roleName EntityName, memberName MemberName, expiration string) (*Membership, error) {
 	var data *Membership
-	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/role/" + fmt.Sprint(roleName) + "/member/" + fmt.Sprint(memberName)
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/role/" + fmt.Sprint(roleName) + "/member/" + fmt.Sprint(memberName) + encodeParams(encodeStringParam("expiration", string(expiration), ""))
 	resp, err := client.httpGet(url, nil)
 	if err != nil {
 		return data, err

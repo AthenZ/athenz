@@ -695,8 +695,18 @@ public class FileConnection implements ObjectStoreConnection {
         return role.getRoleMembers();
     }
 
+    boolean matchExpiration(long expiration, Timestamp expiry) {
+        if (expiration == 0) {
+            return true;
+        }
+        if (expiry == null) {
+            return false;
+        }
+        return expiry.millis() == expiration;
+    }
+
     @Override
-    public Membership getRoleMember(String domainName, String roleName, String principal) {
+    public Membership getRoleMember(String domainName, String roleName, String principal, long expiration) {
         DomainStruct domainStruct = getDomainStruct(domainName);
         if (domainStruct == null) {
             throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", "getRoleMember");
@@ -713,9 +723,13 @@ public class FileConnection implements ObjectStoreConnection {
             Set<RoleMember> members = new HashSet<>(role.getRoleMembers());
             for (RoleMember member: members) {
                 if (member.getMemberName().equalsIgnoreCase(principal)) {
-                    membership.setIsMember(true);
-                    membership.setExpiration(member.getExpiration());
-                    break;
+                    Timestamp expiry = member.getExpiration();
+                    if (matchExpiration(expiration, expiry)) {
+                        membership.setIsMember(true);
+                        membership.setExpiration(expiry);
+                        membership.setApproved(member.getApproved());
+                        break;
+                    }
                 }
             }
         }
@@ -1558,18 +1572,9 @@ public class FileConnection implements ObjectStoreConnection {
     }
 
     @Override
-    public Map<String, List<DomainRoleMember>> getPendingDomainRoleMembersList(String principal) {
+    public Map<String, List<DomainRoleMember>> getPendingDomainRoleMembers(String principal) {
 
         List<String> orgs = new ArrayList<>();
-        DomainStruct domain;
-
-        DomainRoleMembers domainRoleMembers;
-        List<DomainRoleMember> domainRoleMemberList;
-        DomainRoleMember domainRoleMember;
-
-        List<MemberRole> memberRoles;
-        MemberRole memberRole;
-
         Map<String, List<DomainRoleMember>> domainRoleMembersMap = null;
         RoleMember rm = new RoleMember().setMemberName(principal).setActive(true).setApproved(true);
 
@@ -1586,24 +1591,25 @@ public class FileConnection implements ObjectStoreConnection {
             domainRoleMembersMap = new HashMap<>();
             List<String> domainNames = listDomains(null, 0);
             for (String domainName : domainNames) {
-                domain = getDomainStruct(domainName);
+                DomainStruct domain = getDomainStruct(domainName);
                 if (domain == null) {
                     continue;
                 }
                 if (domain.getMeta() != null && orgs.contains(domain.getMeta().getOrg())) {
-                    domainRoleMembers = new DomainRoleMembers();
+                    DomainRoleMembers domainRoleMembers = new DomainRoleMembers();
                     domainRoleMembers.setDomainName(domain.getName());
-                    domainRoleMemberList = new ArrayList<>();
+                    List<DomainRoleMember>  domainRoleMemberList = new ArrayList<>();
                     domainRoleMembers.setMembers(domainRoleMemberList);
                     for (Role role : domain.getRoles().values()) {
                         for (RoleMember roleMember : role.getRoleMembers()) {
                             if (roleMember.getApproved() == Boolean.FALSE) {
-                                domainRoleMember = new DomainRoleMember();
+                                DomainRoleMember domainRoleMember = new DomainRoleMember();
                                 domainRoleMember.setMemberName(roleMember.getMemberName());
-                                memberRoles = new ArrayList<>();
-                                memberRole = new MemberRole();
+                                List<MemberRole> memberRoles = new ArrayList<>();
+                                MemberRole memberRole = new MemberRole();
                                 memberRole.setActive(false);
-                                memberRole.setRoleName(role.getName());
+                                int idx = role.getName().indexOf(":role.");
+                                memberRole.setRoleName(role.getName().substring(idx + 6));
                                 memberRole.setExpiration(roleMember.getExpiration());
                                 memberRoles.add(memberRole);
                                 domainRoleMember.setMemberRoles(memberRoles);
@@ -1614,7 +1620,6 @@ public class FileConnection implements ObjectStoreConnection {
                     if (!domainRoleMemberList.isEmpty()) {
                         domainRoleMembersMap.put(domain.getName(), domainRoleMemberList);
                     }
-
                 }
             }
         }
@@ -1671,42 +1676,44 @@ public class FileConnection implements ObjectStoreConnection {
     }
 
     @Override
-    public List<Map<String, String>> getExpiredPendingMembers(int pendingRoleMemberLifespan) {
+    public Map<String, List<DomainRoleMember>> getExpiredPendingDomainRoleMembers(int pendingRoleMemberLifespan) {
+
+        Map<String, List<DomainRoleMember>> domainRoleMembersMap = new HashMap<>();;
+
         String[] fnames = getDomainList();
-        boolean result = false;
-        List<Map<String, String>> memberMapList = new ArrayList<>();
-        Map<String, String> memberMap = null;
         for (String name : fnames) {
-            DomainStruct dom = getDomainStruct(name);
-            result = false;
-            if (dom == null) {
+            DomainStruct domain = getDomainStruct(name);
+            if (domain == null) {
                 continue;
             }
-            Date now = new Date();
-            for (Role role : dom.getRoles().values()) {
-                Iterator<RoleMember> rmIter = role.getRoleMembers().iterator();
-                RoleMember roleMember;
-                while (rmIter.hasNext()) {
-                    roleMember = rmIter.next();
-                    if (roleMember.getApproved() == Boolean.FALSE && TimeUnit.DAYS.convert(now.getTime() - roleMember.getRequestTime().millis(), TimeUnit.MILLISECONDS) > 30) {
-                        memberMap.put("domain", dom.getName());
-                        memberMap.put("role", role.getName());
-                        memberMap.put("member", roleMember.getMemberName());
-                        memberMap.put("roleId", "5");
-                        memberMap.put("memberId", "7");
-                        memberMapList.add(memberMap);
-                        // member is pending for more than 30 days
-                        rmIter.remove();
-                        //found atleast one member
-                        result = true;
+            DomainRoleMembers domainRoleMembers = new DomainRoleMembers();
+            domainRoleMembers.setDomainName(domain.getName());
+            List<DomainRoleMember> domainRoleMemberList = new ArrayList<>();
+            domainRoleMembers.setMembers(domainRoleMemberList);
+            long now = System.currentTimeMillis();
+            for (Role role : domain.getRoles().values()) {
+                for (RoleMember roleMember : role.getRoleMembers()) {
+                    if (roleMember.getApproved() == Boolean.FALSE &&
+                            now - roleMember.getRequestTime().millis() > TimeUnit.MILLISECONDS.convert(pendingRoleMemberLifespan, TimeUnit.DAYS)) {
+                        DomainRoleMember domainRoleMember = new DomainRoleMember();
+                        domainRoleMember.setMemberName(roleMember.getMemberName());
+                        List<MemberRole> memberRoles = new ArrayList<>();
+                        MemberRole memberRole = new MemberRole();
+                        memberRole.setActive(false);
+                        int idx = role.getName().indexOf(":role.");
+                        memberRole.setRoleName(role.getName().substring(idx + 6));
+                        memberRole.setExpiration(roleMember.getExpiration());
+                        memberRoles.add(memberRole);
+                        domainRoleMember.setMemberRoles(memberRoles);
+                        domainRoleMemberList.add(domainRoleMember);
                     }
                 }
             }
-            if (result) {
-                putDomainStruct(name, dom);
+            if (!domainRoleMemberList.isEmpty()) {
+                domainRoleMembersMap.put(domain.getName(), domainRoleMemberList);
             }
         }
-        return memberMapList;
+        return domainRoleMembersMap;
     }
 
     @Override
@@ -1737,32 +1744,28 @@ public class FileConnection implements ObjectStoreConnection {
     }
 
     @Override
-    public boolean deletePendingRoleMember(int roleId, int principalId, final String admin, final String principal,
-                                           final String auditRef, boolean auditLog, final String caller) {
-        String[] fnames = getDomainList();
-        boolean updated = false;
-        for (String name : fnames) {
-            DomainStruct dom = getDomainStruct(name);
-            updated = false;
-            if (dom == null) {
-                continue;
-            }
-            for (Role role : dom.getRoles().values()) {
-                Iterator<RoleMember> rmIter = role.getRoleMembers().iterator();
-                RoleMember roleMember;
-                while (rmIter.hasNext()) {
-                    roleMember = rmIter.next();
-                    if (roleMember.getApproved() == Boolean.FALSE && principal.equals(roleMember.getMemberName())) {
-                        rmIter.remove();
-                        updated = true;
-                        break;
-                    }
+    public boolean deletePendingRoleMember(String domainName, String roleName, String principal,
+             String admin, String auditRef) {
+
+        DomainStruct domainStruct = getDomainStruct(domainName);
+        if (domainStruct == null) {
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", "deletePendingRoleMember");
+        }
+        Role role = getRoleObject(domainStruct, roleName);
+        if (role == null) {
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "role not found", "deletePendingRoleMember");
+        }
+        List<RoleMember> roleMembers = role.getRoleMembers();
+        if (roleMembers != null) {
+            for (int idx = 0; idx < roleMembers.size(); idx++) {
+                RoleMember roleMember = roleMembers.get(idx);
+                if (roleMember.getApproved() == Boolean.FALSE && roleMember.getMemberName().equalsIgnoreCase(principal)) {
+                    roleMembers.remove(idx);
+                    break;
                 }
             }
-            if (updated) {
-                putDomainStruct(name, dom);
-            }
         }
-        return updated;
+        putDomainStruct(domainName, domainStruct);
+        return true;
     }
 }

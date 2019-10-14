@@ -2923,9 +2923,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
         return checkRoleMemberExpiration(roleMembers, member);
     }
-    
+
+    @Override
     public Membership getMembership(ResourceContext ctx, String domainName,
-            String roleName, String memberName) {
+            String roleName, String memberName, String expiration) {
         
         final String caller = "getmembership";
         metric.increment(ZMSConsts.HTTP_GET);
@@ -2943,13 +2944,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainName = domainName.toLowerCase();
         roleName = roleName.toLowerCase();
         memberName = normalizeDomainAliasUser(memberName.toLowerCase());
+        long expiryTimestamp = getModTimestamp(expiration);
 
         final String principalDomain = getPrincipalDomain(ctx);
         metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
         metric.increment(caller, domainName, principalDomain);
         Object timerMetric = metric.startTiming("getmembership_timing", domainName, principalDomain);
 
-        Membership result = dbService.getMembership(domainName, roleName, memberName);
+        Membership result = dbService.getMembership(domainName, roleName, memberName, expiryTimestamp);
         
         metric.stopTiming(timerMetric, domainName, principalDomain);
         return result;
@@ -5979,8 +5981,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
     
     String extractDomainName(String resource) {
-        int idx;
-        if ((idx = resource.indexOf(':')) == -1) {
+        int idx = resource.indexOf(':');
+        if (idx == -1) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("extractDomainName: missing domain name: " + resource);
             }
@@ -7040,7 +7042,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             LOG.debug("getpendingdomainrolememberslist principal: ({})", checkPrincipal);
         }
 
-        DomainRoleMembership domainRoleMembership = dbService.getPendingDomainRoleMembersList(checkPrincipal);
+        DomainRoleMembership domainRoleMembership = dbService.getPendingDomainRoleMembers(checkPrincipal);
         metric.stopTiming(timerMetric, null, ctxPrincipal.getDomain());
         return domainRoleMembership;
     }

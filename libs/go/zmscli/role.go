@@ -266,7 +266,7 @@ func (cli Zms) CheckMembers(dn string, rn string, members []string) (*string, er
 	var buf bytes.Buffer
 	ms := cli.validatedUsers(members, false)
 	for _, m := range ms {
-		member, err := cli.Zms.GetMembership(zms.DomainName(dn), zms.EntityName(rn), zms.MemberName(m))
+		member, err := cli.Zms.GetMembership(zms.DomainName(dn), zms.EntityName(rn), zms.MemberName(m), "")
 		cli.dumpRoleMembership(&buf, *member)
 		if err != nil {
 			return nil, err
