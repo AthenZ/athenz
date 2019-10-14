@@ -91,6 +91,7 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_VALIDATE_USER_MEMBERS    = "athenz.zms.validate_user_members";
     public static final String ZMS_PROP_VALIDATE_SERVICE_MEMBERS = "athenz.zms.validate_service_members";
     public static final String ZMS_PROP_VALIDATE_SERVICE_MEMBERS_SKIP_DOMAINS = "athenz.zms.validate_service_members_skip_domains";
+    public static final String ZMS_PROP_MASTER_COPY_FOR_SIGNED_DOMAINS        = "athenz.zms.master_copy_for_signed_domains";
 
     // properties used to over-ride default Audit logger
  

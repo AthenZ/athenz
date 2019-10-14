@@ -140,6 +140,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected boolean readOnlyMode = false;
     protected boolean validateUserRoleMembers = false;
     protected boolean validateServiceRoleMembers = false;
+    protected boolean useMasterCopyForSignedDomains = false;
     protected Set<String> validateServiceMemberSkipDomains;
     protected static Validator validator;
     protected String userDomain;
@@ -569,7 +570,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         if (signedPolicyTimeout < 0) {
             signedPolicyTimeout = 1000 * 604800;
         }
-        
+
+        useMasterCopyForSignedDomains = Boolean.parseBoolean(
+                System.getProperty(ZMSConsts.ZMS_PROP_MASTER_COPY_FOR_SIGNED_DOMAINS, "false"));
+
         // get the maximum length allowed for a top level domain name
 
         domainNameMaxLen = Integer.parseInt(System.getProperty(
@@ -4440,7 +4444,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return signedDomain;
     }
 
-    SignedDomain retrieveSignedDomain(Domain domain, final String metaAttr, boolean setMetaDataOnly) {
+    SignedDomain retrieveSignedDomain(Domain domain, final String metaAttr, boolean setMetaDataOnly, boolean masterCopy) {
 
         // check if we're asked to only return the meta data which
         // we already have - name and last modified time, so we can
@@ -4452,13 +4456,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             signedDomain = retrieveSignedDomainMeta(domain.getName(), domain.getModified().millis(),
                     domain.getAccount(), domain.getYpmId(), metaAttr);
         } else {
-            signedDomain = retrieveSignedDomainData(domain.getName(), domain.getModified().millis());
+            signedDomain = retrieveSignedDomainData(domain.getName(), domain.getModified().millis(), masterCopy);
         }
         return signedDomain;
     }
 
     SignedDomain retrieveSignedDomain(DomainModified domainModified, final String metaAttr,
-            boolean setMetaDataOnly) {
+            boolean setMetaDataOnly, boolean masterCopy) {
 
         // check if we're asked to only return the meta data which
         // we already have - name and last modified time, so we can
@@ -4470,12 +4474,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             signedDomain = retrieveSignedDomainMeta(domainModified.getName(), domainModified.getModified(),
                     domainModified.getAccount(), domainModified.getYpmId(), metaAttr);
         } else {
-            signedDomain = retrieveSignedDomainData(domainModified.getName(), domainModified.getModified());
+            signedDomain = retrieveSignedDomainData(domainModified.getName(), domainModified.getModified(), masterCopy);
         }
         return signedDomain;
     }
 
-    SignedDomain retrieveSignedDomainData(final String domainName, long modifiedTime) {
+    SignedDomain retrieveSignedDomainData(final String domainName, long modifiedTime, boolean masterCopy) {
 
         // generate our signed domain object
 
@@ -4488,7 +4492,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             LOG.debug("retrieveSignedDomain: retrieving domain " + domainName);
         }
         
-        AthenzDomain athenzDomain = getAthenzDomain(domainName, true, true);
+        AthenzDomain athenzDomain = getAthenzDomain(domainName, true, masterCopy);
         
         // it's possible that our domain was deleted by another
         // thread while we were processing this request so
@@ -4552,7 +4556,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case (e.g. domain, role,
         // policy, service, etc name)
-        
+
         if (domainName != null) {
             domainName = domainName.toLowerCase();
             validate(domainName, TYPE_DOMAIN_NAME, caller);
@@ -4566,10 +4570,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         long timestamp = getModTimestamp(matchingTag);
         
         // if this is one of our system principals then we're going to
-        // to use the master copy instead of read-only slaves
+        // to use the master copy instead of read-only replicas
+        // unless we're configured to always use read-only replicas
+        // for all signed domain operations
         
         Principal principal = ((RsrcCtxWrapper) ctx).principal();
-        boolean systemPrincipal = principal.getFullName().startsWith("sys.");
+        boolean masterCopy = useMasterCopyForSignedDomains && principal.getFullName().startsWith("sys.");
         
         // if we're given a specific domain then we don't need to
         // retrieve the list of modified domains
@@ -4581,7 +4587,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
             Domain domain = null;
             try {
-                domain = dbService.getDomain(domainName, systemPrincipal);
+                domain = dbService.getDomain(domainName, masterCopy);
             } catch (ResourceException ex) {
                 
                 // in case the domain does not exist we're just
@@ -4603,7 +4609,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 
                 // generate our signed domain object
                 
-                SignedDomain signedDomain = retrieveSignedDomain(domain, metaAttr, setMetaDataOnly);
+                SignedDomain signedDomain = retrieveSignedDomain(domain, metaAttr, setMetaDataOnly, masterCopy);
                 
                 if (signedDomain != null) {
                     sdList.add(signedDomain);
@@ -4619,7 +4625,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             // domains and sign all domains into a single response
             // unless the request is from a system service
 
-            if (!setMetaDataOnly && !systemPrincipal)  {
+            if (!setMetaDataOnly && !masterCopy)  {
                 return Response.status(ResourceException.BAD_REQUEST).build();
             }
 
@@ -4651,7 +4657,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 
                 // generate our signed domain object
                 
-                SignedDomain signedDomain = retrieveSignedDomain(dmod, metaAttr, setMetaDataOnly);
+                SignedDomain signedDomain = retrieveSignedDomain(dmod, metaAttr, setMetaDataOnly, masterCopy);
                 
                 // it's possible that our domain was deleted by another
                 // thread while we were processing this request so
