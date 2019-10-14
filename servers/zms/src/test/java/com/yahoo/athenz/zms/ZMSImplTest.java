@@ -146,7 +146,8 @@ public class ZMSImplTest {
         System.setProperty(ZMSConsts.ZMS_PROP_FILE_NAME, "src/test/resources/zms.properties");
         System.setProperty(ZMSConsts.ZMS_PROP_METRIC_FACTORY_CLASS, ZMSConsts.ZMS_METRIC_FACTORY_CLASS);
         System.setProperty(ZMSConsts.ZMS_PROP_PROVIDER_ENDPOINTS, ".athenzcompany.com");
-        
+        System.setProperty(ZMSConsts.ZMS_PROP_MASTER_COPY_FOR_SIGNED_DOMAINS, "true");
+
         System.setProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
                 "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory");
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/zms_private.pem");
@@ -15147,7 +15148,7 @@ public class ZMSImplTest {
     public void testRetrieveSignedDomainDataNotFound() {
 
         ZMSImpl zmsImpl = zmsInit();
-        SignedDomain domain = zmsImpl.retrieveSignedDomainData("unknown", 1234);
+        SignedDomain domain = zmsImpl.retrieveSignedDomainData("unknown", 1234, true);
         assertNull(domain);
 
         // now signed domains with unknown domain name
@@ -15344,7 +15345,7 @@ public class ZMSImplTest {
 
         // get the domain which would return from cache
 
-        SignedDomain signedDomain = zms.retrieveSignedDomainData("signeddom1disabled", 0);
+        SignedDomain signedDomain = zms.retrieveSignedDomainData("signeddom1disabled", 0, false);
         assertFalse(signedDomain.getDomain().getEnabled());
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "signeddom1disabled", auditRef);
