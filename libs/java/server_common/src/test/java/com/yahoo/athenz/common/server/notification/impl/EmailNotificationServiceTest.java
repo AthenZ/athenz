@@ -96,7 +96,8 @@ public class EmailNotificationServiceTest {
     public void testGetFullyQualifiedEmailAddresses() {
         System.clearProperty("athenz.user_domain");
         System.setProperty("athenz.user_domain", "entuser");
-        System.setProperty("athenz.notification_email_domain", "example.com");
+        System.setProperty("athenz.notification_email_domain_from", "from.example.com");
+        System.setProperty("athenz.notification_email_domain_to", "example.com");
         AmazonSimpleEmailService ses = mock(AmazonSimpleEmailService.class);
         EmailNotificationService svc = new EmailNotificationService(ses);
 
@@ -109,13 +110,15 @@ public class EmailNotificationServiceTest {
         assertTrue(recipientsResp.contains("user2@example.com"));
         assertTrue(recipientsResp.contains("user3@example.com"));
 
-        System.clearProperty("athenz.notification_email_domain");
+        System.clearProperty("athenz.notification_email_domain_from");
+        System.clearProperty("athenz.notification_email_domain_to");
 
     }
 
     @Test
     public void testGetFullyQualifiedEmailAddressesDefaultUserDomain() {
-        System.setProperty("athenz.notification_email_domain", "test.com");
+        System.setProperty("athenz.notification_email_domain_from", "from.test.com");
+        System.setProperty("athenz.notification_email_domain_to", "test.com");
         AmazonSimpleEmailService ses = mock(AmazonSimpleEmailService.class);
         EmailNotificationService svc = new EmailNotificationService(ses);
 
@@ -128,7 +131,8 @@ public class EmailNotificationServiceTest {
         assertTrue(recipientsResp.contains("user2@test.com"));
         assertTrue(recipientsResp.contains("user3@test.com"));
 
-        System.clearProperty("athenz.notification_email_domain");
+        System.clearProperty("athenz.notification_email_domain_from");
+        System.clearProperty("athenz.notification_email_domain_to");
     }
 
     @Test
@@ -137,7 +141,8 @@ public class EmailNotificationServiceTest {
         Set<String> recipients = new HashSet<>(Arrays.asList("user.user1", "user.user2", "user.user3"));
         String subject = "test email subject";
         String body = "test email body";
-        System.setProperty("athenz.notification_email_domain", "example.com");
+        System.setProperty("athenz.notification_email_domain_from", "from.example.com");
+        System.setProperty("athenz.notification_email_domain_to", "example.com");
         System.setProperty("athenz.notification_email_from", "no-reply-athenz");
 
         AmazonSimpleEmailService ses = mock(AmazonSimpleEmailService.class);
@@ -161,11 +166,12 @@ public class EmailNotificationServiceTest {
                                         .withCharset("UTF-8").withData(body)))
                         .withSubject(new Content()
                                 .withCharset("UTF-8").withData(subject)))
-                .withSource("no-reply-athenz@example.com");
+                .withSource("no-reply-athenz@from.example.com");
 
         assertEquals(sesReqRes, expectedSESReq);
 
-        System.clearProperty("athenz.notification_email_domain");
+        System.clearProperty("athenz.notification_email_domain_from");
+        System.clearProperty("athenz.notification_email_domain_to");
         System.clearProperty("athenz.notification_email_from");
     }
 
@@ -177,7 +183,8 @@ public class EmailNotificationServiceTest {
         }
         String subject = "test email subject";
         String body = "test email body";
-        System.setProperty("athenz.notification_email_domain", "example.com");
+        System.setProperty("athenz.notification_email_domain_from", "example.com");
+        System.setProperty("athenz.notification_email_domain_to", "example.com");
         System.setProperty("athenz.notification_email_from", "no-reply-athenz");
 
         AmazonSimpleEmailService ses = mock(AmazonSimpleEmailService.class);
@@ -195,7 +202,8 @@ public class EmailNotificationServiceTest {
         assertEquals(sesReqExpectedList.get(0).getDestination().getBccAddresses().size(), 50);
         assertEquals(sesReqExpectedList.get(1).getDestination().getBccAddresses().size(), 10);
 
-        System.clearProperty("athenz.notification_email_domain");
+        System.clearProperty("athenz.notification_email_domain_from");
+        System.clearProperty("athenz.notification_email_domain_to");
         System.clearProperty("athenz.notification_email_from");
     }
 
@@ -206,7 +214,8 @@ public class EmailNotificationServiceTest {
         Set<String> recipients = new HashSet<>(Arrays.asList("user.user1", "user.user2", "user.user3"));
         String subject = "test email subject";
         String body = "test email body";
-        System.setProperty("athenz.notification_email_domain", "example.com");
+        System.setProperty("athenz.notification_email_domain_to", "example.com");
+        System.setProperty("athenz.notification_email_domain_from", "from.example.com");
         System.setProperty("athenz.notification_email_from", "no-reply-athenz");
 
         AmazonSimpleEmailService ses = mock(AmazonSimpleEmailService.class);
@@ -217,14 +226,16 @@ public class EmailNotificationServiceTest {
         boolean result = svc.sendEmail(recipients, subject, body);
         assertFalse(result);
 
-        System.clearProperty("athenz.notification_email_domain");
+        System.clearProperty("athenz.notification_email_domain_from");
+        System.clearProperty("athenz.notification_email_domain_to");
         System.clearProperty("athenz.notification_email_from");
     }
 
     @Test
     public void testNotify() {
 
-        System.setProperty("athenz.notification_email_domain", "example.com");
+        System.setProperty("athenz.notification_email_domain_from", "example.com");
+        System.setProperty("athenz.notification_email_domain_to", "example.com");
         System.setProperty("athenz.notification_email_from", "no-reply-athenz");
 
         AmazonSimpleEmailService ses = mock(AmazonSimpleEmailService.class);
@@ -247,7 +258,8 @@ public class EmailNotificationServiceTest {
 
         assertTrue(status);
 
-        System.clearProperty("athenz.notification_email_domain");
+        System.clearProperty("athenz.notification_email_domain_from");
+        System.clearProperty("athenz.notification_email_domain_to");
         System.clearProperty("athenz.notification_email_from");
     }
 

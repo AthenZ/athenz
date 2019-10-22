@@ -3612,8 +3612,8 @@ public class DBServiceTest {
     @Test
     public void testAuditLogRoleSystemMeta() {
         StringBuilder auditDetails = new StringBuilder();
-        Role role = new Role().setName("role1").setAuditEnabled(true);
-        zms.dbService.auditLogRoleSystemMeta(auditDetails, role);
+        Role role = new Role().setName("dom1:role.role1").setAuditEnabled(true);
+        zms.dbService.auditLogRoleSystemMeta(auditDetails, role, "role1");
         assertEquals("{\"name\": \"role1\", \"auditEnabled\": \"true\"}", auditDetails.toString());
     }
 
@@ -3759,8 +3759,8 @@ public class DBServiceTest {
     @Test
     public void testAuditLogRoleMeta() {
         StringBuilder auditDetails = new StringBuilder();
-        Role role = new Role().setName("role1").setSelfServe(true);
-        zms.dbService.auditLogRoleMeta(auditDetails, role);
+        Role role = new Role().setName("dom1:role.role1").setSelfServe(true);
+        zms.dbService.auditLogRoleMeta(auditDetails, role, "role1");
         assertEquals("{\"name\": \"role1\", \"selfserve\": \"true\"}", auditDetails.toString());
     }
 

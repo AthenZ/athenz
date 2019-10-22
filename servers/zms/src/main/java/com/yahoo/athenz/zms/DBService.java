@@ -3511,14 +3511,14 @@ public class DBService {
         .append("\"}");
     }
 
-    void auditLogRoleSystemMeta(StringBuilder auditDetails, Role role) {
-        auditDetails.append("{\"name\": \"").append(role.getName())
+    void auditLogRoleSystemMeta(StringBuilder auditDetails, Role role, String roleName) {
+        auditDetails.append("{\"name\": \"").append(roleName)
                 .append("\", \"auditEnabled\": \"").append(role.getAuditEnabled())
                 .append("\"}");
     }
 
-    void auditLogRoleMeta(StringBuilder auditDetails, Role role) {
-        auditDetails.append("{\"name\": \"").append(role.getName())
+    void auditLogRoleMeta(StringBuilder auditDetails, Role role, String roleName) {
+        auditDetails.append("{\"name\": \"").append(roleName)
                 .append("\", \"selfserve\": \"").append(role.getSelfServe())
                 .append("\"}");
     }
@@ -3643,7 +3643,7 @@ public class DBService {
                 // audit log the request
 
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
-                auditLogRoleSystemMeta(auditDetails, updatedRole);
+                auditLogRoleSystemMeta(auditDetails, updatedRole, roleName);
 
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
                         domainName, auditDetails.toString());
@@ -3701,7 +3701,7 @@ public class DBService {
                 // audit log the request
 
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
-                auditLogRoleMeta(auditDetails, updatedRole);
+                auditLogRoleMeta(auditDetails, updatedRole, roleName);
 
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
                         domainName, auditDetails.toString());

@@ -43,7 +43,8 @@ public class EmailNotificationService implements NotificationService {
     private static final String CHARSET_UTF_8 = "UTF-8";
     private static final String USER_DOMAIN_DEFAULT = "user";
     private static final String PROP_USER_DOMAIN = "athenz.user_domain";
-    private static final String PROP_NOTIFICATION_EMAIL_DOMAIN = "athenz.notification_email_domain";
+    private static final String PROP_NOTIFICATION_EMAIL_DOMAIN_FROM = "athenz.notification_email_domain_from";
+    private static final String PROP_NOTIFICATION_EMAIL_DOMAIN_TO = "athenz.notification_email_domain_to";
     private static final String PROP_NOTIFICATION_WORKFLOW_URL = "athenz.notification_workflow_url";
     private static final String PROP_NOTIFICATION_EMAIL_FROM = "athenz.notification_email_from";
 
@@ -62,7 +63,8 @@ public class EmailNotificationService implements NotificationService {
     private final AmazonSimpleEmailService ses;
 
     private String userDomainPrefix;
-    private String emailDomain;
+    private String emailDomainFrom;
+    private String emailDomainTo;
     private String workflowUrl;
     private String from;
 
@@ -74,7 +76,8 @@ public class EmailNotificationService implements NotificationService {
         this.ses = ses;
         String userDomain = System.getProperty(PROP_USER_DOMAIN, USER_DOMAIN_DEFAULT);
         userDomainPrefix = userDomain + "\\.";
-        emailDomain = System.getProperty(PROP_NOTIFICATION_EMAIL_DOMAIN);
+        emailDomainFrom = System.getProperty(PROP_NOTIFICATION_EMAIL_DOMAIN_FROM);
+        emailDomainTo = System.getProperty(PROP_NOTIFICATION_EMAIL_DOMAIN_TO);
         workflowUrl = System.getProperty(PROP_NOTIFICATION_WORKFLOW_URL);
         from = System.getProperty(PROP_NOTIFICATION_EMAIL_FROM);
     }
@@ -137,7 +140,7 @@ public class EmailNotificationService implements NotificationService {
     Set<String> getFullyQualifiedEmailAddresses(Set<String> recipients) {
         return recipients.stream()
                 .map(s -> s.replaceAll(userDomainPrefix, ""))
-                .map(r -> r + AT + emailDomain)
+                .map(r -> r + AT + emailDomainTo)
                 .collect(Collectors.toSet());
     }
 
@@ -184,7 +187,7 @@ public class EmailNotificationService implements NotificationService {
                                                 .withCharset(CHARSET_UTF_8).withData(body)))
                                 .withSubject(new Content()
                                         .withCharset(CHARSET_UTF_8).withData(subject)))
-                        .withSource(from + AT + emailDomain);
+                        .withSource(from + AT + emailDomainFrom);
                 SendEmailResult result = ses.sendEmail(request);
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Email with messageId={} sent successfully.", result.getMessageId());
