@@ -142,11 +142,13 @@ func usage() string {
 	buf.WriteString("   -a auditRef         Audit Reference Token if auditing is required for domain\n")
 	buf.WriteString("   -b                  Bulk import/update mode. Do not read/display updated role/policy/service objects (default=false)\n")
 	buf.WriteString("   -c cacert_file      CA Certificate file path\n")
+	buf.WriteString("   -cert x509_cert     Athenz X.509 Certificate file for authentication\n")
 	buf.WriteString("   -d domain           The domain used for every command that takes a domain argument\n")
 	buf.WriteString("   -f ntoken_file      Principal Authority NToken file used for authentication\n")
 	buf.WriteString("   -i identity         User identity to authenticate as if NToken file is not specified\n")
 	buf.WriteString("                       (default=" + defaultIdentity() + ")\n")
 	buf.WriteString("   -k                  Disable peer verification of SSL certificates.\n")
+	buf.WriteString("   -key x509_key       Athenz X.509 Key file for authentication\n")
 	buf.WriteString("   -s host:port        The SOCKS5 proxy to route requests through\n")
 	buf.WriteString("   -v                  Verbose mode. Full resource names are included in output (default=false)\n")
 	buf.WriteString("   -x                  For user token output, exclude the header name (default=false)\n")
@@ -178,12 +180,14 @@ func main() {
 	pAddSelf := flag.Bool("addself", true, "Add self to domain admin role")
 	pDomain := flag.String("d", "", "The domain for the command to execute in. If not specified, only certain commands are available")
 	pUserDomain := flag.String("u", "user", "User domain name as configured in Athenz systems")
-	pHomeDomain := flag.String("h", "user", "Home domain name as configured in Athenz systems")
+	pHomeDomain := flag.String("h", "home", "Home domain name as configured in Athenz systems")
 	pSocks := flag.String("s", defaultSocksProxy(), "The SOCKS5 proxy to route requests through, i.e. 127.0.0.1:1080")
 	pSkipVerify := flag.Bool("k", false, "Disable peer verification of SSL certificates")
 	pDebug := flag.Bool("debug", defaultDebug(), "debug mode (for authentication, mainly)")
 	pAuditRef := flag.String("a", "", "Audit Reference Token if auditing is enabled for the domain")
 	pExcludeHeader := flag.Bool("x", false, "Exclude header in user-token output")
+	pX509KeyFile := flag.String("key", "", "x.509 private key file for authentication")
+	pX509CertFile := flag.String("cert", "", "x.509 certificate key file for authentication")
 	flag.Usage = func() {
 		fmt.Println(usage())
 	}
@@ -235,36 +239,6 @@ func main() {
 		return
 	}
 
-	identity := *pIdentity
-	if !strings.Contains(identity, ".") {
-		identity = "user." + identity
-	}
-	if *pSocks == "" {
-		pSocks = nil
-	}
-	if *pCACert == "" {
-		pCACert = nil
-	}
-	tr := getHttpTransport(pSocks, pCACert, *pSkipVerify)
-	var ntoken string
-	var err error
-	if *pNtokenFile == "" {
-		if *pDebug {
-			ntoken = debugAuthNToken(identity)
-		} else {
-			ntoken, err = getAuthNToken(identity, "", *pZMS, tr)
-			if err != nil {
-				log.Fatalf("Unable to get NToken: %v", err)
-			}
-		}
-	} else {
-		ntoken, err = loadNtokenFromFile(*pNtokenFile)
-		if err != nil {
-			log.Fatalf("Unable to load ntoken from file: '%s' err: %v", *pNtokenFile, err)
-		}
-	}
-	var authHeader = "Athenz-Principal-Auth"
-
 	cli := zmscli.Zms{
 		ZmsUrl:           *pZMS,
 		Identity:         *pIdentity,
@@ -279,11 +253,45 @@ func main() {
 		Debug:            *pDebug,
 		AddSelf:          *pAddSelf,
 	}
-	cli.SetClient(tr, &authHeader, &ntoken)
 
-	if len(args) > 0 {
-		switch args[0] {
-		case "get-user-token":
+	if *pX509KeyFile != "" && *pX509CertFile != "" {
+		err := cli.SetX509CertClient(*pX509KeyFile, *pX509CertFile, *pCACert, *pSocks, false, *pSkipVerify)
+		if err != nil {
+			log.Fatalf("Unable to set ZMS x.509 Client: %v\n", err)
+		}
+	} else {
+		identity := *pIdentity
+		if !strings.Contains(identity, ".") {
+			identity = "user." + identity
+		}
+		if *pSocks == "" {
+			pSocks = nil
+		}
+		if *pCACert == "" {
+			pCACert = nil
+		}
+		tr := getHttpTransport(pSocks, pCACert, *pSkipVerify)
+		var ntoken string
+		var err error
+		if *pNtokenFile == "" {
+			if *pDebug {
+				ntoken = debugAuthNToken(identity)
+			} else {
+				ntoken, err = getAuthNToken(identity, "", *pZMS, tr)
+				if err != nil {
+					log.Fatalf("Unable to get NToken: %v", err)
+				}
+			}
+		} else {
+			ntoken, err = loadNtokenFromFile(*pNtokenFile)
+			if err != nil {
+				log.Fatalf("Unable to load ntoken from file: '%s' err: %v", *pNtokenFile, err)
+			}
+		}
+		var authHeader = "Athenz-Principal-Auth"
+		cli.SetClient(tr, &authHeader, &ntoken)
+
+		if len(args) > 0 && args[0] == "get-user-token" {
 			if len(args) == 2 {
 				ntoken, err = getAuthNToken(identity, args[1], *pZMS, tr)
 				if err != nil {
@@ -295,14 +303,15 @@ func main() {
 			}
 			fmt.Println(ntoken)
 			return
-		case "repl":
-			cli.Interactive = true
-			cli.Repl()
-			return
-		default:
-			break
 		}
 	}
+
+	if len(args) > 0 && args[0] == "repl" {
+		cli.Interactive = true
+		cli.Repl()
+		return
+	}
+
 	msg, err := cli.EvalCommand(args)
 	if err != nil {
 		fmt.Println("***", err)
