@@ -19,18 +19,20 @@ import (
 
 func usage() {
 	fmt.Println("usage: zts-accesstoken -domain <domain> [-roles <roles>] [-service <service>] <credentials> -zts <zts-server-url> [-expire-time <time-in-mins>]")
-	fmt.Println("           <credentials> := -svc-key-file <private-key-file> -svc-cert-file <service-cert-file> | -ntoken-file <ntoken-file> [-hdr <auth-header-name>]")
+	fmt.Println("           <credentials> := -svc-key-file <private-key-file> -svc-cert-file <service-cert-file> [-svc-cacert-file <ca-cert-file>] | ")
+	fmt.Println("           	             -ntoken-file <ntoken-file> [-hdr <auth-header-name>]")
 	os.Exit(1)
 }
 
 func main() {
-	var domain, service, svcKeyFile, svcCertFile, roles, ntokenFile, ztsURL, hdr string
+	var domain, service, svcKeyFile, svcCertFile, svcCACertFile, roles, ntokenFile, ztsURL, hdr string
 	var expireTime int
 	var proxy bool
 	flag.StringVar(&domain, "domain", "", "name of provider domain")
 	flag.StringVar(&service, "service", "", "name of provider service")
 	flag.StringVar(&roles, "roles", "", "comma separated list of provider roles")
 	flag.StringVar(&ntokenFile, "ntoken-file", "", "service identity token file")
+	flag.StringVar(&svcCACertFile, "svc-cacert-file", "", "CA Certificates file")
 	flag.StringVar(&svcKeyFile, "svc-key-file", "", "service identity private key file")
 	flag.StringVar(&svcCertFile, "svc-cert-file", "", "service identity certificate file")
 	flag.StringVar(&ztsURL, "zts", "", "url of the ZTS Service")
@@ -39,10 +41,10 @@ func main() {
 	flag.BoolVar(&proxy, "proxy", true, "enable proxy mode for request")
 	flag.Parse()
 
-	fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, ntokenFile, hdr, proxy, expireTime)
+	fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntokenFile, hdr, proxy, expireTime)
 }
 
-func fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, ntokenFile, hdr string, proxy bool, expireTime int) {
+func fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntokenFile, hdr string, proxy bool, expireTime int) {
 	if domain == "" || ztsURL == "" {
 		usage()
 	}
@@ -57,7 +59,7 @@ func fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, n
 	var client *zts.ZTSClient
 	var err error
 	if certCredentials {
-		client, err = athenzutils.ZtsClient(ztsURL, svcKeyFile, svcCertFile, "", proxy)
+		client, err = athenzutils.ZtsClient(ztsURL, svcKeyFile, svcCertFile, svcCACertFile, proxy)
 	} else {
 		client, err = ztsNtokenClient(ztsURL, ntokenFile, hdr)
 	}
