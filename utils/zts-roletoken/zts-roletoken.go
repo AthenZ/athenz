@@ -21,20 +21,21 @@ import (
 
 func usage() {
 	fmt.Println("usage: zts-roletoken -domain <domain> [-role <role>] <credentials> -zts <zts-server-url> [-hdr <auth-header-name>] [-expire-time <time-in-mins>]")
-	fmt.Println("           <credentials> := -ntoken <ntoken> | -ntoken-file <ntoken-file> |")
-	fmt.Println("                            -svc-key-file <private-key-file> -svc-cert-file <service-cert-file>")
+	fmt.Println("           <credentials> := -svc-key-file <private-key-file> -svc-cert-file <service-cert-file> [-svc-cacert-file <ca-cert-file>] |")
+	fmt.Println("                            -ntoken <ntoken> | -ntoken-file <ntoken-file> |")
 	fmt.Println("       zts-roletoken -validate -role-token <role-token> -conf <athenz-conf-path>")
 	os.Exit(1)
 }
 
 func main() {
-	var domain, svcKeyFile, svcCertFile, role, ntoken, ntokenFile, ztsURL, hdr, roleToken, conf string
+	var domain, svcKeyFile, svcCertFile, svcCACertFile, role, ntoken, ntokenFile, ztsURL, hdr, roleToken, conf string
 	var expireTime int
 	var proxy, validate bool
 	flag.StringVar(&domain, "domain", "", "name of provider domain")
 	flag.StringVar(&role, "role", "", "name of provider role")
 	flag.StringVar(&ntoken, "ntoken", "", "service identity token")
 	flag.StringVar(&ntokenFile, "ntoken-file", "", "service identity token file")
+	flag.StringVar(&svcCACertFile, "svc-cacert-file", "", "CA Certificates file")
 	flag.StringVar(&svcKeyFile, "svc-key-file", "", "service identity private key file")
 	flag.StringVar(&svcCertFile, "svc-cert-file", "", "service identity certificate file")
 	flag.StringVar(&ztsURL, "zts", "", "url of the ZTS Service")
@@ -49,11 +50,11 @@ func main() {
 	if validate {
 		validateRoleToken(roleToken, conf)
 	} else {
-		fetchRoleToken(domain, role, ztsURL, svcKeyFile, svcCertFile, ntoken, ntokenFile, hdr, proxy, expireTime)
+		fetchRoleToken(domain, role, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntoken, ntokenFile, hdr, proxy, expireTime)
 	}
 }
 
-func fetchRoleToken(domain, role, ztsURL, svcKeyFile, svcCertFile, ntoken, ntokenFile, hdr string, proxy bool, expireTime int) {
+func fetchRoleToken(domain, role, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntoken, ntokenFile, hdr string, proxy bool, expireTime int) {
 	if domain == "" || ztsURL == "" {
 		usage()
 	}
@@ -68,7 +69,7 @@ func fetchRoleToken(domain, role, ztsURL, svcKeyFile, svcCertFile, ntoken, ntoke
 	var client *zts.ZTSClient
 	var err error
 	if certCredentials {
-		client, err = athenzutils.ZtsClient(ztsURL, svcKeyFile, svcCertFile, "", proxy)
+		client, err = athenzutils.ZtsClient(ztsURL, svcKeyFile, svcCertFile, svcCACertFile, proxy)
 	} else {
 		client, err = ztsNtokenClient(ztsURL, ntoken, ntokenFile, hdr)
 	}
