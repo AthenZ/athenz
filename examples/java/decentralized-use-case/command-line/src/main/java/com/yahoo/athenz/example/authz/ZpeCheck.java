@@ -84,7 +84,7 @@ public class ZpeCheck {
             cmd = parser.parse(options, args);
         } catch (ParseException e) {
             System.out.println(e.getMessage());
-            formatter.printHelp("zpe-example-client", options);
+            formatter.printHelp("zpe-check", options);
             System.exit(1);
         }
 
