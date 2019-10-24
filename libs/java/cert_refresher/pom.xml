@@ -29,10 +29,6 @@
   <description>Athenz SSL Cert Refresher Package</description>
   <packaging>jar</packaging>
 
-  <properties>
-    <jmockit.version>1.47</jmockit.version>
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>org.bouncycastle</groupId>
