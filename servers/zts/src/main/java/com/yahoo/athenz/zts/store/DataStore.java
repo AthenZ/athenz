@@ -250,7 +250,7 @@ public class DataStore implements DataCacheProvider {
                 final ECPoint ecPoint = ecPublicKey.getW();
                 jwk.setX(new String(encoder.encode(ecPoint.getAffineX().toByteArray())));
                 jwk.setY(new String(encoder.encode(ecPoint.getAffineY().toByteArray())));
-                jwk.setCrv(getCurveName(EC5Util.convertSpec(ecPublicKey.getParams(), false), rfc));
+                jwk.setCrv(getCurveName(EC5Util.convertSpec(ecPublicKey.getParams()), rfc));
                 break;
         }
 

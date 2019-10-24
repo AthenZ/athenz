@@ -69,23 +69,26 @@
   </ciManagement>
 
   <properties>
-    <jetty.version>9.4.20.v20190813</jetty.version>
-    <jersey.version>2.29</jersey.version>
-    <jackson.core.version>2.9.10</jackson.core.version>
-    <jackson.databind.version>2.9.10</jackson.databind.version>
-    <jackson.annotations.version>2.9.10</jackson.annotations.version>
-    <jackson.jaxrs.version>2.9.10</jackson.jaxrs.version>
+    <jetty.version>9.4.22.v20191022</jetty.version>
+    <jersey.version>2.29.1</jersey.version>
+    <jackson.core.version>2.10.0</jackson.core.version>
+    <jackson.databind.version>2.10.0</jackson.databind.version>
+    <jackson.annotations.version>2.10.0</jackson.annotations.version>
+    <jackson.jaxrs.version>2.10.0</jackson.jaxrs.version>
     <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
     <rdl.version>1.5.2</rdl.version>
-    <bouncycastle.version>1.62</bouncycastle.version>
-    <aws.version>1.11.616</aws.version>
-    <guava.version>28.0-jre</guava.version>
+    <bouncycastle.version>1.64</bouncycastle.version>
+    <aws.version>1.11.658</aws.version>
+    <guava.version>28.1-jre</guava.version>
     <logback.version>1.2.3</logback.version>
     <javax.version>3.1.0</javax.version>
     <javax.ws.version>2.1.1</javax.ws.version>
-    <mockito.version>3.0.0</mockito.version>
+    <mockito.version>3.1.0</mockito.version>
+    <jmockit.version>1.48</jmockit.version>
     <jjwt.version>0.9.1</jjwt.version>
-    <commons.daemon.version>1.2.0</commons.daemon.version>
+    <mysql.connector.version>8.0.18</mysql.connector.version>
+    <commons.daemon.version>1.2.2</commons.daemon.version>
+    <apache.httpclient.version>4.5.10</apache.httpclient.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
   </properties>
