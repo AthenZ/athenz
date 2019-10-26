@@ -867,25 +867,25 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
         
         createTopLevelDomain(null, userDomain, "The reserved domain for user authentication",
-                null, null, adminUsers, null, 0, null, null, null);
+                null, null, adminUsers, null, 0, null, 0, null, null);
         if (!ZMSConsts.USER_DOMAIN.equals(userDomain)) {
             createTopLevelDomain(null, ZMSConsts.USER_DOMAIN, "The reserved domain for user authentication",
-                    null, null, adminUsers, null, 0, null, null, null);
+                    null, null, adminUsers, null, 0, null, 0, null, null);
         }
         if (!homeDomain.equals(userDomain)) {
             createTopLevelDomain(null, homeDomain, "The reserved domain for personal user domains",
-                    null, null, adminUsers, null, 0, null, null, null);
+                    null, null, adminUsers, null, 0, null, 0, null, null);
         }
         createTopLevelDomain(null, "sys", "The reserved domain for system related information",
-                null, null, adminUsers, null, 0, null, null, null);
+                null, null, adminUsers, null, 0, null, 0, null, null);
         createSubDomain(null, "sys", "auth", "The Athenz domain", null, null, adminUsers,
-                null, 0, null, null, null, caller);
+                null, 0, null, 0, null, null, caller);
         createSubDomain(null, "sys.auth", "audit", "The Athenz audit domain", null, null, adminUsers,
-                null, 0, null, null, null, caller);
-        createSubDomain(null, "sys.auth.audit", "org", "The Athenz audit domain based on org name", null, null, adminUsers,
-                null, 0, null, null, null, caller);
-        createSubDomain(null, "sys.auth.audit", "domain", "The Athenz audit domain based on domain name", null, null, adminUsers,
-                null, 0, null, null, null, caller);
+                null, 0, null, 0, null, null, caller);
+        createSubDomain(null, "sys.auth.audit", "org", "The Athenz audit domain based on org name",
+                null, null, adminUsers, null, 0, null, 0, null, null, caller);
+        createSubDomain(null, "sys.auth.audit", "domain", "The Athenz audit domain based on domain name",
+                null, null, adminUsers, null, 0, null, 0, null, null, caller);
 
         if (privateKey != null) {
             List<PublicKeyEntry> pubKeys = new ArrayList<>();
@@ -1085,8 +1085,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         List<String> adminUsers = normalizedAdminUsers(detail.getAdminUsers());
         Domain domain = createTopLevelDomain(ctx, domainName, detail.getDescription(),
-            detail.getOrg(), detail.getAuditEnabled(), adminUsers,
-            detail.getAccount(), productId, detail.getApplicationId(), solutionTemplates, auditRef);
+                detail.getOrg(), detail.getAuditEnabled(), adminUsers, detail.getAccount(),
+                productId, detail.getApplicationId(), detail.getMemberExpiryDays(), solutionTemplates,
+                auditRef);
 
         metric.stopTiming(timerMetric, domainName, principalDomain);
         return domain;
@@ -1233,7 +1234,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         Domain domain = createSubDomain(ctx, homeDomain, getUserDomainName(detail.getName()),
                 detail.getDescription(), detail.getOrg(), detail.getAuditEnabled(), adminUsers,
-                detail.getAccount(), 0, detail.getApplicationId(), solutionTemplates, auditRef, caller);
+                detail.getAccount(), 0, detail.getApplicationId(), detail.getMemberExpiryDays(),
+                solutionTemplates, auditRef, caller);
 
         metric.stopTiming(timerMetric, name, principalDomain);
         return domain;
@@ -1320,7 +1322,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         Domain domain = createSubDomain(ctx, detail.getParent(), detail.getName(), detail.getDescription(),
                 detail.getOrg(), detail.getAuditEnabled(), adminUsers, detail.getAccount(),
-                productId, detail.getApplicationId(), solutionTemplates, auditRef, caller);
+                productId, detail.getApplicationId(), detail.getMemberExpiryDays(), solutionTemplates,
+                auditRef, caller);
 
         metric.stopTiming(timerMetric, parent, principalDomain);
         return domain;
@@ -6056,16 +6059,17 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     
     Domain createTopLevelDomain(ResourceContext ctx, String domainName, String description,
             String org, Boolean auditEnabled, List<String> adminUsers, String account,
-            int productId, String applicationId, List<String> solutionTemplates, String auditRef) {
+            int productId, String applicationId, Integer expiryDays, List<String> solutionTemplates,
+            String auditRef) {
         List<String> users = validatedAdminUsers(adminUsers);
         return dbService.makeDomain(ctx, domainName, description, org, auditEnabled, 
-                users, account, productId, applicationId, solutionTemplates, auditRef);
+                users, account, productId, applicationId, expiryDays, solutionTemplates, auditRef);
     }
     
     Domain createSubDomain(ResourceContext ctx, String parentName, String name, String description,
             String org, Boolean auditEnabled, List<String> adminUsers, String account,
-            int productId, String applicationId, List<String> solutionTemplates, String auditRef,
-            String caller) {
+            int productId, String applicationId, Integer expiryDays, List<String> solutionTemplates,
+            String auditRef, String caller) {
 
         // verify length of full sub domain name
         String fullSubDomName = parentName + "." + name;
@@ -6076,7 +6080,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         List<String> users = validatedAdminUsers(adminUsers);
         return dbService.makeDomain(ctx, fullSubDomName, description, org, auditEnabled,
-                users, account, productId, applicationId, solutionTemplates, auditRef);
+                users, account, productId, applicationId, expiryDays, solutionTemplates, auditRef);
     }
 
     int countDots(String str) {
@@ -6728,9 +6732,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     boolean isAllowedRoleSystemMetaDelete(Principal principal, final String reqDomain,
-                                          final String attribute) {
+            final String attribute) {
 
         // the authorization policy resides in official sys.auth domain
+
         AthenzDomain domain = getAthenzDomain(SYS_AUTH, true);
 
         // evaluate our domain's roles and policies to see if access
@@ -6745,7 +6750,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public void putRoleSystemMeta(ResourceContext ctx, String domainName, String roleName, String attribute, String auditRef, RoleSystemMeta meta) {
+    public void putRoleSystemMeta(ResourceContext ctx, String domainName, String roleName, String attribute,
+            String auditRef, RoleSystemMeta meta) {
 
         final String caller = "putrolesystemmeta";
         metric.increment(ZMSConsts.HTTP_PUT);

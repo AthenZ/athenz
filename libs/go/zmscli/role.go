@@ -310,14 +310,56 @@ func (cli Zms) SetRoleAuditEnabled(dn string, rn string, auditEnabled bool) (*st
 }
 
 func (cli Zms) SetRoleSelfServe(dn string, rn string, selfServe bool) (*string, error) {
-	meta := zms.RoleMeta{
-		SelfServe: &selfServe,
+	role, err := cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), nil, nil, nil)
+	if err != nil {
+		return nil, err
 	}
-	err := cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
+	meta := zms.RoleMeta{
+		MemberExpiryDays: role.MemberExpiryDays,
+		TokenExpiryMins:  role.TokenExpiryMins,
+		SelfServe:        &selfServe,
+	}
+	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
 	if err != nil {
 		return nil, err
 	}
 	s := "[domain " + dn + " role " + rn + " self-serve attribute successfully updated]\n"
+	return &s, nil
+}
+
+func (cli Zms) SetRoleMemberExpiryDays(dn string, rn string, days int32) (*string, error) {
+	role, err := cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), nil, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	meta := zms.RoleMeta{
+		TokenExpiryMins:  role.TokenExpiryMins,
+		SelfServe:        role.SelfServe,
+		MemberExpiryDays: &days,
+	}
+	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " role " + rn + " member-expiry-days attribute successfully updated]\n"
+	return &s, nil
+}
+
+func (cli Zms) SetRoleTokenExpiryMins(dn string, rn string, mins int32) (*string, error) {
+	role, err := cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), nil, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	meta := zms.RoleMeta{
+		SelfServe:        role.SelfServe,
+		MemberExpiryDays: role.MemberExpiryDays,
+		TokenExpiryMins:  &mins,
+	}
+	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " role " + rn + " token-expiry-mins attribute successfully updated]\n"
 	return &s, nil
 }
 
@@ -333,7 +375,7 @@ func (cli Zms) PutTempMembershipDecision(dn string, rn string, mbr string, expir
 		return nil, err
 	}
 	s := "[domain " + dn + " role " + rn + " member " + mbr + " successfully"
-	if approval ==true {
+	if approval == true {
 		s = s + " approved temporarily."
 	} else {
 		s = s + " rejected."
@@ -353,7 +395,7 @@ func (cli Zms) PutMembershipDecision(dn string, rn string, mbr string, approval 
 		return nil, err
 	}
 	s := "[domain " + dn + " role " + rn + " member " + mbr + " successfully"
-	if approval ==true {
+	if approval == true {
 		s = s + " approved."
 	} else {
 		s = s + " rejected."

@@ -204,7 +204,7 @@ resource Role PUT "/domain/{domainName}/role/{roleName}/meta" {
     EntityName roleName; //name of the role
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     RoleMeta detail; //RoleMeta object with updated attribute values
-    authorize ("update", "{domainName}:");
+    authorize ("update", "{domainName}:role.{roleName}");
     expected NO_CONTENT;
     exceptions {
         ResourceError NOT_FOUND;

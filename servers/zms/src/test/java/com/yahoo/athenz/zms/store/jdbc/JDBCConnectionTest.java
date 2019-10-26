@@ -556,7 +556,8 @@ public class JDBCConnectionTest {
                 .setAccount("123456789")
                 .setYpmId(1011)
                 .setApplicationId("application_id")
-                .setCertDnsDomain("athenz.cloud");
+                .setCertDnsDomain("athenz.cloud")
+                .setMemberExpiryDays(45);
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         boolean requestSuccess = jdbcConn.updateDomain(domain);
@@ -571,7 +572,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setInt(7, 1011);
         Mockito.verify(mockPrepStmt, times(1)).setString(8, "application_id");
         Mockito.verify(mockPrepStmt, times(1)).setString(9, "athenz.cloud");
-        Mockito.verify(mockPrepStmt, times(1)).setString(10, "my-domain");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(10, 45);
+        Mockito.verify(mockPrepStmt, times(1)).setString(11, "my-domain");
         jdbcConn.close();
     }
     
@@ -597,7 +599,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setInt(7, 0);
         Mockito.verify(mockPrepStmt, times(1)).setString(8, "");
         Mockito.verify(mockPrepStmt, times(1)).setString(9, "");
-        Mockito.verify(mockPrepStmt, times(1)).setString(10, "my-domain");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(10, 0);
+        Mockito.verify(mockPrepStmt, times(1)).setString(11, "my-domain");
         jdbcConn.close();
     }
     
@@ -787,6 +790,7 @@ public class JDBCConnectionTest {
         assertEquals("my-domain:role.role1", role.getName());
         assertTrue(role.getAuditEnabled());
         assertTrue(role.getSelfServe());
+        assertNull(role.getMemberExpiryDays());
         
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "role1");
@@ -794,7 +798,31 @@ public class JDBCConnectionTest {
     }
 
     @Test
-    public void testGetRoleWithoutSelfserve() throws Exception {
+    public void testGetRoleWithExpiry() throws Exception {
+
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.doReturn("role1").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_NAME);
+        Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_TRUST);
+        Mockito.doReturn(true).when(mockResultSet).getBoolean(ZMSConsts.DB_COLUMN_AUDIT_ENABLED);
+        Mockito.doReturn(true).when(mockResultSet).getBoolean(ZMSConsts.DB_COLUMN_SELF_SERVE);
+        Mockito.doReturn(30).when(mockResultSet).getInt(ZMSConsts.DB_COLUMN_MEMBER_EXPIRY_DAYS);
+        Mockito.doReturn(new java.sql.Timestamp(1454358916)).when(mockResultSet).getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED);
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Role role = jdbcConn.getRole("my-domain", "role1");
+        assertNotNull(role);
+        assertEquals("my-domain:role.role1", role.getName());
+        assertTrue(role.getAuditEnabled());
+        assertTrue(role.getSelfServe());
+        assertEquals(role.getMemberExpiryDays(), Integer.valueOf(30));
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "role1");
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetRoleWithoutSelfServe() throws Exception {
 
         Mockito.when(mockResultSet.next()).thenReturn(true);
         Mockito.doReturn("role1").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_NAME);
@@ -862,7 +890,8 @@ public class JDBCConnectionTest {
         
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
-        Role role = new Role().setName("my-domain:role.role1").setAuditEnabled(true).setSelfServe(true);
+        Role role = new Role().setName("my-domain:role.role1").setAuditEnabled(true)
+                .setSelfServe(true);
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         Mockito.when(mockResultSet.next()).thenReturn(true);
@@ -877,6 +906,31 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(3, "");
         Mockito.verify(mockPrepStmt, times(1)).setBoolean(4, true);
         Mockito.verify(mockPrepStmt, times(1)).setBoolean(5, true);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(6, 0);
+        jdbcConn.close();
+    }
+
+    public void testInsertRoleWithExpiry() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Role role = new Role().setName("my-domain:role.role1").setAuditEnabled(true)
+                .setSelfServe(true).setMemberExpiryDays(45);
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.doReturn(5).when(mockResultSet).getInt(1); // return domain id
+
+        boolean requestSuccess = jdbcConn.insertRole("my-domain", role);
+        assertTrue(requestSuccess);
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "role1");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(2, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "");
+        Mockito.verify(mockPrepStmt, times(1)).setBoolean(4, true);
+        Mockito.verify(mockPrepStmt, times(1)).setBoolean(5, true);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(6, 45);
         jdbcConn.close();
     }
 
@@ -959,7 +1013,8 @@ public class JDBCConnectionTest {
         
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
-        Role role = new Role().setName("my-domain:role.role1").setAuditEnabled(true).setSelfServe(true);
+        Role role = new Role().setName("my-domain:role.role1").setAuditEnabled(true)
+                .setSelfServe(true).setMemberExpiryDays(30);
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         Mockito.when(mockResultSet.next()).thenReturn(true);
@@ -978,7 +1033,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "");
         Mockito.verify(mockPrepStmt, times(1)).setBoolean(2, true);
         Mockito.verify(mockPrepStmt, times(1)).setBoolean(3, true);
-        Mockito.verify(mockPrepStmt, times(1)).setInt(4, 4);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(4, 30);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(5, 4);
         jdbcConn.close();
     }
     
@@ -1007,7 +1063,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "trust_domain");
         Mockito.verify(mockPrepStmt, times(1)).setBoolean(2, false);
         Mockito.verify(mockPrepStmt, times(1)).setBoolean(3, false);
-        Mockito.verify(mockPrepStmt, times(1)).setInt(4, 7);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(4, 0);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(5, 7);
         jdbcConn.close();
     }
     
@@ -7115,8 +7172,12 @@ public class JDBCConnectionTest {
     @Test
     public void testNullIfDefaultValue() throws Exception {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
         assertNull(jdbcConn.nullIfDefaultValue(false, false));
         assertTrue(jdbcConn.nullIfDefaultValue(true, false));
+
+        assertNull(jdbcConn.nullIfDefaultValue(0, 0));
+        assertEquals(jdbcConn.nullIfDefaultValue(10, 0), Integer.valueOf(10));
         jdbcConn.close();
     }
 

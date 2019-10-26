@@ -152,33 +152,28 @@ public class NotificationManagerTest {
     @Test
     public void testNotificationManagerFail() {
         System.setProperty(ZMSConsts.ZMS_PROP_NOTIFICATION_SERVICE_FACTORY_CLASS, "aa");
-        try {
-            NotificationManager notificationManager = new NotificationManager(dbService, ZMSConsts.USER_DOMAIN_PREFIX);
-        } catch (Exception ex) {
-            assertTrue(ex.getMessage().contains("Invalid notification service factory"));
-        }
+
+        NotificationManager notificationManager = new NotificationManager(dbService, ZMSConsts.USER_DOMAIN_PREFIX);
+        assertNotNull(notificationManager);
+        assertFalse(notificationManager.isNotificationFeatureAvailable());
+        notificationManager.shutdown();
+
+        System.clearProperty(ZMSConsts.ZMS_PROP_NOTIFICATION_SERVICE_FACTORY_CLASS);
     }
 
     @Test
     public void testNotificationManagerNullFactoryClass() {
         System.clearProperty(ZMSConsts.ZMS_PROP_NOTIFICATION_SERVICE_FACTORY_CLASS);
-        try {
-            NotificationManager notificationManager = new NotificationManager(dbService, ZMSConsts.USER_DOMAIN_PREFIX);
-        } catch (Exception ex) {
-            fail();
-        }
+        NotificationManager notificationManager = new NotificationManager(dbService, ZMSConsts.USER_DOMAIN_PREFIX);
+        assertNotNull(notificationManager);
+        notificationManager.shutdown();
     }
 
     @Test
     public void testNotificationManagerServiceNull() {
-        try {
-            NotificationServiceFactory testfact = () -> null;
-            NotificationManager notificationManager = new NotificationManager(dbService, testfact, ZMSConsts.USER_DOMAIN_PREFIX);
-            notificationManager.shutdown();
-            assertTrue(true);
-        } catch (Exception ex) {
-            fail();
-        }
+         NotificationServiceFactory testfact = () -> null;
+         NotificationManager notificationManager = new NotificationManager(dbService, testfact, ZMSConsts.USER_DOMAIN_PREFIX);
+         notificationManager.shutdown();
     }
 
     @Test

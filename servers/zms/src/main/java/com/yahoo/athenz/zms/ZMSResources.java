@@ -880,7 +880,7 @@ public class ZMSResources {
     public void putRoleMeta(@PathParam("domainName") String domainName, @PathParam("roleName") String roleName, @HeaderParam("Y-Audit-Ref") String auditRef, RoleMeta detail) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
-            context.authorize("update", "" + domainName + ":", null);
+            context.authorize("update", "" + domainName + ":role." + roleName + "", null);
             this.delegate.putRoleMeta(context, domainName, roleName, auditRef, detail);
         } catch (ResourceException e) {
             int code = e.getCode();

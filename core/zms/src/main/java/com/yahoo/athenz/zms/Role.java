@@ -11,6 +11,15 @@ import com.yahoo.rdl.*;
 // Role - The representation for a Role with set of members.
 //
 public class Role {
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Boolean selfServe;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer memberExpiryDays;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer tokenExpiryMins;
     public String name;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -30,10 +39,28 @@ public class Role {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Boolean auditEnabled;
-    @RdlOptional
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    public Boolean selfServe;
 
+    public Role setSelfServe(Boolean selfServe) {
+        this.selfServe = selfServe;
+        return this;
+    }
+    public Boolean getSelfServe() {
+        return selfServe;
+    }
+    public Role setMemberExpiryDays(Integer memberExpiryDays) {
+        this.memberExpiryDays = memberExpiryDays;
+        return this;
+    }
+    public Integer getMemberExpiryDays() {
+        return memberExpiryDays;
+    }
+    public Role setTokenExpiryMins(Integer tokenExpiryMins) {
+        this.tokenExpiryMins = tokenExpiryMins;
+        return this;
+    }
+    public Integer getTokenExpiryMins() {
+        return tokenExpiryMins;
+    }
     public Role setName(String name) {
         this.name = name;
         return this;
@@ -83,13 +110,6 @@ public class Role {
     public Boolean getAuditEnabled() {
         return auditEnabled;
     }
-    public Role setSelfServe(Boolean selfServe) {
-        this.selfServe = selfServe;
-        return this;
-    }
-    public Boolean getSelfServe() {
-        return selfServe;
-    }
 
     @Override
     public boolean equals(Object another) {
@@ -98,6 +118,15 @@ public class Role {
                 return false;
             }
             Role a = (Role) another;
+            if (selfServe == null ? a.selfServe != null : !selfServe.equals(a.selfServe)) {
+                return false;
+            }
+            if (memberExpiryDays == null ? a.memberExpiryDays != null : !memberExpiryDays.equals(a.memberExpiryDays)) {
+                return false;
+            }
+            if (tokenExpiryMins == null ? a.tokenExpiryMins != null : !tokenExpiryMins.equals(a.tokenExpiryMins)) {
+                return false;
+            }
             if (name == null ? a.name != null : !name.equals(a.name)) {
                 return false;
             }
@@ -117,9 +146,6 @@ public class Role {
                 return false;
             }
             if (auditEnabled == null ? a.auditEnabled != null : !auditEnabled.equals(a.auditEnabled)) {
-                return false;
-            }
-            if (selfServe == null ? a.selfServe != null : !selfServe.equals(a.selfServe)) {
                 return false;
             }
         }

@@ -11,7 +11,18 @@ import com.yahoo.rdl.*;
 // DomainData - A domain object that includes its roles, policies and services.
 //
 public class DomainData {
-    public String name;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String description;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String org;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Boolean enabled;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Boolean auditEnabled;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String account;
@@ -20,28 +31,50 @@ public class DomainData {
     public Integer ypmId;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    public Boolean enabled;
-    public List<Role> roles;
-    public SignedPolicies policies;
-    public List<ServiceIdentity> services;
-    public List<Entity> entities;
-    public Timestamp modified;
-    @RdlOptional
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String applicationId;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String certDnsDomain;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    public Boolean auditEnabled;
+    public Integer memberExpiryDays;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer tokenExpiryMins;
+    public String name;
+    public List<Role> roles;
+    public SignedPolicies policies;
+    public List<ServiceIdentity> services;
+    public List<Entity> entities;
+    public Timestamp modified;
 
-    public DomainData setName(String name) {
-        this.name = name;
+    public DomainData setDescription(String description) {
+        this.description = description;
         return this;
     }
-    public String getName() {
-        return name;
+    public String getDescription() {
+        return description;
+    }
+    public DomainData setOrg(String org) {
+        this.org = org;
+        return this;
+    }
+    public String getOrg() {
+        return org;
+    }
+    public DomainData setEnabled(Boolean enabled) {
+        this.enabled = enabled;
+        return this;
+    }
+    public Boolean getEnabled() {
+        return enabled;
+    }
+    public DomainData setAuditEnabled(Boolean auditEnabled) {
+        this.auditEnabled = auditEnabled;
+        return this;
+    }
+    public Boolean getAuditEnabled() {
+        return auditEnabled;
     }
     public DomainData setAccount(String account) {
         this.account = account;
@@ -57,12 +90,40 @@ public class DomainData {
     public Integer getYpmId() {
         return ypmId;
     }
-    public DomainData setEnabled(Boolean enabled) {
-        this.enabled = enabled;
+    public DomainData setApplicationId(String applicationId) {
+        this.applicationId = applicationId;
         return this;
     }
-    public Boolean getEnabled() {
-        return enabled;
+    public String getApplicationId() {
+        return applicationId;
+    }
+    public DomainData setCertDnsDomain(String certDnsDomain) {
+        this.certDnsDomain = certDnsDomain;
+        return this;
+    }
+    public String getCertDnsDomain() {
+        return certDnsDomain;
+    }
+    public DomainData setMemberExpiryDays(Integer memberExpiryDays) {
+        this.memberExpiryDays = memberExpiryDays;
+        return this;
+    }
+    public Integer getMemberExpiryDays() {
+        return memberExpiryDays;
+    }
+    public DomainData setTokenExpiryMins(Integer tokenExpiryMins) {
+        this.tokenExpiryMins = tokenExpiryMins;
+        return this;
+    }
+    public Integer getTokenExpiryMins() {
+        return tokenExpiryMins;
+    }
+    public DomainData setName(String name) {
+        this.name = name;
+        return this;
+    }
+    public String getName() {
+        return name;
     }
     public DomainData setRoles(List<Role> roles) {
         this.roles = roles;
@@ -99,27 +160,6 @@ public class DomainData {
     public Timestamp getModified() {
         return modified;
     }
-    public DomainData setApplicationId(String applicationId) {
-        this.applicationId = applicationId;
-        return this;
-    }
-    public String getApplicationId() {
-        return applicationId;
-    }
-    public DomainData setCertDnsDomain(String certDnsDomain) {
-        this.certDnsDomain = certDnsDomain;
-        return this;
-    }
-    public String getCertDnsDomain() {
-        return certDnsDomain;
-    }
-    public DomainData setAuditEnabled(Boolean auditEnabled) {
-        this.auditEnabled = auditEnabled;
-        return this;
-    }
-    public Boolean getAuditEnabled() {
-        return auditEnabled;
-    }
 
     @Override
     public boolean equals(Object another) {
@@ -128,7 +168,16 @@ public class DomainData {
                 return false;
             }
             DomainData a = (DomainData) another;
-            if (name == null ? a.name != null : !name.equals(a.name)) {
+            if (description == null ? a.description != null : !description.equals(a.description)) {
+                return false;
+            }
+            if (org == null ? a.org != null : !org.equals(a.org)) {
+                return false;
+            }
+            if (enabled == null ? a.enabled != null : !enabled.equals(a.enabled)) {
+                return false;
+            }
+            if (auditEnabled == null ? a.auditEnabled != null : !auditEnabled.equals(a.auditEnabled)) {
                 return false;
             }
             if (account == null ? a.account != null : !account.equals(a.account)) {
@@ -137,7 +186,19 @@ public class DomainData {
             if (ypmId == null ? a.ypmId != null : !ypmId.equals(a.ypmId)) {
                 return false;
             }
-            if (enabled == null ? a.enabled != null : !enabled.equals(a.enabled)) {
+            if (applicationId == null ? a.applicationId != null : !applicationId.equals(a.applicationId)) {
+                return false;
+            }
+            if (certDnsDomain == null ? a.certDnsDomain != null : !certDnsDomain.equals(a.certDnsDomain)) {
+                return false;
+            }
+            if (memberExpiryDays == null ? a.memberExpiryDays != null : !memberExpiryDays.equals(a.memberExpiryDays)) {
+                return false;
+            }
+            if (tokenExpiryMins == null ? a.tokenExpiryMins != null : !tokenExpiryMins.equals(a.tokenExpiryMins)) {
+                return false;
+            }
+            if (name == null ? a.name != null : !name.equals(a.name)) {
                 return false;
             }
             if (roles == null ? a.roles != null : !roles.equals(a.roles)) {
@@ -153,15 +214,6 @@ public class DomainData {
                 return false;
             }
             if (modified == null ? a.modified != null : !modified.equals(a.modified)) {
-                return false;
-            }
-            if (applicationId == null ? a.applicationId != null : !applicationId.equals(a.applicationId)) {
-                return false;
-            }
-            if (certDnsDomain == null ? a.certDnsDomain != null : !certDnsDomain.equals(a.certDnsDomain)) {
-                return false;
-            }
-            if (auditEnabled == null ? a.auditEnabled != null : !auditEnabled.equals(a.auditEnabled)) {
                 return false;
             }
         }

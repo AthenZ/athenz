@@ -3620,11 +3620,11 @@ public class DBServiceTest {
     @Test
     public void testExecutePutRoleSystemMeta() {
 
-
         List<String> admins = new ArrayList<>();
         admins.add(adminUser);
 
-        zms.dbService.makeDomain(mockDomRsrcCtx, "MetaDom1", "test desc", "testOrg", false, admins, "", 1234, "", null, auditRef);
+        zms.dbService.makeDomain(mockDomRsrcCtx, "MetaDom1", "test desc", "testOrg", false, admins,
+                "", 1234, "", 0, null, auditRef);
 
         Role role = createRoleObject("MetaDom1", "MetaRole1", null, "user.john", "user.jane");
         zms.dbService.executePutRole(mockDomRsrcCtx, "MetaDom1", "MetaRole1", role, "test", "putrole");
@@ -3649,7 +3649,8 @@ public class DBServiceTest {
                 .setCertDnsDomain("athenz.cloud");
 
 
-        zms.dbService.makeDomain(mockDomRsrcCtx, "MetaDom2", "test desc", "testOrg", true, admins, "", 1234, "", null, auditRef);
+        zms.dbService.makeDomain(mockDomRsrcCtx, "MetaDom2", "test desc", "testOrg", true, admins,
+                "", 1234, "", 0, null, auditRef);
         DomainMeta meta2 = new DomainMeta()
                 .setAccount("acct")
                 .setYpmId(1234)
@@ -3666,19 +3667,16 @@ public class DBServiceTest {
         assertTrue(resRole2.getAuditEnabled());
 
         zms.dbService.executeDeleteDomain(mockDomRsrcCtx, "MetaDom2", auditRef, "deletedomain");
-
-
-
     }
 
     @Test
     public void testExecutePutRoleSystemMetaRetry() {
 
-
         List<String> admins = new ArrayList<>();
         admins.add(adminUser);
 
-        zms.dbService.makeDomain(mockDomRsrcCtx, "MetaDom1", "test desc", "testOrg", false, admins, "", 1234, "", null, auditRef);
+        zms.dbService.makeDomain(mockDomRsrcCtx, "MetaDom1", "test desc", "testOrg", false, admins,
+                "", 1234, "", 0, null, auditRef);
 
         Role role = createRoleObject("MetaDom1", "MetaRole1", null, "user.john", "user.jane");
         zms.dbService.executePutRole(mockDomRsrcCtx, "MetaDom1", "MetaRole1", role, "test", "putrole");
@@ -3697,7 +3695,8 @@ public class DBServiceTest {
         Mockito.when(mockFileConn.updateRole(anyString(), any(Role.class))).thenThrow(rex);
 
         try {
-            zms.dbService.executePutRoleSystemMeta(mockDomRsrcCtx, "MetaDom1", "MetaRole1", rsm,"auditenabled", true, auditRef, "putrolesystemmeta");
+            zms.dbService.executePutRoleSystemMeta(mockDomRsrcCtx, "MetaDom1", "MetaRole1", rsm,
+                    "auditenabled", true, auditRef, "putrolesystemmeta");
             fail();
         }catch (ResourceException r) {
             assertEquals(r.getCode(), 409);
@@ -3707,7 +3706,6 @@ public class DBServiceTest {
         zms.dbService.defaultRetryCount = 120;
 
         zms.dbService.executeDeleteDomain(mockDomRsrcCtx, "MetaDom1", auditRef, "deletedomain");
-
     }
 
     @Test
@@ -3761,7 +3759,7 @@ public class DBServiceTest {
         StringBuilder auditDetails = new StringBuilder();
         Role role = new Role().setName("dom1:role.role1").setSelfServe(true);
         zms.dbService.auditLogRoleMeta(auditDetails, role, "role1");
-        assertEquals("{\"name\": \"role1\", \"selfserve\": \"true\"}", auditDetails.toString());
+        assertEquals("{\"name\": \"role1\", \"selfserve\": \"true\", \"memberExpiryDays\": \"null\"}", auditDetails.toString());
     }
 
     @Test
@@ -3770,7 +3768,8 @@ public class DBServiceTest {
         List<String> admins = new ArrayList<>();
         admins.add(adminUser);
 
-        zms.dbService.makeDomain(mockDomRsrcCtx, "MetaDom1", "test desc", "testOrg", false, admins, "", 1234, "", null, auditRef);
+        zms.dbService.makeDomain(mockDomRsrcCtx, "MetaDom1", "test desc", "testOrg", false, admins,
+                "", 1234, "", 0, null, auditRef);
 
         Role role = createRoleObject("MetaDom1", "MetaRole1", null, "user.john", "user.jane");
         zms.dbService.executePutRole(mockDomRsrcCtx, "MetaDom1", "MetaRole1", role, "test", "putrole");
@@ -3784,7 +3783,6 @@ public class DBServiceTest {
         Role resRole1 = zms.dbService.getRole("MetaDom1", "MetaRole1", false, true, false);
         assertTrue(resRole1.getSelfServe());
         zms.dbService.executeDeleteDomain(mockDomRsrcCtx, "MetaDom1", auditRef, "deletedomain");
-
     }
 
     @Test
@@ -3793,7 +3791,8 @@ public class DBServiceTest {
         List<String> admins = new ArrayList<>();
         admins.add(adminUser);
 
-        zms.dbService.makeDomain(mockDomRsrcCtx, "MetaDom1", "test desc", "testOrg", false, admins, "", 1234, "", null, auditRef);
+        zms.dbService.makeDomain(mockDomRsrcCtx, "MetaDom1", "test desc", "testOrg", false, admins,
+                "", 1234, "", 0, null, auditRef);
 
         Role role = createRoleObject("MetaDom1", "MetaRole1", null, "user.john", "user.jane");
         zms.dbService.executePutRole(mockDomRsrcCtx, "MetaDom1", "MetaRole1", role, "test", "putrole");
@@ -3826,7 +3825,8 @@ public class DBServiceTest {
 
         List<String> admins = new ArrayList<>();
         admins.add(adminUser);
-        zms.dbService.makeDomain(mockDomRsrcCtx, "MetaDom1", "test desc", "testOrg", false, admins, "", 1234, "", null, auditRef);
+        zms.dbService.makeDomain(mockDomRsrcCtx, "MetaDom1", "test desc", "testOrg", false, admins,
+                "", 1234, "", 0, null, auditRef);
 
         RoleMeta rm = new RoleMeta();
         rm.setSelfServe(true);
@@ -4261,7 +4261,7 @@ public class DBServiceTest {
         List<String> admins = new ArrayList<>();
         admins.add(adminUser);
         zms.dbService.makeDomain(mockDomRsrcCtx, "dom2", "test dom2", "testorg", true,
-                admins, "acct", 1234, "", null, auditRef);
+                admins, "acct", 1234, "", 0, null, auditRef);
 
         DomainMeta meta2 = new DomainMeta()
                 .setAccount("acct")
