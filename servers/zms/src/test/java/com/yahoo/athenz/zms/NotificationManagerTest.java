@@ -48,12 +48,14 @@ public class NotificationManagerTest {
     @BeforeMethod
     public void setUpMethod() {
         System.setProperty(ZMSConsts.ZMS_PROP_NOTIFICATION_SERVICE_FACTORY_CLASS, "com.yahoo.athenz.zms.notification.MockNotificationServiceFactory");
+        Mockito.when(dbService.getPendingMembershipApproverRoles()).thenReturn(null);
     }
 
     @AfterMethod(alwaysRun=true)
     public void clearMethod() {
         System.clearProperty(ZMSConsts.ZMS_PROP_NOTIFICATION_SERVICE_FACTORY_CLASS);
     }
+
     @Test
     public void testSendNotification() {
         DBService dbsvc = Mockito.mock(DBService.class);
@@ -87,6 +89,8 @@ public class NotificationManagerTest {
 
     @Test
     public void testCreateNotification() {
+        System.clearProperty(ZMSConsts.ZMS_PROP_NOTIFICATION_SERVICE_FACTORY_CLASS);
+
         Mockito.when(dbService.getAthenzDomain("testdom", false)).thenReturn(mockAthenzDomain);
         List<Role> roles = new ArrayList<>();
         List<RoleMember> members = new ArrayList<>();
