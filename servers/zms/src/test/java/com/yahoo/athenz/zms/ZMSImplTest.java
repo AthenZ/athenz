@@ -1901,6 +1901,31 @@ public class ZMSImplTest {
                 true, true, "12345", getRandomProductId());
         zms.putDomainMeta(mockDomRsrcCtx, "MetaDomProductid.metaSubDom", auditRef, meta);
 
+        // set the expiry days to 30
+
+        meta.setMemberExpiryDays(30);
+        zms.putDomainMeta(mockDomRsrcCtx, "MetaDomProductid.metaSubDom", auditRef, meta);
+        Domain domain = zms.getDomain(mockDomRsrcCtx, "MetaDomProductid.metaSubDom");
+        assertEquals(domain.getMemberExpiryDays(), Integer.valueOf(30));
+
+        // if value is null we're not going to change it
+
+        meta.setMemberExpiryDays(null);
+        meta.setDescription("test1");
+        zms.putDomainMeta(mockDomRsrcCtx, "MetaDomProductid.metaSubDom", auditRef, meta);
+        domain = zms.getDomain(mockDomRsrcCtx, "MetaDomProductid.metaSubDom");
+        assertEquals(domain.getMemberExpiryDays(), Integer.valueOf(30));
+        assertEquals(domain.getDescription(), "test1");
+
+        // setting is to 0
+
+        meta.setMemberExpiryDays(0);
+        meta.setDescription("test2");
+        zms.putDomainMeta(mockDomRsrcCtx, "MetaDomProductid.metaSubDom", auditRef, meta);
+        domain = zms.getDomain(mockDomRsrcCtx, "MetaDomProductid.metaSubDom");
+        assertEquals(domain.getMemberExpiryDays(), Integer.valueOf(0));
+        assertEquals(domain.getDescription(), "test2");
+
         zms.deleteSubDomain(mockDomRsrcCtx, "MetaDomProductid", "metaSubDom", auditRef);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "MetaDomProductid", auditRef);
     }
@@ -1990,7 +2015,40 @@ public class ZMSImplTest {
         
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "GetRoleDom1", auditRef);
     }
-    
+
+    @Test
+    public void testGetRoleWithAttributes() {
+
+        TopLevelDomain dom1 = createTopLevelDomainObject("GetRoleDom1",
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Role role1 = createRoleObject("GetRoleDom1", "Role1", null,
+                "user.joe", "user.jane");
+        role1.setMemberExpiryDays(30);
+        role1.setSelfServe(true);
+        zms.putRole(mockDomRsrcCtx, "GetRoleDom1", "Role1", auditRef, role1);
+
+        Role role = zms.getRole(mockDomRsrcCtx, "GetRoleDom1", "Role1", false, false, false);
+        assertNotNull(role);
+
+        assertEquals(role.getName(), "GetRoleDom1:role.Role1".toLowerCase());
+        assertNull(role.getTrust());
+        List<RoleMember> members = role.getRoleMembers();
+        assertNotNull(members);
+        assertEquals(members.size(), 2);
+
+        List<String> checkList = new ArrayList<>();
+        checkList.add("user.joe");
+        checkList.add("user.jane");
+        checkRoleMember(checkList, members);
+
+        assertEquals(role.getMemberExpiryDays(), Integer.valueOf(30));
+        assertTrue(role.getSelfServe());
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "GetRoleDom1", auditRef);
+    }
+
     @Test
     public void testGetRoleThrowException() {
         String domainName = "MbrGetRoleDom1";
@@ -2152,12 +2210,14 @@ public class ZMSImplTest {
 
         Role role1 = new Role();
         role1.setName("role1");
+        role1.setMemberExpiryDays(30);
         
         zms.putRole(mockDomRsrcCtx, "CreateRoleLocalNameOnly", "Role1", auditRef, role1);
 
         Role role3 = zms.getRole(mockDomRsrcCtx, "CreateRoleLocalNameOnly", "Role1", false, false, false);
         assertNotNull(role3);
         assertEquals(role3.getName(), "CreateRoleLocalNameOnly:role.Role1".toLowerCase());
+        assertEquals(role3.getMemberExpiryDays(), Integer.valueOf(30));
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "CreateRoleLocalNameOnly", auditRef);
     }
@@ -8605,7 +8665,7 @@ public class ZMSImplTest {
         List<String> adminUsers = new ArrayList<>();
         adminUsers.add("user.user2");
         zms.dbService.makeDomain(mockDomRsrcCtx, domainName, "Test Domain", "org",
-                true, adminUsers, null, 0, null, null, auditRef);
+                true, adminUsers, null, 0, null, 0, null, auditRef);
 
         Policy policy = createPolicyObject(domainName, "trust", "coretechtrust:role.role1",
                 false, "ASSUME_ROLE", "weather:role.role1", AssertionEffect.ALLOW);
@@ -8634,7 +8694,7 @@ public class ZMSImplTest {
         List<String> adminUsers = new ArrayList<>();
         adminUsers.add("user.user");
         zms.dbService.makeDomain(mockDomRsrcCtx, domainName, "Test Domain", "org",
-                true, adminUsers, null, 0, null, null, auditRef);
+                true, adminUsers, null, 0, null, 0, null, auditRef);
         
         Role role1 = createRoleObject(domainName,  "role1", null, "user.user", null);
         zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role1",
@@ -8663,7 +8723,7 @@ public class ZMSImplTest {
         List<String> adminUsers = new ArrayList<>();
         adminUsers.add("user.user");
         zms.dbService.makeDomain(mockDomRsrcCtx, domainName, "Test Domain", "org",
-                true, adminUsers, null, 0, null, null, auditRef);
+                true, adminUsers, null, 0, null, 0, null, auditRef);
         
         zms.dbService.executeDeleteRole(mockDomRsrcCtx, domainName, "admin", auditRef, "unittest");
         
@@ -8688,7 +8748,7 @@ public class ZMSImplTest {
         List<String> adminUsers = new ArrayList<>();
         adminUsers.add("user.user");
         zms.dbService.makeDomain(mockDomRsrcCtx, domainName, "Test Domain", "org",
-                true, adminUsers, null, 0, null, null, auditRef);
+                true, adminUsers, null, 0, null, 0, null, auditRef);
         
         Role role1 = createRoleObject(domainName,  "role1", null, "user.user", null);
         zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role1",
@@ -8722,7 +8782,7 @@ public class ZMSImplTest {
         List<String> adminUsers = new ArrayList<>();
         adminUsers.add("user.user");
         zms.dbService.makeDomain(mockDomRsrcCtx, domainName, "Test Domain", "org",
-                true, adminUsers, null, 0, null, null, auditRef);
+                true, adminUsers, null, 0, null, 0, null, auditRef);
         
         Role role1 = createRoleObject(domainName,  "role1", null, "user.user", null);
         zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role1",
@@ -8750,7 +8810,7 @@ public class ZMSImplTest {
         List<String> adminUsers = new ArrayList<>();
         adminUsers.add("user.user");
         zms.dbService.makeDomain(mockDomRsrcCtx, domainName, "Test Domain", "org",
-                true, adminUsers, null, 0, null, null, auditRef);
+                true, adminUsers, null, 0, null, 0, null, auditRef);
         
         Role role1 = createRoleObject(domainName,  "role1", null, "user.user", null);
         zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role1",
@@ -8780,7 +8840,7 @@ public class ZMSImplTest {
         List<String> adminUsers = new ArrayList<>();
         adminUsers.add("user.user");
         zms.dbService.makeDomain(mockDomRsrcCtx, domainName, "Test Domain", "org",
-                true, adminUsers, null, 0, null, null, auditRef);
+                true, adminUsers, null, 0, null, 0, null, auditRef);
         
         Role role1 = createRoleObject(domainName,  "role1", null, "user.user", null);
         zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role1",
@@ -8814,7 +8874,7 @@ public class ZMSImplTest {
         List<String> adminUsers = new ArrayList<>();
         adminUsers.add("user.user");
         zms.dbService.makeDomain(mockDomRsrcCtx, domainName, "Test Domain", "org",
-                true, adminUsers, null, 0, null, null, auditRef);
+                true, adminUsers, null, 0, null, 0, null, auditRef);
         
         Role role1 = createRoleObject(domainName,  "role1", null, "user.user", null);
         zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role1",
@@ -8852,7 +8912,7 @@ public class ZMSImplTest {
         List<String> adminUsers = new ArrayList<>();
         adminUsers.add("user.user");
         zms.dbService.makeDomain(mockDomRsrcCtx, domainName, "Test Domain", "org",
-                true, adminUsers, null, 0, null, null, auditRef);
+                true, adminUsers, null, 0, null, 0, null, auditRef);
         
         Role role1 = createRoleObject(domainName,  "role1", null, "user.user", null);
         zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role1",
@@ -15804,7 +15864,6 @@ public class ZMSImplTest {
         } finally {
             zms.deleteTopLevelDomain(mockDomRsrcCtx, "rolesystemmetadom1", auditRef);
         }
-
     }
 
     @Test
@@ -15840,7 +15899,6 @@ public class ZMSImplTest {
 
         System.clearProperty(ZMSConsts.ZMS_PROP_PRODUCT_ID_SUPPORT);
         FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
-
     }
 
     private RoleMeta createRoleMetaObject(Boolean selfServe) {
@@ -15865,20 +15923,44 @@ public class ZMSImplTest {
         zms.putRole(mockDomRsrcCtx, "rolemetadom1", "role1", auditRef, role1);
 
         RoleMeta rm = createRoleMetaObject(true);
+        rm.setMemberExpiryDays(45);
         zms.putRoleMeta(mockDomRsrcCtx, "rolemetadom1", "role1", auditRef, rm);
 
         Role resRole1 = zms.getRole(mockDomRsrcCtx, "rolemetadom1", "role1", true, false, false);
 
         assertNotNull(resRole1);
         assertTrue(resRole1.getSelfServe());
+        assertEquals(resRole1.getMemberExpiryDays(), Integer.valueOf(45));
+
+        // if we pass a null for the expiry days (e.g. old client)
+        // then we're not going to modify the value
+
+        RoleMeta rm2 = createRoleMetaObject(false);
+        zms.putRoleMeta(mockDomRsrcCtx, "rolemetadom1", "role1", auditRef, rm2);
+
+        resRole1 = zms.getRole(mockDomRsrcCtx, "rolemetadom1", "role1", true, false, false);
+
+        assertNotNull(resRole1);
+        assertFalse(resRole1.getSelfServe());
+        assertEquals(resRole1.getMemberExpiryDays(), Integer.valueOf(45));
+
+        // now let's reset to 0
+
+        RoleMeta rm3 = createRoleMetaObject(false);
+        rm3.setMemberExpiryDays(0);
+        zms.putRoleMeta(mockDomRsrcCtx, "rolemetadom1", "role1", auditRef, rm3);
+
+        resRole1 = zms.getRole(mockDomRsrcCtx, "rolemetadom1", "role1", true, false, false);
+
+        assertNotNull(resRole1);
+        assertFalse(resRole1.getSelfServe());
+        assertEquals(resRole1.getMemberExpiryDays(), Integer.valueOf(0));
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "rolemetadom1", auditRef);
-
     }
 
     @Test
     public void testPutRoleMetaMissingAuditRef() {
-
 
         TopLevelDomain dom1 = createTopLevelDomainObject("rolemetadom1", "Role Meta Test Domain1", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
@@ -15907,7 +15989,6 @@ public class ZMSImplTest {
         } finally {
             zms.deleteTopLevelDomain(mockDomRsrcCtx, "rolemetadom1", auditRef);
         }
-
     }
 
     @Test

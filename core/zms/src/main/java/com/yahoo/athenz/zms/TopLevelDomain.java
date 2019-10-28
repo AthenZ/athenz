@@ -36,6 +36,12 @@ public class TopLevelDomain {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String certDnsDomain;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer memberExpiryDays;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer tokenExpiryMins;
     public String name;
     public List<String> adminUsers;
     @RdlOptional
@@ -98,6 +104,20 @@ public class TopLevelDomain {
     public String getCertDnsDomain() {
         return certDnsDomain;
     }
+    public TopLevelDomain setMemberExpiryDays(Integer memberExpiryDays) {
+        this.memberExpiryDays = memberExpiryDays;
+        return this;
+    }
+    public Integer getMemberExpiryDays() {
+        return memberExpiryDays;
+    }
+    public TopLevelDomain setTokenExpiryMins(Integer tokenExpiryMins) {
+        this.tokenExpiryMins = tokenExpiryMins;
+        return this;
+    }
+    public Integer getTokenExpiryMins() {
+        return tokenExpiryMins;
+    }
     public TopLevelDomain setName(String name) {
         this.name = name;
         return this;
@@ -149,6 +169,12 @@ public class TopLevelDomain {
                 return false;
             }
             if (certDnsDomain == null ? a.certDnsDomain != null : !certDnsDomain.equals(a.certDnsDomain)) {
+                return false;
+            }
+            if (memberExpiryDays == null ? a.memberExpiryDays != null : !memberExpiryDays.equals(a.memberExpiryDays)) {
+                return false;
+            }
+            if (tokenExpiryMins == null ? a.tokenExpiryMins != null : !tokenExpiryMins.equals(a.tokenExpiryMins)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

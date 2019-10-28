@@ -48,7 +48,9 @@ public class SignUtilsTest {
         Mockito.when(mockDomain.getEnabled()).thenReturn(null);
         Mockito.when(mockDomain.getRoles()).thenReturn(null);
         Mockito.when(mockDomain.getServices()).thenReturn(null);
-        
+        Mockito.when(mockDomain.getMemberExpiryDays()).thenReturn(null);
+        Mockito.when(mockDomain.getTokenExpiryMins()).thenReturn(null);
+
         String check = SignUtils.asCanonicalString(mockDomain);
         assertNotNull(check);
         assertEquals(check,"{\"roles\":[],\"services\":[],\"ypmId\":0}");
@@ -124,6 +126,8 @@ public class SignUtilsTest {
         Role mRole = Mockito.mock(Role.class);
         Mockito.when(mRole.getAuditEnabled()).thenReturn(null);
         Mockito.when(mRole.getSelfServe()).thenReturn(null);
+        Mockito.when(mRole.getMemberExpiryDays()).thenReturn(null);
+        Mockito.when(mRole.getTokenExpiryMins()).thenReturn(null);
         roles.add(mRole);
         
         List<String> items = new ArrayList<>();
@@ -150,23 +154,32 @@ public class SignUtilsTest {
         Mockito.when(mService.getPublicKeys()).thenReturn(publicKeys);
         Mockito.when(mockDomain.getPolicies()).thenReturn(signedPolicies);
         Mockito.when(signedPolicies.getContents()).thenReturn(mockPolicies);
+        Mockito.when(mockDomain.getMemberExpiryDays()).thenReturn(30);
+        Mockito.when(mockDomain.getTokenExpiryMins()).thenReturn(450);
         
         String check = SignUtils.asCanonicalString(mockDomain);
         assertNotNull(check);
-        assertEquals(check,"{\"account\":\"chk_string\",\"policies\":{\"contents\":{\"policies\":[]}},\"roles\":[{\"members\":[\"check_item\"],\"roleMembers\":[]}],\"services\":[{\"publicKeys\":[{}]}],\"ypmId\":0}");
+        assertEquals(check,"{\"account\":\"chk_string\",\"memberExpiryDays\":30,\"policies\""
+                +":{\"contents\":{\"policies\":[]}},\"roles\":[{\"members\":[\"check_item\"],"
+                +"\"roleMembers\":[]}],\"services\":[{\"publicKeys\":[{}]}],"
+                +"\"tokenExpiryMins\":450,\"ypmId\":0}");
         
         Mockito.when(mService.getPublicKeys()).thenReturn(null);
-        
+        Mockito.when(mockDomain.getMemberExpiryDays()).thenReturn(null);
+
         check = SignUtils.asCanonicalString(mockDomain);
         assertNotNull(check);
-        assertEquals(check,"{\"account\":\"chk_string\",\"policies\":{\"contents\":{\"policies\":[]}},\"roles\":[{\"members\":[\"check_item\"],\"roleMembers\":[]}],\"services\":[{\"publicKeys\":[]}],\"ypmId\":0}");
+        assertEquals(check,"{\"account\":\"chk_string\",\"policies\":{\"contents\":{\"policies\":[]}},"
+                +"\"roles\":[{\"members\":[\"check_item\"],\"roleMembers\":[]}],\"services\""
+                +":[{\"publicKeys\":[]}],\"tokenExpiryMins\":450,\"ypmId\":0}");
     }
 
     @Test
     public void testAsStructRole() {
 
         List<RoleMember> roleMembers1 = new ArrayList<>();
-        Role role1 = new Role().setName("role1").setRoleMembers(roleMembers1);
+        Role role1 = new Role().setName("role1").setRoleMembers(roleMembers1)
+                .setMemberExpiryDays(30).setTokenExpiryMins(450);
 
         List<RoleMember> roleMembers2 = new ArrayList<>();
         roleMembers2.add(new RoleMember().setMemberName("user.joe").setExpiration(Timestamp.fromMillis(0)));
@@ -181,7 +194,8 @@ public class SignUtilsTest {
                 .setEnabled(Boolean.TRUE);
 
         final String check = SignUtils.asCanonicalString(data);
-        final String expected = "{\"enabled\":true,\"roles\":[{\"name\":\"role1\",\"roleMembers\":[]},"
+        final String expected = "{\"enabled\":true,\"roles\":[{\"memberExpiryDays\":30,\"name\":\"role1\","
+            +"\"roleMembers\":[],\"tokenExpiryMins\":450},"
             +"{\"name\":\"role2\",\"roleMembers\":[{\"expiration\":\"1970-01-01T00:00:00.000Z\","
             +"\"memberName\":\"user.joe\"},{\"expiration\":\"1970-01-01T00:00:00.000Z\","
             +"\"memberName\":\"user.jane\"}]},{\"name\":\"role3\"}],\"services\":[],\"ypmId\":100}";

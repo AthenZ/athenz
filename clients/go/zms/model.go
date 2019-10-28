@@ -142,6 +142,16 @@ type DomainMeta struct {
 	// domain certificate dns domain (system attribute)
 	//
 	CertDnsDomain string `json:"certDnsDomain,omitempty" rdl:"optional"`
+
+	//
+	// all members in the domain will have specified max expiry days
+	//
+	MemberExpiryDays *int32 `json:"memberExpiryDays,omitempty" rdl:"optional"`
+
+	//
+	// tokens issued for this domain will have specified max timeout in mins
+	//
+	TokenExpiryMins *int32 `json:"tokenExpiryMins,omitempty" rdl:"optional"`
 }
 
 //
@@ -277,6 +287,16 @@ type Domain struct {
 	// domain certificate dns domain (system attribute)
 	//
 	CertDnsDomain string `json:"certDnsDomain,omitempty" rdl:"optional"`
+
+	//
+	// all members in the domain will have specified max expiry days
+	//
+	MemberExpiryDays *int32 `json:"memberExpiryDays,omitempty" rdl:"optional"`
+
+	//
+	// tokens issued for this domain will have specified max timeout in mins
+	//
+	TokenExpiryMins *int32 `json:"tokenExpiryMins,omitempty" rdl:"optional"`
 
 	//
 	// the common name to be referred to, the symbolic id. It is immutable
@@ -666,9 +686,86 @@ func (self *RoleMember) Validate() error {
 }
 
 //
+// RoleMeta - Set of metadata attributes that all roles may have and can be
+// changed by domain admins.
+//
+type RoleMeta struct {
+
+	//
+	// Flag indicates whether or not role allows self service. Users can add
+	// themselves in the role, but it has to be approved by domain admins to be
+	// effective.
+	//
+	SelfServe *bool `json:"selfServe,omitempty" rdl:"optional"`
+
+	//
+	// all members in the role will have specified max expiry days
+	//
+	MemberExpiryDays *int32 `json:"memberExpiryDays,omitempty" rdl:"optional"`
+
+	//
+	// tokens issued for this domain will have specified max timeout in mins
+	//
+	TokenExpiryMins *int32 `json:"tokenExpiryMins,omitempty" rdl:"optional"`
+}
+
+//
+// NewRoleMeta - creates an initialized RoleMeta instance, returns a pointer to it
+//
+func NewRoleMeta(init ...*RoleMeta) *RoleMeta {
+	var o *RoleMeta
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(RoleMeta)
+	}
+	return o
+}
+
+type rawRoleMeta RoleMeta
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a RoleMeta
+//
+func (self *RoleMeta) UnmarshalJSON(b []byte) error {
+	var m rawRoleMeta
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := RoleMeta(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *RoleMeta) Validate() error {
+	return nil
+}
+
+//
 // Role - The representation for a Role with set of members.
 //
 type Role struct {
+
+	//
+	// Flag indicates whether or not role allows self service. Users can add
+	// themselves in the role, but it has to be approved by domain admins to be
+	// effective.
+	//
+	SelfServe *bool `json:"selfServe,omitempty" rdl:"optional"`
+
+	//
+	// all members in the role will have specified max expiry days
+	//
+	MemberExpiryDays *int32 `json:"memberExpiryDays,omitempty" rdl:"optional"`
+
+	//
+	// tokens issued for this domain will have specified max timeout in mins
+	//
+	TokenExpiryMins *int32 `json:"tokenExpiryMins,omitempty" rdl:"optional"`
 
 	//
 	// name of the role
@@ -703,16 +800,9 @@ type Role struct {
 	//
 	// Flag indicates whether or not role updates should require GRC approval. If
 	// true, the auditRef parameter must be supplied(not empty) for any API defining
-	// it.
+	// it
 	//
 	AuditEnabled *bool `json:"auditEnabled,omitempty" rdl:"optional"`
-
-	//
-	// Flag indicates whether or not role allows self service. Users can add
-	// themselves in the role, but it has to be approved by domain admins to be
-	// effective.
-	//
-	SelfServe *bool `json:"selfServe,omitempty" rdl:"optional"`
 }
 
 //
@@ -1285,56 +1375,6 @@ func (self *RoleSystemMeta) UnmarshalJSON(b []byte) error {
 // Validate - checks for missing required fields, etc
 //
 func (self *RoleSystemMeta) Validate() error {
-	return nil
-}
-
-//
-// RoleMeta - Set of metadata attributes that all roles may have and can be
-// changed by domain admins.
-//
-type RoleMeta struct {
-
-	//
-	// Flag indicates whether or not role allows self service. Users can add
-	// themselves in the role, but it has to be approved by domain admins to be
-	// effective.
-	//
-	SelfServe *bool `json:"selfServe,omitempty" rdl:"optional"`
-}
-
-//
-// NewRoleMeta - creates an initialized RoleMeta instance, returns a pointer to it
-//
-func NewRoleMeta(init ...*RoleMeta) *RoleMeta {
-	var o *RoleMeta
-	if len(init) == 1 {
-		o = init[0]
-	} else {
-		o = new(RoleMeta)
-	}
-	return o
-}
-
-type rawRoleMeta RoleMeta
-
-//
-// UnmarshalJSON is defined for proper JSON decoding of a RoleMeta
-//
-func (self *RoleMeta) UnmarshalJSON(b []byte) error {
-	var m rawRoleMeta
-	err := json.Unmarshal(b, &m)
-	if err == nil {
-		o := RoleMeta(m)
-		*self = o
-		err = self.Validate()
-	}
-	return err
-}
-
-//
-// Validate - checks for missing required fields, etc
-//
-func (self *RoleMeta) Validate() error {
 	return nil
 }
 
@@ -2495,6 +2535,16 @@ type TopLevelDomain struct {
 	CertDnsDomain string `json:"certDnsDomain,omitempty" rdl:"optional"`
 
 	//
+	// all members in the domain will have specified max expiry days
+	//
+	MemberExpiryDays *int32 `json:"memberExpiryDays,omitempty" rdl:"optional"`
+
+	//
+	// tokens issued for this domain will have specified max timeout in mins
+	//
+	TokenExpiryMins *int32 `json:"tokenExpiryMins,omitempty" rdl:"optional"`
+
+	//
 	// name of the domain
 	//
 	Name SimpleName `json:"name"`
@@ -2652,6 +2702,16 @@ type SubDomain struct {
 	// domain certificate dns domain (system attribute)
 	//
 	CertDnsDomain string `json:"certDnsDomain,omitempty" rdl:"optional"`
+
+	//
+	// all members in the domain will have specified max expiry days
+	//
+	MemberExpiryDays *int32 `json:"memberExpiryDays,omitempty" rdl:"optional"`
+
+	//
+	// tokens issued for this domain will have specified max timeout in mins
+	//
+	TokenExpiryMins *int32 `json:"tokenExpiryMins,omitempty" rdl:"optional"`
 
 	//
 	// name of the domain
@@ -2825,6 +2885,16 @@ type UserDomain struct {
 	// domain certificate dns domain (system attribute)
 	//
 	CertDnsDomain string `json:"certDnsDomain,omitempty" rdl:"optional"`
+
+	//
+	// all members in the domain will have specified max expiry days
+	//
+	MemberExpiryDays *int32 `json:"memberExpiryDays,omitempty" rdl:"optional"`
+
+	//
+	// tokens issued for this domain will have specified max timeout in mins
+	//
+	TokenExpiryMins *int32 `json:"tokenExpiryMins,omitempty" rdl:"optional"`
 
 	//
 	// user id which will be the domain name
@@ -4124,24 +4194,62 @@ func (self *SignedPolicies) Validate() error {
 type DomainData struct {
 
 	//
-	// name of the domain
+	// a description of the domain
 	//
-	Name DomainName `json:"name"`
+	Description string `json:"description,omitempty" rdl:"optional"`
 
 	//
-	// associated cloud (i.e. aws) account id
+	// a reference to an Organization. (i.e. org:media)
+	//
+	Org ResourceName `json:"org,omitempty" rdl:"optional"`
+
+	//
+	// Future use only, currently not used
+	//
+	Enabled *bool `json:"enabled,omitempty" rdl:"optional"`
+
+	//
+	// Flag indicates whether or not domain modifications should be logged for
+	// SOX+Auditing. If true, the auditRef parameter must be supplied(not empty) for
+	// any API defining it.
+	//
+	AuditEnabled *bool `json:"auditEnabled,omitempty" rdl:"optional"`
+
+	//
+	// associated cloud (i.e. aws) account id (system attribute - uniqueness
+	// check)
 	//
 	Account string `json:"account,omitempty" rdl:"optional"`
 
 	//
-	// associated product id
+	// associated product id (system attribute - uniqueness check)
 	//
 	YpmId *int32 `json:"ypmId,omitempty" rdl:"optional"`
 
 	//
-	// domain enabled state
+	// associated application id
 	//
-	Enabled *bool `json:"enabled,omitempty" rdl:"optional"`
+	ApplicationId string `json:"applicationId,omitempty" rdl:"optional"`
+
+	//
+	// domain certificate dns domain (system attribute)
+	//
+	CertDnsDomain string `json:"certDnsDomain,omitempty" rdl:"optional"`
+
+	//
+	// all members in the domain will have specified max expiry days
+	//
+	MemberExpiryDays *int32 `json:"memberExpiryDays,omitempty" rdl:"optional"`
+
+	//
+	// tokens issued for this domain will have specified max timeout in mins
+	//
+	TokenExpiryMins *int32 `json:"tokenExpiryMins,omitempty" rdl:"optional"`
+
+	//
+	// name of the domain
+	//
+	Name DomainName `json:"name"`
 
 	//
 	// list of roles in the domain
@@ -4167,22 +4275,6 @@ type DomainData struct {
 	// last modification timestamp
 	//
 	Modified rdl.Timestamp `json:"modified"`
-
-	//
-	// associated application id
-	//
-	ApplicationId string `json:"applicationId,omitempty" rdl:"optional"`
-
-	//
-	// domain certificate dns domain
-	//
-	CertDnsDomain string `json:"certDnsDomain,omitempty" rdl:"optional"`
-
-	//
-	// Flag indicates whether or not domain modifications should be logged for
-	// SOX+Auditing.
-	//
-	AuditEnabled *bool `json:"auditEnabled,omitempty" rdl:"optional"`
 }
 
 //
@@ -4202,6 +4294,14 @@ func NewDomainData(init ...*DomainData) *DomainData {
 // Init - sets up the instance according to its default field values, if any
 //
 func (self *DomainData) Init() *DomainData {
+	if self.Enabled == nil {
+		d := true
+		self.Enabled = &d
+	}
+	if self.AuditEnabled == nil {
+		d := false
+		self.AuditEnabled = &d
+	}
 	if self.Roles == nil {
 		self.Roles = make([]*Role, 0)
 	}
@@ -4213,10 +4313,6 @@ func (self *DomainData) Init() *DomainData {
 	}
 	if self.Entities == nil {
 		self.Entities = make([]*Entity, 0)
-	}
-	if self.AuditEnabled == nil {
-		d := false
-		self.AuditEnabled = &d
 	}
 	return self
 }
@@ -4241,18 +4337,42 @@ func (self *DomainData) UnmarshalJSON(b []byte) error {
 // Validate - checks for missing required fields, etc
 //
 func (self *DomainData) Validate() error {
-	if self.Name == "" {
-		return fmt.Errorf("DomainData.name is missing but is a required field")
-	} else {
-		val := rdl.Validate(ZMSSchema(), "DomainName", self.Name)
+	if self.Description != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.Description)
 		if !val.Valid {
-			return fmt.Errorf("DomainData.name does not contain a valid DomainName (%v)", val.Error)
+			return fmt.Errorf("DomainData.description does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Org != "" {
+		val := rdl.Validate(ZMSSchema(), "ResourceName", self.Org)
+		if !val.Valid {
+			return fmt.Errorf("DomainData.org does not contain a valid ResourceName (%v)", val.Error)
 		}
 	}
 	if self.Account != "" {
 		val := rdl.Validate(ZMSSchema(), "String", self.Account)
 		if !val.Valid {
 			return fmt.Errorf("DomainData.account does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.ApplicationId != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.ApplicationId)
+		if !val.Valid {
+			return fmt.Errorf("DomainData.applicationId does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.CertDnsDomain != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.CertDnsDomain)
+		if !val.Valid {
+			return fmt.Errorf("DomainData.certDnsDomain does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Name == "" {
+		return fmt.Errorf("DomainData.name is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "DomainName", self.Name)
+		if !val.Valid {
+			return fmt.Errorf("DomainData.name does not contain a valid DomainName (%v)", val.Error)
 		}
 	}
 	if self.Roles == nil {
@@ -4269,18 +4389,6 @@ func (self *DomainData) Validate() error {
 	}
 	if self.Modified.IsZero() {
 		return fmt.Errorf("DomainData: Missing required field: modified")
-	}
-	if self.ApplicationId != "" {
-		val := rdl.Validate(ZMSSchema(), "String", self.ApplicationId)
-		if !val.Valid {
-			return fmt.Errorf("DomainData.applicationId does not contain a valid String (%v)", val.Error)
-		}
-	}
-	if self.CertDnsDomain != "" {
-		val := rdl.Validate(ZMSSchema(), "String", self.CertDnsDomain)
-		if !val.Valid {
-			return fmt.Errorf("DomainData.certDnsDomain does not contain a valid String (%v)", val.Error)
-		}
 	}
 	return nil
 }

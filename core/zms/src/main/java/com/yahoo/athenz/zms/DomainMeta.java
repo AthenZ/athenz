@@ -35,6 +35,12 @@ public class DomainMeta {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String certDnsDomain;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer memberExpiryDays;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer tokenExpiryMins;
 
     public DomainMeta setDescription(String description) {
         this.description = description;
@@ -92,6 +98,20 @@ public class DomainMeta {
     public String getCertDnsDomain() {
         return certDnsDomain;
     }
+    public DomainMeta setMemberExpiryDays(Integer memberExpiryDays) {
+        this.memberExpiryDays = memberExpiryDays;
+        return this;
+    }
+    public Integer getMemberExpiryDays() {
+        return memberExpiryDays;
+    }
+    public DomainMeta setTokenExpiryMins(Integer tokenExpiryMins) {
+        this.tokenExpiryMins = tokenExpiryMins;
+        return this;
+    }
+    public Integer getTokenExpiryMins() {
+        return tokenExpiryMins;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -122,6 +142,12 @@ public class DomainMeta {
                 return false;
             }
             if (certDnsDomain == null ? a.certDnsDomain != null : !certDnsDomain.equals(a.certDnsDomain)) {
+                return false;
+            }
+            if (memberExpiryDays == null ? a.memberExpiryDays != null : !memberExpiryDays.equals(a.memberExpiryDays)) {
+                return false;
+            }
+            if (tokenExpiryMins == null ? a.tokenExpiryMins != null : !tokenExpiryMins.equals(a.tokenExpiryMins)) {
                 return false;
             }
         }

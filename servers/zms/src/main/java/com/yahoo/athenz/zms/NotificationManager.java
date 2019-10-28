@@ -160,7 +160,7 @@ public class NotificationManager {
         }
     }
 
-    private boolean isNotificationFeatureAvailable () {
+    boolean isNotificationFeatureAvailable () {
         return notificationService != null;
     }
 

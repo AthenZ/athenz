@@ -57,7 +57,7 @@ public class SignUtils {
     private static final String ATTR_RESOURCE = "resource";
     private static final String ATTR_ASSERTIONS = "assertions";
     private static final String ATTR_EXECUTABLE = "executable";
-    private static final String ATTR_DESCRIPTION = "descrition";
+    private static final String ATTR_DESCRIPTION = "description";
     private static final String ATTR_TRUST = "trust";
     private static final String ATTR_GROUP = "group";
     private static final String ATTR_PROVIDER_ENDPOINT = "providerEndpoint";
@@ -71,6 +71,8 @@ public class SignUtils {
     private static final String ATTR_CERT_DNS_DOMAIN = "certDnsDomain";
     private static final String ATTR_AUDIT_ENABLED = "auditEnabled";
     private static final String ATTR_SELF_SERVE = "selfServe";
+    private static final String ATTR_MEMBER_EXPIRY_DAYS = "memberExpiryDays";
+    private static final String ATTR_TOKEN_EXPIRY_MINS = "tokenExpiryMins";
 
     private static Struct asStruct(DomainPolicies domainPolicies) {
         // all of our fields are in canonical order based
@@ -134,6 +136,7 @@ public class SignUtils {
         // on their attribute name
         Struct struct = new Struct();
         appendObject(struct, ATTR_AUDIT_ENABLED, role.getAuditEnabled());
+        appendObject(struct, ATTR_MEMBER_EXPIRY_DAYS, role.getMemberExpiryDays());
         appendList(struct, ATTR_MEMBERS, role.getMembers());
         appendObject(struct, ATTR_MODIFIED, role.getModified());
         appendObject(struct, ATTR_NAME, role.getName());
@@ -149,6 +152,7 @@ public class SignUtils {
             appendArray(struct, ATTR_ROLE_MEMBERS, roleMembersArray);
         }
         appendObject(struct, ATTR_SELF_SERVE, role.getSelfServe());
+        appendObject(struct, ATTR_TOKEN_EXPIRY_MINS, role.getTokenExpiryMins());
         appendObject(struct, ATTR_TRUST, role.getTrust());
         return struct;
     }
@@ -245,6 +249,7 @@ public class SignUtils {
         appendObject(struct, ATTR_AUDIT_ENABLED, domainData.getAuditEnabled());
         appendObject(struct, ATTR_CERT_DNS_DOMAIN, domainData.getCertDnsDomain());
         appendObject(struct, ATTR_ENABLED, domainData.getEnabled());
+        appendObject(struct, ATTR_MEMBER_EXPIRY_DAYS, domainData.getMemberExpiryDays());
         appendObject(struct, ATTR_MODIFIED, domainData.getModified());
         appendObject(struct, ATTR_NAME, domainData.getName());
         SignedPolicies signedPolicies = domainData.getPolicies();
@@ -269,6 +274,7 @@ public class SignUtils {
             }
         }
         appendArray(struct, ATTR_SERVICES, structServices);
+        appendObject(struct, ATTR_TOKEN_EXPIRY_MINS, domainData.getTokenExpiryMins());
         appendObject(struct, ATTR_YPMID, domainData.getYpmId());
         return struct;
     }

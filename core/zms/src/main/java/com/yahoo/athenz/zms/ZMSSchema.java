@@ -79,7 +79,9 @@ public class ZMSSchema {
             .field("account", "String", true, "associated cloud (i.e. aws) account id (system attribute - uniqueness check)")
             .field("ypmId", "Int32", true, "associated product id (system attribute - uniqueness check)")
             .field("applicationId", "String", true, "associated application id")
-            .field("certDnsDomain", "String", true, "domain certificate dns domain (system attribute)");
+            .field("certDnsDomain", "String", true, "domain certificate dns domain (system attribute)")
+            .field("memberExpiryDays", "Int32", true, "all members in the domain will have specified max expiry days")
+            .field("tokenExpiryMins", "Int32", true, "tokens issued for this domain will have specified max timeout in mins");
 
         sb.structType("Domain", "DomainMeta")
             .comment("A domain is an independent partition of users, roles, and resources. Its name represents the definition of a namespace; the only way a new namespace can be created, from the top, is by creating Domains. Administration of a domain is governed by the parent domain (using reverse-DNS namespaces). The top level domains are governed by the special \"sys.auth\" domain.")
@@ -109,7 +111,13 @@ public class ZMSSchema {
             .field("requestTime", "Timestamp", true, "for pending membership requests, the request time")
             .field("lastNotifiedTime", "Timestamp", true, "for pending membership requests, time when last notification was sent");
 
-        sb.structType("Role")
+        sb.structType("RoleMeta")
+            .comment("Set of metadata attributes that all roles may have and can be changed by domain admins.")
+            .field("selfServe", "Bool", true, "Flag indicates whether or not role allows self service. Users can add themselves in the role, but it has to be approved by domain admins to be effective.", false)
+            .field("memberExpiryDays", "Int32", true, "all members in the role will have specified max expiry days")
+            .field("tokenExpiryMins", "Int32", true, "tokens issued for this domain will have specified max timeout in mins");
+
+        sb.structType("Role", "RoleMeta")
             .comment("The representation for a Role with set of members.")
             .field("name", "ResourceName", false, "name of the role")
             .field("modified", "Timestamp", true, "last modification timestamp of the role")
@@ -117,8 +125,7 @@ public class ZMSSchema {
             .arrayField("roleMembers", "RoleMember", true, "members with expiration")
             .field("trust", "DomainName", true, "a trusted domain to delegate membership decisions to")
             .arrayField("auditLog", "RoleAuditLog", true, "an audit log for role membership changes")
-            .field("auditEnabled", "Bool", true, "Flag indicates whether or not role updates should require GRC approval. If true, the auditRef parameter must be supplied(not empty) for any API defining it.", false)
-            .field("selfServe", "Bool", true, "Flag indicates whether or not role allows self service. Users can add themselves in the role, but it has to be approved by domain admins to be effective.", false);
+            .field("auditEnabled", "Bool", true, "Flag indicates whether or not role updates should require GRC approval. If true, the auditRef parameter must be supplied(not empty) for any API defining it", false);
 
         sb.structType("Roles")
             .comment("The representation for a list of roles with full details")
@@ -155,10 +162,6 @@ public class ZMSSchema {
         sb.structType("RoleSystemMeta")
             .comment("Set of system metadata attributes that all roles may have and can be changed by system admins.")
             .field("auditEnabled", "Bool", true, "Flag indicates whether or not role updates should be approved by GRC. If true, the auditRef parameter must be supplied(not empty) for any API defining it.", false);
-
-        sb.structType("RoleMeta")
-            .comment("Set of metadata attributes that all roles may have and can be changed by domain admins.")
-            .field("selfServe", "Bool", true, "Flag indicates whether or not role allows self service. Users can add themselves in the role, but it has to be approved by domain admins to be effective.", false);
 
         sb.enumType("AssertionEffect")
             .comment("Every assertion can have the effect of ALLOW or DENY.")
@@ -342,20 +345,14 @@ public class ZMSSchema {
             .field("signature", "String", false, "signature generated based on the domain policies object")
             .field("keyId", "String", false, "the identifier of the key used to generate the signature");
 
-        sb.structType("DomainData")
+        sb.structType("DomainData", "DomainMeta")
             .comment("A domain object that includes its roles, policies and services.")
             .field("name", "DomainName", false, "name of the domain")
-            .field("account", "String", true, "associated cloud (i.e. aws) account id")
-            .field("ypmId", "Int32", true, "associated product id")
-            .field("enabled", "Bool", true, "domain enabled state")
             .arrayField("roles", "Role", false, "list of roles in the domain")
             .field("policies", "SignedPolicies", false, "list of policies in the domain signed with ZMS private key")
             .arrayField("services", "ServiceIdentity", false, "list of services in the domain")
             .arrayField("entities", "Entity", false, "list of entities in the domain")
-            .field("modified", "Timestamp", false, "last modification timestamp")
-            .field("applicationId", "String", true, "associated application id")
-            .field("certDnsDomain", "String", true, "domain certificate dns domain")
-            .field("auditEnabled", "Bool", true, "Flag indicates whether or not domain modifications should be logged for SOX+Auditing.", false);
+            .field("modified", "Timestamp", false, "last modification timestamp");
 
         sb.structType("SignedDomain")
             .comment("A domain object signed with server's private key. The signature and keyid are optional if the metaonly flag is set to true in the getSignedDomains api call")
@@ -967,7 +964,7 @@ public class ZMSSchema {
             .pathParam("roleName", "EntityName", "name of the role")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .input("detail", "RoleMeta", "RoleMeta object with updated attribute values")
-            .auth("update", "{domainName}:")
+            .auth("update", "{domainName}:role.{roleName}")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 

@@ -81,7 +81,8 @@ public class FileConnection implements ObjectStoreConnection {
                 .setOrg(domainStruct.getMeta().getOrg())
                 .setYpmId(domainStruct.getMeta().getYpmId())
                 .setApplicationId(domainStruct.getMeta().getApplicationId())
-                .setCertDnsDomain(domainStruct.getMeta().getCertDnsDomain());
+                .setCertDnsDomain(domainStruct.getMeta().getCertDnsDomain())
+                .setMemberExpiryDays(domainStruct.getMeta().getMemberExpiryDays());
         if (domainStruct.getMeta().getAuditEnabled() != null) {
             domain.setAuditEnabled(domainStruct.getMeta().getAuditEnabled());
         } else {
@@ -135,7 +136,8 @@ public class FileConnection implements ObjectStoreConnection {
                 .setOrg(domain.getOrg())
                 .setYpmId(domain.getYpmId())
                 .setApplicationId(domain.getApplicationId())
-                .setCertDnsDomain(domain.getCertDnsDomain());
+                .setCertDnsDomain(domain.getCertDnsDomain())
+                .setMemberExpiryDays(domain.getMemberExpiryDays());
         domainStruct.setMeta(meta);
         
         putDomainStruct(domain.getName(), domainStruct);
@@ -175,7 +177,8 @@ public class FileConnection implements ObjectStoreConnection {
                 .setOrg(domain.getOrg())
                 .setYpmId(domain.getYpmId())
                 .setApplicationId(domain.getApplicationId())
-                .setCertDnsDomain(domain.getCertDnsDomain());
+                .setCertDnsDomain(domain.getCertDnsDomain())
+                .setMemberExpiryDays(domain.getMemberExpiryDays());
         domainStruct.setMeta(meta);
 
         putDomainStruct(domain.getName(), domainStruct);

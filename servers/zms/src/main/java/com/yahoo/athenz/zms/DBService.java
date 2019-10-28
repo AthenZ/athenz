@@ -259,7 +259,7 @@ public class DBService {
 
     Domain makeDomain(ResourceContext ctx, String domainName, String description, String org,
             Boolean auditEnabled, List<String> adminUsers, String account, int productId, String applicationId,
-            List<String> solutionTemplates, String auditRef) {
+            Integer expiryDays, List<String> solutionTemplates, String auditRef) {
         
         final String caller = "makedomain";
         
@@ -272,15 +272,16 @@ public class DBService {
                 .setAccount(account)
                 .setYpmId(productId)
                 .setModified(Timestamp.fromCurrentTime())
-                .setApplicationId(applicationId);
-        
-        // get our connection object
+                .setApplicationId(applicationId)
+                .setMemberExpiryDays(expiryDays);
 
         // our exception handling code does the check for retry count
         // and throws the exception it had received when the retry
         // count reaches 0
 
         for (int retryCount = defaultRetryCount; ; retryCount--) {
+
+            // get our connection object
 
             try (ObjectStoreConnection con = store.getConnection(false, true)) {
 
@@ -2237,7 +2238,8 @@ public class DBService {
                         .setApplicationId(domain.getApplicationId())
                         .setAccount(domain.getAccount())
                         .setYpmId(domain.getYpmId())
-                        .setCertDnsDomain(domain.getCertDnsDomain());
+                        .setCertDnsDomain(domain.getCertDnsDomain())
+                        .setMemberExpiryDays(domain.getMemberExpiryDays());
 
                 // then we're going to apply the updated fields
                 // from the given object
@@ -2274,6 +2276,9 @@ public class DBService {
 
         domain.setApplicationId(meta.getApplicationId());
         domain.setDescription(meta.getDescription());
+        if (meta.getMemberExpiryDays() != null) {
+            domain.setMemberExpiryDays(meta.getMemberExpiryDays());
+        }
     }
 
     boolean isDeleteSystemMetaAllowed(boolean deleteAllowed, Object oldValue, Object newValue) {
@@ -3492,23 +3497,24 @@ public class DBService {
             assertionEffect = assertion.getEffect().toString();
         }
         auditDetails.append("{\"role\": \"").append(assertion.getRole())
-            .append("\", \"action\": \"").append(assertion.getAction())
-            .append("\", \"effect\": \"").append(assertionEffect)
-            .append("\", \"resource\": \"").append(assertion.getResource())
-            .append("\"}");
+                .append("\", \"action\": \"").append(assertion.getAction())
+                .append("\", \"effect\": \"").append(assertionEffect)
+                .append("\", \"resource\": \"").append(assertion.getResource())
+                .append("\"}");
         return firstEntry;
     }
     
     void auditLogDomain(StringBuilder auditDetails, Domain domain) {
         auditDetails.append("{\"description\": \"").append(domain.getDescription())
-        .append("\", \"org\": \"").append(domain.getOrg())
-        .append("\", \"auditEnabled\": \"").append(domain.getAuditEnabled())
-        .append("\", \"enabled\": \"").append(domain.getEnabled())
-        .append("\", \"account\": \"").append(domain.getAccount())
-        .append("\", \"acctId\": \"").append(domain.getApplicationId())
-        .append("\", \"ypmid\": \"").append(domain.getYpmId())
-        .append("\", \"id\": \"").append(domain.getId())
-        .append("\"}");
+                .append("\", \"org\": \"").append(domain.getOrg())
+                .append("\", \"auditEnabled\": \"").append(domain.getAuditEnabled())
+                .append("\", \"enabled\": \"").append(domain.getEnabled())
+                .append("\", \"account\": \"").append(domain.getAccount())
+                .append("\", \"acctId\": \"").append(domain.getApplicationId())
+                .append("\", \"ypmid\": \"").append(domain.getYpmId())
+                .append("\", \"id\": \"").append(domain.getId())
+                .append("\", \"memberExpiryDays\": \"").append(domain.getMemberExpiryDays())
+                .append("\"}");
     }
 
     void auditLogRoleSystemMeta(StringBuilder auditDetails, Role role, String roleName) {
@@ -3520,6 +3526,7 @@ public class DBService {
     void auditLogRoleMeta(StringBuilder auditDetails, Role role, String roleName) {
         auditDetails.append("{\"name\": \"").append(roleName)
                 .append("\", \"selfserve\": \"").append(role.getSelfServe())
+                .append("\", \"memberExpiryDays\": \"").append(role.getMemberExpiryDays())
                 .append("\"}");
     }
 
@@ -3661,9 +3668,13 @@ public class DBService {
     void updateRoleMetaFields(Role role, RoleMeta meta) {
 
         role.setSelfServe(meta.getSelfServe());
+        if (meta.getMemberExpiryDays() != null) {
+            role.setMemberExpiryDays(meta.getMemberExpiryDays());
+        }
     }
 
-    public void executePutRoleMeta(ResourceContext ctx, String domainName, String roleName, RoleMeta meta, String auditRef, String caller) {
+    public void executePutRoleMeta(ResourceContext ctx, String domainName, String roleName, RoleMeta meta,
+            String auditRef, String caller) {
 
         // our exception handling code does the check for retry count
         // and throws the exception it had received when the retry
@@ -3688,7 +3699,8 @@ public class DBService {
                         .setName(originalRole.getName())
                         .setAuditEnabled(originalRole.getAuditEnabled())
                         .setTrust(originalRole.getTrust())
-                        .setSelfServe(originalRole.getSelfServe());
+                        .setSelfServe(originalRole.getSelfServe())
+                        .setMemberExpiryDays(originalRole.getMemberExpiryDays());
 
                 // then we're going to apply the updated fields
                 // from the given object

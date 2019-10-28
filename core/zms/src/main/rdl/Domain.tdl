@@ -14,6 +14,8 @@ type DomainMeta Struct {
     Int32 ypmId (optional); //associated product id (system attribute - uniqueness check)
     String applicationId (optional); //associated application id
     String certDnsDomain (optional); //domain certificate dns domain (system attribute)
+    Int32 memberExpiryDays (optional); //all members in the domain will have specified max expiry days
+    Int32 tokenExpiryMins (optional); //tokens issued for this domain will have specified max timeout in mins
 }
 
 //A domain is an independent partition of users, roles, and resources.

@@ -124,7 +124,9 @@ public class ZMSCoreTest {
                 .setModified(Timestamp.fromMillis(123456789123L))
                 .setTrust("domain.admin")
                 .setAuditLog(rall)
-                .setSelfServe(false);
+                .setSelfServe(false)
+                .setMemberExpiryDays(30)
+                .setTokenExpiryMins(300);
         Result result = validator.validate(r, "Role");
         assertTrue(result.valid);
 
@@ -136,6 +138,8 @@ public class ZMSCoreTest {
         assertEquals(r.getRoleMembers(), roleMembers);
         assertTrue(r.getAuditEnabled());
         assertFalse(r.getSelfServe());
+        assertEquals(r.getMemberExpiryDays(), (Integer) 30);
+        assertEquals(r.getTokenExpiryMins(), (Integer) 300);
 
         Role r2 = new Role()
                 .setName("sys.auth:role.admin")
@@ -145,10 +149,26 @@ public class ZMSCoreTest {
                 .setModified(Timestamp.fromMillis(123456789123L))
                 .setTrust("domain.admin")
                 .setAuditLog(rall)
-                .setSelfServe(false);
+                .setSelfServe(false)
+                .setMemberExpiryDays(30)
+                .setTokenExpiryMins(300);
 
         assertTrue(r2.equals(r));
         assertTrue(r.equals(r));
+
+        r2.setMemberExpiryDays(45);
+        assertFalse(r2.equals(r));
+        r2.setMemberExpiryDays(null);
+        assertFalse(r2.equals(r));
+        r2.setMemberExpiryDays(30);
+        assertTrue(r2.equals(r));
+
+        r2.setTokenExpiryMins(450);
+        assertFalse(r2.equals(r));
+        r2.setTokenExpiryMins(null);
+        assertFalse(r2.equals(r));
+        r2.setTokenExpiryMins(300);
+        assertTrue(r2.equals(r));
 
         r2.setAuditEnabled(false);
         assertFalse(r2.equals(r));
@@ -503,7 +523,8 @@ public class ZMSCoreTest {
         List<Entity> elist = new ArrayList<>();
         DomainData dd = new DomainData().setName("test.domain").setAccount("user.test").setYpmId(1).setRoles(rl)
                 .setPolicies(sp).setServices(sil).setEntities(elist).setModified(Timestamp.fromMillis(123456789123L))
-                .setEnabled(true).setApplicationId("101").setCertDnsDomain("athenz.cloud");
+                .setEnabled(true).setApplicationId("101").setCertDnsDomain("athenz.cloud")
+                .setMemberExpiryDays(30).setTokenExpiryMins(300).setDescription("main domain").setOrg("org");
         result = validator.validate(dd, "DomainData");
         assertTrue(result.valid, result.error);
 
@@ -519,12 +540,45 @@ public class ZMSCoreTest {
         assertTrue(dd.getEnabled());
         assertEquals(dd.getCertDnsDomain(), "athenz.cloud");
         assertFalse(dd.getAuditEnabled());
+        assertEquals(dd.getMemberExpiryDays(), Integer.valueOf(30));
+        assertEquals(dd.getTokenExpiryMins(), Integer.valueOf(300));
+        assertEquals(dd.getDescription(), "main domain");
+        assertEquals(dd.getOrg(), "org");
 
         DomainData dd2 = new DomainData().setName("test.domain").setAccount("user.test").setYpmId(1).setRoles(rl)
                 .setPolicies(sp).setServices(sil).setEntities(elist).setModified(Timestamp.fromMillis(123456789123L))
-                .setEnabled(true).setApplicationId("101").setCertDnsDomain("athenz.cloud").setAuditEnabled(false);
+                .setEnabled(true).setApplicationId("101").setCertDnsDomain("athenz.cloud").setAuditEnabled(false)
+                .setMemberExpiryDays(30).setTokenExpiryMins(300).setDescription("main domain").setOrg("org");
 
         assertTrue(dd.equals(dd2));
+
+        dd2.setMemberExpiryDays(45);
+        assertFalse(dd2.equals(dd));
+        dd2.setMemberExpiryDays(null);
+        assertFalse(dd2.equals(dd));
+        dd2.setMemberExpiryDays(30);
+        assertTrue(dd2.equals(dd));
+
+        dd2.setTokenExpiryMins(450);
+        assertFalse(dd2.equals(dd));
+        dd2.setTokenExpiryMins(null);
+        assertFalse(dd2.equals(dd));
+        dd2.setTokenExpiryMins(300);
+        assertTrue(dd2.equals(dd));
+
+        dd2.setDescription("new domain");
+        assertFalse(dd2.equals(dd));
+        dd2.setDescription(null);
+        assertFalse(dd2.equals(dd));
+        dd2.setDescription("main domain");
+        assertTrue(dd2.equals(dd));
+
+        dd2.setOrg("new org");
+        assertFalse(dd2.equals(dd));
+        dd2.setOrg(null);
+        assertFalse(dd2.equals(dd));
+        dd2.setOrg("org");
+        assertTrue(dd2.equals(dd));
 
         dd2.setAuditEnabled(true);
         assertFalse(dd2.equals(dd));
@@ -746,7 +800,8 @@ public class ZMSCoreTest {
         Domain d = new Domain();
         d.setName("test.domain").setModified(Timestamp.fromMillis(123456789123L)).setId(UUID.fromMillis(100))
                 .setDescription("test desc").setOrg("test-org").setEnabled(true).setAuditEnabled(true)
-                .setAccount("user.test").setYpmId(1).setApplicationId("101").setCertDnsDomain("athenz.cloud");
+                .setAccount("user.test").setYpmId(1).setApplicationId("101").setCertDnsDomain("athenz.cloud")
+                .setMemberExpiryDays(30).setTokenExpiryMins(300);
         Result result = validator.validate(d, "Domain");
         assertTrue(result.valid);
 
@@ -761,14 +816,31 @@ public class ZMSCoreTest {
         assertEquals((int) d.getYpmId(), 1);
         assertEquals(d.getApplicationId(), "101");
         assertEquals(d.getCertDnsDomain(), "athenz.cloud");
+        assertEquals(d.getMemberExpiryDays(), (Integer) 30);
+        assertEquals(d.getTokenExpiryMins(), (Integer) 300);
 
         Domain d2 = new Domain();
         d2.setName("test.domain").setModified(Timestamp.fromMillis(123456789123L)).setId(UUID.fromMillis(100))
                 .setDescription("test desc").setOrg("test-org").setEnabled(true).setAuditEnabled(true)
-                .setAccount("user.test").setYpmId(1).setApplicationId("101").setCertDnsDomain("athenz.cloud");
+                .setAccount("user.test").setYpmId(1).setApplicationId("101").setCertDnsDomain("athenz.cloud")
+                .setMemberExpiryDays(30).setTokenExpiryMins(300);
 
         assertTrue(d2.equals(d));
         assertTrue(d.equals(d));
+
+        d2.setMemberExpiryDays(45);
+        assertFalse(d2.equals(d));
+        d2.setMemberExpiryDays(null);
+        assertFalse(d2.equals(d));
+        d2.setMemberExpiryDays(30);
+        assertTrue(d2.equals(d));
+
+        d2.setTokenExpiryMins(450);
+        assertFalse(d2.equals(d));
+        d2.setTokenExpiryMins(null);
+        assertFalse(d2.equals(d));
+        d2.setTokenExpiryMins(300);
+        assertTrue(d2.equals(d));
 
         d2.setId(UUID.fromMillis(101));
         assertFalse(d2.equals(d));
@@ -833,7 +905,7 @@ public class ZMSCoreTest {
         DomainMeta dm = new DomainMeta().init();
         dm.setDescription("domain desc").setOrg("org:test").setEnabled(true).setAuditEnabled(false)
                 .setAccount("user.test").setYpmId(10).setApplicationId("101")
-                .setCertDnsDomain("athenz.cloud");
+                .setCertDnsDomain("athenz.cloud").setMemberExpiryDays(30).setTokenExpiryMins(300);
 
         Result result = validator.validate(dm, "DomainMeta");
         assertTrue(result.valid);
@@ -846,13 +918,30 @@ public class ZMSCoreTest {
         assertEquals((int) dm.getYpmId(), 10);
         assertEquals(dm.getApplicationId(), "101");
         assertEquals(dm.getCertDnsDomain(), "athenz.cloud");
+        assertEquals(dm.getMemberExpiryDays(), (Integer) 30);
+        assertEquals(dm.getTokenExpiryMins(), (Integer) 300);
 
         DomainMeta dm2 = new DomainMeta().init();
         dm2.setDescription("domain desc").setOrg("org:test").setEnabled(true).setAuditEnabled(false)
                 .setAccount("user.test").setYpmId(10).setApplicationId("101")
-                .setCertDnsDomain("athenz.cloud");
+                .setCertDnsDomain("athenz.cloud").setMemberExpiryDays(30).setTokenExpiryMins(300);
+
         assertTrue(dm2.equals(dm));
         assertTrue(dm.equals(dm));
+
+        dm2.setMemberExpiryDays(45);
+        assertFalse(dm2.equals(dm));
+        dm2.setMemberExpiryDays(null);
+        assertFalse(dm2.equals(dm));
+        dm2.setMemberExpiryDays(30);
+        assertTrue(dm2.equals(dm));
+
+        dm2.setTokenExpiryMins(450);
+        assertFalse(dm2.equals(dm));
+        dm2.setTokenExpiryMins(null);
+        assertFalse(dm2.equals(dm));
+        dm2.setTokenExpiryMins(300);
+        assertTrue(dm2.equals(dm));
 
         dm2.setCertDnsDomain(null);
         assertFalse(dm2.equals(dm));
@@ -903,7 +992,8 @@ public class ZMSCoreTest {
         // TopLevelDomain test
         TopLevelDomain tld = new TopLevelDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
                 .setAuditEnabled(false).setAccount("user.test").setYpmId(10).setName("testdomain").setAdminUsers(admins)
-                .setTemplates(dtl).setApplicationId("id1").setCertDnsDomain("athenz.cloud");
+                .setTemplates(dtl).setApplicationId("id1").setCertDnsDomain("athenz.cloud").setMemberExpiryDays(30)
+                .setTokenExpiryMins(300);
 
         result = validator.validate(tld, "TopLevelDomain");
         assertTrue(result.valid);
@@ -919,13 +1009,30 @@ public class ZMSCoreTest {
         assertEquals(tld.getApplicationId(), "id1");
         assertNotNull(tld.getTemplates());
         assertEquals(tld.getCertDnsDomain(), "athenz.cloud");
+        assertEquals(tld.getMemberExpiryDays(), (Integer) 30);
+        assertEquals(tld.getTokenExpiryMins(), (Integer) 300);
 
         TopLevelDomain tld2 = new TopLevelDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
                 .setAuditEnabled(false).setAccount("user.test").setYpmId(10).setName("testdomain").setAdminUsers(admins)
-                .setTemplates(dtl).setApplicationId("id1").setCertDnsDomain("athenz.cloud");
+                .setTemplates(dtl).setApplicationId("id1").setCertDnsDomain("athenz.cloud").setMemberExpiryDays(30)
+                .setTokenExpiryMins(300);
 
         assertTrue(tld2.equals(tld));
         assertTrue(tld.equals(tld));
+
+        tld2.setMemberExpiryDays(45);
+        assertFalse(tld2.equals(tld));
+        tld2.setMemberExpiryDays(null);
+        assertFalse(tld2.equals(tld));
+        tld2.setMemberExpiryDays(30);
+        assertTrue(tld2.equals(tld));
+
+        tld2.setTokenExpiryMins(450);
+        assertFalse(tld2.equals(tld));
+        tld2.setTokenExpiryMins(null);
+        assertFalse(tld2.equals(tld));
+        tld2.setTokenExpiryMins(300);
+        assertTrue(tld2.equals(tld));
 
         tld2.setTemplates(null);
         assertFalse(tld2.equals(tld));
@@ -963,7 +1070,8 @@ public class ZMSCoreTest {
         SubDomain sd = new SubDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
                 .setAuditEnabled(false).setAccount("user.test").setYpmId(10).setName("testdomain").setAdminUsers(admins)
                 .setTemplates(new DomainTemplateList().setTemplateNames(Arrays.asList("vipng")))
-                .setParent("domain.parent").setApplicationId("101").setCertDnsDomain("athenz.cloud");
+                .setParent("domain.parent").setApplicationId("101").setCertDnsDomain("athenz.cloud")
+                .setMemberExpiryDays(30).setTokenExpiryMins(300);
 
         Result result = validator.validate(sd, "SubDomain");
         assertTrue(result.valid, result.error);
@@ -980,15 +1088,32 @@ public class ZMSCoreTest {
         assertEquals(sd.getParent(), "domain.parent");
         assertEquals(sd.getApplicationId(), "101");
         assertEquals(sd.getCertDnsDomain(), "athenz.cloud");
+        assertEquals(sd.getMemberExpiryDays(), (Integer) 30);
+        assertEquals(sd.getTokenExpiryMins(), (Integer) 300);
 
         SubDomain sd2 = new SubDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
                 .setAuditEnabled(false).setAccount("user.test").setYpmId(10).setName("testdomain").setAdminUsers(admins)
                 .setTemplates(new DomainTemplateList().setTemplateNames(Arrays.asList("vipng")))
-                .setParent("domain.parent").setApplicationId("101").setCertDnsDomain("athenz.cloud");
+                .setParent("domain.parent").setApplicationId("101").setCertDnsDomain("athenz.cloud")
+                .setMemberExpiryDays(30).setTokenExpiryMins(300);
 
         assertTrue(sd2.equals(sd));
         assertTrue(sd.equals(sd));
-        
+
+        sd2.setMemberExpiryDays(45);
+        assertFalse(sd2.equals(sd));
+        sd2.setMemberExpiryDays(null);
+        assertFalse(sd2.equals(sd));
+        sd2.setMemberExpiryDays(30);
+        assertTrue(sd2.equals(sd));
+
+        sd2.setTokenExpiryMins(450);
+        assertFalse(sd2.equals(sd));
+        sd2.setTokenExpiryMins(null);
+        assertFalse(sd2.equals(sd));
+        sd2.setTokenExpiryMins(300);
+        assertTrue(sd2.equals(sd));
+
         sd2.setParent(null);
         assertFalse(sd2.equals(sd));
         sd2.setTemplates(null);
@@ -1024,7 +1149,8 @@ public class ZMSCoreTest {
         UserDomain ud = new UserDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
                 .setAuditEnabled(false).setAccount("user.test").setYpmId(10).setName("testuser")
                 .setTemplates(new DomainTemplateList().setTemplateNames(Arrays.asList("template")))
-                .setApplicationId("101").setCertDnsDomain("athenz.cloud");
+                .setApplicationId("101").setCertDnsDomain("athenz.cloud").setMemberExpiryDays(30)
+                .setTokenExpiryMins(300);
 
         Result result = validator.validate(ud, "UserDomain");
         assertTrue(result.valid);
@@ -1039,14 +1165,31 @@ public class ZMSCoreTest {
         assertEquals(ud.getApplicationId(), "101");
         assertNotNull(ud.getTemplates());
         assertEquals(ud.getCertDnsDomain(), "athenz.cloud");
+        assertEquals(ud.getMemberExpiryDays(), (Integer) 30);
+        assertEquals(ud.getTokenExpiryMins(), (Integer) 300);
 
         UserDomain ud2 = new UserDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
                 .setAuditEnabled(false).setAccount("user.test").setYpmId(10).setName("testuser")
                 .setTemplates(new DomainTemplateList().setTemplateNames(Arrays.asList("template")))
-                .setApplicationId("101").setCertDnsDomain("athenz.cloud");
+                .setApplicationId("101").setCertDnsDomain("athenz.cloud").setMemberExpiryDays(30)
+                .setTokenExpiryMins(300);
 
         assertTrue(ud2.equals(ud));
         assertTrue(ud.equals(ud));
+
+        ud2.setMemberExpiryDays(45);
+        assertFalse(ud2.equals(ud));
+        ud2.setMemberExpiryDays(null);
+        assertFalse(ud2.equals(ud));
+        ud2.setMemberExpiryDays(30);
+        assertTrue(ud2.equals(ud));
+
+        ud2.setTokenExpiryMins(450);
+        assertFalse(ud2.equals(ud));
+        ud2.setTokenExpiryMins(null);
+        assertFalse(ud2.equals(ud));
+        ud2.setTokenExpiryMins(300);
+        assertTrue(ud2.equals(ud));
 
         ud2.setTemplates(null);
         assertFalse(ud2.equals(ud));
@@ -2245,7 +2388,6 @@ public class ZMSCoreTest {
         Schema schema = ZMSSchema.instance();
         Validator validator = new Validator(schema);
 
-
         RoleSystemMeta rsm = new RoleSystemMeta();
 
         Result result = validator.validate(rsm, "RoleSystemMeta");
@@ -2264,33 +2406,49 @@ public class ZMSCoreTest {
 
         assertFalse(rsm2.equals(null));
         assertFalse(rsm.equals(new String()));
-
     }
 
     @Test
     public void testRoleMetaMethod() {
-        Schema schema = ZMSSchema.instance();
-        Validator validator = new Validator(schema);
 
-        RoleMeta rm = new RoleMeta();
-
-        Result result = validator.validate(rm, "RoleMeta");
-        assertTrue(result.valid);
+        RoleMeta rm = new RoleMeta().setMemberExpiryDays(30).setSelfServe(false).setTokenExpiryMins(300);
+        assertTrue(rm.equals(rm));
 
         assertFalse(rm.getSelfServe());
+        assertEquals(rm.getMemberExpiryDays(), (Integer) 30);
+        assertEquals(rm.getTokenExpiryMins(), (Integer) 300);
 
-        RoleMeta rm2 = new RoleMeta();
+        RoleMeta rm2 = new RoleMeta().setMemberExpiryDays(30).setSelfServe(false).setTokenExpiryMins(300);
+        assertTrue(rm2.equals(rm));
+
+        rm2.setMemberExpiryDays(45);
+        assertFalse(rm2.equals(rm));
+        rm2.setMemberExpiryDays(null);
+        assertFalse(rm2.equals(rm));
+        rm2.setMemberExpiryDays(30);
+        assertTrue(rm2.equals(rm));
+
+        rm2.setTokenExpiryMins(450);
+        assertFalse(rm2.equals(rm));
+        rm2.setTokenExpiryMins(null);
+        assertFalse(rm2.equals(rm));
+        rm2.setTokenExpiryMins(300);
+        assertTrue(rm2.equals(rm));
+
+        rm2.setSelfServe(true);
+        assertFalse(rm2.equals(rm));
+        rm2.setSelfServe(null);
         assertFalse(rm2.equals(rm));
         rm2.setSelfServe(false);
         assertTrue(rm2.equals(rm));
-        assertTrue(rm.equals(rm));
-
-        rm2.setSelfServe(null);
-        assertFalse(rm2.equals(rm));
 
         assertFalse(rm2.equals(null));
         assertFalse(rm.equals(new String()));
 
+        Schema schema = ZMSSchema.instance();
+        Validator validator = new Validator(schema);
+        Result result = validator.validate(rm, "RoleMeta");
+        assertTrue(result.valid);
     }
 
     @Test

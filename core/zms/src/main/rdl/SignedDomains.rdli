@@ -5,6 +5,7 @@ include "Policy.tdl";
 include "Role.tdl";
 include "ServiceIdentity.tdl";
 include "Entity.tdl";
+include "Domain.tdl";
 
 //Tuple of domain-name and modification time-stamps. This object is returned
 //when the caller has requested list of domains modified since a specific timestamp.
@@ -38,19 +39,13 @@ type SignedPolicies Struct {
 }
 
 //A domain object that includes its roles, policies and services.
-type DomainData Struct {
+type DomainData DomainMeta {
     DomainName name; //name of the domain
-    String account (optional); //associated cloud (i.e. aws) account id
-    Int32 ypmId (optional); //associated product id
-    Bool enabled (optional); //domain enabled state
     Array<Role> roles; //list of roles in the domain
     SignedPolicies policies; //list of policies in the domain signed with ZMS private key
     Array<ServiceIdentity> services; //list of services in the domain
     Array<Entity> entities; //list of entities in the domain
     Timestamp modified; //last modification timestamp
-    String applicationId (optional); //associated application id
-    String certDnsDomain (optional); //domain certificate dns domain
-    Bool auditEnabled (optional, default=false); //Flag indicates whether or not domain modifications should be logged for SOX+Auditing.
 }
 
 //A domain object signed with server's private key. The signature
