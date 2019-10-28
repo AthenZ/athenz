@@ -46,6 +46,7 @@ import javax.net.ssl.SSLSocketFactory;
 public class JwtsSigningKeyResolver implements SigningKeyResolver {
 
     public static final String ZTS_PROP_ATHENZ_CONF = "athenz.athenz_conf";
+    private static final String ZTS_DEFAULT_ATHENZ_CONFIG = "/conf/athenz/athenz.conf";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JwtsSigningKeyResolver.class);
     private static final ObjectMapper JSON_MAPPER = initJsonMapper();
@@ -145,8 +146,15 @@ public class JwtsSigningKeyResolver implements SigningKeyResolver {
 
     void loadPublicKeysFromConfig() {
 
-        final String confFileName = System.getProperty(ZTS_PROP_ATHENZ_CONF);
-        if (confFileName == null || confFileName.isEmpty()) {
+        String rootDir = System.getenv("ROOT");
+        if (rootDir == null) {
+            rootDir = "/home/athenz";
+        }
+
+        final String confFileName = System.getProperty(ZTS_PROP_ATHENZ_CONF,
+                rootDir + ZTS_DEFAULT_ATHENZ_CONFIG);
+
+        if (confFileName.isEmpty()) {
             LOGGER.info("No conf file configured for json web keys");
             return;
         }
