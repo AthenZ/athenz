@@ -34,7 +34,7 @@ public class KeyRefresher {
     private Thread scanForFileChangesThread;
     private boolean shutdown = false; //only for testing
     //60 seconds * 60 (min in an hour)
-    private static final int DEFAULT_RETRY_CHECK_FREQUENCY = 60_000 * 60;
+    public static final int DEFAULT_RETRY_CHECK_FREQUENCY = 60_000 * 60;
 
     private final MessageDigest md = MessageDigest.getInstance("MD5");
     private final byte[] lastPublicCertManagerChecksum = new byte[md.getDigestLength()];
