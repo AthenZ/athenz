@@ -124,6 +124,15 @@ app.use(function(req, res, next) {
   next();
 });
 
+app.use(function(req, res, next) {
+  //Check for CSRF, if bad origin, force re-auth
+  if (req.get("origin") && req.get("host") !== req.get("origin").split("/")[2]) {
+    res.redirect(302, "/athenz/login?error=1");
+  }else{
+    next();
+  }
+});
+
 app.all('/', routeHandlers.redirect);
 app.get('/athenz', routeHandlers.init, routeHandlers.home);
 app.post('/athenz', routeHandlers.init, routeHandlers.home);
