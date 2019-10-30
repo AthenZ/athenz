@@ -2746,7 +2746,7 @@ public class ZMSImplTest {
             }
             int index = msg.indexOf("WHAT-details=(");
             assertTrue(index != -1, msg);
-            int index2 = msg.indexOf("{\"member\": \"user.doe\"}");
+            int index2 = msg.indexOf("{\"member\": \"user.doe\",\"expiration\": \"null\"}");
             assertTrue(index2 > index, msg);
             foundError = true;
             break;
@@ -2779,7 +2779,7 @@ public class ZMSImplTest {
             }
             int index = msg.indexOf("WHAT-details=(");
             assertTrue(index != -1, msg);
-            int index2 = msg.indexOf("{\"member\": \"coretech.storage\"}");
+            int index2 = msg.indexOf("{\"member\": \"coretech.storage\",\"expiration\": \"null\"}");
             assertTrue(index2 > index, msg);
             foundError = true;
             break;
@@ -16835,11 +16835,112 @@ public class ZMSImplTest {
         detailsExp.put(NOTIFICATION_DETAILS_REASON, "adding fury");
         detailsExp.put(NOTIFICATION_DETAILS_REQUESTOR, "user.fury");
 
-
-
-        Mockito.verify(mockNotificationManager, times(1)).generateAndSendPostPutMembershipNotification("testdomain1", "testorg", false, true, detailsExp);
+        Mockito.verify(mockNotificationManager,
+                times(1)).generateAndSendPostPutMembershipNotification("testdomain1", "testorg", false, true, detailsExp);
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "testdomain1", auditRef);
     }
-}
 
+    @Test
+    public void testConfiguredExpiryMillis() {
+
+        assertEquals(zms.configuredExpiryMillis(null, null), 0);
+        assertEquals(zms.configuredExpiryMillis(null, -3), 0);
+        assertEquals(zms.configuredExpiryMillis(null, 0), 0);
+        assertEquals(zms.configuredExpiryMillis(-3, null), 0);
+        assertEquals(zms.configuredExpiryMillis(0, null), 0);
+        assertEquals(zms.configuredExpiryMillis(-3, -3), 0);
+        assertEquals(zms.configuredExpiryMillis(0, 0), 0);
+
+        long extMillis = TimeUnit.MILLISECONDS.convert(10, TimeUnit.DAYS);
+        long millis = zms.configuredExpiryMillis(null, 10);
+        assertTrue(millis > System.currentTimeMillis() + extMillis - 5000 && millis < System.currentTimeMillis() + extMillis + 5000);
+        millis = zms.configuredExpiryMillis(null, 10);
+        assertTrue(millis > System.currentTimeMillis() + extMillis - 5000 && millis < System.currentTimeMillis() + extMillis + 5000);
+        millis = zms.configuredExpiryMillis(-1, 10);
+        assertTrue(millis > System.currentTimeMillis() + extMillis - 5000 && millis < System.currentTimeMillis() + extMillis + 5000);
+        millis = zms.configuredExpiryMillis(0, 10);
+        assertTrue(millis > System.currentTimeMillis() + extMillis - 5000 && millis < System.currentTimeMillis() + extMillis + 5000);
+        millis = zms.configuredExpiryMillis(5, 10);
+        assertTrue(millis > System.currentTimeMillis() + extMillis - 5000 && millis < System.currentTimeMillis() + extMillis + 5000);
+        millis = zms.configuredExpiryMillis(20, 10);
+        assertTrue(millis > System.currentTimeMillis() + extMillis - 5000 && millis < System.currentTimeMillis() + extMillis + 5000);
+
+        millis = zms.configuredExpiryMillis(10, null);
+        assertTrue(millis > System.currentTimeMillis() + extMillis - 5000 && millis < System.currentTimeMillis() + extMillis + 5000);
+        millis = zms.configuredExpiryMillis(10, -1);
+        assertTrue(millis > System.currentTimeMillis() + extMillis - 5000 && millis < System.currentTimeMillis() + extMillis + 5000);
+        millis = zms.configuredExpiryMillis(10, 0);
+        assertTrue(millis > System.currentTimeMillis() + extMillis - 5000 && millis < System.currentTimeMillis() + extMillis + 5000);
+    }
+
+    @Test
+    public void testGetMemberExpiration() {
+        assertEquals(zms.getMemberExpiration(100, null), Timestamp.fromMillis(100));
+        assertEquals(zms.getMemberExpiration(100, Timestamp.fromMillis(50)), Timestamp.fromMillis(50));
+        assertEquals(zms.getMemberExpiration(100, Timestamp.fromMillis(150)), Timestamp.fromMillis(100));
+    }
+
+    @Test
+    public void testMemberExpiryTimestamp() {
+        assertEquals(zms.memberExpiryTimestamp(null, null, Timestamp.fromMillis(100)), Timestamp.fromMillis(100));
+        assertEquals(zms.memberExpiryTimestamp(-1, 0, Timestamp.fromMillis(100)), Timestamp.fromMillis(100));
+        assertEquals(zms.memberExpiryTimestamp(-3, -2, Timestamp.fromMillis(100)), Timestamp.fromMillis(100));
+
+        long ext50Millis = TimeUnit.MILLISECONDS.convert(50, TimeUnit.DAYS);
+        long ext75Millis = TimeUnit.MILLISECONDS.convert(75, TimeUnit.DAYS);
+        long ext100Millis = TimeUnit.MILLISECONDS.convert(100, TimeUnit.DAYS);
+
+        Timestamp stamp = zms.memberExpiryTimestamp(100, 50, Timestamp.fromMillis(System.currentTimeMillis() + ext75Millis));
+        assertTrue(stamp.millis() > System.currentTimeMillis() + ext50Millis - 5000 && stamp.millis() < System.currentTimeMillis() + ext50Millis + 5000);
+        stamp = zms.memberExpiryTimestamp(75, null, Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis));
+        assertTrue(stamp.millis() > System.currentTimeMillis() + ext75Millis - 5000 && stamp.millis() < System.currentTimeMillis() + ext75Millis + 5000);
+    }
+
+    @Test
+    public void testUpdateRoleMemberExpiration() {
+
+        long ext100Millis = TimeUnit.MILLISECONDS.convert(100, TimeUnit.DAYS);
+        long ext125Millis = TimeUnit.MILLISECONDS.convert(125, TimeUnit.DAYS);
+
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setExpiration(null));
+        members.add(new RoleMember().setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis)));
+
+        zms.updateRoleMemberExpiration(50, 125, members);
+
+        Timestamp stamp = members.get(0).getExpiration();
+        assertTrue(stamp.millis() > System.currentTimeMillis() + ext125Millis - 5000 && stamp.millis() < System.currentTimeMillis() + ext125Millis + 5000);
+
+        stamp = members.get(1).getExpiration();
+        assertTrue(stamp.millis() > System.currentTimeMillis() + ext100Millis - 5000 && stamp.millis() < System.currentTimeMillis() + ext100Millis + 5000);
+    }
+
+    @Test
+    public void testRemoveMatchedAssertionNoMatch() {
+
+        List<Assertion> assertions = new ArrayList<>();
+        List<Assertion> matchedAssertions = new ArrayList<>();
+
+        Assertion assertion = new Assertion().setAction("action").setResource("resource")
+                .setRole("role").setEffect(AssertionEffect.ALLOW);
+        assertions.add(assertion);
+
+        Assertion checkAssertion = new Assertion().setAction("action").setResource("resource")
+                .setRole("role1").setEffect(AssertionEffect.ALLOW);
+
+        assertFalse(zms.dbService.removeMatchedAssertion(checkAssertion, assertions, matchedAssertions));
+
+        // match the role but not the affect
+
+        checkAssertion.setRole("role");
+        checkAssertion.setEffect(AssertionEffect.DENY);
+
+        assertFalse(zms.dbService.removeMatchedAssertion(checkAssertion, assertions, matchedAssertions));
+
+        // full match
+
+        checkAssertion.setEffect(AssertionEffect.ALLOW);
+        assertTrue(zms.dbService.removeMatchedAssertion(checkAssertion, assertions, matchedAssertions));
+    }
+}

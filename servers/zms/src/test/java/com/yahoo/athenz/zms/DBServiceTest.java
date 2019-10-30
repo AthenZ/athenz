@@ -3721,6 +3721,7 @@ public class DBServiceTest {
 
     @Test
     public void testProcessRoleUpdate() {
+
         ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
         Role originalRole = new Role().setName("originalRole").setAuditEnabled(false);
         Role role = new Role().setName("newRole").setAuditEnabled(true);
@@ -4427,5 +4428,461 @@ public class DBServiceTest {
         assertEquals(role.getRoleMembers().size(), 3);
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testExecutePutRoleMetaExpirationUpdate() {
+
+        final String domainName = "role-meta-expiry";
+        List<String> admins = new ArrayList<>();
+        admins.add(adminUser);
+
+        zms.dbService.makeDomain(mockDomRsrcCtx, domainName, "test desc", "org", false, admins,
+                "", 1234, "", 0, null, auditRef);
+
+        Role role = createRoleObject(domainName, "role1", null, "user.john", "user.jane");
+        Timestamp timExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(10, TimeUnit.DAYS));
+        role.getRoleMembers().add(new RoleMember().setMemberName("user.tim").setExpiration(timExpiry).setApproved(true));
+        zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role1", role, "test", "putrole");
+
+        RoleMeta rm = new RoleMeta();
+        rm.setMemberExpiryDays(40);
+
+        zms.dbService.executePutRoleMeta(mockDomRsrcCtx, domainName, "role1",
+                rm, auditRef, "putrolemeta");
+
+        Role resRole1 = zms.dbService.getRole(domainName, "role1", false, true, false);
+
+        // verify all users have an expiry of close to 40 days except tim who will maintain
+        // his 10 day expiry value
+
+        long ext40Millis = TimeUnit.MILLISECONDS.convert(40, TimeUnit.DAYS);
+
+        int membersChecked = 0;
+        for (RoleMember roleMember : resRole1.getRoleMembers()) {
+            switch (roleMember.getMemberName()) {
+                case "user.john":
+                case "user.jane":
+                    assertTrue(roleMember.getExpiration().millis() > System.currentTimeMillis() + ext40Millis - 5000 &&
+                            roleMember.getExpiration().millis() < System.currentTimeMillis() + ext40Millis + 5000);
+                    membersChecked += 1;
+                    break;
+                case "user.tim":
+                    assertEquals(roleMember.getExpiration(), timExpiry);
+                    membersChecked += 1;
+                    break;
+            }
+        }
+        assertEquals(membersChecked, 3);
+
+        // now reduce limit to 20 days
+
+        rm.setMemberExpiryDays(20);
+        zms.dbService.executePutRoleMeta(mockDomRsrcCtx, domainName, "role1",
+                rm, auditRef, "putrolemeta");
+
+        resRole1 = zms.dbService.getRole(domainName, "role1", false, true, false);
+
+        // verify all users have an expiry of close to 20 days except tim who will maintain
+        // his 10 day expiry value
+
+        long ext20Millis = TimeUnit.MILLISECONDS.convert(20, TimeUnit.DAYS);
+
+        membersChecked = 0;
+        for (RoleMember roleMember : resRole1.getRoleMembers()) {
+            switch (roleMember.getMemberName()) {
+                case "user.john":
+                case "user.jane":
+                    assertTrue(roleMember.getExpiration().millis() > System.currentTimeMillis() + ext20Millis - 5000 &&
+                            roleMember.getExpiration().millis() < System.currentTimeMillis() + ext20Millis + 5000);
+                    membersChecked += 1;
+                    break;
+                case "user.tim":
+                    assertEquals(roleMember.getExpiration(), timExpiry);
+                    membersChecked += 1;
+                    break;
+            }
+        }
+        assertEquals(membersChecked, 3);
+
+        // now set it back to 40 but nothing will change
+
+        rm.setMemberExpiryDays(40);
+        zms.dbService.executePutRoleMeta(mockDomRsrcCtx, domainName, "role1",
+                rm, auditRef, "putrolemeta");
+
+        resRole1 = zms.dbService.getRole(domainName, "role1", false, true, false);
+
+        // verify all users have an expiry of close to 20 days except tim who will maintain
+        // his 10 day expiry value
+
+        membersChecked = 0;
+        for (RoleMember roleMember : resRole1.getRoleMembers()) {
+            switch (roleMember.getMemberName()) {
+                case "user.john":
+                case "user.jane":
+                    assertTrue(roleMember.getExpiration().millis() > System.currentTimeMillis() + ext20Millis - 5000 &&
+                            roleMember.getExpiration().millis() < System.currentTimeMillis() + ext20Millis + 5000);
+                    membersChecked += 1;
+                    break;
+                case "user.tim":
+                    assertEquals(roleMember.getExpiration(), timExpiry);
+                    membersChecked += 1;
+                    break;
+            }
+        }
+        assertEquals(membersChecked, 3);
+
+        zms.dbService.executeDeleteDomain(mockDomRsrcCtx, domainName, auditRef, "deletedomain");
+    }
+
+    @Test
+    public void testUpdateRoleMembersExpirationFailures() {
+
+        final String domainName = "role-meta-expiry";
+
+        Role originalRole = createRoleObject(domainName, "role1", null, "user.john", "user.jane");
+        originalRole.setMemberExpiryDays(10);
+
+        Role updateRole = createRoleObject(domainName, "role1", null, "user.john", "user.jane");
+        updateRole.setMemberExpiryDays(5);
+
+        ObjectStoreConnection mockConn = Mockito.mock(ObjectStoreConnection.class);
+        Mockito.when(mockConn.insertRoleMember(Mockito.anyString(), Mockito.anyString(), Mockito.any(),
+                    Mockito.any(), Mockito.anyString()))
+                .thenReturn(false)
+                .thenThrow(new IllegalArgumentException());
+
+        // we're going to make sure to throw an exception here
+        // since this should never be called
+
+        Mockito.when(mockConn.updateDomainModTimestamp(domainName)).thenThrow(new IllegalArgumentException());
+
+        zms.dbService.updateRoleMembersExpiration(mockDomRsrcCtx, mockConn, domainName, "role1", originalRole,
+                updateRole, auditRef, "testUpdateRoleMembersExpirationFailures");
+    }
+
+    @Test
+    public void testUpdateRoleMembersExpirationTrust() {
+
+        final String domainName = "role-meta-expiry";
+
+        // in this test case we're going to set the expiry days to 0 so we
+        // get an exception when accessed but we should never get there
+        // since our role is set as trust
+
+        Role role = createRoleObject(domainName, "role1", "coretech", null, null);
+
+        ObjectStoreConnection mockConn = Mockito.mock(ObjectStoreConnection.class);
+        Mockito.when(mockConn.insertRoleMember(Mockito.anyString(), Mockito.anyString(), Mockito.any(),
+                Mockito.any(), Mockito.anyString()))
+                .thenReturn(true);
+
+        // we're going to make sure to throw an exception here
+        // since this should never be called
+
+        Mockito.when(mockConn.updateDomainModTimestamp(domainName)).thenThrow(new IllegalArgumentException());
+
+        zms.dbService.updateRoleMembersExpiration(mockDomRsrcCtx, mockConn, domainName, "role1", role,
+                role, auditRef, "testUpdateRoleMembersExpirationTrust");
+    }
+
+    @Test
+    public void testExecutePutDomainMetaExpirationUpdate() {
+
+        final String domainName = "domain-meta-expiry";
+        List<String> admins = new ArrayList<>();
+        admins.add(adminUser);
+
+        zms.dbService.makeDomain(mockDomRsrcCtx, domainName, "test desc", "org", false, admins,
+                "", 1234, "", 0, null, auditRef);
+
+        Role role1 = createRoleObject(domainName, "role1", null, "user.john", "user.jane");
+        Timestamp timExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(10, TimeUnit.DAYS));
+        role1.getRoleMembers().add(new RoleMember().setMemberName("user.tim").setExpiration(timExpiry).setApproved(true));
+        zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role1", role1, "test", "putrole");
+
+        Role role2 = createRoleObject(domainName, "role2", null, "user.john", "user.jane");
+        role2.getRoleMembers().get(0).setExpiration(timExpiry);
+        role2.getRoleMembers().get(1).setExpiration(timExpiry);
+        role2.setMemberExpiryDays(15);
+        zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role2", role2, "test", "putrole");
+
+        Role role3 = createRoleObject(domainName, "role3", "coretech", null, null);
+        zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role3", role3, "test", "putrole");
+
+        DomainMeta meta = new DomainMeta().setMemberExpiryDays(40);
+        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, domainName, meta, null, false, auditRef, "putDomainMeta");
+
+        Role resRole1 = zms.dbService.getRole(domainName, "role1", false, true, false);
+
+        // verify all users have an expiry of close to 40 days except tim who will maintain
+        // his 10 day expiry value
+
+        long ext40Millis = TimeUnit.MILLISECONDS.convert(40, TimeUnit.DAYS);
+
+        int membersChecked = 0;
+        for (RoleMember roleMember : resRole1.getRoleMembers()) {
+            switch (roleMember.getMemberName()) {
+                case "user.john":
+                case "user.jane":
+                    assertTrue(roleMember.getExpiration().millis() > System.currentTimeMillis() + ext40Millis - 5000 &&
+                            roleMember.getExpiration().millis() < System.currentTimeMillis() + ext40Millis + 5000);
+                    membersChecked += 1;
+                    break;
+                case "user.tim":
+                    assertEquals(roleMember.getExpiration(), timExpiry);
+                    membersChecked += 1;
+                    break;
+            }
+        }
+        assertEquals(membersChecked, 3);
+
+        // verify that all users in role2 have not changed since the role already
+        // has an expiration
+
+        Role resRole2 = zms.dbService.getRole(domainName, "role2", false, true, false);
+
+        membersChecked = 0;
+        for (RoleMember roleMember : resRole2.getRoleMembers()) {
+            switch (roleMember.getMemberName()) {
+                case "user.john":
+                case "user.jane":
+                    assertEquals(roleMember.getExpiration(), timExpiry);
+                    membersChecked += 1;
+                    break;
+            }
+        }
+        assertEquals(membersChecked, 2);
+
+        // now reduce limit to 5 days
+
+        meta.setMemberExpiryDays(5);
+        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, domainName, meta, null, false, auditRef, "putDomainMeta");
+
+        resRole1 = zms.dbService.getRole(domainName, "role1", false, true, false);
+
+        // verify all users have an expiry of 5 days
+
+        long ext5Millis = TimeUnit.MILLISECONDS.convert(5, TimeUnit.DAYS);
+
+        membersChecked = 0;
+        for (RoleMember roleMember : resRole1.getRoleMembers()) {
+            switch (roleMember.getMemberName()) {
+                case "user.john":
+                case "user.jane":
+                case "user.tim":
+                    assertTrue(roleMember.getExpiration().millis() > System.currentTimeMillis() + ext5Millis - 5000 &&
+                            roleMember.getExpiration().millis() < System.currentTimeMillis() + ext5Millis + 5000);
+                    membersChecked += 1;
+                    break;
+            }
+        }
+        assertEquals(membersChecked, 3);
+
+        // verify that all users in role2 have not changed since the role already
+        // has an expiration
+
+        resRole2 = zms.dbService.getRole(domainName, "role2", false, true, false);
+
+        membersChecked = 0;
+        for (RoleMember roleMember : resRole2.getRoleMembers()) {
+            switch (roleMember.getMemberName()) {
+                case "user.john":
+                case "user.jane":
+                    assertEquals(roleMember.getExpiration(), timExpiry);
+                    membersChecked += 1;
+                    break;
+            }
+        }
+        assertEquals(membersChecked, 2);
+
+        // now set it back to 40 but nothing will change
+
+        meta.setMemberExpiryDays(40);
+        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, domainName, meta, null, false, auditRef, "putDomainMeta");
+
+        resRole1 = zms.dbService.getRole(domainName, "role1", false, true, false);
+
+        membersChecked = 0;
+        for (RoleMember roleMember : resRole1.getRoleMembers()) {
+            switch (roleMember.getMemberName()) {
+                case "user.john":
+                case "user.jane":
+                case "user.tim":
+                    assertTrue(roleMember.getExpiration().millis() > System.currentTimeMillis() + ext5Millis - 5000 &&
+                            roleMember.getExpiration().millis() < System.currentTimeMillis() + ext5Millis + 5000);
+                    membersChecked += 1;
+                    break;
+            }
+        }
+        assertEquals(membersChecked, 3);
+
+        // verify that all users in role2 have not changed since the role already
+        // has an expiration
+
+        resRole2 = zms.dbService.getRole(domainName, "role2", false, true, false);
+
+        membersChecked = 0;
+        for (RoleMember roleMember : resRole2.getRoleMembers()) {
+            switch (roleMember.getMemberName()) {
+                case "user.john":
+                case "user.jane":
+                    assertEquals(roleMember.getExpiration(), timExpiry);
+                    membersChecked += 1;
+                    break;
+            }
+        }
+        assertEquals(membersChecked, 2);
+
+        // verify our trust role
+
+        Role resRole3 = zms.dbService.getRole(domainName, "role3", false, true, false);
+        assertEquals(resRole3.getTrust(), "coretech");
+        assertNull(resRole3.getRoleMembers());
+
+        zms.dbService.executeDeleteDomain(mockDomRsrcCtx, domainName, auditRef, "deletedomain");
+    }
+
+    @Test
+    public void updateDomainMembersExpirationNoChanges() {
+
+        final String domainName = "domain-meta-expiry";
+        List<String> admins = new ArrayList<>();
+        admins.add(adminUser);
+
+        zms.dbService.makeDomain(mockDomRsrcCtx, domainName, "test desc", "org", false, admins,
+                "", 1234, "", 0, null, auditRef);
+
+        Role role1 = createRoleObject(domainName, "role1", null, "user.john", "user.jane");
+        Timestamp timExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(10, TimeUnit.DAYS));
+        role1.getRoleMembers().get(0).setExpiration(timExpiry);
+        role1.getRoleMembers().get(1).setExpiration(timExpiry);
+        role1.setMemberExpiryDays(15);
+        zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role1", role1, "test", "putrole");
+
+        RoleMeta rm = new RoleMeta().setMemberExpiryDays(10);
+        zms.dbService.executePutRoleMeta(mockDomRsrcCtx, domainName, "admin",
+                rm, auditRef, "putrolemeta");
+
+        // we're going to set the meta but there will be no changes
+        // since the both roles have values set.
+
+        DomainMeta meta = new DomainMeta().setMemberExpiryDays(5);
+        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, domainName, meta, null, false, auditRef, "putDomainMeta");
+
+        // verify that all users in role1 have not changed since the role already
+        // has an expiration
+
+        Role resRole1 = zms.dbService.getRole(domainName, "role1", false, true, false);
+
+        int membersChecked = 0;
+        for (RoleMember roleMember : resRole1.getRoleMembers()) {
+            switch (roleMember.getMemberName()) {
+                case "user.john":
+                case "user.jane":
+                    assertEquals(roleMember.getExpiration(), timExpiry);
+                    membersChecked += 1;
+                    break;
+            }
+        }
+        assertEquals(membersChecked, 2);
+
+        zms.dbService.executeDeleteDomain(mockDomRsrcCtx, domainName, auditRef, "deletedomain");
+    }
+
+    @Test
+    public void testUpdateDomainMembersExpirationFailure() {
+
+        Domain domain = new Domain().setName("test1").setMemberExpiryDays(100);
+        Domain updateDomain = new Domain().setName("test1").setMemberExpiryDays(50);
+
+        ObjectStoreConnection mockConn = Mockito.mock(ObjectStoreConnection.class);
+
+        // we're going to make sure to throw an exception here
+        // since this should never be called
+
+        Mockito.when(mockConn.updateDomainModTimestamp("test1")).thenThrow(new IllegalArgumentException());
+
+        zms.dbService.updateDomainMembersExpiration(mockDomRsrcCtx, mockConn, domain, updateDomain, auditRef,
+                "testUpdateMdomainMembersExpirationFailure");
+    }
+
+    @Test
+    public void testUpdateDomainMembersExpirationObjectStoreFailure() {
+
+        final String domainName = "domain-meta-expiry";
+        List<String> admins = new ArrayList<>();
+        admins.add(adminUser);
+
+        zms.dbService.makeDomain(mockDomRsrcCtx, domainName, "test desc", "org", false, admins,
+                "", 1234, "", 0, null, auditRef);
+
+        Domain domain = new Domain().setName("domain-meta-expiry").setMemberExpiryDays(100);
+        Domain updateDomain = new Domain().setName("domain-meta-expiry").setMemberExpiryDays(50);
+
+        ObjectStoreConnection mockConn = Mockito.mock(ObjectStoreConnection.class);
+        Mockito.when(mockConn.insertRoleMember(Mockito.anyString(), Mockito.anyString(), Mockito.any(),
+                Mockito.any(), Mockito.anyString())).thenReturn(false);
+
+        // we're going to make sure to throw an exception here
+        // since this should never be called
+
+        Mockito.when(mockConn.updateDomainModTimestamp("test1")).thenThrow(new IllegalArgumentException());
+
+        zms.dbService.updateDomainMembersExpiration(mockDomRsrcCtx, mockConn, domain, updateDomain, auditRef,
+                "testUpdateMdomainMembersExpirationFailure");
+
+        zms.dbService.executeDeleteDomain(mockDomRsrcCtx, domainName, auditRef, "deletedomain");
+    }
+
+    @Test
+    public void testMemberExpiryDayReduced() {
+
+        assertFalse(zms.dbService.memberExpiryDaysReduced(null, null));
+        assertFalse(zms.dbService.memberExpiryDaysReduced(10, null));
+        assertFalse(zms.dbService.memberExpiryDaysReduced(0, null));
+        assertFalse(zms.dbService.memberExpiryDaysReduced(-1, null));
+
+        assertFalse(zms.dbService.memberExpiryDaysReduced(null, 0));
+        assertFalse(zms.dbService.memberExpiryDaysReduced(10, 0));
+        assertFalse(zms.dbService.memberExpiryDaysReduced(0, 0));
+        assertFalse(zms.dbService.memberExpiryDaysReduced(-1, 0));
+
+        assertFalse(zms.dbService.memberExpiryDaysReduced(null, -1));
+        assertFalse(zms.dbService.memberExpiryDaysReduced(10, -1));
+        assertFalse(zms.dbService.memberExpiryDaysReduced(0, -1));
+        assertFalse(zms.dbService.memberExpiryDaysReduced(-1, -1));
+
+        assertTrue(zms.dbService.memberExpiryDaysReduced(null, 10));
+        assertTrue(zms.dbService.memberExpiryDaysReduced(0, 10));
+        assertTrue(zms.dbService.memberExpiryDaysReduced(-1, 10));
+
+        assertFalse(zms.dbService.memberExpiryDaysReduced(5, 10));
+        assertTrue(zms.dbService.memberExpiryDaysReduced(10, 5));
+    }
+
+    @Test
+    public void testGetServicePublicKeyEntryServiceUnavailable() {
+
+        final String domainName = "test1";
+        final String serviceName = "service1";
+        final String keyId = "0";
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        ObjectStoreConnection mockConn = Mockito.mock(ObjectStoreConnection.class);
+        Mockito.when(mockObjStore.getConnection(true, false)).thenReturn(mockConn);
+        Mockito.when(mockConn.getPublicKeyEntry(domainName, serviceName, keyId, false))
+                .thenThrow(new ResourceException(ResourceException.SERVICE_UNAVAILABLE));
+
+        try {
+            zms.dbService.getServicePublicKeyEntry(domainName, serviceName, keyId, false);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.SERVICE_UNAVAILABLE);
+        }
+        zms.dbService.store = saveStore;
     }
 }

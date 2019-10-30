@@ -197,7 +197,7 @@ public class ZMSUtilsTest {
     @Test(dataProvider = "roles")
     public void testValidateRoleMembers(String domainName, Role role, boolean expectedFailure) {
         try {
-            ZMSUtils.validateRoleMembers(role, null, domainName);
+            ZMSUtils.validateRoleStructure(role, null, domainName);
             if (expectedFailure) {
                 fail();
             }
@@ -223,24 +223,24 @@ public class ZMSUtilsTest {
     }
     
     @Test(dataProvider = "members")
-    public void testRemoveMembers(List<String> orginalRoleMembersList,
+    public void testRemoveMembers(List<String> originalRoleMembersList,
             List<String> removeRoleMembersList, int expectedSize) {
         
-        List<RoleMember> orginalRoleMembers = ZMSUtils.convertMembersToRoleMembers(orginalRoleMembersList);
+        List<RoleMember> originalRoleMembers = ZMSUtils.convertMembersToRoleMembers(originalRoleMembersList);
         List<RoleMember> removeRoleMembers = ZMSUtils.convertMembersToRoleMembers(removeRoleMembersList);
         
-        ZMSUtils.removeMembers(orginalRoleMembers, removeRoleMembers);
+        ZMSUtils.removeMembers(originalRoleMembers, removeRoleMembers);
         
         //remove case
-        for (RoleMember orgMember: orginalRoleMembers) {
+        for (RoleMember orgMember: originalRoleMembers) {
             for (RoleMember removeMember: removeRoleMembers) {
                 if (orgMember.getMemberName().equalsIgnoreCase(removeMember.getMemberName())) {
-                    fail("Should have removed " + removeMember);
+                    fail("Should have removed " + removeMember.getMemberName());
                 }
             }
         }
         
-        assertEquals(orginalRoleMembers.size(), expectedSize);
+        assertEquals(originalRoleMembers.size(), expectedSize);
     }
     
     @Test

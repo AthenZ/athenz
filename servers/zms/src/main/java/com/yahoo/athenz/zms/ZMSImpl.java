@@ -64,6 +64,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import static com.yahoo.athenz.common.server.notification.NotificationService.*;
@@ -1313,7 +1314,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         List<String> adminUsers = normalizedAdminUsers(detail.getAdminUsers());
 
-        // inherit audit_enabled flag from parent domain
+        // inherit audit_enabled flag and organization from parent domain
+
         AthenzDomain parentDomain = getAthenzDomain(parent, false);
         if (parentDomain != null && parentDomain.getDomain() != null) {
             detail.setAuditEnabled(parentDomain.getDomain().getAuditEnabled());
@@ -2770,10 +2772,15 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     + ZMSUtils.roleResourceName(domainName, roleName) + ", actual: "
                     + role.getName(), caller);
         }
-        
+
+        Domain domain = dbService.getDomain(domainName, false);
+        if (domain == null) {
+            throw ZMSUtils.notFoundError("No such domain: " + domainName, caller);
+        }
+
         // validate role and trust settings are as expected
         
-        ZMSUtils.validateRoleMembers(role, caller, domainName);
+        ZMSUtils.validateRoleStructure(role, caller, domainName);
         
         // normalize and remove duplicate members
         
@@ -2782,6 +2789,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // check to see if we need to validate user and service members
 
         validateRoleMemberPrincipals(role, caller);
+
+        // update role expiry based on our configurations
+
+        updateRoleMemberExpiration(domain.getMemberExpiryDays(), role.getMemberExpiryDays(), role.getRoleMembers());
 
         // process our request
         
@@ -2964,6 +2975,64 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return result;
     }
 
+    long configuredExpiryMillis(Integer domainExpiryDays, Integer roleExpiryDays) {
+
+        // the role expiry days settings overrides the domain one if one configured
+
+        int expiryDays = 0;
+        if (roleExpiryDays != null && roleExpiryDays > 0) {
+            expiryDays = roleExpiryDays;
+        } else if (domainExpiryDays != null && domainExpiryDays > 0) {
+            expiryDays = domainExpiryDays;
+        }
+        return expiryDays == 0 ? 0 : System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(expiryDays, TimeUnit.DAYS);
+    }
+
+    Timestamp getMemberExpiration(long cfgExpiryMillis, Timestamp memberExpiration) {
+        if (memberExpiration == null) {
+            return Timestamp.fromMillis(cfgExpiryMillis);
+        } else if (memberExpiration.millis() > cfgExpiryMillis) {
+            return Timestamp.fromMillis(cfgExpiryMillis);
+        } else {
+            return memberExpiration;
+        }
+    }
+
+    void updateRoleMemberExpiration(Integer domainExpiryDays, Integer roleExpiryDays, List<RoleMember> roleMembers) {
+
+        long cfgExpiryMillis = configuredExpiryMillis(domainExpiryDays, roleExpiryDays);
+
+        // if we have no value configured then we have nothing to
+        // do so we'll just return right away
+
+        if (cfgExpiryMillis == 0) {
+            return;
+        }
+
+        // go through the members and update expiration as necessary
+
+        for (RoleMember roleMember : roleMembers) {
+            roleMember.setExpiration(getMemberExpiration(cfgExpiryMillis, roleMember.getExpiration()));
+        }
+    }
+
+    Timestamp memberExpiryTimestamp(Integer domainExpiryDays, Integer roleExpiryDays, Timestamp memberExpiration) {
+
+        long cfgExpiryMillis = configuredExpiryMillis(domainExpiryDays, roleExpiryDays);
+
+        // if we have no value configured then return
+        // the membership expiration as is
+
+        if (cfgExpiryMillis == 0) {
+            return memberExpiration;
+        }
+
+        // otherwise compare the configured expiry days with the specified
+        // membership value and choose the smallest expiration value
+
+        return getMemberExpiration(cfgExpiryMillis, memberExpiration);
+    }
+
     @Override
     public void putMembership(ResourceContext ctx, String domainName, String roleName,
             String memberName, String auditRef, Membership membership) {
@@ -3028,7 +3097,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         RoleMember roleMember = new RoleMember();
         roleMember.setMemberName(normalizeDomainAliasUser(memberName));
-        roleMember.setExpiration(membership.getExpiration());
+        roleMember.setExpiration(memberExpiryTimestamp(domain.getDomain().getMemberExpiryDays(),
+                role.getMemberExpiryDays(), membership.getExpiration()));
 
         // check to see if we need to validate the principal
 
@@ -6905,7 +6975,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         RoleMember roleMember = new RoleMember();
         roleMember.setMemberName(normalizeDomainAliasUser(memberName));
-        roleMember.setExpiration(membership.getExpiration());
+        roleMember.setExpiration(memberExpiryTimestamp(domain.getDomain().getMemberExpiryDays(),
+                role.getMemberExpiryDays(), membership.getExpiration()));
         roleMember.setApproved(membership.getApproved());
         roleMember.setActive(membership.getActive());
 
