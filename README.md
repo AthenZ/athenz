@@ -95,6 +95,8 @@ credentials for configured AWS IAM roles.
     * [ZMS Client Utility](docs/zms_client.md)
     * [ZPU Utility](docs/setup_zpu.md)
     * [Registering ZMS Service Identity](docs/reg_service_guide.md)
+    * [ZMS API](docs/zms_api.md)
+    * [ZTS API](docs/zts_api.md)
 
 ## Contribute
 
