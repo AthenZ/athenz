@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public class DBService {
     
@@ -835,6 +836,7 @@ public class DBService {
             try (ObjectStoreConnection con = store.getConnection(false, true)) {
 
                 String principal = getPrincipalName(ctx);
+
                 // first verify that auditing requirements are met
 
                 checkDomainAuditEnabled(con, domainName, auditRef, caller, principal, AUDIT_TYPE_ROLE);
@@ -986,10 +988,8 @@ public class DBService {
                 auditLogPublicKeyEntry(auditDetails, keyEntry, true);
                 auditDetails.append("]}");
 
-                if (null != ctx) {
-                    auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
-                            serviceName, auditDetails.toString());
-                }
+                auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
+                        serviceName, auditDetails.toString());
 
                 return;
 
@@ -1034,10 +1034,8 @@ public class DBService {
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
                 auditDetails.append("{\"deleted-publicKeys\": [{\"id\": \"").append(keyId).append("\"}]}");
 
-                if (null != ctx) {
-                    auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
-                            serviceName, auditDetails.toString());
-                }
+                auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
+                        serviceName, auditDetails.toString());
 
                 return;
 
@@ -1116,8 +1114,9 @@ public class DBService {
 
                 // audit log the request
 
-                auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
-                        roleName, "{\"member\": \"" + roleMember.getMemberName() + "\"}");
+                auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT, roleName,
+                        "{\"member\": \"" + roleMember.getMemberName() + "\",\"expiration\": \"" +
+                        roleMember.getExpiration() + "\"}");
 
                 return;
 
@@ -2262,6 +2261,11 @@ public class DBService {
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
                         domainName, auditDetails.toString());
 
+                // if the domain member expiry date has changed then we're going
+                // process all the members in the domain and update the expiration
+                // date accordingly
+
+                updateDomainMembersExpiration(ctx, con, domain, updatedDomain, auditRef, caller);
                 return;
 
             } catch (ResourceException ex) {
@@ -2269,6 +2273,63 @@ public class DBService {
                     throw ex;
                 }
             }
+        }
+    }
+
+    void updateDomainMembersExpiration(ResourceContext ctx, ObjectStoreConnection con, Domain domain,
+            Domain updatedDomain, String auditRef, String caller) {
+
+        // we only need to process the domain role members if the new expiration
+        // is more restrictive than what we had before
+
+        if (!memberExpiryDaysReduced(domain.getMemberExpiryDays(), updatedDomain.getMemberExpiryDays())) {
+            return;
+        }
+
+        AthenzDomain athenzDomain;
+        try {
+            athenzDomain = getAthenzDomain(domain.getName(), false);
+        } catch (ResourceException ex) {
+            LOG.error("unable to fetch domain {}: {}", domain.getName(), ex.getMessage());
+            return;
+        }
+
+        long millis = System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(updatedDomain.getMemberExpiryDays(), TimeUnit.DAYS);
+        Timestamp expiration = Timestamp.fromMillis(millis);
+        boolean bDataChanged = false;
+        final String principal = getPrincipalName(ctx);
+
+        for (Role role : athenzDomain.getRoles()) {
+
+            // if the role already has a specific expiry date set then we
+            // will automatically skip this role
+
+            if (role.getMemberExpiryDays() != null) {
+                continue;
+            }
+
+            // if it's a delegated role then we have nothing to do
+
+            if (role.getTrust() != null && !role.getTrust().isEmpty()) {
+                continue;
+            }
+
+            // process our role members and if there were any changes processed then update
+            // our role and domain time-stamps, and invalidate local cache entry
+
+            final String roleName = ZMSUtils.extractRoleName(role.getName());
+            if (setRoleMemberExpiration(ctx, con, role, expiration, millis, domain.getName(), roleName,
+                    principal, auditRef, caller)) {
+                con.updateRoleModTimestamp(domain.getName(), roleName);
+                bDataChanged = true;
+            }
+        }
+
+        // update our role and domain time-stamps, and invalidate local cache entry
+
+        if (bDataChanged) {
+            con.updateDomainModTimestamp(domain.getName());
+            cacheStore.invalidate(domain.getName());
         }
     }
 
@@ -3718,6 +3779,13 @@ public class DBService {
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
                         domainName, auditDetails.toString());
 
+                // if the role member expiry date has changed then we're going
+                // process all the members in the role and update the expiration
+                // date accordingly
+
+                updateRoleMembersExpiration(ctx, con, domainName, roleName, originalRole, updatedRole,
+                        auditRef, caller);
+
                 return;
 
             } catch (ResourceException ex) {
@@ -3726,6 +3794,85 @@ public class DBService {
                 }
             }
         }
+    }
+
+    boolean setRoleMemberExpiration(ResourceContext ctx, ObjectStoreConnection con, Role role, Timestamp expiration,
+            long millis, final String domainName, final String roleName, final String principal, final String auditRef,
+            final String caller) {
+
+        boolean bDataChanged = false;
+        for (RoleMember roleMember : role.getRoleMembers()) {
+
+            if (roleMember.getExpiration() != null && roleMember.getExpiration().millis() < millis) {
+                continue;
+            }
+
+            roleMember.setExpiration(expiration);
+
+            try {
+                if (!con.insertRoleMember(domainName, roleName, roleMember, principal, auditRef)) {
+                    LOG.error("unable to update member {} expiration", roleMember.getMemberName());
+                    continue;
+                }
+            } catch (Exception ex) {
+                LOG.error("unable to update member {} expiration: {}", roleMember.getMemberName(), ex.getMessage());
+                continue;
+            }
+
+            // audit log the request
+
+            auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT, roleName,
+                    "{\"member\": \"" + roleMember.getMemberName() + "\",\"expiration\": \"" +
+                            roleMember.getExpiration() + "\"}");
+
+            bDataChanged = true;
+        }
+
+        return bDataChanged;
+    }
+
+    void updateRoleMembersExpiration(ResourceContext ctx, ObjectStoreConnection con, final String domainName,
+            final String roleName, Role originalRole, Role updatedRole, final String auditRef, final String caller) {
+
+        // if it's a delegated role then we have nothing to do
+
+        if (originalRole.getTrust() != null && !originalRole.getTrust().isEmpty()) {
+            return;
+        }
+
+        // we only need to process the role members if the new expiration
+        // is more restrictive than what we had before
+
+        if (!memberExpiryDaysReduced(originalRole.getMemberExpiryDays(), updatedRole.getMemberExpiryDays())) {
+            return;
+        }
+
+        // we're only going to process those role members whose
+        // expiration is either not set or longer than the new limit
+
+        long millis = System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(updatedRole.getMemberExpiryDays(), TimeUnit.DAYS);
+        Timestamp expiration = Timestamp.fromMillis(millis);
+        final String principal = getPrincipalName(ctx);
+
+        // process our role members and if there were any changes processed then update
+        // our role and domain time-stamps, and invalidate local cache entry
+
+        if (setRoleMemberExpiration(ctx, con, originalRole, expiration, millis, domainName, roleName,
+                principal, auditRef, caller)) {
+            con.updateRoleModTimestamp(domainName, roleName);
+            con.updateDomainModTimestamp(domainName);
+            cacheStore.invalidate(domainName);
+        }
+    }
+
+    boolean memberExpiryDaysReduced(Integer oldMemberExpiryDays, Integer newMemberExpiryDays) {
+        if (newMemberExpiryDays == null || newMemberExpiryDays <= 0) {
+            return false;
+        }
+        if (oldMemberExpiryDays == null || oldMemberExpiryDays <= 0) {
+            return true;
+        }
+        return newMemberExpiryDays < oldMemberExpiryDays;
     }
 
     /**
@@ -3793,7 +3940,7 @@ public class DBService {
                 StringBuilder auditDetails = new StringBuilder("{\"member\": \"").append(roleMember.getMemberName())
                         .append("\",\"decision\": \"").append(status).append("\"");
                 if (roleMember.getExpiration() != null) {
-                    auditDetails.append("\"expiry\": \"").append(roleMember.getExpiration()).append("\"");
+                    auditDetails.append(",\"expiration\": \"").append(roleMember.getExpiration()).append("\"");
                 }
                 auditDetails.append("}");
 

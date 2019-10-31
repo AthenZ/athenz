@@ -1585,8 +1585,7 @@ public class FileConnection implements ObjectStoreConnection {
         if (auditDom != null && auditDom.getRoles() != null && !auditDom.getRoles().isEmpty()) {
             for (Role role : auditDom.getRoles().values()) {
                 if (role.getRoleMembers().contains(rm)) {
-                    int idx = role.getName().indexOf(":role.");
-                    orgs.add(role.getName().substring(idx + 6));
+                    orgs.add(ZMSUtils.extractRoleName(role.getName()));
                 }
             }
         }
@@ -1611,8 +1610,7 @@ public class FileConnection implements ObjectStoreConnection {
                                 List<MemberRole> memberRoles = new ArrayList<>();
                                 MemberRole memberRole = new MemberRole();
                                 memberRole.setActive(false);
-                                int idx = role.getName().indexOf(":role.");
-                                memberRole.setRoleName(role.getName().substring(idx + 6));
+                                memberRole.setRoleName(ZMSUtils.extractRoleName(role.getName()));
                                 memberRole.setExpiration(roleMember.getExpiration());
                                 memberRoles.add(memberRole);
                                 domainRoleMember.setMemberRoles(memberRoles);
@@ -1703,8 +1701,7 @@ public class FileConnection implements ObjectStoreConnection {
                         List<MemberRole> memberRoles = new ArrayList<>();
                         MemberRole memberRole = new MemberRole();
                         memberRole.setActive(false);
-                        int idx = role.getName().indexOf(":role.");
-                        memberRole.setRoleName(role.getName().substring(idx + 6));
+                        memberRole.setRoleName(ZMSUtils.extractRoleName(role.getName()));
                         memberRole.setExpiration(roleMember.getExpiration());
                         memberRoles.add(memberRole);
                         domainRoleMember.setMemberRoles(memberRoles);

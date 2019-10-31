@@ -166,7 +166,7 @@ public class ZMSUtils {
         return roleName.matches(rezPattern);
     }
     
-    public static void validateRoleMembers(final Role role, final String caller,
+    public static void validateRoleStructure(final Role role, final String caller,
             final String domainName) {
         
         if ((role.getMembers() != null && !role.getMembers().isEmpty()) 
@@ -194,9 +194,7 @@ public class ZMSUtils {
         }
     }
     
-    @SuppressWarnings("SuspiciousListRemoveInLoop")
-    public static void removeMembers(List<RoleMember> originalRoleMembers,
-                                     List<RoleMember> removeRoleMembers) {
+    public static void removeMembers(List<RoleMember> originalRoleMembers, List<RoleMember> removeRoleMembers) {
         if (removeRoleMembers == null || originalRoleMembers == null) {
             return;
         }
@@ -205,6 +203,7 @@ public class ZMSUtils {
             for (int j = 0; j < originalRoleMembers.size(); j++) {
                 if (removeName.equalsIgnoreCase(originalRoleMembers.get(j).getMemberName())) {
                     originalRoleMembers.remove(j);
+                    break;
                 }
             }
         }
@@ -350,5 +349,10 @@ public class ZMSUtils {
             boolVal = Boolean.parseBoolean(value.trim());
         }
         return boolVal;
+    }
+
+    public static String extractRoleName(final String roleName) {
+        int idx = roleName.indexOf(":role.");
+        return (idx == -1) ? null : roleName.substring(idx + 6);
     }
 }
