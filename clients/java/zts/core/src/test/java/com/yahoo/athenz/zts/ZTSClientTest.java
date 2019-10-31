@@ -2677,6 +2677,9 @@ public class ZTSClientTest {
         roles.add("ones");
 
         assertEquals(ZTSClient.multipleRoleKey(roles), "apple,one,ones,role,yellow");
+
+        List<String> unmRoles = Collections.unmodifiableList(roles);
+        assertEquals(ZTSClient.multipleRoleKey(unmRoles), "apple,one,ones,role,yellow");
     }
 
     @Test
