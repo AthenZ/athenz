@@ -2924,9 +2924,12 @@ public class ZTSClient implements Closeable {
         
         // if we have multiple roles, then we have to
         // sort the values and then generate the key
-        
-        Collections.sort(roles);
-        return String.join(",", roles);
+        // since we might have been given unmodifiable
+        // list we need to make a copy so we can sort it
+
+        List<String> modList = new ArrayList<>(roles);
+        Collections.sort(modList);
+        return String.join(",", modList);
     }
     
     /**
