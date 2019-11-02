@@ -911,7 +911,7 @@ public class ZMSResources {
     public void putMembershipDecision(@PathParam("domainName") String domainName, @PathParam("roleName") String roleName, @PathParam("memberName") String memberName, @HeaderParam("Y-Audit-Ref") String auditRef, Membership membership) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
-            context.authenticate();
+            context.authorize("update", "" + domainName + ":role." + roleName + "", null);
             this.delegate.putMembershipDecision(context, domainName, roleName, memberName, auditRef, membership);
         } catch (ResourceException e) {
             int code = e.getCode();
