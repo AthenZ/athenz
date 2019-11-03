@@ -2189,7 +2189,7 @@ public class ZMSImplTest {
             assertTrue(msg.contains("CLIENT-IP=(" + MOCKCLIENTADDR + ")"), msg);
             int index = msg.indexOf("WHAT-details=(");
             assertTrue(index != -1, msg);
-            int index2 = msg.indexOf("\"name\": \"role1\", \"trust\": \"null\", \"deleted-members\": [\"user.jane\"], \"added-members\": []");
+            int index2 = msg.indexOf("\"name\": \"role1\", \"trust\": \"null\", \"deleted-members\": [{\"member\": \"user.jane\", \"approved\": true}], \"added-members\": []");
             assertTrue(index2 > index, msg);
             foundError = true;
             break;
@@ -2746,7 +2746,7 @@ public class ZMSImplTest {
             }
             int index = msg.indexOf("WHAT-details=(");
             assertTrue(index != -1, msg);
-            int index2 = msg.indexOf("{\"member\": \"user.doe\",\"expiration\": \"null\"}");
+            int index2 = msg.indexOf("{\"member\": \"user.doe\", \"approved\": true}");
             assertTrue(index2 > index, msg);
             foundError = true;
             break;
@@ -2779,7 +2779,7 @@ public class ZMSImplTest {
             }
             int index = msg.indexOf("WHAT-details=(");
             assertTrue(index != -1, msg);
-            int index2 = msg.indexOf("{\"member\": \"coretech.storage\",\"expiration\": \"null\"}");
+            int index2 = msg.indexOf("{\"member\": \"coretech.storage\", \"approved\": true}");
             assertTrue(index2 > index, msg);
             foundError = true;
             break;

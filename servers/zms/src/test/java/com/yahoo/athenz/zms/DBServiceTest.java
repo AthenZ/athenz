@@ -4885,4 +4885,29 @@ public class DBServiceTest {
         }
         zms.dbService.store = saveStore;
     }
+
+    @Test
+    public void testAuditLogRoleMember() {
+
+        StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
+        RoleMember rm = new RoleMember().setMemberName("user.joe");
+        zms.dbService.auditLogRoleMember(auditDetails, rm, true);
+        assertEquals(auditDetails.toString(), "{\"member\": \"user.joe\", \"approved\": true}");
+
+        auditDetails.setLength(0);
+        RoleMember rm2 = new RoleMember().setMemberName("user.joe").setApproved(true);
+        zms.dbService.auditLogRoleMember(auditDetails, rm2, true);
+        assertEquals(auditDetails.toString(), "{\"member\": \"user.joe\", \"approved\": true}");
+
+        auditDetails.setLength(0);
+        RoleMember rm3 = new RoleMember().setMemberName("user.joe").setApproved(false);
+        zms.dbService.auditLogRoleMember(auditDetails, rm3, true);
+        assertEquals(auditDetails.toString(), "{\"member\": \"user.joe\", \"approved\": false}");
+
+        auditDetails.setLength(0);
+        RoleMember rm4 = new RoleMember().setMemberName("user.joe")
+                .setApproved(false).setExpiration(Timestamp.fromMillis(1000));
+        zms.dbService.auditLogRoleMember(auditDetails, rm4, true);
+        assertEquals(auditDetails.toString(), "{\"member\": \"user.joe\", \"expiration\": \"1970-01-01T00:00:01.000Z\", \"approved\": false}");
+    }
 }
