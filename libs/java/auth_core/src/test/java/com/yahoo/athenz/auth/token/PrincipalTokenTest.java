@@ -131,6 +131,16 @@ public class PrincipalTokenTest {
         assertEquals(svcToken2.getSignedToken(), serviceTokenToValidate.getSignedToken());
     }
 
+    @Test
+    public void testServiceTokenWithInvalidArgs() throws CryptoException {
+
+        String testKeyVersionK1 = "1";
+        PrincipalToken serviceToken = createServiceToken(testKeyVersionK1);
+        PrincipalToken serviceTokenToValidate = new PrincipalToken(serviceToken.getSignedToken() + ";d=new;n=api2");
+
+        // Validate the signature and that expiration time had not elapsed
+        assertFalse(serviceTokenToValidate.validate(servicePublicKeyStringK1, 300, false));
+    }
 
     @Test
     public void testUserToken() throws CryptoException {
@@ -200,11 +210,10 @@ public class PrincipalTokenTest {
     public void testEmptyToken() {
 
         try {
-            @SuppressWarnings("unused")
-            PrincipalToken token = new PrincipalToken("");
+            new PrincipalToken("");
             fail();
-        } catch (IllegalArgumentException ex) {
-            assertTrue(true);
+        } catch (Exception ex) {
+            assertTrue(ex instanceof IllegalArgumentException, ex.getMessage());
         }
     }
 
@@ -212,11 +221,10 @@ public class PrincipalTokenTest {
     public void testNullToken() {
 
         try {
-            @SuppressWarnings("unused")
-            PrincipalToken token = new PrincipalToken(null);
+            new PrincipalToken(null);
             fail();
-        } catch (IllegalArgumentException ex) {
-            assertTrue(true);
+        } catch (Exception ex) {
+            assertTrue(ex instanceof IllegalArgumentException, ex.getMessage());
         }
     }
 
@@ -224,11 +232,10 @@ public class PrincipalTokenTest {
     public void testTokenDomainNull() {
 
         try {
-            @SuppressWarnings("unused")
-            PrincipalToken token = new PrincipalToken("v=S1;n=storage;s=sig");
+            new PrincipalToken("v=S1;n=storage;s=sig");
             fail();
-        } catch (IllegalArgumentException ex) {
-            assertTrue(true);
+        } catch (Exception ex) {
+            assertTrue(ex instanceof IllegalArgumentException, ex.getMessage());
         }
     }
 
@@ -236,11 +243,10 @@ public class PrincipalTokenTest {
     public void testTokenDomainEmpty() {
 
         try {
-            @SuppressWarnings("unused")
-            PrincipalToken token = new PrincipalToken("v=S1;d=;n=storage;s=sig");
+            new PrincipalToken("v=S1;d=;n=storage;s=sig");
             fail();
-        } catch (IllegalArgumentException ex) {
-            assertTrue(true);
+        } catch (Exception ex) {
+            assertTrue(ex instanceof IllegalArgumentException, ex.getMessage());
         }
     }
 
@@ -248,11 +254,10 @@ public class PrincipalTokenTest {
     public void tesTokenNameNull() {
 
         try {
-            @SuppressWarnings("unused")
-            PrincipalToken token = new PrincipalToken("v=S1;d=coretech;s=sig");
+            new PrincipalToken("v=S1;d=coretech;s=sig");
             fail();
-        } catch (IllegalArgumentException ex) {
-            assertTrue(true);
+        } catch (Exception ex) {
+            assertTrue(ex instanceof IllegalArgumentException, ex.getMessage());
         }
     }
 
@@ -260,11 +265,10 @@ public class PrincipalTokenTest {
     public void testTokenNameEmpty() {
 
         try {
-            @SuppressWarnings("unused")
-            PrincipalToken token = new PrincipalToken("v=S1;d=coretech;n=;s=sig");
+            new PrincipalToken("v=S1;d=coretech;n=;s=sig");
             fail();
-        } catch (IllegalArgumentException ex) {
-            assertTrue(true);
+        } catch (Exception ex) {
+            assertTrue(ex instanceof IllegalArgumentException, ex.getMessage());
         }
     }
 
@@ -291,11 +295,10 @@ public class PrincipalTokenTest {
     public void testBuilderRequiredVersionNull() {
 
         try {
-            @SuppressWarnings("unused")
-            PrincipalToken.Builder builder = new PrincipalToken.Builder(null, svcDomain, svcName);
+            new PrincipalToken.Builder(null, svcDomain, svcName);
             fail();
-        } catch (IllegalArgumentException ex) {
-            assertTrue(true);
+        } catch (Exception ex) {
+            assertTrue(ex instanceof IllegalArgumentException, ex.getMessage());
         }
     }
 
@@ -303,11 +306,10 @@ public class PrincipalTokenTest {
     public void testBuilderRequiredVersionEmptyString() {
 
         try {
-            @SuppressWarnings("unused")
-            PrincipalToken.Builder builder = new PrincipalToken.Builder("", svcDomain, svcName);
+            new PrincipalToken.Builder("", svcDomain, svcName);
             fail();
-        } catch (IllegalArgumentException ex) {
-            assertTrue(true);
+        } catch (Exception ex) {
+            assertTrue(ex instanceof IllegalArgumentException, ex.getMessage());
         }
     }
 
@@ -315,11 +317,10 @@ public class PrincipalTokenTest {
     public void testBuilderRequiredDomainNull() {
 
         try {
-            @SuppressWarnings("unused")
-            PrincipalToken.Builder builder = new PrincipalToken.Builder(svcVersion, null, svcName);
+            new PrincipalToken.Builder(svcVersion, null, svcName);
             fail();
-        } catch (IllegalArgumentException ex) {
-            assertTrue(true);
+        } catch (Exception ex) {
+            assertTrue(ex instanceof IllegalArgumentException, ex.getMessage());
         }
     }
 
@@ -327,11 +328,10 @@ public class PrincipalTokenTest {
     public void testBuilderRequiredDomainEmptyString() {
 
         try {
-            @SuppressWarnings("unused")
-            PrincipalToken.Builder builder = new PrincipalToken.Builder(svcVersion, "", svcName);
+            new PrincipalToken.Builder(svcVersion, "", svcName);
             fail();
-        } catch (IllegalArgumentException ex) {
-            assertTrue(true);
+        } catch (Exception ex) {
+            assertTrue(ex instanceof IllegalArgumentException, ex.getMessage());
         }
     }
 
@@ -339,11 +339,10 @@ public class PrincipalTokenTest {
     public void testBuilderRequiredNameNull() {
 
         try {
-            @SuppressWarnings("unused")
-            PrincipalToken.Builder builder = new PrincipalToken.Builder(svcVersion, svcDomain, null);
+            new PrincipalToken.Builder(svcVersion, svcDomain, null);
             fail();
-        } catch (IllegalArgumentException ex) {
-            assertTrue(true);
+        } catch (Exception ex) {
+            assertTrue(ex instanceof IllegalArgumentException, ex.getMessage());
         }
     }
 
@@ -351,11 +350,10 @@ public class PrincipalTokenTest {
     public void testBuilderRequiredNameEmptyString() {
 
         try {
-            @SuppressWarnings("unused")
-            PrincipalToken.Builder builder = new PrincipalToken.Builder(svcVersion, svcDomain, "");
+            new PrincipalToken.Builder(svcVersion, svcDomain, "");
             fail();
-        } catch (IllegalArgumentException ex) {
-            assertTrue(true);
+        } catch (Exception ex) {
+            assertTrue(ex instanceof IllegalArgumentException, ex.getMessage());
         }
     }
 
@@ -430,6 +428,45 @@ public class PrincipalTokenTest {
 
         // Validate the signature and that expiration time had not elapsed
         assertTrue(userTokenToValidate.validateForAuthorizedService(servicePublicKeyStringK1, null));
+    }
+
+    @Test
+    public void testUserTokenWithSingleAuthorizedServiceInvalidCompsAtEnd() throws CryptoException {
+        long issueTime = System.currentTimeMillis() / 1000;
+        // Create and sign token
+        List<String> authorizedServices = new ArrayList<>();
+        authorizedServices.add("coretech.storage");
+
+        PrincipalToken userTokenToSign = new PrincipalToken.Builder(usrVersion, usrDomain, usrName)
+                .salt(salt).issueTime(issueTime).expirationWindow(expirationTime)
+                .authorizedServices(authorizedServices).build();
+
+        userTokenToSign.sign(servicePrivateKeyStringK0);
+
+        // now let's sign the token for an authorized service
+
+        userTokenToSign.signForAuthorizedService("coretech.storage", "1", servicePrivateKeyStringK1);
+
+        // Create a token for validation using the signed data
+
+        final String newToken = userTokenToSign.getSignedToken() + ";n=api;bn=sports.api";
+        PrincipalToken userTokenToValidate = new PrincipalToken(newToken);
+
+        // Validate the signature and that expiration time had not elapsed
+        assertFalse(userTokenToValidate.validateForAuthorizedService(servicePublicKeyStringK1, null));
+
+        // authorized service name must be null since there is only 1 entry
+        // in the authorized services list so there must be a match
+        assertNull(userTokenToValidate.getAuthorizedServiceName());
+
+        // Validate all input data
+        assertEquals(userTokenToValidate.getVersion(), usrVersion);
+        assertEquals(userTokenToValidate.getDomain(), usrDomain);
+        assertEquals(userTokenToValidate.getName(), usrName);
+        assertNull(userTokenToValidate.getHost());
+        assertEquals(userTokenToValidate.getSalt(), salt);
+        assertEquals(userTokenToValidate.getAuthorizedServices(), authorizedServices);
+        assertEquals(userTokenToValidate.getAuthorizedServiceKeyId(), "1");
     }
 
     @Test
@@ -719,5 +756,23 @@ public class PrincipalTokenTest {
         assertFalse(token.validateForAuthorizedService(null, null));
 
         assertFalse(token.validateForAuthorizedService(servicePublicKeyStringK1, null));
+    }
+
+    @Test
+    public void testTokenWithExtraArgsAfterSignature() {
+
+        PrincipalToken token = new PrincipalToken("v=S1;d=coretech;n=service;t=1234;e=1235;k=0;h=host1;i=1.2.3.4;b=svc1;s=signature;d=domain2;n=api");
+        assertEquals(token.getDomain(), "coretech");
+        assertEquals(token.getVersion(), "S1");
+        assertEquals(token.getName(), "service");
+        assertEquals(token.getSignature(), "signature;d=domain2;n=api");
+        assertEquals(token.getUnsignedToken(), "v=S1;d=coretech;n=service;t=1234;e=1235;k=0;h=host1;i=1.2.3.4;b=svc1");
+
+        token = new PrincipalToken("v=S1;d=coretech;n=service;t=1234;e=1235;k=0;h=host1;i=1.2.3.4;b=svc1;s=signature;d=domain2;n=api;bs=svc-signature;d=domain2;n=api");
+        assertEquals(token.getDomain(), "coretech");
+        assertEquals(token.getVersion(), "S1");
+        assertEquals(token.getName(), "service");
+        assertEquals(token.getSignature(), "signature");
+        assertEquals(token.getUnsignedToken(), "v=S1;d=coretech;n=service;t=1234;e=1235;k=0;h=host1;i=1.2.3.4;b=svc1");
     }
 }

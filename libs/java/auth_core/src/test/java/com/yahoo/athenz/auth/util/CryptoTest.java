@@ -420,20 +420,20 @@ public class CryptoTest {
         try {
             assertEquals(Crypto.getSignatureAlgorithm("DSA", "SHA256"), "SHA256withDSA");
             fail();
-        } catch (NoSuchAlgorithmException e) {
-            assertTrue(true);
+        } catch (Exception ex) {
+            assertTrue(ex instanceof NoSuchAlgorithmException, ex.getMessage());
         }
         try {
             assertEquals(Crypto.getSignatureAlgorithm("RSA", "SHA555"), "SHA555withRSA");
             fail();
-        } catch (NoSuchAlgorithmException e) {
-            assertTrue(true);
+        } catch (Exception ex) {
+            assertTrue(ex instanceof NoSuchAlgorithmException, ex.getMessage());
         }
         try {
             assertEquals(Crypto.getSignatureAlgorithm("ECDSA", "SHA999"), "SHA999withECDSA");
             fail();
-        } catch (NoSuchAlgorithmException e) {
-            assertTrue(true);
+        } catch (Exception ex) {
+            assertTrue(ex instanceof NoSuchAlgorithmException, ex.getMessage());
         }
     }
 

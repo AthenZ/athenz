@@ -58,8 +58,7 @@ public class RoleTokenTest {
         ztsPrivateKeyStringK1 = new String(Files.readAllBytes(path));
     }
     
-    private RoleToken createRoleTokenToValidate(List<String> roles)
-            throws CryptoException {
+    private RoleToken createRoleTokenToValidate(List<String> roles) throws CryptoException {
         // Create token and sign
         RoleToken rollTokenToSign = new RoleToken.Builder(rolVersion, svcDomain, roles)
             .salt(salt).expirationWindow(expirationTime).build();
@@ -68,20 +67,20 @@ public class RoleTokenTest {
 
         return new RoleToken(rollTokenToSign.getSignedToken());
     }
-    
+
     private RoleToken createRoleTokenToValidate(List<String> roles, String keyVersion)
             throws CryptoException {
         // Create token and sign
         RoleToken rollTokenToSign = new RoleToken.Builder(rolVersion, svcDomain, roles)
             .salt(salt).expirationWindow(expirationTime).keyId(keyVersion).build();
-        
+
         String privateKey = null;
         if ("0".equals(keyVersion)) {
             privateKey = ztsPrivateKeyStringK0;
         } else  if ("1".equals(keyVersion)) {
             privateKey = ztsPrivateKeyStringK1;
         }
-        
+
         rollTokenToSign.sign(privateKey);
 
         return new RoleToken(rollTokenToSign.getSignedToken());
@@ -122,8 +121,44 @@ public class RoleTokenTest {
     }
 
     @Test
-    public void testRoleToken_Expired() throws InterruptedException,
-            CryptoException {
+    public void testRoleTokenInvalidParamsAtEnd() throws CryptoException {
+        // Add some roles
+        List<String> roles = new ArrayList<>();
+        roles.add("reader");
+        roles.add("writer");
+
+        // Create a token for validation using the signed data
+        String testKeyVersionK1 = "1";
+
+        // Create token and sign
+        RoleToken rollTokenToSign = new RoleToken.Builder(rolVersion, svcDomain, roles)
+                .salt(salt).expirationWindow(expirationTime).keyId(testKeyVersionK1).build();
+
+        rollTokenToSign.sign(ztsPrivateKeyStringK1);
+        String signedToken = rollTokenToSign.getSignedToken() + ";d=newdomain;r=newroles";
+
+        RoleToken rollTokenToValidate = new RoleToken(signedToken);
+
+        assertNotNull(rollTokenToValidate.getSignedToken());
+
+        // Validate all input data, we'll be ignoring the data
+        // after the signature
+
+        assertEquals(rollTokenToValidate.getDomain(), svcDomain);
+        List<String> rolesToValidate = rollTokenToValidate.getRoles();
+        assertEquals(rolesToValidate.size(), roles.size());
+        assertEquals(rolesToValidate, roles);
+        assertEquals(rollTokenToValidate.getKeyId(), testKeyVersionK1);
+
+        // Validate the signature and that expiration time had not elapsed
+        // we should get invalid validation due to extra arguments at
+        // end of the string
+
+        assertFalse(rollTokenToValidate.validate(ztsPublicKeyStringK1, 300, false));
+    }
+
+    @Test
+    public void testRoleToken_Expired() throws InterruptedException, CryptoException {
         // Add some roles
         List<String> roles = new ArrayList<>();
         roles.add("storage.tenant.weather.updater");
@@ -171,11 +206,10 @@ public class RoleTokenTest {
     public void testEmptyToken() {
         
         try {
-            @SuppressWarnings("unused")
-            RoleToken token = new RoleToken("");
+            new RoleToken("");
             fail();
-        } catch (IllegalArgumentException ex) {
-            assertTrue(true);
+        } catch (Exception ex) {
+            assertTrue(ex instanceof IllegalArgumentException, ex.getMessage());
         }
     }
     
@@ -183,11 +217,10 @@ public class RoleTokenTest {
     public void testNullToken() {
         
         try {
-            @SuppressWarnings("unused")
-            RoleToken token = new RoleToken(null);
+            new RoleToken(null);
             fail();
-        } catch (IllegalArgumentException ex) {
-            assertTrue(true);
+        } catch (Exception ex) {
+            assertTrue(ex instanceof IllegalArgumentException, ex.getMessage());
         }
     }
 
@@ -200,7 +233,21 @@ public class RoleTokenTest {
         assertEquals(token.getVersion(), "S1");
         assertNull(token.getUnsignedToken());
     }
-    
+
+    @Test
+    public void testTokenWithExtraArgsAfterSignature() {
+
+        RoleToken token = new RoleToken("v=Z1;d=coretech;r=role1,role2;s=signature;d=sports;r=api");
+        assertEquals(token.getDomain(), "coretech");
+        assertNotNull(token.getRoles());
+        assertEquals(token.getRoles().size(), 2);
+        assertTrue(token.getRoles().contains("role1"));
+        assertTrue(token.getRoles().contains("role2"));
+        assertEquals(token.getVersion(), "Z1");
+        assertEquals(token.getSignature(), "signature;d=sports;r=api");
+        assertEquals(token.getUnsignedToken(), "v=Z1;d=coretech;r=role1,role2");
+    }
+
     @Test
     public void testTokenInvalidVersionValue() {
         
@@ -212,11 +259,10 @@ public class RoleTokenTest {
     public void testTokenDomainNull() {
         
         try {
-            @SuppressWarnings("unused")
-            RoleToken token = new RoleToken("v=S1;r=role1,role2;s=signature");
+            new RoleToken("v=S1;r=role1,role2;s=signature");
             fail();
-        } catch (IllegalArgumentException ex) {
-            assertTrue(true);
+        } catch (Exception ex) {
+            assertTrue(ex instanceof IllegalArgumentException, ex.getMessage());
         }
     }
     
@@ -224,11 +270,10 @@ public class RoleTokenTest {
     public void testTokenDomainEmpty() {
         
         try {
-            @SuppressWarnings("unused")
-            RoleToken token = new RoleToken("v=S1;d=;r=role1,role2;s=signature");
+            new RoleToken("v=S1;d=;r=role1,role2;s=signature");
             fail();
-        } catch (IllegalArgumentException ex) {
-            assertTrue(true);
+        } catch (Exception ex) {
+            assertTrue(ex instanceof IllegalArgumentException, ex.getMessage());
         }
     }
     
@@ -236,11 +281,10 @@ public class RoleTokenTest {
     public void testTokenRolesNull() {
         
         try {
-            @SuppressWarnings("unused")
-            RoleToken token = new RoleToken("v=S1;d=coretech;s=signature");
+            new RoleToken("v=S1;d=coretech;s=signature");
             fail();
-        } catch (IllegalArgumentException ex) {
-            assertTrue(true);
+        } catch (Exception ex) {
+            assertTrue(ex instanceof IllegalArgumentException, ex.getMessage());
         }
     }
     
@@ -248,11 +292,10 @@ public class RoleTokenTest {
     public void testTokenRolesEmpty() {
         
         try {
-            @SuppressWarnings("unused")
-            RoleToken token = new RoleToken("v=S1;d=coretech;r=;s=signature");
+            new RoleToken("v=S1;d=coretech;r=;s=signature");
             fail();
-        } catch (IllegalArgumentException ex) {
-            assertTrue(true);
+        } catch (Exception ex) {
+            assertTrue(ex instanceof IllegalArgumentException, ex.getMessage());
         }
     }
     
@@ -262,11 +305,10 @@ public class RoleTokenTest {
         List<String> roles = new ArrayList<>();
         roles.add("storage.tenant.weather.updater");
         try {
-            @SuppressWarnings("unused")
-            RoleToken.Builder builder = new RoleToken.Builder(null, svcDomain, roles);
+            new RoleToken.Builder(null, svcDomain, roles);
             fail();
-        } catch (IllegalArgumentException ex) {
-            assertTrue(true);
+        } catch (Exception ex) {
+            assertTrue(ex instanceof IllegalArgumentException, ex.getMessage());
         }
     }
     
@@ -276,11 +318,10 @@ public class RoleTokenTest {
         List<String> roles = new ArrayList<>();
         roles.add("storage.tenant.weather.updater");
         try {
-            @SuppressWarnings("unused")
-            RoleToken.Builder builder = new RoleToken.Builder("", svcDomain, roles);
+            new RoleToken.Builder("", svcDomain, roles);
             fail();
-        } catch (IllegalArgumentException ex) {
-            assertTrue(true);
+        } catch (Exception ex) {
+            assertTrue(ex instanceof IllegalArgumentException, ex.getMessage());
         }
     }
     
@@ -290,11 +331,10 @@ public class RoleTokenTest {
         List<String> roles = new ArrayList<>();
         roles.add("storage.tenant.weather.updater");
         try {
-            @SuppressWarnings("unused")
-            RoleToken.Builder builder = new RoleToken.Builder(rolVersion, null, roles);
+            new RoleToken.Builder(rolVersion, null, roles);
             fail();
-        } catch (IllegalArgumentException ex) {
-            assertTrue(true);
+        } catch (Exception ex) {
+            assertTrue(ex instanceof IllegalArgumentException, ex.getMessage());
         }
     }
     
@@ -304,11 +344,10 @@ public class RoleTokenTest {
         List<String> roles = new ArrayList<>();
         roles.add("storage.tenant.weather.updater");
         try {
-            @SuppressWarnings("unused")
-            RoleToken.Builder builder = new RoleToken.Builder(rolVersion, "", roles);
+            new RoleToken.Builder(rolVersion, "", roles);
             fail();
-        } catch (IllegalArgumentException ex) {
-            assertTrue(true);
+        } catch (Exception ex) {
+            assertTrue(ex instanceof IllegalArgumentException, ex.getMessage());
         }
     }
     
@@ -316,11 +355,10 @@ public class RoleTokenTest {
     public void testBuilderRequiredRoleNull() {
         
         try {
-            @SuppressWarnings("unused")
-            RoleToken.Builder builder = new RoleToken.Builder(rolVersion, svcDomain, null);
+            new RoleToken.Builder(rolVersion, svcDomain, null);
             fail();
-        } catch (IllegalArgumentException ex) {
-            assertTrue(true);
+        } catch (Exception ex) {
+            assertTrue(ex instanceof IllegalArgumentException, ex.getMessage());
         }
     }
     
@@ -329,11 +367,10 @@ public class RoleTokenTest {
         
         List<String> roles = new ArrayList<>();
         try {
-            @SuppressWarnings("unused")
-            RoleToken.Builder builder = new RoleToken.Builder(rolVersion, svcDomain, roles);
+            new RoleToken.Builder(rolVersion, svcDomain, roles);
             fail();
-        } catch (IllegalArgumentException ex) {
-            assertTrue(true);
+        } catch (Exception ex) {
+            assertTrue(ex instanceof IllegalArgumentException, ex.getMessage());
         }
     }
     
