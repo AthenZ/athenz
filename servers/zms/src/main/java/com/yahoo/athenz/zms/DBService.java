@@ -1114,9 +1114,10 @@ public class DBService {
 
                 // audit log the request
 
+                StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
+                auditLogRoleMember(auditDetails, roleMember, true);
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT, roleName,
-                        "{\"member\": \"" + roleMember.getMemberName() + "\",\"expiration\": \"" +
-                        roleMember.getExpiration() + "\"}");
+                        auditDetails.toString());
 
                 return;
 
@@ -3491,15 +3492,22 @@ public class DBService {
         auditDetails.append(", \"").append(label).append("\": [");
         boolean firstEntry = true;
         for (RoleMember value : values) {
-            String entry = value.getMemberName();
-            if (value.getExpiration() != null) {
-                entry = entry + ":" + value.getExpiration().toString();
-            }
-            firstEntry = auditLogString(auditDetails, entry, firstEntry);
+            firstEntry = auditLogRoleMember(auditDetails, value, firstEntry);
         }
         auditDetails.append(']');
     }
-    
+
+    boolean auditLogRoleMember(StringBuilder auditDetails, RoleMember roleMember, boolean firstEntry) {
+        firstEntry = auditLogSeparator(auditDetails, firstEntry);
+        auditDetails.append("{\"member\": \"").append(roleMember.getMemberName()).append('"');
+        if (roleMember.getExpiration() != null) {
+            auditDetails.append(", \"expiration\": \"").append(roleMember.getExpiration().toString()).append('"');
+        }
+        auditDetails.append(", \"approved\": ");
+        auditDetails.append(roleMember.getApproved() == Boolean.FALSE ? "false}" : "true}");
+        return firstEntry;
+    }
+
     void auditLogPublicKeyEntries(StringBuilder auditDetails, String label,
             List<PublicKeyEntry> values) {
         auditDetails.append(", \"").append(label).append("\": [");
@@ -3541,7 +3549,7 @@ public class DBService {
         auditDetails.append("{\"id\": \"").append(publicKeyId).append("\"}");
         return firstEntry;
     }
-    
+
     void auditLogAssertions(StringBuilder auditDetails, String label, Collection<Assertion> values) {
         auditDetails.append(", \"").append(label).append("\": [");
         boolean firstEntry = true;
@@ -3821,9 +3829,10 @@ public class DBService {
 
             // audit log the request
 
+            StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
+            auditLogRoleMember(auditDetails, roleMember, true);
             auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT, roleName,
-                    "{\"member\": \"" + roleMember.getMemberName() + "\",\"expiration\": \"" +
-                            roleMember.getExpiration() + "\"}");
+                    auditDetails.toString());
 
             bDataChanged = true;
         }
@@ -3935,14 +3944,8 @@ public class DBService {
 
                 // audit log the request
 
-                String status = roleMember.getApproved() == Boolean.TRUE ? "approved" : "rejected";
-
-                StringBuilder auditDetails = new StringBuilder("{\"member\": \"").append(roleMember.getMemberName())
-                        .append("\",\"decision\": \"").append(status).append("\"");
-                if (roleMember.getExpiration() != null) {
-                    auditDetails.append(",\"expiration\": \"").append(roleMember.getExpiration()).append("\"");
-                }
-                auditDetails.append("}");
+                StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
+                auditLogRoleMember(auditDetails, roleMember, true);
 
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
                         roleName, auditDetails.toString());
