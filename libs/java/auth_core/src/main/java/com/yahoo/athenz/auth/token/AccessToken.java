@@ -141,6 +141,7 @@ public class AccessToken extends OAuth2Token {
      * @param keyResolver JwtsSigningKeyResolver key resolver providing
      *                    the public key for token signature validation
      * @param x509Cert x.509 certificate to validate confirmation claim
+     * @param x509CertHash x.509 certificate hash for proxy use case
      */
     public AccessToken(final String token, JwtsSigningKeyResolver keyResolver,
                        X509Certificate x509Cert, final String x509CertHash) {

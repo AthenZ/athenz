@@ -217,12 +217,25 @@ public class PrincipalToken extends Token {
          *    private key for user tokens and y64 encoded
          */
 
+        String authzSvcToken = null;
         int idx = signedToken.indexOf(";s=");
         if (idx != -1) {
             unsignedToken = signedToken.substring(0, idx);
+
+            // we might have authorized service token details after the signature
+            // so we're going to extract our signature component.
+
+            int authzIdx = signedToken.indexOf(';', idx + 3);
+            if (authzIdx != -1 && signedToken.indexOf(";bs=", idx + 3) != -1) {
+                signature = signedToken.substring(idx + 3, authzIdx);
+                authzSvcToken = signedToken.substring(authzIdx);
+            } else {
+                signature = signedToken.substring(idx + 3);
+            }
         }
 
-        for (String item : signedToken.split(";")) {
+        final String parseToken = unsignedToken != null ? unsignedToken : signedToken;
+        for (String item : parseToken.split(";")) {
             String [] kv = item.split("=");
             if (kv.length == 2) {
                 switch (kv[0]) {
@@ -231,15 +244,6 @@ public class PrincipalToken extends Token {
                     break;
                 case "b":
                     authorizedServices = Arrays.asList(kv[1].split(","));
-                    break;
-                case "bk":
-                    authorizedServiceKeyId = kv[1];
-                    break;
-                case "bn":
-                    authorizedServiceName = kv[1];
-                    break;
-                case "bs":
-                    authorizedServiceSignature = kv[1];
                     break;
                 case "d":
                     domain = kv[1];
@@ -262,9 +266,6 @@ public class PrincipalToken extends Token {
                 case "o":
                     originalRequestor = kv[1];
                     break;
-                case "s":
-                    signature = kv[1];
-                    break;
                 case "t":
                     timestamp = Long.parseLong(kv[1]);
                     break;
@@ -274,6 +275,29 @@ public class PrincipalToken extends Token {
                 case "z":
                     keyService = kv[1];
                     break;
+                }
+            }
+        }
+
+        // now process the authorized service token part
+
+        if (authzSvcToken != null && !authzSvcToken.isEmpty()) {
+            idx = authzSvcToken.indexOf(";bs=");
+            if (idx != -1) {
+                authorizedServiceSignature = authzSvcToken.substring(idx + 4);
+
+                for (String item : authzSvcToken.substring(0, idx).split(";")) {
+                    String[] kv = item.split("=");
+                    if (kv.length == 2) {
+                        switch (kv[0]) {
+                            case "bk":
+                                authorizedServiceKeyId = kv[1];
+                                break;
+                            case "bn":
+                                authorizedServiceName = kv[1];
+                                break;
+                        }
+                    }
                 }
             }
         }

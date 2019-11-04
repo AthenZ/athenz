@@ -221,7 +221,6 @@ public class TokenTest {
         Token token = new Token();
         assertFalse(token.validate((PublicKey) null, 3600, false, null));
 
-
         long timestamp = System.currentTimeMillis() / 1000;
         long expiration = TimeUnit.SECONDS.convert(30, TimeUnit.DAYS) + 11;
         PrincipalToken token1 = new PrincipalToken.Builder(svcVersion, svcDomain, svcName)
@@ -232,8 +231,5 @@ public class TokenTest {
 
         assertFalse(spyToken.validate(servicePublicKeyStringK0, 5, false));
         assertFalse(spyToken.validate(servicePublicKeyStringK0, 20, false));
-
-
     }
-
 }
