@@ -1817,6 +1817,16 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case since ZMS Server
         // saves all of its object names in lower case
+
+        String proxyForPrincipal = req.getProxyForPrincipal();
+
+        if (proxyForPrincipal != null) {
+            proxyForPrincipal = normalizeDomainAliasUser(proxyForPrincipal.toLowerCase());
+        }
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case since ZMS Server
+        // saves all of its object names in lower case
         
         domainName = domainName.toLowerCase();
         roleName = roleName.toLowerCase();
@@ -1833,13 +1843,24 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // get our principal's name
         
-        final String principalName = principal.getFullName();
+        String principalName = principal.getFullName();
         
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("postRoleCertificateRequest(domain: {}, principal: {}, role: {})",
-                    domainName, principalName, roleName);
+            LOGGER.debug("postRoleCertificateRequest(domain: {}, principal: {}, role: {}, proxy-for: {})",
+                    domainName, principalName, roleName, proxyForPrincipal);
         }
-        
+
+        // we can only have a proxy for principal request if the original
+        // caller is authorized for such operations
+
+        if (proxyForPrincipal != null && !isAuthorizedProxyUser(authorizedProxyUsers, principalName)) {
+            LOGGER.error("postRoleCertificateRequest: Principal: " + principalName +
+                    " not authorized for proxy role certificate request");
+            throw forbiddenError("postRoleCertificateRequest: Principal: " + principalName
+                            + " not authorized for proxy role certificate request",
+                    caller, domainName, domainName);
+        }
+
         // first retrieve our domain data object from the cache
 
         DataCache data = dataStore.getDataCache(domainName);
@@ -1874,13 +1895,39 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     + domainName, caller, domainName, principalDomain);
         }
 
+        // if this is proxy for operation then we want to make sure that
+        // both principals have access to the same set of roles so we'll
+        // remove any roles that are authorized by only one of the principals
+
+        String proxyUser = null;
+        if (proxyForPrincipal != null) {
+
+            Set<String> rolesForProxy = new HashSet<>();
+            dataStore.getAccessibleRoles(data, domainName, proxyForPrincipal, requestedRoleList,
+                    rolesForProxy, false);
+            roles.retainAll(rolesForProxy);
+
+            // check again in case we removed all the roles and ended up
+            // with an empty set
+
+            if (roles.isEmpty()) {
+                throw forbiddenError("postRoleCertificateRequest: No access to any roles by User and Proxy Principals",
+                        caller, domainName, principalDomain);
+            }
+
+            // we need to switch our principal
+
+            proxyUser = principalName;
+            principalName = proxyForPrincipal;
+        }
+
         // validate request/csr details
 
         X509Certificate cert = principal.getX509Certificate();
         final String ipAddress = ServletRequestUtil.getRemoteAddress(ctx.request());
 
         if (!validateRoleCertificateRequest(req.getCsr(), domainName, roles, principalName,
-                cert, ipAddress)) {
+                proxyUser, cert, ipAddress)) {
             throw requestError("postRoleCertificateRequest: Unable to validate cert request",
                     caller, domainName, principalDomain);
         }
@@ -1903,7 +1950,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
 
     boolean validateRoleCertificateRequest(final String csr, final String domainName,
-            Set<String> roles, final String principal, X509Certificate cert, final String ip) {
+            Set<String> roles, final String principal, final String proxyUser, X509Certificate cert,
+            final String ip) {
 
         X509RoleCertRequest certReq;
         try {
@@ -1913,7 +1961,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             return false;
         }
 
-        if (!certReq.validate(roles, domainName, principal, validCertSubjectOrgValues)) {
+        if (!certReq.validate(roles, domainName, principal, proxyUser, validCertSubjectOrgValues)) {
             return false;
         }
 
@@ -2111,7 +2159,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
 
     boolean validateRoleCertificateExtRequest(X509RoleCertRequest certReq, final String principal,
-                                              final String proxyUser, X509Certificate cert, final String ip) {
+            final String proxyUser, X509Certificate cert, final String ip) {
 
         if (!certReq.validate(principal, proxyUser, validCertSubjectOrgValues)) {
             return false;
