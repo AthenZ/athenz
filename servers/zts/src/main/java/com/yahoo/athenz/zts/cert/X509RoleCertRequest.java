@@ -101,6 +101,46 @@ public class X509RoleCertRequest extends X509CertRequest {
         return null;
     }
 
+    boolean validateProxyUserUri(final String proxyUser) {
+
+        // if we have not URI values then it's failure
+
+        if (uris == null || uris.isEmpty()) {
+            LOGGER.error("No URI fields avaialble in the CSR");
+            return false;
+        }
+
+        // we must only have a single spiffe uri in the list
+
+        String proxyUserUri = null;
+        for (String uri : uris) {
+
+            if (!uri.toLowerCase().startsWith(ZTSConsts.ZTS_CERT_PROXY_USER_URI)) {
+                continue;
+            }
+
+            if (proxyUserUri != null) {
+                LOGGER.error("Multiple ProxyUser URIs in the CSR: {}/{}", uri, proxyUserUri);
+                return false;
+            }
+
+            proxyUserUri = uri;
+        }
+
+        if (proxyUserUri == null) {
+            LOGGER.error("No ProxyUserURI fields available in the CSR");
+            return false;
+        }
+
+        final String uriCheck = ZTSConsts.ZTS_CERT_PROXY_USER_URI + proxyUser;
+        if (!proxyUserUri.equals(uriCheck)) {
+            LOGGER.error("ProxyUserURI mismatch: {} vs {}", proxyUserUri, uriCheck);
+            return false;
+        }
+
+        return true;
+    }
+
     boolean validateEmail(final String principal) {
 
         // now let's check if we have an rfc822 field specified in the
@@ -125,8 +165,8 @@ public class X509RoleCertRequest extends X509CertRequest {
         return true;
     }
 
-    public boolean validate(Set<String> roles, final String domainName,
-            final String principal, Set<String> validCertSubjectOrgValues) {
+    public boolean validate(Set<String> roles, final String domainName, final String principal,
+            final String proxyUser, Set<String> validCertSubjectOrgValues) {
 
         // validate that the common name matches to the role name
         // that is being returned in the response
@@ -140,6 +180,12 @@ public class X509RoleCertRequest extends X509CertRequest {
         // now let's check if we have an rfc822 field for the principal
 
         if (!validateEmail(principal)) {
+            return false;
+        }
+
+        // let's check if we have a uri for the proxy user
+
+        if (proxyUser != null && !validateProxyUserUri(proxyUser)) {
             return false;
         }
 

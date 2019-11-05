@@ -43,7 +43,7 @@ public class X509RoleCertRequestTest {
         Set<String> orgValues = new HashSet<>();
         orgValues.add("Athenz");
 
-        assertTrue(certReq.validate(roles, "coretech", "sports.api", orgValues));
+        assertTrue(certReq.validate(roles, "coretech", "sports.api", null, orgValues));
     }
 
     @Test
@@ -182,6 +182,78 @@ public class X509RoleCertRequestTest {
         Set<String> orgValues2 = new HashSet<>();
         orgValues2.add("sports");
         assertFalse(certReq.validate("athenz.production", "proxy.service", orgValues2));
+    }
+
+    @Test
+    public void testValidateMissingProxyUserUri() throws IOException {
+
+        Path path = Paths.get("src/test/resources/spiffe_role.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+
+        Set<String> roles = new HashSet<>();
+        roles.add("api");
+
+        Set<String> orgValues = new HashSet<>();
+        orgValues.add("Athenz");
+
+        assertFalse(certReq.validate(roles, "coretech", "sports.api", "proxy.user", orgValues));
+    }
+
+    @Test
+    public void testValidateNoProxyUserUri() throws IOException {
+
+        Path path = Paths.get("src/test/resources/role_single_ip.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+
+        Set<String> roles = new HashSet<>();
+        roles.add("writers");
+
+        Set<String> orgValues = new HashSet<>();
+        orgValues.add("Athenz");
+
+        assertFalse(certReq.validate(roles, "athenz", "athenz.production", "proxy.user", orgValues));
+    }
+
+    @Test
+    public void testValidateMultipleProxyUserUri() throws IOException {
+
+        Path path = Paths.get("src/test/resources/multiple_proxy_role.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+
+        Set<String> roles = new HashSet<>();
+        roles.add("api");
+
+        Set<String> orgValues = new HashSet<>();
+        orgValues.add("Athenz");
+
+        assertFalse(certReq.validate(roles, "coretech", "sports.api", "proxy.user", orgValues));
+    }
+
+    @Test
+    public void testValidateProxyUserUri() throws IOException {
+
+        Path path = Paths.get("src/test/resources/proxy_role.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+
+        Set<String> roles = new HashSet<>();
+        roles.add("api");
+
+        Set<String> orgValues = new HashSet<>();
+        orgValues.add("Athenz");
+
+        // valid proxy user
+        assertTrue(certReq.validate(roles, "coretech", "sports.api", "proxy.user", orgValues));
+
+        // mismatch proxy user
+        assertFalse(certReq.validate(roles, "coretech", "sports.api", "proxy2.user", orgValues));
     }
 }
 

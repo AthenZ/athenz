@@ -4291,7 +4291,7 @@ public class ZTSImplTest {
         roles.add("writer");
         zts.validCertSubjectOrgValues = null;
         assertFalse(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.scores",
-                null, "10.0.0.1"));
+                null, null, "10.0.0.1"));
     }
     
     @Test
@@ -4304,7 +4304,7 @@ public class ZTSImplTest {
         roles.add("readers");
         zts.validCertSubjectOrgValues = null;
         assertFalse(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.standings",
-                null, "10.0.0.1"));
+                null, null, "10.0.0.1"));
     }
     
     @Test
@@ -4317,7 +4317,7 @@ public class ZTSImplTest {
         roles.add("readers");
         zts.validCertSubjectOrgValues = null;
         assertFalse(zts.validateRoleCertificateRequest(csr, "sports", roles, "no-email", null,
-                "10.0.0.1"));
+                null, "10.0.0.1"));
     }
 
     @Test
@@ -4333,7 +4333,7 @@ public class ZTSImplTest {
         validOValues.add("InvalidCompany");
         zts.validCertSubjectOrgValues = validOValues;
         assertFalse(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.scores",
-                null, "10.0.0.1"));
+                null, null, "10.0.0.1"));
     }
 
     @Test
@@ -4346,13 +4346,13 @@ public class ZTSImplTest {
         roles.add("readers");
         zts.validCertSubjectOrgValues = null;
         assertTrue(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.scores",
-                null, "10.0.0.1"));
+                null, null, "10.0.0.1"));
 
         Set<String> validOValues = new HashSet<>();
         validOValues.add("Athenz");
         zts.validCertSubjectOrgValues = validOValues;
         assertTrue(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.scores", null,
-                "10.0.0.1"));
+                null, "10.0.0.1"));
     }
 
     @Test
@@ -4371,11 +4371,11 @@ public class ZTSImplTest {
         zts.verifyCertSubjectOU = true;
 
         assertFalse(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.scores",
-                null, "10.0.0.1"));
+                null, null, "10.0.0.1"));
 
         ouValues.add("Testing Domain");
         assertTrue(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.scores",
-                null, "10.0.0.1"));
+                null, null, "10.0.0.1"));
     }
 
     @Test
@@ -4402,10 +4402,10 @@ public class ZTSImplTest {
         zts.verifyCertSubjectOU = true;
 
         assertFalse(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.scores",
-                invalidCert, "10.0.0.1"));
+                null, invalidCert, "10.0.0.1"));
 
         assertTrue(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.scores",
-                validCert, "10.0.0.1"));
+                null, validCert, "10.0.0.1"));
     }
 
     @Test
@@ -4422,17 +4422,17 @@ public class ZTSImplTest {
         zts.verifyCertRequestIP = false;
         zts.validCertSubjectOrgValues = null;
         assertTrue(zts.validateRoleCertificateRequest(csr, "athenz", roles, "athenz.production",
-                null, "10.11.12.13"));
+                null, null, "10.11.12.13"));
         assertTrue(zts.validateRoleCertificateRequest(csr, "athenz", roles, "athenz.production",
-                null, "10.11.12.14"));
+                null, null, "10.11.12.14"));
 
         // enable validation and the mismatch one should fail
 
         zts.verifyCertRequestIP = true;
         assertTrue(zts.validateRoleCertificateRequest(csr, "athenz", roles, "athenz.production",
-                null, "10.11.12.13"));
+                null, null, "10.11.12.13"));
         assertFalse(zts.validateRoleCertificateRequest(csr, "athenz", roles, "athenz.production",
-                null, "10.11.12.14"));
+                null, null, "10.11.12.14"));
     }
 
     @Test
@@ -4457,6 +4457,127 @@ public class ZTSImplTest {
                 "readers", req);
         assertNotNull(roleToken);
         assertEquals(roleToken.getExpiryTime(), TimeUnit.SECONDS.convert(30, TimeUnit.DAYS));
+    }
+
+    @Test
+    public void testPostRoleCertificateProxyUserRequest() throws IOException {
+
+        Path path = Paths.get("src/test/resources/coretech_readers_proxy_role_uri.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        // this csr is for coretech:role.readers role
+
+        RoleCertificateRequest req = new RoleCertificateRequest()
+                .setCsr(csr).setExpiryTime(3600L)
+                .setProxyForPrincipal("user_domain.user1");
+
+        List<RoleMember> writers = new ArrayList<>();
+        writers.add(new RoleMember().setMemberName("user_domain.proxy-user1"));
+        writers.add(new RoleMember().setMemberName("user_domain.user1"));
+
+        List<RoleMember> readers = new ArrayList<>();
+        readers.add(new RoleMember().setMemberName("user_domain.proxy-user1"));
+        readers.add(new RoleMember().setMemberName("user_domain.user4"));
+        readers.add(new RoleMember().setMemberName("user_domain.user1"));
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", writers,
+                readers, true);
+
+        store.processDomain(signedDomain, false);
+
+        CloudStore cloudStore = new MockCloudStore();
+        store.setCloudStore(cloudStore);
+        zts.cloudStore = cloudStore;
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        RoleToken roleToken = zts.postRoleCertificateRequest(context, "coretech",
+                "readers", req);
+        assertNotNull(roleToken);
+    }
+
+    @Test
+    public void testPostRoleCertificateProxyUserRequestAccessMismatch() throws IOException {
+
+        Path path = Paths.get("src/test/resources/coretech_readers_proxy_role_uri.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        // this csr is for coretech:role.readers role
+
+        RoleCertificateRequest req = new RoleCertificateRequest()
+                .setCsr(csr).setExpiryTime(3600L)
+                .setProxyForPrincipal("user_domain.user1");
+
+        List<RoleMember> writers = new ArrayList<>();
+        writers.add(new RoleMember().setMemberName("user_domain.user1"));
+
+        List<RoleMember> readers = new ArrayList<>();
+        readers.add(new RoleMember().setMemberName("user_domain.user4"));
+        readers.add(new RoleMember().setMemberName("user_domain.proxy-user1"));
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", writers,
+                readers, true);
+
+        store.processDomain(signedDomain, false);
+
+        CloudStore cloudStore = new MockCloudStore();
+        store.setCloudStore(cloudStore);
+        zts.cloudStore = cloudStore;
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        try {
+            zts.postRoleCertificateRequest(context, "coretech", "readers", req);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("No access to any roles by User and Proxy Principals"));
+        }
+    }
+
+    @Test
+    public void testPostRoleCertificateInvalidProxyUserRequest() throws IOException {
+
+        Path path = Paths.get("src/test/resources/coretech_readers_proxy_role_uri.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        // this csr is for coretech:role.readers role
+
+        RoleCertificateRequest req = new RoleCertificateRequest()
+                .setCsr(csr).setExpiryTime(3600L)
+                .setProxyForPrincipal("user_domain.user1");
+
+        List<RoleMember> writers = new ArrayList<>();
+        writers.add(new RoleMember().setMemberName("user_domain.proxy-user19"));
+        writers.add(new RoleMember().setMemberName("user_domain.user1"));
+
+        List<RoleMember> readers = new ArrayList<>();
+        readers.add(new RoleMember().setMemberName("user_domain.proxy-user19"));
+        readers.add(new RoleMember().setMemberName("user_domain.user4"));
+        readers.add(new RoleMember().setMemberName("user_domain.user1"));
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", writers,
+                readers, true);
+
+        store.processDomain(signedDomain, false);
+
+        CloudStore cloudStore = new MockCloudStore();
+        store.setCloudStore(cloudStore);
+        zts.cloudStore = cloudStore;
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user19",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        try {
+            zts.postRoleCertificateRequest(context, "coretech", "readers", req);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("not authorized for proxy role certificate request"));
+        }
     }
 
     @Test
@@ -8425,7 +8546,7 @@ public class ZTSImplTest {
 
         ztsImpl.validCertSubjectOrgValues = null;
         assertFalse((ztsImpl.validateRoleCertificateRequest("invalid-csr", null,
-                null, null, null, "10.0.0.1")));
+                null, null, null, null, "10.0.0.1")));
     }
 
     @Test
