@@ -4699,63 +4699,6 @@ public class ZMSImplTest {
     }
 
     @Test
-    public void testCreateEntityReservedNames() {
-        // create the weather domain
-        
-        TopLevelDomain dom = createTopLevelDomainObject("EntityReservedNames",
-                "Test entity", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom);
-
-        Role role = createRoleObject("EntityReservedNames", "Role1", null, null, null);
-        zms.putRole(mockDomRsrcCtx, "EntityReservedNames", "Role1", auditRef, role);
-        
-        Policy policy = createPolicyObject("EntityReservedNames", "Policy1",
-                "Role1", "READ", "EntityReservedNames:*", AssertionEffect.ALLOW);
-        zms.putPolicy(mockDomRsrcCtx, "EntityReservedNames", "Policy1", auditRef, policy);
-
-        ServiceIdentity service = createServiceObject("EntityReservedNames",
-                "Service1", "http://localhost", "/usr/bin/java", "root",
-                "users", "host1");
-
-        zms.putServiceIdentity(mockDomRsrcCtx, "EntityReservedNames", "Service1", auditRef, service);
-        
-        Entity entity = createEntityObject("role");
-        try {
-            zms.putEntity(mockDomRsrcCtx, "EntityReservedNames", "role", auditRef, entity);
-            fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 400);
-        }
-        
-        entity = createEntityObject("policy");
-        try {
-            zms.putEntity(mockDomRsrcCtx, "EntityReservedNames", "policy", auditRef, entity);
-            fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 400);
-        }
-        
-        entity = createEntityObject("service");
-        try {
-            zms.putEntity(mockDomRsrcCtx, "EntityReservedNames", "service", auditRef, entity);
-            fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 400);
-        }
-        
-        Role roleRes = zms.getRole(mockDomRsrcCtx, "EntityReservedNames", "Role1", false, false, false);
-        assertNotNull(roleRes);
-        
-        Policy policyRes = zms.getPolicy(mockDomRsrcCtx, "EntityReservedNames", "Policy1");
-        assertNotNull(policyRes);
-        
-        ServiceIdentity serviceRes = zms.getServiceIdentity(mockDomRsrcCtx, "EntityReservedNames", "Service1");
-        assertNotNull(serviceRes);
-
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, "EntityReservedNames", auditRef);
-    }
-    
-    @Test
     public void testDeleteEntity() {
 
         TopLevelDomain dom1 = createTopLevelDomainObject("DelEntityDom1",
@@ -7004,17 +6947,6 @@ public class ZMSImplTest {
             zms.validate(role, "Role", "testValidateRole");
             fail();
         } catch (ResourceException ignored) {
-        }
-    }
-    
-    @Test
-    public void testCheckReservedEntityName() {
-        int code = 400;
-        try {
-            zms.checkReservedEntityName("meta");
-            fail("requesterror not thrown.");
-        } catch (ResourceException e) {
-            assertEquals(e.getCode(), code);
         }
     }
     
@@ -12856,16 +12788,6 @@ public class ZMSImplTest {
             assertEquals(401, ex.getCode());
             assertEquals( ((ResourceError) ex.data).message, "failed struct");
         }
-    }
-    
-    @Test
-    public void testEqualToOrPrefixedBy() {
-        assertTrue(zms.equalToOrPrefixedBy("pattern", "pattern"));
-        assertTrue(zms.equalToOrPrefixedBy("pattern", "pattern."));
-        assertTrue(zms.equalToOrPrefixedBy("pattern", "pattern.test"));
-        assertFalse(zms.equalToOrPrefixedBy("pattern", "pattern-test"));
-        assertFalse(zms.equalToOrPrefixedBy("pattern", "patterns.test"));
-        assertFalse(zms.equalToOrPrefixedBy("pattern", "apattern.test"));
     }
 
     @Test

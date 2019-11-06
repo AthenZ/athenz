@@ -327,4 +327,10 @@ public class ZMSUtilsTest {
         assertTrue(stringMembers.contains("user.joe"));
         assertTrue(stringMembers.contains("user.jane"));
     }
+
+    @Test
+    public void testExtractRoleName() {
+        assertEquals(ZMSUtils.extractRoleName("athenz:role.readers"), "readers");
+        assertNull(ZMSUtils.extractRoleName("athenz.readers"));
+    }
 }
