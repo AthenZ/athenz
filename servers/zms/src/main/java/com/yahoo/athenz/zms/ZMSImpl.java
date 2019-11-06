@@ -2278,13 +2278,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return access;
     }
 
-    boolean equalToOrPrefixedBy(String pattern, String name) {
-        if (name.equals(pattern)) {
-            return true;
-        }
-        return name.startsWith(pattern + ".");
-    }
-
     void validateEntity(String entityName, Entity entity) {
         
         final String caller = "validateentity";
@@ -2294,18 +2287,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
         if (entity.getValue() == null) {
             throw ZMSUtils.requestError("validateEntity: Entity value is empty: " + entityName, caller);
-        }
-    }
-
-    void checkReservedEntityName(String en) {
-        
-        final String caller = "checkreservedentityname";
-        
-        final String [] reservedList = {META_FIELD, DOMAIN_FIELD, ROLE_FIELD, POLICY_FIELD, SERVICE_FIELD, TEMPLATE_FIELD};
-        for (String reservedName : reservedList) {
-            if (equalToOrPrefixedBy(reservedName, en)) {
-                throw ZMSUtils.requestError("checkReservedEntityName: Bad entity name: reserved name or prefix: " + en, caller);
-            }
         }
     }
 
@@ -2324,7 +2305,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(entityName, TYPE_ENTITY_NAME, caller);
-        checkReservedEntityName(entityName);
         validateEntity(entityName, resource);
 
         // for consistent handling of all requests, we're going to convert
@@ -2423,7 +2403,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(entityName, TYPE_ENTITY_NAME, caller);
-        checkReservedEntityName(entityName);
 
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case (e.g. domain, role,
