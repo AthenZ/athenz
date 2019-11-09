@@ -11,7 +11,7 @@ resource Entity PUT "/domain/{domainName}/entity/{entityName}" {
     EntityName entityName; //name of entity
     String     auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     Entity entity; //Entity object to be added to the domain
-    authorize ("update", "{domainName}:{entityName}");
+    authorize ("update", "{domainName}:entity.{entityName}");
     expected NO_CONTENT;
     exceptions {
         ResourceError NOT_FOUND;
@@ -45,7 +45,7 @@ resource Entity DELETE "/domain/{domainName}/entity/{entityName}" {
     DomainName domainName; //name of the domain
     EntityName entityName; //name of entity
     String     auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
-    authorize ("delete", "{domainName}:{entityName}");
+    authorize ("delete", "{domainName}:entity.{entityName}");
     expected NO_CONTENT;
     exceptions {
         ResourceError NOT_FOUND;

@@ -445,7 +445,7 @@ public class ZMSResources {
     public void putEntity(@PathParam("domainName") String domainName, @PathParam("entityName") String entityName, @HeaderParam("Y-Audit-Ref") String auditRef, Entity entity) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
-            context.authorize("update", "" + domainName + ":" + entityName + "", null);
+            context.authorize("update", "" + domainName + ":entity." + entityName + "", null);
             this.delegate.putEntity(context, domainName, entityName, auditRef, entity);
         } catch (ResourceException e) {
             int code = e.getCode();
@@ -503,7 +503,7 @@ public class ZMSResources {
     public void deleteEntity(@PathParam("domainName") String domainName, @PathParam("entityName") String entityName, @HeaderParam("Y-Audit-Ref") String auditRef) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
-            context.authorize("delete", "" + domainName + ":" + entityName + "", null);
+            context.authorize("delete", "" + domainName + ":entity." + entityName + "", null);
             this.delegate.deleteEntity(context, domainName, entityName, auditRef);
         } catch (ResourceException e) {
             int code = e.getCode();

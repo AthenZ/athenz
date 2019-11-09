@@ -680,7 +680,7 @@ public class ZMSSchema {
             .pathParam("entityName", "EntityName", "name of entity")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .input("entity", "Entity", "Entity object to be added to the domain")
-            .auth("update", "{domainName}:{entityName}")
+            .auth("update", "{domainName}:entity.{entityName}")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 
@@ -717,7 +717,7 @@ public class ZMSSchema {
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("entityName", "EntityName", "name of entity")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
-            .auth("delete", "{domainName}:{entityName}")
+            .auth("delete", "{domainName}:entity.{entityName}")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 
