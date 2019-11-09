@@ -165,7 +165,7 @@ are available in the `athenz-zts-core` library.
       </snapshots>
       <id>bintray-yahoo-maven</id>
       <name>bintray</name>
-      <url>http://yahoo.bintray.com/maven</url>
+      <url>https://yahoo.bintray.com/maven</url>
     </repository>
   </repositories>
 ```

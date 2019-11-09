@@ -150,7 +150,7 @@ to make sure you're using the latest release version:
   <repository>
     <id>bintray-yahoo-maven</id>
     <name>bintray</name>
-    <url>http://yahoo.bintray.com/maven</url>
+    <url>https://yahoo.bintray.com/maven</url>
   </repository>
 </repositories>
 ```
@@ -239,7 +239,7 @@ to make sure you're using the latest release version:
   <repository>
     <id>bintray-yahoo-maven</id>
     <name>bintray</name>
-    <url>http://yahoo.bintray.com/maven</url>
+    <url>https://yahoo.bintray.com/maven</url>
   </repository>
 </repositories>
 ```
