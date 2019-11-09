@@ -2194,34 +2194,67 @@ public class ZMSCoreTest {
         mbr1.setExpiration(Timestamp.fromMillis(100));
         mbr1.setActive(false);
         mbr1.setAuditRef("audit-ref");
+        mbr1.setDomainName("athenz");
+        mbr1.setMemberName("mbr");
 
         assertEquals("role1", mbr1.getRoleName());
         assertEquals(Timestamp.fromMillis(100), mbr1.getExpiration());
         assertFalse(mbr1.getActive());
         assertEquals(mbr1.getAuditRef(), "audit-ref");
+        assertEquals(mbr1.getDomainName(), "athenz");
+        assertEquals(mbr1.getMemberName(), "mbr");
 
         assertTrue(mbr1.equals(mbr1));
         assertFalse(mbr1.equals(null));
 
-        MemberRole mbr2 = new MemberRole();
+        MemberRole mbr2 = new MemberRole()
+            .setRoleName("role1")
+            .setExpiration(Timestamp.fromMillis(100))
+            .setActive(false)
+            .setAuditRef("audit-ref")
+            .setDomainName("athenz")
+            .setMemberName("mbr");
+
+        assertTrue(mbr2.equals(mbr1));
+
+        mbr2.setMemberName("mbr2");
         assertFalse(mbr2.equals(mbr1));
+        mbr2.setMemberName(null);
+        assertFalse(mbr2.equals(mbr1));
+        mbr2.setMemberName("mbr");
+        assertTrue(mbr2.equals(mbr1));
 
         mbr2.setRoleName("role2");
         assertFalse(mbr2.equals(mbr1));
-
-        mbr2.setRoleName("role1");
+        mbr2.setRoleName(null);
         assertFalse(mbr2.equals(mbr1));
+        mbr2.setRoleName("role1");
+        assertTrue(mbr2.equals(mbr1));
+
+        mbr2.setAuditRef("audit-ref2");
+        assertFalse(mbr2.equals(mbr1));
+        mbr2.setAuditRef(null);
+        assertFalse(mbr2.equals(mbr1));
+        mbr2.setAuditRef("audit-ref");
+        assertTrue(mbr2.equals(mbr1));
+
+        mbr2.setDomainName("athenz2");
+        assertFalse(mbr2.equals(mbr1));
+        mbr2.setDomainName(null);
+        assertFalse(mbr2.equals(mbr1));
+        mbr2.setDomainName("athenz");
+        assertTrue(mbr2.equals(mbr1));
 
         mbr2.setExpiration(Timestamp.fromMillis(101));
         assertFalse(mbr2.equals(mbr1));
-
+        mbr2.setExpiration(null);
+        assertFalse(mbr2.equals(mbr1));
         mbr2.setExpiration(Timestamp.fromMillis(100));
-        assertFalse(mbr2.equals(mbr1));
+        assertTrue(mbr2.equals(mbr1));
 
+        mbr2.setActive(true);
+        assertFalse(mbr2.equals(mbr1));
         mbr2.setActive(false);
-        assertFalse(mbr2.equals(mbr1));
-
-        mbr2.setAuditRef("audit-ref");
         assertTrue(mbr2.equals(mbr1));
     }
 

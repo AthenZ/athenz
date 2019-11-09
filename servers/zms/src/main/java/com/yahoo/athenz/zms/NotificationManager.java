@@ -20,6 +20,7 @@ import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.notification.NotificationService;
 import com.yahoo.athenz.common.server.notification.NotificationServiceFactory;
 import com.yahoo.athenz.zms.store.AthenzDomain;
+import com.yahoo.athenz.zms.utils.ZMSUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,9 +29,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
-import static com.yahoo.athenz.common.server.notification.NotificationService.NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL;
-import static com.yahoo.athenz.common.server.notification.NotificationService.NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL_REMINDER;
 
 public class NotificationManager {
 
@@ -62,13 +60,14 @@ public class NotificationManager {
     private void init() {
         if (isNotificationFeatureAvailable()) {
             scheduledExecutor = Executors.newScheduledThreadPool(1);
-            scheduledExecutor.scheduleAtFixedRate(new PendingMembershipApprovalReminder(), 0, 1, TimeUnit.DAYS);
+            scheduledExecutor.scheduleAtFixedRate(new RoleMemberReminders(), 0, 1, TimeUnit.DAYS);
         }
         pendingRoleMemberLifespan = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_PENDING_ROLE_MEMBER_LIFESPAN, ZMSConsts.ZMS_PENDING_ROLE_MEMBER_LIFESPAN_DEFAULT));
         monitorIdentity = System.getProperty(ZMSConsts.ZMS_PROP_MONITOR_IDENTITY, ZMSConsts.SYS_AUTH_MONITOR);
     }
 
-    NotificationManager(final DBService dbService, final NotificationServiceFactory notificationServiceFactory, final String userDomainPrefix) {
+    NotificationManager(final DBService dbService, final NotificationServiceFactory notificationServiceFactory,
+            final String userDomainPrefix) {
         this.dbService = dbService;
         this.userDomainPrefix = userDomainPrefix;
         notificationService = notificationServiceFactory.create();
@@ -111,13 +110,44 @@ public class NotificationManager {
             recipients.addAll(adminRole.getRoleMembers().stream().filter(m -> m.getMemberName().startsWith(userDomainPrefix))
                     .map(RoleMember::getMemberName).collect(Collectors.toSet()));
         }
-        Notification notification = createNotification(NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL,
+        Notification notification = createNotification(NotificationService.NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL,
                 recipients, details);
-        notificationService.notify(notification);
+        if (notification != null) {
+            notificationService.notify(notification);
+        }
     }
 
-    Notification createNotification(String notificationType, Set<String> recipients, Map<String,
-            String> details) {
+    void addDomainRoleRecipients(Notification notification, final String domainName, final String roleName) {
+        AthenzDomain domain = dbService.getAthenzDomain(domainName, false);
+        if (domain == null || domain.getRoles() == null) {
+            return;
+        }
+        for (Role role : domain.getRoles()) {
+            if (role.getName().equals(roleName)) {
+                notification.getRecipients().addAll(role.getRoleMembers().stream()
+                        .filter(m -> m.getMemberName().startsWith(userDomainPrefix))
+                        .map(RoleMember::getMemberName).collect(Collectors.toSet()));
+                return;
+            }
+        }
+    }
+
+    void addNotificationRecipient(Notification notification, final String recipient, boolean ignoreService) {
+
+        int idx = recipient.indexOf(":role.");
+        if (idx != -1) {
+            addDomainRoleRecipients(notification, recipient.substring(0, idx), recipient);
+        } else if (recipient.startsWith(userDomainPrefix)) {
+            notification.addRecipient(recipient);
+        } else if (!ignoreService) {
+            final String domainName = ZMSUtils.extractDomainName(recipient);
+            if (domainName != null) {
+                addDomainRoleRecipients(notification, domainName, ZMSUtils.roleResourceName(domainName, ZMSConsts.ADMIN_ROLE_NAME));
+            }
+        }
+    }
+
+    Notification createNotification(final String notificationType, Set<String> recipients, Map<String, String> details) {
 
         if (recipients == null || recipients.isEmpty()) {
             LOGGER.error("Notification requires at least 1 recipient.");
@@ -128,23 +158,31 @@ public class NotificationManager {
         notification.setDetails(details);
 
         for (String recipient : recipients) {
-            int idx = recipient.indexOf(":role.");
-            if (idx != -1) {
-                //recipient is of type role. Extract role members
-                final String recDomain = recipient.substring(0, idx);
-                AthenzDomain domain = dbService.getAthenzDomain(recDomain, false);
-                for (Role role : domain.getRoles()) {
-                    if (role.getName().equals(recipient)) {
-                        notification.getRecipients().addAll(role.getRoleMembers().stream()
-                                .filter(m -> m.getMemberName().startsWith(userDomainPrefix))
-                                .map(RoleMember::getMemberName).collect(Collectors.toSet()));
-                        break;
-                    }
-                }
-            } else if (recipient.startsWith(userDomainPrefix)) {
-                notification.addRecipient(recipient);
-            }
+            addNotificationRecipient(notification, recipient, true);
         }
+
+        if (notification.getRecipients() == null || notification.getRecipients().isEmpty()) {
+            LOGGER.error("Notification requires at least 1 recipient.");
+            return null;
+        }
+
+        return notification;
+    }
+
+    Notification createNotification(final String notificationType, final String recipient, Map<String, String> details) {
+
+        if (recipient == null || recipient.isEmpty()) {
+            LOGGER.error("Notification requires a valid recipient");
+            return null;
+        }
+
+        Notification notification = new Notification(notificationType);
+        notification.setDetails(details);
+
+        // if the recipient is a service then we're going to send a notification
+        // to the service's domain admin users
+
+        addNotificationRecipient(notification, recipient, false);
 
         if (notification.getRecipients() == null || notification.getRecipients().isEmpty()) {
             LOGGER.error("Notification requires at least 1 recipient.");
@@ -164,30 +202,179 @@ public class NotificationManager {
         return notificationService != null;
     }
 
-    class PendingMembershipApprovalReminder implements Runnable {
+    class RoleMemberReminders implements Runnable {
+
         @Override
         public void run() {
+
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("PendingMembershipApprovalReminder: Starting pending membership approval reminder thread...");
+                LOGGER.debug("RoleMemberReminders: Starting role member reminder thread...");
             }
             try {
                 // clean up expired pending members
+
                 dbService.processExpiredPendingMembers(pendingRoleMemberLifespan, monitorIdentity);
                 sendPendingMembershipApprovalReminders();
+
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("RoleMemberReminders: Sent reminders for pending membership approvals.");
+                }
+
             } catch (Throwable t) {
-                LOGGER.error("PendingMembershipApprovalReminder: unable to send pending membership approval reminders: {}",
-                        t.getMessage());
-            }
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("PendingMembershipApprovalReminder: Sent reminder for pending membership approvals.");
+                LOGGER.error("RoleMemberReminders: unable to send pending membership approval reminders: {}", t);
             }
 
+            try {
+                // send reminders for all about to be expired members
+
+                sendRoleMemberExpiryReminders();
+
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("RoleMemberReminders: Sent reminders for membership expiration");
+                }
+
+            } catch (Throwable t) {
+                LOGGER.error("RoleMemberReminders: unable to send membership expiration reminders: {}", t);
+            }
+
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("RoleMemberReminders: Role member reminder thread completed");
+            }
         }
 
-        private void sendPendingMembershipApprovalReminders() {
+        void sendPendingMembershipApprovalReminders() {
             Set<String> recipients = dbService.getPendingMembershipApproverRoles();
-            Notification notification = createNotification(NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL_REMINDER, recipients, null);
-            notificationService.notify(notification);
+            Notification notification = createNotification(NotificationService.NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL_REMINDER,
+                    recipients, null);
+            if (notification != null) {
+                notificationService.notify(notification);
+            }
+        }
+
+        void sendRoleMemberExpiryReminders() {
+
+            // first we're going to send reminders to all the members indicating to
+            // them that they're going to expiry and they should follow up with
+            // domain admins to extend their membership.
+            // if the principal is service then we're going to send the reminder
+            // to the domain admins of that service
+            // while doing this we're going to keep track of all domains that
+            // have members that are about to expire and then send them a reminder
+            // as well indicating that they have members with coming-up expiration
+
+            Map<String, DomainRoleMember> expiryMembers = dbService.getRoleExpiryMembers();
+            if (expiryMembers == null || expiryMembers.isEmpty()) {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("No expiry members available to send notifications");
+                }
+                return;
+            }
+
+            Map<String, List<MemberRole>> domainAdminMap = new HashMap<>();
+
+            for (DomainRoleMember roleMember : expiryMembers.values()) {
+
+                // we're going to process the role member, update
+                // our domain admin map accordingly and return
+                // the details object that we need to send to the
+                // notification agent for processing
+
+                Map<String, String> details = processRoleExpiryReminder(domainAdminMap, roleMember);
+                Notification notification = createNotification(NotificationService.NOTIFICATION_TYPE_PRINCIPAL_EXPIRY_REMINDER,
+                        roleMember.getMemberName(), details);
+                if (notification != null) {
+                    notificationService.notify(notification);
+                }
+            }
+
+            // now we're going to send reminders to all the domain administrators
+            // to make sure they're aware of upcoming principal expirations
+
+            for (Map.Entry<String, List<MemberRole>> domainAdmin : domainAdminMap.entrySet()) {
+
+                Map<String, String> details = processMemberExpiryReminder(domainAdmin.getKey(), domainAdmin.getValue());
+                Notification notification = createNotification(NotificationService.NOTIFICATION_TYPE_DOMAIN_MEMBER_EXPIRY_REMINDER,
+                        ZMSUtils.roleResourceName(domainAdmin.getKey(), ZMSConsts.ADMIN_ROLE_NAME), details);
+                if (notification != null) {
+                    notificationService.notify(notification);
+                }
+            }
+        }
+
+        Map<String, String> processRoleExpiryReminder(Map<String, List<MemberRole>> domainAdminMap, DomainRoleMember member) {
+
+            Map<String, String> details = new HashMap<>();
+
+            // each principal can have multiple roles in multiple domains that
+            // it's part of thus multiple possible expiration entries.
+            // we're going to collect them into one string and separate
+            // with | between those. The format will be:
+            // expiryRoles := <role-entry>[|<role-entry]*
+            // role-entry := <domain-name>;<role-name>;<expiration>
+
+            final List<MemberRole> memberRoles = member.getMemberRoles();
+            if (memberRoles == null || memberRoles.isEmpty()) {
+                return details;
+            }
+
+            StringBuilder expiryRoles = new StringBuilder(256);
+            for (MemberRole memberRole : memberRoles) {
+
+                final String domainName = memberRole.getDomainName();
+
+                // first we're going to update our expiry details string
+
+                if (expiryRoles.length() != 0) {
+                    expiryRoles.append('|');
+                }
+                expiryRoles.append(domainName).append(';')
+                        .append(memberRole.getRoleName()).append(';')
+                        .append(memberRole.getExpiration().toString());
+
+                // next we're going to update our domain admin map
+
+                List<MemberRole> domainRoleMembers = domainAdminMap.get(domainName);
+                if (domainRoleMembers == null) {
+                    domainRoleMembers = new ArrayList<>();
+                    domainAdminMap.put(domainName, domainRoleMembers);
+                }
+                domainRoleMembers.add(memberRole);
+            }
+            details.put(NotificationService.NOTIFICATION_DETAILS_EXPIRY_ROLES, expiryRoles.toString());
+            details.put(NotificationService.NOTIFICATION_DETAILS_MEMBER, member.getMemberName());
+
+            return details;
+        }
+
+        Map<String, String> processMemberExpiryReminder(final String domainName, List<MemberRole> memberRoles) {
+
+            Map<String, String> details = new HashMap<>();
+
+            // each domain can have multiple members that are about
+            // to expire to we're going to collect them into one
+            // string and separate with | between those. The format will be:
+            // expiryMembers := <member-entry>[|<member-entry]*
+            // member-entry := <member-name>;<role-name>;<expiration>
+
+            if (memberRoles == null || memberRoles.isEmpty()) {
+                return details;
+            }
+
+            StringBuilder expiryMembers = new StringBuilder(256);
+            for (MemberRole memberRole : memberRoles) {
+
+                // first we're going to update our expiry details string
+
+                if (expiryMembers.length() != 0) {
+                    expiryMembers.append('|');
+                }
+                expiryMembers.append(memberRole.getMemberName()).append(';')
+                        .append(memberRole.getRoleName()).append(';')
+                        .append(memberRole.getExpiration().toString());
+            }
+            details.put(NotificationService.NOTIFICATION_DETAILS_EXPIRY_MEMBERS, expiryMembers.toString());
+            details.put(NotificationService.NOTIFICATION_DETAILS_DOMAIN, domainName);
+            return details;
         }
     }
 }

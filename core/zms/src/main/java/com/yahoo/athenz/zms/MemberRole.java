@@ -13,6 +13,12 @@ public class MemberRole {
     public String roleName;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String domainName;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String memberName;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Timestamp expiration;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -27,6 +33,20 @@ public class MemberRole {
     }
     public String getRoleName() {
         return roleName;
+    }
+    public MemberRole setDomainName(String domainName) {
+        this.domainName = domainName;
+        return this;
+    }
+    public String getDomainName() {
+        return domainName;
+    }
+    public MemberRole setMemberName(String memberName) {
+        this.memberName = memberName;
+        return this;
+    }
+    public String getMemberName() {
+        return memberName;
     }
     public MemberRole setExpiration(Timestamp expiration) {
         this.expiration = expiration;
@@ -58,6 +78,12 @@ public class MemberRole {
             }
             MemberRole a = (MemberRole) another;
             if (roleName == null ? a.roleName != null : !roleName.equals(a.roleName)) {
+                return false;
+            }
+            if (domainName == null ? a.domainName != null : !domainName.equals(a.domainName)) {
+                return false;
+            }
+            if (memberName == null ? a.memberName != null : !memberName.equals(a.memberName)) {
                 return false;
             }
             if (expiration == null ? a.expiration != null : !expiration.equals(a.expiration)) {

@@ -333,4 +333,15 @@ public class ZMSUtilsTest {
         assertEquals(ZMSUtils.extractRoleName("athenz:role.readers"), "readers");
         assertNull(ZMSUtils.extractRoleName("athenz.readers"));
     }
+
+    @Test
+    public void testExtractDomainName() {
+        assertEquals(ZMSUtils.extractDomainName("athenz.reader"), "athenz");
+        assertEquals(ZMSUtils.extractDomainName("athenz.api.reader"), "athenz.api");
+        assertEquals(ZMSUtils.extractDomainName("athenz.api.test.reader"), "athenz.api.test");
+
+        assertNull(ZMSUtils.extractDomainName("athenz"));
+        assertNull(ZMSUtils.extractDomainName("athenz."));
+        assertNull(ZMSUtils.extractDomainName(".athenz"));
+    }
 }

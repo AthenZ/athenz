@@ -1104,14 +1104,22 @@ type MemberRole struct {
 	RoleName ResourceName `json:"roleName"`
 
 	//
+	// name of the domain
+	//
+	DomainName DomainName `json:"domainName,omitempty" rdl:"optional"`
+
+	//
+	// name of the member
+	//
+	MemberName MemberName `json:"memberName,omitempty" rdl:"optional"`
+
+	//
 	// the expiration timestamp
 	//
 	Expiration *rdl.Timestamp `json:"expiration,omitempty" rdl:"optional"`
 
 	//
-	// Flag to indicate whether membership is approved either by delegates ( in
-	// case of auditEnabled roles ) or by domain admins ( in case of selfserve roles
-	// )
+	// Flag to indicate whether membership is active
 	//
 	Active *bool `json:"active,omitempty" rdl:"optional"`
 
@@ -1171,6 +1179,18 @@ func (self *MemberRole) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "ResourceName", self.RoleName)
 		if !val.Valid {
 			return fmt.Errorf("MemberRole.roleName does not contain a valid ResourceName (%v)", val.Error)
+		}
+	}
+	if self.DomainName != "" {
+		val := rdl.Validate(ZMSSchema(), "DomainName", self.DomainName)
+		if !val.Valid {
+			return fmt.Errorf("MemberRole.domainName does not contain a valid DomainName (%v)", val.Error)
+		}
+	}
+	if self.MemberName != "" {
+		val := rdl.Validate(ZMSSchema(), "MemberName", self.MemberName)
+		if !val.Valid {
+			return fmt.Errorf("MemberRole.memberName does not contain a valid MemberName (%v)", val.Error)
 		}
 	}
 	if self.AuditRef != "" {

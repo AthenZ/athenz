@@ -3985,11 +3985,20 @@ public class DBService {
     }
 
     public Set<String> getPendingMembershipApproverRoles() {
-        String server = ZMSImpl.serverHostName;
         try (ObjectStoreConnection con = store.getConnection(true, true)) {
-            long updateTs = new Date().getTime();
-            if (con.updateLastNotifiedTimestamp(server, updateTs)) {
-                return con.getPendingMembershipApproverRoles(server, updateTs);
+            long updateTs = System.currentTimeMillis();
+            if (con.updatePendingRoleMembersNotificationTimestamp(ZMSImpl.serverHostName, updateTs)) {
+                return con.getPendingMembershipApproverRoles(ZMSImpl.serverHostName, updateTs);
+            }
+        }
+        return null;
+    }
+
+    public Map<String, DomainRoleMember> getRoleExpiryMembers() {
+        try (ObjectStoreConnection con = store.getConnection(true, true)) {
+            long updateTs = System.currentTimeMillis();
+            if (con.updateRoleMemberExpirationNotificationTimestamp(ZMSImpl.serverHostName, updateTs)) {
+                return con.getNotifyTemporaryRoleMembers(ZMSImpl.serverHostName, updateTs);
             }
         }
         return null;

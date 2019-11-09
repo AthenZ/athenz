@@ -12362,7 +12362,17 @@ public class ZMSImplTest {
         String privKeyId = System.getProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY_ID, "0");
         assertEquals(pubKey, zms.serverPublicKeyMap.get(privKeyId));
     }
-    
+
+    @Test
+    public void testLoadSolutionTemplatesInvalid() {
+        System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME, "invalid-templates.json");
+        zms.serverSolutionTemplates = null;
+        zms.loadSolutionTemplates();
+        assertNotNull(zms.serverSolutionTemplates);
+        assertTrue(zms.serverSolutionTemplates.getTemplates().isEmpty());
+        System.clearProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME);
+    }
+
     @Test
     public void testUnderscoreNotAllowed() {
 
