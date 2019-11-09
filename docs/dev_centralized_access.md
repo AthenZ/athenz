@@ -51,7 +51,7 @@ the dependency on the Athenz auth_core Library:
   <repository>
     <id>bintray-yahoo-maven</id>
     <name>bintray</name>
-    <url>http://yahoo.bintray.com/maven</url>
+    <url>https://yahoo.bintray.com/maven</url>
   </repository>
 </repositories>
 ```
@@ -108,7 +108,7 @@ the dependency on the Athenz zms java client Library:
   <repository>
     <id>bintray-yahoo-maven</id>
     <name>bintray</name>
-    <url>http://yahoo.bintray.com/maven</url>
+    <url>https://yahoo.bintray.com/maven</url>
   </repository>
 </repositories>
 ```
