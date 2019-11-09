@@ -22,6 +22,7 @@ printf "\nWill start Athenz UI...\n"
 docker run -d -h ${UI_HOST} \
   -p "${UI_PORT}:${UI_PORT}" \
   --network="${DOCKER_NETWORK}" \
+  --user athenz:athenz \
   -v "`pwd`/zts/conf/athenz.conf:/opt/athenz/ui/config/athenz.conf" \
   -v "`pwd`/${UI_PK_PATH}:/opt/athenz/ui/keys/ui_key.pem" \
   -v "`pwd`/${UI_X509_OUT_PATH}:/opt/athenz/ui/keys/ui_cert.pem" \

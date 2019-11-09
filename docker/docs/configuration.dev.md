@@ -18,11 +18,6 @@
 
 <!-- /TOC -->
 
-<a id="markdown-component-dependency" name="component-dependency"></a>
-## Component dependency
-
-![Athenz-components](./images/Athenz-components.png)
-
 <a id="markdown-zms" name="zms"></a>
 ## ZMS
 
@@ -36,6 +31,7 @@
     └── zms-db.cnf
     ```
 - configuration
+  
     1. [zms-db.cnf](../db/zms/zms-db.cnf)
 
 <a id="markdown-zms-server-configuration" name="zms-server-configuration"></a>
@@ -124,6 +120,7 @@
     └── zts-db.cnf
     ```
 - configuration
+  
     1. [zts-db.cnf](../db/zts/zts-db.cnf)
 
 <a id="markdown-zts-server-configuration" name="zts-server-configuration"></a>

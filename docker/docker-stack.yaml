@@ -14,7 +14,7 @@ services:
   zms-db:
     image: athenz-zms-db
     environment:
-      MYSQL_ROOT_PASSWORD: ${ZMS_JDBC_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${ZMS_DB_ROOT_PASS}
     ports:
       - target: ${ZMS_DB_PORT}
         published: ${ZMS_DB_PORT}
@@ -28,7 +28,7 @@ services:
       - ./db/zms/zms-db.cnf:/etc/mysql/conf.d/zms-db.cnf
       - ./db/zms/zms-db.cnf:/etc/my.cnf"
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "--protocol=TCP", "--password=${ZMS_JDBC_PASSWORD}"]
+      test: ["CMD", "mysqladmin", "ping", "--protocol=TCP", "--password=${ZMS_DB_ROOT_PASS}"]
       start_period: 15s
       interval: 30s
       timeout: 10s
@@ -43,7 +43,7 @@ services:
   zts-db:
     image: athenz-zts-db
     environment:
-      MYSQL_ROOT_PASSWORD: ${ZTS_CERT_JDBC_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${ZTS_DB_ROOT_PASS}
     ports:
       - target: ${ZTS_DB_PORT}
         published: ${ZTS_DB_PORT}
@@ -57,7 +57,7 @@ services:
       - ./db/zts/zts-db.cnf:/etc/mysql/conf.d/zts-db.cnf
       - ./db/zts/zts-db.cnf:/etc/my.cnf"
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "--protocol=TCP", "--password=${ZTS_CERT_JDBC_PASSWORD}"]
+      test: ["CMD", "mysqladmin", "ping", "--protocol=TCP", "--password=${ZTS_DB_ROOT_PASS}"]
       start_period: 15s
       interval: 30s
       timeout: 10s
@@ -75,9 +75,9 @@ services:
     depends_on:
       - zms-db
     environment:
-      ZMS_JDBC_PASSWORD: ${ZMS_JDBC_PASSWORD}
-      ZMS_SSL_KEYSTORE_PASS: ${ZMS_SSL_KEYSTORE_PASS}
-      ZMS_SSL_TRUSTSTORE_PASS: ${ZMS_SSL_TRUSTSTORE_PASS}
+      ZMS_DB_ADMIN_PASS: ${ZMS_DB_ADMIN_PASS}
+      ZMS_KEYSTORE_PASS: ${ZMS_KEYSTORE_PASS}
+      ZMS_TRUSTSTORE_PASS: ${ZMS_TRUSTSTORE_PASS}
     ports:
       - target: ${ZMS_PORT}
         published: ${ZMS_PORT}
@@ -110,11 +110,11 @@ services:
       - zts-db
       - zms-server
     environment:
-      ZTS_CERT_JDBC_PASSWORD: ${ZTS_CERT_JDBC_PASSWORD}
-      ZTS_SSL_KEYSTORE_PASS: ${ZTS_SSL_KEYSTORE_PASS}
-      ZTS_SSL_TRUSTSTORE_PASS: ${ZTS_SSL_TRUSTSTORE_PASS}
-      ZTS_ZTS_SSL_KEYSTORE_PASS: ${ZTS_ZTS_SSL_KEYSTORE_PASS}
-      ZTS_ZTS_SSL_TRUSTSTORE_PASS: ${ZTS_ZTS_SSL_TRUSTSTORE_PASS}
+      ZTS_DB_ADMIN_PASS: ${ZTS_DB_ADMIN_PASS}
+      ZTS_KEYSTORE_PASS: ${ZTS_KEYSTORE_PASS}
+      ZTS_TRUSTSTORE_PASS: ${ZTS_TRUSTSTORE_PASS}
+      ZTS_SIGNER_KEYSTORE_PASS: ${ZTS_SIGNER_KEYSTORE_PASS}
+      ZTS_SIGNER_TRUSTSTORE_PASS: ${ZTS_SIGNER_TRUSTSTORE_PASS}
     ports:
       - target: ${ZTS_PORT}
         published: ${ZTS_PORT}

@@ -9,19 +9,25 @@
     - [Prerequisite](#prerequisite)
     - [Build Athenz](#build-athenz)
     - [Deploy Athenz](#deploy-athenz)
+    - [Verify Athenz Deployment](#verify-athenz-deployment)
+        - [JAVA Remote debugging](#java-remote-debugging)
     - [Cleanup](#cleanup)
-    - [Configuration Details](#configuration-details)
-    - [Useful Commands](#useful-commands)
-    - [[WIP] deploy with docker-stack](#wip-deploy-with-docker-stack)
-    - [TO-DO](#to-do)
-    - [Important Files](#important-files)
+    - [Appendix](#appendix)
+        - [Important Files](#important-files)
+        - [[WIP] Configuration Details](#wip-configuration-details)
+        - [Useful Commands](#useful-commands)
+        - [[WIP] Deploy with docker-stack](#wip-deploy-with-docker-stack)
+        - [TODO](#todo)
+        - [UI Section (backup)](#ui-section-backup)
 
 <!-- /TOC -->
 
 <a id="markdown-prerequisite" name="prerequisite"></a>
 ## Prerequisite
-- docker
-- make
+- `docker`
+- `make`
+- `openssl`
+- `keytool`
 
 <a id="markdown-build-athenz" name="build-athenz"></a>
 ## Build Athenz
@@ -29,63 +35,81 @@
 ```bash
 cd `git rev-parse --show-toplevel`/docker
 
-# there are a lot of build logs. You may want to check it inside a log file later on.
-make build | tee ./athenz-docker-build.log
+# it takes about 15-30 mins
+make build
 ```
 
 <a id="markdown-deploy-athenz" name="deploy-athenz"></a>
 ## Deploy Athenz
 
+- production environment
+    - [Athenz-bootstrap](./docs/Athenz-bootstrap.md)
 - development environment
-    - deploy commands
-        ```bash
-        cd `git rev-parse --show-toplevel`/docker
+    ```bash
+    make deploy-dev
+    ```
 
-        # 1. set passwords (P.S. values in *.properties files will overwrite these values)
-        source ./setup-scripts/0.export-default-passwords.sh
+<a id="markdown-verify-athenz-deployment" name="verify-athenz-deployment"></a>
+## Verify Athenz Deployment
 
-        # 2. generate key-pairs, certificates and keystore/truststore
-        make setup-dev-config
+- [acceptance-test](./docs/acceptance-test.md)
 
-        # 3. (once ONLY) create docker network
-        make setup-docker-network
+<a id="markdown-java-remote-debugging" name="java-remote-debugging"></a>
+### JAVA Remote debugging
 
-        # 4.1 (optional) if you are running web browser and docker containers in the same host
-        export HOSTNAME=localhost
-        # 4.2. run Athenz
-        make run-docker-dev
-        ```
-    - Note for UI
-        - To ignore certificate warning from the browser,
-            1. for ZMS server certificate,
-                1. get ZMS URL by `echo https://${HOSTNAME}:${ZMS_PORT:-4443}/zms/v1/status`
-                1. access ZMS using above URL in the browser
-                1. ignore the browser warning (certificate authority invalid)
-            1. for UI server certificate,
-                1. get UI URL by `echo https://${HOSTNAME}:${UI_PORT:-443}/`
-                1. access UI using above URL in the browser
-                1. ignore the browser warning (certificate authority invalid)
-            - Why do I need to explicitly ignore certificate warning from the browser for both ZMS and UI?
-                - You need to connect to ZMS to get a user token during the login process of UI.
-                - Since the certificates generated in DEV. deployment are all self-signed certificates, they are not trusted by the browser.
-                - Also, they may not have the correct `${HOSTNAME}` in the SAN field depending on your DEV. deployment.
-                - Hence, explicitly ignoring the browsers warning message is needed for both ZMS and UI.
-        - UI login username/password
-            - username: `admin` ([zms.properties](./zms/conf/zms.properties#L37-L41))
-            - password: `replace_me_with_a_strong_password` ([deploy script](./deploy-scripts/1.2.config-zms-domain-admin.dev.sh#L12))
+```bash
+### ZMS
+ZMS_DEBUG_PORT=8001
+export ZMS_JAVA_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=${ZMS_DEBUG_PORT}"
+# deploy ZMS
+# expose debug port
+docker run --rm \
+    --network="${DOCKER_NETWORK}" \
+    -p "${ZMS_DEBUG_PORT}:${ZMS_DEBUG_PORT}" \
+    --link "${ZMS_HOST}:target" \
+    alpine/socat \
+    "tcp-listen:${ZMS_DEBUG_PORT},fork,reuseaddr" \
+    "tcp-connect:target:${ZMS_DEBUG_PORT}"
+
+### ZTS
+ZTS_DEBUG_PORT=8002
+export ZTS_JAVA_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=${ZTS_DEBUG_PORT}"
+# deploy ZTS
+# expose debug port
+docker run --rm \
+    --network="${DOCKER_NETWORK}" \
+    -p "${ZTS_DEBUG_PORT}:${ZTS_DEBUG_PORT}" \
+    --link "${ZTS_HOST}:target" \
+    alpine/socat \
+    "tcp-listen:${ZTS_DEBUG_PORT},fork,reuseaddr" \
+    "tcp-connect:target:${ZTS_DEBUG_PORT}"
+```
 
 <a id="markdown-cleanup" name="cleanup"></a>
 ## Cleanup
+
 ```bash
 # remove deployment
 make remove-all
 
-# remove everything
+# remove everything include docker images
 make clean
 ```
 
-<a id="markdown-configuration-details" name="configuration-details"></a>
-## Configuration Details
+<a id="markdown-appendix" name="appendix"></a>
+## Appendix
+
+<a id="markdown-important-files" name="important-files"></a>
+### Important Files
+- [zms Dockerfile](./zms/Dockerfile)
+- [zts Dockerfile](./zts/Dockerfile)
+- [Makefile](./Makefile)
+- [setup-scripts](./setup-scripts)
+- [deploy-scripts](./deploy-scripts)
+- [docker-stack.yaml](./docker-stack.yaml)
+
+<a id="markdown-wip-configuration-details" name="wip-configuration-details"></a>
+### [WIP] Configuration Details
 - development environment
     - [configuration.dev.md](./docs/configuration.dev.md)
     - server ports
@@ -107,7 +131,7 @@ make clean
             - ENV: `UI_PORT` ([deploy script](./deploy-scripts/3.2.deploy-UI.sh#L16))
 
 <a id="markdown-useful-commands" name="useful-commands"></a>
-## Useful Commands
+### Useful Commands
 
 ```bash
 # check logs
@@ -115,8 +139,8 @@ less ./logs/zms/server.log
 less ./logs/zts/server.log
 
 # remove single docker
-docker stop athenz-zms-server; docker rm athenz-zms-server; sudo rm -f ./logs/zms/*
-docker stop athenz-zts-server; docker rm athenz-zts-server; sudo rm -f ./logs/zts/*
+docker stop athenz-zms-server; docker rm athenz-zms-server; rm -f ./logs/zms/*
+docker stop athenz-zts-server; docker rm athenz-zts-server; rm -f ./logs/zts/*
 docker stop athenz-ui; docker rm athenz-ui
 
 # inspect
@@ -135,8 +159,8 @@ curl -k -o - https://localhost:4443/zms/v1/status
 curl -k -o - https://localhost:8443/zts/v1/status
 
 # mysql
-mysql -v -u root --host=127.0.0.1 --port=3306 --password=${ZMS_JDBC_PASSWORD} --database=zms_server -e 'show tables;'
-mysql -v -u root --host=127.0.0.1 --port=3307 --password=${ZTS_CERT_JDBC_PASSWORD} --database=zts_store -e 'show tables;'
+mysql -v -u root --host=127.0.0.1 --port=3306 --password=${ZMS_DB_ROOT_PASS} --database=zms_server -e 'show tables;'
+mysql -v -u root --host=127.0.0.1 --port=3307 --password=${ZTS_DB_ROOT_PASS} --database=zts_store -e 'show tables;'
 
 # keytool
 openssl pkey -in ./zms/var/certs/zms_key.pem
@@ -146,12 +170,10 @@ keytool -list -keystore ./zms/var/certs/zms_keystore.pkcs12
 keytool -list -keystore ./zts/var/certs/zts_keystore.pkcs12
 keytool -list -keystore ./zms/var/certs/zms_truststore.jks
 keytool -list -keystore ./zts/var/certs/zts_truststore.jks
-# openssl pkey -in ./zts/var/keys/zts_cert_signer_key.pem
-# keytool -list -keystore ./zts/var/keys/zts_cert_signer_keystore.pkcs12
 ```
 
 <a id="markdown-wip-deploy-with-docker-stack" name="wip-deploy-with-docker-stack"></a>
-## [WIP] deploy with docker-stack
+### [WIP] Deploy with docker-stack
 ```bash
 cd `git rev-parse --show-toplevel`/docker
 
@@ -216,34 +238,49 @@ rm -rf ./logs
 sudo systemctl restart docker
 ```
 
-<a id="markdown-to-do" name="to-do"></a>
-## TO-DO
+<a id="markdown-todo" name="todo"></a>
+### TODO
 
+- [Athenz-bootstrap#todo](./docs/Athenz-bootstrap.md#todo)
 -   UI
     1.  convert `default-config.js` parameters to ENV
     1.  `server.js`, `login.js`, `serviceFQN`; `keys` folder is hard coded
     1.  configurable listening port
 -   ZMS
     1.  need server health check, e.g. readiness probe
-    1.  Warning message in docker log: `Loading class 'com.mysql.jdbc.Driver'. This is deprecated. The new driver class is 'com.mysql.cj.jdbc.Driver'. The driver is automatically registered via the SPI and manual loading of the driver class is generally unnecessary.`
--   ZTS
-    1.  `docker/zts/var/zts_store/` create as root user by docker for storing policy, better to change the default location folder outside the Athenz project folder
 -   ZPU
     1.  If volume not mount to `/home/athenz/tmp/zpe/`, will have error: `2019/06/12 06:34:09 Failed to get policies for domain: garm, Error:Unable to write Policies for domain:"garm" to file, Error:rename /home/athenz/tmp/zpe/garm.tmp /etc/acceptance-test/zpu/garm.pol: invalid cross-device link`
 -   athenz-cli
     1.  build with separated docker files (add go.mod to support caching the dependency)
 -   common
     1.  file permission for keys (`chmod`)
-    1.  bootstrap without user token for `zms-cli`
-        1.  user token has IP address, need to fix docker container's IP
     1.  no curl in JAVA container, docker health check on ZMS and ZTS are not working
-    1.  should keep the private keys in the repo, as a reference?
 
-<a id="markdown-important-files" name="important-files"></a>
-## Important Files
-- [zms Dockerfile](./zms/Dockerfile)
-- [zts Dockerfile](./zts/Dockerfile)
-- [Makefile](./Makefile)
-- [setup-scripts](./setup-scripts)
-- [deploy-scripts](./deploy-scripts)
-- [docker-stack.yaml](./docker-stack.yaml)
+
+<a id="markdown-ui-section-backup" name="ui-section-backup"></a>
+### UI Section (backup)
+
+```bash
+# 4.1 (optional) if you are running web browser and docker containers in the same host
+export HOSTNAME=localhost
+# 4.2. run Athenz
+make run-docker-dev
+```
+- Note for UI
+    - To ignore certificate warning from the browser,
+        1. for ZMS server certificate,
+            1. get ZMS URL by `echo https://${HOSTNAME}:${ZMS_PORT:-4443}/zms/v1/status`
+            1. access ZMS using above URL in the browser
+            1. ignore the browser warning (certificate authority invalid)
+        1. for UI server certificate,
+            1. get UI URL by `echo https://${HOSTNAME}:${UI_PORT:-443}/`
+            1. access UI using above URL in the browser
+            1. ignore the browser warning (certificate authority invalid)
+        - Why do I need to explicitly ignore certificate warning from the browser for both ZMS and UI?
+            - You need to connect to ZMS to get a user token during the login process of UI.
+            - Since the certificates generated in DEV. deployment are all self-signed certificates, they are not trusted by the browser.
+            - Also, they may not have the correct `${HOSTNAME}` in the SAN field depending on your DEV. deployment.
+            - Hence, explicitly ignoring the browsers warning message is needed for both ZMS and UI.
+    - UI login username/password
+        - username: `admin` ([zms.properties](./zms/conf/zms.properties#L37-L41))
+        - password: `replace_me_with_a_strong_password` ([deploy script](./deploy-scripts/1.2.config-zms-domain-admin.dev.sh#L12))

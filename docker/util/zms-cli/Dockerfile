@@ -1,4 +1,4 @@
-FROM golang:1.12-alpine AS builder
+FROM golang:1.13-alpine AS builder
 
 ENV APP_NAME zms-cli
 
@@ -31,5 +31,7 @@ LABEL maintainer "yusukato <yusukato@yahoo-corp.jp>"
 ENV APP_NAME zms-cli
 
 COPY --from=builder /usr/bin/${APP_NAME} /usr/bin/${APP_NAME}
+
+USER ${APP_NAME}:${APP_NAME}
 
 ENTRYPOINT ["/usr/bin/zms-cli"]

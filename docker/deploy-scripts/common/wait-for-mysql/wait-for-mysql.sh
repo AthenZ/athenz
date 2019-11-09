@@ -2,9 +2,7 @@
 
 set -e
 
-host="$1"
-
-until mysqladmin ping --host "${host}" --silent; do
+until mysqladmin ping --silent "$@"; do
   echo 'MySQL is unavailable - will sleep 3s...'
   sleep 3
 done

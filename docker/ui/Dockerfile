@@ -23,6 +23,14 @@ RUN rm -rf scripts \
 
 FROM node:10.19.0-alpine
 
+ARG GID=1001
+ARG UID=10001
+
+# add athenz user
+RUN addgroup -g ${GID} athenz && \
+  adduser -S -D -H -s /sbin/nologin -u ${UID} -G athenz athenz
+USER athenz
+
 WORKDIR /opt/athenz/ui
 
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/

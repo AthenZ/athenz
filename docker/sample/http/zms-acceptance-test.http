@@ -1,0 +1,70 @@
+# file format: https://marketplace.visualstudio.com/items?itemName=humao.rest-client
+@zms_url = https://athenz-zms-server
+@port = 4443
+@host = {{zms_url}}:{{port}}
+
+### [reset only] delete service
+DELETE {{host}}/zms/v1/domain/testing/service/test_service HTTP/1.1
+### [reset only] delete domain
+DELETE {{host}}/zms/v1/domain/testing HTTP/1.1
+
+
+
+### add testing domain (PostTopLevelDomain)
+POST {{host}}/zms/v1/domain HTTP/1.1
+content-type: application/json
+
+{
+	"name": "testing",
+	"adminUsers": [
+		"user.github-7654321"
+	]
+}
+
+### add test_service (PutServiceIdentity)
+PUT {{host}}/zms/v1/domain/testing/service/test_service HTTP/1.1
+content-type: application/json
+
+{
+	"name": "testing.test_service",
+	"publicKeys": [
+		{
+			"id": "test_public_key",
+			"key": "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUFyWENZTTM2aE1Qa0lkbXEvL3YwZwpoRzRjc1hRWFpCcUhqQjM4dFB3bGYyK2JWaTlLL3BJRWFqdkxVTFRrdlc2d1BEVmY1b3dwb3QwZXM1SXJUVlIrCmtvVzdlRHJjeDdmdExmaXJodFpub1hTVGMwdllaalo3VTlnU1NsbStjU1pyamMwcVF3bk1nY1d3Q0EvY0hETi8KakRwdlRWUi9nZ0U4YnUvS2R6SVFkN0RMbEZnMlNWMkpYYjB3ZllFTmIxUnFkOU11TWZwQWlpdWc3VzBZbFNBRgp3WlhNazgxcWhUWStwNVdYUDhYSjd4dGdsRy9GQjVVN2hodnVOOENKUEY1d25pVjlRZE1adUtlSVV4NlB5cWt4CmVxTm0zeWhMQ1ZFS3BNWml4aWVHZ3NVRE95c2RPN1dXOFpmQ1o4ck4zSmJQY1FOZlUxSm1Ba2Y1a1hGMW45MG4KWXdJREFRQUIKLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg--"
+		}
+	]
+}
+
+### add test_role with testing.test_service as member (PutRole)
+PUT {{host}}/zms/v1/domain/testing/role/test_role HTTP/1.1
+content-type: application/json
+
+{
+	"name": "testing:role.test_role",
+	"members": [
+		"testing.test_service"
+	]
+}
+
+### add an allow policy to "obtain" "treasure" (PutPolicy)
+PUT {{host}}/zms/v1/domain/testing/policy/test_policy HTTP/1.1
+content-type: application/json
+
+{
+	"name": "testing:policy.test_policy",
+	"assertions": [
+		{
+			"role": "testing:role.test_role",
+			"action": "obtain",
+			"resource": "testing:treasure",
+			"effect": 0
+		}
+	]
+}
+
+### verify service
+GET {{host}}/zms/v1/domain/testing/service/test_service HTTP/1.1
+### verify role
+GET {{host}}/zms/v1/domain/testing/role/test_role HTTP/1.1
+### verify policy
+GET {{host}}/zms/v1/domain/testing/policy/test_policy HTTP/1.1

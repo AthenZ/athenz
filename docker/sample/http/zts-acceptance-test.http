@@ -1,0 +1,39 @@
+# file format: https://marketplace.visualstudio.com/items?itemName=humao.rest-client
+@zts_url = https://athenz-zts-server
+@port = 8443
+@host = {{zts_url}}:{{port}}
+
+### verify service certificate
+GET {{host}}/zts/v1/access/obtain/testing:treasure HTTP/1.1
+
+
+
+### get valid service certificate (PostInstanceRefreshRequest)
+POST {{host}}/zts/v1/instance/testing/test_service/refresh HTTP/1.1
+content-type: application/json
+
+{
+	"csr": "-----BEGIN CERTIFICATE REQUEST-----\nMIIDJTCCAg0CAQAwPTELMAkGA1UEBhMCVVMxDzANBgNVBAoMBkF0aGVuejEdMBsG\nA1UEAwwUdGVzdGluZy50ZXN0X3NlcnZpY2UwggEiMA0GCSqGSIb3DQEBAQUAA4IB\nDwAwggEKAoIBAQCtcJgzfqEw+Qh2ar/+/SCEbhyxdBdkGoeMHfy0/CV/b5tWL0r+\nkgRqO8tQtOS9brA8NV/mjCmi3R6zkitNVH6Shbt4OtzHt+0t+KuG1mehdJNzS9hm\nNntT2BJKWb5xJmuNzSpDCcyBxbAID9wcM3+MOm9NVH+CATxu78p3MhB3sMuUWDZJ\nXYldvTB9gQ1vVGp30y4x+kCKK6DtbRiVIAXBlcyTzWqFNj6nlZc/xcnvG2CUb8UH\nlTuGG+43wIk8XnCeJX1B0xm4p4hTHo/KqTF6o2bfKEsJUQqkxmLGJ4aCxQM7Kx07\ntZbxl8Jnys3cls9xA19TUmYCR/mRcXWf3SdjAgMBAAGggaIwgZ8GCSqGSIb3DQEJ\nDjGBkTCBjjAMBgNVHRMBAf8EAjAAMBMGA1UdJQQMMAoGCCsGAQUFBwMCMGkGA1Ud\nEQRiMGCCJXRlc3Rfc2VydmljZS50ZXN0aW5nLmRucy5hdGhlbnouY2xvdWSCN3Rl\nc3Rfc2VydmljZS50ZXN0aW5nLmluc3RhbmNlaWQuYXRoZW56LmRucy5hdGhlbnou\nY2xvdWQwDQYJKoZIhvcNAQELBQADggEBAKw1j/eFl2dIXidErF8eDQI9PIkOygmQ\n/7P5mkch9CpFV2MYBnk6UC414+yxUVQeTxI3iWK1mfoojCv9IKgZDDDWdocFojyU\nh4NgfLCfXiKkyO8aJav6cWkCnF1p7DcoLDzRVACaaPfSCLtaPpXThKPU/ccx+yFb\nNXvVirO3EFkuULLj3HdfZZJFyVf07/DwxkoRccMNXx/X758LAN7aejZHtk4OKR0L\nJioyUH59tTlZJdPqF7C4UAQP/SOMHiwJnkojgKJkNNP4SsnyB7qMlIbl/6EEdf8G\ncS2RlIJDrcmM5tb4dJGGliQ85SsOqdhHxTlps89mmQqkv+wjWmtgiGM=\n-----END CERTIFICATE REQUEST-----\n",
+	"keyId": "test_public_key"
+}
+
+### get valid role certificate (PostRoleCertificateRequest)
+POST {{host}}/zts/v1/domain/testing/role/test_role/token HTTP/1.1
+content-type: application/json
+
+{
+	"csr": "-----BEGIN CERTIFICATE REQUEST-----\nMIIC6jCCAdICAQAwPzELMAkGA1UEBhMCVVMxDzANBgNVBAoMBkF0aGVuejEfMB0G\nA1UEAwwWdGVzdGluZzpyb2xlLnRlc3Rfcm9sZTCCASIwDQYJKoZIhvcNAQEBBQAD\nggEPADCCAQoCggEBAKAnmBgoA/EIy54zZGUsNyk1NM4RYRgVzUG9xIbF8abdA1LW\nBlNL3vo1HSt6QnCo0gGCD2X0cOTEdmEMO4f2xZD+LbMAkH6kVvZTavZXAox49iQ9\nxQW9/+aXz1kLr9ZKHIfs5JOTGBSw5HTd9dQMEROH19mJ8sTJHX/Ul1pSXzz9PChD\nZsnCe+lB2rOM6fBby4RpZDyexdPQRsNWBjLhzngqc2M9ErPwf5UeyFcOsQ4QYyg8\nK2hF4A2A2iskOa9ZlXqT3T+LOwDP6caWvBNvIE7ofGet+Zj8VEuVMUibDCnqzhII\nmYwOZvQDjiwYOxn8d0sPwAdu3SF10Wn0EL88JdUCAwEAAaBmMGQGCSqGSIb3DQEJ\nDjFXMFUwDAYDVR0TAQH/BAIwADATBgNVHSUEDDAKBggrBgEFBQcDAjAwBgNVHREE\nKTAngSV0ZXN0aW5nLnRlc3Rfc2VydmljZUBkbnMuYXRoZW56LmNsb3VkMA0GCSqG\nSIb3DQEBCwUAA4IBAQBd0OsxM2xSZsKCQgnTA6cmILBsnh0eIOPBA2tqzIjVckAP\nt9eOTLBvfEJE/peyM335b0K9m4GBoBL82nOKLe3H+jV6XkP/2QZ3V7xk+4h/yhwh\niEZj5GmudSp2qs/UbhkOiG9F2BDeTWKBH2PkFEz2JDIjSLJ3ekm/Chk6dYlFbYkq\nTNpIjsjUBAOYfuSXSaR4Snbt01OK724neE8HwwD1aLYblx4A9F3N5bLc7ftvCBjg\nm+CkrYsrKQmNkwD87piLp7hz1ZXl2bdl0DYSSE+KVI+tWbFLWJopAJQEkEEcNNr/\nfVE07gl7yPPP6moB6XY0y9CdtirCbeapmgOEpNTK\n-----END CERTIFICATE REQUEST-----\n",
+	"expiryTime": 1440
+}
+
+### get access token (PostAccessTokenRequest)
+POST {{host}}/zts/v1/oauth2/token HTTP/1.1
+content-type: application/x-www-form-urlencoded
+
+grant_type=client_credentials&expires_in=86400&scope=testing:role.test_role
+
+### get policy (GetDomainSignedPolicyData)
+GET {{host}}/zts/v1/domain/testing/signed_policy_data HTTP/1.1
+
+### get role token of testing.test_service (GetRoleList)
+GET {{host}}/zts/v1/domain/testing/token?role=test_role HTTP/1.1
