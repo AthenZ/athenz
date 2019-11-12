@@ -35,7 +35,7 @@ import static org.testng.Assert.*;
 
 public class NotificationManagerTest {
 
-    @Mock private DBService dbService;
+    @Mock private DBService mockDbService;
     @Mock private AthenzDomain mockAthenzDomain;
 
     @BeforeClass
@@ -46,7 +46,7 @@ public class NotificationManagerTest {
     @BeforeMethod
     public void setUpMethod() {
         System.setProperty(ZMSConsts.ZMS_PROP_NOTIFICATION_SERVICE_FACTORY_CLASS, "com.yahoo.athenz.zms.notification.MockNotificationServiceFactory");
-        Mockito.when(dbService.getPendingMembershipApproverRoles()).thenReturn(null);
+        Mockito.when(mockDbService.getPendingMembershipApproverRoles()).thenReturn(Collections.emptySet());
     }
 
     @AfterMethod(alwaysRun=true)
@@ -89,7 +89,7 @@ public class NotificationManagerTest {
     public void testCreateNotification() {
         System.clearProperty(ZMSConsts.ZMS_PROP_NOTIFICATION_SERVICE_FACTORY_CLASS);
 
-        Mockito.when(dbService.getAthenzDomain("testdom", false)).thenReturn(mockAthenzDomain);
+        Mockito.when(mockDbService.getAthenzDomain("testdom", false)).thenReturn(mockAthenzDomain);
         List<Role> roles = new ArrayList<>();
         List<RoleMember> members = new ArrayList<>();
         RoleMember rm = new RoleMember().setMemberName("user.use1");
@@ -111,7 +111,7 @@ public class NotificationManagerTest {
         details.put("domain", "testdom");
         details.put("role", "role1");
 
-        NotificationManager notificationManager = new NotificationManager(dbService, ZMSConsts.USER_DOMAIN_PREFIX);
+        NotificationManager notificationManager = new NotificationManager(mockDbService, ZMSConsts.USER_DOMAIN_PREFIX);
         Notification notification = notificationManager.createNotification("MEMBERSHIP_APPROVAL", recipients, details);
         notificationManager.shutdown();
         assertNotNull(notification);
@@ -121,7 +121,7 @@ public class NotificationManagerTest {
     @Test
     public void testCreaeteNotificationNullRecipients() {
 
-        NotificationManager notificationManager = new NotificationManager(dbService, ZMSConsts.USER_DOMAIN_PREFIX);
+        NotificationManager notificationManager = new NotificationManager(mockDbService, ZMSConsts.USER_DOMAIN_PREFIX);
         assertNull(notificationManager.createNotification("MEMBERSHIP_APPROVAL", (Set<String>) null, null));
         assertNull(notificationManager.createNotification("MEMBERSHIP_APPROVAL", Collections.emptySet(), null));
         notificationManager.shutdown();
@@ -133,7 +133,7 @@ public class NotificationManagerTest {
         recipients.add("unix.ykeykey");
         recipients.add("testdom:role.role3");
 
-        Mockito.when(dbService.getAthenzDomain("testdom", false)).thenReturn(mockAthenzDomain);
+        Mockito.when(mockDbService.getAthenzDomain("testdom", false)).thenReturn(mockAthenzDomain);
         List<Role> roles = new ArrayList<>();
         List<RoleMember> members = new ArrayList<>();
         RoleMember rm = new RoleMember().setMemberName("user.use1");
@@ -145,7 +145,7 @@ public class NotificationManagerTest {
         Mockito.when(mockAthenzDomain.getName()).thenReturn("testdom");
         Mockito.when(mockAthenzDomain.getRoles()).thenReturn(roles);
 
-        NotificationManager notificationManager = new NotificationManager(dbService, ZMSConsts.USER_DOMAIN_PREFIX);
+        NotificationManager notificationManager = new NotificationManager(mockDbService, ZMSConsts.USER_DOMAIN_PREFIX);
         notificationManager.shutdown();
         Notification notification = notificationManager.createNotification("MEMBERSHIP_APPROVAL", recipients, null);
         assertNull(notification);
@@ -155,7 +155,7 @@ public class NotificationManagerTest {
     public void testNotificationManagerFail() {
         System.setProperty(ZMSConsts.ZMS_PROP_NOTIFICATION_SERVICE_FACTORY_CLASS, "aa");
 
-        NotificationManager notificationManager = new NotificationManager(dbService, ZMSConsts.USER_DOMAIN_PREFIX);
+        NotificationManager notificationManager = new NotificationManager(mockDbService, ZMSConsts.USER_DOMAIN_PREFIX);
         assertNotNull(notificationManager);
         assertFalse(notificationManager.isNotificationFeatureAvailable());
         notificationManager.shutdown();
@@ -166,7 +166,7 @@ public class NotificationManagerTest {
     @Test
     public void testNotificationManagerNullFactoryClass() {
         System.clearProperty(ZMSConsts.ZMS_PROP_NOTIFICATION_SERVICE_FACTORY_CLASS);
-        NotificationManager notificationManager = new NotificationManager(dbService, ZMSConsts.USER_DOMAIN_PREFIX);
+        NotificationManager notificationManager = new NotificationManager(mockDbService, ZMSConsts.USER_DOMAIN_PREFIX);
         assertNotNull(notificationManager);
         notificationManager.shutdown();
     }
@@ -174,7 +174,7 @@ public class NotificationManagerTest {
     @Test
     public void testNotificationManagerServiceNull() {
          NotificationServiceFactory testfact = () -> null;
-         NotificationManager notificationManager = new NotificationManager(dbService, testfact, ZMSConsts.USER_DOMAIN_PREFIX);
+         NotificationManager notificationManager = new NotificationManager(mockDbService, testfact, ZMSConsts.USER_DOMAIN_PREFIX);
          notificationManager.shutdown();
     }
 
@@ -362,7 +362,7 @@ public class NotificationManagerTest {
     public void testGenerateAndSendPostPutMembershipNotificationInvalidType() {
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
         NotificationServiceFactory testfact = () -> mockNotificationService;
-        NotificationManager notificationManager = new NotificationManager(dbService, testfact, ZMSConsts.USER_DOMAIN_PREFIX);
+        NotificationManager notificationManager = new NotificationManager(mockDbService, testfact, ZMSConsts.USER_DOMAIN_PREFIX);
         notificationManager.shutdown();
         notificationManager.generateAndSendPostPutMembershipNotification("testdomain1", "neworg", false, false, null);
         Mockito.verify(mockNotificationService, times(0)).notify(any());
@@ -372,7 +372,7 @@ public class NotificationManagerTest {
     public void testGenerateAndSendPostPutMembershipNotificationNullNotificationSvc() {
         NotificationServiceFactory testfact = () -> null;
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
-        NotificationManager notificationManager = new NotificationManager(dbService, testfact, ZMSConsts.USER_DOMAIN_PREFIX);
+        NotificationManager notificationManager = new NotificationManager(mockDbService, testfact, ZMSConsts.USER_DOMAIN_PREFIX);
         notificationManager.shutdown();
         notificationManager.generateAndSendPostPutMembershipNotification("testdomain1", "neworg", false, false, null);
         verify(mockNotificationService, never()).notify(any(Notification.class));
@@ -425,7 +425,7 @@ public class NotificationManagerTest {
     public void testProcessMemberExpiryReminderEmptySet() {
 
         System.clearProperty(ZMSConsts.ZMS_PROP_NOTIFICATION_SERVICE_FACTORY_CLASS);
-        NotificationManager notificationManager = new NotificationManager(dbService, ZMSConsts.USER_DOMAIN_PREFIX);
+        NotificationManager notificationManager = new NotificationManager(mockDbService, ZMSConsts.USER_DOMAIN_PREFIX);
 
         NotificationManager.RoleMemberReminders reminders = notificationManager.new RoleMemberReminders();
 
@@ -461,7 +461,7 @@ public class NotificationManagerTest {
     public void testProcessRoleExpiryReminder() {
 
         System.clearProperty(ZMSConsts.ZMS_PROP_NOTIFICATION_SERVICE_FACTORY_CLASS);
-        NotificationManager notificationManager = new NotificationManager(dbService, ZMSConsts.USER_DOMAIN_PREFIX);
+        NotificationManager notificationManager = new NotificationManager(mockDbService, ZMSConsts.USER_DOMAIN_PREFIX);
 
         NotificationManager.RoleMemberReminders reminders = notificationManager.new RoleMemberReminders();
 
