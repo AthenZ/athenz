@@ -8165,12 +8165,12 @@ public class JDBCConnectionTest {
     }
 
     @Test
-    public void testUpdateLastNotifiedTimestamp() throws Exception {
+    public void testUpdatePendingRoleMembersNotificationTimestamp() throws Exception {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Mockito.when(mockPrepStmt.executeUpdate())
                 .thenReturn(3); // 3 members updated
         long timestamp = new Date().getTime();
-        boolean result = jdbcConn.updateLastNotifiedTimestamp("localhost", timestamp);
+        boolean result = jdbcConn.updatePendingRoleMembersNotificationTimestamp("localhost", timestamp);
         java.sql.Timestamp ts = new java.sql.Timestamp(timestamp);
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(1, ts);
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "localhost");
@@ -8180,12 +8180,12 @@ public class JDBCConnectionTest {
     }
 
     @Test
-    public void testUpdateLastNotifiedTimestampError() throws Exception {
+    public void testUpdatePendingRoleMembersNotificationTimestampError() throws Exception {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Mockito.when(mockPrepStmt.executeUpdate())
-                .thenThrow(new SQLException("sql error")); // 3 members updated
+                .thenThrow(new SQLException("sql error"));
         try {
-            jdbcConn.updateLastNotifiedTimestamp("localhost", 0L);
+            jdbcConn.updatePendingRoleMembersNotificationTimestamp("localhost", 0L);
             fail();
         } catch (RuntimeException rx) {
             assertTrue(rx.getMessage().contains("sql error"));
@@ -8298,6 +8298,83 @@ public class JDBCConnectionTest {
             assertTrue(ex.getMessage().contains("user.user1"));
         }
 
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testUdateRoleMemberExpirationNotificationTimestamp() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockPrepStmt.executeUpdate())
+                .thenReturn(3); // 3 members updated
+        long timestamp = System.currentTimeMillis();
+        boolean result = jdbcConn.updateRoleMemberExpirationNotificationTimestamp("localhost", timestamp);
+        java.sql.Timestamp ts = new java.sql.Timestamp(timestamp);
+        Mockito.verify(mockPrepStmt, times(1)).setTimestamp(1, ts);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "localhost");
+        assertTrue(result);
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testUdateRoleMemberExpirationNotificationTimestampError() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockPrepStmt.executeUpdate())
+                .thenThrow(new SQLException("sql error"));
+        try {
+            jdbcConn.updateRoleMemberExpirationNotificationTimestamp("localhost", System.currentTimeMillis());
+            fail();
+        } catch (RuntimeException ex) {
+            assertTrue(ex.getMessage().contains("sql error"));
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetNotifyTemporaryRoleMembers() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_PRINCIPAL_NAME))
+                .thenReturn("user.joe")
+                .thenReturn("user.joe")
+                .thenReturn("user.jane");
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ROLE_NAME))
+                .thenReturn("role1")
+                .thenReturn("rols2")
+                .thenReturn("role3");
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_DOMAIN_NAME))
+                .thenReturn("athenz1")
+                .thenReturn("athenz1")
+                .thenReturn("athenz2");
+        java.sql.Timestamp ts = new java.sql.Timestamp(System.currentTimeMillis());
+        Mockito.when(mockResultSet.getTimestamp(ZMSConsts.DB_COLUMN_EXPIRATION))
+                .thenReturn(ts);
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for user.joe in athenz1
+                .thenReturn(true) // this one is for user.joe in athenz2
+                .thenReturn(true) // this one is for user.jane in athenz2
+                .thenReturn(false); // end
+
+        long timestamp = System.currentTimeMillis();
+        Map<String, DomainRoleMember> memberMap = jdbcConn.getNotifyTemporaryRoleMembers("localhost", timestamp);
+        assertNotNull(memberMap);
+        assertEquals(memberMap.size(), 2);
+        assertTrue(memberMap.keySet().contains("user.joe"));
+        assertTrue(memberMap.keySet().contains("user.jane"));
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetNotifyTemporaryRoleMembersError() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockPrepStmt.executeQuery())
+                .thenThrow(new SQLException("sql error"));
+        try {
+            jdbcConn.getNotifyTemporaryRoleMembers("localhost", System.currentTimeMillis());
+            fail();
+        } catch (RuntimeException ex) {
+            assertTrue(ex.getMessage().contains("sql error"));
+        }
         jdbcConn.close();
     }
 }

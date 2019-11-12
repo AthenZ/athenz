@@ -762,7 +762,7 @@ public class FileConnection implements ObjectStoreConnection {
         // need to check if the member already exists
         boolean entryUpdated = false;
         for (RoleMember roleMember : role.getRoleMembers()) {
-            if (roleMember.getMemberName().equals(member.getMemberName())) {
+            if (roleMember.getMemberName().equals(member.getMemberName()) && roleMember.getApproved() == member.getApproved()) {
                 roleMember.setExpiration(member.getExpiration());
                 entryUpdated = true;
             }
@@ -1510,23 +1510,7 @@ public class FileConnection implements ObjectStoreConnection {
                 continue;
             }
             for (RoleMember roleMember : roleMembers) {
-
-                final String memberName = roleMember.getMemberName();
-                DomainRoleMember domainRoleMember = memberMap.get(memberName);
-                if (domainRoleMember == null) {
-                    domainRoleMember = new DomainRoleMember();
-                    domainRoleMember.setMemberName(memberName);
-                    memberMap.put(memberName, domainRoleMember);
-                }
-                List<MemberRole> memberRoles = domainRoleMember.getMemberRoles();
-                if (memberRoles == null) {
-                    memberRoles = new ArrayList<>();
-                    domainRoleMember.setMemberRoles(memberRoles);
-                }
-                MemberRole memberRole = new MemberRole();
-                memberRole.setRoleName(role.getName());
-                memberRole.setExpiration(roleMember.getExpiration());
-                memberRoles.add(memberRole);
+                addRoleMemberToMap(memberMap, roleMember, domainName, role.getName());
             }
         }
 
@@ -1717,13 +1701,12 @@ public class FileConnection implements ObjectStoreConnection {
     }
 
     @Override
-    public boolean updateLastNotifiedTimestamp(String server, long timestamp) {
+    public boolean updatePendingRoleMembersNotificationTimestamp(String server, long timestamp) {
         String[] fnames = getDomainList();
-        boolean updated;
-        boolean found = false;
+        boolean updated = false;
         for (String name : fnames) {
             DomainStruct dom = getDomainStruct(name);
-            updated = false;
+            boolean domainChanged = false;
             if (dom == null) {
                 continue;
             }
@@ -1732,15 +1715,15 @@ public class FileConnection implements ObjectStoreConnection {
                     if (roleMember.getApproved() == Boolean.FALSE) {
                         roleMember.setLastNotifiedTime(Timestamp.fromCurrentTime());
                         updated = true;
-                        found = true;
+                        domainChanged = true;
                     }
                 }
             }
-            if (updated) {
+            if (domainChanged) {
                 putDomainStruct(name, dom);
             }
         }
-        return found;
+        return updated;
     }
 
     @Override
@@ -1767,5 +1750,94 @@ public class FileConnection implements ObjectStoreConnection {
         }
         putDomainStruct(domainName, domainStruct);
         return true;
+    }
+
+    @Override
+    public Map<String, DomainRoleMember> getNotifyTemporaryRoleMembers(String server, long timestamp) {
+
+        Map<String, DomainRoleMember> memberMap = new HashMap<>();
+
+        String[] fnames = getDomainList();
+        for (String name : fnames) {
+            DomainStruct dom = getDomainStruct(name);
+            if (dom == null) {
+                continue;
+            }
+
+            for (Role role: dom.getRoles().values()) {
+                List<RoleMember> roleMembers = role.getRoleMembers();
+                if (roleMembers == null) {
+                    continue;
+                }
+                for (RoleMember roleMember : roleMembers) {
+
+                    if (roleMember.getApproved() == Boolean.FALSE || roleMember.getLastNotifiedTime() == null ||
+                            roleMember.getLastNotifiedTime().millis() != timestamp) {
+                        continue;
+                    }
+
+                    addRoleMemberToMap(memberMap, roleMember, name, role.getName());
+                }
+            }
+        }
+
+        return memberMap;
+    }
+
+    void addRoleMemberToMap(Map<String, DomainRoleMember> memberMap, RoleMember roleMember, final String domainName,
+            final String roleName) {
+
+        final String memberName = roleMember.getMemberName();
+        DomainRoleMember domainRoleMember = memberMap.get(memberName);
+        if (domainRoleMember == null) {
+            domainRoleMember = new DomainRoleMember();
+            domainRoleMember.setMemberName(memberName);
+            memberMap.put(memberName, domainRoleMember);
+        }
+        List<MemberRole> memberRoles = domainRoleMember.getMemberRoles();
+        if (memberRoles == null) {
+            memberRoles = new ArrayList<>();
+            domainRoleMember.setMemberRoles(memberRoles);
+        }
+        MemberRole memberRole = new MemberRole();
+        memberRole.setMemberName(memberName);
+        memberRole.setRoleName(roleName);
+        memberRole.setDomainName(domainName);
+        memberRole.setExpiration(roleMember.getExpiration());
+        memberRoles.add(memberRole);
+    }
+
+    @Override
+    public boolean updateRoleMemberExpirationNotificationTimestamp(String server, long timestamp) {
+        String[] fnames = getDomainList();
+        boolean updated = false;
+        for (String name : fnames) {
+            DomainStruct dom = getDomainStruct(name);
+            boolean domainChanged = false;
+            if (dom == null) {
+                continue;
+            }
+            for (Role role : dom.getRoles().values()) {
+                for (RoleMember roleMember : role.getRoleMembers()) {
+                    if (roleMember.getApproved() == Boolean.FALSE || roleMember.getExpiration() == null) {
+                        continue;
+                    }
+                    long diffMillis = roleMember.getExpiration().millis() - System.currentTimeMillis();
+                    if (diffMillis < 0) {
+                        continue;
+                    }
+                    long diffDays = TimeUnit.DAYS.convert(diffMillis, TimeUnit.MILLISECONDS);
+                    if (diffDays < 29 && (diffDays == 1 || diffDays % 7 == 0)) {
+                        roleMember.setLastNotifiedTime(Timestamp.fromMillis(timestamp));
+                        domainChanged = true;
+                        updated = true;
+                    }
+                }
+            }
+            if (domainChanged) {
+                putDomainStruct(name, dom);
+            }
+        }
+        return updated;
     }
 }

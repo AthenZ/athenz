@@ -282,8 +282,17 @@ public class JDBCConnection implements ObjectStoreConnection {
             "ON prm.principal_id=p.principal_id JOIN role r ON prm.role_id=r.role_id JOIN domain d ON d.domain_id=r.domain_id " +
             "WHERE prm.req_time < (CURRENT_DATE - INTERVAL ? DAY);";
 
-    private static final String SQL_UPDATE_PENDING_ROLE_MEMBERS_NOTIFICATION_TIMESTAMP = "UPDATE pending_role_member SET last_notification_time=?, server=? " +
-            "WHERE DAYOFWEEK(req_time)=DAYOFWEEK(?) AND last_notification_time < (CURRENT_DATE - INTERVAL 1 DAY);";
+    private static final String SQL_UPDATE_PENDING_ROLE_MEMBERS_NOTIFICATION_TIMESTAMP = "UPDATE pending_role_member SET last_notified_time=?, server=? " +
+            "WHERE DAYOFWEEK(req_time)=DAYOFWEEK(?) AND last_notified_time < (CURRENT_DATE - INTERVAL 1 DAY);";
+
+    private static final String SQL_UPDATE_ROLE_MEMBERS_EXPIRY_NOTIFICATION_TIMESTAMP = "UPDATE role_member SET last_notified_time=?, server=? " +
+            "WHERE expiration > CURRENT_TIME AND DATEDIFF(expiration, CURRENT_TIME) IN (1,7,14,21,28) AND (last_notified_time IS NULL || last_notified_time < (CURRENT_DATE - INTERVAL 1 DAY));";
+    private static final String SQL_LIST_NOTIFY_TEMPORARY_ROLE_MEMBERS = "SELECT domain.name AS domain_name, role.name AS role_name, " +
+            "principal.name AS principal_name, role_member.expiration FROM role_member " +
+            "JOIN role ON role.role_id=role_member.role_id " +
+            "JOIN principal ON principal.principal_id=role_member.principal_id " +
+            "JOIN domain ON domain.domain_id=role.domain_id " +
+            "WHERE role_member.last_notified_time=? AND role_member.server=?;";
 
     private static final String CACHE_DOMAIN    = "d:";
     private static final String CACHE_ROLE      = "r:";
@@ -3796,8 +3805,8 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
 
     @Override
-    public boolean updateLastNotifiedTimestamp(String server, long timestamp) {
-        final String caller = "updateLastNotifiedTimestamp";
+    public boolean updatePendingRoleMembersNotificationTimestamp(String server, long timestamp) {
+        final String caller = "updatePendingRoleMembersNotificationTimestamp";
         int affectedRows;
         java.sql.Timestamp ts = new java.sql.Timestamp(timestamp);
         try (PreparedStatement ps = con.prepareStatement(SQL_UPDATE_PENDING_ROLE_MEMBERS_NOTIFICATION_TIMESTAMP)) {
@@ -3812,7 +3821,8 @@ public class JDBCConnection implements ObjectStoreConnection {
         return (affectedRows > 0);
     }
 
-    private void getRecipientRoleForSelfServeMembershipApproval(String caller, Set<String> targetRoles, java.sql.Timestamp timestamp, String server) {
+    private void getRecipientRoleForSelfServeMembershipApproval(String caller, Set<String> targetRoles,
+            java.sql.Timestamp timestamp, String server) {
 
         try (PreparedStatement ps = con.prepareStatement(SQL_SELF_SERVE_PENDING_MEMBERSHIP_REMINDER_DOMAINS)) {
             ps.setTimestamp(1, timestamp);
@@ -3825,6 +3835,62 @@ public class JDBCConnection implements ObjectStoreConnection {
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
+    }
+
+    @Override
+    public Map<String, DomainRoleMember> getNotifyTemporaryRoleMembers(String server, long timestamp) {
+
+        Map<String, DomainRoleMember> memberMap = new HashMap<>();
+
+        final String caller = "listNotifyTemporaryRoleMembers";
+        try (PreparedStatement ps = con.prepareStatement(SQL_LIST_NOTIFY_TEMPORARY_ROLE_MEMBERS)) {
+            ps.setTimestamp(1, new java.sql.Timestamp(timestamp));
+            ps.setString(2, server);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    final String memberName = rs.getString(ZMSConsts.DB_COLUMN_PRINCIPAL_NAME);
+                    java.sql.Timestamp expiration = rs.getTimestamp(ZMSConsts.DB_COLUMN_EXPIRATION);
+
+                    DomainRoleMember domainRoleMember = memberMap.get(memberName);
+                    if (domainRoleMember == null) {
+                        domainRoleMember = new DomainRoleMember();
+                        domainRoleMember.setMemberName(memberName);
+                        memberMap.put(memberName, domainRoleMember);
+                    }
+                    List<MemberRole> memberRoles = domainRoleMember.getMemberRoles();
+                    if (memberRoles == null) {
+                        memberRoles = new ArrayList<>();
+                        domainRoleMember.setMemberRoles(memberRoles);
+                    }
+                    MemberRole memberRole = new MemberRole();
+                    memberRole.setMemberName(memberName);
+                    memberRole.setRoleName(rs.getString(ZMSConsts.DB_COLUMN_ROLE_NAME));
+                    memberRole.setDomainName(rs.getString(ZMSConsts.DB_COLUMN_DOMAIN_NAME));
+                    memberRole.setExpiration(Timestamp.fromMillis(expiration.getTime()));
+                    memberRoles.add(memberRole);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+
+        return memberMap;
+    }
+
+    @Override
+    public boolean updateRoleMemberExpirationNotificationTimestamp(String server, long timestamp) {
+
+        final String caller = "updateTemporaryRoleMembersNotificationTimestamp";
+        int affectedRows;
+        try (PreparedStatement ps = con.prepareStatement(SQL_UPDATE_ROLE_MEMBERS_EXPIRY_NOTIFICATION_TIMESTAMP)) {
+            ps.setTimestamp(1, new java.sql.Timestamp(timestamp));
+            ps.setString(2, server);
+
+            affectedRows = executeUpdate(ps, caller);
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return (affectedRows > 0);
     }
 
     RuntimeException notFoundError(String caller, String objectType, String objectName) {

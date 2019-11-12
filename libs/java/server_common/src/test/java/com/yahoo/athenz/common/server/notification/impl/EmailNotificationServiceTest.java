@@ -69,6 +69,41 @@ public class EmailNotificationServiceTest {
         assertNotNull(body);
         assertTrue(body.contains("https://athenz.example.com/workflow"));
 
+        // first let's try with no details
+
+        body = svc.getBody("DOMAIN_MEMBER_EXPIRY_REMINDER", details);
+        assertNotNull(body);
+        assertFalse(body.contains("user.member1"));
+
+        // now set the correct expiry members details
+        // with one bad entry that should be skipped
+
+        details.put(NotificationService.NOTIFICATION_DETAILS_EXPIRY_MEMBERS,
+                "user.joe;role1;2020-12-01T12:00:00.000Z|user.jane;role1;2020-12-01T12:00:00.000Z|user.bad;role3");
+        body = svc.getBody("DOMAIN_MEMBER_EXPIRY_REMINDER", details);
+        assertNotNull(body);
+        assertTrue(body.contains("user.joe"));
+        assertTrue(body.contains("user.jane"));
+        assertTrue(body.contains("role1"));
+        assertTrue(body.contains("2020-12-01T12:00:00.000Z"));
+
+        // make sure the bad entries are not included
+
+        assertFalse(body.contains("user.bad"));
+        assertFalse(body.contains("role3"));
+
+        // now try the expiry roles reminder
+
+        details.put(NotificationService.NOTIFICATION_DETAILS_EXPIRY_ROLES,
+                "athenz1;role1;2020-12-01T12:00:00.000Z|athenz2;role2;2020-12-01T12:00:00.000Z");
+        body = svc.getBody("PRINCIPAL_EXPIRY_REMINDER", details);
+        assertNotNull(body);
+        assertTrue(body.contains("athenz1"));
+        assertTrue(body.contains("athenz2"));
+        assertTrue(body.contains("role1"));
+        assertTrue(body.contains("role2"));
+        assertTrue(body.contains("2020-12-01T12:00:00.000Z"));
+
         System.clearProperty("athenz.notification_workflow_url");
     }
 
@@ -77,12 +112,23 @@ public class EmailNotificationServiceTest {
         EmailNotificationService svc = new EmailNotificationService();
         String sub = svc.getSubject("MEMBERSHIP_APPROVAL");
         assertNotNull(sub);
+        assertFalse(sub.isEmpty());
 
         sub = svc.getSubject("MEMBERSHIP_APPROVAL_REMINDER");
         assertNotNull(sub);
+        assertFalse(sub.isEmpty());
+
+        sub = svc.getSubject("PRINCIPAL_EXPIRY_REMINDER");
+        assertNotNull(sub);
+        assertFalse(sub.isEmpty());
+
+        sub = svc.getSubject("DOMAIN_MEMBER_EXPIRY_REMINDER");
+        assertNotNull(sub);
+        assertFalse(sub.isEmpty());
 
         sub = svc.getSubject("INVALID");
-        assertEquals(sub, "");
+        assertNotNull(sub);
+        assertTrue(sub.isEmpty());
     }
 
     @Test
@@ -112,7 +158,6 @@ public class EmailNotificationServiceTest {
 
         System.clearProperty("athenz.notification_email_domain_from");
         System.clearProperty("athenz.notification_email_domain_to");
-
     }
 
     @Test
@@ -207,7 +252,6 @@ public class EmailNotificationServiceTest {
         System.clearProperty("athenz.notification_email_from");
     }
 
-
     @Test
     public void testSendEmailError() {
 
@@ -255,7 +299,6 @@ public class EmailNotificationServiceTest {
         notification.setDetails(details);
 
         boolean status = svc.notify(notification);
-
         assertTrue(status);
 
         System.clearProperty("athenz.notification_email_domain_from");
@@ -269,6 +312,5 @@ public class EmailNotificationServiceTest {
         EmailNotificationService svc = new EmailNotificationService(ses);
         boolean status = svc.notify(null);
         assertFalse(status);
-
     }
 }

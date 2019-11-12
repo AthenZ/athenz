@@ -635,11 +635,11 @@ public class FileConnectionTest {
     }
 
     @Test
-    public void testUpdateLastNotifiedTimestamp() {
+    public void testUpdatePendingRoleMembersNotificationTimestamp() {
         File fileDir = new File("/home/athenz/zms_store");
         File quotaDir = new File("/home/athenz/zms_quota");
         try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
-            assertFalse(fileconnection.updateLastNotifiedTimestamp("localhost", 0L));
+            assertFalse(fileconnection.updatePendingRoleMembersNotificationTimestamp("localhost", 0L));
         }
     }
 

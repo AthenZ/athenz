@@ -147,8 +147,10 @@ public class ZMSSchema {
 
         sb.structType("MemberRole")
             .field("roleName", "ResourceName", false, "name of the role")
+            .field("domainName", "DomainName", true, "name of the domain")
+            .field("memberName", "MemberName", true, "name of the member")
             .field("expiration", "Timestamp", true, "the expiration timestamp")
-            .field("active", "Bool", true, "Flag to indicate whether membership is approved either by delegates ( in case of auditEnabled roles ) or by domain admins ( in case of selfserve roles )", true)
+            .field("active", "Bool", true, "Flag to indicate whether membership is active", true)
             .field("auditRef", "String", true, "audit reference string for the change as supplied by admin");
 
         sb.structType("DomainRoleMember")

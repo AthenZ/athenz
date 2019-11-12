@@ -46,12 +46,23 @@ public class EmailNotificationService implements NotificationService {
     private static final String PROP_NOTIFICATION_EMAIL_DOMAIN_FROM = "athenz.notification_email_domain_from";
     private static final String PROP_NOTIFICATION_EMAIL_DOMAIN_TO = "athenz.notification_email_domain_to";
     private static final String PROP_NOTIFICATION_WORKFLOW_URL = "athenz.notification_workflow_url";
+    private static final String PROP_NOTIFICATION_ATHENZ_UI_URL = "athenz.notification_athenz_ui_url";
     private static final String PROP_NOTIFICATION_EMAIL_FROM = "athenz.notification_email_from";
 
     private static final String MEMBERSHIP_APPROVAL_SUBJECT = "athenz.notification.email.membership.approval.subject";
     private static final String MEMBERSHIP_APPROVAL_REMINDER_SUBJECT = "athenz.notification.email.membership.reminder.subject";
     private static final String MEMBERSHIP_APPROVAL_BODY = "athenz.notification.email.membership.approval.body";
     private static final String MEMBERSHIP_APPROVAL_REMINDER_BODY = "athenz.notification.email.membership.reminder.body";
+
+    private static final String DOMAIN_MEMBER_EXPIRY_SUBJECT = "athenz.notification.email.domain.member.expiry.subject";
+    private static final String DOMAIN_MEMBER_EXPIRY_BODY_HEADER = "athenz.notification.email.domain.member.expiry.body.header";
+    private static final String DOMAIN_MEMBER_EXPIRY_BODY_ENTRY = "athenz.notification.email.domain.member.expiry.body.entry";
+    private static final String DOMAIN_MEMBER_EXPIRY_BODY_FOOTER = "athenz.notification.email.domain.member.expiry.body.footer";
+
+    private static final String PRINCIPAL_EXPIRY_SUBJECT = "athenz.notification.email.principal.expiry.subject";
+    private static final String PRINCIPAL_EXPIRY_BODY_HEADER = "athenz.notification.email.principal.expiry.body.header";
+    private static final String PRINCIPAL_EXPIRY_BODY_ENTRY = "athenz.notification.email.principal.expiry.body.entry";
+    private static final String PRINCIPAL_EXPIRY_BODY_FOOTER = "athenz.notification.email.principal.expiry.body.footer";
 
     private static final String MEMBERSHIP_APPROVAL_FOOTER = "athenz.notification.email.membership.footer";
 
@@ -66,6 +77,7 @@ public class EmailNotificationService implements NotificationService {
     private String emailDomainFrom;
     private String emailDomainTo;
     private String workflowUrl;
+    private String athenzUIUrl;
     private String from;
 
     EmailNotificationService() {
@@ -79,6 +91,7 @@ public class EmailNotificationService implements NotificationService {
         emailDomainFrom = System.getProperty(PROP_NOTIFICATION_EMAIL_DOMAIN_FROM);
         emailDomainTo = System.getProperty(PROP_NOTIFICATION_EMAIL_DOMAIN_TO);
         workflowUrl = System.getProperty(PROP_NOTIFICATION_WORKFLOW_URL);
+        athenzUIUrl = System.getProperty(PROP_NOTIFICATION_ATHENZ_UI_URL);
         from = System.getProperty(PROP_NOTIFICATION_EMAIL_FROM);
     }
 
@@ -94,13 +107,14 @@ public class EmailNotificationService implements NotificationService {
 
     @Override
     public boolean notify(Notification notification) {
-        if (notification != null) {
-            String subject = getSubject(notification.getType());
-            String body = getBody(notification.getType(), notification.getDetails());
-            Set<String> recipients = getFullyQualifiedEmailAddresses(notification.getRecipients());
-            return sendEmail(recipients, subject, body);
+        if (notification == null) {
+            return false;
         }
-        return false;
+
+        final String subject = getSubject(notification.getType());
+        final String body = getBody(notification.getType(), notification.getDetails());
+        Set<String> recipients = getFullyQualifiedEmailAddresses(notification.getRecipients());
+        return sendEmail(recipients, subject, body);
     }
 
     String getBody(String type, Map<String, String> details) {
@@ -110,9 +124,14 @@ public class EmailNotificationService implements NotificationService {
             case NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL:
                 body = getMembershipApprovalBody(details);
                 break;
-
             case NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL_REMINDER:
                 body = getMembershipApprovalReminderBody();
+                break;
+            case NOTIFICATION_TYPE_DOMAIN_MEMBER_EXPIRY_REMINDER:
+                body = getDomainMemberExpiryBody(details);
+                break;
+            case NOTIFICATION_TYPE_PRINCIPAL_EXPIRY_REMINDER:
+                body = getPrincipalExpiryBody(details);
                 break;
         }
         body = body + getFooter();
@@ -129,9 +148,14 @@ public class EmailNotificationService implements NotificationService {
             case NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL:
                 subject = RB.getString(MEMBERSHIP_APPROVAL_SUBJECT);
                 break;
-
             case NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL_REMINDER:
                 subject = RB.getString(MEMBERSHIP_APPROVAL_REMINDER_SUBJECT);
+                break;
+            case NOTIFICATION_TYPE_DOMAIN_MEMBER_EXPIRY_REMINDER:
+                subject = RB.getString(DOMAIN_MEMBER_EXPIRY_SUBJECT);
+                break;
+            case NOTIFICATION_TYPE_PRINCIPAL_EXPIRY_REMINDER:
+                subject = RB.getString(PRINCIPAL_EXPIRY_SUBJECT);
                 break;
         }
         return subject;
@@ -144,17 +168,70 @@ public class EmailNotificationService implements NotificationService {
                 .collect(Collectors.toSet());
     }
 
-
     String getMembershipApprovalReminderBody() {
         return MessageFormat.format(RB.getString(MEMBERSHIP_APPROVAL_REMINDER_BODY), workflowUrl);
     }
-
 
     String getMembershipApprovalBody(Map<String, String> metaDetails) {
         return MessageFormat.format(RB.getString(MEMBERSHIP_APPROVAL_BODY), metaDetails.get(NotificationService.NOTIFICATION_DETAILS_DOMAIN),
                 metaDetails.get(NotificationService.NOTIFICATION_DETAILS_ROLE), metaDetails.get(NotificationService.NOTIFICATION_DETAILS_MEMBER),
                 metaDetails.get(NotificationService.NOTIFICATION_DETAILS_REASON), metaDetails.get(NotificationService.NOTIFICATION_DETAILS_REQUESTOR),
                 workflowUrl);
+    }
+
+    String getDomainMemberExpiryBody(Map<String, String> metaDetails) {
+
+        // first generate the header
+
+        StringBuilder body = new StringBuilder(256);
+        final String domainName = metaDetails.get(NotificationService.NOTIFICATION_DETAILS_DOMAIN);
+        body.append(MessageFormat.format(RB.getString(DOMAIN_MEMBER_EXPIRY_BODY_HEADER), domainName));
+
+        // now parse and generate the member expiry entries
+
+        final String roleNames = metaDetails.get(NOTIFICATION_DETAILS_EXPIRY_MEMBERS);
+        processExpiryEntry(body, roleNames, RB.getString(DOMAIN_MEMBER_EXPIRY_BODY_ENTRY));
+
+        // and finally the footer
+
+        body.append(MessageFormat.format(RB.getString(DOMAIN_MEMBER_EXPIRY_BODY_FOOTER),
+                athenzUIUrl, domainName));
+        return body.toString();
+    }
+
+    String getPrincipalExpiryBody(Map<String, String> metaDetails) {
+
+        // first generate the header
+
+        StringBuilder body = new StringBuilder(256);
+        body.append(MessageFormat.format(RB.getString(PRINCIPAL_EXPIRY_BODY_HEADER),
+                metaDetails.get(NotificationService.NOTIFICATION_DETAILS_MEMBER)));
+
+        // now parse and generate the member expiry entries
+
+        final String roleNames = metaDetails.get(NOTIFICATION_DETAILS_EXPIRY_ROLES);
+        processExpiryEntry(body, roleNames, RB.getString(PRINCIPAL_EXPIRY_BODY_ENTRY));
+
+        // and finally the footer
+
+        body.append(MessageFormat.format(RB.getString(PRINCIPAL_EXPIRY_BODY_FOOTER), athenzUIUrl));
+        return body.toString();
+    }
+
+    void processExpiryEntry(StringBuilder body, final String entryNames, final String entryFormat) {
+        // if we have no entry names then there is nothing to process
+        if (entryNames == null) {
+            return;
+        }
+        String[] entries = entryNames.split("\\|");
+        for (String entry : entries) {
+            String[] comps = entry.split(";");
+            if (comps.length != 3) {
+                continue;
+            }
+            body.append(MessageFormat.format(entryFormat, comps[0], comps[1], comps[2]));
+            body.append('\n');
+        }
     }
 
     boolean sendEmail(Set<String> recipients, String subject, String body) {
@@ -171,7 +248,6 @@ public class EmailNotificationService implements NotificationService {
         } else {
             status = sendEmail(subject, body, status, new ArrayList<>(recipients));
         }
-
 
         return status;
     }

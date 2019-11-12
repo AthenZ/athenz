@@ -69,8 +69,10 @@ type DefaultAdmins Struct {
 
 type MemberRole Struct {
     ResourceName roleName; //name of the role
+    DomainName domainName (optional); //name of the domain
+    MemberName memberName (optional); //name of the member
     Timestamp expiration (optional); //the expiration timestamp
-    Bool active (optional, default=true); //Flag to indicate whether membership is approved either by delegates ( in case of auditEnabled roles ) or by domain admins ( in case of selfserve roles )
+    Bool active (optional, default=true); //Flag to indicate whether membership is active
     String auditRef (optional); //audit reference string for the change as supplied by admin
 }
 

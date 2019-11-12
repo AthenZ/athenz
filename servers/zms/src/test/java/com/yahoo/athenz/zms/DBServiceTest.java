@@ -439,10 +439,7 @@ public class DBServiceTest {
         String caller = "testCheckDomainAuditEnabledFlagTrueRefValid";
         String principal = "testprincipal";
 
-        AuditReferenceValidator mockAuditReferenceValidator = Mockito.mock(AuditReferenceValidator.class);
-
-        zms.dbService.auditReferenceValidator = mockAuditReferenceValidator;
-
+        zms.dbService.auditReferenceValidator = Mockito.mock(AuditReferenceValidator.class);
         Mockito.when(zms.dbService.auditReferenceValidator.validateReference(auditCheck, principal, caller)).thenReturn(true);
 
         zms.dbService.checkDomainAuditEnabled(mockFileConn, domainName, auditCheck, caller, principal, DBService.AUDIT_TYPE_DOMAIN);
@@ -461,10 +458,7 @@ public class DBServiceTest {
         String caller = "testCheckDomainAuditEnabledFlagTrueRefValid";
         String principal = "testprincipal";
 
-        AuditReferenceValidator mockAuditReferenceValidator = Mockito.mock(AuditReferenceValidator.class);
-
-        zms.dbService.auditReferenceValidator = mockAuditReferenceValidator;
-
+        zms.dbService.auditReferenceValidator = Mockito.mock(AuditReferenceValidator.class);
         Mockito.when(zms.dbService.auditReferenceValidator.validateReference(auditCheck, principal, caller)).thenReturn(false);
 
         try {
@@ -2408,6 +2402,7 @@ public class DBServiceTest {
         
         exc = new ResourceException(ResourceException.GONE, "unit-test");
         assertTrue(dbService.shouldRetryOperation(exc, 2));
+
         // all others return false
         
         exc = new ResourceException(ResourceException.BAD_REQUEST, "unit-test");
@@ -3915,8 +3910,7 @@ public class DBServiceTest {
         Role role = new Role().setAuditEnabled(true);
         Mockito.doReturn(role).when(mockFileConn).getRole(domainName, roleName);
 
-        AuditReferenceValidator validator = new MockAuditReferenceValidatorImpl();
-        zms.dbService.auditReferenceValidator = validator;
+        zms.dbService.auditReferenceValidator = new MockAuditReferenceValidatorImpl();
 
         String caller = "testCheckRoleAuditEnabledFlagTrueRefValidationFail";
         String principal = "testprincipal";
@@ -4320,7 +4314,7 @@ public class DBServiceTest {
         recipients.add("user.joe");
         recipients.add("unix.moe");
         Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockFileConn);
-        Mockito.when(mockFileConn.updateLastNotifiedTimestamp(anyString(), anyLong())).thenReturn(true);
+        Mockito.when(mockFileConn.updatePendingRoleMembersNotificationTimestamp(anyString(), anyLong())).thenReturn(true);
         Mockito.when(mockFileConn.getPendingMembershipApproverRoles(anyString(), anyLong())).thenReturn(recipients);
 
         ObjectStore saveStore = zms.dbService.store;
@@ -4338,7 +4332,7 @@ public class DBServiceTest {
     public void testGetPendingMembershipNotificationsTimestampUpdateFailed() {
 
         Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockFileConn);
-        Mockito.when(mockFileConn.updateLastNotifiedTimestamp(anyString(), anyLong())).thenReturn(false);
+        Mockito.when(mockFileConn.updatePendingRoleMembersNotificationTimestamp(anyString(), anyLong())).thenReturn(false);
 
         ObjectStore saveStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
@@ -4909,5 +4903,79 @@ public class DBServiceTest {
                 .setApproved(false).setExpiration(Timestamp.fromMillis(1000));
         zms.dbService.auditLogRoleMember(auditDetails, rm4, true);
         assertEquals(auditDetails.toString(), "{\"member\": \"user.joe\", \"expiration\": \"1970-01-01T00:00:01.000Z\", \"approved\": false}");
+    }
+
+    @Test
+    public void testGetRoleExpiryMembers() {
+
+        final String domainName1 = "role-expiry-members1";
+        final String domainName2 = "role-expiry-members2";
+        List<String> admins = new ArrayList<>();
+        admins.add(adminUser);
+
+        zms.dbService.makeDomain(mockDomRsrcCtx, domainName1, "test desc", "org", false, admins,
+                "", 1234, "", 0, null, auditRef);
+
+        Role role = createRoleObject(domainName1, "role1", null, "user.john", "user.jane");
+        Timestamp oneDayExpiry = Timestamp.fromMillis(System.currentTimeMillis()
+                + TimeUnit.MILLISECONDS.convert(1, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS));
+        Timestamp sevenDayExpiry = Timestamp.fromMillis(System.currentTimeMillis()
+                + TimeUnit.MILLISECONDS.convert(7, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS));
+        role.getRoleMembers().add(new RoleMember().setMemberName("user.oneday")
+                .setExpiration(oneDayExpiry).setApproved(true));
+        role.getRoleMembers().add(new RoleMember().setMemberName("user.sevenday")
+                .setExpiration(sevenDayExpiry).setApproved(true));
+        zms.dbService.executePutRole(mockDomRsrcCtx, domainName1, "role1", role, "test", "putrole");
+
+        Role role2 = createRoleObject(domainName1, "role2", null, "user.john", "user.jane");
+        Timestamp twoDayExpiry = Timestamp.fromMillis(System.currentTimeMillis()
+                + TimeUnit.MILLISECONDS.convert(2, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS));
+        role2.getRoleMembers().add(new RoleMember().setMemberName("user.twoday")
+                .setExpiration(twoDayExpiry).setApproved(true));
+        zms.dbService.executePutRole(mockDomRsrcCtx, domainName1, "role2", role2, "test", "putrole");
+
+        zms.dbService.makeDomain(mockDomRsrcCtx, domainName2, "test desc", "org", false, admins,
+                "", 1235, "", 0, null, auditRef);
+
+        Role role3 = createRoleObject(domainName2, "role3", null, "user.john", "user.jane");
+        Timestamp fourteenDayExpiry = Timestamp.fromMillis(System.currentTimeMillis()
+                + TimeUnit.MILLISECONDS.convert(14, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS));
+        Timestamp thirtyfiveDayExpiry = Timestamp.fromMillis(System.currentTimeMillis()
+                + TimeUnit.MILLISECONDS.convert(35, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS));
+        role3.getRoleMembers().add(new RoleMember().setMemberName("user.fourteenday")
+                .setExpiration(fourteenDayExpiry).setApproved(true));
+        role3.getRoleMembers().add(new RoleMember().setMemberName("user.thirtyfiveday")
+                .setExpiration(thirtyfiveDayExpiry).setApproved(true));
+        zms.dbService.executePutRole(mockDomRsrcCtx, domainName2, "role3", role3, "test", "putrole");
+
+        Map<String, DomainRoleMember> domainRoleMembers = zms.dbService.getRoleExpiryMembers();
+        assertNotNull(domainRoleMembers);
+        assertEquals(domainRoleMembers.size(), 3);
+
+        DomainRoleMember roleMember = domainRoleMembers.get("user.oneday");
+        assertNotNull(roleMember);
+
+        roleMember = domainRoleMembers.get("user.sevenday");
+        assertNotNull(roleMember);
+
+        roleMember = domainRoleMembers.get("user.fourteenday");
+        assertNotNull(roleMember);
+
+        zms.dbService.executeDeleteDomain(mockDomRsrcCtx, domainName1, auditRef, "deletedomain");
+        zms.dbService.executeDeleteDomain(mockDomRsrcCtx, domainName2, auditRef, "deletedomain");
+    }
+
+    @Test
+    public void testGetRoleExpiryMembersFailure() {
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        ObjectStoreConnection mockConn = Mockito.mock(ObjectStoreConnection.class);
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockConn);
+        Mockito.when(mockConn.updateRoleMemberExpirationNotificationTimestamp(anyString(), anyLong())).thenReturn(false);
+
+        assertNull(zms.dbService.getRoleExpiryMembers());
+        zms.dbService.store = saveStore;
     }
 }
