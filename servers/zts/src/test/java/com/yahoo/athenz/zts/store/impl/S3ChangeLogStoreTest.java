@@ -18,17 +18,16 @@ package com.yahoo.athenz.zts.store.impl;
 import static org.mockito.Mockito.*;
 import static org.testng.Assert.*;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import com.amazonaws.services.s3.AmazonS3;
+import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.store.CloudStore;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.mockito.Mockito;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.amazonaws.AmazonClientException;
@@ -48,9 +47,35 @@ public class S3ChangeLogStoreTest {
     private static final String DEFAULT_TIMEOUT_SECONDS = "athenz.zts.bucket.threads.timeout";
     private int defaultTimeoutSeconds = Integer.valueOf(System.getProperty(DEFAULT_TIMEOUT_SECONDS, "1800"));
 
+    @BeforeMethod
+    public void setup() {
+        System.setProperty(ZTSConsts.ZTS_PROP_AWS_BUCKET_NAME, "s3-unit-test-bucket-name");
+    }
+
+    @Test
+    public void testInvalidBucketName() {
+        System.clearProperty(ZTSConsts.ZTS_PROP_AWS_BUCKET_NAME);
+        try {
+            new S3ChangeLogStore(null);
+            fail();
+        } catch (RuntimeException ex) {
+            assertTrue(ex.getMessage().contains("S3 Bucket name cannot be null"));
+        }
+
+        System.setProperty(ZTSConsts.ZTS_PROP_AWS_BUCKET_NAME, "");
+        try {
+            new S3ChangeLogStore(null);
+            fail();
+        } catch (RuntimeException ex) {
+            assertTrue(ex.getMessage().contains("S3 Bucket name cannot be null"));
+        }
+
+        System.setProperty(ZTSConsts.ZTS_PROP_AWS_BUCKET_NAME, "s3-unit-test-bucket-name");
+        assertNotNull(new S3ChangeLogStore(null));
+    }
+
     @Test
     public void testFullRefreshSupport() {
-
         S3ChangeLogStore store = new S3ChangeLogStore(null);
         assertFalse(store.supportsFullRefresh());
     }
@@ -88,7 +113,7 @@ public class S3ChangeLogStoreTest {
         S3Object object = mock(S3Object.class);
         when(object.getObjectContent()).thenReturn(s3Is1).thenReturn(s3Is2);
 
-        when(store.awsS3Client.getObject("athenz-domain-sys.auth", "iaas")).thenReturn(object);
+        when(store.awsS3Client.getObject("s3-unit-test-bucket-name", "iaas")).thenReturn(object);
         ObjectListing mockObjectListing = mock(ObjectListing.class);
         when(store.awsS3Client.listObjects(any(ListObjectsRequest.class))).thenReturn(mockObjectListing);
         List<S3ObjectSummary> tempList = new ArrayList<>();
@@ -116,7 +141,7 @@ public class S3ChangeLogStoreTest {
         S3Object object = mock(S3Object.class);
         when(object.getObjectContent()).thenReturn(s3Is1).thenReturn(s3Is2);
 
-        when(store.awsS3Client.getObject("athenz-domain-sys.auth", "iaas")).thenReturn(object);
+        when(store.awsS3Client.getObject("s3-unit-test-bucket-name", "iaas")).thenReturn(object);
         ObjectListing mockObjectListing = mock(ObjectListing.class);
         when(store.awsS3Client.listObjects(any(ListObjectsRequest.class))).thenReturn(mockObjectListing);
         List<S3ObjectSummary> tempList = new ArrayList<>();
@@ -461,7 +486,7 @@ public class S3ChangeLogStoreTest {
         S3Object object = mock(S3Object.class);
         when(object.getObjectContent()).thenReturn(s3Is);
 
-        when(store.awsS3Client.getObject("athenz-domain-sys.auth", "iaas")).thenReturn(object);
+        when(store.awsS3Client.getObject("s3-unit-test-bucket-name", "iaas")).thenReturn(object);
         
         SignedDomain signedDomain = store.getSignedDomain(store.awsS3Client, "iaas");
         assertNotNull(signedDomain);
@@ -492,7 +517,7 @@ public class S3ChangeLogStoreTest {
 
         // next setup our mock aws return object
 
-        when(store.awsS3Client.getObject("athenz-domain-sys.auth", "iaas")).thenReturn(object);
+        when(store.awsS3Client.getObject("s3-unit-test-bucket-name", "iaas")).thenReturn(object);
         signedDomain = store.getSignedDomain("iaas");
         assertNotNull(signedDomain);
 
@@ -519,7 +544,7 @@ public class S3ChangeLogStoreTest {
 
         // first call we return null, second call we return success
         
-        when(store.awsS3Client.getObject("athenz-domain-sys.auth", "iaas"))
+        when(store.awsS3Client.getObject("s3-unit-test-bucket-name", "iaas"))
                 .thenThrow(new AmazonServiceException("test")).thenReturn(object);
         
         SignedDomain signedDomain = store.getSignedDomain("iaas");
@@ -592,8 +617,8 @@ public class S3ChangeLogStoreTest {
         S3Object object = mock(S3Object.class);
         when(object.getObjectContent()).thenReturn(s3Is);
 
-        when(store.awsS3Client.getObject("athenz-domain-sys.auth", "iaas")).thenReturn(object);
-        when(store.awsS3Client.getObject("athenz-domain-sys.auth", "iaas.athenz")).thenReturn(object);
+        when(store.awsS3Client.getObject("s3-unit-test-bucket-name", "iaas")).thenReturn(object);
+        when(store.awsS3Client.getObject("s3-unit-test-bucket-name", "iaas.athenz")).thenReturn(object);
         
         // set the last modification time to return one of the domains
         store.lastModTime = (new Date(150)).getTime();
