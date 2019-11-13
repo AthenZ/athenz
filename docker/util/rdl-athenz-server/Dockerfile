@@ -1,4 +1,4 @@
-FROM golang:1.10-alpine AS builder
+FROM golang:1.13-alpine AS builder
 
 ENV APP_NAME rdl-gen-athenz-server
 
