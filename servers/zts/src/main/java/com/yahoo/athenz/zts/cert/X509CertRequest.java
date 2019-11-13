@@ -26,6 +26,7 @@ import java.util.regex.Pattern;
 
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.zts.ZTSConsts;
+import com.yahoo.athenz.zts.cache.DataCache;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -128,14 +129,15 @@ public class X509CertRequest {
      * one of the following provided dns suffixes.
      * @param domainName name of the domain
      * @param serviceName name of the service
-     * @param providerDnsSuffixList dns suffixes registered for the provider
+     * @param provider name of the provider for dns/hostname suffix checks
+     * @param athenzSysDomainCache system domain cache object for suffix lists
      * @param serviceDnsSuffix dns suffix registered for the service
      * @param instanceHostname instance hostname
      * @param hostnameResolver resolver to verify hostname is correct
      * @return true if all dnsNames in the CSR end with given suffixes
      */
-    public boolean validateDnsNames(final String domainName, final String serviceName,
-            final List<String> providerDnsSuffixList, final String serviceDnsSuffix,
+    public boolean validateDnsNames(final String domainName, final String serviceName, final String provider,
+            final DataCache athenzSysDomainCache, final String serviceDnsSuffix,
             final String instanceHostname, HostnameResolver hostnameResolver) {
 
         // if the CSR has no dns names then we have nothing to check
@@ -161,8 +163,14 @@ public class X509CertRequest {
 
         final String wildCardPrefix = "*." + serviceName + "." + domainName.replace('.', '-') + ".";
         final String serviceDnsSuffixCheck = (serviceDnsSuffix != null) ? "." + serviceDnsSuffix : null;
+
+        final List<String> providerDnsSuffixList = athenzSysDomainCache.getProviderDnsSuffixList(provider);
+        final List<String> providerHostnameAllowedSuffixList = athenzSysDomainCache.getProviderHostnameAllowedSuffixList(provider);
+        final List<String> providerHostnameDeniedSuffixList = athenzSysDomainCache.getProviderHostnameDeniedSuffixList(provider);
+
         for (String dnsName : dnsNames) {
-            if (!dnsSuffixCheck(dnsName, providerDnsSuffixList, serviceDnsSuffixCheck,
+            if (!dnsSuffixCheck(dnsName, providerDnsSuffixList, providerHostnameAllowedSuffixList,
+                    providerHostnameDeniedSuffixList, serviceDnsSuffixCheck,
                     wildCardPrefix, instanceHostname, hostnameResolver)) {
                 return false;
             }
@@ -171,12 +179,13 @@ public class X509CertRequest {
         return true;
     }
 
-    boolean dnsSuffixCheck(final String dnsName, final List<String> providerDnsSuffixCheckList,
+    boolean dnsSuffixCheck(final String dnsName, final List<String> providerDnsSuffixList,
+            final List<String> providerHostnameAllowedSuffixList, final List<String> providerHostnameDeniedSuffixList,
             final String serviceDnsSuffixCheck, final String wildCardPrefix,
             final String instanceHostname, HostnameResolver hostnameResolver) {
 
-        if (providerDnsSuffixCheckList != null) {
-            for (String dnsSuffixCheck : providerDnsSuffixCheckList) {
+        if (providerDnsSuffixList != null) {
+            for (String dnsSuffixCheck : providerDnsSuffixList) {
                 if (dnsName.endsWith(dnsSuffixCheck)) {
 
                     // if the hostname has the wildcard prefix based on the
@@ -195,18 +204,21 @@ public class X509CertRequest {
             return true;
         }
 
-        if (instanceHostnameCheck(dnsName, instanceHostname, hostnameResolver)) {
+        if (instanceHostnameCheck(dnsName, instanceHostname, providerHostnameAllowedSuffixList,
+                providerHostnameDeniedSuffixList, hostnameResolver)) {
             providerDnsNames.add(dnsName);
             return true;
         }
 
         LOGGER.error("dnsSuffixCheck - dnsName {} does not end with provider {} / service {} suffix or hostname {}",
-                dnsName, providerDnsSuffixCheckList != null ? String.join(",", providerDnsSuffixCheckList) : "",
+                dnsName, providerDnsSuffixList != null ? String.join(",", providerDnsSuffixList) : "",
                 serviceDnsSuffixCheck, instanceHostname);
         return false;
     }
 
-    boolean instanceHostnameCheck(final String dnsName, final String instanceHostname, HostnameResolver hostnameResolver) {
+    boolean instanceHostnameCheck(final String dnsName, final String instanceHostname,
+           final List<String> providerHostnameAllowedSuffixList, final List<String> providerHostnameDeniedSuffixList,
+           HostnameResolver hostnameResolver) {
 
         // make sure we have valid value to check for
 
@@ -214,9 +226,40 @@ public class X509CertRequest {
             return false;
         }
 
-        // if no match there is no need to check with resolver
+        // if no match there is no need to carry out further checks
 
         if (!dnsName.equalsIgnoreCase(instanceHostname)) {
+            return false;
+        }
+
+        // make sure the hostname does not end with one of the denied
+        // suffix values
+
+        if (providerHostnameDeniedSuffixList != null) {
+            for (String dnsSuffixCheck : providerHostnameDeniedSuffixList) {
+                if (dnsName.endsWith(dnsSuffixCheck)) {
+                    LOGGER.error("instanceHostnameCheck - denied hostname dns suffix {}/{}", dnsName, dnsSuffixCheck);
+                    return false;
+                }
+            }
+        }
+
+        // make sure the hostname ends with one of the allowed
+        // suffix values
+
+        boolean allowedHostName = false;
+        if (providerHostnameAllowedSuffixList != null) {
+            for (String dnsSuffixCheck : providerHostnameAllowedSuffixList) {
+                if (dnsName.endsWith(dnsSuffixCheck)) {
+                    allowedHostName = true;
+                    break;
+                }
+            }
+        }
+
+        if (!allowedHostName) {
+            LOGGER.error("instanceHostnameCheck - not allowed hostname dns name {} in suffix list: {}",
+                    dnsName, providerHostnameAllowedSuffixList != null ? String.join(",", providerHostnameAllowedSuffixList) : "");
             return false;
         }
 
