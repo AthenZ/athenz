@@ -217,7 +217,8 @@ public class ZTSSchema {
             .field("ssh", "String", true, "if present, return an SSH host certificate. Format is JSON.")
             .field("token", "Bool", true, "if true, return a service token signed by ZTS for this service")
             .field("expiryTime", "Int32", true, "expiry time in minutes for the certificate (server enforces max expiry)")
-            .field("hostname", "DomainName", true, "optional hostname in case included in the csr SAN dnsName attribute");
+            .field("hostname", "DomainName", true, "optional hostname in case included in the csr SAN dnsName attribute")
+            .arrayField("hostCnames", "DomainName", true, "optional host CNAMEs included in the csr SAN dnsName attribute");
 
         sb.structType("InstanceRefreshInformation")
             .field("attestationData", "String", true, "identity attestation data including document with its signature containing attributes like IP address, instance-id, account#, etc.")
@@ -225,7 +226,8 @@ public class ZTSSchema {
             .field("ssh", "String", true, "if present, return an SSH host certificate. Format is JSON.")
             .field("token", "Bool", true, "if true, return a service token signed by ZTS for this service")
             .field("expiryTime", "Int32", true, "expiry time in minutes for the certificate (server enforces max expiry)")
-            .field("hostname", "DomainName", true, "optional hostname in case included in the csr SAN dnsName attribute");
+            .field("hostname", "DomainName", true, "optional hostname in case included in the csr SAN dnsName attribute")
+            .arrayField("hostCnames", "DomainName", true, "optional host CNAMEs included in the csr SAN dnsName attribute");
 
         sb.structType("InstanceIdentity")
             .field("provider", "ServiceName", false, "the provider service name (i.e. \"aws.us-west-2\", \"sys.openstack.cluster1\")")

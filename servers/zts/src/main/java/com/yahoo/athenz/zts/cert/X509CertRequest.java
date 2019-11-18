@@ -26,6 +26,7 @@ import java.util.regex.Pattern;
 
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.zts.ZTSConsts;
+import com.yahoo.athenz.zts.cache.DataCache;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -128,20 +129,35 @@ public class X509CertRequest {
      * one of the following provided dns suffixes.
      * @param domainName name of the domain
      * @param serviceName name of the service
-     * @param providerDnsSuffixList dns suffixes registered for the provider
+     * @param provider name of the provider for dns/hostname suffix checks
+     * @param athenzSysDomainCache system domain cache object for suffix lists
      * @param serviceDnsSuffix dns suffix registered for the service
      * @param instanceHostname instance hostname
+     * @param instanceHostCnames list of instance host cnames
      * @param hostnameResolver resolver to verify hostname is correct
      * @return true if all dnsNames in the CSR end with given suffixes
      */
-    public boolean validateDnsNames(final String domainName, final String serviceName,
-            final List<String> providerDnsSuffixList, final String serviceDnsSuffix,
-            final String instanceHostname, HostnameResolver hostnameResolver) {
+    public boolean validateDnsNames(final String domainName, final String serviceName, final String provider,
+            final DataCache athenzSysDomainCache, final String serviceDnsSuffix, final String instanceHostname,
+            final List<String> instanceHostCnames, HostnameResolver hostnameResolver) {
 
         // if the CSR has no dns names then we have nothing to check
 
         if (dnsNames.isEmpty()) {
             return true;
+        }
+
+        // if we're given an instance host and cname fields then we're going to validate
+        // to make sure it's correct for the given request. Any invalid host/cname field
+        // value will cause the request to be rejected
+
+        if (!validateInstanceHostname(provider, athenzSysDomainCache, instanceHostname, hostnameResolver)) {
+            return false;
+        }
+
+        if (!validateInstanceCnames(provider, athenzSysDomainCache, instanceHostname,
+                instanceHostCnames, hostnameResolver)) {
+            return false;
         }
 
         // make sure our provider dns list is empty
@@ -161,9 +177,12 @@ public class X509CertRequest {
 
         final String wildCardPrefix = "*." + serviceName + "." + domainName.replace('.', '-') + ".";
         final String serviceDnsSuffixCheck = (serviceDnsSuffix != null) ? "." + serviceDnsSuffix : null;
+
+        final List<String> providerDnsSuffixList = athenzSysDomainCache.getProviderDnsSuffixList(provider);
+
         for (String dnsName : dnsNames) {
-            if (!dnsSuffixCheck(dnsName, providerDnsSuffixList, serviceDnsSuffixCheck,
-                    wildCardPrefix, instanceHostname, hostnameResolver)) {
+            if (!dnsSuffixCheck(dnsName, providerDnsSuffixList, serviceDnsSuffixCheck, wildCardPrefix,
+                    instanceHostname, instanceHostCnames)) {
                 return false;
             }
         }
@@ -171,59 +190,188 @@ public class X509CertRequest {
         return true;
     }
 
-    boolean dnsSuffixCheck(final String dnsName, final List<String> providerDnsSuffixCheckList,
-            final String serviceDnsSuffixCheck, final String wildCardPrefix,
+    private boolean validateInstanceHostname(final String provider, final DataCache athenzSysDomainCache,
             final String instanceHostname, HostnameResolver hostnameResolver) {
 
-        if (providerDnsSuffixCheckList != null) {
-            for (String dnsSuffixCheck : providerDnsSuffixCheckList) {
+        // if we have no hostname configured then there is nothing to do
+
+        if (instanceHostname == null || instanceHostname.isEmpty()) {
+            return true;
+        }
+
+        // verify the hostname is present in the dns name field
+
+        boolean hostFound = false;
+        for (String dnsName : dnsNames) {
+            if (dnsName.equalsIgnoreCase(instanceHostname)) {
+                hostFound = true;
+                break;
+            }
+        }
+
+        if (!hostFound) {
+            LOGGER.error("Instance hostname '{}' specified but not included in CSR", instanceHostname);
+            return false;
+        }
+
+        // validate the provider is authorized to request hostnames with
+        // the given prefix
+
+        if (!isHostnameAllowed(provider, athenzSysDomainCache, instanceHostname)) {
+            return false;
+        }
+
+        // final check comes from the hostname resolver
+
+        return hostnameResolver == null ? true : hostnameResolver.isValidHostname(instanceHostname);
+    }
+
+    boolean isHostnameAllowed(final String provider, final DataCache athenzSysDomainCache,
+            final String instanceHostname) {
+
+        // validate the provider is authorized to request hostnames with
+        // the given prefix
+
+        final List<String> providerHostnameAllowedSuffixList = athenzSysDomainCache.getProviderHostnameAllowedSuffixList(provider);
+        final List<String> providerHostnameDeniedSuffixList = athenzSysDomainCache.getProviderHostnameDeniedSuffixList(provider);
+
+        // make sure the hostname does not end with one of the denied
+        // suffix values
+
+        if (providerHostnameDeniedSuffixList != null) {
+            for (String dnsSuffixCheck : providerHostnameDeniedSuffixList) {
+                if (instanceHostname.endsWith(dnsSuffixCheck)) {
+                    LOGGER.error("isHostnameAllowed - denied hostname dns suffix {}/{}", instanceHostname, dnsSuffixCheck);
+                    return false;
+                }
+            }
+        }
+
+        // make sure the hostname ends with one of the allowed
+        // suffix values
+
+        boolean allowedHostName = false;
+        if (providerHostnameAllowedSuffixList != null) {
+            for (String dnsSuffixCheck : providerHostnameAllowedSuffixList) {
+                if (instanceHostname.endsWith(dnsSuffixCheck)) {
+                    allowedHostName = true;
+                    break;
+                }
+            }
+        }
+
+        if (!allowedHostName) {
+            LOGGER.error("isHostnameAllowed - not allowed hostname dns name {} in suffix list: {}",
+                    instanceHostname, providerHostnameAllowedSuffixList != null ? String.join(",", providerHostnameAllowedSuffixList) : "");
+            return false;
+        }
+
+        return true;
+    }
+
+    boolean validateInstanceCnames(final String provider, final DataCache athenzSysDomainCache,
+            final String instanceHostname, List<String> instanceHostCnames, HostnameResolver hostnameResolver) {
+
+        // if we have no cname list provided then nothing to check
+
+        if (instanceHostCnames == null || instanceHostCnames.isEmpty()) {
+            return true;
+        }
+
+        // with a valid cname, we must have an instance hostname provided
+
+        if (instanceHostname == null || instanceHostname.isEmpty()) {
+             LOGGER.error("Instance Host CNAME list provided without Hostname");
+             return false;
+        }
+
+        // verify that all the cnames are valid hostnames and the provider
+        // is authorized to request them
+
+        for (String cname : instanceHostCnames) {
+            if (!isHostnameAllowed(provider, athenzSysDomainCache, cname)) {
+                return false;
+            }
+        }
+
+        // we must also have a resolver present and configured
+
+        if (hostnameResolver != null) {
+            if (!hostnameResolver.isValidHostCnameList(instanceHostname, instanceHostCnames)) {
+                LOGGER.error("{} does not have all hosts in {} as configured CNAMEs", instanceHostname,
+                        String.join(",", instanceHostCnames));
+                return false;
+            }
+
+            return true;
+        }
+
+        LOGGER.error("Instance host name CNAME list provided without a valid hostname resolver");
+        return false;
+    }
+
+    boolean dnsSuffixCheck(final String dnsName, final List<String> providerDnsSuffixList,
+            final String serviceDnsSuffixCheck, final String wildCardPrefix, final String instanceHostname,
+            final List<String> instanceHostCnames) {
+
+        if (providerDnsSuffixList != null) {
+            for (String dnsSuffixCheck : providerDnsSuffixList) {
                 if (dnsName.endsWith(dnsSuffixCheck)) {
+
+                    // if this entry happens to be a cname for a configured
+                    // instance hostname then we're not going to add
+                    // the entry to the list for the provider to be approved
+
+                    if (instanceHostCnames != null && instanceHostCnames.contains(dnsName)) {
+                        return true;
+                    }
 
                     // if the hostname has the wildcard prefix based on the
                     // service identity, we're going to skip sending that to
-                    // the provider for verification
+                    // the provider for verification. we allow components
+                    // between the service prefix name and the provider
+                    // suffix (in case the provider needs to include possibly
+                    // region/colo specific component
 
-                    if (!dnsName.startsWith(wildCardPrefix)) {
-                        providerDnsNames.add(dnsName);
+                    if (dnsName.startsWith(wildCardPrefix)) {
+                        return true;
                     }
+
+                    // add the name to the list to be verified
+
+                    providerDnsNames.add(dnsName);
                     return true;
                 }
             }
         }
 
+        // if this is authorized by Athenz configuration then there is no need
+        // to check with the provider
+
         if (serviceDnsSuffixCheck != null && dnsName.endsWith(serviceDnsSuffixCheck)) {
             return true;
         }
 
-        if (instanceHostnameCheck(dnsName, instanceHostname, hostnameResolver)) {
+        // check if this is the requested hostname in which case we need the
+        // provider to validate it
+
+        if (instanceHostname != null && dnsName.equalsIgnoreCase(instanceHostname)) {
             providerDnsNames.add(dnsName);
             return true;
         }
 
+        // finally check if this is one of the requested cnames in which case
+        // there is no need for the provider to validate since Athenz
+        // has already done so with the hostname resolver
+
+        if (instanceHostCnames != null && instanceHostCnames.contains(dnsName)) {
+            return true;
+        }
+
         LOGGER.error("dnsSuffixCheck - dnsName {} does not end with provider {} / service {} suffix or hostname {}",
-                dnsName, providerDnsSuffixCheckList != null ? String.join(",", providerDnsSuffixCheckList) : "",
+                dnsName, providerDnsSuffixList != null ? String.join(",", providerDnsSuffixList) : "",
                 serviceDnsSuffixCheck, instanceHostname);
         return false;
-    }
-
-    boolean instanceHostnameCheck(final String dnsName, final String instanceHostname, HostnameResolver hostnameResolver) {
-
-        // make sure we have valid value to check for
-
-        if (instanceHostname == null) {
-            return false;
-        }
-
-        // if no match there is no need to check with resolver
-
-        if (!dnsName.equalsIgnoreCase(instanceHostname)) {
-            return false;
-        }
-
-        // if resolver is given we need to make sure the value given
-        // is a valid hostname
-
-        return hostnameResolver == null ? true : hostnameResolver.isValidHostname(instanceHostname);
     }
 
     /**

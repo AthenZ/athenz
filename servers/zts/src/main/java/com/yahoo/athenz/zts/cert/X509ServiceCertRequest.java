@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Set;
 import com.yahoo.athenz.auth.util.CryptoException;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
+import com.yahoo.athenz.zts.cache.DataCache;
 
 public class X509ServiceCertRequest extends X509CertRequest {
 
@@ -26,9 +27,9 @@ public class X509ServiceCertRequest extends X509CertRequest {
         super(csr);
     }
 
-    public boolean validate(final String domainName, final String serviceName,
-            final Set<String> validSubjectOValues, final List<String> providerDnsSuffixList,
-            final String serviceDnsSuffix, final String instanceHostname,
+    public boolean validate(final String domainName, final String serviceName, final String provider,
+            final Set<String> validSubjectOValues, final DataCache athenzSysDomainCache,
+            final String serviceDnsSuffix, final String instanceHostname, final List<String> instanceHostCnames,
             HostnameResolver hostnameResolver, StringBuilder errorMsg) {
 
         // parse the cert request (csr) to extract the DNS entries
@@ -52,8 +53,8 @@ public class X509ServiceCertRequest extends X509CertRequest {
         // validate that the dnsSuffix used in the dnsName attribute has
         // been authorized to be used by the given provider
 
-        if (!validateDnsNames(domainName, serviceName, providerDnsSuffixList, serviceDnsSuffix,
-                instanceHostname, hostnameResolver)) {
+        if (!validateDnsNames(domainName, serviceName, provider, athenzSysDomainCache, serviceDnsSuffix,
+                instanceHostname, instanceHostCnames, hostnameResolver)) {
             errorMsg.append("Unable to validate CSR SAN dnsNames - invalid dns suffix");
             return false;
         }

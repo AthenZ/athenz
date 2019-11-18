@@ -2410,11 +2410,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
 
         final String serviceDnsSuffix = dataStore.getDomainData(domain).getCertDnsDomain();
-        final List<String> providerDnsSuffixList = dataStore.getDataCache(ZTSConsts.ATHENZ_SYS_DOMAIN)
-                .getProviderDnsSuffixList(provider);
+        final DataCache athenzSysDomainCache = dataStore.getDataCache(ZTSConsts.ATHENZ_SYS_DOMAIN);
 
-        if (!certReq.validate(domain, service, validCertSubjectOrgValues, providerDnsSuffixList,
-                serviceDnsSuffix, info.getHostname(), hostnameResolver, errorMsg)) {
+        if (!certReq.validate(domain, service, provider, validCertSubjectOrgValues, athenzSysDomainCache,
+                serviceDnsSuffix, info.getHostname(), info.getHostCnames(), hostnameResolver, errorMsg)) {
             throw requestError("CSR validation failed - " + errorMsg.toString(),
                     caller, domain, principalDomain);
         }
@@ -2731,12 +2730,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
 
         final String serviceDnsSuffix = dataStore.getDomainData(domain).getCertDnsDomain();
-        final List<String> providerDnsSuffixList = dataStore.getDataCache(ZTSConsts.ATHENZ_SYS_DOMAIN)
-                .getProviderDnsSuffixList(provider);
+        final DataCache athenzSysDomainCache = dataStore.getDataCache(ZTSConsts.ATHENZ_SYS_DOMAIN);
 
         StringBuilder errorMsg = new StringBuilder(256);
-        if (!certReq.validate(domain, service, validCertSubjectOrgValues, providerDnsSuffixList,
-                serviceDnsSuffix, info.getHostname(), hostnameResolver, errorMsg)) {
+        if (!certReq.validate(domain, service, provider, validCertSubjectOrgValues, athenzSysDomainCache,
+                serviceDnsSuffix, info.getHostname(), info.getHostCnames(), hostnameResolver, errorMsg)) {
             throw requestError("CSR validation failed - " + errorMsg.toString(),
                     caller, domain, principalDomain);
         }

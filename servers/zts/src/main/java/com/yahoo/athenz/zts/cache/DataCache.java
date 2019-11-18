@@ -17,18 +17,13 @@ package com.yahoo.athenz.zts.cache;
 
 import java.util.*;
 
+import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.zts.ZTSConsts;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.CryptoException;
-import com.yahoo.athenz.zms.Assertion;
-import com.yahoo.athenz.zms.DomainData;
-import com.yahoo.athenz.zms.Policy;
-import com.yahoo.athenz.zms.PublicKeyEntry;
-import com.yahoo.athenz.zms.Role;
-import com.yahoo.athenz.zms.RoleMember;
 
 public class DataCache {
 
@@ -43,11 +38,15 @@ public class DataCache {
     private final Map<String, Set<String>> awsRoleCache;
     private final Map<String, String> publicKeyCache;
     private final Map<String, List<String>> providerDnsSuffixCache;
+    private final Map<String, List<String>> providerHostnameAllowedSuffixCache;
+    private final Map<String, List<String>> providerHostnameDeniedSuffixCache;
 
     public static final String ACTION_ASSUME_ROLE = "assume_role";
-    private static final String ACTION_ASSUME_AWS_ROLE = "assume_aws_role";
-    private static final String ACTION_LAUNCH = "launch";
-    private static final String RESOURCE_DNS_PREFIX = "sys.auth:dns.";
+    public static final String ACTION_ASSUME_AWS_ROLE = "assume_aws_role";
+    public static final String ACTION_LAUNCH = "launch";
+
+    public static final String RESOURCE_DNS_PREFIX = "sys.auth:dns.";
+    public static final String RESOURCE_HOSTNAME_PREFIX = "sys.auth:hostname.";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DataCache.class);
     
@@ -60,6 +59,8 @@ public class DataCache {
         awsRoleCache = new HashMap<>();
         publicKeyCache = new HashMap<>();
         providerDnsSuffixCache = new HashMap<>();
+        providerHostnameAllowedSuffixCache = new HashMap<>();
+        providerHostnameDeniedSuffixCache = new HashMap<>();
     }
     
     public void setDomainData(DomainData domainData) {
@@ -150,12 +151,21 @@ public class DataCache {
         processRoleTrustDomain(role.getName(), role.getTrust());
     }
 
-    void processProviderDNSSuffixAssertion(Assertion assertion, Map<String, Role> roles) {
+    void processProviderSuffixAssertion(Assertion assertion, AssertionEffect effect, Map<String, Role> roles,
+            final String resoourceSuffix, Map<String, List<String>> providerSuffixCache) {
+
+        // make sure we have satisfied the effect
+        // if effect is null then it defaults to ALLOW
+
+        AssertionEffect assertionEffect = assertion.getEffect() == null ? AssertionEffect.ALLOW : assertion.getEffect();
+        if (effect != assertionEffect) {
+            return;
+        }
 
         // make sure we're processing dns suffix assertion
 
         final String resource = assertion.getResource();
-        if (!resource.startsWith(RESOURCE_DNS_PREFIX)) {
+        if (!resource.startsWith(resoourceSuffix)) {
             return;
         }
 
@@ -170,20 +180,24 @@ public class DataCache {
         // we don't check to make sure there is . in front of it.
         // so we're going to reduce the length by 1 to get the .
 
-        final String dnsSuffix = resource.substring(RESOURCE_DNS_PREFIX.length() - 1);
+        final String suffix = resource.substring(resoourceSuffix.length() - 1);
         for (RoleMember roleMember : role.getRoleMembers()) {
 
             final String memberName = roleMember.getMemberName();
-            if (!providerDnsSuffixCache.containsKey(memberName)) {
-                providerDnsSuffixCache.put(memberName, new ArrayList<>());
+            if (!providerSuffixCache.containsKey(memberName)) {
+                providerSuffixCache.put(memberName, new ArrayList<>());
             }
-            final List<String> dnsSuffixesForProvider = providerDnsSuffixCache.get(memberName);
-            dnsSuffixesForProvider.add(dnsSuffix);
+            final List<String> suffixesForProvider = providerSuffixCache.get(memberName);
+            suffixesForProvider.add(suffix);
         }
     }
 
     void processAssumeRoleAssertion(Assertion assertion, Map<String, Role> roles) {
-        
+
+        if (assertion.getEffect() == AssertionEffect.DENY) {
+            return;
+        }
+
         final String roleName = assertion.getRole();
         Role role = roles.get(roleName);
         if (role == null) {
@@ -200,6 +214,10 @@ public class DataCache {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Processing AWS Assume Role for resource: {} and role: {}",
                     assertion.getResource(), assertion.getRole());
+        }
+
+        if (assertion.getEffect() == AssertionEffect.DENY) {
+            return;
         }
 
         final String role = assertion.getRole();
@@ -220,7 +238,12 @@ public class DataCache {
             return;
         }
 
-        processProviderDNSSuffixAssertion(assertion, roles);
+        processProviderSuffixAssertion(assertion, AssertionEffect.ALLOW, roles,
+                RESOURCE_DNS_PREFIX, providerDnsSuffixCache);
+        processProviderSuffixAssertion(assertion, AssertionEffect.ALLOW, roles,
+                RESOURCE_HOSTNAME_PREFIX, providerHostnameAllowedSuffixCache);
+        processProviderSuffixAssertion(assertion, AssertionEffect.DENY, roles,
+                RESOURCE_HOSTNAME_PREFIX, providerHostnameDeniedSuffixCache);
     }
 
     public void processPolicy(String domainName, Policy policy, Map<String, Role> roles) {
@@ -342,6 +365,24 @@ public class DataCache {
     }
 
     /**
+     * Returns allowed hostname suffix list authorized for a provider
+     * @param provider name of the provider for the lookup
+     * @return the list of dns suffixes
+     */
+    public List<String> getProviderHostnameAllowedSuffixList(final String provider) {
+        return providerHostnameAllowedSuffixCache.get(provider);
+    }
+
+    /**
+     * Returns denied hostname suffix list authorized for a provider
+     * @param provider name of the provider for the lookup
+     * @return the list of dns suffixes
+     */
+    public List<String> getProviderHostnameDeniedSuffixList(final String provider) {
+        return providerHostnameDeniedSuffixCache.get(provider);
+    }
+
+    /**
      * Return roles configured for all access
      * @return the list of roles
      */
@@ -378,5 +419,17 @@ public class DataCache {
     
     public Map<String, String> getPublicKeyMap() {
         return publicKeyCache;
+    }
+
+    public Map<String, List<String>> getProviderDnsSuffixCache() {
+        return providerDnsSuffixCache;
+    }
+
+    public Map<String, List<String>> getProviderHostnameAllowedSuffixCache() {
+        return providerHostnameAllowedSuffixCache;
+    }
+
+    public Map<String, List<String>> getProviderHostnameDeniedSuffixCache() {
+        return providerHostnameDeniedSuffixCache;
     }
 }
