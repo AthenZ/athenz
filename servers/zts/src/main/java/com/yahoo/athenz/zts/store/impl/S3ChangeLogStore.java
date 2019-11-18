@@ -40,7 +40,6 @@ import com.yahoo.athenz.zts.store.CloudStore;
 public class S3ChangeLogStore implements ChangeLogStore {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(S3ChangeLogStore.class);
-    private static final String ZTS_BUCKET_DEFAULT = "athenz-domain-sys.auth";
 
     long lastModTime;
     AmazonS3 awsS3Client = null;
@@ -57,7 +56,10 @@ public class S3ChangeLogStore implements ChangeLogStore {
 
     public S3ChangeLogStore(CloudStore cloudStore) {
         this.cloudStore = cloudStore;
-        s3BucketName = System.getProperty(ZTSConsts.ZTS_PROP_AWS_BUCKET_NAME, ZTS_BUCKET_DEFAULT);
+        s3BucketName = System.getProperty(ZTSConsts.ZTS_PROP_AWS_BUCKET_NAME);
+        if (s3BucketName == null || s3BucketName.isEmpty()) {
+            error("S3 Bucket name cannot be null");
+        }
         
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("AWSS3ChangeLog: S3 Bucket name: " + s3BucketName);
@@ -355,6 +357,11 @@ public class S3ChangeLogStore implements ChangeLogStore {
         return Executors.newFixedThreadPool(nThreads);
     }
 
+    static void error(String msg) {
+        LOGGER.error(msg);
+        throw new RuntimeException("S3ChangeLogStore: " + msg);
+    }
+
     class ObjectS3Thread implements Runnable {
 
         String domainName;
@@ -383,6 +390,5 @@ public class S3ChangeLogStore implements ChangeLogStore {
                 signedDomainMap.put(domainName, signedDomain);
             }
         }
-
     }
 }

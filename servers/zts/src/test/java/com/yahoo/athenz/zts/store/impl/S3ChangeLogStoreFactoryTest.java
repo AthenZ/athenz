@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.zts.store.impl;
 
+import com.yahoo.athenz.zts.ZTSConsts;
 import org.testng.annotations.Test;
 
 import com.yahoo.athenz.zts.store.ChangeLogStore;
@@ -26,6 +27,7 @@ public class S3ChangeLogStoreFactoryTest {
 
     @Test
     public void testCreateStore() {
+        System.setProperty(ZTSConsts.ZTS_PROP_AWS_BUCKET_NAME, "s3-unit-test-bucket-name");
         S3ChangeLogStoreFactory factory = new S3ChangeLogStoreFactory();
         ChangeLogStore store = factory.create(null, null, null, null);
         assertNotNull(store);
