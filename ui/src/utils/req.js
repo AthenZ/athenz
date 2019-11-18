@@ -92,7 +92,7 @@ module.exports = {
   getAdminLinks: function(admins) {
     if(admins && admins.length) {
       return admins.split(',').map(function(admin) {
-        return '<a target="_blank" href=\'' + config.userLink(admin) + '\'>' + admin + '</a>';
+        return admin;
       }).join(', ');
     }
 

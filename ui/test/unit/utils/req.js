@@ -148,16 +148,13 @@ describe('req utils', function() {
 
   it('should test getAdminLinks when there is one admin', function() {
     var adminLinkStr = reqUtils.getAdminLinks('rummykub');
-
-	// TODO: restrict verify
-	expect(adminLinkStr).to.contain('http');
+	expect(adminLinkStr).to.contain('rummykub');
   });
 
 
   it('should test getAdminLinks when there is more than one admin, some with user prefixes', function() {
     var adminLinkStr = reqUtils.getAdminLinks('rummykub,beezlebub,abercadaber');
-	// TODO: restrict verify
-	expect(adminLinkStr).to.contain('http');
+	expect(adminLinkStr).to.contain('rummykub, beezlebub, abercadaber');
   });
 
   it('should test getAdminLinks when there are none', function() {
