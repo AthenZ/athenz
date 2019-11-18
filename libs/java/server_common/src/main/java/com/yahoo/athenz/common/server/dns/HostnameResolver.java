@@ -15,6 +15,8 @@
  */
 package com.yahoo.athenz.common.server.dns;
 
+import java.util.List;
+
 public interface HostnameResolver {
 
     /**
@@ -27,5 +29,18 @@ public interface HostnameResolver {
      */
     default boolean isValidHostname(final String hostname) {
         return true;
+    }
+
+    /**
+     * Verifies if the given CNAMEs are valid for a given hostname. This could be
+     * a standard dns resolution or if the setup has a separate
+     * source of truth for dns data, the implementation will query
+     * that source if the hostname CNAME is valid or not.
+     * @param hostname Instance hostname to check for CNAME validity
+     * @param cnameList list of host CNAMEs to check for validity
+     * @return true if the hostname CNAME is valid, false otherwise
+     */
+    default boolean isValidHostCnameList(final String hostname, final List<String> cnameList) {
+        return false;
     }
 }

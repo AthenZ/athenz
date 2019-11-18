@@ -43,7 +43,7 @@ public class X509ServiceCertRequestTest {
 
         StringBuilder errorMsg = new StringBuilder(256);
         assertFalse(certReq.validate("sys", "production", "provider",
-                null, null, null, null, null, errorMsg));
+                null, null, null, null, null, null, errorMsg));
     }
 
     @Test
@@ -62,7 +62,7 @@ public class X509ServiceCertRequestTest {
         Mockito.when(athenzSysDomainCache.getProviderDnsSuffixList("provider")).thenReturn(providerDnsSuffixList);
 
         assertFalse(certReq.validate("athenz", "production", "provider",
-                null, athenzSysDomainCache, null, null, null, errorMsg));
+                null, athenzSysDomainCache, null, null, null, null, errorMsg));
     }
 
     @Test
@@ -101,7 +101,7 @@ public class X509ServiceCertRequestTest {
         Mockito.when(athenzSysDomainCache.getProviderDnsSuffixList("provider")).thenReturn(providerDnsSuffixList);
 
         assertFalse(certReq.validate("athenz", "production", "provider",
-                null, athenzSysDomainCache, null, null, null, errorMsg));
+                null, athenzSysDomainCache, null, null, null, null, errorMsg));
         assertTrue(errorMsg.toString().contains("Unable to validate CSR common name"));
     }
 
@@ -121,7 +121,7 @@ public class X509ServiceCertRequestTest {
         Mockito.when(athenzSysDomainCache.getProviderDnsSuffixList("provider")).thenReturn(providerDnsSuffixList);
 
         assertFalse(certReq.validate("athenz", "production", "provider",
-                null, athenzSysDomainCache, null, null, null, errorMsg));
+                null, athenzSysDomainCache, null, null, null, null, errorMsg));
         assertTrue(errorMsg.toString().contains("invalid dns suffix"));
     }
 
@@ -144,12 +144,12 @@ public class X509ServiceCertRequestTest {
         Mockito.when(athenzSysDomainCache.getProviderDnsSuffixList("provider")).thenReturn(providerDnsSuffixList);
 
         assertFalse(certReq.validate("athenz", "production", "provider",
-                validOrgs, athenzSysDomainCache, null, null, null, errorMsg));
+                validOrgs, athenzSysDomainCache, null, null, null, null, errorMsg));
         assertTrue(errorMsg.toString().contains("Unable to validate Subject O Field"));
 
         validOrgs.add("Athenz");
         assertTrue(certReq.validate("athenz", "production", "provider",
-                validOrgs, athenzSysDomainCache, null, null, null, errorMsg));
+                validOrgs, athenzSysDomainCache, null, null, null, null, errorMsg));
     }
 
     @Test
@@ -198,12 +198,12 @@ public class X509ServiceCertRequestTest {
         Mockito.when(athenzSysDomainCache.getProviderDnsSuffixList("provider")).thenReturn(providerDnsSuffixList);
 
         assertTrue(certReq.validate("athenz", "production", "provider",
-                null, athenzSysDomainCache, null, null, null, errorMsg));
+                null, athenzSysDomainCache, null, null, null, null, errorMsg));
 
         HashSet<String> validOrgs = new HashSet<>();
         validOrgs.add("Athenz");
         assertTrue(certReq.validate("athenz", "production", "provider",
-                validOrgs, athenzSysDomainCache, null, null, null, errorMsg));
+                validOrgs, athenzSysDomainCache, null, null, null, null, errorMsg));
     }
 
 
@@ -239,7 +239,7 @@ public class X509ServiceCertRequestTest {
         HashSet<String> validOrgs = new HashSet<>();
         validOrgs.add("Athenz");
         boolean ourResult = certReq.validate("athenz", "production", "provider",
-                validOrgs, athenzSysDomainCache, null, null, null, errorMsg);
+                validOrgs, athenzSysDomainCache, null, null, null, null, errorMsg);
         assertEquals(ourResult, expectedResult);
     }
 

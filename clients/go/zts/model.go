@@ -1762,6 +1762,11 @@ type InstanceRegisterInformation struct {
 	// optional hostname in case included in the csr SAN dnsName attribute
 	//
 	Hostname DomainName `json:"hostname,omitempty" rdl:"optional"`
+
+	//
+	// optional host CNAMEs included in the csr SAN dnsName attribute
+	//
+	HostCnames []DomainName `json:"hostCnames,omitempty" rdl:"optional"`
 }
 
 //
@@ -1888,6 +1893,11 @@ type InstanceRefreshInformation struct {
 	// optional hostname in case included in the csr SAN dnsName attribute
 	//
 	Hostname DomainName `json:"hostname,omitempty" rdl:"optional"`
+
+	//
+	// optional host CNAMEs included in the csr SAN dnsName attribute
+	//
+	HostCnames []DomainName `json:"hostCnames,omitempty" rdl:"optional"`
 }
 
 //

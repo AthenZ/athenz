@@ -13,6 +13,7 @@ type InstanceRegisterInformation Struct {
     Bool token (optional); //if true, return a service token signed by ZTS for this service
     Int32 expiryTime (optional); //expiry time in minutes for the certificate (server enforces max expiry)
     DomainName hostname (optional); //optional hostname in case included in the csr SAN dnsName attribute
+    Array<DomainName> hostCnames (optional); // optional host CNAMEs included in the csr SAN dnsName attribute
 }
 
 type InstanceRefreshInformation Struct {
@@ -22,6 +23,7 @@ type InstanceRefreshInformation Struct {
     Bool token (optional); //if true, return a service token signed by ZTS for this service
     Int32 expiryTime (optional); //expiry time in minutes for the certificate (server enforces max expiry)
     DomainName hostname (optional); //optional hostname in case included in the csr SAN dnsName attribute
+    Array<DomainName> hostCnames (optional); // optional host CNAMEs included in the csr SAN dnsName attribute
 }
 
 type InstanceIdentity Struct {

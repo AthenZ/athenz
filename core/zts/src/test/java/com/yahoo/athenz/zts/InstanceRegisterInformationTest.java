@@ -18,6 +18,9 @@ package com.yahoo.athenz.zts;
 
 import org.testng.annotations.Test;
 
+import java.util.ArrayList;
+import java.util.Collections;
+
 import static org.testng.Assert.*;
 
 public class InstanceRegisterInformationTest {
@@ -37,6 +40,10 @@ public class InstanceRegisterInformationTest {
         i.setToken(false);
         i.setExpiryTime(180);
         i.setHostname("host1.athenz.cloud");
+        ArrayList<String> hostCnames = new ArrayList<>();
+        hostCnames.add("host1-cname1.athenz.cloud");
+        hostCnames.add("host1-cname2.athenz.cloud");
+        i.setHostCnames(hostCnames);
 
         i2.setProvider("provider");
         i2.setAttestationData("doc");
@@ -47,6 +54,7 @@ public class InstanceRegisterInformationTest {
         i2.setToken(false);
         i2.setExpiryTime(180);
         i2.setHostname("host1.athenz.cloud");
+        i2.setHostCnames(hostCnames);
 
         // getter assertion
         assertEquals(i.getAttestationData(), "doc");
@@ -58,11 +66,13 @@ public class InstanceRegisterInformationTest {
         assertEquals(i.getToken(), Boolean.FALSE);
         assertEquals(i.getExpiryTime(), Integer.valueOf(180));
         assertEquals(i.getHostname(), "host1.athenz.cloud");
+        assertEquals(i.getHostCnames(), hostCnames);
 
         assertEquals(i2, i);
-        assertTrue(i2.equals(i2));
-        assertFalse(i2.equals(null));
-        assertFalse(i2.equals("string"));
+        assertEquals(i2, i2);
+        assertNotEquals(i2, null);
+        assertNotEquals(i2, "string");
+        assertNotEquals("string", i2);
 
         i2.setService(null);
         assertNotEquals(i, i2);
@@ -117,6 +127,12 @@ public class InstanceRegisterInformationTest {
         i2.setHostname("host2");
         assertNotEquals(i, i2);
         i2.setHostname("host1.athenz.cloud");
+
+        i2.setHostCnames(null);
+        assertNotEquals(i, i2);
+        i2.setHostCnames(Collections.singletonList("host1-cname1.athenz.cloud"));
+        assertNotEquals(i, i2);
+        i2.setHostCnames(hostCnames);
 
         assertEquals(i, i2);
     }

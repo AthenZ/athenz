@@ -2411,7 +2411,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         final DataCache athenzSysDomainCache = dataStore.getDataCache(ZTSConsts.ATHENZ_SYS_DOMAIN);
 
         if (!certReq.validate(domain, service, provider, validCertSubjectOrgValues, athenzSysDomainCache,
-                serviceDnsSuffix, info.getHostname(), hostnameResolver, errorMsg)) {
+                serviceDnsSuffix, info.getHostname(), info.getHostCnames(), hostnameResolver, errorMsg)) {
             throw requestError("CSR validation failed - " + errorMsg.toString(),
                     caller, domain, principalDomain);
         }
@@ -2732,7 +2732,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         StringBuilder errorMsg = new StringBuilder(256);
         if (!certReq.validate(domain, service, provider, validCertSubjectOrgValues, athenzSysDomainCache,
-                serviceDnsSuffix, info.getHostname(), hostnameResolver, errorMsg)) {
+                serviceDnsSuffix, info.getHostname(), info.getHostCnames(), hostnameResolver, errorMsg)) {
             throw requestError("CSR validation failed - " + errorMsg.toString(),
                     caller, domain, principalDomain);
         }
