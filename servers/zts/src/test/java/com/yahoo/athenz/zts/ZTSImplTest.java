@@ -4439,8 +4439,9 @@ public class ZTSImplTest {
     public void testPostRoleCertificateRequest() {
 
         // this csr is for sports:role.readers role
+        long expiry = 3600;
         RoleCertificateRequest req = new RoleCertificateRequest()
-                .setCsr(ROLE_CERT_CORETECH_REQUEST).setExpiryTime(3600L);
+                .setCsr(ROLE_CERT_CORETECH_REQUEST).setExpiryTime(expiry);
         
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         store.processDomain(signedDomain, false);
@@ -4456,7 +4457,9 @@ public class ZTSImplTest {
         RoleToken roleToken = zts.postRoleCertificateRequest(context, "coretech",
                 "readers", req);
         assertNotNull(roleToken);
-        assertEquals(roleToken.getExpiryTime(), TimeUnit.SECONDS.convert(30, TimeUnit.DAYS));
+        // allow 10 sec offset (output is in seconds while input was in minutes)
+        long diffExpiryTime = roleToken.getExpiryTime() - System.currentTimeMillis() / 1000;
+        assertTrue(Math.abs(diffExpiryTime - expiry * 60) < 10);
     }
 
     @Test

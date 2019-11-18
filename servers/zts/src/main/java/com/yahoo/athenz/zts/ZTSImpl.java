@@ -1938,12 +1938,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw serverError("postRoleCertificateRequest: Unable to create certificate from the cert signer",
                     caller, domainName, principalDomain);
         }
-        RoleToken roleToken = new RoleToken().setToken(x509Cert).setExpiryTime(ZTS_ROLE_CERT_EXPIRY);
+
+        final X509Certificate roleCert = Crypto.loadX509Certificate(x509Cert);
+        RoleToken roleToken = new RoleToken().setToken(x509Cert)
+                .setExpiryTime(roleCert.getNotAfter().getTime() / 1000);
 
         // log our certificate
 
-        instanceCertManager.log(principal, ipAddress, ZTSConsts.ZTS_SERVICE,
-                null, Crypto.loadX509Certificate(x509Cert));
+        instanceCertManager.log(principal, ipAddress, ZTSConsts.ZTS_SERVICE, null, roleCert);
 
         metric.stopTiming(timerMetric, domainName, principalDomain);
         return roleToken;
