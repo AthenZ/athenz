@@ -209,11 +209,9 @@ public class X509RoleCertRequest extends X509CertRequest {
             return false;
         }
 
-        // now let's check if we have an rfc822 field for the
-        // proxy principal if proxy user is the one making the
-        // role request
+        // let's check if we have a uri for the proxy user
 
-        if (proxyUser != null && !validateEmail(proxyUser)) {
+        if (proxyUser != null && !validateProxyUserUri(proxyUser)) {
             return false;
         }
 
