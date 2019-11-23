@@ -29,6 +29,8 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_HTTPS_PORT        = "athenz.tls_port";
     public static final String ZMS_PROP_STATUS_PORT       = "athenz.status_port";
 
+    public static final String ZMS_PROP_ADDL_USER_CHECK_DOMAINS = "athenz.zms.addl_user_check_domains";
+
     public static final String ZMS_PROP_ROOT_DIR      = "athenz.zms.root_dir";
     public static final String ZMS_PROP_HOSTNAME      = "athenz.zms.hostname";
     public static final String ZMS_PROP_DOMAIN_ADMIN  = "athenz.zms.domain_admin";
@@ -132,7 +134,7 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_QUOTA_PUBLIC_KEY   = "athenz.zms.quota_public_key";
     public static final String ZMS_PROP_QUOTA_ENTITY       = "athenz.zms.quota_entity";
     public static final String ZMS_PROP_QUOTA_SUBDOMAIN    = "athenz.zms.quota_subdomain";
-    
+
     public static final String ZMS_PRINCIPAL_AUTHORITY_CLASS  = "com.yahoo.athenz.auth.impl.PrincipalAuthority";
 
     public static final String ZMS_UNKNOWN_DOMAIN     = "unknown_domain";
