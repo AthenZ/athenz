@@ -164,6 +164,9 @@ public class AccessToken extends OAuth2Token {
      * as long as the principal/subject matches what's in the token.
      * The offset is by default 3600secs before (since we always issue
      * certs with start time of now - 3600secs) and 3600 secs after.
+     * If the value is 0, then no offset is allowed. If the value is -1,
+     * then we skip the offset check and only require that the client
+     * certificate principal matches to the access token client id
      * @param offset number of seconds to allow access token validation
      *               based on principal/subject name
      */
@@ -325,6 +328,15 @@ public class AccessToken extends OAuth2Token {
         if (!cn.equals(clientId)) {
             LOG.error("confirmX509CertPrincipal: Principal mismatch {} vs {}", cn, clientId);
             return false;
+        }
+
+        // if the access token cert offset is set to -1 then
+        // we only need to verify that the certificate principal
+        // matches to the token client id which we have already
+        // verified thus we'll return success
+
+        if (ACCESS_TOKEN_CERT_OFFSET == -1) {
+            return true;
         }
 
         // now let's verify our offsets. the certificate must
