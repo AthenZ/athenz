@@ -54,7 +54,12 @@ func (cli Zms) ShowServerTemplate(templateName string) (*string, error) {
 	for _, policy := range template.Policies {
 		cli.dumpPolicy(&buf, *policy, indent_level2_dash, indent_level2_dash_lvl)
 	}
-
+	if len(template.Services) > 0 {
+		buf.WriteString(indent_level1 + "services:\n")
+		for _, service := range template.Services {
+			cli.dumpService(&buf, *service, indent_level2_dash, indent_level2_dash_lvl)
+		}
+	}
 	s := buf.String()
 	return &s, nil
 }
