@@ -16875,4 +16875,45 @@ public class ZMSImplTest {
         checkAssertion.setEffect(AssertionEffect.ALLOW);
         assertTrue(zms.dbService.removeMatchedAssertion(checkAssertion, assertions, matchedAssertions));
     }
+
+    @Test
+    public void testIsUserDomainPrincipal() {
+
+        // default no additional user domains
+
+        ZMSImpl zmsImpl = zmsInit();
+        assertTrue(zmsImpl.isUserDomainPrincipal("user.joe"));
+        assertFalse(zmsImpl.isUserDomainPrincipal("unix.joe"));
+        assertFalse(zmsImpl.isUserDomainPrincipal("ldap.joe"));
+        assertFalse(zmsImpl.isUserDomainPrincipal("x509.joe"));
+
+        // now let's set the addls to empty - no changes
+
+        System.setProperty(ZMSConsts.ZMS_PROP_ADDL_USER_CHECK_DOMAINS, "");
+        zmsImpl = zmsInit();
+        assertTrue(zmsImpl.isUserDomainPrincipal("user.joe"));
+        assertFalse(zmsImpl.isUserDomainPrincipal("unix.joe"));
+        assertFalse(zmsImpl.isUserDomainPrincipal("ldap.joe"));
+        assertFalse(zmsImpl.isUserDomainPrincipal("x509.joe"));
+
+        // now let's add one of the domains to the list
+
+        System.setProperty(ZMSConsts.ZMS_PROP_ADDL_USER_CHECK_DOMAINS, "unix");
+        zmsImpl = zmsInit();
+        assertTrue(zmsImpl.isUserDomainPrincipal("user.joe"));
+        assertTrue(zmsImpl.isUserDomainPrincipal("unix.joe"));
+        assertFalse(zmsImpl.isUserDomainPrincipal("ldap.joe"));
+        assertFalse(zmsImpl.isUserDomainPrincipal("x509.joe"));
+
+        // now let's set two domains in the list
+
+        System.setProperty(ZMSConsts.ZMS_PROP_ADDL_USER_CHECK_DOMAINS, "unix,ldap");
+        zmsImpl = zmsInit();
+        assertTrue(zmsImpl.isUserDomainPrincipal("user.joe"));
+        assertTrue(zmsImpl.isUserDomainPrincipal("unix.joe"));
+        assertTrue(zmsImpl.isUserDomainPrincipal("ldap.joe"));
+        assertFalse(zmsImpl.isUserDomainPrincipal("x509.joe"));
+
+        System.clearProperty(ZMSConsts.ZMS_PROP_ADDL_USER_CHECK_DOMAINS);
+    }
 }

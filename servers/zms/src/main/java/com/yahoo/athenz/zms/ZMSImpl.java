@@ -150,6 +150,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected String homeDomainPrefix;
     protected String userDomainAlias;
     protected String userDomainAliasPrefix;
+    protected List<String> addlUserCheckDomainPrefixList = null;
     protected Http.AuthorityList authorities = null;
     protected List<String> providerEndpoints = null;
     protected Set<String> reservedServiceNames = null;
@@ -504,12 +505,21 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         userDomain = System.getProperty(ZMSConsts.ZMS_PROP_USER_DOMAIN, ZMSConsts.USER_DOMAIN);
         userDomainPrefix = userDomain + ".";
-        
+
         userDomainAlias = System.getProperty(ZMSConsts.ZMS_PROP_USER_DOMAIN_ALIAS);
         if (userDomainAlias != null) {
             userDomainAliasPrefix = userDomainAlias + ".";
         }
-        
+
+        final String addlUserCheckDomains = System.getProperty(ZMSConsts.ZMS_PROP_ADDL_USER_CHECK_DOMAINS);
+        if (addlUserCheckDomains != null && !addlUserCheckDomains.isEmpty()) {
+            String[] checkDomains = addlUserCheckDomains.split(",");
+            addlUserCheckDomainPrefixList = new ArrayList<>();
+            for (String checkDomain : checkDomains) {
+                addlUserCheckDomainPrefixList.add(checkDomain + ".");
+            }
+        }
+
         homeDomain = System.getProperty(ZMSConsts.ZMS_PROP_HOME_DOMAIN, userDomain);
         homeDomainPrefix = homeDomain + ".";
         
@@ -2792,9 +2802,26 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
 
+    boolean isUserDomainPrincipal(final String memberName) {
+
+        if (memberName.startsWith(userDomainPrefix)) {
+            return true;
+        }
+
+        if (addlUserCheckDomainPrefixList != null) {
+            for (String prefix : addlUserCheckDomainPrefixList) {
+                if (memberName.startsWith(prefix)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     void validateRoleMemberPrincipal(final String memberName, final String caller) {
 
-        boolean bUser = memberName.startsWith(userDomainPrefix);
+        boolean bUser = isUserDomainPrincipal(memberName);
         boolean bValidPrincipal = true;
         if (bUser) {
 
