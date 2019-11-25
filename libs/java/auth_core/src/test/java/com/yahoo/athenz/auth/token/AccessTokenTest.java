@@ -579,6 +579,24 @@ public class AccessTokenTest {
     }
 
     @Test
+    public void testConfirmX509CertPrincipalCertStartTimeCheckDisabled() throws IOException {
+
+        AccessToken.setAccessTokenCertOffset(-1);
+
+        // our cert issue time is 1565245568
+        // so we're going to set token issue time to cert time + 3600 + 100
+
+        AccessToken accessToken = createAccessToken(1565245568 + 3600 + 100);
+
+        Path path = Paths.get("src/test/resources/mtls_token2_spec.cert");
+        String certStr = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(certStr);
+        assertTrue(accessToken.confirmX509CertPrincipal(cert, "mtls"));
+
+        AccessToken.setAccessTokenCertOffset(3600);
+    }
+
+    @Test
     public void testConfirmX509CertPrincipalCertStartTimePassOffset() throws IOException {
 
         // our cert issue time is 1565245568
