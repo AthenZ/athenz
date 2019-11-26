@@ -5,6 +5,7 @@ package zmscli
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -267,11 +268,25 @@ func (cli Zms) CheckMembers(dn string, rn string, members []string) (*string, er
 	ms := cli.validatedUsers(members, false)
 	for _, m := range ms {
 		member, err := cli.Zms.GetMembership(zms.DomainName(dn), zms.EntityName(rn), zms.MemberName(m), "")
-		cli.dumpRoleMembership(&buf, *member)
 		if err != nil {
 			return nil, err
 		}
+		cli.dumpRoleMembership(&buf, *member)
 	}
+	s := buf.String()
+	return &s, nil
+}
+
+func (cli Zms) CheckActiveMember(dn string, rn string, mbr string) (*string, error) {
+	var buf bytes.Buffer
+	member, err := cli.Zms.GetMembership(zms.DomainName(dn), zms.EntityName(rn), zms.MemberName(mbr), "")
+	if err != nil {
+		return nil, err
+	}
+	if !*member.IsMember || !*member.Approved || !*member.Active {
+		return nil, errors.New("Member " + mbr + " is not active")
+	}
+	cli.dumpRoleMembership(&buf, *member)
 	s := buf.String()
 	return &s, nil
 }
