@@ -2315,12 +2315,19 @@ public class DBService {
                 continue;
             }
 
+            // if no role members, then there is nothing to do
+
+            final List<RoleMember> roleMembers = role.getRoleMembers();
+            if (roleMembers == null || roleMembers.isEmpty()) {
+                continue;
+            }
+
             // process our role members and if there were any changes processed then update
             // our role and domain time-stamps, and invalidate local cache entry
 
             final String roleName = ZMSUtils.extractRoleName(role.getName());
-            if (setRoleMemberExpiration(ctx, con, role, expiration, millis, domain.getName(), roleName,
-                    principal, auditRef, caller)) {
+            if (setRoleMemberExpiration(ctx, con, roleMembers, expiration, millis, domain.getName(),
+                    roleName, principal, auditRef, caller)) {
                 con.updateRoleModTimestamp(domain.getName(), roleName);
                 bDataChanged = true;
             }
@@ -3804,12 +3811,12 @@ public class DBService {
         }
     }
 
-    boolean setRoleMemberExpiration(ResourceContext ctx, ObjectStoreConnection con, Role role, Timestamp expiration,
-            long millis, final String domainName, final String roleName, final String principal, final String auditRef,
-            final String caller) {
+    boolean setRoleMemberExpiration(ResourceContext ctx, ObjectStoreConnection con, List<RoleMember> roleMembers,
+            Timestamp expiration, long millis, final String domainName, final String roleName, final String principal,
+            final String auditRef, final String caller) {
 
         boolean bDataChanged = false;
-        for (RoleMember roleMember : role.getRoleMembers()) {
+        for (RoleMember roleMember : roleMembers) {
 
             if (roleMember.getExpiration() != null && roleMember.getExpiration().millis() < millis) {
                 continue;
@@ -3849,6 +3856,13 @@ public class DBService {
             return;
         }
 
+        // if no role members, then there is nothing to do
+
+        final List<RoleMember> roleMembers = originalRole.getRoleMembers();
+        if (roleMembers == null || roleMembers.isEmpty()) {
+            return;
+        }
+
         // we only need to process the role members if the new expiration
         // is more restrictive than what we had before
 
@@ -3866,7 +3880,7 @@ public class DBService {
         // process our role members and if there were any changes processed then update
         // our role and domain time-stamps, and invalidate local cache entry
 
-        if (setRoleMemberExpiration(ctx, con, originalRole, expiration, millis, domainName, roleName,
+        if (setRoleMemberExpiration(ctx, con, roleMembers, expiration, millis, domainName, roleName,
                 principal, auditRef, caller)) {
             con.updateRoleModTimestamp(domainName, roleName);
             con.updateDomainModTimestamp(domainName);
