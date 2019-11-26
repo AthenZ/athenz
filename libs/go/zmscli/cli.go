@@ -359,6 +359,10 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 			if argc >= 2 {
 				return cli.CheckMembers(dn, args[0], args[1:])
 			}
+		case "check-active-member":
+			if argc == 2 {
+				return cli.CheckActiveMember(dn, args[0], args[1])
+			}
 		case "delete-role":
 			if argc == 1 {
 				return cli.DeleteRole(dn, args[0])
@@ -1057,6 +1061,17 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   user_or_service : users or services to be checked if they are members\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domain_example + " check-member readers " + cli.UserDomain + ".john " + cli.UserDomain + ".joe media.sports.storage\n")
+	case "check-active-member":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domain_param + " check-active-member group_role user_or_service\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain          : name of the domain that role belongs to\n")
+		}
+		buf.WriteString("   group-role      : name of the standard group role to check membership\n")
+		buf.WriteString("   user_or_service : user or service to be checked if they are active members\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domain_example + " check-active-member readers " + cli.UserDomain + ".john\n")
 	case "delete-member":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domain_param + " delete-member group_role user_or_service [user_or_service ...]\n")
@@ -1725,6 +1740,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   add-member group_role user_or_service [user_or_service ...]\n")
 	buf.WriteString("   add-temporary-member group_role user_or_service expiration\n")
 	buf.WriteString("   check-member group_role user_or_service [user_or_service ...]\n")
+	buf.WriteString("   check-active-member group_role user_or_service\n")
 	buf.WriteString("   delete-member group_role user_or_service [user_or_service ...]\n")
 	buf.WriteString("   add-provider-role-member provider_service resource_group provider_role user_or_service [user_or_service ...]\n")
 	buf.WriteString("   show-provider-role-member provider_service resource_group provider_role\n")
