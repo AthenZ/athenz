@@ -4582,6 +4582,31 @@ public class DBServiceTest {
     }
 
     @Test
+    public void testUpdateRoleMembersExpirationNoRoleMembers() {
+
+        final String domainName = "role-meta-expiry";
+
+        // in this test case we're going to set the expiry days to 0 so we
+        // get an exception when accessed but we should never get there
+        // since our role is set as trust
+
+        Role role = createRoleObject(domainName, "role1", null, null, null);
+
+        ObjectStoreConnection mockConn = Mockito.mock(ObjectStoreConnection.class);
+        Mockito.when(mockConn.insertRoleMember(Mockito.anyString(), Mockito.anyString(), Mockito.any(),
+                Mockito.any(), Mockito.anyString()))
+                .thenReturn(true);
+
+        // we're going to make sure to throw an exception here
+        // since this should never be called
+
+        Mockito.when(mockConn.updateDomainModTimestamp(domainName)).thenThrow(new IllegalArgumentException());
+
+        zms.dbService.updateRoleMembersExpiration(mockDomRsrcCtx, mockConn, domainName, "role1", role,
+                role, auditRef, "testUpdateRoleMembersExpirationNoRoleMembers");
+    }
+
+    @Test
     public void testExecutePutDomainMetaExpirationUpdate() {
 
         final String domainName = "domain-meta-expiry";
@@ -4754,6 +4779,9 @@ public class DBServiceTest {
         role1.getRoleMembers().get(1).setExpiration(timExpiry);
         role1.setMemberExpiryDays(15);
         zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role1", role1, "test", "putrole");
+
+        Role role2 = createRoleObject(domainName, "role2", null, null, null);
+        zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role2", role2, "test", "putrole");
 
         RoleMeta rm = new RoleMeta().setMemberExpiryDays(10);
         zms.dbService.executePutRoleMeta(mockDomRsrcCtx, domainName, "admin",
