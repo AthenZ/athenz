@@ -45,9 +45,9 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_GET_DOMAIN_WITH_ACCOUNT = "SELECT name FROM domain WHERE account=?;";
     private static final String SQL_GET_DOMAIN_WITH_PRODUCT_ID = "SELECT name FROM domain WHERE ypm_id=?;";
     private static final String SQL_INSERT_DOMAIN = "INSERT INTO domain "
-            + "(name, description, org, uuid, enabled, audit_enabled, account, ypm_id, application_id, cert_dns_domain, member_expiry_days) VALUES (?,?,?,?,?,?,?,?,?,?,?);";
+            + "(name, description, org, uuid, enabled, audit_enabled, account, ypm_id, application_id, cert_dns_domain, member_expiry_days, token_expiry_mins, service_cert_expiry_mins, role_cert_expiry_mins, sign_algorithm) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
     private static final String SQL_UPDATE_DOMAIN = "UPDATE domain "
-            + "SET description=?, org=?, uuid=?, enabled=?, audit_enabled=?, account=?, ypm_id=?, application_id=?, cert_dns_domain=?, member_expiry_days=? WHERE name=?;";
+            + "SET description=?, org=?, uuid=?, enabled=?, audit_enabled=?, account=?, ypm_id=?, application_id=?, cert_dns_domain=?, member_expiry_days=?, token_expiry_mins=?, service_cert_expiry_mins=?, role_cert_expiry_mins=?, sign_algorithm=? WHERE name=?;";
     private static final String SQL_UPDATE_DOMAIN_MOD_TIMESTAMP = "UPDATE domain "
             + "SET modified=CURRENT_TIMESTAMP(3) WHERE name=?;";
     private static final String SQL_GET_DOMAIN_MOD_TIMESTAMP = "SELECT modified FROM domain WHERE name=?;";
@@ -73,8 +73,8 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "JOIN domain ON domain.domain_id=role.domain_id "
             + "WHERE domain.name=? AND role.name=?;";
     private static final String SQL_GET_ROLE_ID = "SELECT role_id FROM role WHERE domain_id=? AND name=?;";
-    private static final String SQL_INSERT_ROLE = "INSERT INTO role (name, domain_id, trust, audit_enabled, self_serve, member_expiry_days) VALUES (?,?,?,?,?,?);";
-    private static final String SQL_UPDATE_ROLE = "UPDATE role SET trust=?,audit_enabled=?, self_serve=?, member_expiry_days=? WHERE role_id=?;";
+    private static final String SQL_INSERT_ROLE = "INSERT INTO role (name, domain_id, trust, audit_enabled, self_serve, member_expiry_days, token_expiry_mins, cert_expiry_mins, sign_algorithm) VALUES (?,?,?,?,?,?,?,?,?);";
+    private static final String SQL_UPDATE_ROLE = "UPDATE role SET trust=?,audit_enabled=?, self_serve=?, member_expiry_days=?, token_expiry_mins=?, cert_expiry_mins=?, sign_algorithm=? WHERE role_id=?;";
     private static final String SQL_DELETE_ROLE = "DELETE FROM role WHERE domain_id=? AND name=?;";
     private static final String SQL_UPDATE_ROLE_MOD_TIMESTAMP = "UPDATE role "
             + "SET modified=CURRENT_TIMESTAMP(3) WHERE role_id=?;";
@@ -424,7 +424,11 @@ public class JDBCConnection implements ObjectStoreConnection {
                     .setYpmId(rs.getInt(ZMSConsts.DB_COLUMN_PRODUCT_ID))
                     .setCertDnsDomain(rs.getString(ZMSConsts.DB_COLUMN_CERT_DNS_DOMAIN))
                     .setMemberExpiryDays(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_MEMBER_EXPIRY_DAYS), 0))
-                    .setTokenExpiryMins(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_TOKEN_EXPIRY_MINS), 0));
+                    .setTokenExpiryMins(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_TOKEN_EXPIRY_MINS), 0))
+                    .setRoleCertExpiryMins(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_ROLE_CERT_EXPIRY_MINS), 0))
+                    .setServiceCertExpiryMins(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_SERVICE_CERT_EXPIRY_MINS), 0))
+                    .setApplicationId(rs.getString(ZMSConsts.DB_COLUMN_APPLICATION_ID))
+                    .setSignAlgorithm(rs.getString(ZMSConsts.DB_COLUMN_SIGN_ALGORITHM));
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
@@ -473,6 +477,10 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(9, processInsertValue(domain.getApplicationId()));
             ps.setString(10, processInsertValue(domain.getCertDnsDomain()));
             ps.setInt(11, processInsertValue(domain.getMemberExpiryDays()));
+            ps.setInt(12, processInsertValue(domain.getTokenExpiryMins()));
+            ps.setInt(13, processInsertValue(domain.getServiceCertExpiryMins()));
+            ps.setInt(14, processInsertValue(domain.getRoleCertExpiryMins()));
+            ps.setString(15, processInsertValue(domain.getSignAlgorithm()));
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -555,7 +563,11 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(8, processInsertValue(domain.getApplicationId()));
             ps.setString(9, processInsertValue(domain.getCertDnsDomain()));
             ps.setInt(10, processInsertValue(domain.getMemberExpiryDays()));
-            ps.setString(11, domain.getName());
+            ps.setInt(11, processInsertValue(domain.getTokenExpiryMins()));
+            ps.setInt(12, processInsertValue(domain.getServiceCertExpiryMins()));
+            ps.setInt(13, processInsertValue(domain.getRoleCertExpiryMins()));
+            ps.setString(14, processInsertValue(domain.getSignAlgorithm()));
+            ps.setString(15, domain.getName());
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -1109,11 +1121,14 @@ public class JDBCConnection implements ObjectStoreConnection {
             try (ResultSet rs = executeQuery(ps, caller)) {
                 if (rs.next()) {
                     return new Role().setName(ZMSUtils.roleResourceName(domainName, roleName))
-                        .setModified(Timestamp.fromMillis(rs.getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED).getTime()))
-                        .setTrust(saveValue(rs.getString(ZMSConsts.DB_COLUMN_TRUST)))
-                        .setAuditEnabled(nullIfDefaultValue(rs.getBoolean(ZMSConsts.DB_COLUMN_AUDIT_ENABLED), false))
-                        .setSelfServe(nullIfDefaultValue(rs.getBoolean(ZMSConsts.DB_COLUMN_SELF_SERVE), false))
-                        .setMemberExpiryDays(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_MEMBER_EXPIRY_DAYS), 0));
+                            .setModified(Timestamp.fromMillis(rs.getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED).getTime()))
+                            .setTrust(saveValue(rs.getString(ZMSConsts.DB_COLUMN_TRUST)))
+                            .setAuditEnabled(nullIfDefaultValue(rs.getBoolean(ZMSConsts.DB_COLUMN_AUDIT_ENABLED), false))
+                            .setSelfServe(nullIfDefaultValue(rs.getBoolean(ZMSConsts.DB_COLUMN_SELF_SERVE), false))
+                            .setMemberExpiryDays(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_MEMBER_EXPIRY_DAYS), 0))
+                            .setTokenExpiryMins(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_TOKEN_EXPIRY_MINS), 0))
+                            .setCertExpiryMins(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_CERT_EXPIRY_MINS), 0))
+                            .setSignAlgorithm(saveValue(rs.getString(ZMSConsts.DB_COLUMN_SIGN_ALGORITHM)));
                 }
             }
         } catch (SQLException ex) {
@@ -1168,6 +1183,9 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setBoolean(4, processInsertValue(role.getAuditEnabled(), false));
             ps.setBoolean(5, processInsertValue(role.getSelfServe(), false));
             ps.setInt(6, processInsertValue(role.getMemberExpiryDays()));
+            ps.setInt(7, processInsertValue(role.getTokenExpiryMins()));
+            ps.setInt(8, processInsertValue(role.getCertExpiryMins()));
+            ps.setString(9, processInsertValue(role.getSignAlgorithm()));
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -1201,7 +1219,10 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setBoolean(2, processInsertValue(role.getAuditEnabled(), false));
             ps.setBoolean(3, processInsertValue(role.getSelfServe(), false));
             ps.setInt(4, processInsertValue(role.getMemberExpiryDays()));
-            ps.setInt(5, roleId);
+            ps.setInt(5, processInsertValue(role.getTokenExpiryMins()));
+            ps.setInt(6, processInsertValue(role.getCertExpiryMins()));
+            ps.setString(7, processInsertValue(role.getSignAlgorithm()));
+            ps.setInt(8, roleId);
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -2784,7 +2805,9 @@ public class JDBCConnection implements ObjectStoreConnection {
                             .setAuditEnabled(nullIfDefaultValue(rs.getBoolean(ZMSConsts.DB_COLUMN_AUDIT_ENABLED), false))
                             .setSelfServe(nullIfDefaultValue(rs.getBoolean(ZMSConsts.DB_COLUMN_SELF_SERVE), false))
                             .setMemberExpiryDays(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_MEMBER_EXPIRY_DAYS), 0))
-                            .setTokenExpiryMins(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_TOKEN_EXPIRY_MINS), 0));
+                            .setTokenExpiryMins(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_TOKEN_EXPIRY_MINS), 0))
+                            .setCertExpiryMins(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_CERT_EXPIRY_MINS), 0))
+                            .setSignAlgorithm(saveValue(rs.getString(ZMSConsts.DB_COLUMN_SIGN_ALGORITHM)));
                     roleMap.put(roleName, role);
                 }
             }

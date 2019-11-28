@@ -95,6 +95,9 @@ func init() {
 	tDomainMeta.Field("certDnsDomain", "String", true, nil, "domain certificate dns domain (system attribute)")
 	tDomainMeta.Field("memberExpiryDays", "Int32", true, nil, "all members in the domain will have specified max expiry days")
 	tDomainMeta.Field("tokenExpiryMins", "Int32", true, nil, "tokens issued for this domain will have specified max timeout in mins")
+	tDomainMeta.Field("serviceCertExpiryMins", "Int32", true, nil, "service identity certs issued for this domain will have specified max timeout in mins")
+	tDomainMeta.Field("roleCertExpiryMins", "Int32", true, nil, "role certs issued for this domain will have specified max timeout in mins")
+	tDomainMeta.Field("signAlgorithm", "SimpleName", true, nil, "rsa or ec signing algorithm to be used for tokens")
 	sb.AddType(tDomainMeta.Build())
 
 	tDomain := rdl.NewStructTypeBuilder("DomainMeta", "Domain")
@@ -133,7 +136,9 @@ func init() {
 	tRoleMeta.Comment("Set of metadata attributes that all roles may have and can be changed by domain admins.")
 	tRoleMeta.Field("selfServe", "Bool", true, false, "Flag indicates whether or not role allows self service. Users can add themselves in the role, but it has to be approved by domain admins to be effective.")
 	tRoleMeta.Field("memberExpiryDays", "Int32", true, nil, "all members in the role will have specified max expiry days")
-	tRoleMeta.Field("tokenExpiryMins", "Int32", true, nil, "tokens issued for this domain will have specified max timeout in mins")
+	tRoleMeta.Field("tokenExpiryMins", "Int32", true, nil, "tokens issued for this role will have specified max timeout in mins")
+	tRoleMeta.Field("certExpiryMins", "Int32", true, nil, "certs issued for this role will have specified max timeout in mins")
+	tRoleMeta.Field("signAlgorithm", "SimpleName", true, nil, "rsa or ec signing algorithm to be used for tokens")
 	sb.AddType(tRoleMeta.Build())
 
 	tRole := rdl.NewStructTypeBuilder("RoleMeta", "Role")

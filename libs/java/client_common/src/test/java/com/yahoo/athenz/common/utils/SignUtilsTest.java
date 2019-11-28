@@ -53,7 +53,7 @@ public class SignUtilsTest {
 
         String check = SignUtils.asCanonicalString(mockDomain);
         assertNotNull(check);
-        assertEquals(check,"{\"roles\":[],\"services\":[],\"ypmId\":0}");
+        assertEquals(check,"{\"roleCertExpiryMins\":0,\"roles\":[],\"serviceCertExpiryMins\":0,\"services\":[],\"ypmId\":0}");
     }
     
     @Test
@@ -159,9 +159,9 @@ public class SignUtilsTest {
         
         String check = SignUtils.asCanonicalString(mockDomain);
         assertNotNull(check);
-        assertEquals(check,"{\"account\":\"chk_string\",\"memberExpiryDays\":30,\"policies\""
-                +":{\"contents\":{\"policies\":[]}},\"roles\":[{\"members\":[\"check_item\"],"
-                +"\"roleMembers\":[]}],\"services\":[{\"publicKeys\":[{}]}],"
+        assertEquals(check, "{\"account\":\"chk_string\",\"memberExpiryDays\":30,\"policies\""
+                +":{\"contents\":{\"policies\":[]}},\"roleCertExpiryMins\":0,\"roles\":[{\"certExpiryMins\":0,\"members\":[\"check_item\"],"
+                +"\"roleMembers\":[]}],\"serviceCertExpiryMins\":0,\"services\":[{\"publicKeys\":[{}]}],"
                 +"\"tokenExpiryMins\":450,\"ypmId\":0}");
         
         Mockito.when(mService.getPublicKeys()).thenReturn(null);
@@ -170,7 +170,8 @@ public class SignUtilsTest {
         check = SignUtils.asCanonicalString(mockDomain);
         assertNotNull(check);
         assertEquals(check,"{\"account\":\"chk_string\",\"policies\":{\"contents\":{\"policies\":[]}},"
-                +"\"roles\":[{\"members\":[\"check_item\"],\"roleMembers\":[]}],\"services\""
+                +"\"roleCertExpiryMins\":0,\"roles\":[{\"certExpiryMins\":0,\"members\":[\"check_item\"],\"roleMembers\":[]}],"
+                +"\"serviceCertExpiryMins\":0,\"services\""
                 +":[{\"publicKeys\":[]}],\"tokenExpiryMins\":450,\"ypmId\":0}");
     }
 
@@ -179,12 +180,13 @@ public class SignUtilsTest {
 
         List<RoleMember> roleMembers1 = new ArrayList<>();
         Role role1 = new Role().setName("role1").setRoleMembers(roleMembers1)
-                .setMemberExpiryDays(30).setTokenExpiryMins(450);
+                .setMemberExpiryDays(30).setTokenExpiryMins(450)
+                .setCertExpiryMins(300);
 
         List<RoleMember> roleMembers2 = new ArrayList<>();
         roleMembers2.add(new RoleMember().setMemberName("user.joe").setExpiration(Timestamp.fromMillis(0)));
         roleMembers2.add(new RoleMember().setMemberName("user.jane").setExpiration(Timestamp.fromMillis(0)));
-        Role role2 = new Role().setName("role2").setRoleMembers(roleMembers2);
+        Role role2 = new Role().setName("role2").setRoleMembers(roleMembers2).setSignAlgorithm("ec");
 
         List<Role> roles = new ArrayList<>();
         roles.add(role1);
@@ -194,11 +196,11 @@ public class SignUtilsTest {
                 .setEnabled(Boolean.TRUE);
 
         final String check = SignUtils.asCanonicalString(data);
-        final String expected = "{\"enabled\":true,\"roles\":[{\"memberExpiryDays\":30,\"name\":\"role1\","
+        final String expected = "{\"enabled\":true,\"roles\":[{\"certExpiryMins\":300,\"memberExpiryDays\":30,\"name\":\"role1\","
             +"\"roleMembers\":[],\"tokenExpiryMins\":450},"
             +"{\"name\":\"role2\",\"roleMembers\":[{\"expiration\":\"1970-01-01T00:00:00.000Z\","
             +"\"memberName\":\"user.joe\"},{\"expiration\":\"1970-01-01T00:00:00.000Z\","
-            +"\"memberName\":\"user.jane\"}]},{\"name\":\"role3\"}],\"services\":[],\"ypmId\":100}";
+            +"\"memberName\":\"user.jane\"}],\"signAlgorithm\":\"ec\"},{\"name\":\"role3\"}],\"services\":[],\"ypmId\":100}";
         assertEquals(check, expected);
     }
 
@@ -230,13 +232,16 @@ public class SignUtilsTest {
         roles.add(role2);
         roles.add(new Role().setName("role3"));
         DomainData data = new DomainData().setRoles(roles).setYpmId(100)
-                .setEnabled(Boolean.TRUE).setAuditEnabled(true);
+                .setEnabled(Boolean.TRUE).setAuditEnabled(true)
+                .setRoleCertExpiryMins(100).setServiceCertExpiryMins(200)
+                .setTokenExpiryMins(300).setSignAlgorithm("rsa");
 
         final String check = SignUtils.asCanonicalString(data);
-        final String expected = "{\"auditEnabled\":true,\"enabled\":true,\"roles\":[{\"auditEnabled\":true,\"name\":\"role1\",\"roleMembers\":[]},"
+        final String expected = "{\"auditEnabled\":true,\"enabled\":true,\"roleCertExpiryMins\":100,\"roles\":[{\"auditEnabled\":true,\"name\":\"role1\",\"roleMembers\":[]},"
                 +"{\"name\":\"role2\",\"roleMembers\":[{\"expiration\":\"1970-01-01T00:00:00.000Z\","
                 +"\"memberName\":\"user.joe\"},{\"expiration\":\"1970-01-01T00:00:00.000Z\","
-                +"\"memberName\":\"user.jane\"}]},{\"name\":\"role3\"}],\"services\":[],\"ypmId\":100}";
+                +"\"memberName\":\"user.jane\"}]},{\"name\":\"role3\"}],\"serviceCertExpiryMins\":200,"
+                +"\"services\":[],\"signAlgorithm\":\"rsa\",\"tokenExpiryMins\":300,\"ypmId\":100}";
         assertEquals(check, expected);
     }
 }

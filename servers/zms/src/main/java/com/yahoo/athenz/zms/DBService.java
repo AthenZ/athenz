@@ -28,7 +28,6 @@ import com.yahoo.athenz.zms.store.ObjectStoreConnection;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
 import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Timestamp;
-import com.yahoo.rdl.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -258,23 +257,15 @@ public class DBService {
         return msgBldr;
     }
 
-    Domain makeDomain(ResourceContext ctx, String domainName, String description, String org,
-            Boolean auditEnabled, List<String> adminUsers, String account, int productId, String applicationId,
-            Integer expiryDays, List<String> solutionTemplates, String auditRef) {
+    Domain makeDomain(ResourceContext ctx, Domain domain, List<String> adminUsers,
+            List<String> solutionTemplates, String auditRef) {
         
         final String caller = "makedomain";
-        
-        Domain domain = new Domain()
-                .setName(domainName)
-                .setAuditEnabled(auditEnabled)
-                .setDescription(description)
-                .setOrg(org)
-                .setId(UUID.fromCurrentTime())
-                .setAccount(account)
-                .setYpmId(productId)
-                .setModified(Timestamp.fromCurrentTime())
-                .setApplicationId(applicationId)
-                .setMemberExpiryDays(expiryDays);
+        final String domainName = domain.getName();
+        String principalName = getPrincipalName(ctx);
+        if (principalName == null) {
+            principalName = "system-account";
+        }
 
         // our exception handling code does the check for retry count
         // and throws the exception it had received when the retry
@@ -307,7 +298,7 @@ public class DBService {
                 Role adminRole = ZMSUtils.makeAdminRole(domainName, adminUsers);
                 auditDetails.append(", \"role\": ");
                 if (!processRole(con, null, domainName, ZMSConsts.ADMIN_ROLE_NAME, adminRole,
-                        getPrincipalName(ctx), auditRef, false, auditDetails)) {
+                        principalName, auditRef, false, auditDetails)) {
                     con.rollbackChanges();
                     throw ZMSUtils.internalServerError("makeDomain: Cannot process role: '" +
                             adminRole.getName(), caller);
@@ -330,7 +321,7 @@ public class DBService {
                 if (solutionTemplates != null) {
                     for (String templateName : solutionTemplates) {
                         auditDetails.append(", \"template\": ");
-                        if (!addSolutionTemplate(con, domainName, templateName, getPrincipalName(ctx),
+                        if (!addSolutionTemplate(con, domainName, templateName, principalName,
                                 null, auditRef, auditDetails)) {
                             con.rollbackChanges();
                             throw ZMSUtils.internalServerError("makeDomain: Cannot apply templates: '" +
@@ -2239,7 +2230,11 @@ public class DBService {
                         .setAccount(domain.getAccount())
                         .setYpmId(domain.getYpmId())
                         .setCertDnsDomain(domain.getCertDnsDomain())
-                        .setMemberExpiryDays(domain.getMemberExpiryDays());
+                        .setMemberExpiryDays(domain.getMemberExpiryDays())
+                        .setTokenExpiryMins(domain.getTokenExpiryMins())
+                        .setRoleCertExpiryMins(domain.getRoleCertExpiryMins())
+                        .setServiceCertExpiryMins(domain.getServiceCertExpiryMins())
+                        .setSignAlgorithm(domain.getSignAlgorithm());
 
                 // then we're going to apply the updated fields
                 // from the given object
@@ -2347,6 +2342,18 @@ public class DBService {
         domain.setDescription(meta.getDescription());
         if (meta.getMemberExpiryDays() != null) {
             domain.setMemberExpiryDays(meta.getMemberExpiryDays());
+        }
+        if (meta.getRoleCertExpiryMins() != null) {
+            domain.setRoleCertExpiryMins(meta.getRoleCertExpiryMins());
+        }
+        if (meta.getServiceCertExpiryMins() != null) {
+            domain.setServiceCertExpiryMins(meta.getServiceCertExpiryMins());
+        }
+        if (meta.getTokenExpiryMins() != null) {
+            domain.setTokenExpiryMins(meta.getTokenExpiryMins());
+        }
+        if (meta.getSignAlgorithm() != null) {
+            domain.setSignAlgorithm(meta.getSignAlgorithm());
         }
     }
 
@@ -3590,6 +3597,9 @@ public class DBService {
                 .append("\", \"ypmid\": \"").append(domain.getYpmId())
                 .append("\", \"id\": \"").append(domain.getId())
                 .append("\", \"memberExpiryDays\": \"").append(domain.getMemberExpiryDays())
+                .append("\", \"tokenExpiryMins\": \"").append(domain.getTokenExpiryMins())
+                .append("\", \"serviceCertExpiryMins\": \"").append(domain.getServiceCertExpiryMins())
+                .append("\", \"roleCertExpiryMins\": \"").append(domain.getRoleCertExpiryMins())
                 .append("\"}");
     }
 
@@ -3601,8 +3611,10 @@ public class DBService {
 
     void auditLogRoleMeta(StringBuilder auditDetails, Role role, String roleName) {
         auditDetails.append("{\"name\": \"").append(roleName)
-                .append("\", \"selfserve\": \"").append(role.getSelfServe())
+                .append("\", \"selfServe\": \"").append(role.getSelfServe())
                 .append("\", \"memberExpiryDays\": \"").append(role.getMemberExpiryDays())
+                .append("\", \"tokenExpiryMins\": \"").append(role.getTokenExpiryMins())
+                .append("\", \"certExpiryMins\": \"").append(role.getCertExpiryMins())
                 .append("\"}");
     }
 
@@ -3713,7 +3725,12 @@ public class DBService {
                 Role updatedRole = new Role()
                         .setName(originalRole.getName())
                         .setAuditEnabled(originalRole.getAuditEnabled())
-                        .setTrust(originalRole.getTrust());
+                        .setTrust(originalRole.getTrust())
+                        .setSelfServe(originalRole.getSelfServe())
+                        .setMemberExpiryDays(originalRole.getMemberExpiryDays())
+                        .setTokenExpiryMins(originalRole.getTokenExpiryMins())
+                        .setCertExpiryMins(originalRole.getCertExpiryMins())
+                        .setSignAlgorithm(originalRole.getSignAlgorithm());
 
                 // then we're going to apply the updated fields
                 // from the given object
@@ -3747,6 +3764,15 @@ public class DBService {
         if (meta.getMemberExpiryDays() != null) {
             role.setMemberExpiryDays(meta.getMemberExpiryDays());
         }
+        if (meta.getTokenExpiryMins() != null) {
+            role.setTokenExpiryMins(meta.getTokenExpiryMins());
+        }
+        if (meta.getCertExpiryMins() != null) {
+            role.setCertExpiryMins(meta.getCertExpiryMins());
+        }
+        if (meta.getSignAlgorithm() != null) {
+            role.setSignAlgorithm(meta.getSignAlgorithm());
+        }
     }
 
     public void executePutRoleMeta(ResourceContext ctx, String domainName, String roleName, RoleMeta meta,
@@ -3776,7 +3802,10 @@ public class DBService {
                         .setAuditEnabled(originalRole.getAuditEnabled())
                         .setTrust(originalRole.getTrust())
                         .setSelfServe(originalRole.getSelfServe())
-                        .setMemberExpiryDays(originalRole.getMemberExpiryDays());
+                        .setMemberExpiryDays(originalRole.getMemberExpiryDays())
+                        .setTokenExpiryMins(originalRole.getTokenExpiryMins())
+                        .setCertExpiryMins(originalRole.getCertExpiryMins())
+                        .setSignAlgorithm(originalRole.getSignAlgorithm());
 
                 // then we're going to apply the updated fields
                 // from the given object

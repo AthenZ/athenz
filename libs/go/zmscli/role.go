@@ -324,16 +324,23 @@ func (cli Zms) SetRoleAuditEnabled(dn string, rn string, auditEnabled bool) (*st
 	return &s, nil
 }
 
+func getRoleMetaObject(role *zms.Role) zms.RoleMeta {
+	return zms.RoleMeta{
+		MemberExpiryDays: role.MemberExpiryDays,
+		TokenExpiryMins:  role.TokenExpiryMins,
+		SelfServe:        role.SelfServe,
+		CertExpiryMins:   role.CertExpiryMins,
+		SignAlgorithm:    role.SignAlgorithm,
+	}
+}
 func (cli Zms) SetRoleSelfServe(dn string, rn string, selfServe bool) (*string, error) {
 	role, err := cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}
-	meta := zms.RoleMeta{
-		MemberExpiryDays: role.MemberExpiryDays,
-		TokenExpiryMins:  role.TokenExpiryMins,
-		SelfServe:        &selfServe,
-	}
+	meta := getRoleMetaObject(role)
+	meta.SelfServe = &selfServe
+
 	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
 	if err != nil {
 		return nil, err
@@ -347,11 +354,9 @@ func (cli Zms) SetRoleMemberExpiryDays(dn string, rn string, days int32) (*strin
 	if err != nil {
 		return nil, err
 	}
-	meta := zms.RoleMeta{
-		TokenExpiryMins:  role.TokenExpiryMins,
-		SelfServe:        role.SelfServe,
-		MemberExpiryDays: &days,
-	}
+	meta := getRoleMetaObject(role)
+	meta.MemberExpiryDays = &days
+
 	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
 	if err != nil {
 		return nil, err
@@ -365,16 +370,46 @@ func (cli Zms) SetRoleTokenExpiryMins(dn string, rn string, mins int32) (*string
 	if err != nil {
 		return nil, err
 	}
-	meta := zms.RoleMeta{
-		SelfServe:        role.SelfServe,
-		MemberExpiryDays: role.MemberExpiryDays,
-		TokenExpiryMins:  &mins,
-	}
+	meta := getRoleMetaObject(role)
+	meta.TokenExpiryMins = &mins
+
 	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
 	if err != nil {
 		return nil, err
 	}
 	s := "[domain " + dn + " role " + rn + " token-expiry-mins attribute successfully updated]\n"
+	return &s, nil
+}
+
+func (cli Zms) SetRoleCertExpiryMins(dn string, rn string, mins int32) (*string, error) {
+	role, err := cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), nil, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	meta := getRoleMetaObject(role)
+	meta.CertExpiryMins = &mins
+
+	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " role " + rn + " role-cert-expiry-mins attribute successfully updated]\n"
+	return &s, nil
+}
+
+func (cli Zms) SetRoleTokenSignAlgorithm(dn string, rn string, alg string) (*string, error) {
+	role, err := cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), nil, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	meta := getRoleMetaObject(role)
+	meta.SignAlgorithm = zms.SimpleName(alg)
+
+	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " role " + rn + " role-token-sign-algorithm attribute successfully updated]\n"
 	return &s, nil
 }
 

@@ -42,6 +42,7 @@ import com.yahoo.athenz.zms.utils.ZMSUtils;
 import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Schema;
 import com.yahoo.rdl.Timestamp;
+import com.yahoo.rdl.UUID;
 import com.yahoo.rdl.Validator;
 import com.yahoo.rdl.Validator.Result;
 import org.slf4j.Logger;
@@ -80,13 +81,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     
     private static final String ADMIN_POLICY_NAME = "admin";
     private static final String ADMIN_ROLE_NAME = "admin";
-    
-    private static final String ROLE_FIELD = "role";
-    private static final String POLICY_FIELD = "policy";
-    private static final String SERVICE_FIELD = "service";
-    private static final String TEMPLATE_FIELD = "template";
-    private static final String META_FIELD = "meta";
-    private static final String DOMAIN_FIELD = "domain";
 
     private static final String META_ATTR_ACCOUNT = "account";
     private static final String META_ATTR_YPM_ID = "ypmid";
@@ -876,27 +870,43 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
             adminUsers.add(adminUser);
         }
-        
-        createTopLevelDomain(null, userDomain, "The reserved domain for user authentication",
-                null, null, adminUsers, null, 0, null, 0, null, null);
+
+        // create system required top level domains
+
+        Domain domain = new Domain().setName(userDomain).setDescription("The reserved domain for user authentication")
+                .setId(UUID.fromCurrentTime()).setModified(Timestamp.fromCurrentTime());
+        createTopLevelDomain(null, domain, adminUsers, null, "System Setup");
         if (!ZMSConsts.USER_DOMAIN.equals(userDomain)) {
-            createTopLevelDomain(null, ZMSConsts.USER_DOMAIN, "The reserved domain for user authentication",
-                    null, null, adminUsers, null, 0, null, 0, null, null);
+            domain = new Domain().setName(ZMSConsts.USER_DOMAIN).setDescription("The reserved domain for user authentication")
+                    .setId(UUID.fromCurrentTime()).setModified(Timestamp.fromCurrentTime());
+            createTopLevelDomain(null, domain, adminUsers, null, "System Setup");
         }
         if (!homeDomain.equals(userDomain)) {
-            createTopLevelDomain(null, homeDomain, "The reserved domain for personal user domains",
-                    null, null, adminUsers, null, 0, null, 0, null, null);
+            domain = new Domain().setName(homeDomain).setDescription("The reserved domain for personal user domains")
+                    .setId(UUID.fromCurrentTime()).setModified(Timestamp.fromCurrentTime());
+            createTopLevelDomain(null, domain, adminUsers, null, "System Setup");
         }
-        createTopLevelDomain(null, "sys", "The reserved domain for system related information",
-                null, null, adminUsers, null, 0, null, 0, null, null);
-        createSubDomain(null, "sys", "auth", "The Athenz domain", null, null, adminUsers,
-                null, 0, null, 0, null, null, caller);
-        createSubDomain(null, "sys.auth", "audit", "The Athenz audit domain", null, null, adminUsers,
-                null, 0, null, 0, null, null, caller);
-        createSubDomain(null, "sys.auth.audit", "org", "The Athenz audit domain based on org name",
-                null, null, adminUsers, null, 0, null, 0, null, null, caller);
-        createSubDomain(null, "sys.auth.audit", "domain", "The Athenz audit domain based on domain name",
-                null, null, adminUsers, null, 0, null, 0, null, null, caller);
+        domain = new Domain().setName("sys").setDescription("The reserved domain for system related information")
+                .setId(UUID.fromCurrentTime()).setModified(Timestamp.fromCurrentTime());
+        createTopLevelDomain(null, domain, adminUsers, null, "System Setup");
+
+        // now create required subdomains in sys top level domain
+
+        domain = new Domain().setName("sys.auth").setDescription("he Athenz domain")
+                .setId(UUID.fromCurrentTime()).setModified(Timestamp.fromCurrentTime());
+        createSubDomain(null, domain, adminUsers, null, "System Setup", caller);
+
+        domain = new Domain().setName("sys.auth.audit").setDescription("The Athenz audit domain")
+                .setId(UUID.fromCurrentTime()).setModified(Timestamp.fromCurrentTime());
+        createSubDomain(null, domain, adminUsers, null, "System Setup", caller);
+
+        domain = new Domain().setName("sys.auth.audit.org").setDescription("The Athenz audit domain based on org name")
+                .setId(UUID.fromCurrentTime()).setModified(Timestamp.fromCurrentTime());
+        createSubDomain(null, domain, adminUsers, null, "System Setup", caller);
+
+        domain = new Domain().setName("sys.auth.audit.domain").setDescription("The Athenz audit domain based on domain name")
+                .setId(UUID.fromCurrentTime()).setModified(Timestamp.fromCurrentTime());
+        createSubDomain(null, domain, adminUsers, null, "System Setup", caller);
 
         if (privateKey != null) {
             List<PublicKeyEntry> pubKeys = new ArrayList<>();
@@ -1093,13 +1103,25 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 throw ZMSUtils.requestError("Product Id is required when creating top level domain", caller);
             }
         }
-        
-        List<String> adminUsers = normalizedAdminUsers(detail.getAdminUsers());
-        Domain domain = createTopLevelDomain(ctx, domainName, detail.getDescription(),
-                detail.getOrg(), detail.getAuditEnabled(), adminUsers, detail.getAccount(),
-                productId, detail.getApplicationId(), detail.getMemberExpiryDays(), solutionTemplates,
-                auditRef);
 
+        Domain topLevelDomain = new Domain()
+                .setName(domainName)
+                .setAuditEnabled(detail.getAuditEnabled())
+                .setDescription(detail.getDescription())
+                .setOrg(detail.getOrg())
+                .setId(UUID.fromCurrentTime())
+                .setAccount(detail.getAccount())
+                .setYpmId(productId)
+                .setModified(Timestamp.fromCurrentTime())
+                .setApplicationId(detail.getApplicationId())
+                .setMemberExpiryDays(detail.getMemberExpiryDays())
+                .setTokenExpiryMins(detail.getTokenExpiryMins())
+                .setServiceCertExpiryMins(detail.getServiceCertExpiryMins())
+                .setRoleCertExpiryMins(detail.getRoleCertExpiryMins())
+                .setSignAlgorithm(detail.getSignAlgorithm());
+
+        List<String> adminUsers = normalizedAdminUsers(detail.getAdminUsers());
+        Domain domain = createTopLevelDomain(ctx, topLevelDomain, adminUsers, solutionTemplates, auditRef);
         metric.stopTiming(timerMetric, domainName, principalDomain);
         return domain;
     }
@@ -1242,12 +1264,23 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             solutionTemplates = templates.getTemplateNames();
             validateSolutionTemplates(solutionTemplates, caller);
         }
-        
-        Domain domain = createSubDomain(ctx, homeDomain, getUserDomainName(detail.getName()),
-                detail.getDescription(), detail.getOrg(), detail.getAuditEnabled(), adminUsers,
-                detail.getAccount(), 0, detail.getApplicationId(), detail.getMemberExpiryDays(),
-                solutionTemplates, auditRef, caller);
 
+        Domain subDomain = new Domain()
+                .setName(homeDomain + "." + getUserDomainName(detail.getName()))
+                .setAuditEnabled(detail.getAuditEnabled())
+                .setDescription(detail.getDescription())
+                .setOrg(detail.getOrg())
+                .setId(UUID.fromCurrentTime())
+                .setAccount(detail.getAccount())
+                .setModified(Timestamp.fromCurrentTime())
+                .setApplicationId(detail.getApplicationId())
+                .setMemberExpiryDays(detail.getMemberExpiryDays())
+                .setTokenExpiryMins(detail.getTokenExpiryMins())
+                .setServiceCertExpiryMins(detail.getServiceCertExpiryMins())
+                .setRoleCertExpiryMins(detail.getRoleCertExpiryMins())
+                .setSignAlgorithm(detail.getSignAlgorithm());
+
+        Domain domain = createSubDomain(ctx, subDomain, adminUsers, solutionTemplates, auditRef, caller);
         metric.stopTiming(timerMetric, name, principalDomain);
         return domain;
     }
@@ -1332,11 +1365,23 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             detail.setOrg(parentDomain.getDomain().getOrg());
         }
 
-        Domain domain = createSubDomain(ctx, detail.getParent(), detail.getName(), detail.getDescription(),
-                detail.getOrg(), detail.getAuditEnabled(), adminUsers, detail.getAccount(),
-                productId, detail.getApplicationId(), detail.getMemberExpiryDays(), solutionTemplates,
-                auditRef, caller);
+        Domain subDomain = new Domain()
+                .setName(detail.getParent() + "." + detail.getName())
+                .setAuditEnabled(detail.getAuditEnabled())
+                .setDescription(detail.getDescription())
+                .setOrg(detail.getOrg())
+                .setId(UUID.fromCurrentTime())
+                .setYpmId(productId)
+                .setAccount(detail.getAccount())
+                .setModified(Timestamp.fromCurrentTime())
+                .setApplicationId(detail.getApplicationId())
+                .setMemberExpiryDays(detail.getMemberExpiryDays())
+                .setTokenExpiryMins(detail.getTokenExpiryMins())
+                .setServiceCertExpiryMins(detail.getServiceCertExpiryMins())
+                .setRoleCertExpiryMins(detail.getRoleCertExpiryMins())
+                .setSignAlgorithm(detail.getSignAlgorithm());
 
+        Domain domain = createSubDomain(ctx, subDomain, adminUsers, solutionTemplates, auditRef, caller);
         metric.stopTiming(timerMetric, parent, principalDomain);
         return domain;
     }
@@ -1931,8 +1976,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     AthenzDomain retrieveAccessDomain(String domainName, Principal principal) {
         
         if (LOG.isDebugEnabled()) {
-            LOG.debug("retrieveAccessDomain: identity: " + principal.getFullName()
-                + " domain: " + domainName);
+            LOG.debug("retrieveAccessDomain: identity: {} domain: {}", principal.getFullName(), domainName);
         }
         
         AthenzDomain domain = getAthenzDomain(domainName, false);
@@ -1981,7 +2025,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         for (Policy policy : policies) {
             
             if (LOG.isDebugEnabled()) {
-                LOG.debug("evaluateAccess: processing policy: " + policy.getName());
+                LOG.debug("evaluateAccess: processing policy: {}", policy.getName());
             }
             
             // we are going to process all the assertions defined in this
@@ -4594,10 +4638,23 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
         domainData.setAccount(athenzDomain.getDomain().getAccount());
         domainData.setYpmId(athenzDomain.getDomain().getYpmId());
+        domainData.setApplicationId(athenzDomain.getDomain().getApplicationId());
+        domainData.setSignAlgorithm(athenzDomain.getDomain().getSignAlgorithm());
+        if (athenzDomain.getDomain().getServiceCertExpiryMins() != null) {
+            domainData.setServiceCertExpiryMins(athenzDomain.getDomain().getServiceCertExpiryMins());
+        }
+        if (athenzDomain.getDomain().getRoleCertExpiryMins() != null) {
+            domainData.setRoleCertExpiryMins(athenzDomain.getDomain().getRoleCertExpiryMins());
+        }
+        if (athenzDomain.getDomain().getTokenExpiryMins() != null) {
+            domainData.setTokenExpiryMins(athenzDomain.getDomain().getTokenExpiryMins());
+        }
+
+        // set the roles and services
+
         domainData.setRoles(athenzDomain.getRoles());
         domainData.setServices(athenzDomain.getServices());
-        domainData.setApplicationId(athenzDomain.getDomain().getApplicationId());
-        
+
         // generate the domain policy object that includes the domain
         // name and all policies. Then we'll sign this struct using
         // server's private key to get signed policy object
@@ -6133,30 +6190,24 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return new ArrayList<>(users);
     }
     
-    Domain createTopLevelDomain(ResourceContext ctx, String domainName, String description,
-            String org, Boolean auditEnabled, List<String> adminUsers, String account,
-            int productId, String applicationId, Integer expiryDays, List<String> solutionTemplates,
-            String auditRef) {
+    Domain createTopLevelDomain(ResourceContext ctx, Domain domain, List<String> adminUsers,
+                List<String> solutionTemplates, String auditRef) {
         List<String> users = validatedAdminUsers(adminUsers);
-        return dbService.makeDomain(ctx, domainName, description, org, auditEnabled, 
-                users, account, productId, applicationId, expiryDays, solutionTemplates, auditRef);
+        return dbService.makeDomain(ctx, domain, users, solutionTemplates, auditRef);
     }
     
-    Domain createSubDomain(ResourceContext ctx, String parentName, String name, String description,
-            String org, Boolean auditEnabled, List<String> adminUsers, String account,
-            int productId, String applicationId, Integer expiryDays, List<String> solutionTemplates,
-            String auditRef, String caller) {
+    Domain createSubDomain(ResourceContext ctx, Domain domain, List<String> adminUsers,
+                List<String> solutionTemplates, String auditRef, String caller) {
 
         // verify length of full sub domain name
-        String fullSubDomName = parentName + "." + name;
-        if (fullSubDomName.length() > domainNameMaxLen) {
-            throw ZMSUtils.requestError("Invalid SubDomain name: " + fullSubDomName
+
+        if (domain.getName().length() > domainNameMaxLen) {
+            throw ZMSUtils.requestError("Invalid SubDomain name: " + domain.getName()
                     + " : name length cannot exceed: " + domainNameMaxLen, caller);
         } 
 
         List<String> users = validatedAdminUsers(adminUsers);
-        return dbService.makeDomain(ctx, fullSubDomName, description, org, auditEnabled,
-                users, account, productId, applicationId, expiryDays, solutionTemplates, auditRef);
+        return dbService.makeDomain(ctx, domain, users, solutionTemplates, auditRef);
     }
 
     int countDots(String str) {

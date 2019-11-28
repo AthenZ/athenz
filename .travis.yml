@@ -8,7 +8,7 @@ cache:
   directories:
   - "$HOME/.m2"
 before_install:
-- eval "$(gimme 1.12.7)"
+- eval "$(gimme 1.13.4)"
 - nvm install 10
 - npm install -g npm@latest
 - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test

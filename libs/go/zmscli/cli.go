@@ -509,6 +509,26 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 				}
 				return cli.SetDomainMemberExpiryDays(dn, days)
 			}
+		case "set-domain-service-cert-expiry-mins":
+			if argc == 1 {
+				mins, err := cli.getInt32(args[0])
+				if err != nil {
+					return nil, err
+				}
+				return cli.SetDomainServiceCertExpiryMins(dn, mins)
+			}
+		case "set-domain-role-cert-expiry-mins":
+			if argc == 1 {
+				mins, err := cli.getInt32(args[0])
+				if err != nil {
+					return nil, err
+				}
+				return cli.SetDomainRoleCertExpiryMins(dn, mins)
+			}
+		case "set-domain-token-sign-algorithm":
+			if argc == 1 {
+				return cli.SetDomainTokenSignAlgorithm(dn, args[0])
+			}
 		case "set-domain-token-expiry-mins":
 			if argc == 1 {
 				mins, err := cli.getInt32(args[0])
@@ -596,6 +616,18 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 					return nil, err
 				}
 				return cli.SetRoleTokenExpiryMins(dn, args[0], mins)
+			}
+		case "set-role-cert-expiry-mins":
+			if argc == 2 {
+				mins, err := cli.getInt32(args[1])
+				if err != nil {
+					return nil, err
+				}
+				return cli.SetRoleCertExpiryMins(dn, args[0], mins)
+			}
+		case "set-role-token-sign-algorithm":
+			if argc == 2 {
+				return cli.SetRoleTokenSignAlgorithm(dn, args[0], args[1])
 			}
 		case "put-membership-decision":
 			if argc == 4 {
@@ -797,6 +829,36 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   days          : all members in this domain will have this max expiry days\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domain_example + " set-domain-member-expiry-days 60\n")
+	case "set-domain-service-cert-expiry-mins":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domain_param + " set-domain-service-cert-expiry-mins mins\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain        : name of the domain being updated\n")
+		}
+		buf.WriteString("   mins          : all service certificates issued for this domain will have this max expiry mins\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domain_example + " set-domain-service-cert-expiry-mins 1440\n")
+	case "set-domain-role-cert-expiry-mins":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domain_param + " set-domain-role-cert-expiry-mins mins\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain        : name of the domain being updated\n")
+		}
+		buf.WriteString("   mins          : all roles certificates issued for this domain will have this max expiry mins\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domain_example + " set-domain-role-cert-expiry-mins 1440\n")
+	case "set-domain-token-sign-algorithm":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domain_param + " set-domain-token-sign-algorithm alg\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain        : name of the domain being updated\n")
+		}
+		buf.WriteString("   alg           : either rsa or ec: token algorithm to be used for signing\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domain_example + " set-domain-token-sign-algorithm rsa\n")
 	case "set-domain-token-expiry-mins":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domain_param + " set-domain-token-expiry-mins mins\n")
@@ -1647,6 +1709,28 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   mins    : ZTS will not issue any tokens for this role longer than these mins\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domain_example + " set-role-token-expiry-mins writers 1800\n")
+	case "set-role-cert-expiry-mins":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domain_param + " set-role-cert-expiry-mins mins\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain  : name of the domain being updated\n")
+		}
+		buf.WriteString("   role    : name of the role to be modified\n")
+		buf.WriteString("   mins    : ZTS will not issue any certificates for this role longer than these mins\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domain_example + " set-role-cert-expiry-mins writers 14400\n")
+	case "set-role-token-sign-algorithm":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domain_param + " set-role-token-sign-algorithm alg\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain  : name of the domain being updated\n")
+		}
+		buf.WriteString("   role    : name of the role to be modified\n")
+		buf.WriteString("   alg     : either rsa or ec: token algorithm to be used for signing\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domain_example + " set-role-token-sign-algorithm writers rsa\n")
 	case "set-role-self-serve":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domain_param + " set-role-self-serve role self-serve\n")
@@ -1711,6 +1795,9 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   set-cert-dns-domain cert-dns-domain\n")
 	buf.WriteString("   set-domain-member-expiry-days member-expiry-days\n")
 	buf.WriteString("   set-domain-token-expiry-mins token-expiry-mins\n")
+	buf.WriteString("   set-domain-service-cert-expiry-mins cert-expiry-mins\n")
+	buf.WriteString("   set-domain-role-cert-expiry-mins cert-expiry-mins\n")
+	buf.WriteString("   set-domain-token-sign-algorithm algorithm\n")
 	buf.WriteString("   import-domain domain [file.yaml [admin ...]] - no file means stdin\n")
 	buf.WriteString("   export-domain domain [file.yaml] - no file means stdout\n")
 	buf.WriteString("   delete-domain domain\n")
@@ -1751,7 +1838,9 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   set-role-audit-enabled group_role audit-enabled\n")
 	buf.WriteString("   set-role-self-serve group_role self-serve\n")
 	buf.WriteString("   set-role-member-expiry-days group_role member-expiry-days\n")
-	buf.WriteString("   set-role-token-expiry-mins role token-expiry-mins\n")
+	buf.WriteString("   set-role-token-expiry-mins role group_role token-expiry-mins\n")
+	buf.WriteString("   set-role-cert-expiry-mins group_role cert-expiry-mins\n")
+	buf.WriteString("   set-role-token-sign-algorithm group_role algorithm\n")
 	buf.WriteString("   put-membership-decision group_role user_or_service [expiration] decision\n")
 	buf.WriteString("\n")
 	buf.WriteString(" Service commands:\n")

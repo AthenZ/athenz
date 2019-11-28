@@ -32,7 +32,9 @@ type RoleMember Struct {
 type RoleMeta Struct {
     Bool selfServe (optional, default=false); //Flag indicates whether or not role allows self service. Users can add themselves in the role, but it has to be approved by domain admins to be effective.
     Int32 memberExpiryDays (optional); //all members in the role will have specified max expiry days
-    Int32 tokenExpiryMins (optional); //tokens issued for this domain will have specified max timeout in mins
+    Int32 tokenExpiryMins (optional); //tokens issued for this role will have specified max timeout in mins
+    Int32 certExpiryMins (optional); //certs issued for this role will have specified max timeout in mins
+    SimpleName signAlgorithm (optional); //rsa or ec signing algorithm to be used for tokens
 }
 
 //The representation for a Role with set of members.

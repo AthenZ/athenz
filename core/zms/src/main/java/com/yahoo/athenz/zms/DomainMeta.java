@@ -41,6 +41,15 @@ public class DomainMeta {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Integer tokenExpiryMins;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer serviceCertExpiryMins;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer roleCertExpiryMins;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String signAlgorithm;
 
     public DomainMeta setDescription(String description) {
         this.description = description;
@@ -112,6 +121,27 @@ public class DomainMeta {
     public Integer getTokenExpiryMins() {
         return tokenExpiryMins;
     }
+    public DomainMeta setServiceCertExpiryMins(Integer serviceCertExpiryMins) {
+        this.serviceCertExpiryMins = serviceCertExpiryMins;
+        return this;
+    }
+    public Integer getServiceCertExpiryMins() {
+        return serviceCertExpiryMins;
+    }
+    public DomainMeta setRoleCertExpiryMins(Integer roleCertExpiryMins) {
+        this.roleCertExpiryMins = roleCertExpiryMins;
+        return this;
+    }
+    public Integer getRoleCertExpiryMins() {
+        return roleCertExpiryMins;
+    }
+    public DomainMeta setSignAlgorithm(String signAlgorithm) {
+        this.signAlgorithm = signAlgorithm;
+        return this;
+    }
+    public String getSignAlgorithm() {
+        return signAlgorithm;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -148,6 +178,15 @@ public class DomainMeta {
                 return false;
             }
             if (tokenExpiryMins == null ? a.tokenExpiryMins != null : !tokenExpiryMins.equals(a.tokenExpiryMins)) {
+                return false;
+            }
+            if (serviceCertExpiryMins == null ? a.serviceCertExpiryMins != null : !serviceCertExpiryMins.equals(a.serviceCertExpiryMins)) {
+                return false;
+            }
+            if (roleCertExpiryMins == null ? a.roleCertExpiryMins != null : !roleCertExpiryMins.equals(a.roleCertExpiryMins)) {
+                return false;
+            }
+            if (signAlgorithm == null ? a.signAlgorithm != null : !signAlgorithm.equals(a.signAlgorithm)) {
                 return false;
             }
         }

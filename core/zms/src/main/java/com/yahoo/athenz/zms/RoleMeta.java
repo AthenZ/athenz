@@ -20,6 +20,12 @@ public class RoleMeta {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Integer tokenExpiryMins;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer certExpiryMins;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String signAlgorithm;
 
     public RoleMeta setSelfServe(Boolean selfServe) {
         this.selfServe = selfServe;
@@ -42,6 +48,20 @@ public class RoleMeta {
     public Integer getTokenExpiryMins() {
         return tokenExpiryMins;
     }
+    public RoleMeta setCertExpiryMins(Integer certExpiryMins) {
+        this.certExpiryMins = certExpiryMins;
+        return this;
+    }
+    public Integer getCertExpiryMins() {
+        return certExpiryMins;
+    }
+    public RoleMeta setSignAlgorithm(String signAlgorithm) {
+        this.signAlgorithm = signAlgorithm;
+        return this;
+    }
+    public String getSignAlgorithm() {
+        return signAlgorithm;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -57,6 +77,12 @@ public class RoleMeta {
                 return false;
             }
             if (tokenExpiryMins == null ? a.tokenExpiryMins != null : !tokenExpiryMins.equals(a.tokenExpiryMins)) {
+                return false;
+            }
+            if (certExpiryMins == null ? a.certExpiryMins != null : !certExpiryMins.equals(a.certExpiryMins)) {
+                return false;
+            }
+            if (signAlgorithm == null ? a.signAlgorithm != null : !signAlgorithm.equals(a.signAlgorithm)) {
                 return false;
             }
         }

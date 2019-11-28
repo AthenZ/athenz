@@ -152,6 +152,22 @@ type DomainMeta struct {
 	// tokens issued for this domain will have specified max timeout in mins
 	//
 	TokenExpiryMins *int32 `json:"tokenExpiryMins,omitempty" rdl:"optional"`
+
+	//
+	// service identity certs issued for this domain will have specified max
+	// timeout in mins
+	//
+	ServiceCertExpiryMins *int32 `json:"serviceCertExpiryMins,omitempty" rdl:"optional"`
+
+	//
+	// role certs issued for this domain will have specified max timeout in mins
+	//
+	RoleCertExpiryMins *int32 `json:"roleCertExpiryMins,omitempty" rdl:"optional"`
+
+	//
+	// rsa or ec signing algorithm to be used for tokens
+	//
+	SignAlgorithm SimpleName `json:"signAlgorithm,omitempty" rdl:"optional"`
 }
 
 //
@@ -232,6 +248,12 @@ func (self *DomainMeta) Validate() error {
 			return fmt.Errorf("DomainMeta.certDnsDomain does not contain a valid String (%v)", val.Error)
 		}
 	}
+	if self.SignAlgorithm != "" {
+		val := rdl.Validate(ZMSSchema(), "SimpleName", self.SignAlgorithm)
+		if !val.Valid {
+			return fmt.Errorf("DomainMeta.signAlgorithm does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
 	return nil
 }
 
@@ -297,6 +319,22 @@ type Domain struct {
 	// tokens issued for this domain will have specified max timeout in mins
 	//
 	TokenExpiryMins *int32 `json:"tokenExpiryMins,omitempty" rdl:"optional"`
+
+	//
+	// service identity certs issued for this domain will have specified max
+	// timeout in mins
+	//
+	ServiceCertExpiryMins *int32 `json:"serviceCertExpiryMins,omitempty" rdl:"optional"`
+
+	//
+	// role certs issued for this domain will have specified max timeout in mins
+	//
+	RoleCertExpiryMins *int32 `json:"roleCertExpiryMins,omitempty" rdl:"optional"`
+
+	//
+	// rsa or ec signing algorithm to be used for tokens
+	//
+	SignAlgorithm SimpleName `json:"signAlgorithm,omitempty" rdl:"optional"`
 
 	//
 	// the common name to be referred to, the symbolic id. It is immutable
@@ -390,6 +428,12 @@ func (self *Domain) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.CertDnsDomain)
 		if !val.Valid {
 			return fmt.Errorf("Domain.certDnsDomain does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.SignAlgorithm != "" {
+		val := rdl.Validate(ZMSSchema(), "SimpleName", self.SignAlgorithm)
+		if !val.Valid {
+			return fmt.Errorf("Domain.signAlgorithm does not contain a valid SimpleName (%v)", val.Error)
 		}
 	}
 	if self.Name == "" {
@@ -704,9 +748,19 @@ type RoleMeta struct {
 	MemberExpiryDays *int32 `json:"memberExpiryDays,omitempty" rdl:"optional"`
 
 	//
-	// tokens issued for this domain will have specified max timeout in mins
+	// tokens issued for this role will have specified max timeout in mins
 	//
 	TokenExpiryMins *int32 `json:"tokenExpiryMins,omitempty" rdl:"optional"`
+
+	//
+	// certs issued for this role will have specified max timeout in mins
+	//
+	CertExpiryMins *int32 `json:"certExpiryMins,omitempty" rdl:"optional"`
+
+	//
+	// rsa or ec signing algorithm to be used for tokens
+	//
+	SignAlgorithm SimpleName `json:"signAlgorithm,omitempty" rdl:"optional"`
 }
 
 //
@@ -742,6 +796,12 @@ func (self *RoleMeta) UnmarshalJSON(b []byte) error {
 // Validate - checks for missing required fields, etc
 //
 func (self *RoleMeta) Validate() error {
+	if self.SignAlgorithm != "" {
+		val := rdl.Validate(ZMSSchema(), "SimpleName", self.SignAlgorithm)
+		if !val.Valid {
+			return fmt.Errorf("RoleMeta.signAlgorithm does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
 	return nil
 }
 
@@ -763,9 +823,19 @@ type Role struct {
 	MemberExpiryDays *int32 `json:"memberExpiryDays,omitempty" rdl:"optional"`
 
 	//
-	// tokens issued for this domain will have specified max timeout in mins
+	// tokens issued for this role will have specified max timeout in mins
 	//
 	TokenExpiryMins *int32 `json:"tokenExpiryMins,omitempty" rdl:"optional"`
+
+	//
+	// certs issued for this role will have specified max timeout in mins
+	//
+	CertExpiryMins *int32 `json:"certExpiryMins,omitempty" rdl:"optional"`
+
+	//
+	// rsa or ec signing algorithm to be used for tokens
+	//
+	SignAlgorithm SimpleName `json:"signAlgorithm,omitempty" rdl:"optional"`
 
 	//
 	// name of the role
@@ -838,6 +908,12 @@ func (self *Role) UnmarshalJSON(b []byte) error {
 // Validate - checks for missing required fields, etc
 //
 func (self *Role) Validate() error {
+	if self.SignAlgorithm != "" {
+		val := rdl.Validate(ZMSSchema(), "SimpleName", self.SignAlgorithm)
+		if !val.Valid {
+			return fmt.Errorf("Role.signAlgorithm does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
 	if self.Name == "" {
 		return fmt.Errorf("Role.name is missing but is a required field")
 	} else {
@@ -2565,6 +2641,22 @@ type TopLevelDomain struct {
 	TokenExpiryMins *int32 `json:"tokenExpiryMins,omitempty" rdl:"optional"`
 
 	//
+	// service identity certs issued for this domain will have specified max
+	// timeout in mins
+	//
+	ServiceCertExpiryMins *int32 `json:"serviceCertExpiryMins,omitempty" rdl:"optional"`
+
+	//
+	// role certs issued for this domain will have specified max timeout in mins
+	//
+	RoleCertExpiryMins *int32 `json:"roleCertExpiryMins,omitempty" rdl:"optional"`
+
+	//
+	// rsa or ec signing algorithm to be used for tokens
+	//
+	SignAlgorithm SimpleName `json:"signAlgorithm,omitempty" rdl:"optional"`
+
+	//
 	// name of the domain
 	//
 	Name SimpleName `json:"name"`
@@ -2661,6 +2753,12 @@ func (self *TopLevelDomain) Validate() error {
 			return fmt.Errorf("TopLevelDomain.certDnsDomain does not contain a valid String (%v)", val.Error)
 		}
 	}
+	if self.SignAlgorithm != "" {
+		val := rdl.Validate(ZMSSchema(), "SimpleName", self.SignAlgorithm)
+		if !val.Valid {
+			return fmt.Errorf("TopLevelDomain.signAlgorithm does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
 	if self.Name == "" {
 		return fmt.Errorf("TopLevelDomain.name is missing but is a required field")
 	} else {
@@ -2732,6 +2830,22 @@ type SubDomain struct {
 	// tokens issued for this domain will have specified max timeout in mins
 	//
 	TokenExpiryMins *int32 `json:"tokenExpiryMins,omitempty" rdl:"optional"`
+
+	//
+	// service identity certs issued for this domain will have specified max
+	// timeout in mins
+	//
+	ServiceCertExpiryMins *int32 `json:"serviceCertExpiryMins,omitempty" rdl:"optional"`
+
+	//
+	// role certs issued for this domain will have specified max timeout in mins
+	//
+	RoleCertExpiryMins *int32 `json:"roleCertExpiryMins,omitempty" rdl:"optional"`
+
+	//
+	// rsa or ec signing algorithm to be used for tokens
+	//
+	SignAlgorithm SimpleName `json:"signAlgorithm,omitempty" rdl:"optional"`
 
 	//
 	// name of the domain
@@ -2835,6 +2949,12 @@ func (self *SubDomain) Validate() error {
 			return fmt.Errorf("SubDomain.certDnsDomain does not contain a valid String (%v)", val.Error)
 		}
 	}
+	if self.SignAlgorithm != "" {
+		val := rdl.Validate(ZMSSchema(), "SimpleName", self.SignAlgorithm)
+		if !val.Valid {
+			return fmt.Errorf("SubDomain.signAlgorithm does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
 	if self.Name == "" {
 		return fmt.Errorf("SubDomain.name is missing but is a required field")
 	} else {
@@ -2915,6 +3035,22 @@ type UserDomain struct {
 	// tokens issued for this domain will have specified max timeout in mins
 	//
 	TokenExpiryMins *int32 `json:"tokenExpiryMins,omitempty" rdl:"optional"`
+
+	//
+	// service identity certs issued for this domain will have specified max
+	// timeout in mins
+	//
+	ServiceCertExpiryMins *int32 `json:"serviceCertExpiryMins,omitempty" rdl:"optional"`
+
+	//
+	// role certs issued for this domain will have specified max timeout in mins
+	//
+	RoleCertExpiryMins *int32 `json:"roleCertExpiryMins,omitempty" rdl:"optional"`
+
+	//
+	// rsa or ec signing algorithm to be used for tokens
+	//
+	SignAlgorithm SimpleName `json:"signAlgorithm,omitempty" rdl:"optional"`
 
 	//
 	// user id which will be the domain name
@@ -3003,6 +3139,12 @@ func (self *UserDomain) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.CertDnsDomain)
 		if !val.Valid {
 			return fmt.Errorf("UserDomain.certDnsDomain does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.SignAlgorithm != "" {
+		val := rdl.Validate(ZMSSchema(), "SimpleName", self.SignAlgorithm)
+		if !val.Valid {
+			return fmt.Errorf("UserDomain.signAlgorithm does not contain a valid SimpleName (%v)", val.Error)
 		}
 	}
 	if self.Name == "" {
@@ -4267,6 +4409,22 @@ type DomainData struct {
 	TokenExpiryMins *int32 `json:"tokenExpiryMins,omitempty" rdl:"optional"`
 
 	//
+	// service identity certs issued for this domain will have specified max
+	// timeout in mins
+	//
+	ServiceCertExpiryMins *int32 `json:"serviceCertExpiryMins,omitempty" rdl:"optional"`
+
+	//
+	// role certs issued for this domain will have specified max timeout in mins
+	//
+	RoleCertExpiryMins *int32 `json:"roleCertExpiryMins,omitempty" rdl:"optional"`
+
+	//
+	// rsa or ec signing algorithm to be used for tokens
+	//
+	SignAlgorithm SimpleName `json:"signAlgorithm,omitempty" rdl:"optional"`
+
+	//
 	// name of the domain
 	//
 	Name DomainName `json:"name"`
@@ -4385,6 +4543,12 @@ func (self *DomainData) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.CertDnsDomain)
 		if !val.Valid {
 			return fmt.Errorf("DomainData.certDnsDomain does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.SignAlgorithm != "" {
+		val := rdl.Validate(ZMSSchema(), "SimpleName", self.SignAlgorithm)
+		if !val.Valid {
+			return fmt.Errorf("DomainData.signAlgorithm does not contain a valid SimpleName (%v)", val.Error)
 		}
 	}
 	if self.Name == "" {

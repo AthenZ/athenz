@@ -392,6 +392,18 @@ func (cli Zms) showDomain(dn string, export bool) (*string, error) {
 	return &s, nil
 }
 
+func getDomainMetaObject(domain *zms.Domain) zms.DomainMeta {
+	return zms.DomainMeta{
+		Description:           domain.Description,
+		ApplicationId:         domain.ApplicationId,
+		TokenExpiryMins:       domain.TokenExpiryMins,
+		ServiceCertExpiryMins: domain.ServiceCertExpiryMins,
+		RoleCertExpiryMins:    domain.RoleCertExpiryMins,
+		SignAlgorithm:         domain.SignAlgorithm,
+		MemberExpiryDays:      domain.MemberExpiryDays,
+	}
+}
+
 func (cli Zms) SetCompleteDomainMeta(dn string, descr string, org string, auditEnabled bool, applicationID string) error {
 	meta := zms.DomainMeta{
 		Description:   descr,
@@ -408,10 +420,9 @@ func (cli Zms) SetDomainMeta(dn string, descr string) (*string, error) {
 	if err != nil {
 		return nil, err
 	}
-	meta := zms.DomainMeta{
-		Description:   descr,
-		ApplicationId: domain.ApplicationId,
-	}
+	meta := getDomainMetaObject(domain)
+	meta.Description = descr
+
 	err = cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, &meta)
 	if err != nil {
 		return nil, err
@@ -437,12 +448,9 @@ func (cli Zms) SetDomainMemberExpiryDays(dn string, days int32) (*string, error)
 	if err != nil {
 		return nil, err
 	}
-	meta := zms.DomainMeta{
-		Description:      domain.Description,
-		ApplicationId:    domain.ApplicationId,
-		TokenExpiryMins:  domain.TokenExpiryMins,
-		MemberExpiryDays: &days,
-	}
+	meta := getDomainMetaObject(domain)
+	meta.MemberExpiryDays = &days
+
 	err = cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, &meta)
 	if err != nil {
 		return nil, err
@@ -456,12 +464,57 @@ func (cli Zms) SetDomainTokenExpiryMins(dn string, mins int32) (*string, error) 
 	if err != nil {
 		return nil, err
 	}
-	meta := zms.DomainMeta{
-		Description:      domain.Description,
-		ApplicationId:    domain.ApplicationId,
-		MemberExpiryDays: domain.MemberExpiryDays,
-		TokenExpiryMins:  &mins,
+	meta := getDomainMetaObject(domain)
+	meta.TokenExpiryMins = &mins
+
+	err = cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
 	}
+	s := "[domain " + dn + " metadata successfully updated]\n"
+	return &s, nil
+}
+
+func (cli Zms) SetDomainTokenSignAlgorithm(dn string, alg string) (*string, error) {
+	domain, err := cli.Zms.GetDomain(zms.DomainName(dn))
+	if err != nil {
+		return nil, err
+	}
+	meta := getDomainMetaObject(domain)
+	meta.SignAlgorithm = zms.SimpleName(alg)
+
+	err = cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " metadata successfully updated]\n"
+	return &s, nil
+}
+
+func (cli Zms) SetDomainServiceCertExpiryMins(dn string, mins int32) (*string, error) {
+	domain, err := cli.Zms.GetDomain(zms.DomainName(dn))
+	if err != nil {
+		return nil, err
+	}
+	meta := getDomainMetaObject(domain)
+	meta.ServiceCertExpiryMins = &mins
+
+	err = cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " metadata successfully updated]\n"
+	return &s, nil
+}
+
+func (cli Zms) SetDomainRoleCertExpiryMins(dn string, mins int32) (*string, error) {
+	domain, err := cli.Zms.GetDomain(zms.DomainName(dn))
+	if err != nil {
+		return nil, err
+	}
+	meta := getDomainMetaObject(domain)
+	meta.RoleCertExpiryMins = &mins
+
 	err = cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, &meta)
 	if err != nil {
 		return nil, err
