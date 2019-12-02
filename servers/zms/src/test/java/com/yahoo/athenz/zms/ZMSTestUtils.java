@@ -16,6 +16,7 @@
 package com.yahoo.athenz.zms;
 
 import com.yahoo.rdl.Timestamp;
+import com.yahoo.rdl.UUID;
 
 import java.util.List;
 
@@ -72,5 +73,15 @@ public class ZMSTestUtils {
         } catch (InterruptedException e) {
             //ignored
         }
+    }
+
+    public static Domain makeDomainObject(final String domainName, final String description,
+            final String org, Boolean auditEnabled, final String account,
+            int productId, String applicationId, Integer expiryDays) {
+
+        return new Domain().setName(domainName).setDescription(description).setOrg(org)
+                .setAuditEnabled(auditEnabled).setAccount(account).setYpmId(productId)
+                .setApplicationId(applicationId).setMemberExpiryDays(expiryDays)
+                .setId(UUID.fromCurrentTime()).setModified(Timestamp.fromCurrentTime());
     }
 }

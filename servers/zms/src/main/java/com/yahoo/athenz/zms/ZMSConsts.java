@@ -210,8 +210,14 @@ public final class ZMSConsts {
     public static final String DB_COLUMN_ACTIVE             = "active";
     public static final String DB_COLUMN_MEMBER_EXPIRY_DAYS = "member_expiry_days";
     public static final String DB_COLUMN_TOKEN_EXPIRY_MINS  = "token_expiry_mins";
+    public static final String DB_COLUMN_CERT_EXPIRY_MINS   = "cert_expiry_mins";
     public static final String DB_COLUMN_DOMAIN_NAME        = "domain_name";
     public static final String DB_COLUMN_PRINCIPAL_NAME     = "principal_name";
+    public static final String DB_COLUMN_APPLICATION_ID     = "application_id";
+    public static final String DB_COLUMN_SIGN_ALGORITHM     = "sign_algorithm";
+
+    public static final String DB_COLUMN_ROLE_CERT_EXPIRY_MINS    = "role_cert_expiry_mins";
+    public static final String DB_COLUMN_SERVICE_CERT_EXPIRY_MINS = "service_cert_expiry_mins";
 
     public static final String ADMIN_POLICY_NAME = "admin";
     public static final String ADMIN_ROLE_NAME   = "admin";

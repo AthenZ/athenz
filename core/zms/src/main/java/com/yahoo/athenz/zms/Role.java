@@ -20,6 +20,12 @@ public class Role {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Integer tokenExpiryMins;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer certExpiryMins;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String signAlgorithm;
     public String name;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -60,6 +66,20 @@ public class Role {
     }
     public Integer getTokenExpiryMins() {
         return tokenExpiryMins;
+    }
+    public Role setCertExpiryMins(Integer certExpiryMins) {
+        this.certExpiryMins = certExpiryMins;
+        return this;
+    }
+    public Integer getCertExpiryMins() {
+        return certExpiryMins;
+    }
+    public Role setSignAlgorithm(String signAlgorithm) {
+        this.signAlgorithm = signAlgorithm;
+        return this;
+    }
+    public String getSignAlgorithm() {
+        return signAlgorithm;
     }
     public Role setName(String name) {
         this.name = name;
@@ -125,6 +145,12 @@ public class Role {
                 return false;
             }
             if (tokenExpiryMins == null ? a.tokenExpiryMins != null : !tokenExpiryMins.equals(a.tokenExpiryMins)) {
+                return false;
+            }
+            if (certExpiryMins == null ? a.certExpiryMins != null : !certExpiryMins.equals(a.certExpiryMins)) {
+                return false;
+            }
+            if (signAlgorithm == null ? a.signAlgorithm != null : !signAlgorithm.equals(a.signAlgorithm)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

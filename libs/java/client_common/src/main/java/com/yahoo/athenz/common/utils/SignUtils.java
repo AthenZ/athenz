@@ -73,6 +73,10 @@ public class SignUtils {
     private static final String ATTR_SELF_SERVE = "selfServe";
     private static final String ATTR_MEMBER_EXPIRY_DAYS = "memberExpiryDays";
     private static final String ATTR_TOKEN_EXPIRY_MINS = "tokenExpiryMins";
+    private static final String ATTR_CERT_EXPIRY_MINS = "certExpiryMins";
+    private static final String ATTR_ROLE_CERT_EXPIRY_MINS = "roleCertExpiryMins";
+    private static final String ATTR_SERVICE_CERT_EXPIRY_MINS = "serviceCertExpiryMins";
+    private static final String ATTR_SIGN_ALGORITHM = "signAlgorithm";
 
     private static Struct asStruct(DomainPolicies domainPolicies) {
         // all of our fields are in canonical order based
@@ -136,6 +140,7 @@ public class SignUtils {
         // on their attribute name
         Struct struct = new Struct();
         appendObject(struct, ATTR_AUDIT_ENABLED, role.getAuditEnabled());
+        appendObject(struct, ATTR_CERT_EXPIRY_MINS, role.getCertExpiryMins());
         appendObject(struct, ATTR_MEMBER_EXPIRY_DAYS, role.getMemberExpiryDays());
         appendList(struct, ATTR_MEMBERS, role.getMembers());
         appendObject(struct, ATTR_MODIFIED, role.getModified());
@@ -152,6 +157,7 @@ public class SignUtils {
             appendArray(struct, ATTR_ROLE_MEMBERS, roleMembersArray);
         }
         appendObject(struct, ATTR_SELF_SERVE, role.getSelfServe());
+        appendObject(struct, ATTR_SIGN_ALGORITHM, role.getSignAlgorithm());
         appendObject(struct, ATTR_TOKEN_EXPIRY_MINS, role.getTokenExpiryMins());
         appendObject(struct, ATTR_TRUST, role.getTrust());
         return struct;
@@ -260,6 +266,7 @@ public class SignUtils {
             appendObject(struct, ATTR_POLICIES, structSignedPolicies);
             appendObject(structSignedPolicies, ATTR_SIGNATURE, signedPolicies.getSignature());
         }
+        appendObject(struct, ATTR_ROLE_CERT_EXPIRY_MINS, domainData.getRoleCertExpiryMins());
         Array structRoles = new Array();
         if (domainData.getRoles() != null) {
             for (Role role : domainData.getRoles()) {
@@ -273,7 +280,9 @@ public class SignUtils {
                 structServices.add(asStruct(service));
             }
         }
+        appendObject(struct, ATTR_SERVICE_CERT_EXPIRY_MINS, domainData.getServiceCertExpiryMins());
         appendArray(struct, ATTR_SERVICES, structServices);
+        appendObject(struct, ATTR_SIGN_ALGORITHM, domainData.getSignAlgorithm());
         appendObject(struct, ATTR_TOKEN_EXPIRY_MINS, domainData.getTokenExpiryMins());
         appendObject(struct, ATTR_YPMID, domainData.getYpmId());
         return struct;

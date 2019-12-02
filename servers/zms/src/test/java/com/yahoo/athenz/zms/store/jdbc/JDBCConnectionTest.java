@@ -557,7 +557,11 @@ public class JDBCConnectionTest {
                 .setYpmId(1011)
                 .setApplicationId("application_id")
                 .setCertDnsDomain("athenz.cloud")
-                .setMemberExpiryDays(45);
+                .setMemberExpiryDays(45)
+                .setTokenExpiryMins(10)
+                .setServiceCertExpiryMins(20)
+                .setRoleCertExpiryMins(30)
+                .setSignAlgorithm("ec");
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         boolean requestSuccess = jdbcConn.updateDomain(domain);
@@ -573,7 +577,11 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(8, "application_id");
         Mockito.verify(mockPrepStmt, times(1)).setString(9, "athenz.cloud");
         Mockito.verify(mockPrepStmt, times(1)).setInt(10, 45);
-        Mockito.verify(mockPrepStmt, times(1)).setString(11, "my-domain");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(11, 10);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(12, 20);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(13, 30);
+        Mockito.verify(mockPrepStmt, times(1)).setString(14, "ec");
+        Mockito.verify(mockPrepStmt, times(1)).setString(15, "my-domain");
         jdbcConn.close();
     }
     
@@ -600,7 +608,11 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(8, "");
         Mockito.verify(mockPrepStmt, times(1)).setString(9, "");
         Mockito.verify(mockPrepStmt, times(1)).setInt(10, 0);
-        Mockito.verify(mockPrepStmt, times(1)).setString(11, "my-domain");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(11, 0);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(12, 0);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(13, 0);
+        Mockito.verify(mockPrepStmt, times(1)).setString(14, "");
+        Mockito.verify(mockPrepStmt, times(1)).setString(15, "my-domain");
         jdbcConn.close();
     }
     
@@ -780,6 +792,7 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.next()).thenReturn(true);
         Mockito.doReturn("role1").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_NAME);
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_TRUST);
+        Mockito.doReturn("ec").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_SIGN_ALGORITHM);
         Mockito.doReturn(true).when(mockResultSet).getBoolean(ZMSConsts.DB_COLUMN_AUDIT_ENABLED);
         Mockito.doReturn(true).when(mockResultSet).getBoolean(ZMSConsts.DB_COLUMN_SELF_SERVE);
         Mockito.doReturn(new java.sql.Timestamp(1454358916)).when(mockResultSet).getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED);
@@ -791,6 +804,7 @@ public class JDBCConnectionTest {
         assertTrue(role.getAuditEnabled());
         assertTrue(role.getSelfServe());
         assertNull(role.getMemberExpiryDays());
+        assertEquals(role.getSignAlgorithm(), "ec");
         
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "role1");
@@ -803,6 +817,8 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.next()).thenReturn(true);
         Mockito.doReturn("role1").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_NAME);
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_TRUST);
+        Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_SIGN_ALGORITHM);
+        Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_SIGN_ALGORITHM);
         Mockito.doReturn(true).when(mockResultSet).getBoolean(ZMSConsts.DB_COLUMN_AUDIT_ENABLED);
         Mockito.doReturn(true).when(mockResultSet).getBoolean(ZMSConsts.DB_COLUMN_SELF_SERVE);
         Mockito.doReturn(30).when(mockResultSet).getInt(ZMSConsts.DB_COLUMN_MEMBER_EXPIRY_DAYS);
@@ -827,6 +843,7 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.next()).thenReturn(true);
         Mockito.doReturn("role1").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_NAME);
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_TRUST);
+        Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_SIGN_ALGORITHM);
         Mockito.doReturn(true).when(mockResultSet).getBoolean(ZMSConsts.DB_COLUMN_AUDIT_ENABLED);
         Mockito.doReturn(false).when(mockResultSet).getBoolean(ZMSConsts.DB_COLUMN_SELF_SERVE);
         Mockito.doReturn(new java.sql.Timestamp(1454358916)).when(mockResultSet).getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED);
@@ -860,6 +877,7 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.next()).thenReturn(true);
         Mockito.doReturn("role1").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_NAME);
         Mockito.doReturn("trust.domain").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_TRUST);
+        Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_SIGN_ALGORITHM);
         Mockito.doReturn(new java.sql.Timestamp(1454358916)).when(mockResultSet).getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
@@ -1014,7 +1032,8 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Role role = new Role().setName("my-domain:role.role1").setAuditEnabled(true)
-                .setSelfServe(true).setMemberExpiryDays(30);
+                .setSelfServe(true).setMemberExpiryDays(30).setTokenExpiryMins(10)
+                .setCertExpiryMins(20).setSignAlgorithm("ec");
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         Mockito.when(mockResultSet.next()).thenReturn(true);
@@ -1034,7 +1053,10 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setBoolean(2, true);
         Mockito.verify(mockPrepStmt, times(1)).setBoolean(3, true);
         Mockito.verify(mockPrepStmt, times(1)).setInt(4, 30);
-        Mockito.verify(mockPrepStmt, times(1)).setInt(5, 4);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(5, 10);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(6, 20);
+        Mockito.verify(mockPrepStmt, times(1)).setString(7, "ec");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(8, 4);
         jdbcConn.close();
     }
     
@@ -1043,7 +1065,7 @@ public class JDBCConnectionTest {
         
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
-        Role role = new Role().setName("my-domain:role.role1").setTrust("trust_domain");
+        Role role = new Role().setName("my-domain:role.role1").setTrust("trust_domain").setSignAlgorithm("rsa");
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         Mockito.when(mockResultSet.next()).thenReturn(true);
@@ -1064,7 +1086,10 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setBoolean(2, false);
         Mockito.verify(mockPrepStmt, times(1)).setBoolean(3, false);
         Mockito.verify(mockPrepStmt, times(1)).setInt(4, 0);
-        Mockito.verify(mockPrepStmt, times(1)).setInt(5, 7);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(5, 0);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(6, 0);
+        Mockito.verify(mockPrepStmt, times(1)).setString(7, "rsa");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(8, 7);
         jdbcConn.close();
     }
     
@@ -5191,10 +5216,13 @@ public class JDBCConnectionTest {
             .thenReturn("ALLOW").thenReturn("DENY");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_KEY_ID)).thenReturn("zms1.zone1");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_KEY_VALUE)).thenReturn("Value1");
-        
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_KEY_VALUE)).thenReturn("Value1");
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_SIGN_ALGORITHM)).thenReturn("rsa");
+
         AthenzDomain athenzDomain = jdbcConn.getAthenzDomain("my-domain");
         assertNotNull(athenzDomain);
         assertEquals("my-domain", athenzDomain.getDomain().getName());
+        assertEquals(athenzDomain.getDomain().getSignAlgorithm(), "rsa");
         assertEquals(2, athenzDomain.getRoles().size());
         assertEquals(1, athenzDomain.getRoles().get(0).getRoleMembers().size());
         assertEquals(1, athenzDomain.getRoles().get(1).getRoleMembers().size());
@@ -7156,6 +7184,7 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.next()).thenReturn(true);
         Mockito.doReturn("role1").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_NAME);
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_TRUST);
+        Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_SIGN_ALGORITHM);
         Mockito.doReturn(false).when(mockResultSet).getBoolean(ZMSConsts.DB_COLUMN_AUDIT_ENABLED);
         Mockito.doReturn(new java.sql.Timestamp(1454358916)).when(mockResultSet).getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED);
 
@@ -7164,6 +7193,7 @@ public class JDBCConnectionTest {
         assertNotNull(role);
         assertEquals("my-domain:role.role1", role.getName());
         assertNull(role.getAuditEnabled());
+        assertNull(role.getSignAlgorithm());
 
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "role1");

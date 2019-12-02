@@ -33,6 +33,14 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * FileConnection class is primarily implemented to run unit tests and
+ * allow local development without using mysql or other implemented
+ * storage solution. As such, it is not designed to be run in production
+ * nor it may implement all functionality in an efficient matter.
+ */
+
+///CLOVER:OFF
 public class FileConnection implements ObjectStoreConnection {
 
     private static final String ALL_PRINCIPALS  = "*";
@@ -82,7 +90,11 @@ public class FileConnection implements ObjectStoreConnection {
                 .setYpmId(domainStruct.getMeta().getYpmId())
                 .setApplicationId(domainStruct.getMeta().getApplicationId())
                 .setCertDnsDomain(domainStruct.getMeta().getCertDnsDomain())
-                .setMemberExpiryDays(domainStruct.getMeta().getMemberExpiryDays());
+                .setMemberExpiryDays(domainStruct.getMeta().getMemberExpiryDays())
+                .setTokenExpiryMins(domainStruct.getMeta().getTokenExpiryMins())
+                .setServiceCertExpiryMins(domainStruct.getMeta().getServiceCertExpiryMins())
+                .setRoleCertExpiryMins(domainStruct.getMeta().getRoleCertExpiryMins())
+                .setSignAlgorithm(domainStruct.getMeta().getSignAlgorithm());
         if (domainStruct.getMeta().getAuditEnabled() != null) {
             domain.setAuditEnabled(domainStruct.getMeta().getAuditEnabled());
         } else {
@@ -137,7 +149,11 @@ public class FileConnection implements ObjectStoreConnection {
                 .setYpmId(domain.getYpmId())
                 .setApplicationId(domain.getApplicationId())
                 .setCertDnsDomain(domain.getCertDnsDomain())
-                .setMemberExpiryDays(domain.getMemberExpiryDays());
+                .setMemberExpiryDays(domain.getMemberExpiryDays())
+                .setTokenExpiryMins(domain.getTokenExpiryMins())
+                .setServiceCertExpiryMins(domain.getServiceCertExpiryMins())
+                .setRoleCertExpiryMins(domain.getRoleCertExpiryMins())
+                .setSignAlgorithm(domain.getSignAlgorithm());
         domainStruct.setMeta(meta);
         
         putDomainStruct(domain.getName(), domainStruct);
@@ -178,9 +194,12 @@ public class FileConnection implements ObjectStoreConnection {
                 .setYpmId(domain.getYpmId())
                 .setApplicationId(domain.getApplicationId())
                 .setCertDnsDomain(domain.getCertDnsDomain())
-                .setMemberExpiryDays(domain.getMemberExpiryDays());
+                .setMemberExpiryDays(domain.getMemberExpiryDays())
+                .setTokenExpiryMins(domain.getTokenExpiryMins())
+                .setServiceCertExpiryMins(domain.getServiceCertExpiryMins())
+                .setRoleCertExpiryMins(domain.getRoleCertExpiryMins())
+                .setSignAlgorithm(domain.getSignAlgorithm());
         domainStruct.setMeta(meta);
-
         putDomainStruct(domain.getName(), domainStruct);
         return true;
     }
@@ -1841,3 +1860,4 @@ public class FileConnection implements ObjectStoreConnection {
         return updated;
     }
 }
+///CLOVER:ON

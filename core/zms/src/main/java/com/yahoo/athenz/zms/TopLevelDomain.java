@@ -42,6 +42,15 @@ public class TopLevelDomain {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Integer tokenExpiryMins;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer serviceCertExpiryMins;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer roleCertExpiryMins;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String signAlgorithm;
     public String name;
     public List<String> adminUsers;
     @RdlOptional
@@ -118,6 +127,27 @@ public class TopLevelDomain {
     public Integer getTokenExpiryMins() {
         return tokenExpiryMins;
     }
+    public TopLevelDomain setServiceCertExpiryMins(Integer serviceCertExpiryMins) {
+        this.serviceCertExpiryMins = serviceCertExpiryMins;
+        return this;
+    }
+    public Integer getServiceCertExpiryMins() {
+        return serviceCertExpiryMins;
+    }
+    public TopLevelDomain setRoleCertExpiryMins(Integer roleCertExpiryMins) {
+        this.roleCertExpiryMins = roleCertExpiryMins;
+        return this;
+    }
+    public Integer getRoleCertExpiryMins() {
+        return roleCertExpiryMins;
+    }
+    public TopLevelDomain setSignAlgorithm(String signAlgorithm) {
+        this.signAlgorithm = signAlgorithm;
+        return this;
+    }
+    public String getSignAlgorithm() {
+        return signAlgorithm;
+    }
     public TopLevelDomain setName(String name) {
         this.name = name;
         return this;
@@ -175,6 +205,15 @@ public class TopLevelDomain {
                 return false;
             }
             if (tokenExpiryMins == null ? a.tokenExpiryMins != null : !tokenExpiryMins.equals(a.tokenExpiryMins)) {
+                return false;
+            }
+            if (serviceCertExpiryMins == null ? a.serviceCertExpiryMins != null : !serviceCertExpiryMins.equals(a.serviceCertExpiryMins)) {
+                return false;
+            }
+            if (roleCertExpiryMins == null ? a.roleCertExpiryMins != null : !roleCertExpiryMins.equals(a.roleCertExpiryMins)) {
+                return false;
+            }
+            if (signAlgorithm == null ? a.signAlgorithm != null : !signAlgorithm.equals(a.signAlgorithm)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

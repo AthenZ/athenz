@@ -16,6 +16,9 @@ type DomainMeta Struct {
     String certDnsDomain (optional); //domain certificate dns domain (system attribute)
     Int32 memberExpiryDays (optional); //all members in the domain will have specified max expiry days
     Int32 tokenExpiryMins (optional); //tokens issued for this domain will have specified max timeout in mins
+    Int32 serviceCertExpiryMins (optional); //service identity certs issued for this domain will have specified max timeout in mins
+    Int32 roleCertExpiryMins (optional); //role certs issued for this domain will have specified max timeout in mins
+    SimpleName signAlgorithm (optional); //rsa or ec signing algorithm to be used for tokens
 }
 
 //A domain is an independent partition of users, roles, and resources.
