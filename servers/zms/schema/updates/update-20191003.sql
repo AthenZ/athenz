@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS `zms_server`.`pending_role_member` (
   `audit_ref` VARCHAR(512) NULL COMMENT 'Audit reference mandatory for membership changes of audit enabled / self serve roles',
   `req_time` DATETIME(3) NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
   PRIMARY KEY (`role_id`, `principal_id`),
-  INDEX `idx_principal` (`principal_id` ASC, `role_id` ASC) VISIBLE,
+  INDEX `idx_principal` (`principal_id` ASC, `role_id` ASC),
   CONSTRAINT `fk_pending_role_member_role`
     FOREIGN KEY (`role_id`)
     REFERENCES `zms_server`.`role` (`role_id`)
