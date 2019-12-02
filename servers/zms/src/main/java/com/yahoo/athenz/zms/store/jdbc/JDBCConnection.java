@@ -422,13 +422,13 @@ public class JDBCConnection implements ObjectStoreConnection {
                     .setId(saveUuidValue(rs.getString(ZMSConsts.DB_COLUMN_UUID)))
                     .setAccount(saveValue(rs.getString(ZMSConsts.DB_COLUMN_ACCOUNT)))
                     .setYpmId(rs.getInt(ZMSConsts.DB_COLUMN_PRODUCT_ID))
-                    .setCertDnsDomain(rs.getString(ZMSConsts.DB_COLUMN_CERT_DNS_DOMAIN))
+                    .setCertDnsDomain(saveValue(rs.getString(ZMSConsts.DB_COLUMN_CERT_DNS_DOMAIN)))
                     .setMemberExpiryDays(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_MEMBER_EXPIRY_DAYS), 0))
                     .setTokenExpiryMins(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_TOKEN_EXPIRY_MINS), 0))
                     .setRoleCertExpiryMins(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_ROLE_CERT_EXPIRY_MINS), 0))
                     .setServiceCertExpiryMins(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_SERVICE_CERT_EXPIRY_MINS), 0))
-                    .setApplicationId(rs.getString(ZMSConsts.DB_COLUMN_APPLICATION_ID))
-                    .setSignAlgorithm(rs.getString(ZMSConsts.DB_COLUMN_SIGN_ALGORITHM));
+                    .setApplicationId(saveValue(rs.getString(ZMSConsts.DB_COLUMN_APPLICATION_ID)))
+                    .setSignAlgorithm(saveValue(rs.getString(ZMSConsts.DB_COLUMN_SIGN_ALGORITHM)));
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
