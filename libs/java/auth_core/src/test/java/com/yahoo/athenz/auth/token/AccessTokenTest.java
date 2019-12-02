@@ -223,6 +223,37 @@ public class AccessTokenTest {
     }
 
     @Test
+    public void testAccessTokenWithoutSignedToken() {
+
+        long now = System.currentTimeMillis() / 1000;
+
+        AccessToken accessToken = createAccessToken(now);
+
+        // now get the signed token
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        String accessJws = accessToken.getSignedToken(privateKey, "eckey1", SignatureAlgorithm.ES256);
+        assertNotNull(accessJws);
+
+        // now verify our signed token
+
+        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(null, null);
+        resolver.addPublicKey("eckey1", Crypto.loadPublicKey(ecPublicKey));
+
+        // remove the signature part from the token
+
+        int idx = accessJws.lastIndexOf('.');
+        final String unsignedJws = accessJws.substring(0, idx + 1);
+
+        try {
+            new AccessToken(unsignedJws, resolver);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex instanceof UnsupportedJwtException);
+        }
+    }
+
+    @Test
     public void testAccessTokenSignedTokenPublicKey() {
 
         long now = System.currentTimeMillis() / 1000;
