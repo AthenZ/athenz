@@ -34,6 +34,7 @@ import com.yahoo.athenz.auth.token.AccessToken;
 import com.yahoo.athenz.auth.token.IdToken;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.dns.HostnameResolverFactory;
+import com.yahoo.athenz.zms.RoleMeta;
 import com.yahoo.athenz.zts.cert.*;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
@@ -1022,7 +1023,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return (tokenTimeout > idTokenMaxTimeout) ? idTokenMaxTimeout : tokenTimeout;
     }
 
-    long determineTokenTimeout(Integer minExpiryTime, Integer maxExpiryTime) {
+    long determineTokenTimeout(DataCache data, Set<String> roles, Integer minExpiryTime,
+            Integer maxExpiryTime) {
         
         // we're going to default our return value to the default token
         // timeout configured in the server
@@ -1055,7 +1057,16 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         if (tokenTimeout > roleTokenMaxTimeout) {
             tokenTimeout = roleTokenMaxTimeout;
         }
-        
+
+        // fetch the configured max allowed value for all roles in the set
+        // if it's configured and is less that what we have determined so
+        // far then we'll reduce it to the configured value
+
+        int maxAllowedExpirySecs = getConfiguredRoleExpiryTimeMins(data, roles) * 60;
+        if (maxAllowedExpirySecs > 0 && maxAllowedExpirySecs < tokenTimeout) {
+            tokenTimeout =  maxAllowedExpirySecs;
+        }
+
         return tokenTimeout;
     }
 
@@ -1398,7 +1409,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // generate and return role token
 
-        long tokenTimeout = determineTokenTimeout(minExpiryTime, maxExpiryTime);
+        long tokenTimeout = determineTokenTimeout(data, roles, minExpiryTime, maxExpiryTime);
         List<String> roleList = new ArrayList<>(roles);
         boolean domainCompleteRoleSet = (includeRoleCompleteFlag && roleNames == null);
         com.yahoo.athenz.auth.token.RoleToken token =
@@ -1641,7 +1652,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     caller, domainName, principalDomain);
         }
 
-        long tokenTimeout = determineTokenTimeout(null, expiryTime);
+        long tokenTimeout = determineTokenTimeout(data, roles, null, expiryTime);
         long iat = System.currentTimeMillis() / 1000;
 
         AccessToken accessToken = new AccessToken();
@@ -1931,9 +1942,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw requestError("postRoleCertificateRequest: Unable to validate cert request",
                     caller, domainName, principalDomain);
         }
-        
+
+        int expiryTime = determineRoleCertTimeout(data, roles, (int) req.getExpiryTime());
         final String x509Cert = instanceCertManager.generateX509Certificate(req.getCsr(),
-                InstanceProvider.ZTS_CERT_USAGE_CLIENT, (int) req.getExpiryTime());
+                InstanceProvider.ZTS_CERT_USAGE_CLIENT, expiryTime);
         if (null == x509Cert || x509Cert.isEmpty()) {
             throw serverError("postRoleCertificateRequest: Unable to create certificate from the cert signer",
                     caller, domainName, principalDomain);
@@ -1949,6 +1961,96 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         metric.stopTiming(timerMetric, domainName, principalDomain);
         return roleToken;
+    }
+
+    int getConfiguredRoleListExpiryTimeMins(Map<String, String[]> requestedRoleList) {
+
+        int maxAllowedExpiry = 0;
+        for (String domainName : requestedRoleList.keySet()) {
+
+            DataCache data = dataStore.getDataCache(domainName);
+            if (data == null) {
+                continue;
+            }
+
+            Set<String> roles = new HashSet<>();
+            Collections.addAll(roles, requestedRoleList.get(domainName));
+            int domainMaxAllowedExpiry = getConfiguredRoleExpiryTimeMins(data, roles);
+
+            // now update our total expiry time only if the value we determined
+            // for the given domain is smaller
+
+            if (domainMaxAllowedExpiry > 0 && (maxAllowedExpiry == 0 || domainMaxAllowedExpiry < maxAllowedExpiry)) {
+                maxAllowedExpiry = domainMaxAllowedExpiry;
+            }
+        }
+
+        return maxAllowedExpiry;
+    }
+
+    int getConfiguredRoleExpiryTimeMins(DataCache data, Set<String> roles) {
+
+        // first we're going to determine the min allowed expiry
+        // time for the given set of roles
+
+        int maxAllowedExpiry = 0;
+        for (String role: roles) {
+            RoleMeta rm = data.getRoleMeta(role);
+            if (rm == null) {
+                continue;
+            }
+            Integer certExpiryMins = rm.getCertExpiryMins();
+            if (certExpiryMins == null) {
+                continue;
+            }
+            if (certExpiryMins > 0 && (maxAllowedExpiry == 0 || certExpiryMins < maxAllowedExpiry)) {
+                maxAllowedExpiry = certExpiryMins;
+            }
+        }
+
+        // if we don't have a value specified then we're going
+        // to look at the domain value if one is configured
+
+        if (maxAllowedExpiry == 0) {
+            Integer certExpiryMins = data.getDomainData().getRoleCertExpiryMins();
+            if (certExpiryMins != null && certExpiryMins > 0) {
+                maxAllowedExpiry = certExpiryMins;
+            }
+        }
+
+        return maxAllowedExpiry;
+    }
+
+    int determineRoleCertTimeout(DataCache data, Set<String> roles, int reqTime) {
+
+        // fetch the configured max allowed value for all roles in the set
+
+        int maxAllowedExpiry = getConfiguredRoleExpiryTimeMins(data, roles);
+
+        // finally we're going to check if the caller has requested
+        // some thing smaller only if we have a limit configured
+
+        if (reqTime > 0 && (maxAllowedExpiry == 0 || reqTime < maxAllowedExpiry)) {
+            maxAllowedExpiry = reqTime;
+        }
+
+        return maxAllowedExpiry;
+    }
+
+    int determineRoleCertTimeout(Map<String, String[]> requestedRoleList, int reqTime) {
+
+        // fetch the configured max allowed value for all roles in the set
+
+        int maxAllowedExpiry = getConfiguredRoleListExpiryTimeMins(requestedRoleList);
+
+        // finally we're going to check if the caller has requested
+        // some thing smaller only if we have a limit configured
+
+        if (reqTime > 0 && (maxAllowedExpiry == 0 || reqTime < maxAllowedExpiry)) {
+            maxAllowedExpiry = reqTime;
+        }
+
+        return maxAllowedExpiry;
     }
 
     boolean validateRoleCertificateRequest(final String csr, final String domainName,
@@ -2114,8 +2216,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     caller, domainName, domainName);
         }
 
+        int expiryTime = determineRoleCertTimeout(requestedRoleList, (int) req.getExpiryTime());
         final String x509Cert = instanceCertManager.generateX509Certificate(req.getCsr(),
-                InstanceProvider.ZTS_CERT_USAGE_CLIENT, (int) req.getExpiryTime());
+                InstanceProvider.ZTS_CERT_USAGE_CLIENT, expiryTime);
         if (null == x509Cert || x509Cert.isEmpty()) {
             throw serverError("postRoleCertificateRequest: Unable to create certificate from the cert signer",
                     caller, domainName, domainName);
@@ -2482,7 +2585,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // update the expiry time if one is provided in the request
 
-        certExpiryTime = getCertRequestExpiryTime(certExpiryTime, info.getExpiryTime());
+        certExpiryTime = getServiceCertRequestExpiryTime(certExpiryTime, info.getExpiryTime());
 
         // generate certificate for the instance
 
@@ -2838,7 +2941,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // update the expiry time if one is provided in the request
 
-        certExpiryTime = getCertRequestExpiryTime(certExpiryTime, info.getExpiryTime());
+        certExpiryTime = getServiceCertRequestExpiryTime(certExpiryTime, info.getExpiryTime());
 
         // generate identity with the certificate
 
@@ -2928,7 +3031,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return identity;
     }
 
-    int  getCertRequestExpiryTime(int certExpiryTime, Integer reqExpiryTime) {
+    int getServiceCertRequestExpiryTime(int certExpiryTime, Integer reqExpiryTime) {
 
         if (reqExpiryTime == null || reqExpiryTime < 0) {
             return certExpiryTime;
