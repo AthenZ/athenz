@@ -1104,8 +1104,8 @@ public class Crypto {
     }
 
     public static X509Certificate generateX509Certificate(PKCS10CertificationRequest certReq,
-                                                          PrivateKey caPrivateKey, X509Certificate caCertificate, int validityTimeout,
-                                                          boolean basicConstraints) {
+            PrivateKey caPrivateKey, X509Certificate caCertificate, int validityTimeout,
+            boolean basicConstraints) {
 
         return generateX509Certificate(certReq, caPrivateKey,
                 X500Name.getInstance(caCertificate.getSubjectX500Principal().getEncoded()),
@@ -1113,8 +1113,8 @@ public class Crypto {
     }
 
     public static X509Certificate generateX509Certificate(PKCS10CertificationRequest certReq,
-                                                          PrivateKey caPrivateKey, X500Name issuer, int validityTimeout,
-                                                          boolean basicConstraints) {
+            PrivateKey caPrivateKey, X500Name issuer, int validityTimeout,
+            boolean basicConstraints) {
 
         // set validity for the given number of minutes from now
 
@@ -1159,17 +1159,14 @@ public class Crypto {
                         switch (name.getTagNo()) {
                             case GeneralName.dNSName:
                             case GeneralName.iPAddress:
-                                ///CLOVER:OFF
                             case GeneralName.rfc822Name:
-                                ///CLOVER:ON
+                            case GeneralName.uniformResourceIdentifier:
                                 altNames.add(name);
                                 break;
                         }
                     }
                 }
-                ///CLOVER:OFF
                 if (!altNames.isEmpty()) {
-                    ///CLOVER:ON
                     caBuilder.addExtension(Extension.subjectAlternativeName, false,
                             new GeneralNames(altNames.toArray(new GeneralName[0])));
                 }
