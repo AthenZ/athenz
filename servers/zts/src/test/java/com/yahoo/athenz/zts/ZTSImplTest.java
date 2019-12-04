@@ -2175,54 +2175,189 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testDetermineIdTokenTimoeout() {
+    public void testDetermineIdTokenTimeout() {
         assertEquals(zts.determineIdTokenTimeout(3600), 3600);
         assertEquals(zts.determineIdTokenTimeout(360000), zts.idTokenMaxTimeout);
     }
 
     @Test
+    public void testDetermineTokenTimeoutWithRoleExpiry() {
+
+        DataCache data = new DataCache();
+        Role role1 = new Role().setName("athenz:role.readers").setTokenExpiryMins(10);
+        data.processRole(role1);
+
+        DomainData domainData = new DomainData();
+        data.setDomainData(domainData);
+
+        Set<String> roles = new HashSet<>();
+        roles.add("readers");
+
+        // token expiry is in mins and our api requires seconds
+        // so we're going to get 600 secs instead of 10 mins
+        // configured value
+
+        assertEquals(zts.determineTokenTimeout(data, roles, null, 1200), 600);
+    }
+
+    @Test
+    public void testDetermineTokenTimeoutWithDomainExpiry() {
+
+        DataCache data = new DataCache();
+        Role role1 = new Role().setName("athenz:role.readers");
+        data.processRole(role1);
+
+        DomainData domainData = new DomainData().setTokenExpiryMins(5);
+        data.setDomainData(domainData);
+
+        Set<String> roles = new HashSet<>();
+        roles.add("readers");
+
+        // token expiry is in mins and our api requires seconds
+        // so we're going to get 300 secs instead of 5 mins
+        // configured value
+
+        assertEquals(zts.determineTokenTimeout(data, roles, null, 1200), 300);
+    }
+
+    @Test
+    public void testDetermineTokenTimeoutWithRoleExpiryBigger() {
+
+        DataCache data = new DataCache();
+        Role role1 = new Role().setName("athenz:role.readers").setTokenExpiryMins(30);
+        data.processRole(role1);
+
+        DomainData domainData = new DomainData();
+        data.setDomainData(domainData);
+
+        Set<String> roles = new HashSet<>();
+        roles.add("readers");
+
+        assertEquals(zts.determineTokenTimeout(data, roles, null, 1200), 1200);
+
+        // with no expiry values specified by the caller we'll
+        // get our limit of 30 mins
+
+        assertEquals(zts.determineTokenTimeout(data, roles, null, null), 1800);
+    }
+
+    @Test
+    public void testDetermineTokenTimeoutWithDomainExpiryBigger() {
+
+        DataCache data = new DataCache();
+        Role role1 = new Role().setName("athenz:role.readers");
+        data.processRole(role1);
+
+        DomainData domainData = new DomainData().setTokenExpiryMins(25);
+        data.setDomainData(domainData);
+
+        Set<String> roles = new HashSet<>();
+        roles.add("readers");
+
+        assertEquals(zts.determineTokenTimeout(data, roles, null, 1200), 1200);
+
+        // with no expiry values specified by the caller we'll
+        // get our limit of 25 mins
+
+        assertEquals(zts.determineTokenTimeout(data, roles, null, null), 1500);
+    }
+
+    @Test
+    public void testDetermineTokenTimeoutWithNoRoleMeta() {
+
+        DataCache data = new DataCache();
+        DomainData domainData = new DomainData();
+        data.setDomainData(domainData);
+
+        Set<String> roles = new HashSet<>();
+        roles.add("readers");
+
+        assertEquals(zts.determineTokenTimeout(data, roles, null, 1200), 1200);
+        assertEquals(zts.determineTokenTimeout(data, roles, null, null), roleTokenDefaultTimeout);
+    }
+
+    @Test
+    public void testDetermineTokenTimeoutWithMultipleRoles() {
+
+        DataCache data = new DataCache();
+        Role role1 = new Role().setName("athenz:role.readers").setTokenExpiryMins(9);
+        Role role2 = new Role().setName("athenz:role.writers").setTokenExpiryMins(10);
+        data.processRole(role1);
+        data.processRole(role2);
+
+        DomainData domainData = new DomainData().setTokenExpiryMins(25);
+        data.setDomainData(domainData);
+
+        Set<String> roles = new HashSet<>();
+        roles.add("readers");
+        roles.add("writers");
+
+        assertEquals(zts.determineTokenTimeout(data, roles, null, 1200), 540);
+        assertEquals(zts.determineTokenTimeout(data, roles, null, 500), 500);
+        assertEquals(zts.determineTokenTimeout(data, roles, null, null), 540);
+    }
+
+    @Test
     public void testDetermineTokenTimeoutBothNull() {
-        assertEquals(zts.determineTokenTimeout(null, null), roleTokenDefaultTimeout);
+        DataCache dataCache = new DataCache();
+        dataCache.setDomainData(new DomainData());
+        assertEquals(zts.determineTokenTimeout(dataCache, Collections.emptySet(), null, null), roleTokenDefaultTimeout);
     }
     
     @Test
     public void testDetermineTokenTimeoutMinNull() {
-        assertEquals(zts.determineTokenTimeout(null, 100), 100);
+        DataCache dataCache = new DataCache();
+        dataCache.setDomainData(new DomainData());
+        assertEquals(zts.determineTokenTimeout(dataCache, Collections.emptySet(), null, 100), 100);
     }
     
     @Test
     public void testDetermineTokenTimeoutMaxNull() {
-        assertEquals(zts.determineTokenTimeout(100, null), roleTokenDefaultTimeout);
+        DataCache dataCache = new DataCache();
+        dataCache.setDomainData(new DomainData());
+        assertEquals(zts.determineTokenTimeout(dataCache, Collections.emptySet(), 100, null), roleTokenDefaultTimeout);
     }
     
     @Test
     public void testDetermineTokenTimeoutMinInvalid() {
-        assertEquals(zts.determineTokenTimeout(-10, null), roleTokenDefaultTimeout);
+        DataCache dataCache = new DataCache();
+        dataCache.setDomainData(new DomainData());
+        assertEquals(zts.determineTokenTimeout(dataCache, Collections.emptySet(), -10, null), roleTokenDefaultTimeout);
     }
     
     @Test
     public void testDetermineTokenTimeoutMaxInvalid() {
-        assertEquals(zts.determineTokenTimeout(null, -10), roleTokenDefaultTimeout);
+        DataCache dataCache = new DataCache();
+        dataCache.setDomainData(new DomainData());
+        assertEquals(zts.determineTokenTimeout(dataCache, Collections.emptySet(), null, -10), roleTokenDefaultTimeout);
     }
     
     @Test
     public void testDetermineTokenTimeoutDefaultBigger() {
-        assertEquals(zts.determineTokenTimeout(3200, null), 3200);
+        DataCache dataCache = new DataCache();
+        dataCache.setDomainData(new DomainData());
+        assertEquals(zts.determineTokenTimeout(dataCache, Collections.emptySet(), 3200, null), 3200);
     }
     
     @Test
     public void testDetermineTokeTimeoutDefaultSmaller() {
-        assertEquals(zts.determineTokenTimeout(1200, null), roleTokenDefaultTimeout);
+        DataCache dataCache = new DataCache();
+        dataCache.setDomainData(new DomainData());
+        assertEquals(zts.determineTokenTimeout(dataCache, Collections.emptySet(), 1200, null), roleTokenDefaultTimeout);
     }
     
     @Test
     public void testDetermineTokeTimeoutMaxValueMaxExceeded() {
-        assertEquals(zts.determineTokenTimeout(null, 120000), roleTokenMaxTimeout);
+        DataCache dataCache = new DataCache();
+        dataCache.setDomainData(new DomainData());
+        assertEquals(zts.determineTokenTimeout(dataCache, Collections.emptySet(), null, 120000), roleTokenMaxTimeout);
     }
 
     @Test
     public void testDetermineTokeTimeoutMinValueMaxExceeded() {
-        assertEquals(zts.determineTokenTimeout(120000, null), roleTokenMaxTimeout);
+        DataCache dataCache = new DataCache();
+        dataCache.setDomainData(new DomainData());
+        assertEquals(zts.determineTokenTimeout(dataCache, Collections.emptySet(), 120000, null), roleTokenMaxTimeout);
     }
     
     @Test
@@ -9051,15 +9186,15 @@ public class ZTSImplTest {
     @Test
     public void testGetCertRequestExpiryTime() {
 
-        assertEquals(zts.getCertRequestExpiryTime(100, null), 100);
-        assertEquals(zts.getCertRequestExpiryTime(100, -100), 100);
-        assertEquals(zts.getCertRequestExpiryTime(100, 80), 80);
-        assertEquals(zts.getCertRequestExpiryTime(100, 120), 100);
+        assertEquals(zts.getServiceCertRequestExpiryTime(100, null), 100);
+        assertEquals(zts.getServiceCertRequestExpiryTime(100, -100), 100);
+        assertEquals(zts.getServiceCertRequestExpiryTime(100, 80), 80);
+        assertEquals(zts.getServiceCertRequestExpiryTime(100, 120), 100);
 
-        assertEquals(zts.getCertRequestExpiryTime(0, null), 0);
-        assertEquals(zts.getCertRequestExpiryTime(0, 80), 80);
-        assertEquals(zts.getCertRequestExpiryTime(0, 120), 120);
-        assertEquals(zts.getCertRequestExpiryTime(0, -110), 0);
+        assertEquals(zts.getServiceCertRequestExpiryTime(0, null), 0);
+        assertEquals(zts.getServiceCertRequestExpiryTime(0, 80), 80);
+        assertEquals(zts.getServiceCertRequestExpiryTime(0, 120), 120);
+        assertEquals(zts.getServiceCertRequestExpiryTime(0, -110), 0);
     }
 
     @Test
@@ -10265,5 +10400,307 @@ public class ZTSImplTest {
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 403);
         }
+    }
+
+    @Test
+    public void testGetConfiguredRoleExpiryTimeMinsNoSettings() {
+
+        DataCache data = new DataCache();
+        Role role = new Role().setName("athenz:role.admin");
+        data.processRole(role);
+        data.setDomainData(new DomainData());
+
+        Set<String> roles = new HashSet<>();
+        assertEquals(zts.getConfiguredRoleCertExpiryTimeMins(data, roles), 0);
+
+        roles.add("readers");
+        assertEquals(zts.getConfiguredRoleCertExpiryTimeMins(data, roles), 0);
+
+        roles.add("admin");
+        assertEquals(zts.getConfiguredRoleCertExpiryTimeMins(data, roles), 0);
+    }
+
+    @Test
+    public void testGetConfiguredRoleExpiryTimeMinsDomainSettings() {
+
+        DataCache data = new DataCache();
+        Role role = new Role().setName("athenz:role.admin");
+        data.processRole(role);
+        DomainData domainData = new DomainData();
+        domainData.setRoleCertExpiryMins(120);
+        data.setDomainData(domainData);
+
+        Set<String> roles = new HashSet<>();
+        assertEquals(zts.getConfiguredRoleCertExpiryTimeMins(data, roles), 120);
+
+        roles.add("readers");
+        assertEquals(zts.getConfiguredRoleCertExpiryTimeMins(data, roles), 120);
+
+        roles.add("admin");
+        assertEquals(zts.getConfiguredRoleCertExpiryTimeMins(data, roles), 120);
+    }
+
+    @Test
+    public void testGetConfiguredRoleExpiryTimeMinsInvalidDomainSettings() {
+
+        DataCache data = new DataCache();
+        Role role = new Role().setName("athenz:role.admin");
+        data.processRole(role);
+        DomainData domainData = new DomainData();
+        domainData.setRoleCertExpiryMins(-60);
+        data.setDomainData(domainData);
+
+        Set<String> roles = new HashSet<>();
+        assertEquals(zts.getConfiguredRoleCertExpiryTimeMins(data, roles), 0);
+
+        roles.add("readers");
+        assertEquals(zts.getConfiguredRoleCertExpiryTimeMins(data, roles), 0);
+
+        roles.add("admin");
+        assertEquals(zts.getConfiguredRoleCertExpiryTimeMins(data, roles), 0);
+    }
+
+    @Test
+    public void testGetConfiguredRoleExpiryTimeMinsInvalidRoleSettings() {
+
+        DataCache data = new DataCache();
+        Role role = new Role().setName("athenz:role.admin").setCertExpiryMins(-30);
+        data.processRole(role);
+        DomainData domainData = new DomainData();
+        domainData.setRoleCertExpiryMins(120);
+        data.setDomainData(domainData);
+
+        Set<String> roles = new HashSet<>();
+        assertEquals(zts.getConfiguredRoleCertExpiryTimeMins(data, roles), 120);
+
+        roles.add("readers");
+        assertEquals(zts.getConfiguredRoleCertExpiryTimeMins(data, roles), 120);
+
+        roles.add("admin");
+        assertEquals(zts.getConfiguredRoleCertExpiryTimeMins(data, roles), 120);
+    }
+
+    @Test
+    public void testGetConfiguredRoleExpiryTimeMinsRoleSettings() {
+
+        DataCache data = new DataCache();
+        Role role = new Role().setName("athenz:role.admin").setCertExpiryMins(180);
+        data.processRole(role);
+        DomainData domainData = new DomainData();
+        domainData.setRoleCertExpiryMins(120);
+        data.setDomainData(domainData);
+
+        Set<String> roles = new HashSet<>();
+        assertEquals(zts.getConfiguredRoleCertExpiryTimeMins(data, roles), 120);
+
+        roles.add("readers");
+        assertEquals(zts.getConfiguredRoleCertExpiryTimeMins(data, roles), 120);
+
+        roles.add("admin");
+        assertEquals(zts.getConfiguredRoleCertExpiryTimeMins(data, roles), 180);
+    }
+
+    @Test
+    public void testGetConfiguredRoleExpiryTimeMinsMultipleRoleSettings() {
+
+        DataCache data = new DataCache();
+        Role role1 = new Role().setName("athenz:role.admin").setCertExpiryMins(60);
+        data.processRole(role1);
+        Role role2 = new Role().setName("athenz:role.readers").setCertExpiryMins(80);
+        data.processRole(role2);
+        Role role3 = new Role().setName("athenz:role.writers").setCertExpiryMins(70);
+        data.processRole(role3);
+
+        DomainData domainData = new DomainData();
+        domainData.setRoleCertExpiryMins(120);
+        data.setDomainData(domainData);
+
+        Set<String> roles = new HashSet<>();
+        assertEquals(zts.getConfiguredRoleCertExpiryTimeMins(data, roles), 120);
+
+        roles.add("readers");
+        assertEquals(zts.getConfiguredRoleCertExpiryTimeMins(data, roles), 80);
+
+        roles.add("admin");
+        assertEquals(zts.getConfiguredRoleCertExpiryTimeMins(data, roles), 60);
+
+        roles.add("writers");
+        assertEquals(zts.getConfiguredRoleCertExpiryTimeMins(data, roles), 60);
+    }
+
+
+    @Test
+    public void testDetermineRoleCertTimeout() {
+
+        DataCache data = new DataCache();
+        Role role1 = new Role().setName("athenz:role.admin").setCertExpiryMins(60);
+        data.processRole(role1);
+
+        DomainData domainData = new DomainData();
+        domainData.setRoleCertExpiryMins(120);
+        data.setDomainData(domainData);
+
+        Set<String> roles = new HashSet<>();
+        roles.add("admin");
+        assertEquals(zts.getConfiguredRoleCertExpiryTimeMins(data, roles), 60);
+        assertEquals(zts.determineRoleCertTimeout(data, roles, 120), 60);
+        assertEquals(zts.determineRoleCertTimeout(data, roles, -1), 60);
+        assertEquals(zts.determineRoleCertTimeout(data, roles, 30), 30);
+    }
+
+    @Test
+    public void testDetermineRoleCertTimeoutNoSetting() {
+
+        DataCache data = new DataCache();
+        Role role1 = new Role().setName("athenz:role.admin").setCertExpiryMins(60);
+        data.processRole(role1);
+
+        DomainData domainData = new DomainData();
+        data.setDomainData(domainData);
+
+        Set<String> roles = new HashSet<>();
+        roles.add("readers");
+        assertEquals(zts.determineRoleCertTimeout(data, roles, 120), 120);
+        assertEquals(zts.determineRoleCertTimeout(data, roles, -1), 0);
+        assertEquals(zts.determineRoleCertTimeout(data, roles, 60), 60);
+    }
+
+    @Test
+    public void testGetConfiguredRoleListExpiryTimeMinsNoList() {
+
+        Map<String, String[]> requestedRoleList = new HashMap<>();
+        String[] roles = new String[1];
+        roles[0] = "readers";
+        requestedRoleList.put("athenz", roles);
+        requestedRoleList.put("coretech", roles);
+
+        DataCache data = new DataCache();
+        Role role1 = new Role().setName("athenz:role.admin").setCertExpiryMins(60);
+        data.processRole(role1);
+
+        assertEquals(zts.getConfiguredRoleListExpiryTimeMins(requestedRoleList), 0);
+    }
+
+    @Test
+    public void testGetConfiguredRoleListExpiryTimeMinsRoleSetting() {
+
+        Map<String, String[]> requestedRoleList = new HashMap<>();
+        String[] roles = new String[1];
+        roles[0] = "readers";
+        requestedRoleList.put("athenz", roles);
+        requestedRoleList.put("coretech", roles);
+
+        DataCache data = new DataCache();
+        Role role1 = new Role().setName("athenz:role.readers").setCertExpiryMins(60);
+        data.processRole(role1);
+
+        DomainData domainData = new DomainData();
+        data.setDomainData(domainData);
+
+        zts.dataStore.getCacheStore().put("athenz", data);
+
+        assertEquals(zts.getConfiguredRoleListExpiryTimeMins(requestedRoleList), 60);
+    }
+
+    @Test
+    public void testDetermineRoleCertTimeoutRequestedRoleList() {
+
+        Map<String, String[]> requestedRoleList = new HashMap<>();
+        String[] roles = new String[1];
+        roles[0] = "readers";
+        requestedRoleList.put("athenz", roles);
+        requestedRoleList.put("coretech", roles);
+
+        DataCache data = new DataCache();
+        Role role1 = new Role().setName("athenz:role.readers").setCertExpiryMins(60);
+        data.processRole(role1);
+
+        DomainData domainData = new DomainData();
+        data.setDomainData(domainData);
+
+        zts.dataStore.getCacheStore().put("athenz", data);
+
+        assertEquals(zts.getConfiguredRoleListExpiryTimeMins(requestedRoleList), 60);
+        assertEquals(zts.determineRoleCertTimeout(requestedRoleList, 30), 30);
+        assertEquals(zts.determineRoleCertTimeout(requestedRoleList, 90), 60);
+    }
+
+    @Test
+    public void testGetConfiguredRoleListExpiryTimeMinsDomainSetting() {
+
+        Map<String, String[]> requestedRoleList = new HashMap<>();
+        String[] roles = new String[1];
+        roles[0] = "readers";
+        requestedRoleList.put("athenz", roles);
+        requestedRoleList.put("coretech", roles);
+
+        DataCache data = new DataCache();
+        Role role1 = new Role().setName("athenz:role.readers");
+        data.processRole(role1);
+
+        DomainData domainData = new DomainData().setRoleCertExpiryMins(90);
+        data.setDomainData(domainData);
+
+        zts.dataStore.getCacheStore().put("athenz", data);
+
+        assertEquals(zts.getConfiguredRoleListExpiryTimeMins(requestedRoleList), 90);
+    }
+
+    @Test
+    public void testGetConfiguredRoleListExpiryTimeMinsMultipleMixedSetting() {
+
+        Map<String, String[]> requestedRoleList = new HashMap<>();
+        String[] roles = new String[1];
+        roles[0] = "readers";
+        requestedRoleList.put("athenz", roles);
+        requestedRoleList.put("coretech", roles);
+
+        DataCache data1 = new DataCache();
+        Role role1 = new Role().setName("athenz:role.readers").setCertExpiryMins(60);
+        data1.processRole(role1);
+
+        DomainData domainData1 = new DomainData();
+        data1.setDomainData(domainData1);
+
+        DataCache data2 = new DataCache();
+        Role role2 = new Role().setName("coretech:role.readers");
+        data2.processRole(role2);
+
+        DomainData domainData2 = new DomainData().setRoleCertExpiryMins(120);
+        data2.setDomainData(domainData2);
+
+        zts.dataStore.getCacheStore().put("athenz", data1);
+        zts.dataStore.getCacheStore().put("coretech", data2);
+
+        assertEquals(zts.getConfiguredRoleListExpiryTimeMins(requestedRoleList), 60);
+    }
+
+    @Test
+    public void testGetConfiguredRoleListExpiryTimeMinsMultipleDomainSetting() {
+
+        Map<String, String[]> requestedRoleList = new HashMap<>();
+        String[] roles = new String[1];
+        roles[0] = "readers";
+        requestedRoleList.put("athenz", roles);
+        requestedRoleList.put("coretech", roles);
+
+        DataCache data1 = new DataCache();
+        Role role1 = new Role().setName("athenz:role.readers");
+        data1.processRole(role1);
+
+        DomainData domainData1 = new DomainData().setRoleCertExpiryMins(120);
+        data1.setDomainData(domainData1);
+
+        DataCache data2 = new DataCache();
+        Role role2 = new Role().setName("coretech:role.readers");
+        data2.processRole(role2);
+
+        DomainData domainData2 = new DomainData().setRoleCertExpiryMins(90);
+        data2.setDomainData(domainData2);
+
+        zts.dataStore.getCacheStore().put("athenz", data1);
+        zts.dataStore.getCacheStore().put("coretech", data2);
+
+        assertEquals(zts.getConfiguredRoleListExpiryTimeMins(requestedRoleList), 90);
     }
 }

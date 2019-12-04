@@ -19,6 +19,7 @@ import java.util.*;
 
 import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.zts.ZTSConsts;
+import com.yahoo.athenz.zts.utils.ZTSUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +36,7 @@ public class DataCache {
     private final Set<MemberRole> memberAllRoleCache;
     private final Map<String, Set<String>> trustCache;
     private final Map<String, Set<String>> hostCache;
+    private final Map<String, RoleMeta> roleMetaCache;
     private final Map<String, Set<String>> awsRoleCache;
     private final Map<String, String> publicKeyCache;
     private final Map<String, List<String>> providerDnsSuffixCache;
@@ -57,6 +59,7 @@ public class DataCache {
         trustCache = new HashMap<>();
         hostCache = new HashMap<>();
         awsRoleCache = new HashMap<>();
+        roleMetaCache = new HashMap<>();
         publicKeyCache = new HashMap<>();
         providerDnsSuffixCache = new HashMap<>();
         providerHostnameAllowedSuffixCache = new HashMap<>();
@@ -122,6 +125,23 @@ public class DataCache {
         }
     }
 
+    void processRoleMeta(Role role) {
+
+        RoleMeta rm = new RoleMeta()
+                .setSignAlgorithm(role.getSignAlgorithm())
+                .setCertExpiryMins(role.getCertExpiryMins())
+                .setTokenExpiryMins(role.getTokenExpiryMins());
+
+        // for the role meta cache we're going to create the map
+        // based on the role name without the domain prefix
+
+        String roleName = ZTSUtils.extractRoleName(role.getName());
+        if (roleName == null) {
+            return;
+        }
+        roleMetaCache.put(roleName, rm);
+    }
+
     void processRoleTrustDomain(String roleName, String trustDomain) {
 
         if (trustDomain == null) {
@@ -142,13 +162,17 @@ public class DataCache {
             LOGGER.debug("Processing role: {}", role.getName());
         }
         
-        /* first process members */
+        // first process members
         
         processRoleMembers(role.getName(), role.getRoleMembers());
         
-        /* now process trust domains */
+        // now process trust domains
         
         processRoleTrustDomain(role.getName(), role.getTrust());
+
+        // now process the role meta data
+
+        processRoleMeta(role);
     }
 
     void processProviderSuffixAssertion(Assertion assertion, AssertionEffect effect, Map<String, Role> roles,
@@ -408,7 +432,11 @@ public class DataCache {
     public Set<String> getAWSResourceRoleSet(String role) {
         return awsRoleCache.get(role);
     }
-    
+
+    public RoleMeta getRoleMeta(String role) {
+        return roleMetaCache.get(role);
+    }
+
     public Map<String, Set<String>> getTrustMap() {
         return trustCache;
     }
