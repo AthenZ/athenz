@@ -35,15 +35,14 @@ public class SelfCertSigner implements CertSigner {
         this.caCertificate = caCertificate;
         this.caPrivateKey = caPrivateKey;
         
-        // max certificate validity time in minutes and convert
-        // value to seconds for the certificate signer
+        // max certificate validity time in minutes
         
         maxCertExpiryTimeMins = Integer.parseInt(System.getProperty(ZTSConsts.ZTS_PROP_CERTSIGN_MAX_EXPIRY_TIME, "43200"));
     }
 
     @Override
     public String generateX509Certificate(String csr, String keyUsage, int expiryTime) {
-        int certExpiryTime = expiryTime == 0 ? maxCertExpiryTimeMins * 60 : expiryTime;
+        int certExpiryTime = expiryTime == 0 ? maxCertExpiryTimeMins : expiryTime;
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
         X509Certificate cert = Crypto.generateX509Certificate(certReq, caPrivateKey,
                 caCertificate, certExpiryTime, false);
