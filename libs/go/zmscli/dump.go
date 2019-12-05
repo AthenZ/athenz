@@ -25,40 +25,48 @@ var (
 func (cli Zms) dumpDomain(buf *bytes.Buffer, domain *zms.Domain) {
 	buf.WriteString("domain:\n")
 
-	buf.WriteString(indent_level1)
-	buf.WriteString("name: ")
-	buf.WriteString(string(domain.Name))
-	buf.WriteString("\n")
+	dumpStringValue(buf, indent_level1, "name", string(domain.Name))
+	dumpStringValue(buf, indent_level1, "description", domain.Description)
+	dumpStringValue(buf, indent_level1, "aws_account", domain.Account)
+	dumpInt32Value(buf, indent_level1, "product_id", domain.YpmId)
+	dumpStringValue(buf, indent_level1, "org", string(domain.Org))
+	dumpBoolValue(buf, indent_level1, "audit_enabled", domain.AuditEnabled)
+	dumpInt32Value(buf, indent_level1, "member_expiry_days", domain.MemberExpiryDays)
+	dumpInt32Value(buf, indent_level1, "token_expiry_days", domain.TokenExpiryMins)
+	dumpInt32Value(buf, indent_level1, "service_cert_expiry_days", domain.ServiceCertExpiryMins)
+	dumpInt32Value(buf, indent_level1, "role_cert_expiry_days", domain.RoleCertExpiryMins)
+	dumpStringValue(buf, indent_level1, "sign_algorithm", string(domain.SignAlgorithm))
+}
 
-	if domain.Description != "" {
-		buf.WriteString(indent_level1)
-		buf.WriteString("description: ")
-		buf.WriteString(domain.Description)
+func dumpStringValue(buf *bytes.Buffer, indent, label, value string) {
+	if value != "" {
+		buf.WriteString(indent)
+		buf.WriteString(label)
+		buf.WriteString(": ")
+		buf.WriteString(value)
 		buf.WriteString("\n")
 	}
-	if domain.Account != "" {
-		buf.WriteString(indent_level1)
-		buf.WriteString("aws_account: '")
-		buf.WriteString(domain.Account)
-		buf.WriteString("'\n")
+}
+
+func dumpInt32Value(buf *bytes.Buffer, indent, label string, value *int32) {
+	if value != nil {
+		intValue := int(*value)
+		if intValue != 0 {
+			buf.WriteString(indent)
+			buf.WriteString(label)
+			buf.WriteString(": ")
+			buf.WriteString(strconv.Itoa(intValue))
+			buf.WriteString("\n")
+		}
 	}
-	productID := int(*domain.YpmId)
-	if productID != 0 {
-		buf.WriteString(indent_level1)
-		buf.WriteString("product_id: ")
-		buf.WriteString(strconv.Itoa(productID))
-		buf.WriteString("\n")
-	}
-	if domain.Org != "" {
-		buf.WriteString(indent_level1)
-		buf.WriteString("org: ")
-		buf.WriteString(string(domain.Org))
-		buf.WriteString("\n")
-	}
-	if domain.AuditEnabled != nil {
-		buf.WriteString(indent_level1)
-		buf.WriteString("audit_enabled: ")
-		buf.WriteString(strconv.FormatBool(*domain.AuditEnabled))
+}
+
+func dumpBoolValue(buf *bytes.Buffer, indent, label string, value *bool) {
+	if value != nil {
+		buf.WriteString(indent)
+		buf.WriteString(label)
+		buf.WriteString(": ")
+		buf.WriteString(strconv.FormatBool(*value))
 		buf.WriteString("\n")
 	}
 }
@@ -111,6 +119,11 @@ func (cli Zms) displayObjectName(buf *bytes.Buffer, fullResourceName string, obj
 
 func (cli Zms) dumpRole(buf *bytes.Buffer, role zms.Role, auditLog bool, indent1 string, indent2 string) {
 	cli.displayObjectName(buf, string(role.Name), ":role.", indent1)
+	dumpInt32Value(buf, indent2, "member_expiry_days", role.MemberExpiryDays)
+	dumpInt32Value(buf, indent2, "token_expiry_days", role.TokenExpiryMins)
+	dumpInt32Value(buf, indent2, "cert_expiry_days", role.CertExpiryMins)
+	dumpBoolValue(buf, indent2, "self_serve", role.SelfServe)
+	dumpStringValue(buf, indent2, "sign_algorithm", string(role.SignAlgorithm))
 	if role.RoleMembers != nil && len(role.RoleMembers) > 0 {
 		buf.WriteString(indent2)
 		buf.WriteString("members:\n")
