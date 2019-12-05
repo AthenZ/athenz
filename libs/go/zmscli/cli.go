@@ -1838,7 +1838,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   set-role-audit-enabled group_role audit-enabled\n")
 	buf.WriteString("   set-role-self-serve group_role self-serve\n")
 	buf.WriteString("   set-role-member-expiry-days group_role member-expiry-days\n")
-	buf.WriteString("   set-role-token-expiry-mins role group_role token-expiry-mins\n")
+	buf.WriteString("   set-role-token-expiry-mins group_role token-expiry-mins\n")
 	buf.WriteString("   set-role-cert-expiry-mins group_role cert-expiry-mins\n")
 	buf.WriteString("   set-role-token-sign-algorithm group_role algorithm\n")
 	buf.WriteString("   put-membership-decision group_role user_or_service [expiration] decision\n")
