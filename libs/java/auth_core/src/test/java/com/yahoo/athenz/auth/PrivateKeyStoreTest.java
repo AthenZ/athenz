@@ -29,5 +29,6 @@ public class PrivateKeyStoreTest {
 
         assertEquals("key1", keyStore.getApplicationSecret("jdbc", "key1"));
         assertNull(keyStore.getPrivateKey("service", "host1", null));
+        assertNull(keyStore.getPrivateKey("service", "host1", "us-west-2", "rsa", null));
     }
 }

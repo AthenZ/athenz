@@ -32,7 +32,24 @@ public interface PrivateKeyStore {
             StringBuilder privateKeyId) {
         return null;
     }
-    
+
+    /**
+     * Retrieve private key for this Athenz Server instance for the given
+     * crypto algorithm to sign its tokens.
+     * The private key identifier must be updated in the privateKeyId out
+     * StringBuilder field.
+     * @param service Athenz service (zms or zts) requesting private key
+     * @param serverHostName hostname of the Athenz Server instance
+     * @param serviceInstance Athenz Server instance id (could be region id, etc)
+     * @param algorithm Requested algorithm - rsa or ec
+     * @param privateKeyId - out argument - must be updated to include key id
+     * @return private key for this ZMS Server instance.
+     */
+    default PrivateKey getPrivateKey(String service, String serverHostName, String serviceInstance,
+            String algorithm, StringBuilder privateKeyId) {
+        return null;
+    }
+
     /**
      * Retrieve the application secret based on the configured key name.
      * The application name specifies what component is this secret for;
