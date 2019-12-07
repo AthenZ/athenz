@@ -240,6 +240,10 @@ public class ZTSSchema {
             .field("serviceToken", "SignedToken", true, "service token instead of TLS certificate")
             .mapField("attributes", "String", "String", true, "other config-like attributes determined at boot time");
 
+        sb.structType("CertificateAuthorityBundle")
+            .field("name", "SimpleName", false, "name of the bundle")
+            .field("certs", "String", false, "set of certificates included in the bundle");
+
         sb.enumType("DomainMetricType")
             .comment("zpe metric attributes")
             .element("ACCESS_ALLOWED")
@@ -615,6 +619,17 @@ public class ZTSSchema {
             .exception("FORBIDDEN", "ResourceError", "")
 
             .exception("INTERNAL_SERVER_ERROR", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("CertificateAuthorityBundle", "GET", "/cacerts/{name}")
+            .pathParam("name", "SimpleName", "name of the CA cert bundle")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
 
             .exception("NOT_FOUND", "ResourceError", "")
 

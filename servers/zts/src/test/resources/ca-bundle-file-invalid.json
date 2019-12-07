@@ -1,0 +1,13 @@
+{
+  "certBundles": [
+    {
+      "name": "athenz",
+      "filename": "src/test/resources/x509_certs_comments.pem",
+      "type": "x509"
+    },
+    {
+      "name": "system",
+      filename
+    }
+  ]
+}

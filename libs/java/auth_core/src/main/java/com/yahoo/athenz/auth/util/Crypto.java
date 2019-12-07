@@ -15,34 +15,14 @@
  */
 package com.yahoo.athenz.auth.util;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Reader;
-import java.io.StringReader;
-import java.io.StringWriter;
+import java.io.*;
 import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
-import java.security.InvalidKeyException;
-import java.security.KeyFactory;
-import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.SecureRandom;
-import java.security.Security;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.MessageDigest;
-import java.security.SignatureException;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateParsingException;
-import java.security.cert.X509Certificate;
+import java.security.*;
+import java.security.cert.*;
+import java.security.cert.Certificate;
 import java.security.interfaces.RSAPrivateCrtKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPublicKeySpec;
@@ -379,6 +359,40 @@ public class Crypto {
 
     public static String ybase64EncodeString(String str) {
         return utf8String(YBase64.encode(utf8Bytes(str)));
+    }
+
+    public static String x509CertificatesToPEM(X509Certificate[] x509Certs) throws CryptoException {
+        StringWriter sw = new StringWriter();
+        try (JcaPEMWriter pw = new JcaPEMWriter(sw)) {
+            for (X509Certificate x509Cert : x509Certs) {
+                pw.writeObject(x509Cert);
+            }
+        } catch (IOException ex) {
+            LOG.error("Unable to generate PEM output", ex);
+            throw new CryptoException(ex);
+        }
+        return sw.toString();
+    }
+
+    public static X509Certificate[] loadX509Certificates(final String certsFile) throws CryptoException {
+
+        File certFile = new File(certsFile);
+
+        try (InputStream certStream  = new FileInputStream(certFile)) {
+
+            final CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            List<? extends Certificate> certs = (List<? extends Certificate>) cf.generateCertificates(certStream);
+            if (certs.isEmpty()) {
+                throw new CryptoException("Certificate file contains empty certificate or an invalid certificate.");
+            }
+            return certs.toArray(new X509Certificate[certs.size()]);
+        } catch (IOException ex) {
+            LOG.error("loadX509Certificates: unable to process file: " + certFile.getAbsolutePath());
+            throw new CryptoException(ex);
+        } catch (CertificateException ex) {
+            LOG.error("Unable to load certificates", ex);
+            throw new CryptoException(ex);
+        }
     }
 
     public static X509Certificate loadX509Certificate(File certFile) throws CryptoException  {

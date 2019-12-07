@@ -16,7 +16,6 @@
 package com.yahoo.athenz.zts;
 
 import java.util.*;
-
 import com.yahoo.rdl.Timestamp;
 
 public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.Closeable {
@@ -448,5 +447,19 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
             throw new ResourceException(400, "Invalid request");
         }
         return null;
+    }
+
+    @Override
+    public CertificateAuthorityBundle getCertificateAuthorityBundle(String bundleName) {
+        if (bundleName.equals("exc")) {
+            throw new NullPointerException("Invalid request");
+        }
+        if (bundleName.equals("system")) {
+            throw new ResourceException(404, "Unknown bundle name");
+        }
+        CertificateAuthorityBundle bundle = new CertificateAuthorityBundle();
+        bundle.setName(bundleName);
+        bundle.setCerts("certs");
+        return bundle;
     }
 }

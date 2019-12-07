@@ -1,0 +1,18 @@
+{
+  "certBundles": [
+    {
+      "name": "athenz",
+      "type": "x509"
+    },
+    {
+      "name": "system",
+      "filename": "src/test/resources/x509_certs_no_comments.pem",
+      "type": "x509"
+    },
+    {
+      "name": "ssh",
+      "filename": "src/test/resources/ssh-ca-certs",
+      "type": "ssh"
+    }
+  ]
+}

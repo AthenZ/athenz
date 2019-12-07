@@ -500,6 +500,30 @@ public class ZTSResources {
         }
     }
 
+    @GET
+    @Path("/cacerts/{name}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public CertificateAuthorityBundle getCertificateAuthorityBundle(@PathParam("name") String name) {
+        try {
+            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context.authenticate();
+            return this.delegate.getCertificateAuthorityBundle(context, name);
+        } catch (ResourceException e) {
+            int code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource getCertificateAuthorityBundle");
+                throw typedException(code, e, ResourceError.class);
+            }
+        }
+    }
+
     @POST
     @Path("/metrics/{domainName}")
     @Consumes(MediaType.APPLICATION_JSON)

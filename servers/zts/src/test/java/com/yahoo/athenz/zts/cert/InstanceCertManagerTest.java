@@ -25,7 +25,6 @@ import static org.testng.Assert.fail;
 
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.server.cert.CertSigner;
-import com.yahoo.athenz.zts.store.impl.ZMSFileChangeLogStore;
 import com.yahoo.athenz.zts.utils.IPBlock;
 import com.yahoo.athenz.auth.Principal;
 
@@ -204,7 +203,7 @@ public class InstanceCertManagerTest {
         instance.setCertSigner(null);
 
         instance.setCertStore(null);
-        X509CertRecord certRecord = instance.getX509CertRecord("ostk", (X509Certificate) null);
+        X509CertRecord certRecord = instance.getX509CertRecord("ostk", null);
         assertNull(certRecord);
 
         certRecord = instance.getX509CertRecord("ostk", "instance-id", "athenz.production");
@@ -577,7 +576,7 @@ public class InstanceCertManagerTest {
         System.setProperty(ZTSConsts.ZTS_PROP_INSTANCE_CERT_IP_FNAME, "invalid-file");
 
         try {
-            InstanceCertManager instance = new InstanceCertManager(null, null, true);
+            new InstanceCertManager(null, null, true);
             fail();
         } catch (Exception ex) {
             assertTrue(ex.getMessage().contains("Unable to load Provider Allowed IP Blocks"));
@@ -592,7 +591,7 @@ public class InstanceCertManagerTest {
         System.setProperty(ZTSConsts.ZTS_PROP_INSTANCE_CERT_IP_FNAME, "src/test/resources/instance_cert_ipblocks_invalid_json.txt");
 
         try {
-            InstanceCertManager instance = new InstanceCertManager(null, null, true);
+            new InstanceCertManager(null, null, true);
             fail();
         } catch (Exception ex) {
             assertTrue(ex.getMessage().contains("Unable to load Provider Allowed IP Blocks"));
@@ -607,7 +606,7 @@ public class InstanceCertManagerTest {
         System.setProperty(ZTSConsts.ZTS_PROP_INSTANCE_CERT_IP_FNAME, "src/test/resources/instance_cert_ipblocks_invalid_ip.txt");
 
         try {
-            InstanceCertManager instance = new InstanceCertManager(null, null, true);
+            new InstanceCertManager(null, null, true);
             fail();
         } catch (Exception ex) {
             assertTrue(ex.getMessage().contains("Unable to load Provider Allowed IP Blocks"));
@@ -695,7 +694,7 @@ public class InstanceCertManagerTest {
 
         System.setProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_FACTORY_CLASS, "invalid");
         try {
-            InstanceCertManager instanceCertManager = new InstanceCertManager(null, null, true);
+            new InstanceCertManager(null, null, true);
             fail();
         } catch (Exception ex) {
             assertTrue(ex.getMessage().contains("Invalid certsigner class"));
@@ -708,7 +707,7 @@ public class InstanceCertManagerTest {
 
         System.setProperty(ZTSConsts.ZTS_PROP_SSH_SIGNER_FACTORY_CLASS, "invalid");
         try {
-            InstanceCertManager instanceCertManager = new InstanceCertManager(null, null, true);
+            new InstanceCertManager(null, null, true);
             fail();
         } catch (Exception ex) {
             assertTrue(ex.getMessage().contains("Invalid sshsigner class"));
@@ -721,7 +720,7 @@ public class InstanceCertManagerTest {
 
         System.setProperty(ZTSConsts.ZTS_PROP_CERT_RECORD_STORE_FACTORY_CLASS, "invalid");
         try {
-            InstanceCertManager instanceCertManager = new InstanceCertManager(null, null, true);
+            new InstanceCertManager(null, null, true);
             fail();
         } catch (Exception ex) {
             assertTrue(ex.getMessage().contains("Invalid cert record store factory class"));
@@ -734,7 +733,7 @@ public class InstanceCertManagerTest {
 
         System.setProperty(ZTSConsts.ZTS_PROP_X509_CA_CERT_FNAME, "invalid-file");
         try {
-            InstanceCertManager instanceCertManager = new InstanceCertManager(null, null, false);
+            new InstanceCertManager(null, null, false);
             fail();
         } catch (ResourceException ex) {
             assertEquals(500, ex.getCode());
@@ -837,5 +836,105 @@ public class InstanceCertManagerTest {
         // however, with null cert store, we should never call log
         instance.log(null, null, null, null, null);
         instance.shutdown();
+    }
+
+    @Test
+    public void loadCertificateAuthorityBundlesInvalidFile() {
+
+        System.setProperty(ZTSConsts.ZTS_PROP_CERT_BUNDLES_FNAME, "invalid-file");
+
+        try {
+            new InstanceCertManager(null, null, true);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Unable to load Certificate Authority Bundles"));
+        }
+
+        System.setProperty(ZTSConsts.ZTS_PROP_CERT_BUNDLES_FNAME, "src/test/resources/ca-bundle-file-invalid.json");
+
+        try {
+            new InstanceCertManager(null, null, true);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Unable to load Certificate Authority Bundles"));
+        }
+
+        System.setProperty(ZTSConsts.ZTS_PROP_CERT_BUNDLES_FNAME, "src/test/resources/ca-bundle-file-missing-filename.json");
+
+        try {
+            new InstanceCertManager(null, null, true);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Unable to load Certificate Authority Bundles"));
+        }
+
+        System.setProperty(ZTSConsts.ZTS_PROP_CERT_BUNDLES_FNAME, "src/test/resources/ca-bundle-file-empty.json");
+
+        try {
+            new InstanceCertManager(null, null, true);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Unable to load Certificate Authority Bundles"));
+        }
+
+        System.setProperty(ZTSConsts.ZTS_PROP_CERT_BUNDLES_FNAME, "src/test/resources/ca-bundle-file-invalid-x509.json");
+
+        try {
+            new InstanceCertManager(null, null, true);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Unable to load Certificate Authority Bundles"));
+        }
+
+        System.setProperty(ZTSConsts.ZTS_PROP_CERT_BUNDLES_FNAME, "src/test/resources/ca-bundle-file-invalid-ssh.json");
+
+        try {
+            new InstanceCertManager(null, null, true);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Unable to load Certificate Authority Bundles"));
+        }
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_CERT_BUNDLES_FNAME);
+    }
+
+    @Test
+    public void loadCertificateAuthorityBundles() throws IOException {
+
+        System.setProperty(ZTSConsts.ZTS_PROP_CERT_BUNDLES_FNAME, "src/test/resources/ca-bundle-file.json");
+
+        InstanceCertManager certManager = new InstanceCertManager(null, null, true);
+
+        // test our valid bundles. athenz and system should present same data
+        // since one just includes comments
+
+        CertificateAuthorityBundle bundleAthenz = certManager.getCertificateAuthorityBundle("athenz");
+        assertNotNull(bundleAthenz);
+
+        assertEquals(bundleAthenz.getName(), "athenz");
+        final String athenzData = bundleAthenz.getCerts();
+
+        CertificateAuthorityBundle bundleSystem = certManager.getCertificateAuthorityBundle("system");
+        assertNotNull(bundleSystem);
+
+        assertEquals(bundleSystem.getName(), "system");
+        final String systemData = bundleSystem.getCerts();
+
+        assertEquals(athenzData, systemData);
+
+        // compare the contents with the actual file contents
+
+        File caFile = new File("src/test/resources/x509_certs_no_comments.pem");
+        byte[] data = Files.readAllBytes(Paths.get(caFile.toURI()));
+        assertEquals(athenzData, new String(data));
+
+        CertificateAuthorityBundle bundleSsh = certManager.getCertificateAuthorityBundle("ssh");
+        assertNotNull(bundleSsh);
+
+        assertEquals(bundleSsh.getName(), "ssh");
+        final String sshData = bundleSsh.getCerts();
+        assertEquals(sshData, "ssh-certificate-authority-keys");
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_CERT_BUNDLES_FNAME);
     }
 }

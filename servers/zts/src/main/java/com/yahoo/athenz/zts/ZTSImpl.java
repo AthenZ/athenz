@@ -1300,6 +1300,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
     
     // Token interface
+    @Override
     public RoleToken getRoleToken(ResourceContext ctx, String domainName, String roleNames,
             Integer minExpiryTime, Integer maxExpiryTime, String proxyForPrincipal) {
         
@@ -3877,7 +3878,43 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.stopTiming(timerMetric, domainName, principalDomain);
         return access;
     }
-    
+
+    public CertificateAuthorityBundle getCertificateAuthorityBundle(ResourceContext ctx, String name) {
+
+        final String caller = "getcertificateauthoritybundle";
+        final String callerTiming = "getcertificateauthoritybundle_timing";
+        final String principalDomain = logPrincipalAndGetDomain(ctx);
+
+        metric.increment(HTTP_GET);
+        metric.increment(HTTP_REQUEST);
+        metric.increment(caller);
+
+        validateRequest(ctx.request(), name, caller);
+        validate(name, TYPE_SIMPLE_NAME, principalDomain, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case since ZMS Server
+        // saves all of its object names in lower case
+
+        name = name.toLowerCase();
+        Object timerMetric = metric.startTiming(callerTiming, name, principalDomain);
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("getCertificateAuthorityBundle(name: {})", name);
+        }
+
+        // fetch the requested bundle from the cert manager
+
+        CertificateAuthorityBundle bundle = instanceCertManager.getCertificateAuthorityBundle(name);
+        if (bundle == null) {
+            throw notFoundError("getCertificateAuthorityBundle: No such bundle: " + name,
+                    caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+        }
+
+        metric.stopTiming(timerMetric, name, principalDomain);
+        return bundle;
+    }
+
     /*
      * /metrics/{domainName}
      */
