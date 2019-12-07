@@ -512,10 +512,14 @@ func (cli Zms) dumpQuota(buf *bytes.Buffer, quota *zms.Quota) {
 	buf.WriteString("\n")
 }
 
-func (cli Zms) dumpDomainRoleMembers(buf *bytes.Buffer, domainRoleMembers *zms.DomainRoleMembers) {
-	buf.WriteString(string(domainRoleMembers.DomainName) + "\n")
+func (cli Zms) dumpDomainRoleMembers(buf *bytes.Buffer, domainRoleMembers *zms.DomainRoleMembers, displayName bool) {
+	if displayName {
+		buf.WriteString("  - name: " + string(domainRoleMembers.DomainName) + "\n")
+		buf.WriteString("    members:\n")
+	}
 	for _, roleMember := range domainRoleMembers.Members {
-		buf.WriteString(indent_level1_dash + string(roleMember.MemberName) + "\n")
+		buf.WriteString(indent_level1_dash + "member: " + string(roleMember.MemberName) + "\n")
+		buf.WriteString(indent_level1_dash_lvl + "roles:\n")
 		for _, role := range roleMember.MemberRoles {
 			buf.WriteString(indent_level2_dash + string(role.RoleName))
 			if role.Expiration != nil {

@@ -601,9 +601,9 @@ func (cli Zms) ListPendingDomainRoleMembers(principal string) (*string, error) {
 		return nil, err
 	}
 	var buf bytes.Buffer
-	buf.WriteString("pending members:\n")
+	buf.WriteString("domains:\n")
 	for _, domainRoleMembers := range domainMembership.DomainRoleMembersList {
-		cli.dumpDomainRoleMembers(&buf, domainRoleMembers)
+		cli.dumpDomainRoleMembers(&buf, domainRoleMembers, true)
 	}
 	s := buf.String()
 

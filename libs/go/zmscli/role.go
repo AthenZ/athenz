@@ -307,7 +307,7 @@ func (cli Zms) ListDomainRoleMembers(dn string) (*string, error) {
 		return nil, err
 	}
 	buf.WriteString("role members:\n")
-	cli.dumpDomainRoleMembers(&buf, roleMembers)
+	cli.dumpDomainRoleMembers(&buf, roleMembers, false)
 	s := buf.String()
 	return &s, nil
 }
