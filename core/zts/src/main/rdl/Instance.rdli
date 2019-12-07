@@ -90,3 +90,19 @@ resource InstanceIdentity DELETE "/instance/{provider}/{domain}/{service}/{insta
         ResourceError INTERNAL_SERVER_ERROR;
     }
 }
+
+type CertificateAuthorityBundle Struct {
+    SimpleName name; //name of the bundle
+    String certs; //set of certificates included in the bundle
+}
+
+resource CertificateAuthorityBundle GET "/cacerts/{name}" {
+    SimpleName name; //name of the CA cert bundle
+    authenticate;
+    expected OK;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError UNAUTHORIZED;
+        ResourceError NOT_FOUND;
+    }
+}

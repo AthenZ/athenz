@@ -536,6 +536,9 @@ public class ZTSClient implements Closeable {
      * @param privateKeyFile path to the private key file
      * @param monitorKeyCertUpdates boolean flag whether or not monitor file updates
      * @return SSLContext object
+     * @throws InterruptedException
+     * @throws KeyRefresherException
+     * @throws IOException
      */
     public SSLContext createSSLContext(final String trustStorePath, final char[] trustStorePassword,
                  final String publicCertFile, final String privateKeyFile, boolean monitorKeyCertUpdates)
@@ -2544,6 +2547,22 @@ public class ZTSClient implements Closeable {
         updateServicePrincipal();
         try {
             ztsClient.deleteInstanceIdentity(provider, domain, service, instanceId);
+        } catch (ResourceException ex) {
+            throw new ZTSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZTSClientException(ZTSClientException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Retrieve list of CA Certificates in PEM format for the given bundle name
+     * @param bundleName name of the CA Certificate bundle name
+     * @return CA Certificate bundle including list of CA certificates on success. ZTSClientException will be thrown in case of failure
+     */
+    public CertificateAuthorityBundle getCertificateAuthorityBundle(String bundleName) {
+        updateServicePrincipal();
+        try {
+            return ztsClient.getCertificateAuthorityBundle(bundleName);
         } catch (ResourceException ex) {
             throw new ZTSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {

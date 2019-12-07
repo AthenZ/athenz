@@ -2102,6 +2102,74 @@ func (self *InstanceIdentity) Validate() error {
 }
 
 //
+// CertificateAuthorityBundle -
+//
+type CertificateAuthorityBundle struct {
+
+	//
+	// name of the bundle
+	//
+	Name SimpleName `json:"name"`
+
+	//
+	// set of certificates included in the bundle
+	//
+	Certs string `json:"certs"`
+}
+
+//
+// NewCertificateAuthorityBundle - creates an initialized CertificateAuthorityBundle instance, returns a pointer to it
+//
+func NewCertificateAuthorityBundle(init ...*CertificateAuthorityBundle) *CertificateAuthorityBundle {
+	var o *CertificateAuthorityBundle
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(CertificateAuthorityBundle)
+	}
+	return o
+}
+
+type rawCertificateAuthorityBundle CertificateAuthorityBundle
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a CertificateAuthorityBundle
+//
+func (self *CertificateAuthorityBundle) UnmarshalJSON(b []byte) error {
+	var m rawCertificateAuthorityBundle
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := CertificateAuthorityBundle(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *CertificateAuthorityBundle) Validate() error {
+	if self.Name == "" {
+		return fmt.Errorf("CertificateAuthorityBundle.name is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "SimpleName", self.Name)
+		if !val.Valid {
+			return fmt.Errorf("CertificateAuthorityBundle.name does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	if self.Certs == "" {
+		return fmt.Errorf("CertificateAuthorityBundle.certs is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.Certs)
+		if !val.Valid {
+			return fmt.Errorf("CertificateAuthorityBundle.certs does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+//
 // DomainMetricType - zpe metric attributes
 //
 type DomainMetricType int

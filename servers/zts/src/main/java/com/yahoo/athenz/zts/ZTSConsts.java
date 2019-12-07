@@ -58,6 +58,7 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_CERT_ALLOWED_O_VALUES  = "athenz.zts.cert_allowed_o_values";
     public static final String ZTS_PROP_CERT_ALLOWED_OU_VALUES = "athenz.zts.cert_allowed_ou_values";
     public static final String ZTS_PROP_INSTANCE_CERT_IP_FNAME = "athenz.zts.instance_cert_ip_fname";
+    public static final String ZTS_PROP_CERT_BUNDLES_FNAME     = "athenz.zts.cert_authority_bundles_fname";
 
     public static final String ZTS_PROP_OAUTH_ISSUER           = "athenz.zts.oauth_issuer";
     public static final String ZTS_PROP_OAUTH_OPENID_SCOPE     = "athenz.zts.oauth_openid_scope";

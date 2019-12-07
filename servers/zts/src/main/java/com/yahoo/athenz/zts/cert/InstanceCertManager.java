@@ -1,3 +1,18 @@
+/*
+ * Copyright 2019 Oath Holdings Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.yahoo.athenz.zts.cert;
 
 import java.io.File;
@@ -13,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.athenz.auth.util.Crypto;
+import com.yahoo.athenz.auth.util.CryptoException;
 import com.yahoo.athenz.zts.utils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +37,7 @@ import com.yahoo.athenz.zts.SSHCertificates;
 import com.yahoo.athenz.zts.SSHCertRequest;
 import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.InstanceIdentity;
+import com.yahoo.athenz.zts.CertificateAuthorityBundle;
 import com.yahoo.athenz.zts.ResourceException;
 
 import com.yahoo.athenz.auth.Authorizer;
@@ -35,6 +52,8 @@ public class InstanceCertManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InstanceCertManager.class);
 
+    private static final String CA_TYPE_X509 = "x509";
+
     private Authorizer authorizer;
     private CertSigner certSigner;
     private SSHSigner sshSigner;
@@ -48,6 +67,7 @@ public class InstanceCertManager {
     private boolean responseSendSSHSignerCerts;
     private boolean responseSendX509SignerCerts;
     private ObjectMapper jsonMapper;
+    private Map<String, CertificateAuthorityBundle> certAuthorityBundles = null;
 
     public InstanceCertManager(final PrivateKeyStore keyStore, Authorizer authorizer,
             boolean readOnlyMode) {
@@ -75,24 +95,12 @@ public class InstanceCertManager {
         
         loadCertificateObjectStore(keyStore);
 
-        // check to see if we have been provided with a x.509/ssh certificate
-        // bundle or we need to fetch one from the certsigner
+        // load any configuration wrt certificate signers and any
+        // configured certificate bundles
 
-        responseSendSSHSignerCerts = Boolean.parseBoolean(
-                System.getProperty(ZTSConsts.ZTS_PROP_RESP_SSH_SIGNER_CERTS, "true"));
-        responseSendX509SignerCerts = Boolean.parseBoolean(
-                System.getProperty(ZTSConsts.ZTS_PROP_RESP_X509_SIGNER_CERTS, "true"));
-
-        // if we're not asked to skip sending certificate signers then
-        // check to see if we need to load them from files instead of
-        // certsigner directly
-
-        if (responseSendX509SignerCerts) {
-            caX509CertificateSigner = loadCertificateBundle(ZTSConsts.ZTS_PROP_X509_CA_CERT_FNAME);
-        }
-        if (responseSendSSHSignerCerts) {
-            sshUserCertificateSigner = loadCertificateBundle(ZTSConsts.ZTS_PROP_SSH_USER_CA_CERT_FNAME);
-            sshHostCertificateSigner = loadCertificateBundle(ZTSConsts.ZTS_PROP_SSH_HOST_CA_CERT_FNAME);
+        if (!loadCertificateAuthorityBundles()) {
+            throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR,
+                    "Unable to load Certificate Authority Bundles");
         }
 
         // load our allowed cert refresh and instance register ip blocks
@@ -120,6 +128,124 @@ public class InstanceCertManager {
     void shutdown() {
         if (scheduledExecutor != null) {
             scheduledExecutor.shutdownNow();
+        }
+    }
+
+    private boolean loadCertificateAuthorityBundles() {
+
+        // check to see if we have been provided with a x.509/ssh certificate
+        // bundle or we need to fetch one from the certsigner
+
+        responseSendSSHSignerCerts = Boolean.parseBoolean(
+                System.getProperty(ZTSConsts.ZTS_PROP_RESP_SSH_SIGNER_CERTS, "true"));
+        responseSendX509SignerCerts = Boolean.parseBoolean(
+                System.getProperty(ZTSConsts.ZTS_PROP_RESP_X509_SIGNER_CERTS, "true"));
+
+        // if we're not asked to skip sending certificate signers then
+        // check to see if we need to load them from files instead of
+        // certsigner directly
+
+        if (responseSendX509SignerCerts) {
+            caX509CertificateSigner = loadCertificateBundle(ZTSConsts.ZTS_PROP_X509_CA_CERT_FNAME);
+        }
+        if (responseSendSSHSignerCerts) {
+            sshUserCertificateSigner = loadCertificateBundle(ZTSConsts.ZTS_PROP_SSH_USER_CA_CERT_FNAME);
+            sshHostCertificateSigner = loadCertificateBundle(ZTSConsts.ZTS_PROP_SSH_HOST_CA_CERT_FNAME);
+        }
+
+        // now let's fetch our configured certificate authority bundles
+
+        certAuthorityBundles = new HashMap<>();
+
+        final String caBundleFile =  System.getProperty(ZTSConsts.ZTS_PROP_CERT_BUNDLES_FNAME);
+        if (caBundleFile == null || caBundleFile.isEmpty()) {
+            return true;
+        }
+
+        byte[] data = readFileContents(caBundleFile);
+        if (data == null) {
+            return false;
+        }
+
+        CertBundles certBundles = null;
+        try {
+            certBundles = jsonMapper.readValue(data, CertBundles.class);
+        } catch (Exception ex) {
+            LOGGER.error("Unable to parse CA bundle file: {} - {}", caBundleFile, ex.getMessage());
+        }
+
+        if (certBundles == null) {
+            return false;
+        }
+
+        List<CertBundle> bundleList = certBundles.getCertBundles();
+        if (bundleList == null || bundleList.isEmpty()) {
+            LOGGER.error("No CA bundles available in the file: {}", caBundleFile);
+            return false;
+        }
+
+        for (CertBundle bundle : bundleList) {
+            if (!processCertificateAuthorityBundle(bundle)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private boolean processCertificateAuthorityBundle(CertBundle bundle) {
+
+        final String name = bundle.getName();
+        final String fileName = bundle.getFilename();
+        if (fileName == null || fileName.isEmpty()) {
+            LOGGER.error("Bundle {} does not have a file configured", name);
+            return false;
+        }
+
+        // if this is x.509 certificate bundle then we're going
+        // to extract our data, validate all certs and regenerate
+        // our pem data to remove any other comments from the data
+        // file to minimize the data size
+
+        String bundleData = null;
+        if (CA_TYPE_X509.equalsIgnoreCase(bundle.getType())) {
+            bundleData = extractX509CertificateBundle(fileName);
+        } else {
+            byte[] data = readFileContents(fileName);
+            if (data != null) {
+                bundleData = new String(data);
+            }
+        }
+
+        if (bundleData == null) {
+            LOGGER.error("Unable to load bundle {} from file {}", name, fileName);
+            return false;
+        }
+
+        CertificateAuthorityBundle certAuthorityBundle = new CertificateAuthorityBundle()
+                .setName(name)
+                .setCerts(bundleData);
+
+        certAuthorityBundles.put(name, certAuthorityBundle);
+        return true;
+    }
+
+    String extractX509CertificateBundle(final String filename) {
+
+        try {
+            // first load our certificates file to make sure
+            // all the certs in the file are valid
+
+            X509Certificate[] x509Certs = Crypto.loadX509Certificates(filename);
+
+            // then re-generate the certs in pem format to
+            // remove any comments/etc to minimize the data size
+
+            return Crypto.x509CertificatesToPEM(x509Certs);
+
+        } catch (CryptoException ex) {
+            LOGGER.error("Unable to load certificate file", ex);
+            return null;
         }
     }
 
@@ -329,7 +455,11 @@ public class InstanceCertManager {
     public void setCertStore(CertRecordStore certStore) {
         this.certStore = certStore;
     }
-    
+
+    public CertificateAuthorityBundle getCertificateAuthorityBundle(final String name) {
+        return certAuthorityBundles.get(name);
+    }
+
     public X509CertRecord getX509CertRecord(final String provider, X509Certificate cert) {
 
         if (certStore == null) {

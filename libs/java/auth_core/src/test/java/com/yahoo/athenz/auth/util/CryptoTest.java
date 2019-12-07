@@ -980,7 +980,6 @@ public class CryptoTest {
         });
     }
 
-
     @Test
     public void testHmacSign() {
         assertNotNull(Crypto.hmac("testMessage", "testSharedSecret"));
@@ -991,5 +990,55 @@ public class CryptoTest {
         assertNotNull(Crypto.ybase64EncodeString("testString"));
     }
 
+    @Test
+    public void testLoadX509Certificates() {
 
+        X509Certificate[] certs = Crypto.loadX509Certificates("src/test/resources/x509_certs_comments.pem");
+        assertTrue(certs.length == 3);
+
+        certs = Crypto.loadX509Certificates("src/test/resources/x509_certs_no_comments.pem");
+        assertTrue(certs.length == 3);
+
+        // invalid file
+
+        try {
+            Crypto.loadX509Certificates("src/test/resources/not_present_certs");
+            fail();
+        } catch (CryptoException ignored) {
+        }
+
+        // invalid cert
+
+        try {
+            Crypto.loadX509Certificates("src/test/resources/invalid_x509.cert");
+            fail();
+        } catch (CryptoException ignored) {
+        }
+
+        // no cert
+
+        try {
+            Crypto.loadX509Certificates("src/test/resources/ec_public.key");
+            fail();
+        } catch (CryptoException ignored) {
+        }
+    }
+
+    @Test
+    public void testX509CertificatesToPEM() throws IOException {
+
+        X509Certificate[] certs1 = Crypto.loadX509Certificates("src/test/resources/x509_certs_comments.pem");
+        final String certs1PEM = Crypto.x509CertificatesToPEM(certs1);
+        assertNotNull(certs1PEM);
+
+        X509Certificate[] certs2 = Crypto.loadX509Certificates("src/test/resources/x509_certs_no_comments.pem");
+        final String certs2PEM = Crypto.x509CertificatesToPEM(certs2);
+        assertNotNull(certs2PEM);
+
+        assertEquals(certs1PEM, certs2PEM);
+
+        File caFile = new File("src/test/resources/x509_certs_no_comments.pem");
+        byte[] data = Files.readAllBytes(Paths.get(caFile.toURI()));
+        assertEquals(certs1PEM, new String(data));
+    }
 }

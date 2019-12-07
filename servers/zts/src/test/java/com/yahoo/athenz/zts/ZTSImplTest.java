@@ -96,7 +96,6 @@ public class ZTSImplTest {
     private ZTSAuthorizer authorizer = null;
     private DataStore store = null;
     private PrivateKey privateKey = null;
-    PublicKey publicKey = null;
     private AuditLogger auditLogger = null;
     private CloudStore cloudStore = null;
     @Mock private CloudStore mockCloudStore;
@@ -274,16 +273,6 @@ public class ZTSImplTest {
         Mockito.when(rsrcCtxWrapper.request()).thenReturn(request);
         Mockito.when(rsrcCtxWrapper.response()).thenReturn(mockServletResponse);
         return rsrcCtxWrapper;
-    }
-
-    Object getWebAppExcEntity(javax.ws.rs.WebApplicationException wex) {
-        javax.ws.rs.core.Response resp = wex.getResponse();
-        return resp.getEntity();
-    }
-
-    Object getWebAppExcMapValue(javax.ws.rs.WebApplicationException wex, String header) {
-        javax.ws.rs.core.MultivaluedMap<String, Object> mvmap = wex.getResponse().getMetadata();
-        return mvmap.getFirst(header);
     }
     
     private static Role createRoleObject(String domainName, String roleName,
@@ -10702,5 +10691,47 @@ public class ZTSImplTest {
         zts.dataStore.getCacheStore().put("coretech", data2);
 
         assertEquals(zts.getConfiguredRoleListExpiryTimeMins(requestedRoleList), 90);
+    }
+
+    @Test
+    public void testGetCertificateAuthorityBundle() {
+
+        Principal principal = SimplePrincipal.create("user_domain", "user1",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+
+        DataStore store = new DataStore(structStore, null);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        System.setProperty(ZTSConsts.ZTS_PROP_CERT_BUNDLES_FNAME, "src/test/resources/ca-bundle-file.json");
+        InstanceCertManager certManager = new InstanceCertManager(null, null, true);
+        ztsImpl.instanceCertManager = certManager;
+
+        CertificateAuthorityBundle bundle = ztsImpl.getCertificateAuthorityBundle(context, "athenz");
+        assertNotNull(bundle);
+
+        bundle = ztsImpl.getCertificateAuthorityBundle(context, "system");
+        assertNotNull(bundle);
+
+        bundle = ztsImpl.getCertificateAuthorityBundle(context, "ssh");
+        assertNotNull(bundle);
+
+        try {
+            ztsImpl.getCertificateAuthorityBundle(context, "unknown");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+
+        try {
+            ztsImpl.getCertificateAuthorityBundle(context, "athenz test");
+            fail();
+        } catch (ResourceException ignored) {
+        }
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_CERT_BUNDLES_FNAME);
     }
 }

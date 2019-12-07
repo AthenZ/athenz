@@ -281,6 +281,11 @@ func init() {
 	tInstanceIdentity.MapField("attributes", "String", "String", true, "other config-like attributes determined at boot time")
 	sb.AddType(tInstanceIdentity.Build())
 
+	tCertificateAuthorityBundle := rdl.NewStructTypeBuilder("Struct", "CertificateAuthorityBundle")
+	tCertificateAuthorityBundle.Field("name", "SimpleName", false, nil, "name of the bundle")
+	tCertificateAuthorityBundle.Field("certs", "String", false, nil, "set of certificates included in the bundle")
+	sb.AddType(tCertificateAuthorityBundle.Build())
+
 	tDomainMetricType := rdl.NewEnumTypeBuilder("Enum", "DomainMetricType")
 	tDomainMetricType.Comment("zpe metric attributes")
 	tDomainMetricType.Element("ACCESS_ALLOWED", "")
@@ -606,6 +611,14 @@ func init() {
 	mDeleteInstanceIdentity.Exception("NOT_FOUND", "ResourceError", "")
 	mDeleteInstanceIdentity.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mDeleteInstanceIdentity.Build())
+
+	mGetCertificateAuthorityBundle := rdl.NewResourceBuilder("CertificateAuthorityBundle", "GET", "/cacerts/{name}")
+	mGetCertificateAuthorityBundle.Input("name", "SimpleName", true, "", "", false, nil, "name of the CA cert bundle")
+	mGetCertificateAuthorityBundle.Auth("", "", true, "")
+	mGetCertificateAuthorityBundle.Exception("BAD_REQUEST", "ResourceError", "")
+	mGetCertificateAuthorityBundle.Exception("NOT_FOUND", "ResourceError", "")
+	mGetCertificateAuthorityBundle.Exception("UNAUTHORIZED", "ResourceError", "")
+	sb.AddResource(mGetCertificateAuthorityBundle.Build())
 
 	mPostDomainMetrics := rdl.NewResourceBuilder("DomainMetrics", "POST", "/metrics/{domainName}")
 	mPostDomainMetrics.Comment("called to post multiple zpe related metric attributes")

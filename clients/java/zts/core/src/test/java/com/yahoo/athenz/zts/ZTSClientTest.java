@@ -3185,4 +3185,36 @@ public class ZTSClientTest {
         ZTSClient.cancelPrefetch();
         client.close();
     }
+
+    @Test
+    public void testGetCertificateAuthorityBundle() {
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "auth_creds", PRINCIPAL_AUTHORITY);
+
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+        client.setZTSRDLGeneratedClient(ztsClientMock);
+
+        CertificateAuthorityBundle bundle = client.getCertificateAuthorityBundle("athenz");
+        assertNotNull(bundle);
+        assertEquals(bundle.getName(), "athenz");
+        assertEquals(bundle.getCerts(), "certs");
+
+        try {
+            client.getCertificateAuthorityBundle("exc");
+            fail();
+        } catch (ZTSClientException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        try {
+            client.getCertificateAuthorityBundle("system");
+            fail();
+        } catch (ZTSClientException ex) {
+            assertEquals(ex.getCode(), 404);
+        }
+
+        client.close();
+    }
 }
