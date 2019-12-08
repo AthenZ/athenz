@@ -313,9 +313,12 @@ public class Utils {
             while (!certFile.exists() || !keyFile.exists()) {
                 long durationInMillis = System.currentTimeMillis() - startTime;
                 if (durationInMillis > KEY_WAIT_TIME_MILLIS) {
-                    throw new KeyRefresherException("Keyfresher waited " + durationInMillis + " ms for valid public or private key files. Giving up.");
+                    throw new KeyRefresherException("Keyfresher waited " + durationInMillis
+                            + " ms for valid public cert: " + athenzPublicCert + " or private key: "
+                            + athenzPrivateKey + " files. Giving up.");
                 }
-                LOG.error("Missing Athenz public certificate or private key files. Waiting {} ms", durationInMillis);
+                LOG.error("Missing Athenz public certificate {} or private key {} files. Waiting {} ms",
+                        athenzPublicCert, athenzPrivateKey, durationInMillis);
                 Thread.sleep(1000);
             }
         } else {
