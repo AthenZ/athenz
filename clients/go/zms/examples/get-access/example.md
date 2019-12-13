@@ -45,7 +45,7 @@ and create a service and obtain the TLS certificate in Athenz UI
     - zms-cli -d home.userid.movies add-policy editors_policy grant read to editors on rec.movie
 
   - go build
-  - ./get-access -zms https://zms-endpoint.com -cert /path/to/cert -key /path/to/key -domain home.userid -resource "home.userid:rec.movie" -action read
+  - ./get-access -zms https://<zms-endpoint-domain>:<port>/zms/v1 -cert /path/to/cert -key /path/to/key -domain home.userid -resource "home.userid:rec.movie" -action read
 
 
 ## License
