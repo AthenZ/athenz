@@ -58,7 +58,6 @@ public class DataSourceFactory {
                 
                 ConnectionFactory connectionFactory =
                     new DriverManagerConnectionFactory(url, mysqlConnectionProperties);
-
                 return create(connectionFactory);
                 
             } else {

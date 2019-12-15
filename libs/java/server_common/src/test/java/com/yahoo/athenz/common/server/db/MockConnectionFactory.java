@@ -21,9 +21,14 @@ import org.apache.commons.dbcp2.ConnectionFactory;
 
 public class MockConnectionFactory implements ConnectionFactory {
 
-    @Override
-    public Connection createConnection() {
-        return null;
+    private Connection connection;
+
+    public void setConnection(Connection connection) {
+        this.connection = connection;
     }
 
+    @Override
+    public Connection createConnection() {
+        return connection;
+    }
 }
