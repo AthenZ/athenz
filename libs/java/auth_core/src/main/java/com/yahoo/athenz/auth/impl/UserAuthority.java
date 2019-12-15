@@ -107,18 +107,24 @@ public class UserAuthority implements Authority {
 
         // decode - need to skip the first 6 bytes for 'Basic '
         
-        String decoded;
+        String decodedCreds;
         try {
-            decoded = new String(Base64.decode(encodedPassword.getBytes(StandardCharsets.UTF_8)));
+            decodedCreds = new String(Base64.decode(encodedPassword.getBytes(StandardCharsets.UTF_8)));
         } catch (Exception e) {
             errMsg.append("UserAuthority:authenticate: factory exc=").append(e.getMessage());
             LOG.error(errMsg.toString());
             return null;
         }
 
-        String[] userArray = decoded.split(":");
-        String username = userArray[0];
-        String password = userArray[1];
+        int idx = decodedCreds.indexOf(':');
+        if (idx == -1) {
+            errMsg.append("LDAPAuthority: authenticate: no password specified");
+            LOG.error(errMsg.toString());
+            return null;
+        }
+
+        final String username = decodedCreds.substring(0, idx);
+        final String password = decodedCreds.substring(idx + 1);
 
         // we need to catch all exceptions here and just return
         // failure to allow other authorities to handle authentication
@@ -141,26 +147,26 @@ public class UserAuthority implements Authority {
         }
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("UserAuthority.authenticate: valid user=" + username);
+            LOG.debug("UserAuthority.authenticate: valid user={}", username);
         }
 
         // all the role members in Athenz are normalized to lower case so we need to make
         // sure our principal's name and domain are created with lower case as well
 
         long issueTime = 0;
-        SimplePrincipal princ = getSimplePrincipal(userArray[0].toLowerCase(), creds, issueTime);
+        SimplePrincipal princ = getSimplePrincipal(username.toLowerCase(), creds, issueTime);
         if (princ == null) {
             errMsg.append("UserAuthority:authenticate: failed to create principal: user=")
                 .append(username);
             LOG.error(errMsg.toString());
             return null;
         }
-        princ.setUnsignedCreds(creds);
+        princ.setUnsignedCreds(username);
         return princ;
     }
 
     SimplePrincipal getSimplePrincipal(String name, String creds, long issueTime) {
-        return (SimplePrincipal) SimplePrincipal.create(getDomain().toLowerCase(),
+        return (SimplePrincipal) SimplePrincipal.create(getDomain(),
                 name, creds, issueTime, this);
     }
 }

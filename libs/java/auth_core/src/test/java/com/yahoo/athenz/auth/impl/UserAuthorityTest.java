@@ -49,14 +49,22 @@ public class UserAuthorityTest {
         StringBuilder errMsg = new StringBuilder();
         String testToken = "Basic dGVzdHVzZXI6dGVzdHB3ZA==";
         Principal principal = userAuthority.authenticate(testToken, "10.72.118.45", "GET", errMsg);
-
         assertNotNull(principal);
+
+        assertEquals(principal.getName(), "testuser");
+        assertEquals(principal.getDomain(), expectedDomain);
+        assertEquals(principal.getCredentials(), testToken);
+        assertEquals(principal.getUnsignedCredentials(), "testuser");
+
         assertNotNull(principal.getAuthority());
         assertEquals(principal.getCredentials(), testToken);
-        assertEquals(principal.getDomain(), expectedDomain);
-        String expectedUserId = "testuser";
-        assertEquals(principal.getName(), expectedUserId);
+
         assertTrue(userAuthority.isValidUser("user1"));
+
+        // authenticate user without password which should fail
+
+        principal = userAuthority.authenticate("Basic dGVzdHVzZXIK", "10.72.118.45", "GET", errMsg);
+        assertNull(principal);
     }
 
     @Test
@@ -77,7 +85,6 @@ public class UserAuthorityTest {
 
         principal = userAuthority.authenticate("Basic dGVzdHVzZXI6dGVzdHB3ZA==", "10.72.118.45", "GET", null);
         assertNull(principal);
-
     }
 
     @Test
@@ -98,7 +105,7 @@ public class UserAuthorityTest {
         StringBuilder errMsg = new StringBuilder();
         String testToken = "Basic dGVzdHVzZXI6dGVzdHB3ZA==";
         Principal principal = userAuthority.authenticate(testToken, "10.72.118.45", "GET", errMsg);
-
+        assertNull(principal);
     }
 
     @Test
