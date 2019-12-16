@@ -3709,12 +3709,10 @@ public class JDBCConnection implements ObjectStoreConnection {
 
         // then we're going to retrieve all the members that are waiting
         // for approval based on their domain name values
-
         processPendingMembers(ZMSConsts.SYS_AUTH_AUDIT_BY_DOMAIN, SQL_PENDING_DOMAIN_AUDIT_ROLE_MEMBER_LIST,
             principalId, domainRoleMembersMap, caller);
 
         // finally retrieve the self serve roles
-
         try (PreparedStatement ps = con.prepareStatement(SQL_PENDING_DOMAIN_SELFSERVE_ROLE_MEMBER_LIST)) {
             ps.setInt(1, principalId);
             try (ResultSet rs = executeQuery(ps, caller)) {
@@ -3754,7 +3752,9 @@ public class JDBCConnection implements ObjectStoreConnection {
         memberRoles.add(memberRole);
 
         domainRoleMember.setMemberRoles(memberRoles);
-        domainRoleMembers.add(domainRoleMember);
+        if (!domainRoleMembers.contains(domainRoleMember)) {
+            domainRoleMembers.add(domainRoleMember);
+        }
     }
 
     @Override

@@ -27,6 +27,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
+import javax.mail.Session;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
+import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
+import java.io.*;
+import java.net.URL;
+import java.nio.ByteBuffer;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -70,6 +78,10 @@ public class EmailNotificationService implements NotificationService {
 
     // can be moved to constructor which can take Locale as input parameter and return appropriate resource bundle
     private static final ResourceBundle RB = ResourceBundle.getBundle("messages/ServerCommon");
+
+    private static final String EMAIL_TEMPLATE_NOTIFICATION_APPROVAL = "messages/membership-approval.html";
+    private static final String EMAIL_TEMPLATE_ATHENZ_LOGO = "emails/athenz-logo-white.png";
+    private static final String EMAIL_TEMPLATE_CSS = "emails/base.css";
 
     private final AmazonSimpleEmailService ses;
 
@@ -120,9 +132,11 @@ public class EmailNotificationService implements NotificationService {
     String getBody(String type, Map<String, String> details) {
 
         String body = "";
+        boolean addFooter = true;
         switch (type) {
             case NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL:
                 body = getMembershipApprovalBody(details);
+                addFooter = false;
                 break;
             case NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL_REMINDER:
                 body = getMembershipApprovalReminderBody();
@@ -134,7 +148,10 @@ public class EmailNotificationService implements NotificationService {
                 body = getPrincipalExpiryBody(details);
                 break;
         }
-        body = body + getFooter();
+        if (addFooter) {
+            body = body + getFooter();
+        }
+        body = body.replace("<style></style>", "<style>" + readContentFromFile(EMAIL_TEMPLATE_CSS) + "</style>");
         return body;
     }
 
@@ -173,10 +190,10 @@ public class EmailNotificationService implements NotificationService {
     }
 
     String getMembershipApprovalBody(Map<String, String> metaDetails) {
-        return MessageFormat.format(RB.getString(MEMBERSHIP_APPROVAL_BODY), metaDetails.get(NotificationService.NOTIFICATION_DETAILS_DOMAIN),
+        return MessageFormat.format(readContentFromFile(EMAIL_TEMPLATE_NOTIFICATION_APPROVAL), metaDetails.get(NotificationService.NOTIFICATION_DETAILS_DOMAIN),
                 metaDetails.get(NotificationService.NOTIFICATION_DETAILS_ROLE), metaDetails.get(NotificationService.NOTIFICATION_DETAILS_MEMBER),
                 metaDetails.get(NotificationService.NOTIFICATION_DETAILS_REASON), metaDetails.get(NotificationService.NOTIFICATION_DETAILS_REQUESTOR),
-                workflowUrl);
+                workflowUrl, athenzUIUrl);
     }
 
     String getDomainMemberExpiryBody(Map<String, String> metaDetails) {
@@ -243,37 +260,98 @@ public class EmailNotificationService implements NotificationService {
                     .collect(Collectors.groupingBy(it -> counter.getAndIncrement() / SES_RECIPIENTS_LIMIT_PER_MESSAGE))
                     .values();
             for (List<String> recipientsSegment : recipientsBatch) {
-                status = sendEmail(subject, body, status, recipientsSegment);
+                status = sendEmailMIME(subject, body, status, recipientsSegment);
             }
         } else {
-            status = sendEmail(subject, body, status, new ArrayList<>(recipients));
+            status = sendEmailMIME(subject, body, status, new ArrayList<>(recipients));
         }
 
         return status;
     }
 
-    private boolean sendEmail(String subject, String body, boolean status, Collection<String> recipients) {
-            try {
-                SendEmailRequest request = new SendEmailRequest()
-                        .withDestination(new Destination()
-                                .withBccAddresses(recipients))
-                        .withMessage(new Message()
-                                .withBody(new Body()
-                                        .withHtml(new Content()
-                                                .withCharset(CHARSET_UTF_8).withData(body)))
-                                .withSubject(new Content()
-                                        .withCharset(CHARSET_UTF_8).withData(subject)))
-                        .withSource(from + AT + emailDomainFrom);
-                SendEmailResult result = ses.sendEmail(request);
+    String readContentFromFile(String fileName) {
+        StringBuilder contents = new StringBuilder();
+        URL resource = getClass().getClassLoader().getResource(fileName);
+        if (resource != null) {
+            try (BufferedReader br = new BufferedReader(new FileReader(resource.getFile()))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    contents.append(line);
+                    contents.append(System.getProperty("line.separator"));
+                }
+            } catch (IOException ex) {
+                LOGGER.error("Could not read email template file. Error message: {}", ex.getMessage());
+            }
+        }
+        return contents.toString();
+    }
+
+    private boolean sendEmailMIME(String subject, String body, boolean status, Collection<String> recipients) {
+        try {
+            Session session = Session.getDefaultInstance(new Properties());
+
+            // Create a new MimeMessage object.
+            MimeMessage message = new MimeMessage(session);
+
+            // Add subject, from and to lines.
+            message.setSubject(subject, "UTF-8");
+            message.setFrom(new InternetAddress(from + AT + emailDomainFrom));
+            message.setRecipients(javax.mail.Message.RecipientType.BCC, InternetAddress.parse(String.join(",", recipients)));
+
+            // Create a multipart/alternative child container.
+            MimeMultipart msgBody = new MimeMultipart("alternative");
+
+            // Create a wrapper for the HTML and text parts.
+            MimeBodyPart wrap = new MimeBodyPart();
+
+            // Set the text part.
+            MimeBodyPart textPart = new MimeBodyPart();
+            textPart.setContent(body, "text/plain; charset=UTF-8");
+
+            // Set the HTML part.
+            MimeBodyPart htmlPart = new MimeBodyPart();
+            htmlPart.setContent(body, "text/html; charset=UTF-8");
+
+            // Add the text and HTML parts to the child container.
+            msgBody.addBodyPart(textPart);
+            msgBody.addBodyPart(htmlPart);
+
+            // Add the child container to the wrapper object.
+            wrap.setContent(msgBody);
+
+            // Create a multipart/mixed parent container.
+            MimeMultipart msgParent = new MimeMultipart("related");
+
+            // Add the multipart/alternative part to the message.
+            msgParent.addBodyPart(wrap);
+
+            // Add the parent container to the message.
+            message.setContent(msgParent);
+
+            URL resource = getClass().getClassLoader().getResource(EMAIL_TEMPLATE_ATHENZ_LOGO);
+            if (resource != null) {
+                MimeBodyPart logo = new MimeBodyPart();
+                logo.attachFile(resource.getFile());
+                logo.setContentID("<logo>");
+                logo.setDisposition(MimeBodyPart.INLINE);
+                // Add the attachment to the message.
+                msgParent.addBodyPart(logo);
+            }
+
+            try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+                message.writeTo(outputStream);
+                RawMessage rawMessage = new RawMessage(ByteBuffer.wrap(outputStream.toByteArray()));
+                SendRawEmailRequest rawEmailRequest = new SendRawEmailRequest(rawMessage);
+                SendRawEmailResult result = ses.sendRawEmail(rawEmailRequest);
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Email with messageId={} sent successfully.", result.getMessageId());
                 }
                 status = status && result != null;
-            } catch (Exception ex) {
-                LOGGER.error("The email could not be sent. Error message: {}", ex.getMessage());
-                status = false;
             }
-
+        } catch (Exception ex) {
+            LOGGER.error("The email could not be sent. Error message: {}", ex.getMessage());
+            status = false;
+        }
         return status;
     }
 }

@@ -191,29 +191,16 @@ public class EmailNotificationServiceTest {
         System.setProperty("athenz.notification_email_from", "no-reply-athenz");
 
         AmazonSimpleEmailService ses = mock(AmazonSimpleEmailService.class);
-        SendEmailResult result = mock(SendEmailResult.class);
-        Mockito.when(ses.sendEmail(any(SendEmailRequest.class))).thenReturn(result);
+        SendRawEmailResult result = mock(SendRawEmailResult.class);
+        Mockito.when(ses.sendRawEmail(any(SendRawEmailRequest.class))).thenReturn(result);
 
-        ArgumentCaptor<SendEmailRequest> captor = ArgumentCaptor.forClass(SendEmailRequest.class);
+        ArgumentCaptor<SendRawEmailRequest> captor = ArgumentCaptor.forClass(SendRawEmailRequest.class);
 
         EmailNotificationService svc = new EmailNotificationService(ses);
 
         svc.sendEmail(recipients, subject, body);
 
-        Mockito.verify(ses, atLeastOnce()).sendEmail(captor.capture());
-        SendEmailRequest sesReqRes = captor.getValue();
-
-        SendEmailRequest expectedSESReq = new SendEmailRequest()
-                .withDestination(new Destination().withBccAddresses(recipients))
-                .withMessage(new Message()
-                        .withBody(new Body()
-                                .withHtml(new Content()
-                                        .withCharset("UTF-8").withData(body)))
-                        .withSubject(new Content()
-                                .withCharset("UTF-8").withData(subject)))
-                .withSource("no-reply-athenz@from.example.com");
-
-        assertEquals(sesReqRes, expectedSESReq);
+        Mockito.verify(ses, atLeastOnce()).sendRawEmail(captor.capture());
 
         System.clearProperty("athenz.notification_email_domain_from");
         System.clearProperty("athenz.notification_email_domain_to");
@@ -233,19 +220,16 @@ public class EmailNotificationServiceTest {
         System.setProperty("athenz.notification_email_from", "no-reply-athenz");
 
         AmazonSimpleEmailService ses = mock(AmazonSimpleEmailService.class);
-        SendEmailResult result = mock(SendEmailResult.class);
-        Mockito.when(ses.sendEmail(any(SendEmailRequest.class))).thenReturn(result);
-        ArgumentCaptor<SendEmailRequest> captor = ArgumentCaptor.forClass(SendEmailRequest.class);
+
+        SendRawEmailResult result = mock(SendRawEmailResult.class);
+        Mockito.when(ses.sendRawEmail(any(SendRawEmailRequest.class))).thenReturn(result);
+        ArgumentCaptor<SendRawEmailRequest> captor = ArgumentCaptor.forClass(SendRawEmailRequest.class);
 
         EmailNotificationService svc = new EmailNotificationService(ses);
         boolean emailResult = svc.sendEmail(recipients, subject, body);
 
         assertTrue(emailResult);
-        Mockito.verify(ses, times(2)).sendEmail(captor.capture());
-        List<SendEmailRequest> sesReqExpectedList = captor.getAllValues();
-
-        assertEquals(sesReqExpectedList.get(0).getDestination().getBccAddresses().size(), 50);
-        assertEquals(sesReqExpectedList.get(1).getDestination().getBccAddresses().size(), 10);
+        Mockito.verify(ses, times(2)).sendRawEmail(captor.capture());
 
         System.clearProperty("athenz.notification_email_domain_from");
         System.clearProperty("athenz.notification_email_domain_to");
@@ -283,8 +267,8 @@ public class EmailNotificationServiceTest {
         System.setProperty("athenz.notification_email_from", "no-reply-athenz");
 
         AmazonSimpleEmailService ses = mock(AmazonSimpleEmailService.class);
-        SendEmailResult result = mock(SendEmailResult.class);
-        Mockito.when(ses.sendEmail(any(SendEmailRequest.class))).thenReturn(result);
+        SendRawEmailResult result = mock(SendRawEmailResult.class);
+        Mockito.when(ses.sendRawEmail(any(SendRawEmailRequest.class))).thenReturn(result);
 
         EmailNotificationService svc = new EmailNotificationService(ses);
 
@@ -313,4 +297,12 @@ public class EmailNotificationServiceTest {
         boolean status = svc.notify(null);
         assertFalse(status);
     }
+
+    @Test
+    public void testReadContentFromFile() {
+        AmazonSimpleEmailService ses = mock(AmazonSimpleEmailService.class);
+        EmailNotificationService svc = new EmailNotificationService(ses);
+        assertTrue(svc.readContentFromFile("resources/non-existent").isEmpty());
+    }
+
 }
