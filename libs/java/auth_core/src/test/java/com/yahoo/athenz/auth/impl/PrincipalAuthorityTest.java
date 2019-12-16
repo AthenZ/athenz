@@ -216,7 +216,36 @@ public class PrincipalAuthorityTest {
         assertNotNull(principal);
         assertEquals(principal.getAuthorizedService(), "sports.fantasy");
     }
-    
+
+    @Test
+    public void testPrincipalAuthorityWithAuthorizedServiceInvalid() throws IOException, CryptoException {
+        PrincipalAuthority serviceAuthority = new PrincipalAuthority();
+        KeyStore keyStore = new KeyStoreMock();
+        serviceAuthority.setKeyStore(keyStore);
+
+        // Create and sign token with key version 0
+
+        List<String> authorizedServices = new ArrayList<>();
+        authorizedServices.add("sports.fantasy");
+        authorizedServices.add("sports.hockey");
+
+        long issueTime = System.currentTimeMillis() / 1000;
+        PrincipalToken userTokenToSign = new PrincipalToken.Builder(usrVersion, usrDomain, usrName)
+                .salt(salt).ip("127.0.0.2").issueTime(issueTime).expirationWindow(expirationTime)
+                .authorizedServices(authorizedServices).build();
+
+        userTokenToSign.sign(servicePrivateKeyStringK0);
+
+        // we're going to pass a different IP so we get the authorized service checks
+        // but it should fail since there is no service signature
+
+        StringBuilder errMsg = new StringBuilder();
+        Principal principal = serviceAuthority.authenticate(userTokenToSign.getSignedToken(),
+                "127.0.0.3", "POST", errMsg);
+
+        assertNull(principal);
+    }
+
     @Test
     public void testValidateAuthorizedServiceSingle() throws IOException {
         

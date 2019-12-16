@@ -15,10 +15,8 @@
  */
 package com.yahoo.athenz.auth.impl;
 
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
@@ -34,7 +32,6 @@ import java.util.Hashtable;
 
 public class LDAPAuthority implements Authority {
 
-
     private static final Logger LOG = LoggerFactory.getLogger(LDAPAuthority.class);
     static final String ATHENZ_PROP_LDAP_BASE_DN = "athenz.auth.ldap.base_dn";
     static final String ATHENZ_PROP_LDAP_PORT = "athenz.auth.ldap.port";
@@ -44,9 +41,9 @@ public class LDAPAuthority implements Authority {
 
     @Override
     public void initialize() {
-        baseDN = System.getProperty(ATHENZ_PROP_LDAP_BASE_DN);
-        portNumber = System.getProperty(ATHENZ_PROP_LDAP_PORT);
-        hostName = System.getProperty(ATHENZ_PROP_HOSTNAME);
+        baseDN = System.getProperty(ATHENZ_PROP_LDAP_BASE_DN, "o=Athenz");
+        portNumber = System.getProperty(ATHENZ_PROP_LDAP_PORT, "389");
+        hostName = System.getProperty(ATHENZ_PROP_HOSTNAME, "localhost");
         providerURL = "ldap://" + hostName + ":" + portNumber;
     }
 
@@ -73,11 +70,6 @@ public class LDAPAuthority implements Authority {
     @Override
     public Principal authenticate(String creds, String remoteAddr, String httpMethod, StringBuilder errMsg) {
 
-        if (isNull(errMsg)) {
-            LOG.error(errMsg.toString());
-            return null;
-        }
-
         if (!creds.startsWith("Basic ")) {
             errMsg.append("LDAPAuthority: authenticate: credentials do not start with 'Basic '");
             LOG.error(errMsg.toString());
@@ -95,11 +87,16 @@ public class LDAPAuthority implements Authority {
             return null;
         }
 
-        String[] credsArray = decodedCreds.split(":");
-        String username = credsArray[0];
-        String password = credsArray[1];
+        int idx = decodedCreds.indexOf(':');
+        if (idx == -1) {
+            errMsg.append("LDAPAuthority: authenticate: no password specified");
+            LOG.error(errMsg.toString());
+            return null;
+        }
 
-        String finalDN = "cn=" + username + "," + baseDN;
+        final String username = decodedCreds.substring(0, idx);
+        final String password = decodedCreds.substring(idx + 1);
+        final String finalDN = "cn=" + username + "," + baseDN;
 
         try {
             DirContext ctx = getDirContext(finalDN, password);
@@ -124,12 +121,9 @@ public class LDAPAuthority implements Authority {
             LOG.error(errMsg.toString());
             return null;
         }
-        simplePrincipal.setUnsignedCreds(creds);
+        simplePrincipal.setUnsignedCreds(username);
         return simplePrincipal;
-
     }
-
-
 
     DirContext getDirContext(String finalDN, String password) throws NamingException {
         Hashtable env = new Hashtable();
@@ -142,26 +136,8 @@ public class LDAPAuthority implements Authority {
     }
 
     SimplePrincipal getSimplePrincipal(String creds, String username) {
-        SimplePrincipal simplePrincipal = (SimplePrincipal) SimplePrincipal.create(getDomain().toLowerCase(), username.toLowerCase(), creds, this);
+        SimplePrincipal simplePrincipal = (SimplePrincipal) SimplePrincipal.create(getDomain(),
+                username.toLowerCase(), creds, this);
         return simplePrincipal;
-    }
-
-    boolean isNull(StringBuilder errMsg) {
-        if (baseDN == null) {
-            errMsg.append("LDAPAuthority: failed: value of Base Distinguished Name not set");
-            return true;
-        }
-
-        if (portNumber == null) {
-            errMsg.append("LDAPAuthority: failed: value of Port Number not set");
-            return true;
-        }
-
-        if (hostName == null) {
-            errMsg.append("LDAPAuthority: failed: value of host name not set");
-            return true;
-        }
-
-        return false;
     }
 }
