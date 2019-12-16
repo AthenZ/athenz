@@ -22,27 +22,54 @@ import org.apache.commons.pool2.ObjectPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+
 public class AthenzDataSource extends PoolingDataSource<PoolableConnection> implements PoolableDataSource {
 
     private static final Logger LOG = LoggerFactory.getLogger(AthenzDataSource.class);
-    
+
+    public static final String ATHENZ_PROP_DATASTORE_NETWORK_TIMEOUT = "athenz.datastore.network_timeout";
+    public static final String ATHENZ_PROP_DATASTORE_TIMEOUT_THREADS = "athenz.datastore.timeout_threads";
+
+    private ScheduledExecutorService timeoutThreadPool;
+    private int networkTimeout;
+
     public AthenzDataSource(ObjectPool<PoolableConnection> pool) {
+
         super(pool);
+
+        int timeoutThreads = Integer.parseInt(System.getProperty(ATHENZ_PROP_DATASTORE_TIMEOUT_THREADS, "8"));
+        if (timeoutThreads <= 0) {
+            timeoutThreads = 1;
+        }
+        networkTimeout = Integer.parseInt(System.getProperty(ATHENZ_PROP_DATASTORE_NETWORK_TIMEOUT, "0"));
+
+        // create our executors pool
+
+        timeoutThreadPool = Executors.newScheduledThreadPool(timeoutThreads);
     }
 
     @Override
     synchronized public void clearPoolConnections() {
         ObjectPool<PoolableConnection> pool = getPool();
         try {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Clearing all active/idle (" + pool.getNumActive() + "/" +
-                        pool.getNumIdle() + ") connections from the pool");
-            }
+            LOG.info("Clearing all active/idle ({}/{}) connections from the pool",
+                    pool.getNumActive(), pool.getNumIdle());
             pool.clear();
-            ///CLOVER:OFF
         } catch (Exception ex) {
-            LOG.error("Unable to clear connections from the pool: " + ex.getMessage());
+            LOG.error("Unable to clear connections from the pool", ex);
         }
-        ///CLOVER:ON
+    }
+
+    @Override
+    public Connection getConnection() throws SQLException {
+        Connection conn = super.getConnection();
+        if (networkTimeout > 0) {
+            conn.setNetworkTimeout(timeoutThreadPool, networkTimeout);
+        }
+        return conn;
     }
 }

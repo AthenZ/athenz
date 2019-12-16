@@ -15,19 +15,13 @@
  */
 package com.yahoo.athenz.common.server.db;
 
-import static org.mockito.Mockito.*;
 import static org.testng.Assert.*;
 
 import java.util.Properties;
 
-import org.apache.commons.dbcp2.PoolableConnection;
-import org.apache.commons.pool2.ObjectPool;
 import org.apache.commons.pool2.impl.BaseObjectPoolConfig;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.testng.annotations.Test;
-
-import com.yahoo.athenz.common.server.db.DataSourceFactory;
-import com.yahoo.athenz.common.server.db.PoolableDataSource;
 
 public class DataSourceFactoryTest {
 
@@ -255,21 +249,7 @@ public class DataSourceFactoryTest {
         props.setProperty("password", "password");
 
         assertThrows(RuntimeException.class, () -> {
-            DataSourceFactory.create("jdbc:mysql:localhost:3306/athenz",
-                    props);
+            DataSourceFactory.create("jdbc:mysql:localhost:3306/athenz", props);
         });
-
-    }
-
-    @Test
-    public void testClearPoolConnections() throws Exception {
-        Properties props = new Properties();
-        props.setProperty("user", "user");
-        props.setProperty("password", "password");
-
-        PoolableDataSource src = DataSourceFactory.create("jdbc:mysql:localhost:3306/athenz",
-                props);
-        assertNotNull(src);
-        src.clearPoolConnections();
     }
 }
