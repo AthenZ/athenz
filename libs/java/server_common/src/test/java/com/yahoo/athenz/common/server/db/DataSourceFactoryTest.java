@@ -251,5 +251,6 @@ public class DataSourceFactoryTest {
         assertThrows(RuntimeException.class, () -> {
             DataSourceFactory.create("jdbc:mysql:localhost:3306/athenz", props);
         });
+        System.clearProperty(DataSourceFactory.DRIVER_CLASS_NAME);
     }
 }
