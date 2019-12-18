@@ -36,7 +36,7 @@ public class FileCertRecordStoreTest {
     @Test
     public void testFileCertRecordStoreInvalidDirecory() {
         try {
-            new FileCertRecordStore(new File("/usr/root"));
+            new FileCertRecordStore(new File("/proc/usr/root"));
             fail();
         } catch (Exception ex) {
             assertTrue(ex.getMessage().contains("cannot create specified root"));

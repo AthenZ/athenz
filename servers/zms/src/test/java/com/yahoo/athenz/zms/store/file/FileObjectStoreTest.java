@@ -34,8 +34,8 @@ public class FileObjectStoreTest {
 
     @Test
     public void testFileObjectStoreInvalidDirectories() {
-        File fileDir = new File("/invalid_athenz/zms_store");
-        File quotaDir = new File("/invalid_athenz/zms_quota");
+        File fileDir = new File("/proc/invalid_athenz/zms_store");
+        File quotaDir = new File("/proc/invalid_athenz/zms_quota");
         FileObjectStore store = null;
         try {
             store = new FileObjectStore(fileDir, quotaDir);
