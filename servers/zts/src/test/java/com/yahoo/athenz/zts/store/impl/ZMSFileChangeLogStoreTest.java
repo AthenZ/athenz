@@ -107,8 +107,7 @@ public class ZMSFileChangeLogStoreTest {
     public void testInvalidFileMkdirFail() {
 
         try {
-            @SuppressWarnings("unused")
-            ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore("/usr\ninvaliddir", null, null);
+            new ZMSFileChangeLogStore("/proc/usr\ninvaliddir", null, null);
             fail();
         } catch (RuntimeException ex) {
             assertTrue(true);
