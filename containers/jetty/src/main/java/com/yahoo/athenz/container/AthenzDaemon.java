@@ -26,12 +26,14 @@ public class AthenzDaemon implements Daemon {
         args = context.getArguments();
     }
 
+    ///CLOVER:OFF
     public void start() throws Exception {
         if (args == null) {
             return;
         }
         AthenzJettyContainer.main(args);
     }
+    ///CLOVER:ON
 
     public void stop() throws Exception {
     }

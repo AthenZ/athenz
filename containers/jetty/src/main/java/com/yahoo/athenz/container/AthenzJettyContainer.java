@@ -43,6 +43,7 @@ import org.eclipse.jetty.server.SslConnectionFactory;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.RequestLogHandler;
+import org.eclipse.jetty.server.handler.gzip.GzipHandler;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
@@ -89,8 +90,10 @@ public class AthenzJettyContainer {
                 InetAddress localhost = java.net.InetAddress.getLocalHost();
                 serverHostName = localhost.getCanonicalHostName();
             } catch (java.net.UnknownHostException e) {
+                ///CLOVER:OFF
                 LOG.info("Unable to determine local hostname: " + e.getMessage());
                 serverHostName = "localhost";
+                ///CLOVER:ON
             }
         }
         
@@ -150,7 +153,7 @@ public class AthenzJettyContainer {
     }
     
     public void addServletHandlers(String serverHostName) {
-        
+
         // Handler Structure
         
         RewriteHandler rewriteHandler = new RewriteHandler();
@@ -181,10 +184,27 @@ public class AthenzJettyContainer {
         rewriteHandler.addRule(hostNameRule);
         
         handlers.addHandler(rewriteHandler);
-        
+
         ContextHandlerCollection contexts = new ContextHandlerCollection();
+
+        // check to see if gzip support is enabled
+
+        boolean gzipSupport = Boolean.parseBoolean(System.getProperty(AthenzConsts.ATHENZ_PROP_GZIP_SUPPORT, "false"));
+
+        if (gzipSupport) {
+            int gzipMinSize = Integer.parseInt(
+                    System.getProperty(AthenzConsts.ATHENZ_PROP_GZIP_MIN_SIZE, "1024"));
+
+            GzipHandler gzipHandler = new GzipHandler();
+            gzipHandler.setMinGzipSize(gzipMinSize);
+            gzipHandler.setIncludedMimeTypes("application/json");
+            gzipHandler.setHandler(contexts);
+
+            handlers.addHandler(gzipHandler);
+        }
+
         handlers.addHandler(contexts);
-        
+
         // now setup our default servlet handler for filters
         
         ServletContextHandler servletCtxHandler = new ServletContextHandler(ServletContextHandler.SESSIONS);
@@ -204,7 +224,8 @@ public class AthenzJettyContainer {
             }
         }
         contexts.addHandler(servletCtxHandler);
-        
+
+
         DeploymentManager deployer = new DeploymentManager();
         
         boolean debug = Boolean.parseBoolean(System.getProperty(AthenzConsts.ATHENZ_PROP_DEBUG, "false"));
@@ -462,23 +483,6 @@ public class AthenzJettyContainer {
         server.setHandler(handlers);
     }
     
-    public void run() {
-        try {
-            server.start();
-            System.out.println("Jetty server running at " + banner);
-            server.join();
-        } catch (Exception e) {
-            throw new RuntimeException(e.getMessage());
-        }
-    }
-    
-    public void stop() {
-        try {
-            server.stop();
-        } catch (Exception ignored) {
-        }
-    }
-    
     public static AthenzJettyContainer createJettyContainer() {
 
         // retrieve our http and https port numbers
@@ -512,7 +516,25 @@ public class AthenzJettyContainer {
         container.addRequestLogHandler();
         return container;
     }
-    
+
+    ///CLOVER:OFF
+    public void run() {
+        try {
+            server.start();
+            System.out.println("Jetty server running at " + banner);
+            server.join();
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
+    }
+
+    public void stop() {
+        try {
+            server.stop();
+        } catch (Exception ignored) {
+        }
+    }
+
     public static void main(String [] args) {
 
         System.getProperties().remove("socksProxyHost");
@@ -531,5 +553,5 @@ public class AthenzJettyContainer {
             throw exc;
         }
     }
-    
+    ///CLOVER:ON
 }
