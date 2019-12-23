@@ -241,17 +241,14 @@ func generateCSR(keySigner *signer, subj pkix.Name, host, instanceId, ip, uri st
 	if host != "" {
 		template.DNSNames = []string{host}
 	}
-	if instanceId != "" {
-		uriptr, err := url.Parse(instanceId)
+	if uri != "" {
+		uriptr, err := url.Parse(uri)
 		if err == nil {
 			template.URIs = []*url.URL{uriptr}
 		}
 	}
-	if ip != "" {
-		template.IPAddresses = []net.IP{net.ParseIP(ip)}
-	}
-	if uri != "" {
-		uriptr, err := url.Parse(uri)
+	if instanceId != "" {
+		uriptr, err := url.Parse(instanceId)
 		if err == nil {
 			if len(template.URIs) > 0 {
 				template.URIs = append(template.URIs, uriptr)
@@ -259,6 +256,9 @@ func generateCSR(keySigner *signer, subj pkix.Name, host, instanceId, ip, uri st
 				template.URIs = []*url.URL{uriptr}
 			}
 		}
+	}
+	if ip != "" {
+		template.IPAddresses = []net.IP{net.ParseIP(ip)}
 	}
 	csr, err := x509.CreateCertificateRequest(rand.Reader, &template, keySigner.key)
 	if err != nil {
