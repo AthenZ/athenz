@@ -36,6 +36,7 @@ import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
@@ -372,8 +373,10 @@ public class ZMSClient implements Closeable {
             builder = builder.sslContext(sslContext);
         }
 
-        final JacksonJsonProvider jacksonJsonProvider = new JacksonJaxbJsonProvider().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        final JacksonJsonProvider jacksonJsonProvider = new JacksonJaxbJsonProvider()
+                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         ClientConfig clientConfig = new ClientConfig(jacksonJsonProvider);
+        clientConfig.connectorProvider(new ApacheConnectorProvider());
 
         Client rsClient = builder.property(ClientProperties.CONNECT_TIMEOUT, connectTimeout)
                 .property(ClientProperties.READ_TIMEOUT, readTimeout)
