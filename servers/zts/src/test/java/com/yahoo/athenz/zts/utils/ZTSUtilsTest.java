@@ -490,10 +490,4 @@ public class ZTSUtilsTest {
         assertEquals(false, ZTSUtils.parseBoolean("false", true));
         assertEquals(false, ZTSUtils.parseBoolean("unknown", false));
     }
-
-    @Test
-    public void testExtractRoleName() {
-        assertEquals(ZTSUtils.extractRoleName("athenz:role.readers"), "readers");
-        assertNull(ZTSUtils.extractRoleName("athenz.readers"));
-    }
 }

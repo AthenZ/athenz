@@ -17,9 +17,9 @@ package com.yahoo.athenz.zts.cache;
 
 import java.util.*;
 
+import com.yahoo.athenz.auth.util.AthenzUtils;
 import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.zts.ZTSConsts;
-import com.yahoo.athenz.zts.utils.ZTSUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -135,7 +135,7 @@ public class DataCache {
         // for the role meta cache we're going to create the map
         // based on the role name without the domain prefix
 
-        String roleName = ZTSUtils.extractRoleName(role.getName());
+        String roleName = AthenzUtils.extractRoleName(role.getName());
         if (roleName == null) {
             return;
         }
