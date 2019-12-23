@@ -119,4 +119,52 @@ public class AthenzUtilsTest {
             assertFalse(AthenzUtils.isRoleCertificate(cert));
         }
     }
+
+    @Test
+    public void testExtractRoleName() {
+        assertEquals(AthenzUtils.extractRoleName("athenz:role.readers"), "readers");
+        assertEquals(AthenzUtils.extractRoleName("athenz.api:role.readers"), "readers");
+        assertEquals(AthenzUtils.extractRoleName("athenz.api.test:role.readers"), "readers");
+
+        assertNull(AthenzUtils.extractRoleName("athenz:roles.readers"));
+        assertNull(AthenzUtils.extractRoleName("athenz.role.readers"));
+        assertNull(AthenzUtils.extractRoleName("athenz:role."));
+        assertNull(AthenzUtils.extractRoleName(":role.readers"));
+        assertNull(AthenzUtils.extractRoleName("athenz.readers"));
+    }
+
+    @Test
+    public void testExtractRoleDomainName() {
+        assertEquals(AthenzUtils.extractRoleDomainName("athenz:role.readers"), "athenz");
+        assertEquals(AthenzUtils.extractRoleDomainName("athenz.api:role.readers"), "athenz.api");
+        assertEquals(AthenzUtils.extractRoleDomainName("athenz.api.test:role.readers"), "athenz.api.test");
+
+        assertNull(AthenzUtils.extractRoleDomainName("athenz.role.readers"));
+        assertNull(AthenzUtils.extractRoleDomainName("athenz:roles.readers"));
+        assertNull(AthenzUtils.extractRoleDomainName("athenz:role."));
+        assertNull(AthenzUtils.extractRoleDomainName(":role.readers"));
+        assertNull(AthenzUtils.extractRoleDomainName("athenz.readers"));
+    }
+
+    @Test
+    public void testExtractPrincipalDomainName() {
+        assertEquals(AthenzUtils.extractPrincipalDomainName("athenz.reader"), "athenz");
+        assertEquals(AthenzUtils.extractPrincipalDomainName("athenz.api.reader"), "athenz.api");
+        assertEquals(AthenzUtils.extractPrincipalDomainName("athenz.api.test.reader"), "athenz.api.test");
+
+        assertNull(AthenzUtils.extractPrincipalDomainName("athenz"));
+        assertNull(AthenzUtils.extractPrincipalDomainName("athenz."));
+        assertNull(AthenzUtils.extractPrincipalDomainName(".athenz"));
+    }
+
+    @Test
+    public void testExtractPrincipalServiceName() {
+        assertEquals(AthenzUtils.extractPrincipalServiceName("athenz.reader"), "reader");
+        assertEquals(AthenzUtils.extractPrincipalServiceName("athenz.api.reader"), "reader");
+        assertEquals(AthenzUtils.extractPrincipalServiceName("athenz.api.test.reader"), "reader");
+
+        assertNull(AthenzUtils.extractPrincipalServiceName("athenz"));
+        assertNull(AthenzUtils.extractPrincipalServiceName("athenz."));
+        assertNull(AthenzUtils.extractPrincipalServiceName(".athenz"));
+    }
 }

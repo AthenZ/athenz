@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.zms.store.file;
 
+import com.yahoo.athenz.auth.util.AthenzUtils;
 import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.zms.store.AthenzDomain;
 import com.yahoo.athenz.zms.store.ObjectStoreConnection;
@@ -1588,7 +1589,7 @@ public class FileConnection implements ObjectStoreConnection {
         if (auditDom != null && auditDom.getRoles() != null && !auditDom.getRoles().isEmpty()) {
             for (Role role : auditDom.getRoles().values()) {
                 if (role.getRoleMembers().contains(rm)) {
-                    orgs.add(ZMSUtils.extractRoleName(role.getName()));
+                    orgs.add(AthenzUtils.extractRoleName(role.getName()));
                 }
             }
         }
@@ -1613,7 +1614,7 @@ public class FileConnection implements ObjectStoreConnection {
                                 List<MemberRole> memberRoles = new ArrayList<>();
                                 MemberRole memberRole = new MemberRole();
                                 memberRole.setActive(false);
-                                memberRole.setRoleName(ZMSUtils.extractRoleName(role.getName()));
+                                memberRole.setRoleName(AthenzUtils.extractRoleName(role.getName()));
                                 memberRole.setExpiration(roleMember.getExpiration());
                                 memberRoles.add(memberRole);
                                 domainRoleMember.setMemberRoles(memberRoles);
@@ -1704,7 +1705,7 @@ public class FileConnection implements ObjectStoreConnection {
                         List<MemberRole> memberRoles = new ArrayList<>();
                         MemberRole memberRole = new MemberRole();
                         memberRole.setActive(false);
-                        memberRole.setRoleName(ZMSUtils.extractRoleName(role.getName()));
+                        memberRole.setRoleName(AthenzUtils.extractRoleName(role.getName()));
                         memberRole.setExpiration(roleMember.getExpiration());
                         memberRoles.add(memberRole);
                         domainRoleMember.setMemberRoles(memberRoles);

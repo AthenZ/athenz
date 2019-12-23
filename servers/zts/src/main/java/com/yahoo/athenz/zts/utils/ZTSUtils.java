@@ -400,9 +400,4 @@ public class ZTSUtils {
         }
         return boolVal;
     }
-
-    public static String extractRoleName(final String roleName) {
-        int idx = roleName.indexOf(":role.");
-        return (idx == -1) ? null : roleName.substring(idx + 6);
-    }
 }

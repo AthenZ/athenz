@@ -18,6 +18,7 @@ package com.yahoo.athenz.zms;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.auth.util.AthenzUtils;
 import com.yahoo.athenz.common.server.audit.AuditReferenceValidator;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.log.AuditLogger;
@@ -2320,7 +2321,7 @@ public class DBService {
             // process our role members and if there were any changes processed then update
             // our role and domain time-stamps, and invalidate local cache entry
 
-            final String roleName = ZMSUtils.extractRoleName(role.getName());
+            final String roleName = AthenzUtils.extractRoleName(role.getName());
             if (setRoleMemberExpiration(ctx, con, roleMembers, expiration, millis, domain.getName(),
                     roleName, principal, auditRef, caller)) {
                 con.updateRoleModTimestamp(domain.getName(), roleName);

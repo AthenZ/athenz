@@ -350,18 +350,4 @@ public class ZMSUtils {
         }
         return boolVal;
     }
-
-    public static String extractRoleName(final String roleName) {
-        int idx = roleName.indexOf(":role.");
-        return (idx == -1) ? null : roleName.substring(idx + 6);
-    }
-
-    public static String extractDomainName(final String principalName) {
-        int idx = principalName.lastIndexOf('.');
-        if (idx == -1 || idx == 0 || idx == principalName.length() - 1) {
-            return null;
-        } else {
-            return principalName.substring(0, idx);
-        }
-    }
 }

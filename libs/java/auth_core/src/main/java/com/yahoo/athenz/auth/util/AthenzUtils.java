@@ -90,4 +90,66 @@ public class AthenzUtils {
 
         return principal.contains(ROLE_SEP);
     }
+
+    /**
+     * Extract the role name from the full Athenz Role Name (arn)
+     * which includes the domain name. The format of the role name
+     * is {domain}:role.{role-name}
+     * @param roleName the full arn of the role
+     * @return role name, null if it's not expected full arn format
+     */
+    public static String extractRoleName(final String roleName) {
+        int idx = roleName.indexOf(ROLE_SEP);
+        if (idx == -1 || idx == 0 || idx == roleName.length() - ROLE_SEP.length()) {
+            return null;
+        } else {
+            return roleName.substring(idx + ROLE_SEP.length());
+        }
+    }
+
+    /**
+     * Extract the domain name from the full Athenz Role Name (arn)
+     * which includes the role name. The format of the role name
+     * is {domain}:role.{role-name}
+     * @param roleName the full arn of the role
+     * @return role name, null if it's not expected full arn format
+     */
+    public static String extractRoleDomainName(final String roleName) {
+        int idx = roleName.indexOf(ROLE_SEP);
+        if (idx == -1 || idx == 0 || idx == roleName.length() - ROLE_SEP.length()) {
+            return null;
+        } else {
+            return roleName.substring(0, idx);
+        }
+    }
+
+    /**
+     * Extract the domain name from the principal name which
+     * is in the format {domain}.{service}
+     * @param principalName full name of the principal
+     * @return domain name, null if it's not the expected full service name
+     */
+    public static String extractPrincipalDomainName(final String principalName) {
+        int idx = principalName.lastIndexOf('.');
+        if (idx == -1 || idx == 0 || idx == principalName.length() - 1) {
+            return null;
+        } else {
+            return principalName.substring(0, idx);
+        }
+    }
+
+    /**
+     * Extract the service name from the principal name which
+     * is in the format {domain}.{service}
+     * @param principalName full name of the principal
+     * @return service name, null if it's not the expected full service name
+     */
+    public static String extractPrincipalServiceName(final String principalName) {
+        int idx = principalName.lastIndexOf('.');
+        if (idx == -1 || idx == 0 || idx == principalName.length() - 1) {
+            return null;
+        } else {
+            return principalName.substring(idx + 1);
+        }
+    }
 }

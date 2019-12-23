@@ -16,6 +16,7 @@
 
 package com.yahoo.athenz.zms;
 
+import com.yahoo.athenz.auth.util.AthenzUtils;
 import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.notification.NotificationService;
 import com.yahoo.athenz.common.server.notification.NotificationServiceFactory;
@@ -140,7 +141,7 @@ public class NotificationManager {
         } else if (recipient.startsWith(userDomainPrefix)) {
             notification.addRecipient(recipient);
         } else if (!ignoreService) {
-            final String domainName = ZMSUtils.extractDomainName(recipient);
+            final String domainName = AthenzUtils.extractPrincipalDomainName(recipient);
             if (domainName != null) {
                 addDomainRoleRecipients(notification, domainName, ZMSUtils.roleResourceName(domainName, ZMSConsts.ADMIN_ROLE_NAME));
             }
