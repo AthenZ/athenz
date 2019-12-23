@@ -17,7 +17,7 @@ require (
 	golang.org/x/tools v0.0.0-20190808195139-e713427fea3f // indirect
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
-	gopkg.in/yaml.v2 v2.2.4
+	gopkg.in/yaml.v2 v2.2.7
 )
 
 go 1.13

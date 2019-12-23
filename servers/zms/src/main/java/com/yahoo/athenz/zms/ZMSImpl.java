@@ -3187,7 +3187,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         details.put(NOTIFICATION_DETAILS_ROLE, role);
         details.put(NOTIFICATION_DETAILS_MEMBER, member);
         details.put(NOTIFICATION_DETAILS_REASON, auditRef);
-        details.put(NOTIFICATION_DETAILS_REQUESTOR, principal);
+        details.put(NOTIFICATION_DETAILS_REQUESTER, principal);
 
          if (LOG.isDebugEnabled()) {
              LOG.debug("Sending Membership Approval notification after putMembership");

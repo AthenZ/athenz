@@ -16806,7 +16806,7 @@ public class ZMSImplTest {
         detailsExp.put(NOTIFICATION_DETAILS_ROLE, "testrole2");
         detailsExp.put(NOTIFICATION_DETAILS_MEMBER, "user.fury");
         detailsExp.put(NOTIFICATION_DETAILS_REASON, "adding fury");
-        detailsExp.put(NOTIFICATION_DETAILS_REQUESTOR, "user.fury");
+        detailsExp.put(NOTIFICATION_DETAILS_REQUESTER, "user.fury");
 
         Mockito.verify(mockNotificationManager,
                 times(1)).generateAndSendPostPutMembershipNotification("testdomain1", "testorg", false, true, detailsExp);

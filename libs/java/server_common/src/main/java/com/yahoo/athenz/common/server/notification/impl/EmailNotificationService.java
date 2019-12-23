@@ -27,6 +27,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
+import javax.mail.Session;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
+import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
+import java.io.*;
+import java.net.URL;
+import java.nio.ByteBuffer;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -51,25 +59,32 @@ public class EmailNotificationService implements NotificationService {
 
     private static final String MEMBERSHIP_APPROVAL_SUBJECT = "athenz.notification.email.membership.approval.subject";
     private static final String MEMBERSHIP_APPROVAL_REMINDER_SUBJECT = "athenz.notification.email.membership.reminder.subject";
-    private static final String MEMBERSHIP_APPROVAL_BODY = "athenz.notification.email.membership.approval.body";
-    private static final String MEMBERSHIP_APPROVAL_REMINDER_BODY = "athenz.notification.email.membership.reminder.body";
 
     private static final String DOMAIN_MEMBER_EXPIRY_SUBJECT = "athenz.notification.email.domain.member.expiry.subject";
-    private static final String DOMAIN_MEMBER_EXPIRY_BODY_HEADER = "athenz.notification.email.domain.member.expiry.body.header";
     private static final String DOMAIN_MEMBER_EXPIRY_BODY_ENTRY = "athenz.notification.email.domain.member.expiry.body.entry";
-    private static final String DOMAIN_MEMBER_EXPIRY_BODY_FOOTER = "athenz.notification.email.domain.member.expiry.body.footer";
 
     private static final String PRINCIPAL_EXPIRY_SUBJECT = "athenz.notification.email.principal.expiry.subject";
-    private static final String PRINCIPAL_EXPIRY_BODY_HEADER = "athenz.notification.email.principal.expiry.body.header";
     private static final String PRINCIPAL_EXPIRY_BODY_ENTRY = "athenz.notification.email.principal.expiry.body.entry";
-    private static final String PRINCIPAL_EXPIRY_BODY_FOOTER = "athenz.notification.email.principal.expiry.body.footer";
-
-    private static final String MEMBERSHIP_APPROVAL_FOOTER = "athenz.notification.email.membership.footer";
 
     private static final int SES_RECIPIENTS_LIMIT_PER_MESSAGE = 50;
 
     // can be moved to constructor which can take Locale as input parameter and return appropriate resource bundle
     private static final ResourceBundle RB = ResourceBundle.getBundle("messages/ServerCommon");
+
+    private static final String EMAIL_TEMPLATE_NOTIFICATION_APPROVAL = "messages/membership-approval.html";
+    private static final String EMAIL_TEMPLATE_NOTIFICATION_APPROVAL_REMINDER = "messages/membership-approval-reminder.html";
+    private static final String EMAIL_TEMPLATE_DOMAIN_MEMBER_EXPIRY = "messages/domain-member-expiry.html";
+    private static final String EMAIL_TEMPLATE_PRINCIPAL_EXPIRY = "messages/principal-expiry.html";
+    private static final String EMAIL_TEMPLATE_ATHENZ_LOGO = "emails/athenz-logo-white.png";
+    private static final String EMAIL_TEMPLATE_CSS = "emails/base.css";
+
+
+    private static final String HTML_STYLE_TAG_START = "<style>";
+    private static final String HTML_STYLE_TAG_END = "</style>";
+    private static final String HTML_TBODY_TAG_START = "<tbody>";
+    private static final String HTML_TBODY_TAG_END = "</tbody>";
+
+    private static final String HTML_LOGO_CID_PLACEHOLDER = "<logo>";
 
     private final AmazonSimpleEmailService ses;
 
@@ -79,6 +94,14 @@ public class EmailNotificationService implements NotificationService {
     private String workflowUrl;
     private String athenzUIUrl;
     private String from;
+
+    private URL logoImageResource;
+    private String emailBaseCSS;
+    private String emailMembershipApprovalBody;
+    private String emailMembershipApprovalReminderBody;
+    private String emailDomainMemberExpiryBody;
+    private String emailPrincipalExpiryBody;
+
 
     EmailNotificationService() {
         this(initSES());
@@ -93,6 +116,13 @@ public class EmailNotificationService implements NotificationService {
         workflowUrl = System.getProperty(PROP_NOTIFICATION_WORKFLOW_URL);
         athenzUIUrl = System.getProperty(PROP_NOTIFICATION_ATHENZ_UI_URL);
         from = System.getProperty(PROP_NOTIFICATION_EMAIL_FROM);
+
+        logoImageResource = getClass().getClassLoader().getResource(EMAIL_TEMPLATE_ATHENZ_LOGO);
+        emailBaseCSS = readContentFromFile(EMAIL_TEMPLATE_CSS);
+        emailMembershipApprovalBody = readContentFromFile(EMAIL_TEMPLATE_NOTIFICATION_APPROVAL);
+        emailMembershipApprovalReminderBody = readContentFromFile(EMAIL_TEMPLATE_NOTIFICATION_APPROVAL_REMINDER);
+        emailDomainMemberExpiryBody = readContentFromFile(EMAIL_TEMPLATE_DOMAIN_MEMBER_EXPIRY);
+        emailPrincipalExpiryBody =  readContentFromFile(EMAIL_TEMPLATE_PRINCIPAL_EXPIRY);
     }
 
     private static AmazonSimpleEmailService initSES() {
@@ -110,7 +140,6 @@ public class EmailNotificationService implements NotificationService {
         if (notification == null) {
             return false;
         }
-
         final String subject = getSubject(notification.getType());
         final String body = getBody(notification.getType(), notification.getDetails());
         Set<String> recipients = getFullyQualifiedEmailAddresses(notification.getRecipients());
@@ -134,12 +163,8 @@ public class EmailNotificationService implements NotificationService {
                 body = getPrincipalExpiryBody(details);
                 break;
         }
-        body = body + getFooter();
+        body = body.replace(HTML_STYLE_TAG_START + HTML_STYLE_TAG_END, HTML_STYLE_TAG_START + emailBaseCSS + HTML_STYLE_TAG_END);
         return body;
-    }
-
-    String getFooter() {
-        return RB.getString(MEMBERSHIP_APPROVAL_FOOTER);
     }
 
     String getSubject(String type) {
@@ -169,53 +194,44 @@ public class EmailNotificationService implements NotificationService {
     }
 
     String getMembershipApprovalReminderBody() {
-        return MessageFormat.format(RB.getString(MEMBERSHIP_APPROVAL_REMINDER_BODY), workflowUrl);
+        return MessageFormat.format(emailMembershipApprovalReminderBody, workflowUrl, athenzUIUrl);
     }
 
     String getMembershipApprovalBody(Map<String, String> metaDetails) {
-        return MessageFormat.format(RB.getString(MEMBERSHIP_APPROVAL_BODY), metaDetails.get(NotificationService.NOTIFICATION_DETAILS_DOMAIN),
+        return MessageFormat.format(emailMembershipApprovalBody, metaDetails.get(NotificationService.NOTIFICATION_DETAILS_DOMAIN),
                 metaDetails.get(NotificationService.NOTIFICATION_DETAILS_ROLE), metaDetails.get(NotificationService.NOTIFICATION_DETAILS_MEMBER),
-                metaDetails.get(NotificationService.NOTIFICATION_DETAILS_REASON), metaDetails.get(NotificationService.NOTIFICATION_DETAILS_REQUESTOR),
-                workflowUrl);
+                metaDetails.get(NotificationService.NOTIFICATION_DETAILS_REASON), metaDetails.get(NotificationService.NOTIFICATION_DETAILS_REQUESTER),
+                workflowUrl, athenzUIUrl);
     }
 
     String getDomainMemberExpiryBody(Map<String, String> metaDetails) {
 
-        // first generate the header
-
+        // first get the template and replace placeholders
         StringBuilder body = new StringBuilder(256);
-        final String domainName = metaDetails.get(NotificationService.NOTIFICATION_DETAILS_DOMAIN);
-        body.append(MessageFormat.format(RB.getString(DOMAIN_MEMBER_EXPIRY_BODY_HEADER), domainName));
+        body.append(MessageFormat.format(emailDomainMemberExpiryBody, metaDetails.get(NotificationService.NOTIFICATION_DETAILS_DOMAIN), athenzUIUrl));
 
-        // now parse and generate the member expiry entries
-
+        // then get table rows and replace placeholders
+        StringBuilder bodyEntry = new StringBuilder(256);
         final String roleNames = metaDetails.get(NOTIFICATION_DETAILS_EXPIRY_MEMBERS);
-        processExpiryEntry(body, roleNames, RB.getString(DOMAIN_MEMBER_EXPIRY_BODY_ENTRY));
+        processExpiryEntry(bodyEntry, roleNames, RB.getString(DOMAIN_MEMBER_EXPIRY_BODY_ENTRY));
 
-        // and finally the footer
-
-        body.append(MessageFormat.format(RB.getString(DOMAIN_MEMBER_EXPIRY_BODY_FOOTER),
-                athenzUIUrl, domainName));
-        return body.toString();
+        // add table rows to the template
+        return body.toString().replace(HTML_TBODY_TAG_START + HTML_TBODY_TAG_END, HTML_TBODY_TAG_START + bodyEntry + HTML_TBODY_TAG_END);
     }
 
     String getPrincipalExpiryBody(Map<String, String> metaDetails) {
 
-        // first generate the header
-
+        // first get the template and replace placeholders
         StringBuilder body = new StringBuilder(256);
-        body.append(MessageFormat.format(RB.getString(PRINCIPAL_EXPIRY_BODY_HEADER),
-                metaDetails.get(NotificationService.NOTIFICATION_DETAILS_MEMBER)));
+        body.append(MessageFormat.format(emailPrincipalExpiryBody, metaDetails.get(NotificationService.NOTIFICATION_DETAILS_MEMBER), athenzUIUrl));
 
-        // now parse and generate the member expiry entries
-
+        // then get table rows and replace placeholders
+        StringBuilder bodyEntry = new StringBuilder(256);
         final String roleNames = metaDetails.get(NOTIFICATION_DETAILS_EXPIRY_ROLES);
-        processExpiryEntry(body, roleNames, RB.getString(PRINCIPAL_EXPIRY_BODY_ENTRY));
+        processExpiryEntry(bodyEntry, roleNames, RB.getString(PRINCIPAL_EXPIRY_BODY_ENTRY));
 
-        // and finally the footer
-
-        body.append(MessageFormat.format(RB.getString(PRINCIPAL_EXPIRY_BODY_FOOTER), athenzUIUrl));
-        return body.toString();
+        // add table rows to the template
+        return body.toString().replace(HTML_TBODY_TAG_START + HTML_TBODY_TAG_END, HTML_TBODY_TAG_START + bodyEntry + HTML_TBODY_TAG_END);
     }
 
     void processExpiryEntry(StringBuilder body, final String entryNames, final String entryFormat) {
@@ -243,37 +259,98 @@ public class EmailNotificationService implements NotificationService {
                     .collect(Collectors.groupingBy(it -> counter.getAndIncrement() / SES_RECIPIENTS_LIMIT_PER_MESSAGE))
                     .values();
             for (List<String> recipientsSegment : recipientsBatch) {
-                status = sendEmail(subject, body, status, recipientsSegment);
+                status = sendEmailMIME(subject, body, status, recipientsSegment);
             }
         } else {
-            status = sendEmail(subject, body, status, new ArrayList<>(recipients));
+            status = sendEmailMIME(subject, body, status, new ArrayList<>(recipients));
         }
 
         return status;
     }
 
-    private boolean sendEmail(String subject, String body, boolean status, Collection<String> recipients) {
-            try {
-                SendEmailRequest request = new SendEmailRequest()
-                        .withDestination(new Destination()
-                                .withBccAddresses(recipients))
-                        .withMessage(new Message()
-                                .withBody(new Body()
-                                        .withHtml(new Content()
-                                                .withCharset(CHARSET_UTF_8).withData(body)))
-                                .withSubject(new Content()
-                                        .withCharset(CHARSET_UTF_8).withData(subject)))
-                        .withSource(from + AT + emailDomainFrom);
-                SendEmailResult result = ses.sendEmail(request);
+    String readContentFromFile(String fileName) {
+        StringBuilder contents = new StringBuilder();
+        URL resource = getClass().getClassLoader().getResource(fileName);
+        if (resource != null) {
+            try (BufferedReader br = new BufferedReader(new FileReader(resource.getFile()))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    contents.append(line);
+                    contents.append(System.getProperty("line.separator"));
+                }
+            } catch (IOException ex) {
+                LOGGER.error("Could not read a file from the disk. Error message: {}", ex.getMessage());
+            }
+        }
+        return contents.toString();
+    }
+
+    private boolean sendEmailMIME(String subject, String body, boolean status, Collection<String> recipients) {
+        try {
+            Session session = Session.getDefaultInstance(new Properties());
+
+            // Create a new MimeMessage object.
+            MimeMessage message = new MimeMessage(session);
+
+            // Add subject, from and to lines.
+            message.setSubject(subject, CHARSET_UTF_8);
+            message.setFrom(new InternetAddress(from + AT + emailDomainFrom));
+            message.setRecipients(javax.mail.Message.RecipientType.BCC, InternetAddress.parse(String.join(",", recipients)));
+
+            // Create a multipart/alternative child container.
+            MimeMultipart msgBody = new MimeMultipart("alternative");
+
+            // Create a wrapper for the HTML and text parts.
+            MimeBodyPart wrap = new MimeBodyPart();
+
+            // Set the text part.
+            MimeBodyPart textPart = new MimeBodyPart();
+            textPart.setContent(body, "text/plain; charset=" + CHARSET_UTF_8);
+
+            // Set the HTML part.
+            MimeBodyPart htmlPart = new MimeBodyPart();
+            htmlPart.setContent(body, "text/html; charset=" + CHARSET_UTF_8);
+
+            // Add the text and HTML parts to the child container.
+            msgBody.addBodyPart(textPart);
+            msgBody.addBodyPart(htmlPart);
+
+            // Add the child container to the wrapper object.
+            wrap.setContent(msgBody);
+
+            // Create a multipart/mixed parent container.
+            MimeMultipart msgParent = new MimeMultipart("related");
+
+            // Add the multipart/alternative part to the message.
+            msgParent.addBodyPart(wrap);
+
+            // Add the parent container to the message.
+            message.setContent(msgParent);
+
+
+            if (logoImageResource != null) {
+                MimeBodyPart logo = new MimeBodyPart();
+                logo.attachFile(logoImageResource.getFile());
+                logo.setContentID(HTML_LOGO_CID_PLACEHOLDER);
+                logo.setDisposition(MimeBodyPart.INLINE);
+                // Add the attachment to the message.
+                msgParent.addBodyPart(logo);
+            }
+
+            try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+                message.writeTo(outputStream);
+                RawMessage rawMessage = new RawMessage(ByteBuffer.wrap(outputStream.toByteArray()));
+                SendRawEmailRequest rawEmailRequest = new SendRawEmailRequest(rawMessage);
+                SendRawEmailResult result = ses.sendRawEmail(rawEmailRequest);
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Email with messageId={} sent successfully.", result.getMessageId());
                 }
                 status = status && result != null;
-            } catch (Exception ex) {
-                LOGGER.error("The email could not be sent. Error message: {}", ex.getMessage());
-                status = false;
             }
-
+        } catch (Exception ex) {
+            LOGGER.error("The email could not be sent. Error message: {}", ex.getMessage());
+            status = false;
+        }
         return status;
     }
 }
