@@ -27,6 +27,8 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.util.*;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -54,7 +56,7 @@ public class EmailNotificationServiceTest {
         details.put("role", "role1");
         details.put("member", "user.member1");
         details.put("reason", "test reason");
-        details.put("requestor", "user.requestor");
+        details.put("requester", "user.requester");
         String body = svc.getBody("MEMBERSHIP_APPROVAL", details);
 
         assertNotNull(body);
@@ -62,7 +64,7 @@ public class EmailNotificationServiceTest {
         assertTrue(body.contains("role1"));
         assertTrue(body.contains("user.member1"));
         assertTrue(body.contains("test reason"));
-        assertTrue(body.contains("user.requestor"));
+        assertTrue(body.contains("user.requester"));
         assertTrue(body.contains("https://athenz.example.com/workflow"));
 
         body = svc.getBody("MEMBERSHIP_APPROVAL_REMINDER", null);
@@ -129,13 +131,6 @@ public class EmailNotificationServiceTest {
         sub = svc.getSubject("INVALID");
         assertNotNull(sub);
         assertTrue(sub.isEmpty());
-    }
-
-    @Test
-    public void testGetFooter() {
-        EmailNotificationService svc = new EmailNotificationService();
-        String footer = svc.getFooter();
-        assertNotNull(footer);
     }
 
     @Test
@@ -279,7 +274,7 @@ public class EmailNotificationServiceTest {
         details.put("role", "role1");
         details.put("member", "user.member1");
         details.put("reason", "test reason");
-        details.put("requestor", "user.requestor");
+        details.put("requester", "user.requester");
         notification.setDetails(details);
 
         boolean status = svc.notify(notification);
@@ -303,6 +298,24 @@ public class EmailNotificationServiceTest {
         AmazonSimpleEmailService ses = mock(AmazonSimpleEmailService.class);
         EmailNotificationService svc = new EmailNotificationService(ses);
         assertTrue(svc.readContentFromFile("resources/non-existent").isEmpty());
+    }
+
+    @Test
+    public void testReadContentFromFileNull() throws Exception {
+        AmazonSimpleEmailService ses = mock(AmazonSimpleEmailService.class);
+        EmailNotificationService svc = new EmailNotificationService(ses);
+        BufferedReader reader = mock(BufferedReader.class);
+        Mockito.when(reader.readLine()).thenReturn(null);
+        assertTrue(svc.readContentFromFile("resources/dummy").isEmpty());
+    }
+
+    @Test
+    public void testReadContentFromFileException() throws Exception {
+        AmazonSimpleEmailService ses = mock(AmazonSimpleEmailService.class);
+        EmailNotificationService svc = new EmailNotificationService(ses);
+        BufferedReader reader = mock(BufferedReader.class);
+        Mockito.when(reader.readLine()).thenThrow(new IOException());
+        assertTrue(svc.readContentFromFile("resources/dummy").isEmpty());
     }
 
 }

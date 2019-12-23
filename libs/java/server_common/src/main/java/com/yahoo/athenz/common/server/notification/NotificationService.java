@@ -27,7 +27,7 @@ public interface NotificationService {
     String NOTIFICATION_DETAILS_ROLE           = "role";
     String NOTIFICATION_DETAILS_MEMBER         = "member";
     String NOTIFICATION_DETAILS_REASON         = "reason";
-    String NOTIFICATION_DETAILS_REQUESTOR      = "requestor";
+    String NOTIFICATION_DETAILS_REQUESTER      = "requester";
     String NOTIFICATION_DETAILS_EXPIRY_ROLES   = "expiryRoles";
     String NOTIFICATION_DETAILS_EXPIRY_MEMBERS = "expiryMembers";
 

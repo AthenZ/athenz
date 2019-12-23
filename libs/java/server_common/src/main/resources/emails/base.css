@@ -1,7 +1,7 @@
 body {
     font-family: "Helvetica", Helvetica, Arial, serif;
 }
-.wrapper {
+.athenz-wrapper {
     width: 100%;
     min-width: 500px;
     min-height: 502px;
@@ -11,7 +11,7 @@ body {
     -webkit-font-smoothing: antialiased;
     background-color: rgba(231, 232, 231, 1.0);
 }
-.mbrapproval {
+.athenz-wrapper .mbrapproval {
     width: 500px;
     height: 402px;
     margin: auto;
@@ -59,6 +59,11 @@ body {
     padding: 5px;
     text-align: left;
 }
+.mbrapproval th {
+    padding: 5px;
+    text-align: left;
+    font-weight: bold;
+}
 .mbrapproval div {
     -webkit-text-size-adjust: none;
 }
@@ -87,17 +92,30 @@ body {
     text-align: left;
     line-height: 14px;
 }
-.mbrapproval .footer {
+.footer-container .footer {
     background-color: rgba(255, 255, 255, 0.0);
     height: auto;
     width: 440px;
-    margin: 45px 0 0 20px;
+    margin: 15px 0 0 20px;
     font-size: 12px;
     color: rgba(48, 48, 48, 1.0);
     text-align: left;
     line-height: 14px;
+    display: inline-block;
 }
 .mbrapproval hr {
     margin: 20px;
     width: 92%;
+}
+.athenz-wrapper .footer-container {
+    text-align: center;
+}
+
+@media only screen and (max-width: 600px) {
+    .footer-container .footer {
+        font-size: 8px;
+    }
+    .athenz-wrapper {
+        min-height: 480px;
+    }
 }
