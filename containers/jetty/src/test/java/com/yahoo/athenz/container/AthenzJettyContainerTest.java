@@ -15,12 +15,6 @@
  */
 package com.yahoo.athenz.container;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertTrue;
-
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConfiguration;
@@ -39,6 +33,8 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
 import com.yahoo.athenz.container.log.AthenzRequestLog;
+
+import static org.testng.Assert.*;
 
 public class AthenzJettyContainerTest {
 
@@ -70,6 +66,15 @@ public class AthenzJettyContainerTest {
         System.clearProperty(AthenzConsts.ATHENZ_PROP_REQUEST_HEADER_SIZE);
         System.clearProperty(AthenzConsts.ATHENZ_PROP_RESPONSE_HEADER_SIZE);
         System.clearProperty(AthenzConsts.ATHENZ_PROP_MAX_THREADS);
+        System.clearProperty(AthenzConsts.ATHENZ_PROP_GZIP_SUPPORT);
+        System.clearProperty(AthenzConsts.ATHENZ_PROP_GZIP_MIN_SIZE);
+        System.clearProperty(AthenzConsts.ATHENZ_PROP_DEBUG);
+        System.clearProperty(AthenzConsts.ATHENZ_PROP_HEALTH_CHECK_URI_LIST);
+        System.clearProperty(AthenzConsts.ATHENZ_PROP_PROXY_PROTOCOL);
+        System.clearProperty(AthenzConsts.ATHENZ_PROP_LISTEN_HOST);
+        System.clearProperty((AthenzConsts.ATHENZ_PROP_STATUS_PORT));
+        System.clearProperty(AthenzConsts.ATHENZ_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS);
+        System.clearProperty(AthenzConsts.ATHENZ_PROP_KEEP_ALIVE);
     }
     
     @AfterClass
@@ -98,8 +103,9 @@ public class AthenzJettyContainerTest {
     
     @Test
     public void testRequestLogHandler() {
-        
-        System.setProperty(AthenzConsts.ATHENZ_PROP_ACCESS_LOG_RETAIN_DAYS, "3");
+
+        // negative number should be ignored
+        System.setProperty(AthenzConsts.ATHENZ_PROP_ACCESS_LOG_RETAIN_DAYS, "-3");
         System.setProperty(AthenzConsts.ATHENZ_PROP_MAX_THREADS, "100");
 
         AthenzJettyContainer container = new AthenzJettyContainer();
@@ -426,7 +432,7 @@ public class AthenzJettyContainerTest {
     }
     
     @Test
-    public void initContainerValidPorts() {
+    public void testInitContainerValidPorts() {
         
         System.setProperty(AthenzConsts.ATHENZ_PROP_HTTP_PORT, "4080");
         System.setProperty(AthenzConsts.ATHENZ_PROP_HTTPS_PORT, "4443");
@@ -445,7 +451,7 @@ public class AthenzJettyContainerTest {
     }
     
     @Test
-    public void initContainerOnlyHTTPSPort() {
+    public void testInitContainerOnlyHTTPSPort() {
         
         System.setProperty(AthenzConsts.ATHENZ_PROP_HTTP_PORT, "0");
         System.setProperty(AthenzConsts.ATHENZ_PROP_HTTPS_PORT, "4443");
@@ -463,7 +469,7 @@ public class AthenzJettyContainerTest {
     }
     
     @Test
-    public void initContainerOnlyHTTPPort() {
+    public void testInitContainerOnlyHTTPPort() {
         
         System.setProperty(AthenzConsts.ATHENZ_PROP_HTTP_PORT, "4080");
         System.setProperty(AthenzConsts.ATHENZ_PROP_HTTPS_PORT, "0");
@@ -480,7 +486,7 @@ public class AthenzJettyContainerTest {
     }
     
     @Test
-    public void initContainerInvalidHTTPPort() {
+    public void testInitContainerInvalidHTTPPort() {
         
         System.setProperty(AthenzConsts.ATHENZ_PROP_HTTP_PORT, "-10");
         System.setProperty(AthenzConsts.ATHENZ_PROP_HTTPS_PORT, "4443");
@@ -499,7 +505,7 @@ public class AthenzJettyContainerTest {
     }
     
     @Test
-    public void initContainerInvalidHTTPSPort() {
+    public void testInitContainerInvalidHTTPSPort() {
         
         System.setProperty(AthenzConsts.ATHENZ_PROP_HTTP_PORT, "4080");
         System.setProperty(AthenzConsts.ATHENZ_PROP_HTTPS_PORT, "-10");
@@ -515,5 +521,92 @@ public class AthenzJettyContainerTest {
         
         assertTrue(connectors[1].getProtocols().contains("http/1.1"));
         assertTrue(connectors[1].getProtocols().contains("ssl"));
+    }
+
+    @Test
+    public void testInitContainerOptionalFeatures() {
+
+        System.setProperty(AthenzConsts.ATHENZ_PROP_HTTP_PORT, "4080");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_HTTPS_PORT, "4443");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_DEBUG, "true");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_GZIP_SUPPORT, "true");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_HEALTH_CHECK_URI_LIST, "/status.html");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_PROXY_PROTOCOL, "true");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_LISTEN_HOST, "127.0.0.1");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_EXCLUDED_PROTOCOLS, "");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_KEEP_ALIVE, "false");
+
+        AthenzJettyContainer container = AthenzJettyContainer.createJettyContainer();
+        assertNotNull(container);
+
+        Server server = container.getServer();
+        Connector[] connectors = server.getConnectors();
+        assertEquals(connectors.length, 2);
+
+        assertTrue(connectors[0].getProtocols().contains("http/1.1"));
+
+        assertTrue(connectors[1].getProtocols().contains("http/1.1"));
+        assertTrue(connectors[1].getProtocols().contains("ssl"));
+    }
+
+    @Test
+    public void testInitContainerStatusPortHTTPS() {
+
+        System.setProperty(AthenzConsts.ATHENZ_PROP_HTTP_PORT, "4080");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_HTTPS_PORT, "4443");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_STATUS_PORT, "4444");
+
+        AthenzJettyContainer container = AthenzJettyContainer.createJettyContainer();
+        assertNotNull(container);
+    }
+
+    @Test
+    public void testInitContainerStatusPortHTTP() {
+
+        System.setProperty(AthenzConsts.ATHENZ_PROP_HTTPS_PORT, "0");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_HTTP_PORT, "4080");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_STATUS_PORT, "4444");
+
+        AthenzJettyContainer container = AthenzJettyContainer.createJettyContainer();
+        assertNotNull(container);
+    }
+
+    @Test
+    public void testInitContainerStatusPortNoHTTP() {
+
+        System.setProperty(AthenzConsts.ATHENZ_PROP_HTTPS_PORT, "0");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_HTTP_PORT, "0");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_STATUS_PORT, "4444");
+
+        AthenzJettyContainer container = AthenzJettyContainer.createJettyContainer();
+        assertNotNull(container);
+    }
+
+    @Test
+    public void testLoadServicePrivateKeyInvalid() {
+
+        System.setProperty(AthenzConsts.ATHENZ_PROP_HTTP_PORT, "4080");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_STATUS_PORT, "4444");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS, "invalid-class");
+
+        try {
+            AthenzJettyContainer.createJettyContainer();
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex instanceof IllegalArgumentException);
+        }
+    }
+
+    @Test
+    public void testInvalidJettyHomeDir() {
+        System.setProperty(AthenzConsts.ATHENZ_PROP_JETTY_HOME, "unknown");
+        try {
+            AthenzJettyContainer.createJettyContainer();
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex instanceof RuntimeException);
+        }
+        // reset to expected conf directory
+        System.setProperty(AthenzConsts.ATHENZ_PROP_JETTY_HOME, "conf");
     }
 }

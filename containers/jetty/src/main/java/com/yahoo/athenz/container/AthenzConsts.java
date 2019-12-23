@@ -51,6 +51,8 @@ public final class AthenzConsts {
     public static final String ATHENZ_PROP_RESPONSE_HEADER_SIZE   = "athenz.http_response_header_size";
     public static final String ATHENZ_PROP_LISTEN_HOST            = "athenz.listen_host";
     public static final String ATHENZ_PROP_KEEP_ALIVE             = "athenz.keep_alive";
+    public static final String ATHENZ_PROP_GZIP_SUPPORT           = "athenz.gzip_support";
+    public static final String ATHENZ_PROP_GZIP_MIN_SIZE          = "athenz.gzip_min_size";
     public static final String ATHENZ_PROP_MAX_THREADS            = "athenz.http_max_threads";
     public static final String ATHENZ_PROP_HOSTNAME               = "athenz.hostname";
     public static final String ATHENZ_PROP_JETTY_HOME             = "athenz.jetty_home";
