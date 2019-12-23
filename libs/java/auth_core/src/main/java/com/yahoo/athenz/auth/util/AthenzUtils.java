@@ -112,7 +112,7 @@ public class AthenzUtils {
      * which includes the role name. The format of the role name
      * is {domain}:role.{role-name}
      * @param roleName the full arn of the role
-     * @return role name, null if it's not expected full arn format
+     * @return domain name, null if it's not expected full arn format
      */
     public static String extractRoleDomainName(final String roleName) {
         int idx = roleName.indexOf(ROLE_SEP);
@@ -127,7 +127,7 @@ public class AthenzUtils {
      * Extract the domain name from the principal name which
      * is in the format {domain}.{service}
      * @param principalName full name of the principal
-     * @return domain name, null if it's not the expected full service name
+     * @return domain name, null if it's not the expected full principal service name
      */
     public static String extractPrincipalDomainName(final String principalName) {
         int idx = principalName.lastIndexOf('.');
@@ -142,7 +142,7 @@ public class AthenzUtils {
      * Extract the service name from the principal name which
      * is in the format {domain}.{service}
      * @param principalName full name of the principal
-     * @return service name, null if it's not the expected full service name
+     * @return service name, null if it's not the expected full principal service name
      */
     public static String extractPrincipalServiceName(final String principalName) {
         int idx = principalName.lastIndexOf('.');
