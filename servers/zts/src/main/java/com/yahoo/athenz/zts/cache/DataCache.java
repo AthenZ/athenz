@@ -20,7 +20,6 @@ import java.util.*;
 import com.yahoo.athenz.auth.util.AthenzUtils;
 import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.zts.ZTSConsts;
-import com.yahoo.athenz.zts.utils.ZTSUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
