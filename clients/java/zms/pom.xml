@@ -64,6 +64,11 @@
       <version>${jersey.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.glassfish.jersey.connectors</groupId>
+      <artifactId>jersey-apache-connector</artifactId>
+      <version>${jersey.version}</version>
+    </dependency>
+    <dependency>
       <groupId>com.yahoo.rdl</groupId>
       <artifactId>rdl-java</artifactId>
       <version>${rdl.version}</version>
