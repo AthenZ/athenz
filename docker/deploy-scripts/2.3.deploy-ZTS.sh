@@ -29,13 +29,12 @@ fi
 # start ZTS DB
 printf "\nWill start ZTS DB...\n"
 docker run -d -h "${ZTS_DB_HOST}" \
-  -p "${ZTS_DB_PORT}:${ZTS_DB_PORT}" \
+  -p "${ZTS_DB_PORT}:3306" \
   --network="${DOCKER_NETWORK}" \
   --user mysql:mysql \
   -v "`pwd`/db/zts/zts-db.cnf:/etc/mysql/conf.d/zts-db.cnf" \
   -e "MYSQL_ROOT_PASSWORD=${ZTS_DB_ROOT_PASS}" \
-  --name "${ZTS_DB_HOST}" athenz-zts-db \
-  --port="${ZTS_DB_PORT}"
+  --name "${ZTS_DB_HOST}" athenz-zts-db
 
 # wait for ZTS DB ready from outside
 docker run --rm \
@@ -48,7 +47,7 @@ docker run --rm \
   --name wait-for-mysql athenz-zts-db \
   --user='root' \
   --host="${ZTS_DB_HOST}" \
-  --port="${ZTS_DB_PORT}"
+  --port=3306
 
 # add zts_admin
 printf "\nWill add zts_admin user to DB and remove root user with wildcard host...\n"
@@ -86,6 +85,7 @@ docker run -d -h "${ZTS_HOST}" \
   -e "ZTS_SIGNER_TRUSTSTORE_PASS=${ZTS_SIGNER_TRUSTSTORE_PASS}" \
   -e "ZMS_CLIENT_KEYSTORE_PASS=${ZMS_CLIENT_KEYSTORE_PASS}" \
   -e "ZMS_CLIENT_TRUSTSTORE_PASS=${ZMS_CLIENT_TRUSTSTORE_PASS}" \
+  -e "ZTS_PORT=${ZTS_PORT}" \
   --name "${ZTS_HOST}" athenz-zts-server
 
 # wait for ZTS to be ready

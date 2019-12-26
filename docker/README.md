@@ -120,7 +120,7 @@ make clean
         - `4443`: ZMS server
             - [athenz.properties](./zms/conf/athenz.properties#L6)
             - ENV: `ZMS_PORT` ([deploy script](./deploy-scripts/1.1.deploy-ZMS.sh#L14))
-        - `3307`: ZTS DB
+        - `3306`: ZTS DB
             - [zts-db.cnf](./db/zts/zts-db.cnf#L2)
             - [zts.properties](./zts/conf/zts.properties#L211)
             - ENV: `ZTS_DB_PORT` ([deploy script](./deploy-scripts/2.3.deploy-ZTS.sh#L12))

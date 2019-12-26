@@ -16,7 +16,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: ${ZMS_DB_ROOT_PASS}
     ports:
-      - target: ${ZMS_DB_PORT}
+      - target: 3306
         published: ${ZMS_DB_PORT}
         protocol: tcp
         mode: host
@@ -45,7 +45,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: ${ZTS_DB_ROOT_PASS}
     ports:
-      - target: ${ZTS_DB_PORT}
+      - target: 3306
         published: ${ZTS_DB_PORT}
         protocol: tcp
         mode: host

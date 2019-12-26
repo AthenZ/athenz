@@ -11,3 +11,10 @@ ENTRYPOINT ["docker-entrypoint.sh"]
 
 # EXPOSE 3306
 CMD ["mysqld"]
+
+HEALTHCHECK --interval=1m --timeout=3s --start-period=10s --retries=3 \
+  CMD mysql -sss \
+  --host localhost \
+  --user=root "--password=${MYSQL_ROOT_PASSWORD}" \
+  -e 'SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = "zts_store"' \
+  || exit 1

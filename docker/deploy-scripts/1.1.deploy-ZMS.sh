@@ -29,13 +29,12 @@ fi
 # start ZMS DB
 printf "\nWill start ZMS DB...\n"
 docker run -d -h "${ZMS_DB_HOST}" \
-  -p "${ZMS_DB_PORT}:${ZMS_DB_PORT}" \
+  -p "${ZMS_DB_PORT}:3306" \
   --network="${DOCKER_NETWORK}" \
   --user mysql:mysql \
   -v "`pwd`/db/zms/zms-db.cnf:/etc/mysql/conf.d/zms-db.cnf" \
   -e "MYSQL_ROOT_PASSWORD=${ZMS_DB_ROOT_PASS}" \
-  --name "${ZMS_DB_HOST}" athenz-zms-db \
-  --port="${ZMS_DB_PORT}"
+  --name "${ZMS_DB_HOST}" athenz-zms-db
 
 # wait for ZMS DB ready from outside
 docker run --rm \
@@ -48,7 +47,7 @@ docker run --rm \
   --name wait-for-mysql athenz-zms-db \
   --user='root' \
   --host="${ZMS_DB_HOST}" \
-  --port="${ZMS_DB_PORT}"
+  --port=3306
 
 # add zms_admin
 printf "\nWill add zms_admin user to DB and remove root user with wildcard host...\n"
@@ -82,6 +81,7 @@ docker run -d -h "${ZMS_HOST}" \
   -e "ZMS_DB_ADMIN_PASS=${ZMS_DB_ADMIN_PASS}" \
   -e "ZMS_KEYSTORE_PASS=${ZMS_KEYSTORE_PASS}" \
   -e "ZMS_TRUSTSTORE_PASS=${ZMS_TRUSTSTORE_PASS}" \
+  -e "ZMS_PORT=${ZMS_PORT}" \
   --name "${ZMS_HOST}" athenz-zms-server
 
 # wait for ZMS to be ready

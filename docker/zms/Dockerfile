@@ -1,6 +1,6 @@
 FROM athenz-builder AS builder
 
-FROM openjdk:8-jre-alpine
+FROM adoptopenjdk/openjdk8:alpine-jre
 
 ARG GID=1001
 ARG UID=10001
@@ -38,3 +38,11 @@ CMD [ \
   # main class
   "com.yahoo.athenz.container.AthenzJettyContainer" \
 ]
+
+# ENV for healthcheck
+ENV ZMS_PORT='4443'
+
+HEALTHCHECK --interval=1m --timeout=3s --start-period=10s --retries=3 \
+  CMD wget -O - --quiet --tries=1 --no-check-certificate \
+  "https://127.0.0.1:${ZMS_PORT}/zms/v1/status" \
+  || exit 1
