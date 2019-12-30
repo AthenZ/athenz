@@ -237,3 +237,21 @@ resource Membership PUT "/domain/{domainName}/role/{roleName}/member/{memberName
         ResourceError TOO_MANY_REQUESTS;
     }
 }
+
+// Review role membership and take action to either extend and/or delete existing members.
+resource Role PUT "/domain/{domainName}/role/{roleName}/review" (name=PutRoleReview) {
+    DomainName domainName; //name of the domain
+    EntityName roleName; //name of the role
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    Role role; // Role object with updated and/or deleted members
+    authorize ("update", "{domainName}:role.{roleName}");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}

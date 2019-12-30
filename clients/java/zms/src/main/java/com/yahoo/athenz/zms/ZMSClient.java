@@ -2290,4 +2290,24 @@ public class ZMSClient implements Closeable {
             throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
         }
     }
+
+    /**
+     * Review role membership to extend and/or delete role members
+     *
+     * @param domainName  name of the domain
+     * @param roleName    name of the role
+     * @param auditRef    string containing audit specification or ticket number
+     * @param role        Role object containing updated and/or deleted members
+     * @throws ZMSClientException in case of failure
+     */
+    public void putRoleReview(String domainName, String roleName, String auditRef, Role role) {
+        updatePrincipal();
+        try {
+            client.putRoleReview(domainName, roleName, auditRef, role);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
+        }
+    }
 }

@@ -935,6 +935,37 @@ public class ZMSResources {
         }
     }
 
+    @PUT
+    @Path("/domain/{domainName}/role/{roleName}/review")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public void putRoleReview(@PathParam("domainName") String domainName, @PathParam("roleName") String roleName, @HeaderParam("Y-Audit-Ref") String auditRef, Role role) {
+        try {
+            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context.authorize("update", "" + domainName + ":role." + roleName + "", null);
+            this.delegate.putRoleReview(context, domainName, roleName, auditRef, role);
+        } catch (ResourceException e) {
+            int code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.CONFLICT:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource putRoleReview");
+                throw typedException(code, e, ResourceError.class);
+            }
+        }
+    }
+
     @GET
     @Path("/domain/{domainName}/policy")
     @Produces(MediaType.APPLICATION_JSON)

@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class DBService {
     
@@ -4075,5 +4076,155 @@ public class DBService {
                 }
             }
         }
+    }
+
+    void executePutRoleReview(ResourceContext ctx, String domainName, String roleName, Role role,
+                        String auditRef, String caller) {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
+
+                final String principal = getPrincipalName(ctx);
+
+                // first verify that auditing requirements are met
+
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, principal, AUDIT_TYPE_ROLE);
+
+                // retrieve our original role
+
+                Role originalRole = getRole(con, domainName, roleName, false, false, false);
+
+                if (originalRole.getTrust() != null && !originalRole.getTrust().isEmpty()) {
+                    throw ZMSUtils.requestError(caller + ": role " + roleName + " is delegated. Review should happen on the trusted role. ", caller);
+                }
+
+                // now process the request. first we're going to make a copy of our role
+
+                Role updatedRole = new Role()
+                        .setName(originalRole.getName())
+                        .setAuditEnabled(originalRole.getAuditEnabled())
+                        .setSelfServe(originalRole.getSelfServe());
+
+                // then we're going to apply the updated expiry and/or active status from the incoming role
+
+                List<RoleMember> noactionMembers = applyMembershipChanges(updatedRole, originalRole, role, auditRef);
+
+                StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
+
+                List<RoleMember> deletedMembers = new ArrayList<>();
+                List<RoleMember> extendedMembers = new ArrayList<>();
+
+                auditDetails.append("{\"name\": \"").append(roleName).append('\"')
+                        .append(", \"selfServe\": ").append(updatedRole.getSelfServe() == Boolean.TRUE ? "true" : "false")
+                        .append(", \"auditEnabled\": ").append(updatedRole.getAuditEnabled() == Boolean.TRUE ? "true" : "false");
+
+                for (RoleMember member : updatedRole.getRoleMembers()) {
+
+                    // if active flag is coming as false for the member, that means it's flagged for deletion
+
+                    if (member.getActive() == Boolean.FALSE) {
+                        if (!con.deleteRoleMember(domainName, roleName, member.getMemberName(), principal, auditRef)) {
+                            con.rollbackChanges();
+                            throw ZMSUtils.notFoundError(caller + ": unable to delete role member: " +
+                                    member.getMemberName() + " from role: " + roleName, caller);
+                        }
+                        deletedMembers.add(member);
+
+                    } else {
+                        // if not marked for deletion, then we are going to extend the member
+
+                        if (!con.insertRoleMember(domainName, roleName, member, principal, auditRef)) {
+                            con.rollbackChanges();
+                            throw ZMSUtils.notFoundError(caller + ": unable to extend role member: " +
+                                    member.getMemberName() + " for the role: " + roleName, caller);
+                        }
+                        extendedMembers.add(member);
+                    }
+                }
+
+                // construct audit log details
+                auditLogRoleMembers(auditDetails, "deleted-members", deletedMembers);
+                auditLogRoleMembers(auditDetails, "extended-members", extendedMembers);
+                auditLogRoleMembers(auditDetails, "no-action-members", noactionMembers);
+
+                auditDetails.append("}");
+
+                if (!deletedMembers.isEmpty() || !extendedMembers.isEmpty()) {
+                    // we have one or more changes to the role
+                    saveChanges(con, domainName);
+                }
+
+                // audit log the request
+                auditLogRequest(ctx, domainName, auditRef, caller, "REVIEW", roleName, auditDetails.toString());
+
+                return;
+
+            } catch (ResourceException ex) {
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ex;
+                }
+            }
+        }
+    }
+
+    /**
+     * This method takes the input role, creates a map using memberName as key,
+     * copies members from original role from DB and only adds deleted / extended members to the updatedRole.
+     * @param updatedRole updated role to be sent to DB to record changes
+     * @param originalRole original role from DB
+     * @param role incoming role containing changes from domain admin
+     * @param auditRef audit ref for the change
+     * @return List of rolemember where no action was taken
+     */
+    List<RoleMember> applyMembershipChanges(Role updatedRole, Role originalRole, Role role, String auditRef) {
+
+        Map<String, RoleMember> incomingMemberMap =
+                role.getRoleMembers().stream().collect(Collectors.toMap(RoleMember::getMemberName, item -> item));
+
+        List<RoleMember> noActionMembers = new ArrayList<>(originalRole.getRoleMembers().size());
+
+        // updatedMembers size is driven by input
+
+        List<RoleMember> updatedMembers = new ArrayList<>(incomingMemberMap.size());
+        updatedRole.setRoleMembers(updatedMembers);
+        RoleMember updatedMember;
+
+        // if original role is auditEnabled then all the extensions should be sent for approval again.
+
+        boolean approvalStatus = originalRole.getAuditEnabled() != Boolean.TRUE;
+
+        for (RoleMember originalMember : originalRole.getRoleMembers()) {
+
+            // we are only going to update the changed members
+
+            if (incomingMemberMap.containsKey(originalMember.getMemberName())) {
+
+                updatedMember = new RoleMember();
+                updatedMember.setMemberName(originalMember.getMemberName());
+
+                // member's approval status is determined by auditEnabled flag set on original role
+
+                updatedMember.setApproved(approvalStatus);
+
+                // member's active status is determined by action taken in UI
+
+                updatedMember.setActive(incomingMemberMap.get(updatedMember.getMemberName()).getActive());
+
+                // member's new expiration is set by role / domain level expiration setting
+
+                updatedMember.setExpiration(incomingMemberMap.get(updatedMember.getMemberName()).getExpiration());
+
+                updatedMember.setAuditRef(auditRef);
+                updatedMembers.add(updatedMember);
+            } else {
+                noActionMembers.add(originalMember);
+            }
+        }
+        return noActionMembers;
     }
 }

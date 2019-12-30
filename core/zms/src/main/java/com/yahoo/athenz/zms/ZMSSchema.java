@@ -1009,6 +1009,28 @@ public class ZMSSchema {
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
+        sb.resource("Role", "PUT", "/domain/{domainName}/role/{roleName}/review")
+            .comment("Review role membership and take action to either extend and/or delete existing members.")
+            .name("PutRoleReview")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("roleName", "EntityName", "name of the role")
+            .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .input("role", "Role", "Role object with updated and/or deleted members")
+            .auth("update", "{domainName}:role.{roleName}")
+            .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("CONFLICT", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
         sb.resource("PolicyList", "GET", "/domain/{domainName}/policy")
             .comment("List policies provisioned in this namespace.")
             .pathParam("domainName", "DomainName", "name of the domain")
