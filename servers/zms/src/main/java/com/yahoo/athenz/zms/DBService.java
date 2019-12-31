@@ -4106,9 +4106,7 @@ public class DBService {
                 // now process the request. first we're going to make a copy of our role
 
                 Role updatedRole = new Role()
-                        .setName(originalRole.getName())
-                        .setAuditEnabled(originalRole.getAuditEnabled())
-                        .setSelfServe(originalRole.getSelfServe());
+                        .setName(originalRole.getName());
 
                 // then we're going to apply the updated expiry and/or active status from the incoming role
 
@@ -4120,8 +4118,8 @@ public class DBService {
                 List<RoleMember> extendedMembers = new ArrayList<>();
 
                 auditDetails.append("{\"name\": \"").append(roleName).append('\"')
-                        .append(", \"selfServe\": ").append(updatedRole.getSelfServe() == Boolean.TRUE ? "true" : "false")
-                        .append(", \"auditEnabled\": ").append(updatedRole.getAuditEnabled() == Boolean.TRUE ? "true" : "false");
+                        .append(", \"selfServe\": ").append(originalRole.getSelfServe() == Boolean.TRUE ? "true" : "false")
+                        .append(", \"auditEnabled\": ").append(originalRole.getAuditEnabled() == Boolean.TRUE ? "true" : "false");
 
                 for (RoleMember member : updatedRole.getRoleMembers()) {
 
@@ -4156,6 +4154,8 @@ public class DBService {
 
                 if (!deletedMembers.isEmpty() || !extendedMembers.isEmpty()) {
                     // we have one or more changes to the role
+
+                    con.updateRoleModTimestamp(domainName, roleName);
                     saveChanges(con, domainName);
                 }
 
@@ -4197,6 +4197,7 @@ public class DBService {
         // if original role is auditEnabled then all the extensions should be sent for approval again.
 
         boolean approvalStatus = originalRole.getAuditEnabled() != Boolean.TRUE;
+        RoleMember tempMemberFromMap;
 
         for (RoleMember originalMember : originalRole.getRoleMembers()) {
 
@@ -4207,17 +4208,19 @@ public class DBService {
                 updatedMember = new RoleMember();
                 updatedMember.setMemberName(originalMember.getMemberName());
 
+                tempMemberFromMap = incomingMemberMap.get(updatedMember.getMemberName());
+
                 // member's approval status is determined by auditEnabled flag set on original role
 
                 updatedMember.setApproved(approvalStatus);
 
                 // member's active status is determined by action taken in UI
 
-                updatedMember.setActive(incomingMemberMap.get(updatedMember.getMemberName()).getActive());
+                updatedMember.setActive(tempMemberFromMap.getActive());
 
                 // member's new expiration is set by role / domain level expiration setting
 
-                updatedMember.setExpiration(incomingMemberMap.get(updatedMember.getMemberName()).getExpiration());
+                updatedMember.setExpiration(tempMemberFromMap.getExpiration());
 
                 updatedMember.setAuditRef(auditRef);
                 updatedMembers.add(updatedMember);
