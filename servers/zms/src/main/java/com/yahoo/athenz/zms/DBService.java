@@ -40,14 +40,14 @@ public class DBService {
     
     ObjectStore store;
     BitSet auditRefSet;
-    final String userDomain;
     AuditLogger auditLogger;
     Cache<String, DataCache> cacheStore;
     QuotaChecker quotaCheck;
     int retrySleepTime;
     int defaultRetryCount;
     int defaultOpTimeout;
-    
+    ZMSConfig zmsConfig;
+
     private static final Logger LOG = LoggerFactory.getLogger(DBService.class);
 
     public static int AUDIT_TYPE_ROLE     = 0;
@@ -63,10 +63,10 @@ public class DBService {
     private static final String TEMPLATE_DOMAIN_NAME = "_domain_";
     AuditReferenceValidator auditReferenceValidator;
     
-    public DBService(ObjectStore store, AuditLogger auditLogger, String userDomain, AuditReferenceValidator auditReferenceValidator) {
+    public DBService(ObjectStore store, AuditLogger auditLogger, ZMSConfig zmsConfig, AuditReferenceValidator auditReferenceValidator) {
         
         this.store = store;
-        this.userDomain = userDomain;
+        this.zmsConfig = zmsConfig;
         this.auditLogger = auditLogger;
         cacheStore = CacheBuilder.newBuilder().concurrencyLevel(25).build();
 
@@ -1846,7 +1846,7 @@ public class DBService {
         
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             con.setOperationTimeout(1800);
-            return con.listResourceAccess(principal, action, userDomain);
+            return con.listResourceAccess(principal, action, zmsConfig.getUserDomain());
         }
     }
     
@@ -2233,6 +2233,7 @@ public class DBService {
                         .setYpmId(domain.getYpmId())
                         .setCertDnsDomain(domain.getCertDnsDomain())
                         .setMemberExpiryDays(domain.getMemberExpiryDays())
+                        .setServiceExpiryDays(domain.getServiceExpiryDays())
                         .setTokenExpiryMins(domain.getTokenExpiryMins())
                         .setRoleCertExpiryMins(domain.getRoleCertExpiryMins())
                         .setServiceCertExpiryMins(domain.getServiceCertExpiryMins())
@@ -2280,7 +2281,12 @@ public class DBService {
         // we only need to process the domain role members if the new expiration
         // is more restrictive than what we had before
 
-        if (!memberExpiryDaysReduced(domain.getMemberExpiryDays(), updatedDomain.getMemberExpiryDays())) {
+        boolean userMemberExpiryDayReduced = memberExpiryDaysReduced(domain.getMemberExpiryDays(),
+                updatedDomain.getMemberExpiryDays());
+        boolean serviceMemberExpiryDayReduced = memberExpiryDaysReduced(domain.getServiceExpiryDays(),
+                updatedDomain.getServiceExpiryDays());
+
+        if (!userMemberExpiryDayReduced && !serviceMemberExpiryDayReduced) {
             return;
         }
 
@@ -2292,8 +2298,12 @@ public class DBService {
             return;
         }
 
-        long millis = System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(updatedDomain.getMemberExpiryDays(), TimeUnit.DAYS);
-        Timestamp expiration = Timestamp.fromMillis(millis);
+        long userMillis = userMemberExpiryDayReduced ? System.currentTimeMillis()
+                + TimeUnit.MILLISECONDS.convert(updatedDomain.getMemberExpiryDays(), TimeUnit.DAYS) : 0;
+        long serviceMillis = serviceMemberExpiryDayReduced ? System.currentTimeMillis()
+                + TimeUnit.MILLISECONDS.convert(updatedDomain.getServiceExpiryDays(), TimeUnit.DAYS) : 0;
+        Timestamp userExpiration = Timestamp.fromMillis(userMillis);
+        Timestamp serviceExpiration = Timestamp.fromMillis(serviceMillis);
         boolean bDataChanged = false;
         final String principal = getPrincipalName(ctx);
 
@@ -2302,7 +2312,7 @@ public class DBService {
             // if the role already has a specific expiry date set then we
             // will automatically skip this role
 
-            if (role.getMemberExpiryDays() != null) {
+            if (role.getMemberExpiryDays() != null || role.getServiceExpiryDays() != null) {
                 continue;
             }
 
@@ -2323,8 +2333,8 @@ public class DBService {
             // our role and domain time-stamps, and invalidate local cache entry
 
             final String roleName = AthenzUtils.extractRoleName(role.getName());
-            if (setRoleMemberExpiration(ctx, con, roleMembers, expiration, millis, domain.getName(),
-                    roleName, principal, auditRef, caller)) {
+            if (setRoleMemberExpiration(ctx, con, roleMembers, userExpiration, userMillis, serviceExpiration,
+                    serviceMillis, domain.getName(), roleName, principal, auditRef, caller)) {
                 con.updateRoleModTimestamp(domain.getName(), roleName);
                 bDataChanged = true;
             }
@@ -2344,6 +2354,9 @@ public class DBService {
         domain.setDescription(meta.getDescription());
         if (meta.getMemberExpiryDays() != null) {
             domain.setMemberExpiryDays(meta.getMemberExpiryDays());
+        }
+        if (meta.getServiceExpiryDays() != null) {
+            domain.setServiceExpiryDays(meta.getServiceExpiryDays());
         }
         if (meta.getRoleCertExpiryMins() != null) {
             domain.setRoleCertExpiryMins(meta.getRoleCertExpiryMins());
@@ -3599,6 +3612,7 @@ public class DBService {
                 .append("\", \"ypmid\": \"").append(domain.getYpmId())
                 .append("\", \"id\": \"").append(domain.getId())
                 .append("\", \"memberExpiryDays\": \"").append(domain.getMemberExpiryDays())
+                .append("\", \"serviceExpiryDays\": \"").append(domain.getServiceExpiryDays())
                 .append("\", \"tokenExpiryMins\": \"").append(domain.getTokenExpiryMins())
                 .append("\", \"serviceCertExpiryMins\": \"").append(domain.getServiceCertExpiryMins())
                 .append("\", \"roleCertExpiryMins\": \"").append(domain.getRoleCertExpiryMins())
@@ -3615,6 +3629,7 @@ public class DBService {
         auditDetails.append("{\"name\": \"").append(roleName)
                 .append("\", \"selfServe\": \"").append(role.getSelfServe())
                 .append("\", \"memberExpiryDays\": \"").append(role.getMemberExpiryDays())
+                .append("\", \"serviceExpiryDays\": \"").append(role.getServiceExpiryDays())
                 .append("\", \"tokenExpiryMins\": \"").append(role.getTokenExpiryMins())
                 .append("\", \"certExpiryMins\": \"").append(role.getCertExpiryMins())
                 .append("\"}");
@@ -3730,6 +3745,7 @@ public class DBService {
                         .setTrust(originalRole.getTrust())
                         .setSelfServe(originalRole.getSelfServe())
                         .setMemberExpiryDays(originalRole.getMemberExpiryDays())
+                        .setServiceExpiryDays(originalRole.getServiceExpiryDays())
                         .setTokenExpiryMins(originalRole.getTokenExpiryMins())
                         .setCertExpiryMins(originalRole.getCertExpiryMins())
                         .setSignAlgorithm(originalRole.getSignAlgorithm());
@@ -3765,6 +3781,9 @@ public class DBService {
         role.setSelfServe(meta.getSelfServe());
         if (meta.getMemberExpiryDays() != null) {
             role.setMemberExpiryDays(meta.getMemberExpiryDays());
+        }
+        if (meta.getServiceExpiryDays() != null) {
+            role.setServiceExpiryDays(meta.getServiceExpiryDays());
         }
         if (meta.getTokenExpiryMins() != null) {
             role.setTokenExpiryMins(meta.getTokenExpiryMins());
@@ -3805,6 +3824,7 @@ public class DBService {
                         .setTrust(originalRole.getTrust())
                         .setSelfServe(originalRole.getSelfServe())
                         .setMemberExpiryDays(originalRole.getMemberExpiryDays())
+                        .setServiceExpiryDays(originalRole.getServiceExpiryDays())
                         .setTokenExpiryMins(originalRole.getTokenExpiryMins())
                         .setCertExpiryMins(originalRole.getCertExpiryMins())
                         .setSignAlgorithm(originalRole.getSignAlgorithm());
@@ -3843,17 +3863,32 @@ public class DBService {
     }
 
     boolean setRoleMemberExpiration(ResourceContext ctx, ObjectStoreConnection con, List<RoleMember> roleMembers,
-            Timestamp expiration, long millis, final String domainName, final String roleName, final String principal,
-            final String auditRef, final String caller) {
+            Timestamp userExpiration, long userMillis, Timestamp serviceExpiration, long serviceMillis,
+            final String domainName, final String roleName, final String principal, final String auditRef,
+            final String caller) {
 
         boolean bDataChanged = false;
         for (RoleMember roleMember : roleMembers) {
 
-            if (roleMember.getExpiration() != null && roleMember.getExpiration().millis() < millis) {
-                continue;
-            }
+            boolean bUser = ZMSUtils.isUserDomainPrincipal(roleMember.getMemberName(), zmsConfig.getUserDomainPrefix(),
+                    zmsConfig.getAddlUserCheckDomainPrefixList());
 
-            roleMember.setExpiration(expiration);
+            if (bUser && userMillis != 0) {
+
+                if (roleMember.getExpiration() != null && roleMember.getExpiration().millis() < userMillis) {
+                    continue;
+                }
+
+                roleMember.setExpiration(userExpiration);
+
+            } else if (!bUser && serviceMillis != 0) {
+
+                if (roleMember.getExpiration() != null && roleMember.getExpiration().millis() < serviceMillis) {
+                    continue;
+                }
+
+                roleMember.setExpiration(serviceExpiration);
+            }
 
             try {
                 if (!con.insertRoleMember(domainName, roleName, roleMember, principal, auditRef)) {
@@ -3897,22 +3932,31 @@ public class DBService {
         // we only need to process the role members if the new expiration
         // is more restrictive than what we had before
 
-        if (!memberExpiryDaysReduced(originalRole.getMemberExpiryDays(), updatedRole.getMemberExpiryDays())) {
+        boolean userMemberExpiryDayReduced = memberExpiryDaysReduced(originalRole.getMemberExpiryDays(),
+                updatedRole.getMemberExpiryDays());
+        boolean serviceMemberExpiryDayReduced = memberExpiryDaysReduced(originalRole.getServiceExpiryDays(),
+                updatedRole.getServiceExpiryDays());
+
+        if (!userMemberExpiryDayReduced && !serviceMemberExpiryDayReduced) {
             return;
         }
 
         // we're only going to process those role members whose
         // expiration is either not set or longer than the new limit
 
-        long millis = System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(updatedRole.getMemberExpiryDays(), TimeUnit.DAYS);
-        Timestamp expiration = Timestamp.fromMillis(millis);
+        long userMillis = userMemberExpiryDayReduced ? System.currentTimeMillis()
+                + TimeUnit.MILLISECONDS.convert(updatedRole.getMemberExpiryDays(), TimeUnit.DAYS) : 0;
+        long serviceMillis = serviceMemberExpiryDayReduced ? System.currentTimeMillis()
+                + TimeUnit.MILLISECONDS.convert(updatedRole.getServiceExpiryDays(), TimeUnit.DAYS) : 0;
+        Timestamp userExpiration = Timestamp.fromMillis(userMillis);
+        Timestamp serviceExpiration = Timestamp.fromMillis(serviceMillis);
         final String principal = getPrincipalName(ctx);
 
         // process our role members and if there were any changes processed then update
         // our role and domain time-stamps, and invalidate local cache entry
 
-        if (setRoleMemberExpiration(ctx, con, roleMembers, expiration, millis, domainName, roleName,
-                principal, auditRef, caller)) {
+        if (setRoleMemberExpiration(ctx, con, roleMembers, userExpiration, userMillis, serviceExpiration, serviceMillis,
+                domainName, roleName, principal, auditRef, caller)) {
             con.updateRoleModTimestamp(domainName, roleName);
             con.updateDomainModTimestamp(domainName);
             cacheStore.invalidate(domainName);
@@ -4079,7 +4123,7 @@ public class DBService {
     }
 
     void executePutRoleReview(ResourceContext ctx, String domainName, String roleName, Role role,
-                        String auditRef, String caller) {
+                              String auditRef, String caller) {
 
         // our exception handling code does the check for retry count
         // and throws the exception it had received when the retry

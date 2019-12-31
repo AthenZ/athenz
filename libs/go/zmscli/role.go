@@ -365,6 +365,22 @@ func (cli Zms) SetRoleMemberExpiryDays(dn string, rn string, days int32) (*strin
 	return &s, nil
 }
 
+func (cli Zms) SetRoleServiceExpiryDays(dn string, rn string, days int32) (*string, error) {
+	role, err := cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), nil, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	meta := getRoleMetaObject(role)
+	meta.ServiceExpiryDays = &days
+
+	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " role " + rn + " service-expiry-days attribute successfully updated]\n"
+	return &s, nil
+}
+
 func (cli Zms) SetRoleTokenExpiryMins(dn string, rn string, mins int32) (*string, error) {
 	role, err := cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), nil, nil, nil)
 	if err != nil {

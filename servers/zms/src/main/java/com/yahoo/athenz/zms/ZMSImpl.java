@@ -656,9 +656,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     + " error: " + e.getMessage());
             throw new IllegalArgumentException("Invalid object store");
         }
-        
+
+        ZMSConfig zmsConfig = new ZMSConfig();
+        zmsConfig.setUserDomain(userDomain);
+        zmsConfig.setAddlUserCheckDomainPrefixList(addlUserCheckDomainPrefixList);
+        zmsConfig.setUserDomainPrefix(userDomainPrefix);
+
         ObjectStore store = objFactory.create(keyStore);
-        dbService = new DBService(store, auditLogger, userDomain, auditReferenceValidator);
+        dbService = new DBService(store, auditLogger, zmsConfig, auditReferenceValidator);
     }
     
     void loadMetricObject() {
@@ -1115,6 +1120,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setModified(Timestamp.fromCurrentTime())
                 .setApplicationId(detail.getApplicationId())
                 .setMemberExpiryDays(detail.getMemberExpiryDays())
+                .setServiceExpiryDays(detail.getServiceExpiryDays())
                 .setTokenExpiryMins(detail.getTokenExpiryMins())
                 .setServiceCertExpiryMins(detail.getServiceCertExpiryMins())
                 .setRoleCertExpiryMins(detail.getRoleCertExpiryMins())
@@ -1275,6 +1281,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setModified(Timestamp.fromCurrentTime())
                 .setApplicationId(detail.getApplicationId())
                 .setMemberExpiryDays(detail.getMemberExpiryDays())
+                .setServiceExpiryDays(detail.getServiceExpiryDays())
                 .setTokenExpiryMins(detail.getTokenExpiryMins())
                 .setServiceCertExpiryMins(detail.getServiceCertExpiryMins())
                 .setRoleCertExpiryMins(detail.getRoleCertExpiryMins())
@@ -1376,6 +1383,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setModified(Timestamp.fromCurrentTime())
                 .setApplicationId(detail.getApplicationId())
                 .setMemberExpiryDays(detail.getMemberExpiryDays())
+                .setServiceExpiryDays(detail.getServiceExpiryDays())
                 .setTokenExpiryMins(detail.getTokenExpiryMins())
                 .setServiceCertExpiryMins(detail.getServiceCertExpiryMins())
                 .setRoleCertExpiryMins(detail.getRoleCertExpiryMins())
@@ -2825,7 +2833,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // update role expiry based on our configurations
 
-        updateRoleMemberExpiration(domain.getMemberExpiryDays(), role.getMemberExpiryDays(), role.getRoleMembers());
+        updateRoleMemberExpiration(domain.getMemberExpiryDays(), role.getMemberExpiryDays(),
+                domain.getServiceExpiryDays(), role.getServiceExpiryDays(), role.getRoleMembers());
 
         // process our request
         
@@ -2846,26 +2855,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
 
-    boolean isUserDomainPrincipal(final String memberName) {
-
-        if (memberName.startsWith(userDomainPrefix)) {
-            return true;
-        }
-
-        if (addlUserCheckDomainPrefixList != null) {
-            for (String prefix : addlUserCheckDomainPrefixList) {
-                if (memberName.startsWith(prefix)) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
     void validateRoleMemberPrincipal(final String memberName, final String caller) {
 
-        boolean bUser = isUserDomainPrincipal(memberName);
+        boolean bUser = ZMSUtils.isUserDomainPrincipal(memberName, userDomainPrefix, addlUserCheckDomainPrefixList);
         boolean bValidPrincipal = true;
         if (bUser) {
 
@@ -3048,21 +3040,29 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
 
-    void updateRoleMemberExpiration(Integer domainExpiryDays, Integer roleExpiryDays, List<RoleMember> roleMembers) {
+    void updateRoleMemberExpiration(Integer domainUserMemberExpiryDays, Integer roleUserMemberExpiryDays,
+            Integer domainServiceMemberExpiryDays, Integer roleServiceMemberExpiryDays, List<RoleMember> roleMembers) {
 
-        long cfgExpiryMillis = configuredExpiryMillis(domainExpiryDays, roleExpiryDays);
+        long cfgUserMemberExpiryMillis = configuredExpiryMillis(domainUserMemberExpiryDays, roleUserMemberExpiryDays);
+        long cfgServiceMemberExpiryMillis = configuredExpiryMillis(domainServiceMemberExpiryDays, roleServiceMemberExpiryDays);
 
         // if we have no value configured then we have nothing to
         // do so we'll just return right away
 
-        if (cfgExpiryMillis == 0) {
+        if (cfgUserMemberExpiryMillis == 0 && cfgServiceMemberExpiryMillis == 0) {
             return;
         }
 
         // go through the members and update expiration as necessary
 
         for (RoleMember roleMember : roleMembers) {
-            roleMember.setExpiration(getMemberExpiration(cfgExpiryMillis, roleMember.getExpiration()));
+            boolean bUser = ZMSUtils.isUserDomainPrincipal(roleMember.getMemberName(), userDomainPrefix,
+                    addlUserCheckDomainPrefixList);
+            if (bUser && cfgUserMemberExpiryMillis != 0) {
+                roleMember.setExpiration(getMemberExpiration(cfgUserMemberExpiryMillis, roleMember.getExpiration()));
+            } else if (!bUser && cfgServiceMemberExpiryMillis != 0) {
+                roleMember.setExpiration(getMemberExpiration(cfgServiceMemberExpiryMillis, roleMember.getExpiration()));
+            }
         }
     }
 
@@ -3147,8 +3147,15 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         RoleMember roleMember = new RoleMember();
         roleMember.setMemberName(normalizeDomainAliasUser(memberName));
-        roleMember.setExpiration(memberExpiryTimestamp(domain.getDomain().getMemberExpiryDays(),
-                role.getMemberExpiryDays(), membership.getExpiration()));
+        boolean bUser = ZMSUtils.isUserDomainPrincipal(roleMember.getMemberName(), userDomainPrefix,
+                addlUserCheckDomainPrefixList);
+        if (bUser) {
+            roleMember.setExpiration(memberExpiryTimestamp(domain.getDomain().getMemberExpiryDays(),
+                    role.getMemberExpiryDays(), membership.getExpiration()));
+        } else {
+            roleMember.setExpiration(memberExpiryTimestamp(domain.getDomain().getServiceExpiryDays(),
+                    role.getServiceExpiryDays(), membership.getExpiration()));
+        }
 
         // check to see if we need to validate the principal
 
@@ -7032,8 +7039,15 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         RoleMember roleMember = new RoleMember();
         roleMember.setMemberName(normalizeDomainAliasUser(memberName));
-        roleMember.setExpiration(memberExpiryTimestamp(domain.getDomain().getMemberExpiryDays(),
-                role.getMemberExpiryDays(), membership.getExpiration()));
+        boolean bUser = ZMSUtils.isUserDomainPrincipal(roleMember.getMemberName(), userDomainPrefix,
+                addlUserCheckDomainPrefixList);
+        if (bUser) {
+            roleMember.setExpiration(memberExpiryTimestamp(domain.getDomain().getMemberExpiryDays(),
+                    role.getMemberExpiryDays(), membership.getExpiration()));
+        } else {
+            roleMember.setExpiration(memberExpiryTimestamp(domain.getDomain().getServiceExpiryDays(),
+                    role.getServiceExpiryDays(), membership.getExpiration()));
+        }
         roleMember.setApproved(membership.getApproved());
         roleMember.setActive(membership.getActive());
 
@@ -7235,7 +7249,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         Role dbRole = getRoleFromDomain(roleName, domain);
 
-        if (configuredExpiryMillis(domain.getDomain().getMemberExpiryDays(), dbRole.getMemberExpiryDays()) == 0) {
+        if (configuredExpiryMillis(domain.getDomain().getMemberExpiryDays(), dbRole.getMemberExpiryDays()) == 0 &&
+                configuredExpiryMillis(domain.getDomain().getServiceExpiryDays(), dbRole.getServiceExpiryDays()) == 0) {
             throw ZMSUtils.requestError(caller + ": Domain member expiry / Role member expiry must be set to review the role. ", caller);
         }
 
@@ -7245,12 +7260,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // update role expiry based on our configurations
 
-        updateRoleMemberExpiration(domain.getDomain().getMemberExpiryDays(), dbRole.getMemberExpiryDays(), role.getRoleMembers());
+        updateRoleMemberExpiration(domain.getDomain().getMemberExpiryDays(), dbRole.getMemberExpiryDays(),
+                domain.getDomain().getServiceExpiryDays(), dbRole.getServiceExpiryDays(), role.getRoleMembers());
 
         // process our request
 
         dbService.executePutRoleReview(ctx, domainName, roleName, role, auditRef, caller);
         metric.stopTiming(timerMetric, domainName, principalDomain);
     }
-
 }

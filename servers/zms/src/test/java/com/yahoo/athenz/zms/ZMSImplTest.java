@@ -1702,6 +1702,7 @@ public class ZMSImplTest {
         assertNull(resDom1.getServiceCertExpiryMins());
         assertNull(resDom1.getRoleCertExpiryMins());
         assertNull(resDom1.getMemberExpiryDays());
+        assertNull(resDom1.getServiceExpiryDays());
         assertNull(resDom1.getTokenExpiryMins());
 
         DomainMeta meta = createDomainMetaObject("Test2 Domain", "NewOrg",
@@ -1731,6 +1732,7 @@ public class ZMSImplTest {
         assertEquals(resDom3.getServiceCertExpiryMins(), Integer.valueOf(100));
         assertEquals(resDom3.getRoleCertExpiryMins(), Integer.valueOf(200));
         assertNull(resDom3.getMemberExpiryDays());
+        assertNull(resDom3.getServiceExpiryDays());
         assertNull(resDom3.getTokenExpiryMins());
         assertEquals(resDom3.getSignAlgorithm(), "ec");
 
@@ -1739,6 +1741,7 @@ public class ZMSImplTest {
         meta = createDomainMetaObject("just a new desc", "organs",
                 true, true, "12345", 1001);
         meta.setMemberExpiryDays(300);
+        meta.setServiceExpiryDays(350);
         meta.setTokenExpiryMins(400);
         zms.putDomainMeta(mockDomRsrcCtx, "MetaDom1", auditRef, meta);
 
@@ -1754,6 +1757,7 @@ public class ZMSImplTest {
         assertEquals(resDom3.getServiceCertExpiryMins(), Integer.valueOf(100));
         assertEquals(resDom3.getRoleCertExpiryMins(), Integer.valueOf(200));
         assertEquals(resDom3.getMemberExpiryDays(), Integer.valueOf(300));
+        assertEquals(resDom3.getServiceExpiryDays(), Integer.valueOf(350));
         assertEquals(resDom3.getTokenExpiryMins(), Integer.valueOf(400));
 
         zms.putDomainSystemMeta(mockDomRsrcCtx, "MetaDom1", "org", auditRef, meta);
@@ -1769,6 +1773,7 @@ public class ZMSImplTest {
         meta.setServiceCertExpiryMins(5);
         meta.setRoleCertExpiryMins(0);
         meta.setMemberExpiryDays(15);
+        meta.setServiceExpiryDays(17);
         meta.setTokenExpiryMins(20);
         meta.setSignAlgorithm("rsa");
         zms.putDomainMeta(mockDomRsrcCtx, "MetaDom1", auditRef, meta);
@@ -1785,6 +1790,7 @@ public class ZMSImplTest {
         assertEquals(resDom3.getServiceCertExpiryMins(), Integer.valueOf(5));
         assertEquals(resDom3.getRoleCertExpiryMins(), Integer.valueOf(0));
         assertEquals(resDom3.getMemberExpiryDays(), Integer.valueOf(15));
+        assertEquals(resDom3.getServiceExpiryDays(), Integer.valueOf(17));
         assertEquals(resDom3.getTokenExpiryMins(), Integer.valueOf(20));
         assertEquals(resDom3.getSignAlgorithm(), "rsa");
 
@@ -1933,26 +1939,32 @@ public class ZMSImplTest {
         // set the expiry days to 30
 
         meta.setMemberExpiryDays(30);
+        meta.setServiceExpiryDays(25);
         zms.putDomainMeta(mockDomRsrcCtx, "MetaDomProductid.metaSubDom", auditRef, meta);
         Domain domain = zms.getDomain(mockDomRsrcCtx, "MetaDomProductid.metaSubDom");
         assertEquals(domain.getMemberExpiryDays(), Integer.valueOf(30));
+        assertEquals(domain.getServiceExpiryDays(), Integer.valueOf(25));
 
         // if value is null we're not going to change it
 
         meta.setMemberExpiryDays(null);
+        meta.setServiceExpiryDays(null);
         meta.setDescription("test1");
         zms.putDomainMeta(mockDomRsrcCtx, "MetaDomProductid.metaSubDom", auditRef, meta);
         domain = zms.getDomain(mockDomRsrcCtx, "MetaDomProductid.metaSubDom");
         assertEquals(domain.getMemberExpiryDays(), Integer.valueOf(30));
+        assertEquals(domain.getServiceExpiryDays(), Integer.valueOf(25));
         assertEquals(domain.getDescription(), "test1");
 
         // setting is to 0
 
         meta.setMemberExpiryDays(0);
+        meta.setServiceExpiryDays(0);
         meta.setDescription("test2");
         zms.putDomainMeta(mockDomRsrcCtx, "MetaDomProductid.metaSubDom", auditRef, meta);
         domain = zms.getDomain(mockDomRsrcCtx, "MetaDomProductid.metaSubDom");
         assertEquals(domain.getMemberExpiryDays(), Integer.valueOf(0));
+        assertEquals(domain.getServiceExpiryDays(), Integer.valueOf(0));
         assertEquals(domain.getDescription(), "test2");
 
         zms.deleteSubDomain(mockDomRsrcCtx, "MetaDomProductid", "metaSubDom", auditRef);
@@ -2055,6 +2067,7 @@ public class ZMSImplTest {
         Role role1 = createRoleObject("GetRoleDom1", "Role1", null,
                 "user.joe", "user.jane");
         role1.setMemberExpiryDays(30);
+        role1.setServiceExpiryDays(35);
         role1.setSelfServe(true);
         zms.putRole(mockDomRsrcCtx, "GetRoleDom1", "Role1", auditRef, role1);
 
@@ -2073,6 +2086,7 @@ public class ZMSImplTest {
         checkRoleMember(checkList, members);
 
         assertEquals(role.getMemberExpiryDays(), Integer.valueOf(30));
+        assertEquals(role.getServiceExpiryDays(), Integer.valueOf(35));
         assertTrue(role.getSelfServe());
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "GetRoleDom1", auditRef);
@@ -2240,6 +2254,7 @@ public class ZMSImplTest {
         Role role1 = new Role();
         role1.setName("role1");
         role1.setMemberExpiryDays(30);
+        role1.setServiceExpiryDays(45);
         
         zms.putRole(mockDomRsrcCtx, "CreateRoleLocalNameOnly", "Role1", auditRef, role1);
 
@@ -2247,6 +2262,7 @@ public class ZMSImplTest {
         assertNotNull(role3);
         assertEquals(role3.getName(), "CreateRoleLocalNameOnly:role.Role1".toLowerCase());
         assertEquals(role3.getMemberExpiryDays(), Integer.valueOf(30));
+        assertEquals(role3.getServiceExpiryDays(), Integer.valueOf(45));
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "CreateRoleLocalNameOnly", auditRef);
     }
@@ -12807,7 +12823,6 @@ public class ZMSImplTest {
             assertTrue(ex.getMessage().contains("Read-Only"));
         }
 
-
         // now make sure we can read our sys.auth zms service
         
         ServiceIdentity serviceRes = zmsTest.getServiceIdentity(mockDomRsrcCtx, "sys.auth", "zms");
@@ -15894,6 +15909,7 @@ public class ZMSImplTest {
         RoleMeta rm = createRoleMetaObject(true);
         rm.setMemberExpiryDays(45);
         rm.setCertExpiryMins(55);
+        rm.setServiceExpiryDays(45);
         rm.setTokenExpiryMins(65);
         rm.setSignAlgorithm("ec");
         zms.putRoleMeta(mockDomRsrcCtx, "rolemetadom1", "role1", auditRef, rm);
@@ -15905,6 +15921,7 @@ public class ZMSImplTest {
         assertEquals(resRole1.getMemberExpiryDays(), Integer.valueOf(45));
         assertEquals(resRole1.getCertExpiryMins(), Integer.valueOf(55));
         assertEquals(resRole1.getTokenExpiryMins(), Integer.valueOf(65));
+        assertEquals(resRole1.getServiceExpiryDays(), Integer.valueOf(45));
         assertEquals(resRole1.getSignAlgorithm(), "ec");
 
         // if we pass a null for the expiry days (e.g. old client)
@@ -15918,6 +15935,7 @@ public class ZMSImplTest {
         assertNotNull(resRole1);
         assertFalse(resRole1.getSelfServe());
         assertEquals(resRole1.getMemberExpiryDays(), Integer.valueOf(45));
+        assertEquals(resRole1.getServiceExpiryDays(), Integer.valueOf(45));
         assertEquals(resRole1.getCertExpiryMins(), Integer.valueOf(55));
         assertEquals(resRole1.getTokenExpiryMins(), Integer.valueOf(65));
 
@@ -15925,6 +15943,7 @@ public class ZMSImplTest {
 
         RoleMeta rm3 = createRoleMetaObject(false);
         rm3.setMemberExpiryDays(0);
+        rm3.setServiceExpiryDays(0);
         rm3.setCertExpiryMins(0);
         rm3.setTokenExpiryMins(85);
         zms.putRoleMeta(mockDomRsrcCtx, "rolemetadom1", "role1", auditRef, rm3);
@@ -15934,6 +15953,7 @@ public class ZMSImplTest {
         assertNotNull(resRole1);
         assertFalse(resRole1.getSelfServe());
         assertEquals(resRole1.getMemberExpiryDays(), Integer.valueOf(0));
+        assertEquals(resRole1.getServiceExpiryDays(), Integer.valueOf(0));
         assertEquals(resRole1.getCertExpiryMins(), Integer.valueOf(0));
         assertEquals(resRole1.getTokenExpiryMins(), Integer.valueOf(85));
 
@@ -16822,6 +16842,10 @@ public class ZMSImplTest {
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "testdomain1", auditRef);
     }
 
+    private boolean validateExpiry(long millis, long extMillis) {
+        return (millis > System.currentTimeMillis() + extMillis - 5000 && millis < System.currentTimeMillis() + extMillis + 5000);
+    }
+
     @Test
     public void testConfiguredExpiryMillis() {
 
@@ -16835,24 +16859,24 @@ public class ZMSImplTest {
 
         long extMillis = TimeUnit.MILLISECONDS.convert(10, TimeUnit.DAYS);
         long millis = zms.configuredExpiryMillis(null, 10);
-        assertTrue(millis > System.currentTimeMillis() + extMillis - 5000 && millis < System.currentTimeMillis() + extMillis + 5000);
+        assertTrue(validateExpiry(millis, extMillis));
         millis = zms.configuredExpiryMillis(null, 10);
-        assertTrue(millis > System.currentTimeMillis() + extMillis - 5000 && millis < System.currentTimeMillis() + extMillis + 5000);
+        assertTrue(validateExpiry(millis, extMillis));
         millis = zms.configuredExpiryMillis(-1, 10);
-        assertTrue(millis > System.currentTimeMillis() + extMillis - 5000 && millis < System.currentTimeMillis() + extMillis + 5000);
+        assertTrue(validateExpiry(millis, extMillis));
         millis = zms.configuredExpiryMillis(0, 10);
-        assertTrue(millis > System.currentTimeMillis() + extMillis - 5000 && millis < System.currentTimeMillis() + extMillis + 5000);
+        assertTrue(validateExpiry(millis, extMillis));
         millis = zms.configuredExpiryMillis(5, 10);
-        assertTrue(millis > System.currentTimeMillis() + extMillis - 5000 && millis < System.currentTimeMillis() + extMillis + 5000);
+        assertTrue(validateExpiry(millis, extMillis));
         millis = zms.configuredExpiryMillis(20, 10);
-        assertTrue(millis > System.currentTimeMillis() + extMillis - 5000 && millis < System.currentTimeMillis() + extMillis + 5000);
+        assertTrue(validateExpiry(millis, extMillis));
 
         millis = zms.configuredExpiryMillis(10, null);
-        assertTrue(millis > System.currentTimeMillis() + extMillis - 5000 && millis < System.currentTimeMillis() + extMillis + 5000);
+        assertTrue(validateExpiry(millis, extMillis));
         millis = zms.configuredExpiryMillis(10, -1);
-        assertTrue(millis > System.currentTimeMillis() + extMillis - 5000 && millis < System.currentTimeMillis() + extMillis + 5000);
+        assertTrue(validateExpiry(millis, extMillis));
         millis = zms.configuredExpiryMillis(10, 0);
-        assertTrue(millis > System.currentTimeMillis() + extMillis - 5000 && millis < System.currentTimeMillis() + extMillis + 5000);
+        assertTrue(validateExpiry(millis, extMillis));
     }
 
     @Test
@@ -16873,9 +16897,10 @@ public class ZMSImplTest {
         long ext100Millis = TimeUnit.MILLISECONDS.convert(100, TimeUnit.DAYS);
 
         Timestamp stamp = zms.memberExpiryTimestamp(100, 50, Timestamp.fromMillis(System.currentTimeMillis() + ext75Millis));
-        assertTrue(stamp.millis() > System.currentTimeMillis() + ext50Millis - 5000 && stamp.millis() < System.currentTimeMillis() + ext50Millis + 5000);
+        assertTrue(validateExpiry(stamp.millis(), ext50Millis));
+
         stamp = zms.memberExpiryTimestamp(75, null, Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis));
-        assertTrue(stamp.millis() > System.currentTimeMillis() + ext75Millis - 5000 && stamp.millis() < System.currentTimeMillis() + ext75Millis + 5000);
+        assertTrue(validateExpiry(stamp.millis(), ext75Millis));
     }
 
     @Test
@@ -16883,18 +16908,31 @@ public class ZMSImplTest {
 
         long ext100Millis = TimeUnit.MILLISECONDS.convert(100, TimeUnit.DAYS);
         long ext125Millis = TimeUnit.MILLISECONDS.convert(125, TimeUnit.DAYS);
+        long ext150Millis = TimeUnit.MILLISECONDS.convert(150, TimeUnit.DAYS);
 
         List<RoleMember> members = new ArrayList<>();
-        members.add(new RoleMember().setExpiration(null));
-        members.add(new RoleMember().setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis)));
+        members.add(new RoleMember().setMemberName("user.joe").setExpiration(null));
+        members.add(new RoleMember().setMemberName("user.jane")
+                .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis)));
+        members.add(new RoleMember().setMemberName("athenz.api").setExpiration(null));
+        members.add(new RoleMember().setMemberName("athenz.backend")
+                .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis)));
 
-        zms.updateRoleMemberExpiration(50, 125, members);
+        // for user members we have 50/125 setup while for service members 75/150
+
+        zms.updateRoleMemberExpiration(50, 125, 75, 150, members);
 
         Timestamp stamp = members.get(0).getExpiration();
-        assertTrue(stamp.millis() > System.currentTimeMillis() + ext125Millis - 5000 && stamp.millis() < System.currentTimeMillis() + ext125Millis + 5000);
+        assertTrue(validateExpiry(stamp.millis(), ext125Millis));
 
         stamp = members.get(1).getExpiration();
-        assertTrue(stamp.millis() > System.currentTimeMillis() + ext100Millis - 5000 && stamp.millis() < System.currentTimeMillis() + ext100Millis + 5000);
+        assertTrue(validateExpiry(stamp.millis(), ext100Millis));
+
+        stamp = members.get(2).getExpiration();
+        assertTrue(validateExpiry(stamp.millis(), ext150Millis));
+
+        stamp = members.get(3).getExpiration();
+        assertTrue(validateExpiry(stamp.millis(), ext100Millis));
     }
 
     @Test
@@ -16931,41 +16969,40 @@ public class ZMSImplTest {
         // default no additional user domains
 
         ZMSImpl zmsImpl = zmsInit();
-        assertTrue(zmsImpl.isUserDomainPrincipal("user.joe"));
-        assertFalse(zmsImpl.isUserDomainPrincipal("unix.joe"));
-        assertFalse(zmsImpl.isUserDomainPrincipal("ldap.joe"));
-        assertFalse(zmsImpl.isUserDomainPrincipal("x509.joe"));
+        assertTrue(ZMSUtils.isUserDomainPrincipal("user.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
+        assertFalse(ZMSUtils.isUserDomainPrincipal("unix.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
+        assertFalse(ZMSUtils.isUserDomainPrincipal("ldap.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
+        assertFalse(ZMSUtils.isUserDomainPrincipal("x509.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
 
         // now let's set the addls to empty - no changes
 
         System.setProperty(ZMSConsts.ZMS_PROP_ADDL_USER_CHECK_DOMAINS, "");
         zmsImpl = zmsInit();
-        assertTrue(zmsImpl.isUserDomainPrincipal("user.joe"));
-        assertFalse(zmsImpl.isUserDomainPrincipal("unix.joe"));
-        assertFalse(zmsImpl.isUserDomainPrincipal("ldap.joe"));
-        assertFalse(zmsImpl.isUserDomainPrincipal("x509.joe"));
+        assertTrue(ZMSUtils.isUserDomainPrincipal("user.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
+        assertFalse(ZMSUtils.isUserDomainPrincipal("unix.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
+        assertFalse(ZMSUtils.isUserDomainPrincipal("ldap.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
+        assertFalse(ZMSUtils.isUserDomainPrincipal("x509.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
 
         // now let's add one of the domains to the list
 
         System.setProperty(ZMSConsts.ZMS_PROP_ADDL_USER_CHECK_DOMAINS, "unix");
         zmsImpl = zmsInit();
-        assertTrue(zmsImpl.isUserDomainPrincipal("user.joe"));
-        assertTrue(zmsImpl.isUserDomainPrincipal("unix.joe"));
-        assertFalse(zmsImpl.isUserDomainPrincipal("ldap.joe"));
-        assertFalse(zmsImpl.isUserDomainPrincipal("x509.joe"));
+        assertTrue(ZMSUtils.isUserDomainPrincipal("user.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
+        assertTrue(ZMSUtils.isUserDomainPrincipal("unix.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
+        assertFalse(ZMSUtils.isUserDomainPrincipal("ldap.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
+        assertFalse(ZMSUtils.isUserDomainPrincipal("x509.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
 
         // now let's set two domains in the list
 
         System.setProperty(ZMSConsts.ZMS_PROP_ADDL_USER_CHECK_DOMAINS, "unix,ldap");
         zmsImpl = zmsInit();
-        assertTrue(zmsImpl.isUserDomainPrincipal("user.joe"));
-        assertTrue(zmsImpl.isUserDomainPrincipal("unix.joe"));
-        assertTrue(zmsImpl.isUserDomainPrincipal("ldap.joe"));
-        assertFalse(zmsImpl.isUserDomainPrincipal("x509.joe"));
+        assertTrue(ZMSUtils.isUserDomainPrincipal("user.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
+        assertTrue(ZMSUtils.isUserDomainPrincipal("unix.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
+        assertTrue(ZMSUtils.isUserDomainPrincipal("ldap.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
+        assertFalse(ZMSUtils.isUserDomainPrincipal("x509.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
 
         System.clearProperty(ZMSConsts.ZMS_PROP_ADDL_USER_CHECK_DOMAINS);
     }
-
 
     @Test
     public void testPutRoleReview() {
@@ -17129,5 +17166,4 @@ public class ZMSImplTest {
         assertEquals(userChecked, 3);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "role-review-dom", auditRef);
     }
-
 }

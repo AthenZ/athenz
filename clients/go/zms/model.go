@@ -144,7 +144,7 @@ type DomainMeta struct {
 	CertDnsDomain string `json:"certDnsDomain,omitempty" rdl:"optional"`
 
 	//
-	// all members in the domain will have specified max expiry days
+	// all user members in the domain will have specified max expiry days
 	//
 	MemberExpiryDays *int32 `json:"memberExpiryDays,omitempty" rdl:"optional"`
 
@@ -168,6 +168,11 @@ type DomainMeta struct {
 	// rsa or ec signing algorithm to be used for tokens
 	//
 	SignAlgorithm SimpleName `json:"signAlgorithm,omitempty" rdl:"optional"`
+
+	//
+	// all services in the domain will have specified max expiry days
+	//
+	ServiceExpiryDays *int32 `json:"serviceExpiryDays,omitempty" rdl:"optional"`
 }
 
 //
@@ -311,7 +316,7 @@ type Domain struct {
 	CertDnsDomain string `json:"certDnsDomain,omitempty" rdl:"optional"`
 
 	//
-	// all members in the domain will have specified max expiry days
+	// all user members in the domain will have specified max expiry days
 	//
 	MemberExpiryDays *int32 `json:"memberExpiryDays,omitempty" rdl:"optional"`
 
@@ -335,6 +340,11 @@ type Domain struct {
 	// rsa or ec signing algorithm to be used for tokens
 	//
 	SignAlgorithm SimpleName `json:"signAlgorithm,omitempty" rdl:"optional"`
+
+	//
+	// all services in the domain will have specified max expiry days
+	//
+	ServiceExpiryDays *int32 `json:"serviceExpiryDays,omitempty" rdl:"optional"`
 
 	//
 	// the common name to be referred to, the symbolic id. It is immutable
@@ -743,7 +753,7 @@ type RoleMeta struct {
 	SelfServe *bool `json:"selfServe,omitempty" rdl:"optional"`
 
 	//
-	// all members in the role will have specified max expiry days
+	// all user members in the role will have specified max expiry days
 	//
 	MemberExpiryDays *int32 `json:"memberExpiryDays,omitempty" rdl:"optional"`
 
@@ -761,6 +771,11 @@ type RoleMeta struct {
 	// rsa or ec signing algorithm to be used for tokens
 	//
 	SignAlgorithm SimpleName `json:"signAlgorithm,omitempty" rdl:"optional"`
+
+	//
+	// all services in the role will have specified max expiry days
+	//
+	ServiceExpiryDays *int32 `json:"serviceExpiryDays,omitempty" rdl:"optional"`
 }
 
 //
@@ -818,7 +833,7 @@ type Role struct {
 	SelfServe *bool `json:"selfServe,omitempty" rdl:"optional"`
 
 	//
-	// all members in the role will have specified max expiry days
+	// all user members in the role will have specified max expiry days
 	//
 	MemberExpiryDays *int32 `json:"memberExpiryDays,omitempty" rdl:"optional"`
 
@@ -836,6 +851,11 @@ type Role struct {
 	// rsa or ec signing algorithm to be used for tokens
 	//
 	SignAlgorithm SimpleName `json:"signAlgorithm,omitempty" rdl:"optional"`
+
+	//
+	// all services in the role will have specified max expiry days
+	//
+	ServiceExpiryDays *int32 `json:"serviceExpiryDays,omitempty" rdl:"optional"`
 
 	//
 	// name of the role
@@ -2631,7 +2651,7 @@ type TopLevelDomain struct {
 	CertDnsDomain string `json:"certDnsDomain,omitempty" rdl:"optional"`
 
 	//
-	// all members in the domain will have specified max expiry days
+	// all user members in the domain will have specified max expiry days
 	//
 	MemberExpiryDays *int32 `json:"memberExpiryDays,omitempty" rdl:"optional"`
 
@@ -2655,6 +2675,11 @@ type TopLevelDomain struct {
 	// rsa or ec signing algorithm to be used for tokens
 	//
 	SignAlgorithm SimpleName `json:"signAlgorithm,omitempty" rdl:"optional"`
+
+	//
+	// all services in the domain will have specified max expiry days
+	//
+	ServiceExpiryDays *int32 `json:"serviceExpiryDays,omitempty" rdl:"optional"`
 
 	//
 	// name of the domain
@@ -2822,7 +2847,7 @@ type SubDomain struct {
 	CertDnsDomain string `json:"certDnsDomain,omitempty" rdl:"optional"`
 
 	//
-	// all members in the domain will have specified max expiry days
+	// all user members in the domain will have specified max expiry days
 	//
 	MemberExpiryDays *int32 `json:"memberExpiryDays,omitempty" rdl:"optional"`
 
@@ -2846,6 +2871,11 @@ type SubDomain struct {
 	// rsa or ec signing algorithm to be used for tokens
 	//
 	SignAlgorithm SimpleName `json:"signAlgorithm,omitempty" rdl:"optional"`
+
+	//
+	// all services in the domain will have specified max expiry days
+	//
+	ServiceExpiryDays *int32 `json:"serviceExpiryDays,omitempty" rdl:"optional"`
 
 	//
 	// name of the domain
@@ -3027,7 +3057,7 @@ type UserDomain struct {
 	CertDnsDomain string `json:"certDnsDomain,omitempty" rdl:"optional"`
 
 	//
-	// all members in the domain will have specified max expiry days
+	// all user members in the domain will have specified max expiry days
 	//
 	MemberExpiryDays *int32 `json:"memberExpiryDays,omitempty" rdl:"optional"`
 
@@ -3051,6 +3081,11 @@ type UserDomain struct {
 	// rsa or ec signing algorithm to be used for tokens
 	//
 	SignAlgorithm SimpleName `json:"signAlgorithm,omitempty" rdl:"optional"`
+
+	//
+	// all services in the domain will have specified max expiry days
+	//
+	ServiceExpiryDays *int32 `json:"serviceExpiryDays,omitempty" rdl:"optional"`
 
 	//
 	// user id which will be the domain name
@@ -4399,7 +4434,7 @@ type DomainData struct {
 	CertDnsDomain string `json:"certDnsDomain,omitempty" rdl:"optional"`
 
 	//
-	// all members in the domain will have specified max expiry days
+	// all user members in the domain will have specified max expiry days
 	//
 	MemberExpiryDays *int32 `json:"memberExpiryDays,omitempty" rdl:"optional"`
 
@@ -4423,6 +4458,11 @@ type DomainData struct {
 	// rsa or ec signing algorithm to be used for tokens
 	//
 	SignAlgorithm SimpleName `json:"signAlgorithm,omitempty" rdl:"optional"`
+
+	//
+	// all services in the domain will have specified max expiry days
+	//
+	ServiceExpiryDays *int32 `json:"serviceExpiryDays,omitempty" rdl:"optional"`
 
 	//
 	// name of the domain

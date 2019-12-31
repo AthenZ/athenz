@@ -350,4 +350,22 @@ public class ZMSUtils {
         }
         return boolVal;
     }
+
+    public static boolean isUserDomainPrincipal(final String memberName, final String userDomainPrefix,
+            final List<String> addlUserCheckDomainPrefixList) {
+
+        if (memberName.startsWith(userDomainPrefix)) {
+            return true;
+        }
+
+        if (addlUserCheckDomainPrefixList != null) {
+            for (String prefix : addlUserCheckDomainPrefixList) {
+                if (memberName.startsWith(prefix)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
 }

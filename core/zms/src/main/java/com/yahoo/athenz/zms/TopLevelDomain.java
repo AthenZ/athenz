@@ -51,6 +51,9 @@ public class TopLevelDomain {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String signAlgorithm;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer serviceExpiryDays;
     public String name;
     public List<String> adminUsers;
     @RdlOptional
@@ -148,6 +151,13 @@ public class TopLevelDomain {
     public String getSignAlgorithm() {
         return signAlgorithm;
     }
+    public TopLevelDomain setServiceExpiryDays(Integer serviceExpiryDays) {
+        this.serviceExpiryDays = serviceExpiryDays;
+        return this;
+    }
+    public Integer getServiceExpiryDays() {
+        return serviceExpiryDays;
+    }
     public TopLevelDomain setName(String name) {
         this.name = name;
         return this;
@@ -214,6 +224,9 @@ public class TopLevelDomain {
                 return false;
             }
             if (signAlgorithm == null ? a.signAlgorithm != null : !signAlgorithm.equals(a.signAlgorithm)) {
+                return false;
+            }
+            if (serviceExpiryDays == null ? a.serviceExpiryDays != null : !serviceExpiryDays.equals(a.serviceExpiryDays)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {
