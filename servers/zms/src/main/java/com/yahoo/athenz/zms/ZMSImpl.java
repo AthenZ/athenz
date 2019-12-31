@@ -7186,4 +7186,71 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         metric.stopTiming(timerMetric, null, ctxPrincipal.getDomain());
         return domainRoleMembership;
     }
+
+    @Override
+    public void putRoleReview(ResourceContext ctx, String domainName, String roleName, String auditRef, Role role) {
+        final String caller = "putrolereview";
+        metric.increment(ZMSConsts.HTTP_PUT);
+        logPrincipal(ctx);
+
+        if (readOnlyMode) {
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
+        }
+
+        validateRequest(ctx.request(), caller);
+
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        validate(roleName, TYPE_ENTITY_NAME, caller);
+        validate(role, TYPE_ROLE, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+
+        domainName = domainName.toLowerCase();
+        roleName = roleName.toLowerCase();
+        AthenzObject.ROLE.convertToLowerCase(role);
+
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
+        Object timerMetric = metric.startTiming(caller + "_timing", domainName, principalDomain);
+
+        // verify that request is properly authenticated for this request
+
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+
+        // verify the role name in the URI and request are consistent
+
+        if (!isConsistentRoleName(domainName, roleName, role)) {
+            throw ZMSUtils.requestError(caller + ": Inconsistent role names - expected: "
+                    + ZMSUtils.roleResourceName(domainName, roleName) + ", actual: "
+                    + role.getName(), caller);
+        }
+
+        AthenzDomain domain = getAthenzDomain(domainName, false);
+        if (domain == null) {
+            throw ZMSUtils.notFoundError("No such domain: " + domainName, caller);
+        }
+
+        Role dbRole = getRoleFromDomain(roleName, domain);
+
+        if (configuredExpiryMillis(domain.getDomain().getMemberExpiryDays(), dbRole.getMemberExpiryDays()) == 0) {
+            throw ZMSUtils.requestError(caller + ": Domain member expiry / Role member expiry must be set to review the role. ", caller);
+        }
+
+        // normalize and remove duplicate members
+
+        normalizeRoleMembers(role);
+
+        // update role expiry based on our configurations
+
+        updateRoleMemberExpiration(domain.getDomain().getMemberExpiryDays(), dbRole.getMemberExpiryDays(), role.getRoleMembers());
+
+        // process our request
+
+        dbService.executePutRoleReview(ctx, domainName, roleName, role, auditRef, caller);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
+    }
+
 }

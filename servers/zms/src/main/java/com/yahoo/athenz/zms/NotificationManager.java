@@ -222,7 +222,7 @@ public class NotificationManager {
                 }
 
             } catch (Throwable t) {
-                LOGGER.error("RoleMemberReminders: unable to send pending membership approval reminders: {}", t);
+                LOGGER.error("RoleMemberReminders: unable to send pending membership approval reminders: ", t);
             }
 
             try {
@@ -235,7 +235,7 @@ public class NotificationManager {
                 }
 
             } catch (Throwable t) {
-                LOGGER.error("RoleMemberReminders: unable to send membership expiration reminders: {}", t);
+                LOGGER.error("RoleMemberReminders: unable to send membership expiration reminders: ", t);
             }
 
             if (LOGGER.isDebugEnabled()) {

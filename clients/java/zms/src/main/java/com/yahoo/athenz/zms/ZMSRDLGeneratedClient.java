@@ -786,6 +786,29 @@ public class ZMSRDLGeneratedClient {
 
     }
 
+    public Role putRoleReview(String domainName, String roleName, String auditRef, Role role) {
+        WebTarget target = base.path("/domain/{domainName}/role/{roleName}/review")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("roleName", roleName);
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+        }
+        if (auditRef != null) {
+            invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
+        }
+        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(role, "application/json"));
+        int code = response.getStatus();
+        switch (code) {
+        case 204:
+            return null;
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
     public PolicyList getPolicyList(String domainName, Integer limit, String skip) {
         WebTarget target = base.path("/domain/{domainName}/policy")
             .resolveTemplate("domainName", domainName);

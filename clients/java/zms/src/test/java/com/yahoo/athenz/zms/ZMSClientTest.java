@@ -27,6 +27,7 @@ import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
 
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
 import static org.testng.Assert.*;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -3071,5 +3072,35 @@ public class ZMSClientTest {
         Mockito.when(c.putMembershipDecision(anyString(), anyString(), anyString(), anyString(), any(Membership.class))).thenReturn(mbr);
         client.putMembershipDecision("domain1", "role1", "user.jane", null, true, AUDIT_REF);
         assertTrue(true);
+    }
+
+    @Test
+    public void testPutRoleReviewError() {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        try {
+            Role role = new Role();
+            Mockito.when(c.putRoleReview(anyString(), anyString(), anyString(), any(Role.class))).thenThrow(new ResourceException(400));
+            client.putRoleReview("domain1", "role1", AUDIT_REF, role);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+    }
+
+    @Test
+    public void testPutRoleReviewSuccess() {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        try {
+            Role role = new Role();
+            Mockito.when(c.putRoleReview(anyString(), anyString(), anyString(), any(Role.class))).thenReturn(role);
+            client.putRoleReview("domain1", "role1", AUDIT_REF, role);
+            verify(c, times(1)).putRoleReview("domain1", "role1", AUDIT_REF, role);
+        } catch (ResourceException ex) {
+            fail();
+        }
     }
 }
