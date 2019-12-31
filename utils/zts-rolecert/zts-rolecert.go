@@ -188,7 +188,7 @@ func getRoleCertificate(client *zts.ZTSClient, csr, roleDomain, roleName, roleCe
 	}
 
 	if roleCertFile != "" {
-		err = ioutil.WriteFile(roleCertFile, []byte(roleToken.Token), 0444)
+		err = ioutil.WriteFile(roleCertFile, []byte(roleToken.Token), 0644)
 		if err != nil {
 			log.Fatalf("Unable to save role token certificate in %s, err: %v\n", roleCertFile, err)
 		}
