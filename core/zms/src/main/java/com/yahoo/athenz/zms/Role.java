@@ -26,6 +26,9 @@ public class Role {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String signAlgorithm;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer serviceExpiryDays;
     public String name;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -80,6 +83,13 @@ public class Role {
     }
     public String getSignAlgorithm() {
         return signAlgorithm;
+    }
+    public Role setServiceExpiryDays(Integer serviceExpiryDays) {
+        this.serviceExpiryDays = serviceExpiryDays;
+        return this;
+    }
+    public Integer getServiceExpiryDays() {
+        return serviceExpiryDays;
     }
     public Role setName(String name) {
         this.name = name;
@@ -151,6 +161,9 @@ public class Role {
                 return false;
             }
             if (signAlgorithm == null ? a.signAlgorithm != null : !signAlgorithm.equals(a.signAlgorithm)) {
+                return false;
+            }
+            if (serviceExpiryDays == null ? a.serviceExpiryDays != null : !serviceExpiryDays.equals(a.serviceExpiryDays)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

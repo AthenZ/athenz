@@ -49,6 +49,7 @@ public class SignUtilsTest {
         Mockito.when(mockDomain.getRoles()).thenReturn(null);
         Mockito.when(mockDomain.getServices()).thenReturn(null);
         Mockito.when(mockDomain.getMemberExpiryDays()).thenReturn(null);
+        Mockito.when(mockDomain.getServiceExpiryDays()).thenReturn(null);
         Mockito.when(mockDomain.getTokenExpiryMins()).thenReturn(null);
 
         String check = SignUtils.asCanonicalString(mockDomain);
@@ -127,6 +128,7 @@ public class SignUtilsTest {
         Mockito.when(mRole.getAuditEnabled()).thenReturn(null);
         Mockito.when(mRole.getSelfServe()).thenReturn(null);
         Mockito.when(mRole.getMemberExpiryDays()).thenReturn(null);
+        Mockito.when(mRole.getServiceExpiryDays()).thenReturn(null);
         Mockito.when(mRole.getTokenExpiryMins()).thenReturn(null);
         roles.add(mRole);
         
@@ -155,17 +157,19 @@ public class SignUtilsTest {
         Mockito.when(mockDomain.getPolicies()).thenReturn(signedPolicies);
         Mockito.when(signedPolicies.getContents()).thenReturn(mockPolicies);
         Mockito.when(mockDomain.getMemberExpiryDays()).thenReturn(30);
+        Mockito.when(mockDomain.getServiceExpiryDays()).thenReturn(40);
         Mockito.when(mockDomain.getTokenExpiryMins()).thenReturn(450);
         
         String check = SignUtils.asCanonicalString(mockDomain);
         assertNotNull(check);
         assertEquals(check, "{\"account\":\"chk_string\",\"memberExpiryDays\":30,\"policies\""
                 +":{\"contents\":{\"policies\":[]}},\"roleCertExpiryMins\":0,\"roles\":[{\"certExpiryMins\":0,\"members\":[\"check_item\"],"
-                +"\"roleMembers\":[]}],\"serviceCertExpiryMins\":0,\"services\":[{\"publicKeys\":[{}]}],"
+                +"\"roleMembers\":[]}],\"serviceCertExpiryMins\":0,\"serviceExpiryDays\":40,\"services\":[{\"publicKeys\":[{}]}],"
                 +"\"tokenExpiryMins\":450,\"ypmId\":0}");
         
         Mockito.when(mService.getPublicKeys()).thenReturn(null);
         Mockito.when(mockDomain.getMemberExpiryDays()).thenReturn(null);
+        Mockito.when(mockDomain.getServiceExpiryDays()).thenReturn(null);
 
         check = SignUtils.asCanonicalString(mockDomain);
         assertNotNull(check);
@@ -181,7 +185,7 @@ public class SignUtilsTest {
         List<RoleMember> roleMembers1 = new ArrayList<>();
         Role role1 = new Role().setName("role1").setRoleMembers(roleMembers1)
                 .setMemberExpiryDays(30).setTokenExpiryMins(450)
-                .setCertExpiryMins(300);
+                .setCertExpiryMins(300).setServiceExpiryDays(40);
 
         List<RoleMember> roleMembers2 = new ArrayList<>();
         roleMembers2.add(new RoleMember().setMemberName("user.joe").setExpiration(Timestamp.fromMillis(0)));
@@ -197,7 +201,7 @@ public class SignUtilsTest {
 
         final String check = SignUtils.asCanonicalString(data);
         final String expected = "{\"enabled\":true,\"roles\":[{\"certExpiryMins\":300,\"memberExpiryDays\":30,\"name\":\"role1\","
-            +"\"roleMembers\":[],\"tokenExpiryMins\":450},"
+            +"\"roleMembers\":[],\"serviceExpiryDays\":40,\"tokenExpiryMins\":450},"
             +"{\"name\":\"role2\",\"roleMembers\":[{\"expiration\":\"1970-01-01T00:00:00.000Z\","
             +"\"memberName\":\"user.joe\"},{\"expiration\":\"1970-01-01T00:00:00.000Z\","
             +"\"memberName\":\"user.jane\"}],\"signAlgorithm\":\"ec\"},{\"name\":\"role3\"}],\"services\":[],\"ypmId\":100}";

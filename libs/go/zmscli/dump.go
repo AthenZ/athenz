@@ -32,6 +32,7 @@ func (cli Zms) dumpDomain(buf *bytes.Buffer, domain *zms.Domain) {
 	dumpStringValue(buf, indent_level1, "org", string(domain.Org))
 	dumpBoolValue(buf, indent_level1, "audit_enabled", domain.AuditEnabled)
 	dumpInt32Value(buf, indent_level1, "member_expiry_days", domain.MemberExpiryDays)
+	dumpInt32Value(buf, indent_level1, "service_expiry_days", domain.ServiceExpiryDays)
 	dumpInt32Value(buf, indent_level1, "token_expiry_mins", domain.TokenExpiryMins)
 	dumpInt32Value(buf, indent_level1, "service_cert_expiry_mins", domain.ServiceCertExpiryMins)
 	dumpInt32Value(buf, indent_level1, "role_cert_expiry_mins", domain.RoleCertExpiryMins)
@@ -120,6 +121,7 @@ func (cli Zms) displayObjectName(buf *bytes.Buffer, fullResourceName string, obj
 func (cli Zms) dumpRole(buf *bytes.Buffer, role zms.Role, auditLog bool, indent1 string, indent2 string) {
 	cli.displayObjectName(buf, string(role.Name), ":role.", indent1)
 	dumpInt32Value(buf, indent2, "member_expiry_days", role.MemberExpiryDays)
+	dumpInt32Value(buf, indent2, "service_expiry_days", role.ServiceExpiryDays)
 	dumpInt32Value(buf, indent2, "token_expiry_mins", role.TokenExpiryMins)
 	dumpInt32Value(buf, indent2, "cert_expiry_mins", role.CertExpiryMins)
 	dumpBoolValue(buf, indent2, "audit_enabled", role.AuditEnabled)

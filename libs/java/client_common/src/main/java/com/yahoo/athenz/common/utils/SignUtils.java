@@ -75,6 +75,7 @@ public class SignUtils {
     private static final String ATTR_TOKEN_EXPIRY_MINS = "tokenExpiryMins";
     private static final String ATTR_CERT_EXPIRY_MINS = "certExpiryMins";
     private static final String ATTR_ROLE_CERT_EXPIRY_MINS = "roleCertExpiryMins";
+    private static final String ATTR_SERVICE_EXPIRY_DAYS = "serviceExpiryDays";
     private static final String ATTR_SERVICE_CERT_EXPIRY_MINS = "serviceCertExpiryMins";
     private static final String ATTR_SIGN_ALGORITHM = "signAlgorithm";
 
@@ -157,6 +158,7 @@ public class SignUtils {
             appendArray(struct, ATTR_ROLE_MEMBERS, roleMembersArray);
         }
         appendObject(struct, ATTR_SELF_SERVE, role.getSelfServe());
+        appendObject(struct, ATTR_SERVICE_EXPIRY_DAYS, role.getServiceExpiryDays());
         appendObject(struct, ATTR_SIGN_ALGORITHM, role.getSignAlgorithm());
         appendObject(struct, ATTR_TOKEN_EXPIRY_MINS, role.getTokenExpiryMins());
         appendObject(struct, ATTR_TRUST, role.getTrust());
@@ -281,6 +283,7 @@ public class SignUtils {
             }
         }
         appendObject(struct, ATTR_SERVICE_CERT_EXPIRY_MINS, domainData.getServiceCertExpiryMins());
+        appendObject(struct, ATTR_SERVICE_EXPIRY_DAYS, domainData.getServiceExpiryDays());
         appendArray(struct, ATTR_SERVICES, structServices);
         appendObject(struct, ATTR_SIGN_ALGORITHM, domainData.getSignAlgorithm());
         appendObject(struct, ATTR_TOKEN_EXPIRY_MINS, domainData.getTokenExpiryMins());

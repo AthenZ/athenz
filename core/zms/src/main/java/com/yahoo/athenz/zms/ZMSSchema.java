@@ -80,11 +80,12 @@ public class ZMSSchema {
             .field("ypmId", "Int32", true, "associated product id (system attribute - uniqueness check)")
             .field("applicationId", "String", true, "associated application id")
             .field("certDnsDomain", "String", true, "domain certificate dns domain (system attribute)")
-            .field("memberExpiryDays", "Int32", true, "all members in the domain will have specified max expiry days")
+            .field("memberExpiryDays", "Int32", true, "all user members in the domain will have specified max expiry days")
             .field("tokenExpiryMins", "Int32", true, "tokens issued for this domain will have specified max timeout in mins")
             .field("serviceCertExpiryMins", "Int32", true, "service identity certs issued for this domain will have specified max timeout in mins")
             .field("roleCertExpiryMins", "Int32", true, "role certs issued for this domain will have specified max timeout in mins")
-            .field("signAlgorithm", "SimpleName", true, "rsa or ec signing algorithm to be used for tokens");
+            .field("signAlgorithm", "SimpleName", true, "rsa or ec signing algorithm to be used for tokens")
+            .field("serviceExpiryDays", "Int32", true, "all services in the domain will have specified max expiry days");
 
         sb.structType("Domain", "DomainMeta")
             .comment("A domain is an independent partition of users, roles, and resources. Its name represents the definition of a namespace; the only way a new namespace can be created, from the top, is by creating Domains. Administration of a domain is governed by the parent domain (using reverse-DNS namespaces). The top level domains are governed by the special \"sys.auth\" domain.")
@@ -117,10 +118,11 @@ public class ZMSSchema {
         sb.structType("RoleMeta")
             .comment("Set of metadata attributes that all roles may have and can be changed by domain admins.")
             .field("selfServe", "Bool", true, "Flag indicates whether or not role allows self service. Users can add themselves in the role, but it has to be approved by domain admins to be effective.", false)
-            .field("memberExpiryDays", "Int32", true, "all members in the role will have specified max expiry days")
+            .field("memberExpiryDays", "Int32", true, "all user members in the role will have specified max expiry days")
             .field("tokenExpiryMins", "Int32", true, "tokens issued for this role will have specified max timeout in mins")
             .field("certExpiryMins", "Int32", true, "certs issued for this role will have specified max timeout in mins")
-            .field("signAlgorithm", "SimpleName", true, "rsa or ec signing algorithm to be used for tokens");
+            .field("signAlgorithm", "SimpleName", true, "rsa or ec signing algorithm to be used for tokens")
+            .field("serviceExpiryDays", "Int32", true, "all services in the role will have specified max expiry days");
 
         sb.structType("Role", "RoleMeta")
             .comment("The representation for a Role with set of members.")

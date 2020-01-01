@@ -50,6 +50,9 @@ public class DomainMeta {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String signAlgorithm;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer serviceExpiryDays;
 
     public DomainMeta setDescription(String description) {
         this.description = description;
@@ -142,6 +145,13 @@ public class DomainMeta {
     public String getSignAlgorithm() {
         return signAlgorithm;
     }
+    public DomainMeta setServiceExpiryDays(Integer serviceExpiryDays) {
+        this.serviceExpiryDays = serviceExpiryDays;
+        return this;
+    }
+    public Integer getServiceExpiryDays() {
+        return serviceExpiryDays;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -187,6 +197,9 @@ public class DomainMeta {
                 return false;
             }
             if (signAlgorithm == null ? a.signAlgorithm != null : !signAlgorithm.equals(a.signAlgorithm)) {
+                return false;
+            }
+            if (serviceExpiryDays == null ? a.serviceExpiryDays != null : !serviceExpiryDays.equals(a.serviceExpiryDays)) {
                 return false;
             }
         }
