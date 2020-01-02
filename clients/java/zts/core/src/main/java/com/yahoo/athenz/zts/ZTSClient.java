@@ -91,6 +91,7 @@ public class ZTSClient implements Closeable {
     //
     static private boolean cacheDisabled = false;
     static private int tokenMinExpiryTime = 900;
+    static private int tokenMaxExpiryOffset = 300;
     static private long prefetchInterval = 60; // seconds
     static private boolean prefetchAutoEnable = true;
     static private String x509CsrDn = null;
@@ -1879,7 +1880,10 @@ public class ZTSClient implements Closeable {
             return true;
         }
 
-        if (maxExpiryTime != null && expiryTime > maxExpiryTime) {
+        // it's possible the time on the client side is not in sync
+        // so we'll allow up to 5 minute offset
+
+        if (maxExpiryTime != null && expiryTime > maxExpiryTime + tokenMaxExpiryOffset) {
             return true;
         }
 
