@@ -136,8 +136,10 @@ public class ZTSClientTest {
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=S1;d=user_domain;n=user;s=sig", PRINCIPAL_AUTHORITY);
         ZTSClient client = new ZTSClient("http://localhost:4080/", principal);
-        assertTrue(client.isExpiredToken(500, null, 300, 900));
-        assertTrue(client.isExpiredToken(500, 200, 300, 900));
+        // we allow 300 sec offset
+        assertFalse(client.isExpiredToken(500, null, 300, 900));
+        assertTrue(client.isExpiredToken(650, null, 300, 900));
+        assertTrue(client.isExpiredToken(650, 200, 300, 900));
         client.close();
     }
 
@@ -362,6 +364,7 @@ public class ZTSClientTest {
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "auth_creds", PRINCIPAL_AUTHORITY);
         ZTSClient client = new ZTSClient("http://localhost:4080/", principal);
+        client.ROLE_TOKEN_CACHE.clear();
 
         String cacheKey = "p=auth_creds;d=coretech;r=Role1";
         assertNull(client.lookupRoleTokenInCache(cacheKey, null, null, 900));
@@ -381,7 +384,7 @@ public class ZTSClientTest {
         client.ROLE_TOKEN_CACHE.put(cacheKey, roleToken);
 
         assertNull(client.lookupRoleTokenInCache(cacheKey, 3000, 4000, 900));
-        assertNull(client.lookupRoleTokenInCache(cacheKey, 500, 800, 900));
+        assertNull(client.lookupRoleTokenInCache(cacheKey, 300, 600, 900));
 
         client.ROLE_TOKEN_CACHE.clear();
         client.close();
