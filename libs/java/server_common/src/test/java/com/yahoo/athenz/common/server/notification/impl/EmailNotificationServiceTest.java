@@ -318,4 +318,18 @@ public class EmailNotificationServiceTest {
         assertTrue(svc.readContentFromFile("resources/dummy").isEmpty());
     }
 
+    @Test
+    public void testReadBinaryFromFile() {
+        AmazonSimpleEmailService ses = mock(AmazonSimpleEmailService.class);
+        EmailNotificationService svc = new EmailNotificationService(ses);
+        assertNotNull(svc.readBinaryFromFile("emails/athenz-logo-white.png"));
+    }
+
+    @Test
+    public void testReadBinaryFromFileNull() {
+        AmazonSimpleEmailService ses = mock(AmazonSimpleEmailService.class);
+        EmailNotificationService svc = new EmailNotificationService(ses);
+        assertNull(svc.readBinaryFromFile("resources/non-existent"));
+    }
+
 }

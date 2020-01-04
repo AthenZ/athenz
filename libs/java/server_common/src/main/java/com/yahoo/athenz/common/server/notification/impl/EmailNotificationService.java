@@ -21,6 +21,7 @@ import com.amazonaws.regions.Regions;
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClientBuilder;
 import com.amazonaws.services.simpleemail.model.*;
+import com.amazonaws.util.IOUtils;
 import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.notification.NotificationService;
 import org.slf4j.Logger;
@@ -95,7 +96,7 @@ public class EmailNotificationService implements NotificationService {
     private String athenzUIUrl;
     private String from;
 
-    private URL logoImageResource;
+    private byte[] logoImage;
     private String emailBaseCSS;
     private String emailMembershipApprovalBody;
     private String emailMembershipApprovalReminderBody;
@@ -117,12 +118,28 @@ public class EmailNotificationService implements NotificationService {
         athenzUIUrl = System.getProperty(PROP_NOTIFICATION_ATHENZ_UI_URL);
         from = System.getProperty(PROP_NOTIFICATION_EMAIL_FROM);
 
-        logoImageResource = getClass().getClassLoader().getResource(EMAIL_TEMPLATE_ATHENZ_LOGO);
+        logoImage = readBinaryFromFile(EMAIL_TEMPLATE_ATHENZ_LOGO);
         emailBaseCSS = readContentFromFile(EMAIL_TEMPLATE_CSS);
         emailMembershipApprovalBody = readContentFromFile(EMAIL_TEMPLATE_NOTIFICATION_APPROVAL);
         emailMembershipApprovalReminderBody = readContentFromFile(EMAIL_TEMPLATE_NOTIFICATION_APPROVAL_REMINDER);
         emailDomainMemberExpiryBody = readContentFromFile(EMAIL_TEMPLATE_DOMAIN_MEMBER_EXPIRY);
         emailPrincipalExpiryBody =  readContentFromFile(EMAIL_TEMPLATE_PRINCIPAL_EXPIRY);
+    }
+
+    byte[] readBinaryFromFile(String fileName) {
+
+        byte[] fileByteArray = null;
+        URL resource = getClass().getClassLoader().getResource(fileName);
+        if (resource != null) {
+            try (InputStream fileStream = resource.openStream()) {
+                //convert to byte array
+                fileByteArray = IOUtils.toByteArray(fileStream);
+
+            } catch (IOException ex) {
+                LOGGER.error("Could not read file: {}. Error message: {}", fileName, ex.getMessage());
+            }
+        }
+        return fileByteArray;
     }
 
     private static AmazonSimpleEmailService initSES() {
@@ -272,14 +289,14 @@ public class EmailNotificationService implements NotificationService {
         StringBuilder contents = new StringBuilder();
         URL resource = getClass().getClassLoader().getResource(fileName);
         if (resource != null) {
-            try (BufferedReader br = new BufferedReader(new FileReader(resource.getFile()))) {
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(resource.openStream()))) {
                 String line;
                 while ((line = br.readLine()) != null) {
                     contents.append(line);
                     contents.append(System.getProperty("line.separator"));
                 }
             } catch (IOException ex) {
-                LOGGER.error("Could not read a file from the disk. Error message: {}", ex.getMessage());
+                LOGGER.error("Could not read file: {}. Error message: {}", fileName, ex.getMessage());
             }
         }
         return contents.toString();
@@ -327,10 +344,9 @@ public class EmailNotificationService implements NotificationService {
             // Add the parent container to the message.
             message.setContent(msgParent);
 
-
-            if (logoImageResource != null) {
+            if (logoImage != null) {
                 MimeBodyPart logo = new MimeBodyPart();
-                logo.attachFile(logoImageResource.getFile());
+                logo.setContent(logoImage, "image/png");
                 logo.setContentID(HTML_LOGO_CID_PLACEHOLDER);
                 logo.setDisposition(MimeBodyPart.INLINE);
                 // Add the attachment to the message.
