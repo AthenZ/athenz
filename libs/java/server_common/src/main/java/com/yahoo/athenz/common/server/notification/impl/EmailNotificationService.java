@@ -131,9 +131,9 @@ public class EmailNotificationService implements NotificationService {
         byte[] fileByteArray = null;
         URL resource = getClass().getClassLoader().getResource(fileName);
         if (resource != null) {
-            try (InputStream fileStream = getClass().getClassLoader().getResourceAsStream(fileName)) {
+            try (InputStream fileStream = resource.openStream()) {
                 //convert to byte array
-                fileByteArray = IOUtils.toByteArray(Objects.requireNonNull(fileStream));
+                fileByteArray = IOUtils.toByteArray(fileStream);
 
             } catch (IOException ex) {
                 LOGGER.error("Could not read file: {}. Error message: {}", fileName, ex.getMessage());
@@ -289,7 +289,7 @@ public class EmailNotificationService implements NotificationService {
         StringBuilder contents = new StringBuilder();
         URL resource = getClass().getClassLoader().getResource(fileName);
         if (resource != null) {
-            try (BufferedReader br = new BufferedReader(new InputStreamReader(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream(fileName))))) {
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(resource.openStream()))) {
                 String line;
                 while ((line = br.readLine()) != null) {
                     contents.append(line);
