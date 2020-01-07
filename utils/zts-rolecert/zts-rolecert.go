@@ -131,6 +131,9 @@ func extractServiceDetailsFromCert(certFile string) (string, string, error) {
 	}
 	block, _ := pem.Decode(data)
 	cert, err := x509.ParseCertificate(block.Bytes)
+	if err != nil {
+		return "", "", err
+	}
 	cn := cert.Subject.CommonName
 	idx := strings.LastIndex(cn, ".")
 	if idx < 0 {
