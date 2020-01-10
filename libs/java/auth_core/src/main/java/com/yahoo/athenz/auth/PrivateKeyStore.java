@@ -40,12 +40,12 @@ public interface PrivateKeyStore {
      * StringBuilder field.
      * @param service Athenz service (zms or zts) requesting private key
      * @param serverHostName hostname of the Athenz Server instance
-     * @param serviceInstance Athenz Server instance id (could be region id, etc)
+     * @param serverRegion Athenz server region
      * @param algorithm Requested algorithm - rsa or ec
      * @param privateKeyId - out argument - must be updated to include key id
      * @return private key for this ZMS Server instance.
      */
-    default PrivateKey getPrivateKey(String service, String serverHostName, String serviceInstance,
+    default PrivateKey getPrivateKey(String service, String serverHostName, String serverRegion,
             String algorithm, StringBuilder privateKeyId) {
         return null;
     }
