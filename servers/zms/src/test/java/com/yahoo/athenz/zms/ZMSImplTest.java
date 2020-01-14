@@ -29,6 +29,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Strings;
+import com.yahoo.athenz.auth.ServerPrivateKey;
 import com.yahoo.athenz.common.server.notification.Notification;
 import org.mockito.Mockito;
 import org.mockito.Mock;
@@ -4835,10 +4836,9 @@ public class ZMSImplTest {
                 0, userAuthority);
         ((SimplePrincipal) principal).setUnsignedCreds(userId);
         ResourceContext rsrcCtx1 = createResourceContext(principal);
-        
-        zms.privateKeyId = "0";
-        zms.privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
-        
+
+        zms.privateKey = new ServerPrivateKey(Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey)), "0");
+
         UserToken token = zms.getUserToken(rsrcCtx1, userId, null, null);
         assertNotNull(token);
         assertTrue(token.getToken().startsWith("v=U1;d=user;n=" + userId + ";"));
@@ -4848,18 +4848,17 @@ public class ZMSImplTest {
         // Verify signature
         Principal principalToVerify = principalAuthority.authenticate(token.getToken(), "10.11.12.13", "GET", null);
         assertNotNull(principalToVerify);
-        
-        zms.privateKeyId = "1";
-        zms.privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKeyK1));
+
+        zms.privateKey = new ServerPrivateKey(Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKeyK1)), "1");
+
         token = zms.getUserToken(rsrcCtx1, userId, null, false);
         assertNotNull(token);
         assertTrue(token.getToken().contains("k=1"));
         // Verify signature
         principalToVerify = principalAuthority.authenticate(token.getToken(), "10.11.12.13", "GET", null);
         assertNotNull(principalToVerify);
-        
-        zms.privateKeyId = "2";
-        zms.privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKeyK2));
+
+        zms.privateKey = new ServerPrivateKey(Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKeyK2)), "2");
 
         token = zms.getUserToken(rsrcCtx1, userId, null, null);
         assertNotNull(token);
@@ -4880,8 +4879,7 @@ public class ZMSImplTest {
         ((SimplePrincipal) principal).setUnsignedCreds(userId);
         ResourceContext rsrcCtx1 = createResourceContext(principal);
         
-        zms.privateKeyId = "0";
-        zms.privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
+        zms.privateKey = new ServerPrivateKey(Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey)), "0");
         
         UserToken token = zms.getUserToken(rsrcCtx1, userId, "coretech.storage", null);
         assertNotNull(token);
@@ -4943,10 +4941,9 @@ public class ZMSImplTest {
                 0, userAuthority);
         ((SimplePrincipal) principal).setUnsignedCreds(userId);
         ResourceContext rsrcCtx1 = createResourceContext(principal);
-        
-        zms.privateKeyId = "0";
-        zms.privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
-        
+
+        zms.privateKey = new ServerPrivateKey(Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey)), "0");
+
         UserToken token = zms.getUserToken(rsrcCtx1, userId, null, null);
         assertNotNull(token);
         // Verify signature
@@ -5011,10 +5008,9 @@ public class ZMSImplTest {
                 0, userAuthority);
         ((SimplePrincipal) principal).setUnsignedCreds(userId);
         ResourceContext rsrcCtx1 = createResourceContext(principal);
-        
-        zms.privateKeyId = "0";
-        zms.privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
-        
+
+        zms.privateKey = new ServerPrivateKey(Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey)), "0");
+
         UserToken token = zms.getUserToken(rsrcCtx1, "_self_", null, false);
         assertNotNull(token);
         assertTrue(token.getToken().startsWith("v=U1;d=user;n=" + userId + ";"));
@@ -5544,8 +5540,7 @@ public class ZMSImplTest {
         List<String> domNames = domList.getNames();
         int numDoms = domNames.size();
 
-        zms.privateKeyId = "0";
-        zms.privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
+        zms.privateKey = new ServerPrivateKey(Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey)), "0");
 
         Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
         Principal sysPrincipal = principalAuthority.authenticate("v=U1;d=sys;n=zts;s=signature",
@@ -5579,8 +5574,7 @@ public class ZMSImplTest {
         assertTrue(dom1Found);
         assertTrue(dom2Found);
 
-        zms.privateKeyId = "1";
-        zms.privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKeyK1));
+        zms.privateKey = new ServerPrivateKey(Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKeyK1)), "1");
 
         response = zms.getSignedDomains(rsrcCtx, null, null, "all", null);
         sdoms = (SignedDomains) response.getEntity();
@@ -5602,9 +5596,8 @@ public class ZMSImplTest {
             signature = signedPolicies.getSignature();
             assertTrue(Crypto.verify(SignUtils.asCanonicalString(signedPolicies.getContents()), Crypto.loadPublicKey(publicKey), signature));
         }
-        
-        zms.privateKeyId = "2";
-        zms.privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKeyK2));
+
+        zms.privateKey = new ServerPrivateKey(Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKeyK2)), "2");
 
         response = zms.getSignedDomains(rsrcCtx, null, null, null, null);
         sdoms = (SignedDomains) response.getEntity();
@@ -5736,8 +5729,7 @@ public class ZMSImplTest {
                 "Test Domain2", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
 
-        zms.privateKeyId = "0";
-        zms.privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
+        zms.privateKey = new ServerPrivateKey(Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey)), "0");
 
         Response response = zms.getSignedDomains(mockDomRsrcCtx, "signeddom1filtered", null, null, null);
         SignedDomains sdoms = (SignedDomains) response.getEntity();
@@ -15243,8 +15235,7 @@ public class ZMSImplTest {
                 null, null, null, null, null);
         assertNotNull(domList);
 
-        zms.privateKeyId = "0";
-        zms.privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
+        zms.privateKey = new ServerPrivateKey(Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey)), "0");
 
         Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
         Principal sysPrincipal = principalAuthority.authenticate("v=U1;d=sys;n=zts;s=signature",
@@ -15313,8 +15304,7 @@ public class ZMSImplTest {
         DomainMeta meta = createDomainMetaObject("Tenant Domain1", null, true, false, "12345", 0);
         zms.putDomainMeta(mockDomRsrcCtx, "signeddom1", auditRef, meta);
 
-        zms.privateKeyId = "0";
-        zms.privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
+        zms.privateKey = new ServerPrivateKey(Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey)), "0");
 
         Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
         Principal sysPrincipal = principalAuthority.authenticate("v=U1;d=sys;n=zts;s=signature",
