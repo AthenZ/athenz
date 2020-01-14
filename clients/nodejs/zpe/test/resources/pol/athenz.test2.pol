@@ -66,6 +66,18 @@
               "resource": "athenz.test:testresgroup.deny",
               "action": "*delete",
               "effect": "DENY"
+            },
+            {
+              "role": "athenz.test:role.users",
+              "resource": "athenz.test:testresgroup",
+              "action": "*read*",
+              "effect": "ALLOW"
+            },
+            {
+              "role": "athenz.test:role.users",
+              "resource": "athenz.test:testresgroup.?",
+              "action": "get",
+              "effect": "ALLOW"
             }
           ]
         }

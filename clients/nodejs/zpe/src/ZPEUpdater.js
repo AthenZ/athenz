@@ -129,7 +129,7 @@ class ZPEUpdater {
 
     // Process the policies into assertions, process the assertions: action, resource, role
     // If there is a wildcard in the action or resource, compile the
-    // regexpr and place it into the assertion Struct.
+    // regexp and place it into the assertion Struct.
     // This is a performance enhancement for AuthZpeClient when it
     // performs the authorization checks.
 
@@ -162,7 +162,7 @@ class ZPEUpdater {
 
         assert.role = _zpeClt.stripDomainPrefix(assertion.role, domainName, assertion.role);
         // strip the prefix "role." too
-        assert.role = assert.role.replace(/^role./, '');
+        assert.role = assert.role.replace(/^role\./, '');
         assert.roleMatchStruct = this._getMatchObject(assert.role);
 
         let matchStruct = assert.roleMatchStruct;
@@ -265,8 +265,6 @@ class ZPEUpdater {
         res = matchGen.equal;
       } else if (anyCharMatch === value.length - 1 && singleCharMatch === -1) {
         res = matchGen.startswith;
-      } else if (anyCharMatch === 0 && singleCharMatch === -1) {
-        res = matchGen.endswith;
       } else {
         res = matchGen.regex;
       }

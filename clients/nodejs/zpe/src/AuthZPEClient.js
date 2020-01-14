@@ -143,7 +143,7 @@ class AuthZPEClient {
         resource = params.resource,
         roles = params.roles;
     let msgPrefix = "allowActionZPE: domain(" + domain +
-      ")　resource(" + resource + ")";
+      ") resource(" + resource + ")";
 
     if (!roles || roles.length === 0) {
       return cb(msgPrefix + ' ERROR: No roles so access denied', AccessCheckStatus.DENY_ROLETOKEN_INVALID);
