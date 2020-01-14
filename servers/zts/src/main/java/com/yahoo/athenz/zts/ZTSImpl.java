@@ -36,7 +36,6 @@ import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.dns.HostnameResolverFactory;
 import com.yahoo.athenz.zms.RoleMeta;
 import com.yahoo.athenz.zts.cert.*;
-import io.jsonwebtoken.SignatureAlgorithm;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,6 +46,7 @@ import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.auth.PrivateKeyStoreFactory;
+import com.yahoo.athenz.auth.ServerPrivateKey;
 import com.yahoo.athenz.auth.impl.CertificateAuthority;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.token.PrincipalToken;
@@ -90,11 +90,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected InstanceProviderManager instanceProviderManager;
     protected Metric metric = null;
     protected Schema schema = null;
-    protected PrivateKey privateKey = null;
+    protected ServerPrivateKey privateKey = null;
+    protected ServerPrivateKey privateECKey = null;
+    protected ServerPrivateKey privateRSAKey = null;
     protected PrivateKeyStore privateKeyStore = null;
     protected HostnameResolver hostnameResolver = null;
-    protected String privateKeyId = "0";
-    protected SignatureAlgorithm privateKeyAlg = null;
     protected int roleTokenDefaultTimeout;
     protected int roleTokenMaxTimeout;
     protected int idTokenMaxTimeout;
@@ -104,6 +104,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected String ostkHostSignerDomain = null;
     protected String ostkHostSignerService = null;
     protected AuditLogger auditLogger = null;
+    protected String serverRegion = null;
     protected String userDomain;
     protected String userDomainPrefix;
     protected String userDomainAlias;
@@ -469,6 +470,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         if (healthCheckPath != null && !healthCheckPath.isEmpty()) {
             healthCheckFile = new File(healthCheckPath);
         }
+
+        // get server region
+
+        serverRegion = System.getProperty(ZTSConsts.ZTS_PROP_SERVER_REGION);
     }
     
     static String getServerHostName() {
@@ -515,7 +520,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // create our struct store
         
-        return clogFactory.create(homeDir, privateKey, privateKeyId, cloudStore);
+        return clogFactory.create(homeDir, privateKey.getKey(), privateKey.getId(), cloudStore);
     }
     
     void loadMetricObject() {
@@ -572,18 +577,31 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw new IllegalArgumentException("Invalid private key store");
         }
         
-        // extract the private key and public keys for our service
+        // extract the private key for our service - we're going to ask for our algorithm
+        // specific keys and then if neither one is provided our generic one.
         
-        StringBuilder privKeyId = new StringBuilder(256);
         privateKeyStore = pkeyFactory.create();
-        privateKey = privateKeyStore.getPrivateKey(ZTSConsts.ZTS_SERVICE, serverHostName, privKeyId);
-        privateKeyId = privKeyId.toString();
 
-        // determine the signature algorithm based on the key type
-        // only supported types are not RSA and EC
+        privateECKey = privateKeyStore.getPrivateKey(ZTSConsts.ZTS_SERVICE, serverHostName,
+                serverRegion, ZTSConsts.EC);
 
-        privateKeyAlg = ZTSConsts.ECDSA.equalsIgnoreCase(privateKey.getAlgorithm()) ?
-                SignatureAlgorithm.ES256 : SignatureAlgorithm.RS256;
+        privateRSAKey = privateKeyStore.getPrivateKey(ZTSConsts.ZTS_SERVICE, serverHostName,
+                serverRegion, ZTSConsts.RSA);
+
+        // if we don't have ec and rsa specific keys specified then we're going to fall
+        // back and use the old private key api and use that for our private key
+        // if both ec and rsa keys are provided, we use the ec key as preferred
+        // when signing policy files
+
+        if (privateECKey == null && privateRSAKey == null) {
+            StringBuilder privKeyId = new StringBuilder(256);
+            PrivateKey pkey = privateKeyStore.getPrivateKey(ZTSConsts.ZTS_SERVICE, serverHostName, privKeyId);
+            privateKey = new ServerPrivateKey(pkey, privKeyId.toString());
+        } else if (privateECKey != null) {
+            privateKey = privateECKey;
+        } else {
+            privateKey = privateRSAKey;
+        }
     }
     
     void loadAuthorities() {
@@ -1000,11 +1018,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 .setZmsKeyId(domainData.getPolicies().getKeyId())
                 .setZmsSignature(domainData.getPolicies().getSignature());
 
-        String signature = Crypto.sign(SignUtils.asCanonicalString(signedPolicyData), privateKey);
+        String signature = Crypto.sign(SignUtils.asCanonicalString(signedPolicyData), privateKey.getKey());
         DomainSignedPolicyData result = new DomainSignedPolicyData()
             .setSignedPolicyData(signedPolicyData)
             .setSignature(signature)
-            .setKeyId(privateKeyId);
+            .setKeyId(privateKey.getId());
         
         metric.stopTiming(timerMetric, domainName, principalDomain);
         return Response.status(ResourceException.OK).entity(result).header("ETag", tag).build();
@@ -1448,10 +1466,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         boolean domainCompleteRoleSet = (includeRoleCompleteFlag && roleNames == null);
         com.yahoo.athenz.auth.token.RoleToken token =
                 new com.yahoo.athenz.auth.token.RoleToken.Builder(ZTS_ROLE_TOKEN_VERSION, domainName, roleList)
-                    .expirationWindow(tokenTimeout).host(serverHostName).keyId(privateKeyId)
+                    .expirationWindow(tokenTimeout).host(serverHostName).keyId(privateKey.getId())
                     .principal(principalName).ip(ServletRequestUtil.getRemoteAddress(ctx.request()))
                     .proxyUser(proxyUser).domainCompleteRoleSet(domainCompleteRoleSet).build();
-        token.sign(privateKey);
+        token.sign(privateKey.getKey());
         
         RoleToken roleToken = new RoleToken();
         roleToken.setToken(token.getSignedToken());
@@ -1710,7 +1728,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             accessToken.setConfirmX509CertHash(cert);
         }
 
-        String accessJwts = accessToken.getSignedToken(privateKey, privateKeyId, privateKeyAlg);
+        String accessJwts = accessToken.getSignedToken(privateKey.getKey(), privateKey.getId(), privateKey.getAlgorithm());
 
         // now let's check to see if we need to create openid token
 
@@ -1735,7 +1753,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             idToken.setAuthTime(iat);
             idToken.setExpiryTime(iat + determineIdTokenTimeout(tokenTimeout));
 
-            idJwts = idToken.getSignedToken(privateKey, privateKeyId, privateKeyAlg);
+            idJwts = idToken.getSignedToken(privateKey.getKey(), privateKey.getId(), privateKey.getAlgorithm());
         }
 
         AccessTokenResponse response = new AccessTokenResponse().setAccess_token(accessJwts)
@@ -2670,9 +2688,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         if (info.getToken() == Boolean.TRUE) {
             PrincipalToken svcToken = new PrincipalToken.Builder("S1", domain, service)
-                .expirationWindow(svcTokenTimeout).keyId(privateKeyId).host(serverHostName)
+                .expirationWindow(svcTokenTimeout).keyId(privateKey.getId()).host(serverHostName)
                 .ip(ipAddress).keyService(ZTSConsts.ZTS_SERVICE).build();
-            svcToken.sign(privateKey);
+            svcToken.sign(privateKey.getKey());
             identity.setServiceToken(svcToken.getSignedToken());
         }
 
@@ -3031,10 +3049,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         if (info.getToken() == Boolean.TRUE) {
             PrincipalToken svcToken = new PrincipalToken.Builder("S1", domain, service)
-                .expirationWindow(svcTokenTimeout).keyId(privateKeyId).host(serverHostName)
+                .expirationWindow(svcTokenTimeout).keyId(privateKey.getId()).host(serverHostName)
                 .ip(ServletRequestUtil.getRemoteAddress(ctx.request()))
                 .keyService(ZTSConsts.ZTS_SERVICE).build();
-            svcToken.sign(privateKey);
+            svcToken.sign(privateKey.getKey());
             identity.setServiceToken(svcToken.getSignedToken());
         }
         

@@ -28,6 +28,7 @@ public interface PrivateKeyStore {
      * @param privateKeyId - out argument - must be updated to include key id
      * @return private key for this ZMS Server instance.
      */
+    @Deprecated
     default PrivateKey getPrivateKey(String service, String serverHostName,
             StringBuilder privateKeyId) {
         return null;
@@ -36,17 +37,14 @@ public interface PrivateKeyStore {
     /**
      * Retrieve private key for this Athenz Server instance for the given
      * crypto algorithm to sign its tokens.
-     * The private key identifier must be updated in the privateKeyId out
-     * StringBuilder field.
      * @param service Athenz service (zms or zts) requesting private key
      * @param serverHostName hostname of the Athenz Server instance
      * @param serverRegion Athenz server region
      * @param algorithm Requested algorithm - rsa or ec
-     * @param privateKeyId - out argument - must be updated to include key id
      * @return private key for this ZMS Server instance.
      */
-    default PrivateKey getPrivateKey(String service, String serverHostName, String serverRegion,
-            String algorithm, StringBuilder privateKeyId) {
+    default ServerPrivateKey getPrivateKey(String service, String serverHostName,
+            String serverRegion, String algorithm) {
         return null;
     }
 
