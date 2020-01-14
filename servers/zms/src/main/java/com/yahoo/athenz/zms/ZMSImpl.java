@@ -121,8 +121,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     protected DBService dbService = null;
     protected Schema schema = null;
-    protected PrivateKey privateKey = null;
-    protected String privateKeyId = "0";
+    protected ServerPrivateKey privateKey = null;
+    protected ServerPrivateKey privateECKey = null;
+    protected ServerPrivateKey privateRSAKey = null;
     protected int userTokenTimeout = 3600;
     protected boolean virtualDomainSupport = true;
     protected boolean productIdSupport = false;
@@ -144,6 +145,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected String homeDomainPrefix;
     protected String userDomainAlias;
     protected String userDomainAliasPrefix;
+    protected String serverRegion = null;
     protected List<String> addlUserCheckDomainPrefixList = null;
     protected Http.AuthorityList authorities = null;
     protected List<String> providerEndpoints = null;
@@ -642,6 +644,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         if (healthCheckPath != null && !healthCheckPath.isEmpty()) {
             healthCheckFile = new File(healthCheckPath);
         }
+
+        // get server region
+
+        serverRegion = System.getProperty(ZMSConsts.ZMS_PROP_SERVER_REGION);
     }
     
     void loadObjectStore() {
@@ -700,13 +706,28 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         // extract the private key and public keys for our service
         
-        StringBuilder privKeyId = new StringBuilder(256);
         keyStore = pkeyFactory.create();
-        
-        // now that we have our keystore let's load our private key
-        
-        privateKey = keyStore.getPrivateKey(ZMSConsts.ZMS_SERVICE, serverHostName, privKeyId);
-        privateKeyId = privKeyId.toString();
+
+        privateECKey = keyStore.getPrivateKey(ZMSConsts.ZMS_SERVICE, serverHostName,
+                serverRegion, ZMSConsts.EC);
+
+        privateRSAKey = keyStore.getPrivateKey(ZMSConsts.ZMS_SERVICE, serverHostName,
+                serverRegion, ZMSConsts.RSA);
+
+        // if we don't have ec and rsa specific keys specified then we're going to fall
+        // back and use the old private key api and use that for our private key
+        // if both ec and rsa keys are provided, we use the ec key as preferred
+        // when signing policy files
+
+        if (privateECKey == null && privateRSAKey == null) {
+            StringBuilder privKeyId = new StringBuilder(256);
+            PrivateKey pkey = keyStore.getPrivateKey(ZMSConsts.ZMS_SERVICE, serverHostName, privKeyId);
+            privateKey = new ServerPrivateKey(pkey, privKeyId.toString());
+        } else if (privateECKey != null) {
+            privateKey = privateECKey;
+        } else {
+            privateKey = privateRSAKey;
+        }
     }
     
     void loadAuthorities() {
@@ -801,8 +822,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // use the public key we retrieved ourselves to the map
         
         if (serverPublicKeyMap.isEmpty() && privateKey != null) {
-            final String publicKey = Crypto.convertToPEMFormat(Crypto.extractPublicKey(privateKey));
-            serverPublicKeyMap.put(privateKeyId, Crypto.ybase64EncodeString(publicKey));
+            final String publicKey = Crypto.convertToPEMFormat(Crypto.extractPublicKey(privateKey.getKey()));
+            serverPublicKeyMap.put(privateKey.getId(), Crypto.ybase64EncodeString(publicKey));
         }
     }
     
@@ -915,8 +936,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         if (privateKey != null) {
             List<PublicKeyEntry> pubKeys = new ArrayList<>();
-            final String publicKey = Crypto.convertToPEMFormat(Crypto.extractPublicKey(privateKey));
-            pubKeys.add(new PublicKeyEntry().setId(privateKeyId).setKey(Crypto.ybase64EncodeString(publicKey)));
+            final String publicKey = Crypto.convertToPEMFormat(Crypto.extractPublicKey(privateKey.getKey()));
+            pubKeys.add(new PublicKeyEntry().setId(privateKey.getId()).setKey(Crypto.ybase64EncodeString(publicKey)));
             ServiceIdentity id = new ServiceIdentity().setName("sys.auth.zms").setPublicKeys(pubKeys);
             dbService.executePutServiceIdentity(null, SYS_AUTH, ZMSConsts.ZMS_SERVICE, id, null, caller);
         } else {
@@ -4673,13 +4694,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainData.setPolicies(signedPolicies);
 
         String signature = Crypto.sign(
-                SignUtils.asCanonicalString(signedPolicies.getContents()), privateKey);
-        signedPolicies.setSignature(signature).setKeyId(privateKeyId);
+                SignUtils.asCanonicalString(signedPolicies.getContents()), privateKey.getKey());
+        signedPolicies.setSignature(signature).setKeyId(privateKey.getId());
 
         // then sign the data and set the data and signature in a SignedDomain
         
-        signature = Crypto.sign(SignUtils.asCanonicalString(domainData), privateKey);
-        signedDomain.setSignature(signature).setKeyId(privateKeyId);
+        signature = Crypto.sign(SignUtils.asCanonicalString(domainData), privateKey.getKey());
+        signedDomain.setSignature(signature).setKeyId(privateKey.getId());
         return signedDomain;
     }
     
@@ -4950,10 +4971,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
         
         PrincipalToken token = new PrincipalToken.Builder("U1", userDomain, principal.getName())
-            .expirationWindow(userTokenTimeout).keyId(privateKeyId).host(serverHostName)
+            .expirationWindow(userTokenTimeout).keyId(privateKey.getId()).host(serverHostName)
             .ip(ServletRequestUtil.getRemoteAddress(ctx.request())).authorizedServices(services).build();
         
-        token.sign(privateKey);
+        token.sign(privateKey.getKey());
         UserToken userToken = new UserToken().setToken(token.getSignedToken());
         
         if (header == Boolean.TRUE && principalAuthority != null) {
@@ -6643,9 +6664,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             PrincipalToken zmsToken = new PrincipalToken.Builder("S1", sdToken.getDomain(), sdToken.getName())
                 .issueTime(sdToken.getTimestamp())
                 .expirationWindow(sdToken.getExpiryTime() - sdToken.getTimestamp())
-                .ip(sdToken.getIP()).keyId(privateKeyId).host(serverHostName)
+                .ip(sdToken.getIP()).keyId(privateKey.getId()).host(serverHostName)
                 .keyService(ZMSConsts.ZMS_SERVICE).build();
-            zmsToken.sign(privateKey);
+            zmsToken.sign(privateKey.getKey());
 
             servicePrincipal.setToken(zmsToken.getSignedToken());
             

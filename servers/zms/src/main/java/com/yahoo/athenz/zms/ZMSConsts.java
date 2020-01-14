@@ -41,6 +41,7 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_READ_ONLY_MODE       = "athenz.zms.read_only_mode";
     public static final String ZMS_PROP_DOMAIN_NAME_MAX_SIZE = "athenz.zms.domain_name_max_len";
     public static final String ZMS_PROP_HEALTH_CHECK_PATH    = "athenz.zms.health_check_path";
+    public static final String ZMS_PROP_SERVER_REGION        = "athenz.zms.server_region";
 
     public static final String ZMS_PROP_CONFLICT_RETRY_COUNT      = "athenz.zms.request_conflict_retry_count";
     public static final String ZMS_PROP_CONFLICT_RETRY_SLEEP_TIME = "athenz.zms.request_conflict_retry_sleep_time";
@@ -145,7 +146,10 @@ public final class ZMSConsts {
 
     public static final String USER_DOMAIN        = "user";
     public static final String USER_DOMAIN_PREFIX = "user.";
-    
+
+    public static final String RSA   = "RSA";
+    public static final String EC    = "EC";
+
     public static final String HTTP_ORIGIN              = "Origin";
     public static final String HTTP_RFC1123_DATE_FORMAT = "EEE, d MMM yyyy HH:mm:ss zzz";
     public static final String HTTP_DATE_GMT_ZONE       = "GMT";
