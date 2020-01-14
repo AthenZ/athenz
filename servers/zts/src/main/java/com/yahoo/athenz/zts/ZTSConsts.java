@@ -53,6 +53,7 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_ROLE_COMPLETE_FLAG     = "athenz.zts.role_complete_flag";
     public static final String ZTS_PROP_READ_ONLY_MODE         = "athenz.zts.read_only_mode";
     public static final String ZTS_PROP_HEALTH_CHECK_PATH      = "athenz.zts.health_check_path";
+    public static final String ZTS_PROP_SERVER_REGION          = "athenz.zts.server_region";
 
     public static final String ZTS_PROP_CERT_REFRESH_IP_FNAME  = "athenz.zts.cert_refresh_ip_fname";
     public static final String ZTS_PROP_CERT_ALLOWED_O_VALUES  = "athenz.zts.cert_allowed_o_values";
@@ -147,7 +148,8 @@ public final class ZTSConsts {
     public static final String ZTS_CERT_ROLE_URI         = "athenz://role/";
     public static final String ZTS_CERT_PROXY_USER_URI   = "athenz://proxyuser/";
 
-    public static final String RSA = "RSA";
+    public static final String RSA   = "RSA";
+    public static final String EC    = "EC";
     public static final String ECDSA = "ECDSA";
 
     public static final String ZTS_PROP_AWS_ENABLED              = "athenz.zts.aws_enabled";

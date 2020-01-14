@@ -9366,7 +9366,7 @@ public class ZTSImplTest {
 
         Jws<Claims> claims;
         try {
-            claims = Jwts.parser().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey))
+            claims = Jwts.parser().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey()))
                     .parseClaimsJws(accessTokenStr);
         } catch (SignatureException e) {
             throw new ResourceException(ResourceException.UNAUTHORIZED);
