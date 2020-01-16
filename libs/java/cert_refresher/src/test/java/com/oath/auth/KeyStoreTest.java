@@ -15,20 +15,15 @@
  */
 package com.oath.auth;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import com.google.common.io.Resources;
+import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.security.cert.X509Certificate;
 import java.util.Enumeration;
 
-import com.google.common.io.Resources;
-import org.junit.Test;
+import static org.junit.Assert.*;
 
 public class KeyStoreTest {
 
