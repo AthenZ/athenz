@@ -4,11 +4,16 @@
 package main
 
 import (
+	"crypto/x509"
 	"encoding/json"
+	"encoding/pem"
 	"flag"
 	"fmt"
 	"github.com/yahoo/athenz/clients/go/zts"
+	"github.com/yahoo/athenz/libs/go/athenzconf"
 	"github.com/yahoo/athenz/libs/go/athenzutils"
+	"gopkg.in/square/go-jose.v2"
+	"gopkg.in/square/go-jose.v2/jwt"
 	"io/ioutil"
 	"log"
 	"net/url"
@@ -21,13 +26,14 @@ func usage() {
 	fmt.Println("usage: zts-accesstoken -domain <domain> [-roles <roles>] [-service <service>] <credentials> -zts <zts-server-url> [-expire-time <time-in-mins>]")
 	fmt.Println("           <credentials> := -svc-key-file <private-key-file> -svc-cert-file <service-cert-file> [-svc-cacert-file <ca-cert-file>] | ")
 	fmt.Println("           	             -ntoken-file <ntoken-file> [-hdr <auth-header-name>]")
+	fmt.Println("       zts-accesstoken -validate -access-token <access-token> -conf <athenz-conf-path> [-claims]")
 	os.Exit(1)
 }
 
 func main() {
-	var domain, service, svcKeyFile, svcCertFile, svcCACertFile, roles, ntokenFile, ztsURL, hdr string
+	var domain, service, svcKeyFile, svcCertFile, svcCACertFile, roles, ntokenFile, ztsURL, hdr, conf, accessToken string
 	var expireTime int
-	var proxy bool
+	var proxy, validate, claims bool
 	flag.StringVar(&domain, "domain", "", "name of provider domain")
 	flag.StringVar(&service, "service", "", "name of provider service")
 	flag.StringVar(&roles, "roles", "", "comma separated list of provider roles")
@@ -39,9 +45,58 @@ func main() {
 	flag.StringVar(&hdr, "hdr", "Athenz-Principal-Auth", "Header name")
 	flag.IntVar(&expireTime, "expire-time", 120, "token expire time in minutes")
 	flag.BoolVar(&proxy, "proxy", true, "enable proxy mode for request")
+	flag.BoolVar(&validate, "validate", false, "validate role token")
+	flag.BoolVar(&claims, "claims", false, "display all claims from access token")
+	flag.StringVar(&accessToken, "access-token", "", "access token to validate")
+	flag.StringVar(&conf, "conf", "/home/athenz/conf/athenz.conf", "path to configuration file with public keys")
 	flag.Parse()
 
-	fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntokenFile, hdr, proxy, expireTime)
+	if validate {
+		validateAccessToken(accessToken, conf, claims)
+	} else {
+		fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntokenFile, hdr, proxy, expireTime)
+	}
+}
+
+func validateAccessToken(accessToken, conf string, showClaims bool) {
+	if accessToken == "" || conf == "" {
+		usage()
+	}
+	athenzConf, err := athenzconf.ReadConf(conf)
+	if err != nil {
+		log.Fatalf("unable to parse configuration file %s, error %v\n", conf, err)
+	}
+	tok, err := jwt.ParseSigned(accessToken)
+	if err != nil {
+		log.Fatalf("Unable to validate access token: %v\n", err)
+	}
+	publicKeyPEM, err := athenzConf.FetchZTSPublicKey(tok.Headers[0].KeyID)
+	if err != nil {
+		log.Fatalf("Public key fetch failure: %v\n", err)
+	}
+	publicKey, err := loadPublicKey(publicKeyPEM)
+	if err != nil {
+		log.Fatalf("Public key load failure: %v\n", err)
+	}
+	jwks := &jose.JSONWebKeySet {
+		Keys: []jose.JSONWebKey {
+			{
+				Key: publicKey,
+				Algorithm: tok.Headers[0].Algorithm,
+				KeyID: tok.Headers[0].KeyID,
+			},
+		},
+	}
+	var claims map[string]interface{}
+	if err := tok.Claims(jwks, &claims); err != nil {
+		log.Fatalf("Unable to validate access token: %v\n", err)
+	}
+	if showClaims {
+		for k, v := range claims {
+			fmt.Printf("claim[%s] value[%s]\n", k, v)
+		}
+	}
+	fmt.Println("Access Token successfully validated")
 }
 
 func fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntokenFile, hdr string, proxy bool, expireTime int) {
@@ -122,4 +177,17 @@ func ztsNtokenClient(ztsURL, ntokenFile, hdr string) (*zts.ZTSClient, error) {
 	client := zts.NewClient(ztsURL, nil)
 	client.AddCredentials(hdr, ntoken)
 	return &client, nil
+}
+
+// NewVerifier creates an instance of Verifier using the given public key.
+func loadPublicKey(publicKeyPEM []byte) (interface{}, error) {
+	block, _ := pem.Decode(publicKeyPEM)
+	if block == nil {
+		return nil, fmt.Errorf("Unable to load public key")
+	}
+	if !strings.HasSuffix(block.Type, "PUBLIC KEY") {
+		return nil, fmt.Errorf("Invalid public key type: %s", block.Type)
+	}
+
+	return x509.ParsePKIXPublicKey(block.Bytes)
 }
