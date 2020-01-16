@@ -306,6 +306,10 @@ public class Utils {
         };
     }
 
+    static Supplier<InputStream> inputStreamSupplierFromString(String s) throws UncheckedIOException {
+        return () -> new ByteArrayInputStream(s.getBytes(StandardCharsets.UTF_8));
+    }
+
     /**
      * @param athenzPublicCert the location on the public certificate file
      * @param athenzPrivateKey the location of the private key file
@@ -370,9 +374,9 @@ public class Utils {
             final String athenzPublicCertPem,
             final String athenzPrivateKeyPem) throws IOException, KeyRefresherException {
         return createKeyStore(
-                () -> new ByteArrayInputStream(athenzPublicCertPem.getBytes(StandardCharsets.UTF_8)),
+                inputStreamSupplierFromString(athenzPublicCertPem),
                 () -> "in memory certificate pem",
-                () -> new ByteArrayInputStream(athenzPrivateKeyPem.getBytes(StandardCharsets.UTF_8)),
+                inputStreamSupplierFromString(athenzPrivateKeyPem),
                 () -> "in memory private key pem");
     }
 
