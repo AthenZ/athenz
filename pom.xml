@@ -69,7 +69,7 @@
   </ciManagement>
 
   <properties>
-    <jetty.version>9.4.25.v20191220</jetty.version>
+    <jetty.version>9.4.26.v20200117</jetty.version>
     <jersey.version>2.30</jersey.version>
     <jackson.core.version>2.10.2</jackson.core.version>
     <jackson.databind.version>2.10.2</jackson.databind.version>
@@ -78,7 +78,7 @@
     <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
     <rdl.version>1.5.2</rdl.version>
     <bouncycastle.version>1.64</bouncycastle.version>
-    <aws.version>1.11.704</aws.version>
+    <aws.version>1.11.711</aws.version>
     <guava.version>28.2-jre</guava.version>
     <logback.version>1.2.3</logback.version>
     <javax.version>3.1.0</javax.version>
@@ -86,9 +86,9 @@
     <mockito.version>3.2.4</mockito.version>
     <jmockit.version>1.49</jmockit.version>
     <jjwt.version>0.9.1</jjwt.version>
-    <mysql.connector.version>8.0.18</mysql.connector.version>
+    <mysql.connector.version>8.0.19</mysql.connector.version>
     <commons.daemon.version>1.2.2</commons.daemon.version>
-    <apache.httpclient.version>4.5.10</apache.httpclient.version>
+    <apache.httpclient.version>4.5.11</apache.httpclient.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
   </properties>
