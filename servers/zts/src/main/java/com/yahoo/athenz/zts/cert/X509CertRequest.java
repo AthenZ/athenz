@@ -152,6 +152,7 @@ public class X509CertRequest {
         // value will cause the request to be rejected
 
         if (!validateInstanceHostname(provider, athenzSysDomainCache, instanceHostname, hostnameResolver)) {
+            LOGGER.error("Unable to validate Instance hostname: {}", instanceHostname);
             return false;
         }
 
