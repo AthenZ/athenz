@@ -106,7 +106,7 @@ public class X509RoleCertRequest extends X509CertRequest {
         // if we have not URI values then it's failure
 
         if (uris == null || uris.isEmpty()) {
-            LOGGER.error("No URI fields avaialble in the CSR");
+            LOGGER.error("No URI fields available in the CSR");
             return false;
         }
 

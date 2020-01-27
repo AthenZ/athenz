@@ -323,7 +323,7 @@ public class CloudStore {
         // verify that we have a valid awsRole already retrieved
 
         if (awsRole == null || awsRole.isEmpty()) {
-            LOGGER.error("CloudStore: awsRole is not avaialble to fetch role credentials");
+            LOGGER.error("CloudStore: awsRole is not available to fetch role credentials");
             return false;
         }
 

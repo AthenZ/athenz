@@ -4123,7 +4123,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected RuntimeException error(int code, final String msg, final String caller,
                                      final String requestDomain, final String principalDomain) {
         
-        LOGGER.error("Error: {} request-domain: {} pirncipal-domain: {} code: {} message: {}",
+        LOGGER.error("Error: {} request-domain: {} principal-domain: {} code: {} message: {}",
                 caller, requestDomain, principalDomain, code, msg);
         
         // emit our metrics if configured. the method will automatically
