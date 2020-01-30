@@ -1908,7 +1908,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   delete-domain-role-member member\n")
 	buf.WriteString("   delete-role role\n")
 	buf.WriteString("   set-role-audit-enabled group_role audit-enabled\n")
-	buf.WriteString("   set-role-revuew-enabled group_role review-enabled\n")
+	buf.WriteString("   set-role-review-enabled group_role review-enabled\n")
 	buf.WriteString("   set-role-self-serve group_role self-serve\n")
 	buf.WriteString("   set-role-member-expiry-days group_role user-member-expiry-days\n")
 	buf.WriteString("   set-role-service-expiry-days group_role service-member-expiry-days\n")

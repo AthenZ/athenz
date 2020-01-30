@@ -6523,7 +6523,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             LOG.info("Adding default admin assertion to admin policy because no default admin assertion was found for admin policy for domain: " + domainName);
         }
 
-        // if we had invalid assertions then we're gonig to
+        // if we had invalid assertions then we're going to
         // reset the assertion list otherwise we can't update
 
         if (invalidAssertions) {
@@ -7142,7 +7142,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
 
             if (pendingMember.getRequestPrincipal().equalsIgnoreCase(principal.getFullName())) {
-                LOG.error("Principal {} cannot approve his/her own request");
+                LOG.error("Principal {} cannot approve his/her own request", principal.getFullName());
                 allowed = false;
             }
         }
