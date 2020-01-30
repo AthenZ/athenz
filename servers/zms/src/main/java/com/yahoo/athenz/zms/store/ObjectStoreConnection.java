@@ -71,7 +71,7 @@ public interface ObjectStoreConnection extends Closeable {
     
     List<RoleMember> listRoleMembers(String domainName, String roleName, Boolean pending);
     int countRoleMembers(String domainName, String roleName);
-    Membership getRoleMember(String domainName, String roleName, String member, long expiration);
+    Membership getRoleMember(String domainName, String roleName, String member, long expiration, boolean pending);
     boolean insertRoleMember(String domainName, String roleName, RoleMember roleMember, String principal, String auditRef);
     boolean deleteRoleMember(String domainName, String roleName, String member, String principal, String auditRef);
     boolean deletePendingRoleMember(String domainName, String roleName, String member, String principal, String auditRef);

@@ -62,6 +62,11 @@ type ActionName string
 type ResourceName string
 
 //
+// ResourceNames - A comma separated list of resource names
+//
+type ResourceNames string
+
+//
 // YBase64 - The Y-specific URL-safe Base64 variant.
 //
 type YBase64 string
@@ -672,6 +677,11 @@ type RoleMember struct {
 	// for pending membership requests, time when last notification was sent
 	//
 	LastNotifiedTime *rdl.Timestamp `json:"lastNotifiedTime,omitempty" rdl:"optional"`
+
+	//
+	// pending members only - name of the principal requesting the change
+	//
+	RequestPrincipal ResourceName `json:"requestPrincipal,omitempty" rdl:"optional"`
 }
 
 //
@@ -736,6 +746,12 @@ func (self *RoleMember) Validate() error {
 			return fmt.Errorf("RoleMember.auditRef does not contain a valid String (%v)", val.Error)
 		}
 	}
+	if self.RequestPrincipal != "" {
+		val := rdl.Validate(ZMSSchema(), "ResourceName", self.RequestPrincipal)
+		if !val.Valid {
+			return fmt.Errorf("RoleMember.requestPrincipal does not contain a valid ResourceName (%v)", val.Error)
+		}
+	}
 	return nil
 }
 
@@ -776,6 +792,17 @@ type RoleMeta struct {
 	// all services in the role will have specified max expiry days
 	//
 	ServiceExpiryDays *int32 `json:"serviceExpiryDays,omitempty" rdl:"optional"`
+
+	//
+	// Flag indicates whether or not role updates require another review and
+	// approval
+	//
+	ReviewEnabled *bool `json:"reviewEnabled,omitempty" rdl:"optional"`
+
+	//
+	// list of roles whose members should be notified for member review/approval
+	//
+	NotifyRoles ResourceNames `json:"notifyRoles,omitempty" rdl:"optional"`
 }
 
 //
@@ -815,6 +842,12 @@ func (self *RoleMeta) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "SimpleName", self.SignAlgorithm)
 		if !val.Valid {
 			return fmt.Errorf("RoleMeta.signAlgorithm does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	if self.NotifyRoles != "" {
+		val := rdl.Validate(ZMSSchema(), "ResourceNames", self.NotifyRoles)
+		if !val.Valid {
+			return fmt.Errorf("RoleMeta.notifyRoles does not contain a valid ResourceNames (%v)", val.Error)
 		}
 	}
 	return nil
@@ -858,6 +891,17 @@ type Role struct {
 	ServiceExpiryDays *int32 `json:"serviceExpiryDays,omitempty" rdl:"optional"`
 
 	//
+	// Flag indicates whether or not role updates require another review and
+	// approval
+	//
+	ReviewEnabled *bool `json:"reviewEnabled,omitempty" rdl:"optional"`
+
+	//
+	// list of roles whose members should be notified for member review/approval
+	//
+	NotifyRoles ResourceNames `json:"notifyRoles,omitempty" rdl:"optional"`
+
+	//
 	// name of the role
 	//
 	Name ResourceName `json:"name"`
@@ -893,6 +937,11 @@ type Role struct {
 	// it
 	//
 	AuditEnabled *bool `json:"auditEnabled,omitempty" rdl:"optional"`
+
+	//
+	// last review timestamp of the role
+	//
+	LastReviewedDate *rdl.Timestamp `json:"lastReviewedDate,omitempty" rdl:"optional"`
 }
 
 //
@@ -932,6 +981,12 @@ func (self *Role) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "SimpleName", self.SignAlgorithm)
 		if !val.Valid {
 			return fmt.Errorf("Role.signAlgorithm does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	if self.NotifyRoles != "" {
+		val := rdl.Validate(ZMSSchema(), "ResourceNames", self.NotifyRoles)
+		if !val.Valid {
+			return fmt.Errorf("Role.notifyRoles does not contain a valid ResourceNames (%v)", val.Error)
 		}
 	}
 	if self.Name == "" {
@@ -1052,6 +1107,11 @@ type Membership struct {
 	// audit reference string for the change as supplied by admin
 	//
 	AuditRef string `json:"auditRef,omitempty" rdl:"optional"`
+
+	//
+	// pending members only - name of the principal requesting the change
+	//
+	RequestPrincipal ResourceName `json:"requestPrincipal,omitempty" rdl:"optional"`
 }
 
 //
@@ -1124,6 +1184,12 @@ func (self *Membership) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.AuditRef)
 		if !val.Valid {
 			return fmt.Errorf("Membership.auditRef does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.RequestPrincipal != "" {
+		val := rdl.Validate(ZMSSchema(), "ResourceName", self.RequestPrincipal)
+		if !val.Valid {
+			return fmt.Errorf("Membership.requestPrincipal does not contain a valid ResourceName (%v)", val.Error)
 		}
 	}
 	return nil

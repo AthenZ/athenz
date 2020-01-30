@@ -33,6 +33,9 @@ type ActionName String (pattern="{CompoundName}");
 //a domain name followed by a colon is valid resource name.
 type ResourceName String (pattern="{DomainName}(:{EntityName})?");
 
+//A comma separated list of resource names
+type ResourceNames String (pattern="({ResourceName},)*{ResourceName}");
+
 //The Y-specific URL-safe Base64 variant.
 type YBase64 String (pattern="[a-zA-Z0-9\\._-]+");
 

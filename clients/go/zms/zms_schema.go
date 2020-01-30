@@ -58,6 +58,11 @@ func init() {
 	tResourceName.Pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*(:([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*)?")
 	sb.AddType(tResourceName.Build())
 
+	tResourceNames := rdl.NewStringTypeBuilder("ResourceNames")
+	tResourceNames.Comment("A comma separated list of resource names")
+	tResourceNames.Pattern("(([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*(:([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*)?,)*([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*(:([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*)?")
+	sb.AddType(tResourceNames.Build())
+
 	tYBase64 := rdl.NewStringTypeBuilder("YBase64")
 	tYBase64.Comment("The Y-specific URL-safe Base64 variant.")
 	tYBase64.Pattern("[a-zA-Z0-9\\._-]+")
@@ -131,6 +136,7 @@ func init() {
 	tRoleMember.Field("auditRef", "String", true, nil, "audit reference string for the change as supplied by admin")
 	tRoleMember.Field("requestTime", "Timestamp", true, nil, "for pending membership requests, the request time")
 	tRoleMember.Field("lastNotifiedTime", "Timestamp", true, nil, "for pending membership requests, time when last notification was sent")
+	tRoleMember.Field("requestPrincipal", "ResourceName", true, nil, "pending members only - name of the principal requesting the change")
 	sb.AddType(tRoleMember.Build())
 
 	tRoleMeta := rdl.NewStructTypeBuilder("Struct", "RoleMeta")
@@ -141,6 +147,8 @@ func init() {
 	tRoleMeta.Field("certExpiryMins", "Int32", true, nil, "certs issued for this role will have specified max timeout in mins")
 	tRoleMeta.Field("signAlgorithm", "SimpleName", true, nil, "rsa or ec signing algorithm to be used for tokens")
 	tRoleMeta.Field("serviceExpiryDays", "Int32", true, nil, "all services in the role will have specified max expiry days")
+	tRoleMeta.Field("reviewEnabled", "Bool", true, false, "Flag indicates whether or not role updates require another review and approval")
+	tRoleMeta.Field("notifyRoles", "ResourceNames", true, nil, "list of roles whose members should be notified for member review/approval")
 	sb.AddType(tRoleMeta.Build())
 
 	tRole := rdl.NewStructTypeBuilder("RoleMeta", "Role")
@@ -152,6 +160,7 @@ func init() {
 	tRole.Field("trust", "DomainName", true, nil, "a trusted domain to delegate membership decisions to")
 	tRole.ArrayField("auditLog", "RoleAuditLog", true, "an audit log for role membership changes")
 	tRole.Field("auditEnabled", "Bool", true, false, "Flag indicates whether or not role updates should require GRC approval. If true, the auditRef parameter must be supplied(not empty) for any API defining it")
+	tRole.Field("lastReviewedDate", "Timestamp", true, nil, "last review timestamp of the role")
 	sb.AddType(tRole.Build())
 
 	tRoles := rdl.NewStructTypeBuilder("Struct", "Roles")
@@ -168,6 +177,7 @@ func init() {
 	tMembership.Field("active", "Bool", true, true, "Flag to indicate whether membership is active")
 	tMembership.Field("approved", "Bool", true, true, "Flag to indicate whether membership is approved either by delegates ( in case of auditEnabled roles ) or by domain admins ( in case of selfserve roles )")
 	tMembership.Field("auditRef", "String", true, nil, "audit reference string for the change as supplied by admin")
+	tMembership.Field("requestPrincipal", "ResourceName", true, nil, "pending members only - name of the principal requesting the change")
 	sb.AddType(tMembership.Build())
 
 	tDefaultAdmins := rdl.NewStructTypeBuilder("Struct", "DefaultAdmins")

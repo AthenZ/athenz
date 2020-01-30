@@ -29,6 +29,9 @@ public class Membership {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String auditRef;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String requestPrincipal;
 
     public Membership setMemberName(String memberName) {
         this.memberName = memberName;
@@ -79,6 +82,13 @@ public class Membership {
     public String getAuditRef() {
         return auditRef;
     }
+    public Membership setRequestPrincipal(String requestPrincipal) {
+        this.requestPrincipal = requestPrincipal;
+        return this;
+    }
+    public String getRequestPrincipal() {
+        return requestPrincipal;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -106,6 +116,9 @@ public class Membership {
                 return false;
             }
             if (auditRef == null ? a.auditRef != null : !auditRef.equals(a.auditRef)) {
+                return false;
+            }
+            if (requestPrincipal == null ? a.requestPrincipal != null : !requestPrincipal.equals(a.requestPrincipal)) {
                 return false;
             }
         }

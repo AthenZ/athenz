@@ -82,14 +82,11 @@ public class ZMSUtils {
     }
     
     private static String generateResourceName(String domainName, String resName, String resType) {
-        StringBuilder name = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT).append(domainName);
-        if (!resType.isEmpty()) {
-            name.append(':');
-            name.append(resType);
+        if (resType.isEmpty()) {
+            return domainName + "." + resName;
+        } else {
+            return domainName + ":" + resType + "." + resName;
         }
-        name.append('.');
-        name.append(resName);
-        return name.toString();
     }
     
     public static String roleResourceName(String domainName, String roleName) {
@@ -367,5 +364,28 @@ public class ZMSUtils {
         }
 
         return false;
+    }
+
+    public static String extractObjectName(String domainName, String fullName, String objType) {
+
+        // generate prefix to compare with
+
+        final String prefix = domainName + objType;
+        if (!fullName.startsWith(prefix)) {
+            return null;
+        }
+        return fullName.substring(prefix.length());
+    }
+
+    public static String extractRoleName(String domainName, String fullRoleName) {
+        return extractObjectName(domainName, fullRoleName, ":role.");
+    }
+
+    public static String extractPolicyName(String domainName, String fullPolicyName) {
+        return extractObjectName(domainName, fullPolicyName, ":policy.");
+    }
+
+    public static String extractServiceName(String domainName, String fullServiceName) {
+        return extractObjectName(domainName, fullServiceName, ".");
     }
 }

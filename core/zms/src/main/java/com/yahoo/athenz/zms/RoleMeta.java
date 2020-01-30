@@ -29,6 +29,12 @@ public class RoleMeta {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Integer serviceExpiryDays;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Boolean reviewEnabled;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String notifyRoles;
 
     public RoleMeta setSelfServe(Boolean selfServe) {
         this.selfServe = selfServe;
@@ -72,6 +78,20 @@ public class RoleMeta {
     public Integer getServiceExpiryDays() {
         return serviceExpiryDays;
     }
+    public RoleMeta setReviewEnabled(Boolean reviewEnabled) {
+        this.reviewEnabled = reviewEnabled;
+        return this;
+    }
+    public Boolean getReviewEnabled() {
+        return reviewEnabled;
+    }
+    public RoleMeta setNotifyRoles(String notifyRoles) {
+        this.notifyRoles = notifyRoles;
+        return this;
+    }
+    public String getNotifyRoles() {
+        return notifyRoles;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -96,6 +116,12 @@ public class RoleMeta {
                 return false;
             }
             if (serviceExpiryDays == null ? a.serviceExpiryDays != null : !serviceExpiryDays.equals(a.serviceExpiryDays)) {
+                return false;
+            }
+            if (reviewEnabled == null ? a.reviewEnabled != null : !reviewEnabled.equals(a.reviewEnabled)) {
+                return false;
+            }
+            if (notifyRoles == null ? a.notifyRoles != null : !notifyRoles.equals(a.notifyRoles)) {
                 return false;
             }
         }

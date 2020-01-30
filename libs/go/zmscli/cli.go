@@ -601,6 +601,14 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 				}
 				return cli.SetRoleAuditEnabled(dn, args[0], auditEnabled)
 			}
+		case "set-role-review-enabled":
+			if argc == 2 {
+				reviewEnabled, err := strconv.ParseBool(args[1])
+				if err != nil {
+					return nil, err
+				}
+				return cli.SetRoleReviewEnabled(dn, args[0], reviewEnabled)
+			}
 		case "set-role-self-serve":
 			if argc == 2 {
 				selfServe, err := strconv.ParseBool(args[1])
@@ -644,6 +652,10 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 		case "set-role-token-sign-algorithm":
 			if argc == 2 {
 				return cli.SetRoleTokenSignAlgorithm(dn, args[0], args[1])
+			}
+		case "set-role-notify-roles":
+			if argc == 2 {
+				return cli.SetRoleNotifyRoles(dn, args[0], args[1])
 			}
 		case "put-membership-decision":
 			if argc == 4 {
@@ -1713,6 +1725,17 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   audit-enabled : enable/disable audit flag for the role\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domain_example + " set-role-audit-enabled readers true\n")
+	case "set-role-review-enabled":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domain_param + " set-role-review-enabled role review-enabled\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain        : name of the domain that role belongs to\n")
+		}
+		buf.WriteString("   role    : name of the role to be modified\n")
+		buf.WriteString("   review-enabled : enable/disable review flag for the role\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domain_example + " set-role-review-enabled readers true\n")
 	case "set-role-member-expiry-days":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domain_param + " set-role-member-expiry-days role days\n")
@@ -1768,6 +1791,17 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   alg     : either rsa or ec: token algorithm to be used for signing\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domain_example + " set-role-token-sign-algorithm writers rsa\n")
+	case "set-role-notify-roles":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domain_param + " set-role-notify-roles rolename[,rolename...]]\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain  : name of the domain being updated\n")
+		}
+		buf.WriteString("   role    : name of the role to be modified\n")
+		buf.WriteString("   rolename : comma separated listed of rolenames to notify for review\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domain_example + " set-role-notify-roles writers coretech:role.writers-admin,coretech.prod:role.admin\n")
 	case "set-role-self-serve":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domain_param + " set-role-self-serve role self-serve\n")
@@ -1874,12 +1908,14 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   delete-domain-role-member member\n")
 	buf.WriteString("   delete-role role\n")
 	buf.WriteString("   set-role-audit-enabled group_role audit-enabled\n")
+	buf.WriteString("   set-role-revuew-enabled group_role review-enabled\n")
 	buf.WriteString("   set-role-self-serve group_role self-serve\n")
 	buf.WriteString("   set-role-member-expiry-days group_role user-member-expiry-days\n")
 	buf.WriteString("   set-role-service-expiry-days group_role service-member-expiry-days\n")
 	buf.WriteString("   set-role-token-expiry-mins group_role token-expiry-mins\n")
 	buf.WriteString("   set-role-cert-expiry-mins group_role cert-expiry-mins\n")
 	buf.WriteString("   set-role-token-sign-algorithm group_role algorithm\n")
+	buf.WriteString("   set-role-notify-roles group_role rolename[,rolename...]\n")
 	buf.WriteString("   put-membership-decision group_role user_or_service [expiration] decision\n")
 	buf.WriteString("\n")
 	buf.WriteString(" Service commands:\n")

@@ -231,12 +231,25 @@ public class NotificationManagerTest {
 
         Role orgRole = new Role().setName("sys.auth.audit.org:role.neworg").setRoleMembers(roleMembers);
 
-        Mockito.when(dbsvc.getRole("sys.auth.audit.domain", "testdomain1", false, true, false)).thenReturn(domainRole);
-        Mockito.when(dbsvc.getRole("sys.auth.audit.org", "neworg", false, true, false)).thenReturn(orgRole);
+        List<Role> roles1 = new ArrayList<>();
+        roles1.add(orgRole);
+
+        AthenzDomain athenzDomain1 = new AthenzDomain("sys.auth.audit.org");
+        athenzDomain1.setRoles(roles1);
+
+        List<Role> roles2 = new ArrayList<>();
+        roles2.add(domainRole);
+
+        AthenzDomain athenzDomain2 = new AthenzDomain("sys.auth.audit.domain");
+        athenzDomain2.setRoles(roles2);
+
+        Mockito.when(dbsvc.getAthenzDomain("sys.auth.audit.org", false)).thenReturn(athenzDomain1);
+        Mockito.when(dbsvc.getAthenzDomain("sys.auth.audit.domain", false)).thenReturn(athenzDomain2);
 
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
-        notificationManager.generateAndSendPostPutMembershipNotification("testdomain1", "neworg", true, false, details);
+        Role notifyRole = new Role().setAuditEnabled(true).setSelfServe(false);
+        notificationManager.generateAndSendPostPutMembershipNotification("testdomain1", "neworg", notifyRole, details);
 
         Notification notification = new Notification("MEMBERSHIP_APPROVAL");
         notification.addRecipient("user.domapprover1")
@@ -274,12 +287,18 @@ public class NotificationManagerTest {
 
         Role orgRole = new Role().setName("sys.auth.audit.org:role.neworg").setRoleMembers(roleMembers);
 
-        Mockito.when(dbsvc.getRole("sys.auth.audit.domain", "testdomain1", false, true, false)).thenReturn(null);
-        Mockito.when(dbsvc.getRole("sys.auth.audit.org", "neworg", false, true, false)).thenReturn(orgRole);
+        List<Role> roles = new ArrayList<>();
+        roles.add(orgRole);
+
+        AthenzDomain athenzDomain = new AthenzDomain("sys.auth.audit.org");
+        athenzDomain.setRoles(roles);
+
+        Mockito.when(dbsvc.getAthenzDomain("sys.auth.audit.org", false)).thenReturn(athenzDomain);
 
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
-        notificationManager.generateAndSendPostPutMembershipNotification("testdomain1", "neworg", true, false, details);
+        Role notifyRole = new Role().setAuditEnabled(true).setSelfServe(false);
+        notificationManager.generateAndSendPostPutMembershipNotification("testdomain1", "neworg", notifyRole, details);
 
         Notification notification = new Notification("MEMBERSHIP_APPROVAL");
         notification
@@ -314,14 +333,20 @@ public class NotificationManagerTest {
         rm = new RoleMember().setMemberName("dom2.testsvc1").setActive(true);
         roleMembers.add(rm);
 
-        Role domainRole = new Role().setName("sys.auth.audit.org:role.neworg").setRoleMembers(roleMembers);
+        Role domainRole = new Role().setName("sys.auth.audit.domain:role.testdomain1").setRoleMembers(roleMembers);
 
-        Mockito.when(dbsvc.getRole("sys.auth.audit.domain", "testdomain1", false, true, false)).thenReturn(domainRole);
-        Mockito.when(dbsvc.getRole("sys.auth.audit.org", "neworg", false, true, false)).thenReturn(null);
+        List<Role> roles = new ArrayList<>();
+        roles.add(domainRole);
+
+        AthenzDomain athenzDomain = new AthenzDomain("sys.auth.audit.domain");
+        athenzDomain.setRoles(roles);
+
+        Mockito.when(dbsvc.getAthenzDomain("sys.auth.audit.domain", false)).thenReturn(athenzDomain);
 
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
-        notificationManager.generateAndSendPostPutMembershipNotification("testdomain1", "neworg", true, false, details);
+        Role notifyRole = new Role().setAuditEnabled(true).setSelfServe(false);
+        notificationManager.generateAndSendPostPutMembershipNotification("testdomain1", "neworg", notifyRole, details);
 
         Notification notification = new Notification("MEMBERSHIP_APPROVAL");
         notification
@@ -358,16 +383,92 @@ public class NotificationManagerTest {
 
         Role adminRole = new Role().setName("testdomain1:role.admin").setRoleMembers(roleMembers);
 
-        Mockito.when(dbsvc.getRole("testdomain1", "admin", false, true, false)).thenReturn(adminRole);
+        List<Role> roles = new ArrayList<>();
+        roles.add(adminRole);
+
+        AthenzDomain athenzDomain = new AthenzDomain("testdomain1");
+        athenzDomain.setRoles(roles);
+
+        Mockito.when(dbsvc.getAthenzDomain("testdomain1", false)).thenReturn(athenzDomain);
 
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
-        notificationManager.generateAndSendPostPutMembershipNotification("testdomain1", "neworg", false, true, details);
+        Role notifyRole = new Role().setAuditEnabled(false).setSelfServe(true);
+        notificationManager.generateAndSendPostPutMembershipNotification("testdomain1", "neworg", notifyRole, details);
 
         Notification notification = new Notification("MEMBERSHIP_APPROVAL");
         notification
                 .addRecipient("user.domadmin1")
                 .addRecipient("user.domadmin2");
+        notification.addDetails("domain", "testdomain1").addDetails("role", "role1");
+
+        Mockito.verify(mockNotificationService, atLeastOnce()).notify(captor.capture());
+        Notification actualNotification = captor.getValue();
+
+        assertEquals(notification, actualNotification);
+    }
+
+    @Test
+    public void testGenerateAndSendPostPutMembershipNotificationNotifyRoles() {
+        DBService dbsvc = Mockito.mock(DBService.class);
+        NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
+        NotificationServiceFactory testfact = () -> mockNotificationService;
+        NotificationManager notificationManager = new NotificationManager(dbsvc, testfact, ZMSConsts.USER_DOMAIN_PREFIX);
+        notificationManager.shutdown();
+        Map<String, String> details = new HashMap<>();
+        details.put("domain", "testdomain1");
+        details.put("role", "role1");
+
+        List<RoleMember> roleMembers = new ArrayList<>();
+        RoleMember rm = new RoleMember().setMemberName("user.domapprover1").setActive(true);
+        roleMembers.add(rm);
+
+        rm = new RoleMember().setMemberName("user.domapprover2").setActive(true);
+        roleMembers.add(rm);
+
+        rm = new RoleMember().setMemberName("dom2.testsvc1").setActive(true);
+        roleMembers.add(rm);
+
+        Role domainRole = new Role().setName("athenz:role.approvers").setRoleMembers(roleMembers);
+
+        roleMembers = new ArrayList<>();
+        rm = new RoleMember().setMemberName("user.approver1").setActive(true);
+        roleMembers.add(rm);
+
+        rm = new RoleMember().setMemberName("user.approver2").setActive(true);
+        roleMembers.add(rm);
+
+        rm = new RoleMember().setMemberName("dom2.testsvc1").setActive(true);
+        roleMembers.add(rm);
+
+        Role localRole = new Role().setName("testdomain1:role.notify").setRoleMembers(roleMembers);
+
+        List<Role> roles1 = new ArrayList<>();
+        roles1.add(localRole);
+
+        AthenzDomain athenzDomain1 = new AthenzDomain("coretech");
+        athenzDomain1.setRoles(roles1);
+
+        List<Role> roles2 = new ArrayList<>();
+        roles2.add(domainRole);
+
+        AthenzDomain athenzDomain2 = new AthenzDomain("athenz");
+        athenzDomain2.setRoles(roles2);
+
+        Mockito.when(dbsvc.getAthenzDomain("testdomain1", false)).thenReturn(athenzDomain1);
+        Mockito.when(dbsvc.getAthenzDomain("athenz", false)).thenReturn(athenzDomain2);
+
+        ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
+
+        Role notifyRole = new Role().setAuditEnabled(false).setSelfServe(false).setReviewEnabled(true)
+                .setNotifyRoles("athenz:role.approvers,notify");
+        notificationManager.generateAndSendPostPutMembershipNotification("testdomain1", "neworg", notifyRole, details);
+
+        Notification notification = new Notification("MEMBERSHIP_APPROVAL");
+        notification.addRecipient("user.domapprover1")
+                .addRecipient("user.domapprover2")
+                .addRecipient("user.approver1")
+                .addRecipient("user.approver2");
         notification.addDetails("domain", "testdomain1").addDetails("role", "role1");
 
         Mockito.verify(mockNotificationService, atLeastOnce()).notify(captor.capture());
@@ -386,7 +487,8 @@ public class NotificationManagerTest {
         NotificationServiceFactory testfact = () -> mockNotificationService;
         NotificationManager notificationManager = new NotificationManager(dbsvc, testfact, ZMSConsts.USER_DOMAIN_PREFIX);
         notificationManager.shutdown();
-        notificationManager.generateAndSendPostPutMembershipNotification("testdomain1", "neworg", false, false, null);
+        Role notifyRole = new Role().setAuditEnabled(false).setSelfServe(false);
+        notificationManager.generateAndSendPostPutMembershipNotification("testdomain1", "neworg", notifyRole, null);
         Mockito.verify(mockNotificationService, times(0)).notify(any());
     }
 
@@ -400,7 +502,8 @@ public class NotificationManagerTest {
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
         NotificationManager notificationManager = new NotificationManager(dbsvc, testfact, ZMSConsts.USER_DOMAIN_PREFIX);
         notificationManager.shutdown();
-        notificationManager.generateAndSendPostPutMembershipNotification("testdomain1", "neworg", false, false, null);
+        Role notifyRole = new Role().setAuditEnabled(false).setSelfServe(false);
+        notificationManager.generateAndSendPostPutMembershipNotification("testdomain1", "neworg", notifyRole, null);
         verify(mockNotificationService, never()).notify(any(Notification.class));
     }
 

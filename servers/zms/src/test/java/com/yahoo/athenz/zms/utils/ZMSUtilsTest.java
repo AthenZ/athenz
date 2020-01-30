@@ -29,6 +29,7 @@ import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.log.AuditLoggerFactory;
 import com.yahoo.athenz.common.server.log.impl.DefaultAuditLoggerFactory;
 import com.yahoo.athenz.zms.*;
+import com.yahoo.athenz.zms.store.jdbc.JDBCConnection;
 import org.mockito.Mockito;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -326,5 +327,50 @@ public class ZMSUtilsTest {
         assertEquals(stringMembers.size(), 2);
         assertTrue(stringMembers.contains("user.joe"));
         assertTrue(stringMembers.contains("user.jane"));
+    }
+
+    @Test
+    public void testExtractRoleName() throws Exception {
+
+        assertEquals("role1", ZMSUtils.extractRoleName("my-domain1", "my-domain1:role.role1"));
+        assertEquals("role1.role2", ZMSUtils.extractRoleName("my-domain1", "my-domain1:role.role1.role2"));
+
+        // invalid roles names
+        assertNull(ZMSUtils.extractRoleName("my-domain1", "my-domain1:role1"));
+        assertNull(ZMSUtils.extractRoleName("my-domain1", "my-domain2:role.role1"));
+        assertNull(ZMSUtils.extractRoleName("my-domain1", "my-domain11:role.role1"));
+        assertNull(ZMSUtils.extractRoleName("my-domain1", ":role.role1"));
+        assertNull(ZMSUtils.extractRoleName("my-domain1", "role1"));
+        assertNull(ZMSUtils.extractRoleName("my-domain1", "role1.role2"));
+    }
+
+    @Test
+    public void testExtractServiceName() throws Exception {
+
+        assertEquals("service1", ZMSUtils.extractServiceName("my-domain1", "my-domain1.service1"));
+        assertEquals("service1", ZMSUtils.extractServiceName("my-domain1.domain2", "my-domain1.domain2.service1"));
+
+        // invalid service names
+        assertNull(ZMSUtils.extractServiceName("my-domain1", "my-domain1:service1"));
+        assertNull(ZMSUtils.extractServiceName("my-domain1", "my-domain2.service1"));
+        assertNull(ZMSUtils.extractServiceName("my-domain1", "my-domain11:service.service1"));
+        assertNull(ZMSUtils.extractServiceName("my-domain1", ".service1"));
+        assertNull(ZMSUtils.extractServiceName("my-domain1", "service1"));
+        assertNull(ZMSUtils.extractServiceName("my-domain1", "service1.service2"));
+    }
+
+    @Test
+    public void testExtractPolicyName() throws Exception {
+
+        assertEquals("policy1", ZMSUtils.extractPolicyName("my-domain1", "my-domain1:policy.policy1"));
+        assertEquals("policy1.policy2", ZMSUtils.extractPolicyName("my-domain1", "my-domain1:policy.policy1.policy2"));
+
+        // invalid policies names
+        assertNull(ZMSUtils.extractPolicyName("my-domain1", "my-domain1:policy1"));
+        assertNull(ZMSUtils.extractPolicyName("my-domain1", "my-domain2:policy.policy1"));
+        assertNull(ZMSUtils.extractPolicyName("my-domain1", "my-domain11:policy.policy1"));
+        assertNull(ZMSUtils.extractPolicyName("my-domain1", ":policy.policy1"));
+        assertNull(ZMSUtils.extractPolicyName("my-domain1", "policy1"));
+        assertNull(ZMSUtils.extractPolicyName("my-domain1", "policy1.policy2"));
     }
 }
