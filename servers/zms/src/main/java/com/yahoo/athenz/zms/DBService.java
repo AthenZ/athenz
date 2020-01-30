@@ -112,10 +112,7 @@ public class DBService {
         // the value is a comma separated list of supported objects:
         // role, policy, service, domain, entity
 
-        final String auditCheck = System.getProperty(ZMSConsts.ZMS_PROP_AUDIT_REF_CHECK_OBJECTS);
-        if (auditCheck == null) {
-            return;
-        }
+        final String auditCheck = System.getProperty(ZMSConsts.ZMS_PROP_AUDIT_REF_CHECK_OBJECTS, "role");
 
         String[] objects = auditCheck.split(",");
         for (String object : objects) {
@@ -842,8 +839,9 @@ public class DBService {
 
                 Role originalRole = getRole(con, domainName, roleName, false, false, false);
 
-                if (originalRole != null && originalRole.getAuditEnabled() == Boolean.TRUE) {
-                    throw ZMSUtils.requestError("Can not update the auditEnabled role", caller);
+                if (originalRole != null &&
+                        (originalRole.getAuditEnabled() == Boolean.TRUE || originalRole.getReviewEnabled() == Boolean.TRUE)) {
+                    throw ZMSUtils.requestError("Can not update auditEnabled and/or reviewEnabled roles", caller);
                 }
 
                 // now process the request
@@ -1442,7 +1440,7 @@ public class DBService {
     void auditReferenceCheck(ObjectStoreConnection con, Domain domain, final String auditRef,
             final String caller, final String principal) {
 
-        if (domain.getAuditEnabled()) {
+        if (domain.getAuditEnabled() == Boolean.TRUE) {
             if (auditRef == null || auditRef.length() == 0) {
                 con.rollbackChanges();
                 throw ZMSUtils.requestError(caller + ": Audit reference required for domain: " + domain.getName(), caller);
@@ -1904,10 +1902,11 @@ public class DBService {
         }
     }
     
-    Membership getMembership(String domainName, String roleName, String principal, long expiryTimestamp) {
+    Membership getMembership(String domainName, String roleName, String principal,
+            long expiryTimestamp, boolean pending) {
         
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
-            Membership membership = con.getRoleMember(domainName, roleName, principal, expiryTimestamp);
+            Membership membership = con.getRoleMember(domainName, roleName, principal, expiryTimestamp, pending);
             Timestamp expiration = membership.getExpiration();
 
             //need to check expiration and set isMember if expired
@@ -2519,7 +2518,7 @@ public class DBService {
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
                 auditDetails.append("{\"templates\": ");
 
-                Template template = ZMSImpl.serverSolutionTemplates.get(templateName);
+                Template template = zmsConfig.getServerSolutionTemplates().get(templateName);
                 if (!deleteSolutionTemplate(con, domainName, templateName, template, auditDetails)) {
                     con.rollbackChanges();
                     throw ZMSUtils.internalServerError("unable to delete domain template: " + domainName, caller);
@@ -2554,7 +2553,7 @@ public class DBService {
         // we have already verified that our template is valid but
         // we'll just double check to make sure it's not null
         
-        Template template = ZMSImpl.serverSolutionTemplates.get(templateName);
+        Template template = zmsConfig.getServerSolutionTemplates().get(templateName);
         if (template == null) {
             auditDetails.append("}");
             return true;
@@ -3632,6 +3631,8 @@ public class DBService {
                 .append("\", \"serviceExpiryDays\": \"").append(role.getServiceExpiryDays())
                 .append("\", \"tokenExpiryMins\": \"").append(role.getTokenExpiryMins())
                 .append("\", \"certExpiryMins\": \"").append(role.getCertExpiryMins())
+                .append("\", \"reviewEnabled\": \"").append(role.getReviewEnabled())
+                .append("\", \"notifyRoles\": \"").append(role.getNotifyRoles())
                 .append("\"}");
     }
 
@@ -3748,7 +3749,9 @@ public class DBService {
                         .setServiceExpiryDays(originalRole.getServiceExpiryDays())
                         .setTokenExpiryMins(originalRole.getTokenExpiryMins())
                         .setCertExpiryMins(originalRole.getCertExpiryMins())
-                        .setSignAlgorithm(originalRole.getSignAlgorithm());
+                        .setSignAlgorithm(originalRole.getSignAlgorithm())
+                        .setReviewEnabled(originalRole.getReviewEnabled())
+                        .setNotifyRoles(originalRole.getNotifyRoles());
 
                 // then we're going to apply the updated fields
                 // from the given object
@@ -3794,6 +3797,12 @@ public class DBService {
         if (meta.getSignAlgorithm() != null) {
             role.setSignAlgorithm(meta.getSignAlgorithm());
         }
+        if (meta.getReviewEnabled() != null) {
+            role.setReviewEnabled(meta.getReviewEnabled());
+        }
+        if (meta.getNotifyRoles() != null) {
+            role.setNotifyRoles(meta.getNotifyRoles());
+        }
     }
 
     public void executePutRoleMeta(ResourceContext ctx, String domainName, String roleName, RoleMeta meta,
@@ -3827,7 +3836,9 @@ public class DBService {
                         .setServiceExpiryDays(originalRole.getServiceExpiryDays())
                         .setTokenExpiryMins(originalRole.getTokenExpiryMins())
                         .setCertExpiryMins(originalRole.getCertExpiryMins())
-                        .setSignAlgorithm(originalRole.getSignAlgorithm());
+                        .setSignAlgorithm(originalRole.getSignAlgorithm())
+                        .setReviewEnabled(originalRole.getReviewEnabled())
+                        .setNotifyRoles(originalRole.getNotifyRoles());
 
                 // then we're going to apply the updated fields
                 // from the given object
@@ -4076,8 +4087,8 @@ public class DBService {
     public Set<String> getPendingMembershipApproverRoles() {
         try (ObjectStoreConnection con = store.getConnection(true, true)) {
             long updateTs = System.currentTimeMillis();
-            if (con.updatePendingRoleMembersNotificationTimestamp(ZMSImpl.serverHostName, updateTs)) {
-                return con.getPendingMembershipApproverRoles(ZMSImpl.serverHostName, updateTs);
+            if (con.updatePendingRoleMembersNotificationTimestamp(zmsConfig.getServerHostName(), updateTs)) {
+                return con.getPendingMembershipApproverRoles(zmsConfig.getServerHostName(), updateTs);
             }
         }
         return null;
@@ -4086,8 +4097,8 @@ public class DBService {
     public Map<String, DomainRoleMember> getRoleExpiryMembers() {
         try (ObjectStoreConnection con = store.getConnection(true, true)) {
             long updateTs = System.currentTimeMillis();
-            if (con.updateRoleMemberExpirationNotificationTimestamp(ZMSImpl.serverHostName, updateTs)) {
-                return con.getNotifyTemporaryRoleMembers(ZMSImpl.serverHostName, updateTs);
+            if (con.updateRoleMemberExpirationNotificationTimestamp(zmsConfig.getServerHostName(), updateTs)) {
+                return con.getNotifyTemporaryRoleMembers(zmsConfig.getServerHostName(), updateTs);
             }
         }
         return null;

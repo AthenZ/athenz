@@ -16,6 +16,7 @@
 
 package com.yahoo.athenz.zms;
 
+import com.google.common.base.Splitter;
 import com.yahoo.athenz.auth.util.AthenzUtils;
 import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.notification.NotificationService;
@@ -82,35 +83,53 @@ public class NotificationManager {
     }
 
     void generateAndSendPostPutMembershipNotification(final String domain, final String org,
-             Boolean auditEnabled, Boolean selfServe, Map<String, String> details) {
+             final Role role, Map<String, String> details) {
 
         if (!isNotificationFeatureAvailable()) {
             return;
         }
 
+        // we need to generate the appropriate recipients for the notification
+        // there are 2 possible use cases we need to handle here:
+        // a) audit enabled role - we need to add the domain and org roles
+        //          from the sys.auth.audit domain
+        // b) review/self-serve roles - we need to look at the configured
+        //          role list for notification and if not present then default
+        //          to the admin role from the domain
+
         Set<String> recipients = new HashSet<>();
-        if (auditEnabled == Boolean.TRUE) {
+        if (role.getAuditEnabled() == Boolean.TRUE) {
 
-            //get recipient role(s) from audit domain
+            recipients.add(ZMSUtils.roleResourceName(ZMSConsts.SYS_AUTH_AUDIT_BY_DOMAIN, domain));
+            recipients.add(ZMSUtils.roleResourceName(ZMSConsts.SYS_AUTH_AUDIT_BY_ORG, org));
 
-            Role domainRole = dbService.getRole(ZMSConsts.SYS_AUTH_AUDIT_BY_DOMAIN,
-                    domain, false, true, false);
-            Role orgRole = dbService.getRole(ZMSConsts.SYS_AUTH_AUDIT_BY_ORG,
-                    org, false, true, false);
-            if (domainRole != null) {
-                recipients.addAll(domainRole.getRoleMembers().stream().filter(m -> m.getMemberName().startsWith(userDomainPrefix))
-                        .map(RoleMember::getMemberName).collect(Collectors.toSet()));
+        } else {
+
+            // if we're given a notify role list then we're going
+            // to add those role members to the recipient list
+            // otherwise use the admin role for the domain
+
+            final String notifyRoles = role.getNotifyRoles();
+            if (notifyRoles == null || notifyRoles.isEmpty()) {
+                recipients.add(ZMSUtils.roleResourceName(domain, ZMSConsts.ADMIN_ROLE_NAME));
+            } else {
+                Iterable<String> roleNames = Splitter.on(',')
+                        .omitEmptyStrings()
+                        .trimResults()
+                        .split(notifyRoles);
+
+                for (String roleName : roleNames) {
+                    if (roleName.indexOf(":role.") == -1) {
+                        recipients.add(ZMSUtils.roleResourceName(domain, roleName));
+                    } else {
+                        recipients.add(roleName);
+                    }
+                }
             }
-            if (orgRole != null) {
-                recipients.addAll(orgRole.getRoleMembers().stream().filter(m -> m.getMemberName().startsWith(userDomainPrefix))
-                        .map(RoleMember::getMemberName).collect(Collectors.toSet()));
-            }
-        } else if (selfServe == Boolean.TRUE) {
-            // get admin role from the request domain
-            Role adminRole = dbService.getRole(domain, "admin", false, true, false);
-            recipients.addAll(adminRole.getRoleMembers().stream().filter(m -> m.getMemberName().startsWith(userDomainPrefix))
-                    .map(RoleMember::getMemberName).collect(Collectors.toSet()));
         }
+
+        // create and process our notification
+
         Notification notification = createNotification(NotificationService.NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL,
                 recipients, details);
         if (notification != null) {

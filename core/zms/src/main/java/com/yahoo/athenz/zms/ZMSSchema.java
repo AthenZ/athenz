@@ -50,6 +50,10 @@ public class ZMSSchema {
             .comment("A resource name Note that the EntityName part is optional, that is, a domain name followed by a colon is valid resource name.")
             .pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*(:([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*)?");
 
+        sb.stringType("ResourceNames")
+            .comment("A comma separated list of resource names")
+            .pattern("(([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*(:([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*)?,)*([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*(:([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*)?");
+
         sb.stringType("YBase64")
             .comment("The Y-specific URL-safe Base64 variant.")
             .pattern("[a-zA-Z0-9\\._-]+");
@@ -113,7 +117,8 @@ public class ZMSSchema {
             .field("approved", "Bool", true, "Flag to indicate whether membership is approved either by delegates ( in case of auditEnabled roles ) or by domain admins ( in case of selfserve roles )", true)
             .field("auditRef", "String", true, "audit reference string for the change as supplied by admin")
             .field("requestTime", "Timestamp", true, "for pending membership requests, the request time")
-            .field("lastNotifiedTime", "Timestamp", true, "for pending membership requests, time when last notification was sent");
+            .field("lastNotifiedTime", "Timestamp", true, "for pending membership requests, time when last notification was sent")
+            .field("requestPrincipal", "ResourceName", true, "pending members only - name of the principal requesting the change");
 
         sb.structType("RoleMeta")
             .comment("Set of metadata attributes that all roles may have and can be changed by domain admins.")
@@ -122,7 +127,9 @@ public class ZMSSchema {
             .field("tokenExpiryMins", "Int32", true, "tokens issued for this role will have specified max timeout in mins")
             .field("certExpiryMins", "Int32", true, "certs issued for this role will have specified max timeout in mins")
             .field("signAlgorithm", "SimpleName", true, "rsa or ec signing algorithm to be used for tokens")
-            .field("serviceExpiryDays", "Int32", true, "all services in the role will have specified max expiry days");
+            .field("serviceExpiryDays", "Int32", true, "all services in the role will have specified max expiry days")
+            .field("reviewEnabled", "Bool", true, "Flag indicates whether or not role updates require another review and approval", false)
+            .field("notifyRoles", "ResourceNames", true, "list of roles whose members should be notified for member review/approval");
 
         sb.structType("Role", "RoleMeta")
             .comment("The representation for a Role with set of members.")
@@ -132,7 +139,8 @@ public class ZMSSchema {
             .arrayField("roleMembers", "RoleMember", true, "members with expiration")
             .field("trust", "DomainName", true, "a trusted domain to delegate membership decisions to")
             .arrayField("auditLog", "RoleAuditLog", true, "an audit log for role membership changes")
-            .field("auditEnabled", "Bool", true, "Flag indicates whether or not role updates should require GRC approval. If true, the auditRef parameter must be supplied(not empty) for any API defining it", false);
+            .field("auditEnabled", "Bool", true, "Flag indicates whether or not role updates should require GRC approval. If true, the auditRef parameter must be supplied(not empty) for any API defining it", false)
+            .field("lastReviewedDate", "Timestamp", true, "last review timestamp of the role");
 
         sb.structType("Roles")
             .comment("The representation for a list of roles with full details")
@@ -146,7 +154,8 @@ public class ZMSSchema {
             .field("expiration", "Timestamp", true, "the expiration timestamp")
             .field("active", "Bool", true, "Flag to indicate whether membership is active", true)
             .field("approved", "Bool", true, "Flag to indicate whether membership is approved either by delegates ( in case of auditEnabled roles ) or by domain admins ( in case of selfserve roles )", true)
-            .field("auditRef", "String", true, "audit reference string for the change as supplied by admin");
+            .field("auditRef", "String", true, "audit reference string for the change as supplied by admin")
+            .field("requestPrincipal", "ResourceName", true, "pending members only - name of the principal requesting the change");
 
         sb.structType("DefaultAdmins")
             .comment("The list of domain administrators.")

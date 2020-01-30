@@ -324,6 +324,22 @@ func (cli Zms) SetRoleAuditEnabled(dn string, rn string, auditEnabled bool) (*st
 	return &s, nil
 }
 
+func (cli Zms) SetRoleReviewEnabled(dn string, rn string, reviewEnabled bool) (*string, error) {
+	role, err := cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), nil, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	meta := getRoleMetaObject(role)
+	meta.ReviewEnabled = &reviewEnabled
+
+	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " role " + rn + " review-enabled attribute successfully updated]\n"
+	return &s, nil
+}
+
 func getRoleMetaObject(role *zms.Role) zms.RoleMeta {
 	return zms.RoleMeta{
 		MemberExpiryDays: role.MemberExpiryDays,
@@ -331,6 +347,8 @@ func getRoleMetaObject(role *zms.Role) zms.RoleMeta {
 		SelfServe:        role.SelfServe,
 		CertExpiryMins:   role.CertExpiryMins,
 		SignAlgorithm:    role.SignAlgorithm,
+		ReviewEnabled:    role.ReviewEnabled,
+		NotifyRoles:      role.NotifyRoles,
 	}
 }
 func (cli Zms) SetRoleSelfServe(dn string, rn string, selfServe bool) (*string, error) {
@@ -426,6 +444,22 @@ func (cli Zms) SetRoleTokenSignAlgorithm(dn string, rn string, alg string) (*str
 		return nil, err
 	}
 	s := "[domain " + dn + " role " + rn + " role-token-sign-algorithm attribute successfully updated]\n"
+	return &s, nil
+}
+
+func (cli Zms) SetRoleNotifyRoles(dn string, rn string, notifyRoles string) (*string, error) {
+	role, err := cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), nil, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	meta := getRoleMetaObject(role)
+	meta.NotifyRoles = zms.ResourceNames(notifyRoles)
+
+	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " role " + rn + " notify-roles attribute successfully updated]\n"
 	return &s, nil
 }
 

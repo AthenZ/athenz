@@ -78,28 +78,29 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "WHERE domain.name=? AND role.name=?;";
     private static final String SQL_GET_ROLE_ID = "SELECT role_id FROM role WHERE domain_id=? AND name=?;";
     private static final String SQL_INSERT_ROLE = "INSERT INTO role (name, domain_id, trust, audit_enabled, self_serve,"
-            + " member_expiry_days, token_expiry_mins, cert_expiry_mins, sign_algorithm, service_expiry_days)"
-            + " VALUES (?,?,?,?,?,?,?,?,?,?);";
+            + " member_expiry_days, token_expiry_mins, cert_expiry_mins, sign_algorithm, service_expiry_days,"
+            + " review_enabled, notify_roles) VALUES (?,?,?,?,?,?,?,?,?,?,?,?);";
     private static final String SQL_UPDATE_ROLE = "UPDATE role SET trust=?,audit_enabled=?, self_serve=?, "
-            + "member_expiry_days=?, token_expiry_mins=?, cert_expiry_mins=?, sign_algorithm=?, service_expiry_days=? WHERE role_id=?;";
+            + "member_expiry_days=?, token_expiry_mins=?, cert_expiry_mins=?, sign_algorithm=?, "
+            + "service_expiry_days=?, review_enabled=?, notify_roles=? WHERE role_id=?;";
     private static final String SQL_DELETE_ROLE = "DELETE FROM role WHERE domain_id=? AND name=?;";
     private static final String SQL_UPDATE_ROLE_MOD_TIMESTAMP = "UPDATE role "
             + "SET modified=CURRENT_TIMESTAMP(3) WHERE role_id=?;";
     private static final String SQL_LIST_ROLE = "SELECT name FROM role WHERE domain_id=?;";
     private static final String SQL_COUNT_ROLE = "SELECT COUNT(*) FROM role WHERE domain_id=?;";
-    private static final String SQL_GET_ROLE_MEMBER = "SELECT principal.principal_id, role_member.expiration FROM principal "
+    private static final String SQL_GET_ROLE_MEMBER = "SELECT principal.principal_id, role_member.expiration, role_member.req_principal FROM principal "
             + "JOIN role_member ON role_member.principal_id=principal.principal_id "
             + "JOIN role ON role.role_id=role_member.role_id "
             + "WHERE role.role_id=? AND principal.name=?;";
-    private static final String SQL_GET_TEMP_ROLE_MEMBER = "SELECT principal.principal_id, role_member.expiration FROM principal "
+    private static final String SQL_GET_TEMP_ROLE_MEMBER = "SELECT principal.principal_id, role_member.expiration, role_member.req_principal FROM principal "
             + "JOIN role_member ON role_member.principal_id=principal.principal_id "
             + "JOIN role ON role.role_id=role_member.role_id "
             + "WHERE role.role_id=? AND principal.name=? AND role_member.expiration=?;";
-    private static final String SQL_GET_PENDING_ROLE_MEMBER = "SELECT principal.principal_id, pending_role_member.expiration FROM principal "
+    private static final String SQL_GET_PENDING_ROLE_MEMBER = "SELECT principal.principal_id, pending_role_member.expiration, pending_role_member.req_principal FROM principal "
             + "JOIN pending_role_member ON pending_role_member.principal_id=principal.principal_id "
             + "JOIN role ON role.role_id=pending_role_member.role_id "
             + "WHERE role.role_id=? AND principal.name=?;";
-    private static final String SQL_GET_TEMP_PENDING_ROLE_MEMBER = "SELECT principal.principal_id, pending_role_member.expiration FROM principal "
+    private static final String SQL_GET_TEMP_PENDING_ROLE_MEMBER = "SELECT principal.principal_id, pending_role_member.expiration, pending_role_member.req_principal FROM principal "
             + "JOIN pending_role_member ON pending_role_member.principal_id=principal.principal_id "
             + "JOIN role ON role.role_id=pending_role_member.role_id "
             + "WHERE role.role_id=? AND principal.name=? AND pending_role_member.expiration=?;";
@@ -120,15 +121,15 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_LIST_PRINCIPAL_DOMAIN = "SELECT * FROM principal WHERE name LIKE ?;";
     private static final String SQL_LAST_INSERT_ID = "SELECT LAST_INSERT_ID();";
     private static final String SQL_INSERT_ROLE_MEMBER = "INSERT INTO role_member "
-            + "(role_id, principal_id, expiration, active, audit_ref) VALUES (?,?,?,?,?);";
+            + "(role_id, principal_id, expiration, active, audit_ref, req_principal) VALUES (?,?,?,?,?,?);";
     private static final String SQL_INSERT_PENDING_ROLE_MEMBER = "INSERT INTO pending_role_member "
-            + "(role_id, principal_id, expiration, audit_ref) VALUES (?,?,?,?);";
+            + "(role_id, principal_id, expiration, audit_ref, req_principal) VALUES (?,?,?,?,?);";
     private static final String SQL_DELETE_ROLE_MEMBER = "DELETE FROM role_member WHERE role_id=? AND principal_id=?;";
     private static final String SQL_DELETE_PENDING_ROLE_MEMBER = "DELETE FROM pending_role_member WHERE role_id=? AND principal_id=?;";
     private static final String SQL_UPDATE_ROLE_MEMBER = "UPDATE role_member "
-            + "SET expiration=?, active=?, audit_ref=? WHERE role_id=? AND principal_id=?;";
+            + "SET expiration=?, active=?, audit_ref=?, req_principal=? WHERE role_id=? AND principal_id=?;";
     private static final String SQL_UPDATE_PENDING_ROLE_MEMBER = "UPDATE pending_role_member "
-            + "SET expiration=?, audit_ref=?, req_time=CURRENT_TIMESTAMP(3) WHERE role_id=? AND principal_id=?;";
+            + "SET expiration=?, audit_ref=?, req_time=CURRENT_TIMESTAMP(3), req_principal=? WHERE role_id=? AND principal_id=?;";
     private static final String SQL_INSERT_ROLE_AUDIT_LOG = "INSERT INTO role_audit_log "
             + "(role_id, admin, member, action, audit_ref) VALUES (?,?,?,?,?);";
     private static final String SQL_LIST_ROLE_AUDIT_LOGS = "SELECT * FROM role_audit_log WHERE role_id=?;";
@@ -351,8 +352,8 @@ public class JDBCConnection implements ObjectStoreConnection {
             con.close();
             con = null;
         } catch (SQLException ex) {
-            LOG.error("close: state - " + ex.getSQLState() +
-                    ", code - " + ex.getErrorCode() + ", message - " + ex.getMessage());
+            LOG.error("close: state - {}, code - {}, message - {}", ex.getSQLState(),
+                    ex.getErrorCode(), ex.getMessage());
         }
     }
 
@@ -370,15 +371,16 @@ public class JDBCConnection implements ObjectStoreConnection {
         try {
             con.rollback();
         } catch (SQLException ex) {
-            LOG.error("rollbackChanges: state - " + ex.getSQLState() +
-                    ", code - " + ex.getErrorCode() + ", message - " + ex.getMessage());
+            LOG.error("rollbackChanges: state - {}, code - {}, message - {}", ex.getSQLState(),
+                    ex.getErrorCode(), ex.getMessage());
         }
+
         transactionCompleted = true;
         try {
             con.setAutoCommit(true);
         } catch (SQLException ex) {
-            LOG.error("rollback auto-commit after failure: state - " + ex.getSQLState() +
-                    ", code - " + ex.getErrorCode() + ", message - " + ex.getMessage());
+            LOG.error("rollback auto-commit after failure: state - {}, code - {}, message - {}",
+                    ex.getSQLState(), ex.getErrorCode(), ex.getMessage());
         }
     }
     
@@ -395,8 +397,8 @@ public class JDBCConnection implements ObjectStoreConnection {
             transactionCompleted = true;
             con.setAutoCommit(true);
         } catch (SQLException ex) {
-            LOG.error("commitChanges: state - " + ex.getSQLState() +
-                    ", code - " + ex.getErrorCode() + ", message - " + ex.getMessage());
+            LOG.error("commitChanges: state - {}, code - {}, message - {}", ex.getSQLState(),
+                    ex.getErrorCode(), ex.getMessage());
             transactionCompleted = true;
             throw sqlError(ex, caller);
         }
@@ -1138,29 +1140,6 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
         return null;
     }
-
-    String extractObjectName(String domainName, String fullName, String objType) {
-        
-        // generate prefix to compare with
-
-        final String prefix = domainName + objType;
-        if (!fullName.startsWith(prefix)) {
-            return null;
-        }
-        return fullName.substring(prefix.length());
-    }
-    
-    String extractRoleName(String domainName, String fullRoleName) {
-        return extractObjectName(domainName, fullRoleName, ":role.");
-    }
-    
-    String extractPolicyName(String domainName, String fullPolicyName) {
-        return extractObjectName(domainName, fullPolicyName, ":policy.");
-    }
-    
-    String extractServiceName(String domainName, String fullServiceName) {
-        return extractObjectName(domainName, fullServiceName, ".");
-    }
     
     @Override
     public boolean insertRole(String domainName, Role role) {
@@ -1168,7 +1147,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         int affectedRows;
         final String caller = "insertRole";
 
-        String roleName = extractRoleName(domainName, role.getName());
+        String roleName = ZMSUtils.extractRoleName(domainName, role.getName());
         if (roleName == null) {
             throw requestError(caller, "domain name mismatch: " + domainName +
                     " insert role name: " + role.getName());
@@ -1189,6 +1168,8 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setInt(8, processInsertValue(role.getCertExpiryMins()));
             ps.setString(9, processInsertValue(role.getSignAlgorithm()));
             ps.setInt(10, processInsertValue(role.getServiceExpiryDays()));
+            ps.setBoolean(11, processInsertValue(role.getReviewEnabled(), false));
+            ps.setString(12, processInsertValue(role.getNotifyRoles()));
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -1202,7 +1183,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         int affectedRows;
         final String caller = "updateRole";
 
-        String roleName = extractRoleName(domainName, role.getName());
+        String roleName = ZMSUtils.extractRoleName(domainName, role.getName());
         if (roleName == null) {
             throw requestError(caller, "domain name mismatch: " + domainName +
                     " update role name: " + role.getName());
@@ -1226,7 +1207,9 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setInt(6, processInsertValue(role.getCertExpiryMins()));
             ps.setString(7, processInsertValue(role.getSignAlgorithm()));
             ps.setInt(8, processInsertValue(role.getServiceExpiryDays()));
-            ps.setInt(9, roleId);
+            ps.setBoolean(9, processInsertValue(role.getReviewEnabled(), false));
+            ps.setString(10, processInsertValue(role.getNotifyRoles()));
+            ps.setInt(11, roleId);
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -1578,10 +1561,11 @@ public class JDBCConnection implements ObjectStoreConnection {
             try (ResultSet rs = executeQuery(ps, caller)) {
                 if (rs.next()) {
                     membership.setIsMember(true);
-                    java.sql.Timestamp expiry = rs.getTimestamp(2);
+                    java.sql.Timestamp expiry = rs.getTimestamp(ZMSConsts.DB_COLUMN_EXPIRATION);
                     if (expiry != null) {
                         membership.setExpiration(Timestamp.fromMillis(expiry.getTime()));
                     }
+                    membership.setRequestPrincipal(rs.getString(ZMSConsts.DB_COLUMN_REQ_PRINCIPAL));
                     return true;
                 }
             }
@@ -1592,7 +1576,8 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
 
     @Override
-    public Membership getRoleMember(String domainName, String roleName, String member, long expiration) {
+    public Membership getRoleMember(String domainName, String roleName, String member,
+            long expiration, boolean pending) {
         
         final String caller = "getRoleMember";
 
@@ -1611,17 +1596,23 @@ public class JDBCConnection implements ObjectStoreConnection {
                 .setIsMember(false);
 
         // first we're going to check if we have a standard user with the given
-        // details
+        // details before checking for pending unless we're specifically asking
+        // for pending member only in which case we'll skip the first check
 
-        String query = expiration == 0 ? SQL_GET_ROLE_MEMBER : SQL_GET_TEMP_ROLE_MEMBER;
-        if (getRoleMembership(query, roleId, member, expiration, membership, caller)) {
-            membership.setApproved(true);
-        } else {
-            query = expiration == 0 ? SQL_GET_PENDING_ROLE_MEMBER : SQL_GET_TEMP_PENDING_ROLE_MEMBER;
+        if (!pending) {
+            String query = expiration == 0 ? SQL_GET_ROLE_MEMBER : SQL_GET_TEMP_ROLE_MEMBER;
+            if (getRoleMembership(query, roleId, member, expiration, membership, caller)) {
+                membership.setApproved(true);
+            }
+        }
+
+        if (!membership.getIsMember()) {
+            String query = expiration == 0 ? SQL_GET_PENDING_ROLE_MEMBER : SQL_GET_TEMP_PENDING_ROLE_MEMBER;
             if (getRoleMembership(query, roleId, member, expiration, membership, caller)) {
                 membership.setApproved(false);
             }
         }
+
         return membership;
     }
     
@@ -1727,8 +1718,8 @@ public class JDBCConnection implements ObjectStoreConnection {
 
         boolean result;
         if (pendingRequest) {
-            result = insertPendingRoleMember(roleId, principalId, roleMember, auditRef,
-                    roleMemberExists, caller);
+            result = insertPendingRoleMember(roleId, principalId, roleMember, admin,
+                    auditRef, roleMemberExists, caller);
         } else {
             result = insertStandardRoleMember(roleId, principalId, roleMember, admin,
                     principal, auditRef, roleMemberExists, false, caller);
@@ -1737,7 +1728,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
 
     boolean insertPendingRoleMember(int roleId, int principalId, RoleMember roleMember,
-            final String auditRef, boolean roleMemberExists, final String caller) {
+            final String admin, final String auditRef, boolean roleMemberExists, final String caller) {
 
         java.sql.Timestamp expiration = null;
         if (roleMember.getExpiration() != null) {
@@ -1750,8 +1741,9 @@ public class JDBCConnection implements ObjectStoreConnection {
             try (PreparedStatement ps = con.prepareStatement(SQL_UPDATE_PENDING_ROLE_MEMBER)) {
                 ps.setTimestamp(1, expiration);
                 ps.setString(2, processInsertValue(auditRef));
-                ps.setInt(3, roleId);
-                ps.setInt(4, principalId);
+                ps.setString(3, processInsertValue(admin));
+                ps.setInt(4, roleId);
+                ps.setInt(5, principalId);
                 affectedRows = executeUpdate(ps, caller);
             } catch (SQLException ex) {
                 throw sqlError(ex, caller);
@@ -1764,6 +1756,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                 ps.setInt(2, principalId);
                 ps.setTimestamp(3, expiration);
                 ps.setString(4, processInsertValue(auditRef));
+                ps.setString(5, processInsertValue(admin));
                 affectedRows = executeUpdate(ps, caller);
             } catch (SQLException ex) {
                 throw sqlError(ex, caller);
@@ -1791,8 +1784,9 @@ public class JDBCConnection implements ObjectStoreConnection {
                 ps.setTimestamp(1, expiration);
                 ps.setBoolean(2, processInsertValue(roleMember.getActive(), true));
                 ps.setString(3, processInsertValue(auditRef));
-                ps.setInt(4, roleId);
-                ps.setInt(5, principalId);
+                ps.setString(4, processInsertValue(admin));
+                ps.setInt(5, roleId);
+                ps.setInt(6, principalId);
                 executeUpdate(ps, caller);
             } catch (SQLException ex) {
                 throw sqlError(ex, caller);
@@ -1809,6 +1803,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                 ps.setTimestamp(3, expiration);
                 ps.setBoolean(4, processInsertValue(roleMember.getActive(), true));
                 ps.setString(5, processInsertValue(auditRef));
+                ps.setString(6, processInsertValue(admin));
                 affectedRows = executeUpdate(ps, caller);
             } catch (SQLException ex) {
                 throw sqlError(ex, caller);
@@ -1937,7 +1932,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         int affectedRows;
         final String caller = "insertPolicy";
 
-        String policyName = extractPolicyName(domainName, policy.getName());
+        String policyName = ZMSUtils.extractPolicyName(domainName, policy.getName());
         if (policyName == null) {
             throw requestError(caller, "domain name mismatch: " + domainName +
                     " insert policy name: " + policy.getName());
@@ -1963,7 +1958,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         int affectedRows;
         final String caller = "updatePolicy";
 
-        String policyName = extractPolicyName(domainName, policy.getName());
+        String policyName = ZMSUtils.extractPolicyName(domainName, policy.getName());
         if (policyName == null) {
             throw requestError(caller, "domain name mismatch: " + domainName +
                     " update policy name: " + policy.getName());
@@ -2087,7 +2082,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         final String caller = "insertAssertion";
 
-        String roleName = extractRoleName(domainName, assertion.getRole());
+        String roleName = ZMSUtils.extractRoleName(domainName, assertion.getRole());
         if (roleName == null) {
             throw requestError(caller, "domain name mismatch: " + domainName +
                     " assertion role name: " + assertion.getRole());
@@ -2289,7 +2284,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         int affectedRows;
         final String caller = "insertServiceIdentity";
 
-        String serviceName = extractServiceName(domainName, service.getName());
+        String serviceName = ZMSUtils.extractServiceName(domainName, service.getName());
         if (serviceName == null) {
             throw requestError(caller, "domain name mismatch: " + domainName +
                     " insert service name: " + service.getName());
@@ -2320,7 +2315,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         int affectedRows;
         final String caller = "updateServiceIdentity";
 
-        String serviceName = extractServiceName(domainName, service.getName());
+        String serviceName = ZMSUtils.extractServiceName(domainName, service.getName());
         if (serviceName == null) {
             throw requestError(caller, "domain name mismatch: " + domainName +
                     " update service name: " + service.getName());
@@ -2795,7 +2790,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
 
     Role retrieveRole(ResultSet rs, final String domainName, final String roleName) throws SQLException {
-        return new Role().setName(ZMSUtils.roleResourceName(domainName, roleName))
+        Role role = new Role().setName(ZMSUtils.roleResourceName(domainName, roleName))
                 .setModified(Timestamp.fromMillis(rs.getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED).getTime()))
                 .setTrust(saveValue(rs.getString(ZMSConsts.DB_COLUMN_TRUST)))
                 .setAuditEnabled(nullIfDefaultValue(rs.getBoolean(ZMSConsts.DB_COLUMN_AUDIT_ENABLED), false))
@@ -2804,7 +2799,14 @@ public class JDBCConnection implements ObjectStoreConnection {
                 .setTokenExpiryMins(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_TOKEN_EXPIRY_MINS), 0))
                 .setCertExpiryMins(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_CERT_EXPIRY_MINS), 0))
                 .setSignAlgorithm(saveValue(rs.getString(ZMSConsts.DB_COLUMN_SIGN_ALGORITHM)))
-                .setServiceExpiryDays(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_SERVICE_EXPIRY_DAYS), 0));
+                .setServiceExpiryDays(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_SERVICE_EXPIRY_DAYS), 0))
+                .setReviewEnabled(nullIfDefaultValue(rs.getBoolean(ZMSConsts.DB_COLUMN_REVIEW_ENABLED), false))
+                .setNotifyRoles(saveValue(rs.getString(ZMSConsts.DB_COLUMN_NOTIFY_ROLES)));
+        java.sql.Timestamp lastReviewedTime = rs.getTimestamp(ZMSConsts.DB_COLUMN_LAST_REVIEWED_TIME);
+        if (lastReviewedTime != null) {
+            role.setLastReviewedDate(Timestamp.fromMillis(lastReviewedTime.getTime()));
+        }
+        return role;
     }
 
     void getAthenzDomainRoles(String domainName, int domainId, AthenzDomain athenzDomain) {

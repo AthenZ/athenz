@@ -30,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Strings;
 import com.yahoo.athenz.auth.ServerPrivateKey;
+import com.yahoo.athenz.auth.impl.*;
 import com.yahoo.athenz.common.server.notification.Notification;
 import org.mockito.Mockito;
 import org.mockito.Mock;
@@ -38,6 +39,7 @@ import org.testng.annotations.*;
 
 import static com.yahoo.athenz.common.server.notification.NotificationService.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.assertFalse;
@@ -54,10 +56,6 @@ import javax.ws.rs.core.Response;
 
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
-import com.yahoo.athenz.auth.impl.FilePrivateKeyStore;
-import com.yahoo.athenz.auth.impl.PrincipalAuthority;
-import com.yahoo.athenz.auth.impl.SimplePrincipal;
-import com.yahoo.athenz.auth.impl.SimpleServiceIdentityProvider;
 import com.yahoo.athenz.auth.token.PrincipalToken;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
@@ -4320,7 +4318,50 @@ public class ZMSImplTest {
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx,  domainName, auditRef);
     }
-    
+
+    @Test
+    public void testPutServiceIdentityInvalidServiceName() {
+        String domainName = "ServicePutDom1";
+        String serviceName = "cloud";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        ServiceIdentity service = new ServiceIdentity();
+        service.setName(ZMSUtils.serviceResourceName(domainName, serviceName));
+
+        try {
+            zms.putServiceIdentity(mockDomRsrcCtx, domainName, serviceName, auditRef, service);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Invalid/Reserved service name"));
+        }
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx,  domainName, auditRef);
+    }
+
+    @Test
+    public void testPutServiceIdentityInvalidEndPoint() {
+        String domainName = "ServicePutDom1";
+        String serviceName = "Service1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        ServiceIdentity service = new ServiceIdentity();
+        service.setName(ZMSUtils.serviceResourceName(domainName, serviceName));
+        service.setProviderEndpoint("https://sometestcompany.com");
+
+        try {
+            zms.putServiceIdentity(mockDomRsrcCtx, domainName, serviceName, auditRef, service);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Invalid endpoint"));
+        }
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx,  domainName, auditRef);
+    }
+
     @Test
     public void testPutServiceIdentityThrowException() {
         String domainName = "DomainName";
@@ -8070,7 +8111,24 @@ public class ZMSImplTest {
         assertEquals("storage", principal.getService());
         assertEquals("coretech", principal.getDomain());
     }
-    
+
+    @Test
+    public void testGetServicePrincipalAuthorityNoAuthz() {
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
+        Authority authority = new UserAuthority();
+        SimpleServiceIdentityProvider provider = new SimpleServiceIdentityProvider(authority,
+                "user", "test1", privateKey, "0", 3600);
+
+        Principal testPrincipal = provider.getIdentity("user", "test1");
+        assertNotNull(testPrincipal);
+        ResourceContext rsrcCtxTest = createResourceContext(testPrincipal);
+        ServicePrincipal principal = zms.getServicePrincipal(rsrcCtxTest);
+        assertNotNull(principal);
+        assertEquals("test1", principal.getService());
+        assertEquals("user", principal.getDomain());
+    }
+
     @Test
     public void testEmitMonmetricError() {
         int errorCode = 403;
@@ -9852,7 +9910,7 @@ public class ZMSImplTest {
     
     @Test
     public void testPutPublicKeyEntryNew() {
-        
+
         TopLevelDomain dom1 = createTopLevelDomainObject("ServicePutPubKeyDom1",
                 "Test Domain1", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
@@ -9866,9 +9924,9 @@ public class ZMSImplTest {
         PublicKeyEntry keyEntry = new PublicKeyEntry();
         keyEntry.setId("zone1");
         keyEntry.setKey(pubKeyK2);
-        
+
         zms.putPublicKeyEntry(mockDomRsrcCtx, "ServicePutPubKeyDom1", "Service1", "zone1", auditRef, keyEntry);
-        
+
         ServiceIdentity serviceRes = zms.getServiceIdentity(mockDomRsrcCtx, "ServicePutPubKeyDom1", "Service1");
         List<PublicKeyEntry> keyList = serviceRes.getPublicKeys();
         boolean foundKey1 = false;
@@ -9890,12 +9948,39 @@ public class ZMSImplTest {
         assertTrue(foundKey1);
         assertTrue(foundKey2);
         assertTrue(foundKeyZONE1);
-        
+
         PublicKeyEntry entry = zms.getPublicKeyEntry(mockDomRsrcCtx, "ServicePutPubKeyDom1", "Service1", "zone1");
         assertNotNull(entry);
         assertEquals(entry.getId(), "zone1");
         assertEquals(entry.getKey(), pubKeyK2);
-        
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "ServicePutPubKeyDom1", auditRef);
+    }
+
+    @Test
+    public void testPutPublicKeyEntryInvalidKey() {
+
+        TopLevelDomain dom1 = createTopLevelDomainObject("ServicePutPubKeyDom1",
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        ServiceIdentity service = createServiceObject("ServicePutPubKeyDom1",
+                "Service1", "http://localhost", "/usr/bin/java", "root",
+                "users", "host1");
+
+        zms.putServiceIdentity(mockDomRsrcCtx, "ServicePutPubKeyDom1", "Service1", auditRef, service);
+
+        PublicKeyEntry keyEntry = new PublicKeyEntry();
+        keyEntry.setId("zone1");
+        keyEntry.setKey("some-invalid-key");
+
+        try {
+            zms.putPublicKeyEntry(mockDomRsrcCtx, "ServicePutPubKeyDom1", "Service1", "zone1", auditRef, keyEntry);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Invalid public key"));
+        }
+
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "ServicePutPubKeyDom1", auditRef);
     }
 
@@ -11454,8 +11539,9 @@ public class ZMSImplTest {
         // non-http scheme test cases
         assertFalse(zms.verifyProviderEndpoint("file://host1.athenz.com"));
         
-        // other null test cases
+        // other null and empty test cases
         assertTrue(zms.verifyProviderEndpoint(null));
+        assertTrue(zms.verifyProviderEndpoint(""));
     }
     
     @Test
@@ -12865,7 +12951,19 @@ public class ZMSImplTest {
         
         assertFalse(zms.matchRole("domain", roles, "domain:role\\.role1.*", authRoles));
     }
-    
+
+    @Test
+    public void testMatchRoleNoMatch() {
+        Role role = new Role().setName("domain:role.role2");
+        ArrayList<Role> roles = new ArrayList<>();
+        roles.add(role);
+
+        ArrayList<String> authRoles = new ArrayList<>();
+        authRoles.add("role3");
+
+        assertFalse(zms.matchRole("domain", roles, "domain:role\\.role1.*", authRoles));
+    }
+
     @Test
     public void testMatchRole() {
         Role role = new Role().setName("domain:role.role1");
@@ -13024,7 +13122,7 @@ public class ZMSImplTest {
         assertion = new Assertion();
         assertion.setAction(null);
         assertion.setEffect(AssertionEffect.ALLOW);
-        assertion.setResource("domain name:resource1");
+        assertion.setResource("domain1:resource1");
         assertion.setRole(ZMSUtils.roleResourceName("domain1", "role1"));
         
         try {
@@ -13039,7 +13137,7 @@ public class ZMSImplTest {
         assertion = new Assertion();
         assertion.setAction("");
         assertion.setEffect(AssertionEffect.ALLOW);
-        assertion.setResource("domain name:resource1");
+        assertion.setResource("domain1:resource1");
         assertion.setRole(ZMSUtils.roleResourceName("domain1", "role1"));
         
         try {
@@ -13054,7 +13152,7 @@ public class ZMSImplTest {
         assertion = new Assertion();
         assertion.setAction("update\t");
         assertion.setEffect(AssertionEffect.ALLOW);
-        assertion.setResource("domain name:resource1");
+        assertion.setResource("domain1:resource1");
         assertion.setRole(ZMSUtils.roleResourceName("domain1", "role1"));
         
         try {
@@ -13940,7 +14038,77 @@ public class ZMSImplTest {
         
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
-    
+
+    @Test
+    public void testAddDefaultAdminAssertion() {
+
+        final String domainName = "put-default-assertion";
+        final String policyName = "policy1";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        // add an empty policy to the domain
+
+        Policy policy = createPolicyObject(domainName, policyName);
+        zms.putPolicy(mockDomRsrcCtx, domainName, policyName, auditRef, policy);
+
+        // add invalid assertions that will be skipped by the call
+        // and we'll add the default assertion
+
+        List<Assertion> assertList = new ArrayList<>();
+
+        Assertion assertion = new Assertion();
+        assertion.setResource(null);
+        assertList.add(assertion);
+
+        assertion = new Assertion();
+        assertion.setResource(domainName + ":test");
+        assertion.setAction(null);
+        assertList.add(assertion);
+
+        assertion = new Assertion();
+        assertion.setResource(domainName + ":test");
+        assertion.setAction("update");
+        assertion.setRole(null);
+        assertList.add(assertion);
+
+        assertion = new Assertion();
+        assertion.setResource(domainName + ":test");
+        assertion.setAction("update");
+        assertion.setRole("admin");
+        assertList.add(assertion);
+
+        assertion = new Assertion();
+        assertion.setResource(domainName + ":test");
+        assertion.setAction("update");
+        assertion.setRole(ZMSUtils.roleResourceName(domainName, "admin"));
+        assertion.setEffect(AssertionEffect.DENY);
+        assertList.add(assertion);
+
+        // add the assertion
+
+        policy.setAssertions(assertList);
+        zms.addDefaultAdminAssertion(mockDomRsrcCtx, domainName, policy, auditRef, "unit-test");
+
+        // validate admin policy is correct set with assertion
+
+        Policy policyRes = zms.getPolicy(mockDomRsrcCtx, domainName, "admin");
+
+        boolean assert1Check = false;
+        for (Assertion testAssert : policyRes.getAssertions()) {
+            switch (testAssert.getAction()) {
+                case "*":
+                    assertEquals(testAssert.getResource(), domainName + ":*");
+                    assert1Check = true;
+                    break;
+            }
+        }
+        assertTrue(assert1Check);
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
     @Test
     public void testPutAssertionAdminReject() {
 
@@ -14270,9 +14438,9 @@ public class ZMSImplTest {
             assertEquals(ex.getCode(), 400);
         }
     }
-    
+
     @Test
-    public void testGetResourceAccessList() {
+    public void testGetResourceAccessListFailure() {
         Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
         Principal principal1 = principalAuthority.authenticate("v=U1;d=user;n=user1;s=signature",
                 "10.11.12.13", "GET", null);
@@ -14284,7 +14452,92 @@ public class ZMSImplTest {
             assertTrue(true);
         }
     }
-    
+
+    @Test
+    public void testGetResourceAccessList() {
+
+        ZMSImpl zmsImpl = zmsInit();
+
+        DBService dbService = Mockito.mock(DBService.class);
+        Mockito.when(dbService.getResourceAccessList("sys.zts", "update"))
+                .thenReturn(new ResourceAccessList());
+        zmsImpl.dbService = dbService;
+
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        Principal sysPrincipal = principalAuthority.authenticate("v=U1;d=sys;n=zts;s=signature",
+                "10.11.12.13", "GET", null);
+        ResourceContext rsrcCtx = createResourceContext(sysPrincipal);
+        ResourceAccessList accessList = zmsImpl.getResourceAccessList(rsrcCtx, "sys.zts", "UPDATE");
+        assertNotNull(accessList);
+    }
+
+    @Test
+    public void testGetResourceAccessListNullPrincipalAction() {
+
+        Policy policy1 = createPolicyObject("sys.auth", "resource-access");
+        zms.putPolicy(mockDomRsrcCtx, "sys.auth", "resource-access", auditRef, policy1);
+
+        Role role1 = createRoleObject("sys.auth", "Role1", null, "sys.zts", null);
+        zms.putRole(mockDomRsrcCtx, "sys.auth", "Role1", auditRef, role1);
+
+        AthenzDomain domain = zms.getAthenzDomain("sys.auth", false);
+
+        // now create our mock zms and db service objects
+
+        ZMSImpl zmsImpl = zmsInit();
+
+        DBService dbService = Mockito.mock(DBService.class);
+        Mockito.when(dbService.getResourceAccessList(null, null))
+                .thenReturn(new ResourceAccessList());
+        Mockito.when(dbService.getAthenzDomain("sys.auth", false)).thenReturn(domain);
+
+        zmsImpl.dbService = dbService;
+
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        Principal sysPrincipal = principalAuthority.authenticate("v=U1;d=sys;n=zts;s=signature",
+                "10.11.12.13", "GET", null);
+        ResourceContext rsrcCtx = createResourceContext(sysPrincipal);
+        ResourceAccessList accessList = zmsImpl.getResourceAccessList(rsrcCtx, null, null);
+        assertNotNull(accessList);
+    }
+
+    @Test
+    public void testGetResourceAccessListNullPrincipalActionNotAuthorized() {
+
+        Policy policy1 = createPolicyObject("sys.auth", "resource-access");
+        zms.putPolicy(mockDomRsrcCtx, "sys.auth", "resource-access", auditRef, policy1);
+
+        // we're authorizing sys.auth.zts and not sys.zts that our principal is using
+
+        Role role1 = createRoleObject("sys.auth", "Role1", null, "sys.auth.zts", null);
+        zms.putRole(mockDomRsrcCtx, "sys.auth", "Role1", auditRef, role1);
+
+        AthenzDomain domain = zms.getAthenzDomain("sys.auth", false);
+
+        // now create our mock zms and db service objects
+
+        ZMSImpl zmsImpl = zmsInit();
+
+        DBService dbService = Mockito.mock(DBService.class);
+        Mockito.when(dbService.getResourceAccessList(null, null))
+                .thenReturn(new ResourceAccessList());
+        Mockito.when(dbService.getAthenzDomain("sys.auth", false)).thenReturn(domain);
+
+        zmsImpl.dbService = dbService;
+
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        Principal sysPrincipal = principalAuthority.authenticate("v=U1;d=sys;n=zts;s=signature",
+                "10.11.12.13", "GET", null);
+        ResourceContext rsrcCtx = createResourceContext(sysPrincipal);
+
+        try {
+            zmsImpl.getResourceAccessList(rsrcCtx, null, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+        }
+    }
+
     @Test
     public void testDeleteProviderResourceGroupRolesNull() {
         Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
@@ -15386,6 +15639,29 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testReceiveSignedDomainDataAuditExpiryFields() {
+
+        final String domainName = "signed-dom-fields";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        dom1.setAuditEnabled(true);
+        dom1.setTokenExpiryMins(10);
+        dom1.setRoleCertExpiryMins(20);
+        dom1.setServiceCertExpiryMins(30);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        // get the domain which would return from cache
+
+        SignedDomain signedDomain = zms.retrieveSignedDomainData(domainName, 0, false);
+        assertTrue(signedDomain.getDomain().getAuditEnabled());
+        assertEquals(Integer.valueOf(10), signedDomain.getDomain().getTokenExpiryMins());
+        assertEquals(Integer.valueOf(20), signedDomain.getDomain().getRoleCertExpiryMins());
+        assertEquals(Integer.valueOf(30), signedDomain.getDomain().getServiceCertExpiryMins());
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
     public void testValidateTenancyObject() {
 
         Tenancy tenant = new Tenancy().setDomain("athenz").setService("sports.provider");
@@ -16031,6 +16307,7 @@ public class ZMSImplTest {
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
         Role role1 = createRoleObject("testdomain1", "testrole1", null,"user.john", "user.jane");
+        role1.setSelfServe(true);
         zms.putRole(mockDomRsrcCtx, "testdomain1", "testrole1", auditRef, role1);
 
         RoleMeta rm = createRoleMetaObject(true);
@@ -16042,8 +16319,22 @@ public class ZMSImplTest {
         RoleMember roleMember = new RoleMember().setMemberName("user.user1");
 
         assertFalse(zms.isAllowedPutMembershipAccess(mockDomRestRsrcCtx.principal(), domain, role)); // user.user1 does not have role access
-        assertTrue(zms.isAllowedPutMembershipSelfServe(mockDomRestRsrcCtx.principal(), "user.user1")); // user.user1 is allowed to put itself since its selfserve
         assertTrue(zms.isAllowedPutMembership(mockDomRestRsrcCtx.principal(),domain, role, roleMember));// putmembership is allowed for user.user1
+
+        // match role and member
+        assertTrue(zms.isAllowedPutMembershipSelfServe(mockDomRestRsrcCtx.principal(), role, roleMember));
+
+        // role is not self serve
+        Role role2 = new Role().setName("testdomain1:role.role1").setSelfServe(false);
+        assertFalse(zms.isAllowedPutMembershipSelfServe(mockDomRestRsrcCtx.principal(), role2, roleMember));
+
+        // role is not self serve - null attribute
+        Role role3 = new Role().setName("testdomain1:role.role1").setSelfServe(null);
+        assertFalse(zms.isAllowedPutMembershipSelfServe(mockDomRestRsrcCtx.principal(), role3, roleMember));
+
+        // role member does not match
+        RoleMember roleMember1 = new RoleMember().setMemberName("user.user2");
+        assertFalse(zms.isAllowedPutMembershipSelfServe(mockDomRestRsrcCtx.principal(), role, roleMember1));
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "testdomain1", auditRef);
     }
@@ -16267,7 +16558,7 @@ public class ZMSImplTest {
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "testdomain1", auditRef);
     }
 
-    private void setupPrincipalAuditedRoleApproval(ZMSImpl zms, final String principal, final String org) {
+    private void setupPrincipalAuditedRoleApprovalByOrg(ZMSImpl zms, final String principal, final String org) {
 
         Role role = createRoleObject("sys.auth.audit.org", org, null, principal, null);
         zms.putRole(mockDomRsrcCtx, "sys.auth.audit.org", org, auditRef, role);
@@ -16288,41 +16579,70 @@ public class ZMSImplTest {
         zms.putPolicy(mockDomRsrcCtx, "sys.auth.audit.org", org, auditRef, policy);
     }
 
-    private void clenaupPrincipalAuditedRoleApproval(ZMSImpl zms, final String org) {
-        zms.deleteRole(mockDomRsrcCtx, "sys.auth.audit.org", org, auditRef);
-        zms.deletePolicy(mockDomRsrcCtx, "sys.auth.audit.org", org, auditRef);
+    private void setupPrincipalAuditedRoleApprovalByDomain(ZMSImpl zms, final String principal,
+            final String domainName) {
+
+        Role role = createRoleObject("sys.auth.audit.domain", domainName, null, principal, null);
+        zms.putRole(mockDomRsrcCtx, "sys.auth.audit.domain", domainName, auditRef, role);
+
+        Policy policy = new Policy();
+        policy.setName(domainName);
+
+        Assertion assertion = new Assertion();
+        assertion.setAction("update");
+        assertion.setEffect(AssertionEffect.ALLOW);
+        assertion.setResource("sys.auth.audit.domain:audit." + domainName);
+        assertion.setRole("sys.auth.audit.domain:role." + domainName);
+
+        List<Assertion> assertList = new ArrayList<>();
+        assertList.add(assertion);
+        policy.setAssertions(assertList);
+
+        zms.putPolicy(mockDomRsrcCtx, "sys.auth.audit.domain", domainName, auditRef, policy);
     }
 
     @Test
-    public void testPutMembershipDecisionAuditEnabledRole() {
-        TopLevelDomain dom1 = createTopLevelDomainObject("testdomain1", "Approval Test Domain1",
-                "testOrg", "user.user1");
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
-        DomainMeta meta = createDomainMetaObject("Domain Meta for approval test", "testOrg",
-                true, true, "12345", 1001);
-        zms.putDomainMeta(mockDomRsrcCtx, "testdomain1", auditRef, meta);
-        zms.putDomainSystemMeta(mockDomRsrcCtx, "testdomain1", "auditenabled", auditRef, meta);
+    public void testPutMembershipDecisionReviewEnabledRoleApprove() {
 
-        Role auditedRole = createRoleObject("testdomain1", "testrole1", null, "user.john", "user.jane");
-        zms.putRole(mockDomRsrcCtx, "testdomain1", "testrole1", auditRef, auditedRole);
-        RoleSystemMeta rsm = createRoleSystemMetaObject(true);
-        zms.putRoleSystemMeta(mockDomRsrcCtx, "testdomain1", "testrole1", "auditenabled", auditRef, rsm);
+        final String domainName = "review-enabled-domain";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Approval test Domain1",
+                "testOrg", "user.user1");
+        dom1.getAdminUsers().add("user.user2");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        final String roleName = "review-role";
+        Role role1 = createRoleObject(domainName, roleName, null, null, null);
+        zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, role1);
+
+        RoleMeta rm = new RoleMeta().setReviewEnabled(true);
+        zms.putRoleMeta(mockDomRsrcCtx, domainName, roleName, auditRef, rm);
+
+        // switch to user.user2 principal to add a member to a role
+
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String unsignedCreds = "v=U1;d=user;n=user2";
+        final Principal rsrcPrince = SimplePrincipal.create("user", "user2",
+                unsignedCreds + ";s=signature", 0, principalAuthority);
+        ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
+        Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcPrince);
+        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcPrince);
 
         Membership mbr = new Membership();
         mbr.setMemberName("user.bob");
         mbr.setActive(false);
         mbr.setApproved(false);
-        zms.putMembership(mockDomRsrcCtx, "testdomain1", "testrole1", "user.bob", auditRef, mbr);
 
-        Role resrole = zms.getRole(mockDomRsrcCtx, "testdomain1", "testrole1", false, false, true);
-        assertEquals(resrole.getRoleMembers().size(), 3);
-        for (RoleMember rmem : resrole.getRoleMembers()) {
-            if ("user.bob".equals(rmem.getMemberName())) {
-                assertFalse(rmem.getApproved());
-            }
-        }
+        zms.putMembership(mockDomRsrcCtx, domainName, roleName, "user.bob", auditRef, mbr);
 
-        setupPrincipalAuditedRoleApproval(zms, "user.fury", "testOrg");
+        // verify the user is added with pending state
+
+        Role resrole = zms.getRole(mockDomRsrcCtx, domainName, roleName, false, false, true);
+        assertEquals(resrole.getRoleMembers().size(), 1);
+        assertEquals(resrole.getRoleMembers().get(0).getMemberName(), "user.bob");
+        assertFalse(resrole.getRoleMembers().get(0).getApproved());
+
+        // now try as the admin himself to approve this user and it must
+        // be rejected since it has to be done by some other admin
 
         mbr = new Membership();
         mbr.setMemberName("user.bob");
@@ -16330,10 +16650,111 @@ public class ZMSImplTest {
         mbr.setApproved(true);
 
         try {
-            zms.putMembershipDecision(mockDomRsrcCtx, "testdomain1", "testrole1", "user.bob", auditRef, mbr);
+            zms.putMembershipDecision(mockDomRsrcCtx, domainName, roleName, "user.bob", auditRef, mbr);
             fail();
-        } catch (ResourceException r) {
-            assertEquals(r.code, 403);
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("principal is not authorized to approve / reject members"));
+        }
+
+        // revert back to admin principal
+
+        Authority adminPrincipalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String adminUnsignedCreds = "v=U1;d=user;n=user1";
+        final Principal rsrcAdminPrince = SimplePrincipal.create("user", "user1",
+                adminUnsignedCreds + ";s=signature", 0, adminPrincipalAuthority);
+        ((SimplePrincipal) rsrcAdminPrince).setUnsignedCreds(adminUnsignedCreds);
+
+        Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
+        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
+
+        // approve the message which should be successful
+
+        zms.putMembershipDecision(mockDomRsrcCtx, domainName, roleName, "user.bob", auditRef, mbr);
+
+        // verify the user is now active
+
+        resrole = zms.getRole(mockDomRsrcCtx, domainName, roleName, false, false, true);
+        assertEquals(resrole.getRoleMembers().size(), 1);
+        assertEquals(resrole.getRoleMembers().get(0).getMemberName(), "user.bob");
+        assertTrue(resrole.getRoleMembers().get(0).getApproved());
+
+        // trying to approve the same user should return 404
+
+        try {
+            zms.putMembershipDecision(mockDomRsrcCtx, domainName, roleName, "user.bob", auditRef, mbr);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+
+        // now try to approve another use which should also return 404
+
+        mbr.setMemberName("user.joe");
+        try {
+            zms.putMembershipDecision(mockDomRsrcCtx, domainName, roleName, "user.joe", auditRef, mbr);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    private void clenaupPrincipalAuditedRoleApprovalByOrg(ZMSImpl zms, final String org) {
+        zms.deleteRole(mockDomRsrcCtx, "sys.auth.audit.org", org, auditRef);
+        zms.deletePolicy(mockDomRsrcCtx, "sys.auth.audit.org", org, auditRef);
+    }
+
+    private void clenaupPrincipalAuditedRoleApprovalByDomain(ZMSImpl zms, final String domainName) {
+        zms.deleteRole(mockDomRsrcCtx, "sys.auth.audit.domain", domainName, auditRef);
+        zms.deletePolicy(mockDomRsrcCtx, "sys.auth.audit.domain", domainName, auditRef);
+    }
+
+    @Test
+    public void testPutMembershipDecisionAuditEnabledRoleByOrg() {
+
+        final String domainName = "testdomain1";
+        final String roleName = "testrole1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Approval Test Domain1",
+                "testOrg", "user.user1");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        DomainMeta meta = createDomainMetaObject("Domain Meta for approval test", "testOrg",
+                true, true, "12345", 1001);
+        zms.putDomainMeta(mockDomRsrcCtx, domainName, auditRef, meta);
+        zms.putDomainSystemMeta(mockDomRsrcCtx, domainName, "auditenabled", auditRef, meta);
+
+        Role auditedRole = createRoleObject(domainName, roleName, null, "user.john", "user.jane");
+        zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, auditedRole);
+        RoleSystemMeta rsm = createRoleSystemMetaObject(true);
+        zms.putRoleSystemMeta(mockDomRsrcCtx, domainName, roleName, "auditenabled", auditRef, rsm);
+
+        Membership mbr = new Membership();
+        mbr.setMemberName("user.bob");
+        mbr.setActive(false);
+        mbr.setApproved(false);
+        zms.putMembership(mockDomRsrcCtx, domainName, roleName, "user.bob", auditRef, mbr);
+
+        Role resrole = zms.getRole(mockDomRsrcCtx, domainName, roleName, false, false, true);
+        assertEquals(resrole.getRoleMembers().size(), 3);
+        for (RoleMember rmem : resrole.getRoleMembers()) {
+            if ("user.bob".equals(rmem.getMemberName())) {
+                assertFalse(rmem.getApproved());
+            }
+        }
+
+        setupPrincipalAuditedRoleApprovalByOrg(zms, "user.fury", "testOrg");
+
+        mbr = new Membership();
+        mbr.setMemberName("user.bob");
+        mbr.setActive(true);
+        mbr.setApproved(true);
+
+        try {
+            zms.putMembershipDecision(mockDomRsrcCtx, domainName, roleName, "user.bob", auditRef, mbr);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
         }
 
         Authority auditAdminPrincipalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
@@ -16346,7 +16767,7 @@ public class ZMSImplTest {
         Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAuditAdminPrince);
         Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcAuditAdminPrince);
 
-        zms.putMembershipDecision(mockDomRsrcCtx, "testdomain1", "testrole1", "user.bob", auditRef, mbr);
+        zms.putMembershipDecision(mockDomRsrcCtx, domainName, roleName, "user.bob", auditRef, mbr);
 
         //revert back to admin principal
         Authority adminPrincipalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
@@ -16359,7 +16780,7 @@ public class ZMSImplTest {
         Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
         Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
 
-        resrole = zms.getRole(mockDomRsrcCtx, "testdomain1", "testrole1", false, false, false);
+        resrole = zms.getRole(mockDomRsrcCtx, domainName, roleName, false, false, false);
         assertEquals(resrole.getRoleMembers().size(), 3);
         for (RoleMember rmem : resrole.getRoleMembers()) {
             if ("user.bob".equals(rmem.getMemberName())) {
@@ -16367,8 +16788,90 @@ public class ZMSImplTest {
             }
         }
 
-        clenaupPrincipalAuditedRoleApproval(zms, "testOrg");
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, "testdomain1", auditRef);
+        clenaupPrincipalAuditedRoleApprovalByOrg(zms, "testOrg");
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testPutMembershipDecisionAuditEnabledRoleByDomain() {
+
+        final String domainName = "testdomain1";
+        final String roleName = "testrole1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Approval Test Domain1",
+                "testOrg", "user.user1");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        DomainMeta meta = createDomainMetaObject("Domain Meta for approval test", "testOrg",
+                true, true, "12345", 1001);
+        zms.putDomainMeta(mockDomRsrcCtx, domainName, auditRef, meta);
+        zms.putDomainSystemMeta(mockDomRsrcCtx, domainName, "auditenabled", auditRef, meta);
+
+        Role auditedRole = createRoleObject(domainName, roleName, null, "user.john", "user.jane");
+        zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, auditedRole);
+        RoleSystemMeta rsm = createRoleSystemMetaObject(true);
+        zms.putRoleSystemMeta(mockDomRsrcCtx, domainName, roleName, "auditenabled", auditRef, rsm);
+
+        Membership mbr = new Membership();
+        mbr.setMemberName("user.bob");
+        mbr.setActive(false);
+        mbr.setApproved(false);
+        zms.putMembership(mockDomRsrcCtx, domainName, roleName, "user.bob", auditRef, mbr);
+
+        Role resrole = zms.getRole(mockDomRsrcCtx, domainName, roleName, false, false, true);
+        assertEquals(resrole.getRoleMembers().size(), 3);
+        for (RoleMember rmem : resrole.getRoleMembers()) {
+            if ("user.bob".equals(rmem.getMemberName())) {
+                assertFalse(rmem.getApproved());
+            }
+        }
+
+        setupPrincipalAuditedRoleApprovalByDomain(zms, "user.fury", domainName);
+
+        mbr = new Membership();
+        mbr.setMemberName("user.bob");
+        mbr.setActive(true);
+        mbr.setApproved(true);
+
+        try {
+            zms.putMembershipDecision(mockDomRsrcCtx, domainName, roleName, "user.bob", auditRef, mbr);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+        }
+
+        Authority auditAdminPrincipalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String auditAdminUnsignedCreds = "v=U1;d=user;n=fury";
+        // used with the mockDomRestRsrcCtx
+        final Principal rsrcAuditAdminPrince = SimplePrincipal.create("user", "fury",
+                auditAdminUnsignedCreds + ";s=signature", 0, auditAdminPrincipalAuthority);
+        ((SimplePrincipal) rsrcAuditAdminPrince).setUnsignedCreds(auditAdminUnsignedCreds);
+
+        Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAuditAdminPrince);
+        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcAuditAdminPrince);
+
+        zms.putMembershipDecision(mockDomRsrcCtx, domainName, roleName, "user.bob", auditRef, mbr);
+
+        //revert back to admin principal
+        Authority adminPrincipalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String adminUnsignedCreds = "v=U1;d=user;n=user1";
+        // used with the mockDomRestRsrcCtx
+        final Principal rsrcAdminPrince = SimplePrincipal.create("user", "user1",
+                adminUnsignedCreds + ";s=signature", 0, adminPrincipalAuthority);
+        ((SimplePrincipal) rsrcAdminPrince).setUnsignedCreds(adminUnsignedCreds);
+
+        Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
+        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
+
+        resrole = zms.getRole(mockDomRsrcCtx, domainName, roleName, false, false, false);
+        assertEquals(resrole.getRoleMembers().size(), 3);
+        for (RoleMember rmem : resrole.getRoleMembers()) {
+            if ("user.bob".equals(rmem.getMemberName())) {
+                assertTrue(rmem.getApproved());
+            }
+        }
+
+        clenaupPrincipalAuditedRoleApprovalByDomain(zms, domainName);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 
     @Test
@@ -16399,7 +16902,7 @@ public class ZMSImplTest {
         mbr.setApproved(false);
         zms.putMembership(mockDomRsrcCtx, "testdomain1", "testrole1", "user.bob", auditRef, mbr);
 
-        setupPrincipalAuditedRoleApproval(zms, "user.fury", "testOrg");
+        setupPrincipalAuditedRoleApprovalByOrg(zms, "user.fury", "testOrg");
 
         Authority auditAdminPrincipalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
         String auditAdminUnsignedCreds = "v=U1;d=user;n=fury";
@@ -16445,7 +16948,7 @@ public class ZMSImplTest {
         mbr.setApproved(false);
         zms.putMembershipDecision(mockDomRsrcCtx, "testdomain1", "testrole1", "user.bob", auditRef, mbr);
 
-        clenaupPrincipalAuditedRoleApproval(zms, "testOrg");
+        clenaupPrincipalAuditedRoleApprovalByOrg(zms, "testOrg");
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "testdomain1", auditRef);
     }
 
@@ -16505,11 +17008,12 @@ public class ZMSImplTest {
 
     @Test
     public void testGetPendingDomainRoleMembersList() {
+
         TopLevelDomain dom1 = createTopLevelDomainObject("testdomain1", "Approval Test Domain1",
                 "testOrg", "user.user1");
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
-        setupPrincipalAuditedRoleApproval(zms, "user.fury", "testorg");
+        setupPrincipalAuditedRoleApprovalByOrg(zms, "user.fury", "testorg");
 
         DomainMeta meta = createDomainMetaObject("Domain Meta for approval test", "testorg",
                 true, true, "12345", 1001);
@@ -16586,7 +17090,7 @@ public class ZMSImplTest {
         }
 
         cleanupPrincipalSystemMetaDelete(zms);
-        clenaupPrincipalAuditedRoleApproval(zms, "testOrg");
+        clenaupPrincipalAuditedRoleApprovalByOrg(zms, "testOrg");
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "testdomain1", auditRef);
     }
@@ -16827,7 +17331,8 @@ public class ZMSImplTest {
         detailsExp.put(NOTIFICATION_DETAILS_REQUESTER, "user.fury");
 
         Mockito.verify(mockNotificationManager,
-                times(1)).generateAndSendPostPutMembershipNotification("testdomain1", "testorg", false, true, detailsExp);
+                times(1)).generateAndSendPostPutMembershipNotification(eq("testdomain1"), eq("testorg"),
+                    any(Role.class), eq(detailsExp));
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "testdomain1", auditRef);
     }
@@ -16926,6 +17431,68 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testUpdateRoleMemberExpirationNoUser() {
+
+        long ext100Millis = TimeUnit.MILLISECONDS.convert(100, TimeUnit.DAYS);
+        long ext125Millis = TimeUnit.MILLISECONDS.convert(125, TimeUnit.DAYS);
+        long ext150Millis = TimeUnit.MILLISECONDS.convert(150, TimeUnit.DAYS);
+
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user.joe").setExpiration(null));
+        members.add(new RoleMember().setMemberName("user.jane")
+                .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis)));
+        members.add(new RoleMember().setMemberName("athenz.api").setExpiration(null));
+        members.add(new RoleMember().setMemberName("athenz.backend")
+                .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis)));
+
+        // for user members we have 0 setup while for service members 75/150
+
+        zms.updateRoleMemberExpiration(0, 0, 75, 150, members);
+
+        assertNull(members.get(0).getExpiration());
+
+        Timestamp stamp = members.get(1).getExpiration();
+        assertTrue(validateExpiry(stamp.millis(), ext100Millis));
+
+        stamp = members.get(2).getExpiration();
+        assertTrue(validateExpiry(stamp.millis(), ext150Millis));
+
+        stamp = members.get(3).getExpiration();
+        assertTrue(validateExpiry(stamp.millis(), ext100Millis));
+    }
+
+    @Test
+    public void testUpdateRoleMemberExpirationNoService() {
+
+        long ext100Millis = TimeUnit.MILLISECONDS.convert(100, TimeUnit.DAYS);
+        long ext125Millis = TimeUnit.MILLISECONDS.convert(125, TimeUnit.DAYS);
+        long ext150Millis = TimeUnit.MILLISECONDS.convert(150, TimeUnit.DAYS);
+
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user.joe").setExpiration(null));
+        members.add(new RoleMember().setMemberName("user.jane")
+                .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis)));
+        members.add(new RoleMember().setMemberName("athenz.api").setExpiration(null));
+        members.add(new RoleMember().setMemberName("athenz.backend")
+                .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis)));
+
+        // for user members we have 50/125 setup while for service members 0
+
+        zms.updateRoleMemberExpiration(50, 125, 0, 0, members);
+
+        Timestamp stamp = members.get(0).getExpiration();
+        assertTrue(validateExpiry(stamp.millis(), ext125Millis));
+
+        stamp = members.get(1).getExpiration();
+        assertTrue(validateExpiry(stamp.millis(), ext100Millis));
+
+        assertNull(members.get(2).getExpiration());
+
+        stamp = members.get(3).getExpiration();
+        assertTrue(validateExpiry(stamp.millis(), ext100Millis));
+    }
+
+    @Test
     public void testRemoveMatchedAssertionNoMatch() {
 
         List<Assertion> assertions = new ArrayList<>();
@@ -16992,6 +17559,47 @@ public class ZMSImplTest {
         assertFalse(ZMSUtils.isUserDomainPrincipal("x509.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
 
         System.clearProperty(ZMSConsts.ZMS_PROP_ADDL_USER_CHECK_DOMAINS);
+    }
+
+    @Test
+    public void testPutRoleReviewEnabledMembers() {
+
+        final String domainName = "role-review-enabled";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Role review Test Domain1", "testOrg", "user.user1");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Role role1 = createRoleObject(domainName, "role1", null, "user.john", "user.jane");
+        role1.setReviewEnabled(true);
+
+        try {
+            zms.putRole(mockDomRsrcCtx, domainName, "role1", auditRef, role1);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Set review enabled flag using role meta api"));
+        }
+
+        // now create a role review enabled with no members
+
+        Role role2 = createRoleObject(domainName, "role2", null, null, null);
+        role2.setReviewEnabled(true);
+        zms.putRole(mockDomRsrcCtx, domainName, "role2", auditRef, role2);
+
+        Role resRole2 = zms.getRole(mockDomRsrcCtx, domainName, "role2", false, false, false);
+        assertNotNull(resRole2);
+        assertTrue(resRole2.getReviewEnabled());
+
+        // we should not be able to modify a review enabled role
+
+        Role role2a = createRoleObject(domainName, "role2", null, "user.john", "user.jane");
+        try {
+            zms.putRole(mockDomRsrcCtx, domainName, "role2", auditRef, role2a);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Can not update auditEnabled and/or reviewEnabled roles"));
+        }
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 
     @Test

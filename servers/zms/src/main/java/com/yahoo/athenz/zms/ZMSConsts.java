@@ -218,6 +218,10 @@ public final class ZMSConsts {
     public static final String DB_COLUMN_PRINCIPAL_NAME     = "principal_name";
     public static final String DB_COLUMN_APPLICATION_ID     = "application_id";
     public static final String DB_COLUMN_SIGN_ALGORITHM     = "sign_algorithm";
+    public static final String DB_COLUMN_REVIEW_ENABLED     = "review_enabled";
+    public static final String DB_COLUMN_NOTIFY_ROLES       = "notify_roles";
+    public static final String DB_COLUMN_LAST_REVIEWED_TIME = "last_reviewed_time";
+    public static final String DB_COLUMN_REQ_PRINCIPAL      = "req_principal";
 
     public static final String DB_COLUMN_SERVICE_EXPIRY_DAYS      = "service_expiry_days";
     public static final String DB_COLUMN_ROLE_CERT_EXPIRY_MINS    = "role_cert_expiry_mins";

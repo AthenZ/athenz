@@ -15,13 +15,17 @@
  */
 package com.yahoo.athenz.zms;
 
+import com.yahoo.athenz.zms.config.SolutionTemplates;
+
 import java.util.List;
 
 public class ZMSConfig {
 
+    private String serverHostName;
     private String userDomain;
     private String userDomainPrefix;
     private List<String> addlUserCheckDomainPrefixList;
+    private SolutionTemplates serverSolutionTemplates;
 
     public String getUserDomain() {
         return userDomain;
@@ -45,5 +49,21 @@ public class ZMSConfig {
 
     public void setAddlUserCheckDomainPrefixList(List<String> addlUserCheckDomainPrefixList) {
         this.addlUserCheckDomainPrefixList = addlUserCheckDomainPrefixList;
+    }
+
+    public String getServerHostName() {
+        return serverHostName;
+    }
+
+    public void setServerHostName(String serverHostName) {
+        this.serverHostName = serverHostName;
+    }
+
+    public SolutionTemplates getServerSolutionTemplates() {
+        return serverSolutionTemplates;
+    }
+
+    public void setServerSolutionTemplates(SolutionTemplates serverSolutionTemplates) {
+        this.serverSolutionTemplates = serverSolutionTemplates;
     }
 }

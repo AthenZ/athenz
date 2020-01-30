@@ -473,7 +473,7 @@ public class FileConnection implements ObjectStoreConnection {
                 if (memberName.equals(principalName)) {
                     PrincipalRole pRole = new PrincipalRole();
                     pRole.setDomainName(domainName);
-                    pRole.setRoleName(extractRoleName(domainName, role.getName()));
+                    pRole.setRoleName(ZMSUtils.extractRoleName(domainName, role.getName()));
                     roles.add(pRole);
                 }
             }
@@ -627,7 +627,7 @@ public class FileConnection implements ObjectStoreConnection {
         }
         HashMap<String, Role> roles = domainStruct.getRoles();
 
-        String roleName = extractRoleName(domainName, role.getName());
+        String roleName = ZMSUtils.extractRoleName(domainName, role.getName());
         if (roleName == null) {
             throw ZMSUtils.error(ResourceException.BAD_REQUEST, "invalid role name", "updateRole");
         }
@@ -732,7 +732,9 @@ public class FileConnection implements ObjectStoreConnection {
     }
 
     @Override
-    public Membership getRoleMember(String domainName, String roleName, String principal, long expiration) {
+    public Membership getRoleMember(String domainName, String roleName, String principal,
+            long expiration, boolean pending) {
+
         DomainStruct domainStruct = getDomainStruct(domainName);
         if (domainStruct == null) {
             throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", "getRoleMember");
@@ -747,13 +749,17 @@ public class FileConnection implements ObjectStoreConnection {
                 .setIsMember(false);
         if (role.getRoleMembers() != null) {
             Set<RoleMember> members = new HashSet<>(role.getRoleMembers());
-            for (RoleMember member: members) {
+            for (RoleMember member : members) {
                 if (member.getMemberName().equalsIgnoreCase(principal)) {
+                    if (pending && member.getApproved() != Boolean.FALSE) {
+                        continue;
+                    }
                     Timestamp expiry = member.getExpiration();
                     if (matchExpiration(expiration, expiry)) {
                         membership.setIsMember(true);
                         membership.setExpiration(expiry);
                         membership.setApproved(member.getApproved());
+                        membership.setRequestPrincipal(member.getRequestPrincipal());
                         break;
                     }
                 }
@@ -787,10 +793,12 @@ public class FileConnection implements ObjectStoreConnection {
         for (RoleMember roleMember : role.getRoleMembers()) {
             if (roleMember.getMemberName().equals(member.getMemberName()) && roleMember.getApproved() == member.getApproved()) {
                 roleMember.setExpiration(member.getExpiration());
+                roleMember.setRequestPrincipal(admin);
                 entryUpdated = true;
             }
         }
         if (!entryUpdated) {
+            member.setRequestPrincipal(admin);
             role.getRoleMembers().add(member);
         }
         putDomainStruct(domainName, domainStruct);
@@ -861,7 +869,7 @@ public class FileConnection implements ObjectStoreConnection {
         }
         HashMap<String, Policy> policies = domainStruct.getPolicies();
         
-        String policyName = extractPolicyName(domainName, policy.getName());
+        String policyName = ZMSUtils.extractPolicyName(domainName, policy.getName());
 
         // here we only need to update the main attrs and not
         // the assertions
@@ -1031,7 +1039,7 @@ public class FileConnection implements ObjectStoreConnection {
         HashMap<String, ServiceIdentity> services = domainStruct.getServices();
         
         service.setModified(Timestamp.fromCurrentTime());
-        String serviceName = extractServiceName(domainName, service.getName());
+        String serviceName = ZMSUtils.extractServiceName(domainName, service.getName());
 
         // here we only need to update the main attrs and not
         // the public keys and hosts
@@ -1358,29 +1366,6 @@ public class FileConnection implements ObjectStoreConnection {
         return delete(f);
     }
 
-    String extractObjectName(String domainName, String fullName, String objType) {
-
-        // generate prefix to compare with
-
-        final String prefix = domainName + objType;
-        if (!fullName.startsWith(prefix)) {
-            return null;
-        }
-        return fullName.substring(prefix.length());
-    }
-
-    String extractRoleName(String domainName, String fullRoleName) {
-        return extractObjectName(domainName, fullRoleName, ":role.");
-    }
-
-    String extractPolicyName(String domainName, String fullPolicyName) {
-        return extractObjectName(domainName, fullPolicyName, ":policy.");
-    }
-
-    String extractServiceName(String domainName, String fullServiceName) {
-        return extractObjectName(domainName, fullServiceName, ".");
-    }
-
     @Override
     public List<RoleAuditLog> listRoleAuditLogs(String domainName, String roleName) {
         return new ArrayList<>();
@@ -1581,17 +1566,25 @@ public class FileConnection implements ObjectStoreConnection {
         return false;
     }
 
+    boolean containsRoleMember(List<RoleMember> rolesMembers, String principal) {
+        for (RoleMember rm : rolesMembers) {
+            if (principal.equals(rm.getMemberName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Override
     public Map<String, List<DomainRoleMember>> getPendingDomainRoleMembers(String principal) {
 
         List<String> orgs = new ArrayList<>();
         Map<String, List<DomainRoleMember>> domainRoleMembersMap = null;
-        RoleMember rm = new RoleMember().setMemberName(principal).setActive(true).setApproved(true);
 
         DomainStruct auditDom = getDomainStruct(ZMSConsts.SYS_AUTH_AUDIT_BY_ORG);
         if (auditDom != null && auditDom.getRoles() != null && !auditDom.getRoles().isEmpty()) {
             for (Role role : auditDom.getRoles().values()) {
-                if (role.getRoleMembers().contains(rm)) {
+                if (containsRoleMember(role.getRoleMembers(), principal)) {
                     orgs.add(AthenzUtils.extractRoleName(role.getName()));
                 }
             }
