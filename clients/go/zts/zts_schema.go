@@ -231,16 +231,6 @@ func init() {
 	tAWSTemporaryCredentials.Field("expiration", "Timestamp", false, nil, "")
 	sb.AddType(tAWSTemporaryCredentials.Build())
 
-	tOSTKInstanceInformation := rdl.NewStructTypeBuilder("Struct", "OSTKInstanceInformation")
-	tOSTKInstanceInformation.Comment("Instance object that includes requested service details plus host document that is signed by Openstack as part of the host bootstrap process")
-	tOSTKInstanceInformation.Field("document", "String", false, nil, "signed document containing attributes like IP address, instance-id, account#, etc.")
-	tOSTKInstanceInformation.Field("signature", "String", false, nil, "the signature for the document")
-	tOSTKInstanceInformation.Field("keyId", "String", false, nil, "the keyid used to sign the document")
-	tOSTKInstanceInformation.Field("domain", "CompoundName", false, nil, "the domain of the instance")
-	tOSTKInstanceInformation.Field("service", "SimpleName", false, nil, "the service this instance is supposed to run")
-	tOSTKInstanceInformation.Field("csr", "String", false, nil, "return a certificate in the response")
-	sb.AddType(tOSTKInstanceInformation.Build())
-
 	tOSTKInstanceRefreshRequest := rdl.NewStructTypeBuilder("Struct", "OSTKInstanceRefreshRequest")
 	tOSTKInstanceRefreshRequest.Comment("OSTKCertificateRequest - a certificate signing request")
 	tOSTKInstanceRefreshRequest.Field("csr", "String", true, nil, "request an X.509 certificate")
@@ -547,15 +537,6 @@ func init() {
 	mGetAWSTemporaryCredentials.Exception("NOT_FOUND", "ResourceError", "")
 	mGetAWSTemporaryCredentials.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetAWSTemporaryCredentials.Build())
-
-	mPostOSTKInstanceInformation := rdl.NewResourceBuilder("Identity", "POST", "/ostk/instance")
-	mPostOSTKInstanceInformation.Comment("Get a cert for service being bootstrapped by Openstack")
-	mPostOSTKInstanceInformation.Input("info", "OSTKInstanceInformation", false, "", "", false, nil, "")
-	mPostOSTKInstanceInformation.Exception("BAD_REQUEST", "ResourceError", "")
-	mPostOSTKInstanceInformation.Exception("FORBIDDEN", "ResourceError", "")
-	mPostOSTKInstanceInformation.Exception("INTERNAL_SERVER_ERROR", "ResourceError", "")
-	mPostOSTKInstanceInformation.Exception("UNAUTHORIZED", "ResourceError", "")
-	sb.AddResource(mPostOSTKInstanceInformation.Build())
 
 	mPostOSTKInstanceRefreshRequest := rdl.NewResourceBuilder("Identity", "POST", "/ostk/instance/{domain}/{service}/refresh")
 	mPostOSTKInstanceRefreshRequest.Comment("Refresh self identity if the original identity was issued by ZTS The token must include the original requestor's name and the server will verify that the service still has authorization to grant inception to the current service requesting to refresh its identity")

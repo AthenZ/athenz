@@ -374,20 +374,6 @@ public class ZTSRDLGeneratedClient {
 
     }
 
-    public Identity postOSTKInstanceInformation(OSTKInstanceInformation info) {
-        WebTarget target = base.path("/ostk/instance");
-        Invocation.Builder invocationBuilder = target.request("application/json");
-        Response response = invocationBuilder.post(javax.ws.rs.client.Entity.entity(info, "application/json"));
-        int code = response.getStatus();
-        switch (code) {
-        case 200:
-            return response.readEntity(Identity.class);
-        default:
-            throw new ResourceException(code, response.readEntity(ResourceError.class));
-        }
-
-    }
-
     public Identity postOSTKInstanceRefreshRequest(String domain, String service, OSTKInstanceRefreshRequest req) {
         WebTarget target = base.path("/ostk/instance/{domain}/{service}/refresh")
             .resolveTemplate("domain", domain)

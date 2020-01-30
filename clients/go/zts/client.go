@@ -747,42 +747,6 @@ func (client ZTSClient) GetAWSTemporaryCredentials(domainName DomainName, role A
 	}
 }
 
-func (client ZTSClient) PostOSTKInstanceInformation(info *OSTKInstanceInformation) (*Identity, error) {
-	var data *Identity
-	url := client.URL + "/ostk/instance"
-	contentBytes, err := json.Marshal(info)
-	if err != nil {
-		return data, err
-	}
-	resp, err := client.httpPost(url, nil, contentBytes)
-	if err != nil {
-		return data, err
-	}
-	defer resp.Body.Close()
-	switch resp.StatusCode {
-	case 200:
-		err = json.NewDecoder(resp.Body).Decode(&data)
-		if err != nil {
-			return data, err
-		}
-		return data, nil
-	default:
-		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return data, err
-		}
-		json.Unmarshal(contentBytes, &errobj)
-		if errobj.Code == 0 {
-			errobj.Code = resp.StatusCode
-		}
-		if errobj.Message == "" {
-			errobj.Message = string(contentBytes)
-		}
-		return data, errobj
-	}
-}
-
 func (client ZTSClient) PostOSTKInstanceRefreshRequest(domain CompoundName, service SimpleName, req *OSTKInstanceRefreshRequest) (*Identity, error) {
 	var data *Identity
 	url := client.URL + "/ostk/instance/" + fmt.Sprint(domain) + "/" + fmt.Sprint(service) + "/refresh"

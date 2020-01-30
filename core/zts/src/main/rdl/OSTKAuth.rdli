@@ -4,29 +4,6 @@
 include "Names.tdl";
 include "Identity.tdl";
 
-// Instance object that includes requested service details plus host document
-// that is signed by Openstack as part of the host bootstrap process
-type OSTKInstanceInformation Struct {
-    String document; //signed document containing attributes like IP address, instance-id, account#, etc.
-    String signature; //the signature for the document
-    String keyId; // the keyid used to sign the document
-    CompoundName domain; //the domain of the instance
-    SimpleName service; //the service this instance is supposed to run
-    String csr; //return a certificate in the response
-}
-
-// Get a cert for service being bootstrapped by Openstack
-resource Identity POST "/ostk/instance" {
-    OSTKInstanceInformation info;
-    expected OK;
-    exceptions {
-        ResourceError BAD_REQUEST;
-        ResourceError FORBIDDEN;
-        ResourceError UNAUTHORIZED;
-        ResourceError INTERNAL_SERVER_ERROR;
-    }
-}
-
 // OSTKCertificateRequest - a certificate signing request
 type OSTKInstanceRefreshRequest Struct {
     String csr (optional); //request an X.509 certificate
