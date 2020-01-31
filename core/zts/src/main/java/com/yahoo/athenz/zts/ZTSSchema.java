@@ -195,15 +195,6 @@ public class ZTSSchema {
             .field("sessionToken", "String", false, "")
             .field("expiration", "Timestamp", false, "");
 
-        sb.structType("OSTKInstanceInformation")
-            .comment("Instance object that includes requested service details plus host document that is signed by Openstack as part of the host bootstrap process")
-            .field("document", "String", false, "signed document containing attributes like IP address, instance-id, account#, etc.")
-            .field("signature", "String", false, "the signature for the document")
-            .field("keyId", "String", false, "the keyid used to sign the document")
-            .field("domain", "CompoundName", false, "the domain of the instance")
-            .field("service", "SimpleName", false, "the service this instance is supposed to run")
-            .field("csr", "String", false, "return a certificate in the response");
-
         sb.structType("OSTKInstanceRefreshRequest")
             .comment("OSTKCertificateRequest - a certificate signing request")
             .field("csr", "String", true, "request an X.509 certificate");
@@ -535,19 +526,6 @@ public class ZTSSchema {
             .exception("FORBIDDEN", "ResourceError", "")
 
             .exception("NOT_FOUND", "ResourceError", "")
-
-            .exception("UNAUTHORIZED", "ResourceError", "")
-;
-
-        sb.resource("OSTKInstanceInformation", "POST", "/ostk/instance")
-            .comment("Get a cert for service being bootstrapped by Openstack")
-            .input("info", "OSTKInstanceInformation", "")
-            .expected("OK")
-            .exception("BAD_REQUEST", "ResourceError", "")
-
-            .exception("FORBIDDEN", "ResourceError", "")
-
-            .exception("INTERNAL_SERVER_ERROR", "ResourceError", "")
 
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;

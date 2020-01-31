@@ -15,7 +15,6 @@
  */
 package com.yahoo.athenz.zts.store;
 
-import java.security.PublicKey;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -42,9 +41,7 @@ import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.AssumeRoleResult;
 import com.amazonaws.services.securitytoken.model.Credentials;
-import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.zts.AWSTemporaryCredentials;
-import com.yahoo.athenz.zts.OSTKInstanceInformation;
 import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.utils.ZTSUtils;
@@ -605,26 +602,6 @@ public class CloudStore {
             cloudAccountCache.remove(domainName);
         }
     }
-
-    ///CLOVER:OFF
-    public boolean verifyInstanceDocument(OSTKInstanceInformation info, String publicKey) {
-
-        // for now we're only validating the document signature
-
-        boolean verified = false;
-        try {
-            final PublicKey pub = Crypto.loadPublicKey(publicKey);
-            verified = Crypto.verify(info.getDocument(), pub, info.getSignature());
-            if (!verified) {
-                LOGGER.error("verifyInstanceDocument: OSTK document signature did not match");
-            }
-        } catch (Exception ex) {
-            LOGGER.error("verifyInstanceDocument: Unable to verify signature: {}",
-                    ex.getMessage());
-        }
-        return verified;
-    }
-    ///CLOVER:ON
 
     class AWSCredentialsUpdater implements Runnable {
 
