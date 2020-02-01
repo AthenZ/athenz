@@ -17,16 +17,14 @@ package com.yahoo.athenz.zts.store;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.zts.*;
+import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.rdl.*;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.config.AthenzConfig;
 import com.yahoo.athenz.common.server.util.StringUtils;
 import com.yahoo.athenz.common.utils.SignUtils;
-import com.yahoo.athenz.zms.DomainData;
-import com.yahoo.athenz.zms.Role;
-import com.yahoo.athenz.zms.SignedDomain;
-import com.yahoo.athenz.zms.SignedDomains;
 import com.yahoo.athenz.zts.cache.DataCache;
 import com.yahoo.athenz.zts.cache.DataCacheProvider;
 import com.yahoo.athenz.zts.cache.MemberRole;
@@ -65,8 +63,10 @@ public class DataStore implements DataCacheProvider {
     final JWKList ztsJWKListStrictRFC;
 
     long updDomainRefreshTime;
-    long delDomainRefreshTime ;
+    long delDomainRefreshTime;
+    long checkDomainRefreshTime;
     long lastDeleteRunTime;
+    long lastCheckRunTime;
 
     private static final String ROLE_POSTFIX = ":role.";
 
@@ -80,7 +80,8 @@ public class DataStore implements DataCacheProvider {
     
     private static final String ZTS_PROP_DOMAIN_UPDATE_TIMEOUT = "athenz.zts.zms_domain_update_timeout";
     private static final String ZTS_PROP_DOMAIN_DELETE_TIMEOUT = "athenz.zts.zms_domain_delete_timeout";
-    
+    private static final String ZTS_PROP_DOMAIN_CHECK_TIMEOUT = "athenz.zts.zms_domain_check_timeout";
+
     private static final Logger LOGGER = LoggerFactory.getLogger(DataStore.class);
     
     public DataStore(ChangeLogStore clogStore, CloudStore cloudStore) {
@@ -106,17 +107,23 @@ public class DataStore implements DataCacheProvider {
         
         updDomainRefreshTime = ZTSUtils.retrieveConfigSetting(ZTS_PROP_DOMAIN_UPDATE_TIMEOUT, 60);
         delDomainRefreshTime = ZTSUtils.retrieveConfigSetting(ZTS_PROP_DOMAIN_DELETE_TIMEOUT, 3600);
-        
-        /* we will not let our domain delete update time be shorter
+        checkDomainRefreshTime = ZTSUtils.retrieveConfigSetting(ZTS_PROP_DOMAIN_CHECK_TIMEOUT, 600);
+
+        /* we will not let our domain delete/check update time be shorter
          * than the domain update time so if that's the case we'll
          * set both to be the same value */
         
         if (delDomainRefreshTime < updDomainRefreshTime) {
             delDomainRefreshTime = updDomainRefreshTime;
         }
-        
+
+        if (checkDomainRefreshTime < updDomainRefreshTime) {
+            checkDomainRefreshTime = updDomainRefreshTime;
+        }
+
         lastDeleteRunTime = System.currentTimeMillis();
-        
+        lastCheckRunTime = System.currentTimeMillis();
+
         /* load the zms public key from configuration files */
         
         if (!loadAthenzPublicKeys()) {
@@ -195,6 +202,7 @@ public class DataStore implements DataCacheProvider {
         return true;
     }
 
+    @SuppressWarnings("rawtypes")
     String getCurveName(org.bouncycastle.jce.spec.ECParameterSpec ecParameterSpec, boolean rfc) {
 
         String curveName = null;
@@ -296,32 +304,44 @@ public class DataStore implements DataCacheProvider {
         return rfcCurveName;
     }
 
-    boolean processLocalDomains(List<String> localDomainList) {
+    /**
+     * This function processes the local domains after comparing the list
+     * against the list from ZMS and returns the number of bad domains
+     * that it has encountered. If the value is -1 then it indicates to
+     * the caller that the full local list was bad so the caller should
+     * initiate a full resync.
+     * @param localDomainList list of local domain from its storage
+     * @return -1 if full resync is needed, 0 if no errors, otherwise
+     *  the number of bad domains
+     */
+    int processLocalDomains(List<String> localDomainList) {
 
         /* we can't have a lastModTime set if we have no local
          * domains - in this case we're going to reset */
         
         if (localDomainList.isEmpty()) {
-            return false;
+            return -1;
         }
         
         /* first we need to retrieve the list of domains from ZMS so we
-         * know what domains have been deleted already (if any) */
+         * know what domains have been deleted already (if any).
+         * If we get no response from ZMS, we're not going to stop
+         * ZTS from coming up with its local files */
         
         Set<String> zmsDomainList = changeLogStore.getServerDomainList();
-        if (zmsDomainList == null) {
-            return false;
-        }
-        
+
+        int badDomains = 0;
         for (String domainName : localDomainList) {
             
             /* make sure this domain is still active in ZMS otherwise
-             * we'll just remove our local copy */
+             * we'll just remove our local copy. if we were not able
+             * to fetch the domain list from ZMS at this time, we'll
+             * just defer the cleanup at the next check */
 
-            if (!zmsDomainList.contains(domainName)) {
+            if (zmsDomainList != null && !zmsDomainList.contains(domainName)) {
                 
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Removing local domain: " + domainName + ". Domain not in ZMS anymore.");
+                    LOGGER.debug("Removing local domain: {}. Domain not in ZMS anymore.", domainName);
                 }
                 
                 deleteDomain(domainName);
@@ -335,12 +355,24 @@ public class DataStore implements DataCacheProvider {
              * change log store supports that functionality. Otherwise,
              * we're going to just skip the domain and continue. */
 
-            if (!processLocalDomain(domainName) && changeLogStore.supportsFullRefresh()) {
-                return false;
+            if (!processLocalDomain(domainName)) {
+                if (changeLogStore.supportsFullRefresh()) {
+                    return -1;
+                } else {
+                    badDomains += 1;
+                }
             }
         }
-        
-        return true;
+
+        /* if more than 1/4 of our domains are bad then we have some
+         * issue that needs to be addressed so we're going to return failure */
+
+        if (badDomains > localDomainList.size() / 4) {
+            LOGGER.error("Too many invalid domains: {} out of {}", badDomains, localDomainList.size());
+            return -1;
+        }
+
+        return badDomains;
     }
     
     public void init() {
@@ -353,7 +385,8 @@ public class DataStore implements DataCacheProvider {
          * then we're going to ask our store to reset the changes
          * and give us the list of all domains from ZMS */
 
-        if (!processLocalDomains(localDomainList)) {
+        int badDomains = processLocalDomains(localDomainList);
+        if (badDomains == -1) {
             
             changeLogStore.setLastModificationTimestamp(null);
             
@@ -374,6 +407,14 @@ public class DataStore implements DataCacheProvider {
                     "Unable to initialize storage subsystem");
         }
 
+        /* if we had received any errors when processing local
+         * domains then we're going to run a domain check and
+         * verify all domains vs their modified timestamp in zms */
+
+        if (badDomains > 0) {
+            processDomainChecks();
+        }
+
         /* Start our monitoring thread to get changes from ZMS */
 
         ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(1);
@@ -385,15 +426,15 @@ public class DataStore implements DataCacheProvider {
 
         boolean result = false;
         try {
-            result = processDomain(changeLogStore.getSignedDomain(domainName), false);
+            result = processDomain(changeLogStore.getLocalSignedDomain(domainName), false);
         } catch (Exception ex) {
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Unable to process local domain " + domainName + ": " + ex.getMessage());
+                LOGGER.debug("Unable to process local domain {}:{}", domainName, ex.getMessage());
             }
         }
         
         if (!result) {
-            LOGGER.error("Invalid local domain: " + domainName + ". Refresh from ZMS required.");
+            LOGGER.error("Invalid local domain: {}. Refresh from ZMS required.", domainName);
         }
         
         return result;
@@ -586,7 +627,38 @@ public class DataStore implements DataCacheProvider {
         
         return true;
     }
-    
+
+    public void processDomainChecks() {
+
+        /* retrieve the list of domains from ZMS */
+
+        SignedDomains signedDomains = changeLogStore.getServerDomainModifiedList();
+        if (signedDomains == null) {
+            return;
+        }
+
+        /* go through each domain in the list. if it doesn't exist
+         * in the local list we need to update it. if it exists
+         * but with an older last modified time, then we need
+         * to update it. */
+
+        for (SignedDomain zmsDomain : signedDomains.getDomains()) {
+
+            final DomainData domainData = zmsDomain.getDomain();
+            DomainData localDomain = getDomainData(domainData.getName());
+            if (localDomain == null || localDomain.getModified().millis() < domainData.getModified().millis()) {
+
+                SignedDomain signedDomain = changeLogStore.getServerSignedDomain(domainData.getName());
+
+                if (signedDomain == null) {
+                    continue;
+                }
+
+                processDomain(signedDomain, true);
+            }
+        }
+    }
+
     // Internal
     void deleteDomain(String domainName) {
 
@@ -793,23 +865,6 @@ public class DataStore implements DataCacheProvider {
         }
         
         getCacheStore().invalidate(name);
-    }
-    
-    // Internal
-    String roleCheckValue(String role, String prefix) {
-        
-        if (role == null) {
-            return null;
-        }
-        
-        String roleCheck;
-        if (!role.startsWith(prefix)) {
-            roleCheck = prefix + role;
-        } else {
-            roleCheck = role;
-        }
-        
-        return roleCheck;
     }
     
     // Internal
@@ -1127,12 +1182,16 @@ public class DataStore implements DataCacheProvider {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("DataUpdater: Starting data updater thread...");
             }
-            
+
             try {
                 processDomainUpdates();
-                
-                /* check to see if we need to handle our delete domain list - 
-                 * make sure refresh time is converted to millis */
+            } catch (Throwable t) {
+                LOGGER.error("DataUpdater: unable to process domain updates", t);
+            }
+
+            try {
+                // check to see if we need to handle our delete domain list -
+                // make sure refresh time is converted to millis
                 
                 if (System.currentTimeMillis() - lastDeleteRunTime > delDomainRefreshTime * 1000) {
                     
@@ -1143,9 +1202,26 @@ public class DataStore implements DataCacheProvider {
                     processDomainDeletes();
                     lastDeleteRunTime = System.currentTimeMillis();
                 }
-                
             } catch (Throwable t) {
-                LOGGER.error("DataUpdater: unable to process domain changes: " + t.getMessage());
+                LOGGER.error("DataUpdater: unable to process domain deletes", t);
+            }
+
+            try {
+                // check to see if we need to handle our check our domain list -
+                //make sure refresh time is converted to millis
+
+                if (System.currentTimeMillis() - lastCheckRunTime > checkDomainRefreshTime * 1000) {
+
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("DataUpdater: Processing domain modification timestamp checks...");
+                    }
+
+                    processDomainChecks();
+                    lastCheckRunTime = System.currentTimeMillis();
+                }
+
+            } catch (Throwable t) {
+                LOGGER.error("DataUpdater: unable to process domain checks", t);
             }
         }
     }

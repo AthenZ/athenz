@@ -130,14 +130,41 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
 
     @Override
     public boolean supportsFullRefresh() {
-        return true;
+        return false;
     }
 
     @Override
-    public SignedDomain getSignedDomain(String domainName) {
+    public SignedDomain getLocalSignedDomain(String domainName) {
         return get(domainName, SignedDomain.class);
     }
-    
+
+    @Override
+    public SignedDomain getServerSignedDomain(String domainName) {
+
+        try (ZMSClient zmsClient = getZMSClient()) {
+
+            SignedDomains signedDomains = zmsClient.getSignedDomains(domainName,
+                    null, null, null);
+
+            if (signedDomains == null) {
+                LOGGER.error("No data was returned from ZMS for domain {}", domainName);
+                return null;
+            }
+
+            List<SignedDomain> domains = signedDomains.getDomains();
+            if (domains == null || domains.size() != 1) {
+                LOGGER.error("Invalid data was returned from ZMS for domain {}", domainName);
+                return null;
+            }
+
+            return domains.get(0);
+
+        } catch (ZMSClientException ex) {
+            LOGGER.error("Error when fetching {} data from ZMS: {}", domainName, ex.getMessage());
+            return null;
+        }
+    }
+
     @Override
     public void removeLocalDomain(String domainName) {
         delete(domainName);
@@ -252,17 +279,35 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
         try (ZMSClient zmsClient = getZMSClient()) {
             zmsDomainList = new HashSet<>(zmsClient.getDomainList().getNames());
         } catch (ZMSClientException ex) {
-            LOGGER.error("Unable to retrieve domain list from ZMS: " + ex.getMessage());
+            LOGGER.error("Unable to retrieve domain list from ZMS",  ex);
             return null;
         }
         
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Number of ZMS domains: " + zmsDomainList.size());
+            LOGGER.debug("Number of ZMS domains: {}", zmsDomainList.size());
         }
         
         return zmsDomainList;
     }
-    
+
+    @Override
+    public SignedDomains getServerDomainModifiedList() {
+
+        SignedDomains signedDomains = null;
+        try (ZMSClient zmsClient = getZMSClient()) {
+
+            signedDomains = zmsClient.getSignedDomains(null, VALUE_TRUE, null, null);
+
+            if (LOGGER.isDebugEnabled() && signedDomains != null) {
+                LOGGER.debug("Number of ZMS domains: {}", signedDomains.getDomains().size());
+            }
+        } catch (ZMSClientException ex) {
+            LOGGER.error("Unable to retrieve signed domain list from ZMS", ex);
+        }
+
+        return signedDomains;
+    }
+
     public String retrieveLastModificationTime() {
         Struct lastModStruct = get(LAST_MOD_FNAME, Struct.class);
         if (lastModStruct == null) {
@@ -308,7 +353,7 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
         }
         return tagData.get(0);
     }
-    
+
     List<SignedDomain> getSignedDomainList(ZMSClient zmsClient, SignedDomains domainList) {
         
         List<SignedDomain> domains = new ArrayList<>();

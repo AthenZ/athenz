@@ -10513,4 +10513,41 @@ public class ZTSImplTest {
 
         System.clearProperty(ZTSConsts.ZTS_PROP_CERT_BUNDLES_FNAME);
     }
+
+    @Test
+    public void testLoadServerPrivateKey() {
+
+        // first we try with ec private key only
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_EC_KEY, "src/test/resources/zts_private_ec.pem");
+        System.clearProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_RSA_KEY);
+        System.clearProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY);
+
+        zts.loadServicePrivateKey();
+        assertNotNull(zts.privateECKey);
+        assertEquals(zts.privateKey, zts.privateECKey);
+        assertNull(zts.privateRSAKey);
+
+        // now let's try the rsa key
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_RSA_KEY, "src/test/resources/zts_private.pem");
+        System.clearProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_EC_KEY);
+        System.clearProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY);
+
+        zts.loadServicePrivateKey();
+        assertNotNull(zts.privateRSAKey);
+        assertEquals(zts.privateKey, zts.privateRSAKey);
+        assertNull(zts.privateECKey);
+
+        // now back to our regular key setup
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/zts_private.pem");
+        System.clearProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_EC_KEY);
+        System.clearProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_RSA_KEY);
+
+        zts.loadServicePrivateKey();
+        assertNotNull(zts.privateKey);
+        assertNull(zts.privateECKey);
+        assertNull(zts.privateRSAKey);
+    }
 }

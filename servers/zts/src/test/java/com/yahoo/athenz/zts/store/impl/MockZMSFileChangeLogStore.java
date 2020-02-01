@@ -33,9 +33,9 @@ import com.yahoo.athenz.zts.ZTSConsts;
 
 public class MockZMSFileChangeLogStore extends ZMSFileChangeLogStore {
 
-    private final ZMSClient zms;
-    private DomainList domList = null;
+    private ZMSClient zms;
     private String tagHeader;
+    private boolean refreshSupport = false;
 
     public MockZMSFileChangeLogStore(String rootDirectory, PrivateKey privateKey, String privateKeyId) {
         
@@ -60,7 +60,6 @@ public class MockZMSFileChangeLogStore extends ZMSFileChangeLogStore {
         
         tagHeader = "2014-01-01T12:00:00";
         when(zms.getDomainList()).thenReturn(localDomainList).thenReturn(serverDomainList);
-        
     }
     
     @Override
@@ -68,9 +67,13 @@ public class MockZMSFileChangeLogStore extends ZMSFileChangeLogStore {
         return zms;
     }
 
+    public void setZMSClient(ZMSClient zms) {
+        this.zms = zms;
+    }
+
     public void setDomainList(List<String> domains) {
         if (domains != null) {
-            domList = new DomainList();
+            DomainList domList = new DomainList();
             domList.setNames(domains);
             when(zms.getDomainList()).thenReturn(domList);
         } else {
@@ -101,5 +104,14 @@ public class MockZMSFileChangeLogStore extends ZMSFileChangeLogStore {
         } else {
             return tagHeader;
         }
+    }
+
+    public void setRefreshSupport(boolean refreshSupport) {
+        this.refreshSupport = refreshSupport;
+    }
+
+    @Override
+    public boolean supportsFullRefresh() {
+        return refreshSupport;
     }
 }
