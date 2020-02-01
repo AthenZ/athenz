@@ -17764,4 +17764,95 @@ public class ZMSImplTest {
         assertEquals(userChecked, 3);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "role-review-dom", auditRef);
     }
+
+    @Test
+    public void testLoadServerPrivateKey() {
+
+        // first we try with ec private key only
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_EC_KEY, "src/test/resources/zms_private.pem");
+        System.clearProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_RSA_KEY);
+        System.clearProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY);
+
+        zms.loadPrivateKeyStore();
+        assertNotNull(zms.privateECKey);
+        assertEquals(zms.privateKey, zms.privateECKey);
+        assertNull(zms.privateRSAKey);
+
+        // now let's try the rsa key
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_RSA_KEY, "src/test/resources/zms_private.pem");
+        System.clearProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_EC_KEY);
+        System.clearProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY);
+
+        zms.loadPrivateKeyStore();
+        assertNotNull(zms.privateRSAKey);
+        assertEquals(zms.privateKey, zms.privateRSAKey);
+        assertNull(zms.privateECKey);
+
+        // now back to our regular key setup
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/zms_private.pem");
+        System.clearProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_EC_KEY);
+        System.clearProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_RSA_KEY);
+
+        zms.loadPrivateKeyStore();
+        assertNotNull(zms.privateKey);
+        assertNull(zms.privateECKey);
+        assertNull(zms.privateRSAKey);
+    }
+
+    @Test
+    public void testLoadInvalidClasses() {
+
+        ZMSImpl zmsImpl = zmsInit();
+
+        System.setProperty(ZMSConsts.ZMS_PROP_METRIC_FACTORY_CLASS, "invalid.class");
+        try {
+            zmsImpl.loadMetricObject();
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Invalid metric class"));
+        }
+        System.clearProperty(ZMSConsts.ZMS_PROP_METRIC_FACTORY_CLASS);
+
+        System.setProperty(ZMSConsts.ZMS_PROP_OBJECT_STORE_FACTORY_CLASS, "invalid.class");
+        try {
+            zmsImpl.loadObjectStore();
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Invalid object store"));
+        }
+        System.clearProperty(ZMSConsts.ZMS_PROP_OBJECT_STORE_FACTORY_CLASS);
+
+        System.setProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS, "invalid.class");
+        try {
+            zmsImpl.loadPrivateKeyStore();
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Invalid private key store"));
+        }
+        System.clearProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS);
+
+        System.setProperty(ZMSConsts.ZMS_PROP_AUDIT_LOGGER_FACTORY_CLASS, "invalid.class");
+        try {
+            zmsImpl.loadAuditLogger();
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Invalid audit logger class"));
+        }
+        System.clearProperty(ZMSConsts.ZMS_PROP_AUDIT_LOGGER_FACTORY_CLASS);
+
+        assertNull(zmsImpl.getAuthority("invalid.class"));
+
+        System.setProperty(ZMSConsts.ZMS_PROP_AUTHORITY_CLASSES, "invalid.class");
+        try {
+            zmsImpl.loadAuthorities();
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Invalid authority"));
+        }
+        System.clearProperty(ZMSConsts.ZMS_PROP_AUTHORITY_CLASSES);
+    }
+
 }
