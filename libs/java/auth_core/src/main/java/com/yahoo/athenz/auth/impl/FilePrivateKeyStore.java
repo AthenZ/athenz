@@ -16,9 +16,6 @@
 package com.yahoo.athenz.auth.impl;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
 
 import com.yahoo.athenz.auth.ServerPrivateKey;
@@ -38,7 +35,6 @@ public class FilePrivateKeyStore implements PrivateKeyStore {
     public static final String ATHENZ_PROP_PRIVATE_EC_KEY_ID = "athenz.auth.private_key_store.private_ec_key_id";
     public static final String ATHENZ_PROP_PRIVATE_RSA_KEY = "athenz.auth.private_key_store.private_rsa_key";
     public static final String ATHENZ_PROP_PRIVATE_RSA_KEY_ID = "athenz.auth.private_key_store.private_rsa_key_id";
-    private static final String ATHENZ_STR_JAR_RESOURCE = "JAR_RESOURCE:";
 
     private static final String ZMS_SERVICE = "zms";
     private static final String ZTS_SERVICE = "zts";
@@ -103,59 +99,19 @@ public class FilePrivateKeyStore implements PrivateKeyStore {
         final String privKeyName = System.getProperty(ATHENZ_PROP_PRIVATE_KEY);
         
         if (LOG.isDebugEnabled()) {
-            LOG.debug("FilePrivateKeyStore: private key file=" + privKeyName);
+            LOG.debug("FilePrivateKeyStore: private key file={}", privKeyName);
         }
         
         if (privKeyName == null) {
             return null;
         }
+
+        File privKeyFile = new File(privKeyName);
+        PrivateKey pkey = Crypto.loadPrivateKey(privKeyFile);
         
-        // check to see if this is running in dev mode and thus it's
-        // a resource in our jar file
-        
-        String privKey;
-        if (privKeyName.startsWith(ATHENZ_STR_JAR_RESOURCE)) {
-            privKey = retrieveKeyFromResource(privKeyName.substring(ATHENZ_STR_JAR_RESOURCE.length()));
-        } else {
-            File privKeyFile = new File(privKeyName);
-            privKey = Crypto.encodedFile(privKeyFile);
-        }
-        
-        PrivateKey pkey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
         if (pkey != null) {
             privateKeyId.append(System.getProperty(ATHENZ_PROP_PRIVATE_KEY_ID, "0"));
         }
         return pkey;
-    }
-
-    private String retrieveKeyFromResource(String resourceName) {
-        
-        String key = null;
-        try (InputStream is = getClass().getResourceAsStream(resourceName)) {
-            String resourceData = getString(is);
-            if (resourceData != null) {
-                key = Crypto.ybase64(resourceData.getBytes(StandardCharsets.UTF_8));
-            }
-        } catch (IOException e) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("FilePrivateKeyStore: Unable to read key from resource: " + resourceName);
-            }
-        }
-        
-        return key;
-    }
-    
-    String getString(InputStream is) throws IOException {
-        
-        if (is == null) {
-            return null;
-        }
-        
-        int ch;
-        StringBuilder sb = new StringBuilder();
-        while ((ch = is.read()) != -1) {
-            sb.append((char) ch);
-        }
-        return sb.toString();
     }
 }
