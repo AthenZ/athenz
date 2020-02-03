@@ -270,7 +270,7 @@ public class ZMSFileChangeLogStoreTest {
     public void testFullRefreshSupport() {
 
         ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
-        assertTrue(fstore.supportsFullRefresh());
+        assertFalse(fstore.supportsFullRefresh());
     }
     
     @Test
@@ -493,5 +493,106 @@ public class ZMSFileChangeLogStoreTest {
         } catch (Exception ex) {
             assertTrue(true);
         }
+    }
+
+    @Test
+    public void testGetServerDomainModifiedList() {
+        MockZMSFileChangeLogStore fstore = new MockZMSFileChangeLogStore(FSTORE_PATH, null, null);
+        ZMSClient zmsClient = Mockito.mock(ZMSClient.class);
+        fstore.setZMSClient(zmsClient);
+
+        List<SignedDomain> domains = new ArrayList<>();
+        DomainData domData = new DomainData().setName("athenz");
+        SignedDomain domain = new SignedDomain().setDomain(domData);
+        domains.add(domain);
+        SignedDomains domainList = new SignedDomains().setDomains(domains);
+
+        Mockito.when(zmsClient.getSignedDomains(null, "true", null, null)).thenReturn(domainList);
+
+        SignedDomains returnList = fstore.getServerDomainModifiedList();
+        assertEquals(returnList.getDomains().size(), 1);
+        assertEquals(returnList.getDomains().get(0).getDomain().getName(), "athenz");
+    }
+
+    @Test
+    public void testGetServerDomainModifiedListNull() {
+        MockZMSFileChangeLogStore fstore = new MockZMSFileChangeLogStore(FSTORE_PATH, null, null);
+        ZMSClient zmsClient = Mockito.mock(ZMSClient.class);
+        fstore.setZMSClient(zmsClient);
+
+        Mockito.when(zmsClient.getSignedDomains(null, "true", null, null)).thenReturn(null);
+
+        assertNull(fstore.getServerDomainModifiedList());
+    }
+
+    @Test
+    public void testGetServerDomainModifiedListException() {
+        MockZMSFileChangeLogStore fstore = new MockZMSFileChangeLogStore(FSTORE_PATH, null, null);
+        ZMSClient zmsClient = Mockito.mock(ZMSClient.class);
+        fstore.setZMSClient(zmsClient);
+
+        Mockito.when(zmsClient.getSignedDomains(null, "true", null, null))
+                .thenThrow(new ZMSClientException(500, "invalid server error:"));
+
+        SignedDomains returnList = fstore.getServerDomainModifiedList();
+        assertNull(returnList);
+    }
+
+    @Test
+    public void testGetServerSignedDomain() {
+        MockZMSFileChangeLogStore fstore = new MockZMSFileChangeLogStore(FSTORE_PATH, null, null);
+        ZMSClient zmsClient = Mockito.mock(ZMSClient.class);
+        fstore.setZMSClient(zmsClient);
+
+        List<SignedDomain> domains = new ArrayList<>();
+        DomainData domData = new DomainData().setName("athenz");
+        SignedDomain domain = new SignedDomain().setDomain(domData);
+        domains.add(domain);
+        SignedDomains domainList = new SignedDomains().setDomains(domains);
+
+        Mockito.when(zmsClient.getSignedDomains("athenz", null, null, null)).thenReturn(domainList);
+
+        SignedDomain signedDomain = fstore.getServerSignedDomain("athenz");
+        assertNotNull(signedDomain);
+        assertEquals(signedDomain.getDomain().getName(), "athenz");
+
+        // invalid domain should return null
+
+        assertNull(fstore.getServerSignedDomain("coretech"));
+    }
+
+    @Test
+    public void testGetServerSignedDomainInvalidMultiple() {
+        MockZMSFileChangeLogStore fstore = new MockZMSFileChangeLogStore(FSTORE_PATH, null, null);
+        ZMSClient zmsClient = Mockito.mock(ZMSClient.class);
+        fstore.setZMSClient(zmsClient);
+
+        List<SignedDomain> domains = new ArrayList<>();
+        DomainData domData1 = new DomainData().setName("athenz");
+        SignedDomain domain1 = new SignedDomain().setDomain(domData1);
+
+        DomainData domData2 = new DomainData().setName("coretech");
+        SignedDomain domain2 = new SignedDomain().setDomain(domData2);
+
+        domains.add(domain1);
+        domains.add(domain2);
+
+        SignedDomains domainList = new SignedDomains().setDomains(domains);
+
+        Mockito.when(zmsClient.getSignedDomains("athenz", null, null, null)).thenReturn(domainList);
+
+        assertNull(fstore.getServerSignedDomain("athenz"));
+    }
+
+    @Test
+    public void testGetServerSignedDomainException() {
+        MockZMSFileChangeLogStore fstore = new MockZMSFileChangeLogStore(FSTORE_PATH, null, null);
+        ZMSClient zmsClient = Mockito.mock(ZMSClient.class);
+        fstore.setZMSClient(zmsClient);
+
+        Mockito.when(zmsClient.getSignedDomains("athenz", null, null, null))
+            .thenThrow(new ZMSClientException(500, "invalid server error:"));
+
+        assertNull(fstore.getServerSignedDomain("athenz"));
     }
 }

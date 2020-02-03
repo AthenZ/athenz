@@ -28,12 +28,19 @@ import com.yahoo.athenz.zms.SignedDomains;
 public interface ChangeLogStore {
     
     /**
-     * Gets the associated domain data for the key
+     * Gets the associated local domain data for the key
      * @param domainName the name of the domain
      * @return SignedDomain object of the domain or null if absent
      */
-    SignedDomain getSignedDomain(String domainName);
-    
+    SignedDomain getLocalSignedDomain(String domainName);
+
+    /**
+     * Gets the associated server domain data for the key
+     * @param domainName the name of the domain
+     * @return SignedDomain object of the domain or null if absent
+     */
+    SignedDomain getServerSignedDomain(String domainName);
+
     /**
      * Remove the local domain record from the changelog store
      * @param domainName the name of the domain
@@ -58,7 +65,15 @@ public interface ChangeLogStore {
      * @return Set of domain names
      */
     Set<String> getServerDomainList();
-    
+
+    /**
+     * Returns the list of domains configured on the server
+     * with their meta attributes only - primary interest being
+     * the last modification timestamp
+     * @return Array of SignedDomain objects
+     */
+    SignedDomains getServerDomainModifiedList();
+
     /**
      * Returns the list of domains modified since the last call
      * @param lastModTimeBuffer StringBuilder object will be updated to include

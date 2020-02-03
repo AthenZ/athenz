@@ -122,10 +122,9 @@ public class S3ChangeLogStoreTest {
         tempList.add(s3ObjectSummary);
         when(mockObjectListing.getObjectSummaries()).thenReturn(tempList);
 
-
-            List<String> temp = store.getLocalDomainList();
-            assertNotNull(temp);
-            store.getSignedDomain("iaas");
+        List<String> temp = store.getLocalDomainList();
+        assertNotNull(temp);
+        store.getLocalSignedDomain("iaas");
     }
 
     @Test
@@ -512,26 +511,38 @@ public class S3ChangeLogStoreTest {
         // first we'll return null from our s3 client
 
         store.resetAWSS3Client();
-        SignedDomain signedDomain = store.getSignedDomain("iaas");
+        SignedDomain signedDomain = store.getLocalSignedDomain("iaas");
         assertNull(signedDomain);
 
         // next setup our mock aws return object
 
         when(store.awsS3Client.getObject("s3-unit-test-bucket-name", "iaas")).thenReturn(object);
-        signedDomain = store.getSignedDomain("iaas");
+        signedDomain = store.getLocalSignedDomain("iaas");
         assertNotNull(signedDomain);
 
         DomainData domainData = signedDomain.getDomain();
         assertNotNull(domainData);
         assertEquals(domainData.getName(), "iaas");
 
-        signedDomain = store.getSignedDomain("iaas");
+        signedDomain = store.getLocalSignedDomain("iaas");
         assertNotNull(signedDomain);
 
         is1.close();
         is2.close();
     }
-    
+
+    @Test
+    public void testGetServerSignedDomain() {
+        MockS3ChangeLogStore store = new MockS3ChangeLogStore(null);
+        assertNull(store.getServerSignedDomain("iaas"));
+    }
+
+    @Test
+    public void testGetServerDomainModifiedList() {
+        MockS3ChangeLogStore store = new MockS3ChangeLogStore(null);
+        assertNull(store.getServerDomainModifiedList());
+    }
+
     @Test
     public void testGetSignedDomainException() throws IOException {
         MockS3ChangeLogStore store = new MockS3ChangeLogStore(null);
@@ -547,7 +558,7 @@ public class S3ChangeLogStoreTest {
         when(store.awsS3Client.getObject("s3-unit-test-bucket-name", "iaas"))
                 .thenThrow(new AmazonServiceException("test")).thenReturn(object);
         
-        SignedDomain signedDomain = store.getSignedDomain("iaas");
+        SignedDomain signedDomain = store.getLocalSignedDomain("iaas");
         assertNotNull(signedDomain);
         DomainData domainData = signedDomain.getDomain();
         assertNotNull(domainData);

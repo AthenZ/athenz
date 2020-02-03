@@ -50,15 +50,16 @@ public class S3ChangeLogStore implements ChangeLogStore {
 
     private static final String NUMBER_OF_THREADS = "athenz.zts.bucket.threads";
     private static final String DEFAULT_TIMEOUT_SECONDS = "athenz.zts.bucket.threads.timeout";
-    private int nThreads = Integer.valueOf(System.getProperty(NUMBER_OF_THREADS, "10"));
-    private int defaultTimeoutSeconds = Integer.valueOf(System.getProperty(DEFAULT_TIMEOUT_SECONDS, "1800"));
+    private int nThreads = Integer.parseInt(System.getProperty(NUMBER_OF_THREADS, "10"));
+    private int defaultTimeoutSeconds = Integer.parseInt(System.getProperty(DEFAULT_TIMEOUT_SECONDS, "1800"));
     private volatile HashMap<String, SignedDomain> tempSignedDomainMap = new HashMap<>();
 
     public S3ChangeLogStore(CloudStore cloudStore) {
         this.cloudStore = cloudStore;
         s3BucketName = System.getProperty(ZTSConsts.ZTS_PROP_AWS_BUCKET_NAME);
         if (s3BucketName == null || s3BucketName.isEmpty()) {
-            error("S3 Bucket name cannot be null");
+            LOGGER.error("S3 Bucket name cannot be null");
+            throw new RuntimeException("S3ChangeLogStore: S3 Bucket name cannot be null");
         }
         
         if (LOGGER.isDebugEnabled()) {
@@ -75,9 +76,9 @@ public class S3ChangeLogStore implements ChangeLogStore {
     public boolean supportsFullRefresh() {
         return false;
     }
-    
+
     @Override
-    public SignedDomain getSignedDomain(String domainName) {
+    public SignedDomain getLocalSignedDomain(String domainName) {
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("getSignedDomain: {}", domainName);
@@ -114,7 +115,7 @@ public class S3ChangeLogStore implements ChangeLogStore {
         }
         return signedDomain;
     }
-    
+
     SignedDomain getSignedDomain(AmazonS3 s3, String domainName) {
 
         if (LOGGER.isDebugEnabled()) {
@@ -298,6 +299,22 @@ public class S3ChangeLogStore implements ChangeLogStore {
         return domains;
     }
 
+    /**
+     * with S3 change log store there is no need to carry out the domain check
+     * operatioins since during startup we read the domains from our domain
+     * S3 bucket and not from ZMS directly
+     * @return list of SignedDomain objects (always null)
+     */
+    @Override
+    public SignedDomains getServerDomainModifiedList() {
+        return null;
+    }
+
+    @Override
+    public SignedDomain getServerSignedDomain(String domainName) {
+        return null;
+    }
+
     @Override
     public SignedDomains getUpdatedSignedDomains(StringBuilder lastModTimeBuffer) {
 
@@ -355,11 +372,6 @@ public class S3ChangeLogStore implements ChangeLogStore {
 
     public ExecutorService getExecutorService() {
         return Executors.newFixedThreadPool(nThreads);
-    }
-
-    static void error(String msg) {
-        LOGGER.error(msg);
-        throw new RuntimeException("S3ChangeLogStore: " + msg);
     }
 
     class ObjectS3Thread implements Runnable {
