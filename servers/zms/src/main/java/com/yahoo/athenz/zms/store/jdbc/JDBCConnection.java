@@ -269,9 +269,9 @@ public class JDBCConnection implements ObjectStoreConnection {
             "SELECT DISTINCT role.name AS domain_name FROM role_member JOIN role ON role.role_id=role_member.role_id " +
             "WHERE role_member.principal_id=? AND role.domain_id=?) ) order by do.name, ro.name, principal.name;";
 
-    private static final String SQL_PENDING_DOMAIN_SELFSERVE_ROLE_MEMBER_LIST = "SELECT do.name AS domain, ro.name AS role, principal.name AS member, rmo.expiration, rmo.audit_ref FROM principal JOIN pending_role_member rmo " +
+    private static final String SQL_PENDING_DOMAIN_ADMIN_ROLE_MEMBER_LIST = "SELECT do.name AS domain, ro.name AS role, principal.name AS member, rmo.expiration, rmo.audit_ref FROM principal JOIN pending_role_member rmo " +
             "ON rmo.principal_id=principal.principal_id JOIN role ro ON ro.role_id=rmo.role_id JOIN domain do ON ro.domain_id=do.domain_id " +
-            "WHERE ro.self_serve=true AND ro.domain_id IN ( SELECT domain.domain_id FROM domain JOIN role " +
+            "WHERE (ro.self_serve=true OR ro.review_enabled=true) AND ro.domain_id IN ( SELECT domain.domain_id FROM domain JOIN role " +
             "ON role.domain_id=domain.domain_id JOIN role_member ON role.role_id=role_member.role_id " +
             "WHERE role_member.principal_id=? AND role_member.active=true AND role.name='admin' ) " +
             "order by do.name, ro.name, principal.name;";
@@ -281,10 +281,10 @@ public class JDBCConnection implements ObjectStoreConnection {
             "JOIN role r ON r.role_id=rm.role_id JOIN domain d ON r.domain_id=d.domain_id " +
             "WHERE r.audit_enabled=true AND rm.last_notified_time=? AND rm.server=?;";
 
-    private static final String SQL_SELF_SERVE_PENDING_MEMBERSHIP_REMINDER_DOMAINS =
+    private static final String SQL_ADMIN_PENDING_MEMBERSHIP_REMINDER_DOMAINS =
             "SELECT distinct d.name FROM pending_role_member rm " +
             "JOIN role r ON r.role_id=rm.role_id " +
-            "JOIN domain d ON r.domain_id=d.domain_id WHERE r.self_serve=true AND rm.last_notified_time=? AND rm.server=?;";
+            "JOIN domain d ON r.domain_id=d.domain_id WHERE (r.self_serve=true OR r.review_enabled=true) AND rm.last_notified_time=? AND rm.server=?;";
 
     private static final String SQL_GET_EXPIRED_PENDING_ROLE_MEMBERS = "SELECT d.name, r.name, p.name, prm.expiration, prm.audit_ref FROM principal p JOIN pending_role_member prm " +
             "ON prm.principal_id=p.principal_id JOIN role r ON prm.role_id=r.role_id JOIN domain d ON d.domain_id=r.domain_id " +
@@ -3724,7 +3724,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             principalId, domainRoleMembersMap, caller);
 
         // finally retrieve the self serve roles
-        try (PreparedStatement ps = con.prepareStatement(SQL_PENDING_DOMAIN_SELFSERVE_ROLE_MEMBER_LIST)) {
+        try (PreparedStatement ps = con.prepareStatement(SQL_PENDING_DOMAIN_ADMIN_ROLE_MEMBER_LIST)) {
             ps.setInt(1, principalId);
             try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
@@ -3793,7 +3793,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                     if (org != null && !org.isEmpty()) {
                         int roleId = getRoleId(orgDomainId, org);
                         if (roleId != 0) {
-                            targetRoles.add(ZMSConsts.SYS_AUTH_AUDIT_BY_ORG + ":role." + org);
+                            targetRoles.add(ZMSUtils.roleResourceName(ZMSConsts.SYS_AUTH_AUDIT_BY_ORG, org));
                         }
                     }
 
@@ -3802,7 +3802,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                     final String domain = rs.getString(2);
                     int roleId = getRoleId(domDomainId, domain);
                     if (roleId != 0) {
-                        targetRoles.add(ZMSConsts.SYS_AUTH_AUDIT_BY_DOMAIN + ":role." + domain);
+                        targetRoles.add(ZMSUtils.roleResourceName(ZMSConsts.SYS_AUTH_AUDIT_BY_DOMAIN, domain));
                     }
                 }
             }
@@ -3810,9 +3810,9 @@ public class JDBCConnection implements ObjectStoreConnection {
             throw sqlError(ex, caller);
         }
 
-        // get admin roles of pending selfserve requests
+        // get admin roles of pending self-serve and review-enabled requests
 
-        getRecipientRoleForSelfServeMembershipApproval(caller, targetRoles, ts, server);
+        getRecipientRoleForAdminMembershipApproval(caller, targetRoles, ts, server);
 
         return targetRoles;
     }
@@ -3855,15 +3855,15 @@ public class JDBCConnection implements ObjectStoreConnection {
         return (affectedRows > 0);
     }
 
-    private void getRecipientRoleForSelfServeMembershipApproval(String caller, Set<String> targetRoles,
-            java.sql.Timestamp timestamp, String server) {
+    private void getRecipientRoleForAdminMembershipApproval(String caller, Set<String> targetRoles,
+                java.sql.Timestamp timestamp, String server) {
 
-        try (PreparedStatement ps = con.prepareStatement(SQL_SELF_SERVE_PENDING_MEMBERSHIP_REMINDER_DOMAINS)) {
+        try (PreparedStatement ps = con.prepareStatement(SQL_ADMIN_PENDING_MEMBERSHIP_REMINDER_DOMAINS)) {
             ps.setTimestamp(1, timestamp);
             ps.setString(2, server);
             try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
-                    targetRoles.add(rs.getString(1) + ":role.admin");
+                    targetRoles.add(ZMSUtils.roleResourceName(rs.getString(1), ZMSConsts.ADMIN_ROLE_NAME));
                 }
             }
         } catch (SQLException ex) {
