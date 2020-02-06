@@ -23,7 +23,7 @@ const config = {
     allowedOffset: 300,
     disableCache: false,
     updater: './ZPEUpdater',
-    disableWatch: false
+    disableWatch: true
   },
   production: {
     logLevel: 'info',
@@ -34,7 +34,7 @@ const config = {
     allowedOffset: 300,
     disableCache: false,
     updater: './ZPEUpdater',
-    disableWatch: false
+    disableWatch: true
   }
 };
 

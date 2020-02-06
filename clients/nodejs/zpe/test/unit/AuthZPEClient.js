@@ -177,6 +177,22 @@ describe('AuthZPEClient', function() {
     );
   });
 
+  it('should test authzpeclient allowaccess expecting result deny with dot (begin-with match)', function() {
+    //var resource = 'athenz.test:testresgroup.';
+    var resource = 'athenz.test:testresgroupa';
+    var action = 'read';
+    AuthZPEClient.allowAccess(
+      {
+        roleToken: roleToken,
+        resource: resource,
+        action: action
+      },
+      (err, accessCheckStatus) => {
+        expect(accessCheckStatus).to.deep.equal('Access denied due to no match to any of the assertions defined in domain policy file');
+      }
+    );
+  });
+
   it('should test AuthZPEClient allowAccess expecting result ALLOW (End-with match)', function() {
     var resource = 'allow.testresgroup';
     var action = 'read';
@@ -223,6 +239,19 @@ describe('AuthZPEClient', function() {
   it('should test AuthZPEClient allowAccess expecting result DENY', function() {
     var resource = 'athenz.test:testresgroup.deny';
     var action = 'write';
+    AuthZPEClient.allowAccess(
+      {
+        roleToken: roleToken,
+        resource: resource,
+        action: action
+      },
+      (err, accessCheckStatus) => {
+        expect(accessCheckStatus).to.deep.equal('Access Check was explicitly denied');
+      }
+    );
+
+    resource = 'athenz.test:testresgroup.deny';
+    action = 'write';
     AuthZPEClient.allowAccess(
       {
         roleToken: roleToken,
@@ -365,6 +394,51 @@ describe('AuthZPEClient', function() {
       },
       (err, accessCheckStatus) => {
         expect(accessCheckStatus).to.deep.equal('Access denied due to invalid/empty action/resource values');
+      }
+    );
+  });
+
+  it('should test AuthZPEClient allowAccess expecting result allow with asterisk (two asterisk match)', function() {
+    var resource = 'athenz.test:testresgroup';
+    var action = 'XXXreadXXX';
+    AuthZPEClient.allowAccess(
+      {
+        roleToken: roleToken,
+        resource: resource,
+        action: action
+      },
+      (err, accessCheckStatus) => {
+        expect(accessCheckStatus).to.deep.equal('Access Check was explicitly allowed');
+      }
+    );
+  });
+
+  it('should test AuthZPEClient allowAccess expecting result allow with ? (question mark)', function() {
+    var resource = 'athenz.test:testresgroup.a';
+    var action = 'get';
+    AuthZPEClient.allowAccess(
+      {
+        roleToken: roleToken,
+        resource: resource,
+        action: action
+      },
+      (err, accessCheckStatus) => {
+        expect(accessCheckStatus).to.deep.equal('Access Check was explicitly allowed');
+      }
+    );
+  });
+
+  it('should test AuthZPEClient allowAccess expecting result deny with ? (question mark)', function() {
+    var resource = 'athenz.test:testresgroup.toolong';
+    var action = 'get';
+    AuthZPEClient.allowAccess(
+      {
+        roleToken: roleToken,
+        resource: resource,
+        action: action
+      },
+      (err, accessCheckStatus) => {
+        expect(accessCheckStatus).to.deep.equal('Access denied due to no match to any of the assertions defined in domain policy file');
       }
     );
   });
