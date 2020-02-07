@@ -15,6 +15,8 @@
  */
 package com.yahoo.athenz.common.server.dns;
 
+import com.yahoo.athenz.zts.CertType;
+
 import java.util.List;
 
 public interface HostnameResolver {
@@ -38,9 +40,10 @@ public interface HostnameResolver {
      * that source if the hostname CNAME is valid or not.
      * @param hostname Instance hostname to check for CNAME validity
      * @param cnameList list of host CNAMEs to check for validity
+     * @param certType one of X509, SSHHOST, SSHUSER
      * @return true if the hostname CNAME is valid, false otherwise
      */
-    default boolean isValidHostCnameList(final String hostname, final List<String> cnameList) {
+    default boolean isValidHostCnameList(final String hostname, final List<String> cnameList, CertType certType) {
         return false;
     }
 }

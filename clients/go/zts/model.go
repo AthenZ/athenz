@@ -93,6 +93,92 @@ type SignedToken string
 type PathElement string
 
 //
+// CertType - CertType denotes various types of certs issued by Athenz
+//
+type CertType int
+
+//
+// CertType constants
+//
+const (
+	_ CertType = iota
+	X509
+	SSH_HOST
+	SSH_USER
+)
+
+var namesCertType = []string{
+	X509:     "X509",
+	SSH_HOST: "SSH_HOST",
+	SSH_USER: "SSH_USER",
+}
+
+//
+// NewCertType - return a string representation of the enum
+//
+func NewCertType(init ...interface{}) CertType {
+	if len(init) == 1 {
+		switch v := init[0].(type) {
+		case CertType:
+			return v
+		case int:
+			return CertType(v)
+		case int32:
+			return CertType(v)
+		case string:
+			for i, s := range namesCertType {
+				if s == v {
+					return CertType(i)
+				}
+			}
+		default:
+			panic("Bad init value for CertType enum")
+		}
+	}
+	return CertType(0) //default to the first enum value
+}
+
+//
+// String - return a string representation of the enum
+//
+func (e CertType) String() string {
+	return namesCertType[e]
+}
+
+//
+// SymbolSet - return an array of all valid string representations (symbols) of the enum
+//
+func (e CertType) SymbolSet() []string {
+	return namesCertType
+}
+
+//
+// MarshalJSON is defined for proper JSON encoding of a CertType
+//
+func (e CertType) MarshalJSON() ([]byte, error) {
+	return json.Marshal(e.String())
+}
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a CertType
+//
+func (e *CertType) UnmarshalJSON(b []byte) error {
+	var j string
+	err := json.Unmarshal(b, &j)
+	if err == nil {
+		s := string(j)
+		for v, s2 := range namesCertType {
+			if s == s2 {
+				*e = CertType(v)
+				return nil
+			}
+		}
+		err = fmt.Errorf("Bad enum symbol for type CertType: %s", s)
+	}
+	return err
+}
+
+//
 // ResourceAccess - ResourceAccess can be checked and returned as this
 // resource. (same as ZMS.Access)
 //

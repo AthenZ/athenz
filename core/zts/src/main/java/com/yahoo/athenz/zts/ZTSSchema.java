@@ -70,6 +70,12 @@ public class ZTSSchema {
             .comment("A uri-safe path element")
             .pattern("[a-zA-Z0-9-\\._~=+@$,:]*");
 
+        sb.enumType("CertType")
+            .comment("CertType denotes various types of certs issued by Athenz")
+            .element("X509")
+            .element("SSH_HOST")
+            .element("SSH_USER");
+
         sb.structType("ResourceAccess")
             .comment("ResourceAccess can be checked and returned as this resource. (same as ZMS.Access)")
             .field("granted", "Bool", false, "true (allowed) or false (denied)");

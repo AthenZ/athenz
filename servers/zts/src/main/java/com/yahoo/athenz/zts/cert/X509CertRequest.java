@@ -25,6 +25,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
+import com.yahoo.athenz.zts.CertType;
 import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.cache.DataCache;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
@@ -298,7 +299,7 @@ public class X509CertRequest {
         // we must also have a resolver present and configured
 
         if (hostnameResolver != null) {
-            if (!hostnameResolver.isValidHostCnameList(instanceHostname, instanceHostCnames)) {
+            if (!hostnameResolver.isValidHostCnameList(instanceHostname, instanceHostCnames, CertType.X509)) {
                 LOGGER.error("{} does not have all hosts in {} as configured CNAMEs", instanceHostname,
                         String.join(",", instanceHostCnames));
                 return false;
