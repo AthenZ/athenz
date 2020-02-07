@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.common.server.dns;
 
+import com.yahoo.athenz.zts.CertType;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
@@ -49,6 +50,6 @@ public class HostnameResolverTest {
         assertTrue(resolver.isValidHostname("host3.athenz.cloud"));
 
         assertFalse(resolver.isValidHostCnameList("host1.athenz.cloud",
-                Collections.singletonList("cname.athenz.cloud") ));
+                Collections.singletonList("cname.athenz.cloud"), CertType.X509));
     }
 }

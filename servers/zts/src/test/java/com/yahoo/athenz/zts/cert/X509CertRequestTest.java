@@ -25,6 +25,7 @@ import java.util.*;
 import static org.testng.Assert.*;
 
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
+import com.yahoo.athenz.zts.CertType;
 import com.yahoo.athenz.zts.cache.DataCache;
 import com.yahoo.athenz.zts.cert.impl.TestHostnameResolver;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
@@ -237,7 +238,7 @@ public class X509CertRequestTest {
         cnameList.add("cname1.athenz.info");
         cnameList.add("cname2.athenz.info");
         HostnameResolver resolver = Mockito.mock(HostnameResolver.class);
-        Mockito.when(resolver.isValidHostCnameList("host1.athenz.cloud", cnameList))
+        Mockito.when(resolver.isValidHostCnameList("host1.athenz.cloud", cnameList, CertType.X509))
                 .thenReturn(false)
                 .thenReturn(true);
         Mockito.when(resolver.isValidHostname("host1.athenz.cloud")).thenReturn(true);
@@ -280,7 +281,7 @@ public class X509CertRequestTest {
         cnameList.add("cname1.ostk.athenz.cloud");
         cnameList.add("cname2.athenz.info");
         HostnameResolver resolver = Mockito.mock(HostnameResolver.class);
-        Mockito.when(resolver.isValidHostCnameList("host1.athenz.cloud", cnameList))
+        Mockito.when(resolver.isValidHostCnameList("host1.athenz.cloud", cnameList, CertType.X509))
                 .thenReturn(true);
         Mockito.when(resolver.isValidHostname("host1.athenz.cloud")).thenReturn(true);
 
@@ -955,7 +956,7 @@ public class X509CertRequestTest {
                 Collections.singletonList("host1.athenz.cloud"), null));
 
         HostnameResolver resolver = Mockito.mock(HostnameResolver.class);
-        Mockito.when(resolver.isValidHostCnameList("hostname.athenz.cloud", Collections.singletonList("host1.athenz.cloud")))
+        Mockito.when(resolver.isValidHostCnameList("hostname.athenz.cloud", Collections.singletonList("host1.athenz.cloud"), CertType.X509))
                 .thenReturn(false);
 
         assertFalse(certReq.validateInstanceCnames("provider", athenzSysDomainCache, "hostname.athenz.cloud",
@@ -963,7 +964,7 @@ public class X509CertRequestTest {
 
         // set resolver to return true for host2
 
-        Mockito.when(resolver.isValidHostCnameList("hostname.athenz.cloud", Collections.singletonList("host2.athenz.cloud")))
+        Mockito.when(resolver.isValidHostCnameList("hostname.athenz.cloud", Collections.singletonList("host2.athenz.cloud"), CertType.X509))
                 .thenReturn(true);
 
         assertTrue(certReq.validateInstanceCnames("provider", athenzSysDomainCache, "hostname.athenz.cloud",

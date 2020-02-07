@@ -53,3 +53,10 @@ type SignedToken String (pattern="[a-zA-Z0-9\\._%=;,-]*");
 
 //A uri-safe path element
 type PathElement String (pattern="[a-zA-Z0-9-\\._~=+@$,:]*");
+
+//CertType denotes various types of certs issued by Athenz
+type CertType Enum {
+    X509,     // TLS X.509 Certificate
+    SSH_HOST, // SSH Host certificate
+    SSH_USER  // SSH User certificate
+}

@@ -83,6 +83,13 @@ func init() {
 	tPathElement.Pattern("[a-zA-Z0-9-\\._~=+@$,:]*")
 	sb.AddType(tPathElement.Build())
 
+	tCertType := rdl.NewEnumTypeBuilder("Enum", "CertType")
+	tCertType.Comment("CertType denotes various types of certs issued by Athenz")
+	tCertType.Element("X509", "TLS X.509 Certificate")
+	tCertType.Element("SSH_HOST", "SSH Host certificate")
+	tCertType.Element("SSH_USER", "SSH User certificate")
+	sb.AddType(tCertType.Build())
+
 	tResourceAccess := rdl.NewStructTypeBuilder("Struct", "ResourceAccess")
 	tResourceAccess.Comment("ResourceAccess can be checked and returned as this resource. (same as ZMS.Access)")
 	tResourceAccess.Field("granted", "Bool", false, nil, "true (allowed) or false (denied)")

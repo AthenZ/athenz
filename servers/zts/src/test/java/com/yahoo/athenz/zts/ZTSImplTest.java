@@ -5038,7 +5038,7 @@ public class ZTSImplTest {
         // setup the hostname resolver for our request
 
         HostnameResolver resolver = Mockito.mock(HostnameResolver.class);
-        Mockito.when(resolver.isValidHostCnameList("host1.athenz.cloud", cnames)).thenReturn(true);
+        Mockito.when(resolver.isValidHostCnameList("host1.athenz.cloud", cnames, CertType.X509)).thenReturn(true);
         Mockito.when(resolver.isValidHostname("host1.athenz.cloud")).thenReturn(true);
         ztsImpl.hostnameResolver = resolver;
 
@@ -5973,7 +5973,7 @@ public class ZTSImplTest {
         // setup the hostname resolver for our request
 
         HostnameResolver resolver = Mockito.mock(HostnameResolver.class);
-        Mockito.when(resolver.isValidHostCnameList("host1.athenz.cloud", cnames)).thenReturn(true);
+        Mockito.when(resolver.isValidHostCnameList("host1.athenz.cloud", cnames, CertType.X509)).thenReturn(true);
         Mockito.when(resolver.isValidHostname("host1.athenz.cloud")).thenReturn(true);
         ztsImpl.hostnameResolver = resolver;
 
