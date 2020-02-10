@@ -145,11 +145,19 @@ public class NotificationManager {
         for (Role role : domain.getRoles()) {
             if (role.getName().equals(roleName)) {
                 notification.getRecipients().addAll(role.getRoleMembers().stream()
-                        .filter(m -> m.getMemberName().startsWith(userDomainPrefix))
+                        .filter(this::isUnexpiredUser)
                         .map(RoleMember::getMemberName).collect(Collectors.toSet()));
                 return;
             }
         }
+    }
+
+    private boolean isUnexpiredUser(RoleMember roleMember) {
+        if (!roleMember.getMemberName().startsWith(userDomainPrefix)) {
+            return false;
+        }
+
+        return (roleMember.getExpiration() == null) || (roleMember.getExpiration().millis() > System.currentTimeMillis());
     }
 
     void addNotificationRecipient(Notification notification, final String recipient, boolean ignoreService) {
