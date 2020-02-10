@@ -1745,7 +1745,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
              throw ZMSUtils.requestError("Unique Product Id must be specified for top level domain", caller);
         }
 
-        dbService.executePutDomainMeta(ctx, domainName, meta, attribute, deleteAllowed, auditRef, caller);
+        // if this is just to update the timestamp then we will handle it separately
+
+        if (ZMSConsts.SYSTEM_META_LAST_MOD_TIME.equals(attribute)) {
+            dbService.updateDomainModTimestamp(domainName);
+        } else {
+            dbService.executePutDomainMeta(ctx, domainName, meta, attribute, deleteAllowed, auditRef, caller);
+        }
         metric.stopTiming(timerMetric, domainName, principalDomain);
     }
 

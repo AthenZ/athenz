@@ -4285,4 +4285,15 @@ public class DBService {
         }
         return noActionMembers;
     }
+
+    void updateDomainModTimestamp(final String domainName) {
+
+        try (ObjectStoreConnection con = store.getConnection(true, true)) {
+
+            // update domain time-stamps, and invalidate local cache entry
+
+            con.updateDomainModTimestamp(domainName);
+            cacheStore.invalidate(domainName);
+        }
+    }
 }
