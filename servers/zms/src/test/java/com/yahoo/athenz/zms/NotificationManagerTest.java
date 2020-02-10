@@ -28,6 +28,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -92,12 +93,30 @@ public class NotificationManagerTest {
         Mockito.when(dbsvc.getAthenzDomain("testdom", false)).thenReturn(mockAthenzDomain);
         List<Role> roles = new ArrayList<>();
         List<RoleMember> members = new ArrayList<>();
+
+        // Add role users
         RoleMember rm = new RoleMember().setMemberName("user.use1");
         members.add(rm);
         rm = new RoleMember().setMemberName("user.use2");
         members.add(rm);
+
+        // Add role user who's authorization just expired
+        long currentTimeInMillis = System.currentTimeMillis();
+        rm = new RoleMember().setMemberName("user.expired");
+        rm.setExpiration(Timestamp.fromMillis(currentTimeInMillis));
+        members.add(rm);
+
+        // Add role user who's authorization will expire tomorrow
+        rm = new RoleMember().setMemberName("user.notExpiredYet");
+        rm.setExpiration(Timestamp.fromMillis(currentTimeInMillis + TimeUnit.DAYS.toMillis(1)));
+        members.add(rm);
+
+
+        // Add role service
         rm = new RoleMember().setMemberName("testdom2.svc1");
         members.add(rm);
+
+        // Add role
         Role r = new Role().setName("testdom:role.role1").setRoleMembers(members);
         roles.add(r);
         Mockito.when(mockAthenzDomain.getName()).thenReturn("testdom");
@@ -115,7 +134,18 @@ public class NotificationManagerTest {
         Notification notification = notificationManager.createNotification("MEMBERSHIP_APPROVAL", recipients, details);
         notificationManager.shutdown();
         assertNotNull(notification);
+
+        // Assert service is not a receipient
         assertFalse(notification.getRecipients().contains("testdom2.svc1"));
+
+        // Assert expired user is not a recipient
+        assertFalse(notification.getRecipients().contains("user.expired"));
+
+        // Assert user with tomorrow's expiration date is a valid recipient
+        assertTrue(notification.getRecipients().contains("user.notExpiredYet"));
+
+        // Assert user with no expiration date is a valid recipient
+        assertTrue(notification.getRecipients().contains("user.use1"));
     }
 
     @Test
