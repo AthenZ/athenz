@@ -248,6 +248,7 @@ public final class ZMSConsts {
     public static final String SYSTEM_META_AUDIT_ENABLED   = "auditenabled";
     public static final String SYSTEM_META_ENABLED         = "enabled";
     public static final String SYSTEM_META_ORG             = "org";
+    public static final String SYSTEM_META_LAST_MOD_TIME   = "modified";
 
     // HTTP operation types used in metrics
     public static final String HTTP_GET     = "GET";

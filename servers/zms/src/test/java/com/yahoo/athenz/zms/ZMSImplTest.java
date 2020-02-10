@@ -1798,6 +1798,31 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testPutDomainSystemMetaModifiedTimestamp() throws InterruptedException {
+
+        final String domainName = "metadomainmodified";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Domain resDom1 = zms.getDomain(mockDomRsrcCtx, domainName);
+        assertNotNull(resDom1);
+        long domMod1 = resDom1.getModified().millis();
+
+        Thread.sleep(1);
+
+        DomainMeta meta = new DomainMeta();
+        zms.putDomainSystemMeta(mockDomRsrcCtx, domainName, "modified", auditRef, meta);
+
+        Domain resDom2 = zms.getDomain(mockDomRsrcCtx, domainName);
+        assertNotNull(resDom2);
+        long domMod2 = resDom2.getModified().millis();
+
+        assertTrue(domMod2 > domMod1);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
     public void testPutDomainMetaInvalid() {
 
         // enable product id support
