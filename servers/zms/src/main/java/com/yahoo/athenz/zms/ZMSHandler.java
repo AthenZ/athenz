@@ -61,6 +61,7 @@ public interface ZMSHandler {
     PublicKeyEntry getPublicKeyEntry(ResourceContext context, String domain, String service, String id);
     void putPublicKeyEntry(ResourceContext context, String domain, String service, String id, String auditRef, PublicKeyEntry publicKeyEntry);
     void deletePublicKeyEntry(ResourceContext context, String domain, String service, String id, String auditRef);
+    void putServiceIdentitySystemMeta(ResourceContext context, String domain, String service, String attribute, String auditRef, ServiceIdentitySystemMeta detail);
     void putTenancy(ResourceContext context, String domain, String service, String auditRef, Tenancy detail);
     void deleteTenancy(ResourceContext context, String domain, String service, String auditRef);
     void putTenant(ResourceContext context, String domain, String service, String tenantDomain, String auditRef, Tenancy detail);

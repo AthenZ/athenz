@@ -270,7 +270,7 @@ public class ZMSResources {
     public void putDomainSystemMeta(@PathParam("name") String name, @PathParam("attribute") String attribute, @HeaderParam("Y-Audit-Ref") String auditRef, DomainMeta detail) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
-            context.authorize("update", "sys.auth:meta." + attribute + "." + name + "", null);
+            context.authorize("update", "sys.auth:meta.domain." + attribute + "." + name + "", null);
             this.delegate.putDomainSystemMeta(context, name, attribute, auditRef, detail);
         } catch (ResourceException e) {
             int code = e.getCode();
@@ -849,7 +849,7 @@ public class ZMSResources {
     public void putRoleSystemMeta(@PathParam("domainName") String domainName, @PathParam("roleName") String roleName, @PathParam("attribute") String attribute, @HeaderParam("Y-Audit-Ref") String auditRef, RoleSystemMeta detail) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
-            context.authorize("update", "sys.auth:role.meta." + attribute + "." + domainName + "", null);
+            context.authorize("update", "sys.auth:meta.role." + attribute + "." + domainName + "", null);
             this.delegate.putRoleSystemMeta(context, domainName, roleName, attribute, auditRef, detail);
         } catch (ResourceException e) {
             int code = e.getCode();
@@ -1425,6 +1425,37 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             default:
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource deletePublicKeyEntry");
+                throw typedException(code, e, ResourceError.class);
+            }
+        }
+    }
+
+    @PUT
+    @Path("/domain/{domain}/service/{service}/meta/system/{attribute}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public void putServiceIdentitySystemMeta(@PathParam("domain") String domain, @PathParam("service") String service, @PathParam("attribute") String attribute, @HeaderParam("Y-Audit-Ref") String auditRef, ServiceIdentitySystemMeta detail) {
+        try {
+            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context.authorize("update", "sys.auth:meta.service." + attribute + "." + domain + "", null);
+            this.delegate.putServiceIdentitySystemMeta(context, domain, service, attribute, auditRef, detail);
+        } catch (ResourceException e) {
+            int code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.CONFLICT:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource putServiceIdentitySystemMeta");
                 throw typedException(code, e, ResourceError.class);
             }
         }

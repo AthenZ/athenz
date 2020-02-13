@@ -1175,6 +1175,30 @@ public class ZMSRDLGeneratedClient {
 
     }
 
+    public ServiceIdentity putServiceIdentitySystemMeta(String domain, String service, String attribute, String auditRef, ServiceIdentitySystemMeta detail) {
+        WebTarget target = base.path("/domain/{domain}/service/{service}/meta/system/{attribute}")
+            .resolveTemplate("domain", domain)
+            .resolveTemplate("service", service)
+            .resolveTemplate("attribute", attribute);
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+        }
+        if (auditRef != null) {
+            invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
+        }
+        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(detail, "application/json"));
+        int code = response.getStatus();
+        switch (code) {
+        case 204:
+            return null;
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
     public Tenancy putTenancy(String domain, String service, String auditRef, Tenancy detail) {
         WebTarget target = base.path("/domain/{domain}/tenancy/{service}")
             .resolveTemplate("domain", domain)

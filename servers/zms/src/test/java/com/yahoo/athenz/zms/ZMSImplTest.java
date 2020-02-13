@@ -540,7 +540,7 @@ public class ZMSImplTest {
             assertion = new Assertion();
             assertion.setAction("delete");
             assertion.setEffect(AssertionEffect.ALLOW);
-            assertion.setResource("sys.auth:meta." + attributeName + "." + domainName);
+            assertion.setResource("sys.auth:meta.domain." + attributeName + "." + domainName);
             assertion.setRole("sys.auth:role.metaadmin");
             assertList.add(assertion);
         }
@@ -4439,9 +4439,10 @@ public class ZMSImplTest {
         assertEquals(serviceRes.getName(), "ServiceGetDom1.Service1".toLowerCase());
         assertEquals(serviceRes.getExecutable(), "/usr/bin/java");
         assertEquals(serviceRes.getGroup(), "users");
-        assertEquals(serviceRes.getProviderEndpoint(),
-                "http://localhost");
         assertEquals(serviceRes.getUser(), "root");
+
+        // provider endpoint is a system meta attribute so we shouldn't saved it
+        assertNull(serviceRes.getProviderEndpoint());
 
         List<String> hosts = serviceRes.getHosts();
         assertNotNull(hosts);
@@ -4466,7 +4467,61 @@ public class ZMSImplTest {
         
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "ServiceGetDom1", auditRef);
     }
-    
+
+    @Test
+    public void testPutServiceIdentitySystemMeta() {
+
+        final String domainName = "service-system-meta";
+        final String serviceName = "service1";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        ServiceIdentity service = createServiceObject(domainName,
+                serviceName, "http://localhost", "/usr/bin/java", "root",
+                "users", "host1");
+
+        zms.putServiceIdentity(mockDomRsrcCtx, domainName, serviceName, auditRef, service);
+
+        ServiceIdentity serviceRes = zms.getServiceIdentity(mockDomRsrcCtx, domainName, serviceName);
+        assertNotNull(serviceRes);
+        assertEquals(serviceRes.getName(), domainName + "." + serviceName);
+        assertEquals(serviceRes.getExecutable(), "/usr/bin/java");
+        assertEquals(serviceRes.getGroup(), "users");
+        assertEquals(serviceRes.getUser(), "root");
+
+        // provider endpoint is a system meta attribute so we shouldn't saved it
+        assertNull(serviceRes.getProviderEndpoint());
+
+        // now let's set the meta attribute
+
+        ServiceIdentitySystemMeta meta = new ServiceIdentitySystemMeta();
+        zms.putServiceIdentitySystemMeta(mockDomRsrcCtx, domainName, serviceName, "providerendpoint", auditRef, meta);
+
+        // we expect no changes
+
+        serviceRes = zms.getServiceIdentity(mockDomRsrcCtx, domainName, serviceName);
+        assertEquals(serviceRes.getName(), domainName + "." + serviceName);
+        assertEquals(serviceRes.getExecutable(), "/usr/bin/java");
+        assertEquals(serviceRes.getGroup(), "users");
+        assertEquals(serviceRes.getUser(), "root");
+        assertNull(serviceRes.getProviderEndpoint());
+
+        // now let's change the endpoint
+
+        meta.setProviderEndpoint("https://localhost");
+        zms.putServiceIdentitySystemMeta(mockDomRsrcCtx, domainName, serviceName, "providerendpoint", auditRef, meta);
+
+        serviceRes = zms.getServiceIdentity(mockDomRsrcCtx, domainName, serviceName);
+        assertEquals(serviceRes.getName(), domainName + "." + serviceName);
+        assertEquals(serviceRes.getExecutable(), "/usr/bin/java");
+        assertEquals(serviceRes.getGroup(), "users");
+        assertEquals(serviceRes.getUser(), "root");
+        assertEquals(serviceRes.getProviderEndpoint(), "https://localhost");
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
     @Test
     public void testGetServiceIdentityThrowException() {
         String domainName = "ServiceGetDom1";
@@ -9223,7 +9278,7 @@ public class ZMSImplTest {
     }
     
     @Test
-    public void testRetriveServiceIdentityValid() {
+    public void testRetrieveServiceIdentityValid() {
         
         String domainName = "serviceretrievedom2";
         String serviceName = "service1";
@@ -9243,8 +9298,10 @@ public class ZMSImplTest {
         assertEquals(serviceRes.getName(), domainName + "." + serviceName);
         assertEquals(serviceRes.getExecutable(), "/usr/bin/java");
         assertEquals(serviceRes.getGroup(), "users");
-        assertEquals(serviceRes.getProviderEndpoint(), "http://localhost");
         assertEquals(serviceRes.getUser(), "root");
+
+        // provider endpoint is a system meta attribute so we shouldn't saved it
+        assertNull(serviceRes.getProviderEndpoint());
 
         List<String> hosts = serviceRes.getHosts();
         assertNotNull(hosts);
@@ -12745,6 +12802,16 @@ public class ZMSImplTest {
         }
 
         try {
+            ServiceIdentitySystemMeta meta = new ServiceIdentitySystemMeta();
+            zmsTest.putServiceIdentitySystemMeta(mockDomRsrcCtx, "ReadOnlyDom1", "Service1", "providerendpoint",
+                    auditRef, meta);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only"));
+        }
+
+        try {
             zmsTest.deleteServiceIdentity(mockDomRsrcCtx, "ReadOnlyDom1", "Service1", auditRef);
             fail();
         } catch (ResourceException ex) {
@@ -16066,7 +16133,7 @@ public class ZMSImplTest {
         Assertion assertion = new Assertion();
         assertion.setAction("delete");
         assertion.setEffect(AssertionEffect.ALLOW);
-        assertion.setResource("sys.auth:role.meta." + attributeName + "." + domainName);
+        assertion.setResource("sys.auth:meta.role." + attributeName + "." + domainName);
         assertion.setRole("sys.auth:role.metaroleadmin");
 
         List<Assertion> assertList = new ArrayList<>();
@@ -16160,16 +16227,16 @@ public class ZMSImplTest {
     }
 
     @Test
-    public void testIsAllowedRoleSystemMetaDelete(){
+    public void testIsAllowedSystemMetaDelete(){
 
         TestAuditLogger alogger = new TestAuditLogger();
         String storeFile = ZMS_DATA_STORE_FILE + "_allowsRoleSystemMeta";
         System.setProperty(ZMSConsts.ZMS_PROP_PRODUCT_ID_SUPPORT, "true");
         ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
-        assertFalse(zmsImpl.isAllowedRoleSystemMetaDelete(mockDomRsrcCtx.principal(), "mockdom1", "auditenabled"));
+        assertFalse(zmsImpl.isAllowedSystemMetaDelete(mockDomRsrcCtx.principal(), "mockdom1", "auditenabled", "role"));
         setupPrincipalRoleSystemMetaDelete(zmsImpl, mockDomRsrcCtx.principal().getFullName(), "mockdom1", "auditenabled");
-        assertTrue(zmsImpl.isAllowedRoleSystemMetaDelete(mockDomRsrcCtx.principal(), "mockdom1", "auditenabled"));
+        assertTrue(zmsImpl.isAllowedSystemMetaDelete(mockDomRsrcCtx.principal(), "mockdom1", "auditenabled", "role"));
         cleanupPrincipalRoleSystemMetaDelete(zmsImpl);
 
         System.clearProperty(ZMSConsts.ZMS_PROP_PRODUCT_ID_SUPPORT);
@@ -17880,4 +17947,76 @@ public class ZMSImplTest {
         System.clearProperty(ZMSConsts.ZMS_PROP_AUTHORITY_CLASSES);
     }
 
+    @Test
+    public void testInvalidConfigValues() {
+
+        ZMSImpl zmsImpl = zmsInit();
+
+        System.setProperty(ZMSConsts.ZMS_PROP_VIRTUAL_DOMAIN_LIMIT, "-10");
+        System.setProperty(ZMSConsts.ZMS_PROP_SIGNED_POLICY_TIMEOUT, "-10");
+
+        zmsImpl.loadConfigurationSettings();
+
+        assertEquals(zmsImpl.virtualDomainLimit, 5);
+        assertEquals(zmsImpl.signedPolicyTimeout, 604800000);
+
+        System.clearProperty(ZMSConsts.ZMS_PROP_VIRTUAL_DOMAIN_LIMIT);
+        System.clearProperty(ZMSConsts.ZMS_PROP_SIGNED_POLICY_TIMEOUT);
+    }
+
+    @Test
+    public void testLoadAuthorities() {
+
+        ZMSImpl zmsImpl = zmsInit();
+
+        assertNull(zmsImpl.userAuthority);
+        assertNull(zmsImpl.principalAuthority);
+
+        // set the authority class properties
+
+        System.setProperty(ZMSConsts.ZMS_PROP_AUTHORITY_CLASSES, ZMSConsts.ZMS_PRINCIPAL_AUTHORITY_CLASS);
+        System.setProperty(ZMSConsts.ZMS_PROP_PRINCIPAL_AUTHORITY_CLASS, ZMSConsts.ZMS_PRINCIPAL_AUTHORITY_CLASS);
+        System.setProperty(ZMSConsts.ZMS_PROP_USER_AUTHORITY_CLASS, ZMSConsts.ZMS_PRINCIPAL_AUTHORITY_CLASS);
+
+        zmsImpl.loadAuthorities();
+
+        assertNotNull(zmsImpl.userAuthority);
+        assertNotNull(zmsImpl.principalAuthority);
+
+        System.clearProperty(ZMSConsts.ZMS_PROP_AUTHORITY_CLASSES);
+        System.clearProperty(ZMSConsts.ZMS_PROP_PRINCIPAL_AUTHORITY_CLASS);
+        System.clearProperty(ZMSConsts.ZMS_PROP_USER_AUTHORITY_CLASS);
+    }
+
+    @Test
+    public void testLoadPublicKeysInvalidService() {
+
+        ZMSImpl zmsImpl = zmsInit();
+
+        // delete all public keys from zms service
+
+        ServiceIdentity serviceRes = zmsImpl.getServiceIdentity(mockDomRsrcCtx, "sys.auth", "zms");
+        List<PublicKeyEntry> keyList = serviceRes.getPublicKeys();
+        for (PublicKeyEntry entry : keyList) {
+            zms.deletePublicKeyEntry(mockDomRsrcCtx, "sys.auth", "zms", entry.getId(), auditRef);
+        }
+
+        // delete all public keys and load again
+
+        zmsImpl.serverPublicKeyMap.clear();
+        zmsImpl.loadServerPublicKeys();
+
+        assertFalse(zmsImpl.serverPublicKeyMap.isEmpty());
+
+        // now verify without the zms service
+
+        zmsImpl.deleteServiceIdentity(mockDomRsrcCtx, "sys.auth", "zms", auditRef);
+
+        // delete all public keys and load again
+
+        zmsImpl.serverPublicKeyMap.clear();
+        zmsImpl.loadServerPublicKeys();
+
+        assertFalse(zmsImpl.serverPublicKeyMap.isEmpty());
+    }
 }

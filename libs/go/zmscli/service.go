@@ -242,20 +242,15 @@ func (cli Zms) AddServiceWithKeys(dn string, sn string, publicKeys []*zms.Public
 
 func (cli Zms) SetServiceEndpoint(dn string, sn string, endpoint string) (*string, error) {
 	shortName := shortname(dn, sn)
-	service, err := cli.Zms.GetServiceIdentity(zms.DomainName(dn), zms.SimpleName(shortName))
+	meta := zms.ServiceIdentitySystemMeta{
+		ProviderEndpoint: endpoint,
+	}
+	err := cli.Zms.PutServiceIdentitySystemMeta(zms.DomainName(dn), zms.SimpleName(shortName), zms.SimpleName("providerendpoint"), cli.AuditRef, &meta)
 	if err != nil {
 		return nil, err
 	}
-	service.ProviderEndpoint = endpoint
-	err = cli.Zms.PutServiceIdentity(zms.DomainName(dn), zms.SimpleName(shortName), cli.AuditRef, service)
-	if err != nil {
-		return nil, err
-	}
-	if cli.Bulkmode {
-		s := ""
-		return &s, nil
-	}
-	return cli.ShowService(dn, shortName)
+	s := "[domain " + dn + " service " + sn + " service-endpoint successfully updated]\n"
+	return &s, nil
 }
 
 func (cli Zms) SetServiceExe(dn string, sn string, exe string, user string, group string) (*string, error) {

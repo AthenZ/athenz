@@ -230,6 +230,10 @@ public class ZMSSchema {
             .arrayField("names", "EntityName", false, "list of service names")
             .field("next", "String", true, "if the response is a paginated list, this attribute specifies the value to be used in the next service list request as the value for the skip query parameter.");
 
+        sb.structType("ServiceIdentitySystemMeta")
+            .comment("Set of system metadata attributes that all services may have and can be changed by system admins.")
+            .field("providerEndpoint", "String", true, "provider callback endpoint");
+
         sb.structType("Template")
             .comment("Solution Template object defined on the server")
             .arrayField("roles", "Role", false, "list of roles in the template")
@@ -587,7 +591,7 @@ public class ZMSSchema {
             .pathParam("attribute", "SimpleName", "name of the system attribute to be modified")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .input("detail", "DomainMeta", "DomainMeta object with updated attribute values")
-            .auth("update", "sys.auth:meta.{attribute}.{name}")
+            .auth("update", "sys.auth:meta.domain.{attribute}.{name}")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 
@@ -961,7 +965,7 @@ public class ZMSSchema {
             .pathParam("attribute", "SimpleName", "name of the system attribute to be modified")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .input("detail", "RoleSystemMeta", "RoleSystemMeta object with updated attribute values")
-            .auth("update", "sys.auth:role.meta.{attribute}.{domainName}")
+            .auth("update", "sys.auth:meta.role.{attribute}.{domainName}")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 
@@ -998,7 +1002,7 @@ public class ZMSSchema {
 ;
 
         sb.resource("Membership", "PUT", "/domain/{domainName}/role/{roleName}/member/{memberName}/decision")
-            .comment("Approve or Reject the request to add specified user to role membership. This endpoint will be used by 2 use cases: 1. Audit enabled roles with authorize (\"update\", \"sys.auth:role.meta.{attribute}.{domainName}\") 2. Selfserve roles in any domain with authorize (\"update\", \"{domainName}:\")")
+            .comment("Approve or Reject the request to add specified user to role membership. This endpoint will be used by 2 use cases: 1. Audit enabled roles with authorize (\"update\", \"sys.auth:meta.role.{attribute}.{domainName}\") 2. Selfserve roles in any domain with authorize (\"update\", \"{domainName}:\")")
             .name("PutMembershipDecision")
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("roleName", "EntityName", "name of the role")
@@ -1332,6 +1336,28 @@ public class ZMSSchema {
             .pathParam("id", "String", "the identifier of the public key to be deleted")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .auth("update", "{domain}:service.{service}")
+            .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("CONFLICT", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("ServiceIdentitySystemMeta", "PUT", "/domain/{domain}/service/{service}/meta/system/{attribute}")
+            .comment("Set the specified service metadata. Caller must have update privileges on the sys.auth domain.")
+            .pathParam("domain", "DomainName", "name of the domain")
+            .pathParam("service", "SimpleName", "name of the service")
+            .pathParam("attribute", "SimpleName", "name of the system attribute to be modified")
+            .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .input("detail", "ServiceIdentitySystemMeta", "ServiceIdentitySystemMeta object with updated attribute values")
+            .auth("update", "sys.auth:meta.service.{attribute}.{domain}")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 

@@ -596,8 +596,12 @@ public class DBService {
         
         boolean requestSuccess;
         if (originalService == null) {
+            // provider endpoint can only be set with system admin privileges
+            service.setProviderEndpoint(null);
             requestSuccess = con.insertServiceIdentity(domainName, service);
         } else {
+            // carrying over provider endpoint from original service
+            service.setProviderEndpoint(originalService.getProviderEndpoint());
             requestSuccess = con.updateServiceIdentity(domainName, service);
         }
         
@@ -613,7 +617,6 @@ public class DBService {
             .append(", \"executable\": \"").append(service.getExecutable()).append('\"')
             .append(", \"user\": \"").append(service.getUser()).append('\"')
             .append(", \"group\": \"").append(service.getGroup()).append('\"')
-            .append(", \"providerEndpoint\": \"").append(service.getProviderEndpoint()).append('\"')
             .append(", \"description\": \"").append(service.getDescription()).append('\"');
          
         // now we need process our public keys depending this is
@@ -2446,6 +2449,23 @@ public class DBService {
         }
     }
 
+    void updateServiceIdentitySystemMetaFields(ServiceIdentity service, final String attribute,
+            boolean deleteAllowed, ServiceIdentitySystemMeta meta) {
+
+        final String caller = "putserviceidentitysystemmeta";
+
+        // system attributes we'll only set if they're available
+        // in the given object
+
+        switch (attribute) {
+            case ZMSConsts.SYSTEM_META_PROVIDER_ENDPOINT:
+                service.setProviderEndpoint(meta.getProviderEndpoint());
+                break;
+            default:
+                throw ZMSUtils.requestError("unknown service system meta attribute: " + attribute, caller);
+        }
+    }
+
     void executePutDomainTemplate(ResourceContext ctx, String domainName, DomainTemplate domainTemplate,
             String auditRef, String caller) {
 
@@ -3467,7 +3487,7 @@ public class DBService {
                 List<RoleMember> roleMembers = role.getRoleMembers();
                 if (roleMembers != null) {
                     List<String> members = role.getMembers();
-                    if (members  == null) {
+                    if (members == null) {
                         members = new ArrayList<>();
                         role.setMembers(members);
                     }
@@ -3624,6 +3644,12 @@ public class DBService {
                 .append("\"}");
     }
 
+    void auditLogServiceIdentitySystemMeta(StringBuilder auditDetails, ServiceIdentity service, String serviceName) {
+        auditDetails.append("{\"name\": \"").append(serviceName)
+                .append("\", \"providerEndpoint\": \"").append(service.getProviderEndpoint())
+                .append("\"}");
+    }
+
     void auditLogRoleMeta(StringBuilder auditDetails, Role role, String roleName) {
         auditDetails.append("{\"name\": \"").append(roleName)
                 .append("\", \"selfServe\": \"").append(role.getSelfServe())
@@ -3765,6 +3791,57 @@ public class DBService {
 
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
                 auditLogRoleSystemMeta(auditDetails, updatedRole, roleName);
+
+                auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
+                        domainName, auditDetails.toString());
+
+                return;
+
+            } catch (ResourceException ex) {
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ex;
+                }
+            }
+        }
+    }
+
+    public void executePutServiceIdentitySystemMeta(ResourceContext ctx, String domainName, String serviceName,
+            ServiceIdentitySystemMeta meta, String attribute, boolean deleteAllowed, String auditRef, String caller) {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
+
+                Domain domain = con.getDomain(domainName);
+                if (domain == null) {
+                    con.rollbackChanges();
+                    throw ZMSUtils.notFoundError(caller + ": Unknown domain: " + domainName, caller);
+                }
+
+                // first verify that auditing requirements are met
+
+                checkDomainAuditEnabled(con, domain, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_SERVICE);
+
+                // retrieve our original service identity object
+
+                ServiceIdentity serviceIdentity = getServiceIdentity(con, domainName, serviceName, false);
+
+                // then we're going to apply the updated fields
+                // from the given object
+
+                updateServiceIdentitySystemMetaFields(serviceIdentity, attribute, deleteAllowed, meta);
+
+                con.updateServiceIdentity(domainName, serviceIdentity);
+                saveChanges(con, domainName);
+
+                // audit log the request
+
+                StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
+                auditLogServiceIdentitySystemMeta(auditDetails, serviceIdentity, serviceName);
 
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
                         domainName, auditDetails.toString());

@@ -50,8 +50,7 @@ import java.util.concurrent.TimeUnit;
 import javax.servlet.http.HttpServletRequest;
 
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
@@ -1470,7 +1469,310 @@ public class DBServiceTest {
         
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
-    
+
+    @Test
+    public void testExecuteDeleteServiceIdentityFailure() {
+
+        String domainName = "servicedelete1";
+        String serviceName = "service1";
+
+        Domain domain = new Domain().setAuditEnabled(false);
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockFileConn);
+        Mockito.when(mockFileConn.getDomain(domainName)).thenReturn(domain);
+        Mockito.when(mockFileConn.deleteServiceIdentity(domainName, serviceName)).thenReturn(false);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        try {
+            zms.dbService.executeDeleteServiceIdentity(mockDomRsrcCtx, domainName, serviceName,
+                    auditRef, "deleteServiceIdentity");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ResourceException.NOT_FOUND, ex.getCode());
+        }
+
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testExecuteDeleteServiceIdentityFailureRetry() {
+
+        String domainName = "servicedelete1";
+        String serviceName = "service1";
+
+        Domain domain = new Domain().setAuditEnabled(false);
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockFileConn);
+        Mockito.when(mockFileConn.getDomain(domainName)).thenReturn(domain);
+        Mockito.when(mockFileConn.deleteServiceIdentity(domainName, serviceName))
+                .thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+        int saveRetryCount = zms.dbService.defaultRetryCount;
+        zms.dbService.defaultRetryCount = 2;
+
+        try {
+            zms.dbService.executeDeleteServiceIdentity(mockDomRsrcCtx, domainName, serviceName,
+                    auditRef, "deleteServiceIdentity");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ResourceException.CONFLICT, ex.getCode());
+        }
+
+        zms.dbService.defaultRetryCount = saveRetryCount;
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testExecuteDeleteEntityFailure() {
+
+        String domainName = "entitydelete1";
+        String entityName = "entity1";
+
+        Domain domain = new Domain().setAuditEnabled(false);
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockFileConn);
+        Mockito.when(mockFileConn.getDomain(domainName)).thenReturn(domain);
+        Mockito.when(mockFileConn.deleteEntity(domainName, entityName)).thenReturn(false);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        try {
+            zms.dbService.executeDeleteEntity(mockDomRsrcCtx, domainName, entityName,
+                    auditRef, "deleteEntity");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ResourceException.NOT_FOUND, ex.getCode());
+        }
+
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testExecuteDeleteEntityFailureRetry() {
+
+        String domainName = "entitydelete1";
+        String entityName = "entity1";
+
+        Domain domain = new Domain().setAuditEnabled(false);
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockFileConn);
+        Mockito.when(mockFileConn.getDomain(domainName)).thenReturn(domain);
+        Mockito.when(mockFileConn.deleteEntity(domainName, entityName))
+                .thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+        int saveRetryCount = zms.dbService.defaultRetryCount;
+        zms.dbService.defaultRetryCount = 2;
+
+        try {
+            zms.dbService.executeDeleteEntity(mockDomRsrcCtx, domainName, entityName,
+                    auditRef, "deleteEntity");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ResourceException.CONFLICT, ex.getCode());
+        }
+
+        zms.dbService.defaultRetryCount = saveRetryCount;
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testExecuteDeleteRoleFailure() {
+
+        String domainName = "roledelete1";
+        String roleName = "role1";
+
+        Domain domain = new Domain().setAuditEnabled(false);
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockFileConn);
+        Mockito.when(mockFileConn.getDomain(domainName)).thenReturn(domain);
+        Mockito.when(mockFileConn.deleteRole(domainName, roleName)).thenReturn(false);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        try {
+            zms.dbService.executeDeleteRole(mockDomRsrcCtx, domainName, roleName,
+                    auditRef, "deleteRole");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ResourceException.NOT_FOUND, ex.getCode());
+        }
+
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testExecuteDeleteRoleFailureRetry() {
+
+        String domainName = "roledelete1";
+        String roleName = "role1";
+
+        Domain domain = new Domain().setAuditEnabled(false);
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockFileConn);
+        Mockito.when(mockFileConn.getDomain(domainName)).thenReturn(domain);
+        Mockito.when(mockFileConn.deleteRole(domainName, roleName))
+                .thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+        int saveRetryCount = zms.dbService.defaultRetryCount;
+        zms.dbService.defaultRetryCount = 2;
+
+        try {
+            zms.dbService.executeDeleteRole(mockDomRsrcCtx, domainName, roleName,
+                    auditRef, "deleteRole");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ResourceException.CONFLICT, ex.getCode());
+        }
+
+        zms.dbService.defaultRetryCount = saveRetryCount;
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testExecuteDeletePolicyFailure() {
+
+        String domainName = "policyDelet1";
+        String policyName = "policy1";
+
+        Domain domain = new Domain().setAuditEnabled(false);
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockFileConn);
+        Mockito.when(mockFileConn.getDomain(domainName)).thenReturn(domain);
+        Mockito.when(mockFileConn.deletePolicy(domainName, policyName)).thenReturn(false);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        try {
+            zms.dbService.executeDeletePolicy(mockDomRsrcCtx, domainName, policyName,
+                    auditRef, "deletePolicy");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ResourceException.NOT_FOUND, ex.getCode());
+        }
+
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testExecuteDeletePolicyFailureRetry() {
+
+        String domainName = "policyDelet1";
+        String policyName = "policy1";
+
+        Domain domain = new Domain().setAuditEnabled(false);
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockFileConn);
+        Mockito.when(mockFileConn.getDomain(domainName)).thenReturn(domain);
+        Mockito.when(mockFileConn.deletePolicy(domainName, policyName))
+                .thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+        int saveRetryCount = zms.dbService.defaultRetryCount;
+        zms.dbService.defaultRetryCount = 2;
+
+        try {
+            zms.dbService.executeDeletePolicy(mockDomRsrcCtx, domainName, policyName,
+                    auditRef, "deletePolicy");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ResourceException.CONFLICT, ex.getCode());
+        }
+
+        zms.dbService.defaultRetryCount = saveRetryCount;
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testExecutePutPublicKeyEntryFailureRetry() {
+
+        String domainName = "servicepubpubkeydom1";
+        String serviceName = "service1";
+
+        Domain domain = new Domain().setAuditEnabled(false);
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockFileConn);
+        Mockito.when(mockFileConn.getDomain(domainName)).thenReturn(domain);
+        PublicKeyEntry keyEntry = new PublicKeyEntry().setId("0").setKey("key");
+        Mockito.when(mockFileConn.getPublicKeyEntry(domainName, serviceName, "0", false)).thenReturn(keyEntry);
+        Mockito.when(mockFileConn.updatePublicKeyEntry(domainName, serviceName, keyEntry))
+                .thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+        int saveRetryCount = zms.dbService.defaultRetryCount;
+        zms.dbService.defaultRetryCount = 2;
+
+        try {
+            zms.dbService.executePutPublicKeyEntry(mockDomRsrcCtx, domainName, serviceName,
+                    keyEntry, auditRef, "putPublicKeyEntry");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ResourceException.CONFLICT, ex.getCode());
+        }
+
+        zms.dbService.defaultRetryCount = saveRetryCount;
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testExecuteDeletePublicKeyEntryFailureRetry() {
+
+        String domainName = "servicepubpubkeydom1";
+        String serviceName = "service1";
+
+        Domain domain = new Domain().setAuditEnabled(false);
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockFileConn);
+        Mockito.when(mockFileConn.getDomain(domainName)).thenReturn(domain);
+        Mockito.when(mockFileConn.deletePublicKeyEntry(domainName, serviceName, "0"))
+                .thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+        int saveRetryCount = zms.dbService.defaultRetryCount;
+        zms.dbService.defaultRetryCount = 2;
+
+        try {
+            zms.dbService.executeDeletePublicKeyEntry(mockDomRsrcCtx, domainName, serviceName,
+                    "0", auditRef, "deletePublicKeyEntry");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ResourceException.CONFLICT, ex.getCode());
+        }
+
+        zms.dbService.defaultRetryCount = saveRetryCount;
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testExecutePutPublicKeyEntryFailure() {
+
+        String domainName = "servicepubpubkeydom1";
+        String serviceName = "service1";
+
+        Domain domain = new Domain().setAuditEnabled(false);
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockFileConn);
+        Mockito.when(mockFileConn.getDomain(domainName)).thenReturn(domain);
+        PublicKeyEntry keyEntry = new PublicKeyEntry().setId("0").setKey("key");
+        Mockito.when(mockFileConn.getPublicKeyEntry(domainName, serviceName, "0", false)).thenReturn(keyEntry);
+        Mockito.when(mockFileConn.updatePublicKeyEntry(domainName, serviceName, keyEntry)).thenReturn(false);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        try {
+            zms.dbService.executePutPublicKeyEntry(mockDomRsrcCtx, domainName, serviceName,
+                    keyEntry, auditRef, "putPublicKeyEntry");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ResourceException.INTERNAL_SERVER_ERROR, ex.getCode());
+        }
+
+        zms.dbService.store = saveStore;
+    }
+
     @Test
     public void testExecutePutRole() {
 
@@ -1599,14 +1901,40 @@ public class DBServiceTest {
     }
 
     @Test
+    public void testExecutePutServiceIdentityFailure() {
+
+        String domainName = "serviceadddom1";
+        String serviceName = "service1";
+
+        ServiceIdentity service = createServiceObject(domainName,
+                serviceName, "http://localhost", "/usr/bin/java", "root",
+                "users", "host1");
+
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockFileConn);
+        Mockito.when(mockFileConn.insertServiceIdentity(anyString(), any(ServiceIdentity.class)))
+                .thenReturn(false);
+        Domain domain = new Domain().setName(domainName);
+        Mockito.when(mockFileConn.getDomain(domainName)).thenReturn(domain);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        try {
+            zms.dbService.executePutServiceIdentity(mockDomRsrcCtx, domainName, serviceName, service,
+                    auditRef, "putServiceIdentity");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
+        }
+
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
     public void testExecutePutServiceIdentityRetryException() {
 
         String domainName = "serviceadddom1";
         String serviceName = "service1";
-        
-        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
-                "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
         ServiceIdentity service = createServiceObject(domainName,
                 serviceName, "http://localhost", "/usr/bin/java", "root",
@@ -1633,9 +1961,66 @@ public class DBServiceTest {
         
         zms.dbService.defaultRetryCount = saveRetryCount;
         zms.dbService.store = saveStore;
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
-    
+
+    @Test
+    public void testExecutePutServiceIdentitySystemMetaFailureInvalidDomain() {
+
+        String domainName = "serviceadddom1";
+        String serviceName = "service1";
+
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockFileConn);
+        Mockito.when(mockFileConn.getDomain(domainName)).thenReturn(null);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        ServiceIdentitySystemMeta meta = new ServiceIdentitySystemMeta();
+        meta.setProviderEndpoint("https://localhost");
+        try {
+            zms.dbService.executePutServiceIdentitySystemMeta(mockDomRsrcCtx, domainName, serviceName, meta,
+                    "providerendpoint", true, auditRef, "putServiceIdentitySystemMeta");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testExecutePutServiceIdentitySystemMetaFailureRetry() {
+
+        String domainName = "serviceadddom1";
+        String serviceName = "service1";
+
+        Domain domain = new Domain().setAuditEnabled(false);
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockFileConn);
+        Mockito.when(mockFileConn.getDomain(domainName)).thenReturn(domain);
+        ServiceIdentity service = new ServiceIdentity().setProviderEndpoint("https://localhost");
+        Mockito.when(mockFileConn.getServiceIdentity(domainName, serviceName)).thenReturn(service);
+        Mockito.when(mockFileConn.updateServiceIdentity(domainName, service))
+                .thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+        int saveRetryCount = zms.dbService.defaultRetryCount;
+        zms.dbService.defaultRetryCount = 2;
+
+        ServiceIdentitySystemMeta meta = new ServiceIdentitySystemMeta();
+        meta.setProviderEndpoint("https://localhost");
+        try {
+            zms.dbService.executePutServiceIdentitySystemMeta(mockDomRsrcCtx, domainName, serviceName, meta,
+                    "providerendpoint", true, auditRef, "putServiceIdentitySystemMeta");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ResourceException.CONFLICT, ex.getCode());
+        }
+
+        zms.dbService.defaultRetryCount = saveRetryCount;
+        zms.dbService.store = saveStore;
+    }
+
     @Test
     public void testExecutePutServiceIdentityModifyHost() {
 
@@ -3532,6 +3917,58 @@ public class DBServiceTest {
     }
 
     @Test
+    public void testExecutePutQuotaFailureRetry() {
+
+        String domainName = "putquota";
+
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockFileConn);
+        Quota quota = new Quota();
+        Mockito.when(mockFileConn.insertQuota(domainName, quota))
+                .thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+        int saveRetryCount = zms.dbService.defaultRetryCount;
+        zms.dbService.defaultRetryCount = 2;
+
+        try {
+            zms.dbService.executePutQuota(mockDomRsrcCtx, domainName, quota,
+                    auditRef, "putQuota");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ResourceException.CONFLICT, ex.getCode());
+        }
+
+        zms.dbService.defaultRetryCount = saveRetryCount;
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testExecuteDeleteQuotaFailureRetry() {
+
+        String domainName = "putquota";
+
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockFileConn);
+        Mockito.when(mockFileConn.deleteQuota(domainName))
+                .thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+        int saveRetryCount = zms.dbService.defaultRetryCount;
+        zms.dbService.defaultRetryCount = 2;
+
+        try {
+            zms.dbService.executeDeleteQuota(mockDomRsrcCtx, domainName, auditRef, "deleteQuota");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ResourceException.CONFLICT, ex.getCode());
+        }
+
+        zms.dbService.defaultRetryCount = saveRetryCount;
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
     public void testExecutePutQuotaInsert() {
 
         String domainName = "executeputquotainsert";
@@ -3792,6 +4229,21 @@ public class DBServiceTest {
         assertTrue(role.getAuditEnabled());
         try {
             zms.dbService.updateRoleSystemMetaFields(role, "unknown", true, meta);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+    }
+
+    @Test
+    public void testUpdateServiceIdentitySystemMetaFields() {
+        ServiceIdentity service = new ServiceIdentity();
+        ServiceIdentitySystemMeta meta = new ServiceIdentitySystemMeta()
+                .setProviderEndpoint("https://localhost");
+        zms.dbService.updateServiceIdentitySystemMetaFields(service, "providerendpoint", true, meta);
+        assertEquals(service.getProviderEndpoint(), "https://localhost");
+        try {
+            zms.dbService.updateServiceIdentitySystemMetaFields(service, "unknown", true, meta);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -5731,5 +6183,55 @@ public class DBServiceTest {
         assertEquals(membersChecked, 3);
 
         zms.dbService.executeDeleteDomain(mockDomRsrcCtx, domainName, auditRef, "deletedomain");
+    }
+
+    @Test
+    public void testSetMembersInDomainNullRoles() {
+
+        String domainName = "null-roles";
+
+        Domain domain = new Domain().setModified(Timestamp.fromCurrentTime());
+        AthenzDomain athenzDomain = new AthenzDomain(domainName);
+        athenzDomain.setDomain(domain);
+        athenzDomain.setRoles(null);
+        Mockito.when(mockObjStore.getConnection(true, false)).thenReturn(mockFileConn);
+        Mockito.when(mockFileConn.getAthenzDomain(domainName)).thenReturn(athenzDomain);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        AthenzDomain resAthenzDomain = zms.dbService.getAthenzDomain(domainName, false);
+        assertNull(resAthenzDomain.getRoles());
+
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testSetMembersInDomainEmptyMembers() {
+
+        String domainName = "no-role-members";
+
+        List<RoleMember> roleMembers = new ArrayList<>();
+        roleMembers.add(new RoleMember().setMemberName("user.admin"));
+        Role role = new Role().setMembers(null).setRoleMembers(roleMembers);
+        List<Role> roles = new ArrayList<>();
+        roles.add(role);
+        Domain domain = new Domain().setModified(Timestamp.fromCurrentTime());
+        AthenzDomain athenzDomain = new AthenzDomain(domainName);
+        athenzDomain.setDomain(domain);
+        athenzDomain.setRoles(roles);
+        Mockito.when(mockObjStore.getConnection(true, false)).thenReturn(mockFileConn);
+        Mockito.when(mockFileConn.getAthenzDomain(domainName)).thenReturn(athenzDomain);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        AthenzDomain resAthenzDomain = zms.dbService.getAthenzDomain(domainName, false);
+        assertNotNull(resAthenzDomain.getRoles());
+        List<String> members = resAthenzDomain.getRoles().get(0).getMembers();
+        assertEquals(members.size(), 1);
+        assertEquals(members.get(0), "user.admin");
+
+        zms.dbService.store = saveStore;
     }
 }

@@ -113,6 +113,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     private static final String TYPE_QUOTA = "Quota";
     private static final String TYPE_ROLE_SYSTEM_META = "RoleSystemMeta";
     private static final String TYPE_ROLE_META = "RoleMeta";
+    private static final String TYPE_SERVICE_IDENTITY_SYSTEM_META = "ServiceIdentitySystemMeta";
 
     private static final String SERVER_READ_ONLY_MESSAGE = "Server in Maintenance Read-Only mode. Please try your request later";
 
@@ -1458,24 +1459,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return accessStatus == AccessStatus.ALLOWED;
     }
 
-    boolean isAllowedSystemMetaDelete(Principal principal, final String reqDomain,
-            final String attribute) {
-
-        // the authorization policy resides in official sys.auth domain
-
-        AthenzDomain domain = getAthenzDomain(SYS_AUTH, true);
-
-        // evaluate our domain's roles and policies to see if access
-        // is allowed or not for the given operation and resource
-        // our action are always converted to lowercase
-
-        String resource = SYS_AUTH + ":meta." + attribute + "." + reqDomain;
-        AccessStatus accessStatus = evaluateAccess(domain, principal.getFullName(), "delete",
-                resource, null, null);
-
-        return accessStatus == AccessStatus.ALLOWED;
-    }
-
     public void deleteSubDomain(ResourceContext ctx, String parent, String name, String auditRef) {
 
         final String caller = "deletesubdomain";
@@ -1733,7 +1716,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // if we are resetting the configured value then the caller
         // must also have a delete action available for the same resource
 
-        boolean deleteAllowed = isAllowedSystemMetaDelete(principal, domainName, attribute);
+        boolean deleteAllowed = isAllowedSystemMetaDelete(principal, domainName, attribute, "domain");
 
         // if this productId is already used by any domain it will be
         // seen in dbService and exception thrown but we want to make
@@ -4246,7 +4229,58 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         dbService.executePutServiceIdentity(ctx, domainName, serviceName, service, auditRef, caller);
         metric.stopTiming(timerMetric, domainName, principalDomain);
     }
-    
+
+    @Override
+    public void putServiceIdentitySystemMeta(ResourceContext ctx, String domainName, String serviceName,
+             String attribute, String auditRef, ServiceIdentitySystemMeta meta) {
+
+        final String caller = "putservicesystemmeta";
+        metric.increment(ZMSConsts.HTTP_PUT);
+        logPrincipal(ctx);
+
+        if (readOnlyMode) {
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
+        }
+
+        validateRequest(ctx.request(), caller);
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        validate(serviceName, TYPE_SIMPLE_NAME, caller);
+        validate(meta, TYPE_SERVICE_IDENTITY_SYSTEM_META, caller);
+        validate(attribute, TYPE_SIMPLE_NAME, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+
+        domainName = domainName.toLowerCase();
+        serviceName = serviceName.toLowerCase();
+        attribute = attribute.toLowerCase();
+
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
+        Object timerMetric = metric.startTiming("putservicesystemmeta_timing", domainName, principalDomain);
+
+        // verify that request is properly authenticated for this request
+
+        Principal principal = ((RsrcCtxWrapper) ctx).principal();
+        verifyAuthorizedServiceOperation(principal.getAuthorizedService(), caller);
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("putServiceSystemMeta: name={}, service={} attribute={}, meta={}",
+                    domainName, serviceName, attribute, meta);
+        }
+
+        // if we are resetting the configured value then the caller
+        // must also have a delete action available for the same resource
+
+        boolean deleteAllowed = isAllowedSystemMetaDelete(principal, domainName, attribute, "service");
+
+        dbService.executePutServiceIdentitySystemMeta(ctx, domainName, serviceName, meta, attribute,
+                deleteAllowed, auditRef, caller);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
+    }
+
     public ServiceIdentity getServiceIdentity(ResourceContext ctx, String domainName, String serviceName) {
         
         final String caller = "getserviceidentity";
@@ -6915,8 +6949,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return ROOT_DIR;
     }
 
-    boolean isAllowedRoleSystemMetaDelete(Principal principal, final String reqDomain,
-            final String attribute) {
+    boolean isAllowedSystemMetaDelete(Principal principal, final String reqDomain, final String attribute,
+            final String objectType) {
 
         // the authorization policy resides in official sys.auth domain
 
@@ -6926,7 +6960,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // is allowed or not for the given operation and resource
         // our action are always converted to lowercase
 
-        String resource = SYS_AUTH + ":role.meta." + attribute + "." + reqDomain;
+        String resource = SYS_AUTH + ":meta." + objectType + "." + attribute + "." + reqDomain;
         AccessStatus accessStatus = evaluateAccess(domain, principal.getFullName(), "delete",
                 resource, null, null);
 
@@ -6977,7 +7011,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // if we are resetting the configured value then the caller
         // must also have a delete action available for the same resource
 
-        boolean deleteAllowed = isAllowedRoleSystemMetaDelete(principal, domainName, attribute);
+        boolean deleteAllowed = isAllowedSystemMetaDelete(principal, domainName, attribute, "role");
 
         dbService.executePutRoleSystemMeta(ctx, domainName, roleName, meta, attribute, deleteAllowed, auditRef, caller);
         metric.stopTiming(timerMetric, domainName, principalDomain);
