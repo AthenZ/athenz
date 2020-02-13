@@ -136,3 +136,22 @@ resource PublicKeyEntry DELETE "/domain/{domain}/service/{service}/publickey/{id
         ResourceError TOO_MANY_REQUESTS;
     }
 }
+
+//Set the specified service metadata. Caller must have update privileges on the sys.auth domain.
+resource ServiceIdentity PUT "/domain/{domain}/service/{service}/meta/system/{attribute}" {
+    DomainName domain; //name of the domain
+    SimpleName service; //name of the service
+    SimpleName attribute; //name of the system attribute to be modified
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    ServiceIdentitySystemMeta detail; //ServiceIdentitySystemMeta object with updated attribute values
+    authorize ("update", "sys.auth:meta.service.{attribute}.{domain}");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}

@@ -2993,6 +2993,7 @@ public class ZMSClientTest {
             assertEquals(ex.getCode(), 401);
         }
     }
+
     @Test
     public void testPutRoleSystemMeta() {
         ZMSClient client = createClient(systemAdminUser);
@@ -3007,6 +3008,7 @@ public class ZMSClientTest {
             assertEquals(ex.getCode(), 400);
         }
     }
+
     @Test
     public void testGetRole() {
         ZMSClient client = createClient(systemAdminUser);
@@ -3101,6 +3103,21 @@ public class ZMSClientTest {
             verify(c, times(1)).putRoleReview("domain1", "role1", AUDIT_REF, role);
         } catch (ResourceException ex) {
             fail();
+        }
+    }
+
+    @Test
+    public void testPutServiceIdentitySystemMeta() {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        ServiceIdentitySystemMeta meta = new ServiceIdentitySystemMeta().setProviderEndpoint("https://localhost");
+        try {
+            Mockito.when(c.putServiceIdentitySystemMeta("domain1", "service1", "providerendpoint", AUDIT_REF, meta)).thenThrow(new NullPointerException());
+            client.putServiceIdentitySystemMeta("domain1", "service1", "providerendpoint", AUDIT_REF, meta);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
         }
     }
 }

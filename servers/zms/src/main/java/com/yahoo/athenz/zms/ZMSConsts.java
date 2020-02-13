@@ -242,13 +242,14 @@ public final class ZMSConsts {
     public static final String OBJECT_PRINCIPAL = "principal";
     public static final String OBJECT_HOST      = "host";
 
-    public static final String SYSTEM_META_PRODUCT_ID      = "productid";
-    public static final String SYSTEM_META_ACCOUNT         = "account";
-    public static final String SYSTEM_META_CERT_DNS_DOMAIN = "certdnsdomain";
-    public static final String SYSTEM_META_AUDIT_ENABLED   = "auditenabled";
-    public static final String SYSTEM_META_ENABLED         = "enabled";
-    public static final String SYSTEM_META_ORG             = "org";
-    public static final String SYSTEM_META_LAST_MOD_TIME   = "modified";
+    public static final String SYSTEM_META_PRODUCT_ID        = "productid";
+    public static final String SYSTEM_META_ACCOUNT           = "account";
+    public static final String SYSTEM_META_CERT_DNS_DOMAIN   = "certdnsdomain";
+    public static final String SYSTEM_META_AUDIT_ENABLED     = "auditenabled";
+    public static final String SYSTEM_META_ENABLED           = "enabled";
+    public static final String SYSTEM_META_ORG               = "org";
+    public static final String SYSTEM_META_LAST_MOD_TIME     = "modified";
+    public static final String SYSTEM_META_PROVIDER_ENDPOINT = "providerendpoint";
 
     // HTTP operation types used in metrics
     public static final String HTTP_GET     = "GET";

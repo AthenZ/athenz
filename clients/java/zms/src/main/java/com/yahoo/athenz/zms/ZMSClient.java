@@ -1230,6 +1230,28 @@ public class ZMSClient implements Closeable {
     }
 
     /**
+     * Set the service system meta parameters
+     *
+     * @param domainName  name of the domain
+     * @param serviceName name of the service
+     * @param attribute   service meta attribute being modified in this request
+     * @param auditRef    string containing audit specification or ticket number
+     * @param meta        meta parameters to be set on the service
+     * @throws ZMSClientException in case of failure
+     */
+    public void putServiceIdentitySystemMeta(String domainName, String serviceName,
+                                             String attribute, String auditRef, ServiceIdentitySystemMeta meta) {
+        updatePrincipal();
+        try {
+            client.putServiceIdentitySystemMeta(domainName, serviceName, attribute, auditRef, meta);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
      * Retrieve the specified service object from a domain
      *
      * @param domainName  name of the domain

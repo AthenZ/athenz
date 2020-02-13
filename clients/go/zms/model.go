@@ -2205,6 +2205,60 @@ func (self *ServiceIdentityList) Validate() error {
 }
 
 //
+// ServiceIdentitySystemMeta - Set of system metadata attributes that all
+// services may have and can be changed by system admins.
+//
+type ServiceIdentitySystemMeta struct {
+
+	//
+	// provider callback endpoint
+	//
+	ProviderEndpoint string `json:"providerEndpoint,omitempty" rdl:"optional"`
+}
+
+//
+// NewServiceIdentitySystemMeta - creates an initialized ServiceIdentitySystemMeta instance, returns a pointer to it
+//
+func NewServiceIdentitySystemMeta(init ...*ServiceIdentitySystemMeta) *ServiceIdentitySystemMeta {
+	var o *ServiceIdentitySystemMeta
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(ServiceIdentitySystemMeta)
+	}
+	return o
+}
+
+type rawServiceIdentitySystemMeta ServiceIdentitySystemMeta
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a ServiceIdentitySystemMeta
+//
+func (self *ServiceIdentitySystemMeta) UnmarshalJSON(b []byte) error {
+	var m rawServiceIdentitySystemMeta
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := ServiceIdentitySystemMeta(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *ServiceIdentitySystemMeta) Validate() error {
+	if self.ProviderEndpoint != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.ProviderEndpoint)
+		if !val.Valid {
+			return fmt.Errorf("ServiceIdentitySystemMeta.providerEndpoint does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+//
 // Template - Solution Template object defined on the server
 //
 type Template struct {

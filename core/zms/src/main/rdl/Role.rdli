@@ -186,7 +186,7 @@ resource Role PUT "/domain/{domainName}/role/{roleName}/meta/system/{attribute}"
     SimpleName attribute; //name of the system attribute to be modified
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     RoleSystemMeta detail; //RoleSystemMeta object with updated attribute values
-    authorize ("update", "sys.auth:role.meta.{attribute}.{domainName}");
+    authorize ("update", "sys.auth:meta.role.{attribute}.{domainName}");
     expected NO_CONTENT;
     exceptions {
         ResourceError NOT_FOUND;
@@ -218,7 +218,7 @@ resource Role PUT "/domain/{domainName}/role/{roleName}/meta" {
 
 //Approve or Reject the request to add specified user to role membership.
 // This endpoint will be used by 2 use cases:
-// 1. Audit enabled roles with authorize ("update", "sys.auth:role.meta.{attribute}.{domainName}")
+// 1. Audit enabled roles with authorize ("update", "sys.auth:meta.role.{attribute}.{domainName}")
 // 2. Selfserve roles in any domain with authorize ("update", "{domainName}:")
 resource Membership PUT "/domain/{domainName}/role/{roleName}/member/{memberName}/decision" (name=PutMembershipDecision) {
     DomainName domainName; //name of the domain

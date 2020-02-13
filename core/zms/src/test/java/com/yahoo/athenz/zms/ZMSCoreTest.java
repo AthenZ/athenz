@@ -2860,4 +2860,31 @@ public class ZMSCoreTest {
         assertFalse(drm2.equals(drm));
         assertFalse(drm2.equals(null));
     }
+
+    @Test
+    public void testServiceIdentitySystemMetaMethod() {
+        Schema schema = ZMSSchema.instance();
+        Validator validator = new Validator(schema);
+
+        ServiceIdentitySystemMeta meta = new ServiceIdentitySystemMeta().setProviderEndpoint("https://host:443/endpoint");
+        assertTrue(meta.equals(meta));
+
+        Result result = validator.validate(meta, "ServiceIdentitySystemMeta");
+        assertTrue(result.valid);
+
+        assertEquals(meta.getProviderEndpoint(), "https://host:443/endpoint");
+
+        ServiceIdentitySystemMeta meta2 = new ServiceIdentitySystemMeta().setProviderEndpoint("https://host:443/endpoint");
+        assertTrue(meta2.equals(meta));
+
+        meta2.setProviderEndpoint("https://host:443/endpoint2");
+        assertFalse(meta2.equals(meta));
+        meta2.setProviderEndpoint(null);
+        assertFalse(meta2.equals(meta));
+        meta2.setProviderEndpoint("https://host:443/endpoint2");
+
+        assertFalse(meta2.equals(null));
+
+        assertFalse(meta.equals(new String()));
+    }
 }
