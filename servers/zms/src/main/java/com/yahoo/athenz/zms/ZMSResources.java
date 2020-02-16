@@ -1848,11 +1848,11 @@ public class ZMSResources {
     @GET
     @Path("/sys/modified_domains")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getSignedDomains(@QueryParam("domain") String domain, @QueryParam("metaonly") String metaOnly, @QueryParam("metaattr") String metaAttr, @HeaderParam("If-None-Match") String matchingTag) {
+    public Response getSignedDomains(@QueryParam("domain") String domain, @QueryParam("metaonly") String metaOnly, @QueryParam("metaattr") String metaAttr, @QueryParam("master") Boolean master, @HeaderParam("If-None-Match") String matchingTag) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            return this.delegate.getSignedDomains(context, domain, metaOnly, metaAttr, matchingTag);
+            return this.delegate.getSignedDomains(context, domain, metaOnly, metaAttr, master, matchingTag);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {

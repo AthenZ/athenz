@@ -1515,7 +1515,7 @@ public class ZMSRDLGeneratedClient {
 
     }
 
-    public SignedDomains getSignedDomains(String domain, String metaOnly, String metaAttr, String matchingTag, java.util.Map<String, java.util.List<String>> headers) {
+    public SignedDomains getSignedDomains(String domain, String metaOnly, String metaAttr, Boolean master, String matchingTag, java.util.Map<String, java.util.List<String>> headers) {
         WebTarget target = base.path("/sys/modified_domains");
         if (domain != null) {
             target = target.queryParam("domain", domain);
@@ -1525,6 +1525,9 @@ public class ZMSRDLGeneratedClient {
         }
         if (metaAttr != null) {
             target = target.queryParam("metaattr", metaAttr);
+        }
+        if (master != null) {
+            target = target.queryParam("master", master);
         }
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {

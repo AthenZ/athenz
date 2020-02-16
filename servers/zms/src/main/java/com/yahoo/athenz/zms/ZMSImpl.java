@@ -4756,9 +4756,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         signedDomain.setSignature(signature).setKeyId(privateKey.getId());
         return signedDomain;
     }
-    
+
+    @Override
     public Response getSignedDomains(ResourceContext ctx, String domainName, String metaOnly,
-            String metaAttr, String matchingTag) {
+            String metaAttr, Boolean master, String matchingTag) {
 
         final String caller = "getsigneddomains";
         metric.increment(ZMSConsts.HTTP_GET);
@@ -4792,7 +4793,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // for all signed domain operations
         
         Principal principal = ((RsrcCtxWrapper) ctx).principal();
-        boolean masterCopy = useMasterCopyForSignedDomains && principal.getFullName().startsWith("sys.");
+        boolean masterCopy = (useMasterCopyForSignedDomains || master == Boolean.TRUE)
+                && principal.getFullName().startsWith("sys.");
         
         // if we're given a specific domain then we don't need to
         // retrieve the list of modified domains

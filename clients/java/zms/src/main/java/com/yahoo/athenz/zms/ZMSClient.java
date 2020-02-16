@@ -1716,7 +1716,7 @@ public class ZMSClient implements Closeable {
      */
     public SignedDomains getSignedDomains(String domainName, String metaOnly, String matchingTag,
                                           Map<String, List<String>> responseHeaders) {
-        return getSignedDomains(domainName, metaOnly, null, matchingTag, responseHeaders);
+        return getSignedDomains(domainName, metaOnly, null, true, matchingTag, responseHeaders);
     }
 
     /**
@@ -1748,9 +1748,44 @@ public class ZMSClient implements Closeable {
      */
     public SignedDomains getSignedDomains(String domainName, String metaOnly, String metaAttr,
                                           String matchingTag, Map<String, List<String>> responseHeaders) {
+        return getSignedDomains(domainName, metaOnly, metaAttr, true, matchingTag, responseHeaders);
+    }
+
+    /**
+     * Retrieve the list of all domain data from the ZMS Server that
+     * is signed with ZMS's private key. It will pass an optional matchingTag
+     * so that ZMS can skip returning domains if no changes have taken
+     * place since that tag was issued.
+     *
+     * @param domainName      name of the domain. if specified, the server will
+     *                        only return this domain in the result set
+     * @param metaOnly        (can be null) must have value of true or false (default).
+     *                        if set to true, zms server will only return meta information
+     *                        about each domain (description, last modified timestamp, etc) and
+     *                        no role/policy/service details will be returned.
+     * @param metaAttr        (can be null) if metaOnly option is set to true, this
+     *                        parameter can filter the results based on the presence of the
+     *                        requested attribute. Allowed values are: account, ypmid, and all.
+     *                        account - only return domains that have the account value set
+     *                        ypmid - only return domains that have the ypmid value set
+     *                        all - return all domains (no filtering).
+     * @param masterCopy      system principals can request the request to be processed
+     *                        from the master data source instead of read replicas in case
+     *                        there are any configured
+     * @param matchingTag     (can be null) contains modified timestamp received
+     *                        with last request. If null, then return all domains.
+     * @param responseHeaders contains the "tag" returned for modification
+     *                        time of the domains, map key = "tag", List should
+     *                        contain a single value timestamp String to be used
+     *                        with subsequent call as matchingTag to this API
+     * @return list of domains signed by ZMS Server
+     * @throws ZMSClientException in case of failure
+     */
+    public SignedDomains getSignedDomains(String domainName, String metaOnly, String metaAttr,
+                                          boolean masterCopy, String matchingTag, Map<String, List<String>> responseHeaders) {
         updatePrincipal();
         try {
-            return client.getSignedDomains(domainName, metaOnly, metaAttr, matchingTag, responseHeaders);
+            return client.getSignedDomains(domainName, metaOnly, metaAttr, masterCopy, matchingTag, responseHeaders);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
