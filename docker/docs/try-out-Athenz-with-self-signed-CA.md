@@ -8,15 +8,21 @@
     - [Prepare certificates](#prepare-certificates)
     - [Overwrite env., and continue the setup](#overwrite-env-and-continue-the-setup)
     - [Appendix](#appendix)
-        - [Note for mac users](#note-for-mac-users)
+        - [Note for mac users (not recommended)](#note-for-mac-users-not-recommended)
 
 <!-- /TOC -->
 
 <a id="markdown-prerequisites" name="prerequisites"></a>
 ## Prerequisites
 
-1. `openssl`
-1. `keytool`
+All the setup commands below are expected to run inside [athenz-setup-env](../setup-scripts/Dockerfile) container.
+```bash
+docker run --rm -it \
+    -v "${BASE_DIR}:/athenz" \
+    --user "$(id -u):$(id -g)" \
+    athenz-setup-env \
+    sh
+```
 
 <a id="markdown-prepare-certificates" name="prepare-certificates"></a>
 ## Prepare certificates
@@ -79,6 +85,7 @@
 ## Overwrite env., and continue the setup
 
 ```bash
+cat <<EOF > "${DOCKER_DIR}/setup-scripts/dev-env-exports.sh"
 # CAs
 export CA_DIR="${DEV_CA_DIR}"
 export ATHENZ_CA_PATH="${DEV_ATHENZ_CA_PATH}"
@@ -105,13 +112,14 @@ export ZTS_SIGNER_CERT_PATH="${DEV_ZTS_SIGNER_CERT_PATH}"
 export ZMS_CLIENT_CERT_KEY_PATH="${DEV_ZMS_CLIENT_CERT_KEY_PATH}"
 # export ZMS_CLIENT_CERT_PATH="${DEV_ZMS_CLIENT_CERT_PATH}"
 export ZMS_CLIENT_CERT_PATH="${DEV_ZMS_CLIENT_CERT_BUNDLE_PATH}"
+EOF
 ```
 
 <a id="markdown-appendix" name="appendix"></a>
 ## Appendix
 
-<a id="markdown-note-for-mac-users" name="note-for-mac-users"></a>
-### Note for mac users
+<a id="markdown-note-for-mac-users-not-recommended" name="note-for-mac-users-not-recommended"></a>
+### Note for mac users (not recommended)
 
 If you are using macOS 10.13+, the default `openssl` is `LibreSSL`, which does not support configuration using env. variables.
 ```bash

@@ -118,7 +118,7 @@
         ```
     1. get encoded public key
         ```bash
-        # encode public key
+        # encode public key in ybase64
         base64 -w 0 "${TEST_SERVICE_DIR}/public.pem" | tr '\+\=\/' '\.\-\_'; echo "";
         ```
     1. update the values in ([zms-acceptance-test.http](../sample/http/zms-acceptance-test.http))

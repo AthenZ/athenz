@@ -31,6 +31,7 @@ content-type: application/json
 		}
 	]
 }
+// encode public key in ybase64
 // base64 -w 0 zts/var/keys/zts_public.pem | sed 's/+/./g; s/=/-/g; s:_:/:g'; echo;
 
 ### verify

@@ -1,6 +1,19 @@
 FROM athenz-builder AS builder
 
 FROM adoptopenjdk/openjdk8:alpine-jre
+# date -u +'%Y-%m-%dT%H:%M:%SZ'
+ARG BUILD_DATE
+# git rev-parse --short HEAD
+ARG VCS_REF
+
+LABEL org.label-schema.schema-version="1.0"
+LABEL org.label-schema.build-date=$BUILD_DATE
+LABEL org.label-schema.name="athenz-zts-server"
+LABEL org.label-schema.description="Athenz ZTS server"
+LABEL org.label-schema.url="https://www.athenz.io/"
+LABEL org.label-schema.vcs-url="https://github.com/yahoo/athenz"
+LABEL org.label-schema.vcs-ref=$VCS_REF
+LABEL maintainer "YJ Athenz Team <athenz-pj@ml.yahoo-corp.jp>"
 
 ARG GID=1001
 ARG UID=10001

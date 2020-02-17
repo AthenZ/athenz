@@ -23,10 +23,20 @@
 <a id="markdown-prerequisites" name="prerequisites"></a>
 ## Prerequisites
 
-1. `openssl`
-1. `keytool`
 1. Env. setup done. ([env.sh](../env.sh))
 1. Bootstrap setup done. ([Done step 1, 2, 3](./Athenz-bootstrap.md#bootstrap-steps))
+1. All the setup commands below are expected to run inside [athenz-setup-env](../setup-scripts/Dockerfile) container.
+```bash
+docker run --rm -it \
+    -v "${BASE_DIR}:/athenz" \
+    --user "$(id -u):$(id -g)" \
+    athenz-setup-env \
+    sh
+
+# load the ENV. inside the container
+BASE_DIR="`git rev-parse --show-toplevel`"
+source "${BASE_DIR}/docker/env.sh"
+```
 
 <a id="markdown-target" name="target"></a>
 ## Target
@@ -35,7 +45,6 @@
 
 <a id="markdown-steps" name="steps"></a>
 ## Steps
-
 
 <a id="markdown-1-update-your-passwords" name="1-update-your-passwords"></a>
 ### 1. update your passwords
@@ -51,7 +60,7 @@ export ZMS_TRUSTSTORE_PASS=<your_password>
 <a id="markdown-2-get-a-server-certificate-for-zms" name="2-get-a-server-certificate-for-zms"></a>
 ### 2. get a server certificate for ZMS
 
-- Create your CSR and private key for ZMS (TODO: provide template .cnf file)
+- Create your CSR and private key for ZMS
 - Ask your **Athenz CA** to sign the CSR and get the server certificate for ZMS
 ```bash
 # copy your file in the following paths
@@ -124,7 +133,7 @@ export DOMAIN_ADMIN='user.github-<your github ID>'
 - To simplify the set up, we will just configure a single admin.
 ```bash
 # replace the placeholder in the sample configuration
-sed -i "s/user.github-1234567/${DOMAIN_ADMIN}/g" "${ZMS_CONF_DIR}/zms.properties"
+sed -i "s/user.github-<your github ID>/${DOMAIN_ADMIN}/g" "${ZMS_CONF_DIR}/zms.properties"
 ```
 
 <a id="markdown-7-summary" name="7-summary"></a>
@@ -175,34 +184,30 @@ echo "${DOMAIN_ADMIN_CERT_PATH}"
 ```properties
 # related properties
 athenz.user_domain=user
-athenz.zms.domain_admin=user.github-1234567
+athenz.zms.domain_admin=user.github-<your github ID>
+
+# grep -e 'athenz.user_domain' -e 'athenz.zms.domain_admin' "${ZMS_CONF_DIR}/zms.properties"
 ```
 
 <a id="markdown-deploy-zms" name="deploy-zms"></a>
 ## Deploy ZMS
 
 ```bash
-sh "${DOCKER_DIR}/deploy-scripts/1.1.deploy-ZMS.sh"
+# run in host machine
+sh "${DOCKER_DIR}/deploy-scripts/zms-deploy.sh"
 ```
 
 <a id="markdown-debug-zms" name="debug-zms"></a>
 ### Debug ZMS
 
 ```bash
-alias llm="less ${DOCKER_DIR}/logs/zms/server.log"
-llm | tail
+BASE_DIR="`git rev-parse --show-toplevel`"
+source "${BASE_DIR}/docker/env.sh"
 
-# add ZMS host
-# grep "${ZMS_HOST}" /etc/hosts && echo '/etc/hosts already set' || sudo sed -i "$ a\127.0.0.1 ${ZMS_HOST}" /etc/hosts
-
-# ZMS health check
-curl --silent --cacert "${ATHENZ_CA_PATH}" "https://${ZMS_HOST}:${ZMS_PORT}/zms/v1/status"; echo '';
-
-# get domains
-ZMS_URL="http://${ZMS_HOST}:${ZMS_PORT}"
-curl --silent \
-    --cacert "${ATHENZ_CA_PATH}" \
-    --key "${DOMAIN_ADMIN_CERT_KEY_PATH}" \
-    --cert "${DOMAIN_ADMIN_CERT_PATH}" \
-    "${ZMS_URL}/zms/v1/domain"; echo '';
+docker run --rm -t \
+    --network="${DOCKER_NETWORK}" \
+    -v "${BASE_DIR}:/athenz" \
+    --user "$(id -u):$(id -g)" \
+    athenz-setup-env \
+    sh /athenz/docker/deploy-scripts/zms-debug.sh
 ```

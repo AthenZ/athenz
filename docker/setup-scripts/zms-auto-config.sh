@@ -22,11 +22,12 @@ cat <<'EOF' | colored_cat c
 
 EOF
 
-# set up env. secretly
+# set up env.
 BASE_DIR="`git rev-parse --show-toplevel`"
 source "${BASE_DIR}/docker/env.sh"
-if [ -f './dev-env-exports.sh' ]; then
-    source './dev-env-exports.sh'
+echo "Done loading ENV. from ${BASE_DIR}/docker/env.sh" | colored_cat p
+if [ -f "${DOCKER_DIR}/setup-scripts/dev-env-exports.sh" ]; then
+    source "${DOCKER_DIR}/setup-scripts/dev-env-exports.sh"
     echo 'Be careful! You are using the DEV settings in dev-env-exports.sh !!!' | colored_cat p
 fi
 
@@ -72,7 +73,7 @@ openssl pkcs12 -export -noiter -nomaciter \
 
 echo '6. config the Athenz domain admin' | colored_cat g
 echo "your setting: DOMAIN_ADMIN=${DOMAIN_ADMIN}" | colored_cat y
-sed -i "s/user.github-1234567/${DOMAIN_ADMIN}/g" "${ZMS_CONF_DIR}/zms.properties"
+sed -i "s/user.github-<your github ID>/${DOMAIN_ADMIN}/g" "${ZMS_CONF_DIR}/zms.properties"
 
 echo '7. summary' | colored_cat g
 tree "${CA_DIR}"
@@ -86,35 +87,3 @@ echo ''
 echo '# Get Athenz domain admin user certificate for accessing ZMS' | colored_cat r
 echo "${DOMAIN_ADMIN_CERT_KEY_PATH}" | colored_cat y
 echo "${DOMAIN_ADMIN_CERT_PATH}" | colored_cat y
-
-
-
-### ----------------------------------------------------------------
-echo ''
-echo '# Deploy ZMS' | colored_cat r
-sh "${DOCKER_DIR}/deploy-scripts/1.1.deploy-ZMS.sh"
-
-echo 'Debug ZMS' | colored_cat g
-alias llm="less ${DOCKER_DIR}/logs/zms/server.log"
-llm | tail | colored_cat w
-
-echo 'add ZMS host' | colored_cat y
-{
-    grep "${ZMS_HOST}" /etc/hosts && echo '/etc/hosts already set' || sudo sed -i "$ a\127.0.0.1 ${ZMS_HOST}" /etc/hosts
-} | colored_cat w
-
-echo 'ZMS health check' | colored_cat y
-{
-    curl --silent --cacert "${ATHENZ_CA_PATH}" "https://${ZMS_HOST}:${ZMS_PORT}/zms/v1/status"; echo '';
-} | colored_cat w
-
-
-echo 'get domains' | colored_cat y
-{
-    ZMS_URL="https://${ZMS_HOST}:${ZMS_PORT}"
-    curl --silent \
-        --cacert "${ATHENZ_CA_PATH}" \
-        --key "${DOMAIN_ADMIN_CERT_KEY_PATH}" \
-        --cert "${DOMAIN_ADMIN_CERT_PATH}" \
-        "${ZMS_URL}/zms/v1/domain"; echo '';
-} | colored_cat w
