@@ -55,6 +55,7 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_JDBC_APP_NAME           = "athenz.zms.jdbc_app_name";
     public static final String ZMS_PROP_JDBC_VERIFY_SERVER_CERT = "athenz.zms.jdbc_verify_server_certificate";
     public static final String ZMS_PROP_JDBC_USE_SSL            = "athenz.zms.jdbc_use_ssl";
+    public static final String ZMS_PROP_JDBC_TLS_VERSIONS       = "athenz.zms.jdbc_tls_versions";
 
     public static final String ZMS_PROP_FILE_STORE_NAME   = "athenz.zms.file_store_name";
     public static final String ZMS_PROP_FILE_STORE_QUOTA  = "athenz.zms.file_store_quota";
@@ -77,6 +78,7 @@ public final class ZMSConsts {
     public static final String DB_PROP_PASSWORD           = "password";
     public static final String DB_PROP_USE_SSL            = "useSSL";
     public static final String DB_PROP_VERIFY_SERVER_CERT = "verifyServerCertificate";
+    public static final String DB_PROP_TLS_PROTOCOLS      = "enabledTLSProtocols";
 
     public static final String ZMS_PROP_USER_AUTHORITY_CLASS      = "athenz.zms.user_authority_class";
     public static final String ZMS_PROP_PRINCIPAL_AUTHORITY_CLASS = "athenz.zms.principal_authority_class";
