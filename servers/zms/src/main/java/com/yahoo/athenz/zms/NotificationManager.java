@@ -32,6 +32,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
+
 public class NotificationManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NotificationManager.class);
@@ -51,10 +53,13 @@ public class NotificationManager {
             NotificationServiceFactory notificationServiceFactory;
             try {
                 notificationServiceFactory = (NotificationServiceFactory) Class.forName(notificationServiceFactoryClass).newInstance();
-                notificationService = notificationServiceFactory.create();
+                String providerName = System.getProperty(PROP_NOTIFICATION_EMAIL_PROVIDER, "AWS");
+                notificationService = notificationServiceFactory.create(providerName);
                 init();
             } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
                 LOGGER.error("Invalid NotificationServiceFactory class: " + notificationServiceFactoryClass + " error: " + e.getMessage());
+            } catch (Exception e) {
+                LOGGER.error("Error instantiating NotificationService: " + e.getMessage());
             }
         }
     }
@@ -68,11 +73,11 @@ public class NotificationManager {
         monitorIdentity = System.getProperty(ZMSConsts.ZMS_PROP_MONITOR_IDENTITY, ZMSConsts.SYS_AUTH_MONITOR);
     }
 
-    NotificationManager(final DBService dbService, final NotificationServiceFactory notificationServiceFactory,
+    NotificationManager(final DBService dbService, final NotificationServiceFactory notificationServiceFactory, String providerName,
             final String userDomainPrefix) {
         this.dbService = dbService;
         this.userDomainPrefix = userDomainPrefix;
-        notificationService = notificationServiceFactory.create();
+        notificationService = notificationServiceFactory.create(providerName);
         init();
     }
 
@@ -130,8 +135,7 @@ public class NotificationManager {
 
         // create and process our notification
 
-        Notification notification = createNotification(NotificationService.NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL,
-                recipients, details);
+        Notification notification = createNotification(NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL, recipients, details);
         if (notification != null) {
             notificationService.notify(notification);
         }
@@ -272,7 +276,7 @@ public class NotificationManager {
 
         void sendPendingMembershipApprovalReminders() {
             Set<String> recipients = dbService.getPendingMembershipApproverRoles();
-            Notification notification = createNotification(NotificationService.NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL_REMINDER,
+            Notification notification = createNotification(NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL_REMINDER,
                     recipients, null);
             if (notification != null) {
                 notificationService.notify(notification);
@@ -308,7 +312,7 @@ public class NotificationManager {
                 // notification agent for processing
 
                 Map<String, String> details = processRoleExpiryReminder(domainAdminMap, roleMember);
-                Notification notification = createNotification(NotificationService.NOTIFICATION_TYPE_PRINCIPAL_EXPIRY_REMINDER,
+                Notification notification = createNotification(NOTIFICATION_TYPE_PRINCIPAL_EXPIRY_REMINDER,
                         roleMember.getMemberName(), details);
                 if (notification != null) {
                     notificationService.notify(notification);
@@ -321,7 +325,7 @@ public class NotificationManager {
             for (Map.Entry<String, List<MemberRole>> domainAdmin : domainAdminMap.entrySet()) {
 
                 Map<String, String> details = processMemberExpiryReminder(domainAdmin.getKey(), domainAdmin.getValue());
-                Notification notification = createNotification(NotificationService.NOTIFICATION_TYPE_DOMAIN_MEMBER_EXPIRY_REMINDER,
+                Notification notification = createNotification(NOTIFICATION_TYPE_DOMAIN_MEMBER_EXPIRY_REMINDER,
                         ZMSUtils.roleResourceName(domainAdmin.getKey(), ZMSConsts.ADMIN_ROLE_NAME), details);
                 if (notification != null) {
                     notificationService.notify(notification);
@@ -368,8 +372,8 @@ public class NotificationManager {
                 }
                 domainRoleMembers.add(memberRole);
             }
-            details.put(NotificationService.NOTIFICATION_DETAILS_EXPIRY_ROLES, expiryRoles.toString());
-            details.put(NotificationService.NOTIFICATION_DETAILS_MEMBER, member.getMemberName());
+            details.put(NOTIFICATION_DETAILS_EXPIRY_ROLES, expiryRoles.toString());
+            details.put(NOTIFICATION_DETAILS_MEMBER, member.getMemberName());
 
             return details;
         }
@@ -400,8 +404,8 @@ public class NotificationManager {
                         .append(memberRole.getRoleName()).append(';')
                         .append(memberRole.getExpiration().toString());
             }
-            details.put(NotificationService.NOTIFICATION_DETAILS_EXPIRY_MEMBERS, expiryMembers.toString());
-            details.put(NotificationService.NOTIFICATION_DETAILS_DOMAIN, domainName);
+            details.put(NOTIFICATION_DETAILS_EXPIRY_MEMBERS, expiryMembers.toString());
+            details.put(NOTIFICATION_DETAILS_DOMAIN, domainName);
             return details;
         }
     }

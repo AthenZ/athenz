@@ -68,7 +68,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
-import static com.yahoo.athenz.common.server.notification.NotificationService.*;
+import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
 
 public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 

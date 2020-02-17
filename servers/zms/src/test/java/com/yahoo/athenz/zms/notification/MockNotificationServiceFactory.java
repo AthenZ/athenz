@@ -24,7 +24,7 @@ public class MockNotificationServiceFactory implements NotificationServiceFactor
     private NotificationService notificationService = new MockNotificationService();
 
     @Override
-    public NotificationService create() {
+    public NotificationService create(String providerName) {
         return notificationService;
     }
 }

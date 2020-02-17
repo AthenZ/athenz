@@ -20,7 +20,7 @@ public interface NotificationServiceFactory {
 
     /**
      * Create and return a new NotificationService instance
-     * @return NotificationService instance
+     * @return NotificationService instance. Null if providerName is unknown.
      */
-    NotificationService create();
+    NotificationService create(String providerName);
 }

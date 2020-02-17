@@ -16,12 +16,7 @@
 
 package com.yahoo.athenz.common.server.notification.impl;
 
-import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
-
-import com.amazonaws.services.simpleemail.model.*;
-import com.yahoo.athenz.common.server.notification.Notification;
-import com.yahoo.athenz.common.server.notification.NotificationService;
-import org.mockito.ArgumentCaptor;
+import com.yahoo.athenz.common.server.notification.EmailProvider;
 import org.mockito.Mockito;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -31,7 +26,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.*;
 
-import static org.mockito.ArgumentMatchers.any;
+import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.NOTIFICATION_DETAILS_EXPIRY_MEMBERS;
+import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.NOTIFICATION_DETAILS_EXPIRY_ROLES;
 import static org.mockito.Mockito.*;
 import static org.testng.Assert.*;
 
@@ -50,7 +46,8 @@ public class EmailNotificationServiceTest {
     @Test
     public void testGetBody() {
         System.setProperty("athenz.notification_workflow_url", "https://athenz.example.com/workflow");
-        EmailNotificationService svc = new EmailNotificationService();
+        EmailProvider emailProvider = mock(EmailProvider.class);
+        EmailNotificationService svc = new EmailNotificationService(emailProvider);
         Map<String, String> details = new HashMap<>();
         details.put("domain", "dom1");
         details.put("role", "role1");
@@ -80,7 +77,7 @@ public class EmailNotificationServiceTest {
         // now set the correct expiry members details
         // with one bad entry that should be skipped
 
-        details.put(NotificationService.NOTIFICATION_DETAILS_EXPIRY_MEMBERS,
+        details.put(NOTIFICATION_DETAILS_EXPIRY_MEMBERS,
                 "user.joe;role1;2020-12-01T12:00:00.000Z|user.jane;role1;2020-12-01T12:00:00.000Z|user.bad;role3");
         body = svc.getBody("DOMAIN_MEMBER_EXPIRY_REMINDER", details);
         assertNotNull(body);
@@ -96,7 +93,7 @@ public class EmailNotificationServiceTest {
 
         // now try the expiry roles reminder
 
-        details.put(NotificationService.NOTIFICATION_DETAILS_EXPIRY_ROLES,
+        details.put(NOTIFICATION_DETAILS_EXPIRY_ROLES,
                 "athenz1;role1;2020-12-01T12:00:00.000Z|athenz2;role2;2020-12-01T12:00:00.000Z");
         body = svc.getBody("PRINCIPAL_EXPIRY_REMINDER", details);
         assertNotNull(body);
@@ -111,7 +108,8 @@ public class EmailNotificationServiceTest {
 
     @Test
     public void testGetSubject() {
-        EmailNotificationService svc = new EmailNotificationService();
+        EmailProvider emailProvider = mock(EmailProvider.class);
+        EmailNotificationService svc = new EmailNotificationService(emailProvider);
         String sub = svc.getSubject("MEMBERSHIP_APPROVAL");
         assertNotNull(sub);
         assertFalse(sub.isEmpty());
@@ -139,8 +137,8 @@ public class EmailNotificationServiceTest {
         System.setProperty("athenz.user_domain", "entuser");
         System.setProperty("athenz.notification_email_domain_from", "from.example.com");
         System.setProperty("athenz.notification_email_domain_to", "example.com");
-        AmazonSimpleEmailService ses = mock(AmazonSimpleEmailService.class);
-        EmailNotificationService svc = new EmailNotificationService(ses);
+        EmailProvider emailProvider = mock(EmailProvider.class);
+        EmailNotificationService svc = new EmailNotificationService(emailProvider);
 
         Set<String> recipients = new HashSet<>(Arrays.asList("entuser.user1", "entuser.user2", "entuser.user3"));
         Set<String> recipientsResp = svc.getFullyQualifiedEmailAddresses(recipients);
@@ -159,8 +157,8 @@ public class EmailNotificationServiceTest {
     public void testGetFullyQualifiedEmailAddressesDefaultUserDomain() {
         System.setProperty("athenz.notification_email_domain_from", "from.test.com");
         System.setProperty("athenz.notification_email_domain_to", "test.com");
-        AmazonSimpleEmailService ses = mock(AmazonSimpleEmailService.class);
-        EmailNotificationService svc = new EmailNotificationService(ses);
+        EmailProvider emailProvider = mock(EmailProvider.class);
+        EmailNotificationService svc = new EmailNotificationService(emailProvider);
 
         Set<String> recipients = new HashSet<>(Arrays.asList("user.user1", "user.user2", "user.user3"));
         Set<String> recipientsResp = svc.getFullyQualifiedEmailAddresses(recipients);
@@ -176,134 +174,24 @@ public class EmailNotificationServiceTest {
     }
 
     @Test
-    public void testSendEmail() {
-
-        Set<String> recipients = new HashSet<>(Arrays.asList("user.user1", "user.user2", "user.user3"));
-        String subject = "test email subject";
-        String body = "test email body";
-        System.setProperty("athenz.notification_email_domain_from", "from.example.com");
-        System.setProperty("athenz.notification_email_domain_to", "example.com");
-        System.setProperty("athenz.notification_email_from", "no-reply-athenz");
-
-        AmazonSimpleEmailService ses = mock(AmazonSimpleEmailService.class);
-        SendRawEmailResult result = mock(SendRawEmailResult.class);
-        Mockito.when(ses.sendRawEmail(any(SendRawEmailRequest.class))).thenReturn(result);
-
-        ArgumentCaptor<SendRawEmailRequest> captor = ArgumentCaptor.forClass(SendRawEmailRequest.class);
-
-        EmailNotificationService svc = new EmailNotificationService(ses);
-
-        svc.sendEmail(recipients, subject, body);
-
-        Mockito.verify(ses, atLeastOnce()).sendRawEmail(captor.capture());
-
-        System.clearProperty("athenz.notification_email_domain_from");
-        System.clearProperty("athenz.notification_email_domain_to");
-        System.clearProperty("athenz.notification_email_from");
-    }
-
-    @Test
-    public void testSendEmailBatch() {
-        Set<String> recipients = new HashSet<>();
-        for (int i =0; i<60; i++) {
-            recipients.add("user.user" + i);
-        }
-        String subject = "test email subject";
-        String body = "test email body";
-        System.setProperty("athenz.notification_email_domain_from", "example.com");
-        System.setProperty("athenz.notification_email_domain_to", "example.com");
-        System.setProperty("athenz.notification_email_from", "no-reply-athenz");
-
-        AmazonSimpleEmailService ses = mock(AmazonSimpleEmailService.class);
-
-        SendRawEmailResult result = mock(SendRawEmailResult.class);
-        Mockito.when(ses.sendRawEmail(any(SendRawEmailRequest.class))).thenReturn(result);
-        ArgumentCaptor<SendRawEmailRequest> captor = ArgumentCaptor.forClass(SendRawEmailRequest.class);
-
-        EmailNotificationService svc = new EmailNotificationService(ses);
-        boolean emailResult = svc.sendEmail(recipients, subject, body);
-
-        assertTrue(emailResult);
-        Mockito.verify(ses, times(2)).sendRawEmail(captor.capture());
-
-        System.clearProperty("athenz.notification_email_domain_from");
-        System.clearProperty("athenz.notification_email_domain_to");
-        System.clearProperty("athenz.notification_email_from");
-    }
-
-    @Test
-    public void testSendEmailError() {
-
-        Set<String> recipients = new HashSet<>(Arrays.asList("user.user1", "user.user2", "user.user3"));
-        String subject = "test email subject";
-        String body = "test email body";
-        System.setProperty("athenz.notification_email_domain_to", "example.com");
-        System.setProperty("athenz.notification_email_domain_from", "from.example.com");
-        System.setProperty("athenz.notification_email_from", "no-reply-athenz");
-
-        AmazonSimpleEmailService ses = mock(AmazonSimpleEmailService.class);
-        Mockito.when(ses.sendEmail(any(SendEmailRequest.class))).thenThrow(new RuntimeException());
-
-        EmailNotificationService svc = new EmailNotificationService(ses);
-
-        boolean result = svc.sendEmail(recipients, subject, body);
-        assertFalse(result);
-
-        System.clearProperty("athenz.notification_email_domain_from");
-        System.clearProperty("athenz.notification_email_domain_to");
-        System.clearProperty("athenz.notification_email_from");
-    }
-
-    @Test
-    public void testNotify() {
-
-        System.setProperty("athenz.notification_email_domain_from", "example.com");
-        System.setProperty("athenz.notification_email_domain_to", "example.com");
-        System.setProperty("athenz.notification_email_from", "no-reply-athenz");
-
-        AmazonSimpleEmailService ses = mock(AmazonSimpleEmailService.class);
-        SendRawEmailResult result = mock(SendRawEmailResult.class);
-        Mockito.when(ses.sendRawEmail(any(SendRawEmailRequest.class))).thenReturn(result);
-
-        EmailNotificationService svc = new EmailNotificationService(ses);
-
-        Notification notification = new Notification(NotificationService.NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL);
-        notification.addRecipient("user.user1").addRecipient("user.user2");
-        Map<String, String> details = new HashMap<>();
-        details.put("domain", "dom1");
-        details.put("role", "role1");
-        details.put("member", "user.member1");
-        details.put("reason", "test reason");
-        details.put("requester", "user.requester");
-        notification.setDetails(details);
-
-        boolean status = svc.notify(notification);
-        assertTrue(status);
-
-        System.clearProperty("athenz.notification_email_domain_from");
-        System.clearProperty("athenz.notification_email_domain_to");
-        System.clearProperty("athenz.notification_email_from");
-    }
-
-    @Test
     public void testNotifyNull() {
-        AmazonSimpleEmailService ses = mock(AmazonSimpleEmailService.class);
-        EmailNotificationService svc = new EmailNotificationService(ses);
+        EmailProvider emailProvider = mock(EmailProvider.class);
+        EmailNotificationService svc = new EmailNotificationService(emailProvider);
         boolean status = svc.notify(null);
         assertFalse(status);
     }
 
     @Test
     public void testReadContentFromFile() {
-        AmazonSimpleEmailService ses = mock(AmazonSimpleEmailService.class);
-        EmailNotificationService svc = new EmailNotificationService(ses);
+        EmailProvider emailProvider = mock(EmailProvider.class);
+        EmailNotificationService svc = new EmailNotificationService(emailProvider);
         assertTrue(svc.readContentFromFile("resources/non-existent").isEmpty());
     }
 
     @Test
     public void testReadContentFromFileNull() throws Exception {
-        AmazonSimpleEmailService ses = mock(AmazonSimpleEmailService.class);
-        EmailNotificationService svc = new EmailNotificationService(ses);
+        EmailProvider emailProvider = mock(EmailProvider.class);
+        EmailNotificationService svc = new EmailNotificationService(emailProvider);
         BufferedReader reader = mock(BufferedReader.class);
         Mockito.when(reader.readLine()).thenReturn(null);
         assertTrue(svc.readContentFromFile("resources/dummy").isEmpty());
@@ -311,8 +199,8 @@ public class EmailNotificationServiceTest {
 
     @Test
     public void testReadContentFromFileException() throws Exception {
-        AmazonSimpleEmailService ses = mock(AmazonSimpleEmailService.class);
-        EmailNotificationService svc = new EmailNotificationService(ses);
+        EmailProvider emailProvider = mock(EmailProvider.class);
+        EmailNotificationService svc = new EmailNotificationService(emailProvider);
         BufferedReader reader = mock(BufferedReader.class);
         Mockito.when(reader.readLine()).thenThrow(new IOException());
         assertTrue(svc.readContentFromFile("resources/dummy").isEmpty());
@@ -320,15 +208,15 @@ public class EmailNotificationServiceTest {
 
     @Test
     public void testReadBinaryFromFile() {
-        AmazonSimpleEmailService ses = mock(AmazonSimpleEmailService.class);
-        EmailNotificationService svc = new EmailNotificationService(ses);
+        EmailProvider emailProvider = mock(EmailProvider.class);
+        EmailNotificationService svc = new EmailNotificationService(emailProvider);
         assertNotNull(svc.readBinaryFromFile("emails/athenz-logo-white.png"));
     }
 
     @Test
     public void testReadBinaryFromFileNull() {
-        AmazonSimpleEmailService ses = mock(AmazonSimpleEmailService.class);
-        EmailNotificationService svc = new EmailNotificationService(ses);
+        EmailProvider emailProvider = mock(EmailProvider.class);
+        EmailNotificationService svc = new EmailNotificationService(emailProvider);
         assertNull(svc.readBinaryFromFile("resources/non-existent"));
     }
 

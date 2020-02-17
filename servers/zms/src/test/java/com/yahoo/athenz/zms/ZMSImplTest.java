@@ -38,6 +38,7 @@ import org.mockito.MockitoAnnotations;
 import org.testng.annotations.*;
 
 import static com.yahoo.athenz.common.server.notification.NotificationService.*;
+import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;

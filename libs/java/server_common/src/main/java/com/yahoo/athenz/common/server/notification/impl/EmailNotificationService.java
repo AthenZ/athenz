@@ -16,40 +16,30 @@
 
 package com.yahoo.athenz.common.server.notification.impl;
 
-import com.amazonaws.regions.Region;
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
-import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClientBuilder;
-import com.amazonaws.services.simpleemail.model.*;
 import com.amazonaws.util.IOUtils;
+import com.yahoo.athenz.common.server.notification.EmailProvider;
 import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.notification.NotificationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
-import javax.mail.Session;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeBodyPart;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMultipart;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URL;
-import java.nio.ByteBuffer;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-/*
- * This is a reference implementation using AWS SES.
- */
+import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
+
 public class EmailNotificationService implements NotificationService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EmailNotificationService.class);
 
     private static final String AT = "@";
-    private static final String CHARSET_UTF_8 = "UTF-8";
     private static final String USER_DOMAIN_DEFAULT = "user";
     private static final String PROP_USER_DOMAIN = "athenz.user_domain";
     private static final String PROP_NOTIFICATION_EMAIL_DOMAIN_FROM = "athenz.notification_email_domain_from";
@@ -85,9 +75,7 @@ public class EmailNotificationService implements NotificationService {
     private static final String HTML_TBODY_TAG_START = "<tbody>";
     private static final String HTML_TBODY_TAG_END = "</tbody>";
 
-    private static final String HTML_LOGO_CID_PLACEHOLDER = "<logo>";
-
-    private final AmazonSimpleEmailService ses;
+    private final EmailProvider emailProvider;
 
     private String userDomainPrefix;
     private String emailDomainFrom;
@@ -103,13 +91,8 @@ public class EmailNotificationService implements NotificationService {
     private String emailDomainMemberExpiryBody;
     private String emailPrincipalExpiryBody;
 
-
-    EmailNotificationService() {
-        this(initSES());
-    }
-
-    EmailNotificationService(AmazonSimpleEmailService ses) {
-        this.ses = ses;
+    EmailNotificationService(EmailProvider emailProvider) {
+        this.emailProvider = emailProvider;
         String userDomain = System.getProperty(PROP_USER_DOMAIN, USER_DOMAIN_DEFAULT);
         userDomainPrefix = userDomain + "\\.";
         emailDomainFrom = System.getProperty(PROP_NOTIFICATION_EMAIL_DOMAIN_FROM);
@@ -140,16 +123,6 @@ public class EmailNotificationService implements NotificationService {
             }
         }
         return fileByteArray;
-    }
-
-    private static AmazonSimpleEmailService initSES() {
-        ///CLOVER:OFF
-        Region region = Regions.getCurrentRegion();
-        if (region == null) {
-            region = Region.getRegion(Regions.US_EAST_1);
-        }
-        return AmazonSimpleEmailServiceClientBuilder.standard().withRegion(region.getName()).build();
-        ///CLOVER:ON
     }
 
     @Override
@@ -215,9 +188,9 @@ public class EmailNotificationService implements NotificationService {
     }
 
     String getMembershipApprovalBody(Map<String, String> metaDetails) {
-        return MessageFormat.format(emailMembershipApprovalBody, metaDetails.get(NotificationService.NOTIFICATION_DETAILS_DOMAIN),
-                metaDetails.get(NotificationService.NOTIFICATION_DETAILS_ROLE), metaDetails.get(NotificationService.NOTIFICATION_DETAILS_MEMBER),
-                metaDetails.get(NotificationService.NOTIFICATION_DETAILS_REASON), metaDetails.get(NotificationService.NOTIFICATION_DETAILS_REQUESTER),
+        return MessageFormat.format(emailMembershipApprovalBody, metaDetails.get(NOTIFICATION_DETAILS_DOMAIN),
+                metaDetails.get(NOTIFICATION_DETAILS_ROLE), metaDetails.get(NOTIFICATION_DETAILS_MEMBER),
+                metaDetails.get(NOTIFICATION_DETAILS_REASON), metaDetails.get(NOTIFICATION_DETAILS_REQUESTER),
                 workflowUrl, athenzUIUrl);
     }
 
@@ -225,7 +198,7 @@ public class EmailNotificationService implements NotificationService {
 
         // first get the template and replace placeholders
         StringBuilder body = new StringBuilder(256);
-        body.append(MessageFormat.format(emailDomainMemberExpiryBody, metaDetails.get(NotificationService.NOTIFICATION_DETAILS_DOMAIN), athenzUIUrl));
+        body.append(MessageFormat.format(emailDomainMemberExpiryBody, metaDetails.get(NOTIFICATION_DETAILS_DOMAIN), athenzUIUrl));
 
         // then get table rows and replace placeholders
         StringBuilder bodyEntry = new StringBuilder(256);
@@ -240,7 +213,7 @@ public class EmailNotificationService implements NotificationService {
 
         // first get the template and replace placeholders
         StringBuilder body = new StringBuilder(256);
-        body.append(MessageFormat.format(emailPrincipalExpiryBody, metaDetails.get(NotificationService.NOTIFICATION_DETAILS_MEMBER), athenzUIUrl));
+        body.append(MessageFormat.format(emailPrincipalExpiryBody, metaDetails.get(NOTIFICATION_DETAILS_MEMBER), athenzUIUrl));
 
         // then get table rows and replace placeholders
         StringBuilder bodyEntry = new StringBuilder(256);
@@ -303,70 +276,6 @@ public class EmailNotificationService implements NotificationService {
     }
 
     private boolean sendEmailMIME(String subject, String body, boolean status, Collection<String> recipients) {
-        try {
-            Session session = Session.getDefaultInstance(new Properties());
-
-            // Create a new MimeMessage object.
-            MimeMessage message = new MimeMessage(session);
-
-            // Add subject, from and to lines.
-            message.setSubject(subject, CHARSET_UTF_8);
-            message.setFrom(new InternetAddress(from + AT + emailDomainFrom));
-            message.setRecipients(javax.mail.Message.RecipientType.BCC, InternetAddress.parse(String.join(",", recipients)));
-
-            // Create a multipart/alternative child container.
-            MimeMultipart msgBody = new MimeMultipart("alternative");
-
-            // Create a wrapper for the HTML and text parts.
-            MimeBodyPart wrap = new MimeBodyPart();
-
-            // Set the text part.
-            MimeBodyPart textPart = new MimeBodyPart();
-            textPart.setContent(body, "text/plain; charset=" + CHARSET_UTF_8);
-
-            // Set the HTML part.
-            MimeBodyPart htmlPart = new MimeBodyPart();
-            htmlPart.setContent(body, "text/html; charset=" + CHARSET_UTF_8);
-
-            // Add the text and HTML parts to the child container.
-            msgBody.addBodyPart(textPart);
-            msgBody.addBodyPart(htmlPart);
-
-            // Add the child container to the wrapper object.
-            wrap.setContent(msgBody);
-
-            // Create a multipart/mixed parent container.
-            MimeMultipart msgParent = new MimeMultipart("related");
-
-            // Add the multipart/alternative part to the message.
-            msgParent.addBodyPart(wrap);
-
-            // Add the parent container to the message.
-            message.setContent(msgParent);
-
-            if (logoImage != null) {
-                MimeBodyPart logo = new MimeBodyPart();
-                logo.setContent(logoImage, "image/png");
-                logo.setContentID(HTML_LOGO_CID_PLACEHOLDER);
-                logo.setDisposition(MimeBodyPart.INLINE);
-                // Add the attachment to the message.
-                msgParent.addBodyPart(logo);
-            }
-
-            try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-                message.writeTo(outputStream);
-                RawMessage rawMessage = new RawMessage(ByteBuffer.wrap(outputStream.toByteArray()));
-                SendRawEmailRequest rawEmailRequest = new SendRawEmailRequest(rawMessage);
-                SendRawEmailResult result = ses.sendRawEmail(rawEmailRequest);
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Email with messageId={} sent successfully.", result.getMessageId());
-                }
-                status = status && result != null;
-            }
-        } catch (Exception ex) {
-            LOGGER.error("The email could not be sent. Error message: {}", ex.getMessage());
-            status = false;
-        }
-        return status;
+        return emailProvider.sendEmail(subject, body, status, recipients, from + AT + emailDomainFrom, logoImage);
     }
 }

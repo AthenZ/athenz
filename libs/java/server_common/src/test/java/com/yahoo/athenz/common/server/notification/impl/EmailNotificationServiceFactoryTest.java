@@ -22,14 +22,26 @@ import org.testng.annotations.Test;
 
 import static org.testng.Assert.*;
 
-public class NotificationServiceFactoryImplTest {
+public class EmailNotificationServiceFactoryTest {
 
     @Test
     public void testCreate() {
-        NotificationServiceFactory factory = new NotificationServiceFactoryImpl();
-        NotificationService svc = factory.create();
+        NotificationServiceFactory factory = new EmailNotificationServiceFactory();
+        NotificationService awsEmailNotificationService = factory.create("AWS");
 
-        assertNotNull(svc);
-        assertTrue(svc instanceof EmailNotificationService);
+        assertNotNull(awsEmailNotificationService);
+        assertTrue(awsEmailNotificationService instanceof EmailNotificationService);
+
+        NotificationService sonicEmailNotificationService = factory.create("Sonic");
+
+        assertNotNull(sonicEmailNotificationService);
+        assertTrue(sonicEmailNotificationService instanceof EmailNotificationService);
+    }
+
+    @Test
+    public void testCreateUnknownTypeReturnNull() {
+        NotificationServiceFactory factory = new EmailNotificationServiceFactory();
+        assertNull(factory.create("UNKNOWN"));
+        assertNull(factory.create(null));
     }
 }
