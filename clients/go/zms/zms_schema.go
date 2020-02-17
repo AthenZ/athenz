@@ -1415,6 +1415,7 @@ func init() {
 	mGetSignedDomains.Input("domain", "DomainName", false, "domain", "", true, nil, "filter the domain list only to the specified name")
 	mGetSignedDomains.Input("metaOnly", "String", false, "metaonly", "", true, nil, "valid values are \"true\" or \"false\"")
 	mGetSignedDomains.Input("metaAttr", "SimpleName", false, "metaattr", "", true, nil, "domain meta attribute to filter/return, valid values \"account\", \"ypmId\", or \"all\"")
+	mGetSignedDomains.Input("master", "Bool", false, "master", "", true, nil, "for system principals only - request data from master data store and not read replicas if any are configured")
 	mGetSignedDomains.Input("matchingTag", "String", false, "", "If-None-Match", false, nil, "Retrieved from the previous request, this timestamp specifies to the server to return any domains modified since this time")
 	mGetSignedDomains.Output("tag", "String", "ETag", false, "The current latest modification timestamp is returned in this header")
 	mGetSignedDomains.Auth("", "", true, "")

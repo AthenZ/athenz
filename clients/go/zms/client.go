@@ -2352,12 +2352,12 @@ func (client ZMSClient) GetResourceAccessList(principal EntityName, action Actio
 	}
 }
 
-func (client ZMSClient) GetSignedDomains(domain DomainName, metaOnly string, metaAttr SimpleName, matchingTag string) (*SignedDomains, string, error) {
+func (client ZMSClient) GetSignedDomains(domain DomainName, metaOnly string, metaAttr SimpleName, master *bool, matchingTag string) (*SignedDomains, string, error) {
 	var data *SignedDomains
 	headers := map[string]string{
 		"If-None-Match": matchingTag,
 	}
-	url := client.URL + "/sys/modified_domains" + encodeParams(encodeStringParam("domain", string(domain), ""), encodeStringParam("metaonly", string(metaOnly), ""), encodeStringParam("metaattr", string(metaAttr), ""))
+	url := client.URL + "/sys/modified_domains" + encodeParams(encodeStringParam("domain", string(domain), ""), encodeStringParam("metaonly", string(metaOnly), ""), encodeStringParam("metaattr", string(metaAttr), ""), encodeOptionalBoolParam("master", master))
 	resp, err := client.httpGet(url, headers)
 	if err != nil {
 		return nil, "", err

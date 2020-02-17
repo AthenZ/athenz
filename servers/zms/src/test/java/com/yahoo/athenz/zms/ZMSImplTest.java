@@ -5668,7 +5668,7 @@ public class ZMSImplTest {
                 "10.11.12.13", "GET", null);
         ResourceContext rsrcCtx = createResourceContext(sysPrincipal);
 
-        Response response = zms.getSignedDomains(rsrcCtx, null, null, null, null);
+        Response response = zms.getSignedDomains(rsrcCtx, null, null, null, null, null);
         SignedDomains sdoms = (SignedDomains) response.getEntity();
 
         assertNotNull(sdoms);
@@ -5697,7 +5697,7 @@ public class ZMSImplTest {
 
         zms.privateKey = new ServerPrivateKey(Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKeyK1)), "1");
 
-        response = zms.getSignedDomains(rsrcCtx, null, null, "all", null);
+        response = zms.getSignedDomains(rsrcCtx, null, null, "all", null, null);
         sdoms = (SignedDomains) response.getEntity();
 
         assertNotNull(sdoms);
@@ -5720,7 +5720,7 @@ public class ZMSImplTest {
 
         zms.privateKey = new ServerPrivateKey(Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKeyK2)), "2");
 
-        response = zms.getSignedDomains(rsrcCtx, null, null, null, null);
+        response = zms.getSignedDomains(rsrcCtx, null, null, null, Boolean.TRUE, null);
         sdoms = (SignedDomains) response.getEntity();
         assertNotNull(sdoms);
 
@@ -5737,7 +5737,7 @@ public class ZMSImplTest {
 
         // test metaonly=true
         //
-        response = zms.getSignedDomains(rsrcCtx, null, "tRuE", null, null);
+        response = zms.getSignedDomains(rsrcCtx, null, "tRuE", null, Boolean.FALSE, null);
         sdoms = (SignedDomains) response.getEntity();
         assertNotNull(sdoms);
 
@@ -5761,7 +5761,7 @@ public class ZMSImplTest {
 
         // test metaonly=garbage
         //
-        response = zms.getSignedDomains(rsrcCtx, null, "garbage", null, null);
+        response = zms.getSignedDomains(rsrcCtx, null, "garbage", null, null, null);
         sdoms = (SignedDomains) response.getEntity();
         assertNotNull(sdoms);
 
@@ -5782,7 +5782,7 @@ public class ZMSImplTest {
 
         // test metaonly=false
         //
-        response = zms.getSignedDomains(rsrcCtx, null, "fAlSe", null, null);
+        response = zms.getSignedDomains(rsrcCtx, null, "fAlSe", null, null, null);
         sdoms = (SignedDomains) response.getEntity();
         assertNotNull(sdoms);
 
@@ -5804,7 +5804,7 @@ public class ZMSImplTest {
         // test bad tag format
         //
         String eTag  = "I am not good";
-        response = zms.getSignedDomains(rsrcCtx, null, null, null, eTag);
+        response = zms.getSignedDomains(rsrcCtx, null, null, null, Boolean.TRUE, eTag);
         sdoms = (SignedDomains) response.getEntity();
         String eTag2 = response.getHeaderString("ETag");
         assertNotNull(eTag2);
@@ -5818,7 +5818,7 @@ public class ZMSImplTest {
         Policy policy1 = createPolicyObject("SignedDom1", "Policy1");
         zms.putPolicy(mockDomRsrcCtx, "SignedDom1", "Policy1", auditRef, policy1);
 
-        response = zms.getSignedDomains(rsrcCtx, null, null, null, eTag2);
+        response = zms.getSignedDomains(rsrcCtx, null, null, null, true, eTag2);
         sdoms = (SignedDomains) response.getEntity();
         eTag = response.getHeaderString("ETag");
         assertNotNull(eTag);
@@ -5827,7 +5827,7 @@ public class ZMSImplTest {
         assertNotNull(list);
         assertEquals(1, list.size());
 
-        response = zms.getSignedDomains(rsrcCtx, null, null, null, eTag);
+        response = zms.getSignedDomains(rsrcCtx, null, null, null, Boolean.TRUE, eTag);
         assertEquals(304, response.getStatus());
         eTag2 = response.getHeaderString("ETag");
 
@@ -5852,7 +5852,7 @@ public class ZMSImplTest {
 
         zms.privateKey = new ServerPrivateKey(Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey)), "0");
 
-        Response response = zms.getSignedDomains(mockDomRsrcCtx, "signeddom1filtered", null, null, null);
+        Response response = zms.getSignedDomains(mockDomRsrcCtx, "signeddom1filtered", null, null, null,  null);
         SignedDomains sdoms = (SignedDomains) response.getEntity();
 
         assertNotNull(sdoms);
@@ -5870,7 +5870,7 @@ public class ZMSImplTest {
         // use domain=signeddom1filtered and metaonly=true
         //
 
-        response = zms.getSignedDomains(mockDomRsrcCtx, "signeddom1filtered", "true", null, null);
+        response = zms.getSignedDomains(mockDomRsrcCtx, "signeddom1filtered", "true", null, Boolean.TRUE, null);
         sdoms = (SignedDomains) response.getEntity();
 
         assertNotNull(sdoms);
@@ -5894,7 +5894,7 @@ public class ZMSImplTest {
         // we're going to pass the domain name with caps and
         // make sure we still get back our domain
 
-        response = zms.getSignedDomains(mockDomRsrcCtx, "SignedDom1Filtered", null, null, null);
+        response = zms.getSignedDomains(mockDomRsrcCtx, "SignedDom1Filtered", null, null, Boolean.TRUE, null);
         sdoms = (SignedDomains) response.getEntity();
 
         assertNotNull(sdoms);
@@ -5921,7 +5921,7 @@ public class ZMSImplTest {
                 "Test Domain1", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
-        Response response = zms.getSignedDomains(mockDomRsrcCtx, null, null, null, null);
+        Response response = zms.getSignedDomains(mockDomRsrcCtx, null, null, null, Boolean.TRUE, null);
         assertEquals(response.getStatus(), ResourceException.BAD_REQUEST);
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "SignedDom1", auditRef);
@@ -15539,7 +15539,7 @@ public class ZMSImplTest {
                 "10.11.12.13", "GET", null);
         ResourceContext rsrcCtx = createResourceContext(sysPrincipal);
 
-        Response response = zms.getSignedDomains(rsrcCtx, "unknown", null, null, null);
+        Response response = zms.getSignedDomains(rsrcCtx, "unknown", null, null, Boolean.TRUE, null);
         SignedDomains sdoms = (SignedDomains) response.getEntity();
 
         assertNotNull(sdoms);
@@ -15590,7 +15590,7 @@ public class ZMSImplTest {
         // we're going to ask for entries with ypm id so we'll only
         // get one of the domains back - dom1 but not dom2
 
-        Response response = zms.getSignedDomains(rsrcCtx, null, "true", "ypmid", null);
+        Response response = zms.getSignedDomains(rsrcCtx, null, "true", "ypmid", Boolean.TRUE, null);
         SignedDomains sdoms = (SignedDomains) response.getEntity();
         assertNotNull(sdoms);
         List<SignedDomain> list = sdoms.getDomains();
@@ -15612,7 +15612,7 @@ public class ZMSImplTest {
         // now asking for specific domains with ypm id
         // first signeddom1 with should return
 
-        response = zms.getSignedDomains(rsrcCtx, "signeddom1", "true", "ypmid", null);
+        response = zms.getSignedDomains(rsrcCtx, "signeddom1", "true", "ypmid", Boolean.TRUE, null);
         sdoms = (SignedDomains) response.getEntity();
 
         assertNotNull(sdoms);
@@ -15625,7 +15625,7 @@ public class ZMSImplTest {
 
         // then signeddom2 with should not return
 
-        response = zms.getSignedDomains(rsrcCtx, "signeddom2", "true", "ypmid", null);
+        response = zms.getSignedDomains(rsrcCtx, "signeddom2", "true", "ypmid", Boolean.TRUE, null);
         sdoms = (SignedDomains) response.getEntity();
 
         assertNotNull(sdoms);
@@ -15657,7 +15657,7 @@ public class ZMSImplTest {
         ResourceContext rsrcCtx = createResourceContext(sysPrincipal);
 
         EntityTag eTag = new EntityTag(Timestamp.fromCurrentTime().toString());
-        Response response = zms.getSignedDomains(rsrcCtx, "signeddom1", null, null, eTag.toString());
+        Response response = zms.getSignedDomains(rsrcCtx, "signeddom1", null, null, Boolean.TRUE, eTag.toString());
         assertEquals(response.getStatus(), 304);
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "SignedDom1", auditRef);
@@ -15678,7 +15678,7 @@ public class ZMSImplTest {
         ResourceContext rsrcCtx = createResourceContext(sysPrincipal);
 
         try {
-            zmsImpl.getSignedDomains(rsrcCtx, "signeddom1", null, null, null);
+            zmsImpl.getSignedDomains(rsrcCtx, "signeddom1", null, null, Boolean.TRUE, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 503);
@@ -15701,7 +15701,7 @@ public class ZMSImplTest {
                 "10.11.12.13", "GET", null);
         ResourceContext rsrcCtx = createResourceContext(sysPrincipal);
 
-        Response response = zmsImpl.getSignedDomains(rsrcCtx, "signeddom1", null, null, null);
+        Response response = zmsImpl.getSignedDomains(rsrcCtx, "signeddom1", null, null, Boolean.TRUE, null);
         SignedDomains sdoms = (SignedDomains) response.getEntity();
 
         assertNotNull(sdoms);

@@ -1647,6 +1647,7 @@ public class ZMSSchema {
             .queryParam("domain", "domain", "DomainName", null, "filter the domain list only to the specified name")
             .queryParam("metaonly", "metaOnly", "String", null, "valid values are \"true\" or \"false\"")
             .queryParam("metaattr", "metaAttr", "SimpleName", null, "domain meta attribute to filter/return, valid values \"account\", \"ypmId\", or \"all\"")
+            .queryParam("master", "master", "Bool", null, "for system principals only - request data from master data store and not read replicas if any are configured")
             .headerParam("If-None-Match", "matchingTag", "String", null, "Retrieved from the previous request, this timestamp specifies to the server to return any domains modified since this time")
             .output("ETag", "tag", "String", "The current latest modification timestamp is returned in this header")
             .auth("", "", true)
