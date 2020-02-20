@@ -26,6 +26,6 @@ public class NotificationServiceFactoryImpl implements NotificationServiceFactor
 
     @Override
     public NotificationService create() {
-        return new EmailNotificationService();
+        return new EmailNotificationService(new AWSEmailProvider());
     }
 }

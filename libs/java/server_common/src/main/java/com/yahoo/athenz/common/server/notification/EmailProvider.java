@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Oath Holdings Inc.
+ * Copyright 2020 Verizon Media
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,19 @@
 
 package com.yahoo.athenz.common.server.notification;
 
-public interface NotificationService {
+import java.util.Collection;
+
+public interface EmailProvider {
 
     /**
-     * send out the notification
-     * @param notification - notification to be sent containing notification type, recipients and additional details
-     * @return status of sent notification
+     * Send an email through the provider
+     * @param subject
+     * @param body
+     * @param status
+     * @param recipients
+     * @param from
+     * @param logoImage
+     * @return true if mail was sent
      */
-    boolean notify (Notification notification);
+    boolean sendEmail(String subject, String body, boolean status, Collection<String> recipients, String from, byte[] logoImage);
 }

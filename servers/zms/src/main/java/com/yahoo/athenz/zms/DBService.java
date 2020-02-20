@@ -3459,7 +3459,7 @@ public class DBService {
 
     }
     
-    AthenzDomain getAthenzDomain(String domainName, boolean masterCopy) {
+    public AthenzDomain getAthenzDomain(String domainName, boolean masterCopy) {
         
         // first check to see if we our data is in the cache
         
