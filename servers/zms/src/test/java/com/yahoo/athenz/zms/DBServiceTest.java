@@ -16,7 +16,7 @@
 package com.yahoo.athenz.zms;
 
 import com.yahoo.athenz.zms.audit.MockAuditReferenceValidatorImpl;
-import com.yahoo.athenz.zms.notification.NotificationManager;
+import com.yahoo.athenz.common.server.notification.NotificationManager;
 import com.yahoo.athenz.zms.store.ObjectStoreConnection;
 import com.yahoo.athenz.common.server.audit.AuditReferenceValidator;
 import com.yahoo.rdl.Timestamp;
