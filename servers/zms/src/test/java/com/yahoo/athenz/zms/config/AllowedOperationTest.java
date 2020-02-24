@@ -59,8 +59,7 @@ public class AllowedOperationTest {
     @Test
     public void testIsOperationAllowedOnNoItems() {
         AllowedOperation op = new AllowedOperation();
-        boolean ret = op.isOperationAllowedOn("opItemType", "opItemValue");
-        assertTrue(ret);
+        assertTrue(op.isOperationAllowedOn("opItemType", "opItemValue", AllowedOperation.MatchType.EQUALS));
     }
 
     @Test
@@ -68,8 +67,7 @@ public class AllowedOperationTest {
         AllowedOperation op = new AllowedOperation();
         Map<String, Set<String>> items = new HashMap<>();
         op.setItems(items);
-        boolean ret = op.isOperationAllowedOn("opItemType", "opItemValue");
-        assertTrue(ret);
+        assertTrue(op.isOperationAllowedOn("opItemType", "opItemValue", AllowedOperation.MatchType.EQUALS));
     }
 
     @SuppressWarnings("serial")
@@ -87,8 +85,7 @@ public class AllowedOperationTest {
             }
         };
         op.setItems(items);
-        boolean ret = op.isOperationAllowedOn(null, "opItemValue");
-        assertFalse(ret);
+        assertFalse(op.isOperationAllowedOn(null, "opItemValue", AllowedOperation.MatchType.EQUALS));
     }
 
     @SuppressWarnings("serial")
@@ -106,8 +103,7 @@ public class AllowedOperationTest {
             }
         };
         op.setItems(items);
-        boolean ret = op.isOperationAllowedOn("opItemType", null);
-        assertFalse(ret);
+        assertFalse(op.isOperationAllowedOn("opItemType", null, AllowedOperation.MatchType.EQUALS));
     }
 
     @SuppressWarnings("serial")
@@ -125,8 +121,7 @@ public class AllowedOperationTest {
             }
         };
         op.setItems(items);
-        boolean ret = op.isOperationAllowedOn("opItemType", "opItemValue");
-        assertFalse(ret);
+        assertFalse(op.isOperationAllowedOn("opItemType", "opItemValue", AllowedOperation.MatchType.EQUALS));
     }
 
     @SuppressWarnings("serial")
@@ -144,8 +139,7 @@ public class AllowedOperationTest {
             }
         };
         op.setItems(items);
-        boolean ret = op.isOperationAllowedOn("key", "opItemValue");
-        assertFalse(ret);
+        assertFalse(op.isOperationAllowedOn("key", "opItemValue", AllowedOperation.MatchType.EQUALS));
     }
 
     @SuppressWarnings("serial")
@@ -163,8 +157,7 @@ public class AllowedOperationTest {
             }
         };
         op.setItems(items);
-        boolean ret = op.isOperationAllowedOn("key", "hoge");
-        assertTrue(ret);
+        assertTrue(op.isOperationAllowedOn("key", "hoge", AllowedOperation.MatchType.EQUALS));
     }
 
     @Test
@@ -194,8 +187,7 @@ public class AllowedOperationTest {
         AllowedOperation op2 = new AllowedOperation();
         op2.setName("AllowedOperation2");
 
-        boolean ret = op1.equals(op2);
-        assertFalse(ret);
+        assertFalse(op1.equals(op2));
     }
 
     @Test
@@ -203,8 +195,7 @@ public class AllowedOperationTest {
         AllowedOperation op1 = new AllowedOperation();
         AllowedOperation op2 = new AllowedOperation();
 
-        boolean ret = op1.equals(op2);
-        assertTrue(ret);
+        assertTrue(op1.equals(op2));
     }
 
     @Test
@@ -213,8 +204,7 @@ public class AllowedOperationTest {
         op1.setName("AllowedOperation1");
         AllowedOperation op2 = new AllowedOperation();
         op2.setName("AllowedOperation1");
-        boolean ret = op1.equals(op2);
-        assertTrue(ret);
+        assertTrue(op1.equals(op2));
     }
 
     @Test
@@ -223,8 +213,7 @@ public class AllowedOperationTest {
         op1.setName("AllowedOperation1");
         AllowedOperation op2 = new AllowedOperation();
         op2.setName("AllowedOperation2");
-        boolean ret = op1.equals(op2);
-        assertFalse(ret);
+        assertFalse(op1.equals(op2));
     }
 
     @SuppressWarnings("serial")
@@ -289,5 +278,30 @@ public class AllowedOperationTest {
         op2.setItems(items2);
 
         assertNotEquals(op1.hashCode(), op2.hashCode());
+    }
+
+    @Test
+    public void testIsOperationAllowedStartsWith() {
+        AllowedOperation op = new AllowedOperation();
+        Set<String> item = new HashSet<String>() {
+            {
+                add("config.reader.");
+                add("config.writer.");
+            }
+        };
+        Map<String, Set<String>> items = new HashMap<String, Set<String>>() {
+            {
+                put("cfg", item);
+            }
+        };
+        op.setItems(items);
+
+        assertTrue(op.isOperationAllowedOn("cfg", "config.reader.role1", AllowedOperation.MatchType.STARTS_WITH));
+        assertTrue(op.isOperationAllowedOn("cfg", "config.writer.role1", AllowedOperation.MatchType.STARTS_WITH));
+        assertTrue(op.isOperationAllowedOn("cfg", "config.reader.", AllowedOperation.MatchType.STARTS_WITH));
+        assertTrue(op.isOperationAllowedOn("cfg", "config.reader.role1", AllowedOperation.MatchType.STARTS_WITH));
+        assertFalse(op.isOperationAllowedOn("cfg", "config.readers.role1", AllowedOperation.MatchType.STARTS_WITH));
+        assertFalse(op.isOperationAllowedOn("cfg", "config.writers.role1", AllowedOperation.MatchType.STARTS_WITH));
+        assertFalse(op.isOperationAllowedOn("cfg", "config.reader.role1", AllowedOperation.MatchType.EQUALS));
     }
 }

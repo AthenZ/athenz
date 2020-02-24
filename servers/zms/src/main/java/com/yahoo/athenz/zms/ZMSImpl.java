@@ -3141,7 +3141,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // verify that request is properly authenticated for this request
 
-        verifyAuthorizedServiceOperation(principal.getAuthorizedService(), caller, "role", roleName);
+        verifyAuthorizedServiceRoleOperation(principal.getAuthorizedService(), caller, roleName);
 
         // verify that the member name in the URI and object provided match
 
@@ -3258,8 +3258,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         Object timerMetric = metric.startTiming("deletemembership_timing", domainName, principalDomain);
         
         // verify that request is properly authenticated for this request
-        
-        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+
+        verifyAuthorizedServiceRoleOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller, roleName);
 
         dbService.executeDeleteMembership(ctx, domainName, roleName,
                 normalizeDomainAliasUser(memberName), auditRef, caller);
@@ -6743,41 +6743,85 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         metric.stopTiming(timerMetric, principalDomain, principalDomain);
         return servicePrincipal;
     }
-    
-    void verifyAuthorizedServiceOperation(String authorizedService, String operationName) {
-        verifyAuthorizedServiceOperation(authorizedService, operationName, null, null);
-    }
-    
-    /**
-     * If opItemType and value are not defined in the authorized_services JSON file,
-     * you can simply pass NULL for these two values.
-     */
-    void verifyAuthorizedServiceOperation(String authorizedService, String operationName,
-            String opItemType, String opItemVal) {
-        
-        // only process this request if we have an authorized service specified
-        
-        if (authorizedService == null) {
-            return;
-        }
-        
+
+    ArrayList<AllowedOperation> getAuthorizedServiceOperations(final String authorizedService, final String operationName) {
+
         // lookup the authorized services struct and see if we have the
         // service specified in the allowed list
-        
+
         AuthorizedService authzService = serverAuthorizedServices.get(authorizedService);
         if (authzService == null) {
             throw ZMSUtils.forbiddenError("Unauthorized Service " + authorizedService,
                     operationName);
         }
-        
+
         // if the list is empty then we do not allow any operations
-        
+
         ArrayList<AllowedOperation> ops = authzService.getAllowedOperations();
         if (ops == null || ops.isEmpty()) {
             throw ZMSUtils.forbiddenError("Unauthorized Operation (" + operationName
                     + ") for Service " + authorizedService, operationName);
         }
+
+        return ops;
+    }
+
+    void verifyAuthorizedServiceOperation(final String authorizedService, final String operationName) {
+        verifyAuthorizedServiceOperation(authorizedService, operationName, null, null);
+    }
+
+    void verifyAuthorizedServiceRoleOperation(final String authorizedService, final String operationName,
+            final String roleName) {
+
+        // only process this request if we have an authorized service specified
+
+        if (authorizedService == null) {
+            return;
+        }
+
+        // lookup the authorized services struct and see if we have the
+        // service specified in the allowed list
+
+        ArrayList<AllowedOperation> ops = getAuthorizedServiceOperations(authorizedService, operationName);
+
+        // otherwise make sure the operation is allowed for this service
+
+        boolean opAllowed = false;
+        for (AllowedOperation op : ops) {
+            if (!op.getName().equalsIgnoreCase(operationName)) {
+                continue;
+            }
+
+            opAllowed = op.isOperationAllowedOn("role", roleName, AllowedOperation.MatchType.EQUALS) ||
+                    op.isOperationAllowedOn("role-prefix", roleName, AllowedOperation.MatchType.STARTS_WITH);
+            break;
+        }
+
+        if (!opAllowed) {
+            throw ZMSUtils.forbiddenError("Unauthorized Operation (" + operationName
+                            + ") for Service " + authorizedService
+                            + " on role " + roleName, operationName);
+        }
+    }
+
+    /**
+     * If opItemType and value are not defined in the authorized_services JSON file,
+     * you can simply pass NULL for these two values.
+     */
+    void verifyAuthorizedServiceOperation(final String authorizedService, final String operationName,
+            final String opItemType, final String opItemVal) {
         
+        // only process this request if we have an authorized service specified
+
+        if (authorizedService == null) {
+            return;
+        }
+
+        // lookup the authorized services struct and see if we have the
+        // service specified in the allowed list
+
+        ArrayList<AllowedOperation> ops = getAuthorizedServiceOperations(authorizedService, operationName);
+
         // otherwise make sure the operation is allowed for this service
         
         boolean opAllowed = false;
@@ -6786,7 +6830,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 continue;
             }
             
-            opAllowed = op.isOperationAllowedOn(opItemType, opItemVal);
+            opAllowed = op.isOperationAllowedOn(opItemType, opItemVal, AllowedOperation.MatchType.EQUALS);
             break;
         }
         
@@ -7098,7 +7142,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // verify that request is properly authenticated for this request
 
-        verifyAuthorizedServiceOperation(principal.getAuthorizedService(), caller, "role", roleName);
+        verifyAuthorizedServiceRoleOperation(principal.getAuthorizedService(), caller, roleName);
 
         // verify that the member name in the URI and object provided match
 
