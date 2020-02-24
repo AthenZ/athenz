@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package com.yahoo.athenz.zms;
+package com.yahoo.athenz.zms.notification;
 
 import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.notification.NotificationService;
 import com.yahoo.athenz.common.server.notification.NotificationServiceFactory;
+import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.zms.store.AthenzDomain;
 import com.yahoo.rdl.Timestamp;
 import org.mockito.*;
@@ -30,9 +31,11 @@ import org.testng.annotations.Test;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
 
 public class NotificationManagerTest {
 
@@ -575,8 +578,15 @@ public class NotificationManagerTest {
         reminders.sendPendingMembershipApprovalReminders();
 
         // we should get 1 notification processed
+        ArgumentCaptor<Notification> notificationArgumentCaptor = ArgumentCaptor.forClass(Notification.class);
+        Mockito.verify(mockNotificationService, times(1)).notify(notificationArgumentCaptor.capture());
 
-        Mockito.verify(mockNotificationService, times(1)).notify(any());
+        // Verify contents of notification is as expected
+        List<Notification> capturedNotifications = notificationArgumentCaptor.getAllValues();
+        assertEquals(capturedNotifications.size(), 1);
+        Notification expectedNotification = new Notification(NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL_REMINDER);
+        expectedNotification.addRecipient("user.joe");
+        assertEquals(capturedNotifications.get(0), expectedNotification);
         notificationManager.shutdown();
     }
 
@@ -604,17 +614,17 @@ public class NotificationManagerTest {
 
         details = reminders.processMemberExpiryReminder("athenz", memberRoles);
         assertEquals(details.size(), 2);
-        assertEquals(details.get(NotificationService.NOTIFICATION_DETAILS_EXPIRY_MEMBERS),
+        assertEquals(details.get(NOTIFICATION_DETAILS_EXPIRY_MEMBERS),
             "user.joe;role1;" + ts);
-        assertEquals(details.get(NotificationService.NOTIFICATION_DETAILS_DOMAIN), "athenz");
+        assertEquals(details.get(NOTIFICATION_DETAILS_DOMAIN), "athenz");
 
         memberRoles.add(new MemberRole().setRoleName("role1").setDomainName("athenz").setMemberName("user.jane")
                 .setExpiration(Timestamp.fromMillis(100)));
         details = reminders.processMemberExpiryReminder("athenz", memberRoles);
         assertEquals(details.size(), 2);
-        assertEquals(details.get(NotificationService.NOTIFICATION_DETAILS_EXPIRY_MEMBERS),
+        assertEquals(details.get(NOTIFICATION_DETAILS_EXPIRY_MEMBERS),
                 "user.joe;role1;" + ts + "|user.jane;role1;" + ts);
-        assertEquals(details.get(NotificationService.NOTIFICATION_DETAILS_DOMAIN), "athenz");
+        assertEquals(details.get(NOTIFICATION_DETAILS_DOMAIN), "athenz");
 
         notificationManager.shutdown();
     }
@@ -654,9 +664,9 @@ public class NotificationManagerTest {
         domainAdminMap.clear();
         details = reminders.processRoleExpiryReminder(domainAdminMap, roleMember);
         assertEquals(details.size(), 2);
-        assertEquals(details.get(NotificationService.NOTIFICATION_DETAILS_EXPIRY_ROLES),
+        assertEquals(details.get(NOTIFICATION_DETAILS_EXPIRY_ROLES),
                 "athenz1;role1;" + ts);
-        assertEquals(details.get(NotificationService.NOTIFICATION_DETAILS_MEMBER), "user.joe");
+        assertEquals(details.get(NOTIFICATION_DETAILS_MEMBER), "user.joe");
 
         assertEquals(domainAdminMap.size(), 1);
         List<MemberRole> domainRoleMembers = domainAdminMap.get("athenz1");
@@ -670,9 +680,9 @@ public class NotificationManagerTest {
         domainAdminMap.clear();
         details = reminders.processRoleExpiryReminder(domainAdminMap, roleMember);
         assertEquals(details.size(), 2);
-        assertEquals(details.get(NotificationService.NOTIFICATION_DETAILS_EXPIRY_ROLES),
+        assertEquals(details.get(NOTIFICATION_DETAILS_EXPIRY_ROLES),
                 "athenz1;role1;" + ts + "|athenz2;role1;" + ts + "|athenz2;role2;" + ts);
-        assertEquals(details.get(NotificationService.NOTIFICATION_DETAILS_MEMBER), "user.joe");
+        assertEquals(details.get(NOTIFICATION_DETAILS_MEMBER), "user.joe");
         assertEquals(domainAdminMap.size(), 2);
         domainRoleMembers = domainAdminMap.get("athenz1");
         assertEquals(domainRoleMembers.size(), 1);
@@ -781,8 +791,26 @@ public class NotificationManagerTest {
         reminders.sendRoleMemberExpiryReminders();
 
         // we should get 2 notifications - one for user and one for domain
+        ArgumentCaptor<Notification> notificationArgumentCaptor = ArgumentCaptor.forClass(Notification.class);
+        Mockito.verify(mockNotificationService, times(2)).notify(notificationArgumentCaptor.capture());
 
-        Mockito.verify(mockNotificationService, times(2)).notify(any());
+        // Verify contents of notifications is as expected
+        List<Notification> capturedNotifications = notificationArgumentCaptor.getAllValues();
+        assertEquals(capturedNotifications.size(), 2);
+
+        Notification expectedFirstNotification = new Notification(NOTIFICATION_TYPE_PRINCIPAL_EXPIRY_REMINDER);
+        expectedFirstNotification.addRecipient("user.joe");
+        expectedFirstNotification.addDetails("expiryRoles", "athenz1;role1;1970-01-01T00:00:00.100Z");
+        expectedFirstNotification.addDetails("member", "user.joe");
+
+        Notification expectedSecondNotification = new Notification(NOTIFICATION_TYPE_DOMAIN_MEMBER_EXPIRY_REMINDER);
+        expectedSecondNotification.addRecipient("user.jane");
+        expectedSecondNotification.addDetails("expiryMembers", "user.joe;role1;1970-01-01T00:00:00.100Z");
+        expectedSecondNotification.addDetails("domain", "athenz1");
+
+        assertEquals(capturedNotifications.get(0), expectedFirstNotification);
+        assertEquals(capturedNotifications.get(1), expectedSecondNotification);
+
         notificationManager.shutdown();
     }
 

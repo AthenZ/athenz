@@ -35,6 +35,7 @@ import com.yahoo.athenz.zms.config.AllowedOperation;
 import com.yahoo.athenz.zms.config.AuthorizedService;
 import com.yahoo.athenz.zms.config.AuthorizedServices;
 import com.yahoo.athenz.zms.config.SolutionTemplates;
+import com.yahoo.athenz.zms.notification.NotificationManager;
 import com.yahoo.athenz.zms.store.AthenzDomain;
 import com.yahoo.athenz.zms.store.ObjectStore;
 import com.yahoo.athenz.zms.store.ObjectStoreFactory;
@@ -68,7 +69,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
-import static com.yahoo.athenz.common.server.notification.NotificationService.*;
+import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
 
 public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
