@@ -10866,7 +10866,60 @@ public class ZMSImplTest {
             assertEquals(ex.getCode(), 403);
         }
     }
-    
+
+    @Test
+    public void testVerifyAuthorizedServiceRolePrefixOperation() {
+
+        // our test resource json includes the following
+        // role-prefix use case
+        //        "coretech.updater": {
+        //            "allowedOperations": [
+        //               {
+        //                 "name":"putmembership",
+        //                  "items": {
+        //                      "role-prefix" : [
+        //                          "reader.org.",
+        //                          "writer.domain."
+        //                      ]
+        //                  }
+        //              }
+        //            ]
+
+        zms.verifyAuthorizedServiceRoleOperation(null, "putmembership", "role1");
+
+        // Try passing along operationItem key + value to see if verification works
+
+        zms.verifyAuthorizedServiceRoleOperation("coretech.updater", "putmembership", "reader.org.role1");
+        zms.verifyAuthorizedServiceRoleOperation("coretech.updater", "putmembership", "writer.domain.role1");
+
+        // try with restricted operation. Currently, putmembership only allow single operation item.
+        zms.verifyAuthorizedServiceRoleOperation("coretech.newsvc", "putmembership", "platforms_deployer");
+        zms.verifyAuthorizedServiceRoleOperation("coretech.newsvc", "putmembership", "platforms_different_deployer");
+
+        // Third, try with restriction operation, with not-specified operation item.
+
+        try {
+            zms.verifyAuthorizedServiceRoleOperation("coretech.updater", "putmembership", "platforms_deployer_new");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+
+        try {
+            zms.verifyAuthorizedServiceRoleOperation("coretech.updater", "putmembership", "reader.org1.role1");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+
+        try {
+            zms.verifyAuthorizedServiceRoleOperation("coretech.newsvc", "putmembership", "platforms_deployer_new");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+    }
+
     @Test
     public void testPutProviderResourceGroupRoles() {
 
@@ -18019,5 +18072,53 @@ public class ZMSImplTest {
         zmsImpl.loadServerPublicKeys();
 
         assertFalse(zmsImpl.serverPublicKeyMap.isEmpty());
+    }
+
+    @Test
+    public void testAddDefaultAdminMembers() {
+
+        final String domainName = "add-default-domain-admins";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Role adminRole = zms.getRole(mockDomRsrcCtx, domainName, "admin", false, false, false);
+        assertEquals(adminRole.getRoleMembers().size(), 1);
+
+        List<String> admins = new ArrayList<>();
+        admins.add(adminUser);
+        admins.add("user.default");
+
+        DefaultAdmins addDefaultAdmins = new DefaultAdmins().setAdmins(admins);
+        zms.addDefaultAdminMembers(mockDomRsrcCtx, domainName, adminRole, addDefaultAdmins, auditRef, "unittest");
+
+        adminRole = zms.getRole(mockDomRsrcCtx, domainName, "admin", false, false, false);
+        assertEquals(adminRole.getRoleMembers().size(), 2);
+        boolean newAdminFound = false;
+        for (RoleMember roleMember : adminRole.getRoleMembers()) {
+            if (roleMember.getMemberName().equals("user.default")) {
+                newAdminFound = true;
+            }
+        }
+        assertTrue(newAdminFound);
+
+        // now let's delete the default admin user
+
+        admins = new ArrayList<>();
+        admins.add("user.default");
+        admins.add("user.unknown");
+        DefaultAdmins deleteDefaultAdmins = new DefaultAdmins().setAdmins(admins);
+
+        zms.removeAdminMembers(mockDomRsrcCtx, domainName, Collections.singletonList(adminRole),
+                adminRole.getName(), deleteDefaultAdmins, auditRef, "unittest");
+
+        // verify we're back to a single admin role member
+
+        adminRole = zms.getRole(mockDomRsrcCtx, domainName, "admin", false, false, false);
+        assertEquals(adminRole.getRoleMembers().size(), 1);
+        assertEquals(adminRole.getRoleMembers().get(0).getMemberName(), adminUser);
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 }

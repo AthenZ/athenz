@@ -21,7 +21,12 @@ import java.util.Map;
 public class AllowedOperation {
     private String name;
     private Map<String, Set<String>> items;
-    
+
+    public enum MatchType {
+        EQUALS,
+        STARTS_WITH
+    }
+
     public Map<String, Set<String>> getItems() {
         return items;
     }
@@ -38,7 +43,7 @@ public class AllowedOperation {
         this.name = name;
     }
     
-    public boolean isOperationAllowedOn(String opItemType, String opItemValue) {
+    public boolean isOperationAllowedOn(String opItemType, String opItemValue, MatchType matchType) {
         
         // if no operationItems are defined, always allow all 
         if (this.items == null || this.items.isEmpty()) {
@@ -54,7 +59,25 @@ public class AllowedOperation {
         opItemType = opItemType.toLowerCase();
         opItemValue = opItemValue.toLowerCase();
         Set<String> opItems = this.items.get(opItemType);
-        return opItems != null && opItems.contains(opItemValue);
+        if (opItems == null) {
+            return false;
+        }
+
+        boolean result = false;
+        switch (matchType) {
+            case EQUALS:
+                result = opItems.contains(opItemValue);
+                break;
+            case STARTS_WITH:
+                for (String value : opItems) {
+                    if (opItemValue.startsWith(value)) {
+                        result = true;
+                        break;
+                    }
+                }
+                break;
+        }
+        return result;
     }
     
     @Override
