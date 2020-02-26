@@ -885,6 +885,21 @@ public class TestAuthZpe {
     }
 
     @Test
+    public void testAllowAccessCertHashMismatch() throws IOException {
+
+        String action = "all";
+        String resource = "angler:stuff";
+        StringBuilder roleName = new StringBuilder();
+
+        Path path = Paths.get("src/test/resources/mtls_token_mismatch.cert");
+        String certStr = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(certStr);
+
+        AccessCheckStatus status = AuthZpeClient.allowAccess(accessToken0AnglerRegex, cert, null, resource, action, roleName);
+        Assert.assertEquals(status, AccessCheckStatus.DENY_CERT_HASH_MISMATCH);
+    }
+
+    @Test
     public void testAllowAccessMatchAllAccessTokenInvalid() {
 
         String action = "all";
