@@ -27,6 +27,7 @@ import javax.security.auth.x500.X500Principal;
 
 import com.yahoo.athenz.auth.token.AccessToken;
 import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
+import com.yahoo.athenz.auth.util.CryptoException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -144,6 +145,11 @@ public class AuthZpeClient {
         DENY_CERT_MISSING_ROLE_NAME {
             public String toString() {
                 return "Access denied due to missing role name in certificate";
+            }
+        },
+        DENY_CERT_HASH_MISMATCH {
+            public String toString() {
+                return "Access denied due to access token certificate hash mismatch";
             }
         }
     }
@@ -525,7 +531,7 @@ public class AuthZpeClient {
         if (acsToken != null && cert != null && !acsToken.confirmMTLSBoundToken(cert, certHash)) {
             LOG.error("allowAccess: mTLS Client certificate confirmation failed");
             zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_INVALID_TOKEN, DEFAULT_DOMAIN);
-            return AccessCheckStatus.DENY_ROLETOKEN_INVALID;
+            return AccessCheckStatus.DENY_CERT_HASH_MISMATCH;
         }
 
         if (acsToken == null) {
@@ -538,6 +544,14 @@ public class AuthZpeClient {
                 } else {
                     acsToken = new AccessToken(accessToken, accessSignKeyResolver, cert, certHash);
                 }
+            } catch (CryptoException ex) {
+
+                LOG.error("allowAccess: Authorization denied. Authentication failed for token={}",
+                        ex.getMessage());
+                zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_INVALID_TOKEN, DEFAULT_DOMAIN);
+                return (ex.getCode() == CryptoException.CERT_HASH_MISMATCH) ?
+                        AccessCheckStatus.DENY_CERT_HASH_MISMATCH : AccessCheckStatus.DENY_ROLETOKEN_INVALID;
+
             } catch (Exception ex) {
 
                 LOG.error("allowAccess: Authorization denied. Authentication failed for token={}",

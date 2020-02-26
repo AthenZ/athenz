@@ -149,7 +149,7 @@ public class AccessToken extends OAuth2Token {
         setAccessTokenFields();
         if (!confirmMTLSBoundToken(x509Cert, x509CertHash)) {
             LOG.error("AccessToken: X.509 Certificate Confirmation failure");
-            throw new CryptoException("X.509 Certificate Confirmation failure");
+            throw new CryptoException(CryptoException.CERT_HASH_MISMATCH, "X.509 Certificate Confirmation failure");
         }
     }
 

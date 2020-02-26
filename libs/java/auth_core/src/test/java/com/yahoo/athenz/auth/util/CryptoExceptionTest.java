@@ -29,6 +29,7 @@ import java.security.SignatureException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
 public class CryptoExceptionTest {
@@ -38,6 +39,8 @@ public class CryptoExceptionTest {
 
         CryptoException ex = new CryptoException();
         assertNotNull(ex);
+        assertEquals(ex.getCode(), CryptoException.CRYPTO_ERROR);
+
         assertNotNull(new CryptoException(new NoSuchAlgorithmException()));
         assertNotNull(new CryptoException(new InvalidKeyException()));
         assertNotNull(new CryptoException(new NoSuchProviderException()));
@@ -49,5 +52,8 @@ public class CryptoExceptionTest {
         assertNotNull(new CryptoException(new OperatorCreationException("unit-test")));
         assertNotNull(new CryptoException(new PKCSException("unit-test")));
         assertNotNull(new CryptoException(new CMSException("unit-test")));
+
+        ex = new CryptoException(CryptoException.CERT_HASH_MISMATCH, "X.509 Certificate hash mismatch");
+        assertEquals(ex.getCode(), CryptoException.CERT_HASH_MISMATCH);
     }
 }
