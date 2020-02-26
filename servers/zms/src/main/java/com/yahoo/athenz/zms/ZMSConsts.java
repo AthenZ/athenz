@@ -123,8 +123,6 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_OBJECT_STORE_FACTORY_CLASS      = "athenz.zms.object_store_factory_class";
     public static final String ZMS_OBJECT_STORE_FACTORY_CLASS           = "com.yahoo.athenz.zms.store.impl.FileObjectStoreFactory";
 
-    public static final String ZMS_PROP_NOTIFICATION_SERVICE_FACTORY_CLASS = "athenz.zms.notification_service_factory_class";
-
     // properties for our default quota limits
     
     public static final String ZMS_PROP_QUOTA_CHECK        = "athenz.zms.quota_check";

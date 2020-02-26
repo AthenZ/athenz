@@ -25,6 +25,8 @@ import com.yahoo.athenz.common.server.audit.AuditReferenceValidator;
 import com.yahoo.athenz.common.server.audit.AuditReferenceValidatorFactory;
 import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.log.AuditLoggerFactory;
+import com.yahoo.athenz.common.server.notification.Notification;
+import com.yahoo.athenz.common.server.notification.NotificationManager;
 import com.yahoo.athenz.common.server.rest.Http;
 import com.yahoo.athenz.common.server.rest.Http.AuthorityList;
 import com.yahoo.athenz.common.server.util.ConfigProperties;
@@ -35,7 +37,7 @@ import com.yahoo.athenz.zms.config.AllowedOperation;
 import com.yahoo.athenz.zms.config.AuthorizedService;
 import com.yahoo.athenz.zms.config.AuthorizedServices;
 import com.yahoo.athenz.zms.config.SolutionTemplates;
-import com.yahoo.athenz.zms.notification.NotificationManager;
+import com.yahoo.athenz.zms.notification.*;
 import com.yahoo.athenz.zms.store.AthenzDomain;
 import com.yahoo.athenz.zms.store.ObjectStore;
 import com.yahoo.athenz.zms.store.ObjectStoreFactory;
@@ -461,7 +463,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     private void setNotificationManager() {
-        notificationManager = new NotificationManager(dbService, userDomainPrefix);
+        ZMSNotificationTaskFactory zmsNotificationTaskFactory = new ZMSNotificationTaskFactory(dbService, userDomainPrefix);
+        notificationManager = new NotificationManager(zmsNotificationTaskFactory.getNotificationTasks());
     }
 
     void loadSystemProperties() {
@@ -3213,18 +3216,18 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
      void sendMembershipApprovalNotification(final String domain, final String org, final String roleName,
             final String member, final String auditRef, final String principal, final Role role) {
-
         Map<String, String> details = new HashMap<>();
         details.put(NOTIFICATION_DETAILS_DOMAIN, domain);
         details.put(NOTIFICATION_DETAILS_ROLE, roleName);
         details.put(NOTIFICATION_DETAILS_MEMBER, member);
         details.put(NOTIFICATION_DETAILS_REASON, auditRef);
         details.put(NOTIFICATION_DETAILS_REQUESTER, principal);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Sending Membership Approval notification after putMembership");
+        }
 
-         if (LOG.isDebugEnabled()) {
-             LOG.debug("Sending Membership Approval notification after putMembership");
-         }
-        notificationManager.generateAndSendPostPutMembershipNotification(domain, org, role, details);
+        List<Notification> notifications = new PutMembershipNotificationTask(domain, org, role, details, dbService, userDomainPrefix).getNotifications();
+        notificationManager.sendNotifications(notifications);
     }
 
     public void deleteMembership(ResourceContext ctx, String domainName, String roleName,

@@ -17,6 +17,8 @@
 package com.yahoo.athenz.common.server.notification;
 
 public final class NotificationServiceConstants {
+    public static final String NOTIFICATION_PROP_SERVICE_FACTORY_CLASS = "athenz.zms.notification_service_factory_class";
+
     public static final String NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL           = "MEMBERSHIP_APPROVAL";
     public static final String NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL_REMINDER  = "MEMBERSHIP_APPROVAL_REMINDER";
     public static final String NOTIFICATION_TYPE_PRINCIPAL_EXPIRY_REMINDER     = "PRINCIPAL_EXPIRY_REMINDER";

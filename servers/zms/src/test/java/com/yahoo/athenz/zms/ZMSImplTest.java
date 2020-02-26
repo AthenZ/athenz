@@ -32,7 +32,7 @@ import com.google.common.base.Strings;
 import com.yahoo.athenz.auth.ServerPrivateKey;
 import com.yahoo.athenz.auth.impl.*;
 import com.yahoo.athenz.common.server.notification.Notification;
-import com.yahoo.athenz.zms.notification.NotificationManager;
+import com.yahoo.athenz.common.server.notification.NotificationManager;
 import org.mockito.Mockito;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -17476,9 +17476,16 @@ public class ZMSImplTest {
         detailsExp.put(NOTIFICATION_DETAILS_REASON, "adding fury");
         detailsExp.put(NOTIFICATION_DETAILS_REQUESTER, "user.fury");
 
+        List<Notification> expextedNotifications = Collections.singletonList(new Notification(NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL));
+        expextedNotifications.get(0).addRecipient("user.user1");
+        expextedNotifications.get(0).addDetails("requester", "user.fury");
+        expextedNotifications.get(0).addDetails("reason", "adding fury");
+        expextedNotifications.get(0).addDetails("role", "testrole2");
+        expextedNotifications.get(0).addDetails("domain", "testdomain1");
+        expextedNotifications.get(0).addDetails("member", "user.fury");
+
         Mockito.verify(mockNotificationManager,
-                times(1)).generateAndSendPostPutMembershipNotification(eq("testdomain1"), eq("testorg"),
-                    any(Role.class), eq(detailsExp));
+                times(1)).sendNotifications(eq(expextedNotifications));
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "testdomain1", auditRef);
     }
