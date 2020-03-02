@@ -201,21 +201,6 @@ public class X509CertRequest {
             return true;
         }
 
-        // verify the hostname is present in the dns name field
-
-        boolean hostFound = false;
-        for (String dnsName : dnsNames) {
-            if (dnsName.equalsIgnoreCase(instanceHostname)) {
-                hostFound = true;
-                break;
-            }
-        }
-
-        if (!hostFound) {
-            LOGGER.error("Instance hostname '{}' specified but not included in CSR", instanceHostname);
-            return false;
-        }
-
         // validate the provider is authorized to request hostnames with
         // the given prefix
 
