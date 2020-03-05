@@ -73,7 +73,7 @@ openssl pkcs12 -export -noiter -nomaciter \
 
 echo '6. config the Athenz domain admin' | colored_cat g
 echo "your setting: DOMAIN_ADMIN=${DOMAIN_ADMIN}" | colored_cat y
-sed -i "s/user.github-<your github ID>/${DOMAIN_ADMIN}/g" "${ZMS_CONF_DIR}/zms.properties"
+sed -i "s/user\.github-.*$/${DOMAIN_ADMIN}/g" "${ZMS_CONF_DIR}/zms.properties"
 
 echo '7. summary' | colored_cat g
 tree "${CA_DIR}"

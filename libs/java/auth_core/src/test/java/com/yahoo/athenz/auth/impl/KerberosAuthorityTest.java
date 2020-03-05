@@ -15,12 +15,10 @@
  */
 package com.yahoo.athenz.auth.impl;
 
-import javax.security.auth.Subject;
 import javax.security.auth.login.AppConfigurationEntry;
 import javax.security.auth.kerberos.KerberosPrincipal;
 import javax.security.auth.kerberos.KerberosTicket;
 
-import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
 import com.yahoo.athenz.auth.Principal;
@@ -28,14 +26,8 @@ import com.yahoo.athenz.auth.token.KerberosToken;
 
 import static com.yahoo.athenz.auth.impl.KerberosAuthority.KRB_PROP_LOGIN_TKT_CACHE_NAME;
 import static com.yahoo.athenz.auth.token.KerberosToken.KRB_PROP_TOKEN_PRIV_ACTION;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 import static org.testng.Assert.*;
 import java.lang.reflect.Field;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class KerberosAuthorityTest {
     

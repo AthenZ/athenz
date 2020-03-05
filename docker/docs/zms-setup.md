@@ -125,7 +125,7 @@ As a demo, we will use the github identity. You can use any identity provider at
 
 - Get your github ID by the following API.
 ```bash
-curl --silent https://api.github.com/users/<your github username> | grep '"id":'
+curl --silent --show-error https://api.github.com/users/<your github username> | grep '"id":'
 
 export DOMAIN_ADMIN='user.github-<your github ID>'
 # export DOMAIN_ADMIN='user.github-7654321'
@@ -133,7 +133,7 @@ export DOMAIN_ADMIN='user.github-<your github ID>'
 - To simplify the set up, we will just configure a single admin.
 ```bash
 # replace the placeholder in the sample configuration
-sed -i "s/user.github-<your github ID>/${DOMAIN_ADMIN}/g" "${ZMS_CONF_DIR}/zms.properties"
+sed -i "s/user\.github-.*$/${DOMAIN_ADMIN}/g" "${ZMS_CONF_DIR}/zms.properties"
 ```
 
 <a id="markdown-7-summary" name="7-summary"></a>

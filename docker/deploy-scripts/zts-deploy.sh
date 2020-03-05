@@ -90,6 +90,7 @@ docker exec --user mysql:mysql \
 echo '4. start ZTS' | colored_cat g
 docker run -d -h "${ZTS_HOST}" \
     -p "${ZTS_PORT}:${ZTS_PORT}" \
+    --dns="${DOCKER_DNS}" \
     --network="${DOCKER_NETWORK}" \
     --user "$(id -u):$(id -g)" \
     -v "${DOCKER_DIR}/zts/var:/opt/athenz/zts/var" \
@@ -111,7 +112,7 @@ until docker run --rm --entrypoint curl \
     --network="${DOCKER_NETWORK}" \
     --user "$(id -u):$(id -g)" \
     --name athenz-curl athenz-setup-env \
-    -k --silent --output /dev/null "https://${ZTS_HOST}:${ZTS_PORT}/zts/v1/status" \
+    -k --silent --show-error --output /dev/null "https://${ZTS_HOST}:${ZTS_PORT}/zts/v1/status" \
     ; do
     echo 'ZTS is unavailable - will sleep 3s...'
     sleep 3

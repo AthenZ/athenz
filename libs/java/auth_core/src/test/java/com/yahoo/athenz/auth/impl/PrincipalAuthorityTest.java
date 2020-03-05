@@ -34,7 +34,6 @@ import org.testng.annotations.Test;
 import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.Authority.CredSource;
-import com.yahoo.athenz.auth.impl.PrincipalAuthority;
 import com.yahoo.athenz.auth.impl.PrincipalAuthority.IpCheckMode;
 import com.yahoo.athenz.auth.token.PrincipalToken;
 import com.yahoo.athenz.auth.util.CryptoException;
@@ -535,7 +534,7 @@ public class PrincipalAuthorityTest {
     }
 
     @Test
-    public void testAuthenticateIlligal() {
+    public void testAuthenticateIllegal() {
         PrincipalAuthority serviceAuthority = new PrincipalAuthority();
 
         Principal principal = serviceAuthority.authenticate("aaaa", null, "GET", null);
@@ -618,7 +617,7 @@ public class PrincipalAuthorityTest {
         KeyStore keyStore = Mockito.mock(KeyStore.class);
         serviceAuthority.setKeyStore(keyStore);
 
-        String t = "v=S1;d=domain;n=hoge;bs=aaaa;s=signatur";
+        String t = "v=S1;d=domain;n=hoge;bs=aaaa;s=signature";
 
         Principal check = serviceAuthority.authenticate(t, "10", "10", null);
         assertNull(check);

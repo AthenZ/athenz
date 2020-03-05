@@ -85,7 +85,8 @@
     <javax.ws.version>2.1.1</javax.ws.version>
     <mockito.version>3.3.0</mockito.version>
     <jmockit.version>1.49</jmockit.version>
-    <jjwt.version>0.9.1</jjwt.version>
+    <jjwt.version>0.11.0</jjwt.version>
+    <jwks.rsa.version>0.11.0</jwks.rsa.version>
     <mysql.connector.version>8.0.19</mysql.connector.version>
     <commons.daemon.version>1.2.2</commons.daemon.version>
     <apache.httpclient.version>4.5.11</apache.httpclient.version>

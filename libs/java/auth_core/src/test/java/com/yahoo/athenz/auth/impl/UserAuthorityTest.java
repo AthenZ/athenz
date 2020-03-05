@@ -24,7 +24,6 @@ import com.yahoo.athenz.auth.Authority;
 import org.jvnet.libpam.PAM;
 import org.jvnet.libpam.PAMException;
 import org.jvnet.libpam.UnixUser;
-import org.mockito.Mock;
 import org.testng.annotations.Test;
 
 import com.yahoo.athenz.auth.Principal;
@@ -79,7 +78,6 @@ public class UserAuthorityTest {
         UserAuthority userAuthority = new UserAuthority();
         userAuthority.setPAM(pam);
         Mockito.when(pam.authenticate("testuser", "testpwd")).thenThrow(RuntimeException.class);
-        StringBuilder errMsg = new StringBuilder();
         Principal principal = userAuthority.authenticate("Basic dGVzdHVzZXI6dGVždšB3ZA==", "10.72.118.45", "GET", null);
         assertNull(principal);
 
@@ -149,7 +147,7 @@ public class UserAuthorityTest {
     @Test
     public void testIsValidUser() {
 
-        Authority userAuthortiy = new Authority() {
+        Authority userAuthority = new Authority() {
 
             @Override
             public void initialize() {
@@ -176,7 +174,7 @@ public class UserAuthorityTest {
             }
         };
 
-        assertFalse(userAuthortiy.isValidUser("invaliduser"));
-        assertTrue(userAuthortiy.isValidUser("validuser"));
+        assertFalse(userAuthority.isValidUser("invaliduser"));
+        assertTrue(userAuthority.isValidUser("validuser"));
     }
 }

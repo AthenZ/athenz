@@ -18,8 +18,6 @@ package com.yahoo.athenz.auth.util;
 import static org.testng.Assert.*;
 import org.testng.annotations.Test;
 
-import com.yahoo.athenz.auth.util.Validate;
-
 public class ValidateTest {
 
     @Test

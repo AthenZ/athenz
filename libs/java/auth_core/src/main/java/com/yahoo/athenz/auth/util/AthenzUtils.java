@@ -17,10 +17,9 @@ package com.yahoo.athenz.auth.util;
 
 import java.security.cert.X509Certificate;
 import java.util.List;
+import com.yahoo.athenz.auth.AuthorityConsts;
 
 public class AthenzUtils {
-
-    private final static String ROLE_SEP = ":role.";
 
     /**
      * Return the Athenz Service principal for the given certificate which
@@ -43,10 +42,10 @@ public class AthenzUtils {
         // has the <domain>:role.<rolename> format or service
         // certificate which has the <domain>.<service> format
 
-        if (principal.contains(ROLE_SEP)) {
+        if (principal.contains(AuthorityConsts.ROLE_SEP)) {
 
             // it's a role certificate so we're going to extract
-            // our service principal from the SAN email fieid
+            // our service principal from the SAN email field
             // verify that we must have only a single email
             // field in the certificate
 
@@ -88,7 +87,7 @@ public class AthenzUtils {
         // has the <domain>:role.<rolename> format or service
         // certificate which has the <domain>.<service> format
 
-        return principal.contains(ROLE_SEP);
+        return principal.contains(AuthorityConsts.ROLE_SEP);
     }
 
     /**
@@ -99,11 +98,11 @@ public class AthenzUtils {
      * @return role name, null if it's not expected full arn format
      */
     public static String extractRoleName(final String roleName) {
-        int idx = roleName.indexOf(ROLE_SEP);
-        if (idx == -1 || idx == 0 || idx == roleName.length() - ROLE_SEP.length()) {
+        int idx = roleName.indexOf(AuthorityConsts.ROLE_SEP);
+        if (idx == -1 || idx == 0 || idx == roleName.length() - AuthorityConsts.ROLE_SEP.length()) {
             return null;
         } else {
-            return roleName.substring(idx + ROLE_SEP.length());
+            return roleName.substring(idx + AuthorityConsts.ROLE_SEP.length());
         }
     }
 
@@ -115,8 +114,8 @@ public class AthenzUtils {
      * @return domain name, null if it's not expected full arn format
      */
     public static String extractRoleDomainName(final String roleName) {
-        int idx = roleName.indexOf(ROLE_SEP);
-        if (idx == -1 || idx == 0 || idx == roleName.length() - ROLE_SEP.length()) {
+        int idx = roleName.indexOf(AuthorityConsts.ROLE_SEP);
+        if (idx == -1 || idx == 0 || idx == roleName.length() - AuthorityConsts.ROLE_SEP.length()) {
             return null;
         } else {
             return roleName.substring(0, idx);
@@ -130,7 +129,7 @@ public class AthenzUtils {
      * @return domain name, null if it's not the expected full principal service name
      */
     public static String extractPrincipalDomainName(final String principalName) {
-        int idx = principalName.lastIndexOf('.');
+        int idx = principalName.lastIndexOf(AuthorityConsts.ATHENZ_PRINCIPAL_DELIMITER_CHAR);
         if (idx == -1 || idx == 0 || idx == principalName.length() - 1) {
             return null;
         } else {
@@ -145,11 +144,46 @@ public class AthenzUtils {
      * @return service name, null if it's not the expected full principal service name
      */
     public static String extractPrincipalServiceName(final String principalName) {
-        int idx = principalName.lastIndexOf('.');
+        int idx = principalName.lastIndexOf(AuthorityConsts.ATHENZ_PRINCIPAL_DELIMITER_CHAR);
         if (idx == -1 || idx == 0 || idx == principalName.length() - 1) {
             return null;
         } else {
             return principalName.substring(idx + 1);
         }
     }
+
+    /**
+     * Split principal to domain and service
+     * @param  name principal
+     * @return      [domain, service], null if principal in invalid format
+     */
+    public static String[] splitPrincipalName(String name) {
+        // all the role members in Athens are normalized to lower case
+        String principalName = name.toLowerCase();
+        int idx = principalName.lastIndexOf(AuthorityConsts.ATHENZ_PRINCIPAL_DELIMITER_CHAR);
+        if (idx == -1 || idx == 0 || idx == principalName.length() - 1) {
+            return null;
+        }
+
+        return new String[]{principalName.substring(0, idx), principalName.substring(idx + 1)};
+    }
+
+    /**
+     * Join domain and service to principal format
+     * @param  domain  domain
+     * @param  service service
+     * @return principal (format: domain.service), null if domain or service is null or empty
+     */
+    public static String getPrincipalName(String domain, String service) {
+        if (domain == null || service == null || domain.isEmpty() || service.isEmpty()) {
+            return null;
+        }
+        return domain + AuthorityConsts.ATHENZ_PRINCIPAL_DELIMITER + service;
+    }
+
+    // prevent object creation
+    private AthenzUtils() {
+        
+    }
+
 }

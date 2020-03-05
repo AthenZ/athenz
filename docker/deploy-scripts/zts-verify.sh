@@ -36,7 +36,7 @@ fi
 echo 'Verify ZTS' | colored_cat g
 echo 'get ZTS service from ZTS' | colored_cat y
 {
-    curl --silent \
+    curl --silent --show-error \
         --cacert "${ATHENZ_CA_PATH}" \
         --key "${DOMAIN_ADMIN_CERT_KEY_PATH}" \
         --cert "${DOMAIN_ADMIN_CERT_PATH}" \

@@ -52,7 +52,7 @@ docker run --rm -it \
 
     ```bash
     # find your github ID
-    curl --silent https://api.github.com/users/<your github username> | grep '"id":'
+    curl --silent --show-error https://api.github.com/users/<your github username> | grep '"id":'
 
     export DEV_DOMAIN_ADMIN='user.github-<your github ID>'
     # skip to use default: DEV_DOMAIN_ADMIN='user.github-7654321'

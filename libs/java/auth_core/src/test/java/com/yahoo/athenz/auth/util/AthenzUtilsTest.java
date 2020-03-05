@@ -19,6 +19,8 @@ import org.testng.annotations.Test;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Modifier;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 
@@ -167,4 +169,34 @@ public class AthenzUtilsTest {
         assertNull(AthenzUtils.extractPrincipalServiceName("athenz."));
         assertNull(AthenzUtils.extractPrincipalServiceName(".athenz"));
     }
+
+    @Test
+    public void testSplitPrincipalName() {
+        assertEquals(AthenzUtils.splitPrincipalName("athenz.reader"), new String[]{"athenz", "reader"});
+        assertEquals(AthenzUtils.splitPrincipalName("athenz.api.reader"), new String[]{"athenz.api", "reader"});
+        assertEquals(AthenzUtils.splitPrincipalName("athenz.api.test.reader"), new String[]{"athenz.api.test", "reader"});
+
+        assertNull(AthenzUtils.splitPrincipalName("athenz"));
+        assertNull(AthenzUtils.splitPrincipalName("athenz."));
+        assertNull(AthenzUtils.splitPrincipalName(".athenz"));
+    }
+
+    @Test
+    public void testGetPrincipalName() {
+        assertEquals(AthenzUtils.getPrincipalName("domain", "service"), "domain.service");
+
+        assertNull(AthenzUtils.getPrincipalName("domain", null));
+        assertNull(AthenzUtils.getPrincipalName("domain", ""));
+        assertNull(AthenzUtils.getPrincipalName(null, "service"));
+        assertNull(AthenzUtils.getPrincipalName("", "service"));
+    }
+
+    @Test
+    public void testPrivateConstructor() throws Exception {
+        Constructor<AthenzUtils> constructor = AthenzUtils.class.getDeclaredConstructor();
+        assertTrue(Modifier.isPrivate(constructor.getModifiers()));
+        constructor.setAccessible(true);
+        constructor.newInstance();
+    }
+
 }

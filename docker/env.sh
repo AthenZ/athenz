@@ -93,14 +93,15 @@ export DOMAIN_ADMIN_CERT_PATH="${DOMAIN_ADMIN_DIR}/domain_admin_cert.pem"
 ### docker variables
 export DOCKER_GID="${DOCKER_GID:-1001}"
 export DOCKER_UID="${DOCKER_UID:-10001}"
+export DOCKER_DNS="${DOCKER_DNS:-8.8.8.8}"
 export DOCKER_NETWORK="${DOCKER_NETWORK:-athenz}"
 export DOCKER_NETWORK_SUBNET="${DOCKER_NETWORK_SUBNET:-172.21.0.0/16}"
-export ZMS_DB_HOST=${ZMS_DB_HOST:-athenz-zms-db}
-export ZMS_DB_PORT=${ZMS_DB_PORT:-3306}
+export ZMS_DB_HOST="${ZMS_DB_HOST:-athenz-zms-db}"
+export ZMS_DB_PORT="${ZMS_DB_PORT:-3306}"
 export ZMS_HOST="${ZMS_HOST:-athenz-zms-server}"
 export ZMS_PORT="${ZMS_PORT:-4443}"
-export ZTS_DB_HOST=${ZTS_DB_HOST:-athenz-zts-db}
-export ZTS_DB_PORT=${ZTS_DB_PORT:-3307}
+export ZTS_DB_HOST="${ZTS_DB_HOST:-athenz-zts-db}"
+export ZTS_DB_PORT="${ZTS_DB_PORT:-3307}"
 export ZTS_HOST="${ZTS_HOST:-athenz-zts-server}"
 export ZTS_PORT="${ZTS_PORT:-8443}"
 

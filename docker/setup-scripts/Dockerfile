@@ -27,6 +27,7 @@ RUN apk update && \
     apk add --no-cache curl && \
     apk add --no-cache tree && \
     apk add --no-cache openssl && \
+    apk add --no-cache jq && \
     rm -rf /var/cache/apk/*
 
 # RUN mkdir /athenz

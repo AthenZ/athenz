@@ -90,6 +90,7 @@ docker exec --user mysql:mysql \
 echo '4. start ZMS' | colored_cat g
 docker run -d -h "${ZMS_HOST}" \
     -p "${ZMS_PORT}:${ZMS_PORT}" \
+    --dns="${DOCKER_DNS}" \
     --network="${DOCKER_NETWORK}" \
     --user "$(id -u):$(id -g)" \
     -v "${DOCKER_DIR}/zms/var:/opt/athenz/zms/var" \
@@ -107,7 +108,7 @@ until docker run --rm --entrypoint curl \
     --network="${DOCKER_NETWORK}" \
     --user "$(id -u):$(id -g)" \
     --name athenz-curl athenz-setup-env \
-    -k --silent --output /dev/null "https://${ZMS_HOST}:${ZMS_PORT}/zms/v1/status" \
+    -k --silent --show-error --output /dev/null "https://${ZMS_HOST}:${ZMS_PORT}/zms/v1/status" \
     ; do
     echo 'ZMS is unavailable - will sleep 3s...'
     sleep 3

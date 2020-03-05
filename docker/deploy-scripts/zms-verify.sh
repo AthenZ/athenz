@@ -36,7 +36,7 @@ fi
 echo 'Verify ZMS' | colored_cat git
 echo 'get ZTS service from ZMS' | colored_cat y
 {
-    curl --silent \
+    curl --silent --show-error \
         --cacert "${ATHENZ_CA_PATH}" \
         --key "${DOMAIN_ADMIN_CERT_KEY_PATH}" \
         --cert "${DOMAIN_ADMIN_CERT_PATH}" \

@@ -45,14 +45,14 @@ llm | tail | colored_cat w
 
 echo 'ZMS health check' | colored_cat y
 {
-    curl --silent --cacert "${ATHENZ_CA_PATH}" "https://${ZMS_HOST}:${ZMS_PORT}/zms/v1/status"; echo '';
+    curl --silent --show-error --cacert "${ATHENZ_CA_PATH}" "https://${ZMS_HOST}:${ZMS_PORT}/zms/v1/status"; echo '';
 } | colored_cat w
 
 
 echo 'get domains' | colored_cat y
 {
     ZMS_URL="https://${ZMS_HOST}:${ZMS_PORT}"
-    curl --silent \
+    curl --silent --show-error \
         --cacert "${ATHENZ_CA_PATH}" \
         --key "${DOMAIN_ADMIN_CERT_KEY_PATH}" \
         --cert "${DOMAIN_ADMIN_CERT_PATH}" \

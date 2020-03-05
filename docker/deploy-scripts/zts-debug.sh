@@ -48,5 +48,5 @@ llt | tail | colored_cat w
 
 echo 'ZTS health check' | colored_cat y
 {
-    curl --silent --cacert "${ATHENZ_CA_PATH}" "https://${ZTS_HOST}:${ZTS_PORT}/zts/v1/status"; echo '';
+    curl --silent --show-error --cacert "${ATHENZ_CA_PATH}" "https://${ZTS_HOST}:${ZTS_PORT}/zts/v1/status"; echo '';
 } | colored_cat w

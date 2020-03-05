@@ -25,7 +25,7 @@
 1. create workspace
     ```bash
     # setup
-    TEST_SERVICE_DIR="${SAMPLE_DIR}/test_service"
+    TEST_SERVICE_DIR="${DOCKER_DIR}/sample/test_service"
     mkdir -p "${TEST_SERVICE_DIR}"
     ```
     ```bash
@@ -119,7 +119,7 @@
     1. get encoded public key
         ```bash
         # encode public key in ybase64
-        base64 -w 0 "${TEST_SERVICE_DIR}/public.pem" | tr '\+\=\/' '\.\-\_'; echo "";
+        base64 -w 0 "${TEST_SERVICE_DIR}/public.pem" | tr '\+\=\/' '\.\-\_'; echo '';
         ```
     1. update the values in ([zms-acceptance-test.http](../sample/http/zms-acceptance-test.http))
         1. encoded public key => `publicKeys`
@@ -187,7 +187,7 @@ docker run --rm --entrypoint curl \
     -v "${TEST_SERVICE_DIR}/key.pem:/etc/certs/key.pem" \
     --network="${DOCKER_NETWORK}" \
     --name athenz-curl appropriate/curl \
-    --silent \
+    --silent --show-error \
     --cacert "/etc/certs/ca.pem" \
     --cert "/etc/certs/cert.pem" \
     --key "/etc/certs/key.pem" \

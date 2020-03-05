@@ -9,6 +9,7 @@ source ./setup-scripts/0.export-default-passwords.sh
 make setup-dev-config
 
 # 3. docker network variables
+export DOCKER_DNS=${DOCKER_DNS:-8.8.8.8}
 export DOCKER_NETWORK=${DOCKER_NETWORK:-athenz}
 export ZMS_DB_HOST=${ZMS_DB_HOST:-athenz-zms-db}
 export ZMS_DB_PORT=${ZMS_DB_PORT:-3306}

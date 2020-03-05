@@ -84,6 +84,7 @@ In Athenz, we often have 3 types of CA:
 1. Set up ZTS ([zts-setup](./zts-setup.md))
 1. Simple verification of the deployment (`make verify`)
 1. Verify your setup ([acceptance-test](./acceptance-test.md))
+1. [optional] Setup Athenz with external IdP ([using-public-OAuth2-IdP](./using-public-OAuth2-IdP.md))
 
 <a id="markdown-appendix" name="appendix"></a>
 ## Appendix

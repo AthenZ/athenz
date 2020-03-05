@@ -20,8 +20,6 @@ import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
 import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import java.io.File;
 import java.io.IOException;
 
 import static org.testng.Assert.assertNotNull;
