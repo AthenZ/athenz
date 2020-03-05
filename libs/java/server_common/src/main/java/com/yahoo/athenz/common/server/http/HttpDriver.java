@@ -19,7 +19,6 @@ package com.yahoo.athenz.common.server.http;
 import com.oath.auth.KeyRefresher;
 import com.oath.auth.KeyRefresherException;
 import com.oath.auth.Utils;
-import com.yahoo.rdl.JSON;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -59,10 +58,6 @@ public class HttpDriver implements Closeable {
     private static final int DEFAULT_CLIENT_READ_TIMEOUT_MS = 5000;
 
     private final String baseUrl;
-    private final String truststorePath;
-    private final char[] truststorePassword;
-    private final String certPath;
-    private final String keyPath;
     private final int maxPoolPerRoute;
     private final int maxPoolTotal;
     private final int clientRetryIntervalMs;
@@ -135,10 +130,6 @@ public class HttpDriver implements Closeable {
 
      public HttpDriver(Builder builder) {
         baseUrl = builder.baseUrl;
-        truststorePath = builder.truststorePath;
-        truststorePassword = builder.truststorePassword;
-        certPath = builder.certPath;
-        keyPath = builder.keyPath;
         maxPoolPerRoute = builder.maxPoolPerRoute;
         maxPoolTotal = builder.maxPoolTotal;
         clientRetryIntervalMs = builder.clientRetryIntervalMs;
@@ -261,16 +252,14 @@ public class HttpDriver implements Closeable {
 
     /**
      * doPost performs post operation and returns a string
-     * @param url target url
-     * @param fields form fields that need to posted to the url
+     * @param httpPost
      * @return response string
      * @throws IOException
      */
-    public String doPost(final String url, final List<NameValuePair> fields) throws IOException {
-        LOGGER.debug("Requesting from {} with query {}", url, fields);
-
-        HttpPost httpPost = new HttpPost(url);
-        httpPost.setEntity(new UrlEncodedFormEntity(fields));
+    public String doPost(HttpPost httpPost) throws IOException {
+        String url = httpPost.getURI().toString();
+        String query = EntityUtils.toString(httpPost.getEntity());
+        LOGGER.debug("Requesting from {} with query {}", url, query);
 
         // Retry when IOException occurs
         for (int i = 0; i <  clientMaxRetries;  i++) {
@@ -292,7 +281,7 @@ public class HttpDriver implements Closeable {
                     }
                 }
             } catch (IOException ex) {
-                LOGGER.error("Failed to get response from {} for query: {} retry: {}/{}, exception: ", url, JSON.string(fields), i, clientMaxRetries, ex);
+                LOGGER.error("Failed to get response from {} for query: {} retry: {}/{}, exception: ", url, query, i, clientMaxRetries, ex);
                 try {
                     TimeUnit.MILLISECONDS.sleep(clientRetryIntervalMs);
                 } catch (InterruptedException ignored) {
@@ -300,5 +289,19 @@ public class HttpDriver implements Closeable {
             }
         }
         throw new IOException("Failed to get response from server: " + url);
+    }
+
+    /**
+     * doPost performs post operation and returns a string
+     * @param url target url
+     * @param fields form fields that need to posted to the url
+     * @return response string
+     * @throws IOException
+     */
+    public String doPost(final String url, final List<NameValuePair> fields) throws IOException {
+        HttpPost httpPost = new HttpPost(url);
+        httpPost.setEntity(new UrlEncodedFormEntity(fields));
+
+        return doPost(httpPost);
     }
 }
