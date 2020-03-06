@@ -1,4 +1,4 @@
-FROM node:10.17.0-alpine AS builder
+FROM node:10.19.0-alpine AS builder
 
 RUN set -eux && apk update && apk add --no-cache --update ca-certificates libstdc++ libgcc tini make git
 
@@ -21,7 +21,7 @@ RUN rm -rf scripts \
     && rm -rf rdl-api.md \
     && rm -rf README.md
 
-FROM node:10.17.0-alpine
+FROM node:10.19.0-alpine
 
 WORKDIR /opt/athenz/ui
 
