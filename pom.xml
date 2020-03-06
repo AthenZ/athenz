@@ -69,21 +69,21 @@
   </ciManagement>
 
   <properties>
-    <jetty.version>9.4.26.v20200117</jetty.version>
-    <jersey.version>2.30</jersey.version>
-    <jackson.core.version>2.10.2</jackson.core.version>
-    <jackson.databind.version>2.10.2</jackson.databind.version>
-    <jackson.annotations.version>2.10.2</jackson.annotations.version>
-    <jackson.jaxrs.version>2.10.2</jackson.jaxrs.version>
+    <jetty.version>9.4.27.v20200227</jetty.version>
+    <jersey.version>2.30.1</jersey.version>
+    <jackson.core.version>2.10.3</jackson.core.version>
+    <jackson.databind.version>2.10.3</jackson.databind.version>
+    <jackson.annotations.version>2.10.3</jackson.annotations.version>
+    <jackson.jaxrs.version>2.10.3</jackson.jaxrs.version>
     <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
     <rdl.version>1.5.2</rdl.version>
     <bouncycastle.version>1.64</bouncycastle.version>
-    <aws.version>1.11.711</aws.version>
+    <aws.version>1.11.738</aws.version>
     <guava.version>28.2-jre</guava.version>
     <logback.version>1.2.3</logback.version>
     <javax.version>3.1.0</javax.version>
     <javax.ws.version>2.1.1</javax.ws.version>
-    <mockito.version>3.2.4</mockito.version>
+    <mockito.version>3.3.1</mockito.version>
     <jmockit.version>1.49</jmockit.version>
     <jjwt.version>0.9.1</jjwt.version>
     <mysql.connector.version>8.0.19</mysql.connector.version>
