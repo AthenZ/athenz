@@ -23,6 +23,8 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.message.BasicStatusLine;
@@ -154,6 +156,36 @@ public class HttpDriverTest {
         } catch (IOException e) {
             Mockito.verify(httpClient, Mockito.times(2)).execute(Mockito.any(HttpGet.class));
         }
+    }
+
+    @Test
+    public void testDoPostHttpPost() throws IOException {
+        CloseableHttpClient httpClient = Mockito.mock(CloseableHttpClient.class);
+        CloseableHttpResponse httpResponse = Mockito.mock(CloseableHttpResponse.class);
+        HttpEntity responseEntity = Mockito.mock(HttpEntity.class);
+
+        String data = "Sample Server Response";
+
+        Mockito.when(httpResponse.getStatusLine()).thenReturn(new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK" ));
+        Mockito.when(responseEntity.getContent()).thenReturn(new ByteArrayInputStream(data.getBytes()));
+        Mockito.when(httpResponse.getEntity()).thenReturn(responseEntity);
+        Mockito.when(httpClient.execute(Mockito.any(HttpPost.class))).thenReturn(httpResponse);
+
+        HttpDriver httpDriver = new HttpDriver.Builder("", null, "asdf".toCharArray(), null, null)
+                .build();
+        httpDriver.setHttpClient(httpClient);
+
+        HttpPost httpPost = new HttpPost("https://localhost:4443/sample");
+
+        // prepare POST body
+        String body = "<?xml version='1.0'?><methodCall><methodName>test.test</methodName></methodCall>";
+
+        // set POST body
+        HttpEntity entity = new StringEntity(body);
+        httpPost.setEntity(entity);
+
+        String out = httpDriver.doPost(httpPost);
+        Assert.assertEquals(out, data);
     }
 
     @Test

@@ -23,6 +23,12 @@ import com.yahoo.athenz.common.server.notification.NotificationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.mail.MessagingException;
+import javax.mail.Session;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
+import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -94,7 +100,7 @@ public class EmailNotificationService implements NotificationService {
     private String emailDomainMemberExpiryBody;
     private String emailPrincipalExpiryBody;
 
-    EmailNotificationService(EmailProvider emailProvider) {
+    public EmailNotificationService(EmailProvider emailProvider) {
         this.emailProvider = emailProvider;
         String userDomain = System.getProperty(PROP_USER_DOMAIN, USER_DOMAIN_DEFAULT);
         userDomainPrefix = userDomain + "\\.";
@@ -278,7 +284,68 @@ public class EmailNotificationService implements NotificationService {
         return contents.toString();
     }
 
+    private MimeMessage getMimeMessage(String subject, String body, Collection<String> recipients, String from, byte[] logoImage) throws MessagingException {
+        Session session = Session.getDefaultInstance(new Properties());
+
+        // Create a new MimeMessage object.
+        MimeMessage message = new MimeMessage(session);
+
+        // Add subject, from and to lines.
+        message.setSubject(subject, CHARSET_UTF_8);
+        message.setFrom(new InternetAddress(from));
+        message.setRecipients(javax.mail.Message.RecipientType.BCC, InternetAddress.parse(String.join(",", recipients)));
+
+        // Create a multipart/alternative child container.
+        MimeMultipart msgBody = new MimeMultipart("alternative");
+
+        // Create a wrapper for the HTML and text parts.
+        MimeBodyPart wrap = new MimeBodyPart();
+
+        // Set the text part.
+        MimeBodyPart textPart = new MimeBodyPart();
+        textPart.setContent(body, "text/plain; charset=" + CHARSET_UTF_8);
+
+        // Set the HTML part.
+        MimeBodyPart htmlPart = new MimeBodyPart();
+        htmlPart.setContent(body, "text/html; charset=" + CHARSET_UTF_8);
+
+        // Add the text and HTML parts to the child container.
+        msgBody.addBodyPart(textPart);
+        msgBody.addBodyPart(htmlPart);
+
+        // Add the child container to the wrapper object.
+        wrap.setContent(msgBody);
+
+        // Create a multipart/mixed parent container.
+        MimeMultipart msgParent = new MimeMultipart("related");
+
+        // Add the multipart/alternative part to the message.
+        msgParent.addBodyPart(wrap);
+
+        // Add the parent container to the message.
+        message.setContent(msgParent);
+
+        if (logoImage != null) {
+            MimeBodyPart logo = new MimeBodyPart();
+            logo.setContent(logoImage, "image/png");
+            logo.setContentID(HTML_LOGO_CID_PLACEHOLDER);
+            logo.setDisposition(MimeBodyPart.INLINE);
+            // Add the attachment to the message.
+            msgParent.addBodyPart(logo);
+        }
+
+        return message;
+    }
+
     private boolean sendEmailMIME(String subject, String body, boolean status, Collection<String> recipients) {
-        return emailProvider.sendEmail(subject, body, status, recipients, from + AT + emailDomainFrom, logoImage);
+        MimeMessage mimeMessage;
+        try {
+            mimeMessage = getMimeMessage(subject, body, recipients, from, logoImage);
+        } catch (MessagingException ex) {
+            LOGGER.error("The email could not be sent. Error message: {}", ex.getMessage());
+            return false;
+        }
+
+        return emailProvider.sendEmail(status, recipients, from + AT + emailDomainFrom, mimeMessage);
     }
 }
