@@ -83,3 +83,23 @@ resource SignedDomains GET "/sys/modified_domains?domain={domain}&metaonly={meta
         ResourceError TOO_MANY_REQUESTS;
     }
 }
+
+//SignedDomain using flattened JWS JSON Serialization syntax.
+//https://tools.ietf.org/html/rfc7515#section-7.2.2
+type JWSDomain Struct {
+    String payload;
+    String protectedHeader;
+    Map<String, String> header;
+    String signature;
+}
+
+resource JWSDomain GET "/domain/{name}/signed" {
+    DomainName name; //name of the domain to be retrieved
+    authenticate;
+    expected OK;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}

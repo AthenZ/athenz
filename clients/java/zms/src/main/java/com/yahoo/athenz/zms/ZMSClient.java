@@ -508,6 +508,28 @@ public class ZMSClient implements Closeable {
     }
 
     /**
+     * Retrieve the specified singed domain object. The domain
+     * object includes all roles, policies, services and
+     * domain attributes. The domain data is base64url encoded
+     * in the payload field based on JWS RFC 7515
+     * https://tools.ietf.org/html/rfc7515#section-7.2.2
+     *
+     * @param domain name of the domain to be retrieved
+     * @return JWSDomain object
+     * @throws ZMSClientException in case of failure
+     */
+    public JWSDomain getJWSDomain(String domain) {
+        updatePrincipal();
+        try {
+            return client.getJWSDomain(domain);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
      * Retrieve the list of domains provisioned on the ZMS Server
      *
      * @return list of Domains

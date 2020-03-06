@@ -1872,6 +1872,30 @@ public class ZMSResources {
     }
 
     @GET
+    @Path("/domain/{name}/signed")
+    @Produces(MediaType.APPLICATION_JSON)
+    public JWSDomain getJWSDomain(@PathParam("name") String name) {
+        try {
+            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context.authenticate();
+            return this.delegate.getJWSDomain(context, name);
+        } catch (ResourceException e) {
+            int code = e.getCode();
+            switch (code) {
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource getJWSDomain");
+                throw typedException(code, e, ResourceError.class);
+            }
+        }
+    }
+
+    @GET
     @Path("/user/{userName}/token")
     @Produces(MediaType.APPLICATION_JSON)
     public UserToken getUserToken(@PathParam("userName") String userName, @QueryParam("services") String serviceNames, @QueryParam("header") @DefaultValue("false") Boolean header) {

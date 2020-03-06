@@ -452,6 +452,14 @@ func init() {
 	tSignedDomains.ArrayField("domains", "SignedDomain", false, "")
 	sb.AddType(tSignedDomains.Build())
 
+	tJWSDomain := rdl.NewStructTypeBuilder("Struct", "JWSDomain")
+	tJWSDomain.Comment("SignedDomain using flattened JWS JSON Serialization syntax. https://tools.ietf.org/html/rfc7515#section-7.2.2")
+	tJWSDomain.Field("payload", "String", false, nil, "")
+	tJWSDomain.Field("protectedHeader", "String", false, nil, "")
+	tJWSDomain.MapField("header", "String", "String", false, "")
+	tJWSDomain.Field("signature", "String", false, nil, "")
+	sb.AddType(tJWSDomain.Build())
+
 	tUserToken := rdl.NewStructTypeBuilder("Struct", "UserToken")
 	tUserToken.Comment("A user token generated based on user's credentials")
 	tUserToken.Field("token", "SignedToken", false, nil, "Signed user token identifying a specific authenticated user")
@@ -1424,6 +1432,14 @@ func init() {
 	mGetSignedDomains.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mGetSignedDomains.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetSignedDomains.Build())
+
+	mGetJWSDomain := rdl.NewResourceBuilder("JWSDomain", "GET", "/domain/{name}/signed")
+	mGetJWSDomain.Input("name", "DomainName", true, "", "", false, nil, "name of the domain to be retrieved")
+	mGetJWSDomain.Auth("", "", true, "")
+	mGetJWSDomain.Exception("NOT_FOUND", "ResourceError", "")
+	mGetJWSDomain.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
+	mGetJWSDomain.Exception("UNAUTHORIZED", "ResourceError", "")
+	sb.AddResource(mGetJWSDomain.Build())
 
 	mGetUserToken := rdl.NewResourceBuilder("UserToken", "GET", "/user/{userName}/token")
 	mGetUserToken.Comment("Return a user/principal token for the specified authenticated user. Typical authenticated users with their native credentials are not allowed to update their domain data. They must first obtain a UserToken and then use that token for authentication and authorization of their update requests.")

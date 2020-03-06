@@ -4878,6 +4878,90 @@ func (self *SignedDomains) Validate() error {
 }
 
 //
+// JWSDomain - SignedDomain using flattened JWS JSON Serialization syntax.
+// https://tools.ietf.org/html/rfc7515#section-7.2.2
+//
+type JWSDomain struct {
+	Payload         string            `json:"payload"`
+	ProtectedHeader string            `json:"protectedHeader"`
+	Header          map[string]string `json:"header"`
+	Signature       string            `json:"signature"`
+}
+
+//
+// NewJWSDomain - creates an initialized JWSDomain instance, returns a pointer to it
+//
+func NewJWSDomain(init ...*JWSDomain) *JWSDomain {
+	var o *JWSDomain
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(JWSDomain)
+	}
+	return o.Init()
+}
+
+//
+// Init - sets up the instance according to its default field values, if any
+//
+func (self *JWSDomain) Init() *JWSDomain {
+	if self.Header == nil {
+		self.Header = make(map[string]string)
+	}
+	return self
+}
+
+type rawJWSDomain JWSDomain
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a JWSDomain
+//
+func (self *JWSDomain) UnmarshalJSON(b []byte) error {
+	var m rawJWSDomain
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := JWSDomain(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *JWSDomain) Validate() error {
+	if self.Payload == "" {
+		return fmt.Errorf("JWSDomain.payload is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "String", self.Payload)
+		if !val.Valid {
+			return fmt.Errorf("JWSDomain.payload does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.ProtectedHeader == "" {
+		return fmt.Errorf("JWSDomain.protectedHeader is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "String", self.ProtectedHeader)
+		if !val.Valid {
+			return fmt.Errorf("JWSDomain.protectedHeader does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Header == nil {
+		return fmt.Errorf("JWSDomain: Missing required field: header")
+	}
+	if self.Signature == "" {
+		return fmt.Errorf("JWSDomain.signature is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "String", self.Signature)
+		if !val.Valid {
+			return fmt.Errorf("JWSDomain.signature does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+//
 // UserToken - A user token generated based on user's credentials
 //
 type UserToken struct {

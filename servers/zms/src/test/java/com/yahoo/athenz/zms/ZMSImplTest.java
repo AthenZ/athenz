@@ -28,7 +28,9 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.base.Strings;
+import com.google.common.primitives.Bytes;
 import com.yahoo.athenz.auth.ServerPrivateKey;
 import com.yahoo.athenz.auth.impl.*;
 import com.yahoo.athenz.common.server.notification.Notification;
@@ -39,7 +41,6 @@ import org.mockito.MockitoAnnotations;
 import org.testng.annotations.*;
 
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.testng.Assert.assertTrue;
@@ -76,6 +77,8 @@ import com.yahoo.rdl.Timestamp;
 public class ZMSImplTest {
 
     public static final String ZMS_PROP_PUBLIC_KEY = "athenz.zms.publickey";
+
+    private static final byte[] PERIOD = { 46 };
 
     private ZMSImpl zms             = null;
     private String adminUser        = null;
@@ -18127,5 +18130,66 @@ public class ZMSImplTest {
         assertEquals(adminRole.getRoleMembers().get(0).getMemberName(), adminUser);
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testGetJWSDomain() throws JsonProcessingException {
+
+        final String domainName = "jws-domain";
+
+        // create multiple top level domains
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        JWSDomain jwsDomain = zms.getJWSDomain(mockDomRsrcCtx, domainName);
+        assertNotNull(jwsDomain);
+
+        final Base64.Decoder decoder = Base64.getUrlDecoder();
+
+        final String payload = jwsDomain.getPayload();
+        final String protectedHeader = jwsDomain.getProtectedHeader();
+
+        assertEquals(new String(decoder.decode(protectedHeader.getBytes(StandardCharsets.UTF_8))), "{\"alg\":\"RS256\"}");
+
+        final String data = protectedHeader + "." + payload;
+        final byte[] sig = decoder.decode(jwsDomain.getSignature().getBytes(StandardCharsets.UTF_8));
+
+        // verify the signature
+
+        assertTrue(Crypto.verify(data.getBytes(StandardCharsets.UTF_8),
+                Crypto.extractPublicKey(zms.privateKey.getKey()), sig, Crypto.SHA256));
+
+        final String jsonDomain = new String(decoder.decode(payload));
+
+        DomainData domainData = zms.jsonMapper.readValue(jsonDomain, DomainData.class);
+        assertNotNull(domainData);
+        assertEquals(domainData.getName(), "jws-domain");
+
+        Map<String, String> header = jwsDomain.getHeader();
+        assertEquals(header.get("keyid"), "0");
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testGetJWSDomainError() {
+
+        // not found
+
+        try {
+            zms.getJWSDomain(mockDomRsrcCtx, "unknown");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ResourceException.NOT_FOUND, ex.getCode());
+        }
+
+        // null data causing exception which is caught
+        // and we return null back as result
+
+        ServerPrivateKey pkey = zms.privateKey;
+        zms.privateKey = null;
+        assertNull(zms.signJwsDomain(null));
+        zms.privateKey = pkey;
     }
 }
