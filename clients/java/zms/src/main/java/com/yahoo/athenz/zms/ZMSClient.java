@@ -24,6 +24,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLContext;
 import javax.ws.rs.client.Client;
@@ -31,7 +32,6 @@ import javax.ws.rs.client.ClientBuilder;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.client.ClientProperties;
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import org.slf4j.Logger;
@@ -378,10 +378,13 @@ public class ZMSClient implements Closeable {
         ClientConfig clientConfig = new ClientConfig(jacksonJsonProvider);
         clientConfig.connectorProvider(new ApacheConnectorProvider());
 
-        Client rsClient = builder.property(ClientProperties.CONNECT_TIMEOUT, connectTimeout)
-                .property(ClientProperties.READ_TIMEOUT, readTimeout)
+        Client rsClient =
+            builder
+                .connectTimeout(connectTimeout, TimeUnit.MILLISECONDS)
+                .readTimeout(readTimeout, TimeUnit.MILLISECONDS)
                 .withConfig(clientConfig)
                 .build();
+
         client = new ZMSRDLGeneratedClient(zmsUrl, rsClient);
     }
 

@@ -16,6 +16,11 @@
 package com.yahoo.athenz.zms;
 
 import java.lang.reflect.Field;
+import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 import java.util.*;
 
 import com.yahoo.athenz.auth.Authority;
@@ -31,6 +36,8 @@ import static org.mockito.Mockito.*;
 import static org.testng.Assert.*;
 
 import static org.mockito.ArgumentMatchers.any;
+
+import org.apache.http.ssl.SSLContextBuilder;
 import org.mockito.Mockito;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -852,7 +859,7 @@ public class ZMSClientTest {
     // Unit Tests for ZMS Java Client
     
     @Test
-    public void testClientConstructors() {
+    public void testClientConstructors() throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException, KeyManagementException {
 
         System.setProperty(ZMSClient.ZMS_CLIENT_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
 
@@ -878,8 +885,14 @@ public class ZMSClientTest {
         client.clearCredentials();
         client.close();
 
-        SSLContext context = Mockito.mock(SSLContext.class);
-        client = new ZMSClient("http://localhost:10080/zms/v1", context);
+        final SSLContext dummyContext = SSLContextBuilder.create()
+            .setProtocol(null)
+            .setSecureRandom(null)
+            .loadTrustMaterial((KeyStore) null, null)
+            .loadKeyMaterial((KeyStore) null, null, null)
+            .build();
+
+        client = new ZMSClient("http://localhost:10080/zms/v1", dummyContext);
         assertNotNull(client);
         client.clearCredentials();
         client.close();
