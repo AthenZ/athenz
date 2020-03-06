@@ -3254,9 +3254,10 @@ public class DBServiceTest {
     
     @Test
     public void testGetDelegatedRoleMembersInvalidDomain() {
-        
-        assertNull(zms.dbService.getDelegatedRoleMembers("dom1", "dom1", "role1"));
-        assertNull(zms.dbService.getDelegatedRoleMembers("dom1", "invalid-domain", "role1"));
+
+        ObjectStoreConnection conn = zms.dbService.store.getConnection(true, false);
+        assertNull(zms.dbService.getDelegatedRoleMembers(conn, "dom1", "dom1", "role1"));
+        assertNull(zms.dbService.getDelegatedRoleMembers(conn, "dom1", "invalid-domain", "role1"));
     }
     
     @Test
@@ -3314,7 +3315,8 @@ public class DBServiceTest {
         policy = new Policy().setName(domainName2 + ":policy.policy2");
         zms.dbService.executePutPolicy(mockDomRsrcCtx, domainName2, "policy2", policy, auditRef, "putPolicy");
 
-        List<RoleMember> members = zms.dbService.getDelegatedRoleMembers(domainName1, domainName2, roleName);
+        ObjectStoreConnection conn = zms.dbService.store.getConnection(true, false);
+        List<RoleMember> members = zms.dbService.getDelegatedRoleMembers(conn, domainName1, domainName2, roleName);
         assertEquals(3, members.size());
         
         List<String> checkList = new ArrayList<>();
@@ -5565,7 +5567,7 @@ public class DBServiceTest {
     @Test
     public void testUpdateDomainMembersExpirationFailure() {
 
-        Domain domain = new Domain().setName("test1").setMemberExpiryDays(100);
+        Domain domain = new Domain().setName("test1").setMemberExpiryDays(100).setModified(Timestamp.fromCurrentTime());
         Domain updateDomain = new Domain().setName("test1").setMemberExpiryDays(50);
 
         ObjectStoreConnection mockConn = Mockito.mock(ObjectStoreConnection.class);
@@ -5573,6 +5575,9 @@ public class DBServiceTest {
         // we're going to make sure to throw an exception here
         // since this should never be called
 
+        AthenzDomain athenzDomain = new AthenzDomain("test1");
+        athenzDomain.setDomain(domain);
+        Mockito.when(mockConn.getAthenzDomain("test1")).thenReturn(athenzDomain);
         Mockito.when(mockConn.updateDomainModTimestamp("test1")).thenThrow(new IllegalArgumentException());
 
         zms.dbService.updateDomainMembersExpiration(mockDomRsrcCtx, mockConn, domain, updateDomain, auditRef,
@@ -5589,20 +5594,24 @@ public class DBServiceTest {
         zms.dbService.makeDomain(mockDomRsrcCtx, ZMSTestUtils.makeDomainObject(domainName, "test desc", "org", false,
                 "", 1234, "", 0), admins, null, auditRef);
 
-        Domain domain = new Domain().setName("domain-meta-expiry").setMemberExpiryDays(100);
-        Domain updateDomain = new Domain().setName("domain-meta-expiry").setMemberExpiryDays(50);
+        Domain domain = new Domain().setName(domainName).setMemberExpiryDays(100)
+                .setModified(Timestamp.fromCurrentTime());
+        Domain updateDomain = new Domain().setName(domainName).setMemberExpiryDays(50);
 
         ObjectStoreConnection mockConn = Mockito.mock(ObjectStoreConnection.class);
+        AthenzDomain athenzDomain = new AthenzDomain(domainName);
+        athenzDomain.setDomain(domain);
+        Mockito.when(mockConn.getAthenzDomain(domainName)).thenReturn(athenzDomain);
         Mockito.when(mockConn.insertRoleMember(Mockito.anyString(), Mockito.anyString(), Mockito.any(),
                 Mockito.any(), Mockito.anyString())).thenReturn(false);
 
         // we're going to make sure to throw an exception here
         // since this should never be called
 
-        Mockito.when(mockConn.updateDomainModTimestamp("test1")).thenThrow(new IllegalArgumentException());
+        Mockito.when(mockConn.updateDomainModTimestamp(domainName)).thenThrow(new IllegalArgumentException());
 
         zms.dbService.updateDomainMembersExpiration(mockDomRsrcCtx, mockConn, domain, updateDomain, auditRef,
-                "testUpdateMdomainMembersExpirationFailure");
+                "testUpdateDomainMembersExpirationFailure");
 
         zms.dbService.executeDeleteDomain(mockDomRsrcCtx, domainName, auditRef, "deletedomain");
     }

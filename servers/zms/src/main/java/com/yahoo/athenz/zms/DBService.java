@@ -159,9 +159,14 @@ public class DBService {
             return modTime;
         }
     }
-    
-    AthenzDomain getAthenzDomainFromCache(String domainName, boolean masterCopy) {
-        
+
+    AthenzDomain getAthenzDomainFromCache(ObjectStoreConnection con, String domainName) {
+
+        DataCache data = cacheStore.getIfPresent(domainName);
+        if (data == null) {
+            return null;
+        }
+
         // if we have a match for a given domain name then we're going
         // to check if the last modified domain timestamp matches to what's
         // in the db: So if there is no match, then we'll take the hit
@@ -169,47 +174,31 @@ public class DBService {
         // changed that often so we'll satisfy the request with just
         // verifying the last modification time as oppose to reading the
         // full domain data from db
-        
-        DataCache data = cacheStore.getIfPresent(domainName);
-        if (data == null) {
-            return null;
-        }
-        
+
         long modTime = 0;
-        try (ObjectStoreConnection con = store.getConnection(true, masterCopy)) {
-            
-            // we expect this response to come back immediately from
-            // object store so we're going to use a smaller timeout
-            // so we should know right away to use our cache
-            
-            con.setOperationTimeout(10);
+
+        try {
             modTime = con.getDomainModTimestamp(domainName);
-            
-        } catch (ResourceException ex) {
-            
+        } catch (ResourceException ignored) {
             // if the exception is due to timeout or we were not able
             // to get a connection to the object store then we're
             // going to use our cache as is instead of rejecting
             // the operation
-            
-            if (ex.getCode() == ResourceException.SERVICE_UNAVAILABLE) {
-                return data.getAthenzDomain();
-            }
         }
-        
+
         // if our cache data is same or newer than db then return
         // data from the cache (it could be newer if we just updated
         // the cache based on write db but during read, the server
         // hasn't replicated the data yet)
-        
+
         if (data.getModTime() >= modTime) {
             return data.getAthenzDomain();
         }
-        
+
         cacheStore.invalidate(domainName);
         return null;
     }
-    
+
     String getPrincipalName(ResourceContext ctx) {
         if (ctx == null) {
             return null;
@@ -1962,7 +1951,7 @@ public class DBService {
                 // otherwise, if asked, let's expand the delegated
                 // membership and return the list of members
                 
-                role.setRoleMembers(getDelegatedRoleMembers(domainName, role.getTrust(), roleName));
+                role.setRoleMembers(getDelegatedRoleMembers(con, domainName, role.getTrust(), roleName));
                 
                 // still populate the members for old clients
 
@@ -1972,7 +1961,8 @@ public class DBService {
         return role;
     }
     
-    List<RoleMember> getDelegatedRoleMembers(String domainName, String trustDomain, String roleName) {
+    List<RoleMember> getDelegatedRoleMembers(ObjectStoreConnection con, final String domainName,
+                                             final String trustDomain, final String roleName) {
         
         // verify that the domain and trust domain are not the same
         
@@ -1984,8 +1974,9 @@ public class DBService {
         
         AthenzDomain domain = null;
         try {
-            domain = getAthenzDomain(trustDomain, false);
-        } catch (ResourceException ignored) {
+            domain = getAthenzDomain(con, trustDomain);
+        } catch (ResourceException ex) {
+            LOG.error("unable to fetch domain {}: {}", trustDomain, ex.getMessage());
         }
         
         if (domain == null) {
@@ -2294,7 +2285,7 @@ public class DBService {
 
         AthenzDomain athenzDomain;
         try {
-            athenzDomain = getAthenzDomain(domain.getName(), false);
+            athenzDomain = getAthenzDomain(con, domain.getName());
         } catch (ResourceException ex) {
             LOG.error("unable to fetch domain {}: {}", domain.getName(), ex.getMessage());
             return;
@@ -3459,27 +3450,32 @@ public class DBService {
 
     }
     
-    public AthenzDomain getAthenzDomain(String domainName, boolean masterCopy) {
-        
+    public AthenzDomain getAthenzDomain(final String domainName, boolean masterCopy) {
+
+        try (ObjectStoreConnection con = store.getConnection(true, masterCopy)) {
+            return getAthenzDomain(con, domainName);
+        }
+    }
+
+    AthenzDomain getAthenzDomain(ObjectStoreConnection con, final String domainName) {
+
         // first check to see if we our data is in the cache
-        
-        AthenzDomain athenzDomain = getAthenzDomainFromCache(domainName, masterCopy);
+
+        AthenzDomain athenzDomain = getAthenzDomainFromCache(con, domainName);
         if (athenzDomain != null) {
             return athenzDomain;
         }
-        
-        try (ObjectStoreConnection con = store.getConnection(true, masterCopy)) {
-            athenzDomain = con.getAthenzDomain(domainName);
-            setMembersInDomain(athenzDomain);
-        }
+
+        athenzDomain = con.getAthenzDomain(domainName);
+        setMembersInDomain(athenzDomain);
 
         DataCache dataCache = new DataCache(athenzDomain,
                 athenzDomain.getDomain().getModified().millis());
         cacheStore.put(domainName, dataCache);
-        
+
         return athenzDomain;
     }
-    
+
     private void setMembersInDomain(AthenzDomain athenzDomain) {
         List<Role> roleList = athenzDomain.getRoles();
         if (roleList != null) {

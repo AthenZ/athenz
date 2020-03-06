@@ -35,6 +35,7 @@ import com.yahoo.athenz.auth.ServerPrivateKey;
 import com.yahoo.athenz.auth.impl.*;
 import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
+import com.yahoo.athenz.zms.store.ObjectStoreConnection;
 import org.mockito.Mockito;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -15777,7 +15778,8 @@ public class ZMSImplTest {
         // load the domain into cache and set the enabled to false
 
         zms.getAthenzDomain("signeddom1disabled", true);
-        zms.dbService.getAthenzDomainFromCache("signeddom1disabled", false).getDomain().setEnabled(false);
+        ObjectStoreConnection conn = zms.dbService.store.getConnection(true, false);
+        zms.dbService.getAthenzDomainFromCache(conn, "signeddom1disabled").getDomain().setEnabled(false);
 
         // get the domain which would return from cache
 
