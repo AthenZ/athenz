@@ -386,6 +386,13 @@ public class ZMSSchema {
             .comment("A list of signed domain objects")
             .arrayField("domains", "SignedDomain", false, "");
 
+        sb.structType("JWSDomain")
+            .comment("SignedDomain using flattened JWS JSON Serialization syntax. https://tools.ietf.org/html/rfc7515#section-7.2.2")
+            .field("payload", "String", false, "")
+            .field("protectedHeader", "String", false, "")
+            .mapField("header", "String", "String", false, "")
+            .field("signature", "String", false, "");
+
         sb.structType("UserToken")
             .comment("A user token generated based on user's credentials")
             .field("token", "SignedToken", false, "Signed user token identifying a specific authenticated user")
@@ -1654,6 +1661,17 @@ public class ZMSSchema {
             .expected("OK")
             .exception("FORBIDDEN", "ResourceError", "")
 
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("JWSDomain", "GET", "/domain/{name}/signed")
+            .pathParam("name", "DomainName", "name of the domain to be retrieved")
+            .auth("", "", true)
+            .expected("OK")
             .exception("NOT_FOUND", "ResourceError", "")
 
             .exception("TOO_MANY_REQUESTS", "ResourceError", "")

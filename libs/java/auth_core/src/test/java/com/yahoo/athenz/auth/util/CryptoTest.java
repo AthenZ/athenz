@@ -16,6 +16,7 @@
 package com.yahoo.athenz.auth.util;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -1041,4 +1042,54 @@ public class CryptoTest {
         byte[] data = Files.readAllBytes(Paths.get(caFile.toURI()));
         assertEquals(certs1PEM, new String(data));
     }
+
+    @Test
+    public void testSignVerifyByteArrayECKey() {
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        assertNotNull(privateKey);
+
+        byte[] signature = Crypto.sign(serviceToken.getBytes(StandardCharsets.UTF_8), privateKey, Crypto.SHA256);
+        assertNotNull(signature);
+
+        PublicKey publicKey = Crypto.loadPublicKey(ecPublicKey);
+        assertNotNull(publicKey);
+
+        assertTrue(Crypto.verify(serviceToken.getBytes(StandardCharsets.UTF_8), publicKey, signature, Crypto.SHA256));
+
+        // using rsa key we should get failure
+
+        publicKey = Crypto.loadPublicKey(rsaPublicKey);
+        assertNotNull(publicKey);
+
+        assertFalse(Crypto.verify(serviceToken.getBytes(StandardCharsets.UTF_8), publicKey, signature, Crypto.SHA256));
+    }
+
+    @Test
+    public void testSignVerifyByteArrayRSAKey() {
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(rsaPrivateKey);
+        assertNotNull(privateKey);
+
+        byte[] signature = Crypto.sign(serviceToken.getBytes(StandardCharsets.UTF_8), privateKey, Crypto.SHA256);
+        assertNotNull(signature);
+
+        PublicKey publicKey = Crypto.loadPublicKey(rsaPublicKey);
+        assertNotNull(publicKey);
+
+        assertTrue(Crypto.verify(serviceToken.getBytes(StandardCharsets.UTF_8), publicKey, signature, Crypto.SHA256));
+
+        // using ec key we should get failure
+
+        publicKey = Crypto.loadPublicKey(ecPublicKey);
+        assertNotNull(publicKey);
+
+        try {
+            Crypto.verify(serviceToken.getBytes(StandardCharsets.UTF_8), publicKey, signature, Crypto.SHA256);
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("SignatureException"));
+        }
+    }
+
 }

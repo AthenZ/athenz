@@ -3123,4 +3123,19 @@ public class ZMSClientTest {
             assertEquals(ex.getCode(), 400);
         }
     }
+
+    @Test
+    public void testGetJWSDomain() {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        Map<String, String> header = new HashMap<>();
+        header.put("keyid", "0");
+        JWSDomain jwsDomain = new JWSDomain()
+                .setPayload("payload").setSignature("signature")
+                .setProtectedHeader("header").setHeader(header);
+        Mockito.when(c.getJWSDomain("domain1")).thenReturn(jwsDomain);
+        JWSDomain jwsDom = client.getJWSDomain("domain1");
+        assertNotNull(jwsDom);
+    }
 }

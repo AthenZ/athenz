@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.zms;
 
+import com.google.common.primitives.Bytes;
 import com.yahoo.athenz.auth.*;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.token.PrincipalToken;
@@ -59,6 +60,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -70,6 +72,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
 
@@ -119,6 +122,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     private static final String TYPE_SERVICE_IDENTITY_SYSTEM_META = "ServiceIdentitySystemMeta";
 
     private static final String SERVER_READ_ONLY_MESSAGE = "Server in Maintenance Read-Only mode. Please try your request later";
+
+    private static final byte[] PERIOD = { 46 };
 
     public static Metric metric;
     public static String serverHostName  = null;
@@ -171,6 +176,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected File healthCheckFile = null;
     protected AuditReferenceValidator auditReferenceValidator = null;
     protected NotificationManager notificationManager = null;
+    protected ObjectMapper jsonMapper;
 
     // enum to represent our access response since in some cases we want to
     // handle domain not founds differently instead of just returning failure
@@ -400,6 +406,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // let's first get our server hostname
 
         ZMSImpl.serverHostName = getServerHostName();
+
+        // create our json mapper
+
+        jsonMapper = new ObjectMapper();
 
         // before we do anything we need to load our configuration
         // settings
@@ -4169,11 +4179,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             return false;
         }
 
-        if (serviceNameMinLength > 0 && serviceNameMinLength > serviceName.length()) {
-            return false;
-        }
-
-        return true;
+        return serviceNameMinLength <= 0 || serviceNameMinLength <= serviceName.length();
     }
 
     @Override
@@ -4576,7 +4582,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     String removeQuotes(String value) {
         if (value.startsWith("\"")) {
-            value = value.substring(1, value.length());
+            value = value.substring(1);
         }
         if (value.endsWith("\"")) {
             value = value.substring(0, value.length() - 1);
@@ -4870,7 +4876,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             
             // now we can iterate through our list and retrieve each domain
 
-            //noinspection ConstantConditions
             for (DomainModified dmod : modlist) {
                 
                 Long domModMillis = dmod.getModified();
@@ -4907,7 +4912,131 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return Response.status(ResourceException.OK).entity(sdoms)
                 .header("ETag", eTag.toString()).build();
     }
-    
+
+    @Override
+    public JWSDomain getJWSDomain(ResourceContext ctx, String domainName) {
+
+        final String caller = "getjwsdomain";
+        metric.increment(ZMSConsts.HTTP_GET);
+        metric.increment(ZMSConsts.HTTP_REQUEST);
+        metric.increment(caller);
+
+        final String principalDomain = getPrincipalDomain(ctx);
+        Object timerMetric = metric.startTiming("getjwsdomain_timing", null, principalDomain);
+        logPrincipal(ctx);
+
+        validateRequest(ctx.request(), caller);
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+
+        domainName = domainName.toLowerCase();
+
+        // generate our signed domain object
+
+        JWSDomain jwsDomain = retrieveJWSDomain(domainName);
+        if (jwsDomain == null) {
+            throw ZMSUtils.notFoundError("Unable to retrieve domain=" + domainName, caller);
+        }
+
+        metric.stopTiming(timerMetric, null, principalDomain);
+        return jwsDomain;
+    }
+
+    JWSDomain retrieveJWSDomain(final String domainName) {
+
+        // get the policies, roles, and service identities to create the
+        // DomainData
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("retrieveJWSDomain: retrieving domain {}", domainName);
+        }
+
+        AthenzDomain athenzDomain = getAthenzDomain(domainName, true, false);
+        if (athenzDomain == null) {
+            return null;
+        }
+
+        // set all domain attributes including roles and services
+
+        final Domain domain = athenzDomain.getDomain();
+
+        DomainData domainData = new DomainData()
+                .setName(domainName)
+                .setModified(domain.getModified())
+                .setEnabled(domain.getEnabled())
+                .setAuditEnabled(domain.getAuditEnabled())
+                .setAccount(domain.getAccount())
+                .setYpmId(domain.getYpmId())
+                .setApplicationId(domain.getApplicationId())
+                .setSignAlgorithm(domain.getSignAlgorithm())
+                .setServiceCertExpiryMins(domain.getServiceCertExpiryMins())
+                .setRoleCertExpiryMins(domain.getRoleCertExpiryMins())
+                .setTokenExpiryMins(domain.getTokenExpiryMins())
+                .setServiceExpiryDays(domain.getServiceExpiryDays())
+                .setDescription(domain.getDescription())
+                .setOrg(domain.getOrg())
+                .setCertDnsDomain(domain.getCertDnsDomain())
+                .setMemberExpiryDays(domain.getMemberExpiryDays())
+                .setRoles(athenzDomain.getRoles())
+                .setServices(athenzDomain.getServices());
+
+        // generate the domain policy object that includes the domain
+        // name and all policies.
+
+        DomainPolicies domainPolicies = new DomainPolicies().setDomain(domainName);
+        domainPolicies.setPolicies(getPolicyListWithoutAssertionId(athenzDomain.getPolicies()));
+        SignedPolicies signedPolicies = new SignedPolicies();
+        signedPolicies.setContents(domainPolicies);
+        domainData.setPolicies(signedPolicies);
+
+        return signJwsDomain(domainData);
+    }
+
+    JWSDomain signJwsDomain(DomainData domainData) {
+
+        // https://tools.ietf.org/html/rfc7515#section-7.2.2
+        // first generate the json output of our object
+
+        JWSDomain jwsDomain = null;
+        try {
+            // spec requires base64 url encoder without any padding
+
+            final Base64.Encoder encoder = Base64.getUrlEncoder().withoutPadding();
+
+            // generate our domain data payload and encode it
+
+            final byte[] jsonDomain = jsonMapper.writeValueAsBytes(domainData);
+            final byte[] encodedDomain = encoder.encode(jsonDomain);
+
+            // generate our protected header - just includes the algorithm
+
+            final String protectedHeader = "{\"alg\":\"" + privateKey.getAlgorithm() + "\"}";
+            final byte[] encodedHeader = encoder.encode(protectedHeader.getBytes(StandardCharsets.UTF_8));
+
+            // combine protectedheader . payload and sign the result
+
+            final byte[] signature = encoder.encode(Crypto.sign(
+                    Bytes.concat(encodedHeader, PERIOD, encodedDomain), privateKey.getKey(), Crypto.SHA256));
+
+            // our header contains a single entry with the keyid
+
+            final Map<String, String> headerMap = new HashMap<>();
+            headerMap.put("keyid", privateKey.getId());
+
+            jwsDomain = new JWSDomain().setHeader(headerMap)
+                    .setPayload(new String(encodedDomain))
+                    .setProtectedHeader(new String(encodedHeader))
+                    .setSignature(new String(signature));
+
+        } catch (Exception ex) {
+            LOG.error("Unable to generate signed athenz domain object", ex);
+        }
+        return jwsDomain;
+    }
+
     List<Policy> getPolicyListWithoutAssertionId(List<Policy> policies) {
         
         if (policies == null) {
@@ -5524,7 +5653,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return detail;
     }
 
-    @SuppressWarnings("ConstantConditions")
     public DomainDataCheck getDomainDataCheck(ResourceContext ctx, String domainName) {
         
         final String caller = "getdomaindatacheck";
@@ -6510,7 +6638,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         addDefaultAdminAssertion(ctx, domainName, adminPolicy, auditRef, caller);
         
         removeAdminDenyAssertions(ctx, domainName, domain.getPolicies(), domain.getRoles(), adminRole,
-                defaultAdmins, auditRef, caller);
+                defaultAdmins, auditRef);
         
         addDefaultAdminMembers(ctx, domainName, adminRole, defaultAdmins, auditRef, caller);
         metric.stopTiming(timerMetric, domainName, principalDomain);
@@ -6579,8 +6707,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         dbService.executePutPolicy(ctx, domainName, ADMIN_POLICY_NAME, adminPolicy, auditRef, caller);
     }
     
-    void removeAdminDenyAssertions(ResourceContext ctx, String domainName, List<Policy> policies,
-            List<Role> roles, Role adminRole, DefaultAdmins defaultAdmins, String auditRef, String caller) {
+    void removeAdminDenyAssertions(ResourceContext ctx, final String domainName, List<Policy> policies,
+            List<Role> roles, Role adminRole, DefaultAdmins defaultAdmins, final String auditRef) {
+
+        final String caller = "putdefaultadmins";
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("removeAdminDenyAssertions");
@@ -6607,7 +6737,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 // If there is no "effect" in the assertion then default is ALLOW
                 // so continue because logic is looking for DENY
                 AssertionEffect effect = assertion.getEffect();
-                if (effect == null || effect != AssertionEffect.DENY) {
+                if (effect != AssertionEffect.DENY) {
                     continue;
                 }
                 
@@ -7176,7 +7306,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // authorization check
 
-        if (!isAllowedPutMembershipDecision(principal, domain, role, roleMember, caller)) {
+        if (!isAllowedPutMembershipDecision(principal, domain, role, roleMember)) {
             throw ZMSUtils.forbiddenError("putMembershipDecision: principal is not authorized to approve / reject members", caller);
         }
 
@@ -7201,7 +7331,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     private boolean isAllowedPutMembershipDecision(final Principal principal, final AthenzDomain domain,
-            final Role role, final RoleMember roleMember, final String caller) {
+            final Role role, final RoleMember roleMember) {
+
+        final String caller = "putmembershipdecision";
 
         // if this is an audit enabled domain then we're going to carry
         // out the authorization in the sys.auth.audit domains

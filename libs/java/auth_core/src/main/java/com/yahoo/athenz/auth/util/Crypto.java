@@ -249,6 +249,36 @@ public class Crypto {
     }
 
     /**
+     * Sign the byte array with with given digest algorithm and private key. Returns the byte array
+     * @param message the message to sign, as a byte array
+     * @param key the private key to sign with
+     * @param digestAlgorithm supported values SHA1 and SHA256
+     * @return the byte[] signature for the data
+     * @throws CryptoException for any issues with provider/algorithm/signature/key
+     */
+    public static byte[] sign(byte[] message, PrivateKey key, String digestAlgorithm) throws CryptoException {
+        try {
+            String signatureAlgorithm = getSignatureAlgorithm(key.getAlgorithm(), digestAlgorithm);
+            java.security.Signature signer = java.security.Signature.getInstance(signatureAlgorithm, BC_PROVIDER);
+            signer.initSign(key);
+            signer.update(message);
+            return signer.sign();
+        } catch (NoSuchProviderException e) {
+            LOG.error("sign: Caught NoSuchProviderException, check to make sure the provider is loaded correctly.");
+            throw new CryptoException(e);
+        } catch (NoSuchAlgorithmException e) {
+            LOG.error("sign: Caught NoSuchAlgorithmException, check to make sure the algorithm is supported by the provider.");
+            throw new CryptoException(e);
+        } catch (SignatureException e) {
+            LOG.error("sign: Caught SignatureException.");
+            throw new CryptoException(e);
+        } catch (InvalidKeyException e) {
+            LOG.error("sign: Caught InvalidKeyException, incorrect key type is being used.");
+            throw new CryptoException(e);
+        }
+    }
+
+    /**
      * Sign the text with with SHA-256 and the private key. Returns the ybase64 encoding of it.
      * @param message the message to sign, as a UTF8 string
      * @param key the private key to sign with
@@ -304,6 +334,38 @@ public class Crypto {
      */
     public static boolean verify(String message, PublicKey key, String signature) throws CryptoException {
         return verify(message, key, signature, SHA256);
+    }
+
+    /**
+     * Verify the signed data with given digest algorithm and the private key against the ybase64 encoded signature.
+     * @param message the message to sign, as a byte[]
+     * @param key the public key corresponding to the signing key
+     * @param signature the signature for the data
+     * @param digestAlgorithm supported values SHA1 and SHA256
+     * @return true if the message was indeed signed by the signature.
+     * @throws CryptoException for any issues with provider/algorithm/signature/key
+     */
+    public static boolean verify(byte[] message, PublicKey key, byte[] signature,
+                                 String digestAlgorithm) throws CryptoException {
+        try {
+            String signatureAlgorithm = getSignatureAlgorithm(key.getAlgorithm(), digestAlgorithm);
+            java.security.Signature signer = java.security.Signature.getInstance(signatureAlgorithm, BC_PROVIDER);
+            signer.initVerify(key);
+            signer.update(message);
+            return signer.verify(signature);
+        } catch (NoSuchProviderException e) {
+            LOG.error("verify: Caught NoSuchProviderException, check to make sure the provider is loaded correctly.");
+            throw new CryptoException(e);
+        } catch (InvalidKeyException e) {
+            LOG.error("verify: Caught InvalidKeyException, invalid key type is being used.");
+            throw new CryptoException(e);
+        } catch (NoSuchAlgorithmException e) {
+            LOG.error("verify: Caught NoSuchAlgorithmException, check to make sure the algorithm is supported by the provider.");
+            throw new CryptoException(e);
+        } catch (SignatureException e) {
+            LOG.error("verify: Caught SignatureException.");
+            throw new CryptoException(e);
+        }
     }
 
     static String utf8String(byte [] b) {

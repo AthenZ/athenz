@@ -35,5 +35,14 @@ RDL_ZMS_FILE=src/main/rdl/ZMS.rdl
 echo "Generating model classes..."
 rdl -s generate -x getsetters=true -o src/main/java java-model $RDL_ZMS_FILE
 
+# need to override the protected header in the JWSDomain
+# since that value is a reserved java keyword. we'll use
+# copy/mv instead of -i to avoid mac/linux differences
+
+JWS_DOMAIN_FILE=src/main/java/com/yahoo/athenz/zms/JWSDomain.java
+JWS_DOMAIN_TEMP=src/main/java/com/yahoo/athenz/zms/JWSDomain.tmp
+sed 's/    public String protectedHeader;/    \@com.fasterxml.jackson.annotation.JsonProperty\(\"protected\"\) public String protectedHeader;/g' $JWS_DOMAIN_FILE > $JWS_DOMAIN_TEMP
+mv $JWS_DOMAIN_TEMP $JWS_DOMAIN_FILE
+
 # Copyright 2016 Yahoo Inc.
 # Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
