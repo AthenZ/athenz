@@ -87,6 +87,11 @@ public interface OAuthJwtAccessToken {
     public long getIssuedAt();
 
     /**
+     * @return JWT expiration time (exp)
+     */
+    public long getExpiration();
+
+    /**
      * @return JWT getSignature
      */
     public String getSignature();

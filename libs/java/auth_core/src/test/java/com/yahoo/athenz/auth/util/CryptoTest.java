@@ -573,7 +573,7 @@ public class CryptoTest {
     }
 
     @Test
-    public void testEnDecodedFile(){
+    public void testEnDecodedFile() {
         String encoded = Crypto.encodedFile(argFile);
         assertNotNull(encoded);
 
@@ -587,7 +587,7 @@ public class CryptoTest {
 
             String decoded = Crypto.ybase64DecodeString(encoded);
             assertEquals(decoded, "check");
-        } catch (Exception e){
+        } catch (Exception e) {
             fail();
         }
     }
@@ -617,12 +617,12 @@ public class CryptoTest {
         GeneralName[] sanArray = new GeneralName[]{otherName1, otherName2};
         try {
             certRequest = Crypto.generateX509CSR(privateKey, publicKey, x500Principal, sanArray);
-        } catch (Exception e){
-            if (!badRequest){
+        } catch (Exception e) {
+            if (!badRequest) {
                 fail("Should not have failed to create csr");
             }
         }
-        if (!badRequest){
+        if (!badRequest) {
             //Now validate the csr
             Crypto.getPKCS10CertRequest(certRequest);
         }
@@ -637,12 +637,12 @@ public class CryptoTest {
         GeneralName[] sanArray = new GeneralName[]{otherName1, otherName2};
         try {
             certRequest = Crypto.generateX509CSR(privateKey, x500Principal, sanArray);
-        } catch (Exception e){
-            if (!badRequest){
+        } catch (Exception e) {
+            if (!badRequest) {
                 fail("Should not have failed to create csr");
             }
         }
-        if (!badRequest){
+        if (!badRequest) {
             //Now validate the csr
             Crypto.getPKCS10CertRequest(certRequest);
         }

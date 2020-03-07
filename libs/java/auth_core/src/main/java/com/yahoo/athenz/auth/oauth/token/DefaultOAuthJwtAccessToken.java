@@ -113,6 +113,15 @@ public class DefaultOAuthJwtAccessToken implements OAuthJwtAccessToken {
     }
 
     @Override
+    public long getExpiration() {
+        Date date = this.body.getExpiration();
+        if (date == null) {
+            return 0L;
+        }
+        return this.body.getExpiration().getTime() / 1000; // second
+    }
+
+    @Override
     public String getSignature() {
         return this.signature;
     }

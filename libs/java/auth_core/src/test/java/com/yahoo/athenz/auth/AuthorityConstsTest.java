@@ -15,21 +15,20 @@
  */
 package com.yahoo.athenz.auth;
 
-/**
- * Constants used by Authority classes
- */
-public final class AuthorityConsts {
+import static org.testng.Assert.*;
 
-    // Athenz data model
-    public static final char ATHENZ_PRINCIPAL_DELIMITER_CHAR = '.';
-    public static final String ATHENZ_PRINCIPAL_DELIMITER = String.valueOf(ATHENZ_PRINCIPAL_DELIMITER_CHAR);
-    public static final String ROLE_SEP = ":role.";
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Modifier;
+import org.testng.annotations.Test;
 
-    // system properties
-    public static final String ATHENZ_PROP_USER_DOMAIN = "athenz.user_domain";
+public class AuthorityConstsTest {
 
-    // prevent object creation
-    private AuthorityConsts() {
+    @Test
+    public void testPrivateConstructor() throws Exception {
+        Constructor<AuthorityConsts> constructor = AuthorityConsts.class.getDeclaredConstructor();
+        assertTrue(Modifier.isPrivate(constructor.getModifiers()));
+        constructor.setAccessible(true);
+        constructor.newInstance();
     }
 
 }

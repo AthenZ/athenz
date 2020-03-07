@@ -183,7 +183,6 @@ public class AthenzUtils {
 
     // prevent object creation
     private AthenzUtils() {
-        
     }
 
 }

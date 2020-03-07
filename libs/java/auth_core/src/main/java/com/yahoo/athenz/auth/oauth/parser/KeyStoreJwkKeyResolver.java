@@ -24,7 +24,6 @@ import com.auth0.jwk.JwkProviderBuilder;
 import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.auth.util.AthenzUtils;
 import com.yahoo.athenz.auth.util.Crypto;
-import com.yahoo.athenz.auth.util.CryptoException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import io.jsonwebtoken.Claims;
@@ -45,15 +44,16 @@ public class KeyStoreJwkKeyResolver implements SigningKeyResolver {
     /**
      * @param  keyStore key store get the JWT public keys
      * @param  url      JWKS URL to download the JWT public keys
+     * @throws IllegalStateException if url is null
      */
     public KeyStoreJwkKeyResolver(KeyStore keyStore, URL url) {
         if (LOG.isDebugEnabled()) {
-            LOG.debug("KeyStoreJwkKeyResolver:JWK URL: " + url.toString());
+            LOG.debug("KeyStoreJwkKeyResolver:JWK URL: " + String.valueOf(url));
         }
 
         this.keyStore = keyStore;
 
-        // TODO: adjust the default value and use system prop (current default same as GuavaCachedJwkProvider default)
+        // TODO: adjust the default value and use system prop? (current default same as GuavaCachedJwkProvider default)
         this.provider = new JwkProviderBuilder(url).cached(5, 10, TimeUnit.HOURS).rateLimited(false).build();
     }
 
@@ -70,11 +70,11 @@ public class KeyStoreJwkKeyResolver implements SigningKeyResolver {
 
         // 1. find in key store
         String issuer = claims.getIssuer();
-        if (issuer != null && !issuer.isEmpty()) {
+        if (this.keyStore != null && issuer != null && !issuer.isEmpty()) {
             String[] ds = AthenzUtils.splitPrincipalName(issuer);
             if (ds == null) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("KeyStoreJwkKeyResolver:resolveSigningKey: invalid issuer " + issuer);
+                    LOG.debug("KeyStoreJwkKeyResolver:resolveSigningKey: skip using KeyStore, invalid issuer " + issuer);
                 }
             } else {
                 String domain = ds[0];
@@ -87,8 +87,8 @@ public class KeyStoreJwkKeyResolver implements SigningKeyResolver {
                             LOG.debug("KeyStoreJwkKeyResolver:resolveSigningKey: will use public key from key store: ({}, {}, {})", domain, service, keyId);
                         }
                         return Crypto.loadPublicKey(publicKey);
-                    } catch (CryptoException e) {
-                        LOG.warn("KeyStoreJwkKeyResolver:resolveSigningKey: invalid public key format", e);
+                    } catch (Throwable t) {
+                        LOG.warn("KeyStoreJwkKeyResolver:resolveSigningKey: invalid public key format", t);
                     }
                 }
             }
@@ -101,7 +101,7 @@ public class KeyStoreJwkKeyResolver implements SigningKeyResolver {
             }
             return this.provider.get(keyId).getPublicKey();
         } catch (JwkException e) {
-            LOG.warn("KeyStoreJwkKeyResolver:resolveSigningKey: jwks error", e);
+            LOG.warn("KeyStoreJwkKeyResolver:resolveSigningKey: JWKS error", e);
         }
 
         return null;

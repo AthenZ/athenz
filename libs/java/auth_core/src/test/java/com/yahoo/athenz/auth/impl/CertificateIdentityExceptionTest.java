@@ -21,19 +21,19 @@ import org.testng.annotations.Test;
 
 public class CertificateIdentityExceptionTest {
 
-	@Test
-	public void testCertificateIdentityException() {
-		CertificateIdentityException ex;
+    @Test
+    public void testCertificateIdentityException() {
+        CertificateIdentityException ex;
 
-		ex = new CertificateIdentityException();
-		assertNotNull(ex);
+        ex = new CertificateIdentityException();
+        assertNotNull(ex);
 
-		ex = new CertificateIdentityException("err msg");
-		assertEquals(ex.getMessage(), "err msg");
+        ex = new CertificateIdentityException("err msg");
+        assertEquals(ex.getMessage(), "err msg");
 
-		Throwable t = new Throwable();
-		ex = new CertificateIdentityException(t);
-		assertSame(ex.getCause(), t);
-	}
+        Throwable t = new Throwable();
+        ex = new CertificateIdentityException(t);
+        assertSame(ex.getCause(), t);
+    }
 
 }

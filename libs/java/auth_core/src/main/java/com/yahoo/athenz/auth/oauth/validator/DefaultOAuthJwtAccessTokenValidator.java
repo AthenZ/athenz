@@ -121,6 +121,10 @@ public class DefaultOAuthJwtAccessTokenValidator implements OAuthJwtAccessTokenV
         this.verifyIssuer(jwt);
         this.verifyAudiences(jwt);
         this.verifyScopes(jwt);
+
+        if (jwt.getExpiration() <= 0L) {
+            throw new OAuthJwtAccessTokenException("exp is empty");
+        }
     }
 
     @Override

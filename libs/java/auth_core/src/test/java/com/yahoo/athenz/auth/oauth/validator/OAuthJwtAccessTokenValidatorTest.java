@@ -31,64 +31,64 @@ import org.testng.annotations.Test;
 
 public class OAuthJwtAccessTokenValidatorTest {
 
-	private final ClassLoader classLoader = this.getClass().getClassLoader();
-	private OAuthJwtAccessTokenValidator baseValidator = null;
-	private final X509Certificate readCert(String resourceName) throws Exception {
-		try (FileInputStream certIs = new FileInputStream(classLoader.getResource(resourceName).getFile())) {
-			CertificateFactory cf = CertificateFactory.getInstance("X.509");
-			return (X509Certificate) cf.generateCertificate(certIs);
-		}
-	}
+    private final ClassLoader classLoader = this.getClass().getClassLoader();
+    private OAuthJwtAccessTokenValidator baseValidator = null;
+    private final X509Certificate readCert(String resourceName) throws Exception {
+        try (FileInputStream certIs = new FileInputStream(this.classLoader.getResource(resourceName).getFile())) {
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            return (X509Certificate) cf.generateCertificate(certIs);
+        }
+    }
 
-	@BeforeMethod
-	public void initialize() throws Exception {
-		this.baseValidator = new OAuthJwtAccessTokenValidator() {
-			public void validate(OAuthJwtAccessToken jwt) throws OAuthJwtAccessTokenException {}
-			public void validateClientId(OAuthJwtAccessToken jwt, String clientId) throws OAuthJwtAccessTokenException {}
-			public void validateCertificateBinding(OAuthJwtAccessToken jwt, String certificateThumbprint) throws OAuthJwtAccessTokenException {}
-		};
-	}
+    @BeforeMethod
+    public void initialize() throws Exception {
+        this.baseValidator = new OAuthJwtAccessTokenValidator() {
+            public void validate(OAuthJwtAccessToken jwt) throws OAuthJwtAccessTokenException {}
+            public void validateClientId(OAuthJwtAccessToken jwt, String clientId) throws OAuthJwtAccessTokenException {}
+            public void validateCertificateBinding(OAuthJwtAccessToken jwt, String certificateThumbprint) throws OAuthJwtAccessTokenException {}
+        };
+    }
 
-	@Test
-	public void testGetX509CertificateCommonName() throws Exception {
-		// on null
-		assertThrows(NullPointerException.class, () -> this.baseValidator.getX509CertificateCommonName(null));
+    @Test
+    public void testGetX509CertificateCommonName() throws Exception {
+        // on null
+        assertThrows(NullPointerException.class, () -> this.baseValidator.getX509CertificateCommonName(null));
 
-		X509Certificate cert = this.readCert("jwt_ui.athenz.io.pem");
-		assertEquals(this.baseValidator.getX509CertificateCommonName(cert), "ui.athenz.io");
-	}
+        X509Certificate cert = this.readCert("jwt_ui.athenz.io.pem");
+        assertEquals(this.baseValidator.getX509CertificateCommonName(cert), "ui.athenz.io");
+    }
 
-	@Test
-	public void testGetX509CertificateThumbprint() throws Exception {
-		// on null
-		assertThrows(NullPointerException.class, () -> this.baseValidator.getX509CertificateThumbprint(null));
+    @Test
+    public void testGetX509CertificateThumbprint() throws Exception {
+        // on null
+        assertThrows(NullPointerException.class, () -> this.baseValidator.getX509CertificateThumbprint(null));
 
-		X509Certificate cert = this.readCert("jwt_ui.athenz.io.pem");
-		assertEquals(this.baseValidator.getX509CertificateThumbprint(cert), "zlkxyoX95le-Nv7OI0BxcjTOogvy9PGH-v_CBr_DsEk");
-	}
+        X509Certificate cert = this.readCert("jwt_ui.athenz.io.pem");
+        assertEquals(this.baseValidator.getX509CertificateThumbprint(cert), "zlkxyoX95le-Nv7OI0BxcjTOogvy9PGH-v_CBr_DsEk");
+    }
 
-	@Test
-	public void testValidateCertificateBinding() throws Exception {
-		final OAuthJwtAccessTokenValidator mock = Mockito.mock(OAuthJwtAccessTokenValidator.class, Mockito.CALLS_REAL_METHODS);
+    @Test
+    public void testValidateCertificateBinding() throws Exception {
+        final OAuthJwtAccessTokenValidator mock = Mockito.mock(OAuthJwtAccessTokenValidator.class, Mockito.CALLS_REAL_METHODS);
 
-		// on CertificateEncodingException
-		Mockito.doThrow(new CertificateEncodingException()).when(mock).getX509CertificateThumbprint(null);
-		assertThrows(OAuthJwtAccessTokenException.class, () -> mock.validateCertificateBinding(null, (X509Certificate) null));
-		// on CryptoException
-		Mockito.doThrow(new CryptoException()).when(mock).getX509CertificateThumbprint(null);
-		assertThrows(OAuthJwtAccessTokenException.class, () -> mock.validateCertificateBinding(null, (X509Certificate) null));
+        // on CertificateEncodingException
+        Mockito.doThrow(new CertificateEncodingException()).when(mock).getX509CertificateThumbprint(null);
+        assertThrows(OAuthJwtAccessTokenException.class, () -> mock.validateCertificateBinding(null, (X509Certificate) null));
+        // on CryptoException
+        Mockito.doThrow(new CryptoException()).when(mock).getX509CertificateThumbprint(null);
+        assertThrows(OAuthJwtAccessTokenException.class, () -> mock.validateCertificateBinding(null, (X509Certificate) null));
 
-		// actual call
-		OAuthJwtAccessTokenValidator validator = Mockito.mock(OAuthJwtAccessTokenValidator.class, Mockito.CALLS_REAL_METHODS);
-		X509Certificate cert = this.readCert("jwt_ui.athenz.io.pem");
-		Mockito.doReturn("zlkxyoX95le-Nv7OI0BxcjTOogvy9PGH-v_CBr_DsEk").when(validator).getX509CertificateThumbprint(cert);
-		ArgumentCaptor<OAuthJwtAccessToken> tokenArg = ArgumentCaptor.forClass(OAuthJwtAccessToken.class);
-		ArgumentCaptor<String> thumbprintArg = ArgumentCaptor.forClass(String.class);
+        // actual call
+        OAuthJwtAccessTokenValidator validator = Mockito.mock(OAuthJwtAccessTokenValidator.class, Mockito.CALLS_REAL_METHODS);
+        X509Certificate cert = this.readCert("jwt_ui.athenz.io.pem");
+        Mockito.doReturn("zlkxyoX95le-Nv7OI0BxcjTOogvy9PGH-v_CBr_DsEk").when(validator).getX509CertificateThumbprint(cert);
+        ArgumentCaptor<OAuthJwtAccessToken> tokenArg = ArgumentCaptor.forClass(OAuthJwtAccessToken.class);
+        ArgumentCaptor<String> thumbprintArg = ArgumentCaptor.forClass(String.class);
 
-		validator.validateCertificateBinding(null, cert);
-		Mockito.verify(validator, Mockito.times(1)).validateCertificateBinding(tokenArg.capture(), thumbprintArg.capture());
-		assertNull(tokenArg.getValue());
-		assertEquals(thumbprintArg.getValue(), "zlkxyoX95le-Nv7OI0BxcjTOogvy9PGH-v_CBr_DsEk");
-	}
+        validator.validateCertificateBinding(null, cert);
+        Mockito.verify(validator, Mockito.times(1)).validateCertificateBinding(tokenArg.capture(), thumbprintArg.capture());
+        assertNull(tokenArg.getValue());
+        assertEquals(thumbprintArg.getValue(), "zlkxyoX95le-Nv7OI0BxcjTOogvy9PGH-v_CBr_DsEk");
+    }
 
 }

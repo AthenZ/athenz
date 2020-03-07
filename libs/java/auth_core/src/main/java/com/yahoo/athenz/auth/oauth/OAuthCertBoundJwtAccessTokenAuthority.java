@@ -35,7 +35,7 @@ import com.yahoo.athenz.auth.oauth.parser.OAuthJwtAccessTokenParser;
 import com.yahoo.athenz.auth.oauth.parser.OAuthJwtAccessTokenParserFactory;
 import com.yahoo.athenz.auth.oauth.token.OAuthJwtAccessToken;
 import com.yahoo.athenz.auth.oauth.token.OAuthJwtAccessTokenException;
-import com.yahoo.athenz.auth.oauth.util.JwtAuthorityUtils;
+import com.yahoo.athenz.auth.oauth.util.OAuthAuthorityUtils;
 import com.yahoo.athenz.auth.oauth.validator.DefaultOAuthJwtAccessTokenValidator;
 import com.yahoo.athenz.auth.oauth.validator.OAuthJwtAccessTokenValidator;
 import com.yahoo.athenz.auth.util.AthenzUtils;
@@ -46,9 +46,10 @@ import org.slf4j.LoggerFactory;
 /**
  * Authority to authenticate OAuth2 certificate bound access token
  */
-public class CertificateJwtAccessTokenAuthority implements Authority, AuthorityKeyStore, KeyStore {
 
-    private static final Logger LOG = LoggerFactory.getLogger(CertificateJwtAccessTokenAuthority.class);
+public class OAuthCertBoundJwtAccessTokenAuthority implements Authority, AuthorityKeyStore, KeyStore {
+
+    private static final Logger LOG = LoggerFactory.getLogger(OAuthCertBoundJwtAccessTokenAuthority.class);
 
     @Override
     public void setKeyStore(KeyStore keyStore) {
@@ -67,7 +68,7 @@ public class CertificateJwtAccessTokenAuthority implements Authority, AuthorityK
         return CredSource.REQUEST;
     }
 
-    private String authenticateChallenge = "Bearer realm=\"athenz\"";
+    private String authenticateChallenge = "Bearer realm=\"athenz.io\"";
 
     @Override
     public String getAuthenticateChallenge() {
@@ -85,7 +86,7 @@ public class CertificateJwtAccessTokenAuthority implements Authority, AuthorityK
     @Override
     public String getHeader() {
         // https://tools.ietf.org/html/rfc6750.html#page-5
-        return JwtAuthorityConsts.AUTH_HEADER;
+        return OAuthAuthorityConsts.AUTH_HEADER;
     }
 
     @Override
@@ -103,26 +104,47 @@ public class CertificateJwtAccessTokenAuthority implements Authority, AuthorityK
             errMsg.append(message);
         }
     }
+    /**
+     * format: client-id-1,client-id-2:ui-principal:authorized-service, will skip line on error
+     * @param clientIdsMapPath     client IDs mapping file path
+     * @param clientIdsMap         client IDs mapping entry will be added
+     * @param authorizedServiceMap authorized service mapping entry will be added
+     */
     private void processClientIdsMap(String clientIdsMapPath, Map<String, Set<String>> clientIdsMap, Map<String, String> authorizedServiceMap) {
         if (clientIdsMapPath == null || clientIdsMapPath.isEmpty()) {
             return;
         }
 
         try (BufferedReader br = new BufferedReader(new FileReader(clientIdsMapPath))) {
-            String line = null;
-            while ((line = br.readLine()) != null) {
+            for (String line = br.readLine(); line != null; line = br.readLine()) {
                 if (line.isEmpty()) {
                     continue;
                 }
+
                 final String mapEntry = line.trim();
-                String[] comps = mapEntry.split(JwtAuthorityConsts.CLIENT_ID_FIELD_DELIMITER);
+                boolean isInvalid = false;
+                String[] comps = mapEntry.split(OAuthAuthorityConsts.CLIENT_ID_FIELD_DELIMITER);
                 if (comps.length != 3) {
                     LOG.error("Skipping invalid client id entry {}", mapEntry);
+                    isInvalid = true;
+                }
+                for (String comp: comps) {
+                    if (comp.isEmpty()) {
+                        LOG.error("Skipping invalid client id entry {}", mapEntry);
+                        isInvalid = true;
+                        break;
+                    }
+                }
+                if (isInvalid) {
                     continue;
                 }
 
-                // format: client-id-1,client-id-2:ui-principal:authorized-service
-                clientIdsMap.put(comps[1], JwtAuthorityUtils.csvToSet(comps[0], JwtAuthorityConsts.CLIENT_ID_DELIMITER));
+                Set<String> clientIds = OAuthAuthorityUtils.csvToSet(comps[0], OAuthAuthorityConsts.CLIENT_ID_DELIMITER);
+                if (clientIds == null || clientIds.contains("")) {
+                    LOG.error("Skipping invalid client id entry {}", mapEntry);
+                    continue;
+                }
+                clientIdsMap.put(comps[1], clientIds);
                 authorizedServiceMap.put(comps[1], comps[2]);
             }
         } catch (Exception e) {
@@ -143,19 +165,19 @@ public class CertificateJwtAccessTokenAuthority implements Authority, AuthorityK
 
     @Override
     public void initialize() {
-        String authnChallengeRealm = JwtAuthorityUtils.getProperty(JwtAuthorityConsts.JA_PROP_AUTHN_CHALLENGE_REALM, "https://athenz.io");
+        String authnChallengeRealm = OAuthAuthorityUtils.getProperty(OAuthAuthorityConsts.JA_PROP_AUTHN_CHALLENGE_REALM, "https://athenz.io");
         this.authenticateChallenge = String.format("Bearer realm=\"%s\"", authnChallengeRealm);
 
         // no need to load user domain
         // this.userDomain = userDomain;
 
         // certificate parser
-        boolean excludeRoleCertificates = Boolean.valueOf(JwtAuthorityUtils.getProperty(JwtAuthorityConsts.JA_PROP_CERT_EXCLUDE_ROLE_CERTIFICATES, "false"));
-        Set<String> excludedPrincipals = JwtAuthorityUtils.csvToSet(JwtAuthorityUtils.getProperty(JwtAuthorityConsts.JA_PROP_CERT_EXCLUDED_PRINCIPALS, ""), JwtAuthorityConsts.CSV_DELIMITER);
+        boolean excludeRoleCertificates = Boolean.valueOf(OAuthAuthorityUtils.getProperty(OAuthAuthorityConsts.JA_PROP_CERT_EXCLUDE_ROLE_CERTIFICATES, "false"));
+        Set<String> excludedPrincipals = OAuthAuthorityUtils.csvToSet(OAuthAuthorityUtils.getProperty(OAuthAuthorityConsts.JA_PROP_CERT_EXCLUDED_PRINCIPALS, ""), OAuthAuthorityConsts.CSV_DELIMITER);
         this.certificateIdentityParser = new CertificateIdentityParser(excludedPrincipals, excludeRoleCertificates);
 
         // JWT parser
-        String jwtParserFactoryClass = JwtAuthorityUtils.getProperty(JwtAuthorityConsts.JA_PROP_PARSER_FACTORY_CLASS, "com.yahoo.athenz.auth.oauth.parser.DefaultOAuthJwtAccessTokenParserFactory");
+        String jwtParserFactoryClass = OAuthAuthorityUtils.getProperty(OAuthAuthorityConsts.JA_PROP_PARSER_FACTORY_CLASS, "com.yahoo.athenz.auth.oauth.parser.DefaultOAuthJwtAccessTokenParserFactory");
         try {
             OAuthJwtAccessTokenParserFactory jwtParserFactory = (OAuthJwtAccessTokenParserFactory) Class.forName(jwtParserFactoryClass).newInstance();
             this.parser = jwtParserFactory.create(this);
@@ -164,33 +186,41 @@ public class CertificateJwtAccessTokenAuthority implements Authority, AuthorityK
             throw new IllegalArgumentException("Invalid JWT parser class", e);
         }
 
+        // JWT validator controls
+        this.shouldVerifyCertThumbprint = Boolean.valueOf(OAuthAuthorityUtils.getProperty(OAuthAuthorityConsts.JA_PROP_VERIFY_CERT_THUMBPRINT, "true"));
         // JWT validator client ID mapping
-        String clientIdsMapPath = JwtAuthorityUtils.getProperty(JwtAuthorityConsts.JA_PROP_CLIENT_ID_MAP_PATH, "");
+        String clientIdsMapPath = OAuthAuthorityUtils.getProperty(OAuthAuthorityConsts.JA_PROP_CLIENT_ID_MAP_PATH, "");
         Map<String, Set<String>> clientIdsMap = new HashMap<>();
         Map<String, String> authorizedServiceMap = new HashMap<>();
         this.processClientIdsMap(clientIdsMapPath, clientIdsMap, authorizedServiceMap);
         this.authorizedServiceMap = authorizedServiceMap;
-        // JWT validator controls
-        this.shouldVerifyCertThumbprint = Boolean.valueOf(JwtAuthorityUtils.getProperty(JwtAuthorityConsts.JA_PROP_VERIFY_CERT_THUMBPRINT, "true"));
         // JWT validator values
-        String trustedIssuer = JwtAuthorityUtils.getProperty(JwtAuthorityConsts.JA_PROP_CLAIM_ISS, "https://athenz.io");
-        Set<String> requiredAudiences = JwtAuthorityUtils.csvToSet(JwtAuthorityUtils.getProperty(JwtAuthorityConsts.JA_PROP_CLAIM_AUD, "https://zms.athenz.io"), JwtAuthorityConsts.CSV_DELIMITER);
-        Set<String> requiredScopes = JwtAuthorityUtils.csvToSet(JwtAuthorityUtils.getProperty(JwtAuthorityConsts.JA_PROP_CLAIM_SCOPE, "sys.auth:role.admin"), OAuthJwtAccessToken.SCOPE_DELIMITER);
+        String trustedIssuer = OAuthAuthorityUtils.getProperty(OAuthAuthorityConsts.JA_PROP_CLAIM_ISS, "https://athenz.io");
+        Set<String> requiredAudiences = OAuthAuthorityUtils.csvToSet(OAuthAuthorityUtils.getProperty(OAuthAuthorityConsts.JA_PROP_CLAIM_AUD, "https://zms.athenz.io"), OAuthAuthorityConsts.CSV_DELIMITER);
+        Set<String> requiredScopes = OAuthAuthorityUtils.csvToSet(OAuthAuthorityUtils.getProperty(OAuthAuthorityConsts.JA_PROP_CLAIM_SCOPE, "sys.auth:role.admin"), OAuthJwtAccessToken.SCOPE_DELIMITER);
         // JWT validator
         this.validator = new DefaultOAuthJwtAccessTokenValidator(trustedIssuer, requiredAudiences, requiredScopes, clientIdsMap);
     }
 
+    /**
+     * Process the authenticate request based on http request object.
+     * Skip if access token not exists or cannot be extracted.
+     * Fail if it is not mTLS.
+     * @param request http servlet request
+     * @param errMsg will contain error message if authenticate fails
+     * @return the Principal for the certificate, or null in case of failure.
+     */
     @Override
     public Principal authenticate(HttpServletRequest request, StringBuilder errMsg) {
         errMsg = errMsg == null ? new StringBuilder(512) : errMsg;
 
         // extract credentials from request
-        String jwsString = JwtAuthorityUtils.extractHeaderToken(request);
+        String jwsString = OAuthAuthorityUtils.extractHeaderToken(request);
 
         // skip when no credentials provided
         if (jwsString == null) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("CertificateJwtAccessTokenAuthority:authenticate: no credentials, skip...");
+                LOG.debug("OAuthCertBoundJwtAccessTokenAuthority:authenticate: no credentials, skip...");
             }
             return null;
         }
@@ -200,7 +230,7 @@ public class CertificateJwtAccessTokenAuthority implements Authority, AuthorityK
         try {
             certificateIdentity = this.certificateIdentityParser.parse(request);
         } catch (CertificateIdentityException e) {
-            this.reportError("CertificateJwtAccessTokenAuthority:authenticate: invalid certificate: " + e.getMessage(), errMsg);
+            this.reportError("OAuthCertBoundJwtAccessTokenAuthority:authenticate: invalid certificate: " + e.getMessage(), errMsg);
             return null;
         }
         X509Certificate clientCert = certificateIdentity.getX509Certificate();
@@ -211,7 +241,7 @@ public class CertificateJwtAccessTokenAuthority implements Authority, AuthorityK
         try {
             at = this.parser.parse(jwsString);
         } catch (OAuthJwtAccessTokenException e) {
-            this.reportError("CertificateJwtAccessTokenAuthority:authenticate: invalid JWT: " + e.getMessage(), errMsg);
+            this.reportError("OAuthCertBoundJwtAccessTokenAuthority:authenticate: invalid JWT: " + e.getMessage(), errMsg);
             return null;
         }
 
@@ -225,14 +255,14 @@ public class CertificateJwtAccessTokenAuthority implements Authority, AuthorityK
                 this.validator.validateCertificateBinding(at, clientCertThumbprint);
             }
         } catch (CertificateEncodingException | CryptoException | OAuthJwtAccessTokenException e) {
-            this.reportError("CertificateJwtAccessTokenAuthority:authenticate: invalid JWT: " + e.getMessage(), errMsg);
+            this.reportError("OAuthCertBoundJwtAccessTokenAuthority:authenticate: invalid JWT: " + e.getMessage(), errMsg);
             return null;
         }
 
         // create principal
         String[] ds = AthenzUtils.splitPrincipalName(at.getSubject());
         if (ds == null) {
-            errMsg.append("CertificateJwtAccessTokenAuthority:authenticate: sub is not a valid service identity: got=").append(at.getSubject());
+            errMsg.append("OAuthCertBoundJwtAccessTokenAuthority:authenticate: sub is not a valid service identity: got=").append(at.getSubject());
             return null;
         }
         String domain = ds[0];
@@ -246,10 +276,10 @@ public class CertificateJwtAccessTokenAuthority implements Authority, AuthorityK
         principal.setAuthorizedService(this.clientCertPrincipalToAuthorizedService(clientCertPrincipal));
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("CertificateJwtAccessTokenAuthority.authenticate: client certificate name=" + clientCertPrincipal);
-            LOG.debug("CertificateJwtAccessTokenAuthority.authenticate: valid user=" + principal.toString());
-            LOG.debug("CertificateJwtAccessTokenAuthority.authenticate: unsignedCredentials=" + principal.getUnsignedCredentials());
-            LOG.debug("CertificateJwtAccessTokenAuthority.authenticate: credentials=" + principal.getCredentials());
+            LOG.debug("OAuthCertBoundJwtAccessTokenAuthority.authenticate: client certificate name=" + clientCertPrincipal);
+            LOG.debug("OAuthCertBoundJwtAccessTokenAuthority.authenticate: valid user=" + principal.toString());
+            LOG.debug("OAuthCertBoundJwtAccessTokenAuthority.authenticate: unsignedCredentials=" + principal.getUnsignedCredentials());
+            LOG.debug("OAuthCertBoundJwtAccessTokenAuthority.authenticate: credentials=" + principal.getCredentials());
         }
         return principal;
     }

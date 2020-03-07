@@ -15,7 +15,7 @@
  */
 package com.yahoo.athenz.auth.util;
 
-import org.testng.annotations.Test;
+import static org.testng.Assert.*;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -23,8 +23,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-
-import static org.testng.Assert.*;
+import org.testng.annotations.Test;
 
 public class AthenzUtilsTest {
 

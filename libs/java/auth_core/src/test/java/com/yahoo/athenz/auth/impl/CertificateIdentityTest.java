@@ -25,43 +25,43 @@ import org.testng.annotations.Test;
 
 public class CertificateIdentityTest {
 
-	private final ClassLoader classLoader = this.getClass().getClassLoader();
-	private final X509Certificate readCert(String resourceName) throws Exception {
-		try (FileInputStream certIs = new FileInputStream(classLoader.getResource(resourceName).getFile())) {
-			CertificateFactory cf = CertificateFactory.getInstance("X.509");
-			return (X509Certificate) cf.generateCertificate(certIs);
-		}
-	}
+    private final ClassLoader classLoader = this.getClass().getClassLoader();
+    private final X509Certificate readCert(String resourceName) throws Exception {
+        try (FileInputStream certIs = new FileInputStream(this.classLoader.getResource(resourceName).getFile())) {
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            return (X509Certificate) cf.generateCertificate(certIs);
+        }
+    }
 
-	@Test
-	public void testCertificateIdentity() throws Exception {
-		X509Certificate cert = this.readCert("valid_cn_x509.cert");
-		CertificateIdentity certId = new CertificateIdentity("domain", "service", Arrays.asList("role_1", "role_2"), cert);
+    @Test
+    public void testCertificateIdentity() throws Exception {
+        X509Certificate cert = this.readCert("valid_cn_x509.cert");
+        CertificateIdentity certId = new CertificateIdentity("domain", "service", Arrays.asList("role_1", "role_2"), cert);
 
-		assertNotNull(certId);
-		assertEquals(certId.getDomain(), "domain");
-		assertEquals(certId.getService(), "service");
-		assertEquals(certId.getRoles(), Arrays.asList("role_1", "role_2"));
-		assertSame(certId.getX509Certificate(), cert);
-	}
+        assertNotNull(certId);
+        assertEquals(certId.getDomain(), "domain");
+        assertEquals(certId.getService(), "service");
+        assertEquals(certId.getRoles(), Arrays.asList("role_1", "role_2"));
+        assertSame(certId.getX509Certificate(), cert);
+    }
 
-	@Test
-	public void testGetPrincipalName() throws Exception {
-		CertificateIdentity certId = new CertificateIdentity("domain", "service", null, null);
+    @Test
+    public void testGetPrincipalName() throws Exception {
+        CertificateIdentity certId = new CertificateIdentity("domain", "service", null, null);
 
-		assertNotNull(certId);
-		assertEquals(certId.getPrincipalName(), "domain.service");
-		assertNull(certId.getRoles());
-		assertNull(certId.getX509Certificate());
-	}
+        assertNotNull(certId);
+        assertEquals(certId.getPrincipalName(), "domain.service");
+        assertNull(certId.getRoles());
+        assertNull(certId.getX509Certificate());
+    }
 
-	@Test
-	public void testToString() throws Exception {
-		X509Certificate cert = this.readCert("valid_cn_x509.cert");
-		CertificateIdentity certId = new CertificateIdentity("domain", "service", Arrays.asList("role_1", "role_2"), cert);
+    @Test
+    public void testToString() throws Exception {
+        X509Certificate cert = this.readCert("valid_cn_x509.cert");
+        CertificateIdentity certId = new CertificateIdentity("domain", "service", Arrays.asList("role_1", "role_2"), cert);
 
-		assertNotNull(certId);
-		assertEquals(certId.toString(), String.format("{domain:\"domain\", service:\"service\", roles:[\"role_1\", \"role_2\"], x509Cert:\"%s\"}", certId.getX509Certificate().toString()));
-	}
+        assertNotNull(certId);
+        assertEquals(certId.toString(), String.format("{domain:\"domain\", service:\"service\", roles:[\"role_1\", \"role_2\"], x509Cert:\"%s\"}", certId.getX509Certificate().toString()));
+    }
 
 }

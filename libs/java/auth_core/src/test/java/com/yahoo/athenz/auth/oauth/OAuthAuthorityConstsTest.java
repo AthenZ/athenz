@@ -13,23 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.auth;
+package com.yahoo.athenz.auth.oauth;
 
-/**
- * Constants used by Authority classes
- */
-public final class AuthorityConsts {
+import static org.testng.Assert.*;
 
-    // Athenz data model
-    public static final char ATHENZ_PRINCIPAL_DELIMITER_CHAR = '.';
-    public static final String ATHENZ_PRINCIPAL_DELIMITER = String.valueOf(ATHENZ_PRINCIPAL_DELIMITER_CHAR);
-    public static final String ROLE_SEP = ":role.";
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Modifier;
+import org.testng.annotations.Test;
 
-    // system properties
-    public static final String ATHENZ_PROP_USER_DOMAIN = "athenz.user_domain";
+public class OAuthAuthorityConstsTest {
 
-    // prevent object creation
-    private AuthorityConsts() {
+    @Test
+    public void testPrivateConstructor() throws Exception {
+        Constructor<OAuthAuthorityConsts> constructor = OAuthAuthorityConsts.class.getDeclaredConstructor();
+        assertTrue(Modifier.isPrivate(constructor.getModifiers()));
+        constructor.setAccessible(true);
+        constructor.newInstance();
     }
 
 }

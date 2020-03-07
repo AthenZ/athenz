@@ -25,76 +25,80 @@ import org.testng.annotations.Test;
 
 public class OAuthJwtAccessTokenTest {
 
-	@Test(dataProvider = "instances")
-	public void testGetScopes(OAuthJwtAccessToken instance, List<String> expected) {
-		assertEquals(instance.getScopes(), expected);
-	}
-	@DataProvider(name = "instances")
-	public static Object[][] instances() {
-		List<Object[]> testCases = new ArrayList<>();
+    @Test(dataProvider = "instances")
+    public void testGetScopes(OAuthJwtAccessToken instance, List<String> expected) {
+        assertEquals(instance.getScopes(), expected);
+    }
+    @DataProvider(name = "instances")
+    public static Object[][] instances() {
+        List<Object[]> testCases = new ArrayList<>();
 
-		// null scope
-		testCases.add(new Object[]{
-			new OAuthJwtAccessToken(){
-				public String getScope() { return null; }
-				public String getSubject() { return null; }
-				public String getIssuer() { return null; }
-				public String getAudience() { return null; }
-				public List<String>  getAudiences() { return null; }
-				public String getClientId() { return null; }
-				public String getCertificateThumbprint() { return null; }
-				public long getIssuedAt() { return 0L; }
-				public String getSignature() { return null; }
-			},
-			null
-		});
-		// empty scope
-		testCases.add(new Object[]{
-			new OAuthJwtAccessToken(){
-				public String getScope() { return ""; }
-				public String getSubject() { return null; }
-				public String getIssuer() { return null; }
-				public String getAudience() { return null; }
-				public List<String>  getAudiences() { return null; }
-				public String getClientId() { return null; }
-				public String getCertificateThumbprint() { return null; }
-				public long getIssuedAt() { return 0L; }
-				public String getSignature() { return null; }
-			},
-			Arrays.asList("")
-		});
-		// 2 scopes
-		testCases.add(new Object[]{
-			new OAuthJwtAccessToken(){
-				public String getScope() { return "scope_1 scope_2"; }
-				public String getSubject() { return null; }
-				public String getIssuer() { return null; }
-				public String getAudience() { return null; }
-				public List<String>  getAudiences() { return null; }
-				public String getClientId() { return null; }
-				public String getCertificateThumbprint() { return null; }
-				public long getIssuedAt() { return 0L; }
-				public String getSignature() { return null; }
-			},
-			Arrays.asList("scope_1", "scope_2")
-		});
-		// trailing delimiter
-		testCases.add(new Object[]{
-			new OAuthJwtAccessToken(){
-				public String getScope() { return "scope_3 scope_4 "; }
-				public String getSubject() { return null; }
-				public String getIssuer() { return null; }
-				public String getAudience() { return null; }
-				public List<String>  getAudiences() { return null; }
-				public String getClientId() { return null; }
-				public String getCertificateThumbprint() { return null; }
-				public long getIssuedAt() { return 0L; }
-				public String getSignature() { return null; }
-			},
-			Arrays.asList("scope_3", "scope_4")
-		});
+        // null scope
+        testCases.add(new Object[]{
+            new OAuthJwtAccessToken() {
+                public String getScope() { return null; }
+                public String getSubject() { return null; }
+                public String getIssuer() { return null; }
+                public String getAudience() { return null; }
+                public List<String>  getAudiences() { return null; }
+                public String getClientId() { return null; }
+                public String getCertificateThumbprint() { return null; }
+                public long getIssuedAt() { return 0L; }
+                public long getExpiration() { return 0L; }
+                public String getSignature() { return null; }
+            },
+            null
+        });
+        // empty scope
+        testCases.add(new Object[]{
+            new OAuthJwtAccessToken() {
+                public String getScope() { return ""; }
+                public String getSubject() { return null; }
+                public String getIssuer() { return null; }
+                public String getAudience() { return null; }
+                public List<String>  getAudiences() { return null; }
+                public String getClientId() { return null; }
+                public String getCertificateThumbprint() { return null; }
+                public long getIssuedAt() { return 0L; }
+                public long getExpiration() { return 0L; }
+                public String getSignature() { return null; }
+            },
+            Arrays.asList("")
+        });
+        // 2 scopes
+        testCases.add(new Object[]{
+            new OAuthJwtAccessToken() {
+                public String getScope() { return "scope_1 scope_2"; }
+                public String getSubject() { return null; }
+                public String getIssuer() { return null; }
+                public String getAudience() { return null; }
+                public List<String>  getAudiences() { return null; }
+                public String getClientId() { return null; }
+                public String getCertificateThumbprint() { return null; }
+                public long getIssuedAt() { return 0L; }
+                public long getExpiration() { return 0L; }
+                public String getSignature() { return null; }
+            },
+            Arrays.asList("scope_1", "scope_2")
+        });
+        // trailing delimiter
+        testCases.add(new Object[]{
+            new OAuthJwtAccessToken() {
+                public String getScope() { return "scope_3 scope_4 "; }
+                public String getSubject() { return null; }
+                public String getIssuer() { return null; }
+                public String getAudience() { return null; }
+                public List<String>  getAudiences() { return null; }
+                public String getClientId() { return null; }
+                public String getCertificateThumbprint() { return null; }
+                public long getIssuedAt() { return 0L; }
+                public long getExpiration() { return 0L; }
+                public String getSignature() { return null; }
+            },
+            Arrays.asList("scope_3", "scope_4")
+        });
 
-		return testCases.toArray(new Object[testCases.size()][]);
-	}
+        return testCases.toArray(new Object[testCases.size()][]);
+    }
 
 }

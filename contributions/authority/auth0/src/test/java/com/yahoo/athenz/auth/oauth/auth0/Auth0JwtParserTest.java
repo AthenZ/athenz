@@ -18,24 +18,64 @@ package com.yahoo.athenz.auth.oauth.auth0;
 import static org.testng.Assert.*;
 
 import org.testng.annotations.Test;
-// import java.net.MalformedURLException;
-// import java.net.URL;
-// import com.yahoo.athenz.auth.KeyStore;
-// import com.yahoo.athenz.auth.oauth.parser.KeyStoreJwkKeyResolver;
-// import com.yahoo.athenz.auth.oauth.parser.OAuthJwtAccessTokenParser;
-// import com.yahoo.athenz.auth.oauth.token.OAuthJwtAccessToken;
-// import com.yahoo.athenz.auth.oauth.token.OAuthJwtAccessTokenException;
-// import io.jsonwebtoken.Claims;
-// import io.jsonwebtoken.Jws;
-// import io.jsonwebtoken.JwtParser;
-// import io.jsonwebtoken.Jwts;
-// import io.jsonwebtoken.SigningKeyResolver;
+
+import java.lang.reflect.Field;
+import com.yahoo.athenz.auth.KeyStore;
+import com.yahoo.athenz.auth.oauth.auth0.Auth0Jwt;
+import com.yahoo.athenz.auth.oauth.token.OAuthJwtAccessToken;
+import com.yahoo.athenz.auth.oauth.token.OAuthJwtAccessTokenException;
+import org.mockito.Mockito;
+import org.testng.annotations.Test;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.JwsHeader;
+import io.jsonwebtoken.JwtParser;
 
 public class Auth0JwtParserTest {
 
+    private final KeyStore baseKeyStore = new KeyStore() {
+        @Override
+        public String getPublicKey(String domain, String service, String keyId) {
+            return null;
+        }
+    };
+
     @Test
     public void testAuth0JwtParser() {
-        fail();
+        Auth0JwtParser parser = new Auth0JwtParser(baseKeyStore, "https://athenz-oauth-example.auth0.com/.well-known/jwks.json");
+        assertNotNull(parser);
+    }
+
+    @Test
+    @SuppressWarnings("rawtypes")
+    public void testParse() throws Exception {
+        // mock internal parser
+        Auth0JwtParser parser = new Auth0JwtParser(baseKeyStore, "https://athenz-oauth-example.auth0.com/.well-known/jwks.json");
+        JwtParser jwtParserMock = Mockito.mock(JwtParser.class);
+        Field f = parser.getClass().getSuperclass().getDeclaredField("parser");
+        f.setAccessible(true);
+        f.set(parser, jwtParserMock);
+
+        // parse error
+        Mockito.when(jwtParserMock.parseClaimsJws(null)).thenThrow(new NullPointerException());
+        assertThrows(OAuthJwtAccessTokenException.class, () -> parser.parse(null));
+
+        // parse success
+        String jwtString = "dummy-jwt-string";
+        Jws<Claims> jws = new Jws<Claims>() {
+            public JwsHeader getHeader() { return null; }
+            public Claims getBody() { return null; }
+
+            @Override
+            public String getSignature() {
+                return "dummy-jwt-signature";
+            }
+        };
+        Mockito.when(jwtParserMock.parseClaimsJws(jwtString)).thenReturn(jws);
+        OAuthJwtAccessToken token = parser.parse(jwtString);
+        assertNotNull(token);
+        assertTrue(token instanceof Auth0Jwt);
+        assertEquals(token.getSignature(), "dummy-jwt-signature");
     }
 
 }

@@ -20,12 +20,12 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
-import com.yahoo.athenz.auth.oauth.JwtAuthorityConsts;
+import com.yahoo.athenz.auth.oauth.OAuthAuthorityConsts;
 
 /**
  * Utility class for JwtAuthority
  */
-public class JwtAuthorityUtils {
+public class OAuthAuthorityUtils {
 
     /**
      * get system properties with JwtAuthority prefix
@@ -34,7 +34,7 @@ public class JwtAuthorityUtils {
      * @return     system property value set
      */
     public static final String getProperty(String key, String def) {
-        return System.getProperty(JwtAuthorityConsts.SYSTEM_PROP_PREFIX + key, def);
+        return System.getProperty(OAuthAuthorityConsts.SYSTEM_PROP_PREFIX + key, def);
     }
 
     /**
@@ -60,12 +60,12 @@ public class JwtAuthorityUtils {
      * @return        the token, or null if no OAuth authorization header was supplied
      */
     public static final String extractHeaderToken(HttpServletRequest request) {
-        Enumeration<String> headers = request.getHeaders(JwtAuthorityConsts.AUTH_HEADER);
+        Enumeration<String> headers = request.getHeaders(OAuthAuthorityConsts.AUTH_HEADER);
         while (headers.hasMoreElements()) {
             // typically there is only one (most servers enforce that)
             String value = headers.nextElement();
-            if ((value.toLowerCase().startsWith(JwtAuthorityConsts.BEARER_TYPE))) {
-                String authHeaderValue = value.substring(JwtAuthorityConsts.BEARER_TYPE.length()).trim();
+            if ((value.toLowerCase().startsWith(OAuthAuthorityConsts.BEARER_TYPE))) {
+                String authHeaderValue = value.substring(OAuthAuthorityConsts.BEARER_TYPE.length()).trim();
                 int commaIndex = authHeaderValue.indexOf(',');
                 if (commaIndex > 0) {
                     authHeaderValue = authHeaderValue.substring(0, commaIndex);
@@ -78,8 +78,7 @@ public class JwtAuthorityUtils {
     }
 
     // prevent object creation
-    private JwtAuthorityUtils() {
-        
+    private OAuthAuthorityUtils() {
     }
 
 }

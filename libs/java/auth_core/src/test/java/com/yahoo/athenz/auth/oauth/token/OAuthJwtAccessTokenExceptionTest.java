@@ -21,19 +21,19 @@ import org.testng.annotations.Test;
 
 public class OAuthJwtAccessTokenExceptionTest {
 
-	@Test
-	public void testOAuthJwtAccessTokenException() {
-		OAuthJwtAccessTokenException ex;
+    @Test
+    public void testOAuthJwtAccessTokenException() {
+        OAuthJwtAccessTokenException ex;
 
-		ex = new OAuthJwtAccessTokenException();
-		assertNotNull(ex);
+        ex = new OAuthJwtAccessTokenException();
+        assertNotNull(ex);
 
-		ex = new OAuthJwtAccessTokenException("err msg");
-		assertEquals(ex.getMessage(), "err msg");
+        ex = new OAuthJwtAccessTokenException("err msg");
+        assertEquals(ex.getMessage(), "err msg");
 
-		Throwable t = new Throwable();
-		ex = new OAuthJwtAccessTokenException(t);
-		assertSame(ex.getCause(), t);
-	}
+        Throwable t = new Throwable();
+        ex = new OAuthJwtAccessTokenException(t);
+        assertSame(ex.getCause(), t);
+    }
 
 }

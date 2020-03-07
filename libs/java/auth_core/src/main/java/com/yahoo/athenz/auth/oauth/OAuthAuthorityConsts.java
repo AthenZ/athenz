@@ -18,7 +18,7 @@ package com.yahoo.athenz.auth.oauth;
 /**
  * Constant used by OAuth2 JWT access token Authority
  */
-public final class JwtAuthorityConsts {
+public final class OAuthAuthorityConsts {
 
     /*
      * Client ID mapping
@@ -52,8 +52,7 @@ public final class JwtAuthorityConsts {
     public static final String BEARER_TYPE = "bearer"; // BEARER_TYPE.toLowerCase()
 
     // prevent object creation
-    private JwtAuthorityConsts() {
-        
+    private OAuthAuthorityConsts() {
     }
 
 }
