@@ -13479,14 +13479,28 @@ public class ZMSImplTest {
 
         Role role3 = createRoleObject(domainName, "Role3", "sys.auth", null, null);
         zms.putRole(mockDomRsrcCtx, domainName, "Role3", auditRef, role3);
+
+        Role role4 = createRoleObject(domainName, "Role4", null, "user.doe",
+                "user.jane");
+        zms.putRole(mockDomRsrcCtx, domainName, "Role4", auditRef, role4);
+
+        RoleMeta rm = createRoleMetaObject(true);
+        rm.setReviewEnabled(true);
+        rm.setMemberExpiryDays(45);
+        rm.setCertExpiryMins(55);
+        rm.setServiceExpiryDays(45);
+        rm.setTokenExpiryMins(65);
+        rm.setSignAlgorithm("ec");
+        zms.putRoleMeta(mockDomRsrcCtx, domainName, "role4", auditRef, rm);
         
         AthenzDomain domain = zms.getAthenzDomain(domainName, false);
         List<Role> roles = zms.setupRoleList(domain, Boolean.FALSE);
-        assertEquals(4, roles.size()); // need to account for admin role
+        assertEquals(5, roles.size()); // need to account for admin role
         
         boolean role1Check = false;
         boolean role2Check = false;
         boolean role3Check = false;
+        boolean role4Check = false;
         
         for (Role role : roles) {
             switch (role.getName()) {
@@ -13508,22 +13522,39 @@ public class ZMSImplTest {
                     role3Check = true;
                     assertNotNull(role.getModified());
                     break;
+                case "setuprolelistwithoutmembers:role.role4":
+                    assertNull(role.getRoleMembers());
+                    assertNull(role.getTrust());
+                    assertNotNull(role.getModified());
+                    assertNull(role.getLastReviewedDate());
+                    assertEquals(role.getMemberExpiryDays().intValue(), 45);
+                    assertEquals(role.getCertExpiryMins().intValue(), 55);
+                    assertEquals(role.getServiceExpiryDays().intValue(), 45);
+                    assertEquals(role.getTokenExpiryMins().intValue(), 65);
+                    assertNotNull(role.getSignAlgorithm());
+                    assertTrue(role.getReviewEnabled());
+                    assertTrue(role.getSelfServe());
+                    assertFalse(role.getAuditEnabled());
+                    role4Check = true;
+                    break;
             }
         }
         
         assertTrue(role1Check);
         assertTrue(role2Check);
         assertTrue(role3Check);
+        assertTrue(role4Check);
 
         // we'll do the same check this time passing null
         // for the boolean flag instead of false
         
         roles = zms.setupRoleList(domain, null);
-        assertEquals(4, roles.size()); // need to account for admin role
+        assertEquals(5, roles.size()); // need to account for admin role
         
         role1Check = false;
         role2Check = false;
         role3Check = false;
+        role4Check = false;
         
         for (Role role : roles) {
             switch (role.getName()) {
@@ -13545,12 +13576,27 @@ public class ZMSImplTest {
                     role3Check = true;
                     assertNotNull(role.getModified());
                     break;
+                case "setuprolelistwithoutmembers:role.role4":
+                    assertNull(role.getRoleMembers());
+                    assertNull(role.getTrust());
+                    assertNotNull(role.getModified());
+                    assertNull(role.getLastReviewedDate());
+                    assertEquals(role.getMemberExpiryDays().intValue(), 45);
+                    assertEquals(role.getCertExpiryMins().intValue(), 55);
+                    assertEquals(role.getServiceExpiryDays().intValue(), 45);
+                    assertEquals(role.getTokenExpiryMins().intValue(), 65);
+                    assertNotNull(role.getSignAlgorithm());
+                    assertTrue(role.getReviewEnabled());
+                    assertTrue(role.getSelfServe());
+                    role4Check = true;
+                    break;
             }
         }
         
         assertTrue(role1Check);
         assertTrue(role2Check);
         assertTrue(role3Check);
+        assertTrue(role4Check);
         
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
