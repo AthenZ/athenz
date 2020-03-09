@@ -2620,7 +2620,16 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 Role newRole = new Role()
                         .setName(role.getName())
                         .setModified(role.getModified())
-                        .setTrust(role.getTrust());
+                        .setTrust(role.getTrust())
+                        .setAuditEnabled(role.getAuditEnabled())
+                        .setSelfServe(role.getSelfServe())
+                        .setMemberExpiryDays(role.getMemberExpiryDays())
+                        .setServiceExpiryDays(role.getServiceExpiryDays())
+                        .setTokenExpiryMins(role.getTokenExpiryMins())
+                        .setCertExpiryMins(role.getCertExpiryMins())
+                        .setSignAlgorithm(role.getSignAlgorithm())
+                        .setReviewEnabled(role.getReviewEnabled())
+                        .setLastReviewedDate(role.getLastReviewedDate());
                 roles.add(newRole);
             }
         }
