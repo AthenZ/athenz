@@ -4283,7 +4283,7 @@ public class DBService {
                 if (!deletedMembers.isEmpty() || !extendedMembers.isEmpty()) {
                     // we have one or more changes to the role
 
-                    con.updateRoleModTimestamp(domainName, roleName);
+                    con.updateRoleReviewTimestamp(domainName, roleName);
                     saveChanges(con, domainName);
                 }
 

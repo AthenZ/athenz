@@ -654,4 +654,18 @@ public class FileConnectionTest {
             assertFalse(fileconnection.matchExpiration(101, Timestamp.fromMillis(100)));
         }
     }
+
+    @Test
+    public void testUpdateRoleReviewTimestamp() {
+        File fileDir = new File("/home/athenz/zms_store");
+        File quotaDir = new File("/home/athenz/zms_quota");
+        try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
+            try {
+                fileconnection.updateRoleReviewTimestamp("domain1", "role1");
+                fail();
+            } catch (Exception ex) {
+                assertTrue(true);
+            }
+        }
+    }
 }
