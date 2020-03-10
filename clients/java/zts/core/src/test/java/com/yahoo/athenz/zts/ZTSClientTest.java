@@ -41,8 +41,15 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
+import javax.ws.rs.client.ClientBuilder;
 
+import org.glassfish.jersey.client.JerseyClient;
+import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -59,7 +66,9 @@ import com.yahoo.athenz.auth.impl.SimpleServiceIdentityProvider;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.rdl.Timestamp;
 
-public class ZTSClientTest {
+@PowerMockIgnore({"javax.net.ssl.*", "javax.security.*", "javax.xml.*", "org.xml.sax.*"})
+@PrepareForTest(ClientBuilder.class)
+public class ZTSClientTest extends PowerMockTestCase {
 
     final private Authority PRINCIPAL_AUTHORITY = new PrincipalAuthority();
     private SimpleServiceIdentityProvider siaMockProvider = null;
@@ -83,6 +92,12 @@ public class ZTSClientTest {
     public void setup() {
         System.setProperty(ZTSClient.ZTS_CLIENT_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
         siaMockProvider = Mockito.mock(SimpleServiceIdentityProvider.class);
+
+        JerseyClientBuilder builder = new JerseyClientBuilder();
+        JerseyClient client = builder.build();
+        PowerMockito.spy(ClientBuilder.class);
+        PowerMockito.when(ClientBuilder.newBuilder()).thenReturn(builder);
+        PowerMockito.when(ClientBuilder.newClient()).thenReturn(client);
     }
 
     @Test

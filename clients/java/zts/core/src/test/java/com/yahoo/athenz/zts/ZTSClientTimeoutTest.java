@@ -1,4 +1,4 @@
-package com.yahoo.athenz.zms;
+package com.yahoo.athenz.zts;
 
 import io.undertow.Undertow;
 import io.undertow.server.HttpHandler;
@@ -17,7 +17,7 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import javax.servlet.ServletException;
@@ -32,14 +32,12 @@ import javax.ws.rs.core.Response;
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.yahoo.athenz.zms.ZMSClient.ZMS_CLIENT_PROP_CONNECT_TIMEOUT;
-import static com.yahoo.athenz.zms.ZMSClient.ZMS_CLIENT_PROP_READ_TIMEOUT;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.fail;
 
 @PowerMockIgnore("javax.net.ssl.*")
 @PrepareForTest(ClientBuilder.class)
-public class ZMSClientTimeoutTest extends PowerMockTestCase {
+public class ZTSClientTimeoutTest extends PowerMockTestCase {
 
   private static final int sleep = 2000; // mock api call sleeps for 2 seconds
   private int timeout = 1000; // http client should timeout after 1 second
@@ -47,10 +45,9 @@ public class ZMSClientTimeoutTest extends PowerMockTestCase {
   private int port = 8080;
   private UndertowServer server;
 
-  @BeforeMethod
+  @BeforeClass
   public void setUp() {
-    System.setProperty(ZMS_CLIENT_PROP_READ_TIMEOUT, String.valueOf(timeout));
-    System.setProperty(ZMS_CLIENT_PROP_CONNECT_TIMEOUT, String.valueOf(timeout));
+    ZTSClient.setConnectionTimeouts(timeout, timeout);
   }
 
   @AfterMethod
@@ -71,13 +68,13 @@ public class ZMSClientTimeoutTest extends PowerMockTestCase {
     server.start();
 
     String baseUri = "http://localhost:" + port;
-    ZMSClient zmsClient = new ZMSClient(baseUri);
+    ZTSClient ztsClient = new ZTSClient(baseUri);
 
     try {
-      zmsClient.getDomain("test");
+      ztsClient.getRoleAccess("testDomain", "testPrincipal");
       fail("read timeout not set");
-    } catch (ZMSClientException expected) {
-      assertEquals(expected.code, ZMSClientException.BAD_REQUEST);
+    } catch (ZTSClientException expected) {
+      assertEquals(expected.code, ZTSClientException.BAD_REQUEST);
       assertEquals(
           expected.getMessage(),
           "ResourceException (400): java.net.SocketTimeoutException: Read timed out");
@@ -95,49 +92,17 @@ public class ZMSClientTimeoutTest extends PowerMockTestCase {
     server.start();
 
     String baseUri = "http://localhost:" + port;
-    ZMSClient zmsClient = new ZMSClient(baseUri);
+    ZTSClient ztsClient = new ZTSClient(baseUri);
 
     try {
-      zmsClient.getDomain("test");
+      ztsClient.getRoleAccess("testDomain", "testPrincipal");
       fail("read timeout not set");
-    } catch (ZMSClientException expected) {
-      assertEquals(expected.code, ZMSClientException.BAD_REQUEST);
+    } catch (ZTSClientException expected) {
+      assertEquals(expected.code, ZTSClientException.BAD_REQUEST);
       assertEquals(
           expected.getMessage(),
           "ResourceException (400): RESTEASY004655: Unable to invoke request: java.net.SocketTimeoutException: Read timed out");
     }
-  }
-
-  private HttpHandler createRestEasyRestHandler() throws ServletException {
-    ResteasyDeployment deployment = new ResteasyDeploymentImpl();
-    deployment.setApplication(new Application());
-
-    UndertowJaxrsServer server = new UndertowJaxrsServer();
-    DeploymentInfo deploymentInfo =
-        server
-            .undertowDeployment(deployment, "/")
-            .setClassLoader(UndertowServer.class.getClassLoader())
-            .setContextPath("/zms")
-            .setDeploymentName("ZMS");
-    DeploymentManager deploymentManager = Servlets.defaultContainer().addDeployment(deploymentInfo);
-    deploymentManager.deploy();
-    return deploymentManager.start();
-  }
-
-  private HttpHandler createJerseyRestHandler() throws ServletException {
-    DeploymentInfo deploymentInfo =
-        Servlets.deployment()
-            .setClassLoader(Application.class.getClassLoader())
-            .setContextPath("/zms")
-            .addServlets(
-                Servlets.servlet("jerseyServlet", ServletContainer.class)
-                    .setLoadOnStartup(1)
-                    .addInitParam("javax.ws.rs.Application", Application.class.getName())
-                    .addMapping("/*"))
-            .setDeploymentName("ZMS");
-    DeploymentManager deploymentManager = Servlets.defaultContainer().addDeployment(deploymentInfo);
-    deploymentManager.deploy();
-    return deploymentManager.start();
   }
 
   private class UndertowServer {
@@ -168,12 +133,44 @@ public class ZMSClientTimeoutTest extends PowerMockTestCase {
     }
   }
 
+  private HttpHandler createJerseyRestHandler() throws ServletException {
+    DeploymentInfo deploymentInfo =
+        Servlets.deployment()
+            .setClassLoader(Application.class.getClassLoader())
+            .setContextPath("/zts")
+            .addServlets(
+                Servlets.servlet("jerseyServlet", ServletContainer.class)
+                    .setLoadOnStartup(1)
+                    .addInitParam("javax.ws.rs.Application", Application.class.getName())
+                    .addMapping("/*"))
+            .setDeploymentName("ZTS");
+    DeploymentManager deploymentManager = Servlets.defaultContainer().addDeployment(deploymentInfo);
+    deploymentManager.deploy();
+    return deploymentManager.start();
+  }
+
+  private HttpHandler createRestEasyRestHandler() throws ServletException {
+    ResteasyDeployment deployment = new ResteasyDeploymentImpl();
+    deployment.setApplication(new Application());
+
+    UndertowJaxrsServer server = new UndertowJaxrsServer();
+    DeploymentInfo deploymentInfo =
+        server
+            .undertowDeployment(deployment, "/")
+            .setClassLoader(UndertowServer.class.getClassLoader())
+            .setContextPath("/zts")
+            .setDeploymentName("ZTS");
+    DeploymentManager deploymentManager = Servlets.defaultContainer().addDeployment(deploymentInfo);
+    deploymentManager.deploy();
+    return deploymentManager.start();
+  }
+
   private static class Application extends javax.ws.rs.core.Application {
     private final Set<Object> singletons;
 
     public Application() {
       this.singletons = new HashSet<>();
-      this.singletons.add(new ZMSMockResource());
+      this.singletons.add(new ZTSMockResource());
     }
 
     @Override
@@ -183,17 +180,18 @@ public class ZMSClientTimeoutTest extends PowerMockTestCase {
   }
 
   @Path("/v1")
-  static class ZMSMockResource {
+  static class ZTSMockResource {
 
-    @Path("domain/{domainName}")
+    @Path("access/domain/{domainName}/principal/{principal}")
     @GET
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getDomain(@PathParam("domainName") String name) throws InterruptedException {
+    public Response getRoleAccess(
+        @PathParam("domainName") String domainName, @PathParam("principal") String principalName)
+        throws InterruptedException {
       Thread.sleep(sleep);
-      Domain domain = new Domain();
-      domain.name = name;
-      return Response.status(Response.Status.OK).entity(domain).build();
+      RoleAccess roleAccess = new RoleAccess();
+      return Response.status(Response.Status.OK).entity(roleAccess).build();
     }
   }
 }

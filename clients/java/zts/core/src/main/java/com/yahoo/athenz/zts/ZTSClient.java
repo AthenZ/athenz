@@ -30,6 +30,7 @@ import java.security.cert.X509Certificate;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -677,8 +678,6 @@ public class ZTSClient implements Closeable {
         final JacksonJsonProvider jacksonJsonProvider = new JacksonJaxbJsonProvider()
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         final ClientConfig config = new ClientConfig(jacksonJsonProvider);
-        config.property(ClientProperties.CONNECT_TIMEOUT, reqConnectTimeout);
-        config.property(ClientProperties.READ_TIMEOUT, reqReadTimeout);
         config.connectorProvider(new ApacheConnectorProvider());
 
         // if we're asked to use a proxy for our request
@@ -694,8 +693,14 @@ public class ZTSClient implements Closeable {
             builder = builder.sslContext(sslContext);
             enablePrefetch = true;
         }
+
+        // JerseyClientBuilder::withConfig() replaces the existing config with the new client
+        // config. Hence the client config should be added to the builder before the timeouts.
+        // Otherwise the timeout settings would be overridden.
         Client rsClient = builder.hostnameVerifier(hostnameVerifier)
             .withConfig(config)
+            .readTimeout(reqReadTimeout, TimeUnit.MILLISECONDS)
+            .connectTimeout(reqConnectTimeout, TimeUnit.MILLISECONDS)
             .build();
 
         ztsClient = new ZTSRDLGeneratedClient(ztsUrl, rsClient);
