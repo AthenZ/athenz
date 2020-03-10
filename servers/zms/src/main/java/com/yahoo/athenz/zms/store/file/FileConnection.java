@@ -1856,5 +1856,18 @@ public class FileConnection implements ObjectStoreConnection {
         }
         return updated;
     }
+
+    @Override
+    public boolean updateRoleReviewTimestamp(String domainName, String roleName) {
+        DomainStruct domainStruct = getDomainStruct(domainName);
+        if (domainStruct == null) {
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", "updateRoleReviewTimestamp");
+        }
+        Role role = getRoleObject(domainStruct, roleName);
+        role.setLastReviewedDate(Timestamp.fromCurrentTime());
+        role.setModified(Timestamp.fromCurrentTime());
+        putDomainStruct(domainName, domainStruct);
+        return true;
+    }
 }
 ///CLOVER:ON

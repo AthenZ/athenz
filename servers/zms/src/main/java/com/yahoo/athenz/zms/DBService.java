@@ -4281,11 +4281,15 @@ public class DBService {
                 auditDetails.append("}");
 
                 if (!deletedMembers.isEmpty() || !extendedMembers.isEmpty()) {
-                    // we have one or more changes to the role
-
+                    // we have one or more changes to the role. We should update both lastReviewed as well as modified timestamps
                     con.updateRoleModTimestamp(domainName, roleName);
-                    saveChanges(con, domainName);
+                    con.updateRoleReviewTimestamp(domainName, roleName);
+                } else {
+                    // since "no-action" is still a review, we are updating lastReviewed timestamp
+                    con.updateRoleReviewTimestamp(domainName, roleName);
                 }
+
+                saveChanges(con, domainName);
 
                 // audit log the request
                 auditLogRequest(ctx, domainName, auditRef, caller, "REVIEW", roleName, auditDetails.toString());

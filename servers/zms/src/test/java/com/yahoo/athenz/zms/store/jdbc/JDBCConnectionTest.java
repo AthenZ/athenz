@@ -8867,4 +8867,113 @@ public class JDBCConnectionTest {
         }
         jdbcConn.close();
     }
+
+    @Test
+    public void testUpdateRoleReviewTimestampSuccess() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7); // role id
+
+        boolean requestSuccess = jdbcConn.updateRoleReviewTimestamp("my-domain", "role1");
+        assertTrue(requestSuccess);
+
+        // get domain id
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
+        // get role id
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "role1");
+        // update role time-stamp
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 7);
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testUpdateRoleReviewTimestampFailure() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.doReturn(0).when(mockPrepStmt).executeUpdate();
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7); // role id
+
+        boolean requestSuccess = jdbcConn.updateRoleReviewTimestamp("my-domain", "role1");
+        assertFalse(requestSuccess);
+
+        // get domain id
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
+        // get role id
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "role1");
+        // update role time-stamp
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 7);
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testUpdateRoleReviewTimestampFailureInvalidDomain() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true)
+                .thenReturn(false);
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(0); // domain id
+
+        try {
+            jdbcConn.updateRoleReviewTimestamp("my-domain", "role1");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testUpdateRoleReviewTimestampFailureInvalidRole() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true)
+                .thenReturn(false);
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5); // domain id
+
+        try {
+            jdbcConn.updateRoleReviewTimestamp("my-domain", "role1");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testUpdateRoleReviewTimestampException() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7); // role id
+        Mockito.when(mockPrepStmt.executeUpdate()).thenThrow(new SQLException("failed operation", "state", 1001));
+        try {
+            jdbcConn.updateRoleReviewTimestamp("my-domain", "role1");
+            fail();
+        } catch (Exception ex) {
+            assertTrue(true);
+        }
+        jdbcConn.close();
+    }
 }
