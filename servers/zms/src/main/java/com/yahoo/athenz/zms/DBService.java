@@ -4282,7 +4282,8 @@ public class DBService {
 
                 if (!deletedMembers.isEmpty() || !extendedMembers.isEmpty()) {
                     // we have one or more changes to the role. We should update both lastReviewed as well as modified timestamps
-                    con.updateRoleReviewAndModTimestamp(domainName, roleName);
+                    con.updateRoleModTimestamp(domainName, roleName);
+                    con.updateRoleReviewTimestamp(domainName, roleName);
                 } else {
                     // since "no-action" is still a review, we are updating lastReviewed timestamp
                     con.updateRoleReviewTimestamp(domainName, roleName);

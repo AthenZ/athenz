@@ -302,7 +302,6 @@ public class JDBCConnection implements ObjectStoreConnection {
             "JOIN domain ON domain.domain_id=role.domain_id " +
             "WHERE role_member.last_notified_time=? AND role_member.server=?;";
     private static final String SQL_UPDATE_ROLE_REVIEW_TIMESTAMP = "UPDATE role SET last_reviewed_time=CURRENT_TIMESTAMP(3) WHERE role_id=?;";
-    private static final String SQL_UPDATE_ROLE_REVIEW_AND_MOD_TIMESTAMP = "UPDATE role SET modified=CURRENT_TIMESTAMP(3),last_reviewed_time=CURRENT_TIMESTAMP(3) WHERE role_id=?;";
 
 
     private static final String CACHE_DOMAIN    = "d:";
@@ -1261,30 +1260,6 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
 
         try (PreparedStatement ps = con.prepareStatement(SQL_UPDATE_ROLE_REVIEW_TIMESTAMP)) {
-            ps.setInt(1, roleId);
-            affectedRows = executeUpdate(ps, caller);
-        } catch (SQLException ex) {
-            throw sqlError(ex, caller);
-        }
-        return (affectedRows > 0);
-    }
-
-    @Override
-    public boolean updateRoleReviewAndModTimestamp(String domainName, String roleName) {
-
-        int affectedRows;
-        final String caller = "updateRoleReviewAndModTimestamp";
-
-        int domainId = getDomainId(domainName);
-        if (domainId == 0) {
-            throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
-        }
-        int roleId = getRoleId(domainId, roleName);
-        if (roleId == 0) {
-            throw notFoundError(caller, ZMSConsts.OBJECT_ROLE, ZMSUtils.roleResourceName(domainName, roleName));
-        }
-
-        try (PreparedStatement ps = con.prepareStatement(SQL_UPDATE_ROLE_REVIEW_AND_MOD_TIMESTAMP)) {
             ps.setInt(1, roleId);
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
