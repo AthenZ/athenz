@@ -15,7 +15,9 @@
  */
 package com.yahoo.athenz.zts.cert.impl;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.cert.CertRecordStoreConnection;
@@ -46,6 +48,10 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
     private static final String KEY_PREV_TIME = "prevTime";
     private static final String KEY_PREV_IP = "prevIP";
     private static final String KEY_CLIENT_CERT = "clientCert";
+    private static final String KEY_LAST_NOTIFIED_TIME = "lastNotifiedTime";
+    private static final String KEY_LAST_NOTIFIED_SERVER = "lastNotifiedServer";
+    private static final String KEY_EXPIRY_TIME = "expiryTime";
+    private static final String KEY_HOSTNAME = "hostName";
     private static final String KEY_TTL = "ttl";
 
     // the configuration setting is in hours so we'll automatically
@@ -84,18 +90,38 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
             certRecord.setService(service);
             certRecord.setCurrentSerial(item.getString(KEY_CURRENT_SERIAL));
             certRecord.setCurrentIP(item.getString(KEY_CURRENT_IP));
-            certRecord.setCurrentTime(new Date(item.getLong(KEY_CURRENT_TIME)));
+            certRecord.setCurrentTime(getDateFromItem(item, KEY_CURRENT_TIME));
             certRecord.setPrevSerial(item.getString(KEY_PREV_SERIAL));
             certRecord.setPrevIP(item.getString(KEY_PREV_IP));
-            certRecord.setPrevTime(new Date(item.getLong(KEY_PREV_TIME)));
+            certRecord.setPrevTime(getDateFromItem(item, KEY_PREV_TIME));
             certRecord.setClientCert(item.getBoolean(KEY_CLIENT_CERT));
+            certRecord.setLastNotifiedTime(getDateFromItem(item, KEY_LAST_NOTIFIED_TIME));
+            certRecord.setLastNotifiedServer(item.getString(KEY_LAST_NOTIFIED_SERVER));
+            certRecord.setExpiryTime(getDateFromItem(item, KEY_EXPIRY_TIME));
+            certRecord.setHostName(item.getString(KEY_HOSTNAME));
             return certRecord;
         } catch (Exception ex) {
             LOGGER.error("DynamoDB Get Error for {}: {}/{}", primaryKey, ex.getClass(), ex.getMessage());
             return null;
         }
     }
-    
+
+    private Date getDateFromItem(Item item, String key) {
+        if (item.isNull(key)) {
+            return null;
+        }
+
+        return new Date(item.getLong(key));
+    }
+
+    private Object getLongFromDate(Date date) {
+        if (date == null) {
+            return null;
+        }
+
+        return date.getTime();
+    }
+
     @Override
     public boolean updateX509CertRecord(X509CertRecord certRecord) {
 
@@ -111,12 +137,16 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
                             new AttributeUpdate(KEY_SERVICE).put(certRecord.getService()),
                             new AttributeUpdate(KEY_CURRENT_SERIAL).put(certRecord.getCurrentSerial()),
                             new AttributeUpdate(KEY_CURRENT_IP).put(certRecord.getCurrentIP()),
-                            new AttributeUpdate(KEY_CURRENT_TIME).put(certRecord.getCurrentTime().getTime()),
+                            new AttributeUpdate(KEY_CURRENT_TIME).put(getLongFromDate(certRecord.getCurrentTime())),
                             new AttributeUpdate(KEY_PREV_SERIAL).put(certRecord.getPrevSerial()),
                             new AttributeUpdate(KEY_PREV_IP).put(certRecord.getPrevIP()),
-                            new AttributeUpdate(KEY_PREV_TIME).put(certRecord.getPrevTime().getTime()),
+                            new AttributeUpdate(KEY_PREV_TIME).put(getLongFromDate(certRecord.getPrevTime())),
                             new AttributeUpdate(KEY_CLIENT_CERT).put(certRecord.getClientCert()),
-                            new AttributeUpdate(KEY_TTL).put(certRecord.getCurrentTime().getTime() / 1000L + expiryTime)
+                            new AttributeUpdate(KEY_TTL).put(certRecord.getCurrentTime().getTime() / 1000L + expiryTime),
+                            new AttributeUpdate(KEY_LAST_NOTIFIED_TIME).put(getLongFromDate(certRecord.getLastNotifiedTime())),
+                            new AttributeUpdate(KEY_LAST_NOTIFIED_SERVER).put(certRecord.getLastNotifiedServer()),
+                            new AttributeUpdate(KEY_EXPIRY_TIME).put(getLongFromDate(certRecord.getExpiryTime())),
+                            new AttributeUpdate(KEY_HOSTNAME).put(certRecord.getHostName())
                     );
             table.updateItem(updateItemSpec);
             return true;
@@ -139,12 +169,16 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
                     .withString(KEY_SERVICE, certRecord.getService())
                     .withString(KEY_CURRENT_SERIAL, certRecord.getCurrentSerial())
                     .withString(KEY_CURRENT_IP, certRecord.getCurrentIP())
-                    .withLong(KEY_CURRENT_TIME, certRecord.getCurrentTime().getTime())
+                    .with(KEY_CURRENT_TIME, getLongFromDate(certRecord.getCurrentTime()))
                     .withString(KEY_PREV_SERIAL, certRecord.getPrevSerial())
                     .withString(KEY_PREV_IP, certRecord.getPrevIP())
-                    .withLong(KEY_PREV_TIME, certRecord.getPrevTime().getTime())
+                    .with(KEY_PREV_TIME, getLongFromDate(certRecord.getPrevTime()))
                     .withBoolean(KEY_CLIENT_CERT, certRecord.getClientCert())
-                    .withLong(KEY_TTL, certRecord.getCurrentTime().getTime() / 1000L + expiryTime);
+                    .withLong(KEY_TTL, certRecord.getCurrentTime().getTime() / 1000L + expiryTime)
+                    .with(KEY_LAST_NOTIFIED_TIME, getLongFromDate(certRecord.getLastNotifiedTime()))
+                    .with(KEY_LAST_NOTIFIED_SERVER, certRecord.getLastNotifiedServer())
+                    .with(KEY_EXPIRY_TIME, getLongFromDate(certRecord.getExpiryTime()))
+                    .with(KEY_HOSTNAME, certRecord.getHostName());
             table.putItem(item);
             return true;
         } catch (Exception ex) {
@@ -177,6 +211,18 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
         // the epoch time + timeout seconds when it should retire
 
         return 0;
+    }
+
+    @Override
+    public boolean updateUnrefreshedCertificatesNotificationTimestamp(String lastNotifiedServer, long lastNotifiedTime) {
+        // Currently unimplemented for AWS
+        return false;
+    }
+
+    @Override
+    public List<X509CertRecord> getNotifyUnrefreshedCertificates(String lastNotifiedServer, long lastNotifiedTime) {
+        // Currently unimplemented for AWS
+        return new ArrayList<>();
     }
 
     private String getPrimaryKey(final String provider, final String instanceId, final String service) {

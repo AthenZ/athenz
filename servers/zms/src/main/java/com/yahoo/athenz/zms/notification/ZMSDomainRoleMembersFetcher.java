@@ -17,47 +17,33 @@
 package com.yahoo.athenz.zms.notification;
 
 import com.yahoo.athenz.common.server.notification.DomainRoleMembersFetcher;
+import com.yahoo.athenz.common.server.notification.DomainRoleMembersFetcherCommon;
 import com.yahoo.athenz.zms.DBService;
-import com.yahoo.athenz.zms.Role;
-import com.yahoo.athenz.zms.RoleMember;
 import com.yahoo.athenz.zms.store.AthenzDomain;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public class ZMSDomainRoleMembersFetcher implements DomainRoleMembersFetcher {
     private final DBService dbService;
-    private final String userDomainPrefix;
+    private final DomainRoleMembersFetcherCommon domainRoleMembersFetcherCommon;
 
     public ZMSDomainRoleMembersFetcher(DBService dbService, String userDomainPrefix) {
         this.dbService = dbService;
-        this.userDomainPrefix = userDomainPrefix;
+        this.domainRoleMembersFetcherCommon = new DomainRoleMembersFetcherCommon(userDomainPrefix);
     }
 
     @Override
     public Set<String> getDomainRoleMembers(String domainName, String roleName) {
-        AthenzDomain domain = dbService.getAthenzDomain(domainName, false);
-        if (domain == null || domain.getRoles() == null) {
+        if (dbService == null) {
             return new HashSet<>();
         }
 
-        for (Role role : domain.getRoles()) {
-            if (role.getName().equals(roleName)) {
-                return role.getRoleMembers().stream()
-                        .filter(this::isUnexpiredUser)
-                        .map(RoleMember::getMemberName).collect(Collectors.toSet());
-            }
+        AthenzDomain domain = dbService.getAthenzDomain(domainName, false);
+        if (domain == null) {
+            return new HashSet<>();
         }
 
-        return new HashSet<>();
-    }
-
-    private boolean isUnexpiredUser(RoleMember roleMember) {
-        if (!roleMember.getMemberName().startsWith(userDomainPrefix)) {
-            return false;
-        }
-
-        return (roleMember.getExpiration() == null) || (roleMember.getExpiration().millis() > System.currentTimeMillis());
+        return domainRoleMembersFetcherCommon.getDomainRoleMembers(roleName, domain.getRoles());
     }
 }

@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.yahoo.athenz.common.ServerCommonConsts.USER_DOMAIN_PREFIX;
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
 
 public class RoleMemberExpiryNotificationTask implements NotificationTask {
@@ -42,7 +43,7 @@ public class RoleMemberExpiryNotificationTask implements NotificationTask {
 
     public RoleMemberExpiryNotificationTask(DBService dbService, String userDomainPrefix) {
         this.dbService = dbService;
-        ZMSDomainRoleMembersFetcher zmsDomainRoleMembersFetcher = new ZMSDomainRoleMembersFetcher(dbService, ZMSConsts.USER_DOMAIN_PREFIX);
+        ZMSDomainRoleMembersFetcher zmsDomainRoleMembersFetcher = new ZMSDomainRoleMembersFetcher(dbService, USER_DOMAIN_PREFIX);
         this.notificationCommon = new NotificationCommon(zmsDomainRoleMembersFetcher, userDomainPrefix);
     }
 

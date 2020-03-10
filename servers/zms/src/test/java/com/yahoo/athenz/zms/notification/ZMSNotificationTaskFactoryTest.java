@@ -24,6 +24,7 @@ import org.testng.annotations.Test;
 
 import java.util.List;
 
+import static com.yahoo.athenz.common.ServerCommonConsts.USER_DOMAIN_PREFIX;
 import static org.testng.AssertJUnit.assertEquals;
 
 public class ZMSNotificationTaskFactoryTest {
@@ -31,7 +32,7 @@ public class ZMSNotificationTaskFactoryTest {
     @Test
     public void testNotificationTasksOrdering() {
         DBService dbsvc = Mockito.mock(DBService.class);
-        ZMSNotificationTaskFactory zmsNotificationTaskFactory = new ZMSNotificationTaskFactory(dbsvc, ZMSConsts.USER_DOMAIN_PREFIX);
+        ZMSNotificationTaskFactory zmsNotificationTaskFactory = new ZMSNotificationTaskFactory(dbsvc, USER_DOMAIN_PREFIX);
         List<NotificationTask> notificationTasks = zmsNotificationTaskFactory.getNotificationTasks();
         assertEquals(2, notificationTasks.size());
         assertEquals(notificationTasks.get(0).getDescription(), "pending membership approvals reminders");

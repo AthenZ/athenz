@@ -29,6 +29,7 @@ import org.testng.annotations.Test;
 import java.util.Collections;
 import java.util.List;
 
+import static com.yahoo.athenz.common.ServerCommonConsts.USER_DOMAIN_PREFIX;
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL_REMINDER;
 import static com.yahoo.athenz.zms.notification.NotificationManagerTest.getNotificationManager;
 import static org.testng.Assert.assertEquals;
@@ -55,7 +56,7 @@ public class PendingMembershipApprovalNotificationTaskTest {
 
         ZMSTestUtils.sleep(1000);
 
-        PendingMembershipApprovalNotificationTask reminder = new PendingMembershipApprovalNotificationTask(dbsvc, 0, "", ZMSConsts.USER_DOMAIN_PREFIX);
+        PendingMembershipApprovalNotificationTask reminder = new PendingMembershipApprovalNotificationTask(dbsvc, 0, "", USER_DOMAIN_PREFIX);
         List<Notification> notifications = reminder.getNotifications();
 
         // Verify contents of notification is as expected

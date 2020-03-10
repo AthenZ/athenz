@@ -31,6 +31,7 @@ import org.testng.annotations.Test;
 
 import java.util.*;
 
+import static com.yahoo.athenz.common.ServerCommonConsts.USER_DOMAIN_PREFIX;
 import static com.yahoo.athenz.zms.notification.NotificationManagerTest.getNotificationManager;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -91,7 +92,7 @@ public class PutMembershipNotificationTaskTest {
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
         Role notifyRole = new Role().setAuditEnabled(true).setSelfServe(false);
-        List<Notification> notifications = new PutMembershipNotificationTask("testdomain1", "neworg", notifyRole, details, dbsvc, ZMSConsts.USER_DOMAIN_PREFIX).getNotifications();
+        List<Notification> notifications = new PutMembershipNotificationTask("testdomain1", "neworg", notifyRole, details, dbsvc, USER_DOMAIN_PREFIX).getNotifications();
         notificationManager.sendNotifications(notifications);
 
         Notification notification = new Notification("MEMBERSHIP_APPROVAL");
@@ -141,7 +142,7 @@ public class PutMembershipNotificationTaskTest {
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
         Role notifyRole = new Role().setAuditEnabled(true).setSelfServe(false);
-        List<Notification> notifications = new PutMembershipNotificationTask("testdomain1", "neworg", notifyRole, details, dbsvc, ZMSConsts.USER_DOMAIN_PREFIX).getNotifications();
+        List<Notification> notifications = new PutMembershipNotificationTask("testdomain1", "neworg", notifyRole, details, dbsvc, USER_DOMAIN_PREFIX).getNotifications();
         notificationManager.sendNotifications(notifications);
 
         Notification notification = new Notification("MEMBERSHIP_APPROVAL");
@@ -190,7 +191,7 @@ public class PutMembershipNotificationTaskTest {
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
         Role notifyRole = new Role().setAuditEnabled(true).setSelfServe(false);
-        List<Notification> notifications = new PutMembershipNotificationTask("testdomain1", "neworg", notifyRole, details, dbsvc, ZMSConsts.USER_DOMAIN_PREFIX).getNotifications();
+        List<Notification> notifications = new PutMembershipNotificationTask("testdomain1", "neworg", notifyRole, details, dbsvc, USER_DOMAIN_PREFIX).getNotifications();
         notificationManager.sendNotifications(notifications);
 
         Notification notification = new Notification("MEMBERSHIP_APPROVAL");
@@ -239,7 +240,7 @@ public class PutMembershipNotificationTaskTest {
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
         Role notifyRole = new Role().setAuditEnabled(false).setSelfServe(true);
-        List<Notification> notifications = new PutMembershipNotificationTask("testdomain1", "neworg", notifyRole, details, dbsvc, ZMSConsts.USER_DOMAIN_PREFIX).getNotifications();
+        List<Notification> notifications = new PutMembershipNotificationTask("testdomain1", "neworg", notifyRole, details, dbsvc, USER_DOMAIN_PREFIX).getNotifications();
         notificationManager.sendNotifications(notifications);
 
         Notification notification = new Notification("MEMBERSHIP_APPROVAL");
@@ -308,7 +309,7 @@ public class PutMembershipNotificationTaskTest {
 
         Role notifyRole = new Role().setAuditEnabled(false).setSelfServe(false).setReviewEnabled(true)
                 .setNotifyRoles("athenz:role.approvers,notify");
-        List<Notification> notifications = new PutMembershipNotificationTask("testdomain1", "neworg", notifyRole, details, dbsvc, ZMSConsts.USER_DOMAIN_PREFIX).getNotifications();
+        List<Notification> notifications = new PutMembershipNotificationTask("testdomain1", "neworg", notifyRole, details, dbsvc, USER_DOMAIN_PREFIX).getNotifications();
         notificationManager.sendNotifications(notifications);
 
         Notification notification = new Notification("MEMBERSHIP_APPROVAL");
@@ -335,7 +336,7 @@ public class PutMembershipNotificationTaskTest {
         NotificationManager notificationManager = getNotificationManager(dbsvc, testfact);
         notificationManager.shutdown();
         Role notifyRole = new Role().setAuditEnabled(false).setSelfServe(false);
-        List<Notification> notifications = new PutMembershipNotificationTask("testdomain1", "neworg", notifyRole, null, dbsvc, ZMSConsts.USER_DOMAIN_PREFIX).getNotifications();
+        List<Notification> notifications = new PutMembershipNotificationTask("testdomain1", "neworg", notifyRole, null, dbsvc, USER_DOMAIN_PREFIX).getNotifications();
         notificationManager.sendNotifications(notifications);
         Mockito.verify(mockNotificationService, times(0)).notify(any());
     }
@@ -351,7 +352,7 @@ public class PutMembershipNotificationTaskTest {
         NotificationManager notificationManager = getNotificationManager(dbsvc, testfact);
         notificationManager.shutdown();
         Role notifyRole = new Role().setAuditEnabled(false).setSelfServe(false);
-        List<Notification> notifications = new PutMembershipNotificationTask("testdomain1", "neworg", notifyRole, null, dbsvc, ZMSConsts.USER_DOMAIN_PREFIX).getNotifications();
+        List<Notification> notifications = new PutMembershipNotificationTask("testdomain1", "neworg", notifyRole, null, dbsvc, USER_DOMAIN_PREFIX).getNotifications();
         notificationManager.sendNotifications(notifications);
         verify(mockNotificationService, never()).notify(any(Notification.class));
     }

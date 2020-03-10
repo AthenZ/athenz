@@ -94,6 +94,42 @@ public class AWSEmailProviderTest {
     }
 
     @Test
+    public void testSendEmailBatchError() {
+        Set<String> recipients = new HashSet<>();
+        for (int i =0; i<60; i++) {
+            recipients.add("user.user" + i);
+        }
+        String subject = "test email subject";
+        String body = "test email body";
+        System.setProperty("athenz.notification_email_domain_from", "example.com");
+        System.setProperty("athenz.notification_email_domain_to", "example.com");
+        System.setProperty("athenz.notification_email_from", "no-reply-athenz");
+
+        AmazonSimpleEmailService ses = mock(AmazonSimpleEmailService.class);
+
+        SendRawEmailResult result = mock(SendRawEmailResult.class);
+        Mockito.when(ses.sendRawEmail(any(SendRawEmailRequest.class)))
+                .thenReturn(null)
+                .thenReturn(result);
+        ArgumentCaptor<SendRawEmailRequest> captor = ArgumentCaptor.forClass(SendRawEmailRequest.class);
+
+        AWSEmailProvider emailProvider = new AWSEmailProvider(ses);
+        EmailNotificationService svc = new EmailNotificationService(emailProvider);
+
+        boolean emailResult = svc.sendEmail(recipients, subject, body);
+
+        // First mail will fail so emailResult should be false
+        assertFalse(emailResult);
+
+        // Even though it failed, the second email was sent
+        Mockito.verify(ses, times(2)).sendRawEmail(captor.capture());
+
+        System.clearProperty("athenz.notification_email_domain_from");
+        System.clearProperty("athenz.notification_email_domain_to");
+        System.clearProperty("athenz.notification_email_from");
+    }
+
+    @Test
     public void testSendEmailError() {
 
         Set<String> recipients = new HashSet<>(Arrays.asList("user.user1", "user.user2", "user.user3"));

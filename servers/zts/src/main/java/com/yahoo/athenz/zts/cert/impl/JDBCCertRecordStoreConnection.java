@@ -15,11 +15,8 @@
  */
 package com.yahoo.athenz.zts.cert.impl;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.SQLTimeoutException;
+import java.sql.*;
+import java.util.*;
 import java.util.Date;
 
 import org.slf4j.Logger;
@@ -37,24 +34,35 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
 
     private static final String SQL_GET_X509_RECORD = "SELECT * FROM certificates WHERE provider=? AND instanceId=? AND service=?;";
     private static final String SQL_INSERT_X509_RECORD = "INSERT INTO certificates " +
-            "(provider, instanceId, service, currentSerial, currentTime, currentIP, prevSerial, prevTime, prevIP, clientCert) " +
-            "VALUES (?, ?,?,?,?,?,?,?,?,?);";
+            "(provider, instanceId, service, currentSerial, currentTime, currentIP, prevSerial, prevTime, prevIP, clientCert, " +
+            "lastNotifiedTime, lastNotifiedServer, expiryTime, hostName) " +
+            "VALUES (?, ?,?,?,?,?,?,?,?,?,?,?,?,?);";
     private static final String SQL_UPDATE_X509_RECORD = "UPDATE certificates SET " +
-            "currentSerial=?, currentTime=?, currentIP=?, prevSerial=?, prevTime=?, prevIP=?" +
+            "currentSerial=?, currentTime=?, currentIP=?, prevSerial=?, prevTime=?, prevIP=?, " +
+            "lastNotifiedTime=?, lastNotifiedServer=?, expiryTime=?, hostName=?" +
             "WHERE provider=? AND instanceId=? AND service=?;";
     private static final String SQL_DELETE_X509_RECORD = "DELETE from certificates " +
             "WHERE provider=? AND instanceId=? AND service=?;";
     private static final String SQL_DELETE_EXPIRED_X509_RECORDS = "DELETE FROM certificates " +
             "WHERE currentTime < ADDDATE(NOW(), INTERVAL -? MINUTE);";
-    
-    public static final String DB_COLUMN_SERVICE        = "service";
-    public static final String DB_COLUMN_CURRENT_IP     = "currentIP";
-    public static final String DB_COLUMN_CURRENT_SERIAL = "currentSerial";
-    public static final String DB_COLUMN_CURRENT_TIME   = "currentTime";
-    public static final String DB_COLUMN_PREV_IP        = "prevIP";
-    public static final String DB_COLUMN_PREV_SERIAL    = "prevSerial";
-    public static final String DB_COLUMN_PREV_TIME      = "prevTime";
-    public static final String DB_COLUMN_CLIENT_CERT    = "clientCert";
+    private static final String SQL_UPDATE_UNREFRESHED_X509_RECORDS_NOTIFICATION_TIMESTAMP = "UPDATE certificates SET lastNotifiedTime=?, lastNotifiedServer=? " +
+            "WHERE currentTime < (CURRENT_DATE - INTERVAL 1 DAY) AND DATEDIFF(CURRENT_TIME, currentTime) IN (1,7,14,21,28) AND (lastNotifiedTime IS NULL || lastNotifiedTime < (CURRENT_DATE - INTERVAL 1 DAY))";
+    private static final String SQL_LIST_NOTIFY_UNREFRESHED_X509_RECORDS = "SELECT * FROM certificates WHERE lastNotifiedTime=? AND lastNotifiedServer=?;";
+
+    public static final String DB_COLUMN_INSTANCE_ID            = "instanceId";
+    public static final String DB_COLUMN_INSTANCE_PROVIDER      = "provider";
+    public static final String DB_COLUMN_SERVICE                = "service";
+    public static final String DB_COLUMN_CURRENT_IP             = "currentIP";
+    public static final String DB_COLUMN_CURRENT_SERIAL         = "currentSerial";
+    public static final String DB_COLUMN_CURRENT_TIME           = "currentTime";
+    public static final String DB_COLUMN_PREV_IP                = "prevIP";
+    public static final String DB_COLUMN_PREV_SERIAL            = "prevSerial";
+    public static final String DB_COLUMN_PREV_TIME              = "prevTime";
+    public static final String DB_COLUMN_CLIENT_CERT            = "clientCert";
+    public static final String DB_COLUMN_LAST_NOTIFIED_TIME     = "lastNotifiedTime";
+    public static final String DB_COLUMN_LAST_NOTIFIED_SERVER   = "lastNotifiedServer";
+    public static final String DB_COLUMN_EXPIRY_TIME            = "expiryTime";
+    public static final String DB_COLUMN_HOSTNAME               = "hostName";
     
     Connection con;
     int queryTimeout = 10;
@@ -114,17 +122,7 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
             
             try (ResultSet rs = executeQuery(ps, caller)) {
                 if (rs.next()) {
-                    certRecord = new X509CertRecord();
-                    certRecord.setProvider(provider);
-                    certRecord.setInstanceId(instanceId);
-                    certRecord.setService(service);
-                    certRecord.setCurrentIP(rs.getString(DB_COLUMN_CURRENT_IP));
-                    certRecord.setCurrentSerial(rs.getString(DB_COLUMN_CURRENT_SERIAL));
-                    certRecord.setCurrentTime(new Date(rs.getTimestamp(DB_COLUMN_CURRENT_TIME).getTime()));
-                    certRecord.setPrevIP(rs.getString(DB_COLUMN_PREV_IP));
-                    certRecord.setPrevSerial(rs.getString(DB_COLUMN_PREV_SERIAL));
-                    certRecord.setPrevTime(new Date(rs.getTimestamp(DB_COLUMN_PREV_TIME).getTime()));
-                    certRecord.setClientCert(rs.getBoolean(DB_COLUMN_CLIENT_CERT));
+                    certRecord = setRecordFromResultSet(rs);
                 }
             }
         } catch (SQLException ex) {
@@ -132,7 +130,43 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
         }
         return certRecord;
     }
-    
+
+    private X509CertRecord setRecordFromResultSet(ResultSet rs) throws SQLException {
+        X509CertRecord certRecord = new X509CertRecord();
+        certRecord.setProvider(rs.getString(DB_COLUMN_INSTANCE_PROVIDER));
+        certRecord.setInstanceId(rs.getString(DB_COLUMN_INSTANCE_ID));
+        certRecord.setService(rs.getString(DB_COLUMN_SERVICE));
+        certRecord.setCurrentIP(rs.getString(DB_COLUMN_CURRENT_IP));
+        certRecord.setCurrentSerial(rs.getString(DB_COLUMN_CURRENT_SERIAL));
+        certRecord.setCurrentTime(getDateFromResultSet(rs, DB_COLUMN_CURRENT_TIME));
+        certRecord.setPrevIP(rs.getString(DB_COLUMN_PREV_IP));
+        certRecord.setPrevSerial(rs.getString(DB_COLUMN_PREV_SERIAL));
+        certRecord.setPrevTime(getDateFromResultSet(rs, DB_COLUMN_PREV_TIME));
+        certRecord.setClientCert(rs.getBoolean(DB_COLUMN_CLIENT_CERT));
+        certRecord.setLastNotifiedTime(getDateFromResultSet(rs, DB_COLUMN_LAST_NOTIFIED_TIME));
+        certRecord.setLastNotifiedServer(rs.getString(DB_COLUMN_LAST_NOTIFIED_SERVER));
+        certRecord.setExpiryTime(getDateFromResultSet(rs, DB_COLUMN_EXPIRY_TIME));
+        certRecord.setHostName(rs.getString(DB_COLUMN_HOSTNAME));
+        return certRecord;
+    }
+
+    private Date getDateFromResultSet(ResultSet rs, String columnName) throws SQLException {
+        Timestamp timestamp = rs.getTimestamp(columnName);
+        if (timestamp == null) {
+            return null;
+        }
+
+        return new Date(timestamp.getTime());
+    }
+
+    private Timestamp getTimestampFromDate(Date date) {
+        if (date == null) {
+            return null;
+        }
+
+        return new Timestamp(date.getTime());
+    }
+
     @Override
     public boolean updateX509CertRecord(X509CertRecord certRecord) {
         
@@ -141,14 +175,18 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
 
         try (PreparedStatement ps = con.prepareStatement(SQL_UPDATE_X509_RECORD)) {
             ps.setString(1, certRecord.getCurrentSerial());
-            ps.setTimestamp(2, new java.sql.Timestamp(certRecord.getCurrentTime().getTime()));
+            ps.setTimestamp(2, getTimestampFromDate(certRecord.getCurrentTime()));
             ps.setString(3, certRecord.getCurrentIP());
             ps.setString(4, certRecord.getPrevSerial());
-            ps.setTimestamp(5, new java.sql.Timestamp(certRecord.getPrevTime().getTime()));
+            ps.setTimestamp(5, getTimestampFromDate(certRecord.getPrevTime()));
             ps.setString(6, certRecord.getPrevIP());
             ps.setString(7, certRecord.getProvider());
             ps.setString(8, certRecord.getInstanceId());
             ps.setString(9, certRecord.getService());
+            ps.setTimestamp(10, getTimestampFromDate(certRecord.getLastNotifiedTime()));
+            ps.setString(11, certRecord.getLastNotifiedServer());
+            ps.setTimestamp(12, getTimestampFromDate(certRecord.getExpiryTime()));
+            ps.setString(13, certRecord.getHostName());
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -167,12 +205,17 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
             ps.setString(2, certRecord.getInstanceId());
             ps.setString(3, certRecord.getService());
             ps.setString(4, certRecord.getCurrentSerial());
-            ps.setTimestamp(5, new java.sql.Timestamp(certRecord.getCurrentTime().getTime()));
+            ps.setTimestamp(5, getTimestampFromDate(certRecord.getCurrentTime()));
             ps.setString(6, certRecord.getCurrentIP());
             ps.setString(7, certRecord.getPrevSerial());
-            ps.setTimestamp(8, new java.sql.Timestamp(certRecord.getPrevTime().getTime()));
+            ps.setTimestamp(8, getTimestampFromDate(certRecord.getPrevTime()));
             ps.setString(9, certRecord.getPrevIP());
             ps.setBoolean(10, certRecord.getClientCert());
+            ps.setTimestamp(11, getTimestampFromDate(certRecord.getLastNotifiedTime()));
+            ps.setString(12, certRecord.getLastNotifiedServer());
+            ps.setTimestamp(13, getTimestampFromDate(certRecord.getExpiryTime()));
+            ps.setString(14, certRecord.getHostName());
+
             affectedRows = executeUpdate(ps, caller);
             
         } catch (SQLException ex) {
@@ -230,7 +273,43 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
         }
         return affectedRows;
     }
-    
+
+    @Override
+    public boolean updateUnrefreshedCertificatesNotificationTimestamp(String lastNotifiedServer, long lastNotifiedTime) {
+
+        final String caller = "updateUnrefreshedCertificatesNotificationTimestamp";
+        int affectedRows;
+        try (PreparedStatement ps = con.prepareStatement(SQL_UPDATE_UNREFRESHED_X509_RECORDS_NOTIFICATION_TIMESTAMP)) {
+            ps.setTimestamp(1, new java.sql.Timestamp(lastNotifiedTime));
+            ps.setString(2, lastNotifiedServer);
+
+            affectedRows = executeUpdate(ps, caller);
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return (affectedRows > 0);
+    }
+
+    @Override
+    public List<X509CertRecord> getNotifyUnrefreshedCertificates(String lastNotifiedServer, long lastNotifiedTime) {
+        final String caller = "listNotifyUnrefreshedCertificates";
+        List<X509CertRecord> certRecords = new ArrayList<>();
+        try (PreparedStatement ps = con.prepareStatement(SQL_LIST_NOTIFY_UNREFRESHED_X509_RECORDS)) {
+            ps.setTimestamp(1, new java.sql.Timestamp(lastNotifiedTime));
+            ps.setString(2, lastNotifiedServer);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    X509CertRecord certRecord = setRecordFromResultSet(rs);
+                    certRecords.add(certRecord);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+
+        return certRecords;
+    }
+
     RuntimeException sqlError(SQLException ex, String caller) {
         
         String sqlState = ex.getSQLState();

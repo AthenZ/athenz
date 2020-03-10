@@ -6190,7 +6190,8 @@ public class ZTSImplTest {
 
         try {
             ztsImpl.getValidatedX509CertRecord(context, "athenz.provider", "1001",
-                    "athenz.production", cert, "caller", "athenz", "athenz");
+                    "athenz.production", cert, "caller", "athenz", "athenz",
+                    "localhost");
             fail();
         } catch (ResourceException ex) {
             assertEquals(403, ex.getCode());
@@ -6232,7 +6233,8 @@ public class ZTSImplTest {
         ztsImpl.x509CertRefreshResetTime = cert.getNotBefore().getTime() + 1;
 
         X509CertRecord certRecord =  ztsImpl.getValidatedX509CertRecord(context, "athenz.provider",
-                "1001", "athenz.production", cert, "caller", "athenz", "athenz");
+                "1001", "athenz.production", cert, "caller", "athenz", "athenz",
+                "localhost");
         assertNotNull(certRecord);
     }
 

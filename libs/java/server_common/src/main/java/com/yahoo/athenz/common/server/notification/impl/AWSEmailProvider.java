@@ -37,7 +37,7 @@ public class AWSEmailProvider implements EmailProvider {
     private final AmazonSimpleEmailService ses;
 
     @Override
-    public boolean sendEmail(boolean status, Collection<String> recipients, String from, MimeMessage mimeMessage) {
+    public boolean sendEmail(Collection<String> recipients, String from, MimeMessage mimeMessage) {
         try {
             try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
                 mimeMessage.writeTo(outputStream);
@@ -47,13 +47,12 @@ public class AWSEmailProvider implements EmailProvider {
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Email with messageId={} sent successfully.", result.getMessageId());
                 }
-                status = status && result != null;
+                return result != null;
             }
         } catch (Exception ex) {
             LOGGER.error("The email could not be sent. Error message: {}", ex.getMessage());
-            status = false;
+            return false;
         }
-        return status;
     }
 
     AWSEmailProvider() {

@@ -74,6 +74,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import static com.yahoo.athenz.common.ServerCommonConsts.USER_DOMAIN_PREFIX;
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
 
 public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
@@ -2121,7 +2122,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // if the resource does not start with user domain prefix then
         // we have nothing to do and we'll return resource as is
 
-        if (!resource.startsWith(ZMSConsts.USER_DOMAIN_PREFIX)) {
+        if (!resource.startsWith(USER_DOMAIN_PREFIX)) {
             return resource;
         }
 
@@ -2141,11 +2142,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 return resource;
             }
 
-            final String userName = resource.substring(ZMSConsts.USER_DOMAIN_PREFIX.length(), idx);
+            final String userName = resource.substring(USER_DOMAIN_PREFIX.length(), idx);
             homeResource = homeDomainPrefix + getUserDomainName(userName) + resource.substring(idx);
 
         } else if (!homeDomain.equals(ZMSConsts.USER_DOMAIN)) {
-            homeResource = homeDomainPrefix + resource.substring(ZMSConsts.USER_DOMAIN_PREFIX.length());
+            homeResource = homeDomainPrefix + resource.substring(USER_DOMAIN_PREFIX.length());
         }
         return homeResource == null ? resource : homeResource;
     }

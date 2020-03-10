@@ -29,6 +29,10 @@ public class X509CertRecord {
     private Date prevTime;
     private String prevIP;
     private boolean clientCert;
+    private Date lastNotifiedTime;
+    private String lastNotifiedServer;
+    private Date expiryTime;
+    private String hostName;
 
     public X509CertRecord() {
     }
@@ -111,5 +115,37 @@ public class X509CertRecord {
 
     public boolean getClientCert() {
         return clientCert;
+    }
+
+    public Date getLastNotifiedTime() {
+        return lastNotifiedTime;
+    }
+
+    public void setLastNotifiedTime(Date lastNotifiedTime) {
+        this.lastNotifiedTime = lastNotifiedTime;
+    }
+
+    public String getLastNotifiedServer() {
+        return lastNotifiedServer;
+    }
+
+    public void setLastNotifiedServer(String lastNotifiedServer) {
+        this.lastNotifiedServer = lastNotifiedServer;
+    }
+
+    public Date getExpiryTime() {
+        return expiryTime;
+    }
+
+    public void setExpiryTime(Date expiryTime) {
+        this.expiryTime = expiryTime;
+    }
+
+    public String getHostName() {
+        return hostName;
+    }
+
+    public void setHostName(String hostName) {
+        this.hostName = hostName;
     }
 }

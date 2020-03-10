@@ -145,7 +145,6 @@ public final class ZMSConsts {
     public static final String ZMS_DOMAIN_NAME_MAX_SIZE_DEFAULT = "128";
 
     public static final String USER_DOMAIN        = "user";
-    public static final String USER_DOMAIN_PREFIX = "user.";
 
     public static final String RSA   = "RSA";
     public static final String EC    = "EC";
