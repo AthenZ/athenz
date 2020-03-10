@@ -66,7 +66,7 @@ import com.yahoo.athenz.auth.impl.SimpleServiceIdentityProvider;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.rdl.Timestamp;
 
-@PowerMockIgnore({"javax.net.ssl.*", "javax.security.*"})
+@PowerMockIgnore({"javax.net.ssl.*", "javax.security.*", "javax.xml.*", "org.xml.sax.*"})
 @PrepareForTest(ClientBuilder.class)
 public class ZTSClientTest extends PowerMockTestCase {
 
