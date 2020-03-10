@@ -380,9 +380,9 @@ public class ZMSClient implements Closeable {
 
         Client rsClient =
             builder
+                .withConfig(clientConfig)
                 .connectTimeout(connectTimeout, TimeUnit.MILLISECONDS)
                 .readTimeout(readTimeout, TimeUnit.MILLISECONDS)
-                .withConfig(clientConfig)
                 .build();
 
         client = new ZMSRDLGeneratedClient(zmsUrl, rsClient);
