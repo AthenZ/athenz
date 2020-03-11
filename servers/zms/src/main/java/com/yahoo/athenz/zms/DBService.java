@@ -3854,7 +3854,9 @@ public class DBService {
 
     void updateRoleMetaFields(Role role, RoleMeta meta) {
 
-        role.setSelfServe(meta.getSelfServe());
+        if (meta.getSelfServe() != null) {
+            role.setSelfServe(meta.getSelfServe());
+        }
         if (meta.getMemberExpiryDays() != null) {
             role.setMemberExpiryDays(meta.getMemberExpiryDays());
         }

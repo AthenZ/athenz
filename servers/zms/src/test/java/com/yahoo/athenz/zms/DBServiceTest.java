@@ -4404,14 +4404,14 @@ public class DBServiceTest {
         meta = new RoleMeta().setReviewEnabled(false);
         zms.dbService.updateRoleMetaFields(role, meta);
 
-        assertNull(role.getSelfServe());
+        assertTrue(role.getSelfServe());
         assertFalse(role.getReviewEnabled());
         assertEquals(role.getNotifyRoles(), "role1");
 
         meta = new RoleMeta().setNotifyRoles("role2");
         zms.dbService.updateRoleMetaFields(role, meta);
 
-        assertNull(role.getSelfServe());
+        assertTrue(role.getSelfServe());
         assertFalse(role.getReviewEnabled());
         assertEquals(role.getNotifyRoles(), "role2");
     }
