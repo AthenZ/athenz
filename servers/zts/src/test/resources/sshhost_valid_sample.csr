@@ -1,0 +1,19 @@
+{
+  "principals": [
+    "service.domain.athenz.cloud",
+    "host1.athenz.cloud",
+    "cname.athenz.info",
+    "vip.athenz.info",
+    "10.1.2.3"
+  ],
+  "xprincipals": [
+    "host1.athenz.cloud",
+    "cname.athenz.info",
+    "vip.athenz.info",
+    "10.1.2.3"
+  ],
+  "pubkey": "sample public key",
+  "reqip": "10.1.2.3",
+  "certtype": "host",
+  "transid": "123456"
+} 

@@ -25,20 +25,17 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.net.InetAddresses;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.CryptoException;
+import com.yahoo.athenz.common.server.dns.HostnameResolver;
+import com.yahoo.athenz.zts.*;
 import com.yahoo.athenz.zts.utils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.yahoo.athenz.zts.SSHCertificates;
-import com.yahoo.athenz.zts.SSHCertRequest;
-import com.yahoo.athenz.zts.ZTSConsts;
-import com.yahoo.athenz.zts.InstanceIdentity;
-import com.yahoo.athenz.zts.CertificateAuthorityBundle;
-import com.yahoo.athenz.zts.ResourceException;
 
 import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.Principal;
@@ -57,6 +54,7 @@ public class InstanceCertManager {
     private Authorizer authorizer;
     private CertSigner certSigner;
     private SSHSigner sshSigner;
+    private HostnameResolver hostnameResolver;
     private CertRecordStore certStore = null;
     private ScheduledExecutorService scheduledExecutor;
     private List<IPBlock> certRefreshIPBlocks;
@@ -69,12 +67,15 @@ public class InstanceCertManager {
     private ObjectMapper jsonMapper;
     private Map<String, CertificateAuthorityBundle> certAuthorityBundles = null;
 
-    public InstanceCertManager(final PrivateKeyStore keyStore, Authorizer authorizer,
+    public InstanceCertManager(final PrivateKeyStore keyStore, Authorizer authorizer, HostnameResolver hostnameResolver,
             boolean readOnlyMode) {
 
         // set our authorizer object
 
         this.authorizer = authorizer;
+
+        // set hostname resolver
+        this.hostnameResolver = hostnameResolver;
 
         // initialize our jackson object mapper
 
@@ -605,15 +606,22 @@ public class InstanceCertManager {
         return sshSigner.generateCertificate(principal, certRequest, null);
     }
 
-    public boolean generateSSHIdentity(Principal principal, InstanceIdentity identity,
-            String sshCsr, String certType) {
+    public boolean generateSSHIdentity(Principal principal, InstanceIdentity identity, String hostname,
+            String csr, String certType) {
 
-        if (sshSigner == null || sshCsr == null || sshCsr.isEmpty()) {
+        if (sshSigner == null || csr == null || csr.isEmpty()) {
             return true;
         }
 
+        if (certType.equals(ZTSConsts.ZTS_SSH_HOST) && hostname != null && !hostname.isEmpty() && hostnameResolver != null) {
+            if (!validPrincipals(hostname, csr)) {
+                LOGGER.error("SSH Host CSR validation failed, hostname: {}, csr: {}", principal, hostname, csr);
+                return false;
+            }
+        }
+
         SSHCertRequest certRequest = new SSHCertRequest();
-        certRequest.setCsr(sshCsr);
+        certRequest.setCsr(csr);
 
         SSHCertificates sshCerts;
         try {
@@ -726,6 +734,66 @@ public class InstanceCertManager {
         return verifyIPAddressAccess(ipAddress, certIPBlocks);
     }
 
+
+
+    /**
+     * validates hostname against the resolver, and verifies that the ssh principals map to hostname
+     * @param hostname of the instance
+     * @param csr ssh host csr from the sia
+     * @return boolean true or false
+     */
+    public boolean validPrincipals(final String hostname, final String csr) {
+        SshHostCsr sshHostCsr;
+        try {
+            sshHostCsr = jsonMapper.readValue(csr, SshHostCsr.class);
+        } catch (JsonProcessingException e) {
+            LOGGER.error("Unable to parse SSH CSR", e);
+            return false;
+        }
+
+        String[] principals = sshHostCsr.getPrincipals();
+        String[] xPrincipals = sshHostCsr.getXPrincipals();
+
+        // Pass through when xPrincipals is not specified
+        if (sshHostCsr.getXPrincipals() == null) {
+            LOGGER.error("CSR has no xPrincipals to verify, hostname: {}, principals: {}", hostname, principals);
+            return true;
+        }
+
+        LOGGER.debug("CSR principals: {}, xPrincipals: {}", principals, xPrincipals);
+
+        List<String> cnames = new ArrayList<>();
+        for (String name: xPrincipals) {
+            // Skip IPs
+            if (InetAddresses.isInetAddress(name)) {
+                continue;
+            }
+            // Skip direct hostname principals
+            if (name.equals(hostname)) {
+                // verify that the hostname is a known name
+                if (hostnameResolver != null && !hostnameResolver.isValidHostname(hostname)) {
+                    LOGGER.error("{} is not a valid name", hostname);
+                    return false;
+                }
+                continue;
+            }
+
+            cnames.add(name);
+        }
+        // If there are no custom cnames, return right away
+        if (cnames.isEmpty()) {
+            return true;
+        }
+
+        LOGGER.debug("validating xPrincipals in the csr: {}", cnames);
+        if (hostnameResolver.isValidHostCnameList(hostname, cnames, CertType.SSH_HOST)) {
+            return true;
+        }
+
+        LOGGER.error("{} does not map to some cnames {}", hostname, String.join(",", cnames));
+        return false;
+    }
+
     private boolean verifyIPAddressAccess(final String ipAddress, final List<IPBlock> ipBlocks) {
         
         // if the list has no IP addresses then we allow all
@@ -760,6 +828,7 @@ public class InstanceCertManager {
         } catch (Exception ignored) {
         }
     }
+
 
     class ExpiredX509CertRecordCleaner implements Runnable {
         
