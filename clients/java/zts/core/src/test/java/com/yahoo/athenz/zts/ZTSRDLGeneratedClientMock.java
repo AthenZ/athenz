@@ -38,7 +38,11 @@ public class ZTSRDLGeneratedClientMock extends ZTSRDLGeneratedClient {
             addCredentials(identity.getAuthority().getHeader(), identity.getCredentials());
         }
     }
-    
+
+    public ZTSRDLGeneratedClientMock(String url, HostnameVerifier hostnameVerifier) {
+        super(url, hostnameVerifier);
+    }
+
     public HostnameVerifier getHostnameVerifier() {
         return client.getHostnameVerifier();
     }

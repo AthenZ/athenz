@@ -41,15 +41,9 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
-import javax.ws.rs.client.ClientBuilder;
 
-import org.glassfish.jersey.client.JerseyClient;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -66,9 +60,7 @@ import com.yahoo.athenz.auth.impl.SimpleServiceIdentityProvider;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.rdl.Timestamp;
 
-@PowerMockIgnore({"javax.net.ssl.*", "javax.security.*", "javax.xml.*", "org.xml.sax.*"})
-@PrepareForTest(ClientBuilder.class)
-public class ZTSClientTest extends PowerMockTestCase {
+public class ZTSClientTest {
 
     final private Authority PRINCIPAL_AUTHORITY = new PrincipalAuthority();
     private SimpleServiceIdentityProvider siaMockProvider = null;
@@ -92,12 +84,6 @@ public class ZTSClientTest extends PowerMockTestCase {
     public void setup() {
         System.setProperty(ZTSClient.ZTS_CLIENT_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
         siaMockProvider = Mockito.mock(SimpleServiceIdentityProvider.class);
-
-        JerseyClientBuilder builder = new JerseyClientBuilder();
-        JerseyClient client = builder.build();
-        PowerMockito.spy(ClientBuilder.class);
-        PowerMockito.when(ClientBuilder.newBuilder()).thenReturn(builder);
-        PowerMockito.when(ClientBuilder.newClient()).thenReturn(client);
     }
 
     @Test
@@ -2043,12 +2029,14 @@ public class ZTSClientTest extends PowerMockTestCase {
     @Test
     public void testHostnameVerifierSupport() {
 
-        ZTSRDLGeneratedClientMock client = new ZTSRDLGeneratedClientMock("http://localhost:4080", null);
-        assertNull(client.getHostnameVerifier());
+        ZTSRDLGeneratedClientMock client = new ZTSRDLGeneratedClientMock("http://localhost:4080", (HostnameVerifier) null);
+        HostnameVerifier hostnameVerifier = client.getHostnameVerifier();
+        assertTrue(hostnameVerifier == null || hostnameVerifier instanceof org.apache.http.conn.ssl.DefaultHostnameVerifier);
 
-        HostnameVerifier hostnameVerifier = new ZTSClientTest.TestHostVerifier();
-        client = new ZTSRDLGeneratedClientMock("http://localhost:4080", null, hostnameVerifier);
-        assertNotNull(client.getHostnameVerifier());
+        HostnameVerifier ztsHostnameVerifier = new ZTSClientTest.TestHostVerifier();
+        client = new ZTSRDLGeneratedClientMock("http://localhost:4080", ztsHostnameVerifier);
+        hostnameVerifier = client.getHostnameVerifier();
+        assertTrue(hostnameVerifier instanceof com.yahoo.athenz.zts.ZTSClientTest.TestHostVerifier);
     }
 
     @Test
@@ -2946,7 +2934,8 @@ public class ZTSClientTest extends PowerMockTestCase {
         SSLContext sslContext = Mockito.mock(SSLContext.class);
         final String contextStr = sslContext.toString();
 
-        ZTSClient client = new ZTSClient("http://localhost:4080/", sslContext);
+        ZTSClientMock.setClientBuilder(new JerseyClientBuilder());
+        ZTSClientMock client = new ZTSClientMock("http://localhost:4080/", sslContext);
 
         final String expectedStr = "p=" + contextStr + ";d=coretech;r=readers;o=backend";
         assertEquals(expectedStr, client.getAccessTokenCacheKey("coretech",

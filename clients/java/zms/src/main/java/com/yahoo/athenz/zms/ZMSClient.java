@@ -328,6 +328,10 @@ public class ZMSClient implements Closeable {
         return url;
     }
 
+    ClientBuilder getClientBuilder() {
+        return ClientBuilder.newBuilder();
+    }
+
     /**
      * Initialize the client for class constructors
      *
@@ -368,7 +372,7 @@ public class ZMSClient implements Closeable {
             sslContext = createSSLContext();
         }
 
-        ClientBuilder builder = ClientBuilder.newBuilder();
+        ClientBuilder builder = getClientBuilder();
         if (sslContext != null) {
             builder = builder.sslContext(sslContext);
         }
