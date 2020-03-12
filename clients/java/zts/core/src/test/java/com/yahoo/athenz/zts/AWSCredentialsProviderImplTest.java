@@ -16,21 +16,13 @@
 package com.yahoo.athenz.zts;
 
 import com.yahoo.rdl.Timestamp;
-import org.glassfish.jersey.client.JerseyClient;
-import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import javax.net.ssl.SSLContext;
-import javax.ws.rs.client.ClientBuilder;
 
-@PrepareForTest(ClientBuilder.class)
-public class AWSCredentialsProviderImplTest extends PowerMockTestCase {
+public class AWSCredentialsProviderImplTest {
 
     @BeforeClass
     public void init() {
@@ -38,15 +30,6 @@ public class AWSCredentialsProviderImplTest extends PowerMockTestCase {
         System.setProperty(ZTSClient.ZTS_CLIENT_PROP_PREFETCH_AUTO_ENABLE, "false");
         System.setProperty(ZTSClient.ZTS_CLIENT_PROP_X509CSR_DN, "ou=eng,o=athenz,c=us");
         System.setProperty(ZTSClient.ZTS_CLIENT_PROP_X509CSR_DOMAIN, "athenz.cloud");
-    }
-
-    @BeforeMethod
-    public void setup() {
-        JerseyClientBuilder builder = new JerseyClientBuilder();
-        JerseyClient client = builder.build();
-        PowerMockito.spy(ClientBuilder.class);
-        PowerMockito.when(ClientBuilder.newBuilder()).thenReturn(builder);
-        PowerMockito.when(ClientBuilder.newClient()).thenReturn(client);
     }
 
     @Test

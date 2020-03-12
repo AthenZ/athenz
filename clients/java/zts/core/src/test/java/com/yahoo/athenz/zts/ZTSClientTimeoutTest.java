@@ -1,197 +1,150 @@
+/*
+ * Copyright 2020 Verizon Media
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.yahoo.athenz.zts;
 
-import io.undertow.Undertow;
-import io.undertow.server.HttpHandler;
-import io.undertow.servlet.Servlets;
-import io.undertow.servlet.api.DeploymentInfo;
-import io.undertow.servlet.api.DeploymentManager;
 import org.glassfish.jersey.client.JerseyClientBuilder;
-import org.glassfish.jersey.servlet.ServletContainer;
-import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.client.jaxrs.internal.ResteasyClientBuilderImpl;
-import org.jboss.resteasy.core.ResteasyDeploymentImpl;
-import org.jboss.resteasy.plugins.server.undertow.UndertowJaxrsServer;
-import org.jboss.resteasy.spi.ResteasyDeployment;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import javax.servlet.ServletException;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.util.HashSet;
-import java.util.Set;
+import java.io.IOException;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.fail;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
-@PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest(ClientBuilder.class)
-public class ZTSClientTimeoutTest extends PowerMockTestCase {
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.servlet.ServletHandler;
 
-  private static final int sleep = 2000; // mock api call sleeps for 2 seconds
-  private int timeout = 1000; // http client should timeout after 1 second
-  private String host = "0.0.0.0";
-  private int port = 8080;
-  private UndertowServer server;
+import static org.testng.Assert.*;
 
-  @BeforeClass
-  public void setUp() {
-    ZTSClient.setConnectionTimeouts(timeout, timeout);
-  }
+public class ZTSClientTimeoutTest {
 
-  @AfterMethod
-  public void tearDown() {
-    if (server != null) {
-      server.stop();
-    }
-  }
+    private static final int sleep = 2000; // jetty call sleeps for 2 seconds
+    private static final int timeout = 1000; // http client should timeout after 1 second
+    private static final int port = 8088;
+    private JettyServer server;
 
-  @Test
-  public void testZTSClientReadTimeoutForJerseyContainer() throws ServletException {
-
-    JerseyClientBuilder builder = new JerseyClientBuilder();
-    PowerMockito.spy(ClientBuilder.class);
-    PowerMockito.when(ClientBuilder.newBuilder()).thenReturn(builder);
-
-    server = new UndertowServer(host, port, createJerseyRestHandler());
-    server.start();
-
-    String baseUri = "http://localhost:" + port;
-    ZTSClient ztsClient = new ZTSClient(baseUri);
-
-    try {
-      ztsClient.getRoleAccess("testDomain", "testPrincipal");
-      fail("read timeout not set");
-    } catch (ZTSClientException expected) {
-      assertEquals(expected.code, ZTSClientException.BAD_REQUEST);
-      assertEquals(
-          expected.getMessage(),
-          "ResourceException (400): java.net.SocketTimeoutException: Read timed out");
-    }
-  }
-
-  @Test
-  public void testZTSClientReadTimeoutForRestEasyContainer() throws ServletException {
-
-    ResteasyClientBuilder builder = new ResteasyClientBuilderImpl();
-    PowerMockito.mockStatic(ClientBuilder.class);
-    PowerMockito.when(ClientBuilder.newBuilder()).thenReturn(builder);
-
-    server = new UndertowServer(host, port, createRestEasyRestHandler());
-    server.start();
-
-    String baseUri = "http://localhost:" + port;
-    ZTSClient ztsClient = new ZTSClient(baseUri);
-
-    try {
-      ztsClient.getRoleAccess("testDomain", "testPrincipal");
-      fail("read timeout not set");
-    } catch (ZTSClientException expected) {
-      assertEquals(expected.code, ZTSClientException.BAD_REQUEST);
-      assertEquals(
-          expected.getMessage(),
-          "ResourceException (400): RESTEASY004655: Unable to invoke request: java.net.SocketTimeoutException: Read timed out");
-    }
-  }
-
-  private class UndertowServer {
-    private final String host;
-    private final int port;
-    private final HttpHandler restHandler;
-    private Undertow undertow;
-
-    public UndertowServer(final String host, final int port, final HttpHandler restHandler) {
-      this.host = host;
-      this.port = port;
-      this.restHandler = restHandler;
+    @BeforeMethod
+    public void setUp() {
+        ZTSClient.setConnectionTimeouts(timeout, timeout);
     }
 
-    public void start() {
-      final Undertow.Builder builder =
-          Undertow.builder().addHttpListener(port, host).setHandler(restHandler);
-
-      undertow = builder.build();
-      undertow.start();
+    @AfterMethod
+    public void tearDown() throws Exception {
+        if (server != null) {
+            server.stop();
+        }
     }
 
-    public void stop() {
-      if (undertow != null) {
-        undertow.stop();
-        undertow = null;
-      }
-    }
-  }
+    @Test
+    public void testZTSClientReadTimeoutForJerseyContainer() throws Exception {
 
-  private HttpHandler createJerseyRestHandler() throws ServletException {
-    DeploymentInfo deploymentInfo =
-        Servlets.deployment()
-            .setClassLoader(Application.class.getClassLoader())
-            .setContextPath("/zts")
-            .addServlets(
-                Servlets.servlet("jerseyServlet", ServletContainer.class)
-                    .setLoadOnStartup(1)
-                    .addInitParam("javax.ws.rs.Application", Application.class.getName())
-                    .addMapping("/*"))
-            .setDeploymentName("ZTS");
-    DeploymentManager deploymentManager = Servlets.defaultContainer().addDeployment(deploymentInfo);
-    deploymentManager.deploy();
-    return deploymentManager.start();
-  }
+        ZTSClientMock.setClientBuilder(new JerseyClientBuilder());
+        server = new JettyServer(port);
+        server.start();
 
-  private HttpHandler createRestEasyRestHandler() throws ServletException {
-    ResteasyDeployment deployment = new ResteasyDeploymentImpl();
-    deployment.setApplication(new Application());
+        String baseUri = "http://localhost:" + port;
 
-    UndertowJaxrsServer server = new UndertowJaxrsServer();
-    DeploymentInfo deploymentInfo =
-        server
-            .undertowDeployment(deployment, "/")
-            .setClassLoader(UndertowServer.class.getClassLoader())
-            .setContextPath("/zts")
-            .setDeploymentName("ZTS");
-    DeploymentManager deploymentManager = Servlets.defaultContainer().addDeployment(deploymentInfo);
-    deploymentManager.deploy();
-    return deploymentManager.start();
-  }
+        ZTSClientMock ztsClient = new ZTSClientMock(baseUri);
 
-  private static class Application extends javax.ws.rs.core.Application {
-    private final Set<Object> singletons;
-
-    public Application() {
-      this.singletons = new HashSet<>();
-      this.singletons.add(new ZTSMockResource());
+        try {
+            ztsClient.getRoleAccess("testDomain", "testPrincipal");
+            fail("read timeout not set");
+        } catch (ZTSClientException expected) {
+            assertEquals(expected.code, ZTSClientException.BAD_REQUEST);
+            assertEquals(
+                    expected.getMessage(),
+                    "ResourceException (400): java.net.SocketTimeoutException: Read timed out");
+        }
+        ztsClient.close();
+        ZTSClientMock.setClientBuilder(null);
     }
 
-    @Override
-    public Set<Object> getSingletons() {
-      return singletons;
-    }
-  }
+    @Test
+    public void testZTSClientReadTimeoutForRestEasyContainer() throws Exception {
 
-  @Path("/v1")
-  static class ZTSMockResource {
+        ZTSClientMock.setClientBuilder(new ResteasyClientBuilderImpl());
+        server = new JettyServer(port);
+        server.start();
 
-    @Path("access/domain/{domainName}/principal/{principal}")
-    @GET
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getRoleAccess(
-        @PathParam("domainName") String domainName, @PathParam("principal") String principalName)
-        throws InterruptedException {
-      Thread.sleep(sleep);
-      RoleAccess roleAccess = new RoleAccess();
-      return Response.status(Response.Status.OK).entity(roleAccess).build();
+        String baseUri = "http://localhost:" + port;
+
+        ZTSClientMock ztsClient = new ZTSClientMock(baseUri);
+
+        try {
+            ztsClient.getRoleAccess("testDomain", "testPrincipal");
+            fail("read timeout not set");
+        } catch (ZTSClientException expected) {
+            assertEquals(expected.code, ZTSClientException.BAD_REQUEST);
+            assertEquals(
+                    expected.getMessage(),
+                    "ResourceException (400): RESTEASY004655: Unable to invoke request: java.net.SocketTimeoutException: Read timed out");
+        }
+        ztsClient.close();
+        ZTSClientMock.setClientBuilder(null);
     }
-  }
+
+    private static class JettyServer {
+
+        private final int port;
+        private Server server;
+
+        public JettyServer(final int port) {
+            this.port = port;
+        }
+
+        public void start() throws Exception {
+
+            // Create a simple embedded jetty server on a given port
+
+            server = new Server(port);
+
+            // Define a raw servlet that does nothing but sleep for a configured
+            // number of seconds so we get a read timeout from the client
+
+            ServletHandler handler = new ServletHandler();
+            server.setHandler(handler);
+            handler.addServletWithMapping(SimpleServlet.class, "/*");
+
+            // start our jetty server
+
+            server.start();
+        }
+
+        public void stop() throws Exception {
+            if (server != null) {
+                server.stop();
+                server = null;
+            }
+        }
+    }
+
+    public static class SimpleServlet extends HttpServlet {
+
+        @Override
+        protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+            try {
+                Thread.sleep(sleep);
+            } catch (InterruptedException ignored) {
+            }
+            response.setContentType("text/html");
+            response.setStatus(HttpServletResponse.SC_OK);
+            response.getWriter().println("<h1>We should always time-out and not get this</h1>");
+        }
+    }
 }
