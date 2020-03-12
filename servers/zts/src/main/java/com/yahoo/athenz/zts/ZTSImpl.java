@@ -297,7 +297,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // create our instance manager and provider
         
-        instanceCertManager = new InstanceCertManager(privateKeyStore, authorizer, readOnlyMode);
+        instanceCertManager = new InstanceCertManager(privateKeyStore, authorizer, hostnameResolver, readOnlyMode);
 
         instanceProviderManager = new InstanceProviderManager(dataStore,
                 ZTSUtils.createServerClientSSLContext(privateKeyStore), this);
@@ -2655,7 +2655,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         if (sshCertAllowed) {
             Object timerSSHCertMetric = metric.startTiming("certsignssh_timing", null, principalDomain);
-            instanceCertManager.generateSSHIdentity(null, identity, info.getSsh(), ZTSConsts.ZTS_SSH_HOST);
+            instanceCertManager.generateSSHIdentity(null, identity, info.getHostname(), info.getSsh(), ZTSConsts.ZTS_SSH_HOST);
             metric.stopTiming(timerSSHCertMetric, null, principalDomain);
         }
 
@@ -3011,7 +3011,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         if (sshCertAllowed) {
             Object timerSSHCertMetric = metric.startTiming("certsignssh_timing", null, principalDomain);
-            instanceCertManager.generateSSHIdentity(principal, identity, info.getSsh(), ZTSConsts.ZTS_SSH_HOST);
+            instanceCertManager.generateSSHIdentity(principal, identity, info.getHostname(), info.getSsh(), ZTSConsts.ZTS_SSH_HOST);
             metric.stopTiming(timerSSHCertMetric, null, principalDomain);
         }
 
@@ -3070,7 +3070,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         InstanceIdentity identity = new InstanceIdentity().setName(principalName);
         Object timerSSHCertMetric = metric.startTiming("certsignssh_timing", null, principalDomain);
-        if (!instanceCertManager.generateSSHIdentity(principal, identity, sshCsr, ZTSConsts.ZTS_SSH_USER)) {
+        if (!instanceCertManager.generateSSHIdentity(principal, identity, null, sshCsr, ZTSConsts.ZTS_SSH_USER)) {
             throw serverError("unable to generate ssh identity", caller, domain, principalDomain);
         }
         metric.stopTiming(timerSSHCertMetric, null, principalDomain);
