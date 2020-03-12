@@ -538,9 +538,9 @@ public class ZTSClient implements Closeable {
      * @param privateKeyFile path to the private key file
      * @param monitorKeyCertUpdates boolean flag whether or not monitor file updates
      * @return SSLContext object
-     * @throws InterruptedException
-     * @throws KeyRefresherException
-     * @throws IOException
+     * @throws InterruptedException interrupt exceptions
+     * @throws KeyRefresherException any exceptions from the cert refresher
+     * @throws IOException io exceptions
      */
     public SSLContext createSSLContext(final String trustStorePath, final char[] trustStorePassword,
                  final String publicCertFile, final String privateKeyFile, boolean monitorKeyCertUpdates)
@@ -640,7 +640,11 @@ public class ZTSClient implements Closeable {
                 ZTS_CLIENT_PKEY_STORE_FACTORY_CLASS);
         return SSLUtils.loadServicePrivateKey(pkeyFactoryClass);
     }
-    
+
+    ClientBuilder getClientBuilder() {
+        return ClientBuilder.newBuilder();
+    }
+
     private void initClient(final String serverUrl, Principal identity,
             final String domainName, final String serviceName,
             final ServiceIdentityProvider siaProvider) {
@@ -688,7 +692,7 @@ public class ZTSClient implements Closeable {
             config.property(ClientProperties.PROXY_URI, proxyUrl);
         }
         
-        ClientBuilder builder = ClientBuilder.newBuilder();
+        ClientBuilder builder = getClientBuilder();
         if (sslContext != null) {
             builder = builder.sslContext(sslContext);
             enablePrefetch = true;
@@ -697,11 +701,11 @@ public class ZTSClient implements Closeable {
         // JerseyClientBuilder::withConfig() replaces the existing config with the new client
         // config. Hence the client config should be added to the builder before the timeouts.
         // Otherwise the timeout settings would be overridden.
-        Client rsClient = builder.hostnameVerifier(hostnameVerifier)
-            .withConfig(config)
-            .readTimeout(reqReadTimeout, TimeUnit.MILLISECONDS)
-            .connectTimeout(reqConnectTimeout, TimeUnit.MILLISECONDS)
-            .build();
+        Client rsClient = builder.withConfig(config)
+                .hostnameVerifier(hostnameVerifier)
+                .readTimeout(reqReadTimeout, TimeUnit.MILLISECONDS)
+                .connectTimeout(reqConnectTimeout, TimeUnit.MILLISECONDS)
+                .build();
 
         ztsClient = new ZTSRDLGeneratedClient(ztsUrl, rsClient);
         principal = identity;

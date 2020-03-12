@@ -23,12 +23,15 @@ import java.util.List;
 import java.util.Map;
 
 import javax.net.ssl.SSLContext;
+import javax.ws.rs.client.ClientBuilder;
 
 import com.amazonaws.services.securitytoken.model.Credentials;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.ServiceIdentityProvider;
 
 public class ZTSClientMock extends ZTSClient {
+
+    private static ClientBuilder clientBuilder;
 
     public ZTSClientMock() {
     }
@@ -57,6 +60,15 @@ public class ZTSClientMock extends ZTSClient {
         super(ztsUrl, domainName, serviceName, siaProvider);
     }
 
+    public static void setClientBuilder(ClientBuilder builder) {
+        clientBuilder = builder;
+    }
+
+    @Override
+    ClientBuilder getClientBuilder() {
+        return (clientBuilder == null) ? ClientBuilder.newBuilder() : clientBuilder;
+    }
+
     @Override
     Credentials assumeAWSRole(String account, String roleName) {
         
@@ -79,5 +91,4 @@ public class ZTSClientMock extends ZTSClient {
         }
         return identity;
     }
-    
 }
