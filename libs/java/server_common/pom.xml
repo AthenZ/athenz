@@ -163,6 +163,11 @@
       <artifactId>jakarta.mail</artifactId>
       <version>1.6.4</version>
     </dependency>
+    <dependency>
+      <groupId>com.yahoo.athenz</groupId>
+      <artifactId>athenz-zms-core</artifactId>
+      <version>${project.parent.version}</version>
+    </dependency>
   </dependencies>
 
   <distributionManagement>

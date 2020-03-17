@@ -19,6 +19,8 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+
+import static org.mockito.ArgumentMatchers.*;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
@@ -47,7 +49,7 @@ public class InstanceCertManagerTest {
         final String cert = "cert";
         final String caCert = "caCert";
         CertSigner certSigner = Mockito.mock(com.yahoo.athenz.common.server.cert.CertSigner.class);
-        Mockito.when(certSigner.generateX509Certificate(Mockito.any(), Mockito.any(), Mockito.anyInt())).thenReturn(cert);
+        Mockito.when(certSigner.generateX509Certificate(any(), any(), Mockito.anyInt())).thenReturn(cert);
         Mockito.when(certSigner.getCACertificate()).thenReturn(caCert);
         
         InstanceCertManager instanceManager = new InstanceCertManager(null, null, null, false);
@@ -136,7 +138,7 @@ public class InstanceCertManagerTest {
     public void testGenerateIdentityNullCert() {
         
         CertSigner certSigner = Mockito.mock(com.yahoo.athenz.common.server.cert.CertSigner.class);
-        Mockito.when(certSigner.generateX509Certificate(Mockito.any(), Mockito.any(), Mockito.anyInt())).thenReturn(null);
+        Mockito.when(certSigner.generateX509Certificate(any(), any(), Mockito.anyInt())).thenReturn(null);
 
         InstanceCertManager instanceManager = new InstanceCertManager(null, null, null, false);
         instanceManager.setCertSigner(certSigner);
@@ -149,7 +151,7 @@ public class InstanceCertManagerTest {
     public void testGenerateIdentityEmptyCert() {
         
         CertSigner certSigner = Mockito.mock(com.yahoo.athenz.common.server.cert.CertSigner.class);
-        Mockito.when(certSigner.generateX509Certificate(Mockito.any(), Mockito.any(), Mockito.anyInt())).thenReturn("");
+        Mockito.when(certSigner.generateX509Certificate(any(), any(), Mockito.anyInt())).thenReturn("");
 
         InstanceCertManager instanceManager = new InstanceCertManager(null, null, null, false);
         instanceManager.setCertSigner(certSigner);
@@ -1102,5 +1104,33 @@ public class InstanceCertManagerTest {
         assertEquals(sshData, "ssh-certificate-authority-keys");
 
         System.clearProperty(ZTSConsts.ZTS_PROP_CERT_BUNDLES_FNAME);
+    }
+
+    @Test
+    void testGetUnrefreshedNotifications() {
+        InstanceCertManager instance = new InstanceCertManager(null, null, null, false);
+        instance.setCertSigner(null);
+
+        CertRecordStore certStore = Mockito.mock(CertRecordStore.class);
+        CertRecordStoreConnection certConnection = Mockito.mock(CertRecordStoreConnection.class);
+        Mockito.when(certStore.getConnection()).thenReturn(certConnection);
+
+        X509CertRecord record = new X509CertRecord();
+        record.setHostName("testHost");
+        List<X509CertRecord> x509CertRecords = Collections.singletonList(record);
+        String lastNotifiedServer = "server";
+        Mockito.when(certConnection.updateUnrefreshedCertificatesNotificationTimestamp(eq(lastNotifiedServer), anyLong()))
+                .thenReturn(true)
+                .thenReturn(false);
+        Mockito.when(certConnection.getNotifyUnrefreshedCertificates(eq(lastNotifiedServer), anyLong()))
+                .thenReturn(x509CertRecords);
+        instance.setCertStore(certStore);
+
+        // Assert that unrefreshed certificates will return only if at least 1 row was updated
+        List<X509CertRecord> unrefreshedCertificateNotifications = instance.getUnrefreshedCertsNotifications(lastNotifiedServer);
+        assertEquals(unrefreshedCertificateNotifications.get(0).getHostName(), "testHost");
+        unrefreshedCertificateNotifications = instance.getUnrefreshedCertsNotifications(lastNotifiedServer);
+        assertEquals(unrefreshedCertificateNotifications, new ArrayList<>());
+        instance.shutdown();
     }
 }

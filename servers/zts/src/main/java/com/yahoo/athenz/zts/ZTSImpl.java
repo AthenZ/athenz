@@ -34,8 +34,10 @@ import com.yahoo.athenz.auth.token.AccessToken;
 import com.yahoo.athenz.auth.token.IdToken;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.dns.HostnameResolverFactory;
+import com.yahoo.athenz.common.server.notification.NotificationManager;
 import com.yahoo.athenz.zms.RoleMeta;
 import com.yahoo.athenz.zts.cert.*;
+import com.yahoo.athenz.zts.notification.ZTSNotificationTaskFactory;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -177,6 +179,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected Http.AuthorityList authorities = null;
     protected ZTSAuthorizer authorizer;
     protected static Validator validator;
+    protected NotificationManager notificationManager = null;
     
     enum AthenzObject {
         DOMAIN_METRICS {
@@ -305,8 +308,15 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // make sure to set the keystore for any instance that requires it
         
         setAuthorityKeyStore();
+
+        setNotificationManager();
     }
-    
+
+    private void setNotificationManager() {
+        ZTSNotificationTaskFactory ztsNotificationTaskFactory = new ZTSNotificationTaskFactory(instanceCertManager, dataStore, userDomainPrefix, serverHostName);
+        notificationManager = new NotificationManager(ztsNotificationTaskFactory.getNotificationTasks());
+    }
+
     void loadSystemProperties() {
         String propFile = System.getProperty(ZTSConsts.ZTS_PROP_FILE_NAME,
                 getRootDir() + "/conf/zts_server/zts.properties");
@@ -2475,8 +2485,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return false;
     }
 
-    X509CertRecord insertX509CertRecord(ResourceContext ctx, final String cn, final String provider,
-            final String instanceId, final String serial, Boolean certUsage) {
+    X509CertRecord insertX509CertRecord(ResourceContext ctx,
+                                        final String    cn,
+                                        final String    provider,
+                                        final String    instanceId,
+                                        final String    serial,
+                                        final Boolean   certUsage,
+                                        final Date      expirationDate,
+                                        final String    hostName) {
 
         X509CertRecord x509CertRecord = new X509CertRecord();
         x509CertRecord.setService(cn);
@@ -2491,6 +2507,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         x509CertRecord.setPrevIP(x509CertRecord.getCurrentIP());
         x509CertRecord.setPrevTime(x509CertRecord.getCurrentTime());
         x509CertRecord.setClientCert(certUsage);
+        x509CertRecord.setExpiryTime(expirationDate);
+        x509CertRecord.setHostName(hostName);
 
         // we must be able to update our database otherwise we will not be
         // able to validate the certificate during refresh operations
@@ -2671,14 +2689,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // need to update our cert record with new certificate details
         // unless we're told by the provider that refresh is not allowed
         // thus no need to register the instance details
-        
+
         if (certRefresh) {
 
             // we must be able to update our database otherwise we will not be
             // able to validate the certificate during refresh operations
 
             if (insertX509CertRecord(ctx, cn, provider, certReqInstanceId, certSerial,
-                    InstanceProvider.ZTS_CERT_USAGE_CLIENT.equalsIgnoreCase(certUsage)) == null) {
+                    InstanceProvider.ZTS_CERT_USAGE_CLIENT.equalsIgnoreCase(certUsage), newCert.getNotAfter(), info.getHostname()) == null) {
                 throw serverError("unable to update cert db", caller, domain, principalDomain);
             }
         }
@@ -2984,7 +3002,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         X509CertRecord x509CertRecord = null;
         if (certRefreshCheck) {
             x509CertRecord = getValidatedX509CertRecord(ctx, provider, instanceId,
-                principalName, cert, caller, domain, principalDomain);
+                principalName, cert, caller, domain, principalDomain, info.getHostname());
         }
 
         if (x509CertRecord != null && x509CertRecord.getClientCert()) {
@@ -3099,9 +3117,15 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
     }
 
-    X509CertRecord getValidatedX509CertRecord(ResourceContext ctx, final String provider,
-            final String instanceId, final String principalName, X509Certificate cert,
-            final String caller, final String requestDomain, final String principalDomain) {
+    X509CertRecord getValidatedX509CertRecord(ResourceContext ctx,
+                                              final String provider,
+                                              final String instanceId,
+                                              final String principalName,
+                                              X509Certificate cert,
+                                              final String caller,
+                                              final String requestDomain,
+                                              final String principalDomain,
+                                              final String hostName) {
 
         // extract our instance certificate record to make sure it
         // hasn't been revoked already
@@ -3117,7 +3141,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
             if (cert.getNotBefore().getTime() < x509CertRefreshResetTime) {
                 x509CertRecord = insertX509CertRecord(ctx, principalName, provider, instanceId,
-                        cert.getSerialNumber().toString(), false);
+                        cert.getSerialNumber().toString(), false, cert.getNotAfter(), hostName);
             }
 
             if (x509CertRecord == null) {

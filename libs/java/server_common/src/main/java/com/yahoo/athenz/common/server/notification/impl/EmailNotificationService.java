@@ -251,20 +251,21 @@ public class EmailNotificationService implements NotificationService {
 
     boolean sendEmail(Set<String> recipients, String subject, String body) {
         final AtomicInteger counter = new AtomicInteger();
-        boolean status = true;
         // SES imposes a limit of 50 recipients. So we convert the recipients into batches
         if (recipients.size() > SES_RECIPIENTS_LIMIT_PER_MESSAGE) {
             final Collection<List<String>> recipientsBatch = recipients.stream()
                     .collect(Collectors.groupingBy(it -> counter.getAndIncrement() / SES_RECIPIENTS_LIMIT_PER_MESSAGE))
                     .values();
+            boolean status = true;
             for (List<String> recipientsSegment : recipientsBatch) {
-                status = sendEmailMIME(subject, body, status, recipientsSegment);
+                if (!sendEmailMIME(subject, body, recipientsSegment)) {
+                    status = false;
+                }
             }
+            return status;
         } else {
-            status = sendEmailMIME(subject, body, status, new ArrayList<>(recipients));
+            return sendEmailMIME(subject, body, new ArrayList<>(recipients));
         }
-
-        return status;
     }
 
     String readContentFromFile(String fileName) {
@@ -337,7 +338,7 @@ public class EmailNotificationService implements NotificationService {
         return message;
     }
 
-    private boolean sendEmailMIME(String subject, String body, boolean status, Collection<String> recipients) {
+    private boolean sendEmailMIME(String subject, String body, Collection<String> recipients) {
         MimeMessage mimeMessage;
         try {
             mimeMessage = getMimeMessage(subject, body, recipients, from, logoImage);
@@ -346,6 +347,6 @@ public class EmailNotificationService implements NotificationService {
             return false;
         }
 
-        return emailProvider.sendEmail(status, recipients, from + AT + emailDomainFrom, mimeMessage);
+        return emailProvider.sendEmail(recipients, from + AT + emailDomainFrom, mimeMessage);
     }
 }

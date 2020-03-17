@@ -16,6 +16,7 @@
 package com.yahoo.athenz.zts.cert;
 
 import java.io.Closeable;
+import java.util.List;
 
 public interface CertRecordStoreConnection extends Closeable {
 
@@ -70,4 +71,20 @@ public interface CertRecordStoreConnection extends Closeable {
      * @return number of records deleted
      */
     int deleteExpiredX509CertRecords(int expiryTimeMins);
+
+    /**
+     * Update lastNotifiedServer and lastNotifiedTime for certificate that failed to refresh for more than one day.
+     * @param lastNotifiedServer
+     * @param lastNotifiedTime
+     * @return True if at least one certificate record was updated (needs notification to be sent)
+     */
+    boolean updateUnrefreshedCertificatesNotificationTimestamp(String lastNotifiedServer, long lastNotifiedTime);
+
+    /**
+     * List all certificates that failed to refresh and require notifications to be sent
+     * @param lastNotifiedServer
+     * @param lastNotifiedTime
+     * @return List of unrefreshed certificate records that need to be modified
+     */
+    List<X509CertRecord> getNotifyUnrefreshedCertificates(String lastNotifiedServer, long lastNotifiedTime);
 }

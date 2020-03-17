@@ -28,6 +28,7 @@ import org.testng.annotations.Test;
 
 import java.util.*;
 
+import static com.yahoo.athenz.common.ServerCommonConsts.USER_DOMAIN_PREFIX;
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.NOTIFICATION_DETAILS_MEMBER;
 import static com.yahoo.athenz.zms.notification.NotificationManagerTest.getNotificationManager;
@@ -44,7 +45,7 @@ public class RoleMemberExpiryNotificationTaskTest {
         Mockito.when(dbsvc.getPendingMembershipApproverRoles()).thenReturn(Collections.emptySet());
 
         NotificationManager notificationManager = getNotificationManager(dbsvc, null);
-        RoleMemberExpiryNotificationTask roleMemberExpiryNotificationTask = new RoleMemberExpiryNotificationTask(dbsvc, ZMSConsts.USER_DOMAIN_PREFIX);
+        RoleMemberExpiryNotificationTask roleMemberExpiryNotificationTask = new RoleMemberExpiryNotificationTask(dbsvc, USER_DOMAIN_PREFIX);
 
         Map<String, String> details = roleMemberExpiryNotificationTask.processMemberExpiryReminder("athenz", null);
         assertTrue(details.isEmpty());
@@ -88,7 +89,7 @@ public class RoleMemberExpiryNotificationTaskTest {
         DomainRoleMember roleMember = new DomainRoleMember();
         roleMember.setMemberName("user.joe");
 
-        RoleMemberExpiryNotificationTask roleMemberExpiryNotificationTask = new RoleMemberExpiryNotificationTask(dbsvc, ZMSConsts.USER_DOMAIN_PREFIX);
+        RoleMemberExpiryNotificationTask roleMemberExpiryNotificationTask = new RoleMemberExpiryNotificationTask(dbsvc, USER_DOMAIN_PREFIX);
 
         Map<String, String> details = roleMemberExpiryNotificationTask.processRoleExpiryReminder(domainAdminMap, roleMember);
         assertTrue(details.isEmpty());
@@ -153,7 +154,7 @@ public class RoleMemberExpiryNotificationTaskTest {
         Mockito.when(dbsvc.getRoleExpiryMembers()).thenThrow(new IllegalArgumentException());
         NotificationManager notificationManager = getNotificationManager(dbsvc, testfact);
 
-        RoleMemberExpiryNotificationTask roleMemberExpiryNotificationTask = new RoleMemberExpiryNotificationTask(dbsvc, ZMSConsts.USER_DOMAIN_PREFIX);
+        RoleMemberExpiryNotificationTask roleMemberExpiryNotificationTask = new RoleMemberExpiryNotificationTask(dbsvc, USER_DOMAIN_PREFIX);
         // to make sure we're not creating any notifications, we're going
         // to configure our mock to throw an exception
 
@@ -185,7 +186,7 @@ public class RoleMemberExpiryNotificationTaskTest {
 
         Mockito.when(mockNotificationService.notify(any())).thenThrow(new IllegalArgumentException());
 
-        RoleMemberExpiryNotificationTask roleMemberExpiryNotificationTask = new RoleMemberExpiryNotificationTask(dbsvc, ZMSConsts.USER_DOMAIN_PREFIX);
+        RoleMemberExpiryNotificationTask roleMemberExpiryNotificationTask = new RoleMemberExpiryNotificationTask(dbsvc, USER_DOMAIN_PREFIX);
         assertEquals(roleMemberExpiryNotificationTask.getNotifications(), new ArrayList<>());
 
         notificationManager.shutdown();
@@ -232,7 +233,7 @@ public class RoleMemberExpiryNotificationTaskTest {
 
         Mockito.when(dbsvc.getAthenzDomain("athenz1", false)).thenReturn(domain);
 
-        List<Notification> notifications = new RoleMemberExpiryNotificationTask(dbsvc, ZMSConsts.USER_DOMAIN_PREFIX).getNotifications();
+        List<Notification> notifications = new RoleMemberExpiryNotificationTask(dbsvc, USER_DOMAIN_PREFIX).getNotifications();
 
 
         // we should get 2 notifications - one for user and one for domain
@@ -284,7 +285,7 @@ public class RoleMemberExpiryNotificationTaskTest {
 
         Mockito.when(dbsvc.getAthenzDomain("athenz1", false)).thenReturn(null);
 
-        List<Notification> notifications = new RoleMemberExpiryNotificationTask(dbsvc, ZMSConsts.USER_DOMAIN_PREFIX).getNotifications();
+        List<Notification> notifications = new RoleMemberExpiryNotificationTask(dbsvc, USER_DOMAIN_PREFIX).getNotifications();
 
         // we should get 0 notifications
         assertEquals(notifications, new ArrayList<>());

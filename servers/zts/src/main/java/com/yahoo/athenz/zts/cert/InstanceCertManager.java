@@ -461,6 +461,21 @@ public class InstanceCertManager {
         return certAuthorityBundles.get(name);
     }
 
+    public List<X509CertRecord> getUnrefreshedCertsNotifications(String serverHostName) {
+        if (certStore == null) {
+            return new ArrayList<>();
+        }
+
+        try (CertRecordStoreConnection storeConnection = certStore.getConnection()) {
+            long updateTs = System.currentTimeMillis();
+            if (storeConnection.updateUnrefreshedCertificatesNotificationTimestamp(serverHostName, updateTs)) {
+                return storeConnection.getNotifyUnrefreshedCertificates(serverHostName, updateTs);
+            }
+        }
+
+        return new ArrayList<>();
+    }
+
     public X509CertRecord getX509CertRecord(final String provider, X509Certificate cert) {
 
         if (certStore == null) {

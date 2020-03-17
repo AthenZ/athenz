@@ -23,11 +23,10 @@ public interface EmailProvider {
 
     /**
      * Send an email through the provider
-     * @param status
      * @param recipients
      * @param from
      * @param mimeMessage
      * @return true if mail was sent
      */
-    boolean sendEmail(boolean status, Collection<String> recipients, String from, MimeMessage mimeMessage);
+    boolean sendEmail(Collection<String> recipients, String from, MimeMessage mimeMessage);
 }

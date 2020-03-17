@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.yahoo.athenz.zts.cert.CertRecordStoreConnection;
 import com.yahoo.athenz.zts.cert.X509CertRecord;
@@ -94,6 +96,18 @@ public class FileCertRecordStoreConnection implements CertRecordStoreConnection 
             count += 1;
         }
         return count;
+    }
+
+    @Override
+    public boolean updateUnrefreshedCertificatesNotificationTimestamp(String lastNotifiedServer, long lastNotifiedTime) {
+        // Currently unimplemented for File
+        return false;
+    }
+
+    @Override
+    public List<X509CertRecord> getNotifyUnrefreshedCertificates(String lastNotifiedServer, long lastNotifiedTime) {
+        // Currently unimplemented for File
+        return new ArrayList<>();
     }
 
     boolean notExpired(long currentTime, long lastModified, int expiryTimeMins) {

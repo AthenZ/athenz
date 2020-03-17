@@ -20,12 +20,12 @@ import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.notification.NotificationCommon;
 import com.yahoo.athenz.common.server.notification.NotificationTask;
 import com.yahoo.athenz.zms.DBService;
-import com.yahoo.athenz.zms.ZMSConsts;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import static com.yahoo.athenz.common.ServerCommonConsts.USER_DOMAIN_PREFIX;
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL_REMINDER;
 
 public class PendingMembershipApprovalNotificationTask implements NotificationTask {
@@ -40,7 +40,7 @@ public class PendingMembershipApprovalNotificationTask implements NotificationTa
         this.dbService = dbService;
         this.pendingRoleMemberLifespan = pendingRoleMemberLifespan;
         this.monitorIdentity = monitorIdentity;
-        ZMSDomainRoleMembersFetcher zmsDomainRoleMembersFetcher = new ZMSDomainRoleMembersFetcher(dbService, ZMSConsts.USER_DOMAIN_PREFIX);
+        ZMSDomainRoleMembersFetcher zmsDomainRoleMembersFetcher = new ZMSDomainRoleMembersFetcher(dbService, USER_DOMAIN_PREFIX);
         this.notificationCommon = new NotificationCommon(zmsDomainRoleMembersFetcher, userDomainPrefix);
     }
 

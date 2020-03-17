@@ -30,6 +30,7 @@ import org.testng.annotations.Test;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import static com.yahoo.athenz.common.ServerCommonConsts.USER_DOMAIN_PREFIX;
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.NOTIFICATION_PROP_SERVICE_FACTORY_CLASS;
 import static org.testng.Assert.*;
 
@@ -66,7 +67,7 @@ public class NotificationManagerTest {
     }
 
     public static NotificationManager getNotificationManager(DBService dbsvc, NotificationServiceFactory notificationServiceFactory) {
-        ZMSNotificationTaskFactory zmsNotificationTaskFactory = new ZMSNotificationTaskFactory(dbsvc, ZMSConsts.USER_DOMAIN_PREFIX);
+        ZMSNotificationTaskFactory zmsNotificationTaskFactory = new ZMSNotificationTaskFactory(dbsvc, USER_DOMAIN_PREFIX);
         List<NotificationTask> notificationTasks = zmsNotificationTaskFactory.getNotificationTasks();
 
         if (notificationServiceFactory == null) {
@@ -140,8 +141,8 @@ public class NotificationManagerTest {
         details.put("domain", "testdom");
         details.put("role", "role1");
 
-        ZMSDomainRoleMembersFetcher zmsDomainRoleMembersFetcher = new ZMSDomainRoleMembersFetcher(dbsvc, ZMSConsts.USER_DOMAIN_PREFIX);
-        NotificationCommon notificationCommon = new NotificationCommon(zmsDomainRoleMembersFetcher, ZMSConsts.USER_DOMAIN_PREFIX);
+        ZMSDomainRoleMembersFetcher zmsDomainRoleMembersFetcher = new ZMSDomainRoleMembersFetcher(dbsvc, USER_DOMAIN_PREFIX);
+        NotificationCommon notificationCommon = new NotificationCommon(zmsDomainRoleMembersFetcher, USER_DOMAIN_PREFIX);
         Notification notification = notificationCommon.createNotification("MEMBERSHIP_APPROVAL", recipients, details);
         assertNotNull(notification);
 
@@ -164,8 +165,8 @@ public class NotificationManagerTest {
         DBService dbsvc = Mockito.mock(DBService.class);
         Mockito.when(dbsvc.getPendingMembershipApproverRoles()).thenReturn(Collections.emptySet());
 
-        ZMSDomainRoleMembersFetcher zmsDomainRoleMembersFetcher = new ZMSDomainRoleMembersFetcher(dbsvc, ZMSConsts.USER_DOMAIN_PREFIX);
-        NotificationCommon notificationCommon = new NotificationCommon(zmsDomainRoleMembersFetcher, ZMSConsts.USER_DOMAIN_PREFIX);
+        ZMSDomainRoleMembersFetcher zmsDomainRoleMembersFetcher = new ZMSDomainRoleMembersFetcher(dbsvc, USER_DOMAIN_PREFIX);
+        NotificationCommon notificationCommon = new NotificationCommon(zmsDomainRoleMembersFetcher, USER_DOMAIN_PREFIX);
         assertNull(notificationCommon.createNotification("MEMBERSHIP_APPROVAL", (Set<String>) null, null));
         assertNull(notificationCommon.createNotification("MEMBERSHIP_APPROVAL", Collections.emptySet(), null));
     }
@@ -194,8 +195,8 @@ public class NotificationManagerTest {
         Mockito.when(mockAthenzDomain.getName()).thenReturn("testdom");
         Mockito.when(mockAthenzDomain.getRoles()).thenReturn(roles);
 
-        ZMSDomainRoleMembersFetcher zmsDomainRoleMembersFetcher = new ZMSDomainRoleMembersFetcher(dbsvc, ZMSConsts.USER_DOMAIN_PREFIX);
-        NotificationCommon notificationCommon = new NotificationCommon(zmsDomainRoleMembersFetcher, ZMSConsts.USER_DOMAIN_PREFIX);
+        ZMSDomainRoleMembersFetcher zmsDomainRoleMembersFetcher = new ZMSDomainRoleMembersFetcher(dbsvc, USER_DOMAIN_PREFIX);
+        NotificationCommon notificationCommon = new NotificationCommon(zmsDomainRoleMembersFetcher, USER_DOMAIN_PREFIX);
         Notification notification = notificationCommon.createNotification("MEMBERSHIP_APPROVAL", recipients, null);
         assertNull(notification);
     }
@@ -259,8 +260,8 @@ public class NotificationManagerTest {
         // call
 
         Mockito.when(dbsvc.getRoleExpiryMembers()).thenReturn(null);
-        ZMSDomainRoleMembersFetcher zmsDomainRoleMembersFetcher = new ZMSDomainRoleMembersFetcher(dbsvc, ZMSConsts.USER_DOMAIN_PREFIX);
-        NotificationCommon notificationCommon = new NotificationCommon(zmsDomainRoleMembersFetcher, ZMSConsts.USER_DOMAIN_PREFIX);
+        ZMSDomainRoleMembersFetcher zmsDomainRoleMembersFetcher = new ZMSDomainRoleMembersFetcher(dbsvc, USER_DOMAIN_PREFIX);
+        NotificationCommon notificationCommon = new NotificationCommon(zmsDomainRoleMembersFetcher, USER_DOMAIN_PREFIX);
 
         Map<String, String> details = new HashMap<>();
         assertNull(notificationCommon.createNotification("reminder", (String) null, details));
