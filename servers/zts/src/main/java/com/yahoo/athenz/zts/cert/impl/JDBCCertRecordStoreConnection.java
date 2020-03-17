@@ -46,7 +46,7 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
     private static final String SQL_DELETE_EXPIRED_X509_RECORDS = "DELETE FROM certificates " +
             "WHERE currentTime < ADDDATE(NOW(), INTERVAL -? MINUTE);";
     private static final String SQL_UPDATE_UNREFRESHED_X509_RECORDS_NOTIFICATION_TIMESTAMP = "UPDATE certificates SET lastNotifiedTime=?, lastNotifiedServer=? " +
-            "WHERE currentTime < (CURRENT_DATE - INTERVAL 1 DAY) AND DATEDIFF(CURRENT_TIME, currentTime) IN (1,7,14,21,28) AND (lastNotifiedTime IS NULL || lastNotifiedTime < (CURRENT_DATE - INTERVAL 1 DAY))";
+            "WHERE currentTime < (CURRENT_DATE - INTERVAL 2 DAY) AND (lastNotifiedTime IS NULL || lastNotifiedTime < (CURRENT_DATE - INTERVAL 1 DAY))";
     private static final String SQL_LIST_NOTIFY_UNREFRESHED_X509_RECORDS = "SELECT * FROM certificates WHERE lastNotifiedTime=? AND lastNotifiedServer=?;";
 
     public static final String DB_COLUMN_INSTANCE_ID            = "instanceId";

@@ -26,8 +26,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.*;
 
-import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.NOTIFICATION_DETAILS_EXPIRY_MEMBERS;
-import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.NOTIFICATION_DETAILS_EXPIRY_ROLES;
+import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
 import static org.mockito.Mockito.mock;
 import static org.testng.Assert.*;
 
@@ -103,6 +102,24 @@ public class EmailNotificationServiceTest {
         assertTrue(body.contains("role2"));
         assertTrue(body.contains("2020-12-01T12:00:00.000Z"));
 
+        // now try the unrefreshed certs notification
+
+        details.put(NOTIFICATION_DETAILS_UNREFRESHED_CERTS,
+                "domain0.service0;provider;instanceID0;Sun Mar 15 15:08:07 IST 2020;;hostName0|" +
+                 "domain.bad;instanceID0;Sun Mar 15 15:08:07 IST 2020;;hostBad|" + // bad entry with missing provider
+                 "domain0.service0;provider;instanceID0;Sun Mar 15 15:08:07 IST 2020;;secondHostName0");
+        body = svc.getBody("UNREFRESHED_CERTS", details);
+        assertNotNull(body);
+        assertTrue(body.contains("domain0.service0"));
+        assertTrue(body.contains("hostName0"));
+        assertTrue(body.contains("secondHostName0"));
+        assertTrue(body.contains("instanceID0"));
+        assertTrue(body.contains("Sun Mar 15 15:08:07 IST 2020"));
+
+        // make sure the bad entries are not included
+        assertFalse(body.contains("domain.bad"));
+        assertFalse(body.contains("hostBad"));
+
         System.clearProperty("athenz.notification_workflow_url");
     }
 
@@ -123,6 +140,10 @@ public class EmailNotificationServiceTest {
         assertFalse(sub.isEmpty());
 
         sub = svc.getSubject("DOMAIN_MEMBER_EXPIRY_REMINDER");
+        assertNotNull(sub);
+        assertFalse(sub.isEmpty());
+
+        sub = svc.getSubject("UNREFRESHED_CERTS");
         assertNotNull(sub);
         assertFalse(sub.isEmpty());
 

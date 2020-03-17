@@ -16,6 +16,7 @@
 
 package com.yahoo.athenz.zts.notification;
 
+import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.notification.NotificationTask;
 import com.yahoo.athenz.common.server.notification.NotificationTaskFactory;
 import com.yahoo.athenz.zts.cert.InstanceCertManager;
@@ -27,18 +28,29 @@ import java.util.List;
 public class ZTSNotificationTaskFactory implements NotificationTaskFactory {
     private final InstanceCertManager instanceCertManager;
     private final DataStore dataStore;
+    private final HostnameResolver hostnameResolver;
     private final String userDomainPrefix;
     private final String serverName;
 
-    public ZTSNotificationTaskFactory(InstanceCertManager instanceCertManager, DataStore dataStore, String userDomainPrefix, String serverName) {
+    public ZTSNotificationTaskFactory(InstanceCertManager instanceCertManager,
+                                      DataStore dataStore,
+                                      HostnameResolver hostnameResolver,
+                                      String userDomainPrefix,
+                                      String serverName) {
         this.instanceCertManager = instanceCertManager;
         this.dataStore = dataStore;
+        this.hostnameResolver = hostnameResolver;
         this.userDomainPrefix = userDomainPrefix;
         this.serverName = serverName;
     }
 
     @Override
     public List<NotificationTask> getNotificationTasks() {
-        return Collections.singletonList(new CertFailedRefreshNotificationTask(instanceCertManager, dataStore, userDomainPrefix, serverName));
+        return Collections.singletonList(new CertFailedRefreshNotificationTask(
+                instanceCertManager,
+                dataStore,
+                hostnameResolver,
+                userDomainPrefix,
+                serverName));
     }
 }
