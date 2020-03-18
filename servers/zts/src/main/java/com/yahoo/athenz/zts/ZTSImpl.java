@@ -313,7 +313,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
 
     private void setNotificationManager() {
-        ZTSNotificationTaskFactory ztsNotificationTaskFactory = new ZTSNotificationTaskFactory(instanceCertManager, dataStore, userDomainPrefix, serverHostName);
+        ZTSNotificationTaskFactory ztsNotificationTaskFactory = new ZTSNotificationTaskFactory(
+                instanceCertManager,
+                dataStore,
+                hostnameResolver,
+                userDomainPrefix,
+                serverHostName);
+
         notificationManager = new NotificationManager(ztsNotificationTaskFactory.getNotificationTasks());
     }
 

@@ -11,6 +11,9 @@ body {
     -webkit-font-smoothing: antialiased;
     background-color: rgba(231, 232, 231, 1.0);
 }
+.athenz-wrapper .mbrapproval.unrefreshedcerts {
+    width: 900px;
+}
 .athenz-wrapper .mbrapproval {
     width: 500px;
     height: 402px;

@@ -16,55 +16,132 @@
 
 package com.yahoo.athenz.zts.notification;
 
+import com.yahoo.athenz.auth.util.AthenzUtils;
+import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.notification.NotificationCommon;
 import com.yahoo.athenz.common.server.notification.NotificationTask;
+import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.zts.cert.InstanceCertManager;
+import com.yahoo.athenz.zts.cert.X509CertRecord;
 import com.yahoo.athenz.zts.store.DataStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.sql.Timestamp;
+import java.util.*;
+import java.util.stream.Collectors;
 
+import static com.yahoo.athenz.common.ServerCommonConsts.ADMIN_ROLE_NAME;
 import static com.yahoo.athenz.common.ServerCommonConsts.USER_DOMAIN_PREFIX;
+import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
 
 public class CertFailedRefreshNotificationTask implements NotificationTask {
     private final String serverName;
     private final InstanceCertManager instanceCertManager;
-    private final DataStore dataStore;
     private final NotificationCommon notificationCommon;
     private static final Logger LOGGER = LoggerFactory.getLogger(CertFailedRefreshNotificationTask.class);
     private final static String DESCRIPTION = "certificate failed refresh notification";
+    private final HostnameResolver hostnameResolver;
 
-    public CertFailedRefreshNotificationTask(InstanceCertManager instanceCertManager, DataStore dataStore, String userDomainPrefix, String serverName) {
+    public CertFailedRefreshNotificationTask(InstanceCertManager instanceCertManager,
+                                             DataStore dataStore,
+                                             HostnameResolver hostnameResolver,
+                                             String userDomainPrefix,
+                                             String serverName) {
         this.serverName = serverName;
         this.instanceCertManager = instanceCertManager;
-        this.dataStore = dataStore;
         ZTSDomainRoleMembersFetcher ztsDomainRoleMembersFetcher = new ZTSDomainRoleMembersFetcher(dataStore, USER_DOMAIN_PREFIX);
         this.notificationCommon = new NotificationCommon(ztsDomainRoleMembersFetcher, userDomainPrefix);
+        this.hostnameResolver = hostnameResolver;
     }
 
     @Override
     public List<Notification> getNotifications() {
-        return new ArrayList<>();
-        // TODO: Uncomment and continue implementation when UnrefreshedNotification email template is ready
-
-/*        List<Notification> notificationList = new ArrayList<>();
-        List<X509CertRecord> unrefreshedRecords = instanceCertManager.getUnrefreshedNotifications(serverName);
-        if (unrefreshedRecords == null || unrefreshedRecords.isEmpty()) {
+        List<X509CertRecord> unrefreshedCerts = instanceCertManager.getUnrefreshedCertsNotifications(serverName);
+        if (unrefreshedCerts == null || unrefreshedCerts.isEmpty()) {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("No unrefreshed certificates available to send notifications");
             }
-            return notificationList;
+            return new ArrayList<>();
         }
 
+        List<X509CertRecord> unrefreshedCertsValidHosts = getRecordsWithValidHosts(unrefreshedCerts);
+        Map<String, List<X509CertRecord>> domainToCertRecordsMap = getDomainToCertRecordsMap(unrefreshedCertsValidHosts);
 
+        return generateNotificationsForAdmins(domainToCertRecordsMap);
+    }
+
+    private List<Notification> generateNotificationsForAdmins(Map<String, List<X509CertRecord>> domainToCertRecordsMap) {
+        List<Notification> notificationList = new ArrayList<>();
+        domainToCertRecordsMap.forEach((domain, records) -> {
+            Map<String, String> details = getNotificationDetails(domain, records);
+            Notification notification = notificationCommon.createNotification(
+                    NOTIFICATION_TYPE_UNREFRESHED_CERTS,
+                    ResourceUtils.roleResourceName(domain, ADMIN_ROLE_NAME), details);
+            if (notification != null) {
+                notificationList.add(notification);
+            }
+        });
+
+        return notificationList;
+    }
+
+    private List<X509CertRecord> getRecordsWithValidHosts(List<X509CertRecord> unrefreshedCerts) {
+        return unrefreshedCerts.stream()
+                    .filter(record -> hostnameResolver.isValidHostname(record.getHostName()))
+                    .collect(Collectors.toList());
+    }
+
+    private Map<String, String> getNotificationDetails(String domainName, List<X509CertRecord> certRecords) {
+        Map<String, String> details = new HashMap<>();
+
+        // each domain can have multiple certificates that failed to refresh.
+        // we're going to collect them into one
+        // string and separate with | between those. The format will be:
+        // certificateRecords := <certificate-entry>[|<certificate-entry]*
+        // certificate-entry := <Service Name>;<Provider>;<InstanceID>;<Last refresh time>;<Expiration time>;<Hostname>;
+
+        if (certRecords == null || certRecords.isEmpty()) {
+            return details;
+        }
+
+        StringBuilder certDetails = new StringBuilder(256);
+        for (X509CertRecord certRecord : certRecords) {
+            if (certDetails.length() != 0) {
+                certDetails.append('|');
+            }
+
+            String expiryTime =  getTimestampAsString(certRecord.getExpiryTime());
+            String hostName = (certRecord.getHostName() != null) ? certRecord.getHostName() : "";
+            certDetails.append(
+                    certRecord.getService()).append(';')
+                    .append(certRecord.getProvider()).append(';')
+                    .append(certRecord.getInstanceId()).append(';')
+                    .append(getTimestampAsString(certRecord.getCurrentTime())).append(';')
+                    .append(expiryTime).append(';')
+                    .append(hostName);
+        }
+        details.put(NOTIFICATION_DETAILS_UNREFRESHED_CERTS, certDetails.toString());
+        details.put(NOTIFICATION_DETAILS_DOMAIN, domainName);
+        return details;
+    }
+
+
+    private Map<String, List<X509CertRecord>> getDomainToCertRecordsMap(List<X509CertRecord> unrefreshedRecords) {
+        Map<String, List<X509CertRecord>> domainToCertRecords = new HashMap<>();
         for (X509CertRecord x509CertRecord: unrefreshedRecords) {
             String domainName = AthenzUtils.extractPrincipalDomainName(x509CertRecord.getService());
-            DomainData domainData = dataStore.getDomainData(domainName);
+            if (!domainToCertRecords.containsKey(domainName)) {
+                domainToCertRecords.put(domainName, new ArrayList<>());
+            }
+            domainToCertRecords.get(domainName).add(x509CertRecord);
+        }
+        return domainToCertRecords;
+    }
 
-        }*/
+    private String getTimestampAsString(Date date) {
+        return (date != null) ? new Timestamp(date.getTime()).toString() : "";
     }
 
     @Override

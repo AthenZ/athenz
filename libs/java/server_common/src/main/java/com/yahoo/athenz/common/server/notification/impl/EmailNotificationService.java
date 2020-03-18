@@ -66,6 +66,9 @@ public class EmailNotificationService implements NotificationService {
     private static final String PRINCIPAL_EXPIRY_SUBJECT = "athenz.notification.email.principal.expiry.subject";
     private static final String PRINCIPAL_EXPIRY_BODY_ENTRY = "athenz.notification.email.principal.expiry.body.entry";
 
+    private static final String UNREFRESHED_CERTS_SUBJECT = "athenz.notification.email.unrefreshed.certs.subject";
+    private static final String UNREFRESHED_CERTS_BODY_ENTRY = "athenz.notification.email.unrefreshed.certs.body.entry";
+
     private static final int SES_RECIPIENTS_LIMIT_PER_MESSAGE = 50;
 
     // can be moved to constructor which can take Locale as input parameter and return appropriate resource bundle
@@ -75,6 +78,7 @@ public class EmailNotificationService implements NotificationService {
     private static final String EMAIL_TEMPLATE_NOTIFICATION_APPROVAL_REMINDER = "messages/membership-approval-reminder.html";
     private static final String EMAIL_TEMPLATE_DOMAIN_MEMBER_EXPIRY = "messages/domain-member-expiry.html";
     private static final String EMAIL_TEMPLATE_PRINCIPAL_EXPIRY = "messages/principal-expiry.html";
+    private static final String EMAIL_TEMPLATE_UNREFRESHED_CERTS = "messages/unrefreshed-certs.html";
     private static final String EMAIL_TEMPLATE_ATHENZ_LOGO = "emails/athenz-logo-white.png";
     private static final String EMAIL_TEMPLATE_CSS = "emails/base.css";
 
@@ -99,6 +103,7 @@ public class EmailNotificationService implements NotificationService {
     private String emailMembershipApprovalReminderBody;
     private String emailDomainMemberExpiryBody;
     private String emailPrincipalExpiryBody;
+    private String emailUnrefreshedCertsBody;
 
     public EmailNotificationService(EmailProvider emailProvider) {
         this.emailProvider = emailProvider;
@@ -116,6 +121,7 @@ public class EmailNotificationService implements NotificationService {
         emailMembershipApprovalReminderBody = readContentFromFile(EMAIL_TEMPLATE_NOTIFICATION_APPROVAL_REMINDER);
         emailDomainMemberExpiryBody = readContentFromFile(EMAIL_TEMPLATE_DOMAIN_MEMBER_EXPIRY);
         emailPrincipalExpiryBody =  readContentFromFile(EMAIL_TEMPLATE_PRINCIPAL_EXPIRY);
+        emailUnrefreshedCertsBody = readContentFromFile(EMAIL_TEMPLATE_UNREFRESHED_CERTS);
     }
 
     byte[] readBinaryFromFile(String fileName) {
@@ -161,6 +167,9 @@ public class EmailNotificationService implements NotificationService {
             case NOTIFICATION_TYPE_PRINCIPAL_EXPIRY_REMINDER:
                 body = getPrincipalExpiryBody(details);
                 break;
+            case NOTIFICATION_TYPE_UNREFRESHED_CERTS:
+                body = getUnrefreshedCertsBody(details);
+                break;
         }
         body = body.replace(HTML_STYLE_TAG_START + HTML_STYLE_TAG_END, HTML_STYLE_TAG_START + emailBaseCSS + HTML_STYLE_TAG_END);
         return body;
@@ -180,6 +189,9 @@ public class EmailNotificationService implements NotificationService {
                 break;
             case NOTIFICATION_TYPE_PRINCIPAL_EXPIRY_REMINDER:
                 subject = RB.getString(PRINCIPAL_EXPIRY_SUBJECT);
+                break;
+            case NOTIFICATION_TYPE_UNREFRESHED_CERTS:
+                subject = RB.getString(UNREFRESHED_CERTS_SUBJECT);
                 break;
         }
         return subject;
@@ -203,37 +215,55 @@ public class EmailNotificationService implements NotificationService {
                 workflowUrl, athenzUIUrl);
     }
 
-    String getDomainMemberExpiryBody(Map<String, String> metaDetails) {
-
+    private String generateBodyFromTemplate(Map<String, String> metaDetails,
+                                            String bodyTemplate,
+                                            String bodyTemplateDetails,
+                                            String tableValuesKey,
+                                            int tableEntryNumColumns,
+                                            String tableEntryTemplate) {
         // first get the template and replace placeholders
         StringBuilder body = new StringBuilder(256);
-        body.append(MessageFormat.format(emailDomainMemberExpiryBody, metaDetails.get(NOTIFICATION_DETAILS_DOMAIN), athenzUIUrl));
+        body.append(MessageFormat.format(bodyTemplate, metaDetails.get(bodyTemplateDetails), athenzUIUrl));
 
         // then get table rows and replace placeholders
         StringBuilder bodyEntry = new StringBuilder(256);
-        final String roleNames = metaDetails.get(NOTIFICATION_DETAILS_EXPIRY_MEMBERS);
-        processExpiryEntry(bodyEntry, roleNames, RB.getString(DOMAIN_MEMBER_EXPIRY_BODY_ENTRY));
+        final String tableValues = metaDetails.get(tableValuesKey);
+        processEntry(bodyEntry, tableValues, RB.getString(tableEntryTemplate), tableEntryNumColumns);
 
         // add table rows to the template
         return body.toString().replace(HTML_TBODY_TAG_START + HTML_TBODY_TAG_END, HTML_TBODY_TAG_START + bodyEntry + HTML_TBODY_TAG_END);
+    }
+    private String getUnrefreshedCertsBody(Map<String, String> metaDetails) {
+        return generateBodyFromTemplate(
+                metaDetails,
+                emailUnrefreshedCertsBody,
+                NOTIFICATION_DETAILS_DOMAIN,
+                NOTIFICATION_DETAILS_UNREFRESHED_CERTS,
+                6,
+                UNREFRESHED_CERTS_BODY_ENTRY);
+    }
+
+    String getDomainMemberExpiryBody(Map<String, String> metaDetails) {
+        return generateBodyFromTemplate(
+                metaDetails,
+                emailDomainMemberExpiryBody,
+                NOTIFICATION_DETAILS_DOMAIN,
+                NOTIFICATION_DETAILS_EXPIRY_MEMBERS,
+                3,
+                DOMAIN_MEMBER_EXPIRY_BODY_ENTRY);
     }
 
     String getPrincipalExpiryBody(Map<String, String> metaDetails) {
-
-        // first get the template and replace placeholders
-        StringBuilder body = new StringBuilder(256);
-        body.append(MessageFormat.format(emailPrincipalExpiryBody, metaDetails.get(NOTIFICATION_DETAILS_MEMBER), athenzUIUrl));
-
-        // then get table rows and replace placeholders
-        StringBuilder bodyEntry = new StringBuilder(256);
-        final String roleNames = metaDetails.get(NOTIFICATION_DETAILS_EXPIRY_ROLES);
-        processExpiryEntry(bodyEntry, roleNames, RB.getString(PRINCIPAL_EXPIRY_BODY_ENTRY));
-
-        // add table rows to the template
-        return body.toString().replace(HTML_TBODY_TAG_START + HTML_TBODY_TAG_END, HTML_TBODY_TAG_START + bodyEntry + HTML_TBODY_TAG_END);
+        return generateBodyFromTemplate(
+                metaDetails,
+                emailPrincipalExpiryBody,
+                NOTIFICATION_DETAILS_MEMBER,
+                NOTIFICATION_DETAILS_EXPIRY_ROLES,
+                3,
+                PRINCIPAL_EXPIRY_BODY_ENTRY);
     }
 
-    void processExpiryEntry(StringBuilder body, final String entryNames, final String entryFormat) {
+    void processEntry(StringBuilder body, final String entryNames, final String entryFormat, int entryLength) {
         // if we have no entry names then there is nothing to process
         if (entryNames == null) {
             return;
@@ -241,10 +271,10 @@ public class EmailNotificationService implements NotificationService {
         String[] entries = entryNames.split("\\|");
         for (String entry : entries) {
             String[] comps = entry.split(";");
-            if (comps.length != 3) {
+            if (comps.length != entryLength) {
                 continue;
             }
-            body.append(MessageFormat.format(entryFormat, comps[0], comps[1], comps[2]));
+            body.append(MessageFormat.format(entryFormat, comps));
             body.append('\n');
         }
     }
