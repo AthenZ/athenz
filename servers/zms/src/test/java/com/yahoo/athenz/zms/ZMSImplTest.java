@@ -1834,12 +1834,13 @@ public class ZMSImplTest {
         
         System.setProperty(ZMSConsts.ZMS_PROP_PRODUCT_ID_SUPPORT, "true");
         ZMSImpl zmsImpl = zmsInit();
-        
-        TopLevelDomain dom = createTopLevelDomainObject("MetaDomProductid",
+
+        final String domainName = "MetaDomProductid";
+        TopLevelDomain dom = createTopLevelDomainObject(domainName,
                 "Test Domain", "testOrg", adminUser);
         zmsImpl.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom);
 
-        Domain resDom = zmsImpl.getDomain(mockDomRsrcCtx, "MetaDomProductid");
+        Domain resDom = zmsImpl.getDomain(mockDomRsrcCtx, domainName);
         assertNotNull(resDom);
         assertEquals(resDom.getDescription(), "Test Domain");
         assertEquals(resDom.getOrg(), "testorg");
@@ -1847,11 +1848,11 @@ public class ZMSImplTest {
         assertFalse(resDom.getAuditEnabled());
         Integer productId = resDom.getYpmId();
 
-        setupPrincipalSystemMetaDelete(zms, mockDomRsrcCtx.principal().getFullName(), "metadomproductid", "productid");
+        setupPrincipalSystemMetaDelete(zms, mockDomRsrcCtx.principal().getFullName(), domainName, "productid");
         DomainMeta meta = createDomainMetaObject("Test2 Domain", "NewOrg",
                 true, true, "12345", null);
         try {
-            zmsImpl.putDomainSystemMeta(mockDomRsrcCtx, "MetaDomProductid", "productid", auditRef, meta);
+            zmsImpl.putDomainSystemMeta(mockDomRsrcCtx, domainName, "productid", auditRef, meta);
             fail("bad request exc not thrown");
         } catch (ResourceException exc) {
             assertEquals(400, exc.getCode());
@@ -1870,11 +1871,53 @@ public class ZMSImplTest {
         meta = createDomainMetaObject("Test3 Domain", "NewOrg",
                 true, true, "12345", productId2);
         try {
-            zmsImpl.putDomainSystemMeta(mockDomRsrcCtx, "MetaDomProductid", "productid", auditRef, meta);
+            zmsImpl.putDomainSystemMeta(mockDomRsrcCtx, domainName, "productid", auditRef, meta);
             fail("bad request exc not thrown");
         } catch (ResourceException exc) {
             assertEquals(400, exc.getCode());
             assertTrue(exc.getMessage().contains("is already assigned to domain"));
+        }
+
+        // test negative values
+
+        meta = new DomainMeta().setServiceExpiryDays(-10);
+        try {
+            zmsImpl.putDomainMeta(mockDomRsrcCtx, domainName, auditRef, meta);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        meta = new DomainMeta().setMemberExpiryDays(-10);
+        try {
+            zmsImpl.putDomainMeta(mockDomRsrcCtx, domainName, auditRef, meta);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        meta = new DomainMeta().setRoleCertExpiryMins(-10);
+        try {
+            zmsImpl.putDomainMeta(mockDomRsrcCtx, domainName, auditRef, meta);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        meta = new DomainMeta().setServiceCertExpiryMins(-10);
+        try {
+            zmsImpl.putDomainMeta(mockDomRsrcCtx, domainName, auditRef, meta);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        meta = new DomainMeta().setTokenExpiryMins(-10);
+        try {
+            zmsImpl.putDomainMeta(mockDomRsrcCtx, domainName, auditRef, meta);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
         }
 
         cleanupPrincipalSystemMetaDelete(zms);
@@ -16433,6 +16476,46 @@ public class ZMSImplTest {
         assertEquals(resRole1.getCertExpiryMins(), Integer.valueOf(0));
         assertEquals(resRole1.getTokenExpiryMins(), Integer.valueOf(85));
 
+        // invalid negative values
+
+        RoleMeta rm4 = createRoleMetaObject(false);
+        rm4.setMemberExpiryDays(-10);
+        try {
+            zms.putRoleMeta(mockDomRsrcCtx, "rolemetadom1", "role1", auditRef, rm4);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        rm4.setMemberExpiryDays(10);
+        rm4.setServiceExpiryDays(-10);
+        try {
+            zms.putRoleMeta(mockDomRsrcCtx, "rolemetadom1", "role1", auditRef, rm4);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        rm4.setMemberExpiryDays(10);
+        rm4.setServiceExpiryDays(10);
+        rm4.setCertExpiryMins(-10);
+        try {
+            zms.putRoleMeta(mockDomRsrcCtx, "rolemetadom1", "role1", auditRef, rm4);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        rm4.setMemberExpiryDays(10);
+        rm4.setServiceExpiryDays(10);
+        rm4.setCertExpiryMins(10);
+        rm4.setTokenExpiryMins(-10);
+        try {
+            zms.putRoleMeta(mockDomRsrcCtx, "rolemetadom1", "role1", auditRef, rm4);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "rolemetadom1", auditRef);
     }
 
@@ -18252,5 +18335,24 @@ public class ZMSImplTest {
         zms.privateKey = null;
         assertNull(zms.signJwsDomain(null));
         zms.privateKey = pkey;
+    }
+
+    @Test
+    public void testValidateIntegerValue() {
+
+        // valid values
+
+        zms.validateIntegerValue(Integer.valueOf(10), "positive");
+        zms.validateIntegerValue(Integer.valueOf(0), "zero");
+        zms.validateIntegerValue(null, "null");
+
+        // invalid value
+
+        try {
+            zms.validateIntegerValue(Integer.valueOf(-1), "negative");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
     }
 }

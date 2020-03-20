@@ -1660,6 +1660,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validate(meta, TYPE_DOMAIN_META, caller);
         validateString(meta.getApplicationId(), TYPE_COMPOUND_NAME, caller);
 
+        // validate meta values - for now we're making sure we're not
+        // getting any negative values for our integer settings
+
+        validateDomainMetaValues(meta);
+
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case (e.g. domain, role,
         // policy, service, etc name)
@@ -1687,6 +1692,28 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         metric.stopTiming(timerMetric, domainName, principalDomain);
     }
 
+    void validateIntegerValue(final Integer value, final String fieldName) {
+        if (value != null && value < 0) {
+            throw ZMSUtils.requestError(fieldName + " cannot be negative", "validateMetaFields");
+        }
+    }
+
+    void validateDomainMetaValues(DomainMeta meta) {
+        validateIntegerValue(meta.getServiceCertExpiryMins(), "serviceCertExpiryMins");
+        validateIntegerValue(meta.getMemberExpiryDays(), "memberExpiryDays");
+        validateIntegerValue(meta.getRoleCertExpiryMins(), "roleCertExpiryMins");
+        validateIntegerValue(meta.getServiceExpiryDays(), "serviceExpiryDays");
+        validateIntegerValue(meta.getTokenExpiryMins(), "tokenExpiryMins");
+        validateIntegerValue(meta.getYpmId(), "ypmId");
+    }
+
+    void validateRoleMetaValues(RoleMeta meta) {
+        validateIntegerValue(meta.getMemberExpiryDays(), "memberExpiryDays");
+        validateIntegerValue(meta.getServiceExpiryDays(), "serviceExpiryDays");
+        validateIntegerValue(meta.getTokenExpiryMins(), "tokenExpiryMins");
+        validateIntegerValue(meta.getCertExpiryMins(), "certExpiryMins");
+    }
+
     @Override
     public void putDomainSystemMeta(ResourceContext ctx, String domainName, String attribute,
             String auditRef, DomainMeta meta) {
@@ -1704,6 +1731,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validate(meta, TYPE_DOMAIN_META, caller);
         validate(attribute, TYPE_SIMPLE_NAME, caller);
         validateString(meta.getAccount(), TYPE_COMPOUND_NAME, caller);
+
+        // validate meta values - for now we're making sure we're not
+        // getting any negative values for our integer settings
+
+        validateDomainMetaValues(meta);
 
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case (e.g. domain, role,
@@ -7214,6 +7246,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(roleName, TYPE_ENTITY_NAME, caller);
         validate(meta, TYPE_ROLE_META, caller);
+
+        // validate meta values - for now we're making sure we're not
+        // getting any negative values for our integer settings
+
+        validateRoleMetaValues(meta);
 
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case (e.g. domain, role,
