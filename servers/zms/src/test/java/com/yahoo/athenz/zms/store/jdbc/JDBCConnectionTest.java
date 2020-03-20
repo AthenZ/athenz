@@ -5507,17 +5507,27 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_PRODUCT_ID))
                 .thenReturn("1234").thenReturn("1235").thenReturn("1236"); // 3 domains
         Mockito.doReturn(new java.sql.Timestamp(1454358916)).when(mockResultSet).getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED);
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_DESCRIPTION)).thenReturn("");
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ORG)).thenReturn("");
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_UUID)).thenReturn("");
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_DESCRIPTION)).thenReturn("");
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_DESCRIPTION)).thenReturn("");
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_DESCRIPTION)).thenReturn("");
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_SIGN_ALGORITHM)).thenReturn("rsa");
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_CERT_DNS_DOMAIN)).thenReturn("");
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_APPLICATION_ID)).thenReturn("");
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_NOTIFY_ROLES)).thenReturn("");
 
-        DomainModifiedList list = jdbcConn.listModifiedDomains(1454358900);
+        DomainMetaList list = jdbcConn.listModifiedDomains(1454358900);
         
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(ArgumentMatchers.eq(1),
                 ArgumentMatchers.eq(new java.sql.Timestamp(1454358900)), ArgumentMatchers.isA(Calendar.class));
         
-        assertEquals(3, list.getNameModList().size());
+        assertEquals(3, list.getDomains().size());
         boolean domain1Found = false;
         boolean domain2Found = false;
         boolean domain3Found = false;
-        for (DomainModified dom : list.getNameModList()) {
+        for (Domain dom : list.getDomains()) {
             switch (dom.getName()) {
                 case "domain1":
                     domain1Found = true;
@@ -5543,8 +5553,8 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Mockito.when(mockResultSet.next()).thenReturn(false); // no entries
 
-        DomainModifiedList list = jdbcConn.listModifiedDomains(1454358900);
-        assertEquals(0, list.getNameModList().size());
+        DomainMetaList list = jdbcConn.listModifiedDomains(1454358900);
+        assertEquals(0, list.getDomains().size());
         
         jdbcConn.close();
     }

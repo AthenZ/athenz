@@ -7,20 +7,6 @@ include "ServiceIdentity.tdl";
 include "Entity.tdl";
 include "Domain.tdl";
 
-//Tuple of domain-name and modification time-stamps. This object is returned
-//when the caller has requested list of domains modified since a specific timestamp.
-type DomainModified Struct {
-    DomainName name; //name of the domain
-    Int64 modified; //last modified timestamp of the domain
-    String account (optional); //associated cloud (i.e. aws) account id
-    Int32 ypmId (optional); //associated product id
-}
-
-//A list of {domain, modified-timestamp} tuples.
-type DomainModifiedList Struct {
-    Array<DomainModified> nameModList; //list of modified domains
-}
-
 //We need to include the name of the domain in this struct since
 //this data will be passed back to ZPU through ZTS so we need to
 //sign not only the list of policies but also the corresponding

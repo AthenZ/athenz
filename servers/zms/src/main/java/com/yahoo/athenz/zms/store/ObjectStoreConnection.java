@@ -44,7 +44,7 @@ public interface ObjectStoreConnection extends Closeable {
     List<String> lookupDomainByRole(String roleMember, String roleName);
     
     AthenzDomain getAthenzDomain(String domainName);
-    DomainModifiedList listModifiedDomains(long modifiedSince);
+    DomainMetaList listModifiedDomains(long modifiedSince);
 
     // Principal commands
     

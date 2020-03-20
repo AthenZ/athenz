@@ -113,6 +113,11 @@ func init() {
 	tDomain.Field("id", "UUID", true, nil, "unique identifier of the domain. generated on create, never reused")
 	sb.AddType(tDomain.Build())
 
+	tDomainMetaList := rdl.NewStructTypeBuilder("Struct", "DomainMetaList")
+	tDomainMetaList.Comment("A list of domain objects with their meta attributes.")
+	tDomainMetaList.ArrayField("domains", "Domain", false, "list of domain objects")
+	sb.AddType(tDomainMetaList.Build())
+
 	tRoleList := rdl.NewStructTypeBuilder("Struct", "RoleList")
 	tRoleList.Comment("The representation for an enumeration of roles in the namespace, with pagination.")
 	tRoleList.ArrayField("names", "EntityName", false, "list of role names")
@@ -403,19 +408,6 @@ func init() {
 	tResourceAccessList := rdl.NewStructTypeBuilder("Struct", "ResourceAccessList")
 	tResourceAccessList.ArrayField("resources", "ResourceAccess", false, "")
 	sb.AddType(tResourceAccessList.Build())
-
-	tDomainModified := rdl.NewStructTypeBuilder("Struct", "DomainModified")
-	tDomainModified.Comment("Tuple of domain-name and modification time-stamps. This object is returned when the caller has requested list of domains modified since a specific timestamp.")
-	tDomainModified.Field("name", "DomainName", false, nil, "name of the domain")
-	tDomainModified.Field("modified", "Int64", false, nil, "last modified timestamp of the domain")
-	tDomainModified.Field("account", "String", true, nil, "associated cloud (i.e. aws) account id")
-	tDomainModified.Field("ypmId", "Int32", true, nil, "associated product id")
-	sb.AddType(tDomainModified.Build())
-
-	tDomainModifiedList := rdl.NewStructTypeBuilder("Struct", "DomainModifiedList")
-	tDomainModifiedList.Comment("A list of {domain, modified-timestamp} tuples.")
-	tDomainModifiedList.ArrayField("nameModList", "DomainModified", false, "list of modified domains")
-	sb.AddType(tDomainModifiedList.Build())
 
 	tDomainPolicies := rdl.NewStructTypeBuilder("Struct", "DomainPolicies")
 	tDomainPolicies.Comment("We need to include the name of the domain in this struct since this data will be passed back to ZPU through ZTS so we need to sign not only the list of policies but also the corresponding domain name that the policies belong to.")

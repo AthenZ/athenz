@@ -1654,65 +1654,25 @@ public class ZMSCoreTest {
     }
 
     @Test
-    public void testDomainModifiedListMethod() {
+    public void testDomainMetaList() {
         Schema schema = ZMSSchema.instance();
         Validator validator = new Validator(schema);
 
-        // DomainModified test
-        DomainModified dm = new DomainModified().setName("test.domain")
-                .setModified(123456789123L)
-                .setAccount("1234")
-                .setYpmId(1001);
-        assertTrue(dm.equals(dm));
-
-        Result result = validator.validate(dm, "DomainModified");
-        assertTrue(result.valid);
-
-        assertEquals(dm.getName(), "test.domain");
-        assertEquals(dm.getModified(), 123456789123L);
-        assertEquals(dm.getAccount(), "1234");
-        assertEquals(dm.getYpmId().intValue(), 1001);
-
-        DomainModified dm2 = new DomainModified().setName("test.domain")
-                .setModified(123456789123L)
-                .setAccount("1234")
-                .setYpmId(1001);
-        assertTrue(dm2.equals(dm));
-
-        dm2.setYpmId(1002);
-        assertFalse(dm2.equals(dm));
-        dm2.setYpmId(null);
-        assertFalse(dm2.equals(dm));
-
-        dm2.setAccount("1235");
-        assertFalse(dm2.equals(dm));
-        dm2.setAccount(null);
-        assertFalse(dm2.equals(dm));
-
-        dm2.setModified(123456789124L);
-        assertFalse(dm2.equals(dm));
-        dm2.setModified(0);
-        assertFalse(dm2.equals(dm));
-
-        dm2.setName(null);
-        assertFalse(dm2.equals(dm));
-
-        assertFalse(dm2.equals(null));
-
         // DomainModifiedList test
-        List<DomainModified> dml = Arrays.asList(dm);
+        Domain dm = new Domain().setName("athenz");
+        List<Domain> dml = Arrays.asList(dm);
 
-        DomainModifiedList dmlist = new DomainModifiedList().setNameModList(dml);
-        result = validator.validate(dmlist, "DomainModifiedList");
+        DomainMetaList dmlist = new DomainMetaList().setDomains(dml);
+        Result result = validator.validate(dmlist, "DomainMetaList");
         assertTrue(result.valid);
 
-        assertEquals(dmlist.getNameModList(), dml);
+        assertEquals(dmlist.getDomains(), dml);
 
-        DomainModifiedList dmlist2 = new DomainModifiedList().setNameModList(dml);
+        DomainMetaList dmlist2 = new DomainMetaList().setDomains(dml);
         assertTrue(dmlist2.equals(dmlist));
         assertTrue(dmlist.equals(dmlist));
 
-        dmlist2.setNameModList(null);
+        dmlist2.setDomains(null);
         assertFalse(dmlist2.equals(dmlist));
 
         assertFalse(dmlist.equals(null));

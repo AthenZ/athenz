@@ -33,3 +33,8 @@ type Domain DomainMeta {
     Timestamp modified (optional); //the last modification timestamp of any object or attribute in this domain
     UUID id (optional); //unique identifier of the domain. generated on create, never reused
 }
+
+//A list of domain objects with their meta attributes.
+type DomainMetaList Struct {
+    Array<Domain> domains; //list of domain objects
+}
