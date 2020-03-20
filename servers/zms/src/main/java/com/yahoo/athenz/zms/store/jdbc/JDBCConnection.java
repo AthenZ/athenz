@@ -55,9 +55,9 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_UPDATE_DOMAIN_MOD_TIMESTAMP = "UPDATE domain "
             + "SET modified=CURRENT_TIMESTAMP(3) WHERE name=?;";
     private static final String SQL_GET_DOMAIN_MOD_TIMESTAMP = "SELECT modified FROM domain WHERE name=?;";
-    private static final String SQL_LIST_DOMAIN = "SELECT name, modified, account, ypm_id FROM domain;";
+    private static final String SQL_LIST_DOMAIN = "SELECT * FROM domain;";
     private static final String SQL_LIST_DOMAIN_PREFIX = "SELECT name, modified FROM domain WHERE name>=? AND name<?;";
-    private static final String SQL_LIST_DOMAIN_MODIFIED = "SELECT name, modified, account, ypm_id FROM domain WHERE modified>?;";
+    private static final String SQL_LIST_DOMAIN_MODIFIED = "SELECT * FROM domain WHERE modified>?;";
     private static final String SQL_LIST_DOMAIN_PREFIX_MODIFIED = "SELECT name, modified FROM domain "
             + "WHERE name>=? AND name<? AND modified>?;";
     private static final String SQL_LIST_DOMAIN_ROLE_NAME_MEMBER = "SELECT domain.name FROM domain "
@@ -80,7 +80,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_INSERT_ROLE = "INSERT INTO role (name, domain_id, trust, audit_enabled, self_serve,"
             + " member_expiry_days, token_expiry_mins, cert_expiry_mins, sign_algorithm, service_expiry_days,"
             + " review_enabled, notify_roles) VALUES (?,?,?,?,?,?,?,?,?,?,?,?);";
-    private static final String SQL_UPDATE_ROLE = "UPDATE role SET trust=?,audit_enabled=?, self_serve=?, "
+    private static final String SQL_UPDATE_ROLE = "UPDATE role SET trust=?, audit_enabled=?, self_serve=?, "
             + "member_expiry_days=?, token_expiry_mins=?, cert_expiry_mins=?, sign_algorithm=?, "
             + "service_expiry_days=?, review_enabled=?, notify_roles=? WHERE role_id=?;";
     private static final String SQL_DELETE_ROLE = "DELETE FROM role WHERE domain_id=? AND name=?;";
@@ -422,28 +422,24 @@ public class JDBCConnection implements ObjectStoreConnection {
         return ps.executeQuery();
     }
 
-    Domain saveDomainSettings(String domainName, ResultSet rs, String caller) {
-        try {
-            return new Domain().setName(domainName)
-                    .setAuditEnabled(rs.getBoolean(ZMSConsts.DB_COLUMN_AUDIT_ENABLED))
-                    .setEnabled(rs.getBoolean(ZMSConsts.DB_COLUMN_ENABLED))
-                    .setModified(Timestamp.fromMillis(rs.getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED).getTime()))
-                    .setDescription(saveValue(rs.getString(ZMSConsts.DB_COLUMN_DESCRIPTION)))
-                    .setOrg(saveValue(rs.getString(ZMSConsts.DB_COLUMN_ORG)))
-                    .setId(saveUuidValue(rs.getString(ZMSConsts.DB_COLUMN_UUID)))
-                    .setAccount(saveValue(rs.getString(ZMSConsts.DB_COLUMN_ACCOUNT)))
-                    .setYpmId(rs.getInt(ZMSConsts.DB_COLUMN_PRODUCT_ID))
-                    .setCertDnsDomain(saveValue(rs.getString(ZMSConsts.DB_COLUMN_CERT_DNS_DOMAIN)))
-                    .setMemberExpiryDays(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_MEMBER_EXPIRY_DAYS), 0))
-                    .setTokenExpiryMins(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_TOKEN_EXPIRY_MINS), 0))
-                    .setRoleCertExpiryMins(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_ROLE_CERT_EXPIRY_MINS), 0))
-                    .setServiceCertExpiryMins(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_SERVICE_CERT_EXPIRY_MINS), 0))
-                    .setApplicationId(saveValue(rs.getString(ZMSConsts.DB_COLUMN_APPLICATION_ID)))
-                    .setSignAlgorithm(saveValue(rs.getString(ZMSConsts.DB_COLUMN_SIGN_ALGORITHM)))
-                    .setServiceExpiryDays(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_SERVICE_EXPIRY_DAYS), 0));
-        } catch (SQLException ex) {
-            throw sqlError(ex, caller);
-        }
+    Domain saveDomainSettings(String domainName, ResultSet rs) throws SQLException {
+        return new Domain().setName(domainName)
+                .setAuditEnabled(rs.getBoolean(ZMSConsts.DB_COLUMN_AUDIT_ENABLED))
+                .setEnabled(rs.getBoolean(ZMSConsts.DB_COLUMN_ENABLED))
+                .setModified(Timestamp.fromMillis(rs.getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED).getTime()))
+                .setDescription(saveValue(rs.getString(ZMSConsts.DB_COLUMN_DESCRIPTION)))
+                .setOrg(saveValue(rs.getString(ZMSConsts.DB_COLUMN_ORG)))
+                .setId(saveUuidValue(rs.getString(ZMSConsts.DB_COLUMN_UUID)))
+                .setAccount(saveValue(rs.getString(ZMSConsts.DB_COLUMN_ACCOUNT)))
+                .setYpmId(rs.getInt(ZMSConsts.DB_COLUMN_PRODUCT_ID))
+                .setCertDnsDomain(saveValue(rs.getString(ZMSConsts.DB_COLUMN_CERT_DNS_DOMAIN)))
+                .setMemberExpiryDays(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_MEMBER_EXPIRY_DAYS), 0))
+                .setTokenExpiryMins(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_TOKEN_EXPIRY_MINS), 0))
+                .setRoleCertExpiryMins(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_ROLE_CERT_EXPIRY_MINS), 0))
+                .setServiceCertExpiryMins(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_SERVICE_CERT_EXPIRY_MINS), 0))
+                .setApplicationId(saveValue(rs.getString(ZMSConsts.DB_COLUMN_APPLICATION_ID)))
+                .setSignAlgorithm(saveValue(rs.getString(ZMSConsts.DB_COLUMN_SIGN_ALGORITHM)))
+                .setServiceExpiryDays(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_SERVICE_EXPIRY_DAYS), 0));
     }
     
     @Override
@@ -454,7 +450,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(1, domainName);
             try (ResultSet rs = executeQuery(ps, caller)) {
                 if (rs.next()) {
-                    return saveDomainSettings(domainName, rs, caller);
+                    return saveDomainSettings(domainName, rs);
                 }
             }
         } catch (SQLException ex) {
@@ -3010,8 +3006,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(1, domainName);
             try (ResultSet rs = executeQuery(ps, caller)) {
                 if (rs.next()) {
-                    Domain domain = saveDomainSettings(domainName, rs, caller);
-                    athenzDomain.setDomain(domain);
+                    athenzDomain.setDomain(saveDomainSettings(domainName, rs));
                     domainId = rs.getInt(ZMSConsts.DB_COLUMN_DOMAIN_ID);
                 }
             }
@@ -3031,29 +3026,25 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
     
     @Override
-    public DomainModifiedList listModifiedDomains(long modifiedSince) {
+    public DomainMetaList listModifiedDomains(long modifiedSince) {
         
         final String caller = "listModifiedDomains";
 
-        DomainModifiedList domainModifiedList = new DomainModifiedList();
-        List<DomainModified> nameMods = new ArrayList<>();
+        DomainMetaList domainModifiedList = new DomainMetaList();
+        List<Domain> nameMods = new ArrayList<>();
 
         try (PreparedStatement ps = prepareDomainScanStatement(null, modifiedSince)) {
             try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
-                    DomainModified dm = new DomainModified()
-                            .setName(rs.getString(ZMSConsts.DB_COLUMN_NAME))
-                            .setModified(rs.getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED).getTime())
-                            .setAccount(saveValue(rs.getString(ZMSConsts.DB_COLUMN_ACCOUNT)))
-                            .setYpmId(rs.getInt(ZMSConsts.DB_COLUMN_PRODUCT_ID));
-                    nameMods.add(dm);
+                    final String domainName = rs.getString(ZMSConsts.DB_COLUMN_NAME);
+                    nameMods.add(saveDomainSettings(domainName, rs));
                 }
             }
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
     
-        domainModifiedList.setNameModList(nameMods);
+        domainModifiedList.setDomains(nameMods);
         return domainModifiedList;
     }
     

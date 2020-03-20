@@ -463,6 +463,66 @@ func (self *Domain) Validate() error {
 }
 
 //
+// DomainMetaList - A list of domain objects with their meta attributes.
+//
+type DomainMetaList struct {
+
+	//
+	// list of domain objects
+	//
+	Domains []*Domain `json:"domains"`
+}
+
+//
+// NewDomainMetaList - creates an initialized DomainMetaList instance, returns a pointer to it
+//
+func NewDomainMetaList(init ...*DomainMetaList) *DomainMetaList {
+	var o *DomainMetaList
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(DomainMetaList)
+	}
+	return o.Init()
+}
+
+//
+// Init - sets up the instance according to its default field values, if any
+//
+func (self *DomainMetaList) Init() *DomainMetaList {
+	if self.Domains == nil {
+		self.Domains = make([]*Domain, 0)
+	}
+	return self
+}
+
+type rawDomainMetaList DomainMetaList
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a DomainMetaList
+//
+func (self *DomainMetaList) UnmarshalJSON(b []byte) error {
+	var m rawDomainMetaList
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := DomainMetaList(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *DomainMetaList) Validate() error {
+	if self.Domains == nil {
+		return fmt.Errorf("DomainMetaList: Missing required field: domains")
+	}
+	return nil
+}
+
+//
 // RoleList - The representation for an enumeration of roles in the namespace,
 // with pagination.
 //
@@ -4200,144 +4260,6 @@ func (self *ResourceAccessList) UnmarshalJSON(b []byte) error {
 func (self *ResourceAccessList) Validate() error {
 	if self.Resources == nil {
 		return fmt.Errorf("ResourceAccessList: Missing required field: resources")
-	}
-	return nil
-}
-
-//
-// DomainModified - Tuple of domain-name and modification time-stamps. This
-// object is returned when the caller has requested list of domains modified
-// since a specific timestamp.
-//
-type DomainModified struct {
-
-	//
-	// name of the domain
-	//
-	Name DomainName `json:"name"`
-
-	//
-	// last modified timestamp of the domain
-	//
-	Modified int64 `json:"modified"`
-
-	//
-	// associated cloud (i.e. aws) account id
-	//
-	Account string `json:"account,omitempty" rdl:"optional"`
-
-	//
-	// associated product id
-	//
-	YpmId *int32 `json:"ypmId,omitempty" rdl:"optional"`
-}
-
-//
-// NewDomainModified - creates an initialized DomainModified instance, returns a pointer to it
-//
-func NewDomainModified(init ...*DomainModified) *DomainModified {
-	var o *DomainModified
-	if len(init) == 1 {
-		o = init[0]
-	} else {
-		o = new(DomainModified)
-	}
-	return o
-}
-
-type rawDomainModified DomainModified
-
-//
-// UnmarshalJSON is defined for proper JSON decoding of a DomainModified
-//
-func (self *DomainModified) UnmarshalJSON(b []byte) error {
-	var m rawDomainModified
-	err := json.Unmarshal(b, &m)
-	if err == nil {
-		o := DomainModified(m)
-		*self = o
-		err = self.Validate()
-	}
-	return err
-}
-
-//
-// Validate - checks for missing required fields, etc
-//
-func (self *DomainModified) Validate() error {
-	if self.Name == "" {
-		return fmt.Errorf("DomainModified.name is missing but is a required field")
-	} else {
-		val := rdl.Validate(ZMSSchema(), "DomainName", self.Name)
-		if !val.Valid {
-			return fmt.Errorf("DomainModified.name does not contain a valid DomainName (%v)", val.Error)
-		}
-	}
-	if self.Account != "" {
-		val := rdl.Validate(ZMSSchema(), "String", self.Account)
-		if !val.Valid {
-			return fmt.Errorf("DomainModified.account does not contain a valid String (%v)", val.Error)
-		}
-	}
-	return nil
-}
-
-//
-// DomainModifiedList - A list of {domain, modified-timestamp} tuples.
-//
-type DomainModifiedList struct {
-
-	//
-	// list of modified domains
-	//
-	NameModList []*DomainModified `json:"nameModList"`
-}
-
-//
-// NewDomainModifiedList - creates an initialized DomainModifiedList instance, returns a pointer to it
-//
-func NewDomainModifiedList(init ...*DomainModifiedList) *DomainModifiedList {
-	var o *DomainModifiedList
-	if len(init) == 1 {
-		o = init[0]
-	} else {
-		o = new(DomainModifiedList)
-	}
-	return o.Init()
-}
-
-//
-// Init - sets up the instance according to its default field values, if any
-//
-func (self *DomainModifiedList) Init() *DomainModifiedList {
-	if self.NameModList == nil {
-		self.NameModList = make([]*DomainModified, 0)
-	}
-	return self
-}
-
-type rawDomainModifiedList DomainModifiedList
-
-//
-// UnmarshalJSON is defined for proper JSON decoding of a DomainModifiedList
-//
-func (self *DomainModifiedList) UnmarshalJSON(b []byte) error {
-	var m rawDomainModifiedList
-	err := json.Unmarshal(b, &m)
-	if err == nil {
-		o := DomainModifiedList(m)
-		*self = *((&o).Init())
-		err = self.Validate()
-	}
-	return err
-}
-
-//
-// Validate - checks for missing required fields, etc
-//
-func (self *DomainModifiedList) Validate() error {
-	if self.NameModList == nil {
-		return fmt.Errorf("DomainModifiedList: Missing required field: nameModList")
 	}
 	return nil
 }

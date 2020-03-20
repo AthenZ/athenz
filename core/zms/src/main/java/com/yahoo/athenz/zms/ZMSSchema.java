@@ -97,6 +97,10 @@ public class ZMSSchema {
             .field("modified", "Timestamp", true, "the last modification timestamp of any object or attribute in this domain")
             .field("id", "UUID", true, "unique identifier of the domain. generated on create, never reused");
 
+        sb.structType("DomainMetaList")
+            .comment("A list of domain objects with their meta attributes.")
+            .arrayField("domains", "Domain", false, "list of domain objects");
+
         sb.structType("RoleList")
             .comment("The representation for an enumeration of roles in the namespace, with pagination.")
             .arrayField("names", "EntityName", false, "list of role names")
@@ -344,17 +348,6 @@ public class ZMSSchema {
 
         sb.structType("ResourceAccessList")
             .arrayField("resources", "ResourceAccess", false, "");
-
-        sb.structType("DomainModified")
-            .comment("Tuple of domain-name and modification time-stamps. This object is returned when the caller has requested list of domains modified since a specific timestamp.")
-            .field("name", "DomainName", false, "name of the domain")
-            .field("modified", "Int64", false, "last modified timestamp of the domain")
-            .field("account", "String", true, "associated cloud (i.e. aws) account id")
-            .field("ypmId", "Int32", true, "associated product id");
-
-        sb.structType("DomainModifiedList")
-            .comment("A list of {domain, modified-timestamp} tuples.")
-            .arrayField("nameModList", "DomainModified", false, "list of modified domains");
 
         sb.structType("DomainPolicies")
             .comment("We need to include the name of the domain in this struct since this data will be passed back to ZPU through ZTS so we need to sign not only the list of policies but also the corresponding domain name that the policies belong to.")

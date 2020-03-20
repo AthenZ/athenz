@@ -359,10 +359,10 @@ public class FileConnection implements ObjectStoreConnection {
     }
 
     @Override
-    public DomainModifiedList listModifiedDomains(long modifiedSince) {
+    public DomainMetaList listModifiedDomains(long modifiedSince) {
 
-        DomainModifiedList domainModifiedList = new DomainModifiedList();
-        List<DomainModified> nameMods = new ArrayList<>();
+        DomainMetaList domainModifiedList = new DomainMetaList();
+        List<Domain> nameMods = new ArrayList<>();
 
         List<String> domainList = listDomains(null, modifiedSince);
 
@@ -377,14 +377,10 @@ public class FileConnection implements ObjectStoreConnection {
             if (ts <= modifiedSince) {
                 continue;
             }
-            DomainModified dm = new DomainModified().setName(dname)
-                    .setModified(ts)
-                    .setYpmId(domainStruct.getMeta().getYpmId())
-                    .setAccount(domainStruct.getMeta().getAccount());
-            nameMods.add(dm);
+            nameMods.add(getDomain(domainStruct));
         }
 
-        domainModifiedList.setNameModList(nameMods);
+        domainModifiedList.setDomains(nameMods);
         return domainModifiedList;
     }
 

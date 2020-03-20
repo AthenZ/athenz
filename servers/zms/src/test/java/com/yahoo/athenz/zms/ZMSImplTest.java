@@ -9568,13 +9568,13 @@ public class ZMSImplTest {
                 "Test Domain2", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
 
-        DomainModifiedList domModList = zms.dbService.listModifiedDomains(0);
+        DomainMetaList domModList = zms.dbService.listModifiedDomains(0);
         assertNotNull(domModList);
-        assertTrue(domModList.getNameModList().size() > 1);
+        assertTrue(domModList.getDomains().size() > 1);
 
         boolean dom1Found = false;
         boolean dom2Found = false;
-        for (DomainModified domName : domModList.getNameModList()) {
+        for (Domain domName : domModList.getDomains()) {
             if (domName.getName().equalsIgnoreCase("ListDomMod1")) {
                 dom1Found = true;
             } else if (domName.getName().equalsIgnoreCase("ListDomMod2")) {
@@ -9602,13 +9602,13 @@ public class ZMSImplTest {
                 "Test Domain2", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
 
-        DomainModifiedList domModList = zms.dbService.listModifiedDomains(timestamp);
+        DomainMetaList domModList = zms.dbService.listModifiedDomains(timestamp);
         assertNotNull(domModList);
-        assertTrue(domModList.getNameModList().size() > 1);
+        assertTrue(domModList.getDomains().size() > 1);
 
         boolean dom1Found = false;
         boolean dom2Found = false;
-        for (DomainModified domName : domModList.getNameModList()) {
+        for (Domain domName : domModList.getDomains()) {
             if (domName.getName().equalsIgnoreCase("ListDomMod1")) {
                 dom1Found = true;
             } else if (domName.getName().equalsIgnoreCase("ListDomMod2")) {
@@ -9622,7 +9622,7 @@ public class ZMSImplTest {
         timestamp += 10000; // add 10 seconds
         domModList = zms.dbService.listModifiedDomains(timestamp);
         assertNotNull(domModList);
-        assertEquals(0, domModList.getNameModList().size());
+        assertEquals(0, domModList.getDomains().size());
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "ListDomMod1", auditRef);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "ListDomMod2", auditRef);
@@ -15602,30 +15602,43 @@ public class ZMSImplTest {
     public void testRetrieveSignedDomainMeta() {
 
         ZMSImpl zmsImpl = zmsInit();
-        SignedDomain domain = zmsImpl.retrieveSignedDomainMeta("dom1", 1001, "1234", 123, null);
+        Domain domainMeta = new Domain().setName("dom1").setYpmId(123).setModified(Timestamp.fromCurrentTime())
+                .setAccount("1234").setAuditEnabled(true).setOrg("org");
+        SignedDomain domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, null);
         assertNull(domain.getDomain().getAccount());
         assertNull(domain.getDomain().getYpmId());
 
-        domain = zmsImpl.retrieveSignedDomainMeta("dom1", 1001, "1234", 123, "unknown");
+        domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "unknown");
         assertNull(domain.getDomain().getAccount());
         assertNull(domain.getDomain().getYpmId());
+        assertNull(domain.getDomain().getOrg());
+        assertNull(domain.getDomain().getAuditEnabled());
 
-        domain = zmsImpl.retrieveSignedDomainMeta("dom1", 1001, "1234", 123, "account");
+        domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "account");
         assertEquals(domain.getDomain().getAccount(), "1234");
         assertNull(domain.getDomain().getYpmId());
+        assertNull(domain.getDomain().getOrg());
+        assertNull(domain.getDomain().getAuditEnabled());
 
-        domain = zmsImpl.retrieveSignedDomainMeta("dom1", 1001, "1234", 123, "ypmid");
+        domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "ypmid");
         assertNull(domain.getDomain().getAccount());
         assertEquals(domain.getDomain().getYpmId().intValue(), 123);
+        assertNull(domain.getDomain().getOrg());
+        assertNull(domain.getDomain().getAuditEnabled());
 
-        domain = zmsImpl.retrieveSignedDomainMeta("dom1", 1001, "1234", 123, "all");
+        domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "all");
         assertEquals(domain.getDomain().getAccount(), "1234");
         assertEquals(domain.getDomain().getYpmId().intValue(), 123);
+        assertEquals(domain.getDomain().getOrg(), "org");
+        assertTrue(domain.getDomain().getAuditEnabled());
 
-        domain = zmsImpl.retrieveSignedDomainMeta("dom1", 1001, null, 123, "account");
+        domainMeta.setAccount(null);
+        domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "account");
         assertNull(domain);
 
-        domain = zmsImpl.retrieveSignedDomainMeta("dom1", 1001, "1234", null, "ypmid");
+        domainMeta.setAccount("1234");
+        domainMeta.setYpmId(null);
+        domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "ypmid");
         assertNull(domain);
     }
 

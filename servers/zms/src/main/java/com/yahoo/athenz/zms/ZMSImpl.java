@@ -4641,27 +4641,38 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return signedDomain;
     }
 
-    SignedDomain retrieveSignedDomainMeta(final String domainName, long modifiedTime,
-         final String account, Integer ypmId, final String metaAttr) {
+    SignedDomain retrieveSignedDomainMeta(final Domain domain, final String metaAttr) {
 
-        SignedDomain signedDomain = createSignedDomain(domainName, modifiedTime);
+        SignedDomain signedDomain = createSignedDomain(domain.getName(), domain.getModified().millis());
         if (metaAttr != null) {
             switch (metaAttr) {
                 case META_ATTR_ACCOUNT:
+                    final String account = domain.getAccount();
                     if (account == null) {
                         return null;
                     }
                     signedDomain.getDomain().setAccount(account);
                     break;
                 case META_ATTR_YPM_ID:
+                    final Integer ypmId = domain.getYpmId();
                     if (ypmId == null) {
                         return null;
                     }
                     signedDomain.getDomain().setYpmId(ypmId);
                     break;
                 case META_ATTR_ALL:
-                    signedDomain.getDomain().setAccount(account);
-                    signedDomain.getDomain().setYpmId(ypmId);
+                    DomainData domainData = signedDomain.getDomain();
+                    domainData.setDescription(domain.getDescription());
+                    domainData.setAccount(domain.getAccount());
+                    domainData.setYpmId(domain.getYpmId());
+                    domainData.setApplicationId(domain.getApplicationId());
+                    domainData.setMemberExpiryDays(domain.getMemberExpiryDays());
+                    domainData.setServiceExpiryDays(domain.getServiceExpiryDays());
+                    domainData.setRoleCertExpiryMins(domain.getRoleCertExpiryMins());
+                    domainData.setServiceCertExpiryMins(domain.getServiceCertExpiryMins());
+                    domainData.setTokenExpiryMins(domain.getTokenExpiryMins());
+                    domainData.setOrg(domain.getOrg());
+                    domainData.setAuditEnabled(domain.getAuditEnabled());
                     break;
             }
         }
@@ -4677,28 +4688,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         SignedDomain signedDomain;
         if (setMetaDataOnly) {
-            signedDomain = retrieveSignedDomainMeta(domain.getName(), domain.getModified().millis(),
-                    domain.getAccount(), domain.getYpmId(), metaAttr);
+            signedDomain = retrieveSignedDomainMeta(domain, metaAttr);
         } else {
             signedDomain = retrieveSignedDomainData(domain.getName(), domain.getModified().millis(), masterCopy);
-        }
-        return signedDomain;
-    }
-
-    SignedDomain retrieveSignedDomain(DomainModified domainModified, final String metaAttr,
-            boolean setMetaDataOnly, boolean masterCopy) {
-
-        // check if we're asked to only return the meta data which
-        // we already have - name and last modified time, so we can
-        // add the domain to our return list and continue with the
-        // next domain
-
-        SignedDomain signedDomain;
-        if (setMetaDataOnly) {
-            signedDomain = retrieveSignedDomainMeta(domainModified.getName(), domainModified.getModified(),
-                    domainModified.getAccount(), domainModified.getYpmId(), metaAttr);
-        } else {
-            signedDomain = retrieveSignedDomainData(domainModified.getName(), domainModified.getModified(), masterCopy);
         }
         return signedDomain;
     }
@@ -4877,8 +4869,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 matchingTag = eTag.toString();
             }
             
-            DomainModifiedList dmlist = dbService.listModifiedDomains(timestamp);
-            List<DomainModified> modlist = dmlist.getNameModList();
+            DomainMetaList dmlist = dbService.listModifiedDomains(timestamp);
+            List<Domain> modlist = dmlist.getDomains();
             if (modlist == null || modlist.size() == 0) {
                 return Response.status(ResourceException.NOT_MODIFIED)
                         .header("ETag", matchingTag).build();
@@ -4886,9 +4878,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             
             // now we can iterate through our list and retrieve each domain
 
-            for (DomainModified dmod : modlist) {
+            for (Domain dmod : modlist) {
                 
-                Long domModMillis = dmod.getModified();
+                Long domModMillis = dmod.getModified().millis();
                 if (domModMillis.compareTo(youngestDomMod) > 0) {
                     youngestDomMod = domModMillis;
                 }

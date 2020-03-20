@@ -3495,7 +3495,7 @@ public class DBService {
         }
     }
     
-    DomainModifiedList listModifiedDomains(long modifiedSince) {
+    DomainMetaList listModifiedDomains(long modifiedSince) {
         
         // since this is the operation executed by ZTS servers to
         // retrieve latest domain changes, we're going to use
