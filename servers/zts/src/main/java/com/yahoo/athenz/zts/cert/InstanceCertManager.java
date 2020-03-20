@@ -630,7 +630,7 @@ public class InstanceCertManager {
 
         if (certType.equals(ZTSConsts.ZTS_SSH_HOST) && hostname != null && !hostname.isEmpty() && hostnameResolver != null) {
             if (!validPrincipals(hostname, csr)) {
-                LOGGER.error("SSH Host CSR validation failed, hostname: {}, csr: {}", principal, hostname, csr);
+                LOGGER.error("SSH Host CSR validation failed, principal: {}, hostname: {}, csr: {}", principal, hostname, csr);
                 return false;
             }
         }
