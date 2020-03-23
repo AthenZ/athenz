@@ -35,11 +35,11 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
     private static final String SQL_GET_X509_RECORD = "SELECT * FROM certificates WHERE provider=? AND instanceId=? AND service=?;";
     private static final String SQL_INSERT_X509_RECORD = "INSERT INTO certificates " +
             "(provider, instanceId, service, currentSerial, currentTime, currentIP, prevSerial, prevTime, prevIP, clientCert, " +
-            "lastNotifiedTime, lastNotifiedServer, expiryTime, hostName) " +
-            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+            "expiryTime, hostName) " +
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?);";
     private static final String SQL_UPDATE_X509_RECORD = "UPDATE certificates SET " +
             "currentSerial=?, currentTime=?, currentIP=?, prevSerial=?, prevTime=?, prevIP=?, " +
-            "lastNotifiedTime=?, lastNotifiedServer=?, expiryTime=?, hostName=? " +
+            "expiryTime=?, hostName=? " +
             "WHERE provider=? AND instanceId=? AND service=?;";
     private static final String SQL_DELETE_X509_RECORD = "DELETE from certificates " +
             "WHERE provider=? AND instanceId=? AND service=?;";
@@ -180,13 +180,11 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
             ps.setString(4, certRecord.getPrevSerial());
             ps.setTimestamp(5, getTimestampFromDate(certRecord.getPrevTime()));
             ps.setString(6, certRecord.getPrevIP());
-            ps.setTimestamp(7, getTimestampFromDate(certRecord.getLastNotifiedTime()));
-            ps.setString(8, certRecord.getLastNotifiedServer());
-            ps.setTimestamp(9, getTimestampFromDate(certRecord.getExpiryTime()));
-            ps.setString(10, certRecord.getHostName());
-            ps.setString(11, certRecord.getProvider());
-            ps.setString(12, certRecord.getInstanceId());
-            ps.setString(13, certRecord.getService());
+            ps.setTimestamp(7, getTimestampFromDate(certRecord.getExpiryTime()));
+            ps.setString(8, certRecord.getHostName());
+            ps.setString(9, certRecord.getProvider());
+            ps.setString(10, certRecord.getInstanceId());
+            ps.setString(11, certRecord.getService());
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -211,10 +209,8 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
             ps.setTimestamp(8, getTimestampFromDate(certRecord.getPrevTime()));
             ps.setString(9, certRecord.getPrevIP());
             ps.setBoolean(10, certRecord.getClientCert());
-            ps.setTimestamp(11, getTimestampFromDate(certRecord.getLastNotifiedTime()));
-            ps.setString(12, certRecord.getLastNotifiedServer());
-            ps.setTimestamp(13, getTimestampFromDate(certRecord.getExpiryTime()));
-            ps.setString(14, certRecord.getHostName());
+            ps.setTimestamp(11, getTimestampFromDate(certRecord.getExpiryTime()));
+            ps.setString(12, certRecord.getHostName());
 
             affectedRows = executeUpdate(ps, caller);
             
