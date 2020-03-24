@@ -107,7 +107,7 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
     }
 
     private Date getDateFromItem(Item item, String key) {
-        if (item.isNull(key)) {
+        if (item.isNull(key) || item.get(key) == null) {
             return null;
         }
 
@@ -143,10 +143,7 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
                             new AttributeUpdate(KEY_PREV_TIME).put(getLongFromDate(certRecord.getPrevTime())),
                             new AttributeUpdate(KEY_CLIENT_CERT).put(certRecord.getClientCert()),
                             new AttributeUpdate(KEY_TTL).put(certRecord.getCurrentTime().getTime() / 1000L + expiryTime),
-                            new AttributeUpdate(KEY_LAST_NOTIFIED_TIME).put(getLongFromDate(certRecord.getLastNotifiedTime())),
-                            new AttributeUpdate(KEY_LAST_NOTIFIED_SERVER).put(certRecord.getLastNotifiedServer()),
-                            new AttributeUpdate(KEY_EXPIRY_TIME).put(getLongFromDate(certRecord.getExpiryTime())),
-                            new AttributeUpdate(KEY_HOSTNAME).put(certRecord.getHostName())
+                            new AttributeUpdate(KEY_EXPIRY_TIME).put(getLongFromDate(certRecord.getExpiryTime()))
                     );
             table.updateItem(updateItemSpec);
             return true;
@@ -175,8 +172,6 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
                     .with(KEY_PREV_TIME, getLongFromDate(certRecord.getPrevTime()))
                     .withBoolean(KEY_CLIENT_CERT, certRecord.getClientCert())
                     .withLong(KEY_TTL, certRecord.getCurrentTime().getTime() / 1000L + expiryTime)
-                    .with(KEY_LAST_NOTIFIED_TIME, getLongFromDate(certRecord.getLastNotifiedTime()))
-                    .with(KEY_LAST_NOTIFIED_SERVER, certRecord.getLastNotifiedServer())
                     .with(KEY_EXPIRY_TIME, getLongFromDate(certRecord.getExpiryTime()))
                     .with(KEY_HOSTNAME, certRecord.getHostName());
             table.putItem(item);

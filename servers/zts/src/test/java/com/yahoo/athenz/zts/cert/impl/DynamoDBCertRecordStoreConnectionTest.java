@@ -55,8 +55,10 @@ public class DynamoDBCertRecordStoreConnectionTest {
         Date now = new Date();
         long tstamp = mockNonNullableColumns(now);
         Mockito.doReturn(tstamp).when(item).getLong("lastNotifiedTime");
+        Mockito.doReturn(tstamp).when(item).get("lastNotifiedTime");
         Mockito.doReturn("last-notified-server").when(item).getString("lastNotifiedServer");
         Mockito.doReturn(tstamp).when(item).getLong("expiryTime");
+        Mockito.doReturn(tstamp).when(item).get("expiryTime");
         Mockito.doReturn("hostname").when(item).getString("hostName");
 
         DynamoDBCertRecordStoreConnection dbConn = new DynamoDBCertRecordStoreConnection(dynamoDB, tableName);
@@ -367,14 +369,18 @@ public class DynamoDBCertRecordStoreConnectionTest {
         long tstamp = now.getTime();
 
         Mockito.doReturn(item).when(table).getItem("primaryKey", "athenz.provider:cn:1234");
+        Mockito.doReturn(false).when(item).isNull("currentTime");
+        Mockito.doReturn(false).when(item).isNull("prevTime");
 
         Mockito.doReturn("cn").when(item).getString("service");
         Mockito.doReturn("current-serial").when(item).getString("currentSerial");
         Mockito.doReturn("current-ip").when(item).getString("currentIP");
         Mockito.doReturn(tstamp).when(item).getLong("currentTime");
+        Mockito.doReturn(tstamp).when(item).get("currentTime");
         Mockito.doReturn("prev-serial").when(item).getString("prevSerial");
         Mockito.doReturn("prev-ip").when(item).getString("prevIP");
         Mockito.doReturn(tstamp).when(item).getLong("prevTime");
+        Mockito.doReturn(tstamp).when(item).get("prevTime");
         Mockito.doReturn(false).when(item).getBoolean("clientCert");
         return tstamp;
     }
