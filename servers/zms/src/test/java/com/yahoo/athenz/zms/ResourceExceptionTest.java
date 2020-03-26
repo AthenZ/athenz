@@ -50,6 +50,7 @@ public class ResourceExceptionTest {
         assertEquals("Internal Server Error", ResourceException.codeToString(500));
         assertEquals("Not Implemented", ResourceException.codeToString(501));
         assertEquals("Service Unavailable", ResourceException.codeToString(503));
+        assertEquals("Gateway Timeout", ResourceException.codeToString(504));
         assertEquals("Network Authentication Required", ResourceException.codeToString(511));
         assertEquals("1001", ResourceException.codeToString(1001));
     }

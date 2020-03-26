@@ -27,6 +27,7 @@ public class ResourceException extends RuntimeException {
     public final static int INTERNAL_SERVER_ERROR = 500;
     public final static int NOT_IMPLEMENTED = 501;
     public final static int SERVICE_UNAVAILABLE = 503;
+    public final static int GATEWAY_TIMEOUT = 504;
     public final static int NETWORK_AUTHENTICATION_REQUIRED = 511;
 
     public static String codeToString(int code) {
@@ -54,6 +55,7 @@ public class ResourceException extends RuntimeException {
         case INTERNAL_SERVER_ERROR: return "Internal Server Error";
         case NOT_IMPLEMENTED: return "Not Implemented";
         case SERVICE_UNAVAILABLE: return "Service Unavailable";
+        case GATEWAY_TIMEOUT: return "Gateway Timeout";
         case NETWORK_AUTHENTICATION_REQUIRED: return "Network Authentication Required";
         default: return "" + code;
         }
