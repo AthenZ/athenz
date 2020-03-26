@@ -1,6 +1,7 @@
 package com.yahoo.athenz.zts.cert.impl;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -43,7 +44,7 @@ public class FileCertRecordStoreConnectionTest {
         
         X509CertRecord certRecordCheck = con.getX509CertRecord("ostk", "instance-id", "cn");
         assertNull(certRecordCheck);
-        
+
         // now write the entry
         
         X509CertRecord certRecord = new X509CertRecord();
@@ -219,5 +220,33 @@ public class FileCertRecordStoreConnectionTest {
 
         certRecordCheck = store.getX509CertRecord("ostk", "instance-id", "cn");
         assertNotNull(certRecordCheck);
+    }
+
+    @Test
+    public void testUpdateUnrefreshedCertificatesNotificationTimestamp() {
+        ZTSTestUtils.deleteDirectory(new File("/tmp/zts-cert-tests"));
+
+        FileCertRecordStore store = new FileCertRecordStore(new File("/tmp/zts-cert-tests"));
+        FileCertRecordStoreConnection con = (FileCertRecordStoreConnection) store.getConnection();
+        assertNotNull(con);
+        long timestamp = System.currentTimeMillis();
+        boolean result = con.updateUnrefreshedCertificatesNotificationTimestamp("localhost", timestamp);
+
+        // For File store, unrefreshed certs unimplemented. Assert false
+        assertFalse(result);
+    }
+
+    @Test
+    public void testGetNotifyUnrefreshedCertificates() {
+        ZTSTestUtils.deleteDirectory(new File("/tmp/zts-cert-tests"));
+
+        FileCertRecordStore store = new FileCertRecordStore(new File("/tmp/zts-cert-tests"));
+        FileCertRecordStoreConnection con = (FileCertRecordStoreConnection) store.getConnection();
+        assertNotNull(con);
+        long timestamp = System.currentTimeMillis();
+        List<X509CertRecord> records = con.getNotifyUnrefreshedCertificates("localhost", timestamp);
+
+        // For File store, unrefreshed certs unimplemented. Assert empty collection
+        assertEquals(records, new ArrayList<>());
     }
 }

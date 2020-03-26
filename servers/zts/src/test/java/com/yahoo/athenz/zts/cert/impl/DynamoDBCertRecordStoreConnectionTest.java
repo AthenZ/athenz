@@ -28,7 +28,9 @@ import org.testng.annotations.Test;
 import com.amazonaws.services.dynamodbv2.document.spec.DeleteItemSpec;
 import com.amazonaws.services.dynamodbv2.document.spec.UpdateItemSpec;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import static org.testng.Assert.*;
 
@@ -385,4 +387,23 @@ public class DynamoDBCertRecordStoreConnectionTest {
         return tstamp;
     }
 
+    @Test
+    public void testUpdateUnrefreshedCertificatesNotificationTimestamp() {
+        DynamoDBCertRecordStoreConnection dbConn = new DynamoDBCertRecordStoreConnection(dynamoDB, tableName);
+        long timestamp = System.currentTimeMillis();
+        boolean result = dbConn.updateUnrefreshedCertificatesNotificationTimestamp("localhost", timestamp);
+
+        // For DynamoDB, unrefreshed certs unimplemented. Assert false
+        assertFalse(result);
+    }
+
+    @Test
+    public void testGetNotifyUnrefreshedCertificates() {
+        DynamoDBCertRecordStoreConnection dbConn = new DynamoDBCertRecordStoreConnection(dynamoDB, tableName);
+        long timestamp = System.currentTimeMillis();
+        List<X509CertRecord> records = dbConn.getNotifyUnrefreshedCertificates("localhost", timestamp);
+
+        // For DynamoDB, unrefreshed certs unimplemented. Assert empty collection
+        assertEquals(records, new ArrayList<>());
+    }
 }
