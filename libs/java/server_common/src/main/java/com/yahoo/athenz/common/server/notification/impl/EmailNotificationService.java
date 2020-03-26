@@ -371,7 +371,7 @@ public class EmailNotificationService implements NotificationService {
     private boolean sendEmailMIME(String subject, String body, Collection<String> recipients) {
         MimeMessage mimeMessage;
         try {
-            mimeMessage = getMimeMessage(subject, body, recipients, from, logoImage);
+            mimeMessage = getMimeMessage(subject, body, recipients, from + AT + emailDomainFrom, logoImage);
         } catch (MessagingException ex) {
             LOGGER.error("The email could not be sent. Error message: {}", ex.getMessage());
             return false;
