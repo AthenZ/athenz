@@ -5605,7 +5605,63 @@ public class ZTSImplTest {
             assertTrue(ex.getMessage().contains("unable to verify attestation data"));
         }
     }
-    
+
+    @Test
+    public void testPostInstanceRegisterInformationNetworkFailure() throws IOException {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+
+        DataStore store = new DataStore(structStore, null);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        store.processDomain(providerDomain, false);
+
+        SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
+        store.processDomain(tenantDomain, false);
+
+        Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
+        String certCsr = new String(Files.readAllBytes(path));
+
+        InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
+        InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
+
+        Mockito.when(instanceProviderManager.getProvider("athenz.provider")).thenReturn(providerClient);
+        Mockito.when(providerClient.confirmInstance(Mockito.any()))
+                .thenThrow(new com.yahoo.athenz.instance.provider.ResourceException(504, "Connect Timeout"))
+                .thenThrow(new com.yahoo.athenz.instance.provider.ResourceException(403, "Instance Revoked"));
+
+        ztsImpl.instanceProviderManager = instanceProviderManager;
+
+        InstanceRegisterInformation info = new InstanceRegisterInformation()
+                .setAttestationData("attestationData").setCsr(certCsr)
+                .setDomain("athenz").setService("production")
+                .setProvider("athenz.provider");
+
+        ResourceContext context = createResourceContext(null);
+
+        // first 504
+
+        try {
+            ztsImpl.postInstanceRegisterInformation(context, info);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 504);
+            assertTrue(ex.getMessage().contains("Connect Timeout"));
+        }
+
+        // then 403
+
+        try {
+            ztsImpl.postInstanceRegisterInformation(context, info);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+            assertTrue(ex.getMessage().contains("Instance Revoked"));
+        }
+    }
+
     @Test
     public void testPostInstanceRegisterInformationNoAuthorizedProvider() throws IOException {
 
@@ -6508,8 +6564,11 @@ public class ZTSImplTest {
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
         
         Mockito.when(instanceProviderManager.getProvider("athenz.provider")).thenReturn(providerClient);
-        Mockito.when(providerClient.refreshInstance(Mockito.any())).thenThrow(new com.yahoo.athenz.instance.provider.ResourceException(403, "Forbidden"));
-        
+        Mockito.when(providerClient.refreshInstance(Mockito.any()))
+                .thenThrow(new com.yahoo.athenz.instance.provider.ResourceException(403, "Forbidden"))
+                .thenThrow(new com.yahoo.athenz.instance.provider.ResourceException(504, "Connect Timeout"))
+                .thenThrow(new ResourceException(403, "Forbidden"));
+
         X509CertRecord certRecord = new X509CertRecord();
         certRecord.setInstanceId("1001");
         certRecord.setProvider("athenz.provider");
@@ -6540,7 +6599,9 @@ public class ZTSImplTest {
         principal.setX509Certificate(cert);
         
         ResourceContext context = createResourceContext(principal);
-        
+
+        // first we get std provider exception 403
+
         try {
             ztsImpl.postInstanceRefreshInformation(context,
                 "athenz.provider", "athenz", "production", "1001", info);
@@ -6548,6 +6609,27 @@ public class ZTSImplTest {
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 403, ex.getMessage());
             assertTrue(ex.getMessage().contains("unable to verify attestation data"), ex.getMessage());
+        }
+
+        // then 504 network timeout
+
+        try {
+            ztsImpl.postInstanceRefreshInformation(context,
+                    "athenz.provider", "athenz", "production", "1001", info);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 504, ex.getMessage());
+            assertTrue(ex.getMessage().contains("Connect Timeout"));
+        }
+
+        // final std 403
+
+        try {
+            ztsImpl.postInstanceRefreshInformation(context,
+                    "athenz.provider", "athenz", "production", "1001", info);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403, ex.getMessage());
         }
     }
     
@@ -6607,11 +6689,14 @@ public class ZTSImplTest {
         principal.setX509Certificate(cert);
         
         ResourceContext context = createResourceContext(principal);
-        
-        InstanceIdentity instanceIdentity = ztsImpl.postInstanceRefreshInformation(context,
-                "athenz.provider", "athenz", "production", "1001", info);
-        assertNotNull(instanceIdentity);
-        assertNotNull(instanceIdentity.getServiceToken());
+
+        try {
+            ztsImpl.postInstanceRefreshInformation(context, "athenz.provider", "athenz",
+                    "production", "1001", info);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+        }
     }
     
     @Test

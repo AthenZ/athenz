@@ -280,14 +280,14 @@ public class InstanceProviderClientTest {
             provClient.postInstanceConfirmation(confirmation);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 403);
+            assertEquals(ex.getCode(), 504);
         }
 
         try {
             provClient.postRefreshConfirmation(confirmation);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 403);
+            assertEquals(ex.getCode(), 504);
         }
 
         provClient.close();

@@ -2616,6 +2616,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         Object timerProviderMetric = metric.startTiming("providerregister_timing", provider, principalDomain);
         try {
             instance = instanceProvider.confirmInstance(instance);
+        } catch (com.yahoo.athenz.instance.provider.ResourceException ex) {
+            metric.increment("providerconfirm_failure", domain, provider);
+            int code = (ex.getCode() == ResourceException.GATEWAY_TIMEOUT) ?
+                    ResourceException.GATEWAY_TIMEOUT : ResourceException.FORBIDDEN;
+            throw error(code, "unable to verify attestation data: " + ex.getMessage(),
+                    caller, domain, principalDomain);
         } catch (Exception ex) {
             metric.increment("providerconfirm_failure", domain, provider);
             throw forbiddenError("unable to verify attestation data: " + ex.getMessage(),
@@ -2944,20 +2950,15 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         try {
             instance = instanceProvider.refreshInstance(instance);
         } catch (com.yahoo.athenz.instance.provider.ResourceException ex) {
-
             metric.increment("providerconfirm_failure", domain, provider);
-            LOGGER.error("Unable to confirm refresh request for {}/{}.{}: {}",
-                    provider, domain, service, ex);
-
-            // for backward compatibility initially we'll only look for
-            // specifically 403 response and treat responses like 404
-            // as success. Later, we'll change the behavior to only
-            // accept 200 as the expected response
-            
-            if (ex.getCode() == com.yahoo.athenz.instance.provider.ResourceException.FORBIDDEN) {
-                throw forbiddenError("unable to verify attestation data: " + ex.getMessage(),
-                        caller, domain, principalDomain);
-            }
+            int code = (ex.getCode() == ResourceException.GATEWAY_TIMEOUT) ?
+                    ResourceException.GATEWAY_TIMEOUT : ResourceException.FORBIDDEN;
+            throw error(code, "unable to verify attestation data: " + ex.getMessage(),
+                    caller, domain, principalDomain);
+        } catch (Exception ex) {
+            metric.increment("providerconfirm_failure", domain, provider);
+            throw forbiddenError("unable to verify attestation data: " + ex.getMessage(),
+                    caller, domain, principalDomain);
         } finally {
             metric.stopTiming(timerProviderMetric, provider, principalDomain);
             instanceProvider.close();

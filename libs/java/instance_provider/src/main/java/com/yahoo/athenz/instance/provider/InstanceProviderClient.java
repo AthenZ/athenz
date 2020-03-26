@@ -97,7 +97,7 @@ public class InstanceProviderClient {
         } catch (Exception ex) {
             LOGGER.error("Unable to confirm register object for {}/{}.{}: {}", confirmation.getProvider(),
                     confirmation.getDomain(), confirmation.getService(), ex.getMessage());
-            throw new ResourceException(ResourceException.FORBIDDEN, "Register Confirmation Exception");
+            throw new ResourceException(ResourceException.GATEWAY_TIMEOUT, ex.getMessage());
         }
         int code = response.getStatus();
         if (code == ResourceException.OK) {
@@ -115,7 +115,7 @@ public class InstanceProviderClient {
         } catch (Exception ex) {
             LOGGER.error("Unable to confirm refresh object for {}/{}.{}: {}", confirmation.getProvider(),
                     confirmation.getDomain(), confirmation.getService(), ex.getMessage());
-            throw new ResourceException(ResourceException.FORBIDDEN, "Refresh Confirmation Exception");
+            throw new ResourceException(ResourceException.GATEWAY_TIMEOUT, ex.getMessage());
         }
         int code = response.getStatus();
         if (code == ResourceException.OK) {
