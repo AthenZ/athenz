@@ -19,8 +19,6 @@ package com.yahoo.athenz.zts.notification;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.zms.DomainData;
-import com.yahoo.athenz.zms.Role;
-import com.yahoo.athenz.zms.RoleMember;
 import com.yahoo.athenz.zts.cert.InstanceCertManager;
 import com.yahoo.athenz.zts.cert.X509CertRecord;
 import com.yahoo.athenz.zts.store.DataStore;
@@ -59,10 +57,17 @@ public class CertFailedRefreshNotificationTaskTest {
         for (int i = 0; i < 6; ++i) {
             X509CertRecord record = getMockX509CertRecord(currentDate, i);
             records.add(record);
-            mockDomainData(i);
+            NotificationTestsCommon.mockDomainData(i, dataStore);
             Mockito.when(hostnameResolver.isValidHostname(eq("hostName" + i))).thenReturn(isValidHost);
             isValidHost = !isValidHost;
         }
+
+        // Make a 7th record with no host (but make it valid)
+        X509CertRecord record = getMockX509CertRecord(currentDate, 7);
+        record.setHostName(null);
+        records.add(record);
+        NotificationTestsCommon.mockDomainData(7, dataStore);
+        Mockito.when(hostnameResolver.isValidHostname(eq(null))).thenReturn(true);
 
         Mockito.when(instanceCertManager.getUnrefreshedCertsNotifications(eq(serverName))).thenReturn(records);
         CertFailedRefreshNotificationTask certFailedRefreshNotificationTask = new CertFailedRefreshNotificationTask(
@@ -73,10 +78,48 @@ public class CertFailedRefreshNotificationTaskTest {
                 serverName);
 
         List<Notification> notifications = certFailedRefreshNotificationTask.getNotifications();
-        assertEquals(3, notifications.size());
-        assertEquals("domain4", notifications.get(0).getDetails().get("domain"));
-        assertEquals("domain2", notifications.get(1).getDetails().get("domain"));
-        assertEquals("domain0", notifications.get(2).getDetails().get("domain"));
+        assertEquals(4, notifications.size());
+        assertEquals("domain7", notifications.get(0).getDetails().get("domain"));
+        assertEquals("domain4", notifications.get(1).getDetails().get("domain"));
+        assertEquals("domain2", notifications.get(2).getDetails().get("domain"));
+        assertEquals("domain0", notifications.get(3).getDetails().get("domain"));
+    }
+
+    @Test
+    public void testNoValidRecipient() {
+        Date currentDate = new Date();
+        List<X509CertRecord> records = new ArrayList<>();
+
+        X509CertRecord record = getMockX509CertRecord(currentDate, 1);
+        records.add(record);
+
+        String domainName = "domain1";
+        Mockito.when(dataStore.getDomainData(eq(domainName))).thenReturn(new DomainData());
+        Mockito.when(hostnameResolver.isValidHostname(eq("hostName1"))).thenReturn(true);
+
+        Mockito.when(instanceCertManager.getUnrefreshedCertsNotifications(eq(serverName))).thenReturn(records);
+        CertFailedRefreshNotificationTask certFailedRefreshNotificationTask = new CertFailedRefreshNotificationTask(
+                instanceCertManager,
+                dataStore,
+                hostnameResolver,
+                userDomainPrefix,
+                serverName);
+
+        List<Notification> notifications = certFailedRefreshNotificationTask.getNotifications();
+        assertEquals(new ArrayList<>(), notifications);
+    }
+
+    @Test
+    public void testNoUnrefreshedCerts() {
+        Mockito.when(instanceCertManager.getUnrefreshedCertsNotifications(eq(serverName))).thenReturn(new ArrayList<>());
+        CertFailedRefreshNotificationTask certFailedRefreshNotificationTask = new CertFailedRefreshNotificationTask(
+                instanceCertManager,
+                dataStore,
+                hostnameResolver,
+                userDomainPrefix,
+                serverName);
+        List<Notification> notifications = certFailedRefreshNotificationTask.getNotifications();
+        assertEquals(new ArrayList<>(), notifications);
     }
 
     @Test
@@ -88,7 +131,7 @@ public class CertFailedRefreshNotificationTaskTest {
         for (int i = 0; i < 6; ++i) {
             X509CertRecord record = getMockX509CertRecord(currentDate, i);
             records.add(record);
-            mockDomainData(i);
+            NotificationTestsCommon.mockDomainData(i, dataStore);
         }
 
         // Now add one record to domain 0 and one record to domain 5
@@ -133,17 +176,16 @@ public class CertFailedRefreshNotificationTaskTest {
         return record;
     }
 
-    private void mockDomainData(int i) {
-        String domainName = "domain" + i;
-        DomainData domainData = new DomainData();
-        Role adminRole = new Role();
-        adminRole.setName(domainName + ":role.admin");
-        RoleMember roleMember1 = new RoleMember();
-        roleMember1.setMemberName("user.domain" + i + "rolemember1");
-        RoleMember roleMember2 = new RoleMember();
-        roleMember2.setMemberName("user.domain" + i + "rolemember2");
-        adminRole.setRoleMembers(Arrays.asList(roleMember1, roleMember2));
-        domainData.setRoles(Collections.singletonList(adminRole));
-        Mockito.when(dataStore.getDomainData(eq(domainName))).thenReturn(domainData);
+    @Test
+    public void testDescription() {
+        CertFailedRefreshNotificationTask certFailedRefreshNotificationTask = new CertFailedRefreshNotificationTask(
+                instanceCertManager,
+                dataStore,
+                hostnameResolver,
+                userDomainPrefix,
+                serverName);
+
+        String description = certFailedRefreshNotificationTask.getDescription();
+        assertEquals("certificate failed refresh notification", description);
     }
 }

@@ -1133,4 +1133,12 @@ public class InstanceCertManagerTest {
         assertEquals(unrefreshedCertificateNotifications, new ArrayList<>());
         instance.shutdown();
     }
+
+    @Test
+    public void testNoCertStoreUnrefreshedCerts() {
+        InstanceCertManager instance = new InstanceCertManager(null, null, null, false);
+        instance.setCertStore(null);
+        List<X509CertRecord> unrefreshedCertificateNotifications = instance.getUnrefreshedCertsNotifications("localhost");
+        assertEquals(unrefreshedCertificateNotifications, new ArrayList<>());
+    }
 }

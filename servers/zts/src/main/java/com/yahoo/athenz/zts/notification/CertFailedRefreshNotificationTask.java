@@ -102,10 +102,6 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
         // certificateRecords := <certificate-entry>[|<certificate-entry]*
         // certificate-entry := <Service Name>;<Provider>;<InstanceID>;<Last refresh time>;<Expiration time>;<Hostname>;
 
-        if (certRecords == null || certRecords.isEmpty()) {
-            return details;
-        }
-
         StringBuilder certDetails = new StringBuilder(256);
         for (X509CertRecord certRecord : certRecords) {
             if (certDetails.length() != 0) {
@@ -132,9 +128,7 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
         Map<String, List<X509CertRecord>> domainToCertRecords = new HashMap<>();
         for (X509CertRecord x509CertRecord: unrefreshedRecords) {
             String domainName = AthenzUtils.extractPrincipalDomainName(x509CertRecord.getService());
-            if (!domainToCertRecords.containsKey(domainName)) {
-                domainToCertRecords.put(domainName, new ArrayList<>());
-            }
+            domainToCertRecords.putIfAbsent(domainName, new ArrayList<>());
             domainToCertRecords.get(domainName).add(x509CertRecord);
         }
         return domainToCertRecords;
