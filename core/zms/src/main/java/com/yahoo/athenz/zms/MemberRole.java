@@ -28,6 +28,9 @@ public class MemberRole {
     public String auditRef;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String requestPrincipal;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Timestamp requestTime;
 
     public MemberRole setRoleName(String roleName) {
@@ -72,6 +75,13 @@ public class MemberRole {
     public String getAuditRef() {
         return auditRef;
     }
+    public MemberRole setRequestPrincipal(String requestPrincipal) {
+        this.requestPrincipal = requestPrincipal;
+        return this;
+    }
+    public String getRequestPrincipal() {
+        return requestPrincipal;
+    }
     public MemberRole setRequestTime(Timestamp requestTime) {
         this.requestTime = requestTime;
         return this;
@@ -103,6 +113,9 @@ public class MemberRole {
                 return false;
             }
             if (auditRef == null ? a.auditRef != null : !auditRef.equals(a.auditRef)) {
+                return false;
+            }
+            if (requestPrincipal == null ? a.requestPrincipal != null : !requestPrincipal.equals(a.requestPrincipal)) {
                 return false;
             }
             if (requestTime == null ? a.requestTime != null : !requestTime.equals(a.requestTime)) {

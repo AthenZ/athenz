@@ -197,6 +197,7 @@ func init() {
 	tMemberRole.Field("expiration", "Timestamp", true, nil, "the expiration timestamp")
 	tMemberRole.Field("active", "Bool", true, true, "Flag to indicate whether membership is active")
 	tMemberRole.Field("auditRef", "String", true, nil, "audit reference string for the change as supplied by admin")
+	tMemberRole.Field("requestPrincipal", "EntityName", true, nil, "pending members only - name of the principal requesting the change")
 	tMemberRole.Field("requestTime", "Timestamp", true, nil, "for pending membership requests, the request time")
 	sb.AddType(tMemberRole.Build())
 

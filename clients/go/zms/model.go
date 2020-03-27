@@ -1351,6 +1351,11 @@ type MemberRole struct {
 	AuditRef string `json:"auditRef,omitempty" rdl:"optional"`
 
 	//
+	// pending members only - name of the principal requesting the change
+	//
+	RequestPrincipal EntityName `json:"requestPrincipal,omitempty" rdl:"optional"`
+
+	//
 	// for pending membership requests, the request time
 	//
 	RequestTime *rdl.Timestamp `json:"requestTime,omitempty" rdl:"optional"`
@@ -1424,6 +1429,12 @@ func (self *MemberRole) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.AuditRef)
 		if !val.Valid {
 			return fmt.Errorf("MemberRole.auditRef does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.RequestPrincipal != "" {
+		val := rdl.Validate(ZMSSchema(), "EntityName", self.RequestPrincipal)
+		if !val.Valid {
+			return fmt.Errorf("MemberRole.requestPrincipal does not contain a valid EntityName (%v)", val.Error)
 		}
 	}
 	return nil

@@ -2442,6 +2442,7 @@ public class ZMSCoreTest {
         mbr1.setDomainName("athenz");
         mbr1.setMemberName("mbr");
         mbr1.setRequestTime(Timestamp.fromMillis(100));
+        mbr1.setRequestPrincipal("user.admin");
 
         assertEquals("role1", mbr1.getRoleName());
         assertEquals(Timestamp.fromMillis(100), mbr1.getExpiration());
@@ -2450,6 +2451,7 @@ public class ZMSCoreTest {
         assertEquals(mbr1.getAuditRef(), "audit-ref");
         assertEquals(mbr1.getDomainName(), "athenz");
         assertEquals(mbr1.getMemberName(), "mbr");
+        assertEquals(mbr1.getRequestPrincipal(), "user.admin");
 
         assertTrue(mbr1.equals(mbr1));
         assertFalse(mbr1.equals(null));
@@ -2461,7 +2463,8 @@ public class ZMSCoreTest {
             .setAuditRef("audit-ref")
             .setDomainName("athenz")
             .setMemberName("mbr")
-            .setRequestTime(Timestamp.fromMillis(100));
+            .setRequestTime(Timestamp.fromMillis(100))
+            .setRequestPrincipal("user.admin");
 
         assertTrue(mbr2.equals(mbr1));
 
@@ -2505,6 +2508,13 @@ public class ZMSCoreTest {
         mbr2.setRequestTime(null);
         assertFalse(mbr2.equals(mbr1));
         mbr2.setRequestTime(Timestamp.fromMillis(100));
+        assertTrue(mbr2.equals(mbr1));
+
+        mbr2.setRequestPrincipal("athenz2");
+        assertFalse(mbr2.equals(mbr1));
+        mbr2.setRequestPrincipal(null);
+        assertFalse(mbr2.equals(mbr1));
+        mbr2.setRequestPrincipal("user.admin");
         assertTrue(mbr2.equals(mbr1));
 
         mbr2.setActive(true);
