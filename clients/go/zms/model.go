@@ -1349,6 +1349,11 @@ type MemberRole struct {
 	// audit reference string for the change as supplied by admin
 	//
 	AuditRef string `json:"auditRef,omitempty" rdl:"optional"`
+
+	//
+	// for pending membership requests, the request time
+	//
+	RequestTime *rdl.Timestamp `json:"requestTime,omitempty" rdl:"optional"`
 }
 
 //

@@ -82,6 +82,7 @@ type MemberRole Struct {
     Timestamp expiration (optional); //the expiration timestamp
     Bool active (optional, default=true); //Flag to indicate whether membership is active
     String auditRef (optional); //audit reference string for the change as supplied by admin
+    Timestamp requestTime (optional); //for pending membership requests, the request time
 }
 
 type DomainRoleMember Struct {
