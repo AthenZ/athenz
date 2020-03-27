@@ -77,6 +77,17 @@ public class ZMSTLSClient {
                                 }
                             }
                             break;
+                        case "getpendingdomainrolememberslist":
+                            DomainRoleMembership pendMembers = zmsClient.getPendingDomainRoleMembersList(principal);
+                            for (DomainRoleMembers members : pendMembers.getDomainRoleMembersList()) {
+                                for (DomainRoleMember member : members.getMembers()) {
+                                    System.out.println("Member: " + member.getMemberName());
+                                    for (MemberRole role : member.getMemberRoles()) {
+                                        System.out.println("  Role: " + role.getRoleName());
+                                    }
+                                }
+                            }
+                            break;
                         case "access":
                             Access access = zmsClient.getAccess(action, resource, null, principal);
                             System.out.println("Access: " + access.getGranted());
