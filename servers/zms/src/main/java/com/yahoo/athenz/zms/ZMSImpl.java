@@ -7470,15 +7470,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return isAllowedPutMembershipAccess(principal, reqDomain, role);
     }
 
-    boolean isAllowedPutMembershipSelfServe(final Principal principal, final Role role, final RoleMember member) {
-
-        if (role.getSelfServe() != Boolean.TRUE) {
-            return false;
-        }
-
-        return principal.getFullName().equals(member.getMemberName());
-    }
-
     boolean isAllowedPutMembership(Principal principal, final AthenzDomain domain, final Role role,
             final RoleMember member) {
 
@@ -7495,10 +7486,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             member.setApproved(!auditEnabled);
             return true;
 
-        } else if (isAllowedPutMembershipSelfServe(principal, role, member)) {
+        } else if (role.getSelfServe() == Boolean.TRUE) {
 
-            // if the role is self-serve, and users are trying to add themselves, allow it
-            // but with member status set to inactive. It has to be approved by domain admins.
+            // if the role is self-serve then users are allowed to add anyone
+            // since the request must be approved by someone else so we'll allow it
+            // but with member status set to inactive.
 
             member.setActive(false);
             member.setApproved(false);

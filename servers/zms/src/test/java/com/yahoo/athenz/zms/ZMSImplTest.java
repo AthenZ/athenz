@@ -16594,45 +16594,6 @@ public class ZMSImplTest {
     }
 
     @Test
-    public void testIsAllowedPutMembershipSelfserve(){
-        TopLevelDomain dom1 = createTopLevelDomainObject("testdomain1",
-                "Role Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
-
-        Role role1 = createRoleObject("testdomain1", "testrole1", null,"user.john", "user.jane");
-        role1.setSelfServe(true);
-        zms.putRole(mockDomRsrcCtx, "testdomain1", "testrole1", auditRef, role1);
-
-        RoleMeta rm = createRoleMetaObject(true);
-        zms.putRoleMeta(mockDomRsrcCtx, "testdomain1", "testrole1",  auditRef, rm);
-
-        AthenzDomain domain = zms.getAthenzDomain("testdomain1", false);
-        Role role = zms.getRoleFromDomain("testrole1", domain);
-
-        RoleMember roleMember = new RoleMember().setMemberName("user.user1");
-
-        assertFalse(zms.isAllowedPutMembershipAccess(mockDomRestRsrcCtx.principal(), domain, role)); // user.user1 does not have role access
-        assertTrue(zms.isAllowedPutMembership(mockDomRestRsrcCtx.principal(),domain, role, roleMember));// putmembership is allowed for user.user1
-
-        // match role and member
-        assertTrue(zms.isAllowedPutMembershipSelfServe(mockDomRestRsrcCtx.principal(), role, roleMember));
-
-        // role is not self serve
-        Role role2 = new Role().setName("testdomain1:role.role1").setSelfServe(false);
-        assertFalse(zms.isAllowedPutMembershipSelfServe(mockDomRestRsrcCtx.principal(), role2, roleMember));
-
-        // role is not self serve - null attribute
-        Role role3 = new Role().setName("testdomain1:role.role1").setSelfServe(null);
-        assertFalse(zms.isAllowedPutMembershipSelfServe(mockDomRestRsrcCtx.principal(), role3, roleMember));
-
-        // role member does not match
-        RoleMember roleMember1 = new RoleMember().setMemberName("user.user2");
-        assertFalse(zms.isAllowedPutMembershipSelfServe(mockDomRestRsrcCtx.principal(), role, roleMember1));
-
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, "testdomain1", auditRef);
-    }
-
-    @Test
     public void testIsAllowedPutMembershipWithoutApproval() {
 
         TopLevelDomain dom1 = createTopLevelDomainObject("testdomain1","Role Test Domain1", "testOrg", "user.user1");
@@ -16701,6 +16662,7 @@ public class ZMSImplTest {
         roleMember = new RoleMember().setMemberName("user.bob");
         assertFalse(zms.isAllowedPutMembership(rsrcPrince, domain, role, roleMember));//bob trying to add himself
 
+        // without self-serve bob is not allowed to add dave
         roleMember = new RoleMember().setMemberName("user.dave");
         assertFalse(zms.isAllowedPutMembership(rsrcPrince, domain, role, roleMember));//bob trying to add dave
 
@@ -16717,8 +16679,10 @@ public class ZMSImplTest {
         assertTrue(zms.isAllowedPutMembership(rsrcPrince, domain, role, roleMember));//bob trying to add himself
         assertFalse(roleMember.getApproved());
 
+        // with self-serve bob is now allowed to add dave
         roleMember.setMemberName("user.dave");
-        assertFalse(zms.isAllowedPutMembership(rsrcPrince, domain, role, roleMember));//bob trying to add dave
+        assertTrue(zms.isAllowedPutMembership(rsrcPrince, domain, role, roleMember));//bob trying to add dave
+        assertFalse(roleMember.getApproved());
 
         DomainMeta meta = createDomainMetaObject("Domain Meta for Role Meta test", "testOrg",
                 true, true, "12345", 1001);
