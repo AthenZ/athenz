@@ -171,7 +171,8 @@ public class ZMSSchema {
             .field("memberName", "MemberName", true, "name of the member")
             .field("expiration", "Timestamp", true, "the expiration timestamp")
             .field("active", "Bool", true, "Flag to indicate whether membership is active", true)
-            .field("auditRef", "String", true, "audit reference string for the change as supplied by admin");
+            .field("auditRef", "String", true, "audit reference string for the change as supplied by admin")
+            .field("requestTime", "Timestamp", true, "for pending membership requests, the request time");
 
         sb.structType("DomainRoleMember")
             .field("memberName", "MemberName", false, "name of the member")

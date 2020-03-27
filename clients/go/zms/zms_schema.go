@@ -197,6 +197,7 @@ func init() {
 	tMemberRole.Field("expiration", "Timestamp", true, nil, "the expiration timestamp")
 	tMemberRole.Field("active", "Bool", true, true, "Flag to indicate whether membership is active")
 	tMemberRole.Field("auditRef", "String", true, nil, "audit reference string for the change as supplied by admin")
+	tMemberRole.Field("requestTime", "Timestamp", true, nil, "for pending membership requests, the request time")
 	sb.AddType(tMemberRole.Build())
 
 	tDomainRoleMember := rdl.NewStructTypeBuilder("Struct", "DomainRoleMember")

@@ -25,9 +25,8 @@ import com.yahoo.rdl.Validator.Result;
 
 import static org.testng.Assert.*;
 import org.testng.annotations.Test;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Arrays;
+
+import java.util.*;
 
 public class ZMSCoreTest {
 
@@ -2442,9 +2441,11 @@ public class ZMSCoreTest {
         mbr1.setAuditRef("audit-ref");
         mbr1.setDomainName("athenz");
         mbr1.setMemberName("mbr");
+        mbr1.setRequestTime(Timestamp.fromMillis(100));
 
         assertEquals("role1", mbr1.getRoleName());
         assertEquals(Timestamp.fromMillis(100), mbr1.getExpiration());
+        assertEquals(Timestamp.fromMillis(100), mbr1.getRequestTime());
         assertFalse(mbr1.getActive());
         assertEquals(mbr1.getAuditRef(), "audit-ref");
         assertEquals(mbr1.getDomainName(), "athenz");
@@ -2459,7 +2460,8 @@ public class ZMSCoreTest {
             .setActive(false)
             .setAuditRef("audit-ref")
             .setDomainName("athenz")
-            .setMemberName("mbr");
+            .setMemberName("mbr")
+            .setRequestTime(Timestamp.fromMillis(100));
 
         assertTrue(mbr2.equals(mbr1));
 
@@ -2496,6 +2498,13 @@ public class ZMSCoreTest {
         mbr2.setExpiration(null);
         assertFalse(mbr2.equals(mbr1));
         mbr2.setExpiration(Timestamp.fromMillis(100));
+        assertTrue(mbr2.equals(mbr1));
+
+        mbr2.setRequestTime(Timestamp.fromMillis(101));
+        assertFalse(mbr2.equals(mbr1));
+        mbr2.setRequestTime(null);
+        assertFalse(mbr2.equals(mbr1));
+        mbr2.setRequestTime(Timestamp.fromMillis(100));
         assertTrue(mbr2.equals(mbr1));
 
         mbr2.setActive(true);
@@ -2846,5 +2855,60 @@ public class ZMSCoreTest {
         assertFalse(meta2.equals(null));
 
         assertFalse(meta.equals(new String()));
+    }
+
+    @Test
+    public void testJWSDomain() {
+
+        Map<String, String> headers = new HashMap<>();
+        JWSDomain jws1 = new JWSDomain()
+                .setHeader(headers)
+                .setPayload("payload")
+                .setProtectedHeader("protectedHeader")
+                .setSignature("signature");
+
+        assertEquals(jws1.getHeader(), headers);
+        assertEquals(jws1.getPayload(), "payload");
+        assertEquals(jws1.getProtectedHeader(), "protectedHeader");
+        assertEquals(jws1.getSignature(), "signature");
+
+        JWSDomain jws2 = new JWSDomain()
+                .setHeader(headers)
+                .setPayload("payload")
+                .setProtectedHeader("protectedHeader")
+                .setSignature("signature");
+        assertTrue(jws2.equals(jws1));
+        assertTrue(jws2.equals(jws2));
+        assertFalse(jws2.equals(null));
+
+        jws2.setPayload("newpayload");
+        assertFalse(jws2.equals(jws1));
+        jws2.setPayload(null);
+        assertFalse(jws2.equals(jws1));
+        jws2.setPayload("payload");
+        assertTrue(jws2.equals(jws1));
+
+        jws2.setProtectedHeader("newprotectedHeader");
+        assertFalse(jws2.equals(jws1));
+        jws2.setProtectedHeader(null);
+        assertFalse(jws2.equals(jws1));
+        jws2.setProtectedHeader("protectedHeader");
+        assertTrue(jws2.equals(jws1));
+
+        jws2.setSignature("newsignature");
+        assertFalse(jws2.equals(jws1));
+        jws2.setSignature(null);
+        assertFalse(jws2.equals(jws1));
+        jws2.setSignature("signature");
+        assertTrue(jws2.equals(jws1));
+
+        Map<String, String> headers2 = new HashMap<>();
+        headers2.put("key", "value");
+        jws2.setHeader(headers2);
+        assertFalse(jws2.equals(jws1));
+        jws2.setHeader(null);
+        assertFalse(jws2.equals(jws1));
+        jws2.setHeader(headers);
+        assertTrue(jws2.equals(jws1));
     }
 }

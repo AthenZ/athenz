@@ -1699,6 +1699,7 @@ public class FileConnection implements ObjectStoreConnection {
                         memberRole.setActive(false);
                         memberRole.setRoleName(AthenzUtils.extractRoleName(role.getName()));
                         memberRole.setExpiration(roleMember.getExpiration());
+                        memberRole.setRequestTime(roleMember.getRequestTime());
                         memberRoles.add(memberRole);
                         domainRoleMember.setMemberRoles(memberRoles);
                         domainRoleMemberList.add(domainRoleMember);
