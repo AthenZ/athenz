@@ -257,24 +257,30 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "subdomain=? WHERE domain_id=?;";
     private static final String SQL_DELETE_QUOTA = "DELETE FROM quota WHERE domain_id=?;";
 
-    private static final String SQL_PENDING_ORG_AUDIT_ROLE_MEMBER_LIST = "SELECT do.name AS domain, ro.name AS role, principal.name AS member, rmo.expiration, rmo.audit_ref, rmo.req_time FROM principal JOIN pending_role_member rmo " +
-            "ON rmo.principal_id=principal.principal_id JOIN role ro ON ro.role_id=rmo.role_id JOIN domain do ON ro.domain_id=do.domain_id " +
-            "WHERE ro.audit_enabled=true AND ro.domain_id IN ( select domain_id FROM domain WHERE org IN ( " +
-            "SELECT DISTINCT role.name AS org FROM role_member JOIN role ON role.role_id=role_member.role_id " +
-            "WHERE role_member.principal_id=? AND role.domain_id=?) ) order by do.name, ro.name, principal.name;";
+    private static final String SQL_PENDING_ORG_AUDIT_ROLE_MEMBER_LIST = "SELECT do.name AS domain, ro.name AS role, "
+            + "principal.name AS member, rmo.expiration, rmo.audit_ref, rmo.req_time, rmo.req_principal "
+            + "FROM principal JOIN pending_role_member rmo "
+            + "ON rmo.principal_id=principal.principal_id JOIN role ro ON ro.role_id=rmo.role_id JOIN domain do ON ro.domain_id=do.domain_id "
+            + "WHERE ro.audit_enabled=true AND ro.domain_id IN ( select domain_id FROM domain WHERE org IN ( "
+            + "SELECT DISTINCT role.name AS org FROM role_member JOIN role ON role.role_id=role_member.role_id "
+            + "WHERE role_member.principal_id=? AND role.domain_id=?) ) order by do.name, ro.name, principal.name;";
 
-    private static final String SQL_PENDING_DOMAIN_AUDIT_ROLE_MEMBER_LIST = "SELECT do.name AS domain, ro.name AS role, principal.name AS member, rmo.expiration, rmo.audit_ref, rmo.req_time FROM principal JOIN pending_role_member rmo " +
-            "ON rmo.principal_id=principal.principal_id JOIN role ro ON ro.role_id=rmo.role_id JOIN domain do ON ro.domain_id=do.domain_id " +
-            "WHERE ro.audit_enabled=true AND ro.domain_id IN ( select domain_id FROM domain WHERE name IN ( " +
-            "SELECT DISTINCT role.name AS domain_name FROM role_member JOIN role ON role.role_id=role_member.role_id " +
-            "WHERE role_member.principal_id=? AND role.domain_id=?) ) order by do.name, ro.name, principal.name;";
+    private static final String SQL_PENDING_DOMAIN_AUDIT_ROLE_MEMBER_LIST = "SELECT do.name AS domain, ro.name AS role, "
+            + "principal.name AS member, rmo.expiration, rmo.audit_ref, rmo.req_time, rmo.req_principal "
+            + "FROM principal JOIN pending_role_member rmo "
+            + "ON rmo.principal_id=principal.principal_id JOIN role ro ON ro.role_id=rmo.role_id JOIN domain do ON ro.domain_id=do.domain_id "
+            + "WHERE ro.audit_enabled=true AND ro.domain_id IN ( select domain_id FROM domain WHERE name IN ( "
+            + "SELECT DISTINCT role.name AS domain_name FROM role_member JOIN role ON role.role_id=role_member.role_id "
+            + "WHERE role_member.principal_id=? AND role.domain_id=?) ) order by do.name, ro.name, principal.name;";
 
-    private static final String SQL_PENDING_DOMAIN_ADMIN_ROLE_MEMBER_LIST = "SELECT do.name AS domain, ro.name AS role, principal.name AS member, rmo.expiration, rmo.audit_ref, rmo.req_time FROM principal JOIN pending_role_member rmo " +
-            "ON rmo.principal_id=principal.principal_id JOIN role ro ON ro.role_id=rmo.role_id JOIN domain do ON ro.domain_id=do.domain_id " +
-            "WHERE (ro.self_serve=true OR ro.review_enabled=true) AND ro.domain_id IN ( SELECT domain.domain_id FROM domain JOIN role " +
-            "ON role.domain_id=domain.domain_id JOIN role_member ON role.role_id=role_member.role_id " +
-            "WHERE role_member.principal_id=? AND role_member.active=true AND role.name='admin' ) " +
-            "order by do.name, ro.name, principal.name;";
+    private static final String SQL_PENDING_DOMAIN_ADMIN_ROLE_MEMBER_LIST = "SELECT do.name AS domain, ro.name AS role, "
+            + "principal.name AS member, rmo.expiration, rmo.audit_ref, rmo.req_time, rmo.req_principal "
+            + "FROM principal JOIN pending_role_member rmo "
+            + "ON rmo.principal_id=principal.principal_id JOIN role ro ON ro.role_id=rmo.role_id JOIN domain do ON ro.domain_id=do.domain_id "
+            + "WHERE (ro.self_serve=true OR ro.review_enabled=true) AND ro.domain_id IN ( SELECT domain.domain_id FROM domain JOIN role "
+            + "ON role.domain_id=domain.domain_id JOIN role_member ON role.role_id=role_member.role_id "
+            + "WHERE role_member.principal_id=? AND role_member.active=true AND role.name='admin' ) "
+            + "order by do.name, ro.name, principal.name;";
 
     private static final String SQL_AUDIT_ENABLED_PENDING_MEMBERSHIP_REMINDER_ENTRIES =
             "SELECT distinct d.org, d.name FROM pending_role_member rm " +
@@ -3782,7 +3788,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         if (expiration != null) {
             memberRole.setRequestTime(Timestamp.fromMillis(expiration.getTime()));
         }
-
+        memberRole.setRequestPrincipal(rs.getString(7));
         memberRoles.add(memberRole);
 
         domainRoleMember.setMemberRoles(memberRoles);

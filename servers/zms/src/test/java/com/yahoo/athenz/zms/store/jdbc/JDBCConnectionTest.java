@@ -8186,6 +8186,8 @@ public class JDBCConnectionTest {
         Mockito.doReturn("user.member1", "user.member2", "user.member3", "user.member2", "user.member11", "user.member21", "user.member31", "user.member21", "user.member31", "user.member21", "user.member21").when(mockResultSet).getString(3);
         Mockito.doReturn(new java.sql.Timestamp(1454358916), new java.sql.Timestamp(1454358916), null, null, new java.sql.Timestamp(1454358916), new java.sql.Timestamp(1454358916), null, null, null, null, null).when(mockResultSet).getTimestamp(4);
         Mockito.doReturn("required for proj1", null, "self serve audit-ref", null, "required for proj 2", null, "self serve audit-ref 2", null, "self serve audit-ref 2", null, null).when(mockResultSet).getString(5);
+        Mockito.doReturn(new java.sql.Timestamp(1454358916)).when(mockResultSet).getTimestamp(6);
+        Mockito.doReturn("user.req1").when(mockResultSet).getString(7);
 
         Map<String, List<DomainRoleMember>> domainRoleMembersMap = jdbcConn.getPendingDomainRoleMembers("user.user1");
 
@@ -8208,11 +8210,15 @@ public class JDBCConnectionTest {
         assertEquals(domainRoleMembers.get(0).getMemberRoles().size(), 1);
         assertEquals(domainRoleMembers.get(0).getMemberRoles().get(0).getRoleName(), "role1");
         assertEquals(domainRoleMembers.get(0).getMemberRoles().get(0).getAuditRef(), "required for proj1");
+        assertEquals(domainRoleMembers.get(0).getMemberRoles().get(0).getRequestPrincipal(), "user.req1");
+        assertEquals(domainRoleMembers.get(0).getMemberRoles().get(0).getRequestTime(), Timestamp.fromMillis(1454358916));
 
         assertEquals(domainRoleMembers.get(1).getMemberName(), "user.member2");
         assertEquals(domainRoleMembers.get(1).getMemberRoles().size(), 1);
         assertEquals(domainRoleMembers.get(1).getMemberRoles().get(0).getRoleName(), "role11");
         assertNull(domainRoleMembers.get(1).getMemberRoles().get(0).getAuditRef());
+        assertEquals(domainRoleMembers.get(1).getMemberRoles().get(0).getRequestPrincipal(), "user.req1");
+        assertEquals(domainRoleMembers.get(1).getMemberRoles().get(0).getRequestTime(), Timestamp.fromMillis(1454358916));
 
         assertEquals(domainRoleMembers.get(2).getMemberName(), "user.member3");
         assertEquals(domainRoleMembers.get(2).getMemberRoles().size(), 1);
