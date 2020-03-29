@@ -56,6 +56,8 @@ public class EmailNotificationService implements NotificationService {
     private static final String PROP_NOTIFICATION_WORKFLOW_URL = "athenz.notification_workflow_url";
     private static final String PROP_NOTIFICATION_ATHENZ_UI_URL = "athenz.notification_athenz_ui_url";
     private static final String PROP_NOTIFICATION_EMAIL_FROM = "athenz.notification_email_from";
+    private static final String PROP_NOTIFICATION_SUPPORT_TEXT = "athenz.notification_support_text";
+    private static final String PROP_NOTIFICATION_SUPPORT_URL = "athenz.notification_support_url";
 
     private static final String MEMBERSHIP_APPROVAL_SUBJECT = "athenz.notification.email.membership.approval.subject";
     private static final String MEMBERSHIP_APPROVAL_REMINDER_SUBJECT = "athenz.notification.email.membership.reminder.subject";
@@ -95,6 +97,8 @@ public class EmailNotificationService implements NotificationService {
     private String emailDomainTo;
     private String workflowUrl;
     private String athenzUIUrl;
+    private String supportText;
+    private String supportUrl;
     private String from;
 
     private byte[] logoImage;
@@ -113,6 +117,8 @@ public class EmailNotificationService implements NotificationService {
         emailDomainTo = System.getProperty(PROP_NOTIFICATION_EMAIL_DOMAIN_TO);
         workflowUrl = System.getProperty(PROP_NOTIFICATION_WORKFLOW_URL);
         athenzUIUrl = System.getProperty(PROP_NOTIFICATION_ATHENZ_UI_URL);
+        supportText = System.getProperty(PROP_NOTIFICATION_SUPPORT_TEXT);
+        supportUrl = System.getProperty(PROP_NOTIFICATION_SUPPORT_URL);
         from = System.getProperty(PROP_NOTIFICATION_EMAIL_FROM);
 
         logoImage = readBinaryFromFile(EMAIL_TEMPLATE_ATHENZ_LOGO);
@@ -223,7 +229,7 @@ public class EmailNotificationService implements NotificationService {
                                             String tableEntryTemplate) {
         // first get the template and replace placeholders
         StringBuilder body = new StringBuilder(256);
-        body.append(MessageFormat.format(bodyTemplate, metaDetails.get(bodyTemplateDetails), athenzUIUrl));
+        body.append(MessageFormat.format(bodyTemplate, metaDetails.get(bodyTemplateDetails), athenzUIUrl, supportUrl, supportText));
 
         // then get table rows and replace placeholders
         StringBuilder bodyEntry = new StringBuilder(256);
