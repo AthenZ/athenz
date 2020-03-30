@@ -37,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLContext;
+import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -258,9 +259,9 @@ public class HttpDriver implements Closeable {
      */
     public String doPost(HttpPost httpPost) throws IOException {
         String url = httpPost.getURI().toString();
-        String query = EntityUtils.toString(httpPost.getEntity());
-        LOGGER.debug("Requesting from {} with query {}", url, query);
-
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Requesting from {} with query {}", url, getPostQuery(httpPost));
+        }
         // Retry when IOException occurs
         for (int i = 0; i <  clientMaxRetries;  i++) {
             try (CloseableHttpResponse response = this.client.execute(httpPost)) {
@@ -281,7 +282,7 @@ public class HttpDriver implements Closeable {
                     }
                 }
             } catch (IOException ex) {
-                LOGGER.error("Failed to get response from {} for query: {} retry: {}/{}, exception: ", url, query, i, clientMaxRetries, ex);
+                LOGGER.error("Failed to get response from {} for query: {} retry: {}/{}, exception: ", url, getPostQuery(httpPost), i, clientMaxRetries, ex);
                 try {
                     TimeUnit.MILLISECONDS.sleep(clientRetryIntervalMs);
                 } catch (InterruptedException ignored) {
@@ -303,5 +304,15 @@ public class HttpDriver implements Closeable {
         httpPost.setEntity(new UrlEncodedFormEntity(fields));
 
         return doPost(httpPost);
+    }
+
+    private String getPostQuery(HttpPost httpPost) {
+        try {
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            httpPost.getEntity().writeTo(byteArrayOutputStream);
+            return byteArrayOutputStream.toString();
+        } catch (IOException e) {
+        }
+        return "";
     }
 }
