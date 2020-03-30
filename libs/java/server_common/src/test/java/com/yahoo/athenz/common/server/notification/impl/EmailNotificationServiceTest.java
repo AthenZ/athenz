@@ -45,6 +45,9 @@ public class EmailNotificationServiceTest {
     @Test
     public void testGetBody() {
         System.setProperty("athenz.notification_workflow_url", "https://athenz.example.com/workflow");
+        System.setProperty("athenz.notification_support_text", "#Athenz slack channel");
+        System.setProperty("athenz.notification_support_url", "https://link.to.athenz.channel.com");
+
         EmailProvider emailProvider = mock(EmailProvider.class);
         EmailNotificationService svc = new EmailNotificationService(emailProvider);
         Map<String, String> details = new HashMap<>();
@@ -63,15 +66,30 @@ public class EmailNotificationServiceTest {
         assertTrue(body.contains("user.requester"));
         assertTrue(body.contains("https://athenz.example.com/workflow"));
 
+        // Make sure support text and url do not appear
+
+        assertFalse(body.contains("slack"));
+        assertFalse(body.contains("link.to.athenz.channel.com"));
+
         body = svc.getBody("MEMBERSHIP_APPROVAL_REMINDER", null);
         assertNotNull(body);
         assertTrue(body.contains("https://athenz.example.com/workflow"));
+
+        // Make sure support text and url do not appear
+
+        assertFalse(body.contains("slack"));
+        assertFalse(body.contains("link.to.athenz.channel.com"));
 
         // first let's try with no details
 
         body = svc.getBody("DOMAIN_MEMBER_EXPIRY_REMINDER", details);
         assertNotNull(body);
         assertFalse(body.contains("user.member1"));
+
+        // Make sure support text and url do not appear
+
+        assertFalse(body.contains("slack"));
+        assertFalse(body.contains("link.to.athenz.channel.com"));
 
         // now set the correct expiry members details
         // with one bad entry that should be skipped
@@ -90,6 +108,11 @@ public class EmailNotificationServiceTest {
         assertFalse(body.contains("user.bad"));
         assertFalse(body.contains("role3"));
 
+        // Make sure support text and url do not appear
+
+        assertFalse(body.contains("slack"));
+        assertFalse(body.contains("link.to.athenz.channel.com"));
+
         // now try the expiry roles reminder
 
         details.put(NOTIFICATION_DETAILS_EXPIRY_ROLES,
@@ -101,6 +124,11 @@ public class EmailNotificationServiceTest {
         assertTrue(body.contains("role1"));
         assertTrue(body.contains("role2"));
         assertTrue(body.contains("2020-12-01T12:00:00.000Z"));
+
+        // Make sure support text and url do not appear
+
+        assertFalse(body.contains("slack"));
+        assertFalse(body.contains("link.to.athenz.channel.com"));
 
         // now try the unrefreshed certs notification
 
@@ -120,7 +148,14 @@ public class EmailNotificationServiceTest {
         assertFalse(body.contains("domain.bad"));
         assertFalse(body.contains("hostBad"));
 
+        // Make sure support text and url do appear
+
+        assertTrue(body.contains("slack"));
+        assertTrue(body.contains("link.to.athenz.channel.com"));
+
         System.clearProperty("athenz.notification_workflow_url");
+        System.clearProperty("notification_support_text");
+        System.clearProperty("notification_support_url");
     }
 
     @Test
