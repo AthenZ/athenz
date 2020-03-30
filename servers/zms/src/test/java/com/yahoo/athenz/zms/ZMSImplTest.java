@@ -13094,6 +13094,14 @@ public class ZMSImplTest {
             assertTrue(ex.getMessage().contains("Read-Only"));
         }
 
+        try {
+            zmsTest.deletePendingMembership(mockDomRsrcCtx, "readonlydom1", "role1", "member1", auditRef);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only"));
+        }
+
         // now make sure we can read our sys.auth zms service
         
         ServiceIdentity serviceRes = zmsTest.getServiceIdentity(mockDomRsrcCtx, "sys.auth", "zms");
@@ -16581,14 +16589,14 @@ public class ZMSImplTest {
         AthenzDomain domain = zms.getAthenzDomain("testdomain1", false);
         Role role = zms.getRoleFromDomain("testrole1", domain);
 
-        assertTrue(zms.isAllowedPutMembershipAccess(mockDomRestRsrcCtx.principal(), domain, role));
+        assertTrue(zms.isAllowedPutMembershipAccess(mockDomRestRsrcCtx.principal(), domain, role.getName()));
 
         Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
         String unsignedCreds = "v=U1;d=user;n=john";
         final Principal rsrcPrince = SimplePrincipal.create("user", "john", unsignedCreds + ";s=signature",0, principalAuthority);
         ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
 
-        assertFalse(zms.isAllowedPutMembershipAccess(rsrcPrince, domain, role));// some random user does not have access
+        assertFalse(zms.isAllowedPutMembershipAccess(rsrcPrince, domain, role.getName()));// some random user does not have access
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "testdomain1", auditRef);
     }
@@ -18005,22 +18013,28 @@ public class ZMSImplTest {
 
         Role resRole1 = zms.getRole(mockDomRsrcCtx, "role-review-dom", "role1", false, false, true);
 
-        Timestamp fortyFiveDaysUpperBoundExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(45, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(5, TimeUnit.MINUTES));
+        Timestamp fortyFiveDaysUpperBoundExpiry = Timestamp.fromMillis(System.currentTimeMillis() +
+                TimeUnit.MILLISECONDS.convert(45, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(5, TimeUnit.MINUTES));
 
         int userChecked = 0;
         for (RoleMember roleMember : resRole1.getRoleMembers()) {
             if (roleMember.getMemberName().equals("user.jane")) {
                 userChecked += 1;
-                assertTrue(roleMember.getExpiration().toDate().after(fortyFiveDaysLowerBoundExpiry.toDate()) && roleMember.getExpiration().toDate().before(fortyFiveDaysUpperBoundExpiry.toDate()));
+                assertTrue(roleMember.getExpiration().toDate().after(fortyFiveDaysLowerBoundExpiry.toDate())
+                        && roleMember.getExpiration().toDate().before(fortyFiveDaysUpperBoundExpiry.toDate()));
                 assertTrue(roleMember.getApproved());
             }
-            // 2 records for user.doe - one approved before making the domain auditEnabled with expiry date = now + 10 and another pending as part of putRoleReview with expiry date = now + 45
+
+            // 2 records for user.doe - one approved before making the domain auditEnabled with
+            //expiry date = now + 10 and another pending as part of putRoleReview with expiry date = now + 45
+
             if (roleMember.getMemberName().equals("user.doe")) {
                 userChecked += 1;
                 if (roleMember.getApproved() == Boolean.TRUE) {
                     assertEquals(roleMember.getExpiration(), tenDaysExpiry);
                 } else {
-                    assertTrue(roleMember.getExpiration().toDate().after(fortyFiveDaysLowerBoundExpiry.toDate()) && roleMember.getExpiration().toDate().before(fortyFiveDaysUpperBoundExpiry.toDate()));
+                    assertTrue(roleMember.getExpiration().toDate().after(fortyFiveDaysLowerBoundExpiry.toDate())
+                            && roleMember.getExpiration().toDate().before(fortyFiveDaysUpperBoundExpiry.toDate()));
                 }
 
             }
@@ -18318,5 +18332,228 @@ public class ZMSImplTest {
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
         }
+    }
+
+    @Test
+    public void testIsAllowedDeletePendingMembership() {
+
+        final String domainName = "test-domain";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Role Test Domain1", "testOrg", "user.user1");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Role role1 = createRoleObject(domainName, "testrole1", null, "user.user1", "user.jane");
+        zms.putRole(mockDomRsrcCtx, domainName, "testrole1", auditRef, role1);
+
+        Policy policy1 = createPolicyObject(domainName, "Policy1", "testrole1",
+                "UPDATE", domainName + ":role.*", AssertionEffect.ALLOW);
+        zms.putPolicy(mockDomRsrcCtx, domainName, "Policy1", auditRef, policy1);
+
+        assertTrue(zms.isAllowedDeletePendingMembership(mockDomRsrcCtx.principal(), domainName,
+                "testrole1", "user.pending"));
+
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String unsignedCreds = "v=U1;d=user;n=jane";
+        Principal rsrcPrince = SimplePrincipal.create("user", "jane", unsignedCreds + ";s=signature",0, principalAuthority);
+        ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
+
+        assertTrue(zms.isAllowedDeletePendingMembership(rsrcPrince, domainName,
+                "testrole1", "user.pending"));
+
+        unsignedCreds = "v=U1;d=user;n=john";
+        rsrcPrince = SimplePrincipal.create("user", "john", unsignedCreds + ";s=signature",0, principalAuthority);
+        ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
+
+        // this time false since john is not authorized
+
+        assertFalse(zms.isAllowedDeletePendingMembership(rsrcPrince, domainName,
+                "testrole1", "user.pending"));
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testDeletePendingMembershipAdminRequest() {
+
+        final String domainName = "delete-pending";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "delete pending membership",
+                "testOrg", "user.user1");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        setupPrincipalAuditedRoleApprovalByOrg(zms, "user.fury", "testorg");
+
+        DomainMeta meta = createDomainMetaObject("Domain Meta for approval test", "testorg",
+                true, true, "12345", 1001);
+        zms.putDomainMeta(mockDomRsrcCtx, domainName, auditRef, meta);
+        zms.putDomainSystemMeta(mockDomRsrcCtx, domainName, "auditenabled", auditRef, meta);
+        setupPrincipalSystemMetaDelete(zms, mockDomRsrcCtx.principal().getFullName(), domainName, "org");
+        zms.putDomainSystemMeta(mockDomRsrcCtx, domainName, "org", auditRef, meta);
+
+        Role auditedRole = createRoleObject(domainName, "testrole1", null, "user.john", "user.jane");
+        zms.putRole(mockDomRsrcCtx, domainName, "testrole1", auditRef, auditedRole);
+        RoleSystemMeta rsm = createRoleSystemMetaObject(true);
+        zms.putRoleSystemMeta(mockDomRsrcCtx, domainName, "testrole1", "auditenabled", auditRef, rsm);
+
+        Membership mbr = new Membership();
+        mbr.setMemberName("user.bob");
+        mbr.setActive(false);
+        mbr.setApproved(false);
+        zms.putMembership(mockDomRsrcCtx, domainName, "testrole1", "user.bob", auditRef, mbr);
+
+        // first request using admin principal
+
+        DomainRoleMembership domainRoleMembership = zms.getPendingDomainRoleMembersList(mockDomRsrcCtx, "user.fury");
+
+        assertNotNull(domainRoleMembership);
+        assertNotNull(domainRoleMembership.getDomainRoleMembersList());
+        assertEquals(domainRoleMembership.getDomainRoleMembersList().size(), 1);
+        for (DomainRoleMembers drm : domainRoleMembership.getDomainRoleMembersList()) {
+            assertEquals(drm.getDomainName(), domainName);
+            assertNotNull(drm.getMembers());
+            for (DomainRoleMember mem : drm.getMembers()) {
+                assertNotNull(mem);
+                assertEquals(mem.getMemberName(), "user.bob");
+                for (MemberRole mr : mem.getMemberRoles()) {
+                    assertNotNull(mr);
+                    assertEquals(mr.getRoleName(), "testrole1");
+                }
+            }
+        }
+
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String unsignedCreds = "v=U1;d=user;n=jane";
+        Principal rsrcPrince = SimplePrincipal.create("user", "jane", unsignedCreds + ";s=signature",0, principalAuthority);
+        ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
+        ResourceContext ctx = createResourceContext(rsrcPrince);
+
+        // first try to delete the pending request without proper authorization
+
+        try {
+            zms.deletePendingMembership(ctx, domainName, "testrole1", "user.bob", auditRef);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+
+        // repeat the request using context principal
+
+        zms.deletePendingMembership(mockDomRsrcCtx, domainName, "testrole1", "user.bob", auditRef);
+
+        // check the list to see there are no pending requests
+
+        domainRoleMembership = zms.getPendingDomainRoleMembersList(mockDomRsrcCtx, "user.fury");
+        assertNotNull(domainRoleMembership);
+        assertTrue(domainRoleMembership.getDomainRoleMembersList().isEmpty());
+
+        // delete some unknown member in the same role as admin
+
+        try {
+            zms.deletePendingMembership(mockDomRsrcCtx, domainName, "testrole1", "user.bob2", auditRef);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+        }
+
+        // delete some member in an unknown domain
+
+        try {
+            zms.deletePendingMembership(mockDomRsrcCtx, "unkwown-domain", "testrole1", "user.bob2", auditRef);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+        }
+
+        cleanupPrincipalSystemMetaDelete(zms);
+        clenaupPrincipalAuditedRoleApprovalByOrg(zms, "testOrg");
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testDeletePendingMembershipSelfServeRequest() {
+
+        final String domainName = "delete-pending-self-serve";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "delete pending membership",
+                "testOrg", "user.user1");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        setupPrincipalAuditedRoleApprovalByOrg(zms, "user.fury", "testorg");
+
+        DomainMeta meta = createDomainMetaObject("Domain Meta for approval test", "testorg",
+                true, true, "12345", 1001);
+        zms.putDomainMeta(mockDomRsrcCtx, domainName, auditRef, meta);
+        zms.putDomainSystemMeta(mockDomRsrcCtx, domainName, "auditenabled", auditRef, meta);
+        setupPrincipalSystemMetaDelete(zms, mockDomRsrcCtx.principal().getFullName(), domainName, "org");
+        zms.putDomainSystemMeta(mockDomRsrcCtx, domainName, "org", auditRef, meta);
+
+        Role auditedRole = createRoleObject(domainName, "testrole1", null, "user.john", "user.jane");
+        zms.putRole(mockDomRsrcCtx, domainName, "testrole1", auditRef, auditedRole);
+        RoleSystemMeta rsm = createRoleSystemMetaObject(true);
+        zms.putRoleSystemMeta(mockDomRsrcCtx, domainName, "testrole1", "auditenabled", auditRef, rsm);
+        RoleMeta rm = new RoleMeta().setSelfServe(true);
+        zms.putRoleMeta(mockDomRsrcCtx, domainName, "testrole1", auditRef, rm);
+
+        // user.joe is going to add user.bob in the self serve role
+
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String unsignedCreds = "v=U1;d=user;n=joe";
+        Principal rsrcPrince = SimplePrincipal.create("user", "joe", unsignedCreds + ";s=signature",0, principalAuthority);
+        ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
+        ResourceContext ctxJoe = createResourceContext(rsrcPrince);
+
+        Membership mbr = new Membership();
+        mbr.setMemberName("user.bob");
+        mbr.setActive(false);
+        mbr.setApproved(false);
+        zms.putMembership(ctxJoe, domainName, "testrole1", "user.bob", auditRef, mbr);
+
+        // first request using admin principal
+
+        DomainRoleMembership domainRoleMembership = zms.getPendingDomainRoleMembersList(mockDomRsrcCtx, "user.fury");
+
+        assertNotNull(domainRoleMembership);
+        assertNotNull(domainRoleMembership.getDomainRoleMembersList());
+        assertEquals(domainRoleMembership.getDomainRoleMembersList().size(), 1);
+        for (DomainRoleMembers drm : domainRoleMembership.getDomainRoleMembersList()) {
+            assertEquals(drm.getDomainName(), domainName);
+            assertNotNull(drm.getMembers());
+            for (DomainRoleMember mem : drm.getMembers()) {
+                assertNotNull(mem);
+                assertEquals(mem.getMemberName(), "user.bob");
+                for (MemberRole mr : mem.getMemberRoles()) {
+                    assertNotNull(mr);
+                    assertEquals(mr.getRoleName(), "testrole1");
+                }
+            }
+        }
+
+        // first try to delete the pending request without proper authorization
+
+        unsignedCreds = "v=U1;d=user;n=jane";
+        rsrcPrince = SimplePrincipal.create("user", "jane", unsignedCreds + ";s=signature",0, principalAuthority);
+        ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
+        ResourceContext ctxJane = createResourceContext(rsrcPrince);
+
+        try {
+            zms.deletePendingMembership(ctxJane, domainName, "testrole1", "user.bob", auditRef);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+
+        // repeat the request using joe principal
+
+        zms.deletePendingMembership(ctxJoe, domainName, "testrole1", "user.bob", auditRef);
+
+        // check the list to see there are no pending requests
+
+        domainRoleMembership = zms.getPendingDomainRoleMembersList(mockDomRsrcCtx, "user.fury");
+        assertNotNull(domainRoleMembership);
+        assertTrue(domainRoleMembership.getDomainRoleMembersList().isEmpty());
+
+        cleanupPrincipalSystemMetaDelete(zms);
+        clenaupPrincipalAuditedRoleApprovalByOrg(zms, "testOrg");
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 }

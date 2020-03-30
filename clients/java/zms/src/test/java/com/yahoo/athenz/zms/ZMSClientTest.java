@@ -529,6 +529,30 @@ public class ZMSClientTest {
     }
 
     @Test
+    public void testDeletePendingMembershipFailures() {
+
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        Mockito.when(c.deletePendingMembership("domain", "role1", "joe", AUDIT_REF)).thenThrow(new ResourceException(403));
+        Mockito.when(c.deletePendingMembership("domain", "role2", "joe", AUDIT_REF)).thenThrow(new NullPointerException());
+
+        try {
+            client.deletePendingMembership("domain", "role1", "joe", AUDIT_REF);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+
+        try {
+            client.deletePendingMembership("domain", "role2", "joe", AUDIT_REF);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+    }
+
+    @Test
     public void testDeleteTopLevelDomain() {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);

@@ -1205,6 +1205,36 @@ func (client ZMSClient) DeleteMembership(domainName DomainName, roleName EntityN
 	}
 }
 
+func (client ZMSClient) DeletePendingMembership(domainName DomainName, roleName EntityName, memberName MemberName, auditRef string) error {
+	headers := map[string]string{
+		"Y-Audit-Ref": auditRef,
+	}
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/role/" + fmt.Sprint(roleName) + "/pendingmember/" + fmt.Sprint(memberName)
+	resp, err := client.httpDelete(url, headers)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 204:
+		return nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return errobj
+	}
+}
+
 func (client ZMSClient) PutDefaultAdmins(domainName DomainName, auditRef string, defaultAdmins *DefaultAdmins) error {
 	headers := map[string]string{
 		"Y-Audit-Ref": auditRef,

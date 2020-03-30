@@ -693,6 +693,30 @@ public class ZMSRDLGeneratedClient {
 
     }
 
+    public Membership deletePendingMembership(String domainName, String roleName, String memberName, String auditRef) {
+        WebTarget target = base.path("/domain/{domainName}/role/{roleName}/pendingmember/{memberName}")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("roleName", roleName)
+            .resolveTemplate("memberName", memberName);
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+        }
+        if (auditRef != null) {
+            invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
+        }
+        Response response = invocationBuilder.delete();
+        int code = response.getStatus();
+        switch (code) {
+        case 204:
+            return null;
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
     public DefaultAdmins putDefaultAdmins(String domainName, String auditRef, DefaultAdmins defaultAdmins) {
         WebTarget target = base.path("/domain/{domainName}/admins")
             .resolveTemplate("domainName", domainName);
