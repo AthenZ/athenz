@@ -3310,7 +3310,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String principalDomain = getPrincipalDomain(ctx);
         metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
         metric.increment(caller, domainName, principalDomain);
-        Object timerMetric = metric.startTiming("deletemembership_timing", domainName, principalDomain);
+        Object timerMetric = metric.startTiming("deletependingmembership_timing", domainName, principalDomain);
 
         // verify that request is properly authenticated for this request
 
