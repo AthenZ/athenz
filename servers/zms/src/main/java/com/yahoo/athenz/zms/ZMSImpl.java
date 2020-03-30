@@ -3282,6 +3282,56 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         notificationManager.sendNotifications(notifications);
     }
 
+    public void deletePendingMembership(ResourceContext ctx, String domainName, String roleName,
+            String memberName, String auditRef) {
+
+        final String caller = "deletependingmembership";
+        metric.increment(ZMSConsts.HTTP_DELETE);
+        logPrincipal(ctx);
+
+        if (readOnlyMode) {
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
+        }
+
+        validateRequest(ctx.request(), caller);
+
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        validate(roleName, TYPE_ENTITY_NAME, caller);
+        validate(memberName, TYPE_MEMBER_NAME, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+
+        domainName = domainName.toLowerCase();
+        roleName = roleName.toLowerCase();
+        memberName = normalizeDomainAliasUser(memberName.toLowerCase());
+
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
+        Object timerMetric = metric.startTiming("deletemembership_timing", domainName, principalDomain);
+
+        // verify that request is properly authenticated for this request
+
+        Principal principal = ((RsrcCtxWrapper) ctx).principal();
+        verifyAuthorizedServiceRoleOperation(principal.getAuthorizedService(), caller, roleName);
+
+        // authorization check - there are two supported use cases
+        // 1) the caller has authorization in the domain to update members in a role
+        // 2) the caller is the original requestor for the pending request
+
+        if (!isAllowedDeletePendingMembership(principal, domainName, roleName, memberName)) {
+            metric.stopTiming(timerMetric, domainName, principalDomain);
+            throw ZMSUtils.forbiddenError("deletePendingMembership: principal is not authorized to delete pending members", caller);
+        }
+
+        // add the member to the specified role
+
+        dbService.executeDeletePendingMembership(ctx, domainName, roleName, memberName, auditRef, caller);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
+    }
+
     public void deleteMembership(ResourceContext ctx, String domainName, String roleName,
             String memberName, String auditRef) {
         
@@ -7384,7 +7434,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // otherwise we're going to do a standard check if the principal
         // is authorized to update the domain role membership
 
-        boolean allowed = isAllowedPutMembershipAccess(principal, domain, role);
+        boolean allowed = isAllowedPutMembershipAccess(principal, domain, role.getName());
 
         // if the user is allowed to make changes in the domain but
         // the role is review enabled then we need to make sure
@@ -7452,13 +7502,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return null;
     }
 
-    boolean isAllowedPutMembershipAccess(Principal principal, final AthenzDomain domain, final Role role) {
+    boolean isAllowedPutMembershipAccess(Principal principal, final AthenzDomain domain, final String roleName) {
 
         // evaluate our domain's roles and policies to see if access
         // is allowed or not for the given operation and resource
         // our action are always converted to lowercase
 
-        return evaluateAccess(domain, principal.getFullName(), "update", role.getName(), null, null) == AccessStatus.ALLOWED;
+        return evaluateAccess(domain, principal.getFullName(), "update", roleName, null, null) == AccessStatus.ALLOWED;
     }
 
     boolean isAllowedPutMembershipWithoutApproval(Principal principal, final AthenzDomain reqDomain, final Role role) {
@@ -7467,7 +7517,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             return false;
         }
 
-        return isAllowedPutMembershipAccess(principal, reqDomain, role);
+        return isAllowedPutMembershipAccess(principal, reqDomain, role.getName());
     }
 
     boolean isAllowedPutMembership(Principal principal, final AthenzDomain domain, final Role role,
@@ -7475,7 +7525,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // first lets check if the principal has update access on the role
 
-        if (isAllowedPutMembershipAccess(principal, domain, role)) {
+        if (isAllowedPutMembershipAccess(principal, domain, role.getName())) {
 
             // even with update access, if the role is audit/review enabled, member status
             // can not be set to active/approved. It has to be approved by audit/review admins.
@@ -7498,6 +7548,25 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         return false;
+    }
+
+    boolean isAllowedDeletePendingMembership(Principal principal, final String domainName,
+            final String roleName, final String memberName) {
+
+        // first lets check if the principal has update access on the role
+
+        AthenzDomain domain = getAthenzDomain(domainName, false);
+        if (domain == null) {
+            throw ZMSUtils.notFoundError("Domain not found: " + domainName, "deletePendingMembership");
+        }
+        if (isAllowedPutMembershipAccess(principal, domain, ZMSUtils.roleResourceName(domainName, roleName))) {
+            return true;
+        }
+
+        // check of the requestor of the pending request is the principal
+
+        Membership pendingMember = dbService.getMembership(domainName, roleName, memberName, 0, true);
+        return pendingMember != null && principal.getFullName().equals(pendingMember.getRequestPrincipal());
     }
 
     @Override

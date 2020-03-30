@@ -1753,17 +1753,19 @@ public class FileConnection implements ObjectStoreConnection {
             throw ZMSUtils.error(ResourceException.NOT_FOUND, "role not found", "deletePendingRoleMember");
         }
         List<RoleMember> roleMembers = role.getRoleMembers();
+        boolean memberDeleted = false;
         if (roleMembers != null) {
             for (int idx = 0; idx < roleMembers.size(); idx++) {
                 RoleMember roleMember = roleMembers.get(idx);
                 if (roleMember.getApproved() == Boolean.FALSE && roleMember.getMemberName().equalsIgnoreCase(principal)) {
                     roleMembers.remove(idx);
+                    memberDeleted = true;
                     break;
                 }
             }
         }
         putDomainStruct(domainName, domainStruct);
-        return true;
+        return memberDeleted;
     }
 
     @Override

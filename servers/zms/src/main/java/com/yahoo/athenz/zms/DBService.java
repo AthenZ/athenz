@@ -1230,7 +1230,54 @@ public class DBService {
             }
         }
     }
-    
+
+    void executeDeletePendingMembership(ResourceContext ctx, String domainName, String roleName,
+                String normalizedMember, String auditRef, String caller) {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
+            try (ObjectStoreConnection con = store.getConnection(true, true)) {
+
+                String principal = getPrincipalName(ctx);
+
+                // first verify that auditing requirements are met
+
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, principal, AUDIT_TYPE_ROLE);
+
+                // process our delete role member operation
+
+                if (!con.deletePendingRoleMember(domainName, roleName, normalizedMember,
+                        principal, auditRef)) {
+                    con.rollbackChanges();
+                    throw ZMSUtils.notFoundError(caller + ": unable to delete pending role member: " +
+                            normalizedMember + " from role: " + roleName, caller);
+                }
+
+                // update our role and domain time-stamps, and invalidate local cache entry
+
+                con.updateRoleModTimestamp(domainName, roleName);
+                con.updateDomainModTimestamp(domainName);
+                cacheStore.invalidate(domainName);
+
+                // audit log the request
+
+                auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
+                        roleName, "{\"pending-member\": \"" + normalizedMember + "\"}");
+
+                return;
+
+            } catch (ResourceException ex) {
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ex;
+                }
+            }
+        }
+    }
+
     void executeDeleteServiceIdentity(ResourceContext ctx, String domainName, String serviceName,
             String auditRef, String caller) {
 

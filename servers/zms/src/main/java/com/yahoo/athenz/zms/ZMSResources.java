@@ -813,6 +813,36 @@ public class ZMSResources {
         }
     }
 
+    @DELETE
+    @Path("/domain/{domainName}/role/{roleName}/pendingmember/{memberName}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public void deletePendingMembership(@PathParam("domainName") String domainName, @PathParam("roleName") String roleName, @PathParam("memberName") String memberName, @HeaderParam("Y-Audit-Ref") String auditRef) {
+        try {
+            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context.authenticate();
+            this.delegate.deletePendingMembership(context, domainName, roleName, memberName, auditRef);
+        } catch (ResourceException e) {
+            int code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.CONFLICT:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource deletePendingMembership");
+                throw typedException(code, e, ResourceError.class);
+            }
+        }
+    }
+
     @PUT
     @Path("/domain/{domainName}/admins")
     @Consumes(MediaType.APPLICATION_JSON)

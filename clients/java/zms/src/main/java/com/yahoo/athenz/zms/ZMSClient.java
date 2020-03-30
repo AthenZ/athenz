@@ -1021,6 +1021,26 @@ public class ZMSClient implements Closeable {
     }
 
     /**
+     * Remove the specified pending member from the role
+     *
+     * @param domainName name of the domain
+     * @param roleName   name of the role
+     * @param memberName name of the pending member to be removed
+     * @param auditRef   string containing audit specification or ticket number
+     * @throws ZMSClientException in case of failure
+     */
+    public void deletePendingMembership(String domainName, String roleName, String memberName, String auditRef) {
+        updatePrincipal();
+        try {
+            client.deletePendingMembership(domainName, roleName, memberName, auditRef);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
      * Get list of users defined in the system
      *
      * @return list of user names

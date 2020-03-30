@@ -6244,4 +6244,94 @@ public class DBServiceTest {
 
         zms.dbService.store = saveStore;
     }
+
+    @Test
+    public void testExecuteDeletePendingMemberFailureRetry() {
+
+        final String domainName = "pendingdeletembrretry";
+        final String roleName = "role1";
+        final String memberName = "user.member1";
+        final String adminName = "user.user1";
+
+        Domain domain = new Domain().setAuditEnabled(false);
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockFileConn);
+        Mockito.when(mockFileConn.getDomain(domainName)).thenReturn(domain);
+        Mockito.when(mockFileConn.deletePendingRoleMember(domainName, roleName, memberName, adminName, auditRef))
+                .thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+        int saveRetryCount = zms.dbService.defaultRetryCount;
+        zms.dbService.defaultRetryCount = 2;
+
+        try {
+            zms.dbService.executeDeletePendingMembership(mockDomRsrcCtx, domainName, roleName,
+                    memberName, auditRef, "deletePendingMember");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ResourceException.CONFLICT, ex.getCode());
+        }
+
+        zms.dbService.defaultRetryCount = saveRetryCount;
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testExecuteDeleteMemberFailureNotFound() {
+
+        final String domainName = "deletembrnotfound";
+        final String roleName = "role1";
+        final String memberName = "user.member1";
+        final String adminName = "user.user1";
+
+        Domain domain = new Domain().setAuditEnabled(false);
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockFileConn);
+        Mockito.when(mockFileConn.getDomain(domainName)).thenReturn(domain);
+        Mockito.when(mockFileConn.deleteRoleMember(domainName, roleName, memberName, adminName, auditRef))
+                .thenReturn(false);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        try {
+            zms.dbService.executeDeleteMembership(mockDomRsrcCtx, domainName, roleName,
+                    memberName, auditRef, "deleteMember");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ResourceException.NOT_FOUND, ex.getCode());
+        }
+
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testExecuteDeleteMemberFailureRetry() {
+
+        final String domainName = "deletembrretry";
+        final String roleName = "role1";
+        final String memberName = "user.member1";
+        final String adminName = "user.user1";
+
+        Domain domain = new Domain().setAuditEnabled(false);
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockFileConn);
+        Mockito.when(mockFileConn.getDomain(domainName)).thenReturn(domain);
+        Mockito.when(mockFileConn.deleteRoleMember(domainName, roleName, memberName, adminName, auditRef))
+                .thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+        int saveRetryCount = zms.dbService.defaultRetryCount;
+        zms.dbService.defaultRetryCount = 2;
+
+        try {
+            zms.dbService.executeDeleteMembership(mockDomRsrcCtx, domainName, roleName,
+                    memberName, auditRef, "deleteMember");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ResourceException.CONFLICT, ex.getCode());
+        }
+
+        zms.dbService.defaultRetryCount = saveRetryCount;
+        zms.dbService.store = saveStore;
+    }
 }
