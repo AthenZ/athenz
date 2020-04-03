@@ -102,6 +102,11 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_CERT_DYNAMODB_TABLE_NAME     = "athenz.zts.cert_dynamodb_table_name";
     public static final String ZTS_PROP_CERT_DYNAMODB_ITEM_TTL_HOURS = "athenz.zts.cert_dynamodb_item_ttl_hours";
 
+    public static final String ZTS_PROP_SSH_FILE_STORE_PATH          = "athenz.zts.ssh_file_store_path";
+    public static final String ZTS_PROP_SSH_FILE_STORE_NAME          = "athenz.zts.ssh_file_store_name";
+    public static final String ZTS_PROP_SSH_DYNAMODB_TABLE_NAME      = "athenz.zts.ssh_dynamodb_table_name";
+    public static final String ZTS_PROP_SSH_DYNAMODB_ITEM_TTL_HOURS  = "athenz.zts.ssh_dynamodb_item_ttl_hours";
+
     public static final String ZTS_PROP_PROVIDER_ENDPOINTS      = "athenz.zts.provider_endpoints";
     public static final String ZTS_PROP_INSTANCE_NTOKEN_TIMEOUT = "athenz.zts.instance_token_timeout";
     public static final String ZTS_PROP_X509_CA_CERT_FNAME      = "athenz.zts.x509_ca_cert_fname";

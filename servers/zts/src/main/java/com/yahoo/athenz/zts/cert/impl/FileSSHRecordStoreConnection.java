@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Yahoo Inc.
+ * Copyright 2020 Verizon Media
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,26 +15,24 @@
  */
 package com.yahoo.athenz.zts.cert.impl;
 
+import com.yahoo.athenz.common.server.ssh.SSHCertRecord;
+import com.yahoo.athenz.common.server.ssh.SSHRecordStoreConnection;
+import com.yahoo.athenz.zts.utils.FilesHelper;
+import com.yahoo.rdl.JSON;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
 
-import com.yahoo.athenz.common.server.cert.CertRecordStoreConnection;
-import com.yahoo.athenz.common.server.cert.X509CertRecord;
-import com.yahoo.athenz.zts.utils.FilesHelper;
-import com.yahoo.rdl.JSON;
+public class FileSSHRecordStoreConnection implements SSHRecordStoreConnection {
 
-public class FileCertRecordStoreConnection implements CertRecordStoreConnection {
-    
     File rootDir;
     FilesHelper filesHelper;
 
-    public FileCertRecordStoreConnection(File rootDir) {
+    public FileSSHRecordStoreConnection(File rootDir) {
         this.rootDir = rootDir;
         this.filesHelper = new FilesHelper();
     }
@@ -48,12 +46,12 @@ public class FileCertRecordStoreConnection implements CertRecordStoreConnection 
     }
 
     @Override
-    public X509CertRecord getX509CertRecord(String provider, String instanceId, String service) {
-        return getCertRecord(provider, instanceId, service);
+    public SSHCertRecord getSSHCertRecord(String instanceId, String service) {
+        return getCertRecord(instanceId, service);
     }
     
     @Override
-    public boolean updateX509CertRecord(X509CertRecord certRecord) {
+    public boolean updateSSHCertRecord(SSHCertRecord certRecord) {
         if (certRecord != null) {
             putCertRecord(certRecord);
         }
@@ -61,7 +59,7 @@ public class FileCertRecordStoreConnection implements CertRecordStoreConnection 
     }
     
     @Override
-    public boolean insertX509CertRecord(X509CertRecord certRecord) {
+    public boolean insertSSHCertRecord(SSHCertRecord certRecord) {
         if (certRecord != null) {
             putCertRecord(certRecord);
         }
@@ -69,13 +67,13 @@ public class FileCertRecordStoreConnection implements CertRecordStoreConnection 
     }
     
     @Override
-    public boolean deleteX509CertRecord(String provider, String instanceId, String service) {
-        deleteCertRecord(provider, instanceId, service);
+    public boolean deleteSSHCertRecord(String instanceId, String service) {
+        deleteCertRecord(instanceId, service);
         return true;
     }
     
     @Override
-    public int deleteExpiredX509CertRecords(int expiryTimeMins) {
+    public int deleteExpiredSSHCertRecords(int expiryTimeMins) {
         String[] fnames = rootDir.list();
         if (fnames == null) {
             return 0;
@@ -98,43 +96,31 @@ public class FileCertRecordStoreConnection implements CertRecordStoreConnection 
         return count;
     }
 
-    @Override
-    public boolean updateUnrefreshedCertificatesNotificationTimestamp(String lastNotifiedServer, long lastNotifiedTime) {
-        // Currently unimplemented for File
-        return false;
-    }
-
-    @Override
-    public List<X509CertRecord> getNotifyUnrefreshedCertificates(String lastNotifiedServer, long lastNotifiedTime) {
-        // Currently unimplemented for File
-        return new ArrayList<>();
-    }
-
     boolean notExpired(long currentTime, long lastModified, int expiryTimeMins) {
         return (currentTime - lastModified < expiryTimeMins * 60 * 1000);
     }
 
-    private String getRecordFileName(final String provider, final String instanceId, final String service) {
-        return provider + "-" + instanceId + "-" + service;
+    private String getRecordFileName(final String instanceId, final String service) {
+        return instanceId + "-" + service;
     }
 
-    private synchronized X509CertRecord getCertRecord(String provider, String instanceId, String service) {
-        File file = new File(rootDir, getRecordFileName(provider, instanceId, service));
+    private synchronized SSHCertRecord getCertRecord(String instanceId, String service) {
+        File file = new File(rootDir, getRecordFileName(instanceId, service));
         if (!file.exists()) {
             return null;
         }
-        X509CertRecord record = null;
+        SSHCertRecord record = null;
         try {
             Path path = Paths.get(file.toURI());
-            record = JSON.fromBytes(Files.readAllBytes(path), X509CertRecord.class);
+            record = JSON.fromBytes(Files.readAllBytes(path), SSHCertRecord.class);
         } catch (IOException ignored) {
         }
         return record;
     }
 
-    private synchronized void putCertRecord(X509CertRecord certRecord) {
+    private synchronized void putCertRecord(SSHCertRecord certRecord) {
         
-        File file = new File(rootDir, getRecordFileName(certRecord.getProvider(), certRecord.getInstanceId(), certRecord.getService()));
+        File file = new File(rootDir, getRecordFileName(certRecord.getInstanceId(), certRecord.getService()));
         String data = JSON.string(certRecord);
         try {
             FileWriter fileWriter = new FileWriter(file);
@@ -145,8 +131,8 @@ public class FileCertRecordStoreConnection implements CertRecordStoreConnection 
         }
     }
 
-    private synchronized void deleteCertRecord(String provider, String instanceId, String service) {
-        File file = new File(rootDir, getRecordFileName(provider, instanceId, service));
+    private synchronized void deleteCertRecord(String instanceId, String service) {
+        File file = new File(rootDir, getRecordFileName(instanceId, service));
         try {
             filesHelper.delete(file);
         } catch (IOException ignored) {

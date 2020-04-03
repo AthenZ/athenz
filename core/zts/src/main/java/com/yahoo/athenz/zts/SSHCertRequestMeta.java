@@ -19,6 +19,12 @@ public class SSHCertRequestMeta {
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String sshClientVersion;
     public String certType;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String athenzService;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String instanceId;
 
     public SSHCertRequestMeta setRequestor(String requestor) {
         this.requestor = requestor;
@@ -55,6 +61,20 @@ public class SSHCertRequestMeta {
     public String getCertType() {
         return certType;
     }
+    public SSHCertRequestMeta setAthenzService(String athenzService) {
+        this.athenzService = athenzService;
+        return this;
+    }
+    public String getAthenzService() {
+        return athenzService;
+    }
+    public SSHCertRequestMeta setInstanceId(String instanceId) {
+        this.instanceId = instanceId;
+        return this;
+    }
+    public String getInstanceId() {
+        return instanceId;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -76,6 +96,12 @@ public class SSHCertRequestMeta {
                 return false;
             }
             if (certType == null ? a.certType != null : !certType.equals(a.certType)) {
+                return false;
+            }
+            if (athenzService == null ? a.athenzService != null : !athenzService.equals(a.athenzService)) {
+                return false;
+            }
+            if (instanceId == null ? a.instanceId != null : !instanceId.equals(a.instanceId)) {
                 return false;
             }
         }

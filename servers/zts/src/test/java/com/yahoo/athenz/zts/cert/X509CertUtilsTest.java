@@ -104,12 +104,14 @@ public class X509CertUtilsTest {
         // when logger is null
 
         X509CertUtils.logCert(null, null, null, null, null, null);
+        X509CertUtils.logSSH(null, null, null, null, null);
 
         // we should get a null pointer exception when passing null
         // for our certificate but the log method will catch
         // all exceptions and the test will pass without any errors
 
         X509CertUtils.logCert(LOGGER, null, "10.11.12.13", "athenz.api", "id1234", null);
+        X509CertUtils.logSSH(LOGGER, null, "10.11.12.13", "athenz.api", "id1234");
     }
 
     @Test

@@ -27,6 +27,7 @@ public interface SSHSigner {
      * for a given principal
      * @param principal Principal requesting the ssh certificates
      * @param certRequest SSH Certificate Request
+     * @param certRecord SSH Host Certificate Record if server had one
      * @param certType requested certificate type: user or host or null. If null,
      *                 no verification is necessary otherwise the implementation
      *                 must verify that the certRequest matches the requested type.
@@ -34,7 +35,7 @@ public interface SSHSigner {
      * by throwing com.yahoo.athenz.common.rest.ResourceExceptions
      */
     default SSHCertificates generateCertificate(Principal principal, SSHCertRequest certRequest,
-            final String certType) {
+            SSHCertRecord certRecord, final String certType) {
         return null;
     }
 

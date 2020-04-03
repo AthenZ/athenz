@@ -42,6 +42,10 @@ import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.common.server.cert.CertSigner;
 import com.yahoo.athenz.common.server.cert.CertSignerFactory;
+import com.yahoo.athenz.common.server.cert.CertRecordStore;
+import com.yahoo.athenz.common.server.cert.CertRecordStoreFactory;
+import com.yahoo.athenz.common.server.cert.CertRecordStoreConnection;
+import com.yahoo.athenz.common.server.cert.X509CertRecord;
 import com.yahoo.athenz.common.server.ssh.SSHSigner;
 import com.yahoo.athenz.common.server.ssh.SSHSignerFactory;
 
@@ -618,7 +622,7 @@ public class InstanceCertManager {
         // of this request. the signer already was given the authorizer object
         // that it can use for those checks.
 
-        return sshSigner.generateCertificate(principal, certRequest, null);
+        return sshSigner.generateCertificate(principal, certRequest, null, null);
     }
 
     public boolean generateSSHIdentity(Principal principal, InstanceIdentity identity, String hostname,
@@ -640,7 +644,7 @@ public class InstanceCertManager {
 
         SSHCertificates sshCerts;
         try {
-            sshCerts = sshSigner.generateCertificate(principal, certRequest, certType);
+            sshCerts = sshSigner.generateCertificate(principal, certRequest, null, certType);
         } catch (com.yahoo.athenz.common.server.rest.ResourceException ex) {
             LOGGER.error("SSHSigner was unable to generate SSH certificate for {}/{} - error {}/{}",
                     identity.getInstanceId(), identity.getName(), ex.getCode(), ex.getMessage());
@@ -748,8 +752,6 @@ public class InstanceCertManager {
 
         return verifyIPAddressAccess(ipAddress, certIPBlocks);
     }
-
-
 
     /**
      * validates hostname against the resolver, and verifies that the ssh principals map to hostname

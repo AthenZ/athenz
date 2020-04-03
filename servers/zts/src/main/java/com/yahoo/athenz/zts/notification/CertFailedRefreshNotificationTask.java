@@ -17,13 +17,13 @@
 package com.yahoo.athenz.zts.notification;
 
 import com.yahoo.athenz.auth.util.AthenzUtils;
+import com.yahoo.athenz.common.server.cert.X509CertRecord;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.notification.NotificationCommon;
 import com.yahoo.athenz.common.server.notification.NotificationTask;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.zts.cert.InstanceCertManager;
-import com.yahoo.athenz.zts.cert.X509CertRecord;
 import com.yahoo.athenz.zts.store.DataStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

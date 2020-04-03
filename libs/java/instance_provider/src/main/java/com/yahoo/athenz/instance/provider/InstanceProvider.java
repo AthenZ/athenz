@@ -40,7 +40,7 @@ public interface InstanceProvider {
 
     /**
      * Instance specific attribute names. The san entries
-     * are the values exptracted from the X.509 CSR submitted
+     * are the values extracted from the X.509 CSR submitted
      * by the client. Check the Copper Argos developer guide
      * for description of each attribute
      */
@@ -53,6 +53,7 @@ public interface InstanceProvider {
     String ZTS_INSTANCE_CSR_PUBLIC_KEY = "csrPublicKey";
     String ZTS_INSTANCE_HOSTNAME       = "hostname";
     String ZTS_REQUEST_PRINCIPAL       = "principal";
+    String ZTS_INSTANCE_PRIVATE_IP     = "instancePrivateIp";
 
     enum Scheme {
         HTTP,

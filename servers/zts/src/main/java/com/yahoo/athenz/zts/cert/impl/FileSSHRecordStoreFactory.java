@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Yahoo Holdings, Inc.
+ * Copyright 2020 Verizon Media
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,24 +15,24 @@
  */
 package com.yahoo.athenz.zts.cert.impl;
 
-import java.io.File;
-
 import com.yahoo.athenz.auth.PrivateKeyStore;
-import com.yahoo.athenz.common.server.cert.CertRecordStore;
-import com.yahoo.athenz.common.server.cert.CertRecordStoreFactory;
+import com.yahoo.athenz.common.server.ssh.SSHRecordStore;
+import com.yahoo.athenz.common.server.ssh.SSHRecordStoreFactory;
 import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.ZTSImpl;
 
-public class FileCertRecordStoreFactory implements CertRecordStoreFactory {
+import java.io.File;
+
+public class FileSSHRecordStoreFactory implements SSHRecordStoreFactory {
 
     @Override
-    public CertRecordStore create(PrivateKeyStore pkeyStore) {
+    public SSHRecordStore create(PrivateKeyStore pkeyStore) {
 
-        String homeDir = System.getProperty(ZTSConsts.ZTS_PROP_CERT_FILE_STORE_PATH,
+        String homeDir = System.getProperty(ZTSConsts.ZTS_PROP_SSH_FILE_STORE_PATH,
                 ZTSImpl.getRootDir() + "/var/zts_server");
-        String fileDirName = System.getProperty(ZTSConsts.ZTS_PROP_CERT_FILE_STORE_NAME,
+        String fileDirName = System.getProperty(ZTSConsts.ZTS_PROP_SSH_FILE_STORE_NAME,
                 "zts_cert_records");
         String path = homeDir + File.separator + fileDirName;
-        return new FileCertRecordStore(new File(path));
+        return new FileSSHRecordStore(new File(path));
     }
 }

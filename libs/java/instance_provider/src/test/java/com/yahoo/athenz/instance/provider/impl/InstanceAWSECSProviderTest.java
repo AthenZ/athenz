@@ -54,6 +54,7 @@ public class InstanceAWSECSProviderTest {
     public void testValidateAWSDocumentInvalidBootTime() {
         
         StringBuilder errMsg = new StringBuilder(256);
+        StringBuilder privateIp = new StringBuilder(64);
 
         MockInstanceAWSECSProvider provider = new MockInstanceAWSECSProvider();
         System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
@@ -65,7 +66,7 @@ public class InstanceAWSECSProviderTest {
                 + bootTime + "\",\"region\": \"us-west-2\",\"instanceId\": \"i-1234\"}");
         data.setSignature("signature");
         assertTrue(provider.validateAWSDocument("athenz.aws-ecs.us-west-2", data,
-                "1234", "i-1234", true, errMsg));
+                "1234", "i-1234", true, privateIp, errMsg));
     }
     
     @Test

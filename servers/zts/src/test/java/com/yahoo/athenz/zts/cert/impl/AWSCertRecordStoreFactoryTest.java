@@ -17,12 +17,12 @@ package com.yahoo.athenz.zts.cert.impl;
 
 import com.amazonaws.auth.InstanceProfileCredentialsProvider;
 import com.amazonaws.services.rds.auth.RdsIamAuthTokenGenerator;
+import com.yahoo.athenz.common.server.cert.CertRecordStore;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
 import com.yahoo.athenz.zts.ZTSConsts;
-import com.yahoo.athenz.zts.cert.CertRecordStore;
 
 import static org.testng.Assert.*;
 

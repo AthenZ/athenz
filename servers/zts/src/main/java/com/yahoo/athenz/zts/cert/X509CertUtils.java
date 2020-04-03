@@ -97,6 +97,19 @@ public class X509CertUtils {
         }
     }
 
+    public static void logSSH(final Logger certLogger, final Principal principal, final String ip,
+            final String service, final String instanceId) {
+
+        if (certLogger == null) {
+            return;
+        }
+
+        // our format is going to be as follows
+        // <ip> <principal> <service> <instance-id>
+
+        certLogger.info("{} {} {} {}", ip, principal, service, instanceId);
+    }
+
     public static String logRecord(final Principal principal, final String ip, final String provider,
             final String instanceId, final X509Certificate x509Cert) {
 

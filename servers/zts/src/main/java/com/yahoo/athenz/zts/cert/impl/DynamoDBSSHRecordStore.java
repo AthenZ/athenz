@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Oath Inc.
+ * Copyright 2020 Verizon Media
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,32 +18,30 @@ package com.yahoo.athenz.zts.cert.impl;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 import com.yahoo.athenz.auth.Principal;
-import com.yahoo.athenz.common.server.cert.CertRecordStore;
-import com.yahoo.athenz.common.server.cert.CertRecordStoreConnection;
+import com.yahoo.athenz.common.server.ssh.SSHRecordStore;
+import com.yahoo.athenz.common.server.ssh.SSHRecordStoreConnection;
 import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.cert.X509CertUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.security.cert.X509Certificate;
+public class DynamoDBSSHRecordStore implements SSHRecordStore {
 
-public class DynamoDBCertRecordStore implements CertRecordStore {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(DynamoDBCertRecordStore.class);
-    private static final Logger CERTLOGGER = LoggerFactory.getLogger("X509CertLogger");
+    private static final Logger LOGGER = LoggerFactory.getLogger(DynamoDBSSHRecordStore.class);
+    private static final Logger SSHLOGGER = LoggerFactory.getLogger("SSHCertLogger");
 
     private DynamoDB dynamoDB;
     private String tableName;
 
-    public DynamoDBCertRecordStore(AmazonDynamoDB client, final String tableName) {
+    public DynamoDBSSHRecordStore(AmazonDynamoDB client, final String tableName) {
         dynamoDB = new DynamoDB(client);
         this.tableName = tableName;
     }
 
     @Override
-    public CertRecordStoreConnection getConnection() {
+    public SSHRecordStoreConnection getConnection() {
         try {
-            return new DynamoDBCertRecordStoreConnection(dynamoDB, tableName);
+            return new DynamoDBSSHRecordStoreConnection(dynamoDB, tableName);
         } catch (Exception ex) {
             LOGGER.error("getConnection: {}", ex.getMessage());
             throw new ResourceException(ResourceException.SERVICE_UNAVAILABLE, ex.getMessage());
@@ -59,8 +57,8 @@ public class DynamoDBCertRecordStore implements CertRecordStore {
     }
 
     @Override
-    public void log(final Principal principal, final String ip, final String provider,
-                    final String instanceId, final X509Certificate x509Cert) {
-        X509CertUtils.logCert(CERTLOGGER, principal, ip, provider, instanceId, x509Cert);
+    public void log(final Principal principal, final String ip, final String service,
+                    final String instanceId) {
+        X509CertUtils.logSSH(SSHLOGGER, principal, ip, service, instanceId);
     }
 }

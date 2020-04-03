@@ -20,7 +20,7 @@ import org.testng.annotations.Test;
 
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.zts.ZTSConsts;
-import com.yahoo.athenz.zts.cert.CertRecordStore;
+import com.yahoo.athenz.common.server.cert.CertRecordStore;
 
 import static org.testng.Assert.*;
 

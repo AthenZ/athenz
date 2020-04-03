@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.zts.cert;
+package com.yahoo.athenz.common.server.cert;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
@@ -40,7 +40,11 @@ public class X509CertRecordTest {
         certRecord.setPrevSerial("prev-serial");
         certRecord.setPrevTime(now);
         certRecord.setClientCert(true);
-        
+        certRecord.setHostName("host");
+        certRecord.setLastNotifiedServer("server");
+        certRecord.setLastNotifiedTime(now);
+        certRecord.setExpiryTime(now);
+
         assertEquals(certRecord.getService(), "cn");
         assertEquals(certRecord.getProvider(), "ostk");
         assertEquals(certRecord.getCurrentIP(), "current-ip");
@@ -51,5 +55,9 @@ public class X509CertRecordTest {
         assertEquals(certRecord.getPrevSerial(), "prev-serial");
         assertEquals(certRecord.getPrevTime(), now);
         assertTrue(certRecord.getClientCert());
+        assertEquals(certRecord.getExpiryTime(), now);
+        assertEquals(certRecord.getLastNotifiedTime(), now);
+        assertEquals(certRecord.getLastNotifiedServer(), "server");
+        assertEquals(certRecord.getHostName(), "host");
     }
 }

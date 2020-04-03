@@ -18,9 +18,9 @@ package com.yahoo.athenz.zts.notification;
 
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.notification.Notification;
+import com.yahoo.athenz.common.server.cert.X509CertRecord;
 import com.yahoo.athenz.zms.DomainData;
 import com.yahoo.athenz.zts.cert.InstanceCertManager;
-import com.yahoo.athenz.zts.cert.X509CertRecord;
 import com.yahoo.athenz.zts.store.DataStore;
 import org.mockito.Mockito;
 import org.testng.annotations.BeforeClass;
