@@ -26,7 +26,7 @@ public class InstanceAWSLambdaProvider extends InstanceAWSProvider {
     @Override
     boolean validateAWSDocument(final String provider, AWSAttestationData info,
             final String awsAccount, final String instanceId, boolean checkTime,
-            StringBuilder errMsg) {
+            StringBuilder privateIp, StringBuilder errMsg) {
         
         // for lambda we don't have an instance document so we
         // are going to trust based on temporary credentials only
@@ -35,7 +35,8 @@ public class InstanceAWSLambdaProvider extends InstanceAWSProvider {
     }
     
     @Override
-    void setConfirmationAttributes(InstanceConfirmation confirmation, boolean sshCert) {
+    void setConfirmationAttributes(InstanceConfirmation confirmation, boolean sshCert,
+                                   final String privateIP) {
         
         // for lambda we can only issue client certificates
         // and we always do not allow ssh certs

@@ -18,11 +18,11 @@ package com.yahoo.athenz.zts.cert.impl;
 import java.util.Properties;
 
 import com.yahoo.athenz.auth.PrivateKeyStore;
+import com.yahoo.athenz.common.server.cert.CertRecordStore;
+import com.yahoo.athenz.common.server.cert.CertRecordStoreFactory;
 import com.yahoo.athenz.common.server.db.DataSourceFactory;
 import com.yahoo.athenz.common.server.db.PoolableDataSource;
 import com.yahoo.athenz.zts.ZTSConsts;
-import com.yahoo.athenz.zts.cert.CertRecordStore;
-import com.yahoo.athenz.zts.cert.CertRecordStoreFactory;
 
 public class JDBCCertRecordStoreFactory implements CertRecordStoreFactory {
 

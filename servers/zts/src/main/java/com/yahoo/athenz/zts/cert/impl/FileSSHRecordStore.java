@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Yahoo Inc.
+ * Copyright 2020 Verizon Media
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,24 +15,22 @@
  */
 package com.yahoo.athenz.zts.cert.impl;
 
-import java.io.File;
-import java.security.cert.X509Certificate;
-
 import com.yahoo.athenz.auth.Principal;
-import com.yahoo.athenz.common.server.cert.CertRecordStore;
-import com.yahoo.athenz.common.server.cert.CertRecordStoreConnection;
+import com.yahoo.athenz.common.server.ssh.SSHRecordStore;
+import com.yahoo.athenz.common.server.ssh.SSHRecordStoreConnection;
 import com.yahoo.athenz.zts.cert.X509CertUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class FileCertRecordStore implements CertRecordStore {
+import java.io.File;
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(FileCertRecordStore.class);
-    private static final Logger CERTLOGGER = LoggerFactory.getLogger("X509CertLogger");
+public class FileSSHRecordStore implements SSHRecordStore {
+
+    private static final Logger SSHLOGGER = LoggerFactory.getLogger("SSHCertLogger");
 
     File rootDir;
-    
-    public FileCertRecordStore(File rootDirectory) {
+
+    public FileSSHRecordStore(File rootDirectory) {
         if (!rootDirectory.exists()) {
             if (!rootDirectory.mkdirs()) {
                 error("cannot create specified root: " + rootDirectory);
@@ -46,8 +44,8 @@ public class FileCertRecordStore implements CertRecordStore {
     }
 
     @Override
-    public CertRecordStoreConnection getConnection() {
-        return new FileCertRecordStoreConnection(rootDir);
+    public SSHRecordStoreConnection getConnection() {
+        return new FileSSHRecordStoreConnection(rootDir);
     }
     
     @Override
@@ -63,8 +61,8 @@ public class FileCertRecordStore implements CertRecordStore {
     }
 
     @Override
-    public void log(final Principal principal, final String ip, final String provider,
-                    final String instanceId, final X509Certificate x509Cert) {
-        X509CertUtils.logCert(CERTLOGGER, principal, ip, provider, instanceId, x509Cert);
+    public void log(final Principal principal, final String ip, final String service,
+                    final String instanceId) {
+        X509CertUtils.logSSH(SSHLOGGER, principal, ip, service, instanceId);
     }
 }

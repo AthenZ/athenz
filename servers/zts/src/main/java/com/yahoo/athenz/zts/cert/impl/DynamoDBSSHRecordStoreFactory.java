@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Oath, Inc.
+ * Copyright 2020 Verizon Media
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,23 +18,23 @@ package com.yahoo.athenz.zts.cert.impl;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.yahoo.athenz.auth.PrivateKeyStore;
-import com.yahoo.athenz.common.server.cert.CertRecordStore;
-import com.yahoo.athenz.common.server.cert.CertRecordStoreFactory;
+import com.yahoo.athenz.common.server.ssh.SSHRecordStore;
+import com.yahoo.athenz.common.server.ssh.SSHRecordStoreFactory;
 import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.ZTSConsts;
 
-public class DynamoDBCertRecordStoreFactory implements CertRecordStoreFactory {
+public class DynamoDBSSHRecordStoreFactory implements SSHRecordStoreFactory {
 
     @Override
-    public CertRecordStore create(PrivateKeyStore keyStore) {
+    public SSHRecordStore create(PrivateKeyStore keyStore) {
 
-        final String tableName = System.getProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_TABLE_NAME);
+        final String tableName = System.getProperty(ZTSConsts.ZTS_PROP_SSH_DYNAMODB_TABLE_NAME);
         if (tableName == null || tableName.isEmpty()) {
-            throw new ResourceException(ResourceException.SERVICE_UNAVAILABLE, "DynamoDB table name not specified");
+            throw new ResourceException(ResourceException.SERVICE_UNAVAILABLE, "DynamoDB ssh table name not specified");
         }
 
         AmazonDynamoDB client = getDynamoDBClient();
-        return new DynamoDBCertRecordStore(client, tableName);
+        return new DynamoDBSSHRecordStore(client, tableName);
     }
 
     AmazonDynamoDB getDynamoDBClient() {

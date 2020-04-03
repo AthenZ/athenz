@@ -17,6 +17,8 @@ type SSHCertRequestMeta Struct {
     String clientInfo (optional); //client info
     String sshClientVersion (optional); //ssh client version
     String certType; //cert type - user or host
+    EntityName athenzService (optional); //ssh host cert request is for this athenz service
+    PathElement instanceId (optional); //ssh host cert request is for this instance id
 }
 
 type SSHCertRequest Struct {

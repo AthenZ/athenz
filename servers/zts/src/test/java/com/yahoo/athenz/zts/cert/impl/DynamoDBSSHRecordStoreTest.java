@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Oath Inc.
+ * Copyright 2020 Verizon Media
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,18 @@
 package com.yahoo.athenz.zts.cert.impl;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
-import com.yahoo.athenz.auth.util.Crypto;
-import com.yahoo.athenz.common.server.cert.CertRecordStoreConnection;
+import com.yahoo.athenz.common.server.ssh.SSHRecordStoreConnection;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.security.cert.X509Certificate;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.fail;
 
-import static org.testng.Assert.*;
-
-public class DynamoDBCertRecordStoreTest {
+public class DynamoDBSSHRecordStoreTest {
 
     @Mock private AmazonDynamoDB dbClient;
 
@@ -45,9 +39,9 @@ public class DynamoDBCertRecordStoreTest {
     @Test
     public void testGetConnection() {
 
-        DynamoDBCertRecordStore store = new DynamoDBCertRecordStore(dbClient, "Athenz-ZTS-Table");
+        DynamoDBSSHRecordStore store = new DynamoDBSSHRecordStore(dbClient, "Athenz-ZTS-Table");
 
-        CertRecordStoreConnection dbConn = store.getConnection();
+        SSHRecordStoreConnection dbConn = store.getConnection();
         assertNotNull(dbConn);
 
         // empty methods
@@ -59,7 +53,7 @@ public class DynamoDBCertRecordStoreTest {
     public void testGetConnectionException() {
 
         // passing null for table name to get exception
-        DynamoDBCertRecordStore store = new DynamoDBCertRecordStore(dbClient, null);
+        DynamoDBSSHRecordStore store = new DynamoDBSSHRecordStore(dbClient, null);
 
         try {
             store.getConnection();
@@ -71,21 +65,12 @@ public class DynamoDBCertRecordStoreTest {
     @Test
     public void testLog() {
 
-        DynamoDBCertRecordStore store = new DynamoDBCertRecordStore(dbClient, "Athenz-ZTS-Table");
-
-        File file = new File("src/test/resources/cert_log.pem");
-        String pem = null;
-        try {
-            pem = new String(Files.readAllBytes(file.toPath()));
-        } catch (IOException ex) {
-            fail();
-        }
-        X509Certificate cert = Crypto.loadX509Certificate(pem);
+        DynamoDBSSHRecordStore store = new DynamoDBSSHRecordStore(dbClient, "Athenz-ZTS-Table");
 
         Principal principal = SimplePrincipal.create("user", "joe", "creds");
 
         // make sure no exceptions are thrown when processing log request
 
-        store.log(principal, "10.11.12.13", "athens.provider", "1234", cert);
+        store.log(principal, "10.11.12.13", "athenz.api", "1234");
     }
 }

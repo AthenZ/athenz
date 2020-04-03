@@ -27,8 +27,8 @@ import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.zts.Identity;
 import com.yahoo.athenz.zts.ZTSConsts;
-import com.yahoo.athenz.zts.cert.X509CertRecord;
 import com.yahoo.athenz.zts.cert.InstanceCertManager;
+import com.yahoo.athenz.common.server.cert.X509CertRecord;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;

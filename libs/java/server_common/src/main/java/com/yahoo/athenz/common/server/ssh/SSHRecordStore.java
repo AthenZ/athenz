@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Yahoo Inc.
+ * Copyright 2020 Verizon Media
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.zts.cert;
+package com.yahoo.athenz.common.server.ssh;
 
 import com.yahoo.athenz.auth.Principal;
 
-import java.security.cert.X509Certificate;
-
-public interface CertRecordStore {
+public interface SSHRecordStore {
 
     /**
-     * Get a new connection to the certificate record store. In case
+     * Get a new connection to the ssh certificate record store. In case
      * of failure, a ResourceException is thrown.
      * @return CertRecordStoreConnection object
      */
-    CertRecordStoreConnection getConnection();
+    SSHRecordStoreConnection getConnection();
     
     /**
      * Set the operation timeout in seconds
@@ -41,17 +39,15 @@ public interface CertRecordStore {
 
     /**
      * Log the certificate details. This method will be
-     * called for all certificates issued by ZTS Server
+     * called for all ssh certificates issued by ZTS Server
      * regardless or not it is checked against cert
      * record details.
      * @param principal Principal who requested the certificate
      *     for initial register requests this will be null
      * @param ip IP address of the request
-     * @param provider service responsible for attestation of csr
+     * @param service service responsible for attestation of csr
      * @param instanceId instance id if the certificate request
      *     is for a service as opposed to a role
-     * @param x509Cert issued certificate
      */
-    void log(final Principal principal, final String ip, final String provider,
-             final String instanceId, final X509Certificate x509Cert);
+    void log(final Principal principal, final String ip, final String service, final String instanceId);
 }

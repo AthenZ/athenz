@@ -20,6 +20,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import com.yahoo.athenz.common.server.cert.CertRecordStore;
+import com.yahoo.athenz.common.server.cert.CertRecordStoreFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,8 +34,6 @@ import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.common.server.db.DataSourceFactory;
 import com.yahoo.athenz.common.server.db.PoolableDataSource;
 import com.yahoo.athenz.zts.ZTSConsts;
-import com.yahoo.athenz.zts.cert.CertRecordStore;
-import com.yahoo.athenz.zts.cert.CertRecordStoreFactory;
 
 public class AWSCertRecordStoreFactory implements CertRecordStoreFactory {
 

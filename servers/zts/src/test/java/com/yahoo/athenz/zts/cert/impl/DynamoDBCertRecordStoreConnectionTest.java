@@ -17,7 +17,7 @@ package com.yahoo.athenz.zts.cert.impl;
 
 import com.amazonaws.services.dynamodbv2.document.*;
 import com.amazonaws.services.dynamodbv2.model.AmazonDynamoDBException;
-import com.yahoo.athenz.zts.cert.X509CertRecord;
+import com.yahoo.athenz.common.server.cert.X509CertRecord;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;

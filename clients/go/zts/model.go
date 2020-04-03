@@ -2546,6 +2546,16 @@ type SSHCertRequestMeta struct {
 	// cert type - user or host
 	//
 	CertType string `json:"certType"`
+
+	//
+	// ssh host cert request is for this athenz service
+	//
+	AthenzService EntityName `json:"athenzService,omitempty" rdl:"optional"`
+
+	//
+	// ssh host cert request is for this instance id
+	//
+	InstanceId PathElement `json:"instanceId,omitempty" rdl:"optional"`
 }
 
 //
@@ -2615,6 +2625,18 @@ func (self *SSHCertRequestMeta) Validate() error {
 		val := rdl.Validate(ZTSSchema(), "String", self.CertType)
 		if !val.Valid {
 			return fmt.Errorf("SSHCertRequestMeta.certType does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.AthenzService != "" {
+		val := rdl.Validate(ZTSSchema(), "EntityName", self.AthenzService)
+		if !val.Valid {
+			return fmt.Errorf("SSHCertRequestMeta.athenzService does not contain a valid EntityName (%v)", val.Error)
+		}
+	}
+	if self.InstanceId != "" {
+		val := rdl.Validate(ZTSSchema(), "PathElement", self.InstanceId)
+		if !val.Valid {
+			return fmt.Errorf("SSHCertRequestMeta.instanceId does not contain a valid PathElement (%v)", val.Error)
 		}
 	}
 	return nil

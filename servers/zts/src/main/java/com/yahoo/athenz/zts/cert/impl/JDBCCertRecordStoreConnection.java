@@ -23,8 +23,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.yahoo.athenz.zts.ResourceException;
-import com.yahoo.athenz.zts.cert.CertRecordStoreConnection;
-import com.yahoo.athenz.zts.cert.X509CertRecord;
+import com.yahoo.athenz.common.server.cert.CertRecordStoreConnection;
+import com.yahoo.athenz.common.server.cert.X509CertRecord;
 
 public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection {
 

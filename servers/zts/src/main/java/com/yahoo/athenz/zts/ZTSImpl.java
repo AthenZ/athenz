@@ -32,6 +32,7 @@ import javax.ws.rs.core.Response;
 
 import com.yahoo.athenz.auth.token.AccessToken;
 import com.yahoo.athenz.auth.token.IdToken;
+import com.yahoo.athenz.common.server.cert.X509CertRecord;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.dns.HostnameResolverFactory;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
@@ -2491,14 +2492,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return false;
     }
 
-    X509CertRecord insertX509CertRecord(ResourceContext ctx,
-                                        final String    cn,
-                                        final String    provider,
-                                        final String    instanceId,
-                                        final String    serial,
-                                        final Boolean   certUsage,
-                                        final Date      expirationDate,
-                                        final String    hostName) {
+    X509CertRecord insertX509CertRecord(ResourceContext ctx, final String cn,
+            final String provider, final String instanceId, final String serial,
+            final Boolean certUsage, final Date expirationDate, final String hostName) {
 
         X509CertRecord x509CertRecord = new X509CertRecord();
         x509CertRecord.setService(cn);
@@ -2643,6 +2639,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         String certUsage = null;
         String certSubjectOU = null;
+        String instancePrivateIp = null;
         int certExpiryTime = 0;
         boolean certRefresh = true;
         boolean sshCertAllowed = false;
@@ -2651,6 +2648,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         if (instanceAttrs != null) {
             certUsage = instanceAttrs.remove(InstanceProvider.ZTS_CERT_USAGE);
             certSubjectOU = instanceAttrs.remove(InstanceProvider.ZTS_CERT_SUBJECT_OU);
+            instancePrivateIp = instanceAttrs.remove(InstanceProvider.ZTS_INSTANCE_PRIVATE_IP);
             certExpiryTime = ZTSUtils.parseInt(instanceAttrs.remove(InstanceProvider.ZTS_CERT_EXPIRY_TIME), 0);
             certRefresh = ZTSUtils.parseBoolean(instanceAttrs.remove(InstanceProvider.ZTS_CERT_REFRESH), true);
             sshCertAllowed = ZTSUtils.parseBoolean(instanceAttrs.remove(InstanceProvider.ZTS_CERT_SSH), false);
@@ -2976,6 +2974,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         String certUsage = null;
         String certSubjectOU = null;
+        String instancePrivateIp = null;
         int certExpiryTime = 0;
         boolean sshCertAllowed = false;
         boolean certRefreshCheck = true;
@@ -2983,6 +2982,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         Map<String, String> instanceAttrs = instance.getAttributes();
         if (instanceAttrs != null) {
             certUsage = instanceAttrs.remove(InstanceProvider.ZTS_CERT_USAGE);
+            instancePrivateIp = instanceAttrs.remove(InstanceProvider.ZTS_INSTANCE_PRIVATE_IP);
             certExpiryTime = ZTSUtils.parseInt(instanceAttrs.remove(InstanceProvider.ZTS_CERT_EXPIRY_TIME), 0);
             certRefreshCheck = ZTSUtils.parseBoolean(instanceAttrs.remove(InstanceProvider.ZTS_CERT_REFRESH), true);
             certSubjectOU = instanceAttrs.remove(InstanceProvider.ZTS_CERT_SUBJECT_OU);
@@ -3088,7 +3088,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     InstanceIdentity processProviderSSHRefreshRequest(ResourceContext ctx, final Principal principal,
             final String domain, final String service, final String provider,
             final String instanceId, final String sshCsr, final String caller) {
-        
+
+        LOGGER.info("User ssh certificate request from {}", principal.getFullName());
+
         final String principalName = principal.getFullName();
         final String principalDomain = principal.getDomain();
 
@@ -3125,15 +3127,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
     }
 
-    X509CertRecord getValidatedX509CertRecord(ResourceContext ctx,
-                                              final String provider,
-                                              final String instanceId,
-                                              final String principalName,
-                                              X509Certificate cert,
-                                              final String caller,
-                                              final String requestDomain,
-                                              final String principalDomain,
-                                              final String hostName) {
+    X509CertRecord getValidatedX509CertRecord(ResourceContext ctx, final String provider,
+            final String instanceId, final String principalName, X509Certificate cert,
+            final String caller, final String requestDomain, final String principalDomain,
+            final String hostName) {
 
         // extract our instance certificate record to make sure it
         // hasn't been revoked already

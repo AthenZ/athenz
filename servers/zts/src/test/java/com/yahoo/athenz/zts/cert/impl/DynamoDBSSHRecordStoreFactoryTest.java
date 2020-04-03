@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Oath Inc.
+ * Copyright 2020 Verizon Media
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,33 +15,29 @@
  */
 package com.yahoo.athenz.zts.cert.impl;
 
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 import com.amazonaws.services.dynamodbv2.document.Table;
-import com.yahoo.athenz.common.server.cert.CertRecordStore;
+import com.yahoo.athenz.auth.PrivateKeyStore;
+import com.yahoo.athenz.common.server.ssh.SSHRecordStore;
 import com.yahoo.athenz.zts.ResourceException;
+import com.yahoo.athenz.zts.ZTSConsts;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.yahoo.athenz.auth.PrivateKeyStore;
-import com.yahoo.athenz.zts.ZTSConsts;
+import static org.testng.Assert.*;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.fail;
-
-public class DynamoDBCertRecordStoreFactoryTest {
+public class DynamoDBSSHRecordStoreFactoryTest {
 
     @Mock private AmazonDynamoDB dbClient;
     @Mock private Table table;
 
     @Mock private DynamoDB dynamoDB;
 
-    class TestDynamoDBCertRecordStoreFactory extends DynamoDBCertRecordStoreFactory {
+    class TestDynamoDBSSHRecordStoreFactory extends DynamoDBSSHRecordStoreFactory {
 
         @Override
         AmazonDynamoDB getDynamoDBClient() {
@@ -58,22 +54,22 @@ public class DynamoDBCertRecordStoreFactoryTest {
     @Test
     public void testCreate() {
 
-        System.setProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_TABLE_NAME, "Athenz-ZTS-Table");
+        System.setProperty(ZTSConsts.ZTS_PROP_SSH_DYNAMODB_TABLE_NAME, "Athenz-ZTS-Table");
 
         PrivateKeyStore keyStore = Mockito.mock(PrivateKeyStore.class);
 
-        TestDynamoDBCertRecordStoreFactory factory = new TestDynamoDBCertRecordStoreFactory();
-        CertRecordStore store = factory.create(keyStore);
+        TestDynamoDBSSHRecordStoreFactory factory = new TestDynamoDBSSHRecordStoreFactory();
+        SSHRecordStore store = factory.create(keyStore);
         assertNotNull(store);
     }
 
     @Test
     public void testCreateAmzClient() {
 
-        System.setProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_TABLE_NAME, "Athenz-ZTS-Table");
+        System.setProperty(ZTSConsts.ZTS_PROP_SSH_DYNAMODB_TABLE_NAME, "Athenz-ZTS-Table");
 
         PrivateKeyStore keyStore = Mockito.mock(PrivateKeyStore.class);
-        DynamoDBCertRecordStoreFactory factory = new DynamoDBCertRecordStoreFactory();
+        DynamoDBSSHRecordStoreFactory factory = new DynamoDBSSHRecordStoreFactory();
         try {
             factory.create(keyStore);
         } catch (Exception ignored) {
@@ -85,8 +81,8 @@ public class DynamoDBCertRecordStoreFactoryTest {
 
         PrivateKeyStore keyStore = Mockito.mock(PrivateKeyStore.class);
 
-        System.clearProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_TABLE_NAME);
-        DynamoDBCertRecordStoreFactory factory = new DynamoDBCertRecordStoreFactory();
+        System.clearProperty(ZTSConsts.ZTS_PROP_SSH_DYNAMODB_TABLE_NAME);
+        DynamoDBSSHRecordStoreFactory factory = new DynamoDBSSHRecordStoreFactory();
         try {
             factory.create(keyStore);
             fail();
@@ -94,7 +90,7 @@ public class DynamoDBCertRecordStoreFactoryTest {
             assertEquals(ex.getCode(), ResourceException.SERVICE_UNAVAILABLE);
         }
 
-        System.setProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_TABLE_NAME, "");
+        System.setProperty(ZTSConsts.ZTS_PROP_SSH_DYNAMODB_TABLE_NAME, "");
         try {
             factory.create(keyStore);
             fail();
@@ -102,6 +98,6 @@ public class DynamoDBCertRecordStoreFactoryTest {
             assertEquals(ex.getCode(), ResourceException.SERVICE_UNAVAILABLE);
         }
 
-        System.clearProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_TABLE_NAME);
+        System.clearProperty(ZTSConsts.ZTS_PROP_SSH_DYNAMODB_TABLE_NAME);
     }
 }

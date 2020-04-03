@@ -133,8 +133,9 @@ public class InstanceAWSProviderTest {
     
     @Test
     public void testValidateAWSDocumentInvalidSignature() {
-        
+
         StringBuilder errMsg = new StringBuilder(256);
+        StringBuilder privateIp = new StringBuilder(64);
 
         InstanceAWSProvider provider = new InstanceAWSProvider();
         System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
@@ -143,7 +144,8 @@ public class InstanceAWSProviderTest {
         AWSAttestationData data = new AWSAttestationData();
         data.setDocument("document");
         data.setSignature(null);
-        assertFalse(provider.validateAWSDocument("athenz.aws.us-west-2", data, "1234", "i-1234", true, errMsg));
+        assertFalse(provider.validateAWSDocument("athenz.aws.us-west-2", data, "1234", "i-1234",
+                true, privateIp, errMsg));
     }
     
     @Test
@@ -232,6 +234,7 @@ public class InstanceAWSProviderTest {
     public void testValidateAWSDocumentInvalidProvider() {
         
         StringBuilder errMsg = new StringBuilder(256);
+        StringBuilder privateIp = new StringBuilder(64);
 
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
         System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
@@ -241,13 +244,14 @@ public class InstanceAWSProviderTest {
         data.setDocument("{\"accountId\": \"1234\"}");
         data.setSignature("signature");
         assertFalse(provider.validateAWSDocument("athenz.aws.us-west-2",
-                data, "1235", "i-1234", true, errMsg));
+                data, "1235", "i-1234", true, privateIp, errMsg));
     }
     
     @Test
     public void testValidateAWSDocumentInvalidAccountId() {
         
         StringBuilder errMsg = new StringBuilder(256);
+        StringBuilder privateIp = new StringBuilder(64);
 
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
         System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
@@ -257,13 +261,14 @@ public class InstanceAWSProviderTest {
         data.setDocument("{\"accountId\": \"1234\",\"region\": \"us-west-2\"}");
         data.setSignature("signature");
         assertFalse(provider.validateAWSDocument("athenz.aws.us-west-2",
-                data, "1235", "i-1234", true, errMsg));
+                data, "1235", "i-1234", true, privateIp, errMsg));
     }
     
     @Test
     public void testValidateAWSDocumentInvalidInstanceId() {
         
         StringBuilder errMsg = new StringBuilder(256);
+        StringBuilder privateIp = new StringBuilder(64);
 
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
         System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
@@ -273,13 +278,14 @@ public class InstanceAWSProviderTest {
         data.setDocument("{\"accountId\": \"1234\",\"region\": \"us-west-2\",\"instanceId\": \"i-234\"}");
         data.setSignature("signature");
         assertFalse(provider.validateAWSDocument("athenz.aws.us-west-2",
-                data, "1234", "i-1234", true, errMsg));
+                data, "1234", "i-1234", true, privateIp, errMsg));
     }
     
     @Test
     public void testValidateAWSDocumentInvalidBootTime() {
         
         StringBuilder errMsg = new StringBuilder(256);
+        StringBuilder privateIp = new StringBuilder(64);
 
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
         System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
@@ -291,13 +297,14 @@ public class InstanceAWSProviderTest {
                 + bootTime + "\",\"region\": \"us-west-2\",\"instanceId\": \"i-1234\"}");
         data.setSignature("signature");
         assertFalse(provider.validateAWSDocument("athenz.aws.us-west-2", data,
-                "1234", "i-1234", true, errMsg));
+                "1234", "i-1234", true, privateIp, errMsg));
     }
     
     @Test
     public void testValidateAWSDocument() {
         
         StringBuilder errMsg = new StringBuilder(256);
+        StringBuilder privateIp = new StringBuilder(64);
 
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
         System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
@@ -309,7 +316,7 @@ public class InstanceAWSProviderTest {
                 + bootTime + "\",\"region\":\"us-west-2\",\"instanceId\": \"i-1234\"}");
         data.setSignature("signature");
         assertTrue(provider.validateAWSDocument("athenz.aws.us-west-2", data,
-                "1234", "i-1234", true, errMsg));
+                "1234", "i-1234", true, privateIp, errMsg));
     }
     
     @Test
@@ -350,7 +357,8 @@ public class InstanceAWSProviderTest {
         String bootTime = Timestamp.fromMillis(System.currentTimeMillis() - 100).toString();
         InstanceConfirmation confirmation = new InstanceConfirmation()
                 .setAttestationData("{\"document\": \"{\\\"accountId\\\": \\\"1234\\\",\\\"pendingTime\\\": \\\""
-                        + bootTime + "\\\",\\\"region\\\": \\\"us-west-2\\\",\\\"instanceId\\\": \\\"i-1234\\\"}\","
+                        + bootTime + "\\\",\\\"region\\\": \\\"us-west-2\\\",\\\"instanceId\\\": \\\"i-1234\\\","
+                        + "\\\"privateIp\\\": \\\"10.10.10.11\\\"}\","
                         + "\"signature\": \"signature\",\"role\": \"athenz.service\"}")
                 .setDomain("athenz").setProvider("athenz.aws.us-west-2").setService("service");
         HashMap<String, String> attributes = new HashMap<>();
@@ -363,6 +371,7 @@ public class InstanceAWSProviderTest {
         Map<String, String> attrs = result.getAttributes();
         assertNotNull(attrs);
         assertEquals(attrs.get("certSSH"), "true");
+        assertEquals(attrs.get("instancePrivateIp"), "10.10.10.11");
         assertNull(attrs.get("certExpiryTime"));
         System.clearProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX);
     }
@@ -461,6 +470,7 @@ public class InstanceAWSProviderTest {
     public void testValidateAWSDocumentFailures() {
         
         StringBuilder errMsg = new StringBuilder(256);
+        StringBuilder privateIp = new StringBuilder(64);
 
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
         
@@ -470,14 +480,14 @@ public class InstanceAWSProviderTest {
         data.setDocument("document");
         data.setSignature(null);
         assertFalse(provider.validateAWSDocument("athenz.aws.us-west-2", data,
-                "cloudAccount", "instanceId", true, errMsg));
+                "cloudAccount", "instanceId", true, privateIp, errMsg));
         
         // unable to parse
         
         data.setDocument("document");
         data.setSignature("signature");
         assertFalse(provider.validateAWSDocument("athenz.aws.us-west-2", data,
-                "cloudAccount", "instanceId", true, errMsg));
+                "cloudAccount", "instanceId", true, privateIp, errMsg));
     }
     
     @Test

@@ -19,9 +19,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import com.yahoo.athenz.common.server.cert.CertRecordStoreConnection;
+import com.yahoo.athenz.common.server.cert.X509CertRecord;
 import com.yahoo.athenz.zts.ZTSConsts;
-import com.yahoo.athenz.zts.cert.CertRecordStoreConnection;
-import com.yahoo.athenz.zts.cert.X509CertRecord;
+
 
 import com.amazonaws.services.dynamodbv2.document.Item;
 import com.amazonaws.services.dynamodbv2.document.Table;

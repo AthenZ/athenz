@@ -335,6 +335,8 @@ func init() {
 	tSSHCertRequestMeta.Field("clientInfo", "String", true, nil, "client info")
 	tSSHCertRequestMeta.Field("sshClientVersion", "String", true, nil, "ssh client version")
 	tSSHCertRequestMeta.Field("certType", "String", false, nil, "cert type - user or host")
+	tSSHCertRequestMeta.Field("athenzService", "EntityName", true, nil, "ssh host cert request is for this athenz service")
+	tSSHCertRequestMeta.Field("instanceId", "PathElement", true, nil, "ssh host cert request is for this instance id")
 	sb.AddType(tSSHCertRequestMeta.Build())
 
 	tSSHCertRequest := rdl.NewStructTypeBuilder("Struct", "SSHCertRequest")

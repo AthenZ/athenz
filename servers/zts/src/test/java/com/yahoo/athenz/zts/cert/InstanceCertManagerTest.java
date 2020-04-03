@@ -12,6 +12,9 @@ import java.util.List;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yahoo.athenz.common.server.cert.CertRecordStore;
+import com.yahoo.athenz.common.server.cert.CertRecordStoreConnection;
+import com.yahoo.athenz.common.server.cert.X509CertRecord;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.ssh.SSHSigner;
 import com.yahoo.athenz.zts.*;
@@ -400,7 +403,7 @@ public class InstanceCertManagerTest {
         SSHSigner sshSigner = Mockito.mock(com.yahoo.athenz.common.server.ssh.SSHSigner.class);
         SSHCertRequest sshRequest = new SSHCertRequest();
         sshRequest.setCsr(sshCsr);
-        Mockito.when(sshSigner.generateCertificate(null, sshRequest, "host")).thenReturn(null);
+        Mockito.when(sshSigner.generateCertificate(null, sshRequest, null, "host")).thenReturn(null);
         Mockito.when(sshSigner.getSignerCertificate(ZTSConsts.ZTS_SSH_HOST)).thenReturn("ssh-host");
         Mockito.when(sshSigner.getSignerCertificate(ZTSConsts.ZTS_SSH_USER)).thenReturn("ssh-user");
         
@@ -419,7 +422,7 @@ public class InstanceCertManagerTest {
         SSHSigner sshSigner = Mockito.mock(com.yahoo.athenz.common.server.ssh.SSHSigner.class);
         SSHCertRequest sshRequest = new SSHCertRequest();
         sshRequest.setCsr(sshCsr);
-        Mockito.when(sshSigner.generateCertificate(null, sshRequest, "host"))
+        Mockito.when(sshSigner.generateCertificate(null, sshRequest, null, "host"))
                 .thenThrow(new com.yahoo.athenz.common.server.rest.ResourceException(403, "Forbidden"))
                 .thenThrow(new RuntimeException("IO error"));
 
@@ -447,7 +450,7 @@ public class InstanceCertManagerTest {
         sshRequest.setCsr(sshCsr);
         SSHCertificates certs = new SSHCertificates();
         certs.setCertificates(Collections.emptyList());
-        Mockito.when(sshSigner.generateCertificate(null, sshRequest, "host")).thenReturn(certs);
+        Mockito.when(sshSigner.generateCertificate(null, sshRequest, null, "host")).thenReturn(certs);
         Mockito.when(sshSigner.getSignerCertificate(ZTSConsts.ZTS_SSH_HOST)).thenReturn("ssh-host");
         Mockito.when(sshSigner.getSignerCertificate(ZTSConsts.ZTS_SSH_USER)).thenReturn("ssh-user");
         
@@ -471,7 +474,7 @@ public class InstanceCertManagerTest {
         cert.setCertificate("ssh-cert");
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.service");
         final SSHCertificates sshCertificates = certs.setCertificates(Collections.singletonList(cert));
-        Mockito.when(sshSigner.generateCertificate(null, sshRequest, "host")).thenReturn(sshCertificates);
+        Mockito.when(sshSigner.generateCertificate(null, sshRequest, null, "host")).thenReturn(sshCertificates);
         Mockito.when(sshSigner.getSignerCertificate(ZTSConsts.ZTS_SSH_HOST)).thenReturn("ssh-host");
         Mockito.when(sshSigner.getSignerCertificate(ZTSConsts.ZTS_SSH_USER)).thenReturn("ssh-user");
         
@@ -498,7 +501,7 @@ public class InstanceCertManagerTest {
         cert.setCertificate("ssh-cert");
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.service");
         final SSHCertificates sshCertificates = certs.setCertificates(Collections.singletonList(cert));
-        Mockito.when(sshSigner.generateCertificate(null, sshRequest, "host")).thenReturn(sshCertificates);
+        Mockito.when(sshSigner.generateCertificate(null, sshRequest, null, "host")).thenReturn(sshCertificates);
         Mockito.when(sshSigner.getSignerCertificate(ZTSConsts.ZTS_SSH_HOST)).thenReturn("ssh-host");
 
         // setup the hostname resolver for our request
@@ -534,7 +537,7 @@ public class InstanceCertManagerTest {
         cert.setCertificate("ssh-cert");
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.service");
         final SSHCertificates sshCertificates = certs.setCertificates(Collections.singletonList(cert));
-        Mockito.when(sshSigner.generateCertificate(null, sshRequest, "host")).thenReturn(sshCertificates);
+        Mockito.when(sshSigner.generateCertificate(null, sshRequest, null, "host")).thenReturn(sshCertificates);
         Mockito.when(sshSigner.getSignerCertificate(ZTSConsts.ZTS_SSH_HOST)).thenReturn("ssh-host");
 
         // setup the hostname resolver for our request
@@ -850,7 +853,7 @@ public class InstanceCertManagerTest {
         Principal principal = Mockito.mock(Principal.class);
         SSHCertRequest certRequest = new SSHCertRequest();
         SSHCertificates certs = new SSHCertificates();
-        Mockito.when(signer.generateCertificate(principal, certRequest, null)).thenReturn(certs);
+        Mockito.when(signer.generateCertificate(principal, certRequest, null, null)).thenReturn(certs);
         instanceCertManager.setSSHSigner(signer);
 
         assertEquals(certs, instanceCertManager.generateSSHCertificates(principal, certRequest));

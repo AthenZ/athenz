@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.zts.cert;
+package com.yahoo.athenz.common.server.cert;
 
 import java.io.Closeable;
 import java.util.List;
@@ -62,7 +62,7 @@ public interface CertRecordStoreConnection extends Closeable {
      * @return true on success otherwise false
      */
     boolean deleteX509CertRecord(String provider, String instanceId, String service);
-    
+
     /**
      * Delete all expired x509 certificate records. A certificate is
      * considered expired if it hasn't been updated within the

@@ -287,7 +287,9 @@ public class ZTSSchema {
             .field("origin", "String", false, "origin FQDN or ip")
             .field("clientInfo", "String", true, "client info")
             .field("sshClientVersion", "String", true, "ssh client version")
-            .field("certType", "String", false, "cert type - user or host");
+            .field("certType", "String", false, "cert type - user or host")
+            .field("athenzService", "EntityName", true, "ssh host cert request is for this athenz service")
+            .field("instanceId", "PathElement", true, "ssh host cert request is for this instance id");
 
         sb.structType("SSHCertRequest")
             .field("certRequestData", "SSHCertRequestData", false, "ssh certificate request data")
