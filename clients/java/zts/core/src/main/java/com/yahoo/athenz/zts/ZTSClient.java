@@ -3067,7 +3067,7 @@ public class ZTSClient implements Closeable {
 
         synchronized (TIMER_LOCK) {
             if (FETCH_TIMER == null) {
-                FETCH_TIMER = new Timer();
+                FETCH_TIMER = new Timer(true);
                 // check the fetch items every prefetchInterval seconds.
                 FETCH_TIMER.schedule(new TokenPrefetchTask(), 0, prefetchInterval * 1000);
             }
