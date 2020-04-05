@@ -36,6 +36,7 @@ import com.yahoo.athenz.common.server.cert.X509CertRecord;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.dns.HostnameResolverFactory;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
+import com.yahoo.athenz.common.server.ssh.SSHCertRecord;
 import com.yahoo.athenz.zms.RoleMeta;
 import com.yahoo.athenz.zts.cert.*;
 import com.yahoo.athenz.zts.notification.ZTSNotificationTaskFactory;
@@ -2026,7 +2027,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // log our certificate
 
-        instanceCertManager.log(principal, ipAddress, ZTSConsts.ZTS_SERVICE, null, roleCert);
+        instanceCertManager.logX509Cert(principal, ipAddress, ZTSConsts.ZTS_SERVICE, null, roleCert);
 
         metric.stopTiming(timerMetric, domainName, principalDomain);
         return roleToken;
@@ -2296,7 +2297,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // log our certificate
 
-        instanceCertManager.log(principal, ipAddress, ZTSConsts.ZTS_SERVICE,
+        instanceCertManager.logX509Cert(principal, ipAddress, ZTSConsts.ZTS_SERVICE,
                 null, Crypto.loadX509Certificate(x509Cert));
 
         metric.stopTiming(timerMetric, domainName, domainName);
@@ -2683,7 +2684,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         if (sshCertAllowed) {
             Object timerSSHCertMetric = metric.startTiming("certsignssh_timing", null, principalDomain);
-            instanceCertManager.generateSSHIdentity(null, identity, info.getHostname(), info.getSsh(), ZTSConsts.ZTS_SSH_HOST);
+
+            // generate a ssh object for recording
+
+            SSHCertRecord certRecord = generateSSHCertRecord(ctx, cn, certReqInstanceId, instancePrivateIp);
+            instanceCertManager.generateSSHIdentity(null, identity, info.getHostname(), info.getSsh(),
+                    certRecord, ZTSConsts.ZTS_SSH_HOST);
             metric.stopTiming(timerSSHCertMetric, null, principalDomain);
         }
 
@@ -2724,13 +2730,26 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // log our certificate
 
-        instanceCertManager.log(null, ipAddress, provider, certReqInstanceId, newCert);
+        instanceCertManager.logX509Cert(null, ipAddress, provider, certReqInstanceId, newCert);
 
         final String location = "/zts/v1/instance/" + provider + "/" + domain
                 + "/" + service + "/" + certReqInstanceId;
         metric.stopTiming(timerMetric, domain, principalDomain);
         return Response.status(ResourceException.CREATED).entity(identity)
                 .header("Location", location).build();
+    }
+
+    SSHCertRecord generateSSHCertRecord(ResourceContext ctx, final String service, final String instanceId,
+            final String privateIp) {
+
+        // generate a ssh object for recording
+
+        SSHCertRecord certRecord = new SSHCertRecord();
+        certRecord.setService(service);
+        certRecord.setInstanceId(instanceId);
+        certRecord.setClientIP(ServletRequestUtil.getRemoteAddress(ctx.request()));
+        certRecord.setPrivateIP(privateIp);
+        return certRecord;
     }
 
     InstanceConfirmation generateInstanceConfirmObject(ResourceContext ctx, final String provider,
@@ -3036,7 +3055,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         if (sshCertAllowed) {
             Object timerSSHCertMetric = metric.startTiming("certsignssh_timing", null, principalDomain);
-            instanceCertManager.generateSSHIdentity(principal, identity, info.getHostname(), info.getSsh(), ZTSConsts.ZTS_SSH_HOST);
+
+            // generate a ssh object for recording
+
+            SSHCertRecord certRecord = generateSSHCertRecord(ctx, domain + "." + service, instanceId,
+                    instancePrivateIp);
+            instanceCertManager.generateSSHIdentity(principal, identity, info.getHostname(), info.getSsh(),
+                    certRecord, ZTSConsts.ZTS_SSH_HOST);
             metric.stopTiming(timerSSHCertMetric, null, principalDomain);
         }
 
@@ -3068,7 +3093,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // log our certificate
 
-        instanceCertManager.log(principal, reqIp, provider, instanceId, newCert);
+        instanceCertManager.logX509Cert(principal, reqIp, provider, instanceId, newCert);
 
         // if we're asked to return an NToken in addition to ZTS Certificate
         // then we'll generate one and include in the identity object
@@ -3098,7 +3123,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         InstanceIdentity identity = new InstanceIdentity().setName(principalName);
         Object timerSSHCertMetric = metric.startTiming("certsignssh_timing", null, principalDomain);
-        if (!instanceCertManager.generateSSHIdentity(principal, identity, null, sshCsr, ZTSConsts.ZTS_SSH_USER)) {
+        if (!instanceCertManager.generateSSHIdentity(principal, identity, null, sshCsr, null, ZTSConsts.ZTS_SSH_USER)) {
             throw serverError("unable to generate ssh identity", caller, domain, principalDomain);
         }
         metric.stopTiming(timerSSHCertMetric, null, principalDomain);
@@ -3403,7 +3428,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // log our certificate
 
-        instanceCertManager.log(principal, ipAddress, ZTSConsts.ZTS_SERVICE,
+        instanceCertManager.logX509Cert(principal, ipAddress, ZTSConsts.ZTS_SERVICE,
                 ZTSUtils.extractCertReqInstanceId(certReq),
                 Crypto.loadX509Certificate(identity.getCertificate()));
 
@@ -3639,7 +3664,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // log our certificate
 
-        instanceCertManager.log(principal, ipAddress, "ostk", x509CertRecord.getInstanceId(), newCert);
+        instanceCertManager.logX509Cert(principal, ipAddress, "ostk", x509CertRecord.getInstanceId(), newCert);
 
         metric.stopTiming(timerMetric, domain, principalDomain);
         return identity;

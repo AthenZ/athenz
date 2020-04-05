@@ -174,6 +174,7 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS  = "athenz.zts.private_key_store_factory_class";
     public static final String ZTS_PROP_CERT_RECORD_STORE_FACTORY_CLASS  = "athenz.zts.cert_record_store_factory_class";
     public static final String ZTS_PROP_HOSTNAME_RESOLVER_FACTORY_CLASS  = "athenz.zts.hostname_resolver_factory_class";
+    public static final String ZTS_PROP_SSH_RECORD_STORE_FACTORY_CLASS   = "athenz.zts.ssh_record_store_factory_class";
 
     public static final String ZTS_METRIC_FACTORY_CLASS            = "com.yahoo.athenz.common.metrics.impl.NoOpMetricFactory";
     public static final String ZTS_CHANGE_LOG_STORE_FACTORY_CLASS  = "com.yahoo.athenz.zts.store.impl.ZMSFileChangeLogStoreFactory";
