@@ -12,7 +12,22 @@ BUILD_DATE=$(shell date -u +'%Y-%m-%dT%H:%M:%SZ')
 VCS_REF=$(shell git rev-parse --short HEAD)
 BUILD_ARG := --build-arg 'BUILD_DATE=$(BUILD_DATE)' --build-arg 'VCS_REF=$(VCS_REF)'
 
+# specify build version by git tag
+ifdef TAG
+TAG_COMMIT := $(shell git rev-list -n 1 $(TAG))
+ifeq ($(TAG_COMMIT),)
+$(error TAG=$(TAG) is not found)
+exit 1
+endif
+endif
+
 build:
+ifneq ($(TAG_COMMIT),)
+	$(info Build using TAG=$(TAG), TAG_COMMIT=$(TAG_COMMIT))
+	git checkout $(TAG_COMMIT)
+else
+	$(info Build using current source code)
+endif
 	DOCKER_BUILDKIT=1 docker build $(BUILD_ARG) -t rdl-athenz-server -f ./util/rdl-athenz-server/Dockerfile ../rdl/rdl-gen-athenz-server
 	DOCKER_BUILDKIT=1 docker build $(BUILD_ARG) -t athenz-mvn-base -f ./util/athenz-mvn-base/Dockerfile ../
 	DOCKER_BUILDKIT=1 docker build $(BUILD_ARG) -t athenz-builder -f ./util/athenz-builder/Dockerfile ../
@@ -24,6 +39,9 @@ build:
 	DOCKER_BUILDKIT=1 docker build $(BUILD_ARG) -t athenz-conf -f ./util/athenz-conf/Dockerfile ../
 	DOCKER_BUILDKIT=1 docker build $(BUILD_ARG) -t athenz-setup-env -f ./setup-scripts/Dockerfile ../
 	# DOCKER_BUILDKIT=1 docker build -t athenz-cli-util -f ./util/Dockerfile ../
+ifneq ($(TAG_COMMIT),)
+	git checkout -
+endif
 
 deploy-dev:
 	# generate self-signed certificates
@@ -42,10 +60,15 @@ verify:
 	docker run --rm -t --network="$(DOCKER_NETWORK)" -v "$(BASE_DIR):/athenz" --user "$(shell id -u):$(shell id -g)" athenz-setup-env sh /athenz/docker/deploy-scripts/zts-verify.sh
 
 
+CONTAINERS := $(shell docker ps -aq --filter 'label=org.label-schema.url=https://www.athenz.io/')
 remove-all: remove-containers remove-networks remove-files reset-repo
 remove-containers:
+ifneq ($(CONTAINERS),)
 	docker stop $(shell docker ps -aq --filter 'label=org.label-schema.url=https://www.athenz.io/')
 	docker rm $(shell docker ps -aq --filter 'label=org.label-schema.url=https://www.athenz.io/')
+else
+	$(info No containers to be removed.)
+endif
 remove-networks:
 	docker network rm $(DOCKER_NETWORK) || true
 remove-files:

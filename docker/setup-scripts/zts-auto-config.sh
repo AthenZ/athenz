@@ -28,7 +28,7 @@ source "${BASE_DIR}/docker/env.sh"
 echo "Done loading ENV. from ${BASE_DIR}/docker/env.sh" | colored_cat p
 if [ -f "${DOCKER_DIR}/setup-scripts/dev-env-exports.sh" ]; then
     source "${DOCKER_DIR}/setup-scripts/dev-env-exports.sh"
-    echo 'Be careful! You are using the DEV settings in dev-env-exports.sh !!!' | colored_cat p
+    echo 'NOTE: You are using the DEV settings in dev-env-exports.sh !!!' | colored_cat p
 fi
 
 
@@ -111,7 +111,7 @@ DATA='{"name": "sys.auth.zts","publicKeys": [{"id": "0","key": "'"${ENCODED_ZTS_
 
 # add ZTS service using ZMS API
 ZMS_URL="https://${ZMS_HOST}:${ZMS_PORT}"
-curl --silent --show-error --request PUT \
+curl --silent --fail --show-error --request PUT \
     --cacert "${ATHENZ_CA_PATH}" \
     --key "${DOMAIN_ADMIN_CERT_KEY_PATH}" \
     --cert "${DOMAIN_ADMIN_CERT_PATH}" \
@@ -119,7 +119,7 @@ curl --silent --show-error --request PUT \
     --header 'content-type: application/json' \
     --data "${DATA}"
 # verify
-curl --silent --show-error --request GET \
+curl --silent --fail --show-error --request GET \
     --cacert "${ATHENZ_CA_PATH}" \
     --key "${DOMAIN_ADMIN_CERT_KEY_PATH}" \
     --cert "${DOMAIN_ADMIN_CERT_PATH}" \

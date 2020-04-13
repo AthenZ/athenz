@@ -40,7 +40,7 @@ public final class OAuthAuthorityConsts {
     public static final String JA_PROP_CLAIM_ISS = "claim.iss";
     public static final String JA_PROP_CLAIM_AUD = "claim.aud";
     public static final String JA_PROP_CLAIM_SCOPE = "claim.scope";
-    public static final String JA_PROP_CLIENT_ID_MAP_PATH = "client_id_map_path";
+    public static final String JA_PROP_AUTHORIZED_CLIENT_IDS_PATH = "authorized_client_ids_path";
     // general
     public static final String SYSTEM_PROP_PREFIX = "athenz.auth.oauth.jwt.";
     public static final String CSV_DELIMITER = ",";

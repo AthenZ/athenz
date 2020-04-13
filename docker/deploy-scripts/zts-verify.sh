@@ -27,7 +27,7 @@ source "${BASE_DIR}/docker/env.sh"
 echo "Done loading ENV. from ${BASE_DIR}/docker/env.sh" | colored_cat p
 if [ -f "${DOCKER_DIR}/setup-scripts/dev-env-exports.sh" ]; then
     source "${DOCKER_DIR}/setup-scripts/dev-env-exports.sh"
-    echo 'Be careful! You are using the DEV settings in dev-env-exports.sh !!!' | colored_cat p
+    echo 'NOTE: You are using the DEV settings in dev-env-exports.sh !!!' | colored_cat p
 fi
 
 
@@ -36,7 +36,7 @@ fi
 echo 'Verify ZTS' | colored_cat g
 echo 'get ZTS service from ZTS' | colored_cat y
 {
-    curl --silent --show-error \
+    curl --silent --fail --show-error \
         --cacert "${ATHENZ_CA_PATH}" \
         --key "${DOMAIN_ADMIN_CERT_KEY_PATH}" \
         --cert "${DOMAIN_ADMIN_CERT_PATH}" \

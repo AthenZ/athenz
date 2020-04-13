@@ -30,16 +30,16 @@ public class DefaultOAuthJwtAccessTokenValidator implements OAuthJwtAccessTokenV
     private String trustedIssuer = null;
     private Set<String> requiredAudiences = null;
     private Set<String> requiredScopes = null;
-    private Map<String, Set<String>> clientIdsMap = null;
+    private Map<String, Set<String>> authorizedClientIds = null;
 
     /**
      * create DefaultOAuthJwtAccessTokenValidator
-     * @param  trustedIssuer     trusted issuer (not null, not empty)
-     * @param  requiredAudiences required audiences (not null, not empty)
-     * @param  requiredScopes    required scopes (not null, not empty)
-     * @param  clientIdsMap      client IDs map (not null)
+     * @param  trustedIssuer       trusted issuer (not null, not empty)
+     * @param  requiredAudiences   required audiences (not null, not empty)
+     * @param  requiredScopes      required scopes (not null, not empty)
+     * @param  authorizedClientIds whitelist of authorized client IDs (not null)
      */
-    public DefaultOAuthJwtAccessTokenValidator(String trustedIssuer, Set<String> requiredAudiences, Set<String> requiredScopes, Map<String, Set<String>> clientIdsMap) {
+    public DefaultOAuthJwtAccessTokenValidator(String trustedIssuer, Set<String> requiredAudiences, Set<String> requiredScopes, Map<String, Set<String>> authorizedClientIds) {
 
         // args checking
         if (trustedIssuer == null || trustedIssuer.isEmpty()) {
@@ -51,18 +51,14 @@ public class DefaultOAuthJwtAccessTokenValidator implements OAuthJwtAccessTokenV
         if (requiredScopes == null || requiredScopes.isEmpty()) {
             throw new IllegalArgumentException("required scopes must be configured");
         }
-        if (clientIdsMap == null) {
+        if (authorizedClientIds == null) {
             throw new IllegalArgumentException("client ID mapping must be configured");
         }
 
         this.trustedIssuer = trustedIssuer;
         this.requiredAudiences = requiredAudiences;
         this.requiredScopes = requiredScopes;
-        this.clientIdsMap = clientIdsMap;
-    }
-
-    private Set<String> certificatePrincipalToClientIds(String certificatePrincipal) {
-        return this.clientIdsMap.get(certificatePrincipal);
+        this.authorizedClientIds = authorizedClientIds;
     }
 
     private void verifyIssuer(OAuthJwtAccessToken jwt) throws OAuthJwtAccessTokenException {
@@ -99,20 +95,12 @@ public class DefaultOAuthJwtAccessTokenValidator implements OAuthJwtAccessTokenV
     }
     private void verifyClientId(OAuthJwtAccessToken jwt, String certificatePrincipal) throws OAuthJwtAccessTokenException {
         String clientId = jwt.getClientId();
-        Set<String> knownClientIds = this.certificatePrincipalToClientIds(certificatePrincipal);
-        if (knownClientIds == null) {
-            if (certificatePrincipal == clientId) {
-                return;
-            }
-            if (certificatePrincipal == null || clientId == null || !certificatePrincipal.equals(clientId.toLowerCase())) { // Athenz principal is in lowercase
-                // non-mapped client certificate principal NOT match with JWT
-                throw new OAuthJwtAccessTokenException(String.format("non-mapped client certificate principal (%s) not match with client_id: got=%s", certificatePrincipal, clientId));
-            }
-        } else {
-            if (!knownClientIds.contains(clientId)) {
-                // mapped client certificate principal NOT match with JWT
-                throw new OAuthJwtAccessTokenException(String.format("mapped client certificate principal (%s) not match with client_id: got=%s", certificatePrincipal, clientId));
-            }
+        Set<String> validClientIds = this.authorizedClientIds.get(certificatePrincipal);
+        if (validClientIds == null) {
+            throw new OAuthJwtAccessTokenException(String.format("NO mapping of authorized client IDs for certificate principal (%s)", certificatePrincipal));
+        }
+        if (!validClientIds.contains(clientId)) {
+            throw new OAuthJwtAccessTokenException(String.format("client_id is not authorized for certificate principal (%s): got=%s", certificatePrincipal, clientId));
         }
     }
 

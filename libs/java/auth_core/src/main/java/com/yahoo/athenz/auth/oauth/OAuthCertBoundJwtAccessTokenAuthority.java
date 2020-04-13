@@ -106,16 +106,16 @@ public class OAuthCertBoundJwtAccessTokenAuthority implements Authority, Authori
     }
     /**
      * format: client-id-1,client-id-2:ui-principal:authorized-service, will skip line on error
-     * @param clientIdsMapPath     client IDs mapping file path
-     * @param clientIdsMap         client IDs mapping entry will be added
-     * @param authorizedServiceMap authorized service mapping entry will be added
+     * @param authorizedClientIdsPath client IDs mapping file path
+     * @param authorizedClientIds     client IDs mapping entry will be added
+     * @param authorizedServices      authorized service mapping entry will be added
      */
-    private void processClientIdsMap(String clientIdsMapPath, Map<String, Set<String>> clientIdsMap, Map<String, String> authorizedServiceMap) {
-        if (clientIdsMapPath == null || clientIdsMapPath.isEmpty()) {
+    private void processAuthorizedClientIds(String authorizedClientIdsPath, Map<String, Set<String>> authorizedClientIds, Map<String, String> authorizedServices) {
+        if (authorizedClientIdsPath == null || authorizedClientIdsPath.isEmpty()) {
             return;
         }
 
-        try (BufferedReader br = new BufferedReader(new FileReader(clientIdsMapPath))) {
+        try (BufferedReader br = new BufferedReader(new FileReader(authorizedClientIdsPath))) {
             for (String line = br.readLine(); line != null; line = br.readLine()) {
                 if (line.isEmpty()) {
                     continue;
@@ -144,15 +144,12 @@ public class OAuthCertBoundJwtAccessTokenAuthority implements Authority, Authori
                     LOG.error("Skipping invalid client id entry {}", mapEntry);
                     continue;
                 }
-                clientIdsMap.put(comps[1], clientIds);
-                authorizedServiceMap.put(comps[1], comps[2]);
+                authorizedClientIds.put(comps[1], clientIds);
+                authorizedServices.put(comps[1], comps[2]);
             }
         } catch (Exception e) {
             LOG.error("Unable to process client id list: {}", e.getMessage());
         }
-    }
-    private String clientCertPrincipalToAuthorizedService(String clientCertPrincipal) {
-        return this.authorizedServiceMap.getOrDefault(clientCertPrincipal, clientCertPrincipal);
     }
 
     // --------------------- actual logic ---------------------
@@ -160,7 +157,7 @@ public class OAuthCertBoundJwtAccessTokenAuthority implements Authority, Authori
     private CertificateIdentityParser certificateIdentityParser = null;
     private OAuthJwtAccessTokenParser parser = null;
     private OAuthJwtAccessTokenValidator validator = null;
-    Map<String, String> authorizedServiceMap = null;
+    Map<String, String> authorizedServices = null;
     private boolean shouldVerifyCertThumbprint = true;
 
     @Override
@@ -189,17 +186,17 @@ public class OAuthCertBoundJwtAccessTokenAuthority implements Authority, Authori
         // JWT validator controls
         this.shouldVerifyCertThumbprint = Boolean.valueOf(OAuthAuthorityUtils.getProperty(OAuthAuthorityConsts.JA_PROP_VERIFY_CERT_THUMBPRINT, "true"));
         // JWT validator client ID mapping
-        String clientIdsMapPath = OAuthAuthorityUtils.getProperty(OAuthAuthorityConsts.JA_PROP_CLIENT_ID_MAP_PATH, "");
-        Map<String, Set<String>> clientIdsMap = new HashMap<>();
-        Map<String, String> authorizedServiceMap = new HashMap<>();
-        this.processClientIdsMap(clientIdsMapPath, clientIdsMap, authorizedServiceMap);
-        this.authorizedServiceMap = authorizedServiceMap;
+        String authorizedClientIdsPath = OAuthAuthorityUtils.getProperty(OAuthAuthorityConsts.JA_PROP_AUTHORIZED_CLIENT_IDS_PATH, "");
+        Map<String, Set<String>> authorizedClientIds = new HashMap<>();
+        Map<String, String> authorizedServices = new HashMap<>();
+        this.processAuthorizedClientIds(authorizedClientIdsPath, authorizedClientIds, authorizedServices);
+        this.authorizedServices = authorizedServices;
         // JWT validator values
         String trustedIssuer = OAuthAuthorityUtils.getProperty(OAuthAuthorityConsts.JA_PROP_CLAIM_ISS, "https://athenz.io");
         Set<String> requiredAudiences = OAuthAuthorityUtils.csvToSet(OAuthAuthorityUtils.getProperty(OAuthAuthorityConsts.JA_PROP_CLAIM_AUD, "https://zms.athenz.io"), OAuthAuthorityConsts.CSV_DELIMITER);
         Set<String> requiredScopes = OAuthAuthorityUtils.csvToSet(OAuthAuthorityUtils.getProperty(OAuthAuthorityConsts.JA_PROP_CLAIM_SCOPE, "sys.auth:role.admin"), OAuthJwtAccessToken.SCOPE_DELIMITER);
         // JWT validator
-        this.validator = new DefaultOAuthJwtAccessTokenValidator(trustedIssuer, requiredAudiences, requiredScopes, clientIdsMap);
+        this.validator = new DefaultOAuthJwtAccessTokenValidator(trustedIssuer, requiredAudiences, requiredScopes, authorizedClientIds);
     }
 
     /**
@@ -273,7 +270,7 @@ public class OAuthCertBoundJwtAccessTokenAuthority implements Authority, Authori
         principal.setX509Certificate(clientCert);
         // principal.setRoles(at.getScopes());
         principal.setApplicationId(clientCertPrincipal);
-        principal.setAuthorizedService(this.clientCertPrincipalToAuthorizedService(clientCertPrincipal));
+        principal.setAuthorizedService(this.authorizedServices.getOrDefault(clientCertPrincipal, clientCertPrincipal));
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("OAuthCertBoundJwtAccessTokenAuthority.authenticate: client certificate name=" + clientCertPrincipal);

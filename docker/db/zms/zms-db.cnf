@@ -1,6 +1,6 @@
 # env. variable from command line will take priority
 
-[mysqld] 
+[mysqld]
 port = 3306
 
 [client]

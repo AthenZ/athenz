@@ -11,7 +11,7 @@ LABEL org.label-schema.description="All in one image containing all Athenz CLI u
 LABEL org.label-schema.url="https://www.athenz.io/"
 LABEL org.label-schema.vcs-url="https://github.com/yahoo/athenz"
 LABEL org.label-schema.vcs-ref=$VCS_REF
-LABEL maintainer "YJ Athenz Team <athenz-pj@ml.yahoo-corp.jp>"
+# LABEL maintainer "YJ Athenz Team <>"
 
 
 # install go

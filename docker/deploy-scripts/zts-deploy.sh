@@ -27,7 +27,7 @@ source "${BASE_DIR}/docker/env.sh"
 echo "Done loading ENV. from ${BASE_DIR}/docker/env.sh" | colored_cat p
 if [ -f "${DOCKER_DIR}/setup-scripts/dev-env-exports.sh" ]; then
     source "${DOCKER_DIR}/setup-scripts/dev-env-exports.sh"
-    echo 'Be careful! You are using the DEV settings in dev-env-exports.sh !!!' | colored_cat p
+    echo 'NOTE: You are using the DEV settings in dev-env-exports.sh !!!' | colored_cat p
 fi
 
 
@@ -112,7 +112,7 @@ until docker run --rm --entrypoint curl \
     --network="${DOCKER_NETWORK}" \
     --user "$(id -u):$(id -g)" \
     --name athenz-curl athenz-setup-env \
-    -k --silent --show-error --output /dev/null "https://${ZTS_HOST}:${ZTS_PORT}/zts/v1/status" \
+    -k --silent --fail --show-error --output /dev/null "https://${ZTS_HOST}:${ZTS_PORT}/zts/v1/status" \
     ; do
     echo 'ZTS is unavailable - will sleep 3s...'
     sleep 3

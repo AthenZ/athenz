@@ -11,7 +11,7 @@ LABEL org.label-schema.description="Athenz ZTS Database"
 LABEL org.label-schema.url="https://www.athenz.io/"
 LABEL org.label-schema.vcs-url="https://github.com/yahoo/athenz"
 LABEL org.label-schema.vcs-ref=$VCS_REF
-LABEL maintainer "YJ Athenz Team <athenz-pj@ml.yahoo-corp.jp>"
+# LABEL maintainer "YJ Athenz Team <>"
 
 COPY zts_server.sql /docker-entrypoint-initdb.d/
 

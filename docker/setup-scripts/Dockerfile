@@ -13,7 +13,7 @@ LABEL org.label-schema.description="Athenz bootstrap setup ENV"
 LABEL org.label-schema.url="https://www.athenz.io/"
 LABEL org.label-schema.vcs-url="https://github.com/yahoo/athenz"
 LABEL org.label-schema.vcs-ref=$VCS_REF
-LABEL maintainer "YJ Athenz Team <athenz-pj@ml.yahoo-corp.jp>"
+# LABEL maintainer "YJ Athenz Team <>"
 
 
 COPY --from=athenz-conf /usr/bin/athenz-conf /usr/bin/athenz-conf

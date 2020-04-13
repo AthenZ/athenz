@@ -118,56 +118,56 @@ public class OAuthCertBoundJwtAccessTokenAuthorityTest {
     }
 
     @Test
-    public void testProcessClientIdsMap() throws Exception {
+    public void testProcessAuthorizedClientIds() throws Exception {
         OAuthCertBoundJwtAccessTokenAuthority authority = new OAuthCertBoundJwtAccessTokenAuthority();
-        Method processClientIdsMap = authority.getClass().getDeclaredMethod("processClientIdsMap", String.class, Map.class, Map.class);
-        processClientIdsMap.setAccessible(true);
-        Map<String, Set<String>> clientIdsMap = new HashMap<>();
-        Map<String, String> authorizedServiceMap = new HashMap<>();
+        Method processAuthorizedClientIds = authority.getClass().getDeclaredMethod("processAuthorizedClientIds", String.class, Map.class, Map.class);
+        processAuthorizedClientIds.setAccessible(true);
+        Map<String, Set<String>> authorizedClientIds = new HashMap<>();
+        Map<String, String> authorizedServices = new HashMap<>();
 
         // empty args
-        clientIdsMap.clear();
-        authorizedServiceMap.clear();
-        processClientIdsMap.invoke(authority, null, clientIdsMap, authorizedServiceMap);
-        assertEquals(clientIdsMap.size(), 0);
-        assertEquals(authorizedServiceMap.size(), 0);
-        clientIdsMap.clear();
-        authorizedServiceMap.clear();
-        processClientIdsMap.invoke(authority, "", clientIdsMap, authorizedServiceMap);
-        assertEquals(clientIdsMap.size(), 0);
-        assertEquals(authorizedServiceMap.size(), 0);
+        authorizedClientIds.clear();
+        authorizedServices.clear();
+        processAuthorizedClientIds.invoke(authority, null, authorizedClientIds, authorizedServices);
+        assertEquals(authorizedClientIds.size(), 0);
+        assertEquals(authorizedServices.size(), 0);
+        authorizedClientIds.clear();
+        authorizedServices.clear();
+        processAuthorizedClientIds.invoke(authority, "", authorizedClientIds, authorizedServices);
+        assertEquals(authorizedClientIds.size(), 0);
+        assertEquals(authorizedServices.size(), 0);
 
         // no such file
-        String non_existing_filepath = this.classLoader.getResource("client_map_ids.empty.txt").toURI().resolve("./client_map_ids.non_existing.txt").getPath();
-        clientIdsMap.clear();
-        authorizedServiceMap.clear();
-        processClientIdsMap.invoke(authority, non_existing_filepath, clientIdsMap, authorizedServiceMap);
-        assertEquals(clientIdsMap.size(), 0);
-        assertEquals(authorizedServiceMap.size(), 0);
+        String non_existing_filepath = this.classLoader.getResource("authorized_client_ids.empty.txt").toURI().resolve("./authorized_client_ids.non_existing.txt").getPath();
+        authorizedClientIds.clear();
+        authorizedServices.clear();
+        processAuthorizedClientIds.invoke(authority, non_existing_filepath, authorizedClientIds, authorizedServices);
+        assertEquals(authorizedClientIds.size(), 0);
+        assertEquals(authorizedServices.size(), 0);
 
         // empty file
-        clientIdsMap.clear();
-        authorizedServiceMap.clear();
-        processClientIdsMap.invoke(authority, this.classLoader.getResource("client_map_ids.empty.txt").getPath(), clientIdsMap, authorizedServiceMap);
-        assertEquals(clientIdsMap.size(), 0);
-        assertEquals(authorizedServiceMap.size(), 0);
+        authorizedClientIds.clear();
+        authorizedServices.clear();
+        processAuthorizedClientIds.invoke(authority, this.classLoader.getResource("authorized_client_ids.empty.txt").getPath(), authorizedClientIds, authorizedServices);
+        assertEquals(authorizedClientIds.size(), 0);
+        assertEquals(authorizedServices.size(), 0);
 
-        // client_map_ids.txt
-        clientIdsMap.clear();
-        authorizedServiceMap.clear();
-        Map<String, Set<String>> expectedClientIdsMap = new HashMap<>();
-        Map<String, String> expectedAuthorizedServiceMap = new HashMap<>();
-        expectedClientIdsMap.put("ui_principal_11", new HashSet<>(Arrays.asList(new String[]{"client_id_11","client_id_12"})));
-        expectedAuthorizedServiceMap.put("ui_principal_11", "authorized_service_11");
-        expectedClientIdsMap.put("ui_principal_21", new HashSet<>(Arrays.asList(new String[]{"client_id_21"})));
-        expectedAuthorizedServiceMap.put("ui_principal_21", "authorized_service_21");
-        expectedClientIdsMap.put("ui_principal_31", new HashSet<>(Arrays.asList(new String[]{"client_id_31"})));
-        expectedAuthorizedServiceMap.put("ui_principal_31", "authorized_service_31");
-        expectedClientIdsMap.put("ui_principal_41", new HashSet<>(Arrays.asList(new String[]{"client_id_41","trailing_comma"})));
-        expectedAuthorizedServiceMap.put("ui_principal_41", "authorized_service_41");
-        processClientIdsMap.invoke(authority, this.classLoader.getResource("client_map_ids.txt").getPath(), clientIdsMap, authorizedServiceMap);
-        assertEquals(clientIdsMap, expectedClientIdsMap);
-        assertEquals(authorizedServiceMap, expectedAuthorizedServiceMap);
+        // authorized_client_ids.txt
+        authorizedClientIds.clear();
+        authorizedServices.clear();
+        Map<String, Set<String>> expectedAuthorizedClientIds = new HashMap<>();
+        Map<String, String> expectedAuthorizedServices = new HashMap<>();
+        expectedAuthorizedClientIds.put("ui_principal_11", new HashSet<>(Arrays.asList(new String[]{"client_id_11","client_id_12"})));
+        expectedAuthorizedServices.put("ui_principal_11", "authorized_service_11");
+        expectedAuthorizedClientIds.put("ui_principal_21", new HashSet<>(Arrays.asList(new String[]{"client_id_21"})));
+        expectedAuthorizedServices.put("ui_principal_21", "authorized_service_21");
+        expectedAuthorizedClientIds.put("ui_principal_31", new HashSet<>(Arrays.asList(new String[]{"client_id_31"})));
+        expectedAuthorizedServices.put("ui_principal_31", "authorized_service_31");
+        expectedAuthorizedClientIds.put("ui_principal_41", new HashSet<>(Arrays.asList(new String[]{"client_id_41","trailing_comma"})));
+        expectedAuthorizedServices.put("ui_principal_41", "authorized_service_41");
+        processAuthorizedClientIds.invoke(authority, this.classLoader.getResource("authorized_client_ids.txt").getPath(), authorizedClientIds, authorizedServices);
+        assertEquals(authorizedClientIds, expectedAuthorizedClientIds);
+        assertEquals(authorizedServices, expectedAuthorizedServices);
     }
 
     static final class OAuthCertBoundJwtAccessTokenAuthorityTestParser implements OAuthJwtAccessTokenParser {
@@ -258,71 +258,71 @@ public class OAuthCertBoundJwtAccessTokenAuthorityTest {
         System.clearProperty("athenz.auth.oauth.jwt.verify_cert_thumbprint");
         assertEquals(shouldVerifyCertThumbprintField.get(authority), false);
 
-        // authorizedServiceMap & validator
+        // authorizedServices & validator
         DefaultOAuthJwtAccessTokenValidator validator = null;
-        Field trustedIssuerField = null, requiredAudiencesField = null, requiredScopesField = null, clientIdsMapField = null;
-        Field authorizedServiceMapField = authority.getClass().getDeclaredField("authorizedServiceMap");
-        authorizedServiceMapField.setAccessible(true);
+        Field trustedIssuerField = null, requiredAudiencesField = null, requiredScopesField = null, authorizedClientIdsField = null;
+        Field authorizedServicesField = authority.getClass().getDeclaredField("authorizedServices");
+        authorizedServicesField.setAccessible(true);
         Field validatorField = authority.getClass().getDeclaredField("validator");
         validatorField.setAccessible(true);
 
-        System.setProperty("athenz.auth.oauth.jwt.client_id_map_path", "");
+        System.setProperty("athenz.auth.oauth.jwt.authorized_client_ids_path", "");
         System.setProperty("athenz.auth.oauth.jwt.claim.iss", "");
         System.setProperty("athenz.auth.oauth.jwt.claim.aud", "");
         System.setProperty("athenz.auth.oauth.jwt.claim.scope", "");
         assertThrows(IllegalArgumentException.class, () -> authority.initialize());
-        System.clearProperty("athenz.auth.oauth.jwt.client_id_map_path");
+        System.clearProperty("athenz.auth.oauth.jwt.authorized_client_ids_path");
         System.clearProperty("athenz.auth.oauth.jwt.claim.iss");
         System.clearProperty("athenz.auth.oauth.jwt.claim.aud");
         System.clearProperty("athenz.auth.oauth.jwt.claim.scope");
 
-        Map<String, String> expectedAuthorizedServiceMap = new HashMap<>();
-        Map<String, Set<String>> expectedClientIdsMap = new HashMap<>();
-        expectedAuthorizedServiceMap.put("ui.athenz.io", "sys.auth.ui");
-        expectedClientIdsMap.put("ui.athenz.io", new HashSet<>(Arrays.asList(new String[]{"client_id_1","client_id_2","ui.athenz.io"})));
-        System.setProperty("athenz.auth.oauth.jwt.client_id_map_path", this.classLoader.getResource("client_map_ids.single.txt").getPath());
+        Map<String, String> expectedAuthorizedServices = new HashMap<>();
+        Map<String, Set<String>> expectedAuthorizedClientIds = new HashMap<>();
+        expectedAuthorizedServices.put("ui.athenz.io", "sys.auth.ui");
+        expectedAuthorizedClientIds.put("ui.athenz.io", new HashSet<>(Arrays.asList(new String[]{"client_id_1","client_id_2","ui.athenz.io"})));
+        System.setProperty("athenz.auth.oauth.jwt.authorized_client_ids_path", this.classLoader.getResource("authorized_client_ids.single.txt").getPath());
         System.setProperty("athenz.auth.oauth.jwt.claim.iss", "iss");
         System.setProperty("athenz.auth.oauth.jwt.claim.aud", "aud_1,aud_2");
         System.setProperty("athenz.auth.oauth.jwt.claim.scope", "scope_1 scope_2");
         authority.initialize();
-        System.clearProperty("athenz.auth.oauth.jwt.client_id_map_path");
+        System.clearProperty("athenz.auth.oauth.jwt.authorized_client_ids_path");
         System.clearProperty("athenz.auth.oauth.jwt.claim.iss");
         System.clearProperty("athenz.auth.oauth.jwt.claim.aud");
         System.clearProperty("athenz.auth.oauth.jwt.claim.scope");
-        assertEquals(authorizedServiceMapField.get(authority), expectedAuthorizedServiceMap);
+        assertEquals(authorizedServicesField.get(authority), expectedAuthorizedServices);
         validator = (DefaultOAuthJwtAccessTokenValidator) validatorField.get(authority);
         trustedIssuerField = validator.getClass().getDeclaredField("trustedIssuer");
         requiredAudiencesField = validator.getClass().getDeclaredField("requiredAudiences");
         requiredScopesField = validator.getClass().getDeclaredField("requiredScopes");
-        clientIdsMapField = validator.getClass().getDeclaredField("clientIdsMap");
+        authorizedClientIdsField = validator.getClass().getDeclaredField("authorizedClientIds");
         trustedIssuerField.setAccessible(true);
         requiredAudiencesField.setAccessible(true);
         requiredScopesField.setAccessible(true);
-        clientIdsMapField.setAccessible(true);
+        authorizedClientIdsField.setAccessible(true);
         assertEquals(trustedIssuerField.get(validator), "iss");
         assertEquals(requiredAudiencesField.get(validator), new HashSet<>(Arrays.asList(new String[]{"aud_1", "aud_2"})));
         assertEquals(requiredScopesField.get(validator), new HashSet<>(Arrays.asList(new String[]{"scope_1", "scope_2"})));
-        assertEquals(clientIdsMapField.get(validator), expectedClientIdsMap);
+        assertEquals(authorizedClientIdsField.get(validator), expectedAuthorizedClientIds);
 
-        System.clearProperty("athenz.auth.oauth.jwt.client_id_map_path");
+        System.clearProperty("athenz.auth.oauth.jwt.authorized_client_ids_path");
         System.clearProperty("athenz.auth.oauth.jwt.claim.iss");
         System.clearProperty("athenz.auth.oauth.jwt.claim.aud");
         System.clearProperty("athenz.auth.oauth.jwt.claim.scope");
         authority.initialize();
-        assertEquals(authorizedServiceMapField.get(authority), new HashMap<String, String>());
+        assertEquals(authorizedServicesField.get(authority), new HashMap<String, String>());
         validator = (DefaultOAuthJwtAccessTokenValidator) validatorField.get(authority);
         trustedIssuerField = validator.getClass().getDeclaredField("trustedIssuer");
         requiredAudiencesField = validator.getClass().getDeclaredField("requiredAudiences");
         requiredScopesField = validator.getClass().getDeclaredField("requiredScopes");
-        clientIdsMapField = validator.getClass().getDeclaredField("clientIdsMap");
+        authorizedClientIdsField = validator.getClass().getDeclaredField("authorizedClientIds");
         trustedIssuerField.setAccessible(true);
         requiredAudiencesField.setAccessible(true);
         requiredScopesField.setAccessible(true);
-        clientIdsMapField.setAccessible(true);
+        authorizedClientIdsField.setAccessible(true);
         assertEquals(trustedIssuerField.get(validator), "https://athenz.io");
         assertEquals(requiredAudiencesField.get(validator), new HashSet<>(Arrays.asList(new String[]{"https://zms.athenz.io"})));
         assertEquals(requiredScopesField.get(validator), new HashSet<>(Arrays.asList(new String[]{"sys.auth:role.admin"})));
-        assertEquals(clientIdsMapField.get(validator), new HashMap<String, String>());
+        assertEquals(authorizedClientIdsField.get(validator), new HashMap<String, String>());
     }
 
     @Test
@@ -386,11 +386,13 @@ public class OAuthCertBoundJwtAccessTokenAuthorityTest {
         Mockito.when(requestMock.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(clientCertChain);
         errMsg.setLength(0);
         assertEquals(authority.authenticate(requestMock, errMsg), null);
-        assertEquals(errMsg.toString(), "OAuthCertBoundJwtAccessTokenAuthority:authenticate: invalid JWT: client certificate thumbprint (zlkxyoX95le-Nv7OI0BxcjTOogvy9PGH-v_CBr_DsEk) not match: got=null");
+        assertEquals(errMsg.toString(), "OAuthCertBoundJwtAccessTokenAuthority:authenticate: invalid JWT: NO mapping of authorized client IDs for certificate principal (ui.athenz.io)");
 
         // skip cert thumbprint verification
+        System.setProperty("athenz.auth.oauth.jwt.authorized_client_ids_path", this.classLoader.getResource("authorized_client_ids.single.txt").getPath());
         System.setProperty("athenz.auth.oauth.jwt.verify_cert_thumbprint", "false");
         authority.initialize();
+        System.clearProperty("athenz.auth.oauth.jwt.authorized_client_ids_path");
         System.clearProperty("athenz.auth.oauth.jwt.verify_cert_thumbprint");
         requestMock = Mockito.mock(HttpServletRequestWrapper.class);
         Mockito.when(requestMock.getHeaders("Authorization")).thenReturn(Collections.enumeration(Arrays.asList("Bearer " + noCnfJwt)));
@@ -406,10 +408,13 @@ public class OAuthCertBoundJwtAccessTokenAuthorityTest {
         assertEquals(principal.getX509Certificate(), clientCertChain[0]);
         assertEquals(principal.getRoles(), null);
         assertEquals(principal.getApplicationId(), "ui.athenz.io");
-        assertEquals(principal.getAuthorizedService(), "ui.athenz.io");
+        assertEquals(principal.getAuthorizedService(), "sys.auth.ui");
         authority.initialize(); // reset
 
         // invalid subject JWT
+        System.setProperty("athenz.auth.oauth.jwt.authorized_client_ids_path", this.classLoader.getResource("authorized_client_ids.single.txt").getPath());
+        authority.initialize();
+        System.clearProperty("athenz.auth.oauth.jwt.authorized_client_ids_path");
         requestMock = Mockito.mock(HttpServletRequestWrapper.class);
         Mockito.when(requestMock.getHeaders("Authorization")).thenReturn(Collections.enumeration(Arrays.asList("Bearer " + invalidSubjectJwt)));
         Mockito.when(requestMock.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(clientCertChain);
@@ -418,12 +423,12 @@ public class OAuthCertBoundJwtAccessTokenAuthorityTest {
         assertEquals(errMsg.toString(), "OAuthCertBoundJwtAccessTokenAuthority:authenticate: sub is not a valid service identity: got=useradmin");
 
         // verify non-default JWT
-        System.setProperty("athenz.auth.oauth.jwt.client_id_map_path", this.classLoader.getResource("client_map_ids.single.txt").getPath());
+        System.setProperty("athenz.auth.oauth.jwt.authorized_client_ids_path", this.classLoader.getResource("authorized_client_ids.single.txt").getPath());
         System.setProperty("athenz.auth.oauth.jwt.claim.iss", "custom.iss");
         System.setProperty("athenz.auth.oauth.jwt.claim.aud", "custom_aud_1,custom_aud_2");
         System.setProperty("athenz.auth.oauth.jwt.claim.scope", "custom_scope_1 custom_scope_2");
         authority.initialize();
-        System.clearProperty("athenz.auth.oauth.jwt.client_id_map_path");
+        System.clearProperty("athenz.auth.oauth.jwt.authorized_client_ids_path");
         System.clearProperty("athenz.auth.oauth.jwt.claim.iss");
         System.clearProperty("athenz.auth.oauth.jwt.claim.aud");
         System.clearProperty("athenz.auth.oauth.jwt.claim.scope");

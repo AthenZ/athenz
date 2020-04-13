@@ -125,7 +125,7 @@ As a demo, we will use the github identity. You can use any identity provider at
 
 - Get your github ID by the following API.
 ```bash
-curl --silent --show-error https://api.github.com/users/<your github username> | grep '"id":'
+curl --silent --fail --show-error https://api.github.com/users/<your github username> | grep '"id":'
 
 export DOMAIN_ADMIN='user.github-<your github ID>'
 # export DOMAIN_ADMIN='user.github-7654321'

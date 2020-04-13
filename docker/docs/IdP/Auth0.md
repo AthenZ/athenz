@@ -10,6 +10,8 @@
     - [Setup Athenz Authority](#setup-athenz-authority)
     - [Get access token](#get-access-token)
     - [Verify access token against ZMS](#verify-access-token-against-zms)
+    - [Note](#note)
+        - [About authorized service](#about-authorized-service)
     - [Reference](#reference)
 
 <!-- /TOC -->
@@ -66,7 +68,6 @@
     // sample rules
     function (user, context, callback) {
         const namespace = 'https://myapp.example.com/';
-        const athenzDomain = 'testing-domain';
         const req = context.request;
 
         // 1. append request scopes
@@ -79,7 +80,7 @@
 
         // 2. add client ID
         // azp === client_id
-        context.accessToken[namespace + 'client_id'] = (athenzDomain + '.' + context.clientName).toLowerCase();
+        context.accessToken[namespace + 'client_id'] = context.clientID;
 
         // 3. [optional] inject certificate thumbprint
         // const CERT_THUMB = configuration.CERT_THUMB;
@@ -95,6 +96,19 @@
 > Reference: [contributions/authority/auth0](../../../contributions/authority/auth0)
 
 1. build `athenz_auth_auth0-*.jar` and move it to `"${DOCKER_DIR}/jars/"`
+1. add a mapping to authorize your application registered in Auth0 to access the ZMS
+    ```bash
+    CLIENT_ID='hpnaS7d6NmBHx4QdejenfY4kgx4RdTPH'
+    DOMAIN='testing-domain'
+    SERVICE='My-Athenz-SPA'
+
+    PRINCIPAL=`echo "${DOMAIN}.${SERVICE}" | tr '[:upper:]' '[:lower:]'`
+    cat >> "${DOCKER_DIR}/zms/conf/authorized_client_ids.txt" <<EOF
+    ${CLIENT_ID}:${PRINCIPAL}:${PRINCIPAL}
+    EOF
+
+    cat "${DOCKER_DIR}/zms/conf/authorized_client_ids.txt"
+    ```
 1. append the following sample properties to [zms.properties](../../zms/conf/zms.properties) (Update the following `https://athenz-oauth-example.auth0.com/` domain to your own domain)
     ```properties
     athenz.auth.oauth.jwt.authn_challenge_realm=registered_users@athenz.io
@@ -103,7 +117,7 @@
 
     # Auth0 does not support certificate bound access token currently
     athenz.auth.oauth.jwt.verify_cert_thumbprint=false
-    athenz.auth.oauth.jwt.client_id_map_path=
+    athenz.auth.oauth.jwt.authorized_client_ids_path=conf/zms_server/authorized_client_ids.txt
 
     ### setting for Auth0 JWT validator
     athenz.auth.oauth.jwt.claim.iss=https://athenz-oauth-example.auth0.com/
@@ -208,7 +222,7 @@
         echo "Done loading ENV. from ${BASE_DIR}/docker/env.sh"
         if [ -f "${DOCKER_DIR}/setup-scripts/dev-env-exports.sh" ]; then
             source "${DOCKER_DIR}/setup-scripts/dev-env-exports.sh"
-            echo 'Be careful! You are using the DEV settings in dev-env-exports.sh !!!'
+            echo 'NOTE: You are using the DEV settings in dev-env-exports.sh !!!'
         fi
 
         # create workspace
@@ -257,19 +271,21 @@
             --url "https://${ZMS_HOST}:${ZMS_PORT}/zms/v1/domain/${DOMAIN}/service/${SERVICE}" \
             --header 'content-type: application/json' \
             --data '{"name": "'"${PRINCIPAL}"'","publicKeys": [{"id": "'"${KEY_ID}"'","key": "'${PUBLIC_KEY}'"}]}'
-        admin_curl --silent --show-error --request GET --url "https://${ZMS_HOST}:${ZMS_PORT}/zms/v1/domain/${DOMAIN}/service/${SERVICE}" | jq
+        admin_curl --silent --fail --show-error --request GET --url "https://${ZMS_HOST}:${ZMS_PORT}/zms/v1/domain/${DOMAIN}/service/${SERVICE}" | jq
         ```
-    1. get service certificate from ZTS (It may take few seconds to sync. data from ZMS to ZTS)
+    1. get service certificate from ZTS
         ```bash
         CSR="$(cat "${WORKSPACE_DIR}/csr.pem" | awk -v ORS='\\n' '1')"
-        admin_curl --silent --show-error --request POST \
+        admin_curl --silent --fail --show-error --request POST \
             --url "https://${ZTS_HOST}:${ZTS_PORT}/zts/v1/instance/${DOMAIN}/${SERVICE}/refresh" \
             --header 'content-type: application/json' \
             --data '{"csr": "'"${CSR}"'","keyId": "'"${KEY_ID}"'"}' \
             | jq --raw-output '[.certificate, .caCertBundle] | join("")' > "${WORKSPACE_DIR}/src_cert_bundle.pem"
-
+        # P.S. It may take few seconds to sync. data from ZMS to ZTS.
+        ```
+        ```bash
         # verify the service certifiicate
-        curl --silent --show-error \
+        curl --silent --fail --show-error \
             --cacert "${ATHENZ_CA_PATH}" \
             --key "${WORKSPACE_DIR}/key.pem" \
             --cert "${WORKSPACE_DIR}/src_cert_bundle.pem" \
@@ -284,7 +300,7 @@
 1. Verify the access token from Auth0
     1. check Athenz domain admin, make sure your github ID is one of the members
         ```bash
-        curl --silent --show-error \
+        curl --silent --fail --show-error \
             --cacert "${ATHENZ_CA_PATH}" \
             --key "${WORKSPACE_DIR}/key.pem" \
             --cert "${WORKSPACE_DIR}/src_cert_bundle.pem" \
@@ -309,7 +325,7 @@
     1. verify the access token, make sure your github ID is shown
         ```bash
         access_token='<encoded_jwt>'
-        curl --silent --show-error \
+        curl --silent --fail --show-error \
             -H "Authorization: Bearer ${access_token}" \
             --cacert "${ATHENZ_CA_PATH}" \
             --key "${WORKSPACE_DIR}/key.pem" \
@@ -324,7 +340,7 @@
         ```
     1. verify admin access right of the access token
         ```bash
-        curl --silent --show-error \
+        curl --silent --fail --show-error \
             -H "Authorization: Bearer ${access_token}" \
             --cacert "${ATHENZ_CA_PATH}" \
             --key "${WORKSPACE_DIR}/key.pem" \
@@ -336,6 +352,28 @@
             "granted": true
         }
         ```
+
+<a id="markdown-note" name="note"></a>
+## Note
+
+<a id="markdown-about-authorized-service" name="about-authorized-service"></a>
+### About authorized service
+
+ZMS limits the API access using the [authorized_services.json](../../zms/conf/authorized_services.json) file (GET APIs are not included.). When a client application access ZMS using the user's credentials, the application can only use the user's credentials on a pre-defined set of APIs. Hence, even the user is the domain admin of Athenz, he cannot update ZMS data via unregistered client applications.
+
+For example, if we want to allow users to create top level domain via our example application ('testing-domain.my-athenz-spa'), we need to update the [authorized_services.json](../../zms/conf/authorized_services.json) as below and re-deploy ZMS.
+
+```json
+{
+    "services" : {
+        "testing-domain.my-athenz-spa": {
+            "allowedOperations": [
+                { "name":"posttopleveldomain" }
+            ]
+        }
+    }
+}
+```
 
 <a id="markdown-reference" name="reference"></a>
 ## Reference

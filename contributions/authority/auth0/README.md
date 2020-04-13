@@ -29,12 +29,12 @@ ls ./target/athenz_auth_auth0-*.jar
 1. overwrite existing system property
     ```properties
     # ZMS server
-    athenz.zms.authority_classes=com.yahoo.athenz.auth.oauth.CertificateJwtAccessTokenAuthority
+    athenz.zms.authority_classes=com.yahoo.athenz.auth.oauth.OAuthCertBoundJwtAccessTokenAuthority
 
     # ZTS server
-    athenz.zts.authority_classes=com.yahoo.athenz.auth.oauth.CertificateJwtAccessTokenAuthority
+    athenz.zts.authority_classes=com.yahoo.athenz.auth.oauth.OAuthCertBoundJwtAccessTokenAuthority
     ```
-1. setup CertificateJwtAccessTokenAuthority for Auth0 (Update the following `https://athenz-oauth-example.auth0.com/` domain to your own domain)
+1. setup OAuthCertBoundJwtAccessTokenAuthority for Auth0 (Update the following `https://athenz-oauth-example.auth0.com/` domain to your own domain)
     ```properties
     athenz.auth.oauth.jwt.authn_challenge_realm=registered_users@athenz.io
     athenz.auth.oauth.jwt.cert.exclude_role_certificates=false
@@ -42,7 +42,7 @@ ls ./target/athenz_auth_auth0-*.jar
 
     # Auth0 does not support certificate bound access token currently
     athenz.auth.oauth.jwt.verify_cert_thumbprint=false
-    athenz.auth.oauth.jwt.client_id_map_path=
+    athenz.auth.oauth.jwt.authorized_client_ids_path=conf/zms_server/authorized_client_ids.txt
 
     ### setting for Auth0 JWT validator
     athenz.auth.oauth.jwt.claim.iss=https://athenz-oauth-example.auth0.com/

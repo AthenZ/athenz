@@ -187,7 +187,7 @@ docker run --rm --entrypoint curl \
     -v "${TEST_SERVICE_DIR}/key.pem:/etc/certs/key.pem" \
     --network="${DOCKER_NETWORK}" \
     --name athenz-curl appropriate/curl \
-    --silent --show-error \
+    --silent --fail --show-error \
     --cacert "/etc/certs/ca.pem" \
     --cert "/etc/certs/cert.pem" \
     --key "/etc/certs/key.pem" \
