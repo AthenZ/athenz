@@ -39,7 +39,10 @@ public class NotificationCommon {
         this.userDomainPrefix = userDomainPrefix;
     }
 
-    public Notification createNotification(final String notificationType, Set<String> recipients, Map<String, String> details) {
+    public Notification createNotification(final String notificationType,
+                                           Set<String> recipients,
+                                           Map<String, String> details,
+                                           NotificationToEmailConverter notificationToEmailConverter) {
 
         if (recipients == null || recipients.isEmpty()) {
             LOGGER.error("Notification requires at least 1 recipient.");
@@ -48,6 +51,7 @@ public class NotificationCommon {
 
         Notification notification = new Notification(notificationType);
         notification.setDetails(details);
+        notification.setNotificationToEmailConverter(notificationToEmailConverter);
 
         for (String recipient : recipients) {
             addNotificationRecipient(notification, recipient, true);
@@ -61,7 +65,10 @@ public class NotificationCommon {
         return notification;
     }
 
-    public Notification createNotification(final String notificationType, final String recipient, Map<String, String> details) {
+    public Notification createNotification(final String notificationType,
+                                           final String recipient,
+                                           Map<String, String> details,
+                                           NotificationToEmailConverter notificationToEmailConverter) {
 
         if (recipient == null || recipient.isEmpty()) {
             LOGGER.error("Notification requires a valid recipient");
@@ -70,6 +77,7 @@ public class NotificationCommon {
 
         Notification notification = new Notification(notificationType);
         notification.setDetails(details);
+        notification.setNotificationToEmailConverter(notificationToEmailConverter);
 
         // if the recipient is a service then we're going to send a notification
         // to the service's domain admin users

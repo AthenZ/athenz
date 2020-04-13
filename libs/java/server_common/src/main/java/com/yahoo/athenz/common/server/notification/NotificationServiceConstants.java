@@ -24,6 +24,8 @@ public final class NotificationServiceConstants {
     public static final String NOTIFICATION_TYPE_PRINCIPAL_EXPIRY_REMINDER     = "PRINCIPAL_EXPIRY_REMINDER";
     public static final String NOTIFICATION_TYPE_DOMAIN_MEMBER_EXPIRY_REMINDER = "DOMAIN_MEMBER_EXPIRY_REMINDER";
     public static final String NOTIFICATION_TYPE_UNREFRESHED_CERTS             = "UNREFRESHED_CERTS";
+    public static final String NOTIFICATION_TYPE_PRINCIPAL_REVIEW_REMINDER     = "PRINCIPAL_REVIEW_REMINDER";
+    public static final String NOTIFICATION_TYPE_DOMAIN_MEMBER_REVIEW_REMINDER = "DOMAIN_MEMBER_REVIEW_REMINDER";
 
     public static final String NOTIFICATION_DETAILS_DOMAIN              = "domain";
     public static final String NOTIFICATION_DETAILS_ROLE                = "role";

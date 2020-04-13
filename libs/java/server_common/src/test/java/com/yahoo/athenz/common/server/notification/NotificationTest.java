@@ -38,7 +38,7 @@ public class NotificationTest {
         assertTrue(obj.toString().contains("role=role1"));
         assertTrue(obj.toString().contains("domain=dom1"));
 
-        Notification obj2 = new Notification("TEST_TYPE", null, null);
+        Notification obj2 = new Notification("TEST_TYPE", null, null, null);
         obj2.addDetails("role", "role2");
         obj2.addRecipient("user.user5");
         obj2.addRecipient("user.user6");
@@ -47,7 +47,7 @@ public class NotificationTest {
         assertTrue(obj2.getRecipients().contains("user.user5"));
         assertTrue(obj2.getRecipients().contains("user.user6"));
 
-        Notification obj3 = new Notification("TEST_TYPE", null, null);
+        Notification obj3 = new Notification("TEST_TYPE", null, null, null);
         obj3.addDetails("domain", "dom1").addDetails("role", "role1");
         obj3.addRecipient("user.user1");
 

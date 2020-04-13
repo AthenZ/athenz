@@ -35,6 +35,7 @@ import com.yahoo.athenz.auth.ServerPrivateKey;
 import com.yahoo.athenz.auth.impl.*;
 import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
+import com.yahoo.athenz.zms.notification.PutMembershipNotificationTask;
 import com.yahoo.athenz.zms.store.ObjectStoreConnection;
 import org.mockito.Mockito;
 import org.mockito.Mock;
@@ -17570,7 +17571,7 @@ public class ZMSImplTest {
 
         Set<String> mockRecipients = new HashSet<>();
         mockRecipients.add("user.dummy");
-        Notification notification = new Notification("TEST_TYPE", mockRecipients, null);
+        Notification notification = new Notification("TEST_TYPE", mockRecipients, null, null);
 
         zms.putMembership(mockDomRsrcCtx, "testdomain1", "testrole2", "user.fury", "adding fury", membership);
 
@@ -17602,6 +17603,7 @@ public class ZMSImplTest {
         expextedNotifications.get(0).addDetails("role", "testrole2");
         expextedNotifications.get(0).addDetails("domain", "testdomain1");
         expextedNotifications.get(0).addDetails("member", "user.fury");
+        expextedNotifications.get(0).setNotificationToEmailConverter(new PutMembershipNotificationTask.PutMembershipNotificationToEmailConverter());
 
         Mockito.verify(mockNotificationManager,
                 times(1)).sendNotifications(eq(expextedNotifications));

@@ -21,6 +21,8 @@ import com.amazonaws.services.simpleemail.model.SendEmailRequest;
 import com.amazonaws.services.simpleemail.model.SendRawEmailRequest;
 import com.amazonaws.services.simpleemail.model.SendRawEmailResult;
 import com.yahoo.athenz.common.server.notification.Notification;
+import com.yahoo.athenz.common.server.notification.NotificationEmail;
+import com.yahoo.athenz.common.server.notification.NotificationToEmailConverter;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
@@ -176,6 +178,16 @@ public class AWSEmailProviderTest {
         details.put("requester", "user.requester");
         notification.setDetails(details);
 
+        NotificationToEmailConverter notificationToEmailConverter = new NotificationToEmailConverter() {
+            @Override
+            public NotificationEmail getNotificationAsEmail(Notification notification) {
+                String subject = "test subject";
+                String body = "test body";
+                return new NotificationEmail(subject, body, new HashSet<>());
+            }
+        };
+
+        notification.setNotificationToEmailConverter(notificationToEmailConverter);
         boolean status = svc.notify(notification);
         assertTrue(status);
 

@@ -23,7 +23,10 @@ import com.yahoo.rdl.Timestamp;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.USER_DOMAIN_PREFIX;
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
@@ -31,10 +34,10 @@ import static com.yahoo.athenz.zms.notification.NotificationManagerTest.getNotif
 import static org.mockito.ArgumentMatchers.any;
 import static org.testng.Assert.*;
 
-public class RoleMemberExpiryNotificationTaskTest {
+public class RoleMemberReviewNotificationTaskTest {
 
     @Test
-    public void testSendRoleMemberExpiryRemindersException() {
+    public void testSendRoleMemberRemindersException() {
 
         DBService dbsvc = Mockito.mock(DBService.class);
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
@@ -42,17 +45,17 @@ public class RoleMemberExpiryNotificationTaskTest {
 
         // we're going to throw an exception when called
 
-        Mockito.when(dbsvc.getRoleExpiryMembers()).thenThrow(new IllegalArgumentException());
+        Mockito.when(dbsvc.getReviewMembers()).thenThrow(new IllegalArgumentException());
         NotificationManager notificationManager = getNotificationManager(dbsvc, testfact);
 
-        RoleMemberExpiryNotificationTask roleMemberExpiryNotificationTask = new RoleMemberExpiryNotificationTask(dbsvc, USER_DOMAIN_PREFIX);
+        RoleMemberReviewNotificationTask roleMemberReviewNotificationTask = new RoleMemberReviewNotificationTask(dbsvc, USER_DOMAIN_PREFIX);
         // to make sure we're not creating any notifications, we're going
         // to configure our mock to throw an exception
 
         Mockito.when(mockNotificationService.notify(any())).thenThrow(new IllegalArgumentException());
 
         try {
-            roleMemberExpiryNotificationTask.getNotifications();
+            roleMemberReviewNotificationTask.getNotifications();
             fail();
         } catch (Exception ex) {
             assertTrue(ex instanceof IllegalArgumentException);
@@ -61,7 +64,7 @@ public class RoleMemberExpiryNotificationTaskTest {
     }
 
     @Test
-    public void testSendRoleMemberExpiryRemindersEmptySet() {
+    public void testSendRoleMemberReviewRemindersEmptySet() {
 
         DBService dbsvc = Mockito.mock(DBService.class);
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
@@ -73,13 +76,13 @@ public class RoleMemberExpiryNotificationTaskTest {
 
         Mockito.when(mockNotificationService.notify(any())).thenThrow(new IllegalArgumentException());
 
-        RoleMemberExpiryNotificationTask roleMemberExpiryNotificationTask = new RoleMemberExpiryNotificationTask(dbsvc, USER_DOMAIN_PREFIX);
-        assertEquals(roleMemberExpiryNotificationTask.getNotifications(), new ArrayList<>());
+        RoleMemberReviewNotificationTask roleMemberReviewNotificationTask = new RoleMemberReviewNotificationTask(dbsvc, USER_DOMAIN_PREFIX);
+        assertEquals(roleMemberReviewNotificationTask.getNotifications(), new ArrayList<>());
 
         notificationManager.shutdown();
     }
     @Test
-    public void testSendRoleMemberExpiryReminders() {
+    public void testSendRoleMemberReviewReminders() {
 
         DBService dbsvc = Mockito.mock(DBService.class);
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
@@ -89,20 +92,20 @@ public class RoleMemberExpiryNotificationTaskTest {
         memberRoles.add(new MemberRole().setRoleName("role1")
                 .setDomainName("athenz1")
                 .setMemberName("user.joe")
-                .setExpiration(Timestamp.fromMillis(100)));
+                .setReviewReminder(Timestamp.fromMillis(100)));
         DomainRoleMember domainRoleMember = new DomainRoleMember()
                 .setMemberName("user.joe")
                 .setMemberRoles(memberRoles);
-        Map<String, DomainRoleMember> expiryMembers = new HashMap<>();
-        expiryMembers.put("user.joe", domainRoleMember);
+        Map<String, DomainRoleMember> reviewMembers = new HashMap<>();
+        reviewMembers.put("user.joe", domainRoleMember);
 
         // we're going to return null for our first thread which will
         // run during init call and then the real data for the second
         // call
 
-        Mockito.when(dbsvc.getRoleExpiryMembers())
+        Mockito.when(dbsvc.getReviewMembers())
                 .thenReturn(null)
-                .thenReturn(expiryMembers);
+                .thenReturn(reviewMembers);
 
         NotificationManager notificationManager = getNotificationManager(dbsvc, testfact);
 
@@ -120,24 +123,24 @@ public class RoleMemberExpiryNotificationTaskTest {
 
         Mockito.when(dbsvc.getAthenzDomain("athenz1", false)).thenReturn(domain);
 
-        List<Notification> notifications = new RoleMemberExpiryNotificationTask(dbsvc, USER_DOMAIN_PREFIX).getNotifications();
-
+        List<Notification> notifications = new RoleMemberReviewNotificationTask(dbsvc, USER_DOMAIN_PREFIX).getNotifications();
 
         // we should get 2 notifications - one for user and one for domain
         assertEquals(notifications.size(), 2);
 
         // Verify contents of notifications is as expected
-        Notification expectedFirstNotification = new Notification(NOTIFICATION_TYPE_PRINCIPAL_EXPIRY_REMINDER);
+        Notification expectedFirstNotification = new Notification(NOTIFICATION_TYPE_PRINCIPAL_REVIEW_REMINDER);
         expectedFirstNotification.addRecipient("user.joe");
         expectedFirstNotification.addDetails("expiryRoles", "athenz1;role1;1970-01-01T00:00:00.100Z");
         expectedFirstNotification.addDetails("member", "user.joe");
-        expectedFirstNotification.setNotificationToEmailConverter(new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter());
+        expectedFirstNotification.setNotificationToEmailConverter(new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter());
 
-        Notification expectedSecondNotification = new Notification(NOTIFICATION_TYPE_DOMAIN_MEMBER_EXPIRY_REMINDER);
+        Notification expectedSecondNotification = new Notification(NOTIFICATION_TYPE_DOMAIN_MEMBER_REVIEW_REMINDER);
         expectedSecondNotification.addRecipient("user.jane");
         expectedSecondNotification.addDetails("expiryMembers", "user.joe;role1;1970-01-01T00:00:00.100Z");
         expectedSecondNotification.addDetails("domain", "athenz1");
-        expectedSecondNotification.setNotificationToEmailConverter(new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter());
+        expectedSecondNotification.setNotificationToEmailConverter(new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToEmailConverter());
+
 
         assertEquals(notifications.get(0), expectedFirstNotification);
         assertEquals(notifications.get(1), expectedSecondNotification);
@@ -146,7 +149,7 @@ public class RoleMemberExpiryNotificationTaskTest {
     }
 
     @Test
-    public void testSendRoleMemberExpiryRemindersNoValidDomain() {
+    public void testSendRoleMemberReviewRemindersNoValidDomain() {
 
         DBService dbsvc = Mockito.mock(DBService.class);
 
@@ -157,16 +160,16 @@ public class RoleMemberExpiryNotificationTaskTest {
                 .setExpiration(Timestamp.fromMillis(100)));
         DomainRoleMember domainRoleMember = new DomainRoleMember()
                 .setMemberRoles(memberRoles);
-        Map<String, DomainRoleMember> expiryMembers = new HashMap<>();
-        expiryMembers.put("user.joe", domainRoleMember);
+        Map<String, DomainRoleMember> reviewMembers = new HashMap<>();
+        reviewMembers.put("user.joe", domainRoleMember);
 
         // we're going to return null for our first thread which will
         // run during init call and then the real data for the second
         // call
 
-        Mockito.when(dbsvc.getRoleExpiryMembers())
+        Mockito.when(dbsvc.getReviewMembers())
                 .thenReturn(null)
-                .thenReturn(expiryMembers);
+                .thenReturn(reviewMembers);
 
         ZMSTestUtils.sleep(1000);
 
@@ -174,7 +177,7 @@ public class RoleMemberExpiryNotificationTaskTest {
 
         Mockito.when(dbsvc.getAthenzDomain("athenz1", false)).thenReturn(null);
 
-        List<Notification> notifications = new RoleMemberExpiryNotificationTask(dbsvc, USER_DOMAIN_PREFIX).getNotifications();
+        List<Notification> notifications = new RoleMemberReviewNotificationTask(dbsvc, USER_DOMAIN_PREFIX).getNotifications();
 
         // we should get 0 notifications
         assertEquals(notifications, new ArrayList<>());
@@ -193,9 +196,9 @@ public class RoleMemberExpiryNotificationTaskTest {
         details.put("reason", "test reason");
         details.put("requester", "user.requester");
 
-        Notification notification = new Notification(NOTIFICATION_TYPE_DOMAIN_MEMBER_EXPIRY_REMINDER);
+        Notification notification = new Notification(NOTIFICATION_TYPE_DOMAIN_MEMBER_REVIEW_REMINDER);
         notification.setDetails(details);
-        RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter converter = new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter();
+        RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToEmailConverter converter = new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToEmailConverter();
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
 
         String body = notificationAsEmail.getBody();
@@ -207,7 +210,7 @@ public class RoleMemberExpiryNotificationTaskTest {
         assertFalse(body.contains("slack"));
         assertFalse(body.contains("link.to.athenz.channel.com"));
 
-        // now set the correct expiry members details
+        // now set the correct review members details
         // with one bad entry that should be skipped
 
         details.put(NOTIFICATION_DETAILS_EXPIRY_MEMBERS,
@@ -231,12 +234,13 @@ public class RoleMemberExpiryNotificationTaskTest {
         assertFalse(body.contains("slack"));
         assertFalse(body.contains("link.to.athenz.channel.com"));
 
-        // now try the expiry roles reminder
-        notification = new Notification(NOTIFICATION_TYPE_PRINCIPAL_EXPIRY_REMINDER);
+        // now try the review roles reminder
+
+        notification = new Notification(NOTIFICATION_TYPE_PRINCIPAL_REVIEW_REMINDER);
         notification.setDetails(details);
         details.put(NOTIFICATION_DETAILS_EXPIRY_ROLES,
                 "athenz1;role1;2020-12-01T12:00:00.000Z|athenz2;role2;2020-12-01T12:00:00.000Z");
-        RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter principalConverter = new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter();
+        RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter principalConverter = new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter();
         NotificationEmail principalNotificationAsEmail = principalConverter.getNotificationAsEmail(notification);
 
         body = principalNotificationAsEmail.getBody();
@@ -259,16 +263,16 @@ public class RoleMemberExpiryNotificationTaskTest {
 
     @Test
     public void getEmailSubject() {
-        Notification notification = new Notification(NOTIFICATION_TYPE_DOMAIN_MEMBER_EXPIRY_REMINDER);
-        RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter converter = new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter();
+        Notification notification = new Notification(NOTIFICATION_TYPE_DOMAIN_MEMBER_REVIEW_REMINDER);
+        RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToEmailConverter converter = new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToEmailConverter();
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
         String subject = notificationAsEmail.getSubject();
-        assertEquals(subject, "Athenz Domain Role Member Expiration Notification");
+        assertEquals(subject, "Athenz Domain Role Member Review Notification");
 
-        notification = new Notification(NOTIFICATION_TYPE_PRINCIPAL_EXPIRY_REMINDER);
-        RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter principalConverter = new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter();
+        notification = new Notification(NOTIFICATION_TYPE_PRINCIPAL_REVIEW_REMINDER);
+        RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter principalConverter = new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter();
         notificationAsEmail = principalConverter.getNotificationAsEmail(notification);
         subject = notificationAsEmail.getSubject();
-        assertEquals(subject, "Athenz Role Member Expiration Notification");
+        assertEquals(subject, "Athenz Role Member Review Notification");
     }
 }

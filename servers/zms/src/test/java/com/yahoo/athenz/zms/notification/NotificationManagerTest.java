@@ -143,7 +143,8 @@ public class NotificationManagerTest {
 
         ZMSDomainRoleMembersFetcher zmsDomainRoleMembersFetcher = new ZMSDomainRoleMembersFetcher(dbsvc, USER_DOMAIN_PREFIX);
         NotificationCommon notificationCommon = new NotificationCommon(zmsDomainRoleMembersFetcher, USER_DOMAIN_PREFIX);
-        Notification notification = notificationCommon.createNotification("MEMBERSHIP_APPROVAL", recipients, details);
+        PutMembershipNotificationTask.PutMembershipNotificationToEmailConverter converter = new PutMembershipNotificationTask.PutMembershipNotificationToEmailConverter();
+        Notification notification = notificationCommon.createNotification("MEMBERSHIP_APPROVAL", recipients, details, converter);
         assertNotNull(notification);
 
         // Assert service is not a receipient
@@ -167,8 +168,8 @@ public class NotificationManagerTest {
 
         ZMSDomainRoleMembersFetcher zmsDomainRoleMembersFetcher = new ZMSDomainRoleMembersFetcher(dbsvc, USER_DOMAIN_PREFIX);
         NotificationCommon notificationCommon = new NotificationCommon(zmsDomainRoleMembersFetcher, USER_DOMAIN_PREFIX);
-        assertNull(notificationCommon.createNotification("MEMBERSHIP_APPROVAL", (Set<String>) null, null));
-        assertNull(notificationCommon.createNotification("MEMBERSHIP_APPROVAL", Collections.emptySet(), null));
+        assertNull(notificationCommon.createNotification("MEMBERSHIP_APPROVAL", (Set<String>) null, null, null));
+        assertNull(notificationCommon.createNotification("MEMBERSHIP_APPROVAL", Collections.emptySet(), null, null));
     }
 
     @Test
@@ -197,7 +198,8 @@ public class NotificationManagerTest {
 
         ZMSDomainRoleMembersFetcher zmsDomainRoleMembersFetcher = new ZMSDomainRoleMembersFetcher(dbsvc, USER_DOMAIN_PREFIX);
         NotificationCommon notificationCommon = new NotificationCommon(zmsDomainRoleMembersFetcher, USER_DOMAIN_PREFIX);
-        Notification notification = notificationCommon.createNotification("MEMBERSHIP_APPROVAL", recipients, null);
+        PendingMembershipApprovalNotificationTask.PendingMembershipApprovalNotificationToEmailConverter converter = new PendingMembershipApprovalNotificationTask.PendingMembershipApprovalNotificationToEmailConverter();
+        Notification notification = notificationCommon.createNotification("MEMBERSHIP_APPROVAL", recipients, null, converter);
         assertNull(notification);
     }
 
@@ -264,13 +266,14 @@ public class NotificationManagerTest {
         NotificationCommon notificationCommon = new NotificationCommon(zmsDomainRoleMembersFetcher, USER_DOMAIN_PREFIX);
 
         Map<String, String> details = new HashMap<>();
-        assertNull(notificationCommon.createNotification("reminder", (String) null, details));
-        assertNull(notificationCommon.createNotification("reminder", "", details));
-        assertNull(notificationCommon.createNotification("reminder", "athenz", details));
+        PendingMembershipApprovalNotificationTask.PendingMembershipApprovalNotificationToEmailConverter converter = new PendingMembershipApprovalNotificationTask.PendingMembershipApprovalNotificationToEmailConverter();
+        assertNull(notificationCommon.createNotification("reminder", (String) null, details, converter));
+        assertNull(notificationCommon.createNotification("reminder", "", details, converter));
+        assertNull(notificationCommon.createNotification("reminder", "athenz", details, converter));
 
         // valid service name but we have no valid domain so we're still
         // going to get null notification
 
-        assertNull(notificationCommon.createNotification("reminder", "athenz.service", details));
+        assertNull(notificationCommon.createNotification("reminder", "athenz.service", details, converter));
     }
 }

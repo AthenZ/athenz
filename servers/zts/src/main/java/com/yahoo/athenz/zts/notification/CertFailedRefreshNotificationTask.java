@@ -19,9 +19,7 @@ package com.yahoo.athenz.zts.notification;
 import com.yahoo.athenz.auth.util.AthenzUtils;
 import com.yahoo.athenz.common.server.cert.X509CertRecord;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
-import com.yahoo.athenz.common.server.notification.Notification;
-import com.yahoo.athenz.common.server.notification.NotificationCommon;
-import com.yahoo.athenz.common.server.notification.NotificationTask;
+import com.yahoo.athenz.common.server.notification.*;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.zts.cert.InstanceCertManager;
 import com.yahoo.athenz.zts.store.DataStore;
@@ -43,6 +41,7 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
     private static final Logger LOGGER = LoggerFactory.getLogger(CertFailedRefreshNotificationTask.class);
     private final static String DESCRIPTION = "certificate failed refresh notification";
     private final HostnameResolver hostnameResolver;
+    private final CertFailedRefreshNotificationToEmailConverter certFailedRefreshNotificationToEmailConverter;
 
     public CertFailedRefreshNotificationTask(InstanceCertManager instanceCertManager,
                                              DataStore dataStore,
@@ -54,6 +53,7 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
         ZTSDomainRoleMembersFetcher ztsDomainRoleMembersFetcher = new ZTSDomainRoleMembersFetcher(dataStore, USER_DOMAIN_PREFIX);
         this.notificationCommon = new NotificationCommon(ztsDomainRoleMembersFetcher, userDomainPrefix);
         this.hostnameResolver = hostnameResolver;
+        this.certFailedRefreshNotificationToEmailConverter = new CertFailedRefreshNotificationToEmailConverter();
     }
 
     @Override
@@ -78,7 +78,9 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
             Map<String, String> details = getNotificationDetails(domain, records);
             Notification notification = notificationCommon.createNotification(
                     NOTIFICATION_TYPE_UNREFRESHED_CERTS,
-                    ResourceUtils.roleResourceName(domain, ADMIN_ROLE_NAME), details);
+                    ResourceUtils.roleResourceName(domain, ADMIN_ROLE_NAME),
+                    details,
+                    certFailedRefreshNotificationToEmailConverter);
             if (notification != null) {
                 notificationList.add(notification);
             }
@@ -141,5 +143,41 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
     @Override
     public String getDescription() {
         return DESCRIPTION;
+    }
+
+    public static class CertFailedRefreshNotificationToEmailConverter implements NotificationToEmailConverter {
+        private static final String EMAIL_TEMPLATE_UNREFRESHED_CERTS = "messages/unrefreshed-certs.html";
+        private static final String UNREFRESHED_CERTS_SUBJECT = "athenz.notification.email.unrefreshed.certs.subject";
+        private static final String UNREFRESHED_CERTS_BODY_ENTRY = "athenz.notification.email.unrefreshed.certs.body.entry";
+
+        private final NotificationToEmailConverterCommon notificationToEmailConverterCommon;
+        private String emailUnrefreshedCertsBody;
+
+        public CertFailedRefreshNotificationToEmailConverter() {
+            notificationToEmailConverterCommon = new NotificationToEmailConverterCommon();
+            emailUnrefreshedCertsBody = notificationToEmailConverterCommon.readContentFromFile(EMAIL_TEMPLATE_UNREFRESHED_CERTS);
+        }
+
+        private String getUnrefreshedCertsBody(Map<String, String> metaDetails) {
+            if (metaDetails == null) {
+                return null;
+            }
+
+            return notificationToEmailConverterCommon.generateBodyFromTemplate(
+                    metaDetails,
+                    emailUnrefreshedCertsBody,
+                    NOTIFICATION_DETAILS_DOMAIN,
+                    NOTIFICATION_DETAILS_UNREFRESHED_CERTS,
+                    6,
+                    UNREFRESHED_CERTS_BODY_ENTRY);
+        }
+
+        @Override
+        public NotificationEmail getNotificationAsEmail(Notification notification) {
+            String subject = notificationToEmailConverterCommon.getSubject(UNREFRESHED_CERTS_SUBJECT);
+            String body = getUnrefreshedCertsBody(notification.getDetails());
+            Set<String> fullyQualifiedEmailAddresses = notificationToEmailConverterCommon.getFullyQualifiedEmailAddresses(notification.getRecipients());
+            return new NotificationEmail(subject, body, fullyQualifiedEmailAddresses);
+        }
     }
 }

@@ -16,6 +16,9 @@ public class RoleMember {
     public Timestamp expiration;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Timestamp reviewReminder;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Boolean active;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -46,6 +49,13 @@ public class RoleMember {
     }
     public Timestamp getExpiration() {
         return expiration;
+    }
+    public RoleMember setReviewReminder(Timestamp reviewReminder) {
+        this.reviewReminder = reviewReminder;
+        return this;
+    }
+    public Timestamp getReviewReminder() {
+        return reviewReminder;
     }
     public RoleMember setActive(Boolean active) {
         this.active = active;
@@ -101,6 +111,9 @@ public class RoleMember {
                 return false;
             }
             if (expiration == null ? a.expiration != null : !expiration.equals(a.expiration)) {
+                return false;
+            }
+            if (reviewReminder == null ? a.reviewReminder != null : !reviewReminder.equals(a.reviewReminder)) {
                 return false;
             }
             if (active == null ? a.active != null : !active.equals(a.active)) {
