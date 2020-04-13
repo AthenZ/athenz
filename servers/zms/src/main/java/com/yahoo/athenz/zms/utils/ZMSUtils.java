@@ -65,6 +65,8 @@ public class ZMSUtils {
         for (String admin: adminUsers) {
             RoleMember roleMember = new RoleMember();
             roleMember.setMemberName(admin);
+            roleMember.setActive(true);
+            roleMember.setApproved(true);
             roleMembers.add(roleMember);
         }
         return new Role()
