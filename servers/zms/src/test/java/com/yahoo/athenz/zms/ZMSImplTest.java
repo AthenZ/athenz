@@ -30,11 +30,11 @@ import java.util.concurrent.TimeUnit;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.base.Strings;
-import com.google.common.primitives.Bytes;
 import com.yahoo.athenz.auth.ServerPrivateKey;
 import com.yahoo.athenz.auth.impl.*;
 import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
+import com.yahoo.athenz.zms.notification.PutMembershipNotificationTask;
 import com.yahoo.athenz.zms.store.ObjectStoreConnection;
 import org.mockito.Mockito;
 import org.mockito.Mock;
@@ -17570,7 +17570,7 @@ public class ZMSImplTest {
 
         Set<String> mockRecipients = new HashSet<>();
         mockRecipients.add("user.dummy");
-        Notification notification = new Notification("TEST_TYPE", mockRecipients, null);
+        Notification notification = new Notification(mockRecipients, null, null);
 
         zms.putMembership(mockDomRsrcCtx, "testdomain1", "testrole2", "user.fury", "adding fury", membership);
 
@@ -17595,13 +17595,14 @@ public class ZMSImplTest {
         detailsExp.put(NOTIFICATION_DETAILS_REASON, "adding fury");
         detailsExp.put(NOTIFICATION_DETAILS_REQUESTER, "user.fury");
 
-        List<Notification> expextedNotifications = Collections.singletonList(new Notification(NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL));
+        List<Notification> expextedNotifications = Collections.singletonList(new Notification());
         expextedNotifications.get(0).addRecipient("user.user1");
         expextedNotifications.get(0).addDetails("requester", "user.fury");
         expextedNotifications.get(0).addDetails("reason", "adding fury");
         expextedNotifications.get(0).addDetails("role", "testrole2");
         expextedNotifications.get(0).addDetails("domain", "testdomain1");
         expextedNotifications.get(0).addDetails("member", "user.fury");
+        expextedNotifications.get(0).setNotificationToEmailConverter(new PutMembershipNotificationTask.PutMembershipNotificationToEmailConverter());
 
         Mockito.verify(mockNotificationManager,
                 times(1)).sendNotifications(eq(expextedNotifications));

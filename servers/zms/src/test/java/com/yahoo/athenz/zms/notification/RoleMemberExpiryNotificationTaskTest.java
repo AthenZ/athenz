@@ -16,10 +16,7 @@
 
 package com.yahoo.athenz.zms.notification;
 
-import com.yahoo.athenz.common.server.notification.Notification;
-import com.yahoo.athenz.common.server.notification.NotificationManager;
-import com.yahoo.athenz.common.server.notification.NotificationService;
-import com.yahoo.athenz.common.server.notification.NotificationServiceFactory;
+import com.yahoo.athenz.common.server.notification.*;
 import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.zms.store.AthenzDomain;
 import com.yahoo.rdl.Timestamp;
@@ -30,7 +27,6 @@ import java.util.*;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.USER_DOMAIN_PREFIX;
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
-import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.NOTIFICATION_DETAILS_MEMBER;
 import static com.yahoo.athenz.zms.notification.NotificationManagerTest.getNotificationManager;
 import static org.mockito.ArgumentMatchers.any;
 import static org.testng.Assert.*;
@@ -150,7 +146,6 @@ public class RoleMemberExpiryNotificationTaskTest {
 
         // we're going to throw an exception when called
 
-        Mockito.when(dbsvc.getPendingMembershipApproverRoles()).thenThrow(new IllegalArgumentException());
         Mockito.when(dbsvc.getRoleExpiryMembers()).thenThrow(new IllegalArgumentException());
         NotificationManager notificationManager = getNotificationManager(dbsvc, testfact);
 
@@ -176,10 +171,6 @@ public class RoleMemberExpiryNotificationTaskTest {
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
         NotificationServiceFactory testfact = () -> mockNotificationService;
         NotificationManager notificationManager = getNotificationManager(dbsvc, testfact);
-
-        // we're going to return an empty set
-
-        Mockito.when(dbsvc.getPendingMembershipApproverRoles()).thenReturn(null);
 
         // to make sure we're not creating any notifications, we're going
         // to configure our mock to throw an exception
@@ -240,15 +231,17 @@ public class RoleMemberExpiryNotificationTaskTest {
         assertEquals(notifications.size(), 2);
 
         // Verify contents of notifications is as expected
-        Notification expectedFirstNotification = new Notification(NOTIFICATION_TYPE_PRINCIPAL_EXPIRY_REMINDER);
+        Notification expectedFirstNotification = new Notification();
         expectedFirstNotification.addRecipient("user.joe");
         expectedFirstNotification.addDetails("expiryRoles", "athenz1;role1;1970-01-01T00:00:00.100Z");
         expectedFirstNotification.addDetails("member", "user.joe");
+        expectedFirstNotification.setNotificationToEmailConverter(new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter());
 
-        Notification expectedSecondNotification = new Notification(NOTIFICATION_TYPE_DOMAIN_MEMBER_EXPIRY_REMINDER);
+        Notification expectedSecondNotification = new Notification();
         expectedSecondNotification.addRecipient("user.jane");
         expectedSecondNotification.addDetails("expiryMembers", "user.joe;role1;1970-01-01T00:00:00.100Z");
         expectedSecondNotification.addDetails("domain", "athenz1");
+        expectedSecondNotification.setNotificationToEmailConverter(new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter());
 
         assertEquals(notifications.get(0), expectedFirstNotification);
         assertEquals(notifications.get(1), expectedSecondNotification);
@@ -289,5 +282,97 @@ public class RoleMemberExpiryNotificationTaskTest {
 
         // we should get 0 notifications
         assertEquals(notifications, new ArrayList<>());
+    }
+
+    @Test
+    public void testGetEmailBody() {
+        System.setProperty("athenz.notification_workflow_url", "https://athenz.example.com/workflow");
+        System.setProperty("athenz.notification_support_text", "#Athenz slack channel");
+        System.setProperty("athenz.notification_support_url", "https://link.to.athenz.channel.com");
+
+        Map<String, String> details = new HashMap<>();
+        details.put("domain", "dom1");
+        details.put("role", "role1");
+        details.put("member", "user.member1");
+        details.put("reason", "test reason");
+        details.put("requester", "user.requester");
+
+        Notification notification = new Notification();
+        notification.setDetails(details);
+        RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter converter = new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter();
+        NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
+
+        String body = notificationAsEmail.getBody();
+        assertNotNull(body);
+        assertFalse(body.contains("user.member1"));
+
+        // Make sure support text and url do not appear
+
+        assertFalse(body.contains("slack"));
+        assertFalse(body.contains("link.to.athenz.channel.com"));
+
+        // now set the correct expiry members details
+        // with one bad entry that should be skipped
+
+        details.put(NOTIFICATION_DETAILS_EXPIRY_MEMBERS,
+                "user.joe;role1;2020-12-01T12:00:00.000Z|user.jane;role1;2020-12-01T12:00:00.000Z|user.bad;role3");
+
+        NotificationEmail notificationAsEmailWithMembers = converter.getNotificationAsEmail(notification);
+        body = notificationAsEmailWithMembers.getBody();
+        assertNotNull(body);
+        assertTrue(body.contains("user.joe"));
+        assertTrue(body.contains("user.jane"));
+        assertTrue(body.contains("role1"));
+        assertTrue(body.contains("2020-12-01T12:00:00.000Z"));
+
+        // make sure the bad entries are not included
+
+        assertFalse(body.contains("user.bad"));
+        assertFalse(body.contains("role3"));
+
+        // Make sure support text and url do not appear
+
+        assertFalse(body.contains("slack"));
+        assertFalse(body.contains("link.to.athenz.channel.com"));
+
+        // now try the expiry roles reminder
+        notification = new Notification();
+        notification.setDetails(details);
+        details.put(NOTIFICATION_DETAILS_EXPIRY_ROLES,
+                "athenz1;role1;2020-12-01T12:00:00.000Z|athenz2;role2;2020-12-01T12:00:00.000Z");
+        RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter principalConverter = new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter();
+        NotificationEmail principalNotificationAsEmail = principalConverter.getNotificationAsEmail(notification);
+
+        body = principalNotificationAsEmail.getBody();
+        assertNotNull(body);
+        assertTrue(body.contains("athenz1"));
+        assertTrue(body.contains("athenz2"));
+        assertTrue(body.contains("role1"));
+        assertTrue(body.contains("role2"));
+        assertTrue(body.contains("2020-12-01T12:00:00.000Z"));
+
+        // Make sure support text and url do not appear
+
+        assertFalse(body.contains("slack"));
+        assertFalse(body.contains("link.to.athenz.channel.com"));
+
+        System.clearProperty("athenz.notification_workflow_url");
+        System.clearProperty("notification_support_text");
+        System.clearProperty("notification_support_url");
+    }
+
+    @Test
+    public void getEmailSubject() {
+        Notification notification = new Notification();
+        RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter converter = new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter();
+        NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
+        String subject = notificationAsEmail.getSubject();
+        assertEquals(subject, "Athenz Domain Role Member Expiration Notification");
+
+        notification = new Notification();
+        RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter principalConverter = new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter();
+        notificationAsEmail = principalConverter.getNotificationAsEmail(notification);
+        subject = notificationAsEmail.getSubject();
+        assertEquals(subject, "Athenz Role Member Expiration Notification");
     }
 }

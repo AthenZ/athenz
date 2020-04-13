@@ -21,13 +21,14 @@ import com.amazonaws.services.simpleemail.model.SendEmailRequest;
 import com.amazonaws.services.simpleemail.model.SendRawEmailRequest;
 import com.amazonaws.services.simpleemail.model.SendRawEmailResult;
 import com.yahoo.athenz.common.server.notification.Notification;
+import com.yahoo.athenz.common.server.notification.NotificationEmail;
+import com.yahoo.athenz.common.server.notification.NotificationToEmailConverter;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
 import java.util.*;
 
-import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.mock;
@@ -166,7 +167,7 @@ public class AWSEmailProviderTest {
         AWSEmailProvider awsEmailProvider = new AWSEmailProvider(ses);
         EmailNotificationService svc = new EmailNotificationService(awsEmailProvider);
 
-        Notification notification = new Notification(NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL);
+        Notification notification = new Notification();
         notification.addRecipient("user.user1").addRecipient("user.user2");
         Map<String, String> details = new HashMap<>();
         details.put("domain", "dom1");
@@ -176,6 +177,16 @@ public class AWSEmailProviderTest {
         details.put("requester", "user.requester");
         notification.setDetails(details);
 
+        NotificationToEmailConverter notificationToEmailConverter = new NotificationToEmailConverter() {
+            @Override
+            public NotificationEmail getNotificationAsEmail(Notification notification) {
+                String subject = "test subject";
+                String body = "test body";
+                return new NotificationEmail(subject, body, new HashSet<>());
+            }
+        };
+
+        notification.setNotificationToEmailConverter(notificationToEmailConverter);
         boolean status = svc.notify(notification);
         assertTrue(status);
 
