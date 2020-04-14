@@ -249,8 +249,8 @@ public class DataStore implements DataCacheProvider {
                 jwk.setKty("RSA");
                 jwk.setAlg("RS256");
                 final RSAPublicKey rsaPublicKey = (RSAPublicKey) publicKey;
-                jwk.setN(new String(encoder.encode(rsaPublicKey.getModulus().toByteArray())));
-                jwk.setE(new String(encoder.encode(rsaPublicKey.getPublicExponent().toByteArray())));
+                jwk.setN(new String(encoder.encode(toIntegerBytes(rsaPublicKey.getModulus()))));
+                jwk.setE(new String(encoder.encode(toIntegerBytes(rsaPublicKey.getPublicExponent()))));
                 break;
             case ZTSConsts.ECDSA:
                 jwk = new JWK();
@@ -279,8 +279,7 @@ public class DataStore implements DataCacheProvider {
      *
      * Returns a byte-array representation of a {@code BigInteger} without sign bit.
      *
-     * @param bigInt
-     *            {@code BigInteger} to be converted
+     * @param bigInt {@code BigInteger} to be converted
      * @return a byte array representation of the BigInteger parameter
      */
      byte[] toIntegerBytes(final BigInteger bigInt) {
