@@ -17,6 +17,8 @@ package com.yahoo.athenz.example.zts.tls.client;
 
 import javax.net.ssl.SSLContext;
 
+import com.yahoo.athenz.zts.*;
+import io.jsonwebtoken.*;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -25,14 +27,22 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
-import com.yahoo.athenz.zts.PublicKeyEntry;
-import com.yahoo.athenz.zts.AccessTokenResponse;
-import com.yahoo.athenz.zts.ZTSClient;
-import com.yahoo.athenz.zts.ZTSClientException;
 import com.oath.auth.KeyRefresher;
 import com.oath.auth.Utils;
 
+import java.math.BigInteger;
+import java.security.*;
+import java.security.spec.*;
+import java.util.Base64;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+
 public class ZTSTLSClientAccessToken {
+
+    public static final String CLAIM_SCOPE = "scp";
+    public static final String CLAIM_UID = "uid";
+    public static final String CLAIM_CLIENT_ID = "client_id";
 
     public ZTSTLSClientAccessToken() {
     }
@@ -51,6 +61,7 @@ public class ZTSTLSClientAccessToken {
         final String trustStorePassword = cmd.getOptionValue("trustStorePassword");
         final String idTokenService = cmd.getOptionValue("idTokenService");
         final String expiryTime = cmd.getOptionValue("expiryTime");
+        final String hostnameOverride = cmd.getOptionValue("hostnameOverride");
 
         // we are going to setup our service private key and
         // certificate into a ssl context that we can use with
@@ -61,7 +72,11 @@ public class ZTSTLSClientAccessToken {
                     certPath, keyPath);
             SSLContext sslContext = Utils.buildSSLContext(keyRefresher.getKeyManagerProxy(),
                     keyRefresher.getTrustManagerProxy());
-            
+
+            if (hostnameOverride != null && !hostnameOverride.isEmpty()) {
+                ZTSClient.setX509CertDnsName(hostnameOverride);
+            }
+
             try (ZTSClient ztsClient = new ZTSClient(ztsUrl, sslContext)) {
 
                 long expiryTimeSeconds = (expiryTime != null) ? Long.parseLong(expiryTime) : 0;
@@ -76,6 +91,24 @@ public class ZTSTLSClientAccessToken {
                     System.out.println("ExpiresIn: " + tokenResponse.getExpires_in());
                     System.out.println("TokenType: " + tokenResponse.getToken_type());
 
+                    // now we're going to validate our access token - first we need to fetch
+                    // the keys from the zts server
+
+                    JWKList jwkList = ztsClient.getJWKList(true);
+                    JwtsSigningKeyResolver keyResolver = new JwtsSigningKeyResolver(jwkList);
+
+                    Jws<Claims> claims = Jwts.parser()
+                            .setSigningKeyResolver(keyResolver)
+                            .setAllowedClockSkewSeconds(60)
+                            .parseClaimsJws(tokenResponse.getAccess_token());
+
+                    System.out.println("\nAccess Token was successfully validated\n");
+
+                    final Claims body = claims.getBody();
+                    System.out.println("Client id: " + body.get(CLAIM_CLIENT_ID, String.class));
+                    System.out.println("Client uid: " + body.get(CLAIM_UID, String.class));
+                    System.out.println("Scope: " + String.join(",", body.get(CLAIM_SCOPE, List.class)));
+
                 } catch (ZTSClientException ex) {
                     System.out.println("Unable to retrieve access token: " + ex.getMessage());
                     System.exit(2);
@@ -87,7 +120,7 @@ public class ZTSTLSClientAccessToken {
             System.exit(1);
         }
     }
-    
+
     private static CommandLine parseCommandLine(String[] args) {
         
         Options options = new Options();
@@ -119,6 +152,10 @@ public class ZTSTLSClientAccessToken {
         Option idTokenService = new Option("s", "idTokenService", true, "ID Token Service Name");
         idTokenService.setRequired(false);
         options.addOption(idTokenService);
+
+        Option hostnameOverride = new Option("h", "hostnameOverride", true, "Hostname verifier support");
+        hostnameOverride.setRequired(false);
+        options.addOption(hostnameOverride);
 
         Option expiryTime = new Option("e", "expiryTime", true, "Expiry Time in seconds");
         expiryTime.setRequired(false);

@@ -115,6 +115,9 @@ public class Key {
     private static Map<String, String> createCurveAliasMap() {
         Map<String, String> curveAliases = new HashMap<>();
         curveAliases.put("prime256v1", "secp256r1");
+        curveAliases.put("P-256", "secp256r1");
+        curveAliases.put("P-384", "secp384r1");
+        curveAliases.put("P-521", "secp521r1");
         return Collections.unmodifiableMap(curveAliases);
     }
 
