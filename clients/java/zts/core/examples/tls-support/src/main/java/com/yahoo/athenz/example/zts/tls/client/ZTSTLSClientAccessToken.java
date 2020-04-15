@@ -61,6 +61,7 @@ public class ZTSTLSClientAccessToken {
         final String trustStorePassword = cmd.getOptionValue("trustStorePassword");
         final String idTokenService = cmd.getOptionValue("idTokenService");
         final String expiryTime = cmd.getOptionValue("expiryTime");
+        final String hostnameOverride = cmd.getOptionValue("hostnameOverride");
 
         // we are going to setup our service private key and
         // certificate into a ssl context that we can use with
@@ -71,7 +72,11 @@ public class ZTSTLSClientAccessToken {
                     certPath, keyPath);
             SSLContext sslContext = Utils.buildSSLContext(keyRefresher.getKeyManagerProxy(),
                     keyRefresher.getTrustManagerProxy());
-            
+
+            if (hostnameOverride != null && !hostnameOverride.isEmpty()) {
+                ZTSClient.setX509CertDnsName(hostnameOverride);
+            }
+
             try (ZTSClient ztsClient = new ZTSClient(ztsUrl, sslContext)) {
 
                 long expiryTimeSeconds = (expiryTime != null) ? Long.parseLong(expiryTime) : 0;
@@ -147,6 +152,10 @@ public class ZTSTLSClientAccessToken {
         Option idTokenService = new Option("s", "idTokenService", true, "ID Token Service Name");
         idTokenService.setRequired(false);
         options.addOption(idTokenService);
+
+        Option hostnameOverride = new Option("h", "hostnameOverride", true, "Hostname verifier support");
+        hostnameOverride.setRequired(false);
+        options.addOption(hostnameOverride);
 
         Option expiryTime = new Option("e", "expiryTime", true, "Expiry Time in seconds");
         expiryTime.setRequired(false);
