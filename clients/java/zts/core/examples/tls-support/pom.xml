@@ -27,7 +27,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <athenz.version>1.8.37</athenz.version>
+    <athenz.version>1.8.56</athenz.version>
   </properties>
 
   <dependencies>
@@ -40,6 +40,11 @@
       <groupId>com.yahoo.athenz</groupId>
       <artifactId>athenz-cert-refresher</artifactId>
       <version>${athenz.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.jsonwebtoken</groupId>
+      <artifactId>jjwt</artifactId>
+      <version>0.9.1</version>
     </dependency>
     <dependency>
       <groupId>commons-cli</groupId>
