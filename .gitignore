@@ -110,3 +110,4 @@ libs/nodejs/auth_core/package-lock.json
 ui/package-lock.json
 .envrc
 .clover/
+athenz-docker-build.log

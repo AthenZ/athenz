@@ -1575,7 +1575,7 @@ public class FileConnection implements ObjectStoreConnection {
     public Map<String, List<DomainRoleMember>> getPendingDomainRoleMembers(String principal) {
 
         List<String> orgs = new ArrayList<>();
-        Map<String, List<DomainRoleMember>> domainRoleMembersMap = null;
+        Map<String, List<DomainRoleMember>> domainRoleMembersMap = new HashMap<>();
 
         DomainStruct auditDom = getDomainStruct(ZMSConsts.SYS_AUTH_AUDIT_BY_ORG);
         if (auditDom != null && auditDom.getRoles() != null && !auditDom.getRoles().isEmpty()) {
