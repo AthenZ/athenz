@@ -4891,10 +4891,10 @@ public class DBServiceTest {
     }
 
     @Test
-    public void testGetPendingDomainRoleMembersListNullMap() {
+    public void testGetPendingDomainRoleMembersListEmptyMap() {
         DomainRoleMembership domainRoleMembership = zms.dbService.getPendingDomainRoleMembers("user.user1");
         assertNotNull(domainRoleMembership);
-        assertNull(domainRoleMembership.getDomainRoleMembersList());
+        assertTrue(domainRoleMembership.getDomainRoleMembersList().isEmpty());
     }
 
     @Test

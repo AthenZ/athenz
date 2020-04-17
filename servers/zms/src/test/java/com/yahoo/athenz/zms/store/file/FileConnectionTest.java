@@ -17,6 +17,7 @@ package com.yahoo.athenz.zms.store.file;
 
 import static org.testng.Assert.*;
 import java.io.File;
+import java.util.HashMap;
 
 import com.yahoo.athenz.zms.*;
 import com.yahoo.rdl.Timestamp;
@@ -588,7 +589,7 @@ public class FileConnectionTest {
         File fileDir = new File("/home/athenz/zms_store");
         File quotaDir = new File("/home/athenz/zms_quota");
         try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
-            assertNull(fileconnection.getPendingDomainRoleMembers("user.user1"));
+            assertTrue(fileconnection.getPendingDomainRoleMembers("user.user1").isEmpty());
         }
     }
 

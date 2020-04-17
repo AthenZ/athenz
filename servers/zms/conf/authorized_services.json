@@ -31,7 +31,14 @@
                 { "name":"deleteserviceidentity" },
                 { "name":"putpublickeyentry" },
                 { "name":"deletepublickeyentry" },
-                { "name":"putdomainmeta" }
+                { "name":"putdomainmeta" },
+                { "name":"putdomainsystemmeta" },
+                { "name":"putdomaintemplate" },
+                { "name":"putrolemeta" },
+                { "name":"putmembershipdecision" },
+                { "name":"putrolereview" },
+                { "name":"deletedomainrolemember" },
+                { "name":"deletependingmembership" }
             ]
         }
     }
