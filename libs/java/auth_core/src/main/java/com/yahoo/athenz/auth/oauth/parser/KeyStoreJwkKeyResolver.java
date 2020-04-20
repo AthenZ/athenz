@@ -53,7 +53,7 @@ public class KeyStoreJwkKeyResolver implements SigningKeyResolver {
 
         this.keyStore = keyStore;
 
-        // TODO: adjust the default value and use system prop? (current default same as GuavaCachedJwkProvider default)
+        // later: adjust the default value and use system prop? (current default same as GuavaCachedJwkProvider default)
         this.provider = new JwkProviderBuilder(url).cached(5, 10, TimeUnit.HOURS).rateLimited(false).build();
     }
 
