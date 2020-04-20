@@ -192,16 +192,18 @@ keytool -list -keystore ./zts/var/certs/zts_truststore.jks
 ### TODO
 
 - [Athenz-bootstrap#todo](./docs/Athenz-bootstrap.md#todo)
--   UI
-    1.  convert `default-config.js` parameters to ENV
-    1.  `server.js`, `login.js`, `serviceFQN`; `keys` folder is hard coded
-    1.  configurable listening port
--   ZMS
-    1.  need server health check, e.g. readiness probe
--   ZPU
-    1.  If volume not mount to `/home/athenz/tmp/zpe/`, will have error: `2019/06/12 06:34:09 Failed to get policies for domain: garm, Error:Unable to write Policies for domain:"garm" to file, Error:rename /home/athenz/tmp/zpe/garm.tmp /etc/acceptance-test/zpu/garm.pol: invalid cross-device link`
--   athenz-cli
-    1.  build with separated docker files (add go.mod to support caching the dependency)
--   common
-    1.  file permission for keys (`chmod 600`?)
-    1.  support docker image version tag on `docker build` and `docker run` using ENV. `TAG`.
+- UI
+    1. convert `default-config.js` parameters to ENV
+    1. `server.js`, `login.js`, `serviceFQN`; `keys` folder is hard coded
+    1. configurable listening port
+- ZMS
+    1. need server health check, e.g. readiness probe
+- ZPU
+    1. If volume not mount to `/home/athenz/tmp/zpe/`, will have error: `2019/06/12 06:34:09 Failed to get policies for domain: garm, Error:Unable to write Policies for domain:"garm" to file, Error:rename /home/athenz/tmp/zpe/garm.tmp /etc/acceptance-test/zpu/garm.pol: invalid cross-device link`
+- athenz-cli
+    1. build with separated docker files (add go.mod to support caching the dependency)
+- common
+    1. file permission for keys (`chmod 600`?)
+    1. support docker image version tag on `docker build` and `docker run` using ENV. `TAG`.
+- `KeyStoreJwkKeyResolver`
+    1. support setting CA certificate using system properties for `JwkProviderBuilder` to get JWK from Internet
