@@ -8,7 +8,7 @@
     - [Trust in Athenz](#trust-in-athenz)
     - [Bootstrap steps](#bootstrap-steps)
     - [Appendix](#appendix)
-        - [Athenz Demo Playback](#athenz-demo-playback)
+        - [Athenz Demo Playback (cast)](#athenz-demo-playback-cast)
         - [points to note](#points-to-note)
         - [automation shortcut](#automation-shortcut)
         - [TODO](#todo)
@@ -89,10 +89,10 @@ In Athenz, we often have 3 types of CA:
 <a id="markdown-appendix" name="appendix"></a>
 ## Appendix
 
-<a id="markdown-athenz-demo-playback" name="athenz-demo-playback"></a>
-### Athenz Demo Playback
-- [cast](./cast)
-- [![asciicast](https://asciinema.org/a/288398.svg)](https://asciinema.org/a/288398)
+<a id="markdown-athenz-demo-playback-castcast" name="athenz-demo-playback-castcast"></a>
+### Athenz Demo Playback ([cast](./cast))
+
+[![asciicast](https://asciinema.org/a/288398.svg)](https://asciinema.org/a/288398)
 
 <a id="markdown-points-to-note" name="points-to-note"></a>
 ### points to note

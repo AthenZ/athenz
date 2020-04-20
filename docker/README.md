@@ -123,7 +123,6 @@ make clean
 - [Makefile](./Makefile)
 - [setup-scripts](./setup-scripts)
 - [deploy-scripts](./deploy-scripts)
-- [docker-stack.yaml](./docker-stack.yaml)
 
 <a id="markdown-wip-configuration-details" name="wip-configuration-details"></a>
 ### [WIP] Configuration Details
@@ -131,14 +130,14 @@ make clean
     - [configuration.dev.md](./docs/configuration.dev.md)
     - server ports
         - `3306`: ZMS DB
-            - [zms-db.cnf](./db/zms/zms-db.cnf#L2)
+            - [zms-db.cnf](./db/zms/zms-db.cnf#L4)
             - [zms.properties](./zms/conf/zms.properties#L154)
             - ENV: `ZMS_DB_PORT` ([env.sh](./env.sh))
         - `4443`: ZMS server
             - [athenz.properties](./zms/conf/athenz.properties#L6)
             - ENV: `ZMS_PORT` ([env.sh](./env.sh))
         - `3306`: ZTS DB
-            - [zts-db.cnf](./db/zts/zts-db.cnf#L2)
+            - [zts-db.cnf](./db/zts/zts-db.cnf#L4)
             - [zts.properties](./zts/conf/zts.properties#L211)
             - ENV: `ZTS_DB_PORT` ([env.sh](./env.sh))
         - `8443`: ZTS server
