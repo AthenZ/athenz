@@ -61,6 +61,7 @@ asciinema rec --overwrite --title='Athenz Bootstrap Demo' "${CAST_DIR}/athenz-bo
 # cd "`git rev-parse --show-toplevel`/docker";
 # sh ./docs/cast/bootstrap-demo-welcome-script.sh;
 # make deploy-dev;
+# echo 'This is the end of this demo. Bye~';
 # exit;
 
 # asciinema rec --overwrite --title='Athenz Acceptance Test Demo' "${CAST_DIR}/athenz-acceptance-test-demo.cast"
