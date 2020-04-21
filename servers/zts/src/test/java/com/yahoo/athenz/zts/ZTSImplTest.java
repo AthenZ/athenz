@@ -26,7 +26,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -49,7 +48,7 @@ import com.yahoo.athenz.zms.ServiceIdentity;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureException;
+import io.jsonwebtoken.security.SignatureException;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -9238,6 +9237,14 @@ public class ZTSImplTest {
     @Test
     public void testPostAccessTokenRequest() throws UnsupportedEncodingException {
 
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        cloudStore.setHttpClient(null);
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        // set back to our zts rsa private key
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/zts_private.pem");
+
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         store.processDomain(signedDomain, false);
 
@@ -9246,7 +9253,7 @@ public class ZTSImplTest {
         ResourceContext context = createResourceContext(principal);
 
         final String scope = URLEncoder.encode("coretech:domain", "UTF-8");
-        AccessTokenResponse resp = zts.postAccessTokenRequest(context,
+        AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
                 "grant_type=client_credentials&scope=" + scope);
         assertNotNull(resp);
         assertEquals("coretech:role.writers", resp.getScope());
@@ -9256,15 +9263,14 @@ public class ZTSImplTest {
 
         Jws<Claims> claims;
         try {
-            claims = Jwts.parser().setSigningKey(Crypto.extractPublicKey(privateKey))
-                    .parseClaimsJws(accessTokenStr);
+            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
         } catch (SignatureException e) {
             throw new ResourceException(ResourceException.UNAUTHORIZED);
         }
         assertNotNull(claims);
         assertEquals("user_domain.user", claims.getBody().getSubject());
         assertEquals("coretech", claims.getBody().getAudience());
-        assertEquals(zts.ztsOAuthIssuer, claims.getBody().getIssuer());
+        assertEquals(ztsImpl.ztsOAuthIssuer, claims.getBody().getIssuer());
         List<String> scopes = (List<String>) claims.getBody().get("scp");
         assertNotNull(scopes);
         assertEquals(1, scopes.size());
@@ -9274,7 +9280,7 @@ public class ZTSImplTest {
                 "v=U1;d=user_domain;n=user1;s=signature", 0, null);
         ResourceContext context1 = createResourceContext(principal1);
 
-        resp = zts.postAccessTokenRequest(context1,
+        resp = ztsImpl.postAccessTokenRequest(context1,
                 "grant_type=client_credentials&scope=coretech:domain&expires_in=100");
         assertNotNull(resp);
         assertEquals("coretech:role.readers coretech:role.writers", resp.getScope());
@@ -9284,8 +9290,7 @@ public class ZTSImplTest {
         assertEquals(Integer.valueOf(100), resp.getExpires_in());
 
         try {
-            claims = Jwts.parser().setSigningKey(Crypto.extractPublicKey(privateKey))
-                    .parseClaimsJws(accessTokenStr);
+            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
         } catch (SignatureException e) {
             throw new ResourceException(ResourceException.UNAUTHORIZED);
         }
@@ -9297,6 +9302,14 @@ public class ZTSImplTest {
 
     @Test
     public void testPostAccessTokenRequestRoleAuthority() {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        cloudStore.setHttpClient(null);
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        // set back to our zts rsa private key
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/zts_private.pem");
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         store.processDomain(signedDomain, false);
@@ -9313,7 +9326,7 @@ public class ZTSImplTest {
         // is going to be rejected
 
         try {
-            zts.postAccessTokenRequest(context, "grant_type=client_credentials&scope=coretech:domain");
+            ztsImpl.postAccessTokenRequest(context, "grant_type=client_credentials&scope=coretech:domain");
             fail();
         } catch (ResourceException ex) {
             assertEquals(403, ex.getCode());
@@ -9323,7 +9336,7 @@ public class ZTSImplTest {
 
         principalRoles.add("coretech:role.writers");
 
-        AccessTokenResponse resp = zts.postAccessTokenRequest(context,
+        AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
                 "grant_type=client_credentials&scope=coretech:domain&expires_in=100");
         assertNotNull(resp);
         assertEquals("coretech:role.readers coretech:role.writers", resp.getScope());
@@ -9331,6 +9344,14 @@ public class ZTSImplTest {
 
     @Test
     public void testPostAccessTokenRequestmTLSBound() throws IOException {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        cloudStore.setHttpClient(null);
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        // set back to our zts rsa private key
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/zts_private.pem");
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         store.processDomain(signedDomain, false);
@@ -9345,7 +9366,7 @@ public class ZTSImplTest {
 
         ResourceContext context = createResourceContext(principal);
 
-        AccessTokenResponse resp = zts.postAccessTokenRequest(context,
+        AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
                 "grant_type=client_credentials&scope=coretech:domain");
         assertNotNull(resp);
         assertEquals("coretech:role.writers", resp.getScope());
@@ -9355,15 +9376,14 @@ public class ZTSImplTest {
 
         Jws<Claims> claims;
         try {
-            claims = Jwts.parser().setSigningKey(Crypto.extractPublicKey(privateKey))
-                    .parseClaimsJws(accessTokenStr);
+            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
         } catch (SignatureException e) {
             throw new ResourceException(ResourceException.UNAUTHORIZED);
         }
         assertNotNull(claims);
         assertEquals("user_domain.user", claims.getBody().getSubject());
         assertEquals("coretech", claims.getBody().getAudience());
-        assertEquals(zts.ztsOAuthIssuer, claims.getBody().getIssuer());
+        assertEquals(ztsImpl.ztsOAuthIssuer, claims.getBody().getIssuer());
         List<String> scopes = (List<String>) claims.getBody().get("scp");
         assertNotNull(scopes);
         assertEquals(1, scopes.size());
@@ -9381,6 +9401,8 @@ public class ZTSImplTest {
         CloudStore cloudStore = new CloudStore();
         cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        // set back to our zts rsa private key
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/zts_private.pem");
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         store.processDomain(signedDomain, false);
@@ -9399,27 +9421,30 @@ public class ZTSImplTest {
 
         Jws<Claims> claims;
         try {
-            claims = Jwts.parser().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey()))
-                    .parseClaimsJws(accessTokenStr);
+            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
         } catch (SignatureException e) {
             throw new ResourceException(ResourceException.UNAUTHORIZED);
         }
         assertNotNull(claims);
         assertEquals("user_domain.user", claims.getBody().getSubject());
         assertEquals("coretech", claims.getBody().getAudience());
-        assertEquals(zts.ztsOAuthIssuer, claims.getBody().getIssuer());
+        assertEquals(ztsImpl.ztsOAuthIssuer, claims.getBody().getIssuer());
         List<String> scopes = (List<String>) claims.getBody().get("scp");
         assertNotNull(scopes);
         assertEquals(1, scopes.size());
         assertEquals("writers", scopes.get(0));
-
-        // set back to our zts rsa private key
-
-        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/zts_private.pem");
     }
 
     @Test
     public void testPostAccessTokenRequestSingleRole() {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        cloudStore.setHttpClient(null);
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        // set back to our zts rsa private key
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/zts_private.pem");
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         store.processDomain(signedDomain, false);
@@ -9428,7 +9453,7 @@ public class ZTSImplTest {
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
         ResourceContext context = createResourceContext(principal);
 
-        AccessTokenResponse resp = zts.postAccessTokenRequest(context,
+        AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
                 "grant_type=client_credentials&scope=coretech:role.writers");
         assertNotNull(resp);
         assertNull(resp.getScope());
@@ -9436,6 +9461,14 @@ public class ZTSImplTest {
 
     @Test
     public void testPostAccessTokenRequestOpenIdScope() throws UnsupportedEncodingException {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        cloudStore.setHttpClient(null);
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        // set back to our zts rsa private key
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/zts_private.pem");
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         store.processDomain(signedDomain, false);
@@ -9445,21 +9478,20 @@ public class ZTSImplTest {
         ResourceContext context = createResourceContext(principal);
 
         final String scope = URLEncoder.encode("coretech:domain openid coretech:service.api", "UTF-8");
-        AccessTokenResponse resp = zts.postAccessTokenRequest(context,
+        AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
                 "grant_type=client_credentials&scope=" + scope + "&expires_in=240");
         assertNotNull(resp);
         assertEquals("coretech:role.writers openid", resp.getScope());
 
-        String accessToken = resp.getAccess_token();
-        assertNotNull(accessToken);
+        String accessTokenStr = resp.getAccess_token();
+        assertNotNull(accessTokenStr);
 
         String idToken = resp.getId_token();
         assertNotNull(idToken);
 
         Jws<Claims> claims;
         try {
-            claims = Jwts.parser().setSigningKey(Crypto.extractPublicKey(privateKey))
-                    .parseClaimsJws(idToken);
+            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
         } catch (SignatureException e) {
             throw new ResourceException(ResourceException.UNAUTHORIZED);
         }
@@ -9470,6 +9502,14 @@ public class ZTSImplTest {
 
     @Test
     public void testPostAccessTokenRequestOpenIdScopeMaxTimeout() throws UnsupportedEncodingException {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        cloudStore.setHttpClient(null);
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        // set back to our zts rsa private key
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/zts_private.pem");
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         store.processDomain(signedDomain, false);
@@ -9482,21 +9522,20 @@ public class ZTSImplTest {
         // bigger than that
 
         final String scope = URLEncoder.encode("coretech:domain openid coretech:service.api", "UTF-8");
-        AccessTokenResponse resp = zts.postAccessTokenRequest(context,
+        AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
                 "grant_type=client_credentials&scope=" + scope + "&expires_in=57600");
         assertNotNull(resp);
         assertEquals("coretech:role.writers openid", resp.getScope());
 
-        String accessToken = resp.getAccess_token();
-        assertNotNull(accessToken);
+        String accessTokenStr = resp.getAccess_token();
+        assertNotNull(accessTokenStr);
 
         String idToken = resp.getId_token();
         assertNotNull(idToken);
 
         Jws<Claims> claims;
         try {
-            claims = Jwts.parser().setSigningKey(Crypto.extractPublicKey(privateKey))
-                    .parseClaimsJws(idToken);
+            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey())).build().parseClaimsJws(idToken);
         } catch (SignatureException e) {
             throw new ResourceException(ResourceException.UNAUTHORIZED);
         }
@@ -9531,6 +9570,14 @@ public class ZTSImplTest {
     @Test
     public void testPostAccessTokenRequestOpenIdScopeOnlyDisabled() throws UnsupportedEncodingException {
 
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        cloudStore.setHttpClient(null);
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        // set back to our zts rsa private key
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/zts_private.pem");
+
         AccessTokenRequest.setSupportOpenidScope(false);
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
@@ -9543,13 +9590,13 @@ public class ZTSImplTest {
         // no role access and no openid - we should get back 403
         try {
             final String scope = URLEncoder.encode("coretech:role.role999 openid coretech:service.api", "UTF-8");
-            zts.postAccessTokenRequest(context, "grant_type=client_credentials&scope=" + scope);
+            ztsImpl.postAccessTokenRequest(context, "grant_type=client_credentials&scope=" + scope);
             fail();
         } catch (ResourceException ex) {
             assertEquals(403, ex.getCode());
         }
 
-        AccessTokenResponse resp = zts.postAccessTokenRequest(context,
+        AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
                 "grant_type=client_credentials&scope=coretech:domain openid coretech:service.api");
         assertNotNull(resp);
         assertEquals("coretech:role.writers", resp.getScope());
@@ -9670,6 +9717,14 @@ public class ZTSImplTest {
     @Test
     public void testPostAccessTokenRequestProxyUser() {
 
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        cloudStore.setHttpClient(null);
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        // set back to our zts rsa private key
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/zts_private.pem");
+
         List<RoleMember> writers = new ArrayList<>();
         writers.add(new RoleMember().setMemberName("user_domain.proxy-user1"));
         writers.add(new RoleMember().setMemberName("user_domain.joe"));
@@ -9686,7 +9741,7 @@ public class ZTSImplTest {
                 "v=U1;d=user_domain;n=proxy-user1;s=sig", 0, null);
         ResourceContext context = createResourceContext(principal);
 
-        AccessTokenResponse resp = zts.postAccessTokenRequest(context,
+        AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
                 "grant_type=client_credentials&scope=coretech-proxy2:domain&proxy_for_principal=user_domain.joe");
         assertNotNull(resp);
         assertEquals("coretech-proxy2:role.writers", resp.getScope());
@@ -9696,8 +9751,7 @@ public class ZTSImplTest {
 
         Jws<Claims> claims;
         try {
-            claims = Jwts.parser().setSigningKey(Crypto.extractPublicKey(privateKey))
-                    .parseClaimsJws(accessTokenStr);
+            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
         } catch (SignatureException e) {
             throw new ResourceException(ResourceException.UNAUTHORIZED);
         }
@@ -9705,7 +9759,7 @@ public class ZTSImplTest {
         assertEquals("user_domain.joe", claims.getBody().getSubject());
         assertEquals("user_domain.proxy-user1", claims.getBody().get("proxy"));
         assertEquals("coretech-proxy2", claims.getBody().getAudience());
-        assertEquals(zts.ztsOAuthIssuer, claims.getBody().getIssuer());
+        assertEquals(ztsImpl.ztsOAuthIssuer, claims.getBody().getIssuer());
         List<String> scopes = (List<String>) claims.getBody().get("scp");
         assertNotNull(scopes);
         assertEquals(1, scopes.size());
@@ -9714,6 +9768,14 @@ public class ZTSImplTest {
 
     @Test
     public void testPostAccessTokenRequestProxyUserMismatchRolesIntersection() {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        cloudStore.setHttpClient(null);
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        // set back to our zts rsa private key
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/zts_private.pem");
 
         List<RoleMember> writers = new ArrayList<>();
         writers.add(new RoleMember().setMemberName("user_domain.proxy-user1"));
@@ -9732,7 +9794,7 @@ public class ZTSImplTest {
                 "v=U1;d=user_domain;n=proxy-user1;s=sig", 0, null);
         ResourceContext context = createResourceContext(principal);
 
-        AccessTokenResponse resp = zts.postAccessTokenRequest(context,
+        AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
                 "grant_type=client_credentials&scope=coretech-proxy3:domain&proxy_for_principal=user_domain.joe");
         assertNotNull(resp);
         assertEquals("coretech-proxy3:role.writers", resp.getScope());
@@ -9742,8 +9804,7 @@ public class ZTSImplTest {
 
         Jws<Claims> claims;
         try {
-            claims = Jwts.parser().setSigningKey(Crypto.extractPublicKey(privateKey))
-                    .parseClaimsJws(accessTokenStr);
+            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
         } catch (SignatureException e) {
             throw new ResourceException(ResourceException.UNAUTHORIZED);
         }
@@ -9751,7 +9812,7 @@ public class ZTSImplTest {
         assertEquals("user_domain.joe", claims.getBody().getSubject());
         assertEquals("user_domain.proxy-user1", claims.getBody().get("proxy"));
         assertEquals("coretech-proxy3", claims.getBody().getAudience());
-        assertEquals(zts.ztsOAuthIssuer, claims.getBody().getIssuer());
+        assertEquals(ztsImpl.ztsOAuthIssuer, claims.getBody().getIssuer());
         List<String> scopes = (List<String>) claims.getBody().get("scp");
         assertNotNull(scopes);
         assertEquals(1, scopes.size());
@@ -9819,6 +9880,14 @@ public class ZTSImplTest {
     @Test
     public void testPostAccessTokenRequestProxyUserSpecificRole() {
 
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        cloudStore.setHttpClient(null);
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        // set back to our zts rsa private key
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/zts_private.pem");
+
         List<RoleMember> writers = new ArrayList<>();
         writers.add(new RoleMember().setMemberName("user_domain.proxy-user1"));
         writers.add(new RoleMember().setMemberName("user_domain.joe"));
@@ -9836,7 +9905,7 @@ public class ZTSImplTest {
                 "v=U1;d=user_domain;n=proxy-user1;s=sig", 0, null);
         ResourceContext context = createResourceContext(principal);
 
-        AccessTokenResponse resp = zts.postAccessTokenRequest(context,
+        AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
                 "grant_type=client_credentials&scope=coretech-proxy4:role.writers&proxy_for_principal=user_domain.joe");
         assertNotNull(resp);
 
@@ -9845,8 +9914,7 @@ public class ZTSImplTest {
 
         Jws<Claims> claims;
         try {
-            claims = Jwts.parser().setSigningKey(Crypto.extractPublicKey(privateKey))
-                    .parseClaimsJws(accessTokenStr);
+            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
         } catch (SignatureException e) {
             throw new ResourceException(ResourceException.UNAUTHORIZED);
         }
@@ -9854,7 +9922,7 @@ public class ZTSImplTest {
         assertEquals("user_domain.joe", claims.getBody().getSubject());
         assertEquals("user_domain.proxy-user1", claims.getBody().get("proxy"));
         assertEquals("coretech-proxy4", claims.getBody().getAudience());
-        assertEquals(zts.ztsOAuthIssuer, claims.getBody().getIssuer());
+        assertEquals(ztsImpl.ztsOAuthIssuer, claims.getBody().getIssuer());
         List<String> scopes = (List<String>) claims.getBody().get("scp");
         assertNotNull(scopes);
         assertEquals(1, scopes.size());
