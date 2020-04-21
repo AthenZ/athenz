@@ -21,9 +21,6 @@ import java.nio.charset.StandardCharsets;
 
 import org.testng.annotations.Test;
 
-import com.yahoo.athenz.auth.util.CryptoException;
-import com.yahoo.athenz.auth.util.YBase64;
-
 public class YBase64Test {
 
     final static String DOUBLE_PADDING = "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZrd0V3WUhLb1pJemowQ0FRW"

@@ -396,7 +396,7 @@ public class AccessToken extends OAuth2Token {
                 .claim(CLAIM_PROXY, proxyPrincipal)
                 .setHeaderParam(HDR_KEY_ID, keyId)
                 .setHeaderParam(HDR_TOKEN_TYPE, HDR_TOKEN_JWT)
-                .signWith(keyAlg, key)
+                .signWith(key, keyAlg)
                 .compact();
     }
 }

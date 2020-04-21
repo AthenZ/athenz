@@ -43,9 +43,10 @@ public class OAuth2Token {
 
     public OAuth2Token(final String token, JwtsSigningKeyResolver keyResolver) {
 
-        claims = Jwts.parser()
+        claims = Jwts.parserBuilder()
                 .setSigningKeyResolver(keyResolver)
                 .setAllowedClockSkewSeconds(60)
+                .build()
                 .parseClaimsJws(token);
 
         setTokenFields();
@@ -53,9 +54,10 @@ public class OAuth2Token {
 
     public OAuth2Token(final String token, PublicKey publicKey) {
 
-        claims = Jwts.parser()
+        claims = Jwts.parserBuilder()
                 .setSigningKey(publicKey)
                 .setAllowedClockSkewSeconds(60)
+                .build()
                 .parseClaimsJws(token);
 
         setTokenFields();

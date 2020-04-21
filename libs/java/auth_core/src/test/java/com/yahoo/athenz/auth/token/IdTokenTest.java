@@ -78,7 +78,7 @@ public class IdTokenTest {
         // now verify our signed token
 
         PublicKey publicKey = Crypto.loadPublicKey(ecPublicKey);
-        Jws<Claims> claims = Jwts.parser().setSigningKey(publicKey).parseClaimsJws(idJws);
+        Jws<Claims> claims = Jwts.parserBuilder().setSigningKey(publicKey).build().parseClaimsJws(idJws);
         assertNotNull(claims);
 
         assertEquals("subject", claims.getBody().getSubject());

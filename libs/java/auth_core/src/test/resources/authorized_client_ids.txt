@@ -1,0 +1,17 @@
+client_id_11,client_id_12:ui_principal_11:authorized_service_11
+client_id_21:ui_principal_21:authorized_service_21
+client_id_31,client_id_31,client_id_31:ui_principal_31:authorized_service_31
+
+invalid_format
+:empty:empty
+empty::empty
+empty:empty:
+empty::
+:empty:
+::empty
+::
+
+:invalid_client_id:invalid_client_id
+,client_id,client_id:invalid_client_id:invalid_client_id
+client_id,,client_id:invalid_client_id:invalid_client_id
+client_id_41,trailing_comma,:ui_principal_41:authorized_service_41
