@@ -35,7 +35,7 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_HOSTNAME      = "athenz.zms.hostname";
     public static final String ZMS_PROP_DOMAIN_ADMIN  = "athenz.zms.domain_admin";
     public static final String ZMS_PROP_FILE_NAME     = "athenz.zms.prop_file";
-    
+
     public static final String ZMS_PROP_VIRTUAL_DOMAIN       = "athenz.zms.virtual_domain_support";
     public static final String ZMS_PROP_VIRTUAL_DOMAIN_LIMIT = "athenz.zms.virtual_domain_limit";
     public static final String ZMS_PROP_READ_ONLY_MODE       = "athenz.zms.read_only_mode";
@@ -124,7 +124,7 @@ public final class ZMSConsts {
     public static final String ZMS_OBJECT_STORE_FACTORY_CLASS           = "com.yahoo.athenz.zms.store.impl.FileObjectStoreFactory";
 
     // properties for our default quota limits
-    
+
     public static final String ZMS_PROP_QUOTA_CHECK        = "athenz.zms.quota_check";
     public static final String ZMS_PROP_QUOTA_ROLE         = "athenz.zms.quota_role";
     public static final String ZMS_PROP_QUOTA_ROLE_MEMBER  = "athenz.zms.quota_role_member";
@@ -137,13 +137,13 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_QUOTA_SUBDOMAIN    = "athenz.zms.quota_subdomain";
 
     public static final String ZMS_PROP_MYSQL_SERVER_TIMEZONE = "athenz.zms.mysql_server_timezone";
-    
+
     public static final String ZMS_PRINCIPAL_AUTHORITY_CLASS  = "com.yahoo.athenz.auth.impl.PrincipalAuthority";
 
     public static final String ZMS_UNKNOWN_DOMAIN     = "unknown_domain";
     public static final String ZMS_INVALID_DOMAIN     = "invalid_domain";
     public static final String ZMS_SERVICE            = "zms";
-    
+
     public static final String ZMS_DOMAIN_NAME_MAX_SIZE_DEFAULT = "128";
 
     public static final String USER_DOMAIN        = "user";
@@ -154,7 +154,7 @@ public final class ZMSConsts {
     public static final String HTTP_ORIGIN              = "Origin";
     public static final String HTTP_RFC1123_DATE_FORMAT = "EEE, d MMM yyyy HH:mm:ss zzz";
     public static final String HTTP_DATE_GMT_ZONE       = "GMT";
-    
+
     public static final String HTTP_ACCESS_CONTROL_ALLOW_ORIGIN      = "Access-Control-Allow-Origin";
     public static final String HTTP_ACCESS_CONTROL_ALLOW_METHODS     = "Access-Control-Allow-Methods";
     public static final String HTTP_ACCESS_CONTROL_ALLOW_HEADERS     = "Access-Control-Allow-Headers";
@@ -168,10 +168,10 @@ public final class ZMSConsts {
     public static final String SCHEME_HTTP  = "http";
     public static final String SCHEME_HTTPS = "https";
     public static final String SCHEME_CLASS = "class";
-    
+
     public static final int ZMS_HTTPS_PORT_DEFAULT = 4443;
     public static final int ZMS_HTTP_PORT_DEFAULT  = 4080;
-    
+
     public static final String DB_COLUMN_DESCRIPTION        = "description";
     public static final String DB_COLUMN_ORG                = "org";
     public static final String DB_COLUMN_UUID               = "uuid";
@@ -264,7 +264,7 @@ public final class ZMSConsts {
 
     public static final int STRING_BLDR_SIZE_DEFAULT = 512;
 
-    public static final String ZMS_JSON_PARSER_ERROR_RESPONSE = "{\"code\":400,\"message\":\"Invalid Object: checkout https://github.com/yahoo/athenz/core/zms for object definitions\"}";
+    public static final String ZMS_JSON_PARSER_ERROR_RESPONSE = "{\"code\":400,\"message\":\"Invalid Object: checkout https://github.com/yahoo/athenz/tree/master/core/zms/src/main/rdl for object definitions\"}";
 
     public static final String SYS_AUTH_AUDIT_BY_ORG    = "sys.auth.audit.org";
     public static final String SYS_AUTH_AUDIT_BY_DOMAIN = "sys.auth.audit.domain";
@@ -275,4 +275,3 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_MONITOR_IDENTITY = "athenz.zms.monitor_identity";
 
 }
-

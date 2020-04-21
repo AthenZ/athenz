@@ -20,7 +20,7 @@ package com.yahoo.athenz.zts;
  **/
 public final class ZTSConsts {
     // System property names with defaults(where applicable)
-    
+
     public static final String ZTS_PROP_USER_DOMAIN       = "athenz.user_domain";
     public static final String ZTS_PROP_USER_DOMAIN_ALIAS = "athenz.user_domain_alias";
     public static final String ZTS_PROP_ATHENZ_CONF       = "athenz.athenz_conf";
@@ -31,14 +31,14 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_ROOT_DIR    = "athenz.zts.root_dir";
     public static final String ZTS_PROP_HOSTNAME    = "athenz.zts.hostname";
     public static final String ZTS_PROP_FILE_NAME   = "athenz.zts.prop_file";
-    
+
     public static final String ZTS_PROP_KEYSTORE_PASSWORD           = "athenz.zts.ssl_key_store_password";
     public static final String ZTS_PROP_KEYSTORE_PASSWORD_APPNAME   = "athenz.zts.ssl_key_store_password_appname";
     public static final String ZTS_PROP_KEYMANAGER_PASSWORD         = "athenz.zts.ssl_key_manager_password";
     public static final String ZTS_PROP_KEYMANAGER_PASSWORD_APPNAME = "athenz.zts.ssl_key_manager_password_appname";
     public static final String ZTS_PROP_TRUSTSTORE_PASSWORD         = "athenz.zts.ssl_trust_store_password";
     public static final String ZTS_PROP_TRUSTSTORE_PASSWORD_APPNAME = "athenz.zts.ssl_trust_store_password_appname";
-    
+
     public static final String ZTS_PROP_KEYSTORE_PATH          = "athenz.zts.ssl_key_store";
     public static final String ZTS_PROP_KEYSTORE_TYPE          = "athenz.zts.ssl_key_store_type";
     public static final String ZTS_PROP_TRUSTSTORE_PATH        = "athenz.zts.ssl_trust_store";
@@ -69,7 +69,7 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_CERTSIGN_CONNECT_TIMEOUT = "athenz.zts.certsign_connect_timeout";
     public static final String ZTS_PROP_CERTSIGN_RETRY_COUNT     = "athenz.zts.certsign_retry_count";
     public static final String ZTS_PROP_CERTSIGN_MAX_EXPIRY_TIME = "athenz.zts.certsign_max_expiry_time";
-    
+
     public static final String ZTS_PROP_LEAST_PRIVILEGE_PRINCIPLE  = "athenz.zts.least_privilege_principle";
     public static final String ZTS_PROP_ROLE_TOKEN_MAX_TIMEOUT     = "athenz.zts.role_token_max_timeout";
     public static final String ZTS_PROP_ROLE_TOKEN_DEFAULT_TIMEOUT = "athenz.zts.role_token_default_timeout";
@@ -137,10 +137,10 @@ public final class ZTSConsts {
 
     public static final String ZTS_SERVICE           = "zts";
     public static final String ZTS_UNKNOWN_DOMAIN    = "unknown_domain";
-    
+
     public static final int ZTS_HTTPS_PORT_DEFAULT   = 4443;
     public static final int ZTS_HTTP_PORT_DEFAULT    = 4080;
-    
+
     public static final String ATHENZ_SYS_DOMAIN     = "sys.auth";
     public static final String ATHENZ_USER_DOMAIN    = "user";
     public static final String ATHENZ_ROOT_DIR       = "/home/athenz";
@@ -148,7 +148,7 @@ public final class ZTSConsts {
     public static final String ZTS_SSH_HOST = "host";
     public static final String ZTS_SSH_USER = "user";
     public static final String ZTS_SSH_TYPE = "certtype";
-    
+
     public static final String ZTS_CERT_DNS_SUFFIX   = ".athenz.cloud";
     public static final String ZTS_ACTION_LAUNCH     = "launch";
     public static final String ZTS_RESOURCE_INSTANCE = "sys.auth:instance";
@@ -193,6 +193,5 @@ public final class ZTSConsts {
 
     public static final String ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST = "athenz.zts.notification_cert_fail_provider_list";
 
-
-    public static final String ZTS_JSON_PARSER_ERROR_RESPONSE = "{\"code\":400,\"message\":\"Invalid Object: checkout https://github.com/yahoo/athenz/core/zts for object defintions\"}";
+    public static final String ZTS_JSON_PARSER_ERROR_RESPONSE = "{\"code\":400,\"message\":\"Invalid Object: checkout https://github.com/yahoo/athenz/tree/master/core/zts/src/main/rdl for object defintions\"}";
 }
