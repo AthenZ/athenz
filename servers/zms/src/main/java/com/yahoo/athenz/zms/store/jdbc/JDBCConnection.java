@@ -292,12 +292,13 @@ public class JDBCConnection implements ObjectStoreConnection {
             "JOIN role r ON r.role_id=rm.role_id " +
             "JOIN domain d ON r.domain_id=d.domain_id WHERE (r.self_serve=true OR r.review_enabled=true) AND rm.last_notified_time=? AND rm.server=?;";
 
-    private static final String SQL_GET_EXPIRED_PENDING_ROLE_MEMBERS = "SELECT d.name, r.name, p.name, prm.expiration, prm.audit_ref, prm.req_time FROM principal p JOIN pending_role_member prm " +
+    private static final String SQL_GET_EXPIRED_PENDING_ROLE_MEMBERS = "SELECT d.name, r.name, p.name, prm.expiration, prm.audit_ref, prm.req_time, prm.req_principal " +
+            "FROM principal p JOIN pending_role_member prm " +
             "ON prm.principal_id=p.principal_id JOIN role r ON prm.role_id=r.role_id JOIN domain d ON d.domain_id=r.domain_id " +
             "WHERE prm.req_time < (CURRENT_DATE - INTERVAL ? DAY);";
 
     private static final String SQL_UPDATE_PENDING_ROLE_MEMBERS_NOTIFICATION_TIMESTAMP = "UPDATE pending_role_member SET last_notified_time=?, server=? " +
-            "WHERE DAYOFWEEK(req_time)=DAYOFWEEK(?) AND last_notified_time < (CURRENT_DATE - INTERVAL 1 DAY);";
+            "WHERE DAYOFWEEK(req_time)=DAYOFWEEK(?) AND (last_notified_time IS NULL || last_notified_time < (CURRENT_DATE - INTERVAL 1 DAY));";
 
     private static final String SQL_UPDATE_ROLE_MEMBERS_EXPIRY_NOTIFICATION_TIMESTAMP = "UPDATE role_member SET last_notified_time=?, server=? " +
             "WHERE expiration > CURRENT_TIME AND DATEDIFF(expiration, CURRENT_TIME) IN (1,7,14,21,28) AND (last_notified_time IS NULL || last_notified_time < (CURRENT_DATE - INTERVAL 1 DAY));";
