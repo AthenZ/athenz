@@ -1,0 +1,19 @@
+{
+    "Cluster": "athenz",
+    "ContainerInstanceARN": "arn:aws:ecs:us-west-2:123456789012:container-instance/29b55b1a-6729-46d9-a5f2-862332e2d362",
+    "TaskARN": "arn:aws:ecs:us-west-2:123456789012:task/my-cluster/776b2c2e-6bfb-4328-bd04-204536cfb7f2",
+    "ContainerID": "692199a3e904e3316081a6758dd7ce5933e0e53bec6a8956b921113e70905c67",
+    "ContainerName": "athenz-sample",
+    "DockerContainerName": "/ecs-athenz-sample-2-athenz-sample-9cba8ba69dfeab9b8301",
+    "ImageID": "sha256:376a55b8956f2097df15bdee339e4734581f503e5d7d4283a67333a92c9f1f4f",
+    "ImageName": "registry.hub.docker.com/image-name:latest",
+    "Networks": [
+        {
+            "NetworkMode": "default",
+            "IPv4Addresses": [
+                "172.17.0.3"
+            ]
+        }
+    ],
+    "MetadataFileStatus": "READY"
+}

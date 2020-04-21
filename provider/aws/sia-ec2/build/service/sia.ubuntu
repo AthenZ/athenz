@@ -1,0 +1,57 @@
+#! /bin/sh
+
+### BEGIN INIT INFO
+# Provides:             sia
+# Required-Start:       $syslog
+# Required-Stop:        $syslog
+# Default-Start:        2 3 4 5
+# Default-Stop:         0 1 6
+# Short-Description:    Athenz Service Identity Agent - SIA
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+exec="/usr/sbin/siad"
+pidfile="/var/run/siad.pid"
+
+start() {
+  [ -x $exec ] || exit 5
+  echo -n "Starting Athenz SIA..."
+  start_daemon -p ${pidfile} -- ${exec} &
+  retval=$?
+  echo
+  return $retval
+}
+
+stop() {
+  echo -n "Shutting down Athenz SIA..."
+  killall $exec 2>/dev/null
+  retval=$?
+  echo
+  return $retval
+}
+
+restart() {
+  stop
+  start
+}
+
+case "$1" in
+  start)
+    $1
+    ;;
+  stop)
+    $1
+    ;;
+  restart)
+    $1
+    ;;
+  status)
+    status_of_proc ${exec} sia
+    ;;
+  *)
+    echo "Usage: $0 {start|stop|restart|status}"
+    exit 2
+esac
+
+exit $?
