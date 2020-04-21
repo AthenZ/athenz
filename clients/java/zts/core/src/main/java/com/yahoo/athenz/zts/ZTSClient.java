@@ -2159,7 +2159,7 @@ public class ZTSClient implements Closeable {
         
         // now let's generate our dsnName field based on our principal's details
 
-        GeneralName[] sanArray = new GeneralName[2];
+        GeneralName[] sanArray = new GeneralName[3];
         final String hostBuilder = info.getService() + '.' + info.getDomain().replace('.', '-') +
                 '.' + x509CsrDomain;
         sanArray[0] = new GeneralName(GeneralName.dNSName, new DERIA5String(hostBuilder));
@@ -2167,7 +2167,10 @@ public class ZTSClient implements Closeable {
         final String instanceHostBuilder = "lambda-" + account + '-' + info.getService() +
                 ".instanceid.athenz." + x509CsrDomain;
         sanArray[1] = new GeneralName(GeneralName.dNSName, new DERIA5String(instanceHostBuilder));
-        
+
+        final String spiffeUri = "spiffe://" + info.getDomain() + "/sa/" + info.getService();
+        sanArray[2] = new GeneralName(GeneralName.uniformResourceIdentifier, new DERIA5String(spiffeUri));
+
         // next generate the csr based on our private key and data
         
         try {
