@@ -2723,6 +2723,14 @@ public class ZTSClientTest {
         ZTSClientMock client = new ZTSClientMock("http://localhost:4080");
         ZTSClientMock.setX509CsrDetails("o=Athenz", "athenz.cloud");
 
+        // configure the values to be verified
+
+        client.setCsrUriVerifyValue("spiffe://athenz/sa/service");
+        List<String> dnsValues = new ArrayList<>();
+        dnsValues.add("service.athenz.athenz.cloud");
+        dnsValues.add("lambda-1234-service.instanceid.athenz.athenz.cloud");
+        client.setCsrDnsVerifyValues(dnsValues);
+
         AWSLambdaIdentity identity = client.getAWSLambdaServiceCertificate("athenz", "service", "1234", "provider");
         assertNotNull(identity);
         assertNotNull(identity.getPrivateKey());
