@@ -4,24 +4,18 @@
 ## Index
 <!-- TOC depthFrom:2 updateOnSave:true -->
 
-- [Athenz configuration with docker (development environment)](#Athenz-configuration-with-docker-development-environment)
-    - [Index](#Index)
-    - [Component dependency](#Component-dependency)
-    - [ZMS](#ZMS)
-        - [ZMS database configuration](#ZMS-database-configuration)
-        - [ZMS server configuration](#ZMS-server-configuration)
-    - [ZTS](#ZTS)
-        - [ZTS database configuration](#ZTS-database-configuration)
-        - [ZTS server configuration](#ZTS-server-configuration)
-    - [UI](#UI)
-        - [UI server configuration](#UI-server-configuration)
+- [Athenz configuration with docker (development environment)](#athenz-configuration-with-docker-development-environment)
+    - [Index](#index)
+    - [ZMS](#zms)
+        - [ZMS database configuration](#zms-database-configuration)
+        - [ZMS server configuration](#zms-server-configuration)
+    - [ZTS](#zts)
+        - [ZTS database configuration](#zts-database-configuration)
+        - [ZTS server configuration](#zts-server-configuration)
+    - [UI](#ui)
+        - [UI server configuration](#ui-server-configuration)
 
 <!-- /TOC -->
-
-<a id="markdown-component-dependency" name="component-dependency"></a>
-## Component dependency
-
-![Athenz-components](./images/Athenz-components.png)
 
 <a id="markdown-zms" name="zms"></a>
 ## ZMS
@@ -36,6 +30,7 @@
     └── zms-db.cnf
     ```
 - configuration
+  
     1. [zms-db.cnf](../db/zms/zms-db.cnf)
 
 <a id="markdown-zms-server-configuration" name="zms-server-configuration"></a>
@@ -124,6 +119,7 @@
     └── zts-db.cnf
     ```
 - configuration
+  
     1. [zts-db.cnf](../db/zts/zts-db.cnf)
 
 <a id="markdown-zts-server-configuration" name="zts-server-configuration"></a>
@@ -174,7 +170,7 @@
         1. [database access](../zts/conf/zts.properties#L188-L220)
             ```properties
             athenz.zts.cert_record_store_factory_class=com.yahoo.athenz.zts.cert.impl.JDBCCertRecordStoreFactory
-            athenz.zts.cert_jdbc_store=jdbc:mysql://athenz-zts-db:3307/zts_store
+            athenz.zts.cert_jdbc_store=jdbc:mysql://athenz-zts-db:3306/zts_store
             athenz.zts.cert_jdbc_user=root
             #athenz.zts.cert_jdbc_password=mariadb
             ```
