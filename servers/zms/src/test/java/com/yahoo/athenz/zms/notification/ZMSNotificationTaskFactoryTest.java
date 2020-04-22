@@ -34,8 +34,9 @@ public class ZMSNotificationTaskFactoryTest {
         DBService dbsvc = Mockito.mock(DBService.class);
         ZMSNotificationTaskFactory zmsNotificationTaskFactory = new ZMSNotificationTaskFactory(dbsvc, USER_DOMAIN_PREFIX);
         List<NotificationTask> notificationTasks = zmsNotificationTaskFactory.getNotificationTasks();
-        assertEquals(2, notificationTasks.size());
+        assertEquals(3, notificationTasks.size());
         assertEquals(notificationTasks.get(0).getDescription(), "pending membership approvals reminders");
         assertEquals(notificationTasks.get(1).getDescription(), "membership expiration reminders");
+        assertEquals(notificationTasks.get(2).getDescription(), "Review before expiration reminder");
     }
 }
