@@ -26,9 +26,11 @@ import javax.net.ssl.SSLContext;
 import javax.ws.rs.client.ClientBuilder;
 
 import com.amazonaws.services.securitytoken.model.Credentials;
+import javax.net.ssl.HostnameVerifier;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.ServiceIdentityProvider;
 import com.yahoo.athenz.auth.util.Crypto;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 
 public class ZTSClientMock extends ZTSClient {
@@ -54,6 +56,11 @@ public class ZTSClientMock extends ZTSClient {
 
     public ZTSClientMock(String ztsUrl, SSLContext sslContext) {
         super(ztsUrl, sslContext);
+    }
+
+    @Override
+    PoolingHttpClientConnectionManager createConnectionManager(SSLContext sslContext, HostnameVerifier hostnameVerifier) {
+        return null;
     }
 
     public ZTSClientMock(String domainName, String serviceName, ServiceIdentityProvider siaProvider) {

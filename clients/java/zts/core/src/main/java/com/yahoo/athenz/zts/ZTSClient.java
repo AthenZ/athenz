@@ -46,9 +46,15 @@ import com.oath.auth.KeyRefresher;
 import com.oath.auth.KeyRefresherException;
 import com.oath.auth.KeyRefresherListener;
 import com.oath.auth.Utils;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.bouncycastle.asn1.DERIA5String;
 import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.operator.OperatorCreationException;
+import org.glassfish.jersey.apache.connector.ApacheClientProperties;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
@@ -136,6 +142,9 @@ public class ZTSClient implements Closeable {
     public static final String ZTS_CLIENT_PROP_TRUSTSTORE_TYPE                  = "athenz.zts.client.truststore_type";
     public static final String ZTS_CLIENT_PROP_TRUSTSTORE_PASSWORD              = "athenz.zts.client.truststore_password";
     public static final String ZTS_CLIENT_PROP_TRUSTSTORE_PWD_APP_NAME          = "athenz.zts.client.truststore_pwd_app_name";
+
+    public static final String ZTS_CLIENT_PROP_POOL_MAX_PER_ROUTE               = "athenz.zts.client.http_pool_max_per_route";
+    public static final String ZTS_CLIENT_PROP_POOL_MAX_TOTAL                   = "athenz.zts.client.http_pool_max_total";
 
     public static final String ZTS_CLIENT_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS  = "athenz.zts.client.private_keystore_factory_class";
     public static final String ZTS_CLIENT_PROP_CLIENT_PROTOCOL                  = "athenz.zts.client.client_ssl_protocol";
@@ -672,16 +681,21 @@ public class ZTSClient implements Closeable {
         
         // if we don't have a ssl context specified, check the system
         // properties to see if we need to create one
-        
+
         if (sslContext == null) {
             sslContext = createSSLContext();
         }
-        
+
         // setup our client config object with timeouts
 
         final JacksonJsonProvider jacksonJsonProvider = new JacksonJaxbJsonProvider()
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         final ClientConfig config = new ClientConfig(jacksonJsonProvider);
+
+        PoolingHttpClientConnectionManager connManager = createConnectionManager(sslContext, hostnameVerifier);
+        if (connManager != null) {
+            config.property(ApacheClientProperties.CONNECTION_MANAGER, connManager);
+        }
         config.connectorProvider(new ApacheConnectorProvider());
 
         // if we're asked to use a proxy for our request
@@ -722,7 +736,35 @@ public class ZTSClient implements Closeable {
             ztsClient.addCredentials(identity.getAuthority().getHeader(), identity.getCredentials());
         }
     }
-    
+
+    PoolingHttpClientConnectionManager createConnectionManager(SSLContext sslContext, HostnameVerifier hostnameVerifier) {
+
+        if (sslContext == null) {
+            return null;
+        }
+
+        SSLConnectionSocketFactory sslSocketFactory;
+        if (hostnameVerifier == null) {
+            sslSocketFactory = new SSLConnectionSocketFactory(sslContext);
+        } else {
+            sslSocketFactory = new SSLConnectionSocketFactory(sslContext, hostnameVerifier);
+        }
+        Registry<ConnectionSocketFactory> registry = RegistryBuilder
+                .<ConnectionSocketFactory>create()
+                .register("https", sslSocketFactory)
+                .build();
+        PoolingHttpClientConnectionManager poolingHttpClientConnectionManager = new PoolingHttpClientConnectionManager(registry);
+
+        // we'll use the default values from apache http connector - max 20 and per route 2
+
+        int maxPerRoute = Integer.parseInt(System.getProperty(ZTS_CLIENT_PROP_POOL_MAX_PER_ROUTE, "2"));
+        int maxTotal = Integer.parseInt(System.getProperty(ZTS_CLIENT_PROP_POOL_MAX_TOTAL, "20"));
+
+        poolingHttpClientConnectionManager.setDefaultMaxPerRoute(maxPerRoute);
+        poolingHttpClientConnectionManager.setMaxTotal(maxTotal);
+        return poolingHttpClientConnectionManager;
+    }
+
     void setPrefetchInterval(long interval) {
         prefetchInterval = interval;
     }
