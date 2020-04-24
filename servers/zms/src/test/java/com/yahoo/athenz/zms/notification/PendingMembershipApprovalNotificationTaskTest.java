@@ -16,10 +16,7 @@
 
 package com.yahoo.athenz.zms.notification;
 
-import com.yahoo.athenz.common.server.notification.Notification;
-import com.yahoo.athenz.common.server.notification.NotificationManager;
-import com.yahoo.athenz.common.server.notification.NotificationService;
-import com.yahoo.athenz.common.server.notification.NotificationServiceFactory;
+import com.yahoo.athenz.common.server.notification.*;
 import com.yahoo.athenz.zms.DBService;
 import com.yahoo.athenz.zms.ZMSConsts;
 import com.yahoo.athenz.zms.ZMSTestUtils;
@@ -27,12 +24,14 @@ import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.USER_DOMAIN_PREFIX;
-import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL_REMINDER;
 import static com.yahoo.athenz.zms.notification.NotificationManagerTest.getNotificationManager;
-import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.*;
+import static org.testng.Assert.assertFalse;
 
 public class PendingMembershipApprovalNotificationTaskTest {
     @Test
@@ -41,8 +40,6 @@ public class PendingMembershipApprovalNotificationTaskTest {
         DBService dbsvc = Mockito.mock(DBService.class);
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
         NotificationServiceFactory testfact = () -> mockNotificationService;
-
-        Mockito.when(dbsvc.getRoleExpiryMembers()).thenReturn(null);
 
         // we're going to return null for our first thread which will
         // run during init call and then the real data for the second
@@ -61,9 +58,51 @@ public class PendingMembershipApprovalNotificationTaskTest {
 
         // Verify contents of notification is as expected
         assertEquals(notifications.size(), 1);
-        Notification expectedNotification = new Notification(NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL_REMINDER);
+        Notification expectedNotification = new Notification();
+        expectedNotification.setNotificationToEmailConverter(new PendingMembershipApprovalNotificationTask.PendingMembershipApprovalNotificationToEmailConverter());
         expectedNotification.addRecipient("user.joe");
         assertEquals(notifications.get(0), expectedNotification);
         notificationManager.shutdown();
+    }
+
+    @Test
+    public void testGetEmailBody() {
+        System.setProperty("athenz.notification_workflow_url", "https://athenz.example.com/workflow");
+        System.setProperty("athenz.notification_support_text", "#Athenz slack channel");
+        System.setProperty("athenz.notification_support_url", "https://link.to.athenz.channel.com");
+
+        Map<String, String> details = new HashMap<>();
+        details.put("domain", "dom1");
+        details.put("role", "role1");
+        details.put("member", "user.member1");
+        details.put("reason", "test reason");
+        details.put("requester", "user.requester");
+
+        Notification notification = new Notification();
+        notification.setDetails(details);
+        PendingMembershipApprovalNotificationTask.PendingMembershipApprovalNotificationToEmailConverter converter = new PendingMembershipApprovalNotificationTask.PendingMembershipApprovalNotificationToEmailConverter();
+        NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
+
+        String body = notificationAsEmail.getBody();
+        assertNotNull(body);
+        assertTrue(body.contains("https://athenz.example.com/workflow"));
+
+        // Make sure support text and url do not appear
+
+        assertFalse(body.contains("slack"));
+        assertFalse(body.contains("link.to.athenz.channel.com"));
+
+        System.clearProperty("athenz.notification_workflow_url");
+        System.clearProperty("notification_support_text");
+        System.clearProperty("notification_support_url");
+    }
+
+    @Test
+    public void getEmailSubject() {
+        Notification notification = new Notification();
+        PendingMembershipApprovalNotificationTask.PendingMembershipApprovalNotificationToEmailConverter converter = new PendingMembershipApprovalNotificationTask.PendingMembershipApprovalNotificationToEmailConverter();
+        NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
+        String subject = notificationAsEmail.getSubject();
+        assertEquals(subject, "Membership Approval Reminder Notification");
     }
 }

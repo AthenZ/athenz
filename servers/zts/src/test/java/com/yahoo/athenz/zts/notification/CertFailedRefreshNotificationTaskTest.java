@@ -19,18 +19,23 @@ package com.yahoo.athenz.zts.notification;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.cert.X509CertRecord;
+import com.yahoo.athenz.common.server.notification.NotificationEmail;
 import com.yahoo.athenz.zms.DomainData;
 import com.yahoo.athenz.zts.cert.InstanceCertManager;
 import com.yahoo.athenz.zts.store.DataStore;
 import org.mockito.Mockito;
+import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.sql.Timestamp;
 import java.util.*;
 
+import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.testng.Assert.*;
+import static org.testng.Assert.assertFalse;
 import static org.testng.AssertJUnit.assertEquals;
 
 public class CertFailedRefreshNotificationTaskTest {
@@ -187,5 +192,58 @@ public class CertFailedRefreshNotificationTaskTest {
 
         String description = certFailedRefreshNotificationTask.getDescription();
         assertEquals("certificate failed refresh notification", description);
+    }
+
+    @Test
+    public void testGetEmailBody() {
+        System.setProperty("athenz.notification_workflow_url", "https://athenz.example.com/workflow");
+        System.setProperty("athenz.notification_support_text", "#Athenz slack channel");
+        System.setProperty("athenz.notification_support_url", "https://link.to.athenz.channel.com");
+
+        Map<String, String> details = new HashMap<>();
+        details.put("domain", "dom1");
+        details.put("role", "role1");
+        details.put("member", "user.member1");
+        details.put("reason", "test reason");
+        details.put("requester", "user.requester");
+        details.put(NOTIFICATION_DETAILS_UNREFRESHED_CERTS,
+                "domain0.service0;provider;instanceID0;Sun Mar 15 15:08:07 IST 2020;;hostName0|" +
+                        "domain.bad;instanceID0;Sun Mar 15 15:08:07 IST 2020;;hostBad|" + // bad entry with missing provider
+                        "domain0.service0;provider;instanceID0;Sun Mar 15 15:08:07 IST 2020;;secondHostName0");
+
+        Notification notification = new Notification();
+        notification.setDetails(details);
+        CertFailedRefreshNotificationTask.CertFailedRefreshNotificationToEmailConverter converter = new CertFailedRefreshNotificationTask.CertFailedRefreshNotificationToEmailConverter();
+        NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
+
+        String body = notificationAsEmail.getBody();
+        assertNotNull(body);
+        assertTrue(body.contains("domain0.service0"));
+        assertTrue(body.contains("hostName0"));
+        assertTrue(body.contains("secondHostName0"));
+        assertTrue(body.contains("instanceID0"));
+        assertTrue(body.contains("Sun Mar 15 15:08:07 IST 2020"));
+
+        // make sure the bad entries are not included
+        assertFalse(body.contains("domain.bad"));
+        assertFalse(body.contains("hostBad"));
+
+        // Make sure support text and url do appear
+
+        assertTrue(body.contains("slack"));
+        assertTrue(body.contains("link.to.athenz.channel.com"));
+
+        System.clearProperty("athenz.notification_workflow_url");
+        System.clearProperty("notification_support_text");
+        System.clearProperty("notification_support_url");
+    }
+
+    @Test
+    public void getEmailSubject() {
+        Notification notification = new Notification();
+        CertFailedRefreshNotificationTask.CertFailedRefreshNotificationToEmailConverter converter = new CertFailedRefreshNotificationTask.CertFailedRefreshNotificationToEmailConverter();
+        NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
+        String subject = notificationAsEmail.getSubject();
+        Assert.assertEquals(subject, "Athenz Unrefreshed Certificates Notification");
     }
 }

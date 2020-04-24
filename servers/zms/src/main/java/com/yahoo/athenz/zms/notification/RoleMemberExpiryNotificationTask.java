@@ -16,9 +16,7 @@
 
 package com.yahoo.athenz.zms.notification;
 
-import com.yahoo.athenz.common.server.notification.Notification;
-import com.yahoo.athenz.common.server.notification.NotificationCommon;
-import com.yahoo.athenz.common.server.notification.NotificationTask;
+import com.yahoo.athenz.common.server.notification.*;
 import com.yahoo.athenz.zms.DBService;
 import com.yahoo.athenz.zms.DomainRoleMember;
 import com.yahoo.athenz.zms.MemberRole;
@@ -27,24 +25,25 @@ import com.yahoo.athenz.zms.utils.ZMSUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import static com.yahoo.athenz.common.ServerCommonConsts.USER_DOMAIN_PREFIX;
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
+import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.NOTIFICATION_DETAILS_EXPIRY_MEMBERS;
 
 public class RoleMemberExpiryNotificationTask implements NotificationTask {
     private final DBService dbService;
     private final NotificationCommon notificationCommon;
     private static final Logger LOGGER = LoggerFactory.getLogger(RoleMemberExpiryNotificationTask.class);
     private final static String DESCRIPTION = "membership expiration reminders";
+    private final RoleExpiryDomainNotificationToEmailConverter roleExpiryDomainNotificationToEmailConverter;
+    private final RoleExpiryPrincipalNotificationToEmailConverter roleExpiryPrincipalNotificationToEmailConverter;
 
     public RoleMemberExpiryNotificationTask(DBService dbService, String userDomainPrefix) {
         this.dbService = dbService;
-        ZMSDomainRoleMembersFetcher zmsDomainRoleMembersFetcher = new ZMSDomainRoleMembersFetcher(dbService, USER_DOMAIN_PREFIX);
+        ZMSDomainRoleMembersFetcher zmsDomainRoleMembersFetcher = new ZMSDomainRoleMembersFetcher(dbService, userDomainPrefix);
         this.notificationCommon = new NotificationCommon(zmsDomainRoleMembersFetcher, userDomainPrefix);
+        this.roleExpiryPrincipalNotificationToEmailConverter = new RoleExpiryPrincipalNotificationToEmailConverter();
+        this.roleExpiryDomainNotificationToEmailConverter = new RoleExpiryDomainNotificationToEmailConverter();
     }
 
     @Override
@@ -77,8 +76,10 @@ public class RoleMemberExpiryNotificationTask implements NotificationTask {
             // notification agent for processing
 
             Map<String, String> details = processRoleExpiryReminder(domainAdminMap, roleMember);
-            Notification notification = notificationCommon.createNotification(NOTIFICATION_TYPE_PRINCIPAL_EXPIRY_REMINDER,
-                    roleMember.getMemberName(), details);
+            Notification notification = notificationCommon.createNotification(
+                    roleMember.getMemberName(),
+                    details,
+                    roleExpiryPrincipalNotificationToEmailConverter);
             if (notification != null) {
                 notificationList.add(notification);
             }
@@ -90,8 +91,10 @@ public class RoleMemberExpiryNotificationTask implements NotificationTask {
         for (Map.Entry<String, List<MemberRole>> domainAdmin : domainAdminMap.entrySet()) {
 
             Map<String, String> details = processMemberExpiryReminder(domainAdmin.getKey(), domainAdmin.getValue());
-            Notification notification = notificationCommon.createNotification(NOTIFICATION_TYPE_DOMAIN_MEMBER_EXPIRY_REMINDER,
-                    ZMSUtils.roleResourceName(domainAdmin.getKey(), ZMSConsts.ADMIN_ROLE_NAME), details);
+            Notification notification = notificationCommon.createNotification(
+                    ZMSUtils.roleResourceName(domainAdmin.getKey(), ZMSConsts.ADMIN_ROLE_NAME),
+                    details,
+                    roleExpiryDomainNotificationToEmailConverter);
             if (notification != null) {
                 notificationList.add(notification);
             }
@@ -176,8 +179,81 @@ public class RoleMemberExpiryNotificationTask implements NotificationTask {
         return details;
     }
 
+
     @Override
     public String getDescription() {
         return DESCRIPTION;
+    }
+
+    public static class RoleExpiryPrincipalNotificationToEmailConverter implements NotificationToEmailConverter {
+        private static final String EMAIL_TEMPLATE_PRINCIPAL_EXPIRY = "messages/principal-expiry.html";
+        private static final String PRINCIPAL_EXPIRY_SUBJECT = "athenz.notification.email.principal.expiry.subject";
+        private static final String PRINCIPAL_EXPIRY_BODY_ENTRY = "athenz.notification.email.principal.expiry.body.entry";
+
+        private final NotificationToEmailConverterCommon notificationToEmailConverterCommon;
+        private String emailPrincipalExpiryBody;
+
+        public RoleExpiryPrincipalNotificationToEmailConverter() {
+            notificationToEmailConverterCommon = new NotificationToEmailConverterCommon();
+            emailPrincipalExpiryBody =  notificationToEmailConverterCommon.readContentFromFile(getClass().getClassLoader(), EMAIL_TEMPLATE_PRINCIPAL_EXPIRY);
+        }
+
+        private String getPrincipalExpiryBody(Map<String, String> metaDetails) {
+            if (metaDetails == null) {
+                return null;
+            }
+
+            return notificationToEmailConverterCommon.generateBodyFromTemplate(
+                    metaDetails,
+                    emailPrincipalExpiryBody,
+                    NOTIFICATION_DETAILS_MEMBER,
+                    NOTIFICATION_DETAILS_EXPIRY_ROLES,
+                    3,
+                    PRINCIPAL_EXPIRY_BODY_ENTRY);
+        }
+
+        @Override
+        public NotificationEmail getNotificationAsEmail(Notification notification) {
+            String subject = notificationToEmailConverterCommon.getSubject(PRINCIPAL_EXPIRY_SUBJECT);
+            String body = getPrincipalExpiryBody(notification.getDetails());
+            Set<String> fullyQualifiedEmailAddresses = notificationToEmailConverterCommon.getFullyQualifiedEmailAddresses(notification.getRecipients());
+            return new NotificationEmail(subject, body, fullyQualifiedEmailAddresses);
+        }
+    }
+
+    public static class RoleExpiryDomainNotificationToEmailConverter implements NotificationToEmailConverter {
+        private static final String EMAIL_TEMPLATE_DOMAIN_MEMBER_EXPIRY = "messages/domain-member-expiry.html";
+        private static final String DOMAIN_MEMBER_EXPIRY_SUBJECT = "athenz.notification.email.domain.member.expiry.subject";
+        private static final String DOMAIN_MEMBER_EXPIRY_BODY_ENTRY = "athenz.notification.email.domain.member.expiry.body.entry";
+
+        private final NotificationToEmailConverterCommon notificationToEmailConverterCommon;
+        private String emailDomainMemberExpiryBody;
+
+        public RoleExpiryDomainNotificationToEmailConverter() {
+            notificationToEmailConverterCommon = new NotificationToEmailConverterCommon();
+            emailDomainMemberExpiryBody = notificationToEmailConverterCommon.readContentFromFile(getClass().getClassLoader(), EMAIL_TEMPLATE_DOMAIN_MEMBER_EXPIRY);
+        }
+
+        private String getDomainMemberExpiryBody(Map<String, String> metaDetails) {
+            if (metaDetails == null) {
+                return null;
+            }
+
+            return notificationToEmailConverterCommon.generateBodyFromTemplate(
+                    metaDetails,
+                    emailDomainMemberExpiryBody,
+                    NOTIFICATION_DETAILS_DOMAIN,
+                    NOTIFICATION_DETAILS_EXPIRY_MEMBERS,
+                    3,
+                    DOMAIN_MEMBER_EXPIRY_BODY_ENTRY);
+        }
+
+        @Override
+        public NotificationEmail getNotificationAsEmail(Notification notification) {
+            String subject = notificationToEmailConverterCommon.getSubject(DOMAIN_MEMBER_EXPIRY_SUBJECT);
+            String body = getDomainMemberExpiryBody(notification.getDetails());
+            Set<String> fullyQualifiedEmailAddresses = notificationToEmailConverterCommon.getFullyQualifiedEmailAddresses(notification.getRecipients());
+            return new NotificationEmail(subject, body, fullyQualifiedEmailAddresses);
+        }
     }
 }

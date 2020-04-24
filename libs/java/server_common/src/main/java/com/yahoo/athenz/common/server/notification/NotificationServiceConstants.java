@@ -19,12 +19,6 @@ package com.yahoo.athenz.common.server.notification;
 public final class NotificationServiceConstants {
     public static final String NOTIFICATION_PROP_SERVICE_FACTORY_CLASS = "athenz.zms.notification_service_factory_class";
 
-    public static final String NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL           = "MEMBERSHIP_APPROVAL";
-    public static final String NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL_REMINDER  = "MEMBERSHIP_APPROVAL_REMINDER";
-    public static final String NOTIFICATION_TYPE_PRINCIPAL_EXPIRY_REMINDER     = "PRINCIPAL_EXPIRY_REMINDER";
-    public static final String NOTIFICATION_TYPE_DOMAIN_MEMBER_EXPIRY_REMINDER = "DOMAIN_MEMBER_EXPIRY_REMINDER";
-    public static final String NOTIFICATION_TYPE_UNREFRESHED_CERTS             = "UNREFRESHED_CERTS";
-
     public static final String NOTIFICATION_DETAILS_DOMAIN              = "domain";
     public static final String NOTIFICATION_DETAILS_ROLE                = "role";
     public static final String NOTIFICATION_DETAILS_MEMBER              = "member";

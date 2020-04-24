@@ -16,14 +16,10 @@
 
 package com.yahoo.athenz.zms.notification;
 
-import com.yahoo.athenz.common.server.notification.Notification;
-import com.yahoo.athenz.common.server.notification.NotificationManager;
-import com.yahoo.athenz.common.server.notification.NotificationService;
-import com.yahoo.athenz.common.server.notification.NotificationServiceFactory;
+import com.yahoo.athenz.common.server.notification.*;
 import com.yahoo.athenz.zms.DBService;
 import com.yahoo.athenz.zms.Role;
 import com.yahoo.athenz.zms.RoleMember;
-import com.yahoo.athenz.zms.ZMSConsts;
 import com.yahoo.athenz.zms.store.AthenzDomain;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -36,7 +32,9 @@ import static com.yahoo.athenz.zms.notification.NotificationManagerTest.getNotif
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.never;
-import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.*;
+import static org.testng.Assert.assertFalse;
+import static org.testng.AssertJUnit.assertEquals;
 
 public class PutMembershipNotificationTaskTest {
     @Test
@@ -95,17 +93,18 @@ public class PutMembershipNotificationTaskTest {
         List<Notification> notifications = new PutMembershipNotificationTask("testdomain1", "neworg", notifyRole, details, dbsvc, USER_DOMAIN_PREFIX).getNotifications();
         notificationManager.sendNotifications(notifications);
 
-        Notification notification = new Notification("MEMBERSHIP_APPROVAL");
+        Notification notification = new Notification();
         notification.addRecipient("user.domapprover1")
                 .addRecipient("user.domapprover2")
                 .addRecipient("user.orgapprover1")
                 .addRecipient("user.orgapprover2");
         notification.addDetails("domain", "testdomain1").addDetails("role", "role1");
-
+        PutMembershipNotificationTask.PutMembershipNotificationToEmailConverter converter = new PutMembershipNotificationTask.PutMembershipNotificationToEmailConverter();
+        notification.setNotificationToEmailConverter(converter);
         Mockito.verify(mockNotificationService, atLeastOnce()).notify(captor.capture());
         Notification actualNotification = captor.getValue();
 
-        assertEquals(notification, actualNotification);
+        assertEquals(actualNotification, notification);
     }
 
     @Test
@@ -145,16 +144,17 @@ public class PutMembershipNotificationTaskTest {
         List<Notification> notifications = new PutMembershipNotificationTask("testdomain1", "neworg", notifyRole, details, dbsvc, USER_DOMAIN_PREFIX).getNotifications();
         notificationManager.sendNotifications(notifications);
 
-        Notification notification = new Notification("MEMBERSHIP_APPROVAL");
+        Notification notification = new Notification();
         notification
                 .addRecipient("user.orgapprover1")
                 .addRecipient("user.orgapprover2");
         notification.addDetails("domain", "testdomain1").addDetails("role", "role1");
-
+        PutMembershipNotificationTask.PutMembershipNotificationToEmailConverter converter = new PutMembershipNotificationTask.PutMembershipNotificationToEmailConverter();
+        notification.setNotificationToEmailConverter(converter);
         Mockito.verify(mockNotificationService, atLeastOnce()).notify(captor.capture());
         Notification actualNotification = captor.getValue();
 
-        assertEquals(notification, actualNotification);
+        assertEquals(actualNotification, notification);
     }
 
     @Test
@@ -194,16 +194,17 @@ public class PutMembershipNotificationTaskTest {
         List<Notification> notifications = new PutMembershipNotificationTask("testdomain1", "neworg", notifyRole, details, dbsvc, USER_DOMAIN_PREFIX).getNotifications();
         notificationManager.sendNotifications(notifications);
 
-        Notification notification = new Notification("MEMBERSHIP_APPROVAL");
+        Notification notification = new Notification();
         notification
                 .addRecipient("user.domapprover1")
                 .addRecipient("user.domapprover2");
         notification.addDetails("domain", "testdomain1").addDetails("role", "role1");
-
+        PutMembershipNotificationTask.PutMembershipNotificationToEmailConverter converter = new PutMembershipNotificationTask.PutMembershipNotificationToEmailConverter();
+        notification.setNotificationToEmailConverter(converter);
         Mockito.verify(mockNotificationService, atLeastOnce()).notify(captor.capture());
         Notification actualNotification = captor.getValue();
 
-        assertEquals(notification, actualNotification);
+        assertEquals(actualNotification, notification);
     }
 
     @Test
@@ -243,16 +244,17 @@ public class PutMembershipNotificationTaskTest {
         List<Notification> notifications = new PutMembershipNotificationTask("testdomain1", "neworg", notifyRole, details, dbsvc, USER_DOMAIN_PREFIX).getNotifications();
         notificationManager.sendNotifications(notifications);
 
-        Notification notification = new Notification("MEMBERSHIP_APPROVAL");
+        Notification notification = new Notification();
         notification
                 .addRecipient("user.domadmin1")
                 .addRecipient("user.domadmin2");
         notification.addDetails("domain", "testdomain1").addDetails("role", "role1");
-
+        PutMembershipNotificationTask.PutMembershipNotificationToEmailConverter converter = new PutMembershipNotificationTask.PutMembershipNotificationToEmailConverter();
+        notification.setNotificationToEmailConverter(converter);
         Mockito.verify(mockNotificationService, atLeastOnce()).notify(captor.capture());
         Notification actualNotification = captor.getValue();
 
-        assertEquals(notification, actualNotification);
+        assertEquals(actualNotification, notification);
     }
 
     @Test
@@ -312,17 +314,19 @@ public class PutMembershipNotificationTaskTest {
         List<Notification> notifications = new PutMembershipNotificationTask("testdomain1", "neworg", notifyRole, details, dbsvc, USER_DOMAIN_PREFIX).getNotifications();
         notificationManager.sendNotifications(notifications);
 
-        Notification notification = new Notification("MEMBERSHIP_APPROVAL");
+        Notification notification = new Notification();
         notification.addRecipient("user.domapprover1")
                 .addRecipient("user.domapprover2")
                 .addRecipient("user.approver1")
                 .addRecipient("user.approver2");
         notification.addDetails("domain", "testdomain1").addDetails("role", "role1");
-
+        PutMembershipNotificationTask.PutMembershipNotificationToEmailConverter converter = new PutMembershipNotificationTask.PutMembershipNotificationToEmailConverter();
+        notification.setNotificationToEmailConverter(converter);
         Mockito.verify(mockNotificationService, atLeastOnce()).notify(captor.capture());
         Notification actualNotification = captor.getValue();
 
-        assertEquals(notification, actualNotification);
+        assertEquals(actualNotification, notification);
+        assertEquals(actualNotification, notification);
     }
 
     @Test
@@ -355,5 +359,66 @@ public class PutMembershipNotificationTaskTest {
         List<Notification> notifications = new PutMembershipNotificationTask("testdomain1", "neworg", notifyRole, null, dbsvc, USER_DOMAIN_PREFIX).getNotifications();
         notificationManager.sendNotifications(notifications);
         verify(mockNotificationService, never()).notify(any(Notification.class));
+    }
+
+    @Test
+    public void testDescription() {
+        DBService dbsvc = Mockito.mock(DBService.class);
+        PutMembershipNotificationTask putMembershipNotificationTask = new PutMembershipNotificationTask(
+                "testDomain",
+                "testOrg",
+                new Role(),
+                new HashMap<>(),
+                dbsvc,
+                USER_DOMAIN_PREFIX);
+
+        String description = putMembershipNotificationTask.getDescription();
+        assertEquals("Membership Approval Notification", description);
+    }
+
+    @Test
+    public void testGetEmailBody() {
+        System.setProperty("athenz.notification_workflow_url", "https://athenz.example.com/workflow");
+        System.setProperty("athenz.notification_support_text", "#Athenz slack channel");
+        System.setProperty("athenz.notification_support_url", "https://link.to.athenz.channel.com");
+
+        Map<String, String> details = new HashMap<>();
+        details.put("domain", "dom1");
+        details.put("role", "role1");
+        details.put("member", "user.member1");
+        details.put("reason", "test reason");
+        details.put("requester", "user.requester");
+
+        Notification notification = new Notification();
+        notification.setDetails(details);
+        PutMembershipNotificationTask.PutMembershipNotificationToEmailConverter converter = new PutMembershipNotificationTask.PutMembershipNotificationToEmailConverter();
+        NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
+
+        String body = notificationAsEmail.getBody();
+        assertNotNull(body);
+        assertTrue(body.contains("dom1"));
+        assertTrue(body.contains("role1"));
+        assertTrue(body.contains("user.member1"));
+        assertTrue(body.contains("test reason"));
+        assertTrue(body.contains("user.requester"));
+        assertTrue(body.contains("https://athenz.example.com/workflow"));
+
+        // Make sure support text and url do not appear
+
+        assertFalse(body.contains("slack"));
+        assertFalse(body.contains("link.to.athenz.channel.com"));
+
+        System.clearProperty("athenz.notification_workflow_url");
+        System.clearProperty("notification_support_text");
+        System.clearProperty("notification_support_url");
+    }
+
+    @Test
+    public void getEmailSubject() {
+        Notification notification = new Notification();
+        PutMembershipNotificationTask.PutMembershipNotificationToEmailConverter converter = new PutMembershipNotificationTask.PutMembershipNotificationToEmailConverter();
+        NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
+        String subject = notificationAsEmail.getSubject();
+        assertEquals(subject, "Membership Approval Notification");
     }
 }
