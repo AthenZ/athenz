@@ -27,6 +27,7 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.glassfish.jersey.internal.inject.AbstractBinder;
+import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 
@@ -53,8 +54,8 @@ public class InstanceProviderContainer {
         String trustStorePath = System.getProperty(ZMS_TRUSTSTORE_PATH);
         String trustStorePassword = System.getProperty(ZMS_TRUSTSTORE_PASSWORD);
         String trustStoreType = System.getProperty(ZMS_TRUSTSTORE_TYPE, "PKCS12");
-        
-        SslContextFactory sslContextFactory = new SslContextFactory();
+
+        SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
         if (keyStorePath != null) {
             sslContextFactory.setKeyStorePath(keyStorePath);
         }
@@ -83,7 +84,9 @@ public class InstanceProviderContainer {
             Server server = new Server(threadPool);
             ServletContextHandler handler = new ServletContextHandler();
             handler.setContextPath("");
-            ResourceConfig config = new ResourceConfig(InstanceProviderResources.class).register(new Binder());
+            ResourceConfig config = new ResourceConfig(InstanceProviderResources.class)
+                    .register(JacksonFeature.class)
+                    .register(new Binder());
             handler.addServlet(new ServletHolder(new ServletContainer(config)), "/*");
             server.setHandler(handler);
             
