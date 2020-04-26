@@ -184,5 +184,8 @@ public final class ZTSConsts {
     public static final String ZTS_PRINCIPAL_AUTHORITY_CLASS       = "com.yahoo.athenz.auth.impl.PrincipalAuthority";
     public static final String ZTS_CERT_RECORD_STORE_FACTORY_CLASS = "com.yahoo.athenz.zts.cert.impl.FileCertRecordStoreFactory";
 
+    public static final String ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST = "athenz.zts.notification_cert_fail_provider_list";
+
+
     public static final String ZTS_JSON_PARSER_ERROR_RESPONSE = "{\"code\":400,\"message\":\"Invalid Object: checkout https://github.com/yahoo/athenz/core/zts for object defintions\"}";
 }

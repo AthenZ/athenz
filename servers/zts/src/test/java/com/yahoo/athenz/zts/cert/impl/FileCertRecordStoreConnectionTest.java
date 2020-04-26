@@ -244,9 +244,12 @@ public class FileCertRecordStoreConnectionTest {
         FileCertRecordStoreConnection con = (FileCertRecordStoreConnection) store.getConnection();
         assertNotNull(con);
         long timestamp = System.currentTimeMillis();
-        boolean result = con.updateUnrefreshedCertificatesNotificationTimestamp("localhost", timestamp);
+        boolean result = con.updateUnrefreshedCertificatesNotificationTimestamp(
+                "localhost",
+                timestamp,
+                "provider");
 
-        // For File store, unrefreshed certs unimplemented. Assert false
+        // For File store, unrefreshed certs unimplemented. Assert false;
         assertFalse(result);
     }
 
@@ -258,7 +261,9 @@ public class FileCertRecordStoreConnectionTest {
         FileCertRecordStoreConnection con = (FileCertRecordStoreConnection) store.getConnection();
         assertNotNull(con);
         long timestamp = System.currentTimeMillis();
-        List<X509CertRecord> records = con.getNotifyUnrefreshedCertificates("localhost", timestamp);
+        List<X509CertRecord> records = con.getNotifyUnrefreshedCertificates(
+                "localhost",
+                timestamp);
 
         // For File store, unrefreshed certs unimplemented. Assert empty collection
         assertEquals(records, new ArrayList<>());

@@ -1263,7 +1263,10 @@ public class InstanceCertManagerTest {
         record.setHostName("testHost");
         List<X509CertRecord> x509CertRecords = Collections.singletonList(record);
         String lastNotifiedServer = "server";
-        Mockito.when(certConnection.updateUnrefreshedCertificatesNotificationTimestamp(eq(lastNotifiedServer), anyLong()))
+        String provider = "provider";
+        Mockito.when(certConnection.updateUnrefreshedCertificatesNotificationTimestamp(
+                eq(lastNotifiedServer),
+                anyLong(), eq(provider)))
                 .thenReturn(true)
                 .thenReturn(false);
         Mockito.when(certConnection.getNotifyUnrefreshedCertificates(eq(lastNotifiedServer), anyLong()))
@@ -1271,9 +1274,9 @@ public class InstanceCertManagerTest {
         instance.setCertStore(certStore);
 
         // Assert that unrefreshed certificates will return only if at least 1 row was updated
-        List<X509CertRecord> unrefreshedCertificateNotifications = instance.getUnrefreshedCertsNotifications(lastNotifiedServer);
+        List<X509CertRecord> unrefreshedCertificateNotifications = instance.getUnrefreshedCertsNotifications(lastNotifiedServer, provider);
         assertEquals(unrefreshedCertificateNotifications.get(0).getHostName(), "testHost");
-        unrefreshedCertificateNotifications = instance.getUnrefreshedCertsNotifications(lastNotifiedServer);
+        unrefreshedCertificateNotifications = instance.getUnrefreshedCertsNotifications(lastNotifiedServer, provider);
         assertEquals(unrefreshedCertificateNotifications, new ArrayList<>());
         instance.shutdown();
     }
@@ -1282,7 +1285,9 @@ public class InstanceCertManagerTest {
     public void testNoCertStoreUnrefreshedCerts() {
         InstanceCertManager instance = new InstanceCertManager(null, null, null, false);
         instance.setCertStore(null);
-        List<X509CertRecord> unrefreshedCertificateNotifications = instance.getUnrefreshedCertsNotifications("localhost");
+        List<X509CertRecord> unrefreshedCertificateNotifications = instance.getUnrefreshedCertsNotifications(
+                "localhost",
+                "provdider");
         assertEquals(unrefreshedCertificateNotifications, new ArrayList<>());
     }
 

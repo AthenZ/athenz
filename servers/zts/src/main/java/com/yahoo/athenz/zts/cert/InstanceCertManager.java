@@ -511,14 +511,14 @@ public class InstanceCertManager {
         return certAuthorityBundles.get(name);
     }
 
-    public List<X509CertRecord> getUnrefreshedCertsNotifications(String serverHostName) {
+    public List<X509CertRecord> getUnrefreshedCertsNotifications(String serverHostName, String provider) {
         if (certStore == null) {
             return new ArrayList<>();
         }
 
         try (CertRecordStoreConnection storeConnection = certStore.getConnection()) {
             long updateTs = System.currentTimeMillis();
-            if (storeConnection.updateUnrefreshedCertificatesNotificationTimestamp(serverHostName, updateTs)) {
+            if (storeConnection.updateUnrefreshedCertificatesNotificationTimestamp(serverHostName, updateTs, provider)) {
                 return storeConnection.getNotifyUnrefreshedCertificates(serverHostName, updateTs);
             }
         }
