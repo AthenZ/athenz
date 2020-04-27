@@ -18,7 +18,6 @@ package com.yahoo.athenz.zms.notification;
 
 import com.yahoo.athenz.common.server.notification.*;
 import com.yahoo.athenz.zms.DBService;
-import com.yahoo.athenz.zms.ZMSConsts;
 import com.yahoo.athenz.zms.ZMSTestUtils;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;

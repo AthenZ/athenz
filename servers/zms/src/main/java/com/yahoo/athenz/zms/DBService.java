@@ -4227,6 +4227,11 @@ public class DBService {
         return null;
     }
 
+    public Map<String, DomainRoleMember> getReviewMembers() {
+        // Currently unimplemented
+        return new HashMap<>();
+    }
+
     public void processExpiredPendingMembers(int pendingRoleMemberLifespan, final String monitorIdentity) {
 
         final String auditRef = "Expired - auto reject";

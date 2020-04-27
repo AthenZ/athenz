@@ -40,6 +40,7 @@ public class ZMSNotificationTaskFactory implements NotificationTaskFactory {
         String monitorIdentity = System.getProperty(ZMSConsts.ZMS_PROP_MONITOR_IDENTITY, ZMSConsts.SYS_AUTH_MONITOR);
         notificationTasks.add(new PendingMembershipApprovalNotificationTask(dbService, pendingRoleMemberLifespan, monitorIdentity, userDomainPrefix));
         notificationTasks.add(new RoleMemberExpiryNotificationTask(dbService, userDomainPrefix));
+        notificationTasks.add(new RoleMemberReviewNotificationTask(dbService, userDomainPrefix));
         return notificationTasks;
     }
 }
