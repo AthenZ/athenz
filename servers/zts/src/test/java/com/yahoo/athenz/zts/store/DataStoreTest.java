@@ -4024,7 +4024,7 @@ public class DataStoreTest {
         final String encodedInt1 = "li7dzDacuo67Jg7mtqEm2TRuOMU=";
         final BigInteger bigInt1 = new BigInteger("85739377120809420210425962799" + "0318636601332086981");
 
-        assertEquals(encodedInt1, new String(encoder.encode(store.toIntegerBytes(bigInt1))));
+        assertEquals(encodedInt1, new String(encoder.encode(store.toIntegerBytes(bigInt1, true))));
     }
 
     @Test
@@ -4038,7 +4038,7 @@ public class DataStoreTest {
         final String encodedInt2 = "9B5ypLY9pMOmtxCeTDHgwdNFeGs=";
         final BigInteger bigInt2 = new BigInteger("13936727572861167254666467268" + "91466679477132949611");
 
-        assertEquals(encodedInt2, new String(encoder.encode(store.toIntegerBytes(bigInt2))));
+        assertEquals(encodedInt2, new String(encoder.encode(store.toIntegerBytes(bigInt2, true))));
     }
 
     @Test
@@ -4055,7 +4055,7 @@ public class DataStoreTest {
                 "10806548154093873461951748545" + "1196989136416448805819079363524309897749044958112417136240557"
                         + "4495062430572478766856090958495998158114332651671116876320938126");
 
-        assertEquals(encodedInt3, new String(encoder.encode(store.toIntegerBytes(bigInt3))));
+        assertEquals(encodedInt3, new String(encoder.encode(store.toIntegerBytes(bigInt3, true))));
     }
 
     @Test
@@ -4076,6 +4076,6 @@ public class DataStoreTest {
                         + "338880713818192088877057717530169381044092839402438015097654"
                         + "53542091716518238707344493641683483917");
 
-        assertEquals(encodedInt4, new String(encoder.encode(store.toIntegerBytes(bigInt4))));
+        assertEquals(encodedInt4, new String(encoder.encode(store.toIntegerBytes(bigInt4, true))));
     }
 }
