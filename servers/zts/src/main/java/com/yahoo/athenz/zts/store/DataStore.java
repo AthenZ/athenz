@@ -249,8 +249,8 @@ public class DataStore implements DataCacheProvider {
                 jwk.setKty("RSA");
                 jwk.setAlg("RS256");
                 final RSAPublicKey rsaPublicKey = (RSAPublicKey) publicKey;
-                jwk.setN(new String(encoder.encode(toIntegerBytes(rsaPublicKey.getModulus()))));
-                jwk.setE(new String(encoder.encode(toIntegerBytes(rsaPublicKey.getPublicExponent()))));
+                jwk.setN(new String(encoder.encode(toIntegerBytes(rsaPublicKey.getModulus(), rfc))));
+                jwk.setE(new String(encoder.encode(toIntegerBytes(rsaPublicKey.getPublicExponent(), rfc))));
                 break;
             case ZTSConsts.ECDSA:
                 jwk = new JWK();
@@ -260,8 +260,8 @@ public class DataStore implements DataCacheProvider {
                 jwk.setAlg("ES256");
                 final ECPublicKey ecPublicKey = (ECPublicKey) publicKey;
                 final ECPoint ecPoint = ecPublicKey.getW();
-                jwk.setX(new String(encoder.encode(toIntegerBytes(ecPoint.getAffineX()))));
-                jwk.setY(new String(encoder.encode(toIntegerBytes(ecPoint.getAffineY()))));
+                jwk.setX(new String(encoder.encode(toIntegerBytes(ecPoint.getAffineX(), rfc))));
+                jwk.setY(new String(encoder.encode(toIntegerBytes(ecPoint.getAffineY(), rfc))));
                 jwk.setCrv(getCurveName(EC5Util.convertSpec(ecPublicKey.getParams()), rfc));
                 break;
         }
@@ -282,7 +282,15 @@ public class DataStore implements DataCacheProvider {
      * @param bigInt {@code BigInteger} to be converted
      * @return a byte array representation of the BigInteger parameter
      */
-     byte[] toIntegerBytes(final BigInteger bigInt) {
+
+    byte[] toIntegerBytes(final BigInteger bigInt, boolean rfc) {
+
+        // this will be removed once all properties update
+        // their code to handle the sign bit correctly
+        if (!rfc) {
+            return bigInt.toByteArray();
+        }
+
         int bitlen = bigInt.bitLength();
         // round bitlen
         bitlen = ((bitlen + 7) >> 3) << 3;
