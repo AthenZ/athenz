@@ -136,7 +136,7 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_QUOTA_ENTITY       = "athenz.zms.quota_entity";
     public static final String ZMS_PROP_QUOTA_SUBDOMAIN    = "athenz.zms.quota_subdomain";
 
-    public static final String ZMS_PROP_USE_LOCAL_TIMEZONE_IN_DOMAIN_SCAN = "athenz.zms.use_local_timezone_in_domain_scan";
+    public static final String ZMS_PROP_MYSQL_SERVER_TIMEZONE = "athenz.zms.mysql_server_timezone";
     
     public static final String ZMS_PRINCIPAL_AUTHORITY_CLASS  = "com.yahoo.athenz.auth.impl.PrincipalAuthority";
 

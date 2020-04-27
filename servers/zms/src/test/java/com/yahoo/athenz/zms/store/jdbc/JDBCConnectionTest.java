@@ -5013,65 +5013,7 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(ArgumentMatchers.eq(1), ArgumentMatchers.eq(new java.sql.Timestamp(100)), ArgumentMatchers.isA(Calendar.class));
         jdbcConn.close();
     }
-
-    @Test
-    public void testGetCalendarInstanceWithoutProperty() throws Exception {
-
-        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        Calendar calendar = jdbcConn.getCalendarInstance();
-
-        TimeZone expected = TimeZone.getTimeZone("GMT");
-        TimeZone actual = calendar.getTimeZone();
-        assertEquals(expected, actual);
-
-        jdbcConn.close();
-    }
-
-    @Test
-    public void testGetCalendarInstanceWithPropertyUsingLocalTimeZone() throws Exception {
-
-        System.setProperty(ZMSConsts.ZMS_PROP_USE_LOCAL_TIMEZONE_IN_DOMAIN_SCAN, "true");
-        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        Calendar calendar = jdbcConn.getCalendarInstance();
-
-        TimeZone expected = TimeZone.getDefault();
-        TimeZone actual = calendar.getTimeZone();
-        assertEquals(expected, actual);
-
-        jdbcConn.close();
-        System.clearProperty(ZMSConsts.ZMS_PROP_USE_LOCAL_TIMEZONE_IN_DOMAIN_SCAN);
-    }
-
-    @Test
-    public void testGetCalendarInstanceWithPropertyNotUsingLocalTimeZone() throws Exception {
-
-        System.setProperty(ZMSConsts.ZMS_PROP_USE_LOCAL_TIMEZONE_IN_DOMAIN_SCAN, "false");
-        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        Calendar calendar = jdbcConn.getCalendarInstance();
-
-        TimeZone expected = TimeZone.getTimeZone("GMT");
-        TimeZone actual = calendar.getTimeZone();
-        assertEquals(expected, actual);
-
-        jdbcConn.close();
-        System.clearProperty(ZMSConsts.ZMS_PROP_USE_LOCAL_TIMEZONE_IN_DOMAIN_SCAN);
-    }
-
-    @Test
-    public void testGetCalendarInstanceWithEmptyProperty() throws Exception {
-
-        System.setProperty(ZMSConsts.ZMS_PROP_USE_LOCAL_TIMEZONE_IN_DOMAIN_SCAN, "");
-        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        Calendar calendar = jdbcConn.getCalendarInstance();
-
-        TimeZone expected = TimeZone.getTimeZone("GMT");
-        TimeZone actual = calendar.getTimeZone();
-        assertEquals(expected, actual);
-
-        jdbcConn.close();
-        System.clearProperty(ZMSConsts.ZMS_PROP_USE_LOCAL_TIMEZONE_IN_DOMAIN_SCAN);
-    }
-
+    
     @Test
     public void testPrepareScanByRoleStatement() throws Exception {
         

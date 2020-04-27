@@ -322,6 +322,8 @@ public class JDBCConnection implements ObjectStoreConnection {
 
     private static final String AWS_ARN_PREFIX  = "arn:aws:iam::";
 
+    private static final String MYSQL_SERVER_TIMEZONE = System.getProperty(ZMSConsts.ZMS_PROP_MYSQL_SERVER_TIMEZONE, "GMT");
+
     Connection con;
     boolean transactionCompleted;
     int queryTimeout = 60;
@@ -648,8 +650,8 @@ public class JDBCConnection implements ObjectStoreConnection {
 
     PreparedStatement prepareDomainScanStatement(String prefix, long modifiedSince)
             throws SQLException {
-        
-        Calendar cal = getCalendarInstance();
+
+        Calendar cal = Calendar.getInstance(TimeZone.getTimeZone(MYSQL_SERVER_TIMEZONE));
 
         PreparedStatement ps;
         if (prefix != null && prefix.length() > 0) {
@@ -675,21 +677,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         return ps;
     }
 
-    Calendar getCalendarInstance() {
-
-        Boolean useLocalTimeZone = Boolean.parseBoolean(
-                System.getProperty(ZMSConsts.ZMS_PROP_USE_LOCAL_TIMEZONE_IN_DOMAIN_SCAN, "false")
-        );
-
-        TimeZone timeZone;
-        if (useLocalTimeZone) {
-            timeZone = TimeZone.getDefault();
-        } else {
-            timeZone = TimeZone.getTimeZone("GMT");
-        }
-        return Calendar.getInstance(timeZone);
-    }
-    
+   
     PreparedStatement prepareScanByRoleStatement(String roleMember, String roleName)
             throws SQLException {
         
