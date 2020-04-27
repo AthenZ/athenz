@@ -76,9 +76,12 @@ public interface CertRecordStoreConnection extends Closeable {
      * Update lastNotifiedServer and lastNotifiedTime for certificate that failed to refresh for more than one day.
      * @param lastNotifiedServer
      * @param lastNotifiedTime
+     * @param provider
      * @return True if at least one certificate record was updated (needs notification to be sent)
      */
-    boolean updateUnrefreshedCertificatesNotificationTimestamp(String lastNotifiedServer, long lastNotifiedTime);
+    boolean updateUnrefreshedCertificatesNotificationTimestamp(String lastNotifiedServer,
+                                                               long lastNotifiedTime,
+                                                               String provider);
 
     /**
      * List all certificates that failed to refresh and require notifications to be sent

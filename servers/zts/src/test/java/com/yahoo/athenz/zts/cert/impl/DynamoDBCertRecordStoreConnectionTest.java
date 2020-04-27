@@ -391,7 +391,10 @@ public class DynamoDBCertRecordStoreConnectionTest {
     public void testUpdateUnrefreshedCertificatesNotificationTimestamp() {
         DynamoDBCertRecordStoreConnection dbConn = new DynamoDBCertRecordStoreConnection(dynamoDB, tableName);
         long timestamp = System.currentTimeMillis();
-        boolean result = dbConn.updateUnrefreshedCertificatesNotificationTimestamp("localhost", timestamp);
+        boolean result = dbConn.updateUnrefreshedCertificatesNotificationTimestamp(
+                "localhost",
+                timestamp,
+                "provider");
 
         // For DynamoDB, unrefreshed certs unimplemented. Assert false
         assertFalse(result);

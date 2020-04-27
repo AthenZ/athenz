@@ -210,7 +210,9 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
     }
 
     @Override
-    public boolean updateUnrefreshedCertificatesNotificationTimestamp(String lastNotifiedServer, long lastNotifiedTime) {
+    public boolean updateUnrefreshedCertificatesNotificationTimestamp(String lastNotifiedServer,
+                                                                      long lastNotifiedTime,
+                                                                      String provider) {
         // Currently unimplemented for AWS
         return false;
     }

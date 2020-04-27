@@ -46,7 +46,10 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
     private static final String SQL_DELETE_EXPIRED_X509_RECORDS = "DELETE FROM certificates " +
             "WHERE currentTime < ADDDATE(NOW(), INTERVAL -? MINUTE);";
     private static final String SQL_UPDATE_UNREFRESHED_X509_RECORDS_NOTIFICATION_TIMESTAMP = "UPDATE certificates SET lastNotifiedTime=?, lastNotifiedServer=? " +
-            "WHERE currentTime < (CURRENT_DATE - INTERVAL 2 DAY) AND (lastNotifiedTime IS NULL || lastNotifiedTime < (CURRENT_DATE - INTERVAL 1 DAY))";
+            "WHERE currentTime < (CURRENT_DATE - INTERVAL 3 DAY) AND " +
+            "(hostName IS NOT NULL AND hostName != '') AND " +
+            "provider=? AND " +
+            "(lastNotifiedTime IS NULL || lastNotifiedTime < (CURRENT_DATE - INTERVAL 1 DAY))";
     private static final String SQL_LIST_NOTIFY_UNREFRESHED_X509_RECORDS = "SELECT * FROM certificates WHERE lastNotifiedTime=? AND lastNotifiedServer=?;";
 
     public static final String DB_COLUMN_INSTANCE_ID            = "instanceId";
@@ -271,13 +274,16 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
     }
 
     @Override
-    public boolean updateUnrefreshedCertificatesNotificationTimestamp(String lastNotifiedServer, long lastNotifiedTime) {
+    public boolean updateUnrefreshedCertificatesNotificationTimestamp(String lastNotifiedServer,
+                                                                      long lastNotifiedTime,
+                                                                      String provider) {
 
         final String caller = "updateUnrefreshedCertificatesNotificationTimestamp";
         int affectedRows;
         try (PreparedStatement ps = con.prepareStatement(SQL_UPDATE_UNREFRESHED_X509_RECORDS_NOTIFICATION_TIMESTAMP)) {
             ps.setTimestamp(1, new java.sql.Timestamp(lastNotifiedTime));
             ps.setString(2, lastNotifiedServer);
+            ps.setString(3, provider);
 
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
