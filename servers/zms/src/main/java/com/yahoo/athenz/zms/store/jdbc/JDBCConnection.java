@@ -651,8 +651,6 @@ public class JDBCConnection implements ObjectStoreConnection {
     PreparedStatement prepareDomainScanStatement(String prefix, long modifiedSince)
             throws SQLException {
 
-        Calendar cal = Calendar.getInstance(TimeZone.getTimeZone(MYSQL_SERVER_TIMEZONE));
-
         PreparedStatement ps;
         if (prefix != null && prefix.length() > 0) {
             int len = prefix.length();
@@ -662,6 +660,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                 ps = con.prepareStatement(SQL_LIST_DOMAIN_PREFIX_MODIFIED);
                 ps.setString(1, prefix);
                 ps.setString(2, stop);
+                Calendar cal = Calendar.getInstance(TimeZone.getTimeZone(MYSQL_SERVER_TIMEZONE));
                 ps.setTimestamp(3, new java.sql.Timestamp(modifiedSince), cal);
             } else {
                 ps = con.prepareStatement(SQL_LIST_DOMAIN_PREFIX);
@@ -670,6 +669,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             }
         } else if (modifiedSince != 0) {
             ps = con.prepareStatement(SQL_LIST_DOMAIN_MODIFIED);
+            Calendar cal = Calendar.getInstance(TimeZone.getTimeZone(MYSQL_SERVER_TIMEZONE));
             ps.setTimestamp(1, new java.sql.Timestamp(modifiedSince), cal);
         } else {
             ps = con.prepareStatement(SQL_LIST_DOMAIN);
