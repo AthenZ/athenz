@@ -102,10 +102,17 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_CERT_DYNAMODB_TABLE_NAME     = "athenz.zts.cert_dynamodb_table_name";
     public static final String ZTS_PROP_CERT_DYNAMODB_ITEM_TTL_HOURS = "athenz.zts.cert_dynamodb_item_ttl_hours";
 
+    public static final String ZTS_PROP_SSH_JDBC_STORE               = "athenz.zts.ssh_jdbc_store";
+    public static final String ZTS_PROP_SSH_JDBC_USER                = "athenz.zts.ssh_jdbc_user";
+    public static final String ZTS_PROP_SSH_JDBC_PASSWORD            = "athenz.zts.ssh_jdbc_password";
+    public static final String ZTS_PROP_SSH_JDBC_APP_NAME            = "athenz.zts.ssh_jdbc_app_name";
+    public static final String ZTS_PROP_SSH_JDBC_USE_SSL             = "athenz.zts.ssh_jdbc_use_ssl";
+    public static final String ZTS_PROP_SSH_JDBC_VERIFY_SERVER_CERT  = "athenz.zts.ssh_jdbc_verify_server_certificate";
     public static final String ZTS_PROP_SSH_FILE_STORE_PATH          = "athenz.zts.ssh_file_store_path";
     public static final String ZTS_PROP_SSH_FILE_STORE_NAME          = "athenz.zts.ssh_file_store_name";
     public static final String ZTS_PROP_SSH_DYNAMODB_TABLE_NAME      = "athenz.zts.ssh_dynamodb_table_name";
     public static final String ZTS_PROP_SSH_DYNAMODB_ITEM_TTL_HOURS  = "athenz.zts.ssh_dynamodb_item_ttl_hours";
+    public static final String ZTS_PROP_SSH_OP_TIMEOUT               = "athenz.zts.ssh_op_timeout";
 
     public static final String ZTS_PROP_PROVIDER_ENDPOINTS      = "athenz.zts.provider_endpoints";
     public static final String ZTS_PROP_INSTANCE_NTOKEN_TIMEOUT = "athenz.zts.instance_token_timeout";
