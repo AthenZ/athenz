@@ -24,6 +24,8 @@ import com.yahoo.rdl.Validator;
 import com.yahoo.rdl.Validator.Result;
 
 import static org.testng.Assert.*;
+
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.util.*;
@@ -1937,6 +1939,46 @@ public class ZMSCoreTest {
 
         assertFalse(tl1.equals(null));
         assertFalse(tl1.equals(new String()));
+    }
+
+    @Test
+    public void testTemplateMetaData() {
+        Schema schema = ZMSSchema.instance();
+        Validator validator = new Validator(schema);
+        Timestamp timestamp = Timestamp.fromMillis(System.currentTimeMillis());
+
+        MetaData meta = new MetaData();
+        meta.setAutoUpdate(true)
+                .setCurrentVersion(1)
+                .setDescription("test template")
+                .setUpdatedVersion(2)
+                .setKeywordsToReplace("none")
+                .setTimestamp(timestamp);
+
+        Template temp = new Template()
+                .setMetadata(meta);
+
+        assertTrue(temp.equals(temp));
+
+        Result result = validator.validate(meta, "MetaData");
+        assertTrue(result.valid);
+        assertTrue(meta.getAutoUpdate());
+        assertEquals((int) meta.getCurrentVersion(), 1);
+        assertEquals(meta.getDescription(), "test template");
+        assertEquals((int) meta.getUpdatedVersion(), 2);
+        assertEquals(meta.getKeywordsToReplace(), "none");
+        assertEquals(meta.getTimestamp(), timestamp);
+
+        MetaData meta1 = new MetaData();
+        meta1.setAutoUpdate(false)
+                .setCurrentVersion(1)
+                .setDescription("test template")
+                .setUpdatedVersion(2)
+                .setKeywordsToReplace("none")
+                .setTimestamp(timestamp);
+        Template temp1 = new Template()
+                .setMetadata(meta1);
+        assertFalse(temp.equals(temp1));
     }
 
     @Test
