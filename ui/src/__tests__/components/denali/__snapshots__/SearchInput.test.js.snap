@@ -1,0 +1,157 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SearchInput should render 1`] = `
+.emotion-1 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 250px;
+}
+
+.emotion-1 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-1.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+}
+
+.emotion-1 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input.focused,
+.emotion-1 input:active,
+.emotion-1 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-1 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-1 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-1.error input,
+.emotion-1.error input.focused,
+.emotion-1.error input:active,
+.emotion-1.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-1.error .message {
+  color: #d01111;
+}
+
+.emotion-1 input {
+  padding-right: 36px;
+}
+
+.emotion-1 .input-icon {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 36px;
+  position: absolute;
+  right: 6px;
+}
+
+.emotion-0 {
+  fill: #3570f4;
+  cursor: inherit;
+  vertical-align: text-bottom;
+}
+
+<div
+  class="emotion-1 denali-input animated"
+  data-testid="input-wrapper"
+>
+  <input
+    autocomplete="off"
+    data-testid="input-node"
+    name="search"
+    placeholder="Search!"
+    value=""
+  />
+  <div
+    class="input-icon"
+  >
+    <svg
+      class="emotion-0"
+      data-testid="icon"
+      height="24px"
+      viewBox="0 0 1024 1024"
+      width="24px"
+    >
+      <title>
+        search
+      </title>
+      <path
+        d="M659.413 599.68c40.125-53.054 64.27-120.136 64.27-192.857 0-177.556-143.937-321.493-321.493-321.493s-321.493 143.937-321.493 321.493c0 177.556 143.937 321.493 321.493 321.493 74.297 0 142.708-25.203 197.149-67.525l-0.726 0.543 267.307 264.96c7.723 7.731 18.396 12.514 30.187 12.514s22.464-4.782 30.186-12.513l0-0c7.795-7.733 12.621-18.45 12.621-30.293s-4.826-22.56-12.618-30.291l-0.003-0.003zM444.8 637.227c-11.829 2.113-25.446 3.322-39.345 3.322-129.603 0-234.667-105.064-234.667-234.667s105.064-234.667 234.667-234.667c129.603 0 234.667 105.064 234.667 234.667 0 13.899-1.208 27.516-3.526 40.752l0.204-1.407c-17.178 98.349-93.651 174.822-190.593 191.796l-1.407 0.204z"
+      />
+    </svg>
+  </div>
+  <div
+    class="message"
+    data-testid="message"
+  />
+</div>
+`;

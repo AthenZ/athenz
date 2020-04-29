@@ -62,12 +62,24 @@ libs/nodejs/auth_core/artifacts/
 libs/nodejs/auth_core/.eslintcodecache
 libs/nodejs/auth_core/.nyc_output/
 libs/nodejs/auth_core/artifacts
-ui/.eslintcodecache
-ui/.nyc_output/
 ui/artifacts/
-ui/build/
 ui/keys/
 ui/node_modules/
+ui/.next/
+ui/junit.xml
+ui/lib-cov/
+ui/coverage/
+ui/bin/
+# dev files to ignore
+ui/**/athenz.ui-server.pem
+ui/**/athenz.ui-server_pub.pem
+ui/**/cookie-session
+ui/**/dev_ui_x509_cert.cnf
+ui/**/ui_cert.pem
+ui/**/ui_key.pem
+ui/**/zms_cert.pem
+ui/**/athenz.conf
+ui/**/users_data.json
 utils/zms-cli/pkg/
 utils/zms-cli/src/
 utils/zms-cli/bin/
@@ -111,3 +123,18 @@ ui/package-lock.json
 .envrc
 .clover/
 athenz-docker-build.log
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+
+
+# Optional REPL history
+.node_repl_history
+

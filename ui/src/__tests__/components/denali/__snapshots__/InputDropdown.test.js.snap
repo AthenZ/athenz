@@ -1,0 +1,878 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`InputDropdown opens the dropdown 1`] = `
+.emotion-2 {
+  position: relative;
+}
+
+.emotion-2 input {
+  cursor: pointer;
+}
+
+.emotion-1 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 250px;
+}
+
+.emotion-1 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-1.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+}
+
+.emotion-1 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input.focused,
+.emotion-1 input:active,
+.emotion-1 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-1 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-1 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-1.error input,
+.emotion-1.error input.focused,
+.emotion-1.error input:active,
+.emotion-1.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-1.error .message {
+  color: #d01111;
+}
+
+.emotion-1 input {
+  padding-right: 36px;
+}
+
+.emotion-1 .input-icon {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 36px;
+  position: absolute;
+  right: 6px;
+}
+
+.emotion-0 {
+  fill: #d5d5d5;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+<div
+  aria-expanded="true"
+  aria-haspopup="listbox"
+  aria-labelledby="downshift-7-label"
+  aria-owns="downshift-7-menu"
+  class="emotion-2 denali-input-dropdown"
+  data-testid="input-dropdown"
+  role="combobox"
+>
+  <div
+    class="emotion-1 denali-input animated"
+    data-testid="input-wrapper"
+  >
+    <input
+      aria-autocomplete="list"
+      aria-controls="downshift-7-menu"
+      aria-labelledby="downshift-7-label"
+      autocomplete="off"
+      autocorrect="off"
+      class="focused"
+      data-testid="input-node"
+      id="downshift-7-input"
+      name="test"
+      readonly=""
+      spellcheck="false"
+      value=""
+    />
+    <div
+      class="input-icon"
+    >
+      
+      <svg
+        class="emotion-0"
+        data-testid="icon"
+        height="24px"
+        viewBox="0 0 1024 1024"
+        width="24px"
+      >
+        <title>
+          arrowhead-up
+        </title>
+        <path
+          d="M512 443.733l-226.133 226.133c-7.461 8.401-18.291 13.668-30.351 13.668-13.957 0-26.267-7.055-33.558-17.793l-0.091-0.142c-5.319-7.276-8.51-16.4-8.51-26.27 0-12.199 4.876-23.259 12.785-31.338l-0.008 0.008 256-253.867c7.434-8.083 18.061-13.13 29.867-13.13s22.432 5.047 29.84 13.101l0.026 0.029 256 253.867c7.901 8.071 12.777 19.131 12.777 31.33 0 9.87-3.192 18.994-8.599 26.397l0.088-0.127c-7.382 10.88-19.691 17.934-33.649 17.934-12.060 0-22.89-5.267-30.315-13.626l-0.036-0.042z"
+        />
+      </svg>
+    </div>
+    <div
+      class="message"
+      data-testid="message"
+    />
+  </div>
+</div>
+`;
+
+exports[`InputDropdown renders a filterable dropdown 1`] = `
+.emotion-1 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 250px;
+}
+
+.emotion-1 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-1.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+}
+
+.emotion-1 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input.focused,
+.emotion-1 input:active,
+.emotion-1 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-1 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-1 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-1.error input,
+.emotion-1.error input.focused,
+.emotion-1.error input:active,
+.emotion-1.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-1.error .message {
+  color: #d01111;
+}
+
+.emotion-1 input {
+  padding-right: 36px;
+}
+
+.emotion-1 .input-icon {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 36px;
+  position: absolute;
+  right: 6px;
+}
+
+.emotion-0 {
+  fill: #d5d5d5;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+.emotion-2 {
+  position: relative;
+}
+
+.emotion-2 input {
+  cursor: inherit;
+}
+
+<div
+  aria-expanded="false"
+  aria-haspopup="listbox"
+  aria-labelledby="downshift-13-label"
+  class="emotion-2 denali-input-dropdown"
+  data-testid="input-dropdown"
+  role="combobox"
+>
+  <div
+    class="emotion-1 denali-input animated"
+    data-testid="input-wrapper"
+  >
+    <input
+      aria-autocomplete="list"
+      aria-labelledby="downshift-13-label"
+      autocomplete="off"
+      autocorrect="off"
+      data-testid="input-node"
+      id="downshift-13-input"
+      name="test"
+      spellcheck="false"
+      value=""
+    />
+    <div
+      class="input-icon"
+    >
+      
+      <svg
+        class="emotion-0"
+        data-testid="icon"
+        height="24px"
+        viewBox="0 0 1024 1024"
+        width="24px"
+      >
+        <title>
+          arrowhead-down
+        </title>
+        <path
+          d="M512 580.267l-226.133-226.133c-7.461-8.401-18.291-13.668-30.351-13.668-13.957 0-26.267 7.055-33.558 17.793l-0.091 0.142c-5.319 7.276-8.51 16.4-8.51 26.27 0 12.199 4.876 23.259 12.785 31.338l-0.008-0.008 256 253.867c7.434 8.083 18.061 13.13 29.867 13.13s22.432-5.047 29.84-13.101l0.026-0.029 256-253.867c7.901-8.071 12.777-19.131 12.777-31.33 0-9.87-3.192-18.994-8.599-26.397l0.088 0.127c-7.382-10.88-19.691-17.934-33.649-17.934-12.060 0-22.89 5.267-30.315 13.626l-0.036 0.042z"
+        />
+      </svg>
+    </div>
+    <div
+      class="message"
+      data-testid="message"
+    />
+  </div>
+</div>
+`;
+
+exports[`InputDropdown renders fluid dropdown 1`] = `
+.emotion-0 {
+  fill: #d5d5d5;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+.emotion-2 {
+  position: relative;
+  width: 100%;
+}
+
+.emotion-2 input {
+  cursor: pointer;
+}
+
+.emotion-1 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 100%;
+}
+
+.emotion-1 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-1.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+}
+
+.emotion-1 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input.focused,
+.emotion-1 input:active,
+.emotion-1 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-1 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-1 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-1.error input,
+.emotion-1.error input.focused,
+.emotion-1.error input:active,
+.emotion-1.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-1.error .message {
+  color: #d01111;
+}
+
+.emotion-1 input {
+  padding-right: 36px;
+}
+
+.emotion-1 .input-icon {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 36px;
+  position: absolute;
+  right: 6px;
+}
+
+<div
+  aria-expanded="false"
+  aria-haspopup="listbox"
+  aria-labelledby="downshift-1-label"
+  class="emotion-2 denali-input-dropdown"
+  data-testid="input-dropdown"
+  role="combobox"
+>
+  <div
+    class="emotion-1 denali-input animated"
+    data-testid="input-wrapper"
+  >
+    <input
+      aria-autocomplete="list"
+      aria-labelledby="downshift-1-label"
+      autocomplete="off"
+      autocorrect="off"
+      data-testid="input-node"
+      id="downshift-1-input"
+      name="test"
+      readonly=""
+      spellcheck="false"
+      value=""
+    />
+    <div
+      class="input-icon"
+    >
+      
+      <svg
+        class="emotion-0"
+        data-testid="icon"
+        height="24px"
+        viewBox="0 0 1024 1024"
+        width="24px"
+      >
+        <title>
+          arrowhead-down
+        </title>
+        <path
+          d="M512 580.267l-226.133-226.133c-7.461-8.401-18.291-13.668-30.351-13.668-13.957 0-26.267 7.055-33.558 17.793l-0.091 0.142c-5.319 7.276-8.51 16.4-8.51 26.27 0 12.199 4.876 23.259 12.785 31.338l-0.008-0.008 256 253.867c7.434 8.083 18.061 13.13 29.867 13.13s22.432-5.047 29.84-13.101l0.026-0.029 256-253.867c7.901-8.071 12.777-19.131 12.777-31.33 0-9.87-3.192-18.994-8.599-26.397l0.088 0.127c-7.382-10.88-19.691-17.934-33.649-17.934-12.060 0-22.89 5.267-30.315 13.626l-0.036 0.042z"
+        />
+      </svg>
+    </div>
+    <div
+      class="message"
+      data-testid="message"
+    />
+  </div>
+</div>
+`;
+
+exports[`InputDropdown renders initial (closed) state 1`] = `
+.emotion-2 {
+  position: relative;
+}
+
+.emotion-2 input {
+  cursor: pointer;
+}
+
+.emotion-1 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 250px;
+}
+
+.emotion-1 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-1.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+}
+
+.emotion-1 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input.focused,
+.emotion-1 input:active,
+.emotion-1 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-1 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-1 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-1.error input,
+.emotion-1.error input.focused,
+.emotion-1.error input:active,
+.emotion-1.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-1.error .message {
+  color: #d01111;
+}
+
+.emotion-1 input {
+  padding-right: 36px;
+}
+
+.emotion-1 .input-icon {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 36px;
+  position: absolute;
+  right: 6px;
+}
+
+.emotion-0 {
+  fill: #d5d5d5;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+<div
+  aria-expanded="false"
+  aria-haspopup="listbox"
+  aria-labelledby="downshift-0-label"
+  class="emotion-2 denali-input-dropdown"
+  data-testid="input-dropdown"
+  role="combobox"
+>
+  <div
+    class="emotion-1 denali-input animated"
+    data-testid="input-wrapper"
+  >
+    <input
+      aria-autocomplete="list"
+      aria-labelledby="downshift-0-label"
+      autocomplete="off"
+      autocorrect="off"
+      data-testid="input-node"
+      id="downshift-0-input"
+      name="test"
+      readonly=""
+      spellcheck="false"
+      value=""
+    />
+    <div
+      class="input-icon"
+    >
+      
+      <svg
+        class="emotion-0"
+        data-testid="icon"
+        height="24px"
+        viewBox="0 0 1024 1024"
+        width="24px"
+      >
+        <title>
+          arrowhead-down
+        </title>
+        <path
+          d="M512 580.267l-226.133-226.133c-7.461-8.401-18.291-13.668-30.351-13.668-13.957 0-26.267 7.055-33.558 17.793l-0.091 0.142c-5.319 7.276-8.51 16.4-8.51 26.27 0 12.199 4.876 23.259 12.785 31.338l-0.008-0.008 256 253.867c7.434 8.083 18.061 13.13 29.867 13.13s22.432-5.047 29.84-13.101l0.026-0.029 256-253.867c7.901-8.071 12.777-19.131 12.777-31.33 0-9.87-3.192-18.994-8.599-26.397l0.088 0.127c-7.382-10.88-19.691-17.934-33.649-17.934-12.060 0-22.89 5.267-30.315 13.626l-0.036 0.042z"
+        />
+      </svg>
+    </div>
+    <div
+      class="message"
+      data-testid="message"
+    />
+  </div>
+</div>
+`;
+
+exports[`InputDropdown renders searchable input 1`] = `
+.emotion-0 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 250px;
+}
+
+.emotion-0 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-0.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+}
+
+.emotion-0 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input.focused,
+.emotion-0 input:active,
+.emotion-0 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-0 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-0 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-0.error input,
+.emotion-0.error input.focused,
+.emotion-0.error input:active,
+.emotion-0.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-0.error .message {
+  color: #d01111;
+}
+
+.emotion-0 input {
+  padding-right: 36px;
+}
+
+.emotion-0 .input-icon {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 36px;
+  position: absolute;
+  right: 6px;
+}
+
+.emotion-1 {
+  position: relative;
+}
+
+.emotion-1 input {
+  cursor: inherit;
+}
+
+<div
+  aria-expanded="false"
+  aria-haspopup="listbox"
+  aria-labelledby="downshift-14-label"
+  class="emotion-1 denali-input-dropdown"
+  data-testid="input-dropdown"
+  role="combobox"
+>
+  <div
+    class="emotion-0 denali-input animated"
+    data-testid="input-wrapper"
+  >
+    <input
+      aria-autocomplete="list"
+      aria-labelledby="downshift-14-label"
+      autocomplete="off"
+      autocorrect="off"
+      data-testid="input-node"
+      id="downshift-14-input"
+      name="test"
+      spellcheck="false"
+      value=""
+    />
+    <div
+      class="input-icon"
+    >
+      
+    </div>
+    <div
+      class="message"
+      data-testid="message"
+    />
+  </div>
+</div>
+`;

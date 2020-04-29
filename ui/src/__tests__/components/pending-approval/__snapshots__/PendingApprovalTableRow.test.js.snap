@@ -1,0 +1,454 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`PendingApprovalTable should render 1`] = `
+.emotion-0 {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  display: inline-block;
+  height: 16px;
+  line-height: 16px;
+  margin: 3px;
+  outline: 0;
+  position: relative;
+  vertical-align: middle;
+}
+
+.emotion-0 > input[type='checkbox'] {
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  position: absolute;
+  top: 0;
+  visibility: hidden;
+}
+
+.emotion-0 > input[type='checkbox'] + label {
+  box-sizing: border-box;
+  cursor: pointer;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  height: 16px;
+  line-height: 16px;
+  padding: 0 10px 0 0;
+  vertical-align: bottom;
+  white-space: nowrap;
+}
+
+.emotion-0 > input[type='checkbox'] + label:before {
+  background: #fff;
+  border: 2px solid rgba(54,151,242,0.5);
+  border-radius: 2px;
+  box-sizing: border-box;
+  content: '';
+  cursor: pointer;
+  display: inline-block;
+  height: 16px;
+  line-height: 16px;
+  margin: 0px 3px -3px 0px;
+  -webkit-transition: all 0.25s ease-in;
+  transition: all 0.25s ease-in;
+  width: 16px;
+}
+
+.emotion-0 > input[type='checkbox']:hover + label:before {
+  border: 2px solid #3697f2;
+}
+
+.emotion-0 > input[type='checkbox']:focus + label:before {
+  border: 2px solid rgba(54,151,242,0.5);
+}
+
+.emotion-0 > input[type='checkbox'][data-partial='true'] + label:before,
+.emotion-0 > input[type='checkbox']:checked + label:before {
+  border: 2px solid #3697f2;
+}
+
+.emotion-0 > input[type='checkbox']:disabled + label {
+  color: #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-0 > input[type='checkbox']:disabled + label:before {
+  border: 2px solid #d5d5d5;
+}
+
+.emotion-0 > input[type='checkbox']:checked:not([data-partial='true']) + label:before {
+  background: #3697f2;
+}
+
+.emotion-0 > input[type='checkbox'][data-partial='true'] + label:after {
+  border: solid #3697f2;
+  border-width: 2px 0 0 0;
+  box-sizing: border-box;
+  content: '';
+  cursor: pointer;
+  height: 16px;
+  line-height: 16px;
+  left: 4px;
+  opacity: 1;
+  position: absolute;
+  top: 7px;
+  width: 8px;
+}
+
+.emotion-0 > input[type='checkbox']:checked:not([data-partial='true']) + label:after {
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  box-sizing: border-box;
+  content: '';
+  cursor: pointer;
+  display: block;
+  height: 9px;
+  line-height: 16px;
+  left: 6px;
+  opacity: 1;
+  position: absolute;
+  top: 3px;
+  -webkit-transform: rotate(45deg);
+  -ms-transform: rotate(45deg);
+  transform: rotate(45deg);
+  width: 4.5px;
+}
+
+.emotion-8 {
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-flex-flow: column nowrap;
+  -ms-flex-flow: column nowrap;
+  flex-flow: column nowrap;
+  position: relative;
+  width: 100%;
+}
+
+.emotion-8 > textarea {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: auto;
+  line-height: 1.5;
+  margin: 0;
+  outline: none;
+  padding: 0.25em 0.75rem;
+  text-align: left;
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  width: auto;
+}
+
+.emotion-8 > textarea::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-8 > textarea::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-8 > textarea:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-8 > textarea::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-8 > textarea:active,
+.emotion-8 > textarea:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-8 > textarea:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-8 > textarea[disabled] {
+  background: rgba(48,48,48,0.05);
+  border-bottom: 2px solid rgba(48,48,48,0.05);
+  color: rgba(48,48,48,0.25);
+  cursor: not-allowed;
+}
+
+.emotion-8 .message {
+  font-size: 12px;
+  color: #303030;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-11 {
+  fill: #188fff;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+.emotion-14 {
+  fill: #1dad51;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+.emotion-16 {
+  fill: #ea0000;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+.emotion-18 {
+  background-color: white;
+}
+
+.emotion-1 {
+  text-align: left;
+  vertical-align: middle;
+  word-break: break-all;
+  padding: 5px 0px 5px 15px;
+}
+
+.emotion-2 {
+  text-align: left;
+  vertical-align: middle;
+  word-break: break-all;
+  padding: 5px 0px 5px 0px;
+}
+
+.emotion-4 {
+  text-align: left;
+  vertical-align: middle;
+  padding: 5px 0px 5px 15px;
+}
+
+.emotion-9 > textarea {
+  resize: vertical;
+}
+
+.emotion-12 > div input {
+  position: relative;
+  font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
+  background-color: rgba(53,112,244,0.05);
+  box-shadow: none;
+  color: rgb(48,48,48);
+  height: 16px;
+  min-width: 50px;
+  text-align: left;
+  border-width: 2px;
+  border-style: solid;
+  border-color: transparent;
+  border-image: initial;
+  border-radius: 2px;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  margin: 0px;
+  margin-top: 5px;
+  outline: none;
+  padding: 0.6em 12px;
+  -webkit-transition: background-color 0.2s ease-in-out 0s, color 0.2s ease-in-out 0s,border 0.2s ease-in-out 0s;
+  transition: background-color 0.2s ease-in-out 0s, color 0.2s ease-in-out 0s,border 0.2s ease-in-out 0s;
+  width: 72%;
+}
+
+.emotion-15 {
+  vertical-align: middle;
+  word-break: break-all;
+  padding: 5px 0px 5px 15px;
+  text-align: center;
+}
+
+.emotion-17 {
+  vertical-align: middle;
+  word-break: break-all;
+  padding: 5px 0px 5px 15px;
+  text-align: center;
+  border-right: none;
+}
+
+<tr
+  class="emotion-18"
+  color="white"
+  data-testid="pending-approval-table-row"
+>
+  <td
+    class="emotion-1"
+  >
+    <div
+      class="emotion-0 denali-checkbox"
+      data-testid="checkbox-wrapper"
+    >
+      <input
+        data-partial="false"
+        id="abc"
+        name="checkbox-row"
+        type="checkbox"
+      />
+      <label
+        for="abc"
+      />
+    </div>
+  </td>
+  <td
+    class="emotion-2"
+  >
+    a
+  </td>
+  <td
+    class="emotion-1"
+  >
+    c
+  </td>
+  <td
+    class="emotion-4"
+  >
+    <p />
+    <p>
+      (
+      b
+      )
+    </p>
+  </td>
+  <td
+    class="emotion-4"
+    colspan="2"
+  >
+    d
+  </td>
+  <td
+    class="emotion-4"
+  >
+    <p />
+    <p>
+      (
+      )
+    </p>
+  </td>
+  <td
+    class="emotion-1"
+  >
+    Invalid date
+  </td>
+  <td
+    class="emotion-1"
+  >
+    <div
+      class="emotion-8 denali-textarea emotion-9"
+      data-testid="textarea-wrapper"
+    >
+      <textarea
+        data-testid="textarea"
+        id="abc"
+        placeholder="Justification"
+        rows="4"
+      />
+    </div>
+  </td>
+  <td
+    class="emotion-1"
+  >
+    <div
+      class="emotion-12"
+    >
+      <div
+        class="abc"
+      >
+        <input
+          class="flatpickr-input"
+          data-input=""
+          data-testid="flatPicker"
+          placeholder="Expiration (Optional)"
+          type="hidden"
+          value=""
+        />
+        <input
+          class="abc form-control input"
+          placeholder="Expiration (Optional)"
+          readonly="readonly"
+          tabindex="0"
+          type="text"
+        />
+        <a
+          data-clear=""
+        >
+          <svg
+            class="emotion-11"
+            data-testid="icon"
+            height="1.25em"
+            viewBox="0 0 1024 1024"
+            width="1.25em"
+          >
+            <title>
+              close
+            </title>
+            <path
+              d="M571.733 512l226.133-224c7.901-8.071 12.777-19.131 12.777-31.33 0-9.87-3.192-18.994-8.599-26.397l0.088 0.127c-7.382-10.88-19.691-17.934-33.649-17.934-12.060 0-22.89 5.267-30.315 13.626l-0.036 0.042-226.133 226.133-226.133-226.133c-7.461-8.401-18.291-13.668-30.351-13.668-13.957 0-26.267 7.055-33.558 17.793l-0.091 0.142c-5.319 7.276-8.51 16.4-8.51 26.27 0 12.199 4.876 23.259 12.785 31.338l-0.008-0.008 226.133 224-226.133 224c-7.901 8.071-12.777 19.131-12.777 31.33 0 9.87 3.192 18.994 8.599 26.397l-0.088-0.127c7.382 10.88 19.691 17.934 33.649 17.934 12.060 0 22.89-5.267 30.315-13.626l0.036-0.042 226.133-226.133 226.133 226.133c7.461 8.401 18.291 13.668 30.351 13.668 13.957 0 26.267-7.055 33.558-17.793l0.091-0.142c5.319-7.276 8.51-16.4 8.51-26.27 0-12.199-4.876-23.259-12.785-31.338l0.008 0.008z"
+            />
+          </svg>
+        </a>
+      </div>
+    </div>
+  </td>
+  <td
+    class="emotion-15"
+  >
+    <svg
+      class="emotion-14"
+      data-testid="icon"
+      height="1.25em"
+      viewBox="0 0 1024 1024"
+      width="1.25em"
+    >
+      <title>
+        check-circle
+      </title>
+      <path
+        d="M512 128c212.077 0 384 171.923 384 384s-171.923 384-384 384c-212.077 0-384-171.923-384-384v0c0-212.077 171.923-384 384-384v0zM512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0-259.206-210.128-469.333-469.333-469.333v0z"
+      />
+      <path
+        d="M396.16 691.413l-126.293-126.293c-8.506-8.066-13.798-19.448-13.798-32.066 0-9.118 2.763-17.59 7.498-24.625l-0.1 0.158c7.83-10.919 20.483-17.949 34.778-17.949 11.841 0 22.556 4.824 30.286 12.613l0.003 0.003 98.133 97.707 268.373-268.373c7.549-6.884 17.635-11.1 28.706-11.1 23.564 0 42.667 19.103 42.667 42.667 0 11.017-4.176 21.060-11.031 28.63l0.032-0.036-298.667 298.667c-7.733 7.795-18.45 12.621-30.293 12.621s-22.56-4.826-30.291-12.618l-0.003-0.003z"
+      />
+    </svg>
+  </td>
+  <td
+    class="emotion-17"
+  >
+    <svg
+      class="emotion-16"
+      data-testid="icon"
+      height="1.25em"
+      viewBox="0 0 1024 1024"
+      width="1.25em"
+    >
+      <title>
+        decline
+      </title>
+      <path
+        d="M512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0.003-0.635 0.005-1.387 0.005-2.138 0-258.027-209.173-467.2-467.2-467.2-0.752 0-1.504 0.002-2.255 0.005l0.117-0zM130.133 467.2c22.95-192.169 184.962-339.729 381.44-339.729 90.864 0 174.356 31.559 240.114 84.314l-0.754-0.585-539.733 539.733c-52.076-65.227-83.563-148.885-83.563-239.896 0-15.446 0.907-30.681 2.671-45.653l-0.174 1.816zM554.667 893.867c-12.252 1.372-26.457 2.154-40.844 2.154-92.264 0-177.012-32.182-243.63-85.933l0.741 0.579 539.733-537.6c53.445 64.395 85.876 147.901 85.876 238.983 0 15.772-0.972 31.316-2.861 46.577l0.184-1.826c-22.136 177.253-161.672 316.060-337.376 336.891l-1.824 0.176z"
+      />
+    </svg>
+  </td>
+</tr>
+`;

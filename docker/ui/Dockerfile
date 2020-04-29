@@ -1,4 +1,4 @@
-FROM node:10.19.0-alpine AS builder
+FROM node:12.16.2-alpine AS builder
 
 RUN set -eux && apk update && apk add --no-cache --update ca-certificates libstdc++ libgcc tini make git
 
@@ -13,15 +13,20 @@ COPY . .
 RUN make
 
 RUN rm -rf scripts \
-    && rm -rf test \
-    && rm -rf Gruntfile.js \
+    && rm -rf __mocks__ \
+    && rm -rf .editorconfig \
+    && rm -rf .env \
+    && rm -rf .istanbul.yml \
+    && rm -rf .npmrc \
+    && rm -rf .prettierrc \
+    && rm -rf jest.config.js \
+    && rm -rf pm2.config.js \
+    && rm -rf athenz-ui.spec \
     && rm -rf Makefile \
-    && rm -rf eslint.json \
     && rm -rf pom.xml \
-    && rm -rf rdl-api.md \
     && rm -rf README.md
 
-FROM node:10.19.0-alpine
+FROM node:12.16.2-alpine
 
 WORKDIR /opt/athenz/ui
 

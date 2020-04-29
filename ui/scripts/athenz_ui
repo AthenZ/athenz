@@ -70,9 +70,9 @@ case $command in
                 exit 1
             fi
         fi
-    
+
         echo "Starting Athenz UI..."
-        nohup nodemon -w config/ -w src/ -w index.js server.js > "$log" 2>&1 < /dev/null &
+        nohup nodemon -r dotenv/config app.js > "$log" 2>&1 < /dev/null &
         echo $! > $pid
         sleep 2;
         if ! ps -p $! > /dev/null ; then

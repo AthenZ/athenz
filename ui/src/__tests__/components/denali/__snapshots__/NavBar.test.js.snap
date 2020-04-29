@@ -1,0 +1,146 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NavBar should render 1`] = `
+.emotion-0 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  background: #0b2b31;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  color: #fff;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex: 0 0 60px;
+  -ms-flex: 0 0 60px;
+  flex: 0 0 60px;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  height: 60px;
+  -webkit-box-pack: start;
+  -webkit-justify-content: flex-start;
+  -ms-flex-pack: start;
+  justify-content: flex-start;
+  left: 0;
+  padding: 0 24px;
+  position: static;
+  right: 0;
+  top: 0;
+  z-index: 2;
+}
+
+.emotion-0.scrolled {
+  box-shadow: 0px 4px 8px rgba(0,0,0,0.16);
+}
+
+.emotion-0 .flush-right {
+  margin-left: auto;
+}
+
+<div
+  class="emotion-0 denali-navbar"
+  data-testid="navbar"
+/>
+`;
+
+exports[`NavBar should render with background prop 1`] = `
+.emotion-0 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  background: blue;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  color: #fff;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex: 0 0 60px;
+  -ms-flex: 0 0 60px;
+  flex: 0 0 60px;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  height: 60px;
+  -webkit-box-pack: start;
+  -webkit-justify-content: flex-start;
+  -ms-flex-pack: start;
+  justify-content: flex-start;
+  left: 0;
+  padding: 0 24px;
+  position: static;
+  right: 0;
+  top: 0;
+  z-index: 2;
+}
+
+.emotion-0.scrolled {
+  box-shadow: 0px 4px 8px rgba(0,0,0,0.16);
+}
+
+.emotion-0 .flush-right {
+  margin-left: auto;
+}
+
+<div
+  class="emotion-0 denali-navbar"
+  data-testid="navbar"
+/>
+`;
+
+exports[`NavBar should render with position prop 1`] = `
+.emotion-0 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  background: #0b2b31;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  color: #fff;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex: 0 0 60px;
+  -ms-flex: 0 0 60px;
+  flex: 0 0 60px;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  height: 60px;
+  -webkit-box-pack: start;
+  -webkit-justify-content: flex-start;
+  -ms-flex-pack: start;
+  justify-content: flex-start;
+  left: 0;
+  padding: 0 24px;
+  position: -webkit-sticky;
+  position: sticky;
+  right: 0;
+  top: 0;
+  z-index: 2;
+}
+
+.emotion-0.scrolled {
+  box-shadow: 0px 4px 8px rgba(0,0,0,0.16);
+}
+
+.emotion-0 .flush-right {
+  margin-left: auto;
+}
+
+<div
+  class="emotion-0 denali-navbar"
+  data-testid="navbar"
+/>
+`;

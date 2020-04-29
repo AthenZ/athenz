@@ -27,20 +27,19 @@
       <outputDirectory>.</outputDirectory>
       <includes>
         <include>README.md</include>
-        <include>Gruntfile.js</include>
         <include>package.json</include>
-        <include>rdl-api.md</include>
-        <include>server.js</include>
-        <include>index.js</include>
+        <include>package-lock.json</include>
+        <include>app.js</include>
+        <include>next.config.js</include>
       </includes>
     </fileSet>
     <fileSet>
-      <directory>${basedir}/../../ui/build</directory>
-      <outputDirectory>build</outputDirectory>
+      <directory>${basedir}/../../ui/.next</directory>
+      <outputDirectory>.next</outputDirectory>
     </fileSet>
     <fileSet>
-      <directory>${basedir}/../../ui/config</directory>
-      <outputDirectory>config</outputDirectory>
+      <directory>${basedir}/../../ui/docs</directory>
+      <outputDirectory>docs</outputDirectory>
     </fileSet>
     <fileSet>
       <directory>${basedir}/../../ui/node_modules</directory>
@@ -63,14 +62,17 @@
     <fileSet>
       <directory>${basedir}/../../ui/src</directory>
       <outputDirectory>src</outputDirectory>
+      <excludes>
+        <exclude>__tests__/</exclude>
+        <exclude>components/</exclude>
+        <exclude>pages/</exclude>
+        <exclude>global-jest-setup.js</exclude>
+        <exclude>setup-jest-test-framework.js</exclude>
+      </excludes>
     </fileSet>
     <fileSet>
-      <directory>${basedir}/../../ui/views</directory>
-      <outputDirectory>views</outputDirectory>
-    </fileSet>
-    <fileSet>
-      <directory>${basedir}/../../ui/public</directory>
-      <outputDirectory>public</outputDirectory>
+      <directory>${basedir}/../../ui/static</directory>
+      <outputDirectory>static</outputDirectory>
     </fileSet>
     <fileSet>
       <directory>${basedir}/../../ui/scripts</directory>

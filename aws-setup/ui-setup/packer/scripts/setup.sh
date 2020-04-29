@@ -16,8 +16,8 @@ aws --version
 
 # install node
 
-sudo curl --silent --location https://rpm.nodesource.com/setup_6.x | sudo bash -
-sudo yum -y install nodejs
+sudo curl --silent --location https://rpm.nodesource.com/setup_12.x | sudo bash -
+sudo yum -y install --disablerepo=* --enablerepo=nodesource nodejs
 
 # setup our athenz group and user
 

@@ -1,0 +1,869 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AddKey should render 1`] = `
+.emotion-0 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #303030;
+  line-height: 36px;
+  white-space: nowrap;
+}
+
+.emotion-2 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 250px;
+}
+
+.emotion-2 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-2.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+}
+
+.emotion-2 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-2 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-2 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-2 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-2 input.focused,
+.emotion-2 input:active,
+.emotion-2 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-2 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-2 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-2.error input,
+.emotion-2.error input.focused,
+.emotion-2.error input:active,
+.emotion-2.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-2.error .message {
+  color: #d01111;
+}
+
+.emotion-8 {
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-flex-flow: column nowrap;
+  -ms-flex-flow: column nowrap;
+  flex-flow: column nowrap;
+  position: relative;
+  width: 500px;
+}
+
+.emotion-8 > textarea {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: auto;
+  line-height: 1.5;
+  margin: 0;
+  outline: none;
+  padding: 0.25em 0.75rem;
+  text-align: left;
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  width: auto;
+}
+
+.emotion-8 > textarea::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-8 > textarea::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-8 > textarea:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-8 > textarea::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-8 > textarea:active,
+.emotion-8 > textarea:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-8 > textarea:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-8 > textarea[disabled] {
+  background: rgba(48,48,48,0.05);
+  border-bottom: 2px solid rgba(48,48,48,0.05);
+  color: rgba(48,48,48,0.25);
+  cursor: not-allowed;
+}
+
+.emotion-8 .message {
+  font-size: 12px;
+  color: #303030;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-12 {
+  border: none;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  font-family: Helvetica,Arial,sans-serif;
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 1;
+  margin: 5px;
+  outline: 0;
+  padding: 10px 24px;
+  text-align: center;
+  text-shadow: none;
+  text-transform: none;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  vertical-align: baseline;
+  white-space: nowrap;
+  background: linear-gradient( to right, #3697f2, #3570f4 );
+  color: #fff;
+}
+
+.emotion-12:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-12:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
+.emotion-12:hover:not(:disabled) {
+  background: linear-gradient( to right, #3570f4, #3448f7 );
+}
+
+.emotion-14 {
+  border: none;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  font-family: Helvetica,Arial,sans-serif;
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 1;
+  margin: 5px;
+  outline: 0;
+  padding: 10px 24px;
+  text-align: center;
+  text-shadow: none;
+  text-transform: none;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  vertical-align: baseline;
+  white-space: nowrap;
+  background: transparent;
+  box-shadow: 0 0 0 1px #3697f2 inset;
+  color: #3697f2;
+}
+
+.emotion-14:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-14:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
+.emotion-14:disabled {
+  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
+}
+
+.emotion-14:hover:not(:disabled) {
+  background: #d7e2fd;
+}
+
+.emotion-18 {
+  width: 100%;
+  text-align: left;
+  background-color: #fff;
+}
+
+.emotion-5 {
+  -webkit-align-items: flex-start;
+  -webkit-box-align: flex-start;
+  -ms-flex-align: flex-start;
+  align-items: flex-start;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  padding: 10px 30px;
+}
+
+.emotion-1 {
+  -webkit-flex: 0 0 100px;
+  -ms-flex: 0 0 100px;
+  flex: 0 0 100px;
+  margin-right: 2%;
+}
+
+.emotion-4 {
+  -webkit-flex: 1 1;
+  -ms-flex: 1 1;
+  flex: 1 1;
+  margin-right: 10px;
+}
+
+.emotion-3 {
+  width: 500px;
+}
+
+.emotion-9 > textarea {
+  resize: vertical;
+}
+
+.emotion-17 {
+  background-color: #fff;
+}
+
+.emotion-16 {
+  margin-left: 155px;
+}
+
+.emotion-13 {
+  min-width: 8.5em;
+  min-height: 1em;
+}
+
+<div
+  autocomplete="off"
+  class="emotion-18"
+  data-testid="add-key"
+>
+  <div
+    class="emotion-5"
+    data-testid="add-key-id"
+  >
+    <label
+      class="emotion-0 denali-input-label emotion-1"
+      for="key-id"
+    >
+      Public Key Id
+    </label>
+    <div
+      class="emotion-4"
+    >
+      <div
+        class="emotion-2 denali-input animated emotion-3"
+        data-testid="input-wrapper"
+      >
+        <input
+          autocomplete="off"
+          data-testid="input-node"
+          id="key-id"
+          name="key-id"
+          value=""
+        />
+        <div
+          class="message"
+          data-testid="message"
+        />
+      </div>
+    </div>
+  </div>
+  <div
+    class="emotion-5"
+    data-testid="add-key-value"
+  >
+    <label
+      class="emotion-0 denali-input-label emotion-1"
+      for="key-value"
+    >
+      Key Value
+    </label>
+    <div
+      class="emotion-4"
+    >
+      <div
+        class="emotion-8 denali-textarea emotion-9"
+        data-testid="textarea-wrapper"
+      >
+        <textarea
+          data-testid="textarea"
+          id="key-value"
+          name="key-value"
+        />
+      </div>
+    </div>
+  </div>
+  <div
+    class="emotion-17"
+  >
+    <div
+      class="emotion-16"
+    >
+      <button
+        class="emotion-12 denali-button emotion-13"
+      >
+        Submit
+      </button>
+      <button
+        class="emotion-14 denali-button emotion-13"
+      >
+        Cancel
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`AddKey should render error after submit throws error(other) 1`] = `
+<div
+  data-testid="error-message"
+  name="red600"
+  style="color: rgb(208, 17, 17); display: inline-block;"
+>
+  Status: 1. Message: test-error
+</div>
+`;
+
+exports[`AddKey should render error after submit throws error(refresh) 1`] = `
+<div
+  data-testid="error-message"
+  name="red600"
+  style="color: rgb(208, 17, 17); display: inline-block;"
+>
+  Session expired. Please refresh the page.
+</div>
+`;
+
+exports[`AddKey should render error after submit without keyID 1`] = `
+<div
+  data-testid="error-message"
+  name="red600"
+  style="color: rgb(208, 17, 17); display: inline-block;"
+>
+  Key Id is required.
+</div>
+`;
+
+exports[`AddKey should render error after submit without keyValue 1`] = `
+<div
+  data-testid="error-message"
+  name="red600"
+  style="color: rgb(208, 17, 17); display: inline-block;"
+>
+  Key Value is required.
+</div>
+`;
+
+exports[`AddKey should render nothing after cancel 1`] = `
+.emotion-0 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #303030;
+  line-height: 36px;
+  white-space: nowrap;
+}
+
+.emotion-2 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 250px;
+}
+
+.emotion-2 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-2.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+}
+
+.emotion-2 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-2 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-2 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-2 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-2 input.focused,
+.emotion-2 input:active,
+.emotion-2 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-2 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-2 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-2.error input,
+.emotion-2.error input.focused,
+.emotion-2.error input:active,
+.emotion-2.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-2.error .message {
+  color: #d01111;
+}
+
+.emotion-8 {
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-flex-flow: column nowrap;
+  -ms-flex-flow: column nowrap;
+  flex-flow: column nowrap;
+  position: relative;
+  width: 500px;
+}
+
+.emotion-8 > textarea {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: auto;
+  line-height: 1.5;
+  margin: 0;
+  outline: none;
+  padding: 0.25em 0.75rem;
+  text-align: left;
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  width: auto;
+}
+
+.emotion-8 > textarea::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-8 > textarea::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-8 > textarea:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-8 > textarea::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-8 > textarea:active,
+.emotion-8 > textarea:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-8 > textarea:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-8 > textarea[disabled] {
+  background: rgba(48,48,48,0.05);
+  border-bottom: 2px solid rgba(48,48,48,0.05);
+  color: rgba(48,48,48,0.25);
+  cursor: not-allowed;
+}
+
+.emotion-8 .message {
+  font-size: 12px;
+  color: #303030;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-12 {
+  border: none;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  font-family: Helvetica,Arial,sans-serif;
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 1;
+  margin: 5px;
+  outline: 0;
+  padding: 10px 24px;
+  text-align: center;
+  text-shadow: none;
+  text-transform: none;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  vertical-align: baseline;
+  white-space: nowrap;
+  background: linear-gradient( to right, #3697f2, #3570f4 );
+  color: #fff;
+}
+
+.emotion-12:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-12:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
+.emotion-12:hover:not(:disabled) {
+  background: linear-gradient( to right, #3570f4, #3448f7 );
+}
+
+.emotion-14 {
+  border: none;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  font-family: Helvetica,Arial,sans-serif;
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 1;
+  margin: 5px;
+  outline: 0;
+  padding: 10px 24px;
+  text-align: center;
+  text-shadow: none;
+  text-transform: none;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  vertical-align: baseline;
+  white-space: nowrap;
+  background: transparent;
+  box-shadow: 0 0 0 1px #3697f2 inset;
+  color: #3697f2;
+}
+
+.emotion-14:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-14:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
+.emotion-14:disabled {
+  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
+}
+
+.emotion-14:hover:not(:disabled) {
+  background: #d7e2fd;
+}
+
+.emotion-18 {
+  width: 100%;
+  text-align: left;
+  background-color: #fff;
+}
+
+.emotion-5 {
+  -webkit-align-items: flex-start;
+  -webkit-box-align: flex-start;
+  -ms-flex-align: flex-start;
+  align-items: flex-start;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  padding: 10px 30px;
+}
+
+.emotion-1 {
+  -webkit-flex: 0 0 100px;
+  -ms-flex: 0 0 100px;
+  flex: 0 0 100px;
+  margin-right: 2%;
+}
+
+.emotion-4 {
+  -webkit-flex: 1 1;
+  -ms-flex: 1 1;
+  flex: 1 1;
+  margin-right: 10px;
+}
+
+.emotion-3 {
+  width: 500px;
+}
+
+.emotion-9 > textarea {
+  resize: vertical;
+}
+
+.emotion-17 {
+  background-color: #fff;
+}
+
+.emotion-16 {
+  margin-left: 155px;
+}
+
+.emotion-13 {
+  min-width: 8.5em;
+  min-height: 1em;
+}
+
+<div
+  autocomplete="off"
+  class="emotion-18"
+  data-testid="add-key"
+>
+  <div
+    class="emotion-5"
+    data-testid="add-key-id"
+  >
+    <label
+      class="emotion-0 denali-input-label emotion-1"
+      for="key-id"
+    >
+      Public Key Id
+    </label>
+    <div
+      class="emotion-4"
+    >
+      <div
+        class="emotion-2 denali-input animated emotion-3"
+        data-testid="input-wrapper"
+      >
+        <input
+          autocomplete="off"
+          data-testid="input-node"
+          id="key-id"
+          name="key-id"
+          value=""
+        />
+        <div
+          class="message"
+          data-testid="message"
+        />
+      </div>
+    </div>
+  </div>
+  <div
+    class="emotion-5"
+    data-testid="add-key-value"
+  >
+    <label
+      class="emotion-0 denali-input-label emotion-1"
+      for="key-value"
+    >
+      Key Value
+    </label>
+    <div
+      class="emotion-4"
+    >
+      <div
+        class="emotion-8 denali-textarea emotion-9"
+        data-testid="textarea-wrapper"
+      >
+        <textarea
+          data-testid="textarea"
+          id="key-value"
+          name="key-value"
+        />
+      </div>
+    </div>
+  </div>
+  <div
+    class="emotion-17"
+  >
+    <div
+      class="emotion-16"
+    >
+      <button
+        class="emotion-12 denali-button emotion-13"
+      >
+        Submit
+      </button>
+      <button
+        class="emotion-14 denali-button emotion-13"
+      >
+        Cancel
+      </button>
+    </div>
+  </div>
+</div>
+`;

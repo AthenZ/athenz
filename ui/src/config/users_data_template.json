@@ -1,0 +1,8 @@
+[
+    {
+        "is_human": 1,
+        "login": "__admin__",
+        "gecos": "__fullname__",
+        "enabled_status": 1
+    }
+]

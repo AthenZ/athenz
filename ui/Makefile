@@ -11,11 +11,8 @@ NPM := $(shell command -v npm 2> /dev/null)
 
 ifdef NPM
 
-all:
-	@echo "Building Athenz UI"
-	npm install
-	$(PWD)/node_modules/grunt-cli/bin/grunt
-
+.PHONY: build lint test
+all: build lint test
 else
 
 all:
@@ -23,5 +20,18 @@ all:
 
 endif
 
+build:
+	@echo "Athenz UI -- Build"
+	npm install
+	npm run build
+
+lint:
+	@echo "Athenz UI -- lint"
+	npm run ci-lint
+
+test:
+	@echo "Athenz UI -- unit tests"
+	npm run test
+
 clean:
-	rm -rf build node_modules artifacts
+	rm -rf node_modules artifacts

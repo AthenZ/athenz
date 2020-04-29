@@ -1,0 +1,286 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`DomainDetails should render 1`] = `
+.emotion-16 {
+  margin: 20px 0;
+}
+
+.emotion-15 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+}
+
+.emotion-2 {
+  padding-right: 50px;
+}
+
+.emotion-0 {
+  font-weight: 600;
+}
+
+.emotion-1 {
+  color: #9a9a9a;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+<div
+  class="emotion-16"
+  data-testid="domain-details"
+>
+  <div
+    class="emotion-15"
+  >
+    <div
+      class="emotion-2"
+    >
+      <div
+        class="emotion-0"
+      >
+        2020-02-12 21:44 UTC
+      </div>
+      <div
+        class="emotion-1"
+      >
+        MODIFIED DATE
+      </div>
+    </div>
+    <div
+      class="emotion-2"
+    >
+      <div
+        class="emotion-0"
+      >
+        N/A
+      </div>
+      <div
+        class="emotion-1"
+      >
+        Product ID
+      </div>
+    </div>
+    <div
+      class="emotion-2"
+    >
+      <div
+        class="emotion-0"
+      >
+        N/A
+      </div>
+      <div
+        class="emotion-1"
+      >
+        ORGANIZATION
+      </div>
+    </div>
+    <div
+      class="emotion-2"
+    >
+      <div
+        class="emotion-0"
+      >
+        N/A
+      </div>
+      <div
+        class="emotion-1"
+      >
+        AUDIT ENABLED
+      </div>
+    </div>
+    <div
+      class="emotion-2"
+    >
+      <div
+        class="emotion-0"
+      >
+        N/A
+      </div>
+      <div
+        class="emotion-1"
+      >
+        AWS ACCOUNT ID
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`DomainDetails should render with mock data 1`] = `
+.emotion-16 {
+  border: none;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  font-family: Helvetica,Arial,sans-serif;
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 1;
+  margin: 5px;
+  outline: 0;
+  padding: 10px 24px;
+  text-align: center;
+  text-shadow: none;
+  text-transform: none;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  vertical-align: baseline;
+  white-space: nowrap;
+  background: transparent;
+  box-shadow: 0 0 0 1px #3697f2 inset;
+  color: #3697f2;
+}
+
+.emotion-16:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-16:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
+.emotion-16:disabled {
+  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
+}
+
+.emotion-16:hover:not(:disabled) {
+  background: #d7e2fd;
+}
+
+.emotion-19 {
+  margin: 20px 0;
+}
+
+.emotion-18 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+}
+
+.emotion-2 {
+  padding-right: 50px;
+}
+
+.emotion-0 {
+  font-weight: 600;
+}
+
+.emotion-1 {
+  color: #9a9a9a;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.emotion-3 {
+  color: #3570f4;
+  -webkit-text-decoration: none;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+<div
+  class="emotion-19"
+  data-testid="domain-details"
+>
+  <div
+    class="emotion-18"
+  >
+    <div
+      class="emotion-2"
+    >
+      <div
+        class="emotion-0"
+      >
+        2020-02-12 21:44 UTC
+      </div>
+      <div
+        class="emotion-1"
+      >
+        MODIFIED DATE
+      </div>
+    </div>
+    <div
+      class="emotion-2"
+    >
+      <div
+        class="emotion-0"
+      >
+        <div
+          class="emotion-3"
+          data-testid="pm-id"
+        >
+          test
+        </div>
+      </div>
+      <div
+        class="emotion-1"
+      >
+        Product ID
+      </div>
+    </div>
+    <div
+      class="emotion-2"
+    >
+      <div
+        class="emotion-0"
+      >
+        test
+      </div>
+      <div
+        class="emotion-1"
+      >
+        ORGANIZATION
+      </div>
+    </div>
+    <div
+      class="emotion-2"
+    >
+      <div
+        class="emotion-0"
+      >
+        true
+      </div>
+      <div
+        class="emotion-1"
+      >
+        AUDIT ENABLED
+      </div>
+    </div>
+    <div
+      class="emotion-2"
+    >
+      <div
+        class="emotion-0"
+      >
+        test
+      </div>
+      <div
+        class="emotion-1"
+      >
+        AWS ACCOUNT ID
+      </div>
+    </div>
+    <div
+      class="emotion-2"
+    >
+      <button
+        class="emotion-16 denali-button"
+      >
+        Onboard to AWS
+      </button>
+    </div>
+  </div>
+</div>
+`;

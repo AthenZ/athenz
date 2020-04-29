@@ -1,0 +1,373 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ButtonGroup should disable animations 1`] = `
+.emotion-0 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  border-radius: 2px;
+  box-sizing: border-box;
+  color: #303030;
+  cursor: initial;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  margin: 3px;
+  padding: 0 12px;
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.emotion-0:hover {
+  color: #303030;
+}
+
+.emotion-1 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  border-radius: 2px;
+  box-sizing: border-box;
+  color: #3697f2;
+  cursor: pointer;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  margin: 3px;
+  padding: 0 12px;
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.emotion-1:hover {
+  color: #3570f4;
+}
+
+.emotion-4 {
+  -webkit-align-items: stretch;
+  -webkit-box-align: stretch;
+  -ms-flex-align: stretch;
+  align-items: stretch;
+  background: rgba(53,112,244,0.05);
+  border-radius: 2px;
+  box-sizing: border-box;
+  display: inline-grid;
+  grid-template-columns: repeat(4,1fr);
+  height: 28px;
+  position: relative;
+}
+
+.emotion-4::before {
+  background: #fff;
+  border: 2px solid #0072df;
+  border-radius: 2px;
+  box-sizing: border-box;
+  content: '';
+  height: calc(100% + 4px);
+  margin: -2px -2px -2px calc(0% - 2px);
+  position: absolute;
+  width: calc(25% + 4px);
+}
+
+<div
+  class="emotion-4 denali-button-group"
+  data-testid="buttongroup"
+>
+  <div
+    class="emotion-0"
+    data-active="true"
+  >
+    Button A
+  </div>
+  <div
+    class="emotion-1"
+    data-active="false"
+    id="button-b"
+  >
+    Button B
+  </div>
+  <div
+    class="emotion-1"
+    data-active="false"
+    id="button-c"
+  >
+    Button C
+  </div>
+  <div
+    class="emotion-1"
+    data-active="false"
+  >
+    Button D
+  </div>
+</div>
+`;
+
+exports[`ButtonGroup should render a button group 1`] = `
+.emotion-0 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  border-radius: 2px;
+  box-sizing: border-box;
+  color: #3697f2;
+  cursor: pointer;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  margin: 3px;
+  padding: 0 12px;
+  -webkit-transition: color 0.2s ease-in 0.1s;
+  transition: color 0.2s ease-in 0.1s;
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.emotion-0:hover {
+  color: #3570f4;
+}
+
+.emotion-1 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  border-radius: 2px;
+  box-sizing: border-box;
+  color: #303030;
+  cursor: initial;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  margin: 3px;
+  padding: 0 12px;
+  -webkit-transition: color 0.2s ease-in 0.1s;
+  transition: color 0.2s ease-in 0.1s;
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.emotion-1:hover {
+  color: #303030;
+}
+
+.emotion-4 {
+  -webkit-align-items: stretch;
+  -webkit-box-align: stretch;
+  -ms-flex-align: stretch;
+  align-items: stretch;
+  background: rgba(53,112,244,0.05);
+  border-radius: 2px;
+  box-sizing: border-box;
+  display: inline-grid;
+  grid-template-columns: repeat(4,1fr);
+  height: 28px;
+  position: relative;
+}
+
+.emotion-4::before {
+  background: #fff;
+  border: 2px solid #0072df;
+  border-radius: 2px;
+  box-sizing: border-box;
+  content: '';
+  height: calc(100% + 4px);
+  margin: -2px -2px -2px calc(25% - 2px);
+  position: absolute;
+  -webkit-transition: all 0.3s ease-in;
+  transition: all 0.3s ease-in;
+  width: calc(25% + 4px);
+}
+
+<div
+  class="emotion-4 denali-button-group"
+  data-testid="buttongroup"
+>
+  <div
+    class="emotion-0"
+    data-active="false"
+  >
+    Button A
+  </div>
+  <div
+    class="emotion-1"
+    data-active="true"
+    id="button-b"
+  >
+    Button B
+  </div>
+  <div
+    class="emotion-0"
+    data-active="false"
+    id="button-c"
+  >
+    Button C
+  </div>
+  <div
+    class="emotion-0"
+    data-active="false"
+  >
+    Button D
+  </div>
+</div>
+`;
+
+exports[`ButtonGroup should render a dark button group 1`] = `
+.emotion-1 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  border-radius: 2px;
+  box-sizing: border-box;
+  color: #3697f2;
+  cursor: pointer;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  margin: 3px;
+  padding: 0 12px;
+  -webkit-transition: color 0.2s ease-in 0.1s;
+  transition: color 0.2s ease-in 0.1s;
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.emotion-1:hover {
+  color: #3570f4;
+}
+
+.emotion-0 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  border-radius: 2px;
+  box-sizing: border-box;
+  color: #303030;
+  cursor: initial;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  margin: 3px;
+  padding: 0 12px;
+  -webkit-transition: color 0.2s ease-in 0.1s;
+  transition: color 0.2s ease-in 0.1s;
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.emotion-0:hover {
+  color: #303030;
+}
+
+.emotion-4 {
+  -webkit-align-items: stretch;
+  -webkit-box-align: stretch;
+  -ms-flex-align: stretch;
+  align-items: stretch;
+  background: rgba(242,242,242,0.1);
+  border-radius: 2px;
+  box-sizing: border-box;
+  display: inline-grid;
+  grid-template-columns: repeat(4,1fr);
+  height: 28px;
+  position: relative;
+}
+
+.emotion-4::before {
+  background: #fff;
+  border: 2px solid #0072df;
+  border-radius: 2px;
+  box-sizing: border-box;
+  content: '';
+  height: calc(100% + 4px);
+  margin: -2px -2px -2px calc(0% - 2px);
+  position: absolute;
+  -webkit-transition: all 0.3s ease-in;
+  transition: all 0.3s ease-in;
+  width: calc(25% + 4px);
+}
+
+<div
+  class="emotion-4 denali-button-group"
+  data-testid="buttongroup"
+>
+  <div
+    class="emotion-0"
+    data-active="true"
+  >
+    Button A
+  </div>
+  <div
+    class="emotion-1"
+    data-active="false"
+    id="button-b"
+  >
+    Button B
+  </div>
+  <div
+    class="emotion-1"
+    data-active="false"
+    id="button-c"
+  >
+    Button C
+  </div>
+  <div
+    class="emotion-1"
+    data-active="false"
+  >
+    Button D
+  </div>
+</div>
+`;

@@ -1,0 +1,164 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ProviderTable should render 1`] = `
+.emotion-4 {
+  fill: #303030;
+  cursor: inherit;
+  vertical-align: text-bottom;
+}
+
+.emotion-8 {
+  padding: 20px;
+  text-align: left;
+  vertical-align: middle;
+  word-break: break-all;
+  font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
+  display: table-cell;
+}
+
+.emotion-7 {
+  display: table;
+  border-collapse: separate;
+  border-spacing: 2px;
+  border-color: #9a9a9a;
+}
+
+.emotion-2 {
+  display: table-header-group;
+}
+
+.emotion-0 {
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  text-align: left;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
+.emotion-1 {
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  text-align: left;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+  border-right: none;
+}
+
+.emotion-3 {
+  text-align: left;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+.emotion-6 {
+  text-align: left;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+  border-right: none;
+}
+
+.emotion-5 {
+  margin-left: 30px;
+}
+
+<td
+  class="emotion-8"
+  color=""
+  colspan="7"
+  data-testid="provider-table"
+>
+  <table
+    class="emotion-7"
+  >
+    <thead
+      class="emotion-2"
+    >
+      <tr>
+        <th
+          class="emotion-0"
+        >
+          Provider
+        </th>
+        <th
+          class="emotion-1"
+        >
+          Status
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td
+          class="emotion-3"
+        >
+          AWS EC2/EKS/Fargate launches instances for the service
+        </td>
+        <td
+          class="emotion-6"
+          colspan="5"
+        >
+          <div
+            class="emotion-5"
+          >
+            <svg
+              class="emotion-4"
+              data-testid="icon"
+              height="1.25em"
+              viewBox="0 0 1024 1024"
+              width="1.25em"
+            >
+              <title>
+                checkmark
+              </title>
+              <path
+                d="M512 128c212.077 0 384 171.923 384 384s-171.923 384-384 384c-212.077 0-384-171.923-384-384v0c0-212.077 171.923-384 384-384v0zM512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0-259.206-210.128-469.333-469.333-469.333v0z"
+              />
+              <path
+                d="M396.16 691.413l-126.293-126.293c-8.506-8.066-13.798-19.448-13.798-32.066 0-9.118 2.763-17.59 7.498-24.625l-0.1 0.158c7.83-10.919 20.483-17.949 34.778-17.949 11.841 0 22.556 4.824 30.286 12.613l0.003 0.003 98.133 97.707 268.373-268.373c7.549-6.884 17.635-11.1 28.706-11.1 23.564 0 42.667 19.103 42.667 42.667 0 11.017-4.176 21.060-11.031 28.63l0.032-0.036-298.667 298.667c-7.733 7.795-18.45 12.621-30.293 12.621s-22.56-4.826-30.291-12.618l-0.003-0.003z"
+              />
+            </svg>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</td>
+`;
+
+exports[`ProviderTable should render again if allow provider succeeds 1`] = `
+<title>
+  checkmark
+</title>
+`;
+
+exports[`ProviderTable should render error if allow api throws error 1`] = `
+<div
+  data-testid="error-message"
+  name="red600"
+  style="color: rgb(208, 17, 17); display: inline-block;"
+>
+  Failed to fetch template details.
+</div>
+`;
+
+exports[`ProviderTable should render error if there is error in providers 1`] = `
+<div
+  data-testid="error-message"
+  name="red600"
+  style="color: rgb(208, 17, 17); display: inline-block;"
+>
+  Failed to fetch template details.
+</div>
+`;

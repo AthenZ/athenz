@@ -1,0 +1,272 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Switch should render checked state 1`] = `
+.emotion-0 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  height: 18px;
+  outline: 0;
+  position: relative;
+}
+
+.emotion-0 > input[type='checkbox'] {
+  box-sizing: border-box;
+  cursor: pointer;
+  position: absolute;
+  top: 0;
+  visibility: hidden;
+}
+
+.emotion-0 > input[type='checkbox'] + label {
+  box-sizing: border-box;
+  cursor: pointer;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  height: 18px;
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+.emotion-0 > input[type='checkbox'] + label .label-content {
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  margin-left: 6px;
+}
+
+@-moz-document url-prefix()  {
+  .emotion-0 > input[type='checkbox'] + label .label-content {
+    margin-top: 1px;
+  }
+}
+
+.emotion-0 > input[type='checkbox'] + label:before {
+  background: #d5d5d5;
+  border-radius: 9px;
+  box-sizing: border-box;
+  content: '';
+  cursor: pointer;
+  display: inline-block;
+  height: 4px;
+  line-height: 16px;
+  margin: 7px 0 0 0;
+  -webkit-transition: all 0.25s;
+  transition: all 0.25s;
+  vertical-align: top;
+  width: 34px;
+}
+
+.emotion-0 > input[type='checkbox'] + label::after {
+  background-color: #fff;
+  border: 2px solid rgba(54,151,242,0.5);
+  border-radius: 50%;
+  box-sizing: border-box;
+  content: ' ';
+  cursor: pointer;
+  display: block;
+  height: 18px;
+  left: 0;
+  position: absolute;
+  -webkit-transition: all 0.25s ease;
+  transition: all 0.25s ease;
+  top: 0;
+  width: 18px;
+}
+
+.emotion-0 > input[type='checkbox']:checked + label::before {
+  background-color: rgba(21,192,70,0.45);
+}
+
+.emotion-0 > input[type='checkbox']:checked + label::after {
+  background-color: #15c046;
+  border-color: #15c046;
+  left: 16px;
+}
+
+.emotion-0 > input[type='checkbox']:disabled + label {
+  color: #9a9a9a;
+  cursor: not-allowed;
+}
+
+.emotion-0 > input[type='checkbox']:disabled + label::before {
+  background-color: #e8e8e8;
+  cursor: not-allowed;
+}
+
+.emotion-0 > input[type='checkbox']:disabled + label::after {
+  border-color: #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-0 > input[type='checkbox']:checked:disabled + label::after {
+  background: #d5d5d5;
+}
+
+<div
+  class="emotion-0 denali-switch"
+  data-testid="switch-wrapper"
+>
+  <input
+    checked=""
+    id="switch-test-switch"
+    name="test-switch"
+    type="checkbox"
+    value="1"
+  />
+  <label
+    for="switch-test-switch"
+  >
+    <div
+      class="label-content"
+    >
+      test-label
+    </div>
+  </label>
+</div>
+`;
+
+exports[`Switch should render unchecked state 1`] = `
+.emotion-0 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  height: 18px;
+  outline: 0;
+  position: relative;
+}
+
+.emotion-0 > input[type='checkbox'] {
+  box-sizing: border-box;
+  cursor: pointer;
+  position: absolute;
+  top: 0;
+  visibility: hidden;
+}
+
+.emotion-0 > input[type='checkbox'] + label {
+  box-sizing: border-box;
+  cursor: pointer;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  height: 18px;
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+.emotion-0 > input[type='checkbox'] + label .label-content {
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  margin-left: 6px;
+}
+
+@-moz-document url-prefix()  {
+  .emotion-0 > input[type='checkbox'] + label .label-content {
+    margin-top: 1px;
+  }
+}
+
+.emotion-0 > input[type='checkbox'] + label:before {
+  background: #d5d5d5;
+  border-radius: 9px;
+  box-sizing: border-box;
+  content: '';
+  cursor: pointer;
+  display: inline-block;
+  height: 4px;
+  line-height: 16px;
+  margin: 7px 0 0 0;
+  -webkit-transition: all 0.25s;
+  transition: all 0.25s;
+  vertical-align: top;
+  width: 34px;
+}
+
+.emotion-0 > input[type='checkbox'] + label::after {
+  background-color: #fff;
+  border: 2px solid rgba(54,151,242,0.5);
+  border-radius: 50%;
+  box-sizing: border-box;
+  content: ' ';
+  cursor: pointer;
+  display: block;
+  height: 18px;
+  left: 0;
+  position: absolute;
+  -webkit-transition: all 0.25s ease;
+  transition: all 0.25s ease;
+  top: 0;
+  width: 18px;
+}
+
+.emotion-0 > input[type='checkbox']:checked + label::before {
+  background-color: rgba(21,192,70,0.45);
+}
+
+.emotion-0 > input[type='checkbox']:checked + label::after {
+  background-color: #15c046;
+  border-color: #15c046;
+  left: 16px;
+}
+
+.emotion-0 > input[type='checkbox']:disabled + label {
+  color: #9a9a9a;
+  cursor: not-allowed;
+}
+
+.emotion-0 > input[type='checkbox']:disabled + label::before {
+  background-color: #e8e8e8;
+  cursor: not-allowed;
+}
+
+.emotion-0 > input[type='checkbox']:disabled + label::after {
+  border-color: #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-0 > input[type='checkbox']:checked:disabled + label::after {
+  background: #d5d5d5;
+}
+
+<div
+  class="emotion-0 denali-switch"
+  data-testid="switch-wrapper"
+>
+  <input
+    id="switch-test-switch"
+    name="test-switch"
+    type="checkbox"
+    value="1"
+  />
+  <label
+    for="switch-test-switch"
+  >
+    <div
+      class="label-content"
+    >
+      test-label
+    </div>
+  </label>
+</div>
+`;

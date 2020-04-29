@@ -1,0 +1,17 @@
+# see editorconfig.org for details on how to use this to configure various editors/IDEs
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_size = 4
+indent_style = space
+insert_final_newline = true
+
+[*.{js,mjs}]
+curly_bracket_next_line = false
+quote_type = single
+
+[*.json]
+curly_bracket_next_line = false
+quote_type = double

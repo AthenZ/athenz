@@ -1,0 +1,123 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`RoleMember should render 1`] = `
+.emotion-2 {
+  font-family: Helvetica,Arial,sans-serif;
+  background: rgba(53,112,244,0.08);
+  border-radius: 14px;
+  border: 1px solid transparent;
+  box-sizing: border-box;
+  color: #303030;
+  display: inline-block;
+  font-size: 14px;
+  height: 28px;
+  line-height: 26px;
+  margin: 3px;
+  min-width: 50px;
+  padding: 0 12px;
+  position: relative;
+  -webkit-text-decoration: none;
+  text-decoration: none;
+  -webkit-transition: all 0.2s ease-out;
+  transition: all 0.2s ease-out;
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+.emotion-2:hover {
+  background: #cbd9f9;
+}
+
+.emotion-2 .tag-remove {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  background: #cbd9f9;
+  border-radius: 0 14px 14px 0;
+  box-shadow: none;
+  box-sizing: border-box;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 28px;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  opacity: 0;
+  padding-right: 2px;
+  position: absolute;
+  right: -14px;
+  top: -1px;
+  -webkit-transition: all 0.2s ease-out;
+  transition: all 0.2s ease-out;
+  width: 28px;
+}
+
+.emotion-2:hover .tag-remove {
+  box-shadow: -4px 0 5px -1px rgba(48,48,48,0.2);
+  opacity: 1;
+  right: 0;
+}
+
+.emotion-1 {
+  fill: rgba(48,48,48,0.6);
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+.emotion-3 {
+  background: rgba(53,112,244,0.08);
+  color: #d5d5d5;
+  font-size: 14px;
+  height: 28px;
+  line-height: 14px;
+  margin: 5px 15px 5px 0;
+  padding: 7px 8px 7px 10px;
+}
+
+.emotion-3:hover {
+  background: #ffffff;
+}
+
+.emotion-0 {
+  color: #3570f4;
+  -webkit-text-decoration: none;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+<div
+  class="emotion-2 denali-tag emotion-3"
+  data-testid="tag"
+>
+  <a
+    class="emotion-0"
+  >
+     
+    user.test2
+     
+  </a>
+  
+  <div
+    class="tag-remove"
+  >
+    <svg
+      class="emotion-1"
+      data-testid="icon"
+      height="20px"
+      viewBox="0 0 1024 1024"
+      width="20px"
+    >
+      <title>
+        x
+      </title>
+      <path
+        d="M572.373 512l224.427-224.213c8.506-8.066 13.798-19.448 13.798-32.066 0-9.118-2.763-17.59-7.498-24.625l0.1 0.158c-7.858-10.565-20.305-17.335-34.333-17.335-11.534 0-21.999 4.577-29.678 12.013l0.011-0.011-227.2 225.707-226.133-225.707c-7.733-7.792-18.447-12.616-30.289-12.616-14.295 0-26.948 7.030-34.691 17.822l-0.087 0.128c-4.635 6.877-7.398 15.35-7.398 24.467 0 12.618 5.292 24 13.778 32.048l0.020 0.019 224.427 224.213-224.427 224.213c-8.506 8.066-13.798 19.448-13.798 32.066 0 9.118 2.763 17.59 7.498 24.625l-0.1-0.158c7.83 10.919 20.483 17.949 34.778 17.949 11.841 0 22.556-4.824 30.286-12.613l0.003-0.003 226.133-225.707 226.133 225.707c7.668 7.425 18.133 12.002 29.667 12.002 14.028 0 26.476-6.77 34.252-17.222l0.081-0.114c4.635-6.877 7.398-15.35 7.398-24.467 0-12.618-5.292-24-13.778-32.048l-0.020-0.019z"
+      />
+    </svg>
+  </div>
+</div>
+`;

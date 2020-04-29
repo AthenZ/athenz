@@ -1,0 +1,766 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TabGroup should disable animations 1`] = `
+.emotion-3 {
+  -webkit-align-items: stretch;
+  -webkit-box-align: stretch;
+  -ms-flex-align: stretch;
+  align-items: stretch;
+  background: #f5f8fe;
+  border-radius: 2px;
+  box-sizing: border-box;
+  display: inline-grid;
+  grid-template-columns: repeat(3,1fr);
+  margin-top: 0;
+  min-width: 80px;
+  position: relative;
+}
+
+.emotion-3.vertical {
+  background: #f5f8fe;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: column;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  height: 100%;
+  min-width: 300px;
+  overflow-y: scroll;
+  padding: 12px 0px 40px 0px;
+  width: 300px;
+}
+
+.emotion-0 {
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  background: #f5f8fe;
+  color: #3697f2;
+  cursor: pointer;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  padding: 8px 20px;
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.emotion-0:hover {
+  color: #3570f4;
+}
+
+.emotion-0.active {
+  background: #fff;
+  border-top-left-radius: 2px;
+  border-top-right-radius: 2px;
+  color: #303030;
+  cursor: initial;
+}
+
+.emotion-0.active:hover {
+  color: #303030;
+}
+
+.emotion-0.vertical {
+  background: #f5f8fe;
+  border-left: solid 4px #f5f8fe;
+  height: 24px;
+  -webkit-box-pack: start;
+  -webkit-justify-content: flex-start;
+  -ms-flex-pack: start;
+  justify-content: flex-start;
+  padding: 12px 0px 12px 26px;
+  text-align: left;
+}
+
+.emotion-0.vertical.active {
+  background: #fff;
+  border-left: solid 4px #3697f2;
+  color: #303030;
+}
+
+.emotion-0.vertical.active:hover {
+  color: #303030;
+}
+
+.emotion-2 {
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  background: #f5f8fe;
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  padding: 8px 20px;
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.emotion-2:hover {
+  color: rgba(48,48,48,0.2);
+}
+
+.emotion-2.active {
+  background: #fff;
+  border-top-left-radius: 2px;
+  border-top-right-radius: 2px;
+  color: #303030;
+  cursor: initial;
+}
+
+.emotion-2.active:hover {
+  color: #303030;
+}
+
+.emotion-2.vertical {
+  background: #f5f8fe;
+  border-left: solid 4px #f5f8fe;
+  height: 24px;
+  -webkit-box-pack: start;
+  -webkit-justify-content: flex-start;
+  -ms-flex-pack: start;
+  justify-content: flex-start;
+  padding: 12px 0px 12px 26px;
+  text-align: left;
+}
+
+.emotion-2.vertical.active {
+  background: #fff;
+  border-left: solid 4px #3697f2;
+  color: #303030;
+}
+
+.emotion-2.vertical.active:hover {
+  color: #303030;
+}
+
+<div
+  class="emotion-3 denali-tab-group"
+  data-testid="tabgroup"
+>
+  <div
+    class="emotion-0 denali-tab active"
+    data-active="true"
+  >
+    Tab A
+  </div>
+  <div
+    class="emotion-0 denali-tab"
+    data-active="false"
+    id="tab-b"
+  >
+    <div>
+      Extra long Tab B
+    </div>
+  </div>
+  <div
+    class="emotion-2 denali-tab"
+    data-active="false"
+    id="tab-c"
+  >
+    <div>
+      Tab C
+    </div>
+  </div>
+</div>
+`;
+
+exports[`TabGroup should render primary tabs 1`] = `
+.emotion-3 {
+  -webkit-align-items: stretch;
+  -webkit-box-align: stretch;
+  -ms-flex-align: stretch;
+  align-items: stretch;
+  background: #f5f8fe;
+  border-radius: 2px;
+  box-sizing: border-box;
+  display: inline-grid;
+  grid-template-columns: repeat(3,1fr);
+  margin-top: 0;
+  min-width: 80px;
+  position: relative;
+}
+
+.emotion-3.vertical {
+  background: #f5f8fe;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: column;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  height: 100%;
+  min-width: 300px;
+  overflow-y: scroll;
+  padding: 12px 0px 40px 0px;
+  width: 300px;
+}
+
+.emotion-0 {
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  background: #f5f8fe;
+  color: #3697f2;
+  cursor: pointer;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  padding: 8px 20px;
+  -webkit-transition: all 0.4s ease;
+  transition: all 0.4s ease;
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.emotion-0:hover {
+  color: #3570f4;
+}
+
+.emotion-0.active {
+  background: #fff;
+  border-top-left-radius: 2px;
+  border-top-right-radius: 2px;
+  color: #303030;
+  cursor: initial;
+}
+
+.emotion-0.active:hover {
+  color: #303030;
+}
+
+.emotion-0.vertical {
+  background: #f5f8fe;
+  border-left: solid 4px #f5f8fe;
+  height: 24px;
+  -webkit-box-pack: start;
+  -webkit-justify-content: flex-start;
+  -ms-flex-pack: start;
+  justify-content: flex-start;
+  padding: 12px 0px 12px 26px;
+  text-align: left;
+}
+
+.emotion-0.vertical.active {
+  background: #fff;
+  border-left: solid 4px #3697f2;
+  color: #303030;
+}
+
+.emotion-0.vertical.active:hover {
+  color: #303030;
+}
+
+.emotion-2 {
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  background: #f5f8fe;
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  padding: 8px 20px;
+  -webkit-transition: all 0.4s ease;
+  transition: all 0.4s ease;
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.emotion-2:hover {
+  color: rgba(48,48,48,0.2);
+}
+
+.emotion-2.active {
+  background: #fff;
+  border-top-left-radius: 2px;
+  border-top-right-radius: 2px;
+  color: #303030;
+  cursor: initial;
+}
+
+.emotion-2.active:hover {
+  color: #303030;
+}
+
+.emotion-2.vertical {
+  background: #f5f8fe;
+  border-left: solid 4px #f5f8fe;
+  height: 24px;
+  -webkit-box-pack: start;
+  -webkit-justify-content: flex-start;
+  -ms-flex-pack: start;
+  justify-content: flex-start;
+  padding: 12px 0px 12px 26px;
+  text-align: left;
+}
+
+.emotion-2.vertical.active {
+  background: #fff;
+  border-left: solid 4px #3697f2;
+  color: #303030;
+}
+
+.emotion-2.vertical.active:hover {
+  color: #303030;
+}
+
+<div
+  class="emotion-3 denali-tab-group"
+  data-testid="tabgroup"
+>
+  <div
+    class="emotion-0 denali-tab active"
+    data-active="true"
+  >
+    Tab A
+  </div>
+  <div
+    class="emotion-0 denali-tab"
+    data-active="false"
+    id="tab-b"
+  >
+    <div>
+      Extra long Tab B
+    </div>
+  </div>
+  <div
+    class="emotion-2 denali-tab"
+    data-active="false"
+    id="tab-c"
+  >
+    <div>
+      Tab C
+    </div>
+  </div>
+</div>
+`;
+
+exports[`TabGroup should render secondary tabs 1`] = `
+.emotion-3 {
+  -webkit-align-items: stretch;
+  -webkit-box-align: stretch;
+  -ms-flex-align: stretch;
+  align-items: stretch;
+  background: #fff;
+  border-radius: 2px;
+  box-shadow: inset 0 -2px 0 0 rgba(53,112,244,0.05);
+  box-sizing: border-box;
+  display: inline-grid;
+  grid-template-columns: repeat(3,1fr);
+  margin-top: -1px;
+  min-width: 80px;
+  position: relative;
+}
+
+.emotion-3.vertical {
+  background: #f5f8fe;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: column;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  height: 100%;
+  min-width: 300px;
+  overflow-y: scroll;
+  padding: 12px 0px 40px 0px;
+  width: 300px;
+}
+
+.emotion-0 {
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  background: transparent;
+  border-bottom: solid 2px rgba(245,248,254,0.05);
+  color: #3697f2;
+  cursor: pointer;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  padding: 8px 20px;
+  -webkit-transition: all 0.4s ease;
+  transition: all 0.4s ease;
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.emotion-0:hover {
+  color: #3570f4;
+}
+
+.emotion-0.active {
+  background: #fff;
+  border-bottom: solid 2px #3697f2;
+  border-top-left-radius: 2px;
+  border-top-right-radius: 2px;
+  color: #303030;
+  cursor: initial;
+}
+
+.emotion-0.active:hover {
+  color: #303030;
+}
+
+.emotion-0.vertical {
+  background: #f5f8fe;
+  border-left: solid 4px #f5f8fe;
+  height: 24px;
+  -webkit-box-pack: start;
+  -webkit-justify-content: flex-start;
+  -ms-flex-pack: start;
+  justify-content: flex-start;
+  padding: 12px 0px 12px 26px;
+  text-align: left;
+}
+
+.emotion-0.vertical.active {
+  background: #fff;
+  border-left: solid 4px #3697f2;
+  color: #303030;
+}
+
+.emotion-0.vertical.active:hover {
+  color: #303030;
+}
+
+.emotion-2 {
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  background: transparent;
+  border-bottom: solid 2px rgba(245,248,254,0.05);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  padding: 8px 20px;
+  -webkit-transition: all 0.4s ease;
+  transition: all 0.4s ease;
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.emotion-2:hover {
+  color: rgba(48,48,48,0.2);
+}
+
+.emotion-2.active {
+  background: #fff;
+  border-bottom: solid 2px #3697f2;
+  border-top-left-radius: 2px;
+  border-top-right-radius: 2px;
+  color: #303030;
+  cursor: initial;
+}
+
+.emotion-2.active:hover {
+  color: #303030;
+}
+
+.emotion-2.vertical {
+  background: #f5f8fe;
+  border-left: solid 4px #f5f8fe;
+  height: 24px;
+  -webkit-box-pack: start;
+  -webkit-justify-content: flex-start;
+  -ms-flex-pack: start;
+  justify-content: flex-start;
+  padding: 12px 0px 12px 26px;
+  text-align: left;
+}
+
+.emotion-2.vertical.active {
+  background: #fff;
+  border-left: solid 4px #3697f2;
+  color: #303030;
+}
+
+.emotion-2.vertical.active:hover {
+  color: #303030;
+}
+
+<div
+  class="emotion-3 denali-tab-group"
+  data-testid="tabgroup"
+>
+  <div
+    class="emotion-0 denali-tab active"
+    data-active="true"
+  >
+    Tab A
+  </div>
+  <div
+    class="emotion-0 denali-tab"
+    data-active="false"
+    id="tab-b"
+  >
+    <div>
+      Extra long Tab B
+    </div>
+  </div>
+  <div
+    class="emotion-2 denali-tab"
+    data-active="false"
+    id="tab-c"
+  >
+    <div>
+      Tab C
+    </div>
+  </div>
+</div>
+`;
+
+exports[`TabGroup should render vertical tabs 1`] = `
+.emotion-3 {
+  -webkit-align-items: stretch;
+  -webkit-box-align: stretch;
+  -ms-flex-align: stretch;
+  align-items: stretch;
+  background: #f5f8fe;
+  border-radius: 2px;
+  box-sizing: border-box;
+  display: inline-grid;
+  grid-template-columns: repeat(3,1fr);
+  margin-top: 0;
+  min-width: 80px;
+  position: relative;
+}
+
+.emotion-3.vertical {
+  background: #f5f8fe;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: column;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  height: 100%;
+  min-width: 300px;
+  overflow-y: scroll;
+  padding: 12px 0px 40px 0px;
+  width: 300px;
+}
+
+.emotion-0 {
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  background: #f5f8fe;
+  color: #3697f2;
+  cursor: pointer;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  padding: 8px 20px;
+  -webkit-transition: all 0.4s ease;
+  transition: all 0.4s ease;
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.emotion-0:hover {
+  color: #3570f4;
+}
+
+.emotion-0.active {
+  background: #fff;
+  border-top-left-radius: 2px;
+  border-top-right-radius: 2px;
+  color: #303030;
+  cursor: initial;
+}
+
+.emotion-0.active:hover {
+  color: #303030;
+}
+
+.emotion-0.vertical {
+  background: #f5f8fe;
+  border-left: solid 4px #f5f8fe;
+  height: 24px;
+  -webkit-box-pack: start;
+  -webkit-justify-content: flex-start;
+  -ms-flex-pack: start;
+  justify-content: flex-start;
+  padding: 12px 0px 12px 26px;
+  text-align: left;
+}
+
+.emotion-0.vertical.active {
+  background: #fff;
+  border-left: solid 4px #3697f2;
+  color: #303030;
+}
+
+.emotion-0.vertical.active:hover {
+  color: #303030;
+}
+
+.emotion-2 {
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  background: #f5f8fe;
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  padding: 8px 20px;
+  -webkit-transition: all 0.4s ease;
+  transition: all 0.4s ease;
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.emotion-2:hover {
+  color: rgba(48,48,48,0.2);
+}
+
+.emotion-2.active {
+  background: #fff;
+  border-top-left-radius: 2px;
+  border-top-right-radius: 2px;
+  color: #303030;
+  cursor: initial;
+}
+
+.emotion-2.active:hover {
+  color: #303030;
+}
+
+.emotion-2.vertical {
+  background: #f5f8fe;
+  border-left: solid 4px #f5f8fe;
+  height: 24px;
+  -webkit-box-pack: start;
+  -webkit-justify-content: flex-start;
+  -ms-flex-pack: start;
+  justify-content: flex-start;
+  padding: 12px 0px 12px 26px;
+  text-align: left;
+}
+
+.emotion-2.vertical.active {
+  background: #fff;
+  border-left: solid 4px #3697f2;
+  color: #303030;
+}
+
+.emotion-2.vertical.active:hover {
+  color: #303030;
+}
+
+<div
+  class="emotion-3 denali-tab-group vertical"
+  data-testid="tabgroup"
+>
+  <div
+    class="emotion-0 denali-tab active vertical"
+    data-active="true"
+  >
+    Tab A
+  </div>
+  <div
+    class="emotion-0 denali-tab vertical"
+    data-active="false"
+    id="tab-b"
+  >
+    <div>
+      Extra long Tab B
+    </div>
+  </div>
+  <div
+    class="emotion-2 denali-tab vertical"
+    data-active="false"
+    id="tab-c"
+  >
+    <div>
+      Tab C
+    </div>
+  </div>
+</div>
+`;
