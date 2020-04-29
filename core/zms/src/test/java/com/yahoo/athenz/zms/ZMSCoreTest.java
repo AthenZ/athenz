@@ -24,8 +24,6 @@ import com.yahoo.rdl.Validator;
 import com.yahoo.rdl.Validator.Result;
 
 import static org.testng.Assert.*;
-
-import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.util.*;
