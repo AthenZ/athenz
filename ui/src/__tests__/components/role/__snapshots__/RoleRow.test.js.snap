@@ -1,0 +1,286 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`RoleRow should render 1`] = `
+.emotion-4 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  height: 18px;
+  outline: 0;
+  position: relative;
+}
+
+.emotion-4 > input[type='checkbox'] {
+  box-sizing: border-box;
+  cursor: pointer;
+  position: absolute;
+  top: 0;
+  visibility: hidden;
+}
+
+.emotion-4 > input[type='checkbox'] + label {
+  box-sizing: border-box;
+  cursor: pointer;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  height: 18px;
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+.emotion-4 > input[type='checkbox'] + label .label-content {
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  margin-left: 6px;
+}
+
+@-moz-document url-prefix()  {
+  .emotion-4 > input[type='checkbox'] + label .label-content {
+    margin-top: 1px;
+  }
+}
+
+.emotion-4 > input[type='checkbox'] + label:before {
+  background: #d5d5d5;
+  border-radius: 9px;
+  box-sizing: border-box;
+  content: '';
+  cursor: pointer;
+  display: inline-block;
+  height: 4px;
+  line-height: 16px;
+  margin: 7px 0 0 0;
+  -webkit-transition: all 0.25s;
+  transition: all 0.25s;
+  vertical-align: top;
+  width: 34px;
+}
+
+.emotion-4 > input[type='checkbox'] + label::after {
+  background-color: #fff;
+  border: 2px solid rgba(54,151,242,0.5);
+  border-radius: 50%;
+  box-sizing: border-box;
+  content: ' ';
+  cursor: pointer;
+  display: block;
+  height: 18px;
+  left: 0;
+  position: absolute;
+  -webkit-transition: all 0.25s ease;
+  transition: all 0.25s ease;
+  top: 0;
+  width: 18px;
+}
+
+.emotion-4 > input[type='checkbox']:checked + label::before {
+  background-color: rgba(21,192,70,0.45);
+}
+
+.emotion-4 > input[type='checkbox']:checked + label::after {
+  background-color: #15c046;
+  border-color: #15c046;
+  left: 16px;
+}
+
+.emotion-4 > input[type='checkbox']:disabled + label {
+  color: #9a9a9a;
+  cursor: not-allowed;
+}
+
+.emotion-4 > input[type='checkbox']:disabled + label::before {
+  background-color: #e8e8e8;
+  cursor: not-allowed;
+}
+
+.emotion-4 > input[type='checkbox']:disabled + label::after {
+  border-color: #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-4 > input[type='checkbox']:checked:disabled + label::after {
+  background: #d5d5d5;
+}
+
+.emotion-8 {
+  fill: #188fff;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+.emotion-1 {
+  background-color: #3570f40D;
+  text-align: left;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+.emotion-0 {
+  padding-left: 20px;
+}
+
+.emotion-5 {
+  background-color: #3570f40D;
+  text-align: center;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+<tr
+  data-testid="role-row"
+>
+  <td
+    class="emotion-1"
+    color="#3570f40D"
+  >
+    
+    
+    <span
+      class="emotion-0"
+    >
+       ztssia_cert_rotate
+    </span>
+  </td>
+  <td
+    class="emotion-1"
+    color="#3570f40D"
+  >
+    2017-08-03 18:44 UTC
+  </td>
+  <td
+    class="emotion-1"
+    color="#3570f40D"
+  >
+    N/A
+  </td>
+  <td
+    class="emotion-5"
+    color="#3570f40D"
+  >
+    <div
+      class="emotion-4 denali-switch"
+      data-testid="switch-wrapper"
+    >
+      <input
+        id="switch-reviewEnabled-50"
+        name="reviewEnabled-50"
+        type="checkbox"
+        value="false"
+      />
+      <label
+        for="switch-reviewEnabled-50"
+      />
+    </div>
+  </td>
+  <td
+    class="emotion-5"
+    color="#3570f40D"
+  >
+    <div
+      class="emotion-4 denali-switch"
+      data-testid="switch-wrapper"
+    >
+      <input
+        id="switch-selfServe-50"
+        name="selfServe-50"
+        type="checkbox"
+        value="false"
+      />
+      <label
+        for="switch-selfServe-50"
+      />
+    </div>
+  </td>
+  <td
+    class="emotion-5"
+    color="#3570f40D"
+  >
+    <span>
+      <svg
+        class="emotion-8"
+        data-testid="icon"
+        height="1.25em"
+        viewBox="0 0 1024 1024"
+        width="1.25em"
+      >
+        <title>
+          user-group
+        </title>
+        <path
+          d="M320 512c106.039 0 192-85.961 192-192s-85.961-192-192-192c-106.039 0-192 85.961-192 192v0c0 106.039 85.961 192 192 192v0zM320 213.333c58.91 0 106.667 47.756 106.667 106.667s-47.756 106.667-106.667 106.667c-58.91 0-106.667-47.756-106.667-106.667v0c0-58.91 47.756-106.667 106.667-106.667v0z"
+        />
+        <path
+          d="M746.667 512c82.475 0 149.333-66.859 149.333-149.333s-66.859-149.333-149.333-149.333c-82.475 0-149.333 66.859-149.333 149.333v0c0 82.475 66.859 149.333 149.333 149.333v0zM746.667 298.667c35.346 0 64 28.654 64 64s-28.654 64-64 64c-35.346 0-64-28.654-64-64v0c-0.024-0.647-0.038-1.408-0.038-2.171 0-34.168 27.699-61.867 61.867-61.867 0.764 0 1.524 0.014 2.281 0.041l-0.11-0.003z"
+        />
+        <path
+          d="M981.333 627.2l-19.2-12.8c-61.484-37.554-135.879-59.79-215.467-59.79s-153.983 22.236-217.31 60.834l1.843-1.044-17.067 12.8c-51.435-18.731-110.808-29.656-172.706-29.866l-0.094-0c-1.041-0.008-2.273-0.012-3.505-0.012-102.805 0-198.352 31.076-277.759 84.348l1.797-1.135-19.2 12.8v160c0 23.564 19.103 42.667 42.667 42.667v0h512c23.564 0 42.667-19.103 42.667-42.667v0-42.667h298.667c23.564 0 42.667-19.103 42.667-42.667v0zM554.667 810.667h-426.667v-70.4c60.429-36.199 133.319-57.605 211.209-57.605 0.747 0 1.493 0.002 2.239 0.006l-0.115-0c0.631-0.003 1.377-0.005 2.124-0.005 77.89 0 150.78 21.406 213.108 58.657l-1.899-1.052zM896 725.333h-256v-32l-32-21.333c40.883-19.81 88.92-31.389 139.661-31.389 54.141 0 105.204 13.182 150.153 36.512l-1.814-0.857z"
+        />
+      </svg>
+    </span>
+  </td>
+  <td
+    class="emotion-5"
+    color="#3570f40D"
+  >
+    <span>
+      <svg
+        class="emotion-8"
+        data-testid="icon"
+        height="1.25em"
+        viewBox="0 0 1024 1024"
+        width="1.25em"
+      >
+        <title>
+          assignment-priority
+        </title>
+        <path
+          d="M512 640c23.564 0 42.667-19.103 42.667-42.667v0-256c0-23.564-19.103-42.667-42.667-42.667s-42.667 19.103-42.667 42.667v0 256c0 23.564 19.103 42.667 42.667 42.667v0z"
+        />
+        <path
+          d="M554.667 768c0 23.564-19.103 42.667-42.667 42.667s-42.667-19.103-42.667-42.667c0-23.564 19.103-42.667 42.667-42.667s42.667 19.103 42.667 42.667z"
+        />
+        <path
+          d="M853.333 128h-85.333v-42.667c0-23.564-19.103-42.667-42.667-42.667v0h-426.667c-23.564 0-42.667 19.103-42.667 42.667v0 42.667h-85.333c-23.564 0-42.667 19.103-42.667 42.667v0 768c0 23.564 19.103 42.667 42.667 42.667v0h682.667c23.564 0 42.667-19.103 42.667-42.667v0-768c0-23.564-19.103-42.667-42.667-42.667v0zM810.667 896h-597.333v-682.667h128v-85.333h341.333v85.333h128z"
+        />
+      </svg>
+    </span>
+  </td>
+  <td
+    class="emotion-5"
+    color="#3570f40D"
+  >
+    <span>
+      <svg
+        class="emotion-8"
+        data-testid="icon"
+        height="1.25em"
+        viewBox="0 0 1024 1024"
+        width="1.25em"
+      >
+        <title>
+          trash
+        </title>
+        <path
+          d="M917.333 187.733c0.007 0.319 0.012 0.694 0.012 1.071 0 12.755-4.867 24.374-12.846 33.1l0.034-0.038c-6.696 7.89-16.62 12.864-27.706 12.864-0.76 0-1.515-0.023-2.264-0.069l0.103 0.005h-256c-23.564 0-42.667-19.103-42.667-42.667v0-42.667h-128v42.667c0 23.564-19.103 42.667-42.667 42.667v0h-253.867c-0.136 0.001-0.298 0.002-0.459 0.002-22.485 0-41.102-16.565-44.311-38.157l-0.030-0.245c-0.007-0.319-0.012-0.694-0.012-1.071 0-12.755 4.867-24.374 12.846-33.1l-0.034 0.038c6.696-7.89 16.62-12.864 27.706-12.864 0.76 0 1.515 0.023 2.264 0.069l-0.103-0.005h213.333v-42.667c0-23.564 19.103-42.667 42.667-42.667v0h213.333c23.564 0 42.667 19.103 42.667 42.667v0 42.667h211.2c0.136-0.001 0.298-0.002 0.459-0.002 22.485 0 41.102 16.565 44.311 38.157l0.030 0.245z"
+        />
+        <path
+          d="M742.4 358.4l-51.2 516.267h-358.4l-51.2-516.267c-2.24-21.656-20.391-38.401-42.453-38.401-0.075 0-0.15 0-0.225 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-23.564 0-42.667 19.103-42.667 42.667 0 1.503 0.078 2.988 0.229 4.45l-0.015-0.183 55.467 554.667c2.24 21.656 20.391 38.401 42.453 38.401 0.075 0 0.15-0 0.225-0.001l-0.012 0h435.2c0.064 0 0.139 0.001 0.214 0.001 22.062 0 40.213-16.744 42.437-38.218l0.015-0.183 55.467-554.667c0.136-1.28 0.214-2.764 0.214-4.267 0-23.564-19.103-42.667-42.667-42.667-0.075 0-0.15 0-0.226 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-22.062 0-40.213 16.744-42.437 38.218l-0.015 0.183z"
+        />
+      </svg>
+    </span>
+  </td>
+</tr>
+`;

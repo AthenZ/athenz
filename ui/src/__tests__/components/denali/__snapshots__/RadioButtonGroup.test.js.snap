@@ -1,0 +1,323 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`RadioButtonGroup should render 1`] = `
+.emotion-3 {
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+}
+
+.emotion-3 > * {
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+}
+
+.emotion-0 {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  display: inline-block;
+  height: 16px;
+  line-height: 16px;
+  margin: 3px;
+  outline: 0px;
+  position: relative;
+  vertical-align: bottom;
+}
+
+.emotion-0 > input[type='radio'] {
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  position: absolute;
+  top: 0;
+  visibility: hidden;
+}
+
+.emotion-0 > input[type='radio'] + label {
+  box-sizing: border-box;
+  cursor: pointer;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  height: 16px;
+  line-height: 16px;
+  padding: 0 10px 0 0;
+  vertical-align: bottom;
+  white-space: nowrap;
+}
+
+.emotion-0 > input[type='radio'] + label:before {
+  background: #fff;
+  border: 2px solid rgba(54,151,242,0.5);
+  border-radius: 50%;
+  box-sizing: border-box;
+  content: '';
+  cursor: pointer;
+  display: inline-block;
+  height: 16px;
+  line-height: 16px;
+  margin: 0px 3px -3px 0px;
+  -webkit-transition: all 0.25s ease-in;
+  transition: all 0.25s ease-in;
+  width: 16px;
+}
+
+.emotion-0 > input[type='radio']:hover + label:before {
+  border: 2px solid #3697f2;
+}
+
+.emotion-0 > input[type='radio']:focus + label:before {
+  border: 2px solid rgba(54,151,242,0.5);
+}
+
+.emotion-0 > input[type='radio']:checked + label:before {
+  border: 2px solid #3697f2;
+}
+
+.emotion-0 > input[type='radio']:disabled + label {
+  color: #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-0 > input[type='radio']:disabled + label:before {
+  border: 2px solid #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-0 > input[type='radio']:checked + label:after {
+  background-color: #3697f2;
+  border-radius: 50%;
+  box-sizing: border-box;
+  content: '';
+  height: 8px;
+  line-height: 8px;
+  left: 4px;
+  position: absolute;
+  top: 4px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  width: 8px;
+}
+
+<div
+  class="emotion-3 denali-radiobutton-group"
+  data-testid="radiobuttongroup"
+>
+  <div
+    class="emotion-0 denali-radiobutton"
+    data-testid="radiobutton-wrapper"
+  >
+    <input
+      id="radiobutton-test-radiobuttongroup-a"
+      name="test-radiobuttongroup"
+      type="radio"
+      value="a"
+    />
+    <label
+      for="radiobutton-test-radiobuttongroup-a"
+    >
+      Radio A
+    </label>
+  </div>
+  <div
+    class="emotion-0 denali-radiobutton"
+    data-testid="radiobutton-wrapper"
+  >
+    <input
+      id="radiobutton-test-radiobuttongroup-b"
+      name="test-radiobuttongroup"
+      type="radio"
+      value="b"
+    />
+    <label
+      for="radiobutton-test-radiobuttongroup-b"
+    >
+      Radio B
+    </label>
+  </div>
+  <div
+    class="emotion-0 denali-radiobutton"
+    data-testid="radiobutton-wrapper"
+  >
+    <input
+      disabled=""
+      id="radiobutton-test-radiobuttongroup-c"
+      name="test-radiobuttongroup"
+      type="radio"
+      value="c"
+    />
+    <label
+      for="radiobutton-test-radiobuttongroup-c"
+    >
+      Radio C
+    </label>
+  </div>
+</div>
+`;
+
+exports[`RadioButtonGroup should render vertical radio button group 1`] = `
+.emotion-0 {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  display: inline-block;
+  height: 16px;
+  line-height: 16px;
+  margin: 3px;
+  outline: 0px;
+  position: relative;
+  vertical-align: bottom;
+}
+
+.emotion-0 > input[type='radio'] {
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  position: absolute;
+  top: 0;
+  visibility: hidden;
+}
+
+.emotion-0 > input[type='radio'] + label {
+  box-sizing: border-box;
+  cursor: pointer;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  height: 16px;
+  line-height: 16px;
+  padding: 0 10px 0 0;
+  vertical-align: bottom;
+  white-space: nowrap;
+}
+
+.emotion-0 > input[type='radio'] + label:before {
+  background: #fff;
+  border: 2px solid rgba(54,151,242,0.5);
+  border-radius: 50%;
+  box-sizing: border-box;
+  content: '';
+  cursor: pointer;
+  display: inline-block;
+  height: 16px;
+  line-height: 16px;
+  margin: 0px 3px -3px 0px;
+  -webkit-transition: all 0.25s ease-in;
+  transition: all 0.25s ease-in;
+  width: 16px;
+}
+
+.emotion-0 > input[type='radio']:hover + label:before {
+  border: 2px solid #3697f2;
+}
+
+.emotion-0 > input[type='radio']:focus + label:before {
+  border: 2px solid rgba(54,151,242,0.5);
+}
+
+.emotion-0 > input[type='radio']:checked + label:before {
+  border: 2px solid #3697f2;
+}
+
+.emotion-0 > input[type='radio']:disabled + label {
+  color: #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-0 > input[type='radio']:disabled + label:before {
+  border: 2px solid #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-0 > input[type='radio']:checked + label:after {
+  background-color: #3697f2;
+  border-radius: 50%;
+  box-sizing: border-box;
+  content: '';
+  height: 8px;
+  line-height: 8px;
+  left: 4px;
+  position: absolute;
+  top: 4px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  width: 8px;
+}
+
+.emotion-3 {
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-flex-flow: column nowrap;
+  -ms-flex-flow: column nowrap;
+  flex-flow: column nowrap;
+}
+
+.emotion-3 > * {
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+}
+
+<div
+  class="emotion-3 denali-radiobutton-group"
+  data-testid="radiobuttongroup"
+>
+  <div
+    class="emotion-0 denali-radiobutton"
+    data-testid="radiobutton-wrapper"
+  >
+    <input
+      id="radiobutton-test-radiobuttongroup-a"
+      name="test-radiobuttongroup"
+      type="radio"
+      value="a"
+    />
+    <label
+      for="radiobutton-test-radiobuttongroup-a"
+    >
+      Radio A
+    </label>
+  </div>
+  <div
+    class="emotion-0 denali-radiobutton"
+    data-testid="radiobutton-wrapper"
+  >
+    <input
+      id="radiobutton-test-radiobuttongroup-b"
+      name="test-radiobuttongroup"
+      type="radio"
+      value="b"
+    />
+    <label
+      for="radiobutton-test-radiobuttongroup-b"
+    >
+      Radio B
+    </label>
+  </div>
+  <div
+    class="emotion-0 denali-radiobutton"
+    data-testid="radiobutton-wrapper"
+  >
+    <input
+      disabled=""
+      id="radiobutton-test-radiobuttongroup-c"
+      name="test-radiobuttongroup"
+      type="radio"
+      value="c"
+    />
+    <label
+      for="radiobutton-test-radiobuttongroup-c"
+    >
+      Radio C
+    </label>
+  </div>
+</div>
+`;

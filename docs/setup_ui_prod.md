@@ -29,9 +29,9 @@ in your runtime path:
 
 ```shell
 $ node --version
-v6.9.4
+v12.14.0
 $ nodemon --version
-1.11.0
+2.0.3
 ```
 
 ## Getting Software

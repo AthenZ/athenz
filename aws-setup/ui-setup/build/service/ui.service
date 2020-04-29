@@ -1,5 +1,5 @@
 [Unit]
-Description=Athens UI
+Description=Athenz UI
 Wants=network-online.target ntpd.service
 After=network-online.target
 

@@ -1,0 +1,12 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`FlatPicker should render 1`] = `
+<input
+  class="flatpickr-input"
+  data-input=""
+  data-testid="flatPicker"
+  placeholder="Expiration (Optional)"
+  type="hidden"
+  value=""
+/>
+`;

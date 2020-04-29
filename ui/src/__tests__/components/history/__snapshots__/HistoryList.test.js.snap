@@ -1,0 +1,458 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`HistoryList should render 1`] = `
+.emotion-3 {
+  border: none;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  font-family: Helvetica,Arial,sans-serif;
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 1;
+  margin: 5px;
+  outline: 0;
+  padding: 10px 24px;
+  text-align: center;
+  text-shadow: none;
+  text-transform: none;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  vertical-align: baseline;
+  white-space: nowrap;
+  background: linear-gradient( to right, #3697f2, #3570f4 );
+  color: #fff;
+}
+
+.emotion-3:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-3:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
+.emotion-3:hover:not(:disabled) {
+  background: linear-gradient( to right, #3570f4, #3448f7 );
+}
+
+.emotion-6 {
+  position: relative;
+  width: 100%;
+}
+
+.emotion-6 input {
+  cursor: inherit;
+}
+
+.emotion-5 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 100%;
+}
+
+.emotion-5 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-5.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+}
+
+.emotion-5 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-5 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-5 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-5 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-5 input.focused,
+.emotion-5 input:active,
+.emotion-5 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-5 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-5 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-5.error input,
+.emotion-5.error input.focused,
+.emotion-5.error input:active,
+.emotion-5.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-5.error .message {
+  color: #d01111;
+}
+
+.emotion-5 input {
+  padding-right: 36px;
+}
+
+.emotion-5 .input-icon {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 36px;
+  position: absolute;
+  right: 6px;
+}
+
+.emotion-4 {
+  fill: #d5d5d5;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+.emotion-10 {
+  border: none;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  font-family: Helvetica,Arial,sans-serif;
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 1;
+  margin: 5px;
+  outline: 0;
+  padding: 10px 24px;
+  text-align: center;
+  text-shadow: none;
+  text-transform: none;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  vertical-align: baseline;
+  white-space: nowrap;
+  background: transparent;
+  box-shadow: 0 0 0 1px #3697f2 inset;
+  color: #3697f2;
+}
+
+.emotion-10:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-10:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
+.emotion-10:disabled {
+  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
+}
+
+.emotion-10:hover:not(:disabled) {
+  background: #d7e2fd;
+}
+
+.emotion-19 {
+  margin: 20px;
+}
+
+.emotion-11 {
+  display: grid;
+  grid-template-columns: 40% 15% 15% 15% 15%;
+  grid-gap: 10px;
+}
+
+.emotion-0 {
+  font-weight: bold;
+}
+
+.emotion-7 {
+  margin-top: 5px;
+}
+
+.emotion-8 > div input {
+  position: relative;
+  font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
+  background-color: rgba(53,112,244,0.05);
+  box-shadow: none;
+  color: rgb(48,48,48);
+  height: 16px;
+  min-width: 50px;
+  text-align: left;
+  border-width: 2px;
+  border-style: solid;
+  border-color: transparent;
+  border-image: initial;
+  border-radius: 2px;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  margin: 0px;
+  margin-top: 5px;
+  outline: none;
+  padding: 0.6em 12px;
+  -webkit-transition: background-color 0.2s ease-in-out 0s, color 0.2s ease-in-out 0s,border 0.2s ease-in-out 0s;
+  transition: background-color 0.2s ease-in-out 0s, color 0.2s ease-in-out 0s,border 0.2s ease-in-out 0s;
+  width: 80%;
+}
+
+.emotion-18 {
+  width: 100%;
+  border-spacing: 0;
+  display: table;
+  border-collapse: separate;
+  border-color: grey;
+  table-layout: fixed;
+  padding-top: 20px;
+}
+
+.emotion-12 {
+  text-align: left;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
+<div
+  class="emotion-19"
+  data-testid="history-list"
+>
+  <div
+    class="emotion-11"
+  >
+    <div />
+    <div
+      class="emotion-0"
+    >
+      Filter by Role
+    </div>
+    <div
+      class="emotion-0"
+    >
+      Start Date
+    </div>
+    <div
+      class="emotion-0"
+    >
+      End Date
+    </div>
+    <div />
+    <div>
+      <button
+        class="emotion-3 denali-button"
+      >
+        Export to CSV
+      </button>
+    </div>
+    <div>
+      <div
+        aria-expanded="false"
+        aria-haspopup="listbox"
+        aria-labelledby="downshift-0-label"
+        class="emotion-6 denali-input-dropdown emotion-7"
+        data-testid="input-dropdown"
+        role="combobox"
+      >
+        <div
+          class="emotion-5 denali-input animated"
+          data-testid="input-wrapper"
+        >
+          <input
+            aria-autocomplete="list"
+            aria-labelledby="downshift-0-label"
+            autocomplete="off"
+            autocorrect="off"
+            data-testid="input-node"
+            id="downshift-0-input"
+            name="roles"
+            placeholder="Type to search Role"
+            spellcheck="false"
+            value=""
+          />
+          <div
+            class="input-icon"
+          >
+            
+            <svg
+              class="emotion-4"
+              data-testid="icon"
+              height="24px"
+              viewBox="0 0 1024 1024"
+              width="24px"
+            >
+              <title>
+                arrowhead-down
+              </title>
+              <path
+                d="M512 580.267l-226.133-226.133c-7.461-8.401-18.291-13.668-30.351-13.668-13.957 0-26.267 7.055-33.558 17.793l-0.091 0.142c-5.319 7.276-8.51 16.4-8.51 26.27 0 12.199 4.876 23.259 12.785 31.338l-0.008-0.008 256 253.867c7.434 8.083 18.061 13.13 29.867 13.13s22.432-5.047 29.84-13.101l0.026-0.029 256-253.867c7.901-8.071 12.777-19.131 12.777-31.33 0-9.87-3.192-18.994-8.599-26.397l0.088 0.127c-7.382-10.88-19.691-17.934-33.649-17.934-12.060 0-22.89 5.267-30.315 13.626l-0.036 0.042z"
+              />
+            </svg>
+          </div>
+          <div
+            class="message"
+            data-testid="message"
+          />
+        </div>
+      </div>
+    </div>
+    <div
+      class="emotion-8"
+    >
+      <div
+        class="startDate"
+      >
+        <input
+          class="flatpickr-input"
+          data-input=""
+          data-testid="flatPicker"
+          placeholder="Start Date (Optional)"
+          type="hidden"
+          value="2019-10-20 07:51"
+        />
+        <input
+          class="startDate form-control input"
+          placeholder="Start Date (Optional)"
+          readonly="readonly"
+          tabindex="0"
+          type="text"
+        />
+      </div>
+    </div>
+    <div
+      class="emotion-8"
+    >
+      <div
+        class="endDate"
+      >
+        <input
+          class="flatpickr-input"
+          data-input=""
+          data-testid="flatPicker"
+          placeholder="End Date (Optional)"
+          type="hidden"
+          value="2020-01-20 07:55"
+        />
+        <input
+          class="endDate form-control input"
+          placeholder="End Date (Optional)"
+          readonly="readonly"
+          tabindex="0"
+          type="text"
+        />
+      </div>
+    </div>
+    <div>
+      <button
+        class="emotion-10 denali-button"
+      >
+        Submit
+      </button>
+    </div>
+  </div>
+  <table
+    class="emotion-18"
+  >
+    <thead>
+      <tr>
+        <th
+          class="emotion-12"
+        >
+          ACTION
+        </th>
+        <th
+          class="emotion-12"
+        >
+          ENTITY
+        </th>
+        <th
+          class="emotion-12"
+        >
+          EXECUTED BY
+        </th>
+        <th
+          class="emotion-12"
+        >
+          MODIFIED DATE
+        </th>
+        <th
+          class="emotion-12"
+        >
+          DETAILS
+        </th>
+        <th
+          class="emotion-12"
+        >
+          JUSTIFICATION
+        </th>
+      </tr>
+    </thead>
+    <tbody />
+  </table>
+</div>
+`;

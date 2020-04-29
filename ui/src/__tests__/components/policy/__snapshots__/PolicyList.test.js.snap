@@ -1,0 +1,97 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`PolicyList should render 1`] = `
+.emotion-7 {
+  margin: 20px;
+}
+
+.emotion-1 {
+  padding-bottom: 20px;
+}
+
+.emotion-0 {
+  color: #3570f4;
+  -webkit-text-decoration: none;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.emotion-6 {
+  width: 100%;
+  border-spacing: 0;
+  display: table;
+  border-collapse: separate;
+  border-color: grey;
+}
+
+.emotion-2 {
+  text-align: left;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
+.emotion-4 {
+  text-align: center;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
+<div
+  class="emotion-7"
+  data-testid="policylist"
+>
+  <div
+    class="emotion-1"
+  >
+    <a
+      class="emotion-0"
+    >
+      Add Policy
+    </a>
+    
+  </div>
+  <table
+    class="emotion-6"
+  >
+    <thead>
+      <tr>
+        <th
+          class="emotion-2"
+        >
+          Policy
+        </th>
+        <th
+          class="emotion-2"
+        >
+          Modified Date
+        </th>
+        <th
+          class="emotion-4"
+        >
+          Rules
+        </th>
+        <th
+          class="emotion-4"
+        >
+          Delete
+        </th>
+      </tr>
+    </thead>
+    <tbody />
+  </table>
+</div>
+`;

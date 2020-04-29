@@ -1,0 +1,1417 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ManageDomains should render 1`] = `
+.emotion-12 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  height: 18px;
+  outline: 0;
+  position: relative;
+}
+
+.emotion-12 > input[type='checkbox'] {
+  box-sizing: border-box;
+  cursor: pointer;
+  position: absolute;
+  top: 0;
+  visibility: hidden;
+}
+
+.emotion-12 > input[type='checkbox'] + label {
+  box-sizing: border-box;
+  cursor: pointer;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  height: 18px;
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+.emotion-12 > input[type='checkbox'] + label .label-content {
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  margin-left: 6px;
+}
+
+@-moz-document url-prefix()  {
+  .emotion-12 > input[type='checkbox'] + label .label-content {
+    margin-top: 1px;
+  }
+}
+
+.emotion-12 > input[type='checkbox'] + label:before {
+  background: #d5d5d5;
+  border-radius: 9px;
+  box-sizing: border-box;
+  content: '';
+  cursor: pointer;
+  display: inline-block;
+  height: 4px;
+  line-height: 16px;
+  margin: 7px 0 0 0;
+  -webkit-transition: all 0.25s;
+  transition: all 0.25s;
+  vertical-align: top;
+  width: 34px;
+}
+
+.emotion-12 > input[type='checkbox'] + label::after {
+  background-color: #fff;
+  border: 2px solid rgba(54,151,242,0.5);
+  border-radius: 50%;
+  box-sizing: border-box;
+  content: ' ';
+  cursor: pointer;
+  display: block;
+  height: 18px;
+  left: 0;
+  position: absolute;
+  -webkit-transition: all 0.25s ease;
+  transition: all 0.25s ease;
+  top: 0;
+  width: 18px;
+}
+
+.emotion-12 > input[type='checkbox']:checked + label::before {
+  background-color: rgba(21,192,70,0.45);
+}
+
+.emotion-12 > input[type='checkbox']:checked + label::after {
+  background-color: #15c046;
+  border-color: #15c046;
+  left: 16px;
+}
+
+.emotion-12 > input[type='checkbox']:disabled + label {
+  color: #9a9a9a;
+  cursor: not-allowed;
+}
+
+.emotion-12 > input[type='checkbox']:disabled + label::before {
+  background-color: #e8e8e8;
+  cursor: not-allowed;
+}
+
+.emotion-12 > input[type='checkbox']:disabled + label::after {
+  border-color: #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-12 > input[type='checkbox']:checked:disabled + label::after {
+  background: #d5d5d5;
+}
+
+.emotion-25 {
+  margin: 20px;
+}
+
+.emotion-0 {
+  padding-bottom: 20px;
+}
+
+.emotion-24 {
+  width: 100%;
+  border-spacing: 0;
+  display: table;
+  border-collapse: separate;
+  border-color: grey;
+}
+
+.emotion-1 {
+  text-align: left;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
+.emotion-4 {
+  text-align: center;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
+.emotion-8 {
+  background-color: #3570f40D;
+  text-align: left;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+.emotion-11 {
+  background-color: #3570f40D;
+  text-align: center;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+.emotion-16 {
+  text-align: left;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+.emotion-19 {
+  text-align: center;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+<div
+  class="emotion-25"
+  data-testid="manage-domains"
+>
+  <div
+    class="emotion-0"
+  />
+  <table
+    class="emotion-24"
+  >
+    <thead>
+      <tr>
+        <th
+          class="emotion-1"
+        >
+          Name
+        </th>
+        <th
+          class="emotion-1"
+        >
+          Type
+        </th>
+        <th
+          class="emotion-1"
+        >
+          Modified Date
+        </th>
+        <th
+          class="emotion-4"
+        >
+          Product Master Id
+        </th>
+        <th
+          class="emotion-4"
+        >
+          Audit
+        </th>
+        <th
+          class="emotion-4"
+        >
+          AWS Account #
+        </th>
+        <th
+          class="emotion-4"
+        >
+          Delete
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td
+          class="emotion-8"
+          color="#3570f40D"
+        >
+          home.mujibur
+        </td>
+        <td
+          class="emotion-8"
+          color="#3570f40D"
+        >
+          Personal
+        </td>
+        <td
+          class="emotion-8"
+          color="#3570f40D"
+        >
+          2018-01-31 19:43 UTC
+        </td>
+        <td
+          class="emotion-11"
+          color="#3570f40D"
+        />
+        <td
+          class="emotion-11"
+          color="#3570f40D"
+        >
+          <div
+            class="emotion-12 denali-switch"
+            data-testid="switch-wrapper"
+          >
+            <input
+              disabled=""
+              id="switch-selfServe-0"
+              name="selfServe-0"
+              type="checkbox"
+              value="false"
+            />
+            <label
+              for="switch-selfServe-0"
+            />
+          </div>
+        </td>
+        <td
+          class="emotion-11"
+          color="#3570f40D"
+        >
+          111111
+        </td>
+        <td
+          class="emotion-11"
+          color="#3570f40D"
+        />
+      </tr>
+      <tr>
+        <td
+          class="emotion-16"
+          color=""
+        >
+          home.pgote
+        </td>
+        <td
+          class="emotion-16"
+          color=""
+        >
+          Personal
+        </td>
+        <td
+          class="emotion-16"
+          color=""
+        >
+          2018-02-15 00:48 UTC
+        </td>
+        <td
+          class="emotion-19"
+          color=""
+        />
+        <td
+          class="emotion-19"
+          color=""
+        >
+          <div
+            class="emotion-12 denali-switch"
+            data-testid="switch-wrapper"
+          >
+            <input
+              disabled=""
+              id="switch-selfServe-1"
+              name="selfServe-1"
+              type="checkbox"
+              value="false"
+            />
+            <label
+              for="switch-selfServe-1"
+            />
+          </div>
+        </td>
+        <td
+          class="emotion-19"
+          color=""
+        >
+          14913436251
+        </td>
+        <td
+          class="emotion-19"
+          color=""
+        />
+      </tr>
+    </tbody>
+  </table>
+</div>
+`;
+
+exports[`ManageDomains should render no domain 1`] = `
+.emotion-12 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  height: 18px;
+  outline: 0;
+  position: relative;
+}
+
+.emotion-12 > input[type='checkbox'] {
+  box-sizing: border-box;
+  cursor: pointer;
+  position: absolute;
+  top: 0;
+  visibility: hidden;
+}
+
+.emotion-12 > input[type='checkbox'] + label {
+  box-sizing: border-box;
+  cursor: pointer;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  height: 18px;
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+.emotion-12 > input[type='checkbox'] + label .label-content {
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  margin-left: 6px;
+}
+
+@-moz-document url-prefix()  {
+  .emotion-12 > input[type='checkbox'] + label .label-content {
+    margin-top: 1px;
+  }
+}
+
+.emotion-12 > input[type='checkbox'] + label:before {
+  background: #d5d5d5;
+  border-radius: 9px;
+  box-sizing: border-box;
+  content: '';
+  cursor: pointer;
+  display: inline-block;
+  height: 4px;
+  line-height: 16px;
+  margin: 7px 0 0 0;
+  -webkit-transition: all 0.25s;
+  transition: all 0.25s;
+  vertical-align: top;
+  width: 34px;
+}
+
+.emotion-12 > input[type='checkbox'] + label::after {
+  background-color: #fff;
+  border: 2px solid rgba(54,151,242,0.5);
+  border-radius: 50%;
+  box-sizing: border-box;
+  content: ' ';
+  cursor: pointer;
+  display: block;
+  height: 18px;
+  left: 0;
+  position: absolute;
+  -webkit-transition: all 0.25s ease;
+  transition: all 0.25s ease;
+  top: 0;
+  width: 18px;
+}
+
+.emotion-12 > input[type='checkbox']:checked + label::before {
+  background-color: rgba(21,192,70,0.45);
+}
+
+.emotion-12 > input[type='checkbox']:checked + label::after {
+  background-color: #15c046;
+  border-color: #15c046;
+  left: 16px;
+}
+
+.emotion-12 > input[type='checkbox']:disabled + label {
+  color: #9a9a9a;
+  cursor: not-allowed;
+}
+
+.emotion-12 > input[type='checkbox']:disabled + label::before {
+  background-color: #e8e8e8;
+  cursor: not-allowed;
+}
+
+.emotion-12 > input[type='checkbox']:disabled + label::after {
+  border-color: #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-12 > input[type='checkbox']:checked:disabled + label::after {
+  background: #d5d5d5;
+}
+
+.emotion-23 {
+  fill: #188fff;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+.emotion-26 {
+  margin: 20px;
+}
+
+.emotion-0 {
+  padding-bottom: 20px;
+}
+
+.emotion-25 {
+  width: 100%;
+  border-spacing: 0;
+  display: table;
+  border-collapse: separate;
+  border-color: grey;
+}
+
+.emotion-1 {
+  text-align: left;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
+.emotion-4 {
+  text-align: center;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
+.emotion-8 {
+  background-color: #3570f40D;
+  text-align: left;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+.emotion-11 {
+  background-color: #3570f40D;
+  text-align: center;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+.emotion-16 {
+  text-align: left;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+.emotion-19 {
+  text-align: center;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+<div
+  class="emotion-26"
+  data-testid="manage-domains"
+>
+  <div
+    class="emotion-0"
+  />
+  <table
+    class="emotion-25"
+  >
+    <thead>
+      <tr>
+        <th
+          class="emotion-1"
+        >
+          Name
+        </th>
+        <th
+          class="emotion-1"
+        >
+          Type
+        </th>
+        <th
+          class="emotion-1"
+        >
+          Modified Date
+        </th>
+        <th
+          class="emotion-4"
+        >
+          Product Master Id
+        </th>
+        <th
+          class="emotion-4"
+        >
+          Audit
+        </th>
+        <th
+          class="emotion-4"
+        >
+          AWS Account #
+        </th>
+        <th
+          class="emotion-4"
+        >
+          Delete
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td
+          class="emotion-8"
+          color="#3570f40D"
+        >
+          home.mujibur
+        </td>
+        <td
+          class="emotion-8"
+          color="#3570f40D"
+        >
+          Personal
+        </td>
+        <td
+          class="emotion-8"
+          color="#3570f40D"
+        >
+          2018-01-31 19:43 UTC
+        </td>
+        <td
+          class="emotion-11"
+          color="#3570f40D"
+        />
+        <td
+          class="emotion-11"
+          color="#3570f40D"
+        >
+          <div
+            class="emotion-12 denali-switch"
+            data-testid="switch-wrapper"
+          >
+            <input
+              disabled=""
+              id="switch-selfServe-0"
+              name="selfServe-0"
+              type="checkbox"
+              value="false"
+            />
+            <label
+              for="switch-selfServe-0"
+            />
+          </div>
+        </td>
+        <td
+          class="emotion-11"
+          color="#3570f40D"
+        >
+          111111
+        </td>
+        <td
+          class="emotion-11"
+          color="#3570f40D"
+        />
+      </tr>
+      <tr>
+        <td
+          class="emotion-16"
+          color=""
+        >
+          home.mujibur.test
+        </td>
+        <td
+          class="emotion-16"
+          color=""
+        >
+          Sub domain
+        </td>
+        <td
+          class="emotion-16"
+          color=""
+        >
+          2018-02-15 00:48 UTC
+        </td>
+        <td
+          class="emotion-19"
+          color=""
+        />
+        <td
+          class="emotion-19"
+          color=""
+        >
+          <div
+            class="emotion-12 denali-switch"
+            data-testid="switch-wrapper"
+          >
+            <input
+              disabled=""
+              id="switch-selfServe-1"
+              name="selfServe-1"
+              type="checkbox"
+              value="false"
+            />
+            <label
+              for="switch-selfServe-1"
+            />
+          </div>
+        </td>
+        <td
+          class="emotion-19"
+          color=""
+        >
+          14913436251
+        </td>
+        <td
+          class="emotion-19"
+          color=""
+        >
+          <svg
+            class="emotion-23"
+            data-testid="icon"
+            height="1.25em"
+            viewBox="0 0 1024 1024"
+            width="1.25em"
+          >
+            <title>
+              trash
+            </title>
+            <path
+              d="M917.333 187.733c0.007 0.319 0.012 0.694 0.012 1.071 0 12.755-4.867 24.374-12.846 33.1l0.034-0.038c-6.696 7.89-16.62 12.864-27.706 12.864-0.76 0-1.515-0.023-2.264-0.069l0.103 0.005h-256c-23.564 0-42.667-19.103-42.667-42.667v0-42.667h-128v42.667c0 23.564-19.103 42.667-42.667 42.667v0h-253.867c-0.136 0.001-0.298 0.002-0.459 0.002-22.485 0-41.102-16.565-44.311-38.157l-0.030-0.245c-0.007-0.319-0.012-0.694-0.012-1.071 0-12.755 4.867-24.374 12.846-33.1l-0.034 0.038c6.696-7.89 16.62-12.864 27.706-12.864 0.76 0 1.515 0.023 2.264 0.069l-0.103-0.005h213.333v-42.667c0-23.564 19.103-42.667 42.667-42.667v0h213.333c23.564 0 42.667 19.103 42.667 42.667v0 42.667h211.2c0.136-0.001 0.298-0.002 0.459-0.002 22.485 0 41.102 16.565 44.311 38.157l0.030 0.245z"
+            />
+            <path
+              d="M742.4 358.4l-51.2 516.267h-358.4l-51.2-516.267c-2.24-21.656-20.391-38.401-42.453-38.401-0.075 0-0.15 0-0.225 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-23.564 0-42.667 19.103-42.667 42.667 0 1.503 0.078 2.988 0.229 4.45l-0.015-0.183 55.467 554.667c2.24 21.656 20.391 38.401 42.453 38.401 0.075 0 0.15-0 0.225-0.001l-0.012 0h435.2c0.064 0 0.139 0.001 0.214 0.001 22.062 0 40.213-16.744 42.437-38.218l0.015-0.183 55.467-554.667c0.136-1.28 0.214-2.764 0.214-4.267 0-23.564-19.103-42.667-42.667-42.667-0.075 0-0.15 0-0.226 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-22.062 0-40.213 16.744-42.437 38.218l-0.015 0.183z"
+            />
+          </svg>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+`;
+
+exports[`ManageDomains should render personal domain 1`] = `
+.emotion-12 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  height: 18px;
+  outline: 0;
+  position: relative;
+}
+
+.emotion-12 > input[type='checkbox'] {
+  box-sizing: border-box;
+  cursor: pointer;
+  position: absolute;
+  top: 0;
+  visibility: hidden;
+}
+
+.emotion-12 > input[type='checkbox'] + label {
+  box-sizing: border-box;
+  cursor: pointer;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  height: 18px;
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+.emotion-12 > input[type='checkbox'] + label .label-content {
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  margin-left: 6px;
+}
+
+@-moz-document url-prefix()  {
+  .emotion-12 > input[type='checkbox'] + label .label-content {
+    margin-top: 1px;
+  }
+}
+
+.emotion-12 > input[type='checkbox'] + label:before {
+  background: #d5d5d5;
+  border-radius: 9px;
+  box-sizing: border-box;
+  content: '';
+  cursor: pointer;
+  display: inline-block;
+  height: 4px;
+  line-height: 16px;
+  margin: 7px 0 0 0;
+  -webkit-transition: all 0.25s;
+  transition: all 0.25s;
+  vertical-align: top;
+  width: 34px;
+}
+
+.emotion-12 > input[type='checkbox'] + label::after {
+  background-color: #fff;
+  border: 2px solid rgba(54,151,242,0.5);
+  border-radius: 50%;
+  box-sizing: border-box;
+  content: ' ';
+  cursor: pointer;
+  display: block;
+  height: 18px;
+  left: 0;
+  position: absolute;
+  -webkit-transition: all 0.25s ease;
+  transition: all 0.25s ease;
+  top: 0;
+  width: 18px;
+}
+
+.emotion-12 > input[type='checkbox']:checked + label::before {
+  background-color: rgba(21,192,70,0.45);
+}
+
+.emotion-12 > input[type='checkbox']:checked + label::after {
+  background-color: #15c046;
+  border-color: #15c046;
+  left: 16px;
+}
+
+.emotion-12 > input[type='checkbox']:disabled + label {
+  color: #9a9a9a;
+  cursor: not-allowed;
+}
+
+.emotion-12 > input[type='checkbox']:disabled + label::before {
+  background-color: #e8e8e8;
+  cursor: not-allowed;
+}
+
+.emotion-12 > input[type='checkbox']:disabled + label::after {
+  border-color: #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-12 > input[type='checkbox']:checked:disabled + label::after {
+  background: #d5d5d5;
+}
+
+.emotion-25 {
+  margin: 20px;
+}
+
+.emotion-0 {
+  padding-bottom: 20px;
+}
+
+.emotion-24 {
+  width: 100%;
+  border-spacing: 0;
+  display: table;
+  border-collapse: separate;
+  border-color: grey;
+}
+
+.emotion-1 {
+  text-align: left;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
+.emotion-4 {
+  text-align: center;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
+.emotion-8 {
+  background-color: #3570f40D;
+  text-align: left;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+.emotion-11 {
+  background-color: #3570f40D;
+  text-align: center;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+.emotion-16 {
+  text-align: left;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+.emotion-19 {
+  text-align: center;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+<div
+  class="emotion-25"
+  data-testid="manage-domains"
+>
+  <div
+    class="emotion-0"
+  />
+  <table
+    class="emotion-24"
+  >
+    <thead>
+      <tr>
+        <th
+          class="emotion-1"
+        >
+          Name
+        </th>
+        <th
+          class="emotion-1"
+        >
+          Type
+        </th>
+        <th
+          class="emotion-1"
+        >
+          Modified Date
+        </th>
+        <th
+          class="emotion-4"
+        >
+          Product Master Id
+        </th>
+        <th
+          class="emotion-4"
+        >
+          Audit
+        </th>
+        <th
+          class="emotion-4"
+        >
+          AWS Account #
+        </th>
+        <th
+          class="emotion-4"
+        >
+          Delete
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td
+          class="emotion-8"
+          color="#3570f40D"
+        >
+          home.mujibur
+        </td>
+        <td
+          class="emotion-8"
+          color="#3570f40D"
+        >
+          Personal
+        </td>
+        <td
+          class="emotion-8"
+          color="#3570f40D"
+        >
+          2018-01-31 19:43 UTC
+        </td>
+        <td
+          class="emotion-11"
+          color="#3570f40D"
+        />
+        <td
+          class="emotion-11"
+          color="#3570f40D"
+        >
+          <div
+            class="emotion-12 denali-switch"
+            data-testid="switch-wrapper"
+          >
+            <input
+              disabled=""
+              id="switch-selfServe-0"
+              name="selfServe-0"
+              type="checkbox"
+              value="false"
+            />
+            <label
+              for="switch-selfServe-0"
+            />
+          </div>
+        </td>
+        <td
+          class="emotion-11"
+          color="#3570f40D"
+        >
+          111111
+        </td>
+        <td
+          class="emotion-11"
+          color="#3570f40D"
+        />
+      </tr>
+      <tr>
+        <td
+          class="emotion-16"
+          color=""
+        >
+          home.pgote
+        </td>
+        <td
+          class="emotion-16"
+          color=""
+        >
+          Personal
+        </td>
+        <td
+          class="emotion-16"
+          color=""
+        >
+          2018-02-15 00:48 UTC
+        </td>
+        <td
+          class="emotion-19"
+          color=""
+        />
+        <td
+          class="emotion-19"
+          color=""
+        >
+          <div
+            class="emotion-12 denali-switch"
+            data-testid="switch-wrapper"
+          >
+            <input
+              disabled=""
+              id="switch-selfServe-1"
+              name="selfServe-1"
+              type="checkbox"
+              value="false"
+            />
+            <label
+              for="switch-selfServe-1"
+            />
+          </div>
+        </td>
+        <td
+          class="emotion-19"
+          color=""
+        >
+          14913436251
+        </td>
+        <td
+          class="emotion-19"
+          color=""
+        />
+      </tr>
+    </tbody>
+  </table>
+</div>
+`;
+
+exports[`ManageDomains should render top level domain 1`] = `
+.emotion-12 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  height: 18px;
+  outline: 0;
+  position: relative;
+}
+
+.emotion-12 > input[type='checkbox'] {
+  box-sizing: border-box;
+  cursor: pointer;
+  position: absolute;
+  top: 0;
+  visibility: hidden;
+}
+
+.emotion-12 > input[type='checkbox'] + label {
+  box-sizing: border-box;
+  cursor: pointer;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  height: 18px;
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+.emotion-12 > input[type='checkbox'] + label .label-content {
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  margin-left: 6px;
+}
+
+@-moz-document url-prefix()  {
+  .emotion-12 > input[type='checkbox'] + label .label-content {
+    margin-top: 1px;
+  }
+}
+
+.emotion-12 > input[type='checkbox'] + label:before {
+  background: #d5d5d5;
+  border-radius: 9px;
+  box-sizing: border-box;
+  content: '';
+  cursor: pointer;
+  display: inline-block;
+  height: 4px;
+  line-height: 16px;
+  margin: 7px 0 0 0;
+  -webkit-transition: all 0.25s;
+  transition: all 0.25s;
+  vertical-align: top;
+  width: 34px;
+}
+
+.emotion-12 > input[type='checkbox'] + label::after {
+  background-color: #fff;
+  border: 2px solid rgba(54,151,242,0.5);
+  border-radius: 50%;
+  box-sizing: border-box;
+  content: ' ';
+  cursor: pointer;
+  display: block;
+  height: 18px;
+  left: 0;
+  position: absolute;
+  -webkit-transition: all 0.25s ease;
+  transition: all 0.25s ease;
+  top: 0;
+  width: 18px;
+}
+
+.emotion-12 > input[type='checkbox']:checked + label::before {
+  background-color: rgba(21,192,70,0.45);
+}
+
+.emotion-12 > input[type='checkbox']:checked + label::after {
+  background-color: #15c046;
+  border-color: #15c046;
+  left: 16px;
+}
+
+.emotion-12 > input[type='checkbox']:disabled + label {
+  color: #9a9a9a;
+  cursor: not-allowed;
+}
+
+.emotion-12 > input[type='checkbox']:disabled + label::before {
+  background-color: #e8e8e8;
+  cursor: not-allowed;
+}
+
+.emotion-12 > input[type='checkbox']:disabled + label::after {
+  border-color: #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-12 > input[type='checkbox']:checked:disabled + label::after {
+  background: #d5d5d5;
+}
+
+.emotion-25 {
+  margin: 20px;
+}
+
+.emotion-0 {
+  padding-bottom: 20px;
+}
+
+.emotion-24 {
+  width: 100%;
+  border-spacing: 0;
+  display: table;
+  border-collapse: separate;
+  border-color: grey;
+}
+
+.emotion-1 {
+  text-align: left;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
+.emotion-4 {
+  text-align: center;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
+.emotion-8 {
+  background-color: #3570f40D;
+  text-align: left;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+.emotion-11 {
+  background-color: #3570f40D;
+  text-align: center;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+.emotion-16 {
+  text-align: left;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+.emotion-19 {
+  text-align: center;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+<div
+  class="emotion-25"
+  data-testid="manage-domains"
+>
+  <div
+    class="emotion-0"
+  />
+  <table
+    class="emotion-24"
+  >
+    <thead>
+      <tr>
+        <th
+          class="emotion-1"
+        >
+          Name
+        </th>
+        <th
+          class="emotion-1"
+        >
+          Type
+        </th>
+        <th
+          class="emotion-1"
+        >
+          Modified Date
+        </th>
+        <th
+          class="emotion-4"
+        >
+          Product Master Id
+        </th>
+        <th
+          class="emotion-4"
+        >
+          Audit
+        </th>
+        <th
+          class="emotion-4"
+        >
+          AWS Account #
+        </th>
+        <th
+          class="emotion-4"
+        >
+          Delete
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td
+          class="emotion-8"
+          color="#3570f40D"
+        >
+          home.mujibur
+        </td>
+        <td
+          class="emotion-8"
+          color="#3570f40D"
+        >
+          Personal
+        </td>
+        <td
+          class="emotion-8"
+          color="#3570f40D"
+        >
+          2018-01-31 19:43 UTC
+        </td>
+        <td
+          class="emotion-11"
+          color="#3570f40D"
+        />
+        <td
+          class="emotion-11"
+          color="#3570f40D"
+        >
+          <div
+            class="emotion-12 denali-switch"
+            data-testid="switch-wrapper"
+          >
+            <input
+              disabled=""
+              id="switch-selfServe-0"
+              name="selfServe-0"
+              type="checkbox"
+              value="false"
+            />
+            <label
+              for="switch-selfServe-0"
+            />
+          </div>
+        </td>
+        <td
+          class="emotion-11"
+          color="#3570f40D"
+        >
+          111111
+        </td>
+        <td
+          class="emotion-11"
+          color="#3570f40D"
+        />
+      </tr>
+      <tr>
+        <td
+          class="emotion-16"
+          color=""
+        >
+          home
+        </td>
+        <td
+          class="emotion-16"
+          color=""
+        >
+          Top Level
+        </td>
+        <td
+          class="emotion-16"
+          color=""
+        >
+          2018-02-15 00:48 UTC
+        </td>
+        <td
+          class="emotion-19"
+          color=""
+        />
+        <td
+          class="emotion-19"
+          color=""
+        >
+          <div
+            class="emotion-12 denali-switch"
+            data-testid="switch-wrapper"
+          >
+            <input
+              disabled=""
+              id="switch-selfServe-1"
+              name="selfServe-1"
+              type="checkbox"
+              value="false"
+            />
+            <label
+              for="switch-selfServe-1"
+            />
+          </div>
+        </td>
+        <td
+          class="emotion-19"
+          color=""
+        >
+          14913436251
+        </td>
+        <td
+          class="emotion-19"
+          color=""
+        />
+      </tr>
+    </tbody>
+  </table>
+</div>
+`;

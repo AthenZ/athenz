@@ -27,10 +27,10 @@ in your runtime path:
 
 ```shell
 $ node --version
-v6.9.4
+v12.14.0
 $ npm install -g nodemon
 $ nodemon --version
-1.11.0
+2.0.3
 ```
 
 ## Getting Software
@@ -62,7 +62,7 @@ argument below pass the full path of the zms_cert.pem.
 
 ```shell
 $ cd athenz-ui-X.Y
-$ bin/setup_dev_ui.sh <zms-hostname> <zms-public-cert-path>
+$ bin/setup_dev_ui.sh <zms-hostname> <zms-public-cert-path> <admin-username> <admin-fullname>
 ```
 
 Running this setup script completes the following tasks:

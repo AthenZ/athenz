@@ -1,0 +1,1573 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Input should disable transitions 1`] = `
+.emotion-0 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 250px;
+}
+
+.emotion-0 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-0.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+}
+
+.emotion-0 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input.focused,
+.emotion-0 input:active,
+.emotion-0 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-0 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-0 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-0.error input,
+.emotion-0.error input.focused,
+.emotion-0.error input:active,
+.emotion-0.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-0.error .message {
+  color: #d01111;
+}
+
+<div
+  class="emotion-0 denali-input"
+  data-testid="input-wrapper"
+>
+  <input
+    autocomplete="off"
+    data-testid="input-node"
+    name="test-input"
+    placeholder="test-placeholder"
+    value=""
+  />
+  <div
+    class="message"
+    data-testid="message"
+  />
+</div>
+`;
+
+exports[`Input should render 1`] = `
+.emotion-0 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 250px;
+}
+
+.emotion-0 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-0.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+}
+
+.emotion-0 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input.focused,
+.emotion-0 input:active,
+.emotion-0 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-0 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-0 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-0.error input,
+.emotion-0.error input.focused,
+.emotion-0.error input:active,
+.emotion-0.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-0.error .message {
+  color: #d01111;
+}
+
+<div
+  class="emotion-0 denali-input animated"
+  data-testid="input-wrapper"
+>
+  <input
+    autocomplete="off"
+    data-testid="input-node"
+    name="test-input"
+    placeholder="test-placeholder"
+    value=""
+  />
+  <div
+    class="message"
+    data-testid="message"
+  />
+</div>
+`;
+
+exports[`Input should render a fluid input 1`] = `
+.emotion-0 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 100%;
+}
+
+.emotion-0 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-0.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+}
+
+.emotion-0 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input.focused,
+.emotion-0 input:active,
+.emotion-0 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-0 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-0 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-0.error input,
+.emotion-0.error input.focused,
+.emotion-0.error input:active,
+.emotion-0.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-0.error .message {
+  color: #d01111;
+}
+
+<div
+  class="emotion-0 denali-input animated"
+  data-testid="input-wrapper"
+>
+  <input
+    autocomplete="off"
+    data-testid="input-node"
+    name="test-input"
+    value=""
+  />
+  <div
+    class="message"
+    data-testid="message"
+  />
+</div>
+`;
+
+exports[`Input should render a focused input 1`] = `
+.emotion-0 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 250px;
+}
+
+.emotion-0 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-0.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+}
+
+.emotion-0 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input.focused,
+.emotion-0 input:active,
+.emotion-0 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-0 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-0 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-0.error input,
+.emotion-0.error input.focused,
+.emotion-0.error input:active,
+.emotion-0.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-0.error .message {
+  color: #d01111;
+}
+
+<div
+  class="emotion-0 denali-input animated"
+  data-testid="input-wrapper"
+>
+  <input
+    autocomplete="off"
+    class="focused"
+    data-testid="input-node"
+    name="test-input"
+    placeholder="Input only accepts numbers"
+    value=""
+  />
+  <div
+    class="message"
+    data-testid="message"
+  />
+</div>
+`;
+
+exports[`Input should render a small input 1`] = `
+.emotion-0 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 250px;
+}
+
+.emotion-0 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 28px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-0.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+}
+
+.emotion-0 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input.focused,
+.emotion-0 input:active,
+.emotion-0 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-0 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-0 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-0.error input,
+.emotion-0.error input.focused,
+.emotion-0.error input:active,
+.emotion-0.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-0.error .message {
+  color: #d01111;
+}
+
+<div
+  class="emotion-0 denali-input animated"
+  data-testid="input-wrapper"
+>
+  <input
+    autocomplete="off"
+    data-testid="input-node"
+    name="test-input"
+    placeholder="test-placeholder"
+    value=""
+  />
+  <div
+    class="message"
+    data-testid="message"
+  />
+</div>
+`;
+
+exports[`Input should render a small input with an icon 1`] = `
+.emotion-0 {
+  cursor: inherit;
+  vertical-align: text-bottom;
+}
+
+.emotion-1 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 250px;
+}
+
+.emotion-1 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 28px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-1.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+}
+
+.emotion-1 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input.focused,
+.emotion-1 input:active,
+.emotion-1 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-1 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-1 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-1.error input,
+.emotion-1.error input.focused,
+.emotion-1.error input:active,
+.emotion-1.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-1.error .message {
+  color: #d01111;
+}
+
+.emotion-1 input {
+  padding-right: 28px;
+}
+
+.emotion-1 .input-icon {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 28px;
+  position: absolute;
+  right: 6px;
+}
+
+<div
+  class="emotion-1 denali-input animated"
+  data-testid="input-wrapper"
+>
+  <input
+    autocomplete="off"
+    data-testid="input-node"
+    name="test-input"
+    value=""
+  />
+  <div
+    class="input-icon"
+  >
+    <svg
+      class="emotion-0"
+      data-testid="icon"
+      height="20px"
+      viewBox="0 0 1024 1024"
+      width="20px"
+    >
+      <title>
+        x
+      </title>
+      <path
+        d="M572.373 512l224.427-224.213c8.506-8.066 13.798-19.448 13.798-32.066 0-9.118-2.763-17.59-7.498-24.625l0.1 0.158c-7.858-10.565-20.305-17.335-34.333-17.335-11.534 0-21.999 4.577-29.678 12.013l0.011-0.011-227.2 225.707-226.133-225.707c-7.733-7.792-18.447-12.616-30.289-12.616-14.295 0-26.948 7.030-34.691 17.822l-0.087 0.128c-4.635 6.877-7.398 15.35-7.398 24.467 0 12.618 5.292 24 13.778 32.048l0.020 0.019 224.427 224.213-224.427 224.213c-8.506 8.066-13.798 19.448-13.798 32.066 0 9.118 2.763 17.59 7.498 24.625l-0.1-0.158c7.83 10.919 20.483 17.949 34.778 17.949 11.841 0 22.556-4.824 30.286-12.613l0.003-0.003 226.133-225.707 226.133 225.707c7.668 7.425 18.133 12.002 29.667 12.002 14.028 0 26.476-6.77 34.252-17.222l0.081-0.114c4.635-6.877 7.398-15.35 7.398-24.467 0-12.618-5.292-24-13.778-32.048l-0.020-0.019z"
+      />
+    </svg>
+  </div>
+  <div
+    class="message"
+    data-testid="message"
+  />
+</div>
+`;
+
+exports[`Input should render an input with a label 1`] = `
+.emotion-0 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 250px;
+}
+
+.emotion-0 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-0.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+}
+
+.emotion-0 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input.focused,
+.emotion-0 input:active,
+.emotion-0 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-0 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-0 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-0.error input,
+.emotion-0.error input.focused,
+.emotion-0.error input:active,
+.emotion-0.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-0.error .message {
+  color: #d01111;
+}
+
+.emotion-0 input {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.emotion-0 .input-label {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  background: linear-gradient( 45deg, #3697f2 0%, #8ac5ed 100% );
+  border-radius: 0 2px 2px 0;
+  color: #fff;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  padding: 0 10px;
+  white-space: nowrap;
+}
+
+<div
+  class="emotion-0 denali-input animated"
+  data-testid="input-wrapper"
+>
+  <input
+    autocomplete="off"
+    data-testid="input-node"
+    name="test-input"
+    value=""
+  />
+  <div
+    class="input-label"
+  >
+    <div>
+      label
+    </div>
+  </div>
+  <div
+    class="message"
+    data-testid="message"
+  />
+</div>
+`;
+
+exports[`Input should render an input with an icon 1`] = `
+.emotion-1 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 250px;
+}
+
+.emotion-1 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-1.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+}
+
+.emotion-1 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input.focused,
+.emotion-1 input:active,
+.emotion-1 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-1 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-1 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-1.error input,
+.emotion-1.error input.focused,
+.emotion-1.error input:active,
+.emotion-1.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-1.error .message {
+  color: #d01111;
+}
+
+.emotion-1 input {
+  padding-right: 36px;
+}
+
+.emotion-1 .input-icon {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 36px;
+  position: absolute;
+  right: 6px;
+}
+
+.emotion-0 {
+  cursor: inherit;
+  vertical-align: text-bottom;
+}
+
+<div
+  class="emotion-1 denali-input animated"
+  data-testid="input-wrapper"
+>
+  <input
+    autocomplete="off"
+    data-testid="input-node"
+    name="test-input"
+    value=""
+  />
+  <div
+    class="input-icon"
+  >
+    <svg
+      class="emotion-0"
+      data-testid="icon"
+      height="24px"
+      viewBox="0 0 1024 1024"
+      width="24px"
+    >
+      <title>
+        x
+      </title>
+      <path
+        d="M572.373 512l224.427-224.213c8.506-8.066 13.798-19.448 13.798-32.066 0-9.118-2.763-17.59-7.498-24.625l0.1 0.158c-7.858-10.565-20.305-17.335-34.333-17.335-11.534 0-21.999 4.577-29.678 12.013l0.011-0.011-227.2 225.707-226.133-225.707c-7.733-7.792-18.447-12.616-30.289-12.616-14.295 0-26.948 7.030-34.691 17.822l-0.087 0.128c-4.635 6.877-7.398 15.35-7.398 24.467 0 12.618 5.292 24 13.778 32.048l0.020 0.019 224.427 224.213-224.427 224.213c-8.506 8.066-13.798 19.448-13.798 32.066 0 9.118 2.763 17.59 7.498 24.625l-0.1-0.158c7.83 10.919 20.483 17.949 34.778 17.949 11.841 0 22.556-4.824 30.286-12.613l0.003-0.003 226.133-225.707 226.133 225.707c7.668 7.425 18.133 12.002 29.667 12.002 14.028 0 26.476-6.77 34.252-17.222l0.081-0.114c4.635-6.877 7.398-15.35 7.398-24.467 0-12.618-5.292-24-13.778-32.048l-0.020-0.019z"
+      />
+    </svg>
+  </div>
+  <div
+    class="message"
+    data-testid="message"
+  />
+</div>
+`;
+
+exports[`Input should render an input with error 1`] = `
+.emotion-0 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 250px;
+}
+
+.emotion-0 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-0.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+}
+
+.emotion-0 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input.focused,
+.emotion-0 input:active,
+.emotion-0 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-0 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-0 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-0.error input,
+.emotion-0.error input.focused,
+.emotion-0.error input:active,
+.emotion-0.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-0.error .message {
+  color: #d01111;
+}
+
+<div
+  class="emotion-0 denali-input error animated"
+  data-testid="input-wrapper"
+>
+  <input
+    autocomplete="off"
+    data-testid="input-node"
+    name="test-input"
+    value=""
+  />
+  <div
+    class="message"
+    data-testid="message"
+  >
+    An error has occurred
+  </div>
+</div>
+`;
+
+exports[`Input should render dark theme 1`] = `
+.emotion-0 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 250px;
+}
+
+.emotion-0 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-0.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+}
+
+.emotion-0 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input.focused,
+.emotion-0 input:active,
+.emotion-0 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-0 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-0 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-0.error input,
+.emotion-0.error input.focused,
+.emotion-0.error input:active,
+.emotion-0.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-0.error .message {
+  color: #d01111;
+}
+
+.emotion-0 input {
+  background: rgba(242,242,242,0.1);
+  color: #fff;
+}
+
+.emotion-0 input::-webkit-input-placeholder {
+  color: rgba(255,255,255,0.6);
+}
+
+.emotion-0 input::-moz-placeholder {
+  color: rgba(255,255,255,0.6);
+}
+
+.emotion-0 input:-ms-input-placeholder {
+  color: rgba(255,255,255,0.6);
+}
+
+.emotion-0 input::placeholder {
+  color: rgba(255,255,255,0.6);
+}
+
+.emotion-0 input.focused,
+.emotion-0 input:active,
+.emotion-0 input:focus {
+  background: rgba(242,242,242,0.1);
+  border-bottom: 2px solid #3570f4;
+  color: #fff;
+}
+
+<div
+  class="emotion-0 denali-input animated"
+  data-testid="input-wrapper"
+>
+  <input
+    autocomplete="off"
+    data-testid="input-node"
+    name="test-input"
+    value=""
+  />
+  <div
+    class="message"
+    data-testid="message"
+  />
+</div>
+`;
+
+exports[`Input should render disabled dark theme 1`] = `
+.emotion-0 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 250px;
+}
+
+.emotion-0 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-0.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+}
+
+.emotion-0 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input.focused,
+.emotion-0 input:active,
+.emotion-0 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-0 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-0 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-0.error input,
+.emotion-0.error input.focused,
+.emotion-0.error input:active,
+.emotion-0.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-0.error .message {
+  color: #d01111;
+}
+
+.emotion-0 input[disabled] {
+  background: rgba(255,255,255,0.1);
+  border-bottom: 2px solid rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.1);
+  cursor: not-allowed;
+}
+
+.emotion-0 input::-webkit-input-placeholder {
+  color: rgba(255,255,255,0.2);
+}
+
+.emotion-0 input::-moz-placeholder {
+  color: rgba(255,255,255,0.2);
+}
+
+.emotion-0 input:-ms-input-placeholder {
+  color: rgba(255,255,255,0.2);
+}
+
+.emotion-0 input::placeholder {
+  color: rgba(255,255,255,0.2);
+}
+
+<div
+  class="emotion-0 denali-input animated"
+  data-testid="input-wrapper"
+>
+  <input
+    autocomplete="off"
+    data-testid="input-node"
+    disabled=""
+    name="test-input"
+    value=""
+  />
+  <div
+    class="message"
+    data-testid="message"
+  />
+</div>
+`;
+
+exports[`Input should render icon with renderIcon function  1`] = `
+.emotion-1 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 250px;
+}
+
+.emotion-1 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-1.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+}
+
+.emotion-1 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input.focused,
+.emotion-1 input:active,
+.emotion-1 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-1 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-1 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-1.error input,
+.emotion-1.error input.focused,
+.emotion-1.error input:active,
+.emotion-1.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-1.error .message {
+  color: #d01111;
+}
+
+.emotion-1 input {
+  padding-right: 36px;
+}
+
+.emotion-1 .input-icon {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 36px;
+  position: absolute;
+  right: 6px;
+}
+
+.emotion-0 {
+  fill: #3570f4;
+  cursor: inherit;
+  vertical-align: text-bottom;
+}
+
+<div
+  class="emotion-1 denali-input animated"
+  data-testid="input-wrapper"
+>
+  <input
+    autocomplete="off"
+    data-testid="input-node"
+    name="test-input"
+    value=""
+  />
+  <div
+    class="input-icon"
+  >
+    <svg
+      class="emotion-0"
+      data-testid="icon"
+      height="24px"
+      viewBox="0 0 1024 1024"
+      width="24px"
+    >
+      <title>
+        search
+      </title>
+      <path
+        d="M659.413 599.68c40.125-53.054 64.27-120.136 64.27-192.857 0-177.556-143.937-321.493-321.493-321.493s-321.493 143.937-321.493 321.493c0 177.556 143.937 321.493 321.493 321.493 74.297 0 142.708-25.203 197.149-67.525l-0.726 0.543 267.307 264.96c7.723 7.731 18.396 12.514 30.187 12.514s22.464-4.782 30.186-12.513l0-0c7.795-7.733 12.621-18.45 12.621-30.293s-4.826-22.56-12.618-30.291l-0.003-0.003zM444.8 637.227c-11.829 2.113-25.446 3.322-39.345 3.322-129.603 0-234.667-105.064-234.667-234.667s105.064-234.667 234.667-234.667c129.603 0 234.667 105.064 234.667 234.667 0 13.899-1.208 27.516-3.526 40.752l0.204-1.407c-17.178 98.349-93.651 174.822-190.593 191.796l-1.407 0.204z"
+      />
+    </svg>
+  </div>
+  <div
+    class="message"
+    data-testid="message"
+  />
+</div>
+`;

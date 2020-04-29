@@ -1,0 +1,455 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`PolicyRuleTable should render 1`] = `
+.emotion-12 {
+  fill: #188fff;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+.emotion-17 {
+  padding: 30px 20px;
+}
+
+.emotion-14 {
+  width: 100%;
+  border-spacing: 0;
+  display: table;
+  border-collapse: separate;
+}
+
+.emotion-0 {
+  text-align: left;
+  border-bottom: 2px solid #d5d5d5;
+  color: #303030;
+  font-weight: 600;
+  font-size: 16px;
+  padding-bottom: 2px;
+  vertical-align: top;
+  padding: 10px 10px 0px 15px;
+  word-break: break-all;
+}
+
+.emotion-2 {
+  text-align: right;
+  border-bottom: 2px solid #d5d5d5;
+  color: #3570F4;
+  font-weight: 300;
+  font-size: 14px;
+  padding-bottom: 2px;
+  vertical-align: top;
+  padding: 10px 10px 0px 15px;
+  word-break: break-all;
+}
+
+.emotion-1 {
+  color: #3570f4;
+  -webkit-text-decoration: none;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.emotion-15 {
+  margin: 15px 0 0 0;
+}
+
+.emotion-3 {
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.7rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  text-align: left;
+  background-color: white;
+}
+
+.emotion-7 {
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  width: 120px;
+  text-align: center;
+  background-color: white;
+}
+
+.emotion-8 {
+  background-color: white;
+  text-align: left;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+.emotion-13 {
+  background-color: white;
+  text-align: center;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+<td
+  class="emotion-17"
+  colspan="4"
+  data-testid="ruletable"
+>
+  <table
+    class="emotion-14"
+    data-testid="ruledetailstable"
+  >
+    <tbody>
+      <tr>
+        <th
+          class="emotion-0"
+          color="#303030"
+        >
+          Rule Details(
+          1
+          )
+        </th>
+        <th
+          class="emotion-2"
+          color="#3570F4"
+        >
+          <a
+            class="emotion-1"
+          >
+            Add rule
+          </a>
+        </th>
+      </tr>
+      <tr>
+        <td
+          colspan="4"
+        />
+      </tr>
+      <tr>
+        <td
+          colspan="4"
+        >
+          <div
+            class="emotion-15"
+          >
+            <table
+              class="emotion-14"
+            >
+              <thead>
+                <tr>
+                  <th
+                    class="emotion-3"
+                  >
+                    Effect
+                  </th>
+                  <th
+                    class="emotion-3"
+                  >
+                    Action
+                  </th>
+                  <th
+                    class="emotion-3"
+                  >
+                    Role
+                  </th>
+                  <th
+                    class="emotion-3"
+                  >
+                    Resource
+                  </th>
+                  <th
+                    class="emotion-7"
+                  />
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td
+                    class="emotion-8"
+                    color="white"
+                  >
+                    ALLOW
+                  </td>
+                  <td
+                    class="emotion-8"
+                    color="white"
+                  >
+                    aaa
+                  </td>
+                  <td
+                    class="emotion-8"
+                    color="white"
+                  >
+                    home.pgote:role.allunixusers
+                  </td>
+                  <td
+                    class="emotion-8"
+                    color="white"
+                  >
+                    home.pgote:aaaa
+                  </td>
+                  <td
+                    class="emotion-13"
+                    color="white"
+                  >
+                    <svg
+                      class="emotion-12"
+                      data-testid="icon"
+                      height="1.25em"
+                      viewBox="0 0 1024 1024"
+                      width="1.25em"
+                    >
+                      <title>
+                        trash
+                      </title>
+                      <path
+                        d="M917.333 187.733c0.007 0.319 0.012 0.694 0.012 1.071 0 12.755-4.867 24.374-12.846 33.1l0.034-0.038c-6.696 7.89-16.62 12.864-27.706 12.864-0.76 0-1.515-0.023-2.264-0.069l0.103 0.005h-256c-23.564 0-42.667-19.103-42.667-42.667v0-42.667h-128v42.667c0 23.564-19.103 42.667-42.667 42.667v0h-253.867c-0.136 0.001-0.298 0.002-0.459 0.002-22.485 0-41.102-16.565-44.311-38.157l-0.030-0.245c-0.007-0.319-0.012-0.694-0.012-1.071 0-12.755 4.867-24.374 12.846-33.1l-0.034 0.038c6.696-7.89 16.62-12.864 27.706-12.864 0.76 0 1.515 0.023 2.264 0.069l-0.103-0.005h213.333v-42.667c0-23.564 19.103-42.667 42.667-42.667v0h213.333c23.564 0 42.667 19.103 42.667 42.667v0 42.667h211.2c0.136-0.001 0.298-0.002 0.459-0.002 22.485 0 41.102 16.565 44.311 38.157l0.030 0.245z"
+                      />
+                      <path
+                        d="M742.4 358.4l-51.2 516.267h-358.4l-51.2-516.267c-2.24-21.656-20.391-38.401-42.453-38.401-0.075 0-0.15 0-0.225 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-23.564 0-42.667 19.103-42.667 42.667 0 1.503 0.078 2.988 0.229 4.45l-0.015-0.183 55.467 554.667c2.24 21.656 20.391 38.401 42.453 38.401 0.075 0 0.15-0 0.225-0.001l-0.012 0h435.2c0.064 0 0.139 0.001 0.214 0.001 22.062 0 40.213-16.744 42.437-38.218l0.015-0.183 55.467-554.667c0.136-1.28 0.214-2.764 0.214-4.267 0-23.564-19.103-42.667-42.667-42.667-0.075 0-0.15 0-0.226 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-22.062 0-40.213 16.744-42.437 38.218l-0.015 0.183z"
+                      />
+                    </svg>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</td>
+`;
+
+exports[`PolicyRuleTable should render 2`] = `
+.emotion-12 {
+  fill: #188fff;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+.emotion-17 {
+  padding: 30px 20px;
+}
+
+.emotion-14 {
+  width: 100%;
+  border-spacing: 0;
+  display: table;
+  border-collapse: separate;
+}
+
+.emotion-0 {
+  text-align: left;
+  border-bottom: 2px solid #d5d5d5;
+  color: #303030;
+  font-weight: 600;
+  font-size: 16px;
+  padding-bottom: 2px;
+  vertical-align: top;
+  padding: 10px 10px 0px 15px;
+  word-break: break-all;
+}
+
+.emotion-2 {
+  text-align: right;
+  border-bottom: 2px solid #d5d5d5;
+  color: #3570F4;
+  font-weight: 300;
+  font-size: 14px;
+  padding-bottom: 2px;
+  vertical-align: top;
+  padding: 10px 10px 0px 15px;
+  word-break: break-all;
+}
+
+.emotion-1 {
+  color: #3570f4;
+  -webkit-text-decoration: none;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.emotion-15 {
+  margin: 15px 0 0 0;
+}
+
+.emotion-3 {
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.7rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  text-align: left;
+  background-color: white;
+}
+
+.emotion-7 {
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  width: 120px;
+  text-align: center;
+  background-color: white;
+}
+
+.emotion-8 {
+  background-color: white;
+  text-align: left;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+.emotion-13 {
+  background-color: white;
+  text-align: center;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+<td
+  class="emotion-17"
+  colspan="4"
+  data-testid="ruletable"
+>
+  <table
+    class="emotion-14"
+    data-testid="ruledetailstable"
+  >
+    <tbody>
+      <tr>
+        <th
+          class="emotion-0"
+          color="#303030"
+        >
+          Rule Details(
+          1
+          )
+        </th>
+        <th
+          class="emotion-2"
+          color="#3570F4"
+        >
+          <a
+            class="emotion-1"
+          >
+            Add rule
+          </a>
+        </th>
+      </tr>
+      <tr>
+        <td
+          colspan="4"
+        />
+      </tr>
+      <tr>
+        <td
+          colspan="4"
+        >
+          <div
+            class="emotion-15"
+          >
+            <table
+              class="emotion-14"
+            >
+              <thead>
+                <tr>
+                  <th
+                    class="emotion-3"
+                  >
+                    Effect
+                  </th>
+                  <th
+                    class="emotion-3"
+                  >
+                    Action
+                  </th>
+                  <th
+                    class="emotion-3"
+                  >
+                    Role
+                  </th>
+                  <th
+                    class="emotion-3"
+                  >
+                    Resource
+                  </th>
+                  <th
+                    class="emotion-7"
+                  />
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td
+                    class="emotion-8"
+                    color="white"
+                  >
+                    ALLOW
+                  </td>
+                  <td
+                    class="emotion-8"
+                    color="white"
+                  >
+                    aaa
+                  </td>
+                  <td
+                    class="emotion-8"
+                    color="white"
+                  >
+                    home.pgote:role.allunixusers
+                  </td>
+                  <td
+                    class="emotion-8"
+                    color="white"
+                  >
+                    home.pgote:aaaa
+                  </td>
+                  <td
+                    class="emotion-13"
+                    color="white"
+                  >
+                    <svg
+                      class="emotion-12"
+                      data-testid="icon"
+                      height="1.25em"
+                      viewBox="0 0 1024 1024"
+                      width="1.25em"
+                    >
+                      <title>
+                        trash
+                      </title>
+                      <path
+                        d="M917.333 187.733c0.007 0.319 0.012 0.694 0.012 1.071 0 12.755-4.867 24.374-12.846 33.1l0.034-0.038c-6.696 7.89-16.62 12.864-27.706 12.864-0.76 0-1.515-0.023-2.264-0.069l0.103 0.005h-256c-23.564 0-42.667-19.103-42.667-42.667v0-42.667h-128v42.667c0 23.564-19.103 42.667-42.667 42.667v0h-253.867c-0.136 0.001-0.298 0.002-0.459 0.002-22.485 0-41.102-16.565-44.311-38.157l-0.030-0.245c-0.007-0.319-0.012-0.694-0.012-1.071 0-12.755 4.867-24.374 12.846-33.1l-0.034 0.038c6.696-7.89 16.62-12.864 27.706-12.864 0.76 0 1.515 0.023 2.264 0.069l-0.103-0.005h213.333v-42.667c0-23.564 19.103-42.667 42.667-42.667v0h213.333c23.564 0 42.667 19.103 42.667 42.667v0 42.667h211.2c0.136-0.001 0.298-0.002 0.459-0.002 22.485 0 41.102 16.565 44.311 38.157l0.030 0.245z"
+                      />
+                      <path
+                        d="M742.4 358.4l-51.2 516.267h-358.4l-51.2-516.267c-2.24-21.656-20.391-38.401-42.453-38.401-0.075 0-0.15 0-0.225 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-23.564 0-42.667 19.103-42.667 42.667 0 1.503 0.078 2.988 0.229 4.45l-0.015-0.183 55.467 554.667c2.24 21.656 20.391 38.401 42.453 38.401 0.075 0 0.15-0 0.225-0.001l-0.012 0h435.2c0.064 0 0.139 0.001 0.214 0.001 22.062 0 40.213-16.744 42.437-38.218l0.015-0.183 55.467-554.667c0.136-1.28 0.214-2.764 0.214-4.267 0-23.564-19.103-42.667-42.667-42.667-0.075 0-0.15 0-0.226 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-22.062 0-40.213 16.744-42.437 38.218l-0.015 0.183z"
+                      />
+                    </svg>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</td>
+`;
+
+exports[`PolicyRuleTable should render empty 1`] = `null`;

@@ -1,0 +1,755 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`UserDomains should hide domains on click of arrow 1`] = `
+.emotion-0 {
+  fill: #303030;
+  cursor: inherit;
+  vertical-align: text-bottom;
+}
+
+.emotion-1 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  background-color: #fff;
+  border-bottom: 1px solid #d5d5d5;
+  border-left: 1px solid #d5d5d5;
+  border-top: 1px solid #d5d5d5;
+  cursor: pointer;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 20px;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  margin-left: -21px;
+  margin-top: 20px;
+  position: absolute;
+  text-align: center;
+  width: 20px;
+}
+
+<div
+  data-testid="user-domains"
+>
+  <div
+    class="emotion-1"
+    data-testid="toggle-domain"
+  >
+    <svg
+      class="emotion-0"
+      data-testid="icon"
+      height="1em"
+      viewBox="0 0 1024 1024"
+      width="1em"
+    >
+      <title>
+        arrow-left
+      </title>
+      <path
+        d="M444.373 512l225.707-226.133c7.792-7.733 12.616-18.447 12.616-30.289 0-14.295-7.030-26.948-17.822-34.691l-0.128-0.087c-6.877-4.635-15.35-7.398-24.467-7.398-12.618 0-24 5.292-32.048 13.778l-0.019 0.020-254.293 254.72c-7.731 7.723-12.514 18.396-12.514 30.187s4.782 22.464 12.513 30.186l0 0 254.293 254.507c8.066 8.506 19.448 13.798 32.066 13.798 9.118 0 17.59-2.763 24.625-7.498l-0.158 0.1c10.565-7.858 17.335-20.305 17.335-34.333 0-11.534-4.577-21.999-12.013-29.678l0.011 0.011z"
+      />
+    </svg>
+  </div>
+</div>
+`;
+
+exports[`UserDomains should navigate to Create Domains Page 1`] = `
+.emotion-0 {
+  fill: #303030;
+  cursor: inherit;
+  vertical-align: text-bottom;
+}
+
+.emotion-7 {
+  fill: #303030;
+  cursor: inherit;
+  vertical-align: baseline;
+}
+
+.emotion-1 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  background-color: #fff;
+  border-bottom: 1px solid #d5d5d5;
+  border-left: 1px solid #d5d5d5;
+  border-top: 1px solid #d5d5d5;
+  cursor: pointer;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 20px;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  margin-left: -21px;
+  margin-top: 20px;
+  position: absolute;
+  text-align: center;
+  width: 20px;
+}
+
+.emotion-16 {
+  margin-right: 0;
+  border-left: 1px solid #d5d5d5;
+  -webkit-flex: 0 0 350px;
+  -ms-flex: 0 0 350px;
+  flex: 0 0 350px;
+  height: calc(100vh - 60px);
+  overflow: auto;
+  -webkit-transition: margin 0.4s ease-in-out;
+  transition: margin 0.4s ease-in-out;
+  display: block;
+  min-width: 350px;
+  width: 350px;
+}
+
+.emotion-6 {
+  -webkit-align-items: baseline;
+  -webkit-box-align: baseline;
+  -ms-flex-align: baseline;
+  align-items: baseline;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+  padding: 20px 30px 20px 15px;
+}
+
+.emotion-2 {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.emotion-3 {
+  color: #3570f4;
+  -webkit-text-decoration: none;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.emotion-4 {
+  padding: 0 5px;
+  color: #d5d5d5;
+}
+
+.emotion-15 {
+  padding: 0 30px 0 15px;
+}
+
+.emotion-10 {
+  padding: 10px 0;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+}
+
+.emotion-8 {
+  font-size: 1.25em;
+  margin-right: 5px;
+}
+
+<div
+  data-testid="user-domains"
+>
+  <div
+    class="emotion-1"
+    data-testid="toggle-domain"
+  >
+    <svg
+      class="emotion-0"
+      data-testid="icon"
+      height="1em"
+      viewBox="0 0 1024 1024"
+      width="1em"
+    >
+      <title>
+        arrow-right
+      </title>
+      <path
+        d="M579.627 512l-225.707 226.133c-7.425 7.668-12.002 18.133-12.002 29.667 0 14.028 6.77 26.476 17.222 34.252l0.114 0.081c6.877 4.635 15.35 7.398 24.467 7.398 12.618 0 24-5.292 32.048-13.778l0.019-0.020 254.293-253.653c7.731-7.723 12.514-18.396 12.514-30.187s-4.782-22.464-12.513-30.186l-0-0-254.293-254.507c-8.066-8.506-19.448-13.798-32.066-13.798-9.118 0-17.59 2.763-24.625 7.498l0.158-0.1c-10.919 7.83-17.949 20.483-17.949 34.778 0 11.841 4.824 22.556 12.613 30.286l0.003 0.003z"
+      />
+    </svg>
+  </div>
+  <div
+    class="emotion-16"
+  >
+    <div
+      class="emotion-6"
+    >
+      <div
+        class="emotion-2"
+      >
+        My Domains
+      </div>
+      <div>
+        <a
+          class="emotion-3"
+        >
+          Create
+        </a>
+        <span
+          class="emotion-4"
+        >
+           | 
+        </span>
+        <a
+          class="emotion-3"
+        >
+          Manage
+        </a>
+      </div>
+    </div>
+    <div
+      class="emotion-15"
+    >
+      <div
+        class="emotion-10"
+      >
+        <div
+          class="emotion-8"
+        >
+          <svg
+            class="emotion-7"
+            data-testid="icon"
+            height="1em"
+            viewBox="0 0 1024 1024"
+            width="1em"
+          >
+            <title>
+              user-group
+            </title>
+            <path
+              d="M320 512c106.039 0 192-85.961 192-192s-85.961-192-192-192c-106.039 0-192 85.961-192 192v0c0 106.039 85.961 192 192 192v0zM320 213.333c58.91 0 106.667 47.756 106.667 106.667s-47.756 106.667-106.667 106.667c-58.91 0-106.667-47.756-106.667-106.667v0c0-58.91 47.756-106.667 106.667-106.667v0z"
+            />
+            <path
+              d="M746.667 512c82.475 0 149.333-66.859 149.333-149.333s-66.859-149.333-149.333-149.333c-82.475 0-149.333 66.859-149.333 149.333v0c0 82.475 66.859 149.333 149.333 149.333v0zM746.667 298.667c35.346 0 64 28.654 64 64s-28.654 64-64 64c-35.346 0-64-28.654-64-64v0c-0.024-0.647-0.038-1.408-0.038-2.171 0-34.168 27.699-61.867 61.867-61.867 0.764 0 1.524 0.014 2.281 0.041l-0.11-0.003z"
+            />
+            <path
+              d="M981.333 627.2l-19.2-12.8c-61.484-37.554-135.879-59.79-215.467-59.79s-153.983 22.236-217.31 60.834l1.843-1.044-17.067 12.8c-51.435-18.731-110.808-29.656-172.706-29.866l-0.094-0c-1.041-0.008-2.273-0.012-3.505-0.012-102.805 0-198.352 31.076-277.759 84.348l1.797-1.135-19.2 12.8v160c0 23.564 19.103 42.667 42.667 42.667v0h512c23.564 0 42.667-19.103 42.667-42.667v0-42.667h298.667c23.564 0 42.667-19.103 42.667-42.667v0zM554.667 810.667h-426.667v-70.4c60.429-36.199 133.319-57.605 211.209-57.605 0.747 0 1.493 0.002 2.239 0.006l-0.115-0c0.631-0.003 1.377-0.005 2.124-0.005 77.89 0 150.78 21.406 213.108 58.657l-1.899-1.052zM896 725.333h-256v-32l-32-21.333c40.883-19.81 88.92-31.389 139.661-31.389 54.141 0 105.204 13.182 150.153 36.512l-1.814-0.857z"
+            />
+          </svg>
+        </div>
+        <a
+          class="emotion-3"
+        >
+          athens
+        </a>
+      </div>
+      <div
+        class="emotion-10"
+      >
+        <div
+          class="emotion-8"
+        >
+          <svg
+            class="emotion-7"
+            data-testid="icon"
+            height="1em"
+            viewBox="0 0 1024 1024"
+            width="1em"
+          >
+            <title>
+              user-group
+            </title>
+            <path
+              d="M320 512c106.039 0 192-85.961 192-192s-85.961-192-192-192c-106.039 0-192 85.961-192 192v0c0 106.039 85.961 192 192 192v0zM320 213.333c58.91 0 106.667 47.756 106.667 106.667s-47.756 106.667-106.667 106.667c-58.91 0-106.667-47.756-106.667-106.667v0c0-58.91 47.756-106.667 106.667-106.667v0z"
+            />
+            <path
+              d="M746.667 512c82.475 0 149.333-66.859 149.333-149.333s-66.859-149.333-149.333-149.333c-82.475 0-149.333 66.859-149.333 149.333v0c0 82.475 66.859 149.333 149.333 149.333v0zM746.667 298.667c35.346 0 64 28.654 64 64s-28.654 64-64 64c-35.346 0-64-28.654-64-64v0c-0.024-0.647-0.038-1.408-0.038-2.171 0-34.168 27.699-61.867 61.867-61.867 0.764 0 1.524 0.014 2.281 0.041l-0.11-0.003z"
+            />
+            <path
+              d="M981.333 627.2l-19.2-12.8c-61.484-37.554-135.879-59.79-215.467-59.79s-153.983 22.236-217.31 60.834l1.843-1.044-17.067 12.8c-51.435-18.731-110.808-29.656-172.706-29.866l-0.094-0c-1.041-0.008-2.273-0.012-3.505-0.012-102.805 0-198.352 31.076-277.759 84.348l1.797-1.135-19.2 12.8v160c0 23.564 19.103 42.667 42.667 42.667v0h512c23.564 0 42.667-19.103 42.667-42.667v0-42.667h298.667c23.564 0 42.667-19.103 42.667-42.667v0zM554.667 810.667h-426.667v-70.4c60.429-36.199 133.319-57.605 211.209-57.605 0.747 0 1.493 0.002 2.239 0.006l-0.115-0c0.631-0.003 1.377-0.005 2.124-0.005 77.89 0 150.78 21.406 213.108 58.657l-1.899-1.052zM896 725.333h-256v-32l-32-21.333c40.883-19.81 88.92-31.389 139.661-31.389 54.141 0 105.204 13.182 150.153 36.512l-1.814-0.857z"
+            />
+          </svg>
+        </div>
+        <a
+          class="emotion-3"
+        >
+          athens.ci
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`UserDomains should navigate to Manage Domains Page 1`] = `
+.emotion-0 {
+  fill: #303030;
+  cursor: inherit;
+  vertical-align: text-bottom;
+}
+
+.emotion-7 {
+  fill: #303030;
+  cursor: inherit;
+  vertical-align: baseline;
+}
+
+.emotion-1 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  background-color: #fff;
+  border-bottom: 1px solid #d5d5d5;
+  border-left: 1px solid #d5d5d5;
+  border-top: 1px solid #d5d5d5;
+  cursor: pointer;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 20px;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  margin-left: -21px;
+  margin-top: 20px;
+  position: absolute;
+  text-align: center;
+  width: 20px;
+}
+
+.emotion-16 {
+  margin-right: 0;
+  border-left: 1px solid #d5d5d5;
+  -webkit-flex: 0 0 350px;
+  -ms-flex: 0 0 350px;
+  flex: 0 0 350px;
+  height: calc(100vh - 60px);
+  overflow: auto;
+  -webkit-transition: margin 0.4s ease-in-out;
+  transition: margin 0.4s ease-in-out;
+  display: block;
+  min-width: 350px;
+  width: 350px;
+}
+
+.emotion-6 {
+  -webkit-align-items: baseline;
+  -webkit-box-align: baseline;
+  -ms-flex-align: baseline;
+  align-items: baseline;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+  padding: 20px 30px 20px 15px;
+}
+
+.emotion-2 {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.emotion-3 {
+  color: #3570f4;
+  -webkit-text-decoration: none;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.emotion-4 {
+  padding: 0 5px;
+  color: #d5d5d5;
+}
+
+.emotion-15 {
+  padding: 0 30px 0 15px;
+}
+
+.emotion-10 {
+  padding: 10px 0;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+}
+
+.emotion-8 {
+  font-size: 1.25em;
+  margin-right: 5px;
+}
+
+<div
+  data-testid="user-domains"
+>
+  <div
+    class="emotion-1"
+    data-testid="toggle-domain"
+  >
+    <svg
+      class="emotion-0"
+      data-testid="icon"
+      height="1em"
+      viewBox="0 0 1024 1024"
+      width="1em"
+    >
+      <title>
+        arrow-right
+      </title>
+      <path
+        d="M579.627 512l-225.707 226.133c-7.425 7.668-12.002 18.133-12.002 29.667 0 14.028 6.77 26.476 17.222 34.252l0.114 0.081c6.877 4.635 15.35 7.398 24.467 7.398 12.618 0 24-5.292 32.048-13.778l0.019-0.020 254.293-253.653c7.731-7.723 12.514-18.396 12.514-30.187s-4.782-22.464-12.513-30.186l-0-0-254.293-254.507c-8.066-8.506-19.448-13.798-32.066-13.798-9.118 0-17.59 2.763-24.625 7.498l0.158-0.1c-10.919 7.83-17.949 20.483-17.949 34.778 0 11.841 4.824 22.556 12.613 30.286l0.003 0.003z"
+      />
+    </svg>
+  </div>
+  <div
+    class="emotion-16"
+  >
+    <div
+      class="emotion-6"
+    >
+      <div
+        class="emotion-2"
+      >
+        My Domains
+      </div>
+      <div>
+        <a
+          class="emotion-3"
+        >
+          Create
+        </a>
+        <span
+          class="emotion-4"
+        >
+           | 
+        </span>
+        <a
+          class="emotion-3"
+        >
+          Manage
+        </a>
+      </div>
+    </div>
+    <div
+      class="emotion-15"
+    >
+      <div
+        class="emotion-10"
+      >
+        <div
+          class="emotion-8"
+        >
+          <svg
+            class="emotion-7"
+            data-testid="icon"
+            height="1em"
+            viewBox="0 0 1024 1024"
+            width="1em"
+          >
+            <title>
+              user-group
+            </title>
+            <path
+              d="M320 512c106.039 0 192-85.961 192-192s-85.961-192-192-192c-106.039 0-192 85.961-192 192v0c0 106.039 85.961 192 192 192v0zM320 213.333c58.91 0 106.667 47.756 106.667 106.667s-47.756 106.667-106.667 106.667c-58.91 0-106.667-47.756-106.667-106.667v0c0-58.91 47.756-106.667 106.667-106.667v0z"
+            />
+            <path
+              d="M746.667 512c82.475 0 149.333-66.859 149.333-149.333s-66.859-149.333-149.333-149.333c-82.475 0-149.333 66.859-149.333 149.333v0c0 82.475 66.859 149.333 149.333 149.333v0zM746.667 298.667c35.346 0 64 28.654 64 64s-28.654 64-64 64c-35.346 0-64-28.654-64-64v0c-0.024-0.647-0.038-1.408-0.038-2.171 0-34.168 27.699-61.867 61.867-61.867 0.764 0 1.524 0.014 2.281 0.041l-0.11-0.003z"
+            />
+            <path
+              d="M981.333 627.2l-19.2-12.8c-61.484-37.554-135.879-59.79-215.467-59.79s-153.983 22.236-217.31 60.834l1.843-1.044-17.067 12.8c-51.435-18.731-110.808-29.656-172.706-29.866l-0.094-0c-1.041-0.008-2.273-0.012-3.505-0.012-102.805 0-198.352 31.076-277.759 84.348l1.797-1.135-19.2 12.8v160c0 23.564 19.103 42.667 42.667 42.667v0h512c23.564 0 42.667-19.103 42.667-42.667v0-42.667h298.667c23.564 0 42.667-19.103 42.667-42.667v0zM554.667 810.667h-426.667v-70.4c60.429-36.199 133.319-57.605 211.209-57.605 0.747 0 1.493 0.002 2.239 0.006l-0.115-0c0.631-0.003 1.377-0.005 2.124-0.005 77.89 0 150.78 21.406 213.108 58.657l-1.899-1.052zM896 725.333h-256v-32l-32-21.333c40.883-19.81 88.92-31.389 139.661-31.389 54.141 0 105.204 13.182 150.153 36.512l-1.814-0.857z"
+            />
+          </svg>
+        </div>
+        <a
+          class="emotion-3"
+        >
+          athens
+        </a>
+      </div>
+      <div
+        class="emotion-10"
+      >
+        <div
+          class="emotion-8"
+        >
+          <svg
+            class="emotion-7"
+            data-testid="icon"
+            height="1em"
+            viewBox="0 0 1024 1024"
+            width="1em"
+          >
+            <title>
+              user-group
+            </title>
+            <path
+              d="M320 512c106.039 0 192-85.961 192-192s-85.961-192-192-192c-106.039 0-192 85.961-192 192v0c0 106.039 85.961 192 192 192v0zM320 213.333c58.91 0 106.667 47.756 106.667 106.667s-47.756 106.667-106.667 106.667c-58.91 0-106.667-47.756-106.667-106.667v0c0-58.91 47.756-106.667 106.667-106.667v0z"
+            />
+            <path
+              d="M746.667 512c82.475 0 149.333-66.859 149.333-149.333s-66.859-149.333-149.333-149.333c-82.475 0-149.333 66.859-149.333 149.333v0c0 82.475 66.859 149.333 149.333 149.333v0zM746.667 298.667c35.346 0 64 28.654 64 64s-28.654 64-64 64c-35.346 0-64-28.654-64-64v0c-0.024-0.647-0.038-1.408-0.038-2.171 0-34.168 27.699-61.867 61.867-61.867 0.764 0 1.524 0.014 2.281 0.041l-0.11-0.003z"
+            />
+            <path
+              d="M981.333 627.2l-19.2-12.8c-61.484-37.554-135.879-59.79-215.467-59.79s-153.983 22.236-217.31 60.834l1.843-1.044-17.067 12.8c-51.435-18.731-110.808-29.656-172.706-29.866l-0.094-0c-1.041-0.008-2.273-0.012-3.505-0.012-102.805 0-198.352 31.076-277.759 84.348l1.797-1.135-19.2 12.8v160c0 23.564 19.103 42.667 42.667 42.667v0h512c23.564 0 42.667-19.103 42.667-42.667v0-42.667h298.667c23.564 0 42.667-19.103 42.667-42.667v0zM554.667 810.667h-426.667v-70.4c60.429-36.199 133.319-57.605 211.209-57.605 0.747 0 1.493 0.002 2.239 0.006l-0.115-0c0.631-0.003 1.377-0.005 2.124-0.005 77.89 0 150.78 21.406 213.108 58.657l-1.899-1.052zM896 725.333h-256v-32l-32-21.333c40.883-19.81 88.92-31.389 139.661-31.389 54.141 0 105.204 13.182 150.153 36.512l-1.814-0.857z"
+            />
+          </svg>
+        </div>
+        <a
+          class="emotion-3"
+        >
+          athens.ci
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`UserDomains should render 1`] = `
+.emotion-0 {
+  fill: #303030;
+  cursor: inherit;
+  vertical-align: text-bottom;
+}
+
+.emotion-7 {
+  fill: #303030;
+  cursor: inherit;
+  vertical-align: baseline;
+}
+
+.emotion-1 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  background-color: #fff;
+  border-bottom: 1px solid #d5d5d5;
+  border-left: 1px solid #d5d5d5;
+  border-top: 1px solid #d5d5d5;
+  cursor: pointer;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 20px;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  margin-left: -21px;
+  margin-top: 20px;
+  position: absolute;
+  text-align: center;
+  width: 20px;
+}
+
+.emotion-16 {
+  margin-right: 0;
+  border-left: 1px solid #d5d5d5;
+  -webkit-flex: 0 0 350px;
+  -ms-flex: 0 0 350px;
+  flex: 0 0 350px;
+  height: calc(100vh - 60px);
+  overflow: auto;
+  -webkit-transition: margin 0.4s ease-in-out;
+  transition: margin 0.4s ease-in-out;
+  display: block;
+  min-width: 350px;
+  width: 350px;
+}
+
+.emotion-6 {
+  -webkit-align-items: baseline;
+  -webkit-box-align: baseline;
+  -ms-flex-align: baseline;
+  align-items: baseline;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+  padding: 20px 30px 20px 15px;
+}
+
+.emotion-2 {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.emotion-3 {
+  color: #3570f4;
+  -webkit-text-decoration: none;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.emotion-4 {
+  padding: 0 5px;
+  color: #d5d5d5;
+}
+
+.emotion-15 {
+  padding: 0 30px 0 15px;
+}
+
+.emotion-10 {
+  padding: 10px 0;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+}
+
+.emotion-8 {
+  font-size: 1.25em;
+  margin-right: 5px;
+}
+
+<div
+  data-testid="user-domains"
+>
+  <div
+    class="emotion-1"
+    data-testid="toggle-domain"
+  >
+    <svg
+      class="emotion-0"
+      data-testid="icon"
+      height="1em"
+      viewBox="0 0 1024 1024"
+      width="1em"
+    >
+      <title>
+        arrow-right
+      </title>
+      <path
+        d="M579.627 512l-225.707 226.133c-7.425 7.668-12.002 18.133-12.002 29.667 0 14.028 6.77 26.476 17.222 34.252l0.114 0.081c6.877 4.635 15.35 7.398 24.467 7.398 12.618 0 24-5.292 32.048-13.778l0.019-0.020 254.293-253.653c7.731-7.723 12.514-18.396 12.514-30.187s-4.782-22.464-12.513-30.186l-0-0-254.293-254.507c-8.066-8.506-19.448-13.798-32.066-13.798-9.118 0-17.59 2.763-24.625 7.498l0.158-0.1c-10.919 7.83-17.949 20.483-17.949 34.778 0 11.841 4.824 22.556 12.613 30.286l0.003 0.003z"
+      />
+    </svg>
+  </div>
+  <div
+    class="emotion-16"
+  >
+    <div
+      class="emotion-6"
+    >
+      <div
+        class="emotion-2"
+      >
+        My Domains
+      </div>
+      <div>
+        <a
+          class="emotion-3"
+        >
+          Create
+        </a>
+        <span
+          class="emotion-4"
+        >
+           | 
+        </span>
+        <a
+          class="emotion-3"
+        >
+          Manage
+        </a>
+      </div>
+    </div>
+    <div
+      class="emotion-15"
+    >
+      <div
+        class="emotion-10"
+      >
+        <div
+          class="emotion-8"
+        >
+          <svg
+            class="emotion-7"
+            data-testid="icon"
+            height="1em"
+            viewBox="0 0 1024 1024"
+            width="1em"
+          >
+            <title>
+              user-group
+            </title>
+            <path
+              d="M320 512c106.039 0 192-85.961 192-192s-85.961-192-192-192c-106.039 0-192 85.961-192 192v0c0 106.039 85.961 192 192 192v0zM320 213.333c58.91 0 106.667 47.756 106.667 106.667s-47.756 106.667-106.667 106.667c-58.91 0-106.667-47.756-106.667-106.667v0c0-58.91 47.756-106.667 106.667-106.667v0z"
+            />
+            <path
+              d="M746.667 512c82.475 0 149.333-66.859 149.333-149.333s-66.859-149.333-149.333-149.333c-82.475 0-149.333 66.859-149.333 149.333v0c0 82.475 66.859 149.333 149.333 149.333v0zM746.667 298.667c35.346 0 64 28.654 64 64s-28.654 64-64 64c-35.346 0-64-28.654-64-64v0c-0.024-0.647-0.038-1.408-0.038-2.171 0-34.168 27.699-61.867 61.867-61.867 0.764 0 1.524 0.014 2.281 0.041l-0.11-0.003z"
+            />
+            <path
+              d="M981.333 627.2l-19.2-12.8c-61.484-37.554-135.879-59.79-215.467-59.79s-153.983 22.236-217.31 60.834l1.843-1.044-17.067 12.8c-51.435-18.731-110.808-29.656-172.706-29.866l-0.094-0c-1.041-0.008-2.273-0.012-3.505-0.012-102.805 0-198.352 31.076-277.759 84.348l1.797-1.135-19.2 12.8v160c0 23.564 19.103 42.667 42.667 42.667v0h512c23.564 0 42.667-19.103 42.667-42.667v0-42.667h298.667c23.564 0 42.667-19.103 42.667-42.667v0zM554.667 810.667h-426.667v-70.4c60.429-36.199 133.319-57.605 211.209-57.605 0.747 0 1.493 0.002 2.239 0.006l-0.115-0c0.631-0.003 1.377-0.005 2.124-0.005 77.89 0 150.78 21.406 213.108 58.657l-1.899-1.052zM896 725.333h-256v-32l-32-21.333c40.883-19.81 88.92-31.389 139.661-31.389 54.141 0 105.204 13.182 150.153 36.512l-1.814-0.857z"
+            />
+          </svg>
+        </div>
+        <a
+          class="emotion-3"
+        >
+          athens
+        </a>
+      </div>
+      <div
+        class="emotion-10"
+      >
+        <div
+          class="emotion-8"
+        >
+          <svg
+            class="emotion-7"
+            data-testid="icon"
+            height="1em"
+            viewBox="0 0 1024 1024"
+            width="1em"
+          >
+            <title>
+              user-group
+            </title>
+            <path
+              d="M320 512c106.039 0 192-85.961 192-192s-85.961-192-192-192c-106.039 0-192 85.961-192 192v0c0 106.039 85.961 192 192 192v0zM320 213.333c58.91 0 106.667 47.756 106.667 106.667s-47.756 106.667-106.667 106.667c-58.91 0-106.667-47.756-106.667-106.667v0c0-58.91 47.756-106.667 106.667-106.667v0z"
+            />
+            <path
+              d="M746.667 512c82.475 0 149.333-66.859 149.333-149.333s-66.859-149.333-149.333-149.333c-82.475 0-149.333 66.859-149.333 149.333v0c0 82.475 66.859 149.333 149.333 149.333v0zM746.667 298.667c35.346 0 64 28.654 64 64s-28.654 64-64 64c-35.346 0-64-28.654-64-64v0c-0.024-0.647-0.038-1.408-0.038-2.171 0-34.168 27.699-61.867 61.867-61.867 0.764 0 1.524 0.014 2.281 0.041l-0.11-0.003z"
+            />
+            <path
+              d="M981.333 627.2l-19.2-12.8c-61.484-37.554-135.879-59.79-215.467-59.79s-153.983 22.236-217.31 60.834l1.843-1.044-17.067 12.8c-51.435-18.731-110.808-29.656-172.706-29.866l-0.094-0c-1.041-0.008-2.273-0.012-3.505-0.012-102.805 0-198.352 31.076-277.759 84.348l1.797-1.135-19.2 12.8v160c0 23.564 19.103 42.667 42.667 42.667v0h512c23.564 0 42.667-19.103 42.667-42.667v0-42.667h298.667c23.564 0 42.667-19.103 42.667-42.667v0zM554.667 810.667h-426.667v-70.4c60.429-36.199 133.319-57.605 211.209-57.605 0.747 0 1.493 0.002 2.239 0.006l-0.115-0c0.631-0.003 1.377-0.005 2.124-0.005 77.89 0 150.78 21.406 213.108 58.657l-1.899-1.052zM896 725.333h-256v-32l-32-21.333c40.883-19.81 88.92-31.389 139.661-31.389 54.141 0 105.204 13.182 150.153 36.512l-1.814-0.857z"
+            />
+          </svg>
+        </div>
+        <a
+          class="emotion-3"
+        >
+          athens.ci
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+`;

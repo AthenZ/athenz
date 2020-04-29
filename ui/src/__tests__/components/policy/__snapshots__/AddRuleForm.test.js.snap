@@ -1,0 +1,1129 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AddRuleForm should render 1`] = `
+.emotion-0 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #303030;
+  line-height: 36px;
+  white-space: nowrap;
+}
+
+.emotion-4 {
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+}
+
+.emotion-4 > * {
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+}
+
+.emotion-2 {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  display: inline-block;
+  height: 16px;
+  line-height: 16px;
+  margin: 3px;
+  outline: 0px;
+  position: relative;
+  vertical-align: bottom;
+}
+
+.emotion-2 > input[type='radio'] {
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  position: absolute;
+  top: 0;
+  visibility: hidden;
+}
+
+.emotion-2 > input[type='radio'] + label {
+  box-sizing: border-box;
+  cursor: pointer;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  height: 16px;
+  line-height: 16px;
+  padding: 0 10px 0 0;
+  vertical-align: bottom;
+  white-space: nowrap;
+}
+
+.emotion-2 > input[type='radio'] + label:before {
+  background: #fff;
+  border: 2px solid rgba(54,151,242,0.5);
+  border-radius: 50%;
+  box-sizing: border-box;
+  content: '';
+  cursor: pointer;
+  display: inline-block;
+  height: 16px;
+  line-height: 16px;
+  margin: 0px 3px -3px 0px;
+  -webkit-transition: all 0.25s ease-in;
+  transition: all 0.25s ease-in;
+  width: 16px;
+}
+
+.emotion-2 > input[type='radio']:hover + label:before {
+  border: 2px solid #3697f2;
+}
+
+.emotion-2 > input[type='radio']:focus + label:before {
+  border: 2px solid rgba(54,151,242,0.5);
+}
+
+.emotion-2 > input[type='radio']:checked + label:before {
+  border: 2px solid #3697f2;
+}
+
+.emotion-2 > input[type='radio']:disabled + label {
+  color: #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-2 > input[type='radio']:disabled + label:before {
+  border: 2px solid #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-2 > input[type='radio']:checked + label:after {
+  background-color: #3697f2;
+  border-radius: 50%;
+  box-sizing: border-box;
+  content: '';
+  height: 8px;
+  line-height: 8px;
+  left: 4px;
+  position: absolute;
+  top: 4px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  width: 8px;
+}
+
+.emotion-10 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 250px;
+}
+
+.emotion-10 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-10.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+}
+
+.emotion-10 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-10 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-10 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-10 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-10 input.focused,
+.emotion-10 input:active,
+.emotion-10 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-10 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-10 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-10.error input,
+.emotion-10.error input.focused,
+.emotion-10.error input:active,
+.emotion-10.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-10.error .message {
+  color: #d01111;
+}
+
+.emotion-18 {
+  position: relative;
+  width: 100%;
+}
+
+.emotion-18 input {
+  cursor: inherit;
+}
+
+.emotion-17 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 100%;
+}
+
+.emotion-17 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-17.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+}
+
+.emotion-17 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-17 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-17 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-17 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-17 input.focused,
+.emotion-17 input:active,
+.emotion-17 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-17 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-17 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-17.error input,
+.emotion-17.error input.focused,
+.emotion-17.error input:active,
+.emotion-17.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-17.error .message {
+  color: #d01111;
+}
+
+.emotion-17 input {
+  padding-right: 36px;
+}
+
+.emotion-17 .input-icon {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 36px;
+  position: absolute;
+  right: 6px;
+}
+
+.emotion-16 {
+  fill: #d5d5d5;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+.emotion-28 {
+  width: 100%;
+  text-align: left;
+  background-color: #fff;
+}
+
+.emotion-7 {
+  -webkit-align-items: flex-start;
+  -webkit-box-align: flex-start;
+  -ms-flex-align: flex-start;
+  align-items: flex-start;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  padding: 10px 30px;
+}
+
+.emotion-1 {
+  -webkit-flex: 0 0 100px;
+  -ms-flex: 0 0 100px;
+  flex: 0 0 100px;
+  margin-right: 2%;
+}
+
+.emotion-6 {
+  -webkit-flex: 1 1;
+  -ms-flex: 1 1;
+  flex: 1 1;
+  margin-right: 10px;
+}
+
+.emotion-5 {
+  margin-top: 8px;
+}
+
+.emotion-11 {
+  width: 500px;
+}
+
+<div
+  autocomplete="off"
+  class="emotion-28"
+  data-testid="add-rule-form"
+>
+  
+  <div
+    class="emotion-7"
+  >
+    <label
+      class="emotion-0 denali-input-label emotion-1"
+      for="rule-effect"
+    >
+      Rule Effect
+    </label>
+    <div
+      class="emotion-6"
+    >
+      <div
+        class="emotion-4 denali-radiobutton-group emotion-5"
+        data-testid="radiobuttongroup"
+      >
+        <div
+          class="emotion-2 denali-radiobutton"
+          data-testid="radiobutton-wrapper"
+        >
+          <input
+            checked=""
+            id="radiobutton-rule-effect-radio-group-ALLOW"
+            name="rule-effect-radio-group"
+            type="radio"
+            value="ALLOW"
+          />
+          <label
+            for="radiobutton-rule-effect-radio-group-ALLOW"
+          >
+            Allow
+          </label>
+        </div>
+        <div
+          class="emotion-2 denali-radiobutton"
+          data-testid="radiobutton-wrapper"
+        >
+          <input
+            id="radiobutton-rule-effect-radio-group-DENY"
+            name="rule-effect-radio-group"
+            type="radio"
+            value="DENY"
+          />
+          <label
+            for="radiobutton-rule-effect-radio-group-DENY"
+          >
+            Deny
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    class="emotion-7"
+  >
+    <label
+      class="emotion-0 denali-input-label emotion-1"
+      for="rule-action"
+    >
+      Rule Action
+    </label>
+    <div
+      class="emotion-6"
+    >
+      <div
+        class="emotion-10 denali-input animated emotion-11"
+        data-testid="input-wrapper"
+      >
+        <input
+          autocomplete="off"
+          data-testid="input-node"
+          id="rule-action"
+          name="rule-action"
+          placeholder="Rule Action"
+          value=""
+        />
+        <div
+          class="message"
+          data-testid="message"
+        />
+      </div>
+    </div>
+  </div>
+  <div
+    class="emotion-7"
+  >
+    <label
+      class="emotion-0 denali-input-label emotion-1"
+      for="rule-role"
+    >
+      Rule Role
+    </label>
+    <div
+      class="emotion-6"
+    >
+      <div
+        aria-expanded="false"
+        aria-haspopup="listbox"
+        aria-labelledby="downshift-0-label"
+        class="emotion-18 denali-input-dropdown emotion-11"
+        data-testid="input-dropdown"
+        role="combobox"
+      >
+        <div
+          class="emotion-17 denali-input animated"
+          data-testid="input-wrapper"
+        >
+          <input
+            aria-autocomplete="list"
+            aria-labelledby="downshift-0-label"
+            autocomplete="off"
+            autocorrect="off"
+            data-testid="input-node"
+            id="downshift-0-input"
+            name="rule-role"
+            placeholder="Select Role"
+            spellcheck="false"
+            value=""
+          />
+          <div
+            class="input-icon"
+          >
+            
+            <svg
+              class="emotion-16"
+              data-testid="icon"
+              height="24px"
+              viewBox="0 0 1024 1024"
+              width="24px"
+            >
+              <title>
+                arrowhead-down
+              </title>
+              <path
+                d="M512 580.267l-226.133-226.133c-7.461-8.401-18.291-13.668-30.351-13.668-13.957 0-26.267 7.055-33.558 17.793l-0.091 0.142c-5.319 7.276-8.51 16.4-8.51 26.27 0 12.199 4.876 23.259 12.785 31.338l-0.008-0.008 256 253.867c7.434 8.083 18.061 13.13 29.867 13.13s22.432-5.047 29.84-13.101l0.026-0.029 256-253.867c7.901-8.071 12.777-19.131 12.777-31.33 0-9.87-3.192-18.994-8.599-26.397l0.088 0.127c-7.382-10.88-19.691-17.934-33.649-17.934-12.060 0-22.89 5.267-30.315 13.626l-0.036 0.042z"
+              />
+            </svg>
+          </div>
+          <div
+            class="message"
+            data-testid="message"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    class="emotion-7"
+  >
+    <label
+      class="emotion-0 denali-input-label emotion-1"
+      for="rule-resource"
+    >
+      Rule Resource
+    </label>
+    <div
+      class="emotion-6"
+    >
+      <div
+        class="emotion-10 denali-input animated emotion-11"
+        data-testid="input-wrapper"
+      >
+        <input
+          autocomplete="off"
+          data-testid="input-node"
+          id="rule-resource"
+          name="rule-resource"
+          value=""
+        />
+        <div
+          class="message"
+          data-testid="message"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`AddRuleForm should render failed to load roles 1`] = `
+.emotion-0 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #303030;
+  line-height: 36px;
+  white-space: nowrap;
+}
+
+.emotion-4 {
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+}
+
+.emotion-4 > * {
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+}
+
+.emotion-2 {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  display: inline-block;
+  height: 16px;
+  line-height: 16px;
+  margin: 3px;
+  outline: 0px;
+  position: relative;
+  vertical-align: bottom;
+}
+
+.emotion-2 > input[type='radio'] {
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  position: absolute;
+  top: 0;
+  visibility: hidden;
+}
+
+.emotion-2 > input[type='radio'] + label {
+  box-sizing: border-box;
+  cursor: pointer;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  height: 16px;
+  line-height: 16px;
+  padding: 0 10px 0 0;
+  vertical-align: bottom;
+  white-space: nowrap;
+}
+
+.emotion-2 > input[type='radio'] + label:before {
+  background: #fff;
+  border: 2px solid rgba(54,151,242,0.5);
+  border-radius: 50%;
+  box-sizing: border-box;
+  content: '';
+  cursor: pointer;
+  display: inline-block;
+  height: 16px;
+  line-height: 16px;
+  margin: 0px 3px -3px 0px;
+  -webkit-transition: all 0.25s ease-in;
+  transition: all 0.25s ease-in;
+  width: 16px;
+}
+
+.emotion-2 > input[type='radio']:hover + label:before {
+  border: 2px solid #3697f2;
+}
+
+.emotion-2 > input[type='radio']:focus + label:before {
+  border: 2px solid rgba(54,151,242,0.5);
+}
+
+.emotion-2 > input[type='radio']:checked + label:before {
+  border: 2px solid #3697f2;
+}
+
+.emotion-2 > input[type='radio']:disabled + label {
+  color: #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-2 > input[type='radio']:disabled + label:before {
+  border: 2px solid #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-2 > input[type='radio']:checked + label:after {
+  background-color: #3697f2;
+  border-radius: 50%;
+  box-sizing: border-box;
+  content: '';
+  height: 8px;
+  line-height: 8px;
+  left: 4px;
+  position: absolute;
+  top: 4px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  width: 8px;
+}
+
+.emotion-10 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 250px;
+}
+
+.emotion-10 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-10.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+}
+
+.emotion-10 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-10 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-10 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-10 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-10 input.focused,
+.emotion-10 input:active,
+.emotion-10 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-10 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-10 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-10.error input,
+.emotion-10.error input.focused,
+.emotion-10.error input:active,
+.emotion-10.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-10.error .message {
+  color: #d01111;
+}
+
+.emotion-18 {
+  position: relative;
+  width: 100%;
+}
+
+.emotion-18 input {
+  cursor: inherit;
+}
+
+.emotion-17 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 100%;
+}
+
+.emotion-17 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-17.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+}
+
+.emotion-17 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-17 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-17 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-17 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-17 input.focused,
+.emotion-17 input:active,
+.emotion-17 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-17 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-17 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-17.error input,
+.emotion-17.error input.focused,
+.emotion-17.error input:active,
+.emotion-17.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-17.error .message {
+  color: #d01111;
+}
+
+.emotion-17 input {
+  padding-right: 36px;
+}
+
+.emotion-17 .input-icon {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 36px;
+  position: absolute;
+  right: 6px;
+}
+
+.emotion-16 {
+  fill: #d5d5d5;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+.emotion-28 {
+  width: 100%;
+  text-align: left;
+  background-color: #fff;
+}
+
+.emotion-7 {
+  -webkit-align-items: flex-start;
+  -webkit-box-align: flex-start;
+  -ms-flex-align: flex-start;
+  align-items: flex-start;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  padding: 10px 30px;
+}
+
+.emotion-1 {
+  -webkit-flex: 0 0 100px;
+  -ms-flex: 0 0 100px;
+  flex: 0 0 100px;
+  margin-right: 2%;
+}
+
+.emotion-6 {
+  -webkit-flex: 1 1;
+  -ms-flex: 1 1;
+  flex: 1 1;
+  margin-right: 10px;
+}
+
+.emotion-5 {
+  margin-top: 8px;
+}
+
+.emotion-11 {
+  width: 500px;
+}
+
+<div
+  autocomplete="off"
+  class="emotion-28"
+  data-testid="add-rule-form"
+>
+  
+  <div
+    class="emotion-7"
+  >
+    <label
+      class="emotion-0 denali-input-label emotion-1"
+      for="rule-effect"
+    >
+      Rule Effect
+    </label>
+    <div
+      class="emotion-6"
+    >
+      <div
+        class="emotion-4 denali-radiobutton-group emotion-5"
+        data-testid="radiobuttongroup"
+      >
+        <div
+          class="emotion-2 denali-radiobutton"
+          data-testid="radiobutton-wrapper"
+        >
+          <input
+            checked=""
+            id="radiobutton-rule-effect-radio-group-ALLOW"
+            name="rule-effect-radio-group"
+            type="radio"
+            value="ALLOW"
+          />
+          <label
+            for="radiobutton-rule-effect-radio-group-ALLOW"
+          >
+            Allow
+          </label>
+        </div>
+        <div
+          class="emotion-2 denali-radiobutton"
+          data-testid="radiobutton-wrapper"
+        >
+          <input
+            id="radiobutton-rule-effect-radio-group-DENY"
+            name="rule-effect-radio-group"
+            type="radio"
+            value="DENY"
+          />
+          <label
+            for="radiobutton-rule-effect-radio-group-DENY"
+          >
+            Deny
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    class="emotion-7"
+  >
+    <label
+      class="emotion-0 denali-input-label emotion-1"
+      for="rule-action"
+    >
+      Rule Action
+    </label>
+    <div
+      class="emotion-6"
+    >
+      <div
+        class="emotion-10 denali-input animated emotion-11"
+        data-testid="input-wrapper"
+      >
+        <input
+          autocomplete="off"
+          data-testid="input-node"
+          id="rule-action"
+          name="rule-action"
+          placeholder="Rule Action"
+          value=""
+        />
+        <div
+          class="message"
+          data-testid="message"
+        />
+      </div>
+    </div>
+  </div>
+  <div
+    class="emotion-7"
+  >
+    <label
+      class="emotion-0 denali-input-label emotion-1"
+      for="rule-role"
+    >
+      Rule Role
+    </label>
+    <div
+      class="emotion-6"
+    >
+      <div
+        aria-expanded="false"
+        aria-haspopup="listbox"
+        aria-labelledby="downshift-1-label"
+        class="emotion-18 denali-input-dropdown emotion-11"
+        data-testid="input-dropdown"
+        role="combobox"
+      >
+        <div
+          class="emotion-17 denali-input animated"
+          data-testid="input-wrapper"
+        >
+          <input
+            aria-autocomplete="list"
+            aria-labelledby="downshift-1-label"
+            autocomplete="off"
+            autocorrect="off"
+            data-testid="input-node"
+            id="downshift-1-input"
+            name="rule-role"
+            placeholder="Select Role"
+            spellcheck="false"
+            value=""
+          />
+          <div
+            class="input-icon"
+          >
+            
+            <svg
+              class="emotion-16"
+              data-testid="icon"
+              height="24px"
+              viewBox="0 0 1024 1024"
+              width="24px"
+            >
+              <title>
+                arrowhead-down
+              </title>
+              <path
+                d="M512 580.267l-226.133-226.133c-7.461-8.401-18.291-13.668-30.351-13.668-13.957 0-26.267 7.055-33.558 17.793l-0.091 0.142c-5.319 7.276-8.51 16.4-8.51 26.27 0 12.199 4.876 23.259 12.785 31.338l-0.008-0.008 256 253.867c7.434 8.083 18.061 13.13 29.867 13.13s22.432-5.047 29.84-13.101l0.026-0.029 256-253.867c7.901-8.071 12.777-19.131 12.777-31.33 0-9.87-3.192-18.994-8.599-26.397l0.088 0.127c-7.382-10.88-19.691-17.934-33.649-17.934-12.060 0-22.89 5.267-30.315 13.626l-0.036 0.042z"
+              />
+            </svg>
+          </div>
+          <div
+            class="message"
+            data-testid="message"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    class="emotion-7"
+  >
+    <label
+      class="emotion-0 denali-input-label emotion-1"
+      for="rule-resource"
+    >
+      Rule Resource
+    </label>
+    <div
+      class="emotion-6"
+    >
+      <div
+        class="emotion-10 denali-input animated emotion-11"
+        data-testid="input-wrapper"
+      >
+        <input
+          autocomplete="off"
+          data-testid="input-node"
+          id="rule-resource"
+          name="rule-resource"
+          value=""
+        />
+        <div
+          class="message"
+          data-testid="message"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;

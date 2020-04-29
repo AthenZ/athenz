@@ -1,0 +1,1425 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Alert should disable animations 1`] = `
+.emotion-3 {
+  background-color: transparent;
+  bottom: 0;
+  left: 0;
+  position: fixed;
+  right: 0;
+  top: 0;
+  z-index: 5;
+}
+
+.emotion-2 {
+  box-shadow: 0px 4px 8px rgba(0,0,0,0.16);
+  -webkit-align-items: flex-start;
+  -webkit-box-align: flex-start;
+  -ms-flex-align: flex-start;
+  align-items: flex-start;
+  background: #fff;
+  border-radius: 4px;
+  border-top: 4px solid #0066df;
+  box-sizing: border-box;
+  color: #303030;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  left: 50%;
+  max-height: calc(100vh - 160px);
+  min-width: 400px;
+  outline: none;
+  position: fixed;
+  -webkit-transform: translate(-50%,0);
+  -ms-transform: translate(-50%,0);
+  transform: translate(-50%,0);
+  width: 400px;
+}
+
+.emotion-2.ReactModal__Content {
+  opacity: 0;
+  top: 0;
+}
+
+.emotion-2.animated {
+  -webkit-transition: opacity 0.2s ease-out, top 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
+  transition: opacity 0.2s ease-out, top 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
+}
+
+.emotion-2.ReactModal__Content--after-open {
+  top: 80px;
+  opacity: 1;
+}
+
+.emotion-2.ReactModal__Content--before-close {
+  opacity: 0;
+}
+
+.emotion-2 .left-section {
+  -webkit-flex: 0 0 28px;
+  -ms-flex: 0 0 28px;
+  flex: 0 0 28px;
+  padding: 14px;
+}
+
+.emotion-2 .left-section .alert-icon {
+  -webkit-align-items: flex-start;
+  -webkit-box-align: flex-start;
+  -ms-flex-align: flex-start;
+  align-items: flex-start;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+}
+
+.emotion-2 .right-section {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex: 1 1 auto;
+  -ms-flex: 1 1 auto;
+  flex: 1 1 auto;
+  -webkit-flex-flow: column nowrap;
+  -ms-flex-flow: column nowrap;
+  flex-flow: column nowrap;
+}
+
+.emotion-2 .right-section .title-row {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  height: initial;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+  padding: 14px 14px 14px 0;
+}
+
+.emotion-2 .right-section .title-row .title {
+  font-weight: 600;
+}
+
+.emotion-2 .right-section .description {
+  font-size: 14px;
+  font-weight: 300;
+  padding: 0 14px 14px 0;
+}
+
+.emotion-0 {
+  fill: #0066df;
+  cursor: inherit;
+  vertical-align: middle;
+}
+
+.emotion-1 {
+  fill: rgba(48,48,48,0.4);
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+<body
+  aria-hidden="true"
+  class="ReactModal__Body--open"
+>
+  <div
+    data-react-modal-body-trap=""
+    style="position: absolute; opacity: 0;"
+    tabindex="0"
+  />
+  <div
+    class="ReactModalPortal"
+  />
+  <div
+    class="ReactModalPortal"
+  />
+  <div />
+  <div
+    data-react-modal-body-trap=""
+    style="position: absolute; opacity: 0;"
+    tabindex="0"
+  />
+  <div
+    class="ReactModalPortal"
+  >
+    <div
+      class="ReactModal__Overlay ReactModal__Overlay--after-open emotion-3"
+    >
+      <div
+        aria-describedby="alert-description"
+        aria-labelledby="alert-title"
+        class="ReactModal__Content ReactModal__Content--after-open emotion-2 denali-alert denali-alert-info"
+        role="dialog"
+        tabindex="-1"
+      >
+        <div
+          class="left-section"
+        >
+          <div
+            class="alert-icon"
+            data-testid="alert-icon"
+          >
+            <svg
+              class="emotion-0"
+              data-testid="icon"
+              height="28px"
+              viewBox="0 0 1024 1024"
+              width="28px"
+            >
+              <title>
+                check-circle
+              </title>
+              <path
+                d="M512 128c212.077 0 384 171.923 384 384s-171.923 384-384 384c-212.077 0-384-171.923-384-384v0c0-212.077 171.923-384 384-384v0zM512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0-259.206-210.128-469.333-469.333-469.333v0z"
+              />
+              <path
+                d="M396.16 691.413l-126.293-126.293c-8.506-8.066-13.798-19.448-13.798-32.066 0-9.118 2.763-17.59 7.498-24.625l-0.1 0.158c7.83-10.919 20.483-17.949 34.778-17.949 11.841 0 22.556 4.824 30.286 12.613l0.003 0.003 98.133 97.707 268.373-268.373c7.549-6.884 17.635-11.1 28.706-11.1 23.564 0 42.667 19.103 42.667 42.667 0 11.017-4.176 21.060-11.031 28.63l0.032-0.036-298.667 298.667c-7.733 7.795-18.45 12.621-30.293 12.621s-22.56-4.826-30.291-12.618l-0.003-0.003z"
+              />
+            </svg>
+          </div>
+        </div>
+        <div
+          class="right-section"
+        >
+          <div
+            class="title-row"
+          >
+            <div
+              class="title"
+              data-testid="alert-title"
+              id="alert-title"
+            >
+              An Alert
+            </div>
+            <div
+              class="close-button"
+            >
+              <svg
+                class="emotion-1"
+                data-testid="icon"
+                height="28px"
+                viewBox="0 0 1024 1024"
+                width="28px"
+              >
+                <title>
+                  close
+                </title>
+                <path
+                  d="M571.733 512l226.133-224c7.901-8.071 12.777-19.131 12.777-31.33 0-9.87-3.192-18.994-8.599-26.397l0.088 0.127c-7.382-10.88-19.691-17.934-33.649-17.934-12.060 0-22.89 5.267-30.315 13.626l-0.036 0.042-226.133 226.133-226.133-226.133c-7.461-8.401-18.291-13.668-30.351-13.668-13.957 0-26.267 7.055-33.558 17.793l-0.091 0.142c-5.319 7.276-8.51 16.4-8.51 26.27 0 12.199 4.876 23.259 12.785 31.338l-0.008-0.008 226.133 224-226.133 224c-7.901 8.071-12.777 19.131-12.777 31.33 0 9.87 3.192 18.994 8.599 26.397l-0.088-0.127c7.382 10.88 19.691 17.934 33.649 17.934 12.060 0 22.89-5.267 30.315-13.626l0.036-0.042 226.133-226.133 226.133 226.133c7.461 8.401 18.291 13.668 30.351 13.668 13.957 0 26.267-7.055 33.558-17.793l0.091-0.142c5.319-7.276 8.51-16.4 8.51-26.27 0-12.199-4.876-23.259-12.785-31.338l0.008 0.008z"
+                />
+              </svg>
+            </div>
+          </div>
+          <div
+            class="description"
+            data-testid="alert-description"
+            id="alert-description"
+          >
+            Descriptive Alert
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+`;
+
+exports[`Alert should render all alert types 1`] = `
+.emotion-3 {
+  background-color: transparent;
+  bottom: 0;
+  left: 0;
+  position: fixed;
+  right: 0;
+  top: 0;
+  z-index: 5;
+}
+
+.emotion-1 {
+  fill: rgba(48,48,48,0.4);
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+.emotion-2 {
+  box-shadow: 0px 4px 8px rgba(0,0,0,0.16);
+  -webkit-align-items: flex-start;
+  -webkit-box-align: flex-start;
+  -ms-flex-align: flex-start;
+  align-items: flex-start;
+  background: #fff;
+  border-radius: 4px;
+  border-top: 4px solid #ea0000;
+  box-sizing: border-box;
+  color: #303030;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  left: 50%;
+  max-height: calc(100vh - 160px);
+  min-width: 400px;
+  outline: none;
+  position: fixed;
+  -webkit-transform: translate(-50%,0);
+  -ms-transform: translate(-50%,0);
+  transform: translate(-50%,0);
+  width: 400px;
+}
+
+.emotion-2.ReactModal__Content {
+  opacity: 0;
+  top: 0;
+}
+
+.emotion-2.animated {
+  -webkit-transition: opacity 0.2s ease-out, top 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
+  transition: opacity 0.2s ease-out, top 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
+}
+
+.emotion-2.ReactModal__Content--after-open {
+  top: 80px;
+  opacity: 1;
+}
+
+.emotion-2.ReactModal__Content--before-close {
+  opacity: 0;
+}
+
+.emotion-2 .left-section {
+  -webkit-flex: 0 0 28px;
+  -ms-flex: 0 0 28px;
+  flex: 0 0 28px;
+  padding: 14px;
+}
+
+.emotion-2 .left-section .alert-icon {
+  -webkit-align-items: flex-start;
+  -webkit-box-align: flex-start;
+  -ms-flex-align: flex-start;
+  align-items: flex-start;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+}
+
+.emotion-2 .right-section {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex: 1 1 auto;
+  -ms-flex: 1 1 auto;
+  flex: 1 1 auto;
+  -webkit-flex-flow: column nowrap;
+  -ms-flex-flow: column nowrap;
+  flex-flow: column nowrap;
+}
+
+.emotion-2 .right-section .title-row {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  height: initial;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+  padding: 14px 14px 14px 0;
+}
+
+.emotion-2 .right-section .title-row .title {
+  font-weight: 600;
+}
+
+.emotion-2 .right-section .description {
+  font-size: 14px;
+  font-weight: 300;
+  padding: 0 14px 14px 0;
+}
+
+.emotion-0 {
+  fill: #ea0000;
+  cursor: inherit;
+  vertical-align: middle;
+}
+
+<body
+  aria-hidden="true"
+  class="ReactModal__Body--open"
+>
+  <div
+    data-react-modal-body-trap=""
+    style="position: absolute; opacity: 0;"
+    tabindex="0"
+  />
+  <div
+    class="ReactModalPortal"
+  />
+  <div />
+  <div
+    data-react-modal-body-trap=""
+    style="position: absolute; opacity: 0;"
+    tabindex="0"
+  />
+  <div
+    class="ReactModalPortal"
+  >
+    <div
+      class="ReactModal__Overlay ReactModal__Overlay--after-open emotion-3"
+    >
+      <div
+        aria-describedby="alert-description"
+        aria-labelledby="alert-title"
+        class="ReactModal__Content ReactModal__Content--after-open emotion-2 denali-alert denali-alert-danger animated"
+        role="dialog"
+        tabindex="-1"
+      >
+        <div
+          class="left-section"
+        >
+          <div
+            class="alert-icon"
+            data-testid="alert-icon"
+          >
+            <svg
+              class="emotion-0"
+              data-testid="icon"
+              height="28px"
+              viewBox="0 0 1024 1024"
+              width="28px"
+            >
+              <title>
+                check-circle
+              </title>
+              <path
+                d="M512 128c212.077 0 384 171.923 384 384s-171.923 384-384 384c-212.077 0-384-171.923-384-384v0c0-212.077 171.923-384 384-384v0zM512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0-259.206-210.128-469.333-469.333-469.333v0z"
+              />
+              <path
+                d="M396.16 691.413l-126.293-126.293c-8.506-8.066-13.798-19.448-13.798-32.066 0-9.118 2.763-17.59 7.498-24.625l-0.1 0.158c7.83-10.919 20.483-17.949 34.778-17.949 11.841 0 22.556 4.824 30.286 12.613l0.003 0.003 98.133 97.707 268.373-268.373c7.549-6.884 17.635-11.1 28.706-11.1 23.564 0 42.667 19.103 42.667 42.667 0 11.017-4.176 21.060-11.031 28.63l0.032-0.036-298.667 298.667c-7.733 7.795-18.45 12.621-30.293 12.621s-22.56-4.826-30.291-12.618l-0.003-0.003z"
+              />
+            </svg>
+          </div>
+        </div>
+        <div
+          class="right-section"
+        >
+          <div
+            class="title-row"
+          >
+            <div
+              class="title"
+              data-testid="alert-title"
+              id="alert-title"
+            >
+              An Alert
+            </div>
+            <div
+              class="close-button"
+            >
+              <svg
+                class="emotion-1"
+                data-testid="icon"
+                height="28px"
+                viewBox="0 0 1024 1024"
+                width="28px"
+              >
+                <title>
+                  close
+                </title>
+                <path
+                  d="M571.733 512l226.133-224c7.901-8.071 12.777-19.131 12.777-31.33 0-9.87-3.192-18.994-8.599-26.397l0.088 0.127c-7.382-10.88-19.691-17.934-33.649-17.934-12.060 0-22.89 5.267-30.315 13.626l-0.036 0.042-226.133 226.133-226.133-226.133c-7.461-8.401-18.291-13.668-30.351-13.668-13.957 0-26.267 7.055-33.558 17.793l-0.091 0.142c-5.319 7.276-8.51 16.4-8.51 26.27 0 12.199 4.876 23.259 12.785 31.338l-0.008-0.008 226.133 224-226.133 224c-7.901 8.071-12.777 19.131-12.777 31.33 0 9.87 3.192 18.994 8.599 26.397l-0.088-0.127c7.382 10.88 19.691 17.934 33.649 17.934 12.060 0 22.89-5.267 30.315-13.626l0.036-0.042 226.133-226.133 226.133 226.133c7.461 8.401 18.291 13.668 30.351 13.668 13.957 0 26.267-7.055 33.558-17.793l0.091-0.142c5.319-7.276 8.51-16.4 8.51-26.27 0-12.199-4.876-23.259-12.785-31.338l0.008 0.008z"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+`;
+
+exports[`Alert should render all alert types 2`] = `
+.emotion-3 {
+  background-color: transparent;
+  bottom: 0;
+  left: 0;
+  position: fixed;
+  right: 0;
+  top: 0;
+  z-index: 5;
+}
+
+.emotion-2 {
+  box-shadow: 0px 4px 8px rgba(0,0,0,0.16);
+  -webkit-align-items: flex-start;
+  -webkit-box-align: flex-start;
+  -ms-flex-align: flex-start;
+  align-items: flex-start;
+  background: #fff;
+  border-radius: 4px;
+  border-top: 4px solid #0066df;
+  box-sizing: border-box;
+  color: #303030;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  left: 50%;
+  max-height: calc(100vh - 160px);
+  min-width: 400px;
+  outline: none;
+  position: fixed;
+  -webkit-transform: translate(-50%,0);
+  -ms-transform: translate(-50%,0);
+  transform: translate(-50%,0);
+  width: 400px;
+}
+
+.emotion-2.ReactModal__Content {
+  opacity: 0;
+  top: 0;
+}
+
+.emotion-2.animated {
+  -webkit-transition: opacity 0.2s ease-out, top 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
+  transition: opacity 0.2s ease-out, top 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
+}
+
+.emotion-2.ReactModal__Content--after-open {
+  top: 80px;
+  opacity: 1;
+}
+
+.emotion-2.ReactModal__Content--before-close {
+  opacity: 0;
+}
+
+.emotion-2 .left-section {
+  -webkit-flex: 0 0 28px;
+  -ms-flex: 0 0 28px;
+  flex: 0 0 28px;
+  padding: 14px;
+}
+
+.emotion-2 .left-section .alert-icon {
+  -webkit-align-items: flex-start;
+  -webkit-box-align: flex-start;
+  -ms-flex-align: flex-start;
+  align-items: flex-start;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+}
+
+.emotion-2 .right-section {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex: 1 1 auto;
+  -ms-flex: 1 1 auto;
+  flex: 1 1 auto;
+  -webkit-flex-flow: column nowrap;
+  -ms-flex-flow: column nowrap;
+  flex-flow: column nowrap;
+}
+
+.emotion-2 .right-section .title-row {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  height: initial;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+  padding: 14px 14px 14px 0;
+}
+
+.emotion-2 .right-section .title-row .title {
+  font-weight: 600;
+}
+
+.emotion-2 .right-section .description {
+  font-size: 14px;
+  font-weight: 300;
+  padding: 0 14px 14px 0;
+}
+
+.emotion-0 {
+  fill: #0066df;
+  cursor: inherit;
+  vertical-align: middle;
+}
+
+.emotion-1 {
+  fill: rgba(48,48,48,0.4);
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+<body
+  aria-hidden="true"
+  class="ReactModal__Body--open"
+>
+  <div
+    data-react-modal-body-trap=""
+    style="position: absolute; opacity: 0;"
+    tabindex="0"
+  />
+  <div
+    class="ReactModalPortal"
+  />
+  <div />
+  <div
+    data-react-modal-body-trap=""
+    style="position: absolute; opacity: 0;"
+    tabindex="0"
+  />
+  <div
+    class="ReactModalPortal"
+  >
+    <div
+      class="ReactModal__Overlay ReactModal__Overlay--after-open emotion-3"
+    >
+      <div
+        aria-describedby="alert-description"
+        aria-labelledby="alert-title"
+        class="ReactModal__Content ReactModal__Content--after-open emotion-2 denali-alert denali-alert-info animated"
+        role="dialog"
+        tabindex="-1"
+      >
+        <div
+          class="left-section"
+        >
+          <div
+            class="alert-icon"
+            data-testid="alert-icon"
+          >
+            <svg
+              class="emotion-0"
+              data-testid="icon"
+              height="28px"
+              viewBox="0 0 1024 1024"
+              width="28px"
+            >
+              <title>
+                check-circle
+              </title>
+              <path
+                d="M512 128c212.077 0 384 171.923 384 384s-171.923 384-384 384c-212.077 0-384-171.923-384-384v0c0-212.077 171.923-384 384-384v0zM512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0-259.206-210.128-469.333-469.333-469.333v0z"
+              />
+              <path
+                d="M396.16 691.413l-126.293-126.293c-8.506-8.066-13.798-19.448-13.798-32.066 0-9.118 2.763-17.59 7.498-24.625l-0.1 0.158c7.83-10.919 20.483-17.949 34.778-17.949 11.841 0 22.556 4.824 30.286 12.613l0.003 0.003 98.133 97.707 268.373-268.373c7.549-6.884 17.635-11.1 28.706-11.1 23.564 0 42.667 19.103 42.667 42.667 0 11.017-4.176 21.060-11.031 28.63l0.032-0.036-298.667 298.667c-7.733 7.795-18.45 12.621-30.293 12.621s-22.56-4.826-30.291-12.618l-0.003-0.003z"
+              />
+            </svg>
+          </div>
+        </div>
+        <div
+          class="right-section"
+        >
+          <div
+            class="title-row"
+          >
+            <div
+              class="title"
+              data-testid="alert-title"
+              id="alert-title"
+            >
+              An Alert
+            </div>
+            <div
+              class="close-button"
+            >
+              <svg
+                class="emotion-1"
+                data-testid="icon"
+                height="28px"
+                viewBox="0 0 1024 1024"
+                width="28px"
+              >
+                <title>
+                  close
+                </title>
+                <path
+                  d="M571.733 512l226.133-224c7.901-8.071 12.777-19.131 12.777-31.33 0-9.87-3.192-18.994-8.599-26.397l0.088 0.127c-7.382-10.88-19.691-17.934-33.649-17.934-12.060 0-22.89 5.267-30.315 13.626l-0.036 0.042-226.133 226.133-226.133-226.133c-7.461-8.401-18.291-13.668-30.351-13.668-13.957 0-26.267 7.055-33.558 17.793l-0.091 0.142c-5.319 7.276-8.51 16.4-8.51 26.27 0 12.199 4.876 23.259 12.785 31.338l-0.008-0.008 226.133 224-226.133 224c-7.901 8.071-12.777 19.131-12.777 31.33 0 9.87 3.192 18.994 8.599 26.397l-0.088-0.127c7.382 10.88 19.691 17.934 33.649 17.934 12.060 0 22.89-5.267 30.315-13.626l0.036-0.042 226.133-226.133 226.133 226.133c7.461 8.401 18.291 13.668 30.351 13.668 13.957 0 26.267-7.055 33.558-17.793l0.091-0.142c5.319-7.276 8.51-16.4 8.51-26.27 0-12.199-4.876-23.259-12.785-31.338l0.008 0.008z"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+`;
+
+exports[`Alert should render all alert types 3`] = `
+.emotion-3 {
+  background-color: transparent;
+  bottom: 0;
+  left: 0;
+  position: fixed;
+  right: 0;
+  top: 0;
+  z-index: 5;
+}
+
+.emotion-1 {
+  fill: rgba(48,48,48,0.4);
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+.emotion-2 {
+  box-shadow: 0px 4px 8px rgba(0,0,0,0.16);
+  -webkit-align-items: flex-start;
+  -webkit-box-align: flex-start;
+  -ms-flex-align: flex-start;
+  align-items: flex-start;
+  background: #fff;
+  border-radius: 4px;
+  border-top: 4px solid #15c046;
+  box-sizing: border-box;
+  color: #303030;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  left: 50%;
+  max-height: calc(100vh - 160px);
+  min-width: 400px;
+  outline: none;
+  position: fixed;
+  -webkit-transform: translate(-50%,0);
+  -ms-transform: translate(-50%,0);
+  transform: translate(-50%,0);
+  width: 400px;
+}
+
+.emotion-2.ReactModal__Content {
+  opacity: 0;
+  top: 0;
+}
+
+.emotion-2.animated {
+  -webkit-transition: opacity 0.2s ease-out, top 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
+  transition: opacity 0.2s ease-out, top 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
+}
+
+.emotion-2.ReactModal__Content--after-open {
+  top: 80px;
+  opacity: 1;
+}
+
+.emotion-2.ReactModal__Content--before-close {
+  opacity: 0;
+}
+
+.emotion-2 .left-section {
+  -webkit-flex: 0 0 28px;
+  -ms-flex: 0 0 28px;
+  flex: 0 0 28px;
+  padding: 14px;
+}
+
+.emotion-2 .left-section .alert-icon {
+  -webkit-align-items: flex-start;
+  -webkit-box-align: flex-start;
+  -ms-flex-align: flex-start;
+  align-items: flex-start;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+}
+
+.emotion-2 .right-section {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex: 1 1 auto;
+  -ms-flex: 1 1 auto;
+  flex: 1 1 auto;
+  -webkit-flex-flow: column nowrap;
+  -ms-flex-flow: column nowrap;
+  flex-flow: column nowrap;
+}
+
+.emotion-2 .right-section .title-row {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  height: initial;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+  padding: 14px 14px 14px 0;
+}
+
+.emotion-2 .right-section .title-row .title {
+  font-weight: 600;
+}
+
+.emotion-2 .right-section .description {
+  font-size: 14px;
+  font-weight: 300;
+  padding: 0 14px 14px 0;
+}
+
+.emotion-0 {
+  fill: #15c046;
+  cursor: inherit;
+  vertical-align: middle;
+}
+
+<body
+  aria-hidden="true"
+  class="ReactModal__Body--open"
+>
+  <div
+    data-react-modal-body-trap=""
+    style="position: absolute; opacity: 0;"
+    tabindex="0"
+  />
+  <div
+    class="ReactModalPortal"
+  />
+  <div />
+  <div
+    data-react-modal-body-trap=""
+    style="position: absolute; opacity: 0;"
+    tabindex="0"
+  />
+  <div
+    class="ReactModalPortal"
+  >
+    <div
+      class="ReactModal__Overlay ReactModal__Overlay--after-open emotion-3"
+    >
+      <div
+        aria-describedby="alert-description"
+        aria-labelledby="alert-title"
+        class="ReactModal__Content ReactModal__Content--after-open emotion-2 denali-alert denali-alert-success animated"
+        role="dialog"
+        tabindex="-1"
+      >
+        <div
+          class="left-section"
+        >
+          <div
+            class="alert-icon"
+            data-testid="alert-icon"
+          >
+            <svg
+              class="emotion-0"
+              data-testid="icon"
+              height="28px"
+              viewBox="0 0 1024 1024"
+              width="28px"
+            >
+              <title>
+                check-circle
+              </title>
+              <path
+                d="M512 128c212.077 0 384 171.923 384 384s-171.923 384-384 384c-212.077 0-384-171.923-384-384v0c0-212.077 171.923-384 384-384v0zM512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0-259.206-210.128-469.333-469.333-469.333v0z"
+              />
+              <path
+                d="M396.16 691.413l-126.293-126.293c-8.506-8.066-13.798-19.448-13.798-32.066 0-9.118 2.763-17.59 7.498-24.625l-0.1 0.158c7.83-10.919 20.483-17.949 34.778-17.949 11.841 0 22.556 4.824 30.286 12.613l0.003 0.003 98.133 97.707 268.373-268.373c7.549-6.884 17.635-11.1 28.706-11.1 23.564 0 42.667 19.103 42.667 42.667 0 11.017-4.176 21.060-11.031 28.63l0.032-0.036-298.667 298.667c-7.733 7.795-18.45 12.621-30.293 12.621s-22.56-4.826-30.291-12.618l-0.003-0.003z"
+              />
+            </svg>
+          </div>
+        </div>
+        <div
+          class="right-section"
+        >
+          <div
+            class="title-row"
+          >
+            <div
+              class="title"
+              data-testid="alert-title"
+              id="alert-title"
+            >
+              An Alert
+            </div>
+            <div
+              class="close-button"
+            >
+              <svg
+                class="emotion-1"
+                data-testid="icon"
+                height="28px"
+                viewBox="0 0 1024 1024"
+                width="28px"
+              >
+                <title>
+                  close
+                </title>
+                <path
+                  d="M571.733 512l226.133-224c7.901-8.071 12.777-19.131 12.777-31.33 0-9.87-3.192-18.994-8.599-26.397l0.088 0.127c-7.382-10.88-19.691-17.934-33.649-17.934-12.060 0-22.89 5.267-30.315 13.626l-0.036 0.042-226.133 226.133-226.133-226.133c-7.461-8.401-18.291-13.668-30.351-13.668-13.957 0-26.267 7.055-33.558 17.793l-0.091 0.142c-5.319 7.276-8.51 16.4-8.51 26.27 0 12.199 4.876 23.259 12.785 31.338l-0.008-0.008 226.133 224-226.133 224c-7.901 8.071-12.777 19.131-12.777 31.33 0 9.87 3.192 18.994 8.599 26.397l-0.088-0.127c7.382 10.88 19.691 17.934 33.649 17.934 12.060 0 22.89-5.267 30.315-13.626l0.036-0.042 226.133-226.133 226.133 226.133c7.461 8.401 18.291 13.668 30.351 13.668 13.957 0 26.267-7.055 33.558-17.793l0.091-0.142c5.319-7.276 8.51-16.4 8.51-26.27 0-12.199-4.876-23.259-12.785-31.338l0.008 0.008z"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+`;
+
+exports[`Alert should render all alert types 4`] = `
+.emotion-3 {
+  background-color: transparent;
+  bottom: 0;
+  left: 0;
+  position: fixed;
+  right: 0;
+  top: 0;
+  z-index: 5;
+}
+
+.emotion-1 {
+  fill: rgba(48,48,48,0.4);
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+.emotion-2 {
+  box-shadow: 0px 4px 8px rgba(0,0,0,0.16);
+  -webkit-align-items: flex-start;
+  -webkit-box-align: flex-start;
+  -ms-flex-align: flex-start;
+  align-items: flex-start;
+  background: #fff;
+  border-radius: 4px;
+  border-top: 4px solid #f4cb00;
+  box-sizing: border-box;
+  color: #303030;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  left: 50%;
+  max-height: calc(100vh - 160px);
+  min-width: 400px;
+  outline: none;
+  position: fixed;
+  -webkit-transform: translate(-50%,0);
+  -ms-transform: translate(-50%,0);
+  transform: translate(-50%,0);
+  width: 400px;
+}
+
+.emotion-2.ReactModal__Content {
+  opacity: 0;
+  top: 0;
+}
+
+.emotion-2.animated {
+  -webkit-transition: opacity 0.2s ease-out, top 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
+  transition: opacity 0.2s ease-out, top 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
+}
+
+.emotion-2.ReactModal__Content--after-open {
+  top: 80px;
+  opacity: 1;
+}
+
+.emotion-2.ReactModal__Content--before-close {
+  opacity: 0;
+}
+
+.emotion-2 .left-section {
+  -webkit-flex: 0 0 28px;
+  -ms-flex: 0 0 28px;
+  flex: 0 0 28px;
+  padding: 14px;
+}
+
+.emotion-2 .left-section .alert-icon {
+  -webkit-align-items: flex-start;
+  -webkit-box-align: flex-start;
+  -ms-flex-align: flex-start;
+  align-items: flex-start;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+}
+
+.emotion-2 .right-section {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex: 1 1 auto;
+  -ms-flex: 1 1 auto;
+  flex: 1 1 auto;
+  -webkit-flex-flow: column nowrap;
+  -ms-flex-flow: column nowrap;
+  flex-flow: column nowrap;
+}
+
+.emotion-2 .right-section .title-row {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  height: initial;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+  padding: 14px 14px 14px 0;
+}
+
+.emotion-2 .right-section .title-row .title {
+  font-weight: 600;
+}
+
+.emotion-2 .right-section .description {
+  font-size: 14px;
+  font-weight: 300;
+  padding: 0 14px 14px 0;
+}
+
+.emotion-0 {
+  fill: #f4cb00;
+  cursor: inherit;
+  vertical-align: middle;
+}
+
+<body
+  aria-hidden="true"
+  class="ReactModal__Body--open"
+>
+  <div
+    data-react-modal-body-trap=""
+    style="position: absolute; opacity: 0;"
+    tabindex="0"
+  />
+  <div
+    class="ReactModalPortal"
+  />
+  <div />
+  <div
+    data-react-modal-body-trap=""
+    style="position: absolute; opacity: 0;"
+    tabindex="0"
+  />
+  <div
+    class="ReactModalPortal"
+  >
+    <div
+      class="ReactModal__Overlay ReactModal__Overlay--after-open emotion-3"
+    >
+      <div
+        aria-describedby="alert-description"
+        aria-labelledby="alert-title"
+        class="ReactModal__Content ReactModal__Content--after-open emotion-2 denali-alert denali-alert-warning animated"
+        role="dialog"
+        tabindex="-1"
+      >
+        <div
+          class="left-section"
+        >
+          <div
+            class="alert-icon"
+            data-testid="alert-icon"
+          >
+            <svg
+              class="emotion-0"
+              data-testid="icon"
+              height="28px"
+              viewBox="0 0 1024 1024"
+              width="28px"
+            >
+              <title>
+                check-circle
+              </title>
+              <path
+                d="M512 128c212.077 0 384 171.923 384 384s-171.923 384-384 384c-212.077 0-384-171.923-384-384v0c0-212.077 171.923-384 384-384v0zM512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0-259.206-210.128-469.333-469.333-469.333v0z"
+              />
+              <path
+                d="M396.16 691.413l-126.293-126.293c-8.506-8.066-13.798-19.448-13.798-32.066 0-9.118 2.763-17.59 7.498-24.625l-0.1 0.158c7.83-10.919 20.483-17.949 34.778-17.949 11.841 0 22.556 4.824 30.286 12.613l0.003 0.003 98.133 97.707 268.373-268.373c7.549-6.884 17.635-11.1 28.706-11.1 23.564 0 42.667 19.103 42.667 42.667 0 11.017-4.176 21.060-11.031 28.63l0.032-0.036-298.667 298.667c-7.733 7.795-18.45 12.621-30.293 12.621s-22.56-4.826-30.291-12.618l-0.003-0.003z"
+              />
+            </svg>
+          </div>
+        </div>
+        <div
+          class="right-section"
+        >
+          <div
+            class="title-row"
+          >
+            <div
+              class="title"
+              data-testid="alert-title"
+              id="alert-title"
+            >
+              An Alert
+            </div>
+            <div
+              class="close-button"
+            >
+              <svg
+                class="emotion-1"
+                data-testid="icon"
+                height="28px"
+                viewBox="0 0 1024 1024"
+                width="28px"
+              >
+                <title>
+                  close
+                </title>
+                <path
+                  d="M571.733 512l226.133-224c7.901-8.071 12.777-19.131 12.777-31.33 0-9.87-3.192-18.994-8.599-26.397l0.088 0.127c-7.382-10.88-19.691-17.934-33.649-17.934-12.060 0-22.89 5.267-30.315 13.626l-0.036 0.042-226.133 226.133-226.133-226.133c-7.461-8.401-18.291-13.668-30.351-13.668-13.957 0-26.267 7.055-33.558 17.793l-0.091 0.142c-5.319 7.276-8.51 16.4-8.51 26.27 0 12.199 4.876 23.259 12.785 31.338l-0.008-0.008 226.133 224-226.133 224c-7.901 8.071-12.777 19.131-12.777 31.33 0 9.87 3.192 18.994 8.599 26.397l-0.088-0.127c7.382 10.88 19.691 17.934 33.649 17.934 12.060 0 22.89-5.267 30.315-13.626l0.036-0.042 226.133-226.133 226.133 226.133c7.461 8.401 18.291 13.668 30.351 13.668 13.957 0 26.267-7.055 33.558-17.793l0.091-0.142c5.319-7.276 8.51-16.4 8.51-26.27 0-12.199-4.876-23.259-12.785-31.338l0.008 0.008z"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+`;
+
+exports[`Alert should render open state 1`] = `
+.emotion-3 {
+  background-color: transparent;
+  bottom: 0;
+  left: 0;
+  position: fixed;
+  right: 0;
+  top: 0;
+  z-index: 5;
+}
+
+.emotion-2 {
+  box-shadow: 0px 4px 8px rgba(0,0,0,0.16);
+  -webkit-align-items: flex-start;
+  -webkit-box-align: flex-start;
+  -ms-flex-align: flex-start;
+  align-items: flex-start;
+  background: #fff;
+  border-radius: 4px;
+  border-top: 4px solid #0066df;
+  box-sizing: border-box;
+  color: #303030;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  left: 50%;
+  max-height: calc(100vh - 160px);
+  min-width: 400px;
+  outline: none;
+  position: fixed;
+  -webkit-transform: translate(-50%,0);
+  -ms-transform: translate(-50%,0);
+  transform: translate(-50%,0);
+  width: 400px;
+}
+
+.emotion-2.ReactModal__Content {
+  opacity: 0;
+  top: 0;
+}
+
+.emotion-2.animated {
+  -webkit-transition: opacity 0.2s ease-out, top 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
+  transition: opacity 0.2s ease-out, top 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
+}
+
+.emotion-2.ReactModal__Content--after-open {
+  top: 80px;
+  opacity: 1;
+}
+
+.emotion-2.ReactModal__Content--before-close {
+  opacity: 0;
+}
+
+.emotion-2 .left-section {
+  -webkit-flex: 0 0 28px;
+  -ms-flex: 0 0 28px;
+  flex: 0 0 28px;
+  padding: 14px;
+}
+
+.emotion-2 .left-section .alert-icon {
+  -webkit-align-items: flex-start;
+  -webkit-box-align: flex-start;
+  -ms-flex-align: flex-start;
+  align-items: flex-start;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+}
+
+.emotion-2 .right-section {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex: 1 1 auto;
+  -ms-flex: 1 1 auto;
+  flex: 1 1 auto;
+  -webkit-flex-flow: column nowrap;
+  -ms-flex-flow: column nowrap;
+  flex-flow: column nowrap;
+}
+
+.emotion-2 .right-section .title-row {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  height: initial;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+  padding: 14px 14px 14px 0;
+}
+
+.emotion-2 .right-section .title-row .title {
+  font-weight: 600;
+}
+
+.emotion-2 .right-section .description {
+  font-size: 14px;
+  font-weight: 300;
+  padding: 0 14px 14px 0;
+}
+
+.emotion-0 {
+  fill: #0066df;
+  cursor: inherit;
+  vertical-align: middle;
+}
+
+.emotion-1 {
+  fill: rgba(48,48,48,0.4);
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+<body
+  aria-hidden="true"
+  class="ReactModal__Body--open"
+>
+  <div
+    data-react-modal-body-trap=""
+    style="position: absolute; opacity: 0;"
+    tabindex="0"
+  />
+  <div />
+  <div
+    data-react-modal-body-trap=""
+    style="position: absolute; opacity: 0;"
+    tabindex="0"
+  />
+  <div
+    class="ReactModalPortal"
+  >
+    <div
+      class="ReactModal__Overlay ReactModal__Overlay--after-open emotion-3"
+    >
+      <div
+        aria-describedby="alert-description"
+        aria-labelledby="alert-title"
+        class="ReactModal__Content ReactModal__Content--after-open emotion-2 denali-alert denali-alert-info animated"
+        role="dialog"
+        tabindex="-1"
+      >
+        <div
+          class="left-section"
+        >
+          <div
+            class="alert-icon"
+            data-testid="alert-icon"
+          >
+            <svg
+              class="emotion-0"
+              data-testid="icon"
+              height="28px"
+              viewBox="0 0 1024 1024"
+              width="28px"
+            >
+              <title>
+                check-circle
+              </title>
+              <path
+                d="M512 128c212.077 0 384 171.923 384 384s-171.923 384-384 384c-212.077 0-384-171.923-384-384v0c0-212.077 171.923-384 384-384v0zM512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0-259.206-210.128-469.333-469.333-469.333v0z"
+              />
+              <path
+                d="M396.16 691.413l-126.293-126.293c-8.506-8.066-13.798-19.448-13.798-32.066 0-9.118 2.763-17.59 7.498-24.625l-0.1 0.158c7.83-10.919 20.483-17.949 34.778-17.949 11.841 0 22.556 4.824 30.286 12.613l0.003 0.003 98.133 97.707 268.373-268.373c7.549-6.884 17.635-11.1 28.706-11.1 23.564 0 42.667 19.103 42.667 42.667 0 11.017-4.176 21.060-11.031 28.63l0.032-0.036-298.667 298.667c-7.733 7.795-18.45 12.621-30.293 12.621s-22.56-4.826-30.291-12.618l-0.003-0.003z"
+              />
+            </svg>
+          </div>
+        </div>
+        <div
+          class="right-section"
+        >
+          <div
+            class="title-row"
+          >
+            <div
+              class="title"
+              data-testid="alert-title"
+              id="alert-title"
+            >
+              An Alert
+            </div>
+            <div
+              class="close-button"
+            >
+              <svg
+                class="emotion-1"
+                data-testid="icon"
+                height="28px"
+                viewBox="0 0 1024 1024"
+                width="28px"
+              >
+                <title>
+                  close
+                </title>
+                <path
+                  d="M571.733 512l226.133-224c7.901-8.071 12.777-19.131 12.777-31.33 0-9.87-3.192-18.994-8.599-26.397l0.088 0.127c-7.382-10.88-19.691-17.934-33.649-17.934-12.060 0-22.89 5.267-30.315 13.626l-0.036 0.042-226.133 226.133-226.133-226.133c-7.461-8.401-18.291-13.668-30.351-13.668-13.957 0-26.267 7.055-33.558 17.793l-0.091 0.142c-5.319 7.276-8.51 16.4-8.51 26.27 0 12.199 4.876 23.259 12.785 31.338l-0.008-0.008 226.133 224-226.133 224c-7.901 8.071-12.777 19.131-12.777 31.33 0 9.87 3.192 18.994 8.599 26.397l-0.088-0.127c7.382 10.88 19.691 17.934 33.649 17.934 12.060 0 22.89-5.267 30.315-13.626l0.036-0.042 226.133-226.133 226.133 226.133c7.461 8.401 18.291 13.668 30.351 13.668 13.957 0 26.267-7.055 33.558-17.793l0.091-0.142c5.319-7.276 8.51-16.4 8.51-26.27 0-12.199-4.876-23.259-12.785-31.338l0.008 0.008z"
+                />
+              </svg>
+            </div>
+          </div>
+          <div
+            class="description"
+            data-testid="alert-description"
+            id="alert-description"
+          >
+            Descriptive Alert
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+`;

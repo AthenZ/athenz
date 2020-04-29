@@ -1,0 +1,948 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Header should render 1`] = `
+.emotion-9 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  background: #002339;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  color: #fff;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex: 0 0 60px;
+  -ms-flex: 0 0 60px;
+  flex: 0 0 60px;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  height: 60px;
+  -webkit-box-pack: start;
+  -webkit-justify-content: flex-start;
+  -ms-flex-pack: start;
+  justify-content: flex-start;
+  left: 0;
+  padding: 0 24px;
+  position: static;
+  right: 0;
+  top: 0;
+  z-index: 2;
+}
+
+.emotion-9.scrolled {
+  box-shadow: 0px 4px 8px rgba(0,0,0,0.16);
+}
+
+.emotion-9 .flush-right {
+  margin-left: auto;
+}
+
+.emotion-1 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  box-sizing: border-box;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 60px;
+  position: relative;
+}
+
+.emotion-1.simple {
+  color: #fff;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  padding: 0 12px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-1.simple.nav-link {
+  cursor: pointer;
+}
+
+.emotion-1.simple.nav-link:hover {
+  color: rgba(255,255,255,0.75);
+}
+
+.emotion-1.simple.active {
+  box-shadow: inset 0 -4px 0 #3697f2;
+}
+
+.emotion-1.simple.nav-link.active:hover {
+  box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
+}
+
+.emotion-1 .nav-title {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  color: #fff;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  height: 100%;
+  padding: 0 12px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-1.nav-link .nav-title {
+  cursor: pointer;
+}
+
+.emotion-1.active .nav-title,
+.emotion-1 .active.nav-title {
+  box-shadow: inset 0 -4px 0 #3697f2;
+}
+
+.emotion-1 .nav-title:hover {
+  color: rgba(255,255,255,0.75);
+}
+
+.emotion-1.nav-link.active .nav-title:hover,
+.emotion-1.nav-link .active.nav-title:hover {
+  box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
+}
+
+.emotion-1 img.nav-logo {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 34px;
+}
+
+.emotion-1 .nav-icon,
+.emotion-1:hover .nav-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.emotion-1 .nav-icon path,
+.emotion-1:hover .nav-icon path,
+.emotion-1 .nav-icon ellipse,
+.emotion-1:hover .nav-icon ellipse,
+.emotion-1 .nav-icon rect,
+.emotion-1:hover .nav-icon rect,
+.emotion-1 .nav-icon circle,
+.emotion-1:hover .nav-icon circle {
+  fill: #fff;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-1.nav-link:hover .nav-icon path,
+.emotion-1.nav-link:hover .nav-icon ellipse,
+.emotion-1.nav-link:hover .nav-icon rect,
+.emotion-1.nav-link:hover .nav-icon circle {
+  fill: rgba(255,255,255,0.75);
+}
+
+.emotion-2 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  box-sizing: border-box;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 60px;
+  position: relative;
+  width: 100%;
+}
+
+.emotion-2.simple {
+  color: #fff;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  padding: 0 12px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-2.simple.nav-link {
+  cursor: pointer;
+}
+
+.emotion-2.simple.nav-link:hover {
+  color: rgba(255,255,255,0.75);
+}
+
+.emotion-2.simple.active {
+  box-shadow: inset 0 -4px 0 #3697f2;
+}
+
+.emotion-2.simple.nav-link.active:hover {
+  box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
+}
+
+.emotion-2 .nav-title {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  color: #fff;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  height: 100%;
+  padding: 0 12px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-2.nav-link .nav-title {
+  cursor: pointer;
+}
+
+.emotion-2.active .nav-title,
+.emotion-2 .active.nav-title {
+  box-shadow: inset 0 -4px 0 #3697f2;
+}
+
+.emotion-2 .nav-title:hover {
+  color: rgba(255,255,255,0.75);
+}
+
+.emotion-2.nav-link.active .nav-title:hover,
+.emotion-2.nav-link .active.nav-title:hover {
+  box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
+}
+
+.emotion-2 img.nav-logo {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 34px;
+}
+
+.emotion-2 .nav-icon,
+.emotion-2:hover .nav-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.emotion-2 .nav-icon path,
+.emotion-2:hover .nav-icon path,
+.emotion-2 .nav-icon ellipse,
+.emotion-2:hover .nav-icon ellipse,
+.emotion-2 .nav-icon rect,
+.emotion-2:hover .nav-icon rect,
+.emotion-2 .nav-icon circle,
+.emotion-2:hover .nav-icon circle {
+  fill: #fff;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-2.nav-link:hover .nav-icon path,
+.emotion-2.nav-link:hover .nav-icon ellipse,
+.emotion-2.nav-link:hover .nav-icon rect,
+.emotion-2.nav-link:hover .nav-icon circle {
+  fill: rgba(255,255,255,0.75);
+}
+
+.emotion-4 {
+  fill: #fff;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+.emotion-10 {
+  height: 60px;
+  position: relative;
+}
+
+.emotion-0 {
+  height: 36px;
+  cursor: pointer;
+}
+
+.emotion-3 {
+  margin-left: 10%;
+  width: 50%;
+}
+
+.emotion-7 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+}
+
+.emotion-6 {
+  margin-left: 15px;
+}
+
+<div
+  class="emotion-10"
+  data-testid="header"
+>
+  <div
+    class="emotion-9 denali-navbar"
+    data-testid="navbar"
+  >
+    <div
+      class="emotion-1 simple denali-navbar-item"
+      data-testid="navbar-item"
+    >
+      <a
+        href="/"
+      >
+        <img
+          class="emotion-0"
+          src="/static/athenz-logo-full.png"
+        />
+      </a>
+    </div>
+    <div
+      class="emotion-3"
+    >
+      <div
+        class="emotion-2 simple denali-navbar-item"
+        data-testid="navbar-item"
+      />
+    </div>
+    <div
+      class="emotion-1 simple flush-right denali-navbar-item"
+      data-testid="navbar-item"
+    >
+      <div
+        class="emotion-7"
+        data-testid="header-menu"
+      >
+        <svg
+          class="emotion-4"
+          data-testid="icon"
+          height="25px"
+          viewBox="0 0 1024 1024"
+          width="25px"
+        >
+          <title>
+            notification
+          </title>
+          <path
+            d="M925.867 627.2l-68.267-68.267c-15.132-16.256-24.706-37.864-25.595-61.692l-0.005-0.174v-134.4c0-172.8-115.2-320-320-320s-320 142.933-320 320v149.333c-0.424 14.075-6.029 26.765-14.962 36.297l0.028-0.030-78.933 78.933c-7.763 7.612-12.628 18.155-12.8 29.835l-0 0.032v153.6c0 23.564 19.103 42.667 42.667 42.667v0h236.8c12.454 70.953 73.611 124.182 147.2 124.182s134.746-53.229 147.069-123.285l0.131-0.897h236.8c23.564 0 42.667-19.103 42.667-42.667v0-153.6c-0.172-11.712-5.037-22.255-12.793-29.86l-0.007-0.007zM853.333 768h-682.667v-91.733l66.133-68.267c24.782-24.511 40.224-58.423 40.533-95.941l0-0.059v-149.333c0-113.067 61.867-234.667 234.667-234.667s234.667 125.867 234.667 234.667v134.4c0.879 47.11 19.381 89.736 49.168 121.71l-0.102-0.11 57.6 57.6z"
+          />
+        </svg>
+        <div
+          class="emotion-6"
+        >
+          <svg
+            class="emotion-4"
+            data-testid="icon"
+            height="25px"
+            viewBox="0 0 1024 1024"
+            width="25px"
+          >
+            <title>
+              help-circle
+            </title>
+            <path
+              d="M512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0-259.206-210.128-469.333-469.333-469.333v0zM512 896c-212.077 0-384-171.923-384-384s171.923-384 384-384c212.077 0 384 171.923 384 384v0c0 212.077-171.923 384-384 384v0z"
+            />
+            <path
+              d="M554.667 768c0 23.564-19.103 42.667-42.667 42.667s-42.667-19.103-42.667-42.667c0-23.564 19.103-42.667 42.667-42.667s42.667 19.103 42.667 42.667z"
+            />
+            <path
+              d="M549.333 219.52c-11.244-2.339-24.166-3.678-37.4-3.678-71.49 0-133.854 39.072-166.904 97.027l-0.496 0.945c-3.783 6.395-6.018 14.093-6.018 22.313 0 14.468 6.924 27.319 17.64 35.419l0.112 0.081c6.829 4.846 15.334 7.747 24.517 7.747 15.995 0 29.934-8.801 37.239-21.826l0.111-0.215c12.111-22.947 31.869-40.492 55.815-49.471l0.718-0.236c98.133-33.707 187.52 72.32 120.96 170.667-16.346 22.524-42.587 37.002-72.21 37.002-4.025 0-7.988-0.267-11.871-0.785l0.455 0.050c-1.281-0.156-2.763-0.245-4.267-0.245s-2.986 0.089-4.443 0.262l0.176-0.017c-19.477 4.079-33.927 21.016-34.133 41.364l-0 0.022s0 0 0 1.28v82.773c-0.004 0.232-0.007 0.505-0.007 0.78 0 21.42 15.032 39.329 35.123 43.752l0.297 0.055c2.182 0.396 4.694 0.622 7.258 0.622 23.564 0 42.667-19.103 42.667-42.667 0-0.219-0.002-0.437-0.005-0.655l0 0.033v-31.147c0.196-9.48 6.547-17.425 15.209-20.015l0.151-0.039c78.046-25.561 133.424-97.737 133.424-182.847 0-92.861-65.924-170.325-153.523-188.144l-1.234-0.21z"
+            />
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Header should render with search 1`] = `
+.emotion-11 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  background: #002339;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  color: #fff;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex: 0 0 60px;
+  -ms-flex: 0 0 60px;
+  flex: 0 0 60px;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  height: 60px;
+  -webkit-box-pack: start;
+  -webkit-justify-content: flex-start;
+  -ms-flex-pack: start;
+  justify-content: flex-start;
+  left: 0;
+  padding: 0 24px;
+  position: static;
+  right: 0;
+  top: 0;
+  z-index: 2;
+}
+
+.emotion-11.scrolled {
+  box-shadow: 0px 4px 8px rgba(0,0,0,0.16);
+}
+
+.emotion-11 .flush-right {
+  margin-left: auto;
+}
+
+.emotion-1 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  box-sizing: border-box;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 60px;
+  position: relative;
+}
+
+.emotion-1.simple {
+  color: #fff;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  padding: 0 12px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-1.simple.nav-link {
+  cursor: pointer;
+}
+
+.emotion-1.simple.nav-link:hover {
+  color: rgba(255,255,255,0.75);
+}
+
+.emotion-1.simple.active {
+  box-shadow: inset 0 -4px 0 #3697f2;
+}
+
+.emotion-1.simple.nav-link.active:hover {
+  box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
+}
+
+.emotion-1 .nav-title {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  color: #fff;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  height: 100%;
+  padding: 0 12px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-1.nav-link .nav-title {
+  cursor: pointer;
+}
+
+.emotion-1.active .nav-title,
+.emotion-1 .active.nav-title {
+  box-shadow: inset 0 -4px 0 #3697f2;
+}
+
+.emotion-1 .nav-title:hover {
+  color: rgba(255,255,255,0.75);
+}
+
+.emotion-1.nav-link.active .nav-title:hover,
+.emotion-1.nav-link .active.nav-title:hover {
+  box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
+}
+
+.emotion-1 img.nav-logo {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 34px;
+}
+
+.emotion-1 .nav-icon,
+.emotion-1:hover .nav-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.emotion-1 .nav-icon path,
+.emotion-1:hover .nav-icon path,
+.emotion-1 .nav-icon ellipse,
+.emotion-1:hover .nav-icon ellipse,
+.emotion-1 .nav-icon rect,
+.emotion-1:hover .nav-icon rect,
+.emotion-1 .nav-icon circle,
+.emotion-1:hover .nav-icon circle {
+  fill: #fff;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-1.nav-link:hover .nav-icon path,
+.emotion-1.nav-link:hover .nav-icon ellipse,
+.emotion-1.nav-link:hover .nav-icon rect,
+.emotion-1.nav-link:hover .nav-icon circle {
+  fill: rgba(255,255,255,0.75);
+}
+
+.emotion-4 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  box-sizing: border-box;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 60px;
+  position: relative;
+  width: 100%;
+}
+
+.emotion-4.simple {
+  color: #fff;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  padding: 0 12px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-4.simple.nav-link {
+  cursor: pointer;
+}
+
+.emotion-4.simple.nav-link:hover {
+  color: rgba(255,255,255,0.75);
+}
+
+.emotion-4.simple.active {
+  box-shadow: inset 0 -4px 0 #3697f2;
+}
+
+.emotion-4.simple.nav-link.active:hover {
+  box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
+}
+
+.emotion-4 .nav-title {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  color: #fff;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  height: 100%;
+  padding: 0 12px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-4.nav-link .nav-title {
+  cursor: pointer;
+}
+
+.emotion-4.active .nav-title,
+.emotion-4 .active.nav-title {
+  box-shadow: inset 0 -4px 0 #3697f2;
+}
+
+.emotion-4 .nav-title:hover {
+  color: rgba(255,255,255,0.75);
+}
+
+.emotion-4.nav-link.active .nav-title:hover,
+.emotion-4.nav-link .active.nav-title:hover {
+  box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
+}
+
+.emotion-4 img.nav-logo {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 34px;
+}
+
+.emotion-4 .nav-icon,
+.emotion-4:hover .nav-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.emotion-4 .nav-icon path,
+.emotion-4:hover .nav-icon path,
+.emotion-4 .nav-icon ellipse,
+.emotion-4:hover .nav-icon ellipse,
+.emotion-4 .nav-icon rect,
+.emotion-4:hover .nav-icon rect,
+.emotion-4 .nav-icon circle,
+.emotion-4:hover .nav-icon circle {
+  fill: #fff;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-4.nav-link:hover .nav-icon path,
+.emotion-4.nav-link:hover .nav-icon ellipse,
+.emotion-4.nav-link:hover .nav-icon rect,
+.emotion-4.nav-link:hover .nav-icon circle {
+  fill: rgba(255,255,255,0.75);
+}
+
+.emotion-6 {
+  fill: #fff;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+.emotion-3 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 100%;
+}
+
+.emotion-3 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-3.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+}
+
+.emotion-3 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-3 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-3 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-3 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-3 input.focused,
+.emotion-3 input:active,
+.emotion-3 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-3 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-3 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-3.error input,
+.emotion-3.error input.focused,
+.emotion-3.error input:active,
+.emotion-3.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-3.error .message {
+  color: #d01111;
+}
+
+.emotion-3 input {
+  background: rgba(242,242,242,0.1);
+  color: #fff;
+}
+
+.emotion-3 input::-webkit-input-placeholder {
+  color: rgba(255,255,255,0.6);
+}
+
+.emotion-3 input::-moz-placeholder {
+  color: rgba(255,255,255,0.6);
+}
+
+.emotion-3 input:-ms-input-placeholder {
+  color: rgba(255,255,255,0.6);
+}
+
+.emotion-3 input::placeholder {
+  color: rgba(255,255,255,0.6);
+}
+
+.emotion-3 input.focused,
+.emotion-3 input:active,
+.emotion-3 input:focus {
+  background: rgba(242,242,242,0.1);
+  border-bottom: 2px solid #3570f4;
+  color: #fff;
+}
+
+.emotion-3 input {
+  padding-right: 36px;
+}
+
+.emotion-3 .input-icon {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 36px;
+  position: absolute;
+  right: 6px;
+}
+
+.emotion-2 {
+  fill: #3570f4;
+  cursor: inherit;
+  vertical-align: text-bottom;
+}
+
+.emotion-12 {
+  height: 60px;
+  position: relative;
+}
+
+.emotion-0 {
+  height: 36px;
+  cursor: pointer;
+}
+
+.emotion-5 {
+  margin-left: 10%;
+  width: 50%;
+}
+
+.emotion-9 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+}
+
+.emotion-8 {
+  margin-left: 15px;
+}
+
+<div
+  class="emotion-12"
+  data-testid="header"
+>
+  <div
+    class="emotion-11 denali-navbar"
+    data-testid="navbar"
+  >
+    <div
+      class="emotion-1 simple denali-navbar-item"
+      data-testid="navbar-item"
+    >
+      <a
+        href="/"
+      >
+        <img
+          class="emotion-0"
+          src="/static/athenz-logo-full.png"
+        />
+      </a>
+    </div>
+    <div
+      class="emotion-5"
+    >
+      <div
+        class="emotion-4 simple denali-navbar-item"
+        data-testid="navbar-item"
+      >
+        <div
+          class="emotion-3 denali-input animated"
+          data-testid="input-wrapper"
+        >
+          <input
+            autocomplete="off"
+            data-testid="input-node"
+            name="search"
+            placeholder="Enter domain name"
+            value=""
+          />
+          <div
+            class="input-icon"
+          >
+            <svg
+              class="emotion-2"
+              data-testid="icon"
+              height="24px"
+              viewBox="0 0 1024 1024"
+              width="24px"
+            >
+              <title>
+                search
+              </title>
+              <path
+                d="M659.413 599.68c40.125-53.054 64.27-120.136 64.27-192.857 0-177.556-143.937-321.493-321.493-321.493s-321.493 143.937-321.493 321.493c0 177.556 143.937 321.493 321.493 321.493 74.297 0 142.708-25.203 197.149-67.525l-0.726 0.543 267.307 264.96c7.723 7.731 18.396 12.514 30.187 12.514s22.464-4.782 30.186-12.513l0-0c7.795-7.733 12.621-18.45 12.621-30.293s-4.826-22.56-12.618-30.291l-0.003-0.003zM444.8 637.227c-11.829 2.113-25.446 3.322-39.345 3.322-129.603 0-234.667-105.064-234.667-234.667s105.064-234.667 234.667-234.667c129.603 0 234.667 105.064 234.667 234.667 0 13.899-1.208 27.516-3.526 40.752l0.204-1.407c-17.178 98.349-93.651 174.822-190.593 191.796l-1.407 0.204z"
+              />
+            </svg>
+          </div>
+          <div
+            class="message"
+            data-testid="message"
+          />
+        </div>
+      </div>
+    </div>
+    <div
+      class="emotion-1 simple flush-right denali-navbar-item"
+      data-testid="navbar-item"
+    >
+      <div
+        class="emotion-9"
+        data-testid="header-menu"
+      >
+        <svg
+          class="emotion-6"
+          data-testid="icon"
+          height="25px"
+          viewBox="0 0 1024 1024"
+          width="25px"
+        >
+          <title>
+            notification
+          </title>
+          <path
+            d="M925.867 627.2l-68.267-68.267c-15.132-16.256-24.706-37.864-25.595-61.692l-0.005-0.174v-134.4c0-172.8-115.2-320-320-320s-320 142.933-320 320v149.333c-0.424 14.075-6.029 26.765-14.962 36.297l0.028-0.030-78.933 78.933c-7.763 7.612-12.628 18.155-12.8 29.835l-0 0.032v153.6c0 23.564 19.103 42.667 42.667 42.667v0h236.8c12.454 70.953 73.611 124.182 147.2 124.182s134.746-53.229 147.069-123.285l0.131-0.897h236.8c23.564 0 42.667-19.103 42.667-42.667v0-153.6c-0.172-11.712-5.037-22.255-12.793-29.86l-0.007-0.007zM853.333 768h-682.667v-91.733l66.133-68.267c24.782-24.511 40.224-58.423 40.533-95.941l0-0.059v-149.333c0-113.067 61.867-234.667 234.667-234.667s234.667 125.867 234.667 234.667v134.4c0.879 47.11 19.381 89.736 49.168 121.71l-0.102-0.11 57.6 57.6z"
+          />
+        </svg>
+        <div
+          class="emotion-8"
+        >
+          <svg
+            class="emotion-6"
+            data-testid="icon"
+            height="25px"
+            viewBox="0 0 1024 1024"
+            width="25px"
+          >
+            <title>
+              help-circle
+            </title>
+            <path
+              d="M512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0-259.206-210.128-469.333-469.333-469.333v0zM512 896c-212.077 0-384-171.923-384-384s171.923-384 384-384c212.077 0 384 171.923 384 384v0c0 212.077-171.923 384-384 384v0z"
+            />
+            <path
+              d="M554.667 768c0 23.564-19.103 42.667-42.667 42.667s-42.667-19.103-42.667-42.667c0-23.564 19.103-42.667 42.667-42.667s42.667 19.103 42.667 42.667z"
+            />
+            <path
+              d="M549.333 219.52c-11.244-2.339-24.166-3.678-37.4-3.678-71.49 0-133.854 39.072-166.904 97.027l-0.496 0.945c-3.783 6.395-6.018 14.093-6.018 22.313 0 14.468 6.924 27.319 17.64 35.419l0.112 0.081c6.829 4.846 15.334 7.747 24.517 7.747 15.995 0 29.934-8.801 37.239-21.826l0.111-0.215c12.111-22.947 31.869-40.492 55.815-49.471l0.718-0.236c98.133-33.707 187.52 72.32 120.96 170.667-16.346 22.524-42.587 37.002-72.21 37.002-4.025 0-7.988-0.267-11.871-0.785l0.455 0.050c-1.281-0.156-2.763-0.245-4.267-0.245s-2.986 0.089-4.443 0.262l0.176-0.017c-19.477 4.079-33.927 21.016-34.133 41.364l-0 0.022s0 0 0 1.28v82.773c-0.004 0.232-0.007 0.505-0.007 0.78 0 21.42 15.032 39.329 35.123 43.752l0.297 0.055c2.182 0.396 4.694 0.622 7.258 0.622 23.564 0 42.667-19.103 42.667-42.667 0-0.219-0.002-0.437-0.005-0.655l0 0.033v-31.147c0.196-9.48 6.547-17.425 15.209-20.015l0.151-0.039c78.046-25.561 133.424-97.737 133.424-182.847 0-92.861-65.924-170.325-153.523-188.144l-1.234-0.21z"
+            />
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
