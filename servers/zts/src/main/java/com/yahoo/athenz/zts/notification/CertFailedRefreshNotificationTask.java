@@ -153,6 +153,7 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
         Map<String, List<X509CertRecord>> domainToCertRecords = new HashMap<>();
         for (X509CertRecord x509CertRecord: unrefreshedRecords) {
             String domainName = AthenzUtils.extractPrincipalDomainName(x509CertRecord.getService());
+            LOGGER.info("processing domain={}, hostName={}", domainName, x509CertRecord.getHostName());
             domainToCertRecords.putIfAbsent(domainName, new ArrayList<>());
             domainToCertRecords.get(domainName).add(x509CertRecord);
         }
