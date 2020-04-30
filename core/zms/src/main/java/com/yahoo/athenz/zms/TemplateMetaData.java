@@ -7,9 +7,9 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.yahoo.rdl.*;
 
 //
-// MetaData - MetaData for template.
+// TemplateMetaData - MetaData for template.
 //
-public class MetaData {
+public class TemplateMetaData {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String description;
@@ -18,7 +18,7 @@ public class MetaData {
     public Integer currentVersion;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    public Integer updatedVersion;
+    public Integer latestVersion;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String keywordsToReplace;
@@ -29,42 +29,42 @@ public class MetaData {
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Boolean autoUpdate;
 
-    public MetaData setDescription(String description) {
+    public TemplateMetaData setDescription(String description) {
         this.description = description;
         return this;
     }
     public String getDescription() {
         return description;
     }
-    public MetaData setCurrentVersion(Integer currentVersion) {
+    public TemplateMetaData setCurrentVersion(Integer currentVersion) {
         this.currentVersion = currentVersion;
         return this;
     }
     public Integer getCurrentVersion() {
         return currentVersion;
     }
-    public MetaData setUpdatedVersion(Integer updatedVersion) {
-        this.updatedVersion = updatedVersion;
+    public TemplateMetaData setLatestVersion(Integer latestVersion) {
+        this.latestVersion = latestVersion;
         return this;
     }
-    public Integer getUpdatedVersion() {
-        return updatedVersion;
+    public Integer getLatestVersion() {
+        return latestVersion;
     }
-    public MetaData setKeywordsToReplace(String keywordsToReplace) {
+    public TemplateMetaData setKeywordsToReplace(String keywordsToReplace) {
         this.keywordsToReplace = keywordsToReplace;
         return this;
     }
     public String getKeywordsToReplace() {
         return keywordsToReplace;
     }
-    public MetaData setTimestamp(Timestamp timestamp) {
+    public TemplateMetaData setTimestamp(Timestamp timestamp) {
         this.timestamp = timestamp;
         return this;
     }
     public Timestamp getTimestamp() {
         return timestamp;
     }
-    public MetaData setAutoUpdate(Boolean autoUpdate) {
+    public TemplateMetaData setAutoUpdate(Boolean autoUpdate) {
         this.autoUpdate = autoUpdate;
         return this;
     }
@@ -75,17 +75,17 @@ public class MetaData {
     @Override
     public boolean equals(Object another) {
         if (this != another) {
-            if (another == null || another.getClass() != MetaData.class) {
+            if (another == null || another.getClass() != TemplateMetaData.class) {
                 return false;
             }
-            MetaData a = (MetaData) another;
+            TemplateMetaData a = (TemplateMetaData) another;
             if (description == null ? a.description != null : !description.equals(a.description)) {
                 return false;
             }
             if (currentVersion == null ? a.currentVersion != null : !currentVersion.equals(a.currentVersion)) {
                 return false;
             }
-            if (updatedVersion == null ? a.updatedVersion != null : !updatedVersion.equals(a.updatedVersion)) {
+            if (latestVersion == null ? a.latestVersion != null : !latestVersion.equals(a.latestVersion)) {
                 return false;
             }
             if (keywordsToReplace == null ? a.keywordsToReplace != null : !keywordsToReplace.equals(a.keywordsToReplace)) {

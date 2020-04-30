@@ -240,11 +240,11 @@ public class ZMSSchema {
             .comment("Set of system metadata attributes that all services may have and can be changed by system admins.")
             .field("providerEndpoint", "String", true, "provider callback endpoint");
 
-        sb.structType("MetaData")
+        sb.structType("TemplateMetaData")
             .comment("MetaData for template.")
             .field("description", "String", true, "description of the template")
             .field("currentVersion", "Int32", true, "Version from DB(zms_store->domain_template->version)")
-            .field("updatedVersion", "Int32", true, "Bumped up version from solutions-template.json when there is a change")
+            .field("latestVersion", "Int32", true, "Bumped up version from solutions-template.json when there is a change")
             .field("keywordsToReplace", "String", true, "placeholders in the template roles/policies to replace (ex:_service_)")
             .field("timestamp", "Timestamp", true, "the updated timestamp of the template(solution_templates.json)")
             .field("autoUpdate", "Bool", true, "flag to automatically update the roles/policies that belongs to the template");
@@ -254,7 +254,7 @@ public class ZMSSchema {
             .arrayField("roles", "Role", false, "list of roles in the template")
             .arrayField("policies", "Policy", false, "list of policies defined in this template")
             .arrayField("services", "ServiceIdentity", true, "list of services defined in this template")
-            .field("metadata", "MetaData", true, "list of services defined in this template");
+            .field("metadata", "TemplateMetaData", true, "list of services defined in this template");
 
         sb.structType("TemplateList")
             .comment("List of template names that is the base struct for server and domain templates")

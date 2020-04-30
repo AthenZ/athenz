@@ -18,7 +18,7 @@ public class Template {
     public List<ServiceIdentity> services;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    public MetaData metadata;
+    public TemplateMetaData metadata;
 
     public Template setRoles(List<Role> roles) {
         this.roles = roles;
@@ -41,11 +41,11 @@ public class Template {
     public List<ServiceIdentity> getServices() {
         return services;
     }
-    public Template setMetadata(MetaData metadata) {
+    public Template setMetadata(TemplateMetaData metadata) {
         this.metadata = metadata;
         return this;
     }
-    public MetaData getMetadata() {
+    public TemplateMetaData getMetadata() {
         return metadata;
     }
 

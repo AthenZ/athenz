@@ -1945,11 +1945,11 @@ public class ZMSCoreTest {
         Validator validator = new Validator(schema);
         Timestamp timestamp = Timestamp.fromMillis(System.currentTimeMillis());
 
-        MetaData meta = new MetaData();
+        TemplateMetaData meta = new TemplateMetaData();
         meta.setAutoUpdate(true)
                 .setCurrentVersion(1)
                 .setDescription("test template")
-                .setUpdatedVersion(2)
+                .setLatestVersion(2)
                 .setKeywordsToReplace("none")
                 .setTimestamp(timestamp);
 
@@ -1958,20 +1958,20 @@ public class ZMSCoreTest {
 
         assertTrue(temp.equals(temp));
 
-        Result result = validator.validate(meta, "MetaData");
+        Result result = validator.validate(meta, "TemplateMetaData");
         assertTrue(result.valid);
         assertTrue(meta.getAutoUpdate());
         assertEquals((int) meta.getCurrentVersion(), 1);
         assertEquals(meta.getDescription(), "test template");
-        assertEquals((int) meta.getUpdatedVersion(), 2);
+        assertEquals((int) meta.getLatestVersion(), 2);
         assertEquals(meta.getKeywordsToReplace(), "none");
         assertEquals(meta.getTimestamp(), timestamp);
 
-        MetaData meta1 = new MetaData();
+        TemplateMetaData meta1 = new TemplateMetaData();
         meta1.setAutoUpdate(false)
                 .setCurrentVersion(1)
                 .setDescription("test template")
-                .setUpdatedVersion(2)
+                .setLatestVersion(2)
                 .setKeywordsToReplace("none")
                 .setTimestamp(timestamp);
         Template temp1 = new Template()
