@@ -5,6 +5,7 @@
 
 - [Acceptance test](#acceptance-test)
     - [Prerequisites](#prerequisites)
+    - [Note](#note)
     - [Setup](#setup)
     - [ZMS acceptance test](#zms-acceptance-test)
     - [ZTS acceptance test](#zts-acceptance-test)
@@ -18,6 +19,11 @@
 ## Prerequisites
 
 1. `curl 7.54.0`+
+
+<a id="markdown-note" name="note"></a>
+## Note
+
+This document is for verifying your development in DEV or testing environment ONLY. Please you need to manaully remove the test data if you plan to run the test in production environment.
 
 <a id="markdown-setup" name="setup"></a>
 ## Setup
