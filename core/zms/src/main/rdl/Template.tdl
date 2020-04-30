@@ -7,11 +7,22 @@ include "Role.tdl";
 include "Policy.tdl";
 include "ServiceIdentity.tdl"
 
+//MetaData for template.
+type TemplateMetaData Struct {
+    String description (optional); //description of the template
+    Int32 currentVersion (optional); //Version from DB(zms_store->domain_template->version)
+    Int32 latestVersion (optional); //Bumped up version from solutions-template.json when there is a change
+    String keywordsToReplace (optional); //placeholders in the template roles/policies to replace (ex:_service_)
+    Timestamp timestamp (optional); //the updated timestamp of the template(solution_templates.json)
+    Bool autoUpdate (optional); //flag to automatically update the roles/policies that belongs to the template
+}
+
 //Solution Template object defined on the server
 type Template Struct {
     Array<Role> roles; //list of roles in the template
     Array<Policy> policies; //list of policies defined in this template
     Array<ServiceIdentity> services (optional); //list of services defined in this template
+    TemplateMetaData metadata (optional); //list of services defined in this template
 }
 
 //List of template names that is the base struct for

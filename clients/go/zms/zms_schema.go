@@ -278,11 +278,22 @@ func init() {
 	tServiceIdentitySystemMeta.Field("providerEndpoint", "String", true, nil, "provider callback endpoint")
 	sb.AddType(tServiceIdentitySystemMeta.Build())
 
+	tTemplateMetaData := rdl.NewStructTypeBuilder("Struct", "TemplateMetaData")
+	tTemplateMetaData.Comment("MetaData for template.")
+	tTemplateMetaData.Field("description", "String", true, nil, "description of the template")
+	tTemplateMetaData.Field("currentVersion", "Int32", true, nil, "Version from DB(zms_store->domain_template->version)")
+	tTemplateMetaData.Field("latestVersion", "Int32", true, nil, "Bumped up version from solutions-template.json when there is a change")
+	tTemplateMetaData.Field("keywordsToReplace", "String", true, nil, "placeholders in the template roles/policies to replace (ex:_service_)")
+	tTemplateMetaData.Field("timestamp", "Timestamp", true, nil, "the updated timestamp of the template(solution_templates.json)")
+	tTemplateMetaData.Field("autoUpdate", "Bool", true, nil, "flag to automatically update the roles/policies that belongs to the template")
+	sb.AddType(tTemplateMetaData.Build())
+
 	tTemplate := rdl.NewStructTypeBuilder("Struct", "Template")
 	tTemplate.Comment("Solution Template object defined on the server")
 	tTemplate.ArrayField("roles", "Role", false, "list of roles in the template")
 	tTemplate.ArrayField("policies", "Policy", false, "list of policies defined in this template")
 	tTemplate.ArrayField("services", "ServiceIdentity", true, "list of services defined in this template")
+	tTemplate.Field("metadata", "TemplateMetaData", true, nil, "list of services defined in this template")
 	sb.AddType(tTemplate.Build())
 
 	tTemplateList := rdl.NewStructTypeBuilder("Struct", "TemplateList")

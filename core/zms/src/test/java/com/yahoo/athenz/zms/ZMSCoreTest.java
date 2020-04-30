@@ -1940,6 +1940,46 @@ public class ZMSCoreTest {
     }
 
     @Test
+    public void testTemplateMetaData() {
+        Schema schema = ZMSSchema.instance();
+        Validator validator = new Validator(schema);
+        Timestamp timestamp = Timestamp.fromMillis(System.currentTimeMillis());
+
+        TemplateMetaData meta = new TemplateMetaData();
+        meta.setAutoUpdate(true)
+                .setCurrentVersion(1)
+                .setDescription("test template")
+                .setLatestVersion(2)
+                .setKeywordsToReplace("none")
+                .setTimestamp(timestamp);
+
+        Template temp = new Template()
+                .setMetadata(meta);
+
+        assertTrue(temp.equals(temp));
+
+        Result result = validator.validate(meta, "TemplateMetaData");
+        assertTrue(result.valid);
+        assertTrue(meta.getAutoUpdate());
+        assertEquals((int) meta.getCurrentVersion(), 1);
+        assertEquals(meta.getDescription(), "test template");
+        assertEquals((int) meta.getLatestVersion(), 2);
+        assertEquals(meta.getKeywordsToReplace(), "none");
+        assertEquals(meta.getTimestamp(), timestamp);
+
+        TemplateMetaData meta1 = new TemplateMetaData();
+        meta1.setAutoUpdate(false)
+                .setCurrentVersion(1)
+                .setDescription("test template")
+                .setLatestVersion(2)
+                .setKeywordsToReplace("none")
+                .setTimestamp(timestamp);
+        Template temp1 = new Template()
+                .setMetadata(meta1);
+        assertFalse(temp.equals(temp1));
+    }
+
+    @Test
     public void testUserTokenMethod() {
         Schema schema = ZMSSchema.instance();
         Validator validator = new Validator(schema);

@@ -2335,6 +2335,91 @@ func (self *ServiceIdentitySystemMeta) Validate() error {
 }
 
 //
+// TemplateMetaData - MetaData for template.
+//
+type TemplateMetaData struct {
+
+	//
+	// description of the template
+	//
+	Description string `json:"description,omitempty" rdl:"optional"`
+
+	//
+	// Version from DB(zms_store->domain_template->version)
+	//
+	CurrentVersion *int32 `json:"currentVersion,omitempty" rdl:"optional"`
+
+	//
+	// Bumped up version from solutions-template.json when there is a change
+	//
+	LatestVersion *int32 `json:"latestVersion,omitempty" rdl:"optional"`
+
+	//
+	// placeholders in the template roles/policies to replace (ex:_service_)
+	//
+	KeywordsToReplace string `json:"keywordsToReplace,omitempty" rdl:"optional"`
+
+	//
+	// the updated timestamp of the template(solution_templates.json)
+	//
+	Timestamp *rdl.Timestamp `json:"timestamp,omitempty" rdl:"optional"`
+
+	//
+	// flag to automatically update the roles/policies that belongs to the
+	// template
+	//
+	AutoUpdate *bool `json:"autoUpdate,omitempty" rdl:"optional"`
+}
+
+//
+// NewTemplateMetaData - creates an initialized TemplateMetaData instance, returns a pointer to it
+//
+func NewTemplateMetaData(init ...*TemplateMetaData) *TemplateMetaData {
+	var o *TemplateMetaData
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(TemplateMetaData)
+	}
+	return o
+}
+
+type rawTemplateMetaData TemplateMetaData
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a TemplateMetaData
+//
+func (self *TemplateMetaData) UnmarshalJSON(b []byte) error {
+	var m rawTemplateMetaData
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := TemplateMetaData(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *TemplateMetaData) Validate() error {
+	if self.Description != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.Description)
+		if !val.Valid {
+			return fmt.Errorf("TemplateMetaData.description does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.KeywordsToReplace != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.KeywordsToReplace)
+		if !val.Valid {
+			return fmt.Errorf("TemplateMetaData.keywordsToReplace does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+//
 // Template - Solution Template object defined on the server
 //
 type Template struct {
@@ -2353,6 +2438,11 @@ type Template struct {
 	// list of services defined in this template
 	//
 	Services []*ServiceIdentity `json:"services,omitempty" rdl:"optional"`
+
+	//
+	// list of services defined in this template
+	//
+	Metadata *TemplateMetaData `json:"metadata,omitempty" rdl:"optional"`
 }
 
 //

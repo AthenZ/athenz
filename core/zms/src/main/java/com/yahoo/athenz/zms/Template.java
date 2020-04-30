@@ -16,6 +16,9 @@ public class Template {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public List<ServiceIdentity> services;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public TemplateMetaData metadata;
 
     public Template setRoles(List<Role> roles) {
         this.roles = roles;
@@ -38,6 +41,13 @@ public class Template {
     public List<ServiceIdentity> getServices() {
         return services;
     }
+    public Template setMetadata(TemplateMetaData metadata) {
+        this.metadata = metadata;
+        return this;
+    }
+    public TemplateMetaData getMetadata() {
+        return metadata;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -53,6 +63,9 @@ public class Template {
                 return false;
             }
             if (services == null ? a.services != null : !services.equals(a.services)) {
+                return false;
+            }
+            if (metadata == null ? a.metadata != null : !metadata.equals(a.metadata)) {
                 return false;
             }
         }
