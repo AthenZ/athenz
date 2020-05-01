@@ -104,6 +104,7 @@ export ZTS_DB_HOST="${ZTS_DB_HOST:-athenz-zts-db}"
 export ZTS_DB_PORT="${ZTS_DB_PORT:-3307}"
 export ZTS_HOST="${ZTS_HOST:-athenz-zts-server}"
 export ZTS_PORT="${ZTS_PORT:-8443}"
+export HOST_EXTERNAL_IP="${HOST_EXTERNAL_IP:-127.0.0.1}"
 
 ### ----------------------------------------------------------------
 # domain admin

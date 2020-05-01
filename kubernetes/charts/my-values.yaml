@@ -1,0 +1,45 @@
+image:
+  pullPolicy: Always
+
+
+password:
+  jdbc: "athenz_admin"
+  jdbcRo: "athenz_admin"
+
+existingSecret: "wzzms-athenz-zms-2"
+# existingTLSSecret: "wzzms-athenz-zms-tls-2"
+# existingTLSCASecret: "wzzms-athenz-zms-tls-ca-2"
+existingTLSStoreSecret: "wzzms-athenz-zms-tls-store-2"
+
+replicaCount: 2
+
+service:
+  nodePort: 30007
+
+extraInitContainers: |
+  - name: tls-echo
+    image: {{ template "athenz-zms.setup.image" . }}
+    imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+    env:
+      - name: ZMS_KEYSTORE_PATH
+        value: /opt/athenz/zms/var/certs/zms_keystore.pkcs12
+      - name: ZMS_KEYSTORE_PASS
+        valueFrom:
+          secretKeyRef:
+            name: {{ template "athenz-zms.secretName" . }}
+            key: keystore
+      - name: ZMS_TRUSTSTORE_PATH
+        value: /opt/athenz/zms/var/certs/zms_truststore.jks
+      - name: ZMS_TRUSTSTORE_PASS
+        valueFrom:
+          secretKeyRef:
+            name: {{ template "athenz-zms.secretName" . }}
+            key: truststore
+    command:
+      - "/bin/sh"
+      - "-c"
+      - >-
+        keytool -list -storepass "${ZMS_KEYSTORE_PASS}" -keystore "${ZMS_KEYSTORE_PATH}"; keytool -list -storepass "${ZMS_TRUSTSTORE_PASS}" -keystore "${ZMS_TRUSTSTORE_PATH}"
+    volumeMounts:
+      - name: tls-stores
+        mountPath: /opt/athenz/zms/var/certs

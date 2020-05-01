@@ -1,0 +1,454 @@
+{{- $metricPort := (include "athenz-zts.metrics.port" .) }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "athenz-zts.fullname" . }}
+  labels:
+    app: "{{ template "athenz-zts.name" . }}"
+    chart: "{{ template "athenz-zts.chart" . }}"
+    release: {{ .Release.Name | quote }}
+    heritage: {{ .Release.Service | quote }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ template "athenz-zts.name" . }}
+      release: {{ .Release.Name | quote }}
+  {{- if .Values.updateStrategy }}
+  strategy: {{ toYaml .Values.updateStrategy | nindent 4 }}
+  {{- end }}
+  {{- if .Values.serviceAccountName }}
+  serviceAccountName: {{ .Values.serviceAccountName }}
+  {{- end }}
+  replicas: {{ .Values.replicaCount }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "athenz-zts.name" . }}
+        chart: {{ template "athenz-zts.chart" . }}
+        release: {{ .Release.Name | quote }}
+      {{- if or .Values.podAnnotations $metricPort }}
+      annotations:
+        {{- if .Values.podAnnotations }}
+        {{- toYaml .Values.podAnnotations | nindent 8 }}
+        {{- end }}
+        {{- if $metricPort }}
+        prometheus.io/scrape: "true"
+        prometheus.io/port: {{ $metricPort | quote }}
+        {{- end }}
+      {{- end }}
+    spec:
+{{- include "athenz-zts.imagePullSecrets" . | indent 6 }}
+      {{- if .Values.schedulerName }}
+      schedulerName: {{ .Values.schedulerName | quote }}
+      {{- end }}
+      {{- if .Values.affinity }}
+      affinity: {{ toYaml .Values.affinity | nindent 8 }}
+      {{- end }}
+      {{- if .Values.nodeSelector }}
+      nodeSelector: {{ toYaml .Values.nodeSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.tolerations }}
+      tolerations: {{ toYaml .Values.tolerations | nindent 8 }}
+      {{- end }}
+      {{- if .Values.securityContext.enabled }}
+      securityContext:
+        fsGroup: {{ .Values.securityContext.fsGroup }}
+        runAsGroup:  {{ .Values.securityContext.runAsGroup }}
+        runAsUser: {{ .Values.securityContext.runAsUser }}
+      {{- end }}
+
+      initContainers:
+        - name: check-zms-status
+          image: {{ template "athenz-zts.setup.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+          command:
+            - "/bin/sh"
+            - "-c"
+            - >-
+              wget -Sq --no-check-certificate -O - "$(jq -r '.zmsUrl' "${ATHENZ_CONF_PATH}")zms/v1/status" | jq
+          env:
+            - name: ATHENZ_CONF_PATH
+              value: {{ template "athenz-zts.athenz_conf" . }}
+          volumeMounts:
+            - name: config
+              mountPath: /opt/athenz/zts/conf/zts_server
+        {{- if .Values.securityContext.enabled }}
+        - name: chmod
+          image: {{ template "athenz-zts.setup.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+          securityContext:
+            runAsUser: 0
+          command:
+            - "/bin/chown"
+            - "-R"
+            - {{ .Values.securityContext.runAsUser | quote }}
+            - "/opt/athenz/zts/var/zts_store"
+          volumeMounts:
+            - name: change-log-store
+              mountPath: /opt/athenz/zts/var/zts_store
+        {{- end }}
+        {{- if not .Values.existingTLSStoreSecret }}
+        - name: tls-keystore
+          image: {{ template "athenz-zts.setup.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+          env:
+            - name: ZTS_KEYSTORE_PATH
+              value: /opt/athenz/zts/var/certs/zts_keystore.pkcs12
+            - name: ZTS_KEYSTORE_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "athenz-zts.secretName" . }}
+                  key: keystore
+            - name: ZTS_CERT_PATH
+              value: /opt/athenz/zts/var/tls/tls.crt
+            - name: ZTS_CERT_KEY_PATH
+              value: /opt/athenz/zts/var/tls/tls.key
+          command:
+            - "/bin/sh"
+            - "-c"
+            - >-
+              openssl pkcs12 -export -noiter -nomaciter -out "${ZTS_KEYSTORE_PATH}" -passout "pass:${ZTS_KEYSTORE_PASS}" -in "${ZTS_CERT_PATH}" -inkey "${ZTS_CERT_KEY_PATH}"
+          volumeMounts:
+            - name: tls
+              mountPath: /opt/athenz/zts/var/tls
+            - name: tls-stores
+              mountPath: /opt/athenz/zts/var/certs
+        - name: tls-truststore
+          image: {{ template "athenz-zts.setup.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+          env:
+            - name: ZTS_TRUSTSTORE_PATH
+              value: /opt/athenz/zts/var/certs/zts_truststore.jks
+            - name: ZTS_TRUSTSTORE_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "athenz-zts.secretName" . }}
+                  key: truststore
+          command:
+            - "/bin/sh"
+            - "-c"
+            - >-
+              for ca in /opt/athenz/zts/var/tls/CAs/*.pem; do openssl x509 -outform pem -in "${ca}" | keytool -importcert -noprompt -keystore "${ZTS_TRUSTSTORE_PATH}" -storepass "${ZTS_TRUSTSTORE_PASS}" -storetype JKS -alias "$(basename ${ca})"; done
+          volumeMounts:
+            - name: tls-ca
+              mountPath: /opt/athenz/zts/var/tls/CAs
+            - name: tls-stores
+              mountPath: /opt/athenz/zts/var/certs
+        {{- end }}
+        {{- if not .Values.existingSignerStoreSecret }}
+        - name: signer-mtls-keystore
+          image: {{ template "athenz-zts.setup.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+          env:
+            - name: ZTS_SIGNER_KEYSTORE_PATH
+              value: /opt/athenz/zts/var/certs/zts_signer_keystore.pkcs12
+            - name: ZTS_SIGNER_KEYSTORE_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "athenz-zts.secretName" . }}
+                  key: signerKeystore
+            - name: ZTS_SIGNER_CERT_PATH
+              value: /opt/athenz/zts/var/signer/tls.crt
+            - name: ZTS_SIGNER_CERT_KEY_PATH
+              value: /opt/athenz/zts/var/signer/tls.key
+          command:
+            - "/bin/sh"
+            - "-c"
+            - >-
+              openssl pkcs12 -export -noiter -nomaciter -out "${ZTS_SIGNER_KEYSTORE_PATH}" -passout "pass:${ZTS_SIGNER_KEYSTORE_PASS}" -in "${ZTS_SIGNER_CERT_PATH}" -inkey "${ZTS_SIGNER_CERT_KEY_PATH}"
+          volumeMounts:
+            - name: signer-mtls
+              mountPath: /opt/athenz/zts/var/signer
+            - name: signer-mtls-stores
+              mountPath: /opt/athenz/zts/var/certs
+        - name: signer-mtls-truststore
+          image: {{ template "athenz-zts.setup.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+          env:
+            - name: ZTS_SIGNER_TRUSTSTORE_PATH
+              value: /opt/athenz/zts/var/certs/zts_signer_truststore.jks
+            - name: ZTS_SIGNER_TRUSTSTORE_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "athenz-zts.secretName" . }}
+                  key: signerTruststore
+          command:
+            - "/bin/sh"
+            - "-c"
+            - >-
+              for ca in /opt/athenz/zts/var/signer/CAs/*.pem; do openssl x509 -outform pem -in "${ca}" | keytool -importcert -noprompt -keystore "${ZTS_SIGNER_TRUSTSTORE_PATH}" -storepass "${ZTS_SIGNER_TRUSTSTORE_PASS}" -storetype JKS -alias "$(basename ${ca})"; done
+          volumeMounts:
+            - name: signer-mtls-ca
+              mountPath: /opt/athenz/zts/var/signer/CAs
+            - name: signer-mtls-stores
+              mountPath: /opt/athenz/zts/var/certs
+        {{- end }}
+        {{- if not .Values.existingZMSClientStoreSecret }}
+        - name: zms-client-mtls-keystore
+          image: {{ template "athenz-zts.setup.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+          env:
+            - name: ZMS_CLIENT_KEYSTORE_PATH
+              value: /opt/athenz/zts/var/certs/zms_client_keystore.pkcs12
+            - name: ZMS_CLIENT_KEYSTORE_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "athenz-zts.secretName" . }}
+                  key: zmsClientKeystore
+            - name: ZMS_CLIENT_CERT_PATH
+              value: /opt/athenz/zts/var/zms-client/tls.crt
+            - name: ZMS_CLIENT_CERT_KEY_PATH
+              value: /opt/athenz/zts/var/zms-client/tls.key
+          command:
+            - "/bin/sh"
+            - "-c"
+            - >-
+              openssl pkcs12 -export -noiter -nomaciter -out "${ZMS_CLIENT_KEYSTORE_PATH}" -passout "pass:${ZMS_CLIENT_KEYSTORE_PASS}" -in "${ZMS_CLIENT_CERT_PATH}" -inkey "${ZMS_CLIENT_CERT_KEY_PATH}"
+          volumeMounts:
+            - name: zms-client-mtls
+              mountPath: /opt/athenz/zts/var/zms-client
+            - name: zms-client-mtls-stores
+              mountPath: /opt/athenz/zts/var/certs
+        - name: zms-client-mtls-truststore
+          image: {{ template "athenz-zts.setup.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+          env:
+            - name: ZMS_CLIENT_TRUSTSTORE_PATH
+              value: /opt/athenz/zts/var/certs/zms_client_truststore.jks
+            - name: ZMS_CLIENT_TRUSTSTORE_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "athenz-zts.secretName" . }}
+                  key: zmsClientTruststore
+          command:
+            - "/bin/sh"
+            - "-c"
+            - >-
+              for ca in /opt/athenz/zts/var/zms-client/CAs/*.pem; do openssl x509 -outform pem -in "${ca}" | keytool -importcert -noprompt -keystore "${ZMS_CLIENT_TRUSTSTORE_PATH}" -storepass "${ZMS_CLIENT_TRUSTSTORE_PASS}" -storetype JKS -alias "$(basename ${ca})"; done
+          volumeMounts:
+            - name: zms-client-mtls-ca
+              mountPath: /opt/athenz/zts/var/zms-client/CAs
+            - name: zms-client-mtls-stores
+              mountPath: /opt/athenz/zts/var/certs
+        {{- end }}
+        {{- $jdbcURP := (include "athenz-zts.jdbc.userHostPort" .) }}
+        {{- if not (hasSuffix ":" $jdbcURP) }}
+        {{- $jdbcURPList := (splitList ":" $jdbcURP) }}
+        - name: wait-for-master-db
+          image: {{ template "athenz-zts.mysql.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+          command:
+            - "/bin/sh"
+            - "/bin/wait-for-mysql.sh"
+            - {{ printf "--user=%s" (index $jdbcURPList 0) }}
+            - {{ printf "--host=%s" (index $jdbcURPList 1) }}
+            - {{ printf "--port=%s" (index $jdbcURPList 2) }}
+          env:
+            - name: MYSQL_PWD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "athenz-zts.secretName" . }}
+                  key: jdbc
+          volumeMounts:
+            - name: script
+              mountPath: /bin/wait-for-mysql.sh
+              subPath: wait-for-mysql.sh
+        {{- end }}
+        {{- if .Values.extraInitContainers }}
+{{ tpl .Values.extraInitContainers . | indent 8 }}
+        {{- end }}
+      containers:
+        {{- if .Values.sidecarContainers }}
+{{ tpl .Values.sidecarContainers . | nindent 8 }}
+        {{- end }}
+        - name: zts
+          image: wzyahoo/athenz-zts-server
+          env:
+            - name: ZTS_DB_ADMIN_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "athenz-zts.secretName" . }}
+                  key: jdbc
+            - name: ZTS_KEYSTORE_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "athenz-zts.secretName" . }}
+                  key: keystore
+            - name: ZTS_TRUSTSTORE_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "athenz-zts.secretName" . }}
+                  key: truststore
+            - name: ZTS_SIGNER_KEYSTORE_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "athenz-zts.secretName" . }}
+                  key: signerKeystore
+            - name: ZTS_SIGNER_TRUSTSTORE_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "athenz-zts.secretName" . }}
+                  key: signerTruststore
+            - name: ZMS_CLIENT_KEYSTORE_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "athenz-zts.secretName" . }}
+                  key: zmsClientKeystore
+            - name: ZMS_CLIENT_TRUSTSTORE_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "athenz-zts.secretName" . }}
+                  key: zmsClientTruststore
+            - name: ZTS_PORT
+              value: "8443"
+          ports:
+            - name: zts
+              containerPort: 8443
+            {{- if $metricPort }}
+            - name: metrics
+              containerPort: {{ $metricPort }}
+            {{- end }}
+          livenessProbe:
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+            successThreshold: {{ .Values.livenessProbe.successThreshold }}
+            failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+            httpGet:
+              path: /zts/v1/status
+              port: zts
+              scheme: HTTPS
+          {{- if .Values.readinessProbe.enabled }}
+          readinessProbe:
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+            successThreshold: {{ .Values.readinessProbe.successThreshold }}
+            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+            httpGet:
+              path: /zts/v1/status
+              port: zts
+              scheme: HTTPS
+          {{- end }}
+          volumeMounts:
+            - name: config
+              mountPath: /opt/athenz/zts/conf/zts_server
+              readOnly: true
+            - name: zts-key
+              mountPath: /opt/athenz/zts/var/keys
+              readOnly: true
+            - name: tls-stores
+              mountPath: /opt/athenz/zts/var/certs/zts_keystore.pkcs12
+              subPath: zts_keystore.pkcs12
+              readOnly: true
+            - name: tls-stores
+              mountPath: /opt/athenz/zts/var/certs/zts_truststore.jks
+              subPath: zts_truststore.jks
+              readOnly: true
+            - name: signer-mtls-stores
+              mountPath: /opt/athenz/zts/var/certs/zts_signer_keystore.pkcs12
+              subPath: zts_signer_keystore.pkcs12
+              readOnly: true
+            - name: signer-mtls-stores
+              mountPath: /opt/athenz/zts/var/certs/zts_signer_truststore.jks
+              subPath: zts_signer_truststore.jks
+              readOnly: true
+            - name: zms-client-mtls-stores
+              mountPath: /opt/athenz/zts/var/certs/zms_client_keystore.pkcs12
+              subPath: zms_client_keystore.pkcs12
+              readOnly: true
+            - name: zms-client-mtls-stores
+              mountPath: /opt/athenz/zts/var/certs/zms_client_truststore.jks
+              subPath: zms_client_truststore.jks
+              readOnly: true
+            - name: log
+              mountPath: /opt/athenz/zts/logs/zts_server
+            - name: change-log-store
+              mountPath: /opt/athenz/zts/var/zts_store
+          {{- if .Values.resources }}
+          resources: {{ toYaml .Values.resources | nindent 12 }}
+          {{- end }}
+      volumes:
+        - name: script
+          configMap:
+            name: {{ template "athenz-zts.fullname" . }}-script
+        - name: config
+          configMap:
+            name: {{ template "athenz-zts.fullname" . }}-config
+        - name: zts-key
+          secret:
+            secretName: {{ template "athenz-zts.secretName" . }}
+            items:
+              - key: zts_private.pem
+                path: zts_private.pem
+                mode: 400
+        {{- if not .Values.existingTLSStoreSecret }}
+        - name: tls
+          secret:
+            secretName: {{ template "athenz-zts.tls.secretName" . }}
+        - name: tls-ca
+          secret:
+            secretName: {{ template "athenz-zts.tls.ca.secretName" . }}
+        {{- end }}
+        {{- if not .Values.existingSignerStoreSecret }}
+        - name: signer-mtls
+          secret:
+            secretName: {{ template "athenz-zts.signer.secretName" . }}
+        - name: signer-mtls-ca
+          secret:
+            secretName: {{ template "athenz-zts.signer.ca.secretName" . }}
+        {{- end }}
+        {{- if not .Values.existingZMSClientStoreSecret }}
+        - name: zms-client-mtls
+          secret:
+            secretName: {{ template "athenz-zts.zmsClient.secretName" . }}
+        - name: zms-client-mtls-ca
+          secret:
+            secretName: {{ template "athenz-zts.zmsClient.ca.secretName" . }}
+        {{- end }}
+        - name: tls-stores
+          {{- if .Values.existingTLSStoreSecret }}
+          secret:
+            secretName: {{ .Values.existingTLSStoreSecret }}
+            items:
+              - key: zts_keystore.pkcs12
+                path: zts_keystore.pkcs12
+                mode: 400
+              - key: zts_truststore.jks
+                path: zts_truststore.jks
+                mode: 400
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        - name: signer-mtls-stores
+          {{- if .Values.existingSignerStoreSecret }}
+          secret:
+            secretName: {{ .Values.existingSignerStoreSecret }}
+            items:
+              - key: zts_signer_keystore.pkcs12
+                path: zts_signer_keystore.pkcs12
+                mode: 400
+              - key: zts_signer_truststore.jks
+                path: zts_signer_truststore.jks
+                mode: 400
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        - name: zms-client-mtls-stores
+          {{- if .Values.existingZMSClientStoreSecret }}
+          secret:
+            secretName: {{ .Values.existingZMSClientStoreSecret }}
+            items:
+              - key: zms_client_keystore.pkcs12
+                path: zms_client_keystore.pkcs12
+                mode: 400
+              - key: zms_client_truststore.jks
+                path: zms_client_truststore.jks
+                mode: 400
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        - name: log
+          emptyDir: {}
+        - name: change-log-store
+          emptyDir: {}

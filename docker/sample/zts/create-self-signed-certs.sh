@@ -10,14 +10,14 @@ echo 'running...'
 ### ----------------------------------------------------------------
 # ZTS server certificate
 # create CSR
-CN='Sample Self Signed ZTS' SAN="${ZTS_HOST}" openssl req -nodes \
+CN='Sample Self Signed ZTS' SAN="${ZTS_HOST}" IPSAN="${HOST_EXTERNAL_IP}" openssl req -nodes \
   -config "${SELF_SIGN_CNF_PATH}" \
   -reqexts v3_req -extensions usr_cert \
   -newkey rsa:4096 \
   -keyout "${DEV_ZTS_CERT_KEY_PATH}" \
   -out "${DEV_ZTS_CSR_PATH}" 2> /dev/null
 # sign request
-SAN="${ZTS_HOST}" openssl x509 -req -days 3650 \
+SAN="${ZTS_HOST}" IPSAN="${HOST_EXTERNAL_IP}" openssl x509 -req -days 3650 \
   -in "${DEV_ZTS_CSR_PATH}" \
   -CA "${DEV_ATHENZ_CA_PATH}" \
   -CAkey "${DEV_ATHENZ_CA_KEY_PATH}" \

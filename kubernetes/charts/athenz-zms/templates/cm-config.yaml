@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "athenz-zms.fullname" . }}-config
+  labels:
+    app: "{{ template "athenz-zms.name" . }}"
+    chart: "{{ template "athenz-zms.chart" . }}"
+    release: {{ .Release.Name | quote }}
+    heritage: {{ .Release.Service | quote }}
+data: {{ (.Files.Glob .Values.files.conf).AsConfig | nindent 2 }}
