@@ -69,6 +69,7 @@ import com.amazonaws.services.securitytoken.model.Credentials;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yahoo.athenz.auth.AuthorityConsts;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.auth.ServiceIdentityProvider;
@@ -1218,7 +1219,7 @@ public class ZTSClient implements Closeable {
                 if (scope.length() != 0) {
                     scope.append(' ');
                 }
-                scope.append(domainName).append(":role.").append(role);
+                scope.append(domainName).append(AuthorityConsts.ROLE_SEP).append(role);
             }
         }
         if (idTokenServiceName != null && !idTokenServiceName.isEmpty()) {
@@ -1289,7 +1290,7 @@ public class ZTSClient implements Closeable {
         final String domain = principalDomain.toLowerCase();
         final String service = principalService.toLowerCase();
         
-        String dn = "cn=" + roleDomainName.toLowerCase() + ":role." + roleName.toLowerCase();
+        String dn = "cn=" + roleDomainName.toLowerCase() + AuthorityConsts.ROLE_SEP + roleName.toLowerCase();
         if (csrDn != null) {
             dn = dn.concat(",").concat(csrDn);
         }

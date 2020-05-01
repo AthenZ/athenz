@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.zts.cert;
 
+import com.yahoo.athenz.auth.AuthorityConsts;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.CryptoException;
 import com.yahoo.athenz.zts.ZTSConsts;
@@ -89,7 +90,7 @@ public class X509RoleCertRequest extends X509CertRequest {
         // anyway
 
         for (String role : roles) {
-            final String roleName = domainName + ":role." + role;
+            final String roleName = domainName + AuthorityConsts.ROLE_SEP + role;
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("validateRoleCertificateRequest: validating role {} against {}",
                         roleName, cn);

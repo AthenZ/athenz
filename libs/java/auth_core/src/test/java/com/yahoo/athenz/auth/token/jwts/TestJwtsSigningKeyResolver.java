@@ -19,11 +19,8 @@ import io.jsonwebtoken.JwsHeader;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import java.io.File;
 import java.io.IOException;
-
+import java.net.URLConnection;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 
@@ -36,7 +33,7 @@ public class TestJwtsSigningKeyResolver {
                 "src/test/resources/athenz.conf");
 
         JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(null, null);
-        HttpsURLConnection con = resolver.getConnection("https://localhost:4443");
+        URLConnection con = resolver.getConnection("https://localhost:4443");
         assertNotNull(con);
 
         if (oldConf == null) {

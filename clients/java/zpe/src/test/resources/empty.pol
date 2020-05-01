@@ -3,13 +3,12 @@
         "modified": "2015-01-13T19:13:18.601Z",
         "policyData": {
             "domain": "empty",
-            "policies": [
-            ]
+            "policies": []
         },
-        "zmsSignature": "eN5aZiqCof3HjHctjkYB2itNvI.90u.bq6zzLoXG8CJ8hSwG6IBMaIQ0yf.Q_SR5HTFi7Tmrc1quQuH17H0PJg--",
+        "zmsSignature": "PxM4lzZdJQx1uguYmVyQnAptFY7DUh4s4GX04vUeqJFgSNo4JvyWnA4HewbKMkKKZPxFDdYeVxknnlsjo0AwJRI6mJxPVJH9KWZvI3v6KVwlNpXU.w102s1LaF3TetH8basmAedENRtBN9AOrI.evgBjiilweWIHU6WbWL_UoogmsHjED1tp4.dHPjEgZ8Mdm1T5X1s8r4lI5UbNYueJqH690VQglTjz7bzzacP4idXC7kwYoxrVyQ.IZb2kQjZ2ezZyXrXkUmU9Oj.m2gQz6Xf.ph4kXaPSeYBA5x_Nwd_nK78Zts8WJfp7QCk0SGXbucHE21MU2Axgshp4aDNZVw--",
         "zmsKeyId": "0",
         "expires": "2015-01-20T19:13:18.599Z"
     },
-    "signature": "qJXtTXPI0aQcxUgerT9X4BM6HoKVM1pNClt86UViintmC5.IK9uYoFhtdMfDLq7Kzc8jdyT1iCqv_OmEyMHLCA--",
+    "signature": "zwIxiDgwlYyCTBfdFxhLziuYilfF4bTQQP_mtYjn9QiRUmQaaN5FRT0tnGDeayL6Dz6IQLYsPAjO6jYCdCpcXvTAOKKZnEbywMO_zLo07FqH2PtS6HBzTGd46G8x31UURH7VabLp_ks6I.gJCHahe1YNX8Bc3th.kBZr0h3D.Jo70bOIrHpT6mftctn3jgHpOHkhbJwx0OA4RfF6TD8IolQkZB3k9K5cocvvVhjt2PVvdoLPG73AXVRW2DA4d7SY_WR5WrNUMQISXuVDVQoMot_1yGesECt.SM2bDyvDQCc0kuFPujV9.CRQfed9DUlYcIsJKkJhSjm2qHZMRgHqdw--",
     "keyId": "0"
 }

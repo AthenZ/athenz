@@ -126,13 +126,13 @@ public class AuditLogMsgBuilderTest {
         String actual = instant.toString();
         Assert.assertEquals(msgBldr.when(), dataStr, "when string=" + msgBldr.when());
 
-	// strip out the milliseconds parts and compare
-	// jdk 8/11 give different precisions
+        // strip out the milliseconds parts and compare
+        // jdk 8/11 give different precisions
 
-	int idx = actual.lastIndexOf('.');
-	final String actSecs = actual.substring(0, idx);
-	idx = expected.lastIndexOf('.');
-	final String expSecs = expected.substring(0, idx);
+        int idx = actual.lastIndexOf('.');
+        final String actSecs = actual.substring(0, idx);
+        idx = expected.lastIndexOf('.');
+        final String expSecs = expected.substring(0, idx);
         Assert.assertEquals(actSecs, expSecs, "when string=" + msgBldr.when());
     }
     

@@ -45,6 +45,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.yahoo.athenz.auth.Authority;
+import com.yahoo.athenz.auth.AuthorityConsts;
 import com.yahoo.athenz.auth.AuthorityKeyStore;
 import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.auth.Principal;
@@ -4143,7 +4144,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // certificate) expected to have full role resource names.
 
         for (String role : roles) {
-            final String roleName = domainName + ":role." + role;
+            final String roleName = domainName + AuthorityConsts.ROLE_SEP + role;
             if (!princRoles.contains(roleName)) {
                 LOGGER.error("Principal Role list does not include '{}'", roleName);
                 return false;

@@ -21,6 +21,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.yahoo.athenz.auth.AuthorityConsts;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.log.AuditLogger;
@@ -147,7 +148,7 @@ public class ZMSUtils {
             String tenantDomain, String resourceGroup) {
         
         StringBuilder trustedRole = new StringBuilder(256);
-        trustedRole.append(provSvcDomain).append(":role.").append(provSvcName)
+        trustedRole.append(provSvcDomain).append(AuthorityConsts.ROLE_SEP).append(provSvcName)
                 .append(".tenant.").append(tenantDomain).append('.');
         if (resourceGroup != null) {
             trustedRole.append("res_group.").append(resourceGroup).append('.');
@@ -380,7 +381,7 @@ public class ZMSUtils {
     }
 
     public static String extractRoleName(String domainName, String fullRoleName) {
-        return extractObjectName(domainName, fullRoleName, ":role.");
+        return extractObjectName(domainName, fullRoleName, AuthorityConsts.ROLE_SEP);
     }
 
     public static String extractPolicyName(String domainName, String fullPolicyName) {

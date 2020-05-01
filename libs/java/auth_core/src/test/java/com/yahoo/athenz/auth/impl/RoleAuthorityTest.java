@@ -30,8 +30,6 @@ import org.testng.annotations.Test;
 
 import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.auth.Principal;
-import com.yahoo.athenz.auth.impl.PrincipalAuthority;
-import com.yahoo.athenz.auth.impl.RoleAuthority;
 import com.yahoo.athenz.auth.token.RoleToken;
 import com.yahoo.athenz.auth.util.CryptoException;
 

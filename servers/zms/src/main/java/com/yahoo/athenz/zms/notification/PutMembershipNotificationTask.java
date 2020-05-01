@@ -17,6 +17,7 @@
 package com.yahoo.athenz.zms.notification;
 
 import com.google.common.base.Splitter;
+import com.yahoo.athenz.auth.AuthorityConsts;
 import com.yahoo.athenz.common.server.notification.*;
 import com.yahoo.athenz.zms.DBService;
 import com.yahoo.athenz.zms.Role;
@@ -79,7 +80,7 @@ public class PutMembershipNotificationTask implements NotificationTask {
                         .split(notifyRoles);
 
                 for (String roleName : roleNames) {
-                    if (roleName.indexOf(":role.") == -1) {
+                    if (roleName.indexOf(AuthorityConsts.ROLE_SEP) == -1) {
                         recipients.add(ZMSUtils.roleResourceName(domain, roleName));
                     } else {
                         recipients.add(roleName);

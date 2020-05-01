@@ -93,7 +93,7 @@ public class LDAPAuthorityTest {
     }
 
     @Test
-    public void testGetDomain(){
+    public void testGetDomain() {
         ldapAuthority = new LDAPAuthority();
         ldapAuthority.initialize();
         assertEquals(ldapAuthority.getDomain(),"user");

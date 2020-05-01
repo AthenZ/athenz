@@ -108,7 +108,7 @@ public class KeyRefresherTest {
         String certFile = classLoader.getResource("gdpr.aws.core.cert.pem").getFile();
         String keyFile = classLoader.getResource("gdpr.aws.core.key.pem").getFile();
 
-        KeyRefresher keyRefresher = new KeyRefresher(certFile, keyFile, mockedTrustStore, mockedKeyManagerProxy, mockedTrustManagerProxy){
+        KeyRefresher keyRefresher = new KeyRefresher(certFile, keyFile, mockedTrustStore, mockedKeyManagerProxy, mockedTrustManagerProxy) {
             @Override
             protected boolean haveFilesBeenChanged(String filePath, byte[] checksum) {
                 return false;

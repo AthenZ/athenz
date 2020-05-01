@@ -130,7 +130,7 @@ public class AccessTokenTest {
         // now verify our signed token
 
         PublicKey publicKey = Crypto.loadPublicKey(ecPublicKey);
-        Jws<Claims> claims = Jwts.parser().setSigningKey(publicKey).parseClaimsJws(accessJws);
+        Jws<Claims> claims = Jwts.parserBuilder().setSigningKey(publicKey).build().parseClaimsJws(accessJws);
         assertNotNull(claims);
 
         assertEquals("subject", claims.getBody().getSubject());

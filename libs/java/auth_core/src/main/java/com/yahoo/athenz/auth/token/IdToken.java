@@ -49,7 +49,7 @@ public class IdToken extends OAuth2Token {
                 .claim(CLAIM_AUTH_TIME, authTime)
                 .claim(CLAIM_VERSION, version)
                 .setHeaderParam(HDR_KEY_ID, keyId)
-                .signWith(keyAlg, key)
+                .signWith(key, keyAlg)
                 .compact();
     }
 }
