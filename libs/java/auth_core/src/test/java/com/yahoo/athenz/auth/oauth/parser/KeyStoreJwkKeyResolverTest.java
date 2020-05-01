@@ -19,19 +19,18 @@ import static org.testng.Assert.*;
 import java.io.FileReader;
 import java.lang.reflect.Field;
 import java.net.MalformedURLException;
-import java.net.URL;
+import java.security.Key;
 import java.security.KeyFactory;
 import java.security.PublicKey;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.function.BiFunction;
-import com.auth0.jwk.Jwk;
-import com.auth0.jwk.JwkProvider;
-import com.auth0.jwk.SigningKeyNotFoundException;
-import com.auth0.jwk.UrlJwkProvider;
 import com.yahoo.athenz.auth.KeyStore;
 import org.bouncycastle.util.io.pem.PemReader;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwsHeader;
+import io.jsonwebtoken.SigningKeyResolver;
 import io.jsonwebtoken.impl.DefaultClaims;
 import io.jsonwebtoken.impl.DefaultJwsHeader;
 
@@ -40,7 +39,13 @@ public class KeyStoreJwkKeyResolverTest {
     private final ClassLoader classLoader = this.getClass().getClassLoader();
     private final DefaultJwsHeader baseJwsHeader = new DefaultJwsHeader();
     private final KeyStore baseKeyStore = new KeyStore() {
-        public String getPublicKey(String domain, String service, String keyId) { return null; }
+        public String getPublicKey(String domain, String service, String keyId) {
+            return null;
+        }
+    };
+    private final SigningKeyResolver basejwksResolver = new SigningKeyResolver() {
+        public Key resolveSigningKey(JwsHeader header, Claims claims) { return null; }
+        public Key resolveSigningKey(JwsHeader header, String plaintext) { return null; }
     };
     private final PublicKey basePublicKey = new PublicKey() {
         private static final long serialVersionUID = 1L;
@@ -60,29 +65,40 @@ public class KeyStoreJwkKeyResolverTest {
             }
         };
 
-        assertThrows(IllegalStateException.class, () -> new KeyStoreJwkKeyResolver(null, null));
-
-        resolver = new KeyStoreJwkKeyResolver(null, new URL("file:///"));
+        resolver = new KeyStoreJwkKeyResolver(null, null, null);
         assertNotNull(resolver);
         for (Field f : resolver.getClass().getDeclaredFields()) {
             switch (f.getName()) {
                 case "keyStore":
                     assertNull(getFieldValue.apply(f, resolver));
                     break;
-                case "provider":
+                case "jwksResolver":
                     assertNotNull(getFieldValue.apply(f, resolver));
                     break;
             }
         }
 
-        resolver = new KeyStoreJwkKeyResolver(baseKeyStore, new URL("file:///"));
+        resolver = new KeyStoreJwkKeyResolver(null, "file:///", null);
+        assertNotNull(resolver);
+        for (Field f : resolver.getClass().getDeclaredFields()) {
+            switch (f.getName()) {
+                case "keyStore":
+                    assertNull(getFieldValue.apply(f, resolver));
+                    break;
+                case "jwksResolver":
+                    assertNotNull(getFieldValue.apply(f, resolver));
+                    break;
+            }
+        }
+
+        resolver = new KeyStoreJwkKeyResolver(baseKeyStore, "file:///", null);
         assertNotNull(resolver);
         for (Field f : resolver.getClass().getDeclaredFields()) {
             switch (f.getName()) {
                 case "keyStore":
                     assertSame(getFieldValue.apply(f, resolver), baseKeyStore);
                     break;
-                case "provider":
+                case "jwksResolver":
                     assertNotNull(getFieldValue.apply(f, resolver));
                     break;
             }
@@ -93,16 +109,15 @@ public class KeyStoreJwkKeyResolverTest {
     public void testResolveSigningKey() throws Exception {
         // mocks
         KeyStore keyStoreMock = Mockito.spy(baseKeyStore);
-        JwkProvider jwkProviderMock = Mockito.mock(UrlJwkProvider.class);
-        Jwk jwkMock = Mockito.mock(Jwk.class);
+        SigningKeyResolver jwksResolverMock = Mockito.spy(basejwksResolver);
 
         // instance
-        KeyStoreJwkKeyResolver resolver = new KeyStoreJwkKeyResolver(null, new URL("file:///"));
+        KeyStoreJwkKeyResolver resolver = new KeyStoreJwkKeyResolver(null, "file:///", null);
         Field keyStoreField = resolver.getClass().getDeclaredField("keyStore");
         keyStoreField.setAccessible(true);
-        Field providerField = resolver.getClass().getDeclaredField("provider");
+        Field providerField = resolver.getClass().getDeclaredField("jwksResolver");
         providerField.setAccessible(true);
-        providerField.set(resolver, jwkProviderMock);
+        providerField.set(resolver, jwksResolverMock);
 
         // args
         DefaultJwsHeader jwsHeader = new DefaultJwsHeader();
@@ -110,8 +125,7 @@ public class KeyStoreJwkKeyResolverTest {
 
         // 1. null key store, find in JWKS
         PublicKey pk11 = Mockito.spy(basePublicKey);
-        Mockito.when(jwkMock.getPublicKey()).thenReturn(pk11);
-        Mockito.when(jwkProviderMock.get("11")).thenReturn(jwkMock);
+        Mockito.when(jwksResolverMock.resolveSigningKey(jwsHeader, claims)).thenReturn(pk11);
         jwsHeader.setKeyId("11");
         claims.setIssuer(null);
         assertSame(resolver.resolveSigningKey(jwsHeader, claims), pk11);
@@ -121,23 +135,26 @@ public class KeyStoreJwkKeyResolverTest {
 
         // 2. invalid issuer, find in JWKS
         PublicKey pk21 = Mockito.spy(basePublicKey);
-        Mockito.when(jwkMock.getPublicKey()).thenReturn(pk21);
-        Mockito.when(jwkProviderMock.get("21")).thenReturn(jwkMock);
+        Mockito.when(jwksResolverMock.resolveSigningKey(jwsHeader, claims)).thenReturn(pk21);
         jwsHeader.setKeyId("21");
         claims.setIssuer(null);
         assertSame(resolver.resolveSigningKey(jwsHeader, claims), pk21);
         PublicKey pk22 = Mockito.spy(basePublicKey);
-        Mockito.when(jwkMock.getPublicKey()).thenReturn(pk22);
-        Mockito.when(jwkProviderMock.get("22")).thenReturn(jwkMock);
+        Mockito.when(jwksResolverMock.resolveSigningKey(jwsHeader, claims)).thenReturn(pk22);
         jwsHeader.setKeyId("22");
         claims.setIssuer("");
         assertSame(resolver.resolveSigningKey(jwsHeader, claims), pk22);
         PublicKey pk23 = Mockito.spy(basePublicKey);
-        Mockito.when(jwkMock.getPublicKey()).thenReturn(pk23);
-        Mockito.when(jwkProviderMock.get("23")).thenReturn(jwkMock);
+        Mockito.when(jwksResolverMock.resolveSigningKey(jwsHeader, claims)).thenReturn(pk23);
         jwsHeader.setKeyId("23");
         claims.setIssuer("domain23-----service23");
         assertSame(resolver.resolveSigningKey(jwsHeader, claims), pk23);
+        // 2. invalid domain, find in JWKS
+        PublicKey pk24 = Mockito.spy(basePublicKey);
+        Mockito.when(jwksResolverMock.resolveSigningKey(jwsHeader, claims)).thenReturn(pk24);
+        jwsHeader.setKeyId("24");
+        claims.setIssuer("domain24.service24");
+        assertSame(resolver.resolveSigningKey(jwsHeader, claims), pk24);
 
         // 3. found in key store, skip JWKS
         PublicKey pk31 = null;
@@ -145,41 +162,37 @@ public class KeyStoreJwkKeyResolverTest {
         try (PemReader reader = new PemReader(new FileReader(this.classLoader.getResource("jwt_public.key").getFile()))) {
             pk31 = KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(reader.readPemObject().getContent()));
         }
-        Mockito.when(jwkMock.getPublicKey()).thenReturn(pk31);
-        Mockito.when(jwkProviderMock.get("31")).thenReturn(jwkMock);
-        Mockito.when(keyStoreMock.getPublicKey("domain31", "service31", "31")).thenReturn("-----BEGIN PUBLIC KEY-----\nMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAy3c3TEePZZPaxqNU2xV4\nortsXrw1EXTNQj2QUgL8UOPaQS0lbHJtD1cbcCFnzfXRXTOGqh8l+XWTRIOlt4yU\n+mEhgR0/JKILTPwmS0fj3D1PT6IjZShuNyd4USVdcjfCRBRb9ExIptJyeTTUu0Uu\njWNEcGOWAkUZcsonmiEz7bIMVkGy5uYnWGbsKP51Zf/PFMb96RcHeE0ZUitIB4YK\n1bgHLyAEBJIka5mRC/jWq/mlq3jiP5RaVWbzQiJbrjuYWd1Vps/xnrABx6/4Ft/M\n0AnSQN0SYjc/nWT1yGPpCwtWmWUU5NNHd+w6TdgOjdu00wownwblovtEYED+rncb\n913qfBM98kNHyj357BSzlvhiwEH5Ayo9DTnx1j9HuJGZXzymVypuQXLu/tkHMEt+\nc4kytKJNi6MLiauy9xtXGLXgOvZUM8V0Z27Z6CTfCzWZ0nwnEWDdH+NJyusL6pJg\nEGUBh6E9fdJInV7YOCF+P9/19imPHrZ0blTXK1TDfKS/pCLOXO/OmmH+p+UxQ77O\npeP5wlt5Jem0ErSisl/Qxhh1OtJcLwFdA7uC7rOTMrSEGLO++5+CatsXj7BEK2l+\n3As8fJEkoWXd1+4KOUMfV/fnT/z6U8+bcsYn0nvWPl8XuMbwNWjqHYgqhl1RLA7M\n17HCydWCF50HI2XojtGgRN0CAwEAAQ==\n-----END PUBLIC KEY-----\n");
+        Mockito.when(jwksResolverMock.resolveSigningKey(jwsHeader, claims)).thenReturn(pk31);
+        Mockito.when(keyStoreMock.getPublicKey("sys.auth", "service31", "31")).thenReturn("-----BEGIN PUBLIC KEY-----\nMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAy3c3TEePZZPaxqNU2xV4\nortsXrw1EXTNQj2QUgL8UOPaQS0lbHJtD1cbcCFnzfXRXTOGqh8l+XWTRIOlt4yU\n+mEhgR0/JKILTPwmS0fj3D1PT6IjZShuNyd4USVdcjfCRBRb9ExIptJyeTTUu0Uu\njWNEcGOWAkUZcsonmiEz7bIMVkGy5uYnWGbsKP51Zf/PFMb96RcHeE0ZUitIB4YK\n1bgHLyAEBJIka5mRC/jWq/mlq3jiP5RaVWbzQiJbrjuYWd1Vps/xnrABx6/4Ft/M\n0AnSQN0SYjc/nWT1yGPpCwtWmWUU5NNHd+w6TdgOjdu00wownwblovtEYED+rncb\n913qfBM98kNHyj357BSzlvhiwEH5Ayo9DTnx1j9HuJGZXzymVypuQXLu/tkHMEt+\nc4kytKJNi6MLiauy9xtXGLXgOvZUM8V0Z27Z6CTfCzWZ0nwnEWDdH+NJyusL6pJg\nEGUBh6E9fdJInV7YOCF+P9/19imPHrZ0blTXK1TDfKS/pCLOXO/OmmH+p+UxQ77O\npeP5wlt5Jem0ErSisl/Qxhh1OtJcLwFdA7uC7rOTMrSEGLO++5+CatsXj7BEK2l+\n3As8fJEkoWXd1+4KOUMfV/fnT/z6U8+bcsYn0nvWPl8XuMbwNWjqHYgqhl1RLA7M\n17HCydWCF50HI2XojtGgRN0CAwEAAQ==\n-----END PUBLIC KEY-----\n");
         jwsHeader.setKeyId("31");
-        claims.setIssuer("domain31.service31");
+        claims.setIssuer("sys.auth.service31");
         assertEquals(resolver.resolveSigningKey(jwsHeader, claims), pk31);
         // 3. NOT found in key store, find in JWKS
         PublicKey pk32 = Mockito.spy(basePublicKey);
-        Mockito.when(jwkMock.getPublicKey()).thenReturn(pk32);
-        Mockito.when(jwkProviderMock.get("32")).thenReturn(jwkMock);
-        Mockito.when(keyStoreMock.getPublicKey("domain32", "service32", "32")).thenReturn(null);
+        Mockito.when(jwksResolverMock.resolveSigningKey(jwsHeader, claims)).thenReturn(pk32);
+        Mockito.when(keyStoreMock.getPublicKey("sys.auth", "service32", "32")).thenReturn(null);
         jwsHeader.setKeyId("32");
-        claims.setIssuer("domain32.service32");
+        claims.setIssuer("sys.auth.service32");
         assertSame(resolver.resolveSigningKey(jwsHeader, claims), pk32);
         // 3. found in key store but public key invalid, find in JWKS
         PublicKey pk33 = Mockito.spy(basePublicKey);
-        Mockito.when(jwkMock.getPublicKey()).thenReturn(pk33);
-        Mockito.when(jwkProviderMock.get("33")).thenReturn(jwkMock);
-        Mockito.when(keyStoreMock.getPublicKey("domain33", "service33", "33")).thenReturn("");
+        Mockito.when(jwksResolverMock.resolveSigningKey(jwsHeader, claims)).thenReturn(pk33);
+        Mockito.when(keyStoreMock.getPublicKey("sys.auth", "service33", "33")).thenReturn("");
         jwsHeader.setKeyId("33");
-        claims.setIssuer("domain33.service33");
+        claims.setIssuer("sys.auth.service33");
         assertSame(resolver.resolveSigningKey(jwsHeader, claims), pk33);
         PublicKey pk34 = Mockito.spy(basePublicKey);
-        Mockito.when(jwkMock.getPublicKey()).thenReturn(pk34);
-        Mockito.when(jwkProviderMock.get("34")).thenReturn(jwkMock);
-        Mockito.when(keyStoreMock.getPublicKey("domain34", "service34", "34")).thenReturn("-----BEGIN PUBLIC KEY-----\ninvalid\n-----END PUBLIC KEY-----\n");
+        Mockito.when(jwksResolverMock.resolveSigningKey(jwsHeader, claims)).thenReturn(pk34);
+        Mockito.when(keyStoreMock.getPublicKey("sys.auth", "service34", "34")).thenReturn("-----BEGIN PUBLIC KEY-----\ninvalid\n-----END PUBLIC KEY-----\n");
         jwsHeader.setKeyId("34");
-        claims.setIssuer("domain34.service34");
+        claims.setIssuer("sys.auth.service34");
         assertSame(resolver.resolveSigningKey(jwsHeader, claims), pk34);
 
         // 4. both NOT found
         jwsHeader.setKeyId("41");
-        claims.setIssuer("domain41.service41");
-        Mockito.when(jwkProviderMock.get("41")).thenThrow(new SigningKeyNotFoundException("", null));
-        Mockito.when(keyStoreMock.getPublicKey("domain41", "service41", "41")).thenReturn(null);
+        claims.setIssuer("sys.auth.service41");
+        Mockito.when(jwksResolverMock.resolveSigningKey(jwsHeader, claims)).thenReturn(null);
+        Mockito.when(keyStoreMock.getPublicKey("sys.auth", "service41", "41")).thenReturn(null);
         assertNull(resolver.resolveSigningKey(jwsHeader, claims));
 
         // 5. skip, empty key ID
@@ -193,7 +206,7 @@ public class KeyStoreJwkKeyResolverTest {
 
     @Test
     public void testResolveSigningKeyForJwe() throws MalformedURLException {
-        KeyStoreJwkKeyResolver resolver = new KeyStoreJwkKeyResolver(null, new URL("file:///"));
+        KeyStoreJwkKeyResolver resolver = new KeyStoreJwkKeyResolver(null, "file:///", null);
         assertNull(resolver.resolveSigningKey(null, (String) null));
         assertNull(resolver.resolveSigningKey(null, ""));
         assertNull(resolver.resolveSigningKey(baseJwsHeader, "plaintext"));

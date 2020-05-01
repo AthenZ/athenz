@@ -54,7 +54,26 @@ public class DefaultOAuthJwtAccessTokenParserTest {
 
         // new error
         assertThrows(IllegalArgumentException.class, () -> new DefaultOAuthJwtAccessTokenParser(null, null));
-        assertThrows(IllegalArgumentException.class, () -> new DefaultOAuthJwtAccessTokenParser(baseKeyStore, ""));
+
+        // new with null/empty URL
+        parser = new DefaultOAuthJwtAccessTokenParser(baseKeyStore, null);
+        assertNotNull(parser);
+        for (Field f : parser.getClass().getDeclaredFields()) {
+            switch (f.getName()) {
+                case "parser":
+                    assertNotNull(getFieldValue.apply(f, parser));
+                    break;
+            }
+        }
+        parser = new DefaultOAuthJwtAccessTokenParser(baseKeyStore, "");
+        assertNotNull(parser);
+        for (Field f : parser.getClass().getDeclaredFields()) {
+            switch (f.getName()) {
+                case "parser":
+                    assertNotNull(getFieldValue.apply(f, parser));
+                    break;
+            }
+        }
 
         // new with file JWKS
         parser = new DefaultOAuthJwtAccessTokenParser(baseKeyStore, this.classLoader.getResource("jwt_jwks.json").toString());

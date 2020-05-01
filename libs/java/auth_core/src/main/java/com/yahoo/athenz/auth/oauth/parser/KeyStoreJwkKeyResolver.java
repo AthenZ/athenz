@@ -15,13 +15,10 @@
  */
 package com.yahoo.athenz.auth.oauth.parser;
 
-import java.net.URL;
 import java.security.Key;
-import java.util.concurrent.TimeUnit;
-import com.auth0.jwk.JwkException;
-import com.auth0.jwk.JwkProvider;
-import com.auth0.jwk.JwkProviderBuilder;
+import javax.net.ssl.SSLContext;
 import com.yahoo.athenz.auth.KeyStore;
+import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
 import com.yahoo.athenz.auth.util.AthenzUtils;
 import com.yahoo.athenz.auth.util.Crypto;
 import org.slf4j.Logger;
@@ -38,23 +35,23 @@ public class KeyStoreJwkKeyResolver implements SigningKeyResolver {
 
     private static final Logger LOG = LoggerFactory.getLogger(KeyStoreJwkKeyResolver.class);
 
+    private static final String SYS_AUTH_DOMAIN = "sys.auth";
+
     private KeyStore keyStore = null;
-    private JwkProvider provider = null;
+    private SigningKeyResolver jwksResolver = null;
 
     /**
      * @param  keyStore key store get the JWT public keys
      * @param  url      JWKS URL to download the JWT public keys
      * @throws IllegalStateException if url is null
      */
-    public KeyStoreJwkKeyResolver(KeyStore keyStore, URL url) {
+    public KeyStoreJwkKeyResolver(KeyStore keyStore, String url, SSLContext sslContext) {
         if (LOG.isDebugEnabled()) {
-            LOG.debug("KeyStoreJwkKeyResolver:JWK URL: " + String.valueOf(url));
+            LOG.debug("KeyStoreJwkKeyResolver:JWK URL: " + url);
         }
 
         this.keyStore = keyStore;
-
-        // later: adjust the default value and use system prop? (current default same as GuavaCachedJwkProvider default)
-        this.provider = new JwkProviderBuilder(url).cached(5, 10, TimeUnit.HOURS).rateLimited(false).build();
+        this.jwksResolver = new JwtsSigningKeyResolver(url, sslContext, true);
     }
 
     @Override
@@ -80,31 +77,29 @@ public class KeyStoreJwkKeyResolver implements SigningKeyResolver {
                 String domain = ds[0];
                 String service = ds[1];
 
-                String publicKey = this.keyStore.getPublicKey(domain, service, keyId);
-                if (publicKey != null && !publicKey.isEmpty()) {
-                    try {
-                        if (LOG.isDebugEnabled()) {
-                            LOG.debug("KeyStoreJwkKeyResolver:resolveSigningKey: will use public key from key store: ({}, {}, {})", domain, service, keyId);
+                if (!SYS_AUTH_DOMAIN.equals(domain)) {
+                    LOG.debug("KeyStoreJwkKeyResolver:resolveSigningKey: skip using KeyStore, invalid domain " + domain);
+                } else {
+                    String publicKey = this.keyStore.getPublicKey(domain, service, keyId);
+                    if (publicKey != null && !publicKey.isEmpty()) {
+                        try {
+                            if (LOG.isDebugEnabled()) {
+                                LOG.debug("KeyStoreJwkKeyResolver:resolveSigningKey: will use public key from key store: ({}, {}, {})", domain, service, keyId);
+                            }
+                            return Crypto.loadPublicKey(publicKey);
+                        } catch (Throwable t) {
+                            LOG.warn("KeyStoreJwkKeyResolver:resolveSigningKey: invalid public key format", t);
                         }
-                        return Crypto.loadPublicKey(publicKey);
-                    } catch (Throwable t) {
-                        LOG.warn("KeyStoreJwkKeyResolver:resolveSigningKey: invalid public key format", t);
                     }
                 }
             }
         }
 
         // 2. find in JWKS
-        try {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("KeyStoreJwkKeyResolver:resolveSigningKey: will use public key from JWKS: ({})", keyId);
-            }
-            return this.provider.get(keyId).getPublicKey();
-        } catch (JwkException e) {
-            LOG.warn("KeyStoreJwkKeyResolver:resolveSigningKey: JWKS error", e);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("KeyStoreJwkKeyResolver:resolveSigningKey: will use public key from JWKS: ({})", keyId);
         }
-
-        return null;
+        return this.jwksResolver.resolveSigningKey(header, claims);
     }
 
     @Override

@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -60,8 +61,14 @@ public class JwtsSigningKeyResolver implements SigningKeyResolver {
     }
 
     public JwtsSigningKeyResolver(final String serverUrl, final SSLContext sslContext) {
+        this(serverUrl, sslContext, false);
+    }
+
+    public JwtsSigningKeyResolver(final String serverUrl, final SSLContext sslContext, boolean skipConfig) {
         publicKeys = new ConcurrentHashMap<>();
-        loadPublicKeysFromConfig();
+        if (!skipConfig) {
+            loadPublicKeysFromConfig();
+        }
         loadPublicKeysFromServer(serverUrl, sslContext);
     }
 
@@ -91,21 +98,29 @@ public class JwtsSigningKeyResolver implements SigningKeyResolver {
         }
 
         try {
-            HttpsURLConnection con = getConnection(serverUrl);
-            con.setRequestMethod("GET");
+            URLConnection con = getConnection(serverUrl);
             con.setRequestProperty("Accept", "application/json");
             con.setReadTimeout(15000);
             con.setDoOutput(true);
-            SSLSocketFactory sslSocketFactory = getSocketFactory(sslContext);
-            if (sslSocketFactory != null) {
-                con.setSSLSocketFactory(sslSocketFactory);
+            if (con instanceof HttpURLConnection) {
+                HttpURLConnection httpCon = (HttpURLConnection) con;
+                httpCon.setRequestMethod("GET");
             }
-            con.connect();
+            if (con instanceof HttpsURLConnection) {
+                HttpsURLConnection httpsCon = (HttpsURLConnection) con;
+                SSLSocketFactory sslSocketFactory = getSocketFactory(sslContext);
+                if (sslSocketFactory != null) {
+                    httpsCon.setSSLSocketFactory(sslSocketFactory);
+                }
+            }
 
-            if (con.getResponseCode() != HttpURLConnection.HTTP_OK) {
-                LOGGER.error("Unable to extract json web keys from {} error: {}", serverUrl,
-                        con.getResponseCode());
-                return;
+            con.connect();
+            if (con instanceof HttpURLConnection) {
+                HttpURLConnection httpCon = (HttpURLConnection) con;
+                if (httpCon.getResponseCode() != HttpURLConnection.HTTP_OK) {
+                    LOGGER.error("Unable to extract json web keys from {} error: {}", serverUrl, httpCon.getResponseCode());
+                    return;
+                }
             }
 
             try (BufferedReader br = new BufferedReader(new InputStreamReader(con.getInputStream()))) {
@@ -140,8 +155,8 @@ public class JwtsSigningKeyResolver implements SigningKeyResolver {
     }
     ///CLOVER:ON
 
-    HttpsURLConnection getConnection(final String serverUrl) throws IOException {
-        return (HttpsURLConnection) new URL(serverUrl).openConnection();
+    URLConnection getConnection(final String serverUrl) throws IOException {
+        return new URL(serverUrl).openConnection();
     }
 
     void loadPublicKeysFromConfig() {

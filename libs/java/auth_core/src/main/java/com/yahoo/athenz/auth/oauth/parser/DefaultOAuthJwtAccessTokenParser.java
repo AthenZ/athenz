@@ -15,8 +15,6 @@
  */
 package com.yahoo.athenz.auth.oauth.parser;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.auth.oauth.token.DefaultOAuthJwtAccessToken;
 import com.yahoo.athenz.auth.oauth.token.OAuthJwtAccessToken;
@@ -47,12 +45,7 @@ public class DefaultOAuthJwtAccessTokenParser implements OAuthJwtAccessTokenPars
             throw new IllegalArgumentException("DefaultOAuthJwtAccessTokenParser: keyStore is null");
         }
 
-        SigningKeyResolver signingKeyResolver;
-        try {
-            signingKeyResolver = new KeyStoreJwkKeyResolver(keyStore, new URL(jwksUrl));
-        } catch (MalformedURLException e) {
-            throw new IllegalArgumentException("DefaultOAuthJwtAccessTokenParser: invalid jwksUrl", e);
-        }
+        SigningKeyResolver signingKeyResolver = new KeyStoreJwkKeyResolver(keyStore, jwksUrl, null);
         this.parser = Jwts.parserBuilder()
             .setSigningKeyResolver(signingKeyResolver)
             .setAllowedClockSkewSeconds(ALLOWED_CLOCK_SKEW_SECONDS)

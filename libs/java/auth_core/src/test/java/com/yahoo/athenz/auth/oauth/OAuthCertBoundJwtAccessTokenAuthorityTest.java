@@ -327,17 +327,19 @@ public class OAuthCertBoundJwtAccessTokenAuthorityTest {
 
     @Test
     public void testAuthenticate() {
-        String expiredJwt = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImtleUlkIn0.eyJzdWIiOiJ1c2VyLmFkbWluIiwiaXNzIjoiaHR0cHM6Ly9hdGhlbnouaW8iLCJhdWQiOiJodHRwczovL3ptcy5hdGhlbnouaW8iLCJzY29wZSI6InN5cy5hdXRoOnJvbGUuYWRtaW4iLCJjbGllbnRfaWQiOiJ1aS5hdGhlbnouaW8iLCJpYXQiOjE1MTYyMzkwMjIsImV4cCI6MTUxNjIzOTAyMn0.rAT2uWb_YrCE5Ntpq8fCaMSMAYFXel2DEhTwkEgK4d0qmr8tRwmtCVc3RsL3q5c5nrFdm_buA4Jz6iAbM6i-ESd-A6t22Sc9EhyFvB6LHgVCtqE8n95BTfKFtwI2VEeObOam1MWikGhha0b2Zb_HqQ5mkxOE67EMX_c6GJKbwU5v6Ub5ydqArRbkMr1-rqvo3ezZJGZgrqhvMDwoq6eD3o-G4lSVmY5X4ojEbqSUAHHjywmYXc3ZnM7EzGJiUqciBxPN6qH7Ky9zCgIxkGYMP9eAWfvdxl_d12C4-BpzNVGfL1JXLvaSP4VI_7FTOi1wXUThNtsqVWI_fbeQU0txlIRdcDTGBDUvIrUqg02WXJvhieX4acY7RsObjbXvCIyfE6zFsRPOw4_2tI8DR0VIyQOnziQ0hRrJvR-2ZntYlKRqqJTeguiuC4Kuv4MGgwBPqwA0KhLEvu4ANkeVxKzOBJtJwp-MK8G8WpsICGZOxJzt_ZBhekXTp0WOF6dlBdWRdiOBMvM-dBtIAVBs_kAOTgbts7WtiES6sz77NE9iH0aTtwv-Re13caH6oVOUfPjP5zJbmem0Lgvth1eVmQxbGM49MQhr5wg1ybacJKYlL3syG_vXQzoDALdof3XxajkYNURfdE-hCcqHFY4yE9zX-Z_QJKr_LamRAFii5zCFx1k";
-        String noExpJwt = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImtleUlkIn0.eyJzdWIiOiJ1c2VyLmFkbWluIiwiaXNzIjoiaHR0cHM6Ly9hdGhlbnouaW8iLCJhdWQiOiJodHRwczovL3ptcy5hdGhlbnouaW8iLCJzY29wZSI6InN5cy5hdXRoOnJvbGUuYWRtaW4iLCJjbGllbnRfaWQiOiJ1aS5hdGhlbnouaW8iLCJpYXQiOjE1MTYyMzkwMjJ9.cl5JgNBR8rEQwgibjl9l42LgJZVVFFD77zbmlNIBTMv2Yqi4CxaGOQ_pL9L_74cbIvIk1-jAB7jAaCFaXi44jTzxEGtOfjB67Ro4svutBS3LGp8Zb0p5dilbNnkL9QuqzwihR5dmixyFPrzQU2VkZOJ655TDsrWdEERZMP3qyAonf1RVORHPGWZyL5FFXtCnJ9NSZNtc0foO7sR5pcY0HGOSZY8oqvFUsQVq3Uc7CQK8Y0SnIBMTi1COfGsSZb3pduj8zDkS5aCkC6Q62cXuJxCHhsFynUd-FVoa96AN2QA8F_YIbeEDGkLQgQbBGKY8JazJ_kC-Fn7vPLdigd5H1CpOS6M1puIs1mRbI54Bm-0Xr0A9YC87QcjIOIdcnkrPEwMkbvzcUlzWpvx0xzUH91S3oOb-VmJiTYGSRJ1tuGNAwCN_-jkyIFks4XqK-c1-i-r3Yo6ZvL9la4Idefe0HjUKsN_wpHAMb5OC37y0dtyudCWetl_J-Rmx3XiLGUKGj5HOifz98V5qh_4DrEa9cXsslNwGc_8x_OfU3r8ggEDdL09vMl3qim9kCczGWeBreSgcLzibONWjAmpSvnVdyYq9J6PfHhogL_TU_7RjvkOTPkZKBcgitZVhmRvwbuPdz-DChR7xkUhI_IGyZFSMNRtvTiKHxufdLZgxT5UOjLk";
-        String noCnfJwt = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImtleUlkIn0.eyJzdWIiOiJ1c2VyLmFkbWluIiwiaXNzIjoiaHR0cHM6Ly9hdGhlbnouaW8iLCJhdWQiOiJodHRwczovL3ptcy5hdGhlbnouaW8iLCJzY29wZSI6InN5cy5hdXRoOnJvbGUuYWRtaW4iLCJjbGllbnRfaWQiOiJ1aS5hdGhlbnouaW8iLCJpYXQiOjE1MTYyMzkwMjIsImV4cCI6OTk5MDAwOTk5OX0.uUu9l6YbZ7fLgJhmjMprHPp0rk10aXfRgFrJnL5k_WHAqaQW0xyQROM0DU3o96JgIIYcVHiMNNESgpdwxNaI2JVU9aUVGAlda-3nQgtXz-J6a_y5mD4MYJjtK7jipa-GVowwUakC7esGi30j4hhwVIxYIrruwOW3LrEj69E3TWUU1on33XaT-b-l9FgfhuEFn5aArNzOd9oLBqXooqFDDzJ9iFNhi4n8w-6acNPrcmTbF1MSDmzhYJJhvJ_D6fwgmMBFNuXDo0Zj_m3t_-QfYx_s76T6SuZkcs5ie5G4QQPff7zFWLxuEYMYLpaEUq_U2TaiyCYjPBqrBZE6bEhrBeOOYOtslNHK5mhV4BhtQ0KqhrYIeYQfcXLOzsDWe8zvtVzAKR_VfskzNxEKV7fwShMARrKQDdNzCoAq_6jnVL1B74pvhuwwUVCCNu2lT0Jx7o8FM8VHjdEZFQaLhbpokTmUzfDyT8i0zM9YG54umZjNCLo8NmFU4cBBAyjZQr9pwT0hw-F5UamYwuTs5SEcvSgF7lIBHtqLgWG-mEMvsr22PApk9UQ9bC32bk6MgATc4JvvHR9doMvc9ZN2wYQk9jpPFEERI1w9WuRYpDmg2YyU1C3RZJt37XcdffHKZP7M5TX1ikyVls2ELlfm8H1iw97IUUp9EAFAurQIdrrHpkc";
-        String invalidSubjectJwt = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImtleUlkIn0.eyJzdWIiOiJ1c2VyYWRtaW4iLCJpc3MiOiJodHRwczovL2F0aGVuei5pbyIsImF1ZCI6Imh0dHBzOi8vem1zLmF0aGVuei5pbyIsInNjb3BlIjoic3lzLmF1dGg6cm9sZS5hZG1pbiIsImNsaWVudF9pZCI6InVpLmF0aGVuei5pbyIsImlhdCI6MTUxNjIzOTAyMiwiY25mIjp7Ing1dCNTMjU2IjoiemxreHlvWDk1bGUtTnY3T0kwQnhjalRPb2d2eTlQR0gtdl9DQnJfRHNFayJ9LCJleHAiOjk5OTAwMDk5OTl9.cyDB9uUdrG6qZI9D5nAW918fMHKFJSTcGSw1d3k6TRjvv-zqV_Wv1iO0vhGNVK0GVtoJwcAFDWL1ijVUx0v4o_L2esIBWPH5p-F-RtdVEoJ9cYU4Z2sVluUJ5p39UVlv2311gOmPC9q977m7myR7Cg4huTdzlHtiSN-d3bqppI3NhVd_gbol_bM1p2OiT301ItWYs2naSjWp2b-xTdBOIjV9UI5bpXGaLr_3lmfrm4jWfrfXzkmiZ4R1GdDtMYvkeCoss3UhrIjsm1snXPs-TPwrXAHz18sX53cFNciUZsXmiMdlOUo2sou0KfSRRWdHPP5ZFr9-UM-I355UHGMbR9SQmbIdE2zoXf8js_RAlOyHydB0vGBT5cszfsRPXL8mfBb8WURko3tNbCLavluHtiNFvK6WO2IrrJAe0VHChfkIlMBHcnB7wJIttrRuT4PKavJo8QKRgKUWgvQaMwE_g3eSNwBtVIbcM1d6d89JGvJ0DyqckimOhUHksReO1Aj-H3KO4yx705dVtZwDwPmFRvWvNNyuAvI3aIBVTO5-7XdL0zz6bsM8QeN4a_Gi0t1rUTp2TeWWHWwXb_TJ31FD74GGdaLodIpYKHNZ46oaZ7m5sX24AqFrragoLf3OA34vJ0fI3FwHZgUl6VuTH5dnvNBQ4arE7UfIExg8JyB1aXM";
-        String customJwt = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImtleUlkIn0.eyJzdWIiOiJ1c2VyLmFkbWluIiwiaXNzIjoiY3VzdG9tLmlzcyIsImF1ZCI6WyJjdXN0b21fYXVkXzEiLCJjdXN0b21fYXVkXzIiXSwic2NvcGUiOiJjdXN0b21fc2NvcGVfMSBjdXN0b21fc2NvcGVfMiIsImNsaWVudF9pZCI6InVpLmF0aGVuei5pbyIsImlhdCI6MTUxNjIzOTAyMiwiY25mIjp7Ing1dCNTMjU2IjoiemxreHlvWDk1bGUtTnY3T0kwQnhjalRPb2d2eTlQR0gtdl9DQnJfRHNFayJ9LCJleHAiOjk5OTAwMDk5OTl9.Y7yRfrRB5xAe_9SpjnLuO1ULexEzdbT1PIR_lulRtNvBn9PzY1paBL14eSuPPFCDkP_250iWCrIkjAvis-xU42_ec8s8u6PmcCb7ziDca0TWjPsR0yd00CaJyecpnTVBF-U4RrhZ1GydajUh7y5IGTiXIZ4UsbzqAIPD7t5SfLdZ7ZApmdMH0lh1A5Vly8uoqlk2RKtJR7WcemrsL30zEAcmcjBPlVU_jvR8VUWOKMnKdoI8lW6uEvvi9mKKqeX2dhhf7oXusBTe6jlIikQwDqFeZw0BY9nskD8HBdwEpMSBNePF8exDRUzdmMAR5HSvnltjV2rZIm5zRBHdWnMXIeRfEflVIzLZnjeOhEitr-nN2KoeZnJL6-vpmHjPOXvyAzStrnngTezrVlyxoQn-IL8QUszZYusEE5kJ3MFiCB-ughXvdKlkxAgj10WNosxaVcbH9DCMkurXHaZD0yKmLkNDzjv7PkHNjrnxxMCy1Wh2t7nNRriM77s8Sf29ewv3YpiSWjzBmIoWAilS9WNBhduBa8jgQTRW9k0JhYkq6Z2fxjXVqkxLUsGwry8rIqAXltLUUPJ3O6DrsgOALvgOquBBJPsH5PgLSqKsaG2GnBykPgFcCWWhdU6Ue-B4YzgTTcDIu0IJ-XROtpxhAJDPLwS1MvxVLIo-K7uHB_aAM-Y";
+        String expiredJwt = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImtleUlkIn0.eyJzdWIiOiJ1c2VyLmFkbWluIiwiaXNzIjoic3lzLmF1dGgudGVzdElkUCIsImF1ZCI6Imh0dHBzOi8vem1zLmF0aGVuei5pbyIsInNjb3BlIjoic3lzLmF1dGg6cm9sZS5hZG1pbiIsImNsaWVudF9pZCI6InVpLmF0aGVuei5pbyIsImlhdCI6MTUxNjIzOTAyMiwiZXhwIjoxNTE2MjM5MDIyfQ.cMbo1Ogwz3HTGdfncjBn3H99ehe_yT1Zhlb8vmDqvPnbjuZUnuFl3aZEIE_JyLQrGADZf9PFlqxMNQcd_AlrZ-SePW8u4kIe1mFBr6oSTzuBkLzpwlff_vWaoOGlXrjlai64ISaDXYaYFPxnNMhjFSpod6D_anaQqs3XXEqrlwHHG7zk99UvPZehtXntKcAv0it8K5_7-vtQiEqHIvy14oxLNhQa801bhaUvjgnSVhnQzfXTCYzM4B1QfF1Cp7k9ktw3tsOShZGYHYr-XOvO_199z0ZJfWkdqk_FA3Mdo_Nw_r9ghh2kCx5YhmNpaqN9BANmwv3PbREcfIt1o4V7ZTHSzBq2cuCjEmU59Nl530tUMe31npw-8i6MIGzE_Ifg4k5ea1L1JBzQkbtWeIVd8SV3j_D0TNhYmeeAYgK8UikkFIw3Uza6ZvfZKTe8cffomzzfeB5fjL9GUsqj6LpIL1R2CgCQARqlZDGl9d73j81G7r7qZPZuBW5U3c3cPrdChw1-AwgDT27-Hu3yAzxZyJmsfIkUj5VZZfb1loIsovcRr_h9VUeNEqMimKfwxRBr7EP7fw7eRQoAJIthdeMGS6hfh-ZPM85N2YN34aQ0YJKWJUgdLudCGpkmfYBBd28D1VGNTUlfEuwHXosVP1GoYLXlz8zgwWIoXuk_bj4QH-g";
+        String noExpJwt = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImtleUlkIn0.eyJzdWIiOiJ1c2VyLmFkbWluIiwiaXNzIjoic3lzLmF1dGgudGVzdElkUCIsImF1ZCI6Imh0dHBzOi8vem1zLmF0aGVuei5pbyIsInNjb3BlIjoic3lzLmF1dGg6cm9sZS5hZG1pbiIsImNsaWVudF9pZCI6InVpLmF0aGVuei5pbyIsImlhdCI6MTUxNjIzOTAyMn0.I8da4Q_SysUJ3O4VZQQb7v0tQHNaAWk7WGkC3AImhd6FK_g6wAFe4Nw7K5ofOCdJKjHGUmqgBpnt1vbOqia8UJhcKkByBXywVnbK655MQ3ogkBmi3tUPx6Dmq1dwiaxsVZMAnxFQeACcTEz_Q_BWiXJqSpUP0vBy2sOFTus_xmvcooewu7n-EgdrO26oYwCMp0IARaSZq6hRmF5Le4wyz8d8CEzIArjEBOBpbONsX3NOvPSox3whDvIk91Zy4ZsORAMoLgGSQTqrEYBLSsFwng01V_OW4JVfM2p9f3U2gpqF6Ja7FFXrxnrgXEjvLvcMQYgv21eTT7ELMMFFQaYLPcCXNDoGwPOOU0dxngqw9B9qqhZV-gTJ7w5ADH2knwqNN5EJxnflVU_D-dUZFNJ0ruMc3bfsLzXQhhHqdhY6h6vkqQ2IGUiGilS4hgVWa26QOstj1twf4Dj1xaHro5800evW886pwJyK3FSfULrvpiJ6Q_DkzSEG1sGRj4RTwl8Opgh27Mot5m2x-qESwbEMeazz2saIdHpt6lcH1VY2baazy322mCRXzA9SdQD-u2bjjI4Fu-AJQRbL51pvzNceXJdz9xwnbX5RgY99E6AYOlzQ5zVl7PDsxLwdJr8UppYGQmrTBZ7DBjtNXGGMelZ0M1SBJVa0JZ3K61MWnYzPL5M";
+        String noCnfJwt = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImtleUlkIn0.eyJzdWIiOiJ1c2VyLmFkbWluIiwiaXNzIjoic3lzLmF1dGgudGVzdElkUCIsImF1ZCI6Imh0dHBzOi8vem1zLmF0aGVuei5pbyIsInNjb3BlIjoic3lzLmF1dGg6cm9sZS5hZG1pbiIsImNsaWVudF9pZCI6InVpLmF0aGVuei5pbyIsImlhdCI6MTUxNjIzOTAyMiwiZXhwIjo5OTkwMDA5OTk5fQ.uE-SsyDGb0a1QU1Clv0WmwZqIm1HXc0pJy_rGofpIeo5jOsz3wj1ZVjGslgLV56hW9zvnwOh5ur8ChgQrYfDN1meM6loiu4py9mAU9bfaiPkecqGA5zmWQjhl9206MbVKxFXbVlt5FrQJaM5corSkIH4MIpxS4vU2dZBC4Emtc8hZXRg5BOKr6xRA-vTLbWNa3FTh8dhehTXngQ_bnJfU5MxoTMlrBCrajKjnzSYzZ6vutJKDZKGdbmRrM982wjuDyEzhViKVDBsNqUa0LUblBoUtVx2FnPCUlBWnyqm4aaf6FtqV8z2KolcH1DA_3PaWv1R_txFD0B4pRm1GA77LGCgAdNzZ4KMBN300K0DzBhbYS4fmbr0faAIUtYWRTI3PwkSQGUwZTS4FZbK6RQ-kUkx68BhLP3R33E06EGsb7qvdcPELFjMh8HtbUPUZdJnq0z5Q6EJrWE4h3_7c6JDCm5IIJ9GDN8u20l0BFQe1SCmcYAVutuuGX_79B73r2sQdm8-6LVoOZXtDFLlbadcXUHybUgZYYSlehKD1Vdt4JQqeVStdUM0q7Otfe9dhfrDHwJrEN9iGNWVItxlP86K8SrTRzaa8b1Qs6E-qXx_6XFF3taFU9jWS3I571WrXo1qkJp6QQknqEFa1JJkh28UDjonkgRSzeProQxbF_7T5VE";
+        String invalidSubjectJwt = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImtleUlkIn0.eyJzdWIiOiJ1c2VyYWRtaW4iLCJpc3MiOiJzeXMuYXV0aC50ZXN0SWRQIiwiYXVkIjoiaHR0cHM6Ly96bXMuYXRoZW56LmlvIiwic2NvcGUiOiJzeXMuYXV0aDpyb2xlLmFkbWluIiwiY2xpZW50X2lkIjoidWkuYXRoZW56LmlvIiwiaWF0IjoxNTE2MjM5MDIyLCJjbmYiOnsieDV0I1MyNTYiOiJ6bGt4eW9YOTVsZS1OdjdPSTBCeGNqVE9vZ3Z5OVBHSC12X0NCcl9Ec0VrIn0sImV4cCI6OTk5MDAwOTk5OX0.HhCeOzNcDtR6GmPvlARwn5NSNPK3QhLw_LSsyg8LIq35vu8BoBsgX-Dw8GuFXc84e9gFdV5LTPOpOM78Ktc_L-eQ27j3u_UggCGwxkZHknRprLzBDx8A-bM3VyPyxTpokNFyrmrDbUn7pE8QwDRuPxOHjZUG1Wca2kY9YtgxnvYmh8w6TRH_uKdCPlbdo6FgQFbpSXZWbm0_UOQXpsSLH-q9vwz52D2wuDM_kGigLf1GKueshj-4Rzmrgh1nT-Zb6JQtBKdsnJRjQi9O9gQFwAdUcFFLVXd8IQKpgJc6ZvesGBwJmEOrE-THFHaGPdiRbqgMc8ha_0uknVeOwgiIflQfXi2Tid6aXBWBLDnABJuzlpSs7cXto3Fu-RAQLCQ16YJnFfeaCpmRkkjqTIupgRUy3_rqBNDUgg62kGjb6Sz_Q9lC1rdvx19i2lZqlvxgX1Q0_tbkqfCXm4mgU8b70OJ2oVGE6fq4hXDIKl-v7YAtDQdfqz3OmN6epRdOXCi3ZdgE5QzJS1TVbu-IgGrNgkfl8QzS02mSoIUpJAWZfE_21oYvLNjtYuOC2r9q3CSTwUHQJu45HupZnr0dLq7dIV-y_PAanHpz2IRJrhbZBicbR2P0sBsx-FxPUIGCK4II3Gsx5LehYNWYHSNnzdaGZC56x41VTzo2g7KNqLNYUBk";
+        String customJwt = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImtleUlkIn0.eyJzdWIiOiJ1c2VyLmFkbWluIiwiaXNzIjoic3lzLmF1dGgudGVzdElkUCIsImF1ZCI6WyJjdXN0b21fYXVkXzEiLCJjdXN0b21fYXVkXzIiXSwic2NvcGUiOiJjdXN0b21fc2NvcGVfMSBjdXN0b21fc2NvcGVfMiIsImNsaWVudF9pZCI6InVpLmF0aGVuei5pbyIsImlhdCI6MTUxNjIzOTAyMiwiY25mIjp7Ing1dCNTMjU2IjoiemxreHlvWDk1bGUtTnY3T0kwQnhjalRPb2d2eTlQR0gtdl9DQnJfRHNFayJ9LCJleHAiOjk5OTAwMDk5OTl9.HCc0RCeV06gtgUKPoSDGhFySDxsCujmpzbge-oe1YQv43sRBTJfvJ4JIDnuPCosPugw8R9l9Bj3VM_sKSLHpJGhDRcQPamlawdes7bHSSL8VDoQIPLIzTdQUXc81OJqKSTMBjChdPzHSKF3VpwnrMpuFuBLvPs7PyN7xXxzDlEANPYx6-9pnd_z_eB4hABj0Q_fyX9pcm9wyXPyW3eEDo0m_R80fa6CUaEGt6FseVyZp7WimCXF-IongjXJLy3BLppVIUHg5U_rVmvoe81pE7-tJe7NiS5suUWLq-kMBNhmGBulGNLbH8VT4jOVDTpzS8a3jHL18xtHlij9Zbg4zpBbo4Z8O0Az37SS1vrGwTMPAW9uhjVRqAJB1MM5YZ5Rr8XRy6hduF-FbDmOP27jE_n0Hk2oQ2yfaB2oAY0wjpSLukV_CNzaDWrBBu_j25ld1OsvKeHXTBtf8EhjIcWrktu48SJvoDNQZZskeDXAt7gabFv7y2Gbe4JG4AF43-ewRuFzoMBJsLgzjvd7f1v71leTV519AD4ScjJNp17PakSc8BFu3E9--yr2jLFsJ1cC3VtezdOV2Jssh00WiklsB-mdcHi2WOXr3XONuix6ZvS2DehQCKEFtGEQcWe3oLjZmE5QDJNvuCbU1GbtAXiAbbEuqKaUKUf9HZW2KVfUSgqI";
         HttpServletRequest requestMock = null;
         StringBuilder errMsg = new StringBuilder();
         OAuthCertBoundJwtAccessTokenAuthority authority = new OAuthCertBoundJwtAccessTokenAuthority();
+        System.setProperty("athenz.auth.oauth.jwt.claim.iss", "sys.auth.testIdP");
         authority.initialize();
+        System.clearProperty("athenz.auth.oauth.jwt.claim.iss");
         KeyStore jwtKeyStore = Mockito.spy(baseKeyStore);
-        Mockito.when(jwtKeyStore.getPublicKey("", "", "keyId")).thenReturn(this.jwtPublicKey);
+        Mockito.when(jwtKeyStore.getPublicKey("sys.auth", "testidp", "keyId")).thenReturn(this.jwtPublicKey);
         authority.setKeyStore(jwtKeyStore);
         Principal principal = null;
 
@@ -391,7 +393,9 @@ public class OAuthCertBoundJwtAccessTokenAuthorityTest {
         // skip cert thumbprint verification
         System.setProperty("athenz.auth.oauth.jwt.authorized_client_ids_path", this.classLoader.getResource("authorized_client_ids.single.txt").getPath());
         System.setProperty("athenz.auth.oauth.jwt.verify_cert_thumbprint", "false");
+        System.setProperty("athenz.auth.oauth.jwt.claim.iss", "sys.auth.testIdP");
         authority.initialize();
+        System.clearProperty("athenz.auth.oauth.jwt.claim.iss");
         System.clearProperty("athenz.auth.oauth.jwt.authorized_client_ids_path");
         System.clearProperty("athenz.auth.oauth.jwt.verify_cert_thumbprint");
         requestMock = Mockito.mock(HttpServletRequestWrapper.class);
@@ -409,11 +413,15 @@ public class OAuthCertBoundJwtAccessTokenAuthorityTest {
         assertEquals(principal.getRoles(), null);
         assertEquals(principal.getApplicationId(), "ui.athenz.io");
         assertEquals(principal.getAuthorizedService(), "sys.auth.ui");
+        System.setProperty("athenz.auth.oauth.jwt.claim.iss", "sys.auth.testIdP");
         authority.initialize(); // reset
+        System.clearProperty("athenz.auth.oauth.jwt.claim.iss");
 
         // invalid subject JWT
         System.setProperty("athenz.auth.oauth.jwt.authorized_client_ids_path", this.classLoader.getResource("authorized_client_ids.single.txt").getPath());
+        System.setProperty("athenz.auth.oauth.jwt.claim.iss", "sys.auth.testIdP");
         authority.initialize();
+        System.clearProperty("athenz.auth.oauth.jwt.claim.iss");
         System.clearProperty("athenz.auth.oauth.jwt.authorized_client_ids_path");
         requestMock = Mockito.mock(HttpServletRequestWrapper.class);
         Mockito.when(requestMock.getHeaders("Authorization")).thenReturn(Collections.enumeration(Arrays.asList("Bearer " + invalidSubjectJwt)));
@@ -427,7 +435,9 @@ public class OAuthCertBoundJwtAccessTokenAuthorityTest {
         System.setProperty("athenz.auth.oauth.jwt.claim.iss", "custom.iss");
         System.setProperty("athenz.auth.oauth.jwt.claim.aud", "custom_aud_1,custom_aud_2");
         System.setProperty("athenz.auth.oauth.jwt.claim.scope", "custom_scope_1 custom_scope_2");
+        System.setProperty("athenz.auth.oauth.jwt.claim.iss", "sys.auth.testIdP");
         authority.initialize();
+        System.clearProperty("athenz.auth.oauth.jwt.claim.iss");
         System.clearProperty("athenz.auth.oauth.jwt.authorized_client_ids_path");
         System.clearProperty("athenz.auth.oauth.jwt.claim.iss");
         System.clearProperty("athenz.auth.oauth.jwt.claim.aud");
@@ -447,7 +457,9 @@ public class OAuthCertBoundJwtAccessTokenAuthorityTest {
         assertEquals(principal.getRoles(), null);
         assertEquals(principal.getApplicationId(), "ui.athenz.io");
         assertEquals(principal.getAuthorizedService(), "sys.auth.ui");
+        System.setProperty("athenz.auth.oauth.jwt.claim.iss", "sys.auth.testIdP");
         authority.initialize(); // reset
+        System.clearProperty("athenz.auth.oauth.jwt.claim.iss");
 
     }
 
