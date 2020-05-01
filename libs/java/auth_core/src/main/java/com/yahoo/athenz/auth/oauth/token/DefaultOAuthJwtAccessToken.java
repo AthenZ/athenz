@@ -23,11 +23,15 @@ import java.util.List;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.RequiredTypeException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Default implementation of OAuthJwtAccessToken
  */
 public class DefaultOAuthJwtAccessToken implements OAuthJwtAccessToken {
+
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultOAuthJwtAccessToken.class);
 
     // protected JwsHeader<?> header;
     protected Claims body;
@@ -68,6 +72,9 @@ public class DefaultOAuthJwtAccessToken implements OAuthJwtAccessToken {
             // returns null if not found
             audiences = this.body.get(Claims.AUDIENCE, ArrayList.class);
         } catch (RequiredTypeException e) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("DefaultOAuthJwtAccessToken:getAudiences treat audience as string, err: " + e.getMessage());
+            }
             // found but class mismatch
             audiences = Arrays.asList(new String[]{ this.body.getAudience() });
         }
@@ -89,6 +96,9 @@ public class DefaultOAuthJwtAccessToken implements OAuthJwtAccessToken {
                 return null;
             }
         } catch (RequiredTypeException e) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("DefaultOAuthJwtAccessToken:getCertificateThumbprint expected data type to be JSON object, err: " + e.getMessage());
+            }
             return null;
         }
         return (String) certConf.get(OAuthJwtAccessToken.CLAIM_CONFIRM_X509_HASH);
