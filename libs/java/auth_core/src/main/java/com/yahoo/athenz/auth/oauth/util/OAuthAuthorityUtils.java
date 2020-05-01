@@ -15,7 +15,7 @@
  */
 package com.yahoo.athenz.auth.oauth.util;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Set;
@@ -47,10 +47,13 @@ public class OAuthAuthorityUtils {
         if (csv == null || csv.isEmpty()) {
             return null;
         }
+        Set<String> set = new HashSet<String>();
         if (delimiter == null || delimiter.isEmpty()) {
-            return new HashSet<>(Arrays.asList(csv));
+            set.add(csv);
+        } else {
+            Collections.addAll(set, csv.split(delimiter));
         }
-        return new HashSet<>(Arrays.asList(csv.split(delimiter)));
+        return set;
     }
 
     /**
