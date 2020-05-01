@@ -1649,13 +1649,13 @@ public class FileConnection implements ObjectStoreConnection {
                 for (RoleMember roleMember : role.getRoleMembers()) {
                     if (roleMember.getApproved() == Boolean.FALSE) {
                         for (Role auditRole : auditDomByOrg.getRoles().values()) {
-                            if (auditRole.getName().equals(ZMSConsts.SYS_AUTH_AUDIT_BY_ORG + ":role." + dom.getMeta().getOrg())) {
+                            if (auditRole.getName().equals(ZMSConsts.SYS_AUTH_AUDIT_BY_ORG + AuthorityConsts.ROLE_SEP + dom.getMeta().getOrg())) {
                                 roleNames.add(auditRole.getName());
                                 break;
                             }
                         }
                         for (Role auditRole : auditDomByDomain.getRoles().values()) {
-                            if (auditRole.getName().equals(ZMSConsts.SYS_AUTH_AUDIT_BY_DOMAIN + ":role." + dom.getName())) {
+                            if (auditRole.getName().equals(ZMSConsts.SYS_AUTH_AUDIT_BY_DOMAIN + AuthorityConsts.ROLE_SEP + dom.getName())) {
                                 roleNames.add(auditRole.getName());
                                 break;
                             }

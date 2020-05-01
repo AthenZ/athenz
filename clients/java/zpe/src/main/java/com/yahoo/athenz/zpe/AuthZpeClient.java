@@ -30,7 +30,7 @@ import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
 import com.yahoo.athenz.auth.util.CryptoException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import com.yahoo.athenz.auth.AuthorityConsts;
 import com.yahoo.athenz.auth.impl.RoleAuthority;
 import com.yahoo.athenz.auth.token.RoleToken;
 import com.yahoo.athenz.auth.util.Crypto;
@@ -73,8 +73,6 @@ public class AuthZpeClient {
 
     private static final Set<String> X509_ISSUERS_NAMES = new HashSet<>();
     private static final List<List<Rdn>> X509_ISSUERS_RDNS = new ArrayList<>();
-
-    private static final String ROLE_SEARCH = ":role.";
     
     public enum AccessCheckStatus {
         ALLOW {
@@ -358,7 +356,7 @@ public class AuthZpeClient {
             return AccessCheckStatus.DENY_CERT_MISSING_SUBJECT;
         }
 
-        int idx = subject.indexOf(ROLE_SEARCH);
+        int idx = subject.indexOf(AuthorityConsts.ROLE_SEP);
         if (idx == -1) {
             LOG.error("allowAccess: invalid role format in x.509 subject: {}", subject);
             return AccessCheckStatus.DENY_CERT_MISSING_ROLE_NAME;
@@ -370,7 +368,7 @@ public class AuthZpeClient {
             return AccessCheckStatus.DENY_CERT_MISSING_DOMAIN;
         }
 
-        String roleName = subject.substring(idx + ROLE_SEARCH.length());
+        String roleName = subject.substring(idx + AuthorityConsts.ROLE_SEP.length());
         if (roleName.isEmpty()) {
             LOG.error("allowAccess: missing role in x.509 subject: {}", subject);
             return AccessCheckStatus.DENY_CERT_MISSING_ROLE_NAME;

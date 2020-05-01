@@ -39,6 +39,7 @@ import org.slf4j.LoggerFactory;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 
 import com.yahoo.athenz.auth.Authority;
+import com.yahoo.athenz.auth.AuthorityConsts;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.auth.impl.PrincipalAuthority;
@@ -471,7 +472,7 @@ public class ZMSClient implements Closeable {
      * @return full role name
      */
     public String generateRoleName(String domain, String role) {
-        return domain + ":role." + role;
+        return domain + AuthorityConsts.ROLE_SEP + role;
     }
 
     /**

@@ -4013,7 +4013,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             LOG.debug("matchRole domain: " + domain + " rolePattern: " + rolePattern);
         }
         
-        String prefix = domain + ":role.";
+        String prefix = domain + AuthorityConsts.ROLE_SEP;
         int prefixLen = prefix.length();
         for (Role role : roles) {
             String name = role.getName();
@@ -7492,9 +7492,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     Role getRoleFromDomain(final String roleName, AthenzDomain domain) {
-         if (domain != null && domain.getRoles() != null) {
+        if (domain != null && domain.getRoles() != null) {
             for (Role role : domain.getRoles()) {
-                if (role.getName().equalsIgnoreCase(domain.getName() + ":role." + roleName)) {
+                if (role.getName().equalsIgnoreCase(domain.getName() + AuthorityConsts.ROLE_SEP + roleName)) {
                     return role;
                 }
             }

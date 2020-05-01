@@ -4143,7 +4143,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // certificate) expected to have full role resource names.
 
         for (String role : roles) {
-            final String roleName = domainName + ":role." + role;
+            final String roleName = domainName + AuthorityConsts.ROLE_SEP + role;
             if (!princRoles.contains(roleName)) {
                 LOGGER.error("Principal Role list does not include '{}'", roleName);
                 return false;

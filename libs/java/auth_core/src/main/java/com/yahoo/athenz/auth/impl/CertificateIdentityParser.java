@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
+import com.yahoo.athenz.auth.AuthorityConsts;
 import com.yahoo.athenz.auth.util.AthenzUtils;
 import com.yahoo.athenz.auth.util.Crypto;
 
@@ -91,7 +92,7 @@ public class CertificateIdentityParser {
         // For role cert, the principal information is in the SAN email
 
         List<String> roles = null;
-        int idx = principalName.indexOf(":role.");
+        int idx = principalName.indexOf(AuthorityConsts.ROLE_SEP);
         if (idx != -1) {
 
             // check to make sure role certs are allowed for principal
@@ -135,7 +136,7 @@ public class CertificateIdentityParser {
             if (idx == -1) {
                 throw new CertificateIdentityException("Invalid role cert, invalid uri SAN entry");
             }
-            roles.add(roleUri.substring(0, idx) + ":role." + roleUri.substring(idx + 1));
+            roles.add(roleUri.substring(0, idx) + AuthorityConsts.ROLE_SEP + roleUri.substring(idx + 1));
         }
 
         if (this.excludeRoleCertificates && roles != null) {

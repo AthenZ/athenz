@@ -16,6 +16,7 @@
 
 package com.yahoo.athenz.common.server.notification;
 
+import com.yahoo.athenz.auth.AuthorityConsts;
 import com.yahoo.athenz.auth.util.AthenzUtils;
 import com.yahoo.athenz.common.ServerCommonConsts;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
@@ -101,7 +102,7 @@ public class NotificationCommon {
 
     void addNotificationRecipient(Notification notification, final String recipient, boolean ignoreService) {
 
-        int idx = recipient.indexOf(":role.");
+        int idx = recipient.indexOf(AuthorityConsts.ROLE_SEP);
         if (idx != -1) {
             addDomainRoleRecipients(notification, recipient.substring(0, idx), recipient);
         } else if (recipient.startsWith(userDomainPrefix)) {

@@ -17,6 +17,7 @@ package com.yahoo.athenz.zms;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.yahoo.athenz.auth.AuthorityConsts;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.util.AthenzUtils;
 import com.yahoo.athenz.common.server.audit.AuditReferenceValidator;
@@ -3012,7 +3013,7 @@ public class DBService {
                     String tenantRole = ra.getRole();
                     String tenantAction = ra.getAction();
                     String trustedRole = trustedRolePrefix + tenantRole;
-                    String trustedName = trustedRole.substring((provSvcDomain + ":role.").length());
+                    String trustedName = trustedRole.substring((provSvcDomain + AuthorityConsts.ROLE_SEP).length());
 
                     Role role = new Role().setName(trustedRole).setTrust(tenantDomain);
 
