@@ -169,7 +169,7 @@ public class AthenzUtils {
     }
 
     /**
-     * Join domain and service to principal format
+     * Join domain and service to principal format, normalized to lowercase
      * @param  domain  domain
      * @param  service service
      * @return principal (format: domain.service), null if domain or service is null or empty
@@ -178,7 +178,7 @@ public class AthenzUtils {
         if (domain == null || service == null || domain.isEmpty() || service.isEmpty()) {
             return null;
         }
-        return domain + AuthorityConsts.ATHENZ_PRINCIPAL_DELIMITER + service;
+        return (domain + AuthorityConsts.ATHENZ_PRINCIPAL_DELIMITER + service).toLowerCase();
     }
 
     // prevent object creation

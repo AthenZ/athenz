@@ -183,6 +183,7 @@ public class AthenzUtilsTest {
     @Test
     public void testGetPrincipalName() {
         assertEquals(AthenzUtils.getPrincipalName("domain", "service"), "domain.service");
+        assertEquals(AthenzUtils.getPrincipalName("dDd", "SsS"), "ddd.sss");
 
         assertNull(AthenzUtils.getPrincipalName("domain", null));
         assertNull(AthenzUtils.getPrincipalName("domain", ""));

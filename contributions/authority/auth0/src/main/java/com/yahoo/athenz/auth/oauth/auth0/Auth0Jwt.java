@@ -47,8 +47,7 @@ public class Auth0Jwt extends DefaultOAuthJwtAccessToken {
         if (subject == null) {
             return null;
         }
-        // normalize as Athenz principal
-        return (AthenzUtils.getPrincipalName(Auth0Jwt.userDomain, subject.replace('|', '-'))).toLowerCase();
+        return AthenzUtils.getPrincipalName(Auth0Jwt.userDomain, subject.replace('|', '-'));
     }
 
     @Override
