@@ -149,15 +149,10 @@ public class CertificateIdentityParser {
         if (ds == null) {
             throw new CertificateIdentityException("Principal is not a valid service identity");
         }
-        String domain = ds[0];
-        String name = ds[1];
-
-        // all the role members in Athenz are normalized to lower case so we need to make
-        // sure our principal's name and domain are created with lower case as well
 
         return new CertificateIdentity(
-            domain.toLowerCase(),
-            name.toLowerCase(),
+            ds[0],
+            ds[1],
             roles,
             x509Cert
         );

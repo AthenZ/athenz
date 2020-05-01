@@ -153,7 +153,7 @@ public class AthenzUtils {
     }
 
     /**
-     * Split principal to domain and service
+     * Split principal to domain and service, normalized to lower case
      * @param  name principal
      * @return      [domain, service], null if principal in invalid format
      */

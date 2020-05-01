@@ -172,6 +172,7 @@ public class AthenzUtilsTest {
     @Test
     public void testSplitPrincipalName() {
         assertEquals(AthenzUtils.splitPrincipalName("athenz.reader"), new String[]{"athenz", "reader"});
+        assertEquals(AthenzUtils.splitPrincipalName("Athenz.Reader"), new String[]{"athenz", "reader"});
         assertEquals(AthenzUtils.splitPrincipalName("athenz.api.reader"), new String[]{"athenz.api", "reader"});
         assertEquals(AthenzUtils.splitPrincipalName("athenz.api.test.reader"), new String[]{"athenz.api.test", "reader"});
 
