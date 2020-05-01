@@ -6,9 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -1389,7 +1387,83 @@ public class InstanceCertManagerTest {
         csr.setXPrincipals(xprincipals);
 
         instance.updateSSHHostPrincipals(csr, record);
-        assertEquals(record.getPrincipals(), "principal1,xprincipal1,xprincipal2");
+        Set<String> result = new HashSet<>(Arrays.asList(record.getPrincipals().split(",")));
+        assertEquals(result.size(), 3);
+        assertTrue(result.contains("principal1"));
+        assertTrue(result.contains("xprincipal1"));
+        assertTrue(result.contains("xprincipal2"));
+    }
+
+    @Test
+    public void testUpdateSSHHostPrincipalsDuplicateValues() {
+
+        InstanceCertManager instance = new InstanceCertManager(null, null, null, true);
+
+        SshHostCsr csr = new SshHostCsr();
+
+        String[] principals = new String[3];
+        principals[0] = "principal1";
+        principals[1] = "principal2";
+        principals[2] = "principal4";
+        csr.setPrincipals(principals);
+
+        String[] xprincipals = new String[3];
+        xprincipals[0] = "principal1";
+        xprincipals[1] = "principal2";
+        xprincipals[2] = "principal5";
+        csr.setXPrincipals(xprincipals);
+
+        SSHCertRecord record = new SSHCertRecord();
+        instance.updateSSHHostPrincipals(csr, record);
+        Set<String> result = new HashSet<>(Arrays.asList(record.getPrincipals().split(",")));
+        assertEquals(result.size(), 4);
+        assertTrue(result.contains("principal1"));
+        assertTrue(result.contains("principal2"));
+        assertTrue(result.contains("principal4"));
+        assertTrue(result.contains("principal5"));
+    }
+
+    @Test
+    public void testUpdateSSHHostPrincipalsNullValues() {
+
+        InstanceCertManager instance = new InstanceCertManager(null, null, null, true);
+
+        SshHostCsr csr = new SshHostCsr();
+
+        csr.setPrincipals(new String[0]);
+        csr.setPrincipals(new String[0]);
+        SSHCertRecord record = new SSHCertRecord();
+        instance.updateSSHHostPrincipals(csr, record);
+        assertEquals(record.getPrincipals(), "127.0.0.1");
+
+        String[] principals = new String[3];
+        principals[0] = "principal1";
+        principals[1] = "principal2";
+        principals[2] = "principal4";
+
+        csr.setPrincipals(principals);
+        csr.setXPrincipals(null);
+
+        record = new SSHCertRecord();
+        instance.updateSSHHostPrincipals(csr, record);
+        Set<String> result = new HashSet<>(Arrays.asList(record.getPrincipals().split(",")));
+        assertEquals(result.size(), 3);
+        assertTrue(result.contains("principal1"));
+        assertTrue(result.contains("principal2"));
+        assertTrue(result.contains("principal4"));
+
+        // now let's try with principals set to null
+
+        csr.setPrincipals(null);
+        csr.setXPrincipals(principals);
+
+        record = new SSHCertRecord();
+        instance.updateSSHHostPrincipals(csr, record);
+        result = new HashSet<>(Arrays.asList(record.getPrincipals().split(",")));
+        assertEquals(result.size(), 3);
+        assertTrue(result.contains("principal1"));
+        assertTrue(result.contains("principal2"));
+        assertTrue(result.contains("principal4"));
     }
 
     @Test

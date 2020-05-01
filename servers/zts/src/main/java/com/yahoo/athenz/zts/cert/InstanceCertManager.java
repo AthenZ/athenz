@@ -702,13 +702,18 @@ public class InstanceCertManager {
         // check both principals and x-principal fields
 
         String[] principals = sshHostCsr.getPrincipals();
-        if (principals != null) {
-            recordPrincipals += String.join(",", Arrays.asList(principals));
-        }
-
-        principals = sshHostCsr.getXPrincipals();
-        if (principals != null) {
-            recordPrincipals += "," + String.join(",", Arrays.asList(principals));
+        String[] xprincipals = sshHostCsr.getXPrincipals();
+        if (principals != null || xprincipals != null) {
+            Set<String> principalSet = new HashSet<>();
+            if (principals != null) {
+                principalSet.addAll(Arrays.asList(principals));
+            }
+            if (xprincipals != null) {
+                principalSet.addAll(Arrays.asList(xprincipals));
+            }
+            if (!principalSet.isEmpty()) {
+                recordPrincipals = String.join(",", principalSet);
+            }
         }
 
         if (recordPrincipals.isEmpty()) {
