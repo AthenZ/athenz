@@ -86,6 +86,7 @@ public class DefaultOAuthJwtAccessTokenValidator implements OAuthJwtAccessTokenV
     private void verifyCertificateThumbprint(OAuthJwtAccessToken jwt, String certificateThumbprint) throws OAuthJwtAccessTokenException {
         String certThumbprint = jwt.getCertificateThumbprint();
         if (certificateThumbprint == certThumbprint) {
+            // skip when both null
             return;
         }
         if (certificateThumbprint == null || certThumbprint == null || !certificateThumbprint.equals(certThumbprint)) {
