@@ -107,7 +107,7 @@ public class CertificateAuthority implements Authority {
 
         // create principal
         X509Certificate x509Cert = certId.getX509Certificate();
-        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create(certId.getDomain(), certId.getService().toLowerCase(), x509Cert.toString(), this);
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create(certId.getDomain(), certId.getService(), x509Cert.toString(), this);
         principal.setUnsignedCreds(x509Cert.getSubjectX500Principal().toString());
         principal.setX509Certificate(x509Cert);
         principal.setRoles(certId.getRoles());

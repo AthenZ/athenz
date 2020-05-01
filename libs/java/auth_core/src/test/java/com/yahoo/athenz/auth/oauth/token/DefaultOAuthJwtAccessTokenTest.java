@@ -100,7 +100,7 @@ public class DefaultOAuthJwtAccessTokenTest {
     @Test
     public void testGettersOnIrregularJwt() {
         DefaultOAuthJwtAccessToken at = new DefaultOAuthJwtAccessToken(this.parser.parseClaimsJws(irregularJwtString));
-        assertEquals(at.getSubject(), "domain_ddd.service_sss"); // normalized
+        assertEquals(at.getSubject(), "domain_DDD.service_SSS");
         assertEquals(at.getIssuer(), "https://athenz.io");
         assertEquals(at.getAudience(), "[https://zms.athenz.io, https://zts.athenz.io]");
         assertEquals(at.getAudiences(), Arrays.asList("https://zms.athenz.io", "https://zts.athenz.io"));

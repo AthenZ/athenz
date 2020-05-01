@@ -45,11 +45,7 @@ public class DefaultOAuthJwtAccessToken implements OAuthJwtAccessToken {
 
     @Override
     public String getSubject() {
-        String subject = this.body.getSubject();
-        if (subject == null) {
-            return null;
-        }
-        return subject.toLowerCase(); // normalize as Athenz principal
+        return this.body.getSubject();
     }
 
     @Override
