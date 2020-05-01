@@ -45,6 +45,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.yahoo.athenz.auth.Authority;
+import com.yahoo.athenz.auth.AuthorityConsts;
 import com.yahoo.athenz.auth.AuthorityKeyStore;
 import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.auth.Principal;

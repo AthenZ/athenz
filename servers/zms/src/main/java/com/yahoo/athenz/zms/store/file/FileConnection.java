@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.zms.store.file;
 
+import com.yahoo.athenz.auth.AuthorityConsts;
 import com.yahoo.athenz.auth.util.AthenzUtils;
 import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.zms.store.AthenzDomain;
