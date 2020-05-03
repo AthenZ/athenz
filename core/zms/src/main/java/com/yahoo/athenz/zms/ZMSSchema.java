@@ -117,12 +117,14 @@ public class ZMSSchema {
         sb.structType("RoleMember")
             .field("memberName", "MemberName", false, "name of the member")
             .field("expiration", "Timestamp", true, "the expiration timestamp")
+            .field("reviewReminder", "Timestamp", true, "the review reminder timestamp")
             .field("active", "Bool", true, "Flag to indicate whether membership is active", true)
             .field("approved", "Bool", true, "Flag to indicate whether membership is approved either by delegates ( in case of auditEnabled roles ) or by domain admins ( in case of selfserve roles )", true)
             .field("auditRef", "String", true, "audit reference string for the change as supplied by admin")
             .field("requestTime", "Timestamp", true, "for pending membership requests, the request time")
             .field("lastNotifiedTime", "Timestamp", true, "for pending membership requests, time when last notification was sent")
-            .field("requestPrincipal", "ResourceName", true, "pending members only - name of the principal requesting the change");
+            .field("requestPrincipal", "ResourceName", true, "pending members only - name of the principal requesting the change")
+            .field("reviewLastNotifiedTime", "Timestamp", true, "for pending membership requests, time when last notification was sent (for file store)");
 
         sb.structType("RoleMeta")
             .comment("Set of metadata attributes that all roles may have and can be changed by domain admins.")
@@ -156,6 +158,7 @@ public class ZMSSchema {
             .field("isMember", "Bool", true, "flag to indicate whether or the user is a member or not", true)
             .field("roleName", "ResourceName", true, "name of the role")
             .field("expiration", "Timestamp", true, "the expiration timestamp")
+            .field("reviewReminder", "Timestamp", true, "the review reminder timestamp")
             .field("active", "Bool", true, "Flag to indicate whether membership is active", true)
             .field("approved", "Bool", true, "Flag to indicate whether membership is approved either by delegates ( in case of auditEnabled roles ) or by domain admins ( in case of selfserve roles )", true)
             .field("auditRef", "String", true, "audit reference string for the change as supplied by admin")
@@ -170,6 +173,7 @@ public class ZMSSchema {
             .field("domainName", "DomainName", true, "name of the domain")
             .field("memberName", "MemberName", true, "name of the member")
             .field("expiration", "Timestamp", true, "the expiration timestamp")
+            .field("reviewReminder", "Timestamp", true, "the review reminder timestamp")
             .field("active", "Bool", true, "Flag to indicate whether membership is active", true)
             .field("auditRef", "String", true, "audit reference string for the change as supplied by admin")
             .field("requestPrincipal", "EntityName", true, "pending members only - name of the principal requesting the change")

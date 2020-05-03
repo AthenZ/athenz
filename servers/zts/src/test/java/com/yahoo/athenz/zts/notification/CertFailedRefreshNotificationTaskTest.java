@@ -122,27 +122,27 @@ public class CertFailedRefreshNotificationTaskTest {
 
         List<Notification> notifications = certFailedRefreshNotificationTask.getNotifications();
         assertEquals(6, notifications.size());
-        notifications.sort(Comparator.comparing(notif -> notif.getDetails().get("unrefreshedCerts")));
+        notifications.sort(Comparator.comparing(notif -> notif.getDetails().get(NOTIFICATION_DETAILS_UNREFRESHED_CERTS)));
         // Assert one records for provider1:
         String expectedDetail = "domain0.service0;provider1;instanceID0;" + new Timestamp(currentDate.getTime()) + ";;hostName0";
-        assertEquals(expectedDetail, notifications.get(0).getDetails().get("unrefreshedCerts"));
+        assertEquals(expectedDetail, notifications.get(0).getDetails().get(NOTIFICATION_DETAILS_UNREFRESHED_CERTS));
 
         // Assert two records for provider2:
         expectedDetail = "domain1.service1;provider2;instanceID1;" + new Timestamp(currentDate.getTime()) + ";;hostName1";
-        assertEquals(expectedDetail, notifications.get(1).getDetails().get("unrefreshedCerts"));
+        assertEquals(expectedDetail, notifications.get(1).getDetails().get(NOTIFICATION_DETAILS_UNREFRESHED_CERTS));
 
         expectedDetail = "domain2.service2;provider2;instanceID2;" + new Timestamp(currentDate.getTime()) + ";;hostName2";
-        assertEquals(expectedDetail, notifications.get(2).getDetails().get("unrefreshedCerts"));
+        assertEquals(expectedDetail, notifications.get(2).getDetails().get(NOTIFICATION_DETAILS_UNREFRESHED_CERTS));
 
         // Assert three records for provider3:
         expectedDetail = "domain3.service3;provider3;instanceID3;" + new Timestamp(currentDate.getTime()) + ";;hostName3";
-        assertEquals(expectedDetail, notifications.get(3).getDetails().get("unrefreshedCerts"));
+        assertEquals(expectedDetail, notifications.get(3).getDetails().get(NOTIFICATION_DETAILS_UNREFRESHED_CERTS));
 
         expectedDetail = "domain4.service4;provider3;instanceID4;" + new Timestamp(currentDate.getTime()) + ";;hostName4";
-        assertEquals(expectedDetail, notifications.get(4).getDetails().get("unrefreshedCerts"));
+        assertEquals(expectedDetail, notifications.get(4).getDetails().get(NOTIFICATION_DETAILS_UNREFRESHED_CERTS));
 
         expectedDetail = "domain5.service5;provider3;instanceID5;" + new Timestamp(currentDate.getTime()) + ";;hostName5";
-        assertEquals(expectedDetail, notifications.get(5).getDetails().get("unrefreshedCerts"));
+        assertEquals(expectedDetail, notifications.get(5).getDetails().get(NOTIFICATION_DETAILS_UNREFRESHED_CERTS));
 
         System.clearProperty(ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST);
     }
@@ -264,14 +264,14 @@ public class CertFailedRefreshNotificationTaskTest {
         // Assert 2 records for domain5 and domain0:
         String twoRecordsDomain5 = "domain5.service5;provider;instanceID5;" + new Timestamp(currentDate.getTime()) + ";;hostName5|" +
                 "domain5.service5;provider;instanceID5;" + new Timestamp(currentDate.getTime()) + ";;secondHostName5";
-        assertEquals(twoRecordsDomain5, notifications.get(1).getDetails().get("unrefreshedCerts"));
+        assertEquals(twoRecordsDomain5, notifications.get(1).getDetails().get(NOTIFICATION_DETAILS_UNREFRESHED_CERTS));
         String twoRecordsDomain0 = "domain0.service0;provider;instanceID0;" + new Timestamp(currentDate.getTime()) + ";;hostName0|" +
                 "domain0.service0;provider;instanceID0;" + new Timestamp(currentDate.getTime()) + ";;secondHostName0";
-        assertEquals(twoRecordsDomain0, notifications.get(4).getDetails().get("unrefreshedCerts"));
+        assertEquals(twoRecordsDomain0, notifications.get(4).getDetails().get(NOTIFICATION_DETAILS_UNREFRESHED_CERTS));
 
         // Assert other domains only have 1 record:
         String oneRecordDomain1 = "domain1.service1;provider;instanceID1;" + new Timestamp(currentDate.getTime()) + ";;hostName1";
-        assertEquals(oneRecordDomain1, notifications.get(5).getDetails().get("unrefreshedCerts"));
+        assertEquals(oneRecordDomain1, notifications.get(5).getDetails().get(NOTIFICATION_DETAILS_UNREFRESHED_CERTS));
 
         System.clearProperty(ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST);
     }

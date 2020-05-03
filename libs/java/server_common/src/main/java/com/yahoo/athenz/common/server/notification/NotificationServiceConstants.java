@@ -24,8 +24,8 @@ public final class NotificationServiceConstants {
     public static final String NOTIFICATION_DETAILS_MEMBER              = "member";
     public static final String NOTIFICATION_DETAILS_REASON              = "reason";
     public static final String NOTIFICATION_DETAILS_REQUESTER           = "requester";
-    public static final String NOTIFICATION_DETAILS_EXPIRY_ROLES        = "expiryRoles";
-    public static final String NOTIFICATION_DETAILS_EXPIRY_MEMBERS      = "expiryMembers";
+    public static final String NOTIFICATION_DETAILS_ROLES_LIST          = "rolesList";
+    public static final String NOTIFICATION_DETAILS_MEMBERS_LIST        = "membersList";
     public static final String NOTIFICATION_DETAILS_UNREFRESHED_CERTS   = "unrefreshedCerts";
 
     public static final String HTML_LOGO_CID_PLACEHOLDER = "<logo>";
