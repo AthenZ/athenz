@@ -25,7 +25,6 @@ import org.slf4j.LoggerFactory;
 import com.yahoo.athenz.zms.store.AthenzDomain;
 import com.yahoo.athenz.zms.store.ObjectStoreConnection;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
-import com.yahoo.athenz.zms.ZMSConsts;
 import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
@@ -198,6 +197,10 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "JOIN role_member ON role_member.principal_id=principal.principal_id "
             + "JOIN role ON role.role_id=role_member.role_id "
             + "WHERE role.domain_id=?;";
+    private static final String SQL_GET_REVIEW_OVERDUE_DOMAIN_ROLE_MEMBERS = "SELECT role.name, principal.name, role_member.expiration, role_member.review_reminder FROM principal "
+            + "JOIN role_member ON role_member.principal_id=principal.principal_id "
+            + "JOIN role ON role.role_id=role_member.role_id "
+            + "WHERE role.domain_id=? AND role_member.review_reminder > CURRENT_TIME;";
     private static final String SQL_GET_DOMAIN_POLICIES = "SELECT * FROM policy WHERE domain_id=?;";
     private static final String SQL_GET_DOMAIN_POLICY_ASSERTIONS = "SELECT policy.name, "
             + "assertion.effect, assertion.action, assertion.role, assertion.resource, "
@@ -3617,9 +3620,15 @@ public class JDBCConnection implements ObjectStoreConnection {
 
     @Override
     public DomainRoleMembers listDomainRoleMembers(String domainName) {
+        return listDomainRoleMembersWithQuery(domainName, SQL_GET_DOMAIN_ROLE_MEMBERS, "listDomainRoleMembers");
+    }
 
-        final String caller = "listDomainRoleMembers";
+    @Override
+    public DomainRoleMembers listOverdueReviewRoleMembers(String domainName) {
+        return listDomainRoleMembersWithQuery(domainName, SQL_GET_REVIEW_OVERDUE_DOMAIN_ROLE_MEMBERS, "listDomainRoleMembersWithQuery");
+    }
 
+    private DomainRoleMembers listDomainRoleMembersWithQuery(String domainName, String query, String caller) {
         int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
@@ -3628,7 +3637,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         domainRoleMembers.setDomainName(domainName);
 
         Map<String, DomainRoleMember> memberMap = new HashMap<>();
-        try (PreparedStatement ps = con.prepareStatement(SQL_GET_DOMAIN_ROLE_MEMBERS)) {
+        try (PreparedStatement ps = con.prepareStatement(query)) {
             ps.setInt(1, domainId);
             try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {

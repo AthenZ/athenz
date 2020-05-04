@@ -34,6 +34,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 /**
  * FileConnection class is primarily implemented to run unit tests and
@@ -1499,10 +1500,25 @@ public class FileConnection implements ObjectStoreConnection {
 
     @Override
     public DomainRoleMembers listDomainRoleMembers(String domainName) {
+        return listReviewRoleMembersWithFilter(domainName, (roleMember -> true), "listDomainRoleMembers");
+    }
 
+    @Override
+    public DomainRoleMembers listOverdueReviewRoleMembers(String domainName) {
+        return listReviewRoleMembersWithFilter(domainName, (roleMember -> {
+            if (roleMember.getReviewReminder() == null) {
+                return false;
+            }
+
+            long reviewMillis = roleMember.getReviewReminder().millis();
+            return reviewMillis - System.currentTimeMillis() < 0;
+        }), "listOverdueReviewRoleMembers");
+    }
+
+    private DomainRoleMembers listReviewRoleMembersWithFilter(String domainName, Function<RoleMember, Boolean> filterFunc, String caller) {
         DomainStruct domainStruct = getDomainStruct(domainName);
         if (domainStruct == null) {
-            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", "listDomainRoleMembers");
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", caller);
         }
 
         DomainRoleMembers domainRoleMembers = new DomainRoleMembers();
@@ -1515,7 +1531,9 @@ public class FileConnection implements ObjectStoreConnection {
                 continue;
             }
             for (RoleMember roleMember : roleMembers) {
-                addRoleMemberToMap(memberMap, roleMember, domainName, role.getName());
+                if (filterFunc.apply(roleMember)) {
+                    addRoleMemberToMap(memberMap, roleMember, domainName, role.getName());
+                }
             }
         }
 
@@ -1524,6 +1542,7 @@ public class FileConnection implements ObjectStoreConnection {
         }
         return domainRoleMembers;
     }
+
 
     @Override
     public boolean confirmRoleMember(String domainName, String roleName, RoleMember member,

@@ -5801,6 +5801,40 @@ public class DBServiceTest {
     }
 
     @Test
+    public void testListOverdueReviewRoleMembers() {
+        final String domainName1 = "test-domain1";
+        List<String> admins = new ArrayList<>();
+        admins.add(adminUser);
+
+        // Create domain
+        zms.dbService.makeDomain(mockDomRsrcCtx, ZMSTestUtils.makeDomainObject(domainName1, "test desc", "org", false,
+                "", 1234, "", 0), admins, null, auditRef);
+
+        long currentTimeMillis = System.currentTimeMillis();
+        Timestamp oldTimestamp = Timestamp.fromMillis(currentTimeMillis - 60000);
+        Timestamp futureTimestamp = Timestamp.fromMillis(currentTimeMillis + 60000);
+
+        List<RoleMember> roleMembers = new ArrayList<>();
+        roleMembers.add(new RoleMember().setMemberName("user.overduereview1").setReviewReminder(oldTimestamp));
+        roleMembers.add(new RoleMember().setMemberName("user.overduereview2").setReviewReminder(oldTimestamp));
+        roleMembers.add(new RoleMember().setMemberName("user.futurereview1").setReviewReminder(futureTimestamp));
+        roleMembers.add(new RoleMember().setMemberName("user.noreview1"));
+
+        // Create role1 with members
+        Role role = createRoleObject(domainName1, "role1", null, roleMembers);
+        zms.dbService.executePutRole(mockDomRsrcCtx, domainName1, "role1", role, "test", "putrole");
+
+        DomainRoleMembers responseMembers = zms.dbService.listOverdueReviewRoleMembers(domainName1);
+        assertEquals("test-domain1", responseMembers.getDomainName());
+        List<DomainRoleMember> responseRoleMemberList = responseMembers.getMembers();
+        assertEquals(responseRoleMemberList.size(), 2);
+        assertEquals(responseRoleMemberList.get(0).getMemberName(), "user.overduereview1");
+        assertEquals(responseRoleMemberList.get(1).getMemberName(), "user.overduereview2");
+
+        zms.dbService.executeDeleteDomain(mockDomRsrcCtx, domainName1, auditRef, "deletedomain");
+    }
+
+    @Test
     public void testGetRoleReviewMembersFailure() {
 
         ObjectStore saveStore = zms.dbService.store;

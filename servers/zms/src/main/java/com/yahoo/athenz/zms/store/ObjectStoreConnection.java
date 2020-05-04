@@ -145,4 +145,5 @@ public interface ObjectStoreConnection extends Closeable {
     Map<String, DomainRoleMember> getNotifyReviewRoleMembers(String server, long timestamp);
     boolean updateRoleMemberReviewNotificationTimestamp(String server, long timestamp);
 
+    DomainRoleMembers listOverdueReviewRoleMembers(String domainName);
 }

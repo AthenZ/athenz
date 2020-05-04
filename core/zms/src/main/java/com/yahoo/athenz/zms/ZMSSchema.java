@@ -897,6 +897,23 @@ public class ZMSSchema {
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
+        sb.resource("DomainRoleMembers", "GET", "/domain/{domainName}/overdue")
+            .comment("Get members with overdue review")
+            .name("GetOverdueReview")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
         sb.resource("DomainRoleMembers", "GET", "/domain/{domainName}/member")
             .comment("Get list of principals defined in roles in the given domain")
             .pathParam("domainName", "DomainName", "name of the domain")

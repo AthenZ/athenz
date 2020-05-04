@@ -3093,6 +3093,31 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return result;
     }
 
+    @Override
+    public DomainRoleMembers getOverdueReview(ResourceContext ctx, String domainName) {
+        final String caller = "getoverduereview";
+        metric.increment(ZMSConsts.HTTP_GET);
+        logPrincipal(ctx);
+
+        validateRequest(ctx.request(), caller);
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+
+        domainName = domainName.toLowerCase();
+
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
+        Object timerMetric = metric.startTiming("getoverduereview_timing", domainName, principalDomain);
+
+        DomainRoleMembers roleMembers = dbService.listOverdueReviewRoleMembers(domainName);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
+        return roleMembers;
+    }
+
     long configuredExpiryMillis(Integer domainExpiryDays, Integer roleExpiryDays) {
 
         // the role expiry days settings overrides the domain one if one configured
