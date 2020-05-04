@@ -89,28 +89,28 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "SET modified=CURRENT_TIMESTAMP(3) WHERE role_id=?;";
     private static final String SQL_LIST_ROLE = "SELECT name FROM role WHERE domain_id=?;";
     private static final String SQL_COUNT_ROLE = "SELECT COUNT(*) FROM role WHERE domain_id=?;";
-    private static final String SQL_GET_ROLE_MEMBER = "SELECT principal.principal_id, role_member.expiration, role_member.req_principal FROM principal "
+    private static final String SQL_GET_ROLE_MEMBER = "SELECT principal.principal_id, role_member.expiration, role_member.review_reminder, role_member.req_principal FROM principal "
             + "JOIN role_member ON role_member.principal_id=principal.principal_id "
             + "JOIN role ON role.role_id=role_member.role_id "
             + "WHERE role.role_id=? AND principal.name=?;";
-    private static final String SQL_GET_TEMP_ROLE_MEMBER = "SELECT principal.principal_id, role_member.expiration, role_member.req_principal FROM principal "
+    private static final String SQL_GET_TEMP_ROLE_MEMBER = "SELECT principal.principal_id, role_member.expiration, role_member.review_reminder, role_member.req_principal FROM principal "
             + "JOIN role_member ON role_member.principal_id=principal.principal_id "
             + "JOIN role ON role.role_id=role_member.role_id "
             + "WHERE role.role_id=? AND principal.name=? AND role_member.expiration=?;";
-    private static final String SQL_GET_PENDING_ROLE_MEMBER = "SELECT principal.principal_id, pending_role_member.expiration, pending_role_member.req_principal FROM principal "
+    private static final String SQL_GET_PENDING_ROLE_MEMBER = "SELECT principal.principal_id, pending_role_member.expiration, pending_role_member.review_reminder, pending_role_member.req_principal FROM principal "
             + "JOIN pending_role_member ON pending_role_member.principal_id=principal.principal_id "
             + "JOIN role ON role.role_id=pending_role_member.role_id "
             + "WHERE role.role_id=? AND principal.name=?;";
-    private static final String SQL_GET_TEMP_PENDING_ROLE_MEMBER = "SELECT principal.principal_id, pending_role_member.expiration, pending_role_member.req_principal FROM principal "
+    private static final String SQL_GET_TEMP_PENDING_ROLE_MEMBER = "SELECT principal.principal_id, pending_role_member.expiration, pending_role_member.review_reminder, pending_role_member.req_principal FROM principal "
             + "JOIN pending_role_member ON pending_role_member.principal_id=principal.principal_id "
             + "JOIN role ON role.role_id=pending_role_member.role_id "
             + "WHERE role.role_id=? AND principal.name=? AND pending_role_member.expiration=?;";
     private static final String SQL_STD_ROLE_MEMBER_EXISTS = "SELECT principal_id FROM role_member WHERE role_id=? AND principal_id=?;";
     private static final String SQL_PENDING_ROLE_MEMBER_EXISTS = "SELECT principal_id FROM pending_role_member WHERE role_id=? AND principal_id=?;";
-    private static final String SQL_LIST_ROLE_MEMBERS = "SELECT principal.name, role_member.expiration, role_member.active, role_member.audit_ref FROM principal "
+    private static final String SQL_LIST_ROLE_MEMBERS = "SELECT principal.name, role_member.expiration, role_member.review_reminder, role_member.active, role_member.audit_ref FROM principal "
             + "JOIN role_member ON role_member.principal_id=principal.principal_id "
             + "JOIN role ON role.role_id=role_member.role_id WHERE role.role_id=?;";
-    private static final String SQL_LIST_PENDING_ROLE_MEMBERS = "SELECT principal.name, pending_role_member.expiration, pending_role_member.req_time, pending_role_member.audit_ref FROM principal "
+    private static final String SQL_LIST_PENDING_ROLE_MEMBERS = "SELECT principal.name, pending_role_member.expiration, pending_role_member.review_reminder, pending_role_member.req_time, pending_role_member.audit_ref FROM principal "
             + "JOIN pending_role_member ON pending_role_member.principal_id=principal.principal_id "
             + "JOIN role ON role.role_id=pending_role_member.role_id WHERE role.role_id=?;";
     private static final String SQL_COUNT_ROLE_MEMBERS = "SELECT COUNT(*) FROM role_member WHERE role_id=?;";
@@ -122,15 +122,15 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_LIST_PRINCIPAL_DOMAIN = "SELECT * FROM principal WHERE name LIKE ?;";
     private static final String SQL_LAST_INSERT_ID = "SELECT LAST_INSERT_ID();";
     private static final String SQL_INSERT_ROLE_MEMBER = "INSERT INTO role_member "
-            + "(role_id, principal_id, expiration, active, audit_ref, req_principal) VALUES (?,?,?,?,?,?);";
+            + "(role_id, principal_id, expiration, review_reminder, active, audit_ref, req_principal) VALUES (?,?,?,?,?,?,?);";
     private static final String SQL_INSERT_PENDING_ROLE_MEMBER = "INSERT INTO pending_role_member "
-            + "(role_id, principal_id, expiration, audit_ref, req_principal) VALUES (?,?,?,?,?);";
+            + "(role_id, principal_id, expiration, review_reminder, audit_ref, req_principal) VALUES (?,?,?,?,?,?);";
     private static final String SQL_DELETE_ROLE_MEMBER = "DELETE FROM role_member WHERE role_id=? AND principal_id=?;";
     private static final String SQL_DELETE_PENDING_ROLE_MEMBER = "DELETE FROM pending_role_member WHERE role_id=? AND principal_id=?;";
     private static final String SQL_UPDATE_ROLE_MEMBER = "UPDATE role_member "
-            + "SET expiration=?, active=?, audit_ref=?, req_principal=? WHERE role_id=? AND principal_id=?;";
+            + "SET expiration=?, review_reminder=?, active=?, audit_ref=?, req_principal=? WHERE role_id=? AND principal_id=?;";
     private static final String SQL_UPDATE_PENDING_ROLE_MEMBER = "UPDATE pending_role_member "
-            + "SET expiration=?, audit_ref=?, req_time=CURRENT_TIMESTAMP(3), req_principal=? WHERE role_id=? AND principal_id=?;";
+            + "SET expiration=?, review_reminder=?, audit_ref=?, req_time=CURRENT_TIMESTAMP(3), req_principal=? WHERE role_id=? AND principal_id=?;";
     private static final String SQL_INSERT_ROLE_AUDIT_LOG = "INSERT INTO role_audit_log "
             + "(role_id, admin, member, action, audit_ref) VALUES (?,?,?,?,?);";
     private static final String SQL_LIST_ROLE_AUDIT_LOGS = "SELECT * FROM role_audit_log WHERE role_id=?;";
@@ -194,7 +194,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "JOIN domain ON domain_template.domain_id=domain.domain_id "
             + "WHERE domain.name=?;";
     private static final String SQL_GET_DOMAIN_ROLES = "SELECT * FROM role WHERE domain_id=?;";
-    private static final String SQL_GET_DOMAIN_ROLE_MEMBERS = "SELECT role.name, principal.name, role_member.expiration FROM principal "
+    private static final String SQL_GET_DOMAIN_ROLE_MEMBERS = "SELECT role.name, principal.name, role_member.expiration, role_member.review_reminder FROM principal "
             + "JOIN role_member ON role_member.principal_id=principal.principal_id "
             + "JOIN role ON role.role_id=role_member.role_id "
             + "WHERE role.domain_id=?;";
@@ -222,7 +222,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "JOIN domain ON policy.domain_id=domain.domain_id";
     private static final String SQL_LIST_ROLE_ASSERTION_QUERY_ACTION = " WHERE assertion.action=?;";
     private static final String SQL_LIST_ROLE_ASSERTION_NO_ACTION = " WHERE assertion.action!='assume_role';";
-    private static final String SQL_LIST_ROLE_PRINCIPALS = "SELECT principal.name, role_member.expiration, role.domain_id, "
+    private static final String SQL_LIST_ROLE_PRINCIPALS = "SELECT principal.name, role_member.expiration, role_member.review_reminder, role.domain_id, "
             + "role.name AS role_name FROM principal "
             + "JOIN role_member ON principal.principal_id=role_member.principal_id "
             + "JOIN role ON role_member.role_id=role.role_id";
@@ -259,7 +259,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_DELETE_QUOTA = "DELETE FROM quota WHERE domain_id=?;";
 
     private static final String SQL_PENDING_ORG_AUDIT_ROLE_MEMBER_LIST = "SELECT do.name AS domain, ro.name AS role, "
-            + "principal.name AS member, rmo.expiration, rmo.audit_ref, rmo.req_time, rmo.req_principal "
+            + "principal.name AS member, rmo.expiration, rmo.review_reminder, rmo.audit_ref, rmo.req_time, rmo.req_principal "
             + "FROM principal JOIN pending_role_member rmo "
             + "ON rmo.principal_id=principal.principal_id JOIN role ro ON ro.role_id=rmo.role_id JOIN domain do ON ro.domain_id=do.domain_id "
             + "WHERE ro.audit_enabled=true AND ro.domain_id IN ( select domain_id FROM domain WHERE org IN ( "
@@ -267,7 +267,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "WHERE role_member.principal_id=? AND role.domain_id=?) ) order by do.name, ro.name, principal.name;";
 
     private static final String SQL_PENDING_DOMAIN_AUDIT_ROLE_MEMBER_LIST = "SELECT do.name AS domain, ro.name AS role, "
-            + "principal.name AS member, rmo.expiration, rmo.audit_ref, rmo.req_time, rmo.req_principal "
+            + "principal.name AS member, rmo.expiration, rmo.review_reminder, rmo.audit_ref, rmo.req_time, rmo.req_principal "
             + "FROM principal JOIN pending_role_member rmo "
             + "ON rmo.principal_id=principal.principal_id JOIN role ro ON ro.role_id=rmo.role_id JOIN domain do ON ro.domain_id=do.domain_id "
             + "WHERE ro.audit_enabled=true AND ro.domain_id IN ( select domain_id FROM domain WHERE name IN ( "
@@ -275,7 +275,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "WHERE role_member.principal_id=? AND role.domain_id=?) ) order by do.name, ro.name, principal.name;";
 
     private static final String SQL_PENDING_DOMAIN_ADMIN_ROLE_MEMBER_LIST = "SELECT do.name AS domain, ro.name AS role, "
-            + "principal.name AS member, rmo.expiration, rmo.audit_ref, rmo.req_time, rmo.req_principal "
+            + "principal.name AS member, rmo.expiration, rmo.review_reminder, rmo.audit_ref, rmo.req_time, rmo.req_principal "
             + "FROM principal JOIN pending_role_member rmo "
             + "ON rmo.principal_id=principal.principal_id JOIN role ro ON ro.role_id=rmo.role_id JOIN domain do ON ro.domain_id=do.domain_id "
             + "WHERE (ro.self_serve=true OR ro.review_enabled=true) AND ro.domain_id IN ( SELECT domain.domain_id FROM domain JOIN role "
@@ -293,7 +293,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             "JOIN role r ON r.role_id=rm.role_id " +
             "JOIN domain d ON r.domain_id=d.domain_id WHERE (r.self_serve=true OR r.review_enabled=true) AND rm.last_notified_time=? AND rm.server=?;";
 
-    private static final String SQL_GET_EXPIRED_PENDING_ROLE_MEMBERS = "SELECT d.name, r.name, p.name, prm.expiration, prm.audit_ref, prm.req_time, prm.req_principal " +
+    private static final String SQL_GET_EXPIRED_PENDING_ROLE_MEMBERS = "SELECT d.name, r.name, p.name, prm.expiration, prm.review_reminder, prm.audit_ref, prm.req_time, prm.req_principal " +
             "FROM principal p JOIN pending_role_member prm " +
             "ON prm.principal_id=p.principal_id JOIN role r ON prm.role_id=r.role_id JOIN domain d ON d.domain_id=r.domain_id " +
             "WHERE prm.req_time < (CURRENT_DATE - INTERVAL ? DAY);";
@@ -304,11 +304,21 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_UPDATE_ROLE_MEMBERS_EXPIRY_NOTIFICATION_TIMESTAMP = "UPDATE role_member SET last_notified_time=?, server=? " +
             "WHERE expiration > CURRENT_TIME AND DATEDIFF(expiration, CURRENT_TIME) IN (1,7,14,21,28) AND (last_notified_time IS NULL || last_notified_time < (CURRENT_DATE - INTERVAL 1 DAY));";
     private static final String SQL_LIST_NOTIFY_TEMPORARY_ROLE_MEMBERS = "SELECT domain.name AS domain_name, role.name AS role_name, " +
-            "principal.name AS principal_name, role_member.expiration FROM role_member " +
+            "principal.name AS principal_name, role_member.expiration, role_member.review_reminder FROM role_member " +
             "JOIN role ON role.role_id=role_member.role_id " +
             "JOIN principal ON principal.principal_id=role_member.principal_id " +
             "JOIN domain ON domain.domain_id=role.domain_id " +
             "WHERE role_member.last_notified_time=? AND role_member.server=?;";
+
+    private static final String SQL_UPDATE_ROLE_MEMBERS_REVIEW_NOTIFICATION_TIMESTAMP = "UPDATE role_member SET review_last_notified_time=?, review_server=? " +
+            "WHERE review_reminder > CURRENT_TIME AND DATEDIFF(review_reminder, CURRENT_TIME) IN (1,7,14,21,28) AND (review_last_notified_time IS NULL || review_last_notified_time < (CURRENT_DATE - INTERVAL 1 DAY));";
+    private static final String SQL_LIST_NOTIFY_REVIEW_ROLE_MEMBERS = "SELECT domain.name AS domain_name, role.name AS role_name, " +
+            "principal.name AS principal_name, role_member.expiration, role_member.review_reminder FROM role_member " +
+            "JOIN role ON role.role_id=role_member.role_id " +
+            "JOIN principal ON principal.principal_id=role_member.principal_id " +
+            "JOIN domain ON domain.domain_id=role.domain_id " +
+            "WHERE role_member.review_last_notified_time=? AND role_member.review_server=?;";
+
     private static final String SQL_UPDATE_ROLE_REVIEW_TIMESTAMP = "UPDATE role SET last_reviewed_time=CURRENT_TIMESTAMP(3) WHERE role_id=?;";
 
 
@@ -1384,8 +1394,12 @@ public class JDBCConnection implements ObjectStoreConnection {
                     if (expiration != null) {
                         roleMember.setExpiration(Timestamp.fromMillis(expiration.getTime()));
                     }
-                    roleMember.setActive(nullIfDefaultValue(rs.getBoolean(3), true));
-                    roleMember.setAuditRef(rs.getString(4));
+                    java.sql.Timestamp reviewReminder = rs.getTimestamp(3);
+                    if (reviewReminder != null) {
+                        roleMember.setReviewReminder(Timestamp.fromMillis(reviewReminder.getTime()));
+                    }
+                    roleMember.setActive(nullIfDefaultValue(rs.getBoolean(4), true));
+                    roleMember.setAuditRef(rs.getString(5));
                     roleMember.setApproved(true);
                     members.add(roleMember);
                 }
@@ -1409,9 +1423,13 @@ public class JDBCConnection implements ObjectStoreConnection {
                     }
                     timestamp = rs.getTimestamp(3);
                     if (timestamp != null) {
+                        roleMember.setReviewReminder(Timestamp.fromMillis(timestamp.getTime()));
+                    }
+                    timestamp = rs.getTimestamp(4);
+                    if (timestamp != null) {
                         roleMember.setRequestTime(Timestamp.fromMillis(timestamp.getTime()));
                     }
-                    roleMember.setAuditRef(rs.getString(4));
+                    roleMember.setAuditRef(rs.getString(5));
                     roleMember.setActive(false);
                     roleMember.setApproved(false);
                     members.add(roleMember);
@@ -1598,6 +1616,10 @@ public class JDBCConnection implements ObjectStoreConnection {
                     if (expiry != null) {
                         membership.setExpiration(Timestamp.fromMillis(expiry.getTime()));
                     }
+                    java.sql.Timestamp reviewReminder = rs.getTimestamp(ZMSConsts.DB_COLUMN_REVIEW_REMINDER);
+                    if (expiry != null) {
+                        membership.setReviewReminder(Timestamp.fromMillis(reviewReminder.getTime()));
+                    }
                     membership.setRequestPrincipal(rs.getString(ZMSConsts.DB_COLUMN_REQ_PRINCIPAL));
                     return true;
                 }
@@ -1767,16 +1789,21 @@ public class JDBCConnection implements ObjectStoreConnection {
         if (roleMember.getExpiration() != null) {
             expiration = new java.sql.Timestamp(roleMember.getExpiration().toDate().getTime());
         }
+        java.sql.Timestamp reviewReminder = null;
+        if (roleMember.getReviewReminder() != null) {
+            reviewReminder = new java.sql.Timestamp(roleMember.getReviewReminder().toDate().getTime());
+        }
 
         int affectedRows;
         if (roleMemberExists) {
 
             try (PreparedStatement ps = con.prepareStatement(SQL_UPDATE_PENDING_ROLE_MEMBER)) {
                 ps.setTimestamp(1, expiration);
-                ps.setString(2, processInsertValue(auditRef));
-                ps.setString(3, processInsertValue(admin));
-                ps.setInt(4, roleId);
-                ps.setInt(5, principalId);
+                ps.setTimestamp(2, reviewReminder);
+                ps.setString(3, processInsertValue(auditRef));
+                ps.setString(4, processInsertValue(admin));
+                ps.setInt(5, roleId);
+                ps.setInt(6, principalId);
                 affectedRows = executeUpdate(ps, caller);
             } catch (SQLException ex) {
                 throw sqlError(ex, caller);
@@ -1788,8 +1815,9 @@ public class JDBCConnection implements ObjectStoreConnection {
                 ps.setInt(1, roleId);
                 ps.setInt(2, principalId);
                 ps.setTimestamp(3, expiration);
-                ps.setString(4, processInsertValue(auditRef));
-                ps.setString(5, processInsertValue(admin));
+                ps.setTimestamp(4, reviewReminder);
+                ps.setString(5, processInsertValue(auditRef));
+                ps.setString(6, processInsertValue(admin));
                 affectedRows = executeUpdate(ps, caller);
             } catch (SQLException ex) {
                 throw sqlError(ex, caller);
@@ -1807,6 +1835,10 @@ public class JDBCConnection implements ObjectStoreConnection {
         if (roleMember.getExpiration() != null) {
             expiration = new java.sql.Timestamp(roleMember.getExpiration().toDate().getTime());
         }
+        java.sql.Timestamp reviewReminder = null;
+        if (roleMember.getReviewReminder() != null) {
+            reviewReminder = new java.sql.Timestamp(roleMember.getReviewReminder().toDate().getTime());
+        }
 
         boolean result;
         String auditOperation;
@@ -1815,11 +1847,12 @@ public class JDBCConnection implements ObjectStoreConnection {
 
             try (PreparedStatement ps = con.prepareStatement(SQL_UPDATE_ROLE_MEMBER)) {
                 ps.setTimestamp(1, expiration);
-                ps.setBoolean(2, processInsertValue(roleMember.getActive(), true));
-                ps.setString(3, processInsertValue(auditRef));
-                ps.setString(4, processInsertValue(admin));
-                ps.setInt(5, roleId);
-                ps.setInt(6, principalId);
+                ps.setTimestamp(2, reviewReminder);
+                ps.setBoolean(3, processInsertValue(roleMember.getActive(), true));
+                ps.setString(4, processInsertValue(auditRef));
+                ps.setString(5, processInsertValue(admin));
+                ps.setInt(6, roleId);
+                ps.setInt(7, principalId);
                 executeUpdate(ps, caller);
             } catch (SQLException ex) {
                 throw sqlError(ex, caller);
@@ -1834,9 +1867,10 @@ public class JDBCConnection implements ObjectStoreConnection {
                 ps.setInt(1, roleId);
                 ps.setInt(2, principalId);
                 ps.setTimestamp(3, expiration);
-                ps.setBoolean(4, processInsertValue(roleMember.getActive(), true));
-                ps.setString(5, processInsertValue(auditRef));
-                ps.setString(6, processInsertValue(admin));
+                ps.setTimestamp(4, reviewReminder);
+                ps.setBoolean(5, processInsertValue(roleMember.getActive(), true));
+                ps.setString(6, processInsertValue(auditRef));
+                ps.setString(7, processInsertValue(admin));
                 affectedRows = executeUpdate(ps, caller);
             } catch (SQLException ex) {
                 throw sqlError(ex, caller);
@@ -2879,6 +2913,10 @@ public class JDBCConnection implements ObjectStoreConnection {
                     if (expiration != null) {
                         roleMember.setExpiration(Timestamp.fromMillis(expiration.getTime()));
                     }
+                    java.sql.Timestamp reviewReminder = rs.getTimestamp(4);
+                    if (reviewReminder != null) {
+                        roleMember.setReviewReminder(Timestamp.fromMillis(reviewReminder.getTime()));
+                    }
                     members.add(roleMember);
                 }
             }
@@ -3597,6 +3635,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                     final String roleName = rs.getString(1);
                     final String memberName = rs.getString(2);
                     java.sql.Timestamp expiration = rs.getTimestamp(3);
+                    java.sql.Timestamp reviewReminder = rs.getTimestamp(4);
 
                     DomainRoleMember domainRoleMember = memberMap.get(memberName);
                     if (domainRoleMember == null) {
@@ -3613,6 +3652,9 @@ public class JDBCConnection implements ObjectStoreConnection {
                     memberRole.setRoleName(roleName);
                     if (expiration != null) {
                         memberRole.setExpiration(Timestamp.fromMillis(expiration.getTime()));
+                    }
+                    if (reviewReminder != null) {
+                        memberRole.setReviewReminder(Timestamp.fromMillis(reviewReminder.getTime()));
                     }
                     memberRoles.add(memberRole);
                 }
@@ -3786,14 +3828,18 @@ public class JDBCConnection implements ObjectStoreConnection {
         if (expiration != null) {
             memberRole.setExpiration(Timestamp.fromMillis(expiration.getTime()));
         }
+        java.sql.Timestamp reviewReminder = rs.getTimestamp(5);
+        if (reviewReminder != null) {
+            memberRole.setReviewReminder(Timestamp.fromMillis(reviewReminder.getTime()));
+        }
         memberRole.setActive(false);
-        memberRole.setAuditRef(rs.getString(5));
+        memberRole.setAuditRef(rs.getString(6));
 
-        expiration = rs.getTimestamp(6);
+        expiration = rs.getTimestamp(7);
         if (expiration != null) {
             memberRole.setRequestTime(Timestamp.fromMillis(expiration.getTime()));
         }
-        memberRole.setRequestPrincipal(rs.getString(7));
+        memberRole.setRequestPrincipal(rs.getString(8));
         memberRoles.add(memberRole);
 
         domainRoleMember.setMemberRoles(memberRoles);
@@ -3907,17 +3953,57 @@ public class JDBCConnection implements ObjectStoreConnection {
 
     @Override
     public Map<String, DomainRoleMember> getNotifyTemporaryRoleMembers(String server, long timestamp) {
+        return getNotifyRoleMembers(server, timestamp, SQL_LIST_NOTIFY_TEMPORARY_ROLE_MEMBERS, "listNotifyTemporaryRoleMembers");
+    }
+
+    @Override
+    public boolean updateRoleMemberExpirationNotificationTimestamp(String server, long timestamp) {
+        return updateRoleMemberNotificationTimestamp(
+                server,
+                timestamp,
+                SQL_UPDATE_ROLE_MEMBERS_EXPIRY_NOTIFICATION_TIMESTAMP,
+                "updateTemporaryRoleMembersNotificationTimestamp");
+    }
+
+    @Override
+    public Map<String, DomainRoleMember> getNotifyReviewRoleMembers(String server, long timestamp) {
+        return getNotifyRoleMembers(server, timestamp, SQL_LIST_NOTIFY_REVIEW_ROLE_MEMBERS, "listNotifyReviewRoleMembers");
+    }
+
+    @Override
+    public boolean updateRoleMemberReviewNotificationTimestamp(String server, long timestamp) {
+        return updateRoleMemberNotificationTimestamp(
+                server,
+                timestamp,
+                SQL_UPDATE_ROLE_MEMBERS_REVIEW_NOTIFICATION_TIMESTAMP,
+                "updateReviewRoleMembersNotificationTimestamp");
+    }
+
+    private boolean updateRoleMemberNotificationTimestamp(String server, long timestamp, String query, String caller) {
+        int affectedRows;
+        try (PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setTimestamp(1, new java.sql.Timestamp(timestamp));
+            ps.setString(2, server);
+
+            affectedRows = executeUpdate(ps, caller);
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return (affectedRows > 0);
+    }
+
+    private Map<String, DomainRoleMember> getNotifyRoleMembers(String server, long timestamp, String query, String caller) {
 
         Map<String, DomainRoleMember> memberMap = new HashMap<>();
 
-        final String caller = "listNotifyTemporaryRoleMembers";
-        try (PreparedStatement ps = con.prepareStatement(SQL_LIST_NOTIFY_TEMPORARY_ROLE_MEMBERS)) {
+        try (PreparedStatement ps = con.prepareStatement(query)) {
             ps.setTimestamp(1, new java.sql.Timestamp(timestamp));
             ps.setString(2, server);
             try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
                     final String memberName = rs.getString(ZMSConsts.DB_COLUMN_PRINCIPAL_NAME);
                     java.sql.Timestamp expiration = rs.getTimestamp(ZMSConsts.DB_COLUMN_EXPIRATION);
+                    java.sql.Timestamp reviewReminder = rs.getTimestamp(ZMSConsts.DB_COLUMN_REVIEW_REMINDER);
 
                     DomainRoleMember domainRoleMember = memberMap.get(memberName);
                     if (domainRoleMember == null) {
@@ -3935,6 +4021,9 @@ public class JDBCConnection implements ObjectStoreConnection {
                     memberRole.setRoleName(rs.getString(ZMSConsts.DB_COLUMN_ROLE_NAME));
                     memberRole.setDomainName(rs.getString(ZMSConsts.DB_COLUMN_DOMAIN_NAME));
                     memberRole.setExpiration(Timestamp.fromMillis(expiration.getTime()));
+                    if (reviewReminder != null) {
+                        memberRole.setReviewReminder(Timestamp.fromMillis(reviewReminder.getTime()));
+                    }
                     memberRoles.add(memberRole);
                 }
             }
@@ -3943,22 +4032,6 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
 
         return memberMap;
-    }
-
-    @Override
-    public boolean updateRoleMemberExpirationNotificationTimestamp(String server, long timestamp) {
-
-        final String caller = "updateTemporaryRoleMembersNotificationTimestamp";
-        int affectedRows;
-        try (PreparedStatement ps = con.prepareStatement(SQL_UPDATE_ROLE_MEMBERS_EXPIRY_NOTIFICATION_TIMESTAMP)) {
-            ps.setTimestamp(1, new java.sql.Timestamp(timestamp));
-            ps.setString(2, server);
-
-            affectedRows = executeUpdate(ps, caller);
-        } catch (SQLException ex) {
-            throw sqlError(ex, caller);
-        }
-        return (affectedRows > 0);
     }
 
     RuntimeException notFoundError(String caller, String objectType, String objectName) {

@@ -4227,9 +4227,14 @@ public class DBService {
         return null;
     }
 
-    public Map<String, DomainRoleMember> getReviewMembers() {
-        // Currently unimplemented
-        return new HashMap<>();
+    public Map<String, DomainRoleMember> getRoleReviewMembers() {
+        try (ObjectStoreConnection con = store.getConnection(true, true)) {
+            long updateTs = System.currentTimeMillis();
+            if (con.updateRoleMemberReviewNotificationTimestamp(zmsConfig.getServerHostName(), updateTs)) {
+                return con.getNotifyReviewRoleMembers(zmsConfig.getServerHostName(), updateTs);
+            }
+        }
+        return null;
     }
 
     public void processExpiredPendingMembers(int pendingRoleMemberLifespan, final String monitorIdentity) {

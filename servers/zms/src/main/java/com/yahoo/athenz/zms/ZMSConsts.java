@@ -212,6 +212,7 @@ public final class ZMSConsts {
     public static final String DB_COLUMN_CERT_DNS_DOMAIN    = "cert_dns_domain";
     public static final String DB_COLUMN_SELF_SERVE         = "self_serve";
     public static final String DB_COLUMN_EXPIRATION         = "expiration";
+    public static final String DB_COLUMN_REVIEW_REMINDER    = "review_reminder";
     public static final String DB_COLUMN_MEMBER_EXPIRY_DAYS = "member_expiry_days";
     public static final String DB_COLUMN_TOKEN_EXPIRY_MINS  = "token_expiry_mins";
     public static final String DB_COLUMN_CERT_EXPIRY_MINS   = "cert_expiry_mins";

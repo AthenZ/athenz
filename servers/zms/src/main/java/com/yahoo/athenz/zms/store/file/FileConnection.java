@@ -66,7 +66,7 @@ public class FileConnection implements ObjectStoreConnection {
     @Override
     public void close() {
     }
-    
+
     @Override
     public void setOperationTimeout(int opTimeout) {
     }
@@ -1771,7 +1771,15 @@ public class FileConnection implements ObjectStoreConnection {
 
     @Override
     public Map<String, DomainRoleMember> getNotifyTemporaryRoleMembers(String server, long timestamp) {
+        return getNotifyRoleMembers(server, timestamp, true);
+    }
 
+    @Override
+    public Map<String, DomainRoleMember> getNotifyReviewRoleMembers(String server, long timestamp) {
+        return getNotifyRoleMembers(server, timestamp, false);
+    }
+
+    private Map<String, DomainRoleMember> getNotifyRoleMembers(String server, long timestamp, boolean isTemporaryRole) {
         Map<String, DomainRoleMember> memberMap = new HashMap<>();
 
         String[] fnames = getDomainList();
@@ -1787,9 +1795,10 @@ public class FileConnection implements ObjectStoreConnection {
                     continue;
                 }
                 for (RoleMember roleMember : roleMembers) {
-
-                    if (roleMember.getApproved() == Boolean.FALSE || roleMember.getLastNotifiedTime() == null ||
-                            roleMember.getLastNotifiedTime().millis() != timestamp) {
+                    Timestamp lastNotifiedTime = isTemporaryRole ?
+                            roleMember.getLastNotifiedTime() : roleMember.getReviewLastNotifiedTime();
+                    if (roleMember.getApproved() == Boolean.FALSE || lastNotifiedTime == null ||
+                            lastNotifiedTime.millis() != timestamp) {
                         continue;
                     }
 
@@ -1826,6 +1835,15 @@ public class FileConnection implements ObjectStoreConnection {
 
     @Override
     public boolean updateRoleMemberExpirationNotificationTimestamp(String server, long timestamp) {
+        return updateRoleMemberNotificationTimestamp(timestamp, true);
+    }
+
+    @Override
+    public boolean updateRoleMemberReviewNotificationTimestamp(String server, long timestamp) {
+        return updateRoleMemberNotificationTimestamp(timestamp, false);
+    }
+
+    private boolean updateRoleMemberNotificationTimestamp(long timestamp, boolean isTemporaryRole) {
         String[] fnames = getDomainList();
         boolean updated = false;
         for (String name : fnames) {
@@ -1836,16 +1854,22 @@ public class FileConnection implements ObjectStoreConnection {
             }
             for (Role role : dom.getRoles().values()) {
                 for (RoleMember roleMember : role.getRoleMembers()) {
-                    if (roleMember.getApproved() == Boolean.FALSE || roleMember.getExpiration() == null) {
+                    Timestamp dateChecked = isTemporaryRole ?
+                            roleMember.getExpiration() : roleMember.getReviewReminder();
+                    if (roleMember.getApproved() == Boolean.FALSE || dateChecked == null) {
                         continue;
                     }
-                    long diffMillis = roleMember.getExpiration().millis() - System.currentTimeMillis();
+                    long diffMillis = dateChecked.millis() - System.currentTimeMillis();
                     if (diffMillis < 0) {
                         continue;
                     }
                     long diffDays = TimeUnit.DAYS.convert(diffMillis, TimeUnit.MILLISECONDS);
                     if (diffDays < 29 && (diffDays == 1 || diffDays % 7 == 0)) {
-                        roleMember.setLastNotifiedTime(Timestamp.fromMillis(timestamp));
+                        if (isTemporaryRole) {
+                            roleMember.setLastNotifiedTime(Timestamp.fromMillis(timestamp));
+                        } else {
+                            roleMember.setReviewLastNotifiedTime(Timestamp.fromMillis(timestamp));
+                        }
                         domainChanged = true;
                         updated = true;
                     }

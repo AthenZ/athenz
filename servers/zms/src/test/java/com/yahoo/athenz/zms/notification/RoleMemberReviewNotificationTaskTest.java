@@ -43,7 +43,7 @@ public class RoleMemberReviewNotificationTaskTest {
 
         // we're going to throw an exception when called
 
-        Mockito.when(dbsvc.getReviewMembers()).thenThrow(new IllegalArgumentException());
+        Mockito.when(dbsvc.getRoleReviewMembers()).thenThrow(new IllegalArgumentException());
         NotificationManager notificationManager = getNotificationManager(dbsvc, testfact);
 
         RoleMemberReviewNotificationTask roleMemberReviewNotificationTask = new RoleMemberReviewNotificationTask(dbsvc, USER_DOMAIN_PREFIX);
@@ -101,7 +101,7 @@ public class RoleMemberReviewNotificationTaskTest {
         // run during init call and then the real data for the second
         // call
 
-        Mockito.when(dbsvc.getReviewMembers())
+        Mockito.when(dbsvc.getRoleReviewMembers())
                 .thenReturn(null)
                 .thenReturn(reviewMembers);
 
@@ -165,7 +165,7 @@ public class RoleMemberReviewNotificationTaskTest {
         // run during init call and then the real data for the second
         // call
 
-        Mockito.when(dbsvc.getReviewMembers())
+        Mockito.when(dbsvc.getRoleReviewMembers())
                 .thenReturn(null)
                 .thenReturn(reviewMembers);
 
