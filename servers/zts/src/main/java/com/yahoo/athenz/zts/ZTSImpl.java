@@ -3259,6 +3259,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         provider = provider.toLowerCase();
         domain = domain.toLowerCase();
+        service = service.toLowerCase();
 
         Object timerMetric = metric.startTiming(callerTiming, domain, principalDomain);
         metric.increment(HTTP_REQUEST, domain, principalDomain);
@@ -3266,7 +3267,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // remove the cert record for this instance
 
-        instanceCertManager.deleteX509CertRecord(provider, instanceId, service);
+        instanceCertManager.deleteX509CertRecord(provider, instanceId, domain + "." + service);
         metric.stopTiming(timerMetric, domain, principalDomain);
     }
 
