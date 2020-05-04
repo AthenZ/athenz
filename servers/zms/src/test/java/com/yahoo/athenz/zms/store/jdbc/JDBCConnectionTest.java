@@ -1747,7 +1747,9 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "user.admin");
         Mockito.verify(mockPrepStmt, times(1)).setString(3, "user.user1");
         Mockito.verify(mockPrepStmt, times(1)).setString(4, "ADD");
-        Mockito.verify(mockPrepStmt, times(2)).setString(5, "audit-ref");
+        Mockito.verify(mockPrepStmt, times(1)).setString(6, "audit-ref");
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(5, "audit-ref");
 
         assertTrue(requestSuccess);
         jdbcConn.close();
@@ -1843,6 +1845,9 @@ public class JDBCConnectionTest {
         Timestamp expiration = Timestamp.fromCurrentTime();
         roleMember.setExpiration(expiration);
         java.sql.Timestamp javaExpiration = new java.sql.Timestamp(expiration.toDate().getTime());
+        Timestamp reviewReminder = Timestamp.fromCurrentTime();
+        roleMember.setReviewReminder(reviewReminder);
+        java.sql.Timestamp javaReviewReminder = new java.sql.Timestamp(reviewReminder.toDate().getTime());
         boolean requestSuccess = jdbcConn.insertRoleMember("my-domain", "role1",
                 roleMember, "user.admin", "audit-ref");
         
@@ -1861,11 +1866,12 @@ public class JDBCConnectionTest {
         
         // update operation
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(1, javaExpiration);
-        Mockito.verify(mockPrepStmt, times(1)).setBoolean(2, true);
-        Mockito.verify(mockPrepStmt, times(1)).setString(3, "audit-ref");
-        Mockito.verify(mockPrepStmt, times(1)).setString(4, "user.admin");
-        Mockito.verify(mockPrepStmt, times(1)).setInt(5, 7);
-        Mockito.verify(mockPrepStmt, times(1)).setInt(6, 9);
+        Mockito.verify(mockPrepStmt, times(1)).setTimestamp(2, javaReviewReminder);
+        Mockito.verify(mockPrepStmt, times(1)).setBoolean(3, true);
+        Mockito.verify(mockPrepStmt, times(1)).setString(4, "audit-ref");
+        Mockito.verify(mockPrepStmt, times(1)).setString(5, "user.admin");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(6, 7);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(7, 9);
         
         // the rest of the audit log details
         
@@ -1925,8 +1931,10 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "user.admin");
         Mockito.verify(mockPrepStmt, times(1)).setString(3, "user.user1");
         Mockito.verify(mockPrepStmt, times(1)).setString(4, "ADD");
-        Mockito.verify(mockPrepStmt, times(2)).setString(5, "audit-ref");
-        
+        Mockito.verify(mockPrepStmt, times(1)).setString(6, "audit-ref");
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(5, "audit-ref");
+
         assertTrue(requestSuccess);
         jdbcConn.close();
     }
@@ -2053,7 +2061,8 @@ public class JDBCConnectionTest {
                 new RoleMember()
                         .setApproved(false)
                         .setMemberName("user.user1")
-                        .setExpiration(Timestamp.fromMillis(now)),
+                        .setExpiration(Timestamp.fromMillis(now))
+                        .setReviewReminder(Timestamp.fromMillis(now)),
                 "user.admin", "audit-ref");
 
         // this is combined for all operations above
@@ -2066,10 +2075,11 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "user.user1");
 
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(1, new java.sql.Timestamp(now));
-        Mockito.verify(mockPrepStmt, times(1)).setString(2, "audit-ref");
-        Mockito.verify(mockPrepStmt, times(1)).setString(3, "user.admin");
-        Mockito.verify(mockPrepStmt, times(1)).setInt(4, 7);
-        Mockito.verify(mockPrepStmt, times(1)).setInt(5, 9);
+        Mockito.verify(mockPrepStmt, times(1)).setTimestamp(2, new java.sql.Timestamp(now));
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "audit-ref");
+        Mockito.verify(mockPrepStmt, times(1)).setString(4, "user.admin");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(5, 7);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(6, 9);
 
         // operation to check for roleMember exist using roleID and principal ID.
         Mockito.verify(mockPrepStmt, times(1)).setInt(1, 7);
@@ -2169,6 +2179,8 @@ public class JDBCConnectionTest {
         long now = System.currentTimeMillis();
         Mockito.when(mockResultSet.getTimestamp(ZMSConsts.DB_COLUMN_EXPIRATION))
                 .thenReturn(new java.sql.Timestamp(now));
+        Mockito.when(mockResultSet.getTimestamp(ZMSConsts.DB_COLUMN_REVIEW_REMINDER))
+                .thenReturn(new java.sql.Timestamp(now));
 
         Membership membership = jdbcConn.getRoleMember("my-domain", "role1", "user.user1", now, false);
 
@@ -2183,6 +2195,7 @@ public class JDBCConnectionTest {
         assertEquals(membership.getMemberName(), "user.user1");
         assertEquals(membership.getRoleName(), "my-domain:role.role1");
         assertEquals(membership.getExpiration(), Timestamp.fromMillis(now));
+        assertEquals(membership.getReviewReminder(), Timestamp.fromMillis(now));
         assertTrue(membership.getIsMember());
         assertTrue(membership.getApproved());
         jdbcConn.close();
@@ -2205,6 +2218,8 @@ public class JDBCConnectionTest {
         long now = System.currentTimeMillis();
         Mockito.when(mockResultSet.getTimestamp(ZMSConsts.DB_COLUMN_EXPIRATION))
                 .thenReturn(new java.sql.Timestamp(now));
+        Mockito.when(mockResultSet.getTimestamp(ZMSConsts.DB_COLUMN_REVIEW_REMINDER))
+                .thenReturn(new java.sql.Timestamp(now));
 
         Membership membership = jdbcConn.getRoleMember("my-domain", "role1", "user.user1", now, false);
 
@@ -2219,6 +2234,7 @@ public class JDBCConnectionTest {
         assertEquals(membership.getMemberName(), "user.user1");
         assertEquals(membership.getRoleName(), "my-domain:role.role1");
         assertEquals(membership.getExpiration(), Timestamp.fromMillis(now));
+        assertEquals(membership.getReviewReminder(), Timestamp.fromMillis(now));
         assertTrue(membership.getIsMember());
         assertFalse(membership.getApproved());
         jdbcConn.close();
@@ -7727,8 +7743,11 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(4)).setInt(2, 9);
 
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(3, null);
-        Mockito.verify(mockPrepStmt, times(1)).setBoolean(4, true);
-        Mockito.verify(mockPrepStmt, times(2)).setString(5, "audit-ref");
+        Mockito.verify(mockPrepStmt, times(1)).setTimestamp(4, null);
+        Mockito.verify(mockPrepStmt, times(1)).setBoolean(5, true);
+        Mockito.verify(mockPrepStmt, times(1)).setString(6, "audit-ref");
+        Mockito.verify(mockPrepStmt, times(1)).setString(5, "audit-ref");
+
 
         // the rest of the audit log details
 
@@ -7779,8 +7798,66 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(4)).setInt(2, 9);
 
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(3, javaExpiration);
-        Mockito.verify(mockPrepStmt, times(1)).setBoolean(4, true);
-        Mockito.verify(mockPrepStmt, times(2)).setString(5, "audit-ref");
+        Mockito.verify(mockPrepStmt, times(1)).setTimestamp(4, null);
+        Mockito.verify(mockPrepStmt, times(1)).setBoolean(5, true);
+        Mockito.verify(mockPrepStmt, times(1)).setString(6, "audit-ref");
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(5, "audit-ref");
+
+        // the rest of the audit log details
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "user.admin");
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "user.user1");
+        Mockito.verify(mockPrepStmt, times(1)).setString(4, "APPROVE");
+
+        assertTrue(requestSuccess);
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testConfirmRoleMemberApproveWithReview() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7) // role id
+                .thenReturn(9); // principal id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for role id
+                .thenReturn(true) // principal id
+                .thenReturn(true) // member exists - in pending table
+                .thenReturn(false); // member does not exist in std table
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        Timestamp reviewReminder = Timestamp.fromCurrentTime();
+        java.sql.Timestamp javaReviewReminder = new java.sql.Timestamp(reviewReminder.toDate().getTime());
+        boolean requestSuccess = jdbcConn.confirmRoleMember("my-domain", "role1",
+                new RoleMember().setMemberName("user.user1").setActive(true)
+                        .setApproved(true).setReviewReminder(reviewReminder), "user.admin", "audit-ref");
+
+        // this is combined for all operations above
+
+        // get domain id
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
+
+        // get role id
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "role1");
+
+        //get principal
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "user.user1");
+
+        Mockito.verify(mockPrepStmt, times(5)).setInt(1, 7);
+        Mockito.verify(mockPrepStmt, times(4)).setInt(2, 9);
+
+        Mockito.verify(mockPrepStmt, times(1)).setTimestamp(3, null);
+        Mockito.verify(mockPrepStmt, times(1)).setTimestamp(4, javaReviewReminder);
+        Mockito.verify(mockPrepStmt, times(1)).setBoolean(5, true);
+        Mockito.verify(mockPrepStmt, times(1)).setString(6, "audit-ref");
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(5, "audit-ref");
 
         // the rest of the audit log details
 
@@ -8038,14 +8115,16 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(3)).setInt(1, 7);
         Mockito.verify(mockPrepStmt, times(2)).setInt(2, 9);
 
-        Mockito.verify(mockPrepStmt, times(1)).setBoolean(4, true);
+        Mockito.verify(mockPrepStmt, times(1)).setBoolean(5, true);
 
         // the rest of the audit log details
 
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "user.admin");
         Mockito.verify(mockPrepStmt, times(1)).setString(3, "user.user1");
         Mockito.verify(mockPrepStmt, times(1)).setString(4, "ADD");
-        Mockito.verify(mockPrepStmt, times(2)).setString(5, "audit-ref");
+        Mockito.verify(mockPrepStmt, times(1)).setString(6, "audit-ref");
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(5, "audit-ref");
 
         assertTrue(requestSuccess);
         jdbcConn.close();
@@ -8085,14 +8164,16 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(3)).setInt(1, 7);
         Mockito.verify(mockPrepStmt, times(2)).setInt(2, 9);
 
-        Mockito.verify(mockPrepStmt, times(1)).setBoolean(4, false);
+        Mockito.verify(mockPrepStmt, times(1)).setBoolean(5, false);
 
         // the rest of the audit log details
 
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "user.admin");
         Mockito.verify(mockPrepStmt, times(1)).setString(3, "user.user1");
         Mockito.verify(mockPrepStmt, times(1)).setString(4, "ADD");
-        Mockito.verify(mockPrepStmt, times(2)).setString(5, "audit-ref");
+        Mockito.verify(mockPrepStmt, times(1)).setString(6, "audit-ref");
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(5, "audit-ref");
 
         assertTrue(requestSuccess);
         jdbcConn.close();
@@ -8185,9 +8266,10 @@ public class JDBCConnectionTest {
         Mockito.doReturn("role1", "role11", "role111", "role2", "role3", "role31", "role311", "role4", "role311", "role4", "role4").when(mockResultSet).getString(2);
         Mockito.doReturn("user.member1", "user.member2", "user.member3", "user.member2", "user.member11", "user.member21", "user.member31", "user.member21", "user.member31", "user.member21", "user.member21").when(mockResultSet).getString(3);
         Mockito.doReturn(new java.sql.Timestamp(1454358916), new java.sql.Timestamp(1454358916), null, null, new java.sql.Timestamp(1454358916), new java.sql.Timestamp(1454358916), null, null, null, null, null).when(mockResultSet).getTimestamp(4);
-        Mockito.doReturn("required for proj1", null, "self serve audit-ref", null, "required for proj 2", null, "self serve audit-ref 2", null, "self serve audit-ref 2", null, null).when(mockResultSet).getString(5);
-        Mockito.doReturn(new java.sql.Timestamp(1454358916)).when(mockResultSet).getTimestamp(6);
-        Mockito.doReturn("user.req1").when(mockResultSet).getString(7);
+        Mockito.doReturn(new java.sql.Timestamp(1454358916), new java.sql.Timestamp(1454358916), null, null, new java.sql.Timestamp(1454358916), new java.sql.Timestamp(1454358916), null, null, null, null, null).when(mockResultSet).getTimestamp(5);
+        Mockito.doReturn("required for proj1", null, "self serve audit-ref", null, "required for proj 2", null, "self serve audit-ref 2", null, "self serve audit-ref 2", null, null).when(mockResultSet).getString(6);
+        Mockito.doReturn(new java.sql.Timestamp(1454358916)).when(mockResultSet).getTimestamp(7);
+        Mockito.doReturn("user.req1").when(mockResultSet).getString(8);
 
         Map<String, List<DomainRoleMember>> domainRoleMembersMap = jdbcConn.getPendingDomainRoleMembers("user.user1");
 
@@ -8358,6 +8440,10 @@ public class JDBCConnectionTest {
                 .thenReturn(new java.sql.Timestamp(System.currentTimeMillis() + 100))
                 .thenReturn(new java.sql.Timestamp(System.currentTimeMillis() + 200))
                 .thenReturn(null);
+        Mockito.when(mockResultSet.getTimestamp(4))
+                .thenReturn(new java.sql.Timestamp(System.currentTimeMillis() + 100))
+                .thenReturn(new java.sql.Timestamp(System.currentTimeMillis() + 200))
+                .thenReturn(null);
         Mockito.when(mockResultSet.getBoolean(3))
                 .thenReturn(true);
 
@@ -8371,6 +8457,11 @@ public class JDBCConnectionTest {
         assertNotNull(roleMembers.get(1).getExpiration());
         assertNull(roleMembers.get(2).getExpiration());
         assertNull(roleMembers.get(3).getExpiration());
+
+        assertNotNull(roleMembers.get(0).getReviewReminder());
+        assertNotNull(roleMembers.get(1).getReviewReminder());
+        assertNull(roleMembers.get(2).getReviewReminder());
+        assertNull(roleMembers.get(3).getReviewReminder());
 
         assertEquals("a-domain.stduser1", roleMembers.get(0).getMemberName());
         assertEquals("b-domain.pendinguser1", roleMembers.get(1).getMemberName());
@@ -8809,11 +8900,22 @@ public class JDBCConnectionTest {
 
     @Test
     public void testUdateRoleMemberExpirationNotificationTimestamp() throws Exception {
+        testUdateRoleMemberNotificationTimestamp(true);
+    }
+
+    @Test
+    public void testUdateRoleMemberReviewNotificationTimestamp() throws Exception {
+        testUdateRoleMemberNotificationTimestamp(false);
+    }
+
+    private void testUdateRoleMemberNotificationTimestamp(boolean isRoleExpire) throws Exception {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Mockito.when(mockPrepStmt.executeUpdate())
                 .thenReturn(3); // 3 members updated
         long timestamp = System.currentTimeMillis();
-        boolean result = jdbcConn.updateRoleMemberExpirationNotificationTimestamp("localhost", timestamp);
+        boolean result = isRoleExpire ?
+                jdbcConn.updateRoleMemberExpirationNotificationTimestamp("localhost", timestamp) :
+                jdbcConn.updateRoleMemberReviewNotificationTimestamp("localhost", timestamp);
         java.sql.Timestamp ts = new java.sql.Timestamp(timestamp);
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(1, ts);
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "localhost");
@@ -8823,11 +8925,24 @@ public class JDBCConnectionTest {
 
     @Test
     public void testUdateRoleMemberExpirationNotificationTimestampError() throws Exception {
+        testUdateRoleMemberNotificationTimestampError(true);
+    }
+
+    @Test
+    public void testUdateRoleMemberReviewNotificationTimestampError() throws Exception {
+        testUdateRoleMemberNotificationTimestampError(false);
+    }
+
+    private void testUdateRoleMemberNotificationTimestampError(boolean isRoleExpire) throws Exception {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Mockito.when(mockPrepStmt.executeUpdate())
                 .thenThrow(new SQLException("sql error"));
         try {
-            jdbcConn.updateRoleMemberExpirationNotificationTimestamp("localhost", System.currentTimeMillis());
+            if (isRoleExpire) {
+                jdbcConn.updateRoleMemberExpirationNotificationTimestamp("localhost", System.currentTimeMillis());
+            } else {
+                jdbcConn.updateRoleMemberReviewNotificationTimestamp("localhost", System.currentTimeMillis());
+            }
             fail();
         } catch (RuntimeException ex) {
             assertTrue(ex.getMessage().contains("sql error"));
@@ -8837,6 +8952,15 @@ public class JDBCConnectionTest {
 
     @Test
     public void testGetNotifyTemporaryRoleMembers() throws Exception {
+        testGetNotifyRoleMembers(true);
+    }
+
+    @Test
+    public void testGetNotifyReviewRoleMembers() throws Exception {
+        testGetNotifyRoleMembers(false);
+    }
+
+    private void testGetNotifyRoleMembers(boolean isRoleExpire) throws Exception {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
@@ -8855,6 +8979,8 @@ public class JDBCConnectionTest {
         java.sql.Timestamp ts = new java.sql.Timestamp(System.currentTimeMillis());
         Mockito.when(mockResultSet.getTimestamp(ZMSConsts.DB_COLUMN_EXPIRATION))
                 .thenReturn(ts);
+        Mockito.when(mockResultSet.getTimestamp(ZMSConsts.DB_COLUMN_REVIEW_REMINDER))
+                .thenReturn(ts);
         Mockito.when(mockResultSet.next())
                 .thenReturn(true) // this one is for user.joe in athenz1
                 .thenReturn(true) // this one is for user.joe in athenz2
@@ -8862,7 +8988,9 @@ public class JDBCConnectionTest {
                 .thenReturn(false); // end
 
         long timestamp = System.currentTimeMillis();
-        Map<String, DomainRoleMember> memberMap = jdbcConn.getNotifyTemporaryRoleMembers("localhost", timestamp);
+        Map<String, DomainRoleMember> memberMap = isRoleExpire ?
+                jdbcConn.getNotifyTemporaryRoleMembers("localhost", timestamp) :
+                jdbcConn.getNotifyReviewRoleMembers("localhost", timestamp);
         assertNotNull(memberMap);
         assertEquals(memberMap.size(), 2);
         assertTrue(memberMap.keySet().contains("user.joe"));
@@ -8877,6 +9005,20 @@ public class JDBCConnectionTest {
                 .thenThrow(new SQLException("sql error"));
         try {
             jdbcConn.getNotifyTemporaryRoleMembers("localhost", System.currentTimeMillis());
+            fail();
+        } catch (RuntimeException ex) {
+            assertTrue(ex.getMessage().contains("sql error"));
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetNotifyReviewRoleMembersError() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockPrepStmt.executeQuery())
+                .thenThrow(new SQLException("sql error"));
+        try {
+            jdbcConn.getNotifyReviewRoleMembers("localhost", System.currentTimeMillis());
             fail();
         } catch (RuntimeException ex) {
             assertTrue(ex.getMessage().contains("sql error"));

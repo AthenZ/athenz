@@ -5693,48 +5693,82 @@ public class DBServiceTest {
 
     @Test
     public void testGetRoleExpiryMembers() {
+        testGetNotificationMembers(true);
+    }
 
-        final String domainName1 = "role-expiry-members1";
-        final String domainName2 = "role-expiry-members2";
+    @Test
+    public void testGetRoleReviewMembers() {
+        testGetNotificationMembers(false);
+    }
+
+    private void testGetNotificationMembers(boolean isRoleExpire) {
+        final String domainName1 = "role-members1";
+        final String domainName2 = "role-members2";
         List<String> admins = new ArrayList<>();
         admins.add(adminUser);
 
+        // Create domain
         zms.dbService.makeDomain(mockDomRsrcCtx, ZMSTestUtils.makeDomainObject(domainName1, "test desc", "org", false,
                 "", 1234, "", 0), admins, null, auditRef);
 
+        // Create role1 with two members - oneday and sevenday
         Role role = createRoleObject(domainName1, "role1", null, "user.john", "user.jane");
-        Timestamp oneDayExpiry = Timestamp.fromMillis(System.currentTimeMillis()
+        Timestamp oneDayFromNow = Timestamp.fromMillis(System.currentTimeMillis()
                 + TimeUnit.MILLISECONDS.convert(1, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS));
-        Timestamp sevenDayExpiry = Timestamp.fromMillis(System.currentTimeMillis()
+        Timestamp sevenDaysFromNow = Timestamp.fromMillis(System.currentTimeMillis()
                 + TimeUnit.MILLISECONDS.convert(7, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS));
-        role.getRoleMembers().add(new RoleMember().setMemberName("user.oneday")
-                .setExpiration(oneDayExpiry).setApproved(true));
-        role.getRoleMembers().add(new RoleMember().setMemberName("user.sevenday")
-                .setExpiration(sevenDayExpiry).setApproved(true));
+        RoleMember roleMemberOneDay = new RoleMember().setMemberName("user.oneday").setApproved(true);
+        RoleMember roleMemberSevenDays = new RoleMember().setMemberName("user.sevenday").setApproved(true);
+        if (isRoleExpire) {
+            roleMemberOneDay.setExpiration(oneDayFromNow);
+            roleMemberSevenDays.setExpiration(sevenDaysFromNow);
+        } else {
+            roleMemberOneDay.setReviewReminder(oneDayFromNow);
+            roleMemberSevenDays.setReviewReminder(sevenDaysFromNow);
+        }
+        role.getRoleMembers().add(roleMemberOneDay);
+        role.getRoleMembers().add(roleMemberSevenDays);
+
         zms.dbService.executePutRole(mockDomRsrcCtx, domainName1, "role1", role, "test", "putrole");
 
+        // Create role2 with one member - twoday
         Role role2 = createRoleObject(domainName1, "role2", null, "user.john", "user.jane");
-        Timestamp twoDayExpiry = Timestamp.fromMillis(System.currentTimeMillis()
+        Timestamp twoDayFromNow = Timestamp.fromMillis(System.currentTimeMillis()
                 + TimeUnit.MILLISECONDS.convert(2, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS));
-        role2.getRoleMembers().add(new RoleMember().setMemberName("user.twoday")
-                .setExpiration(twoDayExpiry).setApproved(true));
+        RoleMember roleMemberTwoDays = new RoleMember().setMemberName("user.twoday").setApproved(true);
+        if (isRoleExpire) {
+            roleMemberTwoDays.setExpiration(twoDayFromNow);
+        } else {
+            roleMemberTwoDays.setReviewReminder(twoDayFromNow);
+        }
+        role2.getRoleMembers().add(roleMemberTwoDays);
         zms.dbService.executePutRole(mockDomRsrcCtx, domainName1, "role2", role2, "test", "putrole");
 
         zms.dbService.makeDomain(mockDomRsrcCtx, ZMSTestUtils.makeDomainObject(domainName2, "test desc", "org", false,
                 "", 1235, "", 0), admins, null, auditRef);
 
+        // Create role3 with two members - tourteenday and thirtyfiveday
         Role role3 = createRoleObject(domainName2, "role3", null, "user.john", "user.jane");
-        Timestamp fourteenDayExpiry = Timestamp.fromMillis(System.currentTimeMillis()
+        Timestamp fourteenDayFromNow = Timestamp.fromMillis(System.currentTimeMillis()
                 + TimeUnit.MILLISECONDS.convert(14, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS));
-        Timestamp thirtyfiveDayExpiry = Timestamp.fromMillis(System.currentTimeMillis()
+        Timestamp thirtyfiveDayFromNow = Timestamp.fromMillis(System.currentTimeMillis()
                 + TimeUnit.MILLISECONDS.convert(35, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS));
-        role3.getRoleMembers().add(new RoleMember().setMemberName("user.fourteenday")
-                .setExpiration(fourteenDayExpiry).setApproved(true));
-        role3.getRoleMembers().add(new RoleMember().setMemberName("user.thirtyfiveday")
-                .setExpiration(thirtyfiveDayExpiry).setApproved(true));
+        RoleMember roleMemberFourteenDays = new RoleMember().setMemberName("user.fourteenday").setApproved(true);
+        RoleMember roleMemberThirtyFiveDays = new RoleMember().setMemberName("user.thirtyfiveday").setApproved(true);
+        if (isRoleExpire) {
+            roleMemberFourteenDays.setExpiration(fourteenDayFromNow);
+            roleMemberThirtyFiveDays.setExpiration(thirtyfiveDayFromNow);
+        } else {
+            roleMemberFourteenDays.setReviewReminder(fourteenDayFromNow);
+            roleMemberThirtyFiveDays.setReviewReminder(thirtyfiveDayFromNow);
+        }
+        role3.getRoleMembers().add(roleMemberFourteenDays);
+        role3.getRoleMembers().add(roleMemberThirtyFiveDays);
+
         zms.dbService.executePutRole(mockDomRsrcCtx, domainName2, "role3", role3, "test", "putrole");
 
-        Map<String, DomainRoleMember> domainRoleMembers = zms.dbService.getRoleExpiryMembers();
+        Map<String, DomainRoleMember> domainRoleMembers = isRoleExpire ?
+                zms.dbService.getRoleExpiryMembers() : zms.dbService.getRoleReviewMembers();
         assertNotNull(domainRoleMembers);
         assertEquals(domainRoleMembers.size(), 3);
 
@@ -5751,6 +5785,7 @@ public class DBServiceTest {
         zms.dbService.executeDeleteDomain(mockDomRsrcCtx, domainName2, auditRef, "deletedomain");
     }
 
+
     @Test
     public void testGetRoleExpiryMembersFailure() {
 
@@ -5762,6 +5797,20 @@ public class DBServiceTest {
         Mockito.when(mockConn.updateRoleMemberExpirationNotificationTimestamp(anyString(), anyLong())).thenReturn(false);
 
         assertNull(zms.dbService.getRoleExpiryMembers());
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testGetRoleReviewMembersFailure() {
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        ObjectStoreConnection mockConn = Mockito.mock(ObjectStoreConnection.class);
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockConn);
+        Mockito.when(mockConn.updateRoleMemberReviewNotificationTimestamp(anyString(), anyLong())).thenReturn(false);
+
+        assertNull(zms.dbService.getRoleReviewMembers());
         zms.dbService.store = saveStore;
     }
 

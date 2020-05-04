@@ -47,7 +47,7 @@ public class RoleMemberReviewNotificationTask implements NotificationTask {
 
     @Override
     public List<Notification> getNotifications() {
-        Map<String, DomainRoleMember> reviewMembers = dbService.getReviewMembers();
+        Map<String, DomainRoleMember> reviewMembers = dbService.getRoleReviewMembers();
         if (reviewMembers == null || reviewMembers.isEmpty()) {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("No members require review reminders");
