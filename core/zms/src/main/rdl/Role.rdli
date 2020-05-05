@@ -103,6 +103,19 @@ resource Membership GET "/domain/{domainName}/role/{roleName}/member/{memberName
     }
 }
 
+//Get members with overdue review
+resource DomainRoleMembers GET "/domain/{domainName}/overdue" (name=GetOverdueReview) {
+    DomainName domainName; //name of the domain
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
 //Get list of principals defined in roles in the given domain
 resource DomainRoleMembers GET "/domain/{domainName}/member" {
     DomainName domainName; //name of the domain

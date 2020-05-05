@@ -19,6 +19,7 @@ import com.yahoo.rdl.Timestamp;
 import com.yahoo.rdl.UUID;
 
 import java.util.List;
+import java.util.function.Function;
 
 public class ZMSTestUtils {
 
@@ -51,14 +52,17 @@ public class ZMSTestUtils {
         return false;
     }
 
-    public static boolean verifyDomainRoleMemberExpiry(List<DomainRoleMember> members, String memberName,
-            String roleName, Timestamp timestamp) {
+    public static boolean verifyDomainRoleMemberTimestamp(List<DomainRoleMember> members,
+                                                          String memberName,
+                                                          String roleName,
+                                                          Timestamp timestamp,
+                                                          Function<MemberRole, Timestamp> timestampGetter) {
 
         for (DomainRoleMember member : members) {
             if (member.getMemberName().equals(memberName)) {
                 for (MemberRole memberRole : member.getMemberRoles()) {
                     if (memberRole.getRoleName().equals(roleName)) {
-                        return memberRole.getExpiration().equals(timestamp);
+                        return timestampGetter.apply(memberRole).equals(timestamp);
                     }
                 }
             }

@@ -103,7 +103,7 @@ public class RoleMemberReviewNotificationTask implements NotificationTask {
                     emailPrincipalReviewBody,
                     NOTIFICATION_DETAILS_MEMBER,
                     NOTIFICATION_DETAILS_ROLES_LIST,
-                    4,
+                    3,
                     PRINCIPAL_REVIEW_BODY_ENTRY);
         }
 
@@ -141,7 +141,7 @@ public class RoleMemberReviewNotificationTask implements NotificationTask {
                     emailDomainMemberReviewBody,
                     NOTIFICATION_DETAILS_DOMAIN,
                     NOTIFICATION_DETAILS_MEMBERS_LIST,
-                    4,
+                    3,
                     DOMAIN_MEMBER_REVIEW_BODY_ENTRY);
         }
 

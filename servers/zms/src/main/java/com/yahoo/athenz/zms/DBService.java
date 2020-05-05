@@ -143,6 +143,12 @@ public class DBService {
         }
     }
 
+    public DomainRoleMembers listOverdueReviewRoleMembers(String domainName) {
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+            return con.listOverdueReviewRoleMembers(domainName);
+        }
+    }
+
     static class DataCache {
         AthenzDomain athenzDomain;
         long modTime;

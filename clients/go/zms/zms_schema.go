@@ -856,6 +856,18 @@ func init() {
 	mGetMembership.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetMembership.Build())
 
+	mGetOverdueReview := rdl.NewResourceBuilder("DomainRoleMembers", "GET", "/domain/{domainName}/overdue")
+	mGetOverdueReview.Comment("Get members with overdue review")
+	mGetOverdueReview.Name("GetOverdueReview")
+	mGetOverdueReview.Input("domainName", "DomainName", true, "", "", false, nil, "name of the domain")
+	mGetOverdueReview.Auth("", "", true, "")
+	mGetOverdueReview.Exception("BAD_REQUEST", "ResourceError", "")
+	mGetOverdueReview.Exception("FORBIDDEN", "ResourceError", "")
+	mGetOverdueReview.Exception("NOT_FOUND", "ResourceError", "")
+	mGetOverdueReview.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
+	mGetOverdueReview.Exception("UNAUTHORIZED", "ResourceError", "")
+	sb.AddResource(mGetOverdueReview.Build())
+
 	mGetDomainRoleMembers := rdl.NewResourceBuilder("DomainRoleMembers", "GET", "/domain/{domainName}/member")
 	mGetDomainRoleMembers.Comment("Get list of principals defined in roles in the given domain")
 	mGetDomainRoleMembers.Input("domainName", "DomainName", true, "", "", false, nil, "name of the domain")

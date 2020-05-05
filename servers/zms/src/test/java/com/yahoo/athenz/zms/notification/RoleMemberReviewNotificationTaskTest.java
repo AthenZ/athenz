@@ -214,7 +214,7 @@ public class RoleMemberReviewNotificationTaskTest {
         // with one bad entry that should be skipped
 
         details.put(NOTIFICATION_DETAILS_MEMBERS_LIST,
-                "user.joe;role1;2020-10-01T12:00:00.000Z;2020-12-01T12:00:00.000Z|user.jane;role1;2020-10-01T12:00:00.000Z;2020-12-01T12:00:00.000Z|user.bad;role3");
+                "user.joe;role1;2020-12-01T12:00:00.000Z|user.jane;role1;2020-12-01T12:00:00.000Z|user.bad;role3");
 
         NotificationEmail notificationAsEmailWithMembers = converter.getNotificationAsEmail(notification);
         body = notificationAsEmailWithMembers.getBody();
@@ -223,7 +223,6 @@ public class RoleMemberReviewNotificationTaskTest {
         assertTrue(body.contains("user.jane"));
         assertTrue(body.contains("role1"));
         assertTrue(body.contains("2020-12-01T12:00:00.000Z"));
-        assertTrue(body.contains("2020-10-01T12:00:00.000Z"));
 
         // make sure the bad entries are not included
 
@@ -240,7 +239,7 @@ public class RoleMemberReviewNotificationTaskTest {
         notification = new Notification();
         notification.setDetails(details);
         details.put(NOTIFICATION_DETAILS_ROLES_LIST,
-                "athenz1;role1;;2020-12-01T12:00:00.000Z|athenz2;role2;2020-10-01T12:00:00.000Z;2020-12-01T12:00:00.000Z");
+                "athenz1;role1;2020-12-01T12:00:00.000Z|athenz2;role2;2020-12-01T12:00:00.000Z");
         RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter principalConverter = new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter();
         NotificationEmail principalNotificationAsEmail = principalConverter.getNotificationAsEmail(notification);
 
@@ -251,7 +250,6 @@ public class RoleMemberReviewNotificationTaskTest {
         assertTrue(body.contains("role1"));
         assertTrue(body.contains("role2"));
         assertTrue(body.contains("2020-12-01T12:00:00.000Z"));
-        assertTrue(body.contains("2020-10-01T12:00:00.000Z"));
 
         // Make sure support text and url do not appear
 

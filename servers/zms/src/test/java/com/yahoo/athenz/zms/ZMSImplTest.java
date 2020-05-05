@@ -2753,6 +2753,52 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testGetOverdueReview() {
+        TopLevelDomain dom1 = createTopLevelDomainObject("test-domain1",
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        long currentTimeMillis = System.currentTimeMillis();
+        Timestamp oldTimestamp = Timestamp.fromMillis(currentTimeMillis - 60000);
+        Timestamp futureTimestamp = Timestamp.fromMillis(currentTimeMillis + 60000);
+
+        List<RoleMember> roleMembers = new ArrayList<>();
+        roleMembers.add(new RoleMember().setMemberName("user.overduereview1").setReviewReminder(oldTimestamp));
+        roleMembers.add(new RoleMember().setMemberName("user.overduereview2").setReviewReminder(oldTimestamp));
+        roleMembers.add(new RoleMember().setMemberName("user.futurereview1").setReviewReminder(futureTimestamp));
+        roleMembers.add(new RoleMember().setMemberName("user.noreview1"));
+
+        Role role1 = createRoleObject("test-domain1", "Role1",
+                null, roleMembers);
+
+        zms.putRole(mockDomRsrcCtx, "test-domain1", "Role1", auditRef, role1);
+
+        DomainRoleMembers responseMembers = zms.getOverdueReview(mockDomRsrcCtx, "test-domain1");
+        assertEquals("test-domain1", responseMembers.getDomainName());
+        List<DomainRoleMember> responseRoleMemberList = responseMembers.getMembers();
+        assertEquals(responseRoleMemberList.size(), 2);
+        assertEquals(responseRoleMemberList.get(0).getMemberName(), "user.overduereview1");
+        assertEquals(responseRoleMemberList.get(1).getMemberName(), "user.overduereview2");
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx,"test-domain1", auditRef);
+
+    }
+
+    @Test
+    public void testGetOverdueReviewThrowException() {
+        String domainName = "test-domain1";
+
+        // Tests the getOverdueReview() condition : if (domain == null)...
+        try {
+            // Should fail because we never created this domain.
+            zms.getOverdueReview(mockDomRsrcCtx, domainName);
+            fail("notfounderror not thrown.");
+        } catch (ResourceException e) {
+            assertEquals(e.getCode(), 404);
+        }
+    }
+
+    @Test
     public void testGetMembership() {
 
         TopLevelDomain dom1 = createTopLevelDomainObject("MbrGetRoleDom1",
@@ -2779,14 +2825,14 @@ public class ZMSImplTest {
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx,"MbrGetRoleDom1", auditRef);
     }
-    
+
     @Test
     public void testGetMembershipThrowException() {
         String domainName = "MbrGetRoleDom1";
         String roleName = "Role1";
         String memberName1 = "user.john";
         String memberName2 = "user.jane";
-        
+
         // Tests the getMembership() condition : if (domain == null)...
         try {
             // Should fail because we never created this domain.
@@ -2795,11 +2841,11 @@ public class ZMSImplTest {
         } catch (ResourceException e) {
             assertEquals(e.getCode(), 404);
         }
-        
+
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
-        
+
         // Tests the getMembership() condition: if (collection == null)...
         try {
             // Should fail because we never added a role to this domain.
@@ -2808,22 +2854,22 @@ public class ZMSImplTest {
         } catch (ResourceException e) {
             assertEquals(e.getCode(), 404);
         }
-        
+
         // Tests the getMembership() condition: if (role == null)...
         try {
             String missingRoleName = "Role2";
-            
+
             Role role1 = createRoleObject("MbrGetRoleDom1", "Role1", null,
                     memberName1, memberName2);
             zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, role1);
-            
+
             // Trying to find a non-existent role.
             zms.getMembership(mockDomRsrcCtx, domainName, missingRoleName, memberName1, null);
             fail("notfounderror not thrown.");
         } catch (ResourceException e) {
             assertEquals(e.getCode(), 404);
         }
-        
+
         zms.deleteTopLevelDomain(mockDomRsrcCtx,domainName, auditRef);
     }
 

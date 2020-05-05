@@ -26,6 +26,7 @@ import com.yahoo.rdl.UUID;
 import java.sql.*;
 import java.util.*;
 import java.util.Date;
+import java.util.function.Function;
 
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -2166,7 +2167,7 @@ public class JDBCConnectionTest {
     }
 
     @Test
-    public void testGetRoleMemberYesWithExpiration() throws Exception {
+    public void testGetRoleMemberYesWithExpirationAndReviewDate() throws Exception {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
@@ -2177,10 +2178,11 @@ public class JDBCConnectionTest {
                 .thenReturn(5) // domain id
                 .thenReturn(7); // role id
         long now = System.currentTimeMillis();
+        long reviewDate = now + 1000;
         Mockito.when(mockResultSet.getTimestamp(ZMSConsts.DB_COLUMN_EXPIRATION))
                 .thenReturn(new java.sql.Timestamp(now));
         Mockito.when(mockResultSet.getTimestamp(ZMSConsts.DB_COLUMN_REVIEW_REMINDER))
-                .thenReturn(new java.sql.Timestamp(now));
+                .thenReturn(new java.sql.Timestamp(reviewDate));
 
         Membership membership = jdbcConn.getRoleMember("my-domain", "role1", "user.user1", now, false);
 
@@ -2195,14 +2197,14 @@ public class JDBCConnectionTest {
         assertEquals(membership.getMemberName(), "user.user1");
         assertEquals(membership.getRoleName(), "my-domain:role.role1");
         assertEquals(membership.getExpiration(), Timestamp.fromMillis(now));
-        assertEquals(membership.getReviewReminder(), Timestamp.fromMillis(now));
+        assertEquals(membership.getReviewReminder(), Timestamp.fromMillis(reviewDate));
         assertTrue(membership.getIsMember());
         assertTrue(membership.getApproved());
         jdbcConn.close();
     }
 
     @Test
-    public void testGetRoleMemberPendingYesWithExpiration() throws Exception {
+    public void testGetRoleMemberPendingYesWithExpirationAndReview() throws Exception {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
@@ -2216,10 +2218,12 @@ public class JDBCConnectionTest {
                 .thenReturn(5) // domain id
                 .thenReturn(7); // role id
         long now = System.currentTimeMillis();
+        long reviewDate = now + 1000;
+
         Mockito.when(mockResultSet.getTimestamp(ZMSConsts.DB_COLUMN_EXPIRATION))
                 .thenReturn(new java.sql.Timestamp(now));
         Mockito.when(mockResultSet.getTimestamp(ZMSConsts.DB_COLUMN_REVIEW_REMINDER))
-                .thenReturn(new java.sql.Timestamp(now));
+                .thenReturn(new java.sql.Timestamp(reviewDate));
 
         Membership membership = jdbcConn.getRoleMember("my-domain", "role1", "user.user1", now, false);
 
@@ -2234,7 +2238,7 @@ public class JDBCConnectionTest {
         assertEquals(membership.getMemberName(), "user.user1");
         assertEquals(membership.getRoleName(), "my-domain:role.role1");
         assertEquals(membership.getExpiration(), Timestamp.fromMillis(now));
-        assertEquals(membership.getReviewReminder(), Timestamp.fromMillis(now));
+        assertEquals(membership.getReviewReminder(), Timestamp.fromMillis(reviewDate));
         assertTrue(membership.getIsMember());
         assertFalse(membership.getApproved());
         jdbcConn.close();
@@ -7554,47 +7558,52 @@ public class JDBCConnectionTest {
     }
 
     @Test
-    public void testListDomainRoleMembersInvalidDomain() throws Exception {
-
+    public void testListOverdueReviewRoleMembersInvalidDomain() throws Exception {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        domainRoleMembersInvalidDomain(domain -> jdbcConn.listOverdueReviewRoleMembers(domain));
+        jdbcConn.close();
+    }
 
-        Mockito.when(mockPrepStmt.executeQuery()).thenThrow(new SQLException("failed operation", "state", 1001));
+    @Test
+    public void testListOverdueReviewRoleMembersException() throws SQLException {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        domainRoleMembersException(domain -> jdbcConn.listOverdueReviewRoleMembers(domain));
+        jdbcConn.close();
+    }
 
-        try {
-            jdbcConn.listDomainRoleMembers("athenz");
-            fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
-        }
+    @Test
+    public void testListOverdueReviewRoleMembersNoEntries() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        domainRoleMembersNoEntries(domain -> jdbcConn.listOverdueReviewRoleMembers(domain));
+        jdbcConn.close();
+    }
 
+    @Test
+    public void testListOverdueReviewRoleMembers() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        domainRoleMembers(  domain -> jdbcConn.listOverdueReviewRoleMembers(domain),
+                memberRole -> memberRole.getReviewReminder());
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testListDomainRoleMembersInvalidDomain() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        domainRoleMembersInvalidDomain((domain -> jdbcConn.listDomainRoleMembers(domain)));
         jdbcConn.close();
     }
 
     @Test
     public void testListDomainRoleMembersException() throws SQLException {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        domainRoleMembersException(domain -> jdbcConn.listDomainRoleMembers(domain));
+        jdbcConn.close();
+    }
 
-        Mockito.when(mockPrepStmt.executeQuery())
-                .thenReturn(mockResultSet)
-                .thenThrow(new SQLException("failed operation", "state", 1001));
-
-        Mockito.when(mockResultSet.next())
-                .thenReturn(true); // get domain id
-
-        Mockito.when(mockResultSet.getInt(1))
-                .thenReturn(5); // domain id
-
-        try {
-            jdbcConn.listDomainRoleMembers("athenz");
-            fail();
-        } catch (Exception ignored) {
-        }
-
-        // get principal id
-        Mockito.verify(mockPrepStmt, times(1)).setString(1, "athenz");
-        // get role list
-        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
-
+    @Test
+    public void testListDomainRoleMembersNoEntries() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        domainRoleMembersNoEntries(domain -> jdbcConn.listDomainRoleMembers(domain));
         jdbcConn.close();
     }
 
@@ -7602,7 +7611,13 @@ public class JDBCConnectionTest {
     public void testListDomainRoleMembers() throws Exception {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        domainRoleMembers(  domain -> jdbcConn.listDomainRoleMembers(domain),
+                            memberRole -> memberRole.getExpiration());
+        jdbcConn.close();
+    }
 
+    private void domainRoleMembers(Function<String, DomainRoleMembers> jdbcFunc,
+                                   Function<MemberRole, Timestamp> timestampGetter) throws Exception {
         Mockito.when(mockResultSet.getInt(1))
                 .thenReturn(3); // domain id
 
@@ -7626,8 +7641,13 @@ public class JDBCConnectionTest {
                 .thenReturn(new java.sql.Timestamp(1454358916))
                 .thenReturn(null)
                 .thenReturn(null);
+        Mockito.when(mockResultSet.getTimestamp(4))
+                .thenReturn(new java.sql.Timestamp(1454358916))
+                .thenReturn(null)
+                .thenReturn(null);
 
-        DomainRoleMembers domainRoleMembers = jdbcConn.listDomainRoleMembers("athenz");
+
+        DomainRoleMembers domainRoleMembers = jdbcFunc.apply("athenz");
         List<DomainRoleMember> members = domainRoleMembers.getMembers();
         assertEquals(2, members.size());
 
@@ -7638,16 +7658,49 @@ public class JDBCConnectionTest {
 
         ZMSTestUtils.verifyDomainRoleMember(members, "user.joe", "admin", "writer");
         ZMSTestUtils.verifyDomainRoleMember(members, "user.jane", "reader");
-        ZMSTestUtils.verifyDomainRoleMemberExpiry(members, "user.joe", "admin", Timestamp.fromMillis(1454358916000L));
-
-        jdbcConn.close();
+        ZMSTestUtils.verifyDomainRoleMemberTimestamp(
+                members,
+                "user.joe",
+                "admin",
+                Timestamp.fromMillis(1454358916000L),
+                timestampGetter);
     }
 
-    @Test
-    public void testListDomainRoleMembersNoEntries() throws Exception {
+    private void domainRoleMembersException(Function<String, DomainRoleMembers> jdbcFunc) throws SQLException {
+        Mockito.when(mockPrepStmt.executeQuery())
+                .thenReturn(mockResultSet)
+                .thenThrow(new SQLException("failed operation", "state", 1001));
 
-        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true); // get domain id
 
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5); // domain id
+
+        try {
+            jdbcFunc.apply("athenz");
+            fail();
+        } catch (Exception ignored) {
+        }
+
+        // get principal id
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "athenz");
+        // get role list
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+    }
+
+    private void domainRoleMembersInvalidDomain(Function<String, DomainRoleMembers> jdbcFunc) throws Exception {
+        Mockito.when(mockPrepStmt.executeQuery()).thenThrow(new SQLException("failed operation", "state", 1001));
+
+        try {
+            jdbcFunc.apply("athenz");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+    }
+
+    private void domainRoleMembersNoEntries(Function<String, DomainRoleMembers> jdbcFunc) throws Exception {
         Mockito.when(mockResultSet.getInt(1))
                 .thenReturn(3); // domain id
 
@@ -7656,15 +7709,13 @@ public class JDBCConnectionTest {
                 .thenReturn(true) // get domain id
                 .thenReturn(false);
 
-        DomainRoleMembers domainRoleMembers = jdbcConn.listDomainRoleMembers("athenz");
+        DomainRoleMembers domainRoleMembers = jdbcFunc.apply("athenz");
         assertNull(domainRoleMembers.getMembers());
 
         // get domain id
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "athenz");
         // get role list
         Mockito.verify(mockPrepStmt, times(1)).setInt(1, 3);
-
-        jdbcConn.close();
     }
 
     @Test
