@@ -154,7 +154,7 @@ public class ZMSImplTest {
 
         System.setProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
                 "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory");
-        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/zms_private.pem");
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zms_private.pem");
         System.setProperty(ZMS_PROP_PUBLIC_KEY, "src/test/resources/zms_public.pem");
         System.setProperty(ZMSConsts.ZMS_PROP_DOMAIN_ADMIN, "user.testadminuser");
         System.setProperty(ZMSConsts.ZMS_PROP_AUTHZ_SERVICE_FNAME,
@@ -286,10 +286,10 @@ public class ZMSImplTest {
         path = Paths.get("./src/test/resources/zms_public_k2.pem");
         pubKeyK2 = Crypto.ybase64(new String(Files.readAllBytes(path)).getBytes());
 
-        path = Paths.get("./src/test/resources/zms_private_k1.pem");
+        path = Paths.get("./src/test/resources/unit_test_zms_private_k1.pem");
         privKeyK1 = Crypto.ybase64(new String(Files.readAllBytes(path)).getBytes());
  
-        path = Paths.get("./src/test/resources/zms_private_k2.pem");
+        path = Paths.get("./src/test/resources/unit_test_zms_private_k2.pem");
         privKeyK2 = Crypto.ybase64(new String(Files.readAllBytes(path)).getBytes());
 
         zms = zmsInit();
@@ -18049,7 +18049,7 @@ public class ZMSImplTest {
 
         // first we try with ec private key only
 
-        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_EC_KEY, "src/test/resources/zms_private.pem");
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_EC_KEY, "src/test/resources/unit_test_zms_private.pem");
         System.clearProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_RSA_KEY);
         System.clearProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY);
 
@@ -18060,7 +18060,7 @@ public class ZMSImplTest {
 
         // now let's try the rsa key
 
-        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_RSA_KEY, "src/test/resources/zms_private.pem");
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_RSA_KEY, "src/test/resources/unit_test_zms_private.pem");
         System.clearProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_EC_KEY);
         System.clearProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY);
 
@@ -18071,7 +18071,7 @@ public class ZMSImplTest {
 
         // now back to our regular key setup
 
-        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/zms_private.pem");
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zms_private.pem");
         System.clearProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_EC_KEY);
         System.clearProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_RSA_KEY);
 

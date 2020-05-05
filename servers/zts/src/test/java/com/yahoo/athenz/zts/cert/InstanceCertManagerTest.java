@@ -100,7 +100,7 @@ public class InstanceCertManagerTest {
         System.setProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_FACTORY_CLASS,
                 "com.yahoo.athenz.zts.cert.impl.SelfCertSignerFactory");
         System.setProperty(ZTSConsts.ZTS_PROP_SELF_SIGNER_PRIVATE_KEY_FNAME,
-                "src/test/resources/private_encrypted.key");
+                "src/test/resources/unit_test_private_encrypted.key");
         System.setProperty(ZTSConsts.ZTS_PROP_SELF_SIGNER_PRIVATE_KEY_PASSWORD, "athenz");
 
         InstanceCertManager instanceManager = new InstanceCertManager(null, null, null, false);
@@ -126,7 +126,7 @@ public class InstanceCertManagerTest {
         System.setProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_FACTORY_CLASS,
                 "com.yahoo.athenz.zts.cert.impl.SelfCertSignerFactory");
         System.setProperty(ZTSConsts.ZTS_PROP_SELF_SIGNER_PRIVATE_KEY_FNAME,
-                "src/test/resources/private_encrypted.key");
+                "src/test/resources/unit_test_private_encrypted.key");
         System.setProperty(ZTSConsts.ZTS_PROP_SELF_SIGNER_PRIVATE_KEY_PASSWORD, "athenz");
 
         InstanceCertManager instanceManager = new InstanceCertManager(null, null, null, false);

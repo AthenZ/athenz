@@ -2505,7 +2505,7 @@ public class ZTSClientTest {
     @Test
     public void testGenerateRoleCertificateRequest() {
 
-        File privkey = new File("./src/test/resources/test_private_k0.pem");
+        File privkey = new File("./src/test/resources/unit_test_private_k0.pem");
         PrivateKey privateKey = Crypto.loadPrivateKey(privkey);
 
         RoleCertificateRequest req = ZTSClient.generateRoleCertificateRequest("coretech",
@@ -2520,7 +2520,7 @@ public class ZTSClientTest {
     @Test
     public void testGenerateInstanceRefreshRequestTopDomain() {
 
-        File privkey = new File("./src/test/resources/test_private_k0.pem");
+        File privkey = new File("./src/test/resources/unit_test_private_k0.pem");
         PrivateKey privateKey = Crypto.loadPrivateKey(privkey);
 
         InstanceRefreshRequest req = ZTSClient.generateInstanceRefreshRequest("coretech",
@@ -2535,7 +2535,7 @@ public class ZTSClientTest {
     @Test
     public void testGenerateInstanceRefreshRequestSubDomain() {
 
-        File privkey = new File("./src/test/resources/test_private_k0.pem");
+        File privkey = new File("./src/test/resources/unit_test_private_k0.pem");
         PrivateKey privateKey = Crypto.loadPrivateKey(privkey);
 
         InstanceRefreshRequest req = ZTSClient.generateInstanceRefreshRequest("coretech.system",

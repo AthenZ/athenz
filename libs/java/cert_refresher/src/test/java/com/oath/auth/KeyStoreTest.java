@@ -47,7 +47,7 @@ public class KeyStoreTest {
 
     @Test
     public void testCreateKeyStore() throws Exception {
-        KeyStore keyStore = Utils.createKeyStore("rsa_public_x509.cert", "rsa_private.key");
+        KeyStore keyStore = Utils.createKeyStore("rsa_public_x509.cert", "unit_test_rsa_private.key");
         assertNotNull(keyStore);
         String alias = null;
         for (Enumeration<?> e = keyStore.aliases(); e.hasMoreElements(); ) {
@@ -61,7 +61,7 @@ public class KeyStoreTest {
 
     @Test
     public void testCreateKeyStoreChain() throws Exception {
-        KeyStore keyStore = Utils.createKeyStore("rsa_public_x510_w_intermediate.cert", "rsa_private.key");
+        KeyStore keyStore = Utils.createKeyStore("rsa_public_x510_w_intermediate.cert", "unit_test_rsa_private.key");
         assertNotNull(keyStore);
         String alias = null;
         for (Enumeration<?> e = keyStore.aliases(); e.hasMoreElements(); ) {
@@ -79,7 +79,7 @@ public class KeyStoreTest {
         String athenzPublicCertPem = Resources.toString(
                 Resources.getResource("rsa_public_x510_w_intermediate.cert"), StandardCharsets.UTF_8);
         String athenzPrivateKeyPem = Resources.toString(
-                Resources.getResource("rsa_private.key"), StandardCharsets.UTF_8);
+                Resources.getResource("unit_test_rsa_private.key"), StandardCharsets.UTF_8);
         KeyStore keyStore = Utils.createKeyStoreFromPems(athenzPublicCertPem, athenzPrivateKeyPem);
         assertNotNull(keyStore);
         String alias = null;
@@ -95,6 +95,6 @@ public class KeyStoreTest {
 
     @Test(expected = KeyRefresherException.class)
     public void testCreateKeyStoreEmpty() throws Exception {
-        Utils.createKeyStore("rsa_public_x510_empty.cert", "rsa_private.key");
+        Utils.createKeyStore("rsa_public_x510_empty.cert", "unit_test_rsa_private.key");
     }
 }

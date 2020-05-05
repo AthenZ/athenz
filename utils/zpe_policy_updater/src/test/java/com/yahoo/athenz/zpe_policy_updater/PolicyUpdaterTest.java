@@ -127,8 +127,8 @@ public class PolicyUpdaterTest {
         PolicyUpdaterConfiguration configuration = new PolicyUpdaterConfiguration();
         configuration.init(pathToAthenzConfigFile, pathToZPUConfigFile);
         
-        SignPoliciesUtility.signPolicies("./src/test/resources/zts_private_k0.pem", 
-                "./src/test/resources/zms_private_k0.pem", "./src/test/resources/sys.auth.pol",
+        SignPoliciesUtility.signPolicies("./src/test/resources/unit_test_zts_private_k0.pem",
+                "./src/test/resources/unit_test_zms_private_k0.pem", "./src/test/resources/sys.auth.pol",
                 "./src/test/resources/sys.auth.new.pol");
         
         Path path = Paths.get("./src/test/resources/sys.auth.new.pol");
@@ -278,8 +278,8 @@ public class PolicyUpdaterTest {
 
     @Test
     public void TestGetEtagForExistingPolicy() throws Exception, IOException {
-        String expectedEtag = SignPoliciesUtility.signPolicies("./src/test/resources/zts_private_k0.pem", 
-                    "./src/test/resources/zms_private_k0.pem", "./src/test/resources/sys.auth.pol",
+        String expectedEtag = SignPoliciesUtility.signPolicies("./src/test/resources/unit_test_zts_private_k0.pem",
+                    "./src/test/resources/unit_test_zms_private_k0.pem", "./src/test/resources/sys.auth.pol",
                     "./src/test/resources/sys.auth.new.pol");
 
         Map<String, String> newenv = new HashMap<String, String>();

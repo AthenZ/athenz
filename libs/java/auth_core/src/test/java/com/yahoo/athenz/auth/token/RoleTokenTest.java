@@ -51,10 +51,10 @@ public class RoleTokenTest {
         path = Paths.get("./src/test/resources/zts_public_k1.key");
         ztsPublicKeyStringK1 = new String(Files.readAllBytes(path));
 
-        path = Paths.get("./src/test/resources/zts_private_k0.key");
+        path = Paths.get("./src/test/resources/unit_test_zts_private_k0.key");
         ztsPrivateKeyStringK0 = new String(Files.readAllBytes(path));
         
-        path = Paths.get("./src/test/resources/zts_private_k1.key");
+        path = Paths.get("./src/test/resources/unit_test_zts_private_k1.key");
         ztsPrivateKeyStringK1 = new String(Files.readAllBytes(path));
     }
     

@@ -28,7 +28,7 @@ public class SelfCertSignerTest {
     @BeforeClass
     public void setup() {
         System.setProperty(ZTSConsts.ZTS_PROP_SELF_SIGNER_PRIVATE_KEY_FNAME,
-                "src/test/resources/private_encrypted.key");
+                "src/test/resources/unit_test_private_encrypted.key");
         System.setProperty(ZTSConsts.ZTS_PROP_SELF_SIGNER_PRIVATE_KEY_PASSWORD, "athenz");
     }
 

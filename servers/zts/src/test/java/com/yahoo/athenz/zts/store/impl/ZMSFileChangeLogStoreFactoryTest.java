@@ -33,7 +33,7 @@ public class ZMSFileChangeLogStoreFactoryTest {
     @Test
     public void testCreateStore() {
         
-        File privKeyFile = new File("src/test/resources/zts_private.pem");
+        File privKeyFile = new File("src/test/resources/unit_test_zts_private.pem");
         String privKey = Crypto.encodedFile(privKeyFile);
         PrivateKey pkey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
         

@@ -39,7 +39,7 @@ import static org.testng.Assert.*;
 
 public class AccessTokenTest {
 
-    private final File ecPrivateKey = new File("./src/test/resources/ec_private.key");
+    private final File ecPrivateKey = new File("./src/test/resources/unit_test_ec_private.key");
     private final File ecPublicKey = new File("./src/test/resources/ec_public.key");
 
     private final String JWT_KEYS = "{\"keys\":[{\"kty\":\"RSA\",\"kid\":\"0\",\"alg\":\"RS256\","

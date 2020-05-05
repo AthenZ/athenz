@@ -106,7 +106,7 @@ public class KeyRefresherTest {
         }};
 
         String certFile = classLoader.getResource("gdpr.aws.core.cert.pem").getFile();
-        String keyFile = classLoader.getResource("gdpr.aws.core.key.pem").getFile();
+        String keyFile = classLoader.getResource("unit_test_gdpr.aws.core.key.pem").getFile();
 
         KeyRefresher keyRefresher = new KeyRefresher(certFile, keyFile, mockedTrustStore, mockedKeyManagerProxy, mockedTrustManagerProxy) {
             @Override
@@ -133,7 +133,7 @@ public class KeyRefresherTest {
         }};
 
         String certFile = classLoader.getResource("gdpr.aws.core.cert.pem").getFile();
-        String keyFile = classLoader.getResource("gdpr.aws.core.key.pem").getFile();
+        String keyFile = classLoader.getResource("unit_test_gdpr.aws.core.key.pem").getFile();
 
         KeyRefresher keyRefresher = new KeyRefresher(certFile, keyFile,
             mockedTrustStore, mockedKeyManagerProxy, mockedTrustManagerProxy, listener) {
@@ -153,11 +153,11 @@ public class KeyRefresherTest {
     public void testGenerateKeyRefresherFromCaCert() throws Exception {
         
         KeyRefresher keyRefresher = Utils.generateKeyRefresher("ca.cert.pem", "gdpr.aws.core.cert.pem",
-                "gdpr.aws.core.key.pem");
+                "unit_test_gdpr.aws.core.key.pem");
         assertNotNull(keyRefresher);
         
         keyRefresher = Utils.generateKeyRefresherFromCaCert("ca.cert.pem", "gdpr.aws.core.cert.pem",
-                "gdpr.aws.core.key.pem");
+                "unit_test_gdpr.aws.core.key.pem");
         keyRefresher.startup();
         Thread.sleep(500);
         assertNotNull(keyRefresher);

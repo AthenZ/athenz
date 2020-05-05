@@ -29,7 +29,7 @@ public class ServerPrivateKeyTest {
     @Test
     public void testServerPrivateKeyRSA() {
 
-        final File rsaPrivateKey = new File("./src/test/resources/rsa_private.key");
+        final File rsaPrivateKey = new File("./src/test/resources/unit_test_rsa_private.key");
         PrivateKey privateKey = Crypto.loadPrivateKey(rsaPrivateKey);
 
         ServerPrivateKey key = new ServerPrivateKey(privateKey, "zms.1");
@@ -41,7 +41,7 @@ public class ServerPrivateKeyTest {
     @Test
     public void testServerPrivateKeyEC() {
 
-        final File rsaPrivateKey = new File("./src/test/resources/ec_private.key");
+        final File rsaPrivateKey = new File("./src/test/resources/unit_test_ec_private.key");
         PrivateKey privateKey = Crypto.loadPrivateKey(rsaPrivateKey);
 
         ServerPrivateKey key = new ServerPrivateKey(privateKey, "zms.2");
