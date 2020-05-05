@@ -32,7 +32,7 @@ import static org.testng.Assert.assertEquals;
 
 public class IdTokenTest {
 
-    private final File ecPrivateKey = new File("./src/test/resources/ec_private.key");
+    private final File ecPrivateKey = new File("./src/test/resources/unit_test_ec_private.key");
     private final File ecPublicKey = new File("./src/test/resources/ec_public.key");
 
     IdToken createIdToken(long now) {

@@ -44,7 +44,7 @@ public class InstanceZTSProviderTest {
         Path path = Paths.get("./src/test/resources/public_k0.key");
         servicePublicKeyStringK0 = new String(Files.readAllBytes(path));
 
-        path = Paths.get("./src/test/resources/private_k0.key");
+        path = Paths.get("./src/test/resources/unit_test_private_k0.key");
         servicePrivateKeyStringK0 = new String(Files.readAllBytes(path));
     }
 

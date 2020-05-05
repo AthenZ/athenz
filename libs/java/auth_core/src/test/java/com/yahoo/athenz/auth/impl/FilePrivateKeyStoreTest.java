@@ -42,7 +42,7 @@ public class FilePrivateKeyStoreTest {
         
         String saveProp = System.getProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY);
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY,
-                "src/test/resources/zts_private_k0.key");
+                "src/test/resources/unit_test_zts_private_k0.key");
 
         StringBuilder keyId = new StringBuilder(256);
         PrivateKey privKey = store.getPrivateKey("zms", "localhost", keyId);
@@ -63,7 +63,7 @@ public class FilePrivateKeyStoreTest {
 
         String saveProp = System.getProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_RSA_KEY);
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_RSA_KEY,
-                "src/test/resources/zts_private_k0.key");
+                "src/test/resources/unit_test_zts_private_k0.key");
 
         ServerPrivateKey privKey = store.getPrivateKey("zms", "localhost", "us-east-1", "rsa");
         assertNotNull(privKey);
@@ -83,7 +83,7 @@ public class FilePrivateKeyStoreTest {
 
         String saveProp = System.getProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_EC_KEY);
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_EC_KEY,
-                "src/test/resources/ec_private.key");
+                "src/test/resources/unit_test_ec_private.key");
 
         ServerPrivateKey privKey = store.getPrivateKey("zms", "localhost", "us-east-1", "ec");
         assertNotNull(privKey);

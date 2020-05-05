@@ -20,7 +20,7 @@ var AuthZPEClient = require('../../src/AuthZPEClient');
 var RoleToken = require('@athenz/auth-core').RoleToken;
 var YBase64 = require('@athenz/auth-core').YBase64;
 
-var privateKeyK0 = Buffer.from(fs.readFileSync(process.cwd() + '/test/resources/private_k0.pem', 'utf8'));
+var privateKeyK0 = Buffer.from(fs.readFileSync(process.cwd() + '/test/resources/unit_test_private_k0.pem', 'utf8'));
 var policyDir = process.cwd() + '/test/resources/pol';
 var confFileName = process.cwd() + '/test/resources/athenz.conf';
 

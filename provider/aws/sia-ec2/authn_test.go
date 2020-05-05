@@ -223,8 +223,8 @@ func TestRefreshInstance(test *testing.T) {
 	certFile := fmt.Sprintf("%s/athenz.hockey.cert.pem", siaDir)
 	caCertFile := fmt.Sprintf("%s/ca.cert.pem", siaDir)
 
-	err = copyFile("devel/data/key.pem", keyFile)
-	require.Nil(test, err, fmt.Sprintf("unable to copy file: %q to %q, error: %v", "devel/data/key.pem", keyFile, err))
+	err = copyFile("devel/data/unit_test_key.pem", keyFile)
+	require.Nil(test, err, fmt.Sprintf("unable to copy file: %q to %q, error: %v", "devel/data/unit_test_key.pem", keyFile, err))
 
 	err = copyFile("devel/data/cert.pem", certFile)
 	require.Nil(test, err, fmt.Sprintf("unable to copy file: %q to %q, error: %v", "devel/data/cert.pem", certFile, err))
@@ -275,8 +275,8 @@ func TestRoleCertificateRequest(test *testing.T) {
 	caCertFile := fmt.Sprintf("%s/ca.cert.pem", siaDir)
 	roleCertFile := fmt.Sprintf("%s/testrole.cert.pem", siaDir)
 
-	err = copyFile("devel/data/key.pem", keyFile)
-	require.Nil(test, err, fmt.Sprintf("unable to copy file: %q to %q, error: %v", "devel/data/key.pem", keyFile, err))
+	err = copyFile("devel/data/unit_test_key.pem", keyFile)
+	require.Nil(test, err, fmt.Sprintf("unable to copy file: %q to %q, error: %v", "devel/data/unit_test_key.pem", keyFile, err))
 
 	err = copyFile("devel/data/cert.pem", certFile)
 	require.Nil(test, err, fmt.Sprintf("unable to copy file: %q to %q, error: %v", "devel/data/cert.pem", certFile, err))

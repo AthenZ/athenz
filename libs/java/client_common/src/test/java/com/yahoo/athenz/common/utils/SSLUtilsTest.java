@@ -45,9 +45,9 @@ import static org.testng.Assert.*;
 
 /**
  * ca.pkcs12 was generate with the following commands:
- * openssl genrsa -out ca.key 2048
- * openssl req -x509 -new -nodes -key ca.key -sha256 -days 1024 -out ca.pem
- * openssl pkcs12 -export -out ca.pkcs12 -in ca.pem -inkey ca.key
+ * openssl genrsa -out unit_test_ca.key 2048
+ * openssl req -x509 -new -nodes -key unit_test_ca.key -sha256 -days 1024 -out ca.pem
+ * openssl pkcs12 -export -out ca.pkcs12 -in ca.pem -inkey unit_test_ca.key
  *
  * keytool -list -v -keystore ca/ca.pkcs12 
  *
@@ -60,7 +60,7 @@ import static org.testng.Assert.*;
  *
  * openssl genrsa -out server.key 2048
  * openssl req -new -key server.key -out server.csr
- * openss x509 -req -in server.csr -CA ca.pem -CAkey ca.key -CAcreateserial -out server.pem -days 1024 -sha256
+ * openss x509 -req -in server.csr -CA ca.pem -CAkey unit_test_ca.key -CAcreateserial -out server.pem -days 1024 -sha256
  * openssl pkcs12 -export -out server.pkcs12 -in server.pem -inkey server.key
  *
  * keytool -list -v -keystore server/server.pkcs12
@@ -73,7 +73,7 @@ import static org.testng.Assert.*;
  *
  * openssl genrsa -out client.key 2048
  * openssl req -new -key client.key -out client.csr
- * openssl x509 -req -in client.csr -CA ca.pem -CAkey ca.key -CAcreateserial -out client.pem -days 1024 -sha256
+ * openssl x509 -req -in client.csr -CA ca.pem -CAkey unit_test_ca.key -CAcreateserial -out client.pem -days 1024 -sha256
  * openssl pkcs12 -export -out client.pkcs12 -in client.pem -inkey client.key
  *
  * keytool -list -v -keystore client/client.pkcs12

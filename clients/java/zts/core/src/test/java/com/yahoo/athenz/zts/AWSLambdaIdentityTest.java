@@ -36,7 +36,7 @@ public class AWSLambdaIdentityTest {
         assertNull(identity.getPrivateKey());
         assertNull(identity.getX509Certificate());
         
-        File privkey = new File("./src/test/resources/test_private_k0.pem");
+        File privkey = new File("./src/test/resources/unit_test_private_k0.pem");
         PrivateKey privateKey = Crypto.loadPrivateKey(privkey);
         identity.setPrivateKey(privateKey);
         assertNotNull(identity.getPrivateKey());

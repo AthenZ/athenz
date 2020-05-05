@@ -54,13 +54,13 @@ public class ZTSMock extends ZTSRDLGeneratedClient {
     }
 
     private void loadKeys() throws IOException {
-        Path path = Paths.get("./src/test/resources/zts_private_k0.pem");
+        Path path = Paths.get("./src/test/resources/unit_test_zts_private_k0.pem");
         ztsPrivateKeyK0 = Crypto.loadPrivateKey(new String(Files.readAllBytes(path)));
 
-        path = Paths.get("./src/test/resources/zts_private_k1.pem");
+        path = Paths.get("./src/test/resources/unit_test_zts_private_k1.pem");
         ztsPrivateKeyK1 = Crypto.loadPrivateKey(new String(Files.readAllBytes(path)));
 
-        path = Paths.get("./src/test/resources/zms_private_k0.pem");
+        path = Paths.get("./src/test/resources/unit_test_zms_private_k0.pem");
         zmsPrivateKeyK0 = Crypto.loadPrivateKey(new String(Files.readAllBytes(path)));
     }
 

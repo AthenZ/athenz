@@ -23,7 +23,6 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.message.BasicNameValuePair;
@@ -56,7 +55,7 @@ public class HttpDriverTest {
     public void testDriverInit() throws IOException {
         String caCertFile = classLoader.getResource("driver.truststore.jks").getFile();
         String certFile = classLoader.getResource("driver.cert.pem").getFile();
-        String keyFile = classLoader.getResource("driver.key.pem").getFile();
+        String keyFile = classLoader.getResource("unit_test_driver.key.pem").getFile();
 
         // NOTE: the jks, cert, key are copied from cert refresher test resources
         // the jks had 123456 as the password

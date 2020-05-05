@@ -44,7 +44,7 @@ public class ZTSTest {
         System.setProperty(ZTSConsts.ZTS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
                 "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory");
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY,
-                "src/test/resources/zts_private.pem");
+                "src/test/resources/unit_test_zts_private.pem");
 
         ZTSBinder binder = new ZTSBinder();
         binder.configure();

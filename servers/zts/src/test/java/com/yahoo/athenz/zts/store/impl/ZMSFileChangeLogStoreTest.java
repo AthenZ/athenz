@@ -361,7 +361,7 @@ public class ZMSFileChangeLogStoreTest {
     @Test
     public void testGetZMSClient() {
 
-        File privKeyFile = new File("src/test/resources/zts_private.pem");
+        File privKeyFile = new File("src/test/resources/unit_test_zts_private.pem");
         final String privKey = Crypto.encodedFile(privKeyFile);
         PrivateKey privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
         ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, privateKey, "0");

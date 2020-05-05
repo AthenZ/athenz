@@ -22,8 +22,8 @@ var sinon = require('sinon');
 var expect = require('chai').expect;
 var sandbox;
 
-var privateKeyK0 = Buffer.from(fs.readFileSync(process.cwd() + '/test/resources/private_k0.pem', 'utf8'));
-var privateKeyK1 = Buffer.from(fs.readFileSync(process.cwd() + '/test/resources/private_k1.pem', 'utf8'));
+var privateKeyK0 = Buffer.from(fs.readFileSync(process.cwd() + '/test/resources/unit_test_private_k0.pem', 'utf8'));
+var privateKeyK1 = Buffer.from(fs.readFileSync(process.cwd() + '/test/resources/unit_test_private_k1.pem', 'utf8'));
 
 var keyStore = require('../../config/KeyStore');
 

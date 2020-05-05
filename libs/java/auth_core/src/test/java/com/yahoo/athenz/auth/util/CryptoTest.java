@@ -43,25 +43,25 @@ import org.testng.annotations.Test;
 
 public class CryptoTest {
 
-    private final File rsaPrivateKey = new File("./src/test/resources/rsa_private.key");
+    private final File rsaPrivateKey = new File("./src/test/resources/unit_test_rsa_private.key");
     private final File rsaPublicKey = new File("./src/test/resources/rsa_public.key");
     private final File rsaPublicX590Cert = new File("./src/test/resources/rsa_public_x509.cert");
     private final File rsaPublicInvalidKey = new File("./src/test/resources/rsa_public_invalid.key");
 
-    private final File ecPrivateKey = new File("./src/test/resources/ec_private.key");
+    private final File ecPrivateKey = new File("./src/test/resources/unit_test_ec_private.key");
     private final File ecPublicKey = new File("./src/test/resources/ec_public.key");
     private final File ecPublicX509Cert = new File("./src/test/resources/ec_public_x509.cert");
     private final File ecPublicInvalidKey = new File("./src/test/resources/ec_public_invalid.key");
-    private final File ecPrivateParamPrime256v1Key = new File("./src/test/resources/ec_private_param_prime256v1.key");
+    private final File ecPrivateParamPrime256v1Key = new File("./src/test/resources/unit_test_ec_private_param_prime256v1.key");
     private final File ecPublicParamPrime256v1Key = new File("./src/test/resources/ec_public_param_prime256v1.key");
-    private final File ecPrivateParamSecp384r1Key = new File("./src/test/resources/ec_private_param_secp384r1.key");
+    private final File ecPrivateParamSecp384r1Key = new File("./src/test/resources/unit_test_ec_private_param_secp384r1.key");
     private final File ecPublicParamSecp384r1Key = new File("./src/test/resources/ec_public_param_secp384r1.key");
-    private final File ecPrivateParamsKey = new File("./src/test/resources/ec_private_params.key");
+    private final File ecPrivateParamsKey = new File("./src/test/resources/unit_test_ec_private_params.key");
     private final File ecPublicParamsKey = new File("./src/test/resources/ec_public_params.key");
     private final File argFile = new File("./src/test/resources/arg_file");
     private final File noFile = new File("./src/test/resources/ec_private_test_not_exist.key");
 
-    private final File privateEncryptedKey = new File("./src/test/resources/private_encrypted.key");
+    private final File privateEncryptedKey = new File("./src/test/resources/unit_test_private_encrypted.key");
     private final String encryptedKeyPassword = "athenz";
 
     private final String serviceToken = "v=S1;d=coretech;n=storage;t=1234567000;e=123456800;h=localhost";
@@ -958,7 +958,7 @@ public class CryptoTest {
 
     @Test
     public void testLoadPrivateKeyPem() throws IOException {
-        Path path = Paths.get("./src/test/resources/private_encrypted.key");
+        Path path = Paths.get("./src/test/resources/unit_test_private_encrypted.key");
         String keyStr = new String(Files.readAllBytes(path));
         assertThrows(CryptoException.class, () -> {
 

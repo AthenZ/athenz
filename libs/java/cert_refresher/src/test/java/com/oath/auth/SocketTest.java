@@ -58,7 +58,7 @@ public class SocketTest {
                 classLoader.getResource("truststore.jks").getPath(), //trust store
                 "123456".toCharArray(),
                 classLoader.getResource("gdpr.aws.core.cert.pem").getPath(), //public
-                classLoader.getResource("gdpr.aws.core.key.pem").getPath() //private
+                classLoader.getResource("unit_test_gdpr.aws.core.key.pem").getPath() //private
         );
 
         try {
@@ -136,7 +136,7 @@ public class SocketTest {
         ClassLoader classLoader = this.getClass().getClassLoader();
         keyRefresher.getKeyManagerProxy().setKeyManager(Utils.getKeyManagers(
                 classLoader.getResource("gdpr.aws.core.cert.pem").getPath(),
-                classLoader.getResource("gdpr.aws.core.key.pem").getPath()));
+                classLoader.getResource("unit_test_gdpr.aws.core.key.pem").getPath()));
 
         //setup socket for the second call
         SSLContext sslContext2 = SSLContext.getInstance("TLSv1.2");
