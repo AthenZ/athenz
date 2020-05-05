@@ -1617,7 +1617,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                         membership.setExpiration(Timestamp.fromMillis(expiry.getTime()));
                     }
                     java.sql.Timestamp reviewReminder = rs.getTimestamp(ZMSConsts.DB_COLUMN_REVIEW_REMINDER);
-                    if (expiry != null) {
+                    if (reviewReminder != null) {
                         membership.setReviewReminder(Timestamp.fromMillis(reviewReminder.getTime()));
                     }
                     membership.setRequestPrincipal(rs.getString(ZMSConsts.DB_COLUMN_REQ_PRINCIPAL));
