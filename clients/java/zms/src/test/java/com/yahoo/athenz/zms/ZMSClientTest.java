@@ -1768,6 +1768,36 @@ public class ZMSClientTest {
     }
 
     @Test
+    public void testGetOverdueReview() {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        DomainRoleMembers domainMembersMock1 = Mockito.mock(DomainRoleMembers.class);
+        Mockito.when(c.getOverdueReview("testDomain1")).thenReturn(domainMembersMock1);
+
+        // Make sure exception isn't thrown
+        client.getOverdueReview("testDomain1");
+
+        // Now make sure a resource exception is thrown
+        try {
+            Mockito.when(c.getOverdueReview("testDomain2")).thenThrow(new ResourceException(204));
+            client.getOverdueReview("testDomain2");
+            fail();
+        } catch  (ResourceException ex) {
+            assertTrue(true);
+        }
+
+        // Now make sure a resource exception is thrown on NullPointerException
+        try {
+            Mockito.when(c.getOverdueReview("testDomain3")).thenThrow(new NullPointerException());
+            client.getOverdueReview("testDomain3");
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(true);
+        }
+    }
+
+    @Test
     public void testGetPolicyList() {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
