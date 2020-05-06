@@ -964,6 +964,23 @@ public class ZMSClient implements Closeable {
     }
 
     /**
+     * Get all domain members with overdue review dates
+     *
+     * @param domainName
+     * @return Domain members with overdue review dates
+     */
+    public DomainRoleMembers getOverdueReview(String domainName) {
+        updatePrincipal();
+        try {
+            return client.getOverdueReview(domainName);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
      * Add a new member in the specified role.
      *
      * @param domainName name of the domain
