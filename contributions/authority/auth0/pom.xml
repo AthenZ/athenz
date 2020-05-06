@@ -28,7 +28,7 @@
   <description>Athenz Yahoo Server OAuth2 access token implementation for Auth0</description>
 
   <properties>
-    <athenz.version>1.8.60</athenz.version>
+    <athenz.version>1.9.1</athenz.version>
     <jjwt.version>0.11.0</jjwt.version>
     <testng.version>7.1.0</testng.version>
     <mockito.version>3.2.4</mockito.version>
@@ -73,6 +73,18 @@
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
       <version>${mockito.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.7.5</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <version>1.6.4</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

@@ -37,6 +37,7 @@ public class Auth0JwtParserFactoryTest {
     public void testAuth0JwtParserFactory() throws OAuthJwtAccessTokenException {
         OAuthJwtAccessTokenParser parser = null;
         Auth0JwtParserFactory factory = new Auth0JwtParserFactory();
+        System.setProperty("athenz.auth.oauth.jwt.parser.jwks_url", "https://athenz-oauth-example.auth0.com/.well-known/jwks.json");
 
         // check internal
         assertThrows(IllegalArgumentException.class, () -> factory.create(null));
@@ -46,11 +47,11 @@ public class Auth0JwtParserFactoryTest {
         assertNotNull(parser);
 
         String claimClientIdCache = Auth0Jwt.getClaimClientId();
-        // default
+        // default client ID claim
         System.clearProperty("athenz.auth.oauth.jwt.parser.auth0.claim_client_id");
         parser = factory.create(baseKeyStore);
         assertEquals(Auth0Jwt.getClaimClientId(), "https://myapp.example.com/client_id");
-        // custom
+        // custom client ID claim
         System.setProperty("athenz.auth.oauth.jwt.parser.auth0.claim_client_id", "https://Auth0JwtParserFactory.test/client_id");
         parser = factory.create(baseKeyStore);
         System.clearProperty("athenz.auth.oauth.jwt.parser.auth0.claim_client_id");
@@ -58,11 +59,11 @@ public class Auth0JwtParserFactoryTest {
         Auth0Jwt.setClaimClientId(claimClientIdCache); // restore
 
         String claimConfirmCache = Auth0Jwt.getClaimConfirm();
-        // default
+        // default cnf claim
         System.clearProperty("athenz.auth.oauth.jwt.parser.auth0.claim_confirm");
         parser = factory.create(baseKeyStore);
         assertEquals(Auth0Jwt.getClaimConfirm(), "https://myapp.example.com/cnf");
-        // custom
+        // custom cnf claim
         System.setProperty("athenz.auth.oauth.jwt.parser.auth0.claim_confirm", "https://Auth0JwtParserFactory.test/cnf");
         parser = factory.create(baseKeyStore);
         System.clearProperty("athenz.auth.oauth.jwt.parser.auth0.claim_confirm");
@@ -70,11 +71,11 @@ public class Auth0JwtParserFactoryTest {
         Auth0Jwt.setClaimConfirm(claimConfirmCache); // restore
 
         String userDomainCache = Auth0Jwt.getUserDomain();
-        // default
+        // default user domain
         System.clearProperty("athenz.user_domain");
         parser = factory.create(baseKeyStore);
         assertEquals(Auth0Jwt.getUserDomain(), "user");
-        // custom
+        // custom user domain
         System.setProperty("athenz.user_domain", "test_user");
         parser = factory.create(baseKeyStore);
         System.clearProperty("athenz.user_domain");

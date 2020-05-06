@@ -34,7 +34,7 @@ public class Auth0JwtParserFactory extends DefaultOAuthJwtAccessTokenParserFacto
         Auth0Jwt.setClaimConfirm(GET_PROPERTY.apply(CLAIM_CONFIRM, Auth0Jwt.getClaimConfirm()));
         Auth0Jwt.setUserDomain(System.getProperty(AuthorityConsts.ATHENZ_PROP_USER_DOMAIN, Auth0Jwt.getUserDomain()));
 
-        String jwksUrl = GET_PROPERTY.apply(JWKS_URL, "https://athenz.io/jwks.json");
+        String jwksUrl = GET_PROPERTY.apply(JWKS_URL, "https://athenz.io/.well-known/jwks.json");
         return new Auth0JwtParser(keyStore, jwksUrl);
     }
 
