@@ -36,9 +36,8 @@ cd `git rev-parse --show-toplevel`/docker
 # it takes about 15-30 mins
 make build
 
-# TODO: update the min. version before merge
-# P.S. the latest code may cause docker build to fail, please use older version by specifying the tag version (> v1.8.60) or post an issue
-# make build TAG=v1.8.60
+# P.S. the latest code may cause docker build to fail, please use older version by specifying the tag version (> v1.9.2) or post an issue
+# make build TAG=v1.9.2
 ```
 
 <a id="markdown-deploy-athenz" name="deploy-athenz"></a>
