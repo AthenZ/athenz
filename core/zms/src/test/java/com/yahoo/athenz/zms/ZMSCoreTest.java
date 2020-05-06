@@ -131,7 +131,9 @@ public class ZMSCoreTest {
                 .setSignAlgorithm("ec")
                 .setReviewEnabled(false)
                 .setNotifyRoles("role1,domain:role.role2")
-                .setLastReviewedDate(Timestamp.fromMillis(123456789123L));
+                .setLastReviewedDate(Timestamp.fromMillis(123456789123L))
+                .setUserAuthorityExpiration("attr1")
+                .setUserAuthorityFilter("attr2,attr3");
 
         Result result = validator.validate(r, "Role");
         assertTrue(result.valid);
@@ -152,6 +154,8 @@ public class ZMSCoreTest {
         assertFalse(r.getReviewEnabled());
         assertEquals(r.getLastReviewedDate(), Timestamp.fromMillis(123456789123L));
         assertEquals(r.getNotifyRoles(), "role1,domain:role.role2");
+        assertEquals(r.getUserAuthorityExpiration(), "attr1");
+        assertEquals(r.getUserAuthorityFilter(), "attr2,attr3");
 
         Role r2 = new Role()
                 .setName("sys.auth:role.admin")
@@ -169,7 +173,9 @@ public class ZMSCoreTest {
                 .setSignAlgorithm("ec")
                 .setReviewEnabled(false)
                 .setNotifyRoles("role1,domain:role.role2")
-                .setLastReviewedDate(Timestamp.fromMillis(123456789123L));
+                .setLastReviewedDate(Timestamp.fromMillis(123456789123L))
+                .setUserAuthorityExpiration("attr1")
+                .setUserAuthorityFilter("attr2,attr3");
 
         assertTrue(r2.equals(r));
         assertTrue(r.equals(r));
@@ -243,7 +249,21 @@ public class ZMSCoreTest {
         assertFalse(r2.equals(r));
         r2.setSelfServe(false);
         assertTrue(r2.equals(r));
-        
+
+        r2.setUserAuthorityExpiration("attr11");
+        assertFalse(r2.equals(r));
+        r2.setUserAuthorityExpiration(null);
+        assertFalse(r2.equals(r));
+        r2.setUserAuthorityExpiration("attr1");
+        assertTrue(r2.equals(r));
+
+        r2.setUserAuthorityFilter("attr2");
+        assertFalse(r2.equals(r));
+        r2.setUserAuthorityFilter(null);
+        assertFalse(r2.equals(r));
+        r2.setUserAuthorityFilter("attr2,attr3");
+        assertTrue(r2.equals(r));
+
         r2.setAuditLog(null);
         assertFalse(r2.equals(r));
         r2.setTrust(null);
@@ -2751,7 +2771,8 @@ public class ZMSCoreTest {
 
         RoleMeta rm = new RoleMeta().setMemberExpiryDays(30).setSelfServe(false).setTokenExpiryMins(300)
                 .setCertExpiryMins(120).setSignAlgorithm("rsa").setServiceExpiryDays(40)
-                .setNotifyRoles("role1,domain:role.role2").setReviewEnabled(false);
+                .setNotifyRoles("role1,domain:role.role2").setReviewEnabled(false)
+                .setUserAuthorityExpiration("attr1").setUserAuthorityFilter("attr2,attr3");
         assertTrue(rm.equals(rm));
 
         assertFalse(rm.getSelfServe());
@@ -2762,10 +2783,13 @@ public class ZMSCoreTest {
         assertEquals(rm.getSignAlgorithm(), "rsa");
         assertEquals(rm.getNotifyRoles(), "role1,domain:role.role2");
         assertFalse(rm.getReviewEnabled());
+        assertEquals(rm.getUserAuthorityExpiration(), "attr1");
+        assertEquals(rm.getUserAuthorityFilter(), "attr2,attr3");
 
         RoleMeta rm2 = new RoleMeta().setMemberExpiryDays(30).setSelfServe(false).setTokenExpiryMins(300)
                 .setCertExpiryMins(120).setSignAlgorithm("rsa").setServiceExpiryDays(40)
-                .setNotifyRoles("role1,domain:role.role2").setReviewEnabled(false);
+                .setNotifyRoles("role1,domain:role.role2").setReviewEnabled(false)
+                .setUserAuthorityExpiration("attr1").setUserAuthorityFilter("attr2,attr3");
         assertTrue(rm2.equals(rm));
 
         rm2.setNotifyRoles("role1");
@@ -2822,6 +2846,20 @@ public class ZMSCoreTest {
         rm2.setSelfServe(null);
         assertFalse(rm2.equals(rm));
         rm2.setSelfServe(false);
+        assertTrue(rm2.equals(rm));
+
+        rm2.setUserAuthorityExpiration("attr11");
+        assertFalse(rm2.equals(rm));
+        rm2.setUserAuthorityExpiration(null);
+        assertFalse(rm2.equals(rm));
+        rm2.setUserAuthorityExpiration("attr1");
+        assertTrue(rm2.equals(rm));
+
+        rm2.setUserAuthorityFilter("attr2");
+        assertFalse(rm2.equals(rm));
+        rm2.setUserAuthorityFilter(null);
+        assertFalse(rm2.equals(rm));
+        rm2.setUserAuthorityFilter("attr2,attr3");
         assertTrue(rm2.equals(rm));
 
         assertFalse(rm2.equals(null));

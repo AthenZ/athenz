@@ -41,6 +41,8 @@ type RoleMeta Struct {
     Int32 serviceExpiryDays (optional); //all services in the role will have specified max expiry days
     Bool reviewEnabled (optional, default=false); //Flag indicates whether or not role updates require another review and approval
     ResourceNames notifyRoles (optional); //list of roles whose members should be notified for member review/approval
+    AuthorityKeywords userAuthorityFilter (optional); //membership filtered based on user authority configured attributes
+    AuthorityKeyword userAuthorityExpiration (optional); //expiration enforced by a user authority configured attribute
 }
 
 //The representation for a Role with set of members.

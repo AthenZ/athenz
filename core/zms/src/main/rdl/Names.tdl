@@ -59,3 +59,7 @@ type SignedToken String (pattern="[a-zA-Z0-9\\._%=:;,-]*");
 //Role Member name - could be one of three values: *,
 //DomainName.* or ServiceName[*]
 type MemberName String (pattern="\\*|{DomainName}\\.\\*|{ServiceName}(\\*)?");
+
+//A comma separated list of authority keywords
+type AuthorityKeyword String (pattern="{SimpleName}");
+type AuthorityKeywords String (pattern="({AuthorityKeyword},)*{AuthorityKeyword}");
