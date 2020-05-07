@@ -79,10 +79,12 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_GET_ROLE_ID = "SELECT role_id FROM role WHERE domain_id=? AND name=?;";
     private static final String SQL_INSERT_ROLE = "INSERT INTO role (name, domain_id, trust, audit_enabled, self_serve,"
             + " member_expiry_days, token_expiry_mins, cert_expiry_mins, sign_algorithm, service_expiry_days,"
-            + " review_enabled, notify_roles) VALUES (?,?,?,?,?,?,?,?,?,?,?,?);";
+            + " review_enabled, notify_roles, user_authority_filter, user_authority_expiration) "
+            + "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
     private static final String SQL_UPDATE_ROLE = "UPDATE role SET trust=?, audit_enabled=?, self_serve=?, "
             + "member_expiry_days=?, token_expiry_mins=?, cert_expiry_mins=?, sign_algorithm=?, "
-            + "service_expiry_days=?, review_enabled=?, notify_roles=? WHERE role_id=?;";
+            + "service_expiry_days=?, review_enabled=?, notify_roles=?, user_authority_filter=?, "
+            + "user_authority_expiration=? WHERE role_id=?;";
     private static final String SQL_DELETE_ROLE = "DELETE FROM role WHERE domain_id=? AND name=?;";
     private static final String SQL_UPDATE_ROLE_MOD_TIMESTAMP = "UPDATE role "
             + "SET modified=CURRENT_TIMESTAMP(3) WHERE role_id=?;";
@@ -1192,6 +1194,8 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setInt(10, processInsertValue(role.getServiceExpiryDays()));
             ps.setBoolean(11, processInsertValue(role.getReviewEnabled(), false));
             ps.setString(12, processInsertValue(role.getNotifyRoles()));
+            ps.setString(13, processInsertValue(role.getUserAuthorityFilter()));
+            ps.setString(14, processInsertValue(role.getUserAuthorityExpiration()));
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -1231,7 +1235,9 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setInt(8, processInsertValue(role.getServiceExpiryDays()));
             ps.setBoolean(9, processInsertValue(role.getReviewEnabled(), false));
             ps.setString(10, processInsertValue(role.getNotifyRoles()));
-            ps.setInt(11, roleId);
+            ps.setString(11, processInsertValue(role.getUserAuthorityFilter()));
+            ps.setString(12, processInsertValue(role.getUserAuthorityExpiration()));
+            ps.setInt(13, roleId);
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -2871,7 +2877,9 @@ public class JDBCConnection implements ObjectStoreConnection {
                 .setSignAlgorithm(saveValue(rs.getString(ZMSConsts.DB_COLUMN_SIGN_ALGORITHM)))
                 .setServiceExpiryDays(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_SERVICE_EXPIRY_DAYS), 0))
                 .setReviewEnabled(nullIfDefaultValue(rs.getBoolean(ZMSConsts.DB_COLUMN_REVIEW_ENABLED), false))
-                .setNotifyRoles(saveValue(rs.getString(ZMSConsts.DB_COLUMN_NOTIFY_ROLES)));
+                .setNotifyRoles(saveValue(rs.getString(ZMSConsts.DB_COLUMN_NOTIFY_ROLES)))
+                .setUserAuthorityFilter(saveValue(rs.getString(ZMSConsts.DB_COLUMN_USER_AUTHORITY_FILTER)))
+                .setUserAuthorityExpiration(saveValue(rs.getString(ZMSConsts.DB_COLUMN_USER_AUTHORITY_EXPIRATION)));
         java.sql.Timestamp lastReviewedTime = rs.getTimestamp(ZMSConsts.DB_COLUMN_LAST_REVIEWED_TIME);
         if (lastReviewedTime != null) {
             role.setLastReviewedDate(Timestamp.fromMillis(lastReviewedTime.getTime()));

@@ -224,6 +224,8 @@ public final class ZMSConsts {
     public static final String DB_COLUMN_NOTIFY_ROLES       = "notify_roles";
     public static final String DB_COLUMN_LAST_REVIEWED_TIME = "last_reviewed_time";
     public static final String DB_COLUMN_REQ_PRINCIPAL      = "req_principal";
+    public static final String DB_COLUMN_USER_AUTHORITY_FILTER     = "user_authority_filter";
+    public static final String DB_COLUMN_USER_AUTHORITY_EXPIRATION = "user_authority_expiration";
 
     public static final String DB_COLUMN_SERVICE_EXPIRY_DAYS      = "service_expiry_days";
     public static final String DB_COLUMN_ROLE_CERT_EXPIRY_MINS    = "role_cert_expiry_mins";
