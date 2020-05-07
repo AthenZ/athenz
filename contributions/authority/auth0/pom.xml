@@ -28,7 +28,7 @@
   <description>Athenz Yahoo Server OAuth2 access token implementation for Auth0</description>
 
   <properties>
-    <athenz.version>1.9.1</athenz.version>
+    <athenz.version>1.9.2</athenz.version>
     <jjwt.version>0.11.0</jjwt.version>
     <testng.version>7.1.0</testng.version>
     <mockito.version>3.2.4</mockito.version>

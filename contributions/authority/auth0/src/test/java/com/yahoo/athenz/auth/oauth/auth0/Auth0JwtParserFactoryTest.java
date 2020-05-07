@@ -37,7 +37,6 @@ public class Auth0JwtParserFactoryTest {
     public void testAuth0JwtParserFactory() throws OAuthJwtAccessTokenException {
         OAuthJwtAccessTokenParser parser = null;
         Auth0JwtParserFactory factory = new Auth0JwtParserFactory();
-        System.setProperty("athenz.auth.oauth.jwt.parser.jwks_url", "https://athenz-oauth-example.auth0.com/.well-known/jwks.json");
 
         // check internal
         assertThrows(IllegalArgumentException.class, () -> factory.create(null));
