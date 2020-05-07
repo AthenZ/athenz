@@ -1967,6 +1967,7 @@ public class ZMSCoreTest {
 
         TemplateMetaData meta = new TemplateMetaData();
         meta.setAutoUpdate(true)
+                .setTemplateName("test")
                 .setCurrentVersion(1)
                 .setDescription("test template")
                 .setLatestVersion(2)
@@ -1985,6 +1986,7 @@ public class ZMSCoreTest {
         assertEquals(meta.getDescription(), "test template");
         assertEquals((int) meta.getLatestVersion(), 2);
         assertEquals(meta.getKeywordsToReplace(), "none");
+        assertEquals(meta.getTemplateName(), "test");
         assertEquals(meta.getTimestamp(), timestamp);
 
         TemplateMetaData meta1 = new TemplateMetaData();
@@ -1993,7 +1995,8 @@ public class ZMSCoreTest {
                 .setDescription("test template")
                 .setLatestVersion(2)
                 .setKeywordsToReplace("none")
-                .setTimestamp(timestamp);
+                .setTimestamp(timestamp)
+                .setTemplateName("test");
         Template temp1 = new Template()
                 .setMetadata(meta1);
         assertFalse(temp.equals(temp1));

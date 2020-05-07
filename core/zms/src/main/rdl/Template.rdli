@@ -25,4 +25,16 @@ resource Template GET "/template/{template}" {
         ResourceError UNAUTHORIZED;
         ResourceError TOO_MANY_REQUESTS;
     }
+   }
+
+//Get a list of Solution templates with meta data details given a domain name
+resource DomainTemplateDetailsList GET "/domain/{name}/templatedetails" {
+    DomainName name; //List of templates given a domain name
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
 }

@@ -255,6 +255,7 @@ public class ZMSSchema {
 
         sb.structType("TemplateMetaData")
             .comment("MetaData for template.")
+            .field("templateName", "String", true, "name of the template")
             .field("description", "String", true, "description of the template")
             .field("currentVersion", "Int32", true, "Version from DB(zms_store->domain_template->version)")
             .field("latestVersion", "Int32", true, "Bumped up version from solutions-template.json when there is a change")
@@ -286,6 +287,10 @@ public class ZMSSchema {
 
         sb.structType("ServerTemplateList", "TemplateList")
             .comment("List of solution templates available in the server");
+
+        sb.structType("DomainTemplateDetailsList")
+            .comment("List of templates with metadata details given a domain")
+            .arrayField("metaData", "TemplateMetaData", false, "list of template metadata");
 
         sb.structType("DomainList")
             .comment("A paginated list of domains.")
@@ -1785,6 +1790,20 @@ public class ZMSSchema {
         sb.resource("Template", "GET", "/template/{template}")
             .comment("Get solution template details. Includes the roles and policies that will be automatically provisioned when the template is applied to a domain")
             .pathParam("template", "SimpleName", "name of the solution template")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("DomainTemplateDetailsList", "GET", "/domain/{name}/templatedetails")
+            .comment("Get a list of Solution templates with meta data details given a domain name")
+            .pathParam("name", "DomainName", "List of templates given a domain name")
             .auth("", "", true)
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
