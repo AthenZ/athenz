@@ -64,7 +64,7 @@ cat "${DEV_ZMS_CLIENT_CERT_PATH}" "${DEV_ZTS_SIGNER_CERT_PATH}" > "${DEV_ZMS_CLI
 cat <<EOF
 
 self-signed ZTS server certificate created.
-  ca: ${ATHENZ_CA_PATH}
+  ca: ${DEV_ATHENZ_CA_PATH}
   key: ${DEV_ZTS_CERT_KEY_PATH}
   cert: ${DEV_ZTS_CERT_PATH}
 
