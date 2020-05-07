@@ -100,6 +100,16 @@ type SignedToken string
 type MemberName string
 
 //
+// AuthorityKeyword - A comma separated list of authority keywords
+//
+type AuthorityKeyword string
+
+//
+// AuthorityKeywords -
+//
+type AuthorityKeywords string
+
+//
 // DomainMeta - Set of metadata attributes that all domains may have and can be
 // changed.
 //
@@ -874,6 +884,16 @@ type RoleMeta struct {
 	// list of roles whose members should be notified for member review/approval
 	//
 	NotifyRoles ResourceNames `json:"notifyRoles,omitempty" rdl:"optional"`
+
+	//
+	// membership filtered based on user authority configured attributes
+	//
+	UserAuthorityFilter AuthorityKeywords `json:"userAuthorityFilter,omitempty" rdl:"optional"`
+
+	//
+	// expiration enforced by a user authority configured attribute
+	//
+	UserAuthorityExpiration AuthorityKeyword `json:"userAuthorityExpiration,omitempty" rdl:"optional"`
 }
 
 //
@@ -919,6 +939,18 @@ func (self *RoleMeta) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "ResourceNames", self.NotifyRoles)
 		if !val.Valid {
 			return fmt.Errorf("RoleMeta.notifyRoles does not contain a valid ResourceNames (%v)", val.Error)
+		}
+	}
+	if self.UserAuthorityFilter != "" {
+		val := rdl.Validate(ZMSSchema(), "AuthorityKeywords", self.UserAuthorityFilter)
+		if !val.Valid {
+			return fmt.Errorf("RoleMeta.userAuthorityFilter does not contain a valid AuthorityKeywords (%v)", val.Error)
+		}
+	}
+	if self.UserAuthorityExpiration != "" {
+		val := rdl.Validate(ZMSSchema(), "AuthorityKeyword", self.UserAuthorityExpiration)
+		if !val.Valid {
+			return fmt.Errorf("RoleMeta.userAuthorityExpiration does not contain a valid AuthorityKeyword (%v)", val.Error)
 		}
 	}
 	return nil
@@ -971,6 +1003,16 @@ type Role struct {
 	// list of roles whose members should be notified for member review/approval
 	//
 	NotifyRoles ResourceNames `json:"notifyRoles,omitempty" rdl:"optional"`
+
+	//
+	// membership filtered based on user authority configured attributes
+	//
+	UserAuthorityFilter AuthorityKeywords `json:"userAuthorityFilter,omitempty" rdl:"optional"`
+
+	//
+	// expiration enforced by a user authority configured attribute
+	//
+	UserAuthorityExpiration AuthorityKeyword `json:"userAuthorityExpiration,omitempty" rdl:"optional"`
 
 	//
 	// name of the role
@@ -1058,6 +1100,18 @@ func (self *Role) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "ResourceNames", self.NotifyRoles)
 		if !val.Valid {
 			return fmt.Errorf("Role.notifyRoles does not contain a valid ResourceNames (%v)", val.Error)
+		}
+	}
+	if self.UserAuthorityFilter != "" {
+		val := rdl.Validate(ZMSSchema(), "AuthorityKeywords", self.UserAuthorityFilter)
+		if !val.Valid {
+			return fmt.Errorf("Role.userAuthorityFilter does not contain a valid AuthorityKeywords (%v)", val.Error)
+		}
+	}
+	if self.UserAuthorityExpiration != "" {
+		val := rdl.Validate(ZMSSchema(), "AuthorityKeyword", self.UserAuthorityExpiration)
+		if !val.Valid {
+			return fmt.Errorf("Role.userAuthorityExpiration does not contain a valid AuthorityKeyword (%v)", val.Error)
 		}
 	}
 	if self.Name == "" {

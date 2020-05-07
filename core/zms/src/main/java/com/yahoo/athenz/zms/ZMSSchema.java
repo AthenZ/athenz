@@ -74,6 +74,13 @@ public class ZMSSchema {
             .comment("Role Member name - could be one of three values: *, DomainName.* or ServiceName[*]")
             .pattern("\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*\\.\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*(\\*)?");
 
+        sb.stringType("AuthorityKeyword")
+            .comment("A comma separated list of authority keywords")
+            .pattern("[a-zA-Z0-9_][a-zA-Z0-9_-]*");
+
+        sb.stringType("AuthorityKeywords")
+            .pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*,)*[a-zA-Z0-9_][a-zA-Z0-9_-]*");
+
         sb.structType("DomainMeta")
             .comment("Set of metadata attributes that all domains may have and can be changed.")
             .field("description", "String", true, "a description of the domain")
@@ -135,7 +142,9 @@ public class ZMSSchema {
             .field("signAlgorithm", "SimpleName", true, "rsa or ec signing algorithm to be used for tokens")
             .field("serviceExpiryDays", "Int32", true, "all services in the role will have specified max expiry days")
             .field("reviewEnabled", "Bool", true, "Flag indicates whether or not role updates require another review and approval", false)
-            .field("notifyRoles", "ResourceNames", true, "list of roles whose members should be notified for member review/approval");
+            .field("notifyRoles", "ResourceNames", true, "list of roles whose members should be notified for member review/approval")
+            .field("userAuthorityFilter", "AuthorityKeywords", true, "membership filtered based on user authority configured attributes")
+            .field("userAuthorityExpiration", "AuthorityKeyword", true, "expiration enforced by a user authority configured attribute");
 
         sb.structType("Role", "RoleMeta")
             .comment("The representation for a Role with set of members.")

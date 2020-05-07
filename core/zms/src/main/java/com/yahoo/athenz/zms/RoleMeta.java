@@ -35,6 +35,12 @@ public class RoleMeta {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String notifyRoles;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String userAuthorityFilter;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String userAuthorityExpiration;
 
     public RoleMeta setSelfServe(Boolean selfServe) {
         this.selfServe = selfServe;
@@ -92,6 +98,20 @@ public class RoleMeta {
     public String getNotifyRoles() {
         return notifyRoles;
     }
+    public RoleMeta setUserAuthorityFilter(String userAuthorityFilter) {
+        this.userAuthorityFilter = userAuthorityFilter;
+        return this;
+    }
+    public String getUserAuthorityFilter() {
+        return userAuthorityFilter;
+    }
+    public RoleMeta setUserAuthorityExpiration(String userAuthorityExpiration) {
+        this.userAuthorityExpiration = userAuthorityExpiration;
+        return this;
+    }
+    public String getUserAuthorityExpiration() {
+        return userAuthorityExpiration;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -122,6 +142,12 @@ public class RoleMeta {
                 return false;
             }
             if (notifyRoles == null ? a.notifyRoles != null : !notifyRoles.equals(a.notifyRoles)) {
+                return false;
+            }
+            if (userAuthorityFilter == null ? a.userAuthorityFilter != null : !userAuthorityFilter.equals(a.userAuthorityFilter)) {
+                return false;
+            }
+            if (userAuthorityExpiration == null ? a.userAuthorityExpiration != null : !userAuthorityExpiration.equals(a.userAuthorityExpiration)) {
                 return false;
             }
         }

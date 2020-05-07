@@ -88,6 +88,15 @@ func init() {
 	tMemberName.Pattern("\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*\\.\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*(\\*)?")
 	sb.AddType(tMemberName.Build())
 
+	tAuthorityKeyword := rdl.NewStringTypeBuilder("AuthorityKeyword")
+	tAuthorityKeyword.Comment("A comma separated list of authority keywords")
+	tAuthorityKeyword.Pattern("[a-zA-Z0-9_][a-zA-Z0-9_-]*")
+	sb.AddType(tAuthorityKeyword.Build())
+
+	tAuthorityKeywords := rdl.NewStringTypeBuilder("AuthorityKeywords")
+	tAuthorityKeywords.Pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*,)*[a-zA-Z0-9_][a-zA-Z0-9_-]*")
+	sb.AddType(tAuthorityKeywords.Build())
+
 	tDomainMeta := rdl.NewStructTypeBuilder("Struct", "DomainMeta")
 	tDomainMeta.Comment("Set of metadata attributes that all domains may have and can be changed.")
 	tDomainMeta.Field("description", "String", true, nil, "a description of the domain")
@@ -156,6 +165,8 @@ func init() {
 	tRoleMeta.Field("serviceExpiryDays", "Int32", true, nil, "all services in the role will have specified max expiry days")
 	tRoleMeta.Field("reviewEnabled", "Bool", true, false, "Flag indicates whether or not role updates require another review and approval")
 	tRoleMeta.Field("notifyRoles", "ResourceNames", true, nil, "list of roles whose members should be notified for member review/approval")
+	tRoleMeta.Field("userAuthorityFilter", "AuthorityKeywords", true, nil, "membership filtered based on user authority configured attributes")
+	tRoleMeta.Field("userAuthorityExpiration", "AuthorityKeyword", true, nil, "expiration enforced by a user authority configured attribute")
 	sb.AddType(tRoleMeta.Build())
 
 	tRole := rdl.NewStructTypeBuilder("RoleMeta", "Role")

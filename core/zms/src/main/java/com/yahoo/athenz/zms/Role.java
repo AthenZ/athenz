@@ -35,6 +35,12 @@ public class Role {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String notifyRoles;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String userAuthorityFilter;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String userAuthorityExpiration;
     public String name;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -113,6 +119,20 @@ public class Role {
     }
     public String getNotifyRoles() {
         return notifyRoles;
+    }
+    public Role setUserAuthorityFilter(String userAuthorityFilter) {
+        this.userAuthorityFilter = userAuthorityFilter;
+        return this;
+    }
+    public String getUserAuthorityFilter() {
+        return userAuthorityFilter;
+    }
+    public Role setUserAuthorityExpiration(String userAuthorityExpiration) {
+        this.userAuthorityExpiration = userAuthorityExpiration;
+        return this;
+    }
+    public String getUserAuthorityExpiration() {
+        return userAuthorityExpiration;
     }
     public Role setName(String name) {
         this.name = name;
@@ -200,6 +220,12 @@ public class Role {
                 return false;
             }
             if (notifyRoles == null ? a.notifyRoles != null : !notifyRoles.equals(a.notifyRoles)) {
+                return false;
+            }
+            if (userAuthorityFilter == null ? a.userAuthorityFilter != null : !userAuthorityFilter.equals(a.userAuthorityFilter)) {
+                return false;
+            }
+            if (userAuthorityExpiration == null ? a.userAuthorityExpiration != null : !userAuthorityExpiration.equals(a.userAuthorityExpiration)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {
