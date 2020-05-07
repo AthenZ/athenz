@@ -16,6 +16,7 @@
 package com.yahoo.athenz.auth;
 
 import java.security.cert.X509Certificate;
+import java.util.Date;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -127,6 +128,35 @@ public interface Authority {
      * @return the Principal for the certificate, or null in case of failure.
      */
     default Principal authenticate(HttpServletRequest request, StringBuilder errMsg) {
+        return null;
+    }
+
+    /**
+     * Return the requested boolean attribute state from the user authority
+     * @param username user's name or id
+     * @param attribute boolean attribute name
+     * @return true if the given attribute is enabled for the user
+     */
+    default boolean isAttributeSet(final String username, final String attribute) {
+        return false;
+    }
+
+    /**
+     * Return the requested date attribute state from the user authority
+     * @param username user's name or id
+     * @param attribute date attribute name
+     * @return configured date or null if one is not configured
+     */
+    default Date getDateAttribute(final String username, final String attribute) {
+        return null;
+    }
+
+    /**
+     * Return user's registered email address
+     * @param username user's name or id
+     * @return user's registered email or null if not available
+     */
+    default String getUserEmail(final String username) {
         return null;
     }
 }

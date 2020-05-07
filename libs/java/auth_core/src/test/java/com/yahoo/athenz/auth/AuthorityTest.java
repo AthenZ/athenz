@@ -19,6 +19,7 @@ import org.testng.annotations.Test;
 
 import javax.servlet.http.HttpServletRequest;
 import java.security.cert.X509Certificate;
+import java.util.Date;
 
 import static org.testng.Assert.*;
 
@@ -46,6 +47,21 @@ public class AuthorityTest {
             public Principal authenticate(String creds, String remoteAddr, String httpMethod, StringBuilder errMsg) {
                 return null;
             }
+
+            @Override
+            public boolean isAttributeSet(String username, String attribute) {
+                return attribute.equals("local");
+            }
+
+            @Override
+            public Date getDateAttribute(String username, String attribute) {
+                return ("expiry".equals(attribute)) ? new Date() : null;
+            }
+
+            @Override
+            public String getUserEmail(String username) {
+                return username + "@example.com";
+            }
         };
 
         assertNull(authority.getAuthenticateChallenge());
@@ -55,5 +71,11 @@ public class AuthorityTest {
         assertTrue(authority.isValidUser("john"));
         assertNull(authority.authenticate((X509Certificate[]) null, null));
         assertNull(authority.authenticate((HttpServletRequest) null, null));
+
+        assertTrue(authority.isAttributeSet("john", "local"));
+        assertFalse(authority.isAttributeSet("john", "remote"));
+        assertNull(authority.getDateAttribute("john", "review"));
+        assertNotNull(authority.getDateAttribute("john", "expiry"));
+        assertEquals(authority.getUserEmail("john"), "john@example.com");
     }
 }
