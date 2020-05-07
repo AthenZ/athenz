@@ -105,7 +105,7 @@ make remove-files
 make reset-repo
 ```
 ```bash
-# ENV reset
+# reset docker and repo
 make remove-all
 
 # remove everything include docker images
