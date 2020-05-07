@@ -1,6 +1,14 @@
 {
   "templates" : {
     "vipng": {
+            "metadata":
+            {
+                "latestVersion": 10,
+                "timestamp": "2020-04-28T00:00:00.000Z",
+                "description": "Vipng template",
+                "keywordsToReplace": "",
+                "autoUpdate": "false"
+            },
         "roles": [
             {
                 "name": "_domain_:role.vip_admin",
@@ -38,6 +46,14 @@
         ]
     },
     "platforms": {
+        "metadata":
+            {
+                "latestVersion": 10,
+                "timestamp": "2020-04-28T00:00:00.000Z",
+                "description": "platforms template",
+                "keywordsToReplace": "",
+                "autoUpdate": "false"
+            },
         "roles": [
             {
                 "name": "_domain_:role.platforms_deployer",
@@ -89,6 +105,14 @@
         ]
     },
     "user_provisioning": {
+        "metadata":
+            {
+                "latestVersion": 10,
+                "timestamp": "2020-04-28T00:00:00.000Z",
+                "description": "User provisioning template ",
+                "keywordsToReplace": "",
+                "autoUpdate": "false"
+            },
         "roles": [
             {
                 "name": "_domain_:role.user",
@@ -153,6 +177,14 @@
         ]
     },
     "sports": {
+        "metadata":
+            {
+                "latestVersion": 10,
+                "timestamp": "2020-04-28T00:00:00.000Z",
+                "description": "sports template",
+                "keywordsToReplace": "",
+                "autoUpdate": "false"
+            },
         "roles": [
             {
                 "name": "_domain_:role.tenancy.sports.se.access",
@@ -175,6 +207,14 @@
         ]
     },
     "network": {
+        "metadata":
+            {
+                "latestVersion": 10,
+                "timestamp": "2020-04-28T00:00:00.000Z",
+                "description": "network template",
+                "keywordsToReplace": "",
+                "autoUpdate": "false"
+            },
         "roles": [
             {
                 "name": "_domain_:role.network_manager",
@@ -238,6 +278,14 @@
         ]
     },
     "templateWithService" : {
+        "metadata":
+            {
+                "latestVersion": 10,
+                "timestamp": "2020-04-28T00:00:00.000Z",
+                "description": "templateWithService template",
+                "keywordsToReplace": "",
+                "autoUpdate": "false"
+            },
         "roles": [
             {
                 "name": "_domain_:role.vip_admin",
@@ -265,6 +313,14 @@
         ]
     },
     "templateWithMultipleServices" : {
+        "metadata":
+        {
+            "latestVersion": 10,
+            "timestamp": "2020-04-28T00:00:00.000Z",
+            "description": "templateWithMultipleServices template",
+            "keywordsToReplace": "",
+            "autoUpdate": "false"
+        },
         "roles": [
             {
                 "name": "_domain_:role.vip_admin",
@@ -296,6 +352,14 @@
         ]
     },
     "templateWithServiceWithKey" : {
+        "metadata":
+            {
+                "latestVersion": 10,
+                "timestamp": "2020-04-28T00:00:00.000Z",
+                "description": "templateWithServiceWithKey template",
+                "keywordsToReplace": "",
+                "autoUpdate": "false"
+            },
         "roles": [
             {
                 "name": "_domain_:role.vip_admin",

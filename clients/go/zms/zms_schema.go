@@ -297,6 +297,7 @@ func init() {
 
 	tTemplateMetaData := rdl.NewStructTypeBuilder("Struct", "TemplateMetaData")
 	tTemplateMetaData.Comment("MetaData for template.")
+	tTemplateMetaData.Field("templateName", "String", true, nil, "name of the template")
 	tTemplateMetaData.Field("description", "String", true, nil, "description of the template")
 	tTemplateMetaData.Field("currentVersion", "Int32", true, nil, "Version from DB(zms_store->domain_template->version)")
 	tTemplateMetaData.Field("latestVersion", "Int32", true, nil, "Bumped up version from solutions-template.json when there is a change")
@@ -335,6 +336,11 @@ func init() {
 	tServerTemplateList := rdl.NewStructTypeBuilder("TemplateList", "ServerTemplateList")
 	tServerTemplateList.Comment("List of solution templates available in the server")
 	sb.AddType(tServerTemplateList.Build())
+
+	tDomainTemplateDetailsList := rdl.NewStructTypeBuilder("Struct", "DomainTemplateDetailsList")
+	tDomainTemplateDetailsList.Comment("List of templates with metadata details given a domain")
+	tDomainTemplateDetailsList.ArrayField("metaData", "TemplateMetaData", false, "list of template metadata")
+	sb.AddType(tDomainTemplateDetailsList.Build())
 
 	tDomainList := rdl.NewStructTypeBuilder("Struct", "DomainList")
 	tDomainList.Comment("A paginated list of domains.")
@@ -1536,6 +1542,16 @@ func init() {
 	mGetTemplate.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mGetTemplate.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetTemplate.Build())
+
+	mGetDomainTemplateDetailsList := rdl.NewResourceBuilder("DomainTemplateDetailsList", "GET", "/domain/{name}/templatedetails")
+	mGetDomainTemplateDetailsList.Comment("Get a list of Solution templates with meta data details given a domain name")
+	mGetDomainTemplateDetailsList.Input("name", "DomainName", true, "", "", false, nil, "List of templates given a domain name")
+	mGetDomainTemplateDetailsList.Auth("", "", true, "")
+	mGetDomainTemplateDetailsList.Exception("BAD_REQUEST", "ResourceError", "")
+	mGetDomainTemplateDetailsList.Exception("NOT_FOUND", "ResourceError", "")
+	mGetDomainTemplateDetailsList.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
+	mGetDomainTemplateDetailsList.Exception("UNAUTHORIZED", "ResourceError", "")
+	sb.AddResource(mGetDomainTemplateDetailsList.Build())
 
 	mGetUserList := rdl.NewResourceBuilder("UserList", "GET", "/user")
 	mGetUserList.Comment("Enumerate users that are registered as principals in the system This will return only the principals with \"<user-domain>.\" prefix")

@@ -9,6 +9,7 @@ include "ServiceIdentity.tdl"
 
 //MetaData for template.
 type TemplateMetaData Struct {
+    String templateName (optional); // name of the template
     String description (optional); //description of the template
     Int32 currentVersion (optional); //Version from DB(zms_store->domain_template->version)
     Int32 latestVersion (optional); //Bumped up version from solutions-template.json when there is a change
@@ -47,4 +48,9 @@ type DomainTemplateList TemplateList {
 
 //List of solution templates available in the server
 type ServerTemplateList TemplateList {
+}
+
+//List of templates with metadata details given a domain
+type DomainTemplateDetailsList Struct {
+    Array<TemplateMetaData> metaData; //list of template metadata
 }

@@ -12,6 +12,9 @@ import com.yahoo.rdl.*;
 public class TemplateMetaData {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String templateName;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String description;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -29,6 +32,13 @@ public class TemplateMetaData {
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Boolean autoUpdate;
 
+    public TemplateMetaData setTemplateName(String templateName) {
+        this.templateName = templateName;
+        return this;
+    }
+    public String getTemplateName() {
+        return templateName;
+    }
     public TemplateMetaData setDescription(String description) {
         this.description = description;
         return this;
@@ -79,6 +89,9 @@ public class TemplateMetaData {
                 return false;
             }
             TemplateMetaData a = (TemplateMetaData) another;
+            if (templateName == null ? a.templateName != null : !templateName.equals(a.templateName)) {
+                return false;
+            }
             if (description == null ? a.description != null : !description.equals(a.description)) {
                 return false;
             }

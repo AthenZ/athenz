@@ -2435,6 +2435,11 @@ func (self *ServiceIdentitySystemMeta) Validate() error {
 type TemplateMetaData struct {
 
 	//
+	// name of the template
+	//
+	TemplateName string `json:"templateName,omitempty" rdl:"optional"`
+
+	//
 	// description of the template
 	//
 	Description string `json:"description,omitempty" rdl:"optional"`
@@ -2499,6 +2504,12 @@ func (self *TemplateMetaData) UnmarshalJSON(b []byte) error {
 // Validate - checks for missing required fields, etc
 //
 func (self *TemplateMetaData) Validate() error {
+	if self.TemplateName != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.TemplateName)
+		if !val.Valid {
+			return fmt.Errorf("TemplateMetaData.templateName does not contain a valid String (%v)", val.Error)
+		}
+	}
 	if self.Description != "" {
 		val := rdl.Validate(ZMSSchema(), "String", self.Description)
 		if !val.Valid {
@@ -2905,6 +2916,67 @@ func (self *ServerTemplateList) UnmarshalJSON(b []byte) error {
 func (self *ServerTemplateList) Validate() error {
 	if self.TemplateNames == nil {
 		return fmt.Errorf("ServerTemplateList: Missing required field: templateNames")
+	}
+	return nil
+}
+
+//
+// DomainTemplateDetailsList - List of templates with metadata details given a
+// domain
+//
+type DomainTemplateDetailsList struct {
+
+	//
+	// list of template metadata
+	//
+	MetaData []*TemplateMetaData `json:"metaData"`
+}
+
+//
+// NewDomainTemplateDetailsList - creates an initialized DomainTemplateDetailsList instance, returns a pointer to it
+//
+func NewDomainTemplateDetailsList(init ...*DomainTemplateDetailsList) *DomainTemplateDetailsList {
+	var o *DomainTemplateDetailsList
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(DomainTemplateDetailsList)
+	}
+	return o.Init()
+}
+
+//
+// Init - sets up the instance according to its default field values, if any
+//
+func (self *DomainTemplateDetailsList) Init() *DomainTemplateDetailsList {
+	if self.MetaData == nil {
+		self.MetaData = make([]*TemplateMetaData, 0)
+	}
+	return self
+}
+
+type rawDomainTemplateDetailsList DomainTemplateDetailsList
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a DomainTemplateDetailsList
+//
+func (self *DomainTemplateDetailsList) UnmarshalJSON(b []byte) error {
+	var m rawDomainTemplateDetailsList
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := DomainTemplateDetailsList(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *DomainTemplateDetailsList) Validate() error {
+	if self.MetaData == nil {
+		return fmt.Errorf("DomainTemplateDetailsList: Missing required field: metaData")
 	}
 	return nil
 }

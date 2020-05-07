@@ -18,11 +18,7 @@ package com.yahoo.athenz.zms.store.file;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import com.yahoo.athenz.zms.DomainMeta;
-import com.yahoo.athenz.zms.Entity;
-import com.yahoo.athenz.zms.Policy;
-import com.yahoo.athenz.zms.Role;
-import com.yahoo.athenz.zms.ServiceIdentity;
+import com.yahoo.athenz.zms.*;
 import com.yahoo.rdl.Timestamp;
 import com.yahoo.rdl.UUID;
 
@@ -37,7 +33,14 @@ public class DomainStruct {
     private HashMap<String, ServiceIdentity> services;
     private HashMap<String, Entity> entities;
     private ArrayList<String> templates;
-    
+    private ArrayList<TemplateMetaData> templateMeta;
+
+    public ArrayList<TemplateMetaData> getTemplateMeta() {
+        return templateMeta;
+    }
+    public void setTemplateMeta(ArrayList<TemplateMetaData> templateMeta) {
+        this.templateMeta = templateMeta;
+    }
     public String getName() {
         return name;
     }

@@ -669,4 +669,18 @@ public class FileConnectionTest {
             }
         }
     }
+
+    @Test
+    public void testGetDomainTemplates() {
+        File fileDir = new File("/home/athenz/zms_store");
+        File quotaDir = new File("/home/athenz/zms_quota");
+        try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
+            try {
+                fileconnection.getDomainTemplates("domain1");
+                fail();
+            } catch (Exception ex) {
+                assertTrue(true);
+            }
+        }
+    }
 }

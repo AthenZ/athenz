@@ -34,8 +34,10 @@ import com.yahoo.athenz.auth.ServerPrivateKey;
 import com.yahoo.athenz.auth.impl.*;
 import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
+import com.yahoo.athenz.zms.config.SolutionTemplates;
 import com.yahoo.athenz.zms.notification.PutMembershipNotificationTask;
 import com.yahoo.athenz.zms.store.ObjectStoreConnection;
+import com.yahoo.athenz.zms.store.file.DomainStruct;
 import org.mockito.Mockito;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -11814,7 +11816,7 @@ public class ZMSImplTest {
         
         Template template = zms.getTemplate(mockDomRsrcCtx, "user_provisioning");
         assertNotNull(template);
-        
+
         List<Role> roles = template.getRoles();
         assertNotNull(roles);
         assertEquals(3, roles.size());
@@ -11881,7 +11883,7 @@ public class ZMSImplTest {
         assertEquals(1, userPolicy.getAssertions().size());
         assertEquals(1, superuserPolicy.getAssertions().size());
         assertEquals(2, openstackReadersPolicy.getAssertions().size());
-        
+
         template = zms.getTemplate(mockDomRsrcCtx, "vipng");
         assertNotNull(template);
         
@@ -11890,6 +11892,12 @@ public class ZMSImplTest {
         
         template = zms.getTemplate(mockDomRsrcCtx, "VipNg");
         assertNotNull(template);
+
+        assertEquals(10, template.getMetadata().getLatestVersion().intValue());
+        assertEquals("2020-04-28T00:00:00.000Z", template.getMetadata().timestamp.toString());
+        assertEquals("Vipng template", template.getMetadata().description);
+        assertEquals("", template.getMetadata().keywordsToReplace);
+        assertFalse(template.getMetadata().getAutoUpdate());
     }
     
     @Test
@@ -18760,5 +18768,20 @@ public class ZMSImplTest {
         clenaupPrincipalAuditedRoleApprovalByOrg(zms, "testOrg");
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testGetDomainTemplateDetailsList() {
+        String domainName = "test-domain";
+        List<String> adminUsers = new ArrayList<>();
+        adminUsers.add("user.test");
+        List<String> solutionTemplate = new ArrayList<>();
+        solutionTemplate.add("vipng");
+
+        zms.dbService.makeDomain(mockDomRsrcCtx, ZMSTestUtils.makeDomainObject(domainName, "Test Domain", "org",
+                true, null, 0, null, 0), adminUsers, solutionTemplate, auditRef);
+
+        assertNotNull(zms.getDomainTemplateDetailsList(mockDomRsrcCtx, domainName));
+
     }
 }

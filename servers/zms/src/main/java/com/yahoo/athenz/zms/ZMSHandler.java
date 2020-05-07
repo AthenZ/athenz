@@ -84,6 +84,7 @@ public interface ZMSHandler {
     ServicePrincipal getServicePrincipal(ResourceContext context);
     ServerTemplateList getServerTemplateList(ResourceContext context);
     Template getTemplate(ResourceContext context, String template);
+    DomainTemplateDetailsList getDomainTemplateDetailsList(ResourceContext context, String name);
     UserList getUserList(ResourceContext context);
     void deleteUser(ResourceContext context, String name, String auditRef);
     void deleteDomainRoleMember(ResourceContext context, String domainName, String memberName, String auditRef);

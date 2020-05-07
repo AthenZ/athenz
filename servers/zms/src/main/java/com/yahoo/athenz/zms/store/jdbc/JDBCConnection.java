@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import com.yahoo.athenz.zms.store.AthenzDomain;
 import com.yahoo.athenz.zms.store.ObjectStoreConnection;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
+import com.yahoo.athenz.zms.ZMSConsts;
 import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
@@ -191,7 +192,9 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_LIST_ENTITY = "SELECT name FROM entity WHERE domain_id=?;";
     private static final String SQL_COUNT_ENTITY = "SELECT COUNT(*) FROM entity WHERE domain_id=?;";
     private static final String SQL_INSERT_DOMAIN_TEMPLATE = "INSERT INTO domain_template (domain_id, template) VALUES (?,?);";
+    private static final String SQL_UPDATE_DOMAIN_TEMPLATE = "UPDATE domain_template SET current_version=? WHERE domain_id=? and template=?;";
     private static final String SQL_DELETE_DOMAIN_TEMPLATE = "DELETE FROM domain_template WHERE domain_id=? AND template=?;";
+    private static final String SQL_LIST_DOMAIN_TEMPLATES = "SELECT * FROM domain_template WHERE domain_id=?;";
     private static final String SQL_LIST_DOMAIN_TEMPLATE = "SELECT template FROM domain_template "
             + "JOIN domain ON domain_template.domain_id=domain.domain_id "
             + "WHERE domain.name=?;";
@@ -4056,6 +4059,32 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
 
         return memberMap;
+    }
+
+    @Override
+    public List<TemplateMetaData> getDomainTemplates(String domainName) {
+        TemplateMetaData templateDomainMapping;
+        List<TemplateMetaData> templateDomainMappingList = new ArrayList<>();;
+        final String caller = "getDomainTemplates";
+        int domainId = getDomainId(domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
+        }
+
+        try (PreparedStatement ps = con.prepareStatement(SQL_LIST_DOMAIN_TEMPLATES)) {
+            ps.setInt(1, domainId);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    templateDomainMapping = new TemplateMetaData();
+                    templateDomainMapping.setTemplateName(rs.getString(ZMSConsts.DB_COLUMN_TEMPLATE_NAME));
+                    templateDomainMapping.setCurrentVersion(rs.getInt(ZMSConsts.DB_COLUMN_TEMPLATE_VERSION));
+                    templateDomainMappingList.add(templateDomainMapping);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return templateDomainMappingList;
     }
 
     RuntimeException notFoundError(String caller, String objectType, String objectName) {

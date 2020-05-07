@@ -9238,4 +9238,27 @@ public class JDBCConnectionTest {
         }
         jdbcConn.close();
     }
+
+    @Test
+    public void testGetDomainTemplates() throws Exception {
+        TemplateMetaData templateDomainMapping;
+        Map<String, Integer> templateDomainMap = new HashMap<>();
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(false);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(5); // domain id
+        Mockito.doReturn(12345).when(mockResultSet).getInt(ZMSConsts.DB_COLUMN_DOMAIN_ID);
+        Mockito.doReturn("vipng").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_TEMPLATE_NAME);
+        Mockito.doReturn(100).when(mockResultSet).getInt(ZMSConsts.DB_COLUMN_TEMPLATE_VERSION);
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        List<TemplateMetaData> templateDomainMappingList  = jdbcConn.getDomainTemplates("vipng");
+        assertNotNull(templateDomainMappingList);
+        for (TemplateMetaData meta:templateDomainMappingList) {
+            assertEquals(100,meta.getCurrentVersion().intValue());
+        }
+        jdbcConn.close();
+    }
+
 }
