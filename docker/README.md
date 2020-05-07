@@ -14,7 +14,7 @@
     - [Cleanup](#cleanup)
     - [Appendix](#appendix)
         - [Important Files](#important-files)
-        - [[WIP] Configuration Details](#wip-configuration-details)
+        - [Default server ports](#default-server-ports)
         - [Useful Commands](#useful-commands)
         - [TODO](#todo)
 
@@ -123,27 +123,26 @@ make clean
 - [setup-scripts](./setup-scripts)
 - [deploy-scripts](./deploy-scripts)
 
-<a id="markdown-wip-configuration-details" name="wip-configuration-details"></a>
-### [WIP] Configuration Details
-- development environment
-    - [configuration.dev.md](./docs/configuration.dev.md)
-    - server ports
-        - `3306`: ZMS DB
-            - [zms-db.cnf](./db/zms/zms-db.cnf#L4)
-            - [zms.properties](./zms/conf/zms.properties#L154)
-            - ENV: `ZMS_DB_PORT` ([env.sh](./env.sh))
-        - `4443`: ZMS server
-            - [athenz.properties](./zms/conf/athenz.properties#L6)
-            - ENV: `ZMS_PORT` ([env.sh](./env.sh))
-        - `3306`: ZTS DB
-            - [zts-db.cnf](./db/zts/zts-db.cnf#L4)
-            - [zts.properties](./zts/conf/zts.properties#L211)
-            - ENV: `ZTS_DB_PORT` ([env.sh](./env.sh))
-        - `8443`: ZTS server
-            - [athenz.properties](./zts/conf/athenz.properties#L6)
-            - ENV: `ZTS_PORT` ([env.sh](./env.sh))
-        - `443`: UI
-            - ENV: `UI_PORT` ([env.sh](./env.sh))
+<a id="markdown-default-server-ports" name="default-server-ports"></a>
+### Default server ports
+- `3306->3306/tcp`: ZMS DB
+    - [env.sh](./env.sh): `ZMS_DB_PORT`
+    - related configuration:
+        - [zms-db.cnf](./db/zms/zms-db.cnf): `mysqld.port`
+        - [zms.properties](./zms/conf/zms.properties): `athenz.zms.jdbc_store`
+- `4443->4443/tcp`: ZMS server
+    - [env.sh](./env.sh): `ZMS_PORT`
+    - related configuration:
+        - [athenz.properties](./zms/conf/athenz.properties): `athenz.tls_port`
+- `3307->3306/tcp`: ZTS DB
+    - [env.sh](./env.sh): `ZTS_DB_PORT`
+    - related configuration:
+        - [zts-db.cnf](./db/zts/zts-db.cnf): `mysqld.port`
+        - [zts.properties](./zts/conf/zts.properties): `athenz.zts.cert_jdbc_store`
+- `8443->8443/tcp`: ZTS server
+    - [env.sh](./env.sh): `ZTS_PORT`
+    - related configuration:
+        - [athenz.properties](./zts/conf/athenz.properties): `athenz.tls_port`
 
 <a id="markdown-useful-commands" name="useful-commands"></a>
 ### Useful Commands
@@ -178,9 +177,6 @@ mysql -v -u root --host=127.0.0.1 --port=3306 --password=${ZMS_DB_ROOT_PASS} --d
 mysql -v -u root --host=127.0.0.1 --port=3307 --password=${ZTS_DB_ROOT_PASS} --database=zts_store -e 'show tables;'
 
 # keytool
-openssl pkey -in ./zms/var/certs/zms_key.pem
-openssl pkey -in ./zts/var/certs/zts_key.pem
-openssl pkey -in ./ui/var/certs/ui_key.pem
 keytool -list -keystore ./zms/var/certs/zms_keystore.pkcs12
 keytool -list -keystore ./zts/var/certs/zts_keystore.pkcs12
 keytool -list -keystore ./zms/var/certs/zms_truststore.jks
