@@ -27,6 +27,7 @@
 1. Bootstrap setup done. ([Done step 1, 2, 3](./Athenz-bootstrap.md#bootstrap-steps))
 1. All the setup commands below are expected to run inside [athenz-setup-env](../setup-scripts/Dockerfile) container.
 ```bash
+BASE_DIR="`git rev-parse --show-toplevel`"
 docker run --rm -it \
     -v "${BASE_DIR}:/athenz" \
     --user "$(id -u):$(id -g)" \
