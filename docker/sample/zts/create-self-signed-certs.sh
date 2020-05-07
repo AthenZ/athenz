@@ -69,7 +69,7 @@ self-signed ZTS server certificate created.
   cert: ${DEV_ZTS_CERT_PATH}
 
 self-signed Intermediate CA certificate created.
-  ca: ${SERVICE_CA_PATH}
+  ca: ${DEV_SERVICE_CA_PATH}
   key: ${DEV_ZTS_SIGNER_CERT_KEY_PATH}
   cert: ${DEV_ZTS_SIGNER_CERT_PATH}
 
