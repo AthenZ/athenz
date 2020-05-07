@@ -37,6 +37,7 @@
 1. ZMS is running. ([zms-setup](./zms-setup.md))
 1. All the setup commands below are expected to run inside [athenz-setup-env](../setup-scripts/Dockerfile) container.
 ```bash
+BASE_DIR="`git rev-parse --show-toplevel`"
 docker run --rm -it \
     --network="${DOCKER_NETWORK}" \
     -v "${BASE_DIR}:/athenz" \
