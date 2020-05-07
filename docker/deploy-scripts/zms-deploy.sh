@@ -99,6 +99,7 @@ docker run -d -h "${ZMS_HOST}" \
     -v "${DOCKER_DIR}/jars:/usr/lib/jars" \
     -e "JAVA_OPTS=${ZMS_JAVA_OPTS}" \
     -e "ZMS_DB_ADMIN_PASS=${ZMS_DB_ADMIN_PASS}" \
+    -e "ZMS_RODB_ADMIN_PASS=${ZMS_RODB_ADMIN_PASS}" \
     -e "ZMS_KEYSTORE_PASS=${ZMS_KEYSTORE_PASS}" \
     -e "ZMS_TRUSTSTORE_PASS=${ZMS_TRUSTSTORE_PASS}" \
     -e "ZMS_PORT=${ZMS_PORT}" \

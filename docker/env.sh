@@ -111,6 +111,7 @@ export DOMAIN_ADMIN="${DOMAIN_ADMIN:-user.github-7654321}"
 ### ZMS passwords
 export ZMS_DB_ROOT_PASS="${ZMS_DB_ROOT_PASS:-mariadb}"
 export ZMS_DB_ADMIN_PASS="${ZMS_DB_ADMIN_PASS:-mariadbmariadb}"
+export ZMS_RODB_ADMIN_PASS="${ZMS_RODB_ADMIN_PASS:-}"
 export ZMS_KEYSTORE_PASS="${ZMS_KEYSTORE_PASS:-athenz}"
 export ZMS_TRUSTSTORE_PASS="${ZMS_TRUSTSTORE_PASS:-athenz}"
 ### ZTS passwords
