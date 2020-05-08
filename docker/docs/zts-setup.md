@@ -155,8 +155,8 @@ However, to simplify the setup, we will create an intermediate CA signed by the 
     - Ask your **Service CA** to sign the CSR and get the intermediate CA certificate
     ```bash
     # copy your file in the following paths
-    echo "${ZMS_CERT_KEY_PATH}"
-    echo "${ZMS_CERT_PATH}"
+    echo "${ZTS_SIGNER_CERT_KEY_PATH}"
+    echo "${ZTS_SIGNER_CERT_PATH}"
     ```
 1. Create the key store and trust store for the certificate signer
     ```bash
