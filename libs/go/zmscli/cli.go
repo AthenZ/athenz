@@ -633,6 +633,22 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 				}
 				return cli.SetRoleServiceExpiryDays(dn, args[0], days)
 			}
+		case "set-role-member-review-days":
+			if argc == 2 {
+				days, err := cli.getInt32(args[1])
+				if err != nil {
+					return nil, err
+				}
+				return cli.SetRoleMemberReviewDays(dn, args[0], days)
+			}
+		case "set-role-service-review-days":
+			if argc == 2 {
+				days, err := cli.getInt32(args[1])
+				if err != nil {
+					return nil, err
+				}
+				return cli.SetRoleServiceReviewDays(dn, args[0], days)
+			}
 		case "set-role-token-expiry-mins":
 			if argc == 2 {
 				mins, err := cli.getInt32(args[1])
@@ -1758,6 +1774,28 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   days    : all service members in this role will have this max expiry days\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domain_example + " set-role-service-expiry-days writers 60\n")
+	case "set-role-member-review-days":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domain_param + " set-role-member-review-days role days\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain  : name of the domain being updated\n")
+		}
+		buf.WriteString("   role    : name of the role to be modified\n")
+		buf.WriteString("   days    : all members in this role will have this max review days\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domain_example + " set-role-member-review-days writers 60\n")
+	case "set-role-service-review-days":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domain_param + " set-role-service-review-days role days\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain  : name of the domain being updated\n")
+		}
+		buf.WriteString("   role    : name of the role to be modified\n")
+		buf.WriteString("   days    : all service members in this role will have this max review days\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domain_example + " set-role-service-review-days writers 60\n")
 	case "set-role-token-expiry-mins":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domain_param + " set-role-token-expiry-mins mins\n")
@@ -1912,6 +1950,8 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   set-role-self-serve group_role self-serve\n")
 	buf.WriteString("   set-role-member-expiry-days group_role user-member-expiry-days\n")
 	buf.WriteString("   set-role-service-expiry-days group_role service-member-expiry-days\n")
+	buf.WriteString("   set-role-member-review-days group_role user-member-review-days\n")
+	buf.WriteString("   set-role-service-review-days group_role service-member-review-days\n")
 	buf.WriteString("   set-role-token-expiry-mins group_role token-expiry-mins\n")
 	buf.WriteString("   set-role-cert-expiry-mins group_role cert-expiry-mins\n")
 	buf.WriteString("   set-role-token-sign-algorithm group_role algorithm\n")

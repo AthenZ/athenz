@@ -342,13 +342,16 @@ func (cli Zms) SetRoleReviewEnabled(dn string, rn string, reviewEnabled bool) (*
 
 func getRoleMetaObject(role *zms.Role) zms.RoleMeta {
 	return zms.RoleMeta{
-		MemberExpiryDays: role.MemberExpiryDays,
-		TokenExpiryMins:  role.TokenExpiryMins,
-		SelfServe:        role.SelfServe,
-		CertExpiryMins:   role.CertExpiryMins,
-		SignAlgorithm:    role.SignAlgorithm,
-		ReviewEnabled:    role.ReviewEnabled,
-		NotifyRoles:      role.NotifyRoles,
+		MemberExpiryDays:	role.MemberExpiryDays,
+		TokenExpiryMins:  	role.TokenExpiryMins,
+		SelfServe:        	role.SelfServe,
+		CertExpiryMins:   	role.CertExpiryMins,
+		SignAlgorithm:    	role.SignAlgorithm,
+		ReviewEnabled:    	role.ReviewEnabled,
+		NotifyRoles:      	role.NotifyRoles,
+		ServiceExpiryDays: 	role.ServiceExpiryDays,
+		MemberReviewDays: 	role.MemberReviewDays,
+		ServiceReviewDays: 	role.ServiceReviewDays,
 	}
 }
 func (cli Zms) SetRoleSelfServe(dn string, rn string, selfServe bool) (*string, error) {
@@ -396,6 +399,38 @@ func (cli Zms) SetRoleServiceExpiryDays(dn string, rn string, days int32) (*stri
 		return nil, err
 	}
 	s := "[domain " + dn + " role " + rn + " service-expiry-days attribute successfully updated]\n"
+	return &s, nil
+}
+
+func (cli Zms) SetRoleMemberReviewDays(dn string, rn string, days int32) (*string, error) {
+	role, err := cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), nil, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	meta := getRoleMetaObject(role)
+	meta.MemberReviewDays = &days
+
+	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " role " + rn + " member-review-days attribute successfully updated]\n"
+	return &s, nil
+}
+
+func (cli Zms) SetRoleServiceReviewDays(dn string, rn string, days int32) (*string, error) {
+	role, err := cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), nil, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	meta := getRoleMetaObject(role)
+	meta.ServiceReviewDays = &days
+
+	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " role " + rn + " service-review-days attribute successfully updated]\n"
 	return &s, nil
 }
 
