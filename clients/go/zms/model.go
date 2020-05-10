@@ -875,6 +875,16 @@ type RoleMeta struct {
 	ServiceExpiryDays *int32 `json:"serviceExpiryDays,omitempty" rdl:"optional"`
 
 	//
+	// all user members in the role will have specified max review days
+	//
+	MemberReviewDays *int32 `json:"memberReviewDays,omitempty" rdl:"optional"`
+
+	//
+	// all services in the role will have specified max review days
+	//
+	ServiceReviewDays *int32 `json:"serviceReviewDays,omitempty" rdl:"optional"`
+
+	//
 	// Flag indicates whether or not role updates require another review and
 	// approval
 	//
@@ -992,6 +1002,16 @@ type Role struct {
 	// all services in the role will have specified max expiry days
 	//
 	ServiceExpiryDays *int32 `json:"serviceExpiryDays,omitempty" rdl:"optional"`
+
+	//
+	// all user members in the role will have specified max review days
+	//
+	MemberReviewDays *int32 `json:"memberReviewDays,omitempty" rdl:"optional"`
+
+	//
+	// all services in the role will have specified max review days
+	//
+	ServiceReviewDays *int32 `json:"serviceReviewDays,omitempty" rdl:"optional"`
 
 	//
 	// Flag indicates whether or not role updates require another review and

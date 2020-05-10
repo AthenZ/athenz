@@ -77,6 +77,8 @@ public class SignUtils {
     private static final String ATTR_ROLE_CERT_EXPIRY_MINS = "roleCertExpiryMins";
     private static final String ATTR_SERVICE_EXPIRY_DAYS = "serviceExpiryDays";
     private static final String ATTR_SERVICE_CERT_EXPIRY_MINS = "serviceCertExpiryMins";
+    private static final String ATTR_MEMBER_REVIEW_DAYS = "memberReviewDays";
+    private static final String ATTR_SERVICE_REVIEW_DAYS = "serviceReviewDays";
     private static final String ATTR_SIGN_ALGORITHM = "signAlgorithm";
 
     private static Struct asStruct(DomainPolicies domainPolicies) {
@@ -143,6 +145,7 @@ public class SignUtils {
         appendObject(struct, ATTR_AUDIT_ENABLED, role.getAuditEnabled());
         appendObject(struct, ATTR_CERT_EXPIRY_MINS, role.getCertExpiryMins());
         appendObject(struct, ATTR_MEMBER_EXPIRY_DAYS, role.getMemberExpiryDays());
+        appendObject(struct, ATTR_MEMBER_REVIEW_DAYS, role.getMemberReviewDays());
         appendList(struct, ATTR_MEMBERS, role.getMembers());
         appendObject(struct, ATTR_MODIFIED, role.getModified());
         appendObject(struct, ATTR_NAME, role.getName());
@@ -159,6 +162,7 @@ public class SignUtils {
         }
         appendObject(struct, ATTR_SELF_SERVE, role.getSelfServe());
         appendObject(struct, ATTR_SERVICE_EXPIRY_DAYS, role.getServiceExpiryDays());
+        appendObject(struct, ATTR_SERVICE_REVIEW_DAYS, role.getServiceReviewDays());
         appendObject(struct, ATTR_SIGN_ALGORITHM, role.getSignAlgorithm());
         appendObject(struct, ATTR_TOKEN_EXPIRY_MINS, role.getTokenExpiryMins());
         appendObject(struct, ATTR_TRUST, role.getTrust());

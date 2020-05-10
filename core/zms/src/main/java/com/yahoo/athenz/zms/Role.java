@@ -31,6 +31,12 @@ public class Role {
     public Integer serviceExpiryDays;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer memberReviewDays;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer serviceReviewDays;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Boolean reviewEnabled;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -105,6 +111,20 @@ public class Role {
     }
     public Integer getServiceExpiryDays() {
         return serviceExpiryDays;
+    }
+    public Role setMemberReviewDays(Integer memberReviewDays) {
+        this.memberReviewDays = memberReviewDays;
+        return this;
+    }
+    public Integer getMemberReviewDays() {
+        return memberReviewDays;
+    }
+    public Role setServiceReviewDays(Integer serviceReviewDays) {
+        this.serviceReviewDays = serviceReviewDays;
+        return this;
+    }
+    public Integer getServiceReviewDays() {
+        return serviceReviewDays;
     }
     public Role setReviewEnabled(Boolean reviewEnabled) {
         this.reviewEnabled = reviewEnabled;
@@ -214,6 +234,12 @@ public class Role {
                 return false;
             }
             if (serviceExpiryDays == null ? a.serviceExpiryDays != null : !serviceExpiryDays.equals(a.serviceExpiryDays)) {
+                return false;
+            }
+            if (memberReviewDays == null ? a.memberReviewDays != null : !memberReviewDays.equals(a.memberReviewDays)) {
+                return false;
+            }
+            if (serviceReviewDays == null ? a.serviceReviewDays != null : !serviceReviewDays.equals(a.serviceReviewDays)) {
                 return false;
             }
             if (reviewEnabled == null ? a.reviewEnabled != null : !reviewEnabled.equals(a.reviewEnabled)) {

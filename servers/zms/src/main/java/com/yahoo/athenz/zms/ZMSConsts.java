@@ -226,7 +226,9 @@ public final class ZMSConsts {
     public static final String DB_COLUMN_REQ_PRINCIPAL      = "req_principal";
     public static final String DB_COLUMN_USER_AUTHORITY_FILTER     = "user_authority_filter";
     public static final String DB_COLUMN_USER_AUTHORITY_EXPIRATION = "user_authority_expiration";
+    public static final String DB_COLUMN_MEMBER_REVIEW_DAYS = "member_review_days";
 
+    public static final String DB_COLUMN_SERVICE_REVIEW_DAYS      = "service_review_days";
     public static final String DB_COLUMN_SERVICE_EXPIRY_DAYS      = "service_expiry_days";
     public static final String DB_COLUMN_ROLE_CERT_EXPIRY_MINS    = "role_cert_expiry_mins";
     public static final String DB_COLUMN_SERVICE_CERT_EXPIRY_MINS = "service_cert_expiry_mins";

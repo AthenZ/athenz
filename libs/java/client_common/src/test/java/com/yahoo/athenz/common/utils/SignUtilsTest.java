@@ -129,6 +129,8 @@ public class SignUtilsTest {
         Mockito.when(mRole.getSelfServe()).thenReturn(null);
         Mockito.when(mRole.getMemberExpiryDays()).thenReturn(null);
         Mockito.when(mRole.getServiceExpiryDays()).thenReturn(null);
+        Mockito.when(mRole.getMemberReviewDays()).thenReturn(null);
+        Mockito.when(mRole.getServiceReviewDays()).thenReturn(null);
         Mockito.when(mRole.getTokenExpiryMins()).thenReturn(null);
         roles.add(mRole);
         

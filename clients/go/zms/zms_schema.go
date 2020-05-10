@@ -163,6 +163,8 @@ func init() {
 	tRoleMeta.Field("certExpiryMins", "Int32", true, nil, "certs issued for this role will have specified max timeout in mins")
 	tRoleMeta.Field("signAlgorithm", "SimpleName", true, nil, "rsa or ec signing algorithm to be used for tokens")
 	tRoleMeta.Field("serviceExpiryDays", "Int32", true, nil, "all services in the role will have specified max expiry days")
+	tRoleMeta.Field("memberReviewDays", "Int32", true, nil, "all user members in the role will have specified max review days")
+	tRoleMeta.Field("serviceReviewDays", "Int32", true, nil, "all services in the role will have specified max review days")
 	tRoleMeta.Field("reviewEnabled", "Bool", true, false, "Flag indicates whether or not role updates require another review and approval")
 	tRoleMeta.Field("notifyRoles", "ResourceNames", true, nil, "list of roles whose members should be notified for member review/approval")
 	tRoleMeta.Field("userAuthorityFilter", "AuthorityKeywords", true, nil, "membership filtered based on user authority configured attributes")

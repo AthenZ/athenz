@@ -71,6 +71,8 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -1712,6 +1714,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateIntegerValue(meta.getServiceExpiryDays(), "serviceExpiryDays");
         validateIntegerValue(meta.getTokenExpiryMins(), "tokenExpiryMins");
         validateIntegerValue(meta.getCertExpiryMins(), "certExpiryMins");
+        validateIntegerValue(meta.getMemberReviewDays(), "memberReviewDays");
+        validateIntegerValue(meta.getServiceReviewDays(), "serviceReviewDays");
     }
 
     @Override
@@ -2660,6 +2664,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                         .setServiceExpiryDays(role.getServiceExpiryDays())
                         .setTokenExpiryMins(role.getTokenExpiryMins())
                         .setCertExpiryMins(role.getCertExpiryMins())
+                        .setMemberReviewDays(role.getMemberReviewDays())
+                        .setServiceReviewDays(role.getServiceReviewDays())
                         .setSignAlgorithm(role.getSignAlgorithm())
                         .setReviewEnabled(role.getReviewEnabled())
                         .setLastReviewedDate(role.getLastReviewedDate());
@@ -2909,8 +2915,16 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // update role expiry based on our configurations
 
-        updateRoleMemberExpiration(domain.getMemberExpiryDays(), role.getMemberExpiryDays(),
-                domain.getServiceExpiryDays(), role.getServiceExpiryDays(), role.getRoleMembers());
+        updateRoleMemberExpiration(
+                domain.getMemberExpiryDays(),
+                role.getMemberExpiryDays(),
+                domain.getServiceExpiryDays(),
+                role.getServiceExpiryDays(),
+                role.getRoleMembers());
+
+        // update role review based on our configurations
+
+        updateRoleMemberReviewReminder(role.getMemberReviewDays(), role.getServiceReviewDays(), role.getRoleMembers());
 
         // process our request
 
@@ -3118,70 +3132,106 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return roleMembers;
     }
 
-    long configuredExpiryMillis(Integer domainExpiryDays, Integer roleExpiryDays) {
+    long configuredDueDateMillis(Integer domainDueDateDays, Integer roleDueDateDays) {
 
         // the role expiry days settings overrides the domain one if one configured
 
         int expiryDays = 0;
-        if (roleExpiryDays != null && roleExpiryDays > 0) {
-            expiryDays = roleExpiryDays;
-        } else if (domainExpiryDays != null && domainExpiryDays > 0) {
-            expiryDays = domainExpiryDays;
+        if (roleDueDateDays != null && roleDueDateDays > 0) {
+            expiryDays = roleDueDateDays;
+        } else if (domainDueDateDays != null && domainDueDateDays > 0) {
+            expiryDays = domainDueDateDays;
         }
         return expiryDays == 0 ? 0 : System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(expiryDays, TimeUnit.DAYS);
     }
 
-    Timestamp getMemberExpiration(long cfgExpiryMillis, Timestamp memberExpiration) {
-        if (memberExpiration == null) {
-            return Timestamp.fromMillis(cfgExpiryMillis);
-        } else if (memberExpiration.millis() > cfgExpiryMillis) {
-            return Timestamp.fromMillis(cfgExpiryMillis);
+    Timestamp getMemberDueDate(long cfgDueDateMillis, Timestamp memberDueDate) {
+        if (memberDueDate == null) {
+            return Timestamp.fromMillis(cfgDueDateMillis);
+        } else if (memberDueDate.millis() > cfgDueDateMillis) {
+            return Timestamp.fromMillis(cfgDueDateMillis);
         } else {
-            return memberExpiration;
+            return memberDueDate;
         }
     }
 
-    void updateRoleMemberExpiration(Integer domainUserMemberExpiryDays, Integer roleUserMemberExpiryDays,
-            Integer domainServiceMemberExpiryDays, Integer roleServiceMemberExpiryDays, List<RoleMember> roleMembers) {
+    void updateRoleMemberExpiration(Integer domainUserMemberDueDateDays,
+                                    Integer roleUserMemberDueDateDays,
+                                    Integer domainServiceMemberDueDateDays,
+                                    Integer roleServiceMemberDueDateDays,
+                                    List<RoleMember> roleMembers) {
+        updateRoleMemberDueDate(
+                domainUserMemberDueDateDays,
+                roleUserMemberDueDateDays,
+                domainServiceMemberDueDateDays,
+                roleServiceMemberDueDateDays,
+                roleMembers,
+                roleMember -> roleMember.getExpiration(),
+                (roleMember, expiration) -> roleMember.setExpiration(expiration));
+    }
 
-        long cfgUserMemberExpiryMillis = configuredExpiryMillis(domainUserMemberExpiryDays, roleUserMemberExpiryDays);
-        long cfgServiceMemberExpiryMillis = configuredExpiryMillis(domainServiceMemberExpiryDays, roleServiceMemberExpiryDays);
+    void updateRoleMemberReviewReminder(Integer roleUserMemberDueDateDays,
+                                        Integer roleServiceMemberDueDateDays,
+                                        List<RoleMember> roleMembers) {
+        updateRoleMemberDueDate(
+                null,
+                roleUserMemberDueDateDays,
+                null,
+                roleServiceMemberDueDateDays,
+                roleMembers,
+                roleMember -> roleMember.getReviewReminder(),
+                (roleMember, reviewReminder) -> roleMember.setReviewReminder(reviewReminder));
+    }
+
+    private void updateRoleMemberDueDate(Integer domainUserMemberDueDateDays,
+                                 Integer roleUserMemberDueDateDays,
+                                 Integer domainServiceMemberDueDateDays,
+                                 Integer roleServiceMemberDueDateDays,
+                                 List<RoleMember> roleMembers,
+                                 Function<RoleMember, Timestamp> dueDateGetter,
+                                 BiConsumer<RoleMember, Timestamp> dueDateSetter) {
+
+        long cfgUserMemberDueDateMillis = configuredDueDateMillis(domainUserMemberDueDateDays, roleUserMemberDueDateDays);
+        long cfgServiceMemberDueDateMillis = configuredDueDateMillis(domainServiceMemberDueDateDays, roleServiceMemberDueDateDays);
 
         // if we have no value configured then we have nothing to
         // do so we'll just return right away
 
-        if (cfgUserMemberExpiryMillis == 0 && cfgServiceMemberExpiryMillis == 0) {
+        if (cfgUserMemberDueDateMillis == 0 && cfgServiceMemberDueDateMillis == 0) {
             return;
         }
 
-        // go through the members and update expiration as necessary
+        // go through the members and update due date as necessary
 
         for (RoleMember roleMember : roleMembers) {
             boolean bUser = ZMSUtils.isUserDomainPrincipal(roleMember.getMemberName(), userDomainPrefix,
                     addlUserCheckDomainPrefixList);
-            if (bUser && cfgUserMemberExpiryMillis != 0) {
-                roleMember.setExpiration(getMemberExpiration(cfgUserMemberExpiryMillis, roleMember.getExpiration()));
-            } else if (!bUser && cfgServiceMemberExpiryMillis != 0) {
-                roleMember.setExpiration(getMemberExpiration(cfgServiceMemberExpiryMillis, roleMember.getExpiration()));
+            Timestamp currentDueDate = dueDateGetter.apply(roleMember);
+            if (bUser && cfgUserMemberDueDateMillis != 0) {
+                Timestamp newDueDate = getMemberDueDate(cfgUserMemberDueDateMillis, currentDueDate);
+                dueDateSetter.accept(roleMember, newDueDate);
+            } else if (!bUser && cfgServiceMemberDueDateMillis != 0) {
+                Timestamp newDueDate = getMemberDueDate(cfgServiceMemberDueDateMillis, currentDueDate);
+                dueDateSetter.accept(roleMember, newDueDate);
             }
         }
     }
 
-    Timestamp memberExpiryTimestamp(Integer domainExpiryDays, Integer roleExpiryDays, Timestamp memberExpiration) {
+    Timestamp memberDueDateTimestamp(Integer domainDueDateDays, Integer roleDueDateDays, Timestamp memberDueDate) {
 
-        long cfgExpiryMillis = configuredExpiryMillis(domainExpiryDays, roleExpiryDays);
+        long cfgExpiryMillis = configuredDueDateMillis(domainDueDateDays, roleDueDateDays);
 
         // if we have no value configured then return
         // the membership expiration as is
 
         if (cfgExpiryMillis == 0) {
-            return memberExpiration;
+            return memberDueDate;
         }
 
         // otherwise compare the configured expiry days with the specified
         // membership value and choose the smallest expiration value
 
-        return getMemberExpiration(cfgExpiryMillis, memberExpiration);
+        return getMemberDueDate(cfgExpiryMillis, memberDueDate);
     }
 
     @Override
@@ -3249,6 +3299,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         RoleMember roleMember = new RoleMember();
         roleMember.setMemberName(normalizeDomainAliasUser(memberName));
         setRoleMemberExpiration(domain, role, roleMember, membership);
+        setRoleMemberReview(role, roleMember, membership);
 
         // check to see if we need to validate the principal
 
@@ -3283,11 +3334,25 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         boolean bUser = ZMSUtils.isUserDomainPrincipal(roleMember.getMemberName(), userDomainPrefix,
                 addlUserCheckDomainPrefixList);
         if (bUser) {
-            roleMember.setExpiration(memberExpiryTimestamp(domain.getDomain().getMemberExpiryDays(),
+            roleMember.setExpiration(memberDueDateTimestamp(domain.getDomain().getMemberExpiryDays(),
                     role.getMemberExpiryDays(), membership.getExpiration()));
         } else {
-            roleMember.setExpiration(memberExpiryTimestamp(domain.getDomain().getServiceExpiryDays(),
+            roleMember.setExpiration(memberDueDateTimestamp(domain.getDomain().getServiceExpiryDays(),
                     role.getServiceExpiryDays(), membership.getExpiration()));
+        }
+    }
+
+    void setRoleMemberReview(final Role role, final RoleMember roleMember,
+                                 final Membership membership) {
+
+        boolean bUser = ZMSUtils.isUserDomainPrincipal(roleMember.getMemberName(), userDomainPrefix,
+                addlUserCheckDomainPrefixList);
+        if (bUser) {
+            roleMember.setReviewReminder(memberDueDateTimestamp(null,
+                    role.getMemberReviewDays(), membership.getReviewReminder()));
+        } else {
+            roleMember.setReviewReminder(memberDueDateTimestamp(null,
+                    role.getServiceReviewDays(), membership.getReviewReminder()));
         }
     }
 
@@ -7424,9 +7489,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.forbiddenError("putMembershipDecision: principal is not authorized to approve / reject members", caller);
         }
 
-        // set the user state and expiration values
+        // set the user state, expiration and review date values
 
         setRoleMemberExpiration(domain, role, roleMember, membership);
+        setRoleMemberReview(role, roleMember, membership);
         roleMember.setApproved(membership.getApproved());
         roleMember.setActive(membership.getActive());
 
@@ -7674,8 +7740,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         Role dbRole = getRoleFromDomain(roleName, domain);
 
-        if (configuredExpiryMillis(domain.getDomain().getMemberExpiryDays(), dbRole.getMemberExpiryDays()) == 0 &&
-                configuredExpiryMillis(domain.getDomain().getServiceExpiryDays(), dbRole.getServiceExpiryDays()) == 0) {
+        if (configuredDueDateMillis(domain.getDomain().getMemberExpiryDays(), dbRole.getMemberExpiryDays()) == 0 &&
+                configuredDueDateMillis(domain.getDomain().getServiceExpiryDays(), dbRole.getServiceExpiryDays()) == 0) {
             throw ZMSUtils.requestError(caller + ": Domain member expiry / Role member expiry must be set to review the role. ", caller);
         }
 
@@ -7685,8 +7751,16 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // update role expiry based on our configurations
 
-        updateRoleMemberExpiration(domain.getDomain().getMemberExpiryDays(), dbRole.getMemberExpiryDays(),
-                domain.getDomain().getServiceExpiryDays(), dbRole.getServiceExpiryDays(), role.getRoleMembers());
+        updateRoleMemberExpiration(
+                domain.getDomain().getMemberExpiryDays(),
+                dbRole.getMemberExpiryDays(),
+                domain.getDomain().getServiceExpiryDays(),
+                dbRole.getServiceExpiryDays(),
+                role.getRoleMembers());
+
+        // update role review based on our configurations
+
+        updateRoleMemberReviewReminder(dbRole.getMemberReviewDays(), dbRole.getServiceReviewDays(), role.getRoleMembers());
 
         // process our request
 
