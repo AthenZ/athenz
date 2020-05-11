@@ -32,6 +32,7 @@ import java.sql.Timestamp;
 import java.util.*;
 
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
+import static com.yahoo.athenz.zts.ZTSConsts.ZTS_PROP_NOTIFICATION_CERT_FAIL_IGNORED_SERVICES_LIST;
 import static com.yahoo.athenz.zts.ZTSConsts.ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST;
 import static org.mockito.ArgumentMatchers.*;
 import static org.testng.Assert.*;
@@ -213,6 +214,44 @@ public class CertFailedRefreshNotificationTaskTest {
         assertEquals(new ArrayList<>(), notifications);
 
         System.clearProperty(ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST);
+    }
+
+    @Test
+    public void testValidServices() {
+        String globStrings =
+                        "domain0.service0, "
+                        + "???????.service1, "
+                        + "domain4.????????, ";
+
+        System.setProperty(ZTS_PROP_NOTIFICATION_CERT_FAIL_IGNORED_SERVICES_LIST, globStrings);
+
+        Date currentDate = new Date();
+        List<X509CertRecord> records = new ArrayList<>();
+        System.setProperty(ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST, "provider");
+
+        for (int i = 0; i < 6; ++i) {
+            X509CertRecord record = getMockX509CertRecord(currentDate, i);
+            records.add(record);
+            NotificationTestsCommon.mockDomainData(i, dataStore);
+            Mockito.when(hostnameResolver.isValidHostname(eq("hostName" + i))).thenReturn(true);
+        }
+
+        Mockito.when(instanceCertManager.getUnrefreshedCertsNotifications(eq(serverName), anyString())).thenReturn(records);
+        CertFailedRefreshNotificationTask certFailedRefreshNotificationTask = new CertFailedRefreshNotificationTask(
+                instanceCertManager,
+                dataStore,
+                hostnameResolver,
+                userDomainPrefix,
+                serverName);
+
+        List<Notification> notifications = certFailedRefreshNotificationTask.getNotifications();
+        assertEquals(3, notifications.size());
+        assertEquals("domain5", notifications.get(0).getDetails().get("domain"));
+        assertEquals("domain2", notifications.get(1).getDetails().get("domain"));
+        assertEquals("domain3", notifications.get(2).getDetails().get("domain"));
+
+        System.clearProperty(ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST);
+        System.clearProperty(ZTS_PROP_NOTIFICATION_CERT_FAIL_IGNORED_SERVICES_LIST);
 
     }
 
