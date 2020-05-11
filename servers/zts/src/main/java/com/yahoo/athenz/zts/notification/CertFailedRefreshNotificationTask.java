@@ -24,13 +24,14 @@ import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.cert.InstanceCertManager;
 import com.yahoo.athenz.zts.store.DataStore;
+import com.yahoo.athenz.zts.utils.GlobStringsMatcher;
+import com.yahoo.athenz.zts.utils.ZTSUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.ADMIN_ROLE_NAME;
 import static com.yahoo.athenz.common.ServerCommonConsts.USER_DOMAIN_PREFIX;
@@ -45,6 +46,7 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
     private final static String DESCRIPTION = "certificate failed refresh notification";
     private final HostnameResolver hostnameResolver;
     private final CertFailedRefreshNotificationToEmailConverter certFailedRefreshNotificationToEmailConverter;
+    private final GlobStringsMatcher globStringsMatcher;
 
     public CertFailedRefreshNotificationTask(InstanceCertManager instanceCertManager,
                                              DataStore dataStore,
@@ -58,16 +60,11 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
         this.notificationCommon = new NotificationCommon(ztsDomainRoleMembersFetcher, userDomainPrefix);
         this.hostnameResolver = hostnameResolver;
         this.certFailedRefreshNotificationToEmailConverter = new CertFailedRefreshNotificationToEmailConverter();
+        globStringsMatcher = new GlobStringsMatcher(ZTSConsts.ZTS_PROP_NOTIFICATION_CERT_FAIL_IGNORED_SERVICES_LIST);
     }
 
     private List<String> getProvidersList() {
-        String providersListStr = System.getProperty(ZTSConsts.ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST, null);
-
-        if (providersListStr == null) {
-            return new ArrayList<>();
-        }
-
-        return Stream.of(providersListStr.trim().split("\\s*,\\s*")).collect(Collectors.toList());
+        return ZTSUtils.splitCommaSeperatedSystemProperty(ZTSConsts.ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST);
     }
 
     @Override
@@ -90,10 +87,31 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
             return new ArrayList<>();
         }
 
-        List<X509CertRecord> unrefreshedCertsValidHosts = getRecordsWithValidHosts(unrefreshedCerts);
+        List<X509CertRecord> unrefreshedCertsValidServices = getRecordsWithValidServices(unrefreshedCerts);
+        if (unrefreshedCertsValidServices.isEmpty()) {
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("No unrefreshed certificates with configured services available to send notifications");
+            }
+            return new ArrayList<>();
+        }
+
+        List<X509CertRecord> unrefreshedCertsValidHosts = getRecordsWithValidHosts(unrefreshedCertsValidServices);
+        if (unrefreshedCertsValidHosts.isEmpty()) {
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("No unrefreshed certificates with valid hosts available to send notifications");
+            }
+            return new ArrayList<>();
+        }
+
         Map<String, List<X509CertRecord>> domainToCertRecordsMap = getDomainToCertRecordsMap(unrefreshedCertsValidHosts);
 
         return generateNotificationsForAdmins(domainToCertRecordsMap);
+    }
+
+    private List<X509CertRecord> getRecordsWithValidServices(List<X509CertRecord> unrefreshedCerts) {
+        return unrefreshedCerts.stream()
+                .filter(record -> !globStringsMatcher.isMatch(record.getService()))
+                .collect(Collectors.toList());
     }
 
     private List<Notification> generateNotificationsForAdmins(Map<String, List<X509CertRecord>> domainToCertRecordsMap) {
