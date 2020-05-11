@@ -4421,10 +4421,11 @@ public class DBServiceTest {
         StringBuilder auditDetails = new StringBuilder();
         Role role = new Role().setName("dom1:role.role1").setSelfServe(true).setReviewEnabled(false);
         zms.dbService.auditLogRoleMeta(auditDetails, role, "role1");
-        assertEquals("{\"name\": \"role1\", \"selfServe\": \"true\", \"memberExpiryDays\": \"null\","
-                + " \"serviceExpiryDays\": \"null\", \"tokenExpiryMins\": \"null\","
-                + " \"certExpiryMins\": \"null\", \"reviewEnabled\": \"false\","
-                + " \"notifyRoles\": \"null\"}", auditDetails.toString());
+        assertEquals(auditDetails.toString(),
+                "{\"name\": \"role1\", \"selfServe\": \"true\", \"memberExpiryDays\": \"null\","
+                        + " \"serviceExpiryDays\": \"null\", \"tokenExpiryMins\": \"null\","
+                        + " \"certExpiryMins\": \"null\", \"memberReviewDays\": \"null\", \"serviceReviewDays\": \"null\", \"reviewEnabled\": \"false\","
+                        + " \"notifyRoles\": \"null\"}");
     }
 
     @Test
@@ -4455,6 +4456,8 @@ public class DBServiceTest {
         rm.setTokenExpiryMins(20);
         rm.setReviewEnabled(true);
         rm.setNotifyRoles("role1,role2");
+        rm.setMemberReviewDays(30);
+        rm.setServiceReviewDays(35);
 
         zms.dbService.executePutRoleMeta(mockDomRsrcCtx, "MetaDom1", "MetaRole1",
                 rm, auditRef, "putrolemeta");
@@ -4466,6 +4469,8 @@ public class DBServiceTest {
         assertEquals(resRole1.getTokenExpiryMins(), Integer.valueOf(20));
         assertTrue(resRole1.getReviewEnabled());
         assertEquals(resRole1.getNotifyRoles(), "role1,role2");
+        assertEquals(resRole1.getMemberReviewDays(), Integer.valueOf(30));
+        assertEquals(resRole1.getServiceReviewDays(), Integer.valueOf(35));
 
         rm = new RoleMeta();
         rm.setSelfServe(false);
@@ -4474,6 +4479,7 @@ public class DBServiceTest {
         rm.setServiceExpiryDays(15);
         rm.setSignAlgorithm("rsa");
         rm.setReviewEnabled(false);
+        rm.setServiceReviewDays(35);
 
         zms.dbService.executePutRoleMeta(mockDomRsrcCtx, "MetaDom1", "MetaRole1",
                 rm, auditRef, "putrolemeta");
@@ -4483,6 +4489,8 @@ public class DBServiceTest {
         assertEquals(resRole1.getMemberExpiryDays(), Integer.valueOf(10));
         assertEquals(resRole1.getServiceExpiryDays(), Integer.valueOf(15));
         assertEquals(resRole1.getTokenExpiryMins(), Integer.valueOf(25));
+        assertEquals(resRole1.getMemberReviewDays(), Integer.valueOf(30));
+        assertEquals(resRole1.getServiceReviewDays(), Integer.valueOf(35));
         assertEquals(resRole1.getSignAlgorithm(), "rsa");
         assertFalse(resRole1.getReviewEnabled());
         assertEquals(resRole1.getNotifyRoles(), "role1,role2");
@@ -5282,15 +5290,17 @@ public class DBServiceTest {
     }
 
     @Test
-    public void testUpdateRoleMembersExpirationFailures() {
+    public void testUpdateRoleMembersDueDateFailures() {
 
-        final String domainName = "role-meta-expiry";
+        final String domainName = "role-meta-duedate";
 
         Role originalRole = createRoleObject(domainName, "role1", null, "user.john", "user.jane");
         originalRole.setMemberExpiryDays(10);
+        originalRole.setMemberReviewDays(20);
 
         Role updateRole = createRoleObject(domainName, "role1", null, "user.john", "user.jane");
         updateRole.setMemberExpiryDays(5);
+        updateRole.setMemberReviewDays(25);
 
         ObjectStoreConnection mockConn = Mockito.mock(ObjectStoreConnection.class);
         Mockito.when(mockConn.insertRoleMember(Mockito.anyString(), Mockito.anyString(), Mockito.any(),
@@ -5303,14 +5313,21 @@ public class DBServiceTest {
 
         Mockito.when(mockConn.updateDomainModTimestamp(domainName)).thenThrow(new IllegalArgumentException());
 
-        zms.dbService.updateRoleMembersExpiration(mockDomRsrcCtx, mockConn, domainName, "role1", originalRole,
-                updateRole, auditRef, "testUpdateRoleMembersExpirationFailures");
+        zms.dbService.updateRoleMembersDueDates(
+                mockDomRsrcCtx,
+                mockConn,
+                domainName,
+                "role1",
+                originalRole,
+                updateRole,
+                auditRef,
+                "testUpdateRoleMembersDueDateFailures");
     }
 
     @Test
-    public void testUpdateRoleMembersExpirationTrust() {
+    public void testUpdateRoleMembersDueDateTrust() {
 
-        final String domainName = "role-meta-expiry";
+        final String domainName = "role-meta-duedate";
 
         // in this test case we're going to set the expiry days to 0 so we
         // get an exception when accessed but we should never get there
@@ -5328,14 +5345,21 @@ public class DBServiceTest {
 
         Mockito.when(mockConn.updateDomainModTimestamp(domainName)).thenThrow(new IllegalArgumentException());
 
-        zms.dbService.updateRoleMembersExpiration(mockDomRsrcCtx, mockConn, domainName, "role1", role,
-                role, auditRef, "testUpdateRoleMembersExpirationTrust");
+        zms.dbService.updateRoleMembersDueDates(
+                mockDomRsrcCtx,
+                mockConn,
+                domainName,
+                "role1",
+                role,
+                role,
+                auditRef,
+                "testUpdateRoleMembersDueDateTrust");
     }
 
     @Test
-    public void testUpdateRoleMembersExpirationNoRoleMembers() {
+    public void testUpdateRoleMembersDueDateNoRoleMembers() {
 
-        final String domainName = "role-meta-expiry";
+        final String domainName = "role-meta-duedate";
 
         // in this test case we're going to set the expiry days to 0 so we
         // get an exception when accessed but we should never get there
@@ -5353,8 +5377,15 @@ public class DBServiceTest {
 
         Mockito.when(mockConn.updateDomainModTimestamp(domainName)).thenThrow(new IllegalArgumentException());
 
-        zms.dbService.updateRoleMembersExpiration(mockDomRsrcCtx, mockConn, domainName, "role1", role,
-                role, auditRef, "testUpdateRoleMembersExpirationNoRoleMembers");
+        zms.dbService.updateRoleMembersDueDates(
+                mockDomRsrcCtx,
+                mockConn,
+                domainName,
+                "role1",
+                role,
+                role,
+                auditRef,
+                "testUpdateRoleMembersDueDateNoRoleMembers");
     }
 
     @Test
@@ -5617,29 +5648,29 @@ public class DBServiceTest {
     }
 
     @Test
-    public void testMemberExpiryDayReduced() {
+    public void testIsNumOfDaysReduced() {
 
-        assertFalse(zms.dbService.memberExpiryDaysReduced(null, null));
-        assertFalse(zms.dbService.memberExpiryDaysReduced(10, null));
-        assertFalse(zms.dbService.memberExpiryDaysReduced(0, null));
-        assertFalse(zms.dbService.memberExpiryDaysReduced(-1, null));
+        assertFalse(zms.dbService.isNumOfDaysReduced(null, null));
+        assertFalse(zms.dbService.isNumOfDaysReduced(10, null));
+        assertFalse(zms.dbService.isNumOfDaysReduced(0, null));
+        assertFalse(zms.dbService.isNumOfDaysReduced(-1, null));
 
-        assertFalse(zms.dbService.memberExpiryDaysReduced(null, 0));
-        assertFalse(zms.dbService.memberExpiryDaysReduced(10, 0));
-        assertFalse(zms.dbService.memberExpiryDaysReduced(0, 0));
-        assertFalse(zms.dbService.memberExpiryDaysReduced(-1, 0));
+        assertFalse(zms.dbService.isNumOfDaysReduced(null, 0));
+        assertFalse(zms.dbService.isNumOfDaysReduced(10, 0));
+        assertFalse(zms.dbService.isNumOfDaysReduced(0, 0));
+        assertFalse(zms.dbService.isNumOfDaysReduced(-1, 0));
 
-        assertFalse(zms.dbService.memberExpiryDaysReduced(null, -1));
-        assertFalse(zms.dbService.memberExpiryDaysReduced(10, -1));
-        assertFalse(zms.dbService.memberExpiryDaysReduced(0, -1));
-        assertFalse(zms.dbService.memberExpiryDaysReduced(-1, -1));
+        assertFalse(zms.dbService.isNumOfDaysReduced(null, -1));
+        assertFalse(zms.dbService.isNumOfDaysReduced(10, -1));
+        assertFalse(zms.dbService.isNumOfDaysReduced(0, -1));
+        assertFalse(zms.dbService.isNumOfDaysReduced(-1, -1));
 
-        assertTrue(zms.dbService.memberExpiryDaysReduced(null, 10));
-        assertTrue(zms.dbService.memberExpiryDaysReduced(0, 10));
-        assertTrue(zms.dbService.memberExpiryDaysReduced(-1, 10));
+        assertTrue(zms.dbService.isNumOfDaysReduced(null, 10));
+        assertTrue(zms.dbService.isNumOfDaysReduced(0, 10));
+        assertTrue(zms.dbService.isNumOfDaysReduced(-1, 10));
 
-        assertFalse(zms.dbService.memberExpiryDaysReduced(5, 10));
-        assertTrue(zms.dbService.memberExpiryDaysReduced(10, 5));
+        assertFalse(zms.dbService.isNumOfDaysReduced(5, 10));
+        assertTrue(zms.dbService.isNumOfDaysReduced(10, 5));
     }
 
     @Test

@@ -1,0 +1,2 @@
+ALTER TABLE `zms_server`.`role` ADD `member_review_days` INT NOT NULL DEFAULT 0 AFTER `service_expiry_days`;
+ALTER TABLE `zms_server`.`role` ADD `service_review_days` INT NOT NULL DEFAULT 0 AFTER `member_review_days`;

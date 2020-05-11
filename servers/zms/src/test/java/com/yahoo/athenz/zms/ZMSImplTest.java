@@ -2141,6 +2141,8 @@ public class ZMSImplTest {
         role1.setMemberExpiryDays(30);
         role1.setServiceExpiryDays(35);
         role1.setSelfServe(true);
+        role1.setMemberReviewDays(70);
+        role1.setServiceReviewDays(80);
         zms.putRole(mockDomRsrcCtx, "GetRoleDom1", "Role1", auditRef, role1);
 
         Role role = zms.getRole(mockDomRsrcCtx, "GetRoleDom1", "Role1", false, false, false);
@@ -2159,6 +2161,8 @@ public class ZMSImplTest {
 
         assertEquals(role.getMemberExpiryDays(), Integer.valueOf(30));
         assertEquals(role.getServiceExpiryDays(), Integer.valueOf(35));
+        assertEquals(role.getMemberReviewDays(), Integer.valueOf(70));
+        assertEquals(role.getServiceReviewDays(), Integer.valueOf(80));
         assertTrue(role.getSelfServe());
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "GetRoleDom1", auditRef);
@@ -2327,6 +2331,8 @@ public class ZMSImplTest {
         role1.setName("role1");
         role1.setMemberExpiryDays(30);
         role1.setServiceExpiryDays(45);
+        role1.setMemberReviewDays(70);
+        role1.setServiceReviewDays(80);
         
         zms.putRole(mockDomRsrcCtx, "CreateRoleLocalNameOnly", "Role1", auditRef, role1);
 
@@ -2335,6 +2341,9 @@ public class ZMSImplTest {
         assertEquals(role3.getName(), "CreateRoleLocalNameOnly:role.Role1".toLowerCase());
         assertEquals(role3.getMemberExpiryDays(), Integer.valueOf(30));
         assertEquals(role3.getServiceExpiryDays(), Integer.valueOf(45));
+        assertEquals(role3.getMemberReviewDays(), Integer.valueOf(70));
+        assertEquals(role3.getServiceReviewDays(), Integer.valueOf(80));
+
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "CreateRoleLocalNameOnly", auditRef);
     }
@@ -13587,6 +13596,8 @@ public class ZMSImplTest {
         rm.setCertExpiryMins(55);
         rm.setServiceExpiryDays(45);
         rm.setTokenExpiryMins(65);
+        rm.setMemberReviewDays(70);
+        rm.setServiceReviewDays(80);
         rm.setSignAlgorithm("ec");
         zms.putRoleMeta(mockDomRsrcCtx, domainName, "role4", auditRef, rm);
         
@@ -13628,6 +13639,8 @@ public class ZMSImplTest {
                     assertEquals(role.getCertExpiryMins().intValue(), 55);
                     assertEquals(role.getServiceExpiryDays().intValue(), 45);
                     assertEquals(role.getTokenExpiryMins().intValue(), 65);
+                    assertEquals(role.getMemberReviewDays().intValue(), 70);
+                    assertEquals(role.getServiceReviewDays().intValue(), 80);
                     assertNotNull(role.getSignAlgorithm());
                     assertTrue(role.getReviewEnabled());
                     assertTrue(role.getSelfServe());
@@ -13682,6 +13695,8 @@ public class ZMSImplTest {
                     assertEquals(role.getCertExpiryMins().intValue(), 55);
                     assertEquals(role.getServiceExpiryDays().intValue(), 45);
                     assertEquals(role.getTokenExpiryMins().intValue(), 65);
+                    assertEquals(role.getMemberReviewDays().intValue(), 70);
+                    assertEquals(role.getServiceReviewDays().intValue(), 80);
                     assertNotNull(role.getSignAlgorithm());
                     assertTrue(role.getReviewEnabled());
                     assertTrue(role.getSelfServe());
@@ -16484,6 +16499,8 @@ public class ZMSImplTest {
         rm.setCertExpiryMins(55);
         rm.setServiceExpiryDays(45);
         rm.setTokenExpiryMins(65);
+        rm.setMemberReviewDays(70);
+        rm.setServiceReviewDays(80);
         rm.setSignAlgorithm("ec");
         zms.putRoleMeta(mockDomRsrcCtx, "rolemetadom1", "role1", auditRef, rm);
 
@@ -16495,6 +16512,8 @@ public class ZMSImplTest {
         assertEquals(resRole1.getCertExpiryMins(), Integer.valueOf(55));
         assertEquals(resRole1.getTokenExpiryMins(), Integer.valueOf(65));
         assertEquals(resRole1.getServiceExpiryDays(), Integer.valueOf(45));
+        assertEquals(resRole1.getMemberReviewDays(), Integer.valueOf(70));
+        assertEquals(resRole1.getServiceReviewDays(), Integer.valueOf(80));
         assertEquals(resRole1.getSignAlgorithm(), "ec");
 
         // if we pass a null for the expiry days (e.g. old client)
@@ -16511,6 +16530,8 @@ public class ZMSImplTest {
         assertEquals(resRole1.getServiceExpiryDays(), Integer.valueOf(45));
         assertEquals(resRole1.getCertExpiryMins(), Integer.valueOf(55));
         assertEquals(resRole1.getTokenExpiryMins(), Integer.valueOf(65));
+        assertEquals(resRole1.getMemberReviewDays(), Integer.valueOf(70));
+        assertEquals(resRole1.getServiceReviewDays(), Integer.valueOf(80));
 
         // now let's reset to 0
 
@@ -16519,6 +16540,8 @@ public class ZMSImplTest {
         rm3.setServiceExpiryDays(0);
         rm3.setCertExpiryMins(0);
         rm3.setTokenExpiryMins(85);
+        rm3.setMemberReviewDays(0);
+        rm3.setServiceReviewDays(0);
         zms.putRoleMeta(mockDomRsrcCtx, "rolemetadom1", "role1", auditRef, rm3);
 
         resRole1 = zms.getRole(mockDomRsrcCtx, "rolemetadom1", "role1", true, false, false);
@@ -16529,6 +16552,8 @@ public class ZMSImplTest {
         assertEquals(resRole1.getServiceExpiryDays(), Integer.valueOf(0));
         assertEquals(resRole1.getCertExpiryMins(), Integer.valueOf(0));
         assertEquals(resRole1.getTokenExpiryMins(), Integer.valueOf(85));
+        assertEquals(resRole1.getMemberReviewDays(), Integer.valueOf(0));
+        assertEquals(resRole1.getServiceReviewDays(), Integer.valueOf(0));
 
         // invalid negative values
 
@@ -16570,6 +16595,32 @@ public class ZMSImplTest {
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
         }
+
+        rm4.setMemberExpiryDays(10);
+        rm4.setServiceExpiryDays(10);
+        rm4.setCertExpiryMins(10);
+        rm4.setTokenExpiryMins(10);
+        rm4.setMemberReviewDays(-10);
+        try {
+            zms.putRoleMeta(mockDomRsrcCtx, "rolemetadom1", "role1", auditRef, rm4);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        rm4.setMemberExpiryDays(10);
+        rm4.setServiceExpiryDays(10);
+        rm4.setCertExpiryMins(10);
+        rm4.setTokenExpiryMins(10);
+        rm4.setMemberReviewDays(10);
+        rm4.setServiceReviewDays(-10);
+        try {
+            zms.putRoleMeta(mockDomRsrcCtx, "rolemetadom1", "role1", auditRef, rm4);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "rolemetadom1", auditRef);
     }
 
@@ -17656,65 +17707,158 @@ public class ZMSImplTest {
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "testdomain1", auditRef);
     }
 
-    private boolean validateExpiry(long millis, long extMillis) {
+    private boolean validateDueDate(long millis, long extMillis) {
         return (millis > System.currentTimeMillis() + extMillis - 5000 && millis < System.currentTimeMillis() + extMillis + 5000);
     }
 
     @Test
     public void testConfiguredExpiryMillis() {
 
-        assertEquals(zms.configuredExpiryMillis(null, null), 0);
-        assertEquals(zms.configuredExpiryMillis(null, -3), 0);
-        assertEquals(zms.configuredExpiryMillis(null, 0), 0);
-        assertEquals(zms.configuredExpiryMillis(-3, null), 0);
-        assertEquals(zms.configuredExpiryMillis(0, null), 0);
-        assertEquals(zms.configuredExpiryMillis(-3, -3), 0);
-        assertEquals(zms.configuredExpiryMillis(0, 0), 0);
+        assertEquals(zms.configuredDueDateMillis(null, null), 0);
+        assertEquals(zms.configuredDueDateMillis(null, -3), 0);
+        assertEquals(zms.configuredDueDateMillis(null, 0), 0);
+        assertEquals(zms.configuredDueDateMillis(-3, null), 0);
+        assertEquals(zms.configuredDueDateMillis(0, null), 0);
+        assertEquals(zms.configuredDueDateMillis(-3, -3), 0);
+        assertEquals(zms.configuredDueDateMillis(0, 0), 0);
 
         long extMillis = TimeUnit.MILLISECONDS.convert(10, TimeUnit.DAYS);
-        long millis = zms.configuredExpiryMillis(null, 10);
-        assertTrue(validateExpiry(millis, extMillis));
-        millis = zms.configuredExpiryMillis(null, 10);
-        assertTrue(validateExpiry(millis, extMillis));
-        millis = zms.configuredExpiryMillis(-1, 10);
-        assertTrue(validateExpiry(millis, extMillis));
-        millis = zms.configuredExpiryMillis(0, 10);
-        assertTrue(validateExpiry(millis, extMillis));
-        millis = zms.configuredExpiryMillis(5, 10);
-        assertTrue(validateExpiry(millis, extMillis));
-        millis = zms.configuredExpiryMillis(20, 10);
-        assertTrue(validateExpiry(millis, extMillis));
+        long millis = zms.configuredDueDateMillis(null, 10);
+        assertTrue(validateDueDate(millis, extMillis));
+        millis = zms.configuredDueDateMillis(null, 10);
+        assertTrue(validateDueDate(millis, extMillis));
+        millis = zms.configuredDueDateMillis(-1, 10);
+        assertTrue(validateDueDate(millis, extMillis));
+        millis = zms.configuredDueDateMillis(0, 10);
+        assertTrue(validateDueDate(millis, extMillis));
+        millis = zms.configuredDueDateMillis(5, 10);
+        assertTrue(validateDueDate(millis, extMillis));
+        millis = zms.configuredDueDateMillis(20, 10);
+        assertTrue(validateDueDate(millis, extMillis));
 
-        millis = zms.configuredExpiryMillis(10, null);
-        assertTrue(validateExpiry(millis, extMillis));
-        millis = zms.configuredExpiryMillis(10, -1);
-        assertTrue(validateExpiry(millis, extMillis));
-        millis = zms.configuredExpiryMillis(10, 0);
-        assertTrue(validateExpiry(millis, extMillis));
+        millis = zms.configuredDueDateMillis(10, null);
+        assertTrue(validateDueDate(millis, extMillis));
+        millis = zms.configuredDueDateMillis(10, -1);
+        assertTrue(validateDueDate(millis, extMillis));
+        millis = zms.configuredDueDateMillis(10, 0);
+        assertTrue(validateDueDate(millis, extMillis));
     }
 
     @Test
-    public void testGetMemberExpiration() {
-        assertEquals(zms.getMemberExpiration(100, null), Timestamp.fromMillis(100));
-        assertEquals(zms.getMemberExpiration(100, Timestamp.fromMillis(50)), Timestamp.fromMillis(50));
-        assertEquals(zms.getMemberExpiration(100, Timestamp.fromMillis(150)), Timestamp.fromMillis(100));
+    public void testGetMemberDueDate() {
+        assertEquals(zms.getMemberDueDate(100, null), Timestamp.fromMillis(100));
+        assertEquals(zms.getMemberDueDate(100, Timestamp.fromMillis(50)), Timestamp.fromMillis(50));
+        assertEquals(zms.getMemberDueDate(100, Timestamp.fromMillis(150)), Timestamp.fromMillis(100));
     }
 
     @Test
-    public void testMemberExpiryTimestamp() {
-        assertEquals(zms.memberExpiryTimestamp(null, null, Timestamp.fromMillis(100)), Timestamp.fromMillis(100));
-        assertEquals(zms.memberExpiryTimestamp(-1, 0, Timestamp.fromMillis(100)), Timestamp.fromMillis(100));
-        assertEquals(zms.memberExpiryTimestamp(-3, -2, Timestamp.fromMillis(100)), Timestamp.fromMillis(100));
+    public void testMemberDueDateTimestamp() {
+        assertEquals(zms.memberDueDateTimestamp(null, null, Timestamp.fromMillis(100)), Timestamp.fromMillis(100));
+        assertEquals(zms.memberDueDateTimestamp(-1, 0, Timestamp.fromMillis(100)), Timestamp.fromMillis(100));
+        assertEquals(zms.memberDueDateTimestamp(-3, -2, Timestamp.fromMillis(100)), Timestamp.fromMillis(100));
 
         long ext50Millis = TimeUnit.MILLISECONDS.convert(50, TimeUnit.DAYS);
         long ext75Millis = TimeUnit.MILLISECONDS.convert(75, TimeUnit.DAYS);
         long ext100Millis = TimeUnit.MILLISECONDS.convert(100, TimeUnit.DAYS);
 
-        Timestamp stamp = zms.memberExpiryTimestamp(100, 50, Timestamp.fromMillis(System.currentTimeMillis() + ext75Millis));
-        assertTrue(validateExpiry(stamp.millis(), ext50Millis));
+        Timestamp stamp = zms.memberDueDateTimestamp(100, 50, Timestamp.fromMillis(System.currentTimeMillis() + ext75Millis));
+        assertTrue(validateDueDate(stamp.millis(), ext50Millis));
 
-        stamp = zms.memberExpiryTimestamp(75, null, Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis));
-        assertTrue(validateExpiry(stamp.millis(), ext75Millis));
+        stamp = zms.memberDueDateTimestamp(75, null, Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis));
+        assertTrue(validateDueDate(stamp.millis(), ext75Millis));
+    }
+
+    @Test
+    public void testUpdateRoleMemberReview() {
+
+        long ext100Millis = TimeUnit.MILLISECONDS.convert(100, TimeUnit.DAYS);
+        long ext125Millis = TimeUnit.MILLISECONDS.convert(125, TimeUnit.DAYS);
+        long ext150Millis = TimeUnit.MILLISECONDS.convert(150, TimeUnit.DAYS);
+
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user.joe").setReviewReminder(null));
+        members.add(new RoleMember().setMemberName("user.jane")
+                .setReviewReminder(Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis)));
+        members.add(new RoleMember().setMemberName("athenz.api").setReviewReminder(null));
+        members.add(new RoleMember().setMemberName("athenz.backend")
+                .setReviewReminder(Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis)));
+
+        zms.updateRoleMemberReviewReminder(
+                125,
+                150, members);
+
+        Timestamp stamp = members.get(0).getReviewReminder();
+        assertTrue(validateDueDate(stamp.millis(), ext125Millis));
+
+        stamp = members.get(1).getReviewReminder();
+        assertTrue(validateDueDate(stamp.millis(), ext100Millis));
+
+        stamp = members.get(2).getReviewReminder();
+        assertTrue(validateDueDate(stamp.millis(), ext150Millis));
+
+        stamp = members.get(3).getReviewReminder();
+        assertTrue(validateDueDate(stamp.millis(), ext100Millis));
+    }
+
+    @Test
+    public void testUpdateRoleMemberReviewNoUser() {
+
+        long ext100Millis = TimeUnit.MILLISECONDS.convert(100, TimeUnit.DAYS);
+        long ext125Millis = TimeUnit.MILLISECONDS.convert(125, TimeUnit.DAYS);
+        long ext150Millis = TimeUnit.MILLISECONDS.convert(150, TimeUnit.DAYS);
+
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user.joe").setReviewReminder(null));
+        members.add(new RoleMember().setMemberName("user.jane")
+                .setReviewReminder(Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis)));
+        members.add(new RoleMember().setMemberName("athenz.api").setReviewReminder(null));
+        members.add(new RoleMember().setMemberName("athenz.backend")
+                .setReviewReminder(Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis)));
+
+        zms.updateRoleMemberReviewReminder(
+                0,
+                150,
+                members);
+
+        assertNull(members.get(0).getReviewReminder());
+
+        Timestamp stamp = members.get(1).getReviewReminder();
+        assertTrue(validateDueDate(stamp.millis(), ext100Millis));
+
+        stamp = members.get(2).getReviewReminder();
+        assertTrue(validateDueDate(stamp.millis(), ext150Millis));
+
+        stamp = members.get(3).getReviewReminder();
+        assertTrue(validateDueDate(stamp.millis(), ext100Millis));
+    }
+
+    @Test
+    public void testUpdateRoleMemberReviewNoService() {
+
+        long ext100Millis = TimeUnit.MILLISECONDS.convert(100, TimeUnit.DAYS);
+        long ext125Millis = TimeUnit.MILLISECONDS.convert(125, TimeUnit.DAYS);
+        long ext150Millis = TimeUnit.MILLISECONDS.convert(150, TimeUnit.DAYS);
+
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user.joe").setReviewReminder(null));
+        members.add(new RoleMember().setMemberName("user.jane")
+                .setReviewReminder(Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis)));
+        members.add(new RoleMember().setMemberName("athenz.api").setReviewReminder(null));
+        members.add(new RoleMember().setMemberName("athenz.backend")
+                .setReviewReminder(Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis)));
+
+        zms.updateRoleMemberReviewReminder(125, 0, members);
+
+        Timestamp stamp = members.get(0).getReviewReminder();
+        assertTrue(validateDueDate(stamp.millis(), ext125Millis));
+
+        stamp = members.get(1).getReviewReminder();
+        assertTrue(validateDueDate(stamp.millis(), ext100Millis));
+
+        assertNull(members.get(2).getReviewReminder());
+
+        stamp = members.get(3).getReviewReminder();
+        assertTrue(validateDueDate(stamp.millis(), ext100Millis));
     }
 
     @Test
@@ -17734,19 +17878,23 @@ public class ZMSImplTest {
 
         // for user members we have 50/125 setup while for service members 75/150
 
-        zms.updateRoleMemberExpiration(50, 125, 75, 150, members);
+        zms.updateRoleMemberExpiration(
+                50,
+                125,
+                75,
+                150, members);
 
         Timestamp stamp = members.get(0).getExpiration();
-        assertTrue(validateExpiry(stamp.millis(), ext125Millis));
+        assertTrue(validateDueDate(stamp.millis(), ext125Millis));
 
         stamp = members.get(1).getExpiration();
-        assertTrue(validateExpiry(stamp.millis(), ext100Millis));
+        assertTrue(validateDueDate(stamp.millis(), ext100Millis));
 
         stamp = members.get(2).getExpiration();
-        assertTrue(validateExpiry(stamp.millis(), ext150Millis));
+        assertTrue(validateDueDate(stamp.millis(), ext150Millis));
 
         stamp = members.get(3).getExpiration();
-        assertTrue(validateExpiry(stamp.millis(), ext100Millis));
+        assertTrue(validateDueDate(stamp.millis(), ext100Millis));
     }
 
     @Test
@@ -17766,18 +17914,23 @@ public class ZMSImplTest {
 
         // for user members we have 0 setup while for service members 75/150
 
-        zms.updateRoleMemberExpiration(0, 0, 75, 150, members);
+        zms.updateRoleMemberExpiration(
+                0,
+                0,
+                75,
+                150,
+                members);
 
         assertNull(members.get(0).getExpiration());
 
         Timestamp stamp = members.get(1).getExpiration();
-        assertTrue(validateExpiry(stamp.millis(), ext100Millis));
+        assertTrue(validateDueDate(stamp.millis(), ext100Millis));
 
         stamp = members.get(2).getExpiration();
-        assertTrue(validateExpiry(stamp.millis(), ext150Millis));
+        assertTrue(validateDueDate(stamp.millis(), ext150Millis));
 
         stamp = members.get(3).getExpiration();
-        assertTrue(validateExpiry(stamp.millis(), ext100Millis));
+        assertTrue(validateDueDate(stamp.millis(), ext100Millis));
     }
 
     @Test
@@ -17797,18 +17950,23 @@ public class ZMSImplTest {
 
         // for user members we have 50/125 setup while for service members 0
 
-        zms.updateRoleMemberExpiration(50, 125, 0, 0, members);
+        zms.updateRoleMemberExpiration(
+                50,
+                125,
+                0,
+                0,
+                members);
 
         Timestamp stamp = members.get(0).getExpiration();
-        assertTrue(validateExpiry(stamp.millis(), ext125Millis));
+        assertTrue(validateDueDate(stamp.millis(), ext125Millis));
 
         stamp = members.get(1).getExpiration();
-        assertTrue(validateExpiry(stamp.millis(), ext100Millis));
+        assertTrue(validateDueDate(stamp.millis(), ext100Millis));
 
         assertNull(members.get(2).getExpiration());
 
         stamp = members.get(3).getExpiration();
-        assertTrue(validateExpiry(stamp.millis(), ext100Millis));
+        assertTrue(validateDueDate(stamp.millis(), ext100Millis));
     }
 
     @Test

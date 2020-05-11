@@ -141,6 +141,8 @@ public class ZMSSchema {
             .field("certExpiryMins", "Int32", true, "certs issued for this role will have specified max timeout in mins")
             .field("signAlgorithm", "SimpleName", true, "rsa or ec signing algorithm to be used for tokens")
             .field("serviceExpiryDays", "Int32", true, "all services in the role will have specified max expiry days")
+            .field("memberReviewDays", "Int32", true, "all user members in the role will have specified max review days")
+            .field("serviceReviewDays", "Int32", true, "all services in the role will have specified max review days")
             .field("reviewEnabled", "Bool", true, "Flag indicates whether or not role updates require another review and approval", false)
             .field("notifyRoles", "ResourceNames", true, "list of roles whose members should be notified for member review/approval")
             .field("userAuthorityFilter", "AuthorityKeywords", true, "membership filtered based on user authority configured attributes")

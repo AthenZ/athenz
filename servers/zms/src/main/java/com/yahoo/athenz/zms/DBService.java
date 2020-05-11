@@ -2328,9 +2328,9 @@ public class DBService {
         // we only need to process the domain role members if the new expiration
         // is more restrictive than what we had before
 
-        boolean userMemberExpiryDayReduced = memberExpiryDaysReduced(domain.getMemberExpiryDays(),
+        boolean userMemberExpiryDayReduced = isNumOfDaysReduced(domain.getMemberExpiryDays(),
                 updatedDomain.getMemberExpiryDays());
-        boolean serviceMemberExpiryDayReduced = memberExpiryDaysReduced(domain.getServiceExpiryDays(),
+        boolean serviceMemberExpiryDayReduced = isNumOfDaysReduced(domain.getServiceExpiryDays(),
                 updatedDomain.getServiceExpiryDays());
 
         if (!userMemberExpiryDayReduced && !serviceMemberExpiryDayReduced) {
@@ -2345,13 +2345,12 @@ public class DBService {
             return;
         }
 
-        long userMillis = userMemberExpiryDayReduced ? System.currentTimeMillis()
+        long userExpiryMillis = userMemberExpiryDayReduced ? System.currentTimeMillis()
                 + TimeUnit.MILLISECONDS.convert(updatedDomain.getMemberExpiryDays(), TimeUnit.DAYS) : 0;
-        long serviceMillis = serviceMemberExpiryDayReduced ? System.currentTimeMillis()
+        long serviceExpiryMillis = serviceMemberExpiryDayReduced ? System.currentTimeMillis()
                 + TimeUnit.MILLISECONDS.convert(updatedDomain.getServiceExpiryDays(), TimeUnit.DAYS) : 0;
-        Timestamp userExpiration = Timestamp.fromMillis(userMillis);
-        Timestamp serviceExpiration = Timestamp.fromMillis(serviceMillis);
-        boolean bDataChanged = false;
+        Timestamp userExpiration = Timestamp.fromMillis(userExpiryMillis);
+        Timestamp serviceExpiration = Timestamp.fromMillis(serviceExpiryMillis);
         final String principal = getPrincipalName(ctx);
 
         for (Role role : athenzDomain.getRoles()) {
@@ -2380,18 +2379,32 @@ public class DBService {
             // our role and domain time-stamps, and invalidate local cache entry
 
             final String roleName = AthenzUtils.extractRoleName(role.getName());
-            if (setRoleMemberExpiration(ctx, con, roleMembers, userExpiration, userMillis, serviceExpiration,
-                    serviceMillis, domain.getName(), roleName, principal, auditRef, caller)) {
+            List<RoleMember> roleMembersWithUpdatedDueDates = getRoleMembersWithUpdatedDueDates(
+                    roleMembers,
+                    userExpiration,
+                    userExpiryMillis,
+                    serviceExpiration,
+                    serviceExpiryMillis,
+                    null,
+                    0,
+                    null,
+                    0);
+            if (insertRoleMembers(
+                    ctx,
+                    con,
+                    roleMembersWithUpdatedDueDates,
+                    domain.getName(),
+                    roleName,
+                    principal,
+                    auditRef,
+                    caller)) {
+
+                // update our role and domain time-stamps, and invalidate local cache entry
+
                 con.updateRoleModTimestamp(domain.getName(), roleName);
-                bDataChanged = true;
+                con.updateDomainModTimestamp(domain.getName());
+                cacheStore.invalidate(domain.getName());
             }
-        }
-
-        // update our role and domain time-stamps, and invalidate local cache entry
-
-        if (bDataChanged) {
-            con.updateDomainModTimestamp(domain.getName());
-            cacheStore.invalidate(domain.getName());
         }
     }
 
@@ -3707,6 +3720,8 @@ public class DBService {
                 .append("\", \"serviceExpiryDays\": \"").append(role.getServiceExpiryDays())
                 .append("\", \"tokenExpiryMins\": \"").append(role.getTokenExpiryMins())
                 .append("\", \"certExpiryMins\": \"").append(role.getCertExpiryMins())
+                .append("\", \"memberReviewDays\": \"").append(role.getMemberReviewDays())
+                .append("\", \"serviceReviewDays\": \"").append(role.getServiceReviewDays())
                 .append("\", \"reviewEnabled\": \"").append(role.getReviewEnabled())
                 .append("\", \"notifyRoles\": \"").append(role.getNotifyRoles())
                 .append("\"}");
@@ -3825,6 +3840,8 @@ public class DBService {
                         .setServiceExpiryDays(originalRole.getServiceExpiryDays())
                         .setTokenExpiryMins(originalRole.getTokenExpiryMins())
                         .setCertExpiryMins(originalRole.getCertExpiryMins())
+                        .setMemberReviewDays(originalRole.getMemberReviewDays())
+                        .setServiceReviewDays(originalRole.getServiceReviewDays())
                         .setSignAlgorithm(originalRole.getSignAlgorithm())
                         .setReviewEnabled(originalRole.getReviewEnabled())
                         .setNotifyRoles(originalRole.getNotifyRoles());
@@ -3932,6 +3949,12 @@ public class DBService {
         if (meta.getNotifyRoles() != null) {
             role.setNotifyRoles(meta.getNotifyRoles());
         }
+        if (meta.getMemberReviewDays() != null) {
+            role.setMemberReviewDays(meta.getMemberReviewDays());
+        }
+        if (meta.getServiceReviewDays() != null) {
+            role.setServiceReviewDays(meta.getServiceReviewDays());
+        }
     }
 
     public void executePutRoleMeta(ResourceContext ctx, String domainName, String roleName, RoleMeta meta,
@@ -3965,6 +3988,8 @@ public class DBService {
                         .setServiceExpiryDays(originalRole.getServiceExpiryDays())
                         .setTokenExpiryMins(originalRole.getTokenExpiryMins())
                         .setCertExpiryMins(originalRole.getCertExpiryMins())
+                        .setMemberReviewDays(originalRole.getMemberReviewDays())
+                        .setServiceReviewDays(originalRole.getServiceReviewDays())
                         .setSignAlgorithm(originalRole.getSignAlgorithm())
                         .setReviewEnabled(originalRole.getReviewEnabled())
                         .setNotifyRoles(originalRole.getNotifyRoles());
@@ -3985,12 +4010,19 @@ public class DBService {
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
                         domainName, auditDetails.toString());
 
-                // if the role member expiry date has changed then we're going
-                // process all the members in the role and update the expiration
+                // if the role member expiry date or review date has changed then we're going
+                // process all the members in the role and update the expiration and review
                 // date accordingly
 
-                updateRoleMembersExpiration(ctx, con, domainName, roleName, originalRole, updatedRole,
-                        auditRef, caller);
+                updateRoleMembersDueDates(
+                        ctx,
+                        con,
+                        domainName,
+                        roleName,
+                        originalRole,
+                        updatedRole,
+                        auditRef,
+                        caller);
 
                 return;
 
@@ -4002,41 +4034,75 @@ public class DBService {
         }
     }
 
-    boolean setRoleMemberExpiration(ResourceContext ctx, ObjectStoreConnection con, List<RoleMember> roleMembers,
-            Timestamp userExpiration, long userMillis, Timestamp serviceExpiration, long serviceMillis,
-            final String domainName, final String roleName, final String principal, final String auditRef,
-            final String caller) {
+    private boolean isEarlierDueDate(long newDueDateMillis, Timestamp currentDueDate) {
+        return newDueDateMillis != 0 && (currentDueDate == null || currentDueDate.millis() > newDueDateMillis);
+    }
 
-        boolean bDataChanged = false;
+    List<RoleMember> getRoleMembersWithUpdatedDueDates(List<RoleMember> roleMembers,
+                                                       Timestamp userExpiration,
+                                                       long userExpiryMillis,
+                                                       Timestamp serviceExpiration,
+                                                       long serviceExpiryMillis,
+                                                       Timestamp userReview,
+                                                       long userReviewMillis,
+                                                       Timestamp serviceReview,
+                                                       long serviceReviewMillis) {
+
+        List<RoleMember> roleMembersWithUpdatedDueDates = new ArrayList<>();
         for (RoleMember roleMember : roleMembers) {
 
             boolean bUser = ZMSUtils.isUserDomainPrincipal(roleMember.getMemberName(), zmsConfig.getUserDomainPrefix(),
                     zmsConfig.getAddlUserCheckDomainPrefixList());
 
-            if (bUser && userMillis != 0) {
+            Timestamp expiration = roleMember.getExpiration();
+            Timestamp reviewDate = roleMember.getReviewReminder();
+            boolean dueDateUpdated = false;
 
-                if (roleMember.getExpiration() != null && roleMember.getExpiration().millis() < userMillis) {
-                    continue;
+            if (bUser) {
+                if (isEarlierDueDate(userExpiryMillis, expiration)) {
+                    roleMember.setExpiration(userExpiration);
+                    dueDateUpdated = true;
                 }
-
-                roleMember.setExpiration(userExpiration);
-
-            } else if (!bUser && serviceMillis != 0) {
-
-                if (roleMember.getExpiration() != null && roleMember.getExpiration().millis() < serviceMillis) {
-                    continue;
+                if (isEarlierDueDate(userReviewMillis, reviewDate)) {
+                    roleMember.setReviewReminder(userReview);
+                    dueDateUpdated = true;
                 }
-
-                roleMember.setExpiration(serviceExpiration);
+            } else {
+                if (isEarlierDueDate(serviceExpiryMillis, expiration)) {
+                    roleMember.setExpiration(serviceExpiration);
+                    dueDateUpdated = true;
+                }
+                if (isEarlierDueDate(serviceReviewMillis, reviewDate)) {
+                    roleMember.setReviewReminder(serviceReview);
+                    dueDateUpdated = true;
+                }
             }
 
+            if (dueDateUpdated) {
+                roleMembersWithUpdatedDueDates.add(roleMember);
+            }
+        }
+
+        return roleMembersWithUpdatedDueDates;
+    }
+
+    private boolean insertRoleMembers(ResourceContext ctx,
+                                      ObjectStoreConnection con,
+                                      List<RoleMember> roleMembers,
+                                      final String domainName,
+                                      final String roleName,
+                                      final String principal,
+                                      final String auditRef,
+                                      final String caller) {
+        boolean bDataChanged = false;
+        for (RoleMember roleMember : roleMembers) {
             try {
                 if (!con.insertRoleMember(domainName, roleName, roleMember, principal, auditRef)) {
-                    LOG.error("unable to update member {} expiration", roleMember.getMemberName());
+                    LOG.error("unable to update member {}", roleMember.getMemberName());
                     continue;
                 }
             } catch (Exception ex) {
-                LOG.error("unable to update member {} expiration: {}", roleMember.getMemberName(), ex.getMessage());
+                LOG.error("unable to update member {} error: {}", roleMember.getMemberName(), ex.getMessage());
                 continue;
             }
 
@@ -4053,8 +4119,14 @@ public class DBService {
         return bDataChanged;
     }
 
-    void updateRoleMembersExpiration(ResourceContext ctx, ObjectStoreConnection con, final String domainName,
-            final String roleName, Role originalRole, Role updatedRole, final String auditRef, final String caller) {
+    void updateRoleMembersDueDates(ResourceContext ctx,
+                                   ObjectStoreConnection con,
+                                   final String domainName,
+                                   final String roleName,
+                                   Role originalRole,
+                                   Role updatedRole,
+                                   final String auditRef,
+                                   final String caller) {
 
         // if it's a delegated role then we have nothing to do
 
@@ -4069,48 +4141,85 @@ public class DBService {
             return;
         }
 
-        // we only need to process the role members if the new expiration
+        // we only need to process the role members if the new due date
         // is more restrictive than what we had before
 
-        boolean userMemberExpiryDayReduced = memberExpiryDaysReduced(originalRole.getMemberExpiryDays(),
+        boolean userMemberExpiryDayReduced = isNumOfDaysReduced(originalRole.getMemberExpiryDays(),
                 updatedRole.getMemberExpiryDays());
-        boolean serviceMemberExpiryDayReduced = memberExpiryDaysReduced(originalRole.getServiceExpiryDays(),
+        boolean serviceMemberExpiryDayReduced = isNumOfDaysReduced(originalRole.getServiceExpiryDays(),
                 updatedRole.getServiceExpiryDays());
 
-        if (!userMemberExpiryDayReduced && !serviceMemberExpiryDayReduced) {
+         boolean userMemberReviewDayReduced = isNumOfDaysReduced(originalRole.getMemberReviewDays(),
+                 updatedRole.getMemberReviewDays());
+         boolean serviceMemberReviewDayReduced = isNumOfDaysReduced(originalRole.getServiceReviewDays(),
+                 updatedRole.getServiceReviewDays());
+
+        if (!userMemberExpiryDayReduced && !serviceMemberExpiryDayReduced &&
+                !userMemberReviewDayReduced && !serviceMemberReviewDayReduced) {
             return;
         }
 
         // we're only going to process those role members whose
-        // expiration is either not set or longer than the new limit
+        // due date is either not set or longer than the new limit
 
-        long userMillis = userMemberExpiryDayReduced ? System.currentTimeMillis()
+        long userExpiryMillis = userMemberExpiryDayReduced ? System.currentTimeMillis()
                 + TimeUnit.MILLISECONDS.convert(updatedRole.getMemberExpiryDays(), TimeUnit.DAYS) : 0;
-        long serviceMillis = serviceMemberExpiryDayReduced ? System.currentTimeMillis()
+        long serviceExpiryMillis = serviceMemberExpiryDayReduced ? System.currentTimeMillis()
                 + TimeUnit.MILLISECONDS.convert(updatedRole.getServiceExpiryDays(), TimeUnit.DAYS) : 0;
-        Timestamp userExpiration = Timestamp.fromMillis(userMillis);
-        Timestamp serviceExpiration = Timestamp.fromMillis(serviceMillis);
+
+         long userReviewMillis = userMemberReviewDayReduced ? System.currentTimeMillis()
+                 + TimeUnit.MILLISECONDS.convert(updatedRole.getMemberReviewDays(), TimeUnit.DAYS) : 0;
+         long serviceReviewMillis = serviceMemberReviewDayReduced ? System.currentTimeMillis()
+                 + TimeUnit.MILLISECONDS.convert(updatedRole.getServiceReviewDays(), TimeUnit.DAYS) : 0;
+
+        Timestamp userExpiration = Timestamp.fromMillis(userExpiryMillis);
+        Timestamp serviceExpiration = Timestamp.fromMillis(serviceExpiryMillis);
+
+        Timestamp userReview = Timestamp.fromMillis(userReviewMillis);
+        Timestamp serviceReview = Timestamp.fromMillis(serviceReviewMillis);
+
         final String principal = getPrincipalName(ctx);
 
         // process our role members and if there were any changes processed then update
         // our role and domain time-stamps, and invalidate local cache entry
 
-        if (setRoleMemberExpiration(ctx, con, roleMembers, userExpiration, userMillis, serviceExpiration, serviceMillis,
-                domainName, roleName, principal, auditRef, caller)) {
+
+        List<RoleMember> roleMembersWithUpdatedDueDates = getRoleMembersWithUpdatedDueDates(
+                roleMembers,
+                userExpiration,
+                userExpiryMillis,
+                serviceExpiration,
+                serviceExpiryMillis,
+                userReview,
+                userReviewMillis,
+                serviceReview,
+                serviceReviewMillis);
+        if (insertRoleMembers(
+                ctx,
+                con,
+                roleMembersWithUpdatedDueDates,
+                domainName,
+                roleName,
+                principal,
+                auditRef,
+                caller)) {
+
+            // update our role and domain time-stamps, and invalidate local cache entry
+
             con.updateRoleModTimestamp(domainName, roleName);
             con.updateDomainModTimestamp(domainName);
             cacheStore.invalidate(domainName);
         }
     }
 
-    boolean memberExpiryDaysReduced(Integer oldMemberExpiryDays, Integer newMemberExpiryDays) {
-        if (newMemberExpiryDays == null || newMemberExpiryDays <= 0) {
+    boolean isNumOfDaysReduced(Integer oldNumberOfDays, Integer newNumberOfDays) {
+        if (newNumberOfDays == null || newNumberOfDays <= 0) {
             return false;
         }
-        if (oldMemberExpiryDays == null || oldMemberExpiryDays <= 0) {
+        if (oldNumberOfDays == null || oldNumberOfDays <= 0) {
             return true;
         }
-        return newMemberExpiryDays < oldMemberExpiryDays;
+        return newNumberOfDays < oldNumberOfDays;
     }
 
     /**

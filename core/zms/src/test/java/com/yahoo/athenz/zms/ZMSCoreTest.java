@@ -128,6 +128,8 @@ public class ZMSCoreTest {
                 .setServiceExpiryDays(40)
                 .setTokenExpiryMins(300)
                 .setCertExpiryMins(120)
+                .setMemberReviewDays(70)
+                .setServiceReviewDays(80)
                 .setSignAlgorithm("ec")
                 .setReviewEnabled(false)
                 .setNotifyRoles("role1,domain:role.role2")
@@ -150,6 +152,8 @@ public class ZMSCoreTest {
         assertEquals(r.getServiceExpiryDays(), Integer.valueOf(40));
         assertEquals(r.getTokenExpiryMins(), Integer.valueOf(300));
         assertEquals(r.getCertExpiryMins(), Integer.valueOf(120));
+        assertEquals(r.getMemberReviewDays(), Integer.valueOf(70));
+        assertEquals(r.getServiceReviewDays(), Integer.valueOf(80));
         assertEquals(r.getSignAlgorithm(), "ec");
         assertFalse(r.getReviewEnabled());
         assertEquals(r.getLastReviewedDate(), Timestamp.fromMillis(123456789123L));
@@ -170,6 +174,8 @@ public class ZMSCoreTest {
                 .setServiceExpiryDays(40)
                 .setTokenExpiryMins(300)
                 .setCertExpiryMins(120)
+                .setMemberReviewDays(70)
+                .setServiceReviewDays(80)
                 .setSignAlgorithm("ec")
                 .setReviewEnabled(false)
                 .setNotifyRoles("role1,domain:role.role2")
@@ -248,6 +254,20 @@ public class ZMSCoreTest {
         r2.setSelfServe(null);
         assertFalse(r2.equals(r));
         r2.setSelfServe(false);
+        assertTrue(r2.equals(r));
+
+        r2.setMemberReviewDays(75);
+        assertFalse(r2.equals(r));
+        r2.setMemberReviewDays(null);
+        assertFalse(r2.equals(r));
+        r2.setMemberReviewDays(70);
+        assertTrue(r2.equals(r));
+
+        r2.setServiceReviewDays(85);
+        assertFalse(r2.equals(r));
+        r2.setServiceReviewDays(null);
+        assertFalse(r2.equals(r));
+        r2.setServiceReviewDays(80);
         assertTrue(r2.equals(r));
 
         r2.setUserAuthorityExpiration("attr11");
@@ -2769,10 +2789,19 @@ public class ZMSCoreTest {
     @Test
     public void testRoleMetaMethod() {
 
-        RoleMeta rm = new RoleMeta().setMemberExpiryDays(30).setSelfServe(false).setTokenExpiryMins(300)
-                .setCertExpiryMins(120).setSignAlgorithm("rsa").setServiceExpiryDays(40)
-                .setNotifyRoles("role1,domain:role.role2").setReviewEnabled(false)
-                .setUserAuthorityExpiration("attr1").setUserAuthorityFilter("attr2,attr3");
+        RoleMeta rm = new RoleMeta()
+                .setMemberExpiryDays(30)
+                .setSelfServe(false)
+                .setTokenExpiryMins(300)
+                .setCertExpiryMins(120)
+                .setSignAlgorithm("rsa")
+                .setServiceExpiryDays(40)
+                .setNotifyRoles("role1,domain:role.role2")
+                .setMemberReviewDays(70)
+                .setServiceReviewDays(80)
+                .setReviewEnabled(false)
+                .setUserAuthorityExpiration("attr1")
+                .setUserAuthorityFilter("attr2,attr3");
         assertTrue(rm.equals(rm));
 
         assertFalse(rm.getSelfServe());
@@ -2782,14 +2811,25 @@ public class ZMSCoreTest {
         assertEquals(rm.getCertExpiryMins(), Integer.valueOf(120));
         assertEquals(rm.getSignAlgorithm(), "rsa");
         assertEquals(rm.getNotifyRoles(), "role1,domain:role.role2");
+        assertEquals(rm.getMemberReviewDays(), Integer.valueOf(70));
+        assertEquals(rm.getServiceReviewDays(), Integer.valueOf(80));
         assertFalse(rm.getReviewEnabled());
         assertEquals(rm.getUserAuthorityExpiration(), "attr1");
         assertEquals(rm.getUserAuthorityFilter(), "attr2,attr3");
 
-        RoleMeta rm2 = new RoleMeta().setMemberExpiryDays(30).setSelfServe(false).setTokenExpiryMins(300)
-                .setCertExpiryMins(120).setSignAlgorithm("rsa").setServiceExpiryDays(40)
-                .setNotifyRoles("role1,domain:role.role2").setReviewEnabled(false)
-                .setUserAuthorityExpiration("attr1").setUserAuthorityFilter("attr2,attr3");
+        RoleMeta rm2 = new RoleMeta()
+                .setMemberExpiryDays(30)
+                .setSelfServe(false)
+                .setTokenExpiryMins(300)
+                .setCertExpiryMins(120)
+                .setSignAlgorithm("rsa")
+                .setServiceExpiryDays(40)
+                .setNotifyRoles("role1,domain:role.role2")
+                .setMemberReviewDays(70)
+                .setServiceReviewDays(80)
+                .setReviewEnabled(false)
+                .setUserAuthorityExpiration("attr1")
+                .setUserAuthorityFilter("attr2,attr3");
         assertTrue(rm2.equals(rm));
 
         rm2.setNotifyRoles("role1");
@@ -2839,6 +2879,20 @@ public class ZMSCoreTest {
         rm2.setCertExpiryMins(null);
         assertFalse(rm2.equals(rm));
         rm2.setCertExpiryMins(120);
+        assertTrue(rm2.equals(rm));
+
+        rm2.setMemberReviewDays(75);
+        assertFalse(rm2.equals(rm));
+        rm2.setMemberReviewDays(null);
+        assertFalse(rm2.equals(rm));
+        rm2.setMemberReviewDays(70);
+        assertTrue(rm2.equals(rm));
+
+        rm2.setServiceReviewDays(85);
+        assertFalse(rm2.equals(rm));
+        rm2.setServiceReviewDays(null);
+        assertFalse(rm2.equals(rm));
+        rm2.setServiceReviewDays(80);
         assertTrue(rm2.equals(rm));
 
         rm2.setSelfServe(true);
