@@ -7,7 +7,7 @@ set -o pipefail
 cd "$(dirname "$0")"
 
 # import functions
-source ./common/color-print.sh
+. ./common/color-print.sh
 
 #################################################
 ### try-out-Athenz-with-self-signed-CA.md
@@ -29,9 +29,9 @@ echo ''
 echo '# Prepare certificates' | colored_cat r
 
 echo '1. set up env.' | colored_cat g
-BASE_DIR="`git rev-parse --show-toplevel`"
-source "${BASE_DIR}/docker/env.sh"
-source "${DOCKER_DIR}/sample/env.dev.sh"
+BASE_DIR="$(git rev-parse --show-toplevel)"
+. "${BASE_DIR}/docker/env.sh"
+. "${DOCKER_DIR}/sample/env.dev.sh"
 
 echo '2. create the self-signed CAs' | colored_cat g
 sh "${DEV_CA_DIR}/create-self-signed-ca.sh"
@@ -82,5 +82,5 @@ export ZMS_CLIENT_CERT_PATH="${DEV_ZMS_CLIENT_CERT_BUNDLE_PATH}"
 EOF
 echo 'As shell script cannot update the env. in parent shell X_X' | colored_cat p
 echo 'You will need to run the following command...' | colored_cat p
-echo "source `pwd`/dev-env-exports.sh"
+echo ". $(pwd)/dev-env-exports.sh"
 echo 'Or, if you run the auto script, we will do that for you XD' | colored_cat p

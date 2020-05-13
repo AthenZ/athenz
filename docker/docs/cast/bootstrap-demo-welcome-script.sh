@@ -7,7 +7,7 @@ set -o pipefail
 cd "$(dirname "$0")"
 
 # import functions
-source ../../setup-scripts/common/color-print.sh
+. ../../setup-scripts/common/color-print.sh
 
 echo 'Hello~' | colored_cat b
 echo "Welcome to the 'Athenz Bootstrap Demo' 😄" | colored_cat b

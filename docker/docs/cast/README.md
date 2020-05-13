@@ -28,7 +28,7 @@
 #### docker
 
 ```bash
-BASE_DIR="`git rev-parse --show-toplevel`"
+BASE_DIR="$(git rev-parse --show-toplevel)"
 CAST_DIR="${BASE_DIR}/docker/docs/cast"
 
 docker run --rm -ti \
@@ -49,7 +49,7 @@ docker run --rm -ti \
 ### recording
 
 ```bash
-BASE_DIR="`git rev-parse --show-toplevel`"
+BASE_DIR="$(git rev-parse --show-toplevel)"
 CAST_DIR="${BASE_DIR}/docker/docs/cast"
 
 asciinema rec --overwrite --title='Athenz Docker Build Demo' "${CAST_DIR}/athenz-docker-build-demo.cast"
@@ -84,7 +84,7 @@ asciinema rec --overwrite --title='Athenz Bootstrap Demo' "${CAST_DIR}/athenz-bo
     ```bash
     asciinema auth
 
-    BASE_DIR="`git rev-parse --show-toplevel`"
+    BASE_DIR="$(git rev-parse --show-toplevel)"
     CAST_DIR="${BASE_DIR}/docker/docs/cast"
 
     # asciinema upload "${CAST_DIR}/athenz-docker-build-demo.cast"

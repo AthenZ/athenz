@@ -70,9 +70,9 @@ In Athenz, we often have 3 types of CA:
         - ZTS client certificate
 1. Set up your deployment environment with [env.sh](../env.sh) (you may want to modify it beforehand)
     ```bash
-    BASE_DIR="`git rev-parse --show-toplevel`"
+    BASE_DIR="$(git rev-parse --show-toplevel)"
 
-    source "${BASE_DIR}/docker/env.sh"
+    . "${BASE_DIR}/docker/env.sh"
     ```
 1. Copy your CAs certificates in `$CA_DIR`
     ```bash
@@ -106,8 +106,8 @@ In Athenz, we often have 3 types of CA:
 
 same as `make deploy-dev`
 ```bash
-BASE_DIR="`git rev-parse --show-toplevel`"
-source "${BASE_DIR}/docker/env.sh"
+BASE_DIR="$(git rev-parse --show-toplevel)"
+. "${BASE_DIR}/docker/env.sh"
 
 # generate self-signed certificates
 docker run --rm -t \

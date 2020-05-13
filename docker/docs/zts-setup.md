@@ -45,8 +45,8 @@ docker run --rm -it \
     sh
 
 # load the ENV. inside the container
-BASE_DIR="`git rev-parse --show-toplevel`"
-source "${BASE_DIR}/docker/env.sh"
+BASE_DIR="$(git rev-parse --show-toplevel)"
+. "${BASE_DIR}/docker/env.sh"
 ```
 
 <a id="markdown-target" name="target"></a>
@@ -313,8 +313,8 @@ sh "${DOCKER_DIR}/deploy-scripts/zts-deploy.sh"
 ### Debug ZTS
 
 ```bash
-BASE_DIR="`git rev-parse --show-toplevel`"
-source "${BASE_DIR}/docker/env.sh"
+BASE_DIR="$(git rev-parse --show-toplevel)"
+. "${BASE_DIR}/docker/env.sh"
 
 docker run --rm -t \
     --network="${DOCKER_NETWORK}" \

@@ -210,18 +210,18 @@
     1. start up testing container
         ```bash
         # run testing env.
-        BASE_DIR="`git rev-parse --show-toplevel`"
-        source "${BASE_DIR}/docker/env.sh"
+        BASE_DIR="$(git rev-parse --show-toplevel)"
+        . "${BASE_DIR}/docker/env.sh"
         docker run --rm -it --network="${DOCKER_NETWORK}" -v "${BASE_DIR}:/athenz" --user "$(id -u):$(id -g)" athenz-setup-env sh
         ```
     1. setup testing container
         ```bash
         # set up env.
-        BASE_DIR="`git rev-parse --show-toplevel`"
-        source "${BASE_DIR}/docker/env.sh"
+        BASE_DIR="$(git rev-parse --show-toplevel)"
+        . "${BASE_DIR}/docker/env.sh"
         echo "Done loading ENV. from ${BASE_DIR}/docker/env.sh"
         if [ -f "${DOCKER_DIR}/setup-scripts/dev-env-exports.sh" ]; then
-            source "${DOCKER_DIR}/setup-scripts/dev-env-exports.sh"
+            . "${DOCKER_DIR}/setup-scripts/dev-env-exports.sh"
             echo 'NOTE: You are using the DEV settings in dev-env-exports.sh !!!'
         fi
 

@@ -7,7 +7,7 @@ set -o pipefail
 cd "$(dirname "$0")"
 
 # import functions
-source ./common/color-print.sh
+. ./common/color-print.sh
 
 #################################################
 ### zts-setup.md
@@ -23,11 +23,11 @@ cat <<'EOF' | colored_cat c
 EOF
 
 # set up env.
-BASE_DIR="`git rev-parse --show-toplevel`"
-source "${BASE_DIR}/docker/env.sh"
+BASE_DIR="$(git rev-parse --show-toplevel)"
+. "${BASE_DIR}/docker/env.sh"
 echo "Done loading ENV. from ${BASE_DIR}/docker/env.sh" | colored_cat p
 if [ -f "${DOCKER_DIR}/setup-scripts/dev-env-exports.sh" ]; then
-    source "${DOCKER_DIR}/setup-scripts/dev-env-exports.sh"
+    . "${DOCKER_DIR}/setup-scripts/dev-env-exports.sh"
     echo 'NOTE: You are using the DEV settings in dev-env-exports.sh !!!' | colored_cat p
 fi
 
@@ -105,7 +105,7 @@ tree "${ZTS_DIR}"
 
 echo '9. register ZTS service to Athenz' | colored_cat g
 # encode public key in ybase64, reference: https://github.com/yahoo/athenz/blob/545d9487a866cad10ba864b435bdb7ece390d4bf/libs/java/auth_core/src/main/java/com/yahoo/athenz/auth/util/Crypto.java#L334-L343
-ENCODED_ZTS_PUBLIC_KEY=`base64 -w 0 "${ZTS_PUBLIC_KEY_PATH}" | tr '\+\=\/' '\.\-\_'`
+ENCODED_ZTS_PUBLIC_KEY="$(base64 -w 0 "${ZTS_PUBLIC_KEY_PATH}" | tr '\+\=\/' '\.\-\_')"
 
 DATA='{"name": "sys.auth.zts","publicKeys": [{"id": "0","key": "'"${ENCODED_ZTS_PUBLIC_KEY}"'"}]}'
 

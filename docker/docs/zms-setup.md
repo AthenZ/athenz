@@ -27,7 +27,7 @@
 1. Bootstrap setup done. ([Done step 1, 2, 3](./Athenz-bootstrap.md#bootstrap-steps))
 1. All the setup commands below are expected to run inside [athenz-setup-env](../setup-scripts/Dockerfile) container.
 ```bash
-BASE_DIR="`git rev-parse --show-toplevel`"
+BASE_DIR="$(git rev-parse --show-toplevel)"
 docker run --rm -it \
     -v "${BASE_DIR}:/athenz" \
     --user "$(id -u):$(id -g)" \
@@ -35,8 +35,8 @@ docker run --rm -it \
     sh
 
 # load the ENV. inside the container
-BASE_DIR="`git rev-parse --show-toplevel`"
-source "${BASE_DIR}/docker/env.sh"
+BASE_DIR="$(git rev-parse --show-toplevel)"
+. "${BASE_DIR}/docker/env.sh"
 ```
 
 <a id="markdown-target" name="target"></a>
@@ -202,8 +202,8 @@ sh "${DOCKER_DIR}/deploy-scripts/zms-deploy.sh"
 ### Debug ZMS
 
 ```bash
-BASE_DIR="`git rev-parse --show-toplevel`"
-source "${BASE_DIR}/docker/env.sh"
+BASE_DIR="$(git rev-parse --show-toplevel)"
+. "${BASE_DIR}/docker/env.sh"
 
 docker run --rm -t \
     --network="${DOCKER_NETWORK}" \

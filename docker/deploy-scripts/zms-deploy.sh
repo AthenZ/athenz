@@ -7,7 +7,7 @@ set -o pipefail
 cd "$(dirname "$0")"
 
 # import functions
-source ../setup-scripts/common/color-print.sh
+. ../setup-scripts/common/color-print.sh
 
 #################################################
 ### ZMS Deploy
@@ -22,11 +22,11 @@ cat <<'EOF' | colored_cat c
 EOF
 
 # set up env.
-BASE_DIR="`git rev-parse --show-toplevel`"
-source "${BASE_DIR}/docker/env.sh"
+BASE_DIR="$(git rev-parse --show-toplevel)"
+. "${BASE_DIR}/docker/env.sh"
 echo "Done loading ENV. from ${BASE_DIR}/docker/env.sh" | colored_cat p
 if [ -f "${DOCKER_DIR}/setup-scripts/dev-env-exports.sh" ]; then
-    source "${DOCKER_DIR}/setup-scripts/dev-env-exports.sh"
+    . "${DOCKER_DIR}/setup-scripts/dev-env-exports.sh"
     echo 'NOTE: You are using the DEV settings in dev-env-exports.sh !!!' | colored_cat p
 fi
 

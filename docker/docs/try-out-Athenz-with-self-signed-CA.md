@@ -17,7 +17,7 @@
 
 All the setup commands below are expected to run inside [athenz-setup-env](../setup-scripts/Dockerfile) container.
 ```bash
-BASE_DIR="`git rev-parse --show-toplevel`"
+BASE_DIR="$(git rev-parse --show-toplevel)"
 
 docker run --rm -it \
     -v "${BASE_DIR}:/athenz" \
@@ -31,10 +31,10 @@ docker run --rm -it \
 
 1. set up env.
     ```bash
-    BASE_DIR="`git rev-parse --show-toplevel`"
+    BASE_DIR="$(git rev-parse --show-toplevel)"
 
-    source "${BASE_DIR}/docker/env.sh"
-    source "${DOCKER_DIR}/sample/env.dev.sh"
+    . "${BASE_DIR}/docker/env.sh"
+    . "${DOCKER_DIR}/sample/env.dev.sh"
     ```
 
 1. create the self-signed CAs ([create-self-signed-ca.sh](../sample/CAs/create-self-signed-ca.sh))
