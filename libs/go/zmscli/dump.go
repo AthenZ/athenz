@@ -141,6 +141,9 @@ func (cli Zms) dumpRole(buf *bytes.Buffer, role zms.Role, auditLog bool, indent1
 			if memberItem.Expiration != nil {
 				buf.WriteString(" " + memberItem.Expiration.String())
 			}
+			if memberItem.ReviewReminder != nil {
+				buf.WriteString(" " + memberItem.ReviewReminder.String())
+			}
 			if memberItem.Approved != nil && *memberItem.Approved == false {
 				buf.WriteString(" (pending)")
 			}
@@ -410,6 +413,9 @@ func (cli Zms) dumpRoleMembership(buf *bytes.Buffer, member zms.Membership) {
 	if member.Expiration != nil {
 		buf.WriteString(indent_level1_dash + "expiration: " + member.Expiration.String() + "\n")
 	}
+	if member.ReviewReminder != nil {
+		buf.WriteString(indent_level1_dash + "review: " + member.ReviewReminder.String() + "\n")
+	}
 	buf.WriteString(indent_level1_dash_lvl + "result: " + strconv.FormatBool(*member.IsMember) + "\n")
 }
 
@@ -530,6 +536,9 @@ func (cli Zms) dumpDomainRoleMembers(buf *bytes.Buffer, domainRoleMembers *zms.D
 			buf.WriteString(indent_level2_dash + string(role.RoleName))
 			if role.Expiration != nil {
 				buf.WriteString(" " + role.Expiration.String())
+			}
+			if role.ReviewReminder != nil {
+				buf.WriteString(" " + role.ReviewReminder.String())
 			}
 			buf.WriteString("\n")
 		}

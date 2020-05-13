@@ -333,6 +333,25 @@ func (cli Zms) GetSignedDomains(dn string, matchingTag string) (*string, error) 
 	return &s, nil
 }
 
+func (cli Zms) ShowOverdueReview(dn string) (*string, error) {
+
+	domainRoleMembers, err := cli.Zms.GetOverdueReview(zms.DomainName(dn))
+	if err != nil {
+		return nil, err
+	}
+
+	var buf bytes.Buffer
+	_, err = buf.WriteString("Overdue review members:\n")
+	if err != nil {
+		return nil, err
+	}
+
+	cli.dumpDomainRoleMembers(&buf, domainRoleMembers, true)
+	s := buf.String()
+
+	return &s, nil
+}
+
 func (cli Zms) ShowDomain(dn string) (*string, error) {
 
 	domain, err := cli.Zms.GetDomain(zms.DomainName(dn))
