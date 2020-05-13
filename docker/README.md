@@ -26,6 +26,9 @@
 1. `git`
 1. `docker`
 1. `make`
+1. `sh`
+
+NOTE: Test are done on `CentOS-7` and `MacOS 10.14+` ONLY.
 
 <a id="markdown-build-athenz" name="build-athenz"></a>
 ## Build Athenz
