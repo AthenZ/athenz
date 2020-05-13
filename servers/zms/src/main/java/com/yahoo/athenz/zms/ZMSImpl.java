@@ -2609,8 +2609,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     @Override
     public DomainTemplateDetailsList getDomainTemplateDetailsList(ResourceContext ctx, String domainName) {
-        DomainTemplateDetailsList domainTemplateDetailsList = null;
-        List<TemplateMetaData> templateMetaDataList;
         final String caller = "getDomainTemplateDetailsList";
         metric.increment(ZMSConsts.HTTP_GET);
         metric.increment(ZMSConsts.HTTP_REQUEST);
@@ -2624,32 +2622,26 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         domainName = domainName.toLowerCase();
         final String principalDomain = getPrincipalDomain(ctx);
-        Object timerMetric = metric.startTiming("getdomainrolemembers_timing", domainName, principalDomain);
+        Object timerMetric = metric.startTiming("getDomainTemplateDetailsList_timing", domainName, principalDomain);
 
         List<TemplateMetaData> templateDomainMapping = dbService.getDomainTemplates(domainName);
+        DomainTemplateDetailsList domainTemplateDetailsList = null;
         if (templateDomainMapping != null) {
             domainTemplateDetailsList = new DomainTemplateDetailsList();
-            templateMetaDataList = new ArrayList<>();
-            for (TemplateMetaData meta : templateDomainMapping) {
-
-                TemplateMetaData metaData = new TemplateMetaData();
-                Template template = serverSolutionTemplates.get(meta.getTemplateName());
+            for (TemplateMetaData metaData : templateDomainMapping) {
+                Template template = serverSolutionTemplates.get(metaData.getTemplateName());
                 // there is a possibility of a stale template coming back from DB over time(caused by template clean up)
                 if (template != null) {
                     //Merging template metadata fields from solution-templates.json and template data from DB
-                    metaData.setTemplateName(meta.getTemplateName());
-                    metaData.setCurrentVersion(meta.getCurrentVersion());
                     metaData.setLatestVersion(template.getMetadata().getLatestVersion());
                     metaData.setAutoUpdate(template.getMetadata().getAutoUpdate());
                     metaData.setDescription(template.getMetadata().getDescription());
                     metaData.setKeywordsToReplace(template.metadata.getKeywordsToReplace());
                     metaData.setTimestamp(template.metadata.getTimestamp());
-                    templateMetaDataList.add(metaData);
                 }
             }
-            domainTemplateDetailsList.setMetaData(templateMetaDataList);
+            domainTemplateDetailsList.setMetaData(templateDomainMapping);
         }
-
         metric.stopTiming(timerMetric, domainName, principalDomain);
         return domainTemplateDetailsList;
     }
