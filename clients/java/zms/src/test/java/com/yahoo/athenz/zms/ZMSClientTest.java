@@ -427,31 +427,41 @@ public class ZMSClientTest {
                 "Test Domain1", "testOrg", adminUser);
         client.postTopLevelDomain(AUDIT_REF, dom1);
         
-        Role role1 = createRoleObject(client, "MbrAddDom1", "Role1", null, "user.joe", "user.jane");
+        Role role1 = createRoleObject(client, "MbrAddDom1", "Role1", null, "user.member1", "user.member2");
         client.putRole("MbrAddDom1", "Role1", AUDIT_REF, role1);
-        client.putMembership("MbrAddDom1", "Role1", "user.doe", AUDIT_REF);
+        client.putMembership("MbrAddDom1", "Role1", "user.member3", AUDIT_REF);
         
-        client.putMembership("MbrAddDom1", "Role1", "user.temp",
+        client.putMembership("MbrAddDom1", "Role1", "user.member4",
                 Timestamp.fromMillis(100000), AUDIT_REF);
+
+        client.putMembershipWithReview("MbrAddDom1", "Role1", "user.member5",
+                Timestamp.fromMillis(100000), Timestamp.fromMillis(500000), AUDIT_REF);
+
+        client.putMembershipWithReview("MbrAddDom1", "Role1", "user.member6",
+                null, Timestamp.fromMillis(500000), AUDIT_REF);
+
         Role role = client.getRole("MbrAddDom1", "Role1");
         assertNotNull(role);
         
         List<RoleMember> members = role.getRoleMembers();
-        assertNotNull(members);
-        assertEquals(members.size(), 4);
-        
-        boolean userTempCheck = false;
-        boolean userDoeCheck = false;
-        for (RoleMember member: members) {
-            if (member.getMemberName().equals("user.temp")) {
-                userTempCheck = true;
-            } else if (member.getMemberName().equals("user.doe")) {
-                userDoeCheck = true;
-            }
-        }
-        assertTrue(userTempCheck);
-        assertTrue(userDoeCheck);
-        
+        assertEquals(members.size(), 6);
+        RoleMember roleMember1 = new RoleMember().setMemberName("user.member1");
+        RoleMember roleMember2 = new RoleMember().setMemberName("user.member2");
+        RoleMember roleMember3 = new RoleMember().setMemberName("user.member3");
+        RoleMember roleMember4 = new RoleMember().setMemberName("user.member4")
+                .setExpiration(Timestamp.fromMillis(100000));
+        RoleMember roleMember5 = new RoleMember().setMemberName("user.member5")
+                .setExpiration(Timestamp.fromMillis(100000)).setReviewReminder(Timestamp.fromMillis(500000));
+        RoleMember roleMember6 = new RoleMember().setMemberName("user.member6")
+                .setReviewReminder(Timestamp.fromMillis(500000));
+
+        assertEquals(members.get(0), roleMember1);
+        assertEquals(members.get(1), roleMember2);
+        assertEquals(members.get(2), roleMember3);
+        assertEquals(members.get(3), roleMember4);
+        assertEquals(members.get(4), roleMember5);
+        assertEquals(members.get(5), roleMember6);
+
         client.deleteTopLevelDomain("MbrAddDom1", AUDIT_REF);
     }
 
@@ -2112,23 +2122,27 @@ public class ZMSClientTest {
         Mockito.when(c.putRole("MbrAddDom1", "Role1", AUDIT_REF, role1Mock)).thenReturn(roleMock);
         Membership mbr = new Membership();
         mbr.setRoleName("Role1");
-        mbr.setMemberName("user.doe");
+        mbr.setMemberName("user.member3");
         mbr.setIsMember(true);
         Membership mbrExp = new Membership();
         mbrExp.setRoleName("Role1");
-        mbrExp.setMemberName("user.temp");
+        mbrExp.setMemberName("user.member3");
         mbrExp.setExpiration(Timestamp.fromMillis(100000));
         mbrExp.setIsMember(true);
         Membership membershipMock = Mockito.mock(Membership.class);
-        Mockito.when(c.putMembership("MbrAddDom1", "Role1", "user.doe", AUDIT_REF, mbr)).thenReturn(membershipMock);
-        Mockito.when(c.putMembership("MbrAddDom1", "Role1", "user.temp", AUDIT_REF, mbrExp)).thenReturn(membershipMock);
+        Mockito.when(c.putMembership("MbrAddDom1", "Role1", "user.member3", AUDIT_REF, mbr)).thenReturn(membershipMock);
+        Mockito.when(c.putMembership("MbrAddDom1", "Role1", "user.member4", AUDIT_REF, mbrExp)).thenReturn(membershipMock);
         Mockito.when(c.getRole("MbrAddDom1", "Role1", false, false, false)).thenReturn(roleMock);
         List<RoleMember> roleMembers = new ArrayList<>();
-        roleMembers.add(new RoleMember().setMemberName("user.joe"));
-        roleMembers.add(new RoleMember().setMemberName("user.jane"));
-        roleMembers.add(new RoleMember().setMemberName("user.doe"));
-        roleMembers.add(new RoleMember().setMemberName("user.temp")
+        roleMembers.add(new RoleMember().setMemberName("user.member1"));
+        roleMembers.add(new RoleMember().setMemberName("user.member2"));
+        roleMembers.add(new RoleMember().setMemberName("user.member3"));
+        roleMembers.add(new RoleMember().setMemberName("user.member4")
                 .setExpiration(Timestamp.fromMillis(100000)));
+        roleMembers.add(new RoleMember().setMemberName("user.member5")
+                .setExpiration(Timestamp.fromMillis(100000)).setReviewReminder(Timestamp.fromMillis(500000)));
+        roleMembers.add(new RoleMember().setMemberName("user.member6")
+                .setReviewReminder(Timestamp.fromMillis(500000)));
         Mockito.when(roleMock.getRoleMembers()).thenReturn(roleMembers);
         testAddMembership(client, systemAdminFullUser);
         Mockito.when(c.deleteTopLevelDomain("MbrGetRoleDom1", AUDIT_REF)).thenReturn(dom1Mock);
