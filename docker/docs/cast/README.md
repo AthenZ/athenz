@@ -22,7 +22,8 @@
 
 <a id="markdown-web" name="web"></a>
 #### web
-- [Athenz Bootstrap Demo](https://asciinema.org/a/288398)
+- [Athenz Bootstrap Demo](https://asciinema.org/a/330037)
+- [Athenz Acceptance Test Demo](https://asciinema.org/a/330038)
 
 <a id="markdown-docker" name="docker"></a>
 #### docker

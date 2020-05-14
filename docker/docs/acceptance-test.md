@@ -34,7 +34,7 @@ docker run --rm -it \
 sh /athenz/docker/deploy-scripts/acceptance-test.sh
 
 # force reset of testing data
-sh /athenz/docker/deploy-scripts/acceptance-test-reset.sh
+# sh /athenz/docker/deploy-scripts/acceptance-test-reset.sh
 ```
 
 <a id="markdown-expected-output-castcast" name="expected-output-castcast"></a>
