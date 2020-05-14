@@ -224,14 +224,19 @@ func (cli Zms) AddMembers(dn string, rn string, members []string) (*string, erro
 	return &s, nil
 }
 
-func (cli Zms) AddTemporaryMember(dn string, rn string, member string, expiration rdl.Timestamp) (*string, error) {
+func (cli Zms) AddDueDateMember(dn string, rn string, member string, expiration *rdl.Timestamp, reviewDate *rdl.Timestamp) (*string, error) {
 	fullResourceName := dn + ":role." + rn
 	validatedUser := cli.validatedUser(member)
 
 	var memberShip zms.Membership
 	memberShip.MemberName = zms.MemberName(validatedUser)
 	memberShip.RoleName = zms.ResourceName(rn)
-	memberShip.Expiration = &expiration
+	if reviewDate != nil {
+		memberShip.ReviewReminder = reviewDate
+	}
+	if expiration != nil {
+		memberShip.Expiration = expiration
+	}
 	err := cli.Zms.PutMembership(zms.DomainName(dn), zms.EntityName(rn), zms.MemberName(validatedUser), cli.AuditRef, &memberShip)
 	if err != nil {
 		return nil, err

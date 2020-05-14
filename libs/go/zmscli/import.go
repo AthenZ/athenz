@@ -25,6 +25,14 @@ func parseRoleMember(memberLine string) *zms.RoleMember {
 			roleMember.Expiration = &expiration
 		}
 	}
+	if len(memberFields) > 2 {
+		review, err := rdl.TimestampParse(memberFields[2])
+		if err != nil {
+			fmt.Println("***", err)
+		} else {
+			roleMember.ReviewReminder = &review
+		}
+	}
 	return roleMember
 }
 

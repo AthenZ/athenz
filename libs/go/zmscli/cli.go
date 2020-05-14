@@ -110,6 +110,15 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 				return cli.LookupDomainById("", &productID)
 			}
 			return cli.helpCommand(params)
+		case "overdue-review":
+			if argc == 1 {
+				//override the default domain, this command can show any of them
+				dn = args[0]
+			}
+			if dn != "" {
+				return cli.ShowOverdueReview(dn)
+			}
+			return nil, fmt.Errorf("No domain specified")
 		case "use-domain":
 			var s string
 			if argc > 0 {
@@ -345,9 +354,27 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 			}
 		case "add-temporary-member":
 			if argc == 3 {
-				value, err := getTimestamp(args[2])
+				expiration, err := getTimestamp(args[2])
 				if err == nil {
-					return cli.AddTemporaryMember(dn, args[0], args[1], value)
+					return cli.AddDueDateMember(dn, args[0], args[1], &expiration, nil)
+				}
+				return nil, err
+			} else if argc == 4 {
+				expiration, err := getTimestamp(args[2])
+				if err != nil {
+					return nil, err
+				}
+				review, err := getTimestamp(args[3])
+				if err == nil {
+					return cli.AddDueDateMember(dn, args[0], args[1], &expiration, &review)
+				}
+				return nil, err
+			}
+		case "add-reviewed-member":
+			if argc == 3 {
+				review, err := getTimestamp(args[2])
+				if err == nil {
+					return cli.AddDueDateMember(dn, args[0], args[1], nil, &review)
 				}
 				return nil, err
 			}
@@ -737,6 +764,17 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   list-domain cd\n")
 		buf.WriteString("     return all domains who names start with cd\n")
+	case "overdue-review":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   overdue-review domain\n")
+		buf.WriteString("   " + domain_param + " overdue-review\n")
+		buf.WriteString(" parameters:\n")
+		buf.WriteString("   domain : retrieve domain members with overdue review dates\n")
+		buf.WriteString("          : this argument is required unless -d <domain> is specified or\n")
+		buf.WriteString("          : running in repl/interactive mode with use-domain specified\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   overdue-review coretech.hosted\n")
+		buf.WriteString("   " + domain_example + " overdue-review\n")
 	case "show-domain":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   show-domain domain\n")
@@ -1156,7 +1194,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domain_example + " add-member readers " + cli.UserDomain + ".john " + cli.UserDomain + ".joe media.sports.storage\n")
 	case "add-temporary-member":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   " + domain_param + " add-temporary-member group_role user_or_service expiration\n")
+		buf.WriteString("   " + domain_param + " add-temporary-member group_role user_or_service expiration [review]\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain          : name of the domain that role belongs to\n")
@@ -1164,8 +1202,22 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   group-role      : name of the standard group role to add a temporary member to\n")
 		buf.WriteString("   user_or_service : user or service to be added as member\n")
 		buf.WriteString("   expiration      : expiration date format yyyy-mm-ddThh:mm:ss.msecZ\n")
+		buf.WriteString("   review          : review date format yyyy-mm-ddThh:mm:ss.msecZ\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domain_example + " add-temporary-member readers " + cli.UserDomain + ",john 2017-03-02T15:04:05.999Z\n")
+		buf.WriteString("   " + domain_example + " add-temporary-member readers " + cli.UserDomain + ",john 2017-03-02T15:04:05.999Z 2017-01-02T15:09:05.999Z\n")
+	case "add-reviewed-member":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domain_param + " add-reviewed-member group_role user_or_service review\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain          : name of the domain that role belongs to\n")
+		}
+		buf.WriteString("   group-role      : name of the standard group role to add a temporary member to\n")
+		buf.WriteString("   user_or_service : user or service to be added as member\n")
+		buf.WriteString("   review          : review date format yyyy-mm-ddThh:mm:ss.msecZ\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domain_example + " add-reviewed-member readers " + cli.UserDomain + ",john 2017-03-02T15:04:05.999Z\n")
 	case "check-member":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domain_param + " check-member group_role user_or_service [user_or_service ...]\n")
@@ -1917,6 +1969,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   get-quota\n")
 	buf.WriteString("   set-quota [attrs ...]\n")
 	buf.WriteString("   delete-quota\n")
+	buf.WriteString("   overdue-review [domain]\n")
 	buf.WriteString("\n")
 	buf.WriteString(" Policy commands:\n")
 	buf.WriteString("   list-policy\n")
@@ -1936,6 +1989,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   add-group-role role member [member ... ]\n")
 	buf.WriteString("   add-member group_role user_or_service [user_or_service ...]\n")
 	buf.WriteString("   add-temporary-member group_role user_or_service expiration\n")
+	buf.WriteString("   add-reviewed-member group_role user_or_service review\n")
 	buf.WriteString("   check-member group_role user_or_service [user_or_service ...]\n")
 	buf.WriteString("   check-active-member group_role user_or_service\n")
 	buf.WriteString("   delete-member group_role user_or_service [user_or_service ...]\n")
