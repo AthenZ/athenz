@@ -206,7 +206,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_GET_REVIEW_OVERDUE_DOMAIN_ROLE_MEMBERS = "SELECT role.name, principal.name, role_member.expiration, role_member.review_reminder FROM principal "
             + "JOIN role_member ON role_member.principal_id=principal.principal_id "
             + "JOIN role ON role.role_id=role_member.role_id "
-            + "WHERE role.domain_id=? AND role_member.review_reminder > CURRENT_TIME;";
+            + "WHERE role.domain_id=? AND role_member.review_reminder < CURRENT_TIME;";
     private static final String SQL_GET_DOMAIN_POLICIES = "SELECT * FROM policy WHERE domain_id=?;";
     private static final String SQL_GET_DOMAIN_POLICY_ASSERTIONS = "SELECT policy.name, "
             + "assertion.effect, assertion.action, assertion.role, assertion.resource, "
