@@ -265,6 +265,7 @@ ENGINE = InnoDB;
 CREATE TABLE IF NOT EXISTS `zms_server`.`domain_template` (
   `domain_id` INT UNSIGNED NOT NULL,
   `template` VARCHAR(64) NOT NULL,
+  `current_version` INT NOT NULL DEFAULT 0,
   UNIQUE INDEX `uq_domain_template` (`template` ASC, `domain_id` ASC),
   PRIMARY KEY (`domain_id`, `template`),
   CONSTRAINT `fk_domain_template_domain`

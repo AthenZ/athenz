@@ -389,6 +389,7 @@ public class FileConnection implements ObjectStoreConnection {
     @Override
     public boolean insertDomainTemplate(String domainName, String templateName, String params) {
         DomainStruct domainStruct = getDomainStruct(domainName);
+        TemplateMetaData templateMeta = new TemplateMetaData();
         if (domainStruct == null) {
             throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", "insertDomainTemplate");
         }
@@ -1899,6 +1900,27 @@ public class FileConnection implements ObjectStoreConnection {
             }
         }
         return updated;
+    }
+
+    @Override
+    public List<TemplateMetaData> getDomainTemplates(String domainName) {
+        TemplateMetaData templateDomainMapping;
+        List<TemplateMetaData> templateDomainMappingList = new ArrayList<>();
+        DomainStruct domainStruct = getDomainStruct(domainName);
+        if (domainStruct == null) {
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", "updateRoleReviewTimestamp");
+        }
+
+        List<TemplateMetaData> metaDataList = domainStruct.getTemplateMeta();
+        if (metaDataList != null) {
+            templateDomainMapping = new TemplateMetaData();
+            for (TemplateMetaData meta :metaDataList) {
+                templateDomainMapping.setTemplateName(meta.getTemplateName());
+                templateDomainMapping.setCurrentVersion(meta.getCurrentVersion());
+                templateDomainMappingList.add(templateDomainMapping);
+            }
+        }
+        return templateDomainMappingList;
     }
 
     @Override

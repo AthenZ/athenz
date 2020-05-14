@@ -146,4 +146,6 @@ public interface ObjectStoreConnection extends Closeable {
     boolean updateRoleMemberReviewNotificationTimestamp(String server, long timestamp);
 
     DomainRoleMembers listOverdueReviewRoleMembers(String domainName);
+
+    List<TemplateMetaData> getDomainTemplates(String domainName);
 }

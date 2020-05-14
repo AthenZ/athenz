@@ -4548,4 +4548,11 @@ public class DBService {
             cacheStore.invalidate(domainName);
         }
     }
+
+    List<TemplateMetaData> getDomainTemplates(String domainName) {
+
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+            return con.getDomainTemplates(domainName);
+        }
+    }
 }

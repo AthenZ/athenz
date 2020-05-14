@@ -938,7 +938,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // now create required subdomains in sys top level domain
 
-        domain = new Domain().setName("sys.auth").setDescription("he Athenz domain")
+        domain = new Domain().setName("sys.auth").setDescription("The Athenz domain")
                 .setId(UUID.fromCurrentTime()).setModified(Timestamp.fromCurrentTime());
         createSubDomain(null, domain, adminUsers, null, "System Setup", caller);
 
@@ -2605,6 +2605,45 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         metric.stopTiming(timerMetric, null, principalDomain);
         return template;
+    }
+
+    @Override
+    public DomainTemplateDetailsList getDomainTemplateDetailsList(ResourceContext ctx, String domainName) {
+        final String caller = "getDomainTemplateDetailsList";
+        metric.increment(ZMSConsts.HTTP_GET);
+        metric.increment(ZMSConsts.HTTP_REQUEST);
+        metric.increment(caller);
+        logPrincipal(ctx);
+        validateRequest(ctx.request(), caller);
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all domain into lower case
+
+        domainName = domainName.toLowerCase();
+        final String principalDomain = getPrincipalDomain(ctx);
+        Object timerMetric = metric.startTiming("getDomainTemplateDetailsList_timing", domainName, principalDomain);
+
+        List<TemplateMetaData> templateDomainMapping = dbService.getDomainTemplates(domainName);
+        DomainTemplateDetailsList domainTemplateDetailsList = null;
+        if (templateDomainMapping != null) {
+            domainTemplateDetailsList = new DomainTemplateDetailsList();
+            for (TemplateMetaData metaData : templateDomainMapping) {
+                Template template = serverSolutionTemplates.get(metaData.getTemplateName());
+                // there is a possibility of a stale template coming back from DB over time(caused by template clean up)
+                if (template != null) {
+                    //Merging template metadata fields from solution-templates.json and template data from DB
+                    metaData.setLatestVersion(template.getMetadata().getLatestVersion());
+                    metaData.setAutoUpdate(template.getMetadata().getAutoUpdate());
+                    metaData.setDescription(template.getMetadata().getDescription());
+                    metaData.setKeywordsToReplace(template.metadata.getKeywordsToReplace());
+                    metaData.setTimestamp(template.metadata.getTimestamp());
+                }
+            }
+            domainTemplateDetailsList.setMetaData(templateDomainMapping);
+        }
+        metric.stopTiming(timerMetric, domainName, principalDomain);
+        return domainTemplateDetailsList;
     }
 
     public RoleList getRoleList(ResourceContext ctx, String domainName, Integer limit, String skip) {
