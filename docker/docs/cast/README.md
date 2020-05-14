@@ -53,12 +53,12 @@ BASE_DIR="$(git rev-parse --show-toplevel)"
 CAST_DIR="${BASE_DIR}/docker/docs/cast"
 
 asciinema rec --overwrite --title='Athenz Docker Build Demo' "${CAST_DIR}/athenz-docker-build-demo.cast"
-# cd "`git rev-parse --show-toplevel`/docker";
+# cd "$(git rev-parse --show-toplevel)/docker";
 # make build;
 # exit;
 
 asciinema rec --overwrite --title='Athenz Bootstrap Demo' "${CAST_DIR}/athenz-bootstrap-demo.cast"
-# cd "`git rev-parse --show-toplevel`/docker";
+# cd "$(git rev-parse --show-toplevel)/docker";
 # sh ./docs/cast/bootstrap-demo-welcome-script.sh;
 # make deploy-dev;
 # echo 'This is the end of this demo. Bye~';

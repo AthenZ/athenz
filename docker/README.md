@@ -34,7 +34,7 @@ NOTE: Test are done on `CentOS-7` and `MacOS 10.14+` ONLY.
 ## Build Athenz
 
 ```bash
-cd `git rev-parse --show-toplevel`/docker
+cd "$(git rev-parse --show-toplevel)/docker"
 
 # it takes about 15-30 mins
 make build
