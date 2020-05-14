@@ -6,6 +6,7 @@
 - [Acceptance test](#acceptance-test)
     - [Prerequisites](#prerequisites)
     - [Test](#test)
+    - [Expected Output (cast)](#expected-output-cast)
 
 <!-- /TOC -->
 
@@ -35,3 +36,8 @@ sh /athenz/docker/deploy-scripts/acceptance-test.sh
 # force reset of testing data
 sh /athenz/docker/deploy-scripts/acceptance-test-reset.sh
 ```
+
+<a id="markdown-expected-output-castcast" name="expected-output-castcast"></a>
+## Expected Output ([cast](./cast))
+
+[![asciicast](https://asciinema.org/a/330038.svg)](https://asciinema.org/a/330038)

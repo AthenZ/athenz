@@ -43,6 +43,11 @@ docker run --rm -ti \
   asciinema/asciinema \
   asciinema play --speed=3 /root/cast/athenz-bootstrap-demo.cast
 
+docker run --rm -ti \
+  -v "$HOME/.config/asciinema":/root/.config/asciinema \
+  -v "${CAST_DIR}":/root/cast \
+  asciinema/asciinema \
+  asciinema play --speed=3 /root/cast/athenz-acceptance-test-demo.cast
 ```
 
 <a id="markdown-recording" name="recording"></a>
@@ -64,7 +69,14 @@ asciinema rec --overwrite --title='Athenz Bootstrap Demo' "${CAST_DIR}/athenz-bo
 # echo 'This is the end of this demo. Bye~';
 # exit;
 
-# asciinema rec --overwrite --title='Athenz Acceptance Test Demo' "${CAST_DIR}/athenz-acceptance-test-demo.cast"
+asciinema rec --overwrite --title='Athenz Acceptance Test Demo' "${CAST_DIR}/athenz-acceptance-test-demo.cast"
+# docker run --rm -it \
+#     --network="${DOCKER_NETWORK}" \
+#     -v "${BASE_DIR}:/athenz" \
+#     --user "$(id -u):$(id -g)" \
+#     athenz-setup-env \
+#     sh /athenz/docker/deploy-scripts/acceptance-test.sh;
+# exit;
 ```
 
 <a id="markdown-about-asciinema" name="about-asciinema"></a>
@@ -89,6 +101,7 @@ asciinema rec --overwrite --title='Athenz Bootstrap Demo' "${CAST_DIR}/athenz-bo
 
     # asciinema upload "${CAST_DIR}/athenz-docker-build-demo.cast"
     asciinema upload "${CAST_DIR}/athenz-bootstrap-demo.cast"
+    asciinema upload "${CAST_DIR}/athenz-acceptance-test-demo.cast"
     ```
 - upload large file to git: [Git Large File Storage](https://git-lfs.github.com/)
     - [can not upload new objects to public fork  · Issue #1906 · git-lfs/git-lfs](https://github.com/git-lfs/git-lfs/issues/1906)
