@@ -10,13 +10,13 @@ cd "$(dirname "$0")"
 . ../setup-scripts/common/color-print.sh
 
 #################################################
-### Acceptance Test
+### Acceptance Test Reset
 #################################################
 
 cat <<'EOF' | colored_cat c
 
 #################################################
-### Acceptance Test
+### Acceptance Test Reset
 #################################################
 
 EOF

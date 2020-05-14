@@ -41,7 +41,7 @@ mkdir -p "${TEST_SERVICE_DIR}"
 cd "${TEST_SERVICE_DIR}"
 tree "${TEST_SERVICE_DIR}" | colored_cat w
 
-echo '2. prepare cnf for testing CSR' | colored_cat y
+echo '2. prepare cnf file for creating CSR' | colored_cat y
 cat > "${TEST_SERVICE_DIR}/config.cnf" <<'EOF'
 CN = "Not Defined"
 
@@ -73,7 +73,7 @@ subjectAltName = @role_alt_names
 [ role_alt_names ]
 email.1 = testing.test_service@dns.athenz.cloud
 EOF
-echo 'NOTE: using default: athenz.zts.cert_dns_suffix=.athenz.cloud' | colored_cat p
+echo 'NOTE: using default prop: "athenz.zts.cert_dns_suffix=.athenz.cloud"' | colored_cat p
 cat "${TEST_SERVICE_DIR}/config.cnf" | colored_cat w
 
 echo '3. prepare credentails for `test_service`' | colored_cat y
@@ -85,7 +85,8 @@ echo '3.1. create CSR' | colored_cat y
         -out "${TEST_SERVICE_DIR}/csr.pem" \
         -config "${TEST_SERVICE_DIR}/config.cnf" -reqexts service_ext
 
-    openssl req -text -in "${TEST_SERVICE_DIR}/csr.pem" | colored_cat w
+    echo ''
+    openssl req -text -in "${TEST_SERVICE_DIR}/csr.pem"
 } | colored_cat w
 echo '3.2. sign client certificate' | colored_cat y
 {
@@ -98,10 +99,13 @@ echo '3.2. sign client certificate' | colored_cat y
         -out "${TEST_SERVICE_DIR}/cert.pem"
     cat "${ZTS_SIGNER_CERT_PATH}" >> "${TEST_SERVICE_DIR}/cert.pem"
 
+    echo ''
     ls -l "${TEST_SERVICE_DIR}/key.pem" "${TEST_SERVICE_DIR}/cert.pem"
+
+    echo ''
     openssl x509 -text -in "${TEST_SERVICE_DIR}/cert.pem"
 } | colored_cat w
-echo 'NOTE: intermediate certificate is appended to cert.pem' | colored_cat p
+echo 'NOTE: intermediate CA is appended to cert.pem' | colored_cat p
 echo '3.3. verify client certificate' | colored_cat y
 {
     echo "Q" | \
@@ -111,7 +115,7 @@ echo '3.3. verify client certificate' | colored_cat y
     -cert_chain "${TEST_SERVICE_DIR}/cert.pem" \
     -key "${TEST_SERVICE_DIR}/key.pem"
 } | colored_cat w
-echo '3.4. create public key' | colored_cat y# create public key
+echo '3.4. create public key' | colored_cat y
 {
     openssl rsa -pubout -in "${TEST_SERVICE_DIR}/key.pem" -out "${TEST_SERVICE_DIR}/public.pem"
 } | colored_cat w
@@ -126,6 +130,24 @@ echo '0. test using the domain admin identity (plx prepare in advance)' | colore
     ls -l "${DOMAIN_ADMIN_CERT_KEY_PATH}" "${DOMAIN_ADMIN_CERT_PATH}"
 } | colored_cat w
 alias admin_curl="curl --cacert ${ATHENZ_CA_PATH} --key ${DOMAIN_ADMIN_CERT_KEY_PATH} --cert ${DOMAIN_ADMIN_CERT_PATH} --silent --show-error -D header.http -o response.json"
+
+echo '0.1. confirm `testing` domain not exist' | colored_cat p
+echo 'domain:' | colored_cat p
+{
+    admin_curl --request GET \
+        --url "https://${ZMS_HOST}:${ZMS_PORT}/zms/v1/domain/testing" \
+        --header 'content-type: application/json' \
+        --data-binary '@body.json'
+    cat header.http
+    jq '.' response.json
+} | colored_cat w
+if [ "$(jq -r '.code' response.json)" == '404' ]
+then
+    echo '`testing` domain not exist, start test...' | colored_cat w
+else
+    echo '`testing` domain exist, skip test' | colored_cat r
+    exit 1
+fi
 
 echo '1. create test domain' | colored_cat y
 cat > "${TEST_SERVICE_DIR}/body.json" <<EOF
@@ -273,9 +295,9 @@ until [ "${TEST_SERVICE_PUB_KEY}" == "${PUB_KEY_IN_ZTS}" ]
 do
     admin_curl -X GET "https://${ZTS_HOST}:${ZTS_PORT}/zts/v1/domain/testing/service/test_service"
     jq '.' response.json | colored_cat w
-    PUB_KEY_IN_ZTS="$(jq -r '.publicKeys[] | select(.id == "test_public_key") | .key' response.json)"
-    echo 'waiting...'
-    sleep 3
+    PUB_KEY_IN_ZTS="$(jq -r '.publicKeys[]? | select(.id == "test_public_key") | .key' response.json)"
+    echo 'waiting 5s...'
+    sleep 5s
 done
 echo 'ZMS and ZTS sync-ed.' | colored_cat p
 
@@ -336,6 +358,8 @@ echo '4.1. create role certificate CSR' | colored_cat y
         -keyout "${TEST_SERVICE_DIR}/role_key.pem" \
         -out "${TEST_SERVICE_DIR}/role_csr.pem" \
         -config "${TEST_SERVICE_DIR}/config.cnf" -reqexts role_ext
+
+    echo ''
     openssl req -text -in "${TEST_SERVICE_DIR}/role_csr.pem"
 } | colored_cat w
 echo '4.2. send role certificate request' | colored_cat y
@@ -405,6 +429,8 @@ echo 'NOTE: Save the service certificate for next test' | colored_cat p
     # add intermediate CA to role certificate
     jq -r '.caCertBundle' response.json >> "${TEST_SERVICE_DIR}/role_cert.pem"
 } | colored_cat w
+echo 'NOTE: intermediate CA is appended to test_service.crt' | colored_cat p
+echo 'NOTE: intermediate CA is appended to role_cert.pem' | colored_cat p
 
 
 
@@ -412,11 +438,13 @@ echo 'NOTE: Save the service certificate for next test' | colored_cat p
 echo 'Authorization acceptance test' | colored_cat g
 
 echo '1. Using CA signed client certificate' | colored_cat y
+alias authz_curl="curl --cacert ${ATHENZ_CA_PATH} --key ${TEST_SERVICE_DIR}/key.pem --cert ${TEST_SERVICE_DIR}/cert.pem --silent --show-error -D header.http -o response.json"
 {
     ls -l "${TEST_SERVICE_DIR}/key.pem" "${TEST_SERVICE_DIR}/cert.pem"
+
+    echo ''
+    alias authz_curl
 } | colored_cat w
-alias authz_curl="curl --cacert ${ATHENZ_CA_PATH} --key ${TEST_SERVICE_DIR}/key.pem --cert ${TEST_SERVICE_DIR}/cert.pem --silent --show-error -D header.http -o response.json"
-alias authz_curl | colored_cat w
 echo 'ZMS response:' | colored_cat p
 {
     authz_curl --request GET --url "https://${ZMS_HOST}:${ZMS_PORT}/zms/v1/access/obtain/testing:treasure"
@@ -431,12 +459,14 @@ echo 'ZTS response:' | colored_cat p
 } | colored_cat w
 
 echo '2. Using ZTS signed role certificate' | colored_cat y
+alias authz_curl="curl --cacert ${ATHENZ_CA_PATH} --key ${TEST_SERVICE_DIR}/role_key.pem --cert ${TEST_SERVICE_DIR}/role_cert.pem --silent --show-error -D header.http -o response.json"
 {
     ls -l "${TEST_SERVICE_DIR}/role_key.pem" "${TEST_SERVICE_DIR}/role_cert.pem"
+
+    echo ''
+    alias authz_curl
 } | colored_cat w
-alias authz_curl="curl --cacert ${ATHENZ_CA_PATH} --key ${TEST_SERVICE_DIR}/role_key.pem --cert ${TEST_SERVICE_DIR}/role_cert.pem --silent --show-error -D header.http -o response.json"
-alias authz_curl | colored_cat w
-echo 'ZMS response:' | colored_cat p
+echo 'ZMS response (ONLY role token is allowed):' | colored_cat p
 {
     authz_curl --request GET --url "https://${ZMS_HOST}:${ZMS_PORT}/zms/v1/access/obtain/testing:treasure"
     cat header.http
@@ -450,11 +480,13 @@ echo 'ZTS response:' | colored_cat p
 } | colored_cat w
 
 echo '3. Using ZTS signed service certificate' | colored_cat y
+alias authz_curl="curl --cacert ${ATHENZ_CA_PATH} --key ${TEST_SERVICE_DIR}/key.pem --cert ${TEST_SERVICE_DIR}/test_service.crt --silent --show-error -D header.http -o response.json"
 {
     ls -l "${TEST_SERVICE_DIR}/key.pem" "${TEST_SERVICE_DIR}/test_service.crt"
+
+    echo ''
+    alias authz_curl
 } | colored_cat w
-alias authz_curl="curl --cacert ${ATHENZ_CA_PATH} --key ${TEST_SERVICE_DIR}/key.pem --cert ${TEST_SERVICE_DIR}/test_service.crt --silent --show-error -D header.http -o response.json"
-alias authz_curl | colored_cat w
 echo 'ZMS response:' | colored_cat p
 {
     authz_curl --request GET --url "https://${ZMS_HOST}:${ZMS_PORT}/zms/v1/access/obtain/testing:treasure"
