@@ -3,6 +3,7 @@
 # Athenz
 
 [![Build Status](https://travis-ci.org/yahoo/athenz.svg?branch=master)](https://travis-ci.org/yahoo/athenz)
+[![SourceSpy Dashboard](https://sourcespy.com/shield.svg)](https://sourcespy.com/github/yahooathenz/)
 
 > Athenz is a set of services and libraries supporting service authentication and role-based authorization (RBAC) for provisioning and configuration (centralized authorization) use cases as well as serving/runtime (decentralized authorization) use cases. Athenz authorization system utilizes x.509 certificates and two types of tokens: Principal Tokens (N-Tokens) and RoleTokens (Z-Tokens). The use of x.509 certificates is strongly recommended over tokens. The name "Athenz" is derived from "AuthNZ" (N for authentication and Z for authorization).
 
@@ -106,6 +107,8 @@ You can also contact us for any user and development discussions through our gro
 
 * [Athenz-Dev](https://groups.google.com/d/forum/athenz-dev) for development discussions
 * [Athenz-Users](https://groups.google.com/d/forum/athenz-users) for users questions
+
+The [sourcespy dashboard](https://sourcespy.com/github/yahooathenz/) provides a high level overview of the repository including [module dependencies](https://sourcespy.com/github/yahooathenz/xx-omodulesc-.html), [module hierarchy](https://sourcespy.com/github/yahooathenz/xx-omodules-.html), [external libraries](https://sourcespy.com/github/yahooathenz/xx-ojavalibs-.html), [web services](https://sourcespy.com/github/yahooathenz/xx-owebservices-.html), and other components of the system.
 
 ## License
 
