@@ -33,7 +33,7 @@ docker run --rm -it \
 ```bash
 sh /athenz/docker/deploy-scripts/acceptance-test.sh
 
-# force reset of testing data
+# force reset testing data
 # sh /athenz/docker/deploy-scripts/acceptance-test-reset.sh
 ```
 
