@@ -990,7 +990,7 @@ public class ZMSClient implements Closeable {
      * @throws ZMSClientException in case of failure
      */
     public void putMembership(String domainName, String roleName, String memberName, String auditRef) {
-        putMembership(domainName, roleName, memberName, null, auditRef);
+        putMembershipWithReview(domainName, roleName, memberName, null, null, auditRef);
     }
 
     /**
@@ -1005,8 +1005,24 @@ public class ZMSClient implements Closeable {
      */
     public void putMembership(String domainName, String roleName, String memberName,
                               Timestamp expiration, String auditRef) {
+        putMembershipWithReview(domainName, roleName, memberName, expiration, null, auditRef);
+    }
+
+    /**
+     * Add a member in the specified role with optional expiration and optional review
+     *
+     * @param domainName name of the domain
+     * @param roleName   name of the role
+     * @param memberName name of the member to be added
+     * @param expiration timestamp when this membership will expire (optional)
+     * @param review timestamp when this membership will require review (optional)
+     * @param auditRef   string containing audit specification or ticket number
+     * @throws ZMSClientException in case of failure
+     */
+    public void putMembershipWithReview(String domainName, String roleName, String memberName,
+                              Timestamp expiration, Timestamp review, String auditRef) {
         Membership mbr = new Membership().setRoleName(roleName)
-                .setMemberName(memberName).setExpiration(expiration)
+                .setMemberName(memberName).setExpiration(expiration).setReviewReminder(review)
                 .setIsMember(true);
         updatePrincipal();
         try {
