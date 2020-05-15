@@ -1,0 +1,40 @@
+# file format: https://marketplace.visualstudio.com/items?itemName=humao.rest-client
+@zms_url = https://athenz-zms-server
+@port = 4443
+@host = {{zms_url}}:{{port}}
+
+###
+GET {{host}}/zms/v1/status HTTP/1.1
+
+
+###
+GET {{host}}/zms/v1/domain/sys.auth HTTP/1.1
+###
+GET {{host}}/zms/v1/domain/sys.auth/service HTTP/1.1
+###
+GET {{host}}/zms/v1/domain/sys.auth/role/admin HTTP/1.1
+###
+GET {{host}}/zms/v1/domain/sys.auth/policy/admin HTTP/1.1
+###
+GET {{host}}/zms/v1/domain/sys.auth/service/zms HTTP/1.1
+
+### put ZTS service to Athenz
+PUT {{host}}/zms/v1/domain/sys.auth/service/zts HTTP/1.1
+content-type: application/json
+
+{
+	"name": "sys.auth.zts",
+	"publicKeys": [
+		{
+			"id": "0",
+			"key": "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQ0lqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FnOEFNSUlDQ2dLQ0FnRUFwK1FJcHVmdFAyVklhNUx2eUNyUwpZR3EvaWh2RlVTL2tTTWluR0NINHJ0QzFVRlBMT082b2xTU21tYXU4RWVJMmFzeVdWTEhiT3BrdUt6eHlQMThVCm05MlZqUUxPbTZzdkQzNWJsd1ZTMTdqb1NRemRYbWNzMUJwZjl6dlR1cXNvVHZwZUZTakY1UDZxY1ZncGJNeSsKRU9aWkFyM2k2aWoveHMrbXFEcnJVVGZkQnRuMFFwck5TMUNrR1FzOCtETjJGMDhDalRQSkU3QnZIMlN5cWJkQQpGVWNFWHdnWXN1WVdWL0YrLzFNdzN6VG52c0ZPMFRyb0hRdk9TSU5paXpWVFlvaHB6dnh6MmRjWVEzLzVTK2tVCm8ycUp3Y1JlNVNDTGtrMzhKV29ob3dmM1BwekVTNzR4V0tvRVBLeEQ0TCs5NjE3Y21VTUM5RWNZWWpuMGZaL24KbXlEdUNKL2E4Q2VSN3htZWJVb1JEZ3RNdjZUNDF4M3ZUKzNjOWpudVhMa0k1RXRqTmNoVzFwK1RudngrM1pQTgpUVVM5bmE5SVUyVmxzR0lEdTNXcTM3SWNvcm5IRnlDYzg5U085YnlpQUZENUVUZHpEUnMxSmF6dFh0NDk2eGNUCjI2MHI0N2N1QzlrblJPdWNNdXZDRTJKY1g3dmRhTVdvMTg4eTJhZE9GV2ZURmpzZzhiM2ZVekwzcGNYNU5vcTUKdC9GcXJ0NTNydnYrSC84OHF1ZGVxTmk5NEF2Rk5GQmZFWE9GWDdZdFJWNkorRVlwUzh2U0k0WGdvcENaelNRbwpNNmt2ckRnK1ZydlQ4WktLRVhUek93cm1oM1FQM1QrT2hTRHJmNUJicjdlQ2pCdWpINmxvWEpZOGNOV3NyU3p0Cms0S3lvK25BSWwwTThjdUw2MGhwQzk4Q0F3RUFBUT09Ci0tLS0tRU5EIFBVQkxJQyBLRVktLS0tLQo-"
+		}
+	]
+}
+// encode public key in ybase64
+// base64 -w 0 zts/var/keys/zts_public.pem | sed 's/+/./g; s/=/-/g; s:_:/:g'; echo;
+
+### verify
+GET {{host}}/zms/v1/domain/sys.auth/service/zts HTTP/1.1
+### reset
+DELETE {{host}}/zms/v1/domain/sys.auth/service/zts HTTP/1.1

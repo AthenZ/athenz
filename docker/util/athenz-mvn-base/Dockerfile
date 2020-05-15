@@ -3,6 +3,19 @@
 FROM rdl-athenz-server AS rdl
 
 FROM maven:3.6-alpine AS mvn
+# date -u +'%Y-%m-%dT%H:%M:%SZ'
+ARG BUILD_DATE
+# git rev-parse --short HEAD
+ARG VCS_REF
+
+LABEL org.label-schema.schema-version="1.0"
+LABEL org.label-schema.build-date=$BUILD_DATE
+LABEL org.label-schema.name="athenz-mvn-base"
+LABEL org.label-schema.description="base image for maven cache"
+LABEL org.label-schema.url="https://www.athenz.io/"
+LABEL org.label-schema.vcs-url="https://github.com/yahoo/athenz"
+LABEL org.label-schema.vcs-ref=$VCS_REF
+# LABEL maintainer "YJ Athenz Team <>"
 
 ARG USER_HOME_DIR="/root"
 ENV MAVEN_CONFIG "$USER_HOME_DIR/.m2"

@@ -1,0 +1,24 @@
+DOMAIN = "Not Defined"
+SERVICE = "Not Defined"
+
+[req]
+default_bits = 2048
+prompt = no
+default_md = sha256
+req_extensions = req_ext
+distinguished_name = dn
+string_mask = utf8only
+
+[ dn ]
+countryName = US
+organizationName = Athenz
+commonName = ${ENV::DOMAIN}.${ENV::SERVICE}
+
+[ service_ext ]
+basicConstraints = critical, CA:FALSE
+extendedKeyUsage = clientAuth
+subjectAltName = @service_alt_names
+[ service_alt_names ]
+DNS.1 = ${ENV::SERVICE}.${ENV::DOMAIN}.dns.athenz.cloud
+DNS.2 = ${ENV::SERVICE}.${ENV::DOMAIN}.instanceid.athenz.dns.athenz.cloud
+# default: athenz.zts.cert_dns_suffix=.athenz.cloud

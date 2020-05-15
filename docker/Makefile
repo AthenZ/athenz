@@ -1,55 +1,91 @@
+# GID and UID of the default athenz:athenz user inside the container
+GID=$(DOCKER_GID)
+UID=$(DOCKER_UID)
+GID_ARG := $(if $(GID),--build-arg GID=$(GID),--build-arg GID)
+UID_ARG := $(if $(UID),--build-arg UID=$(UID),--build-arg UID)
+
+DOCKER_DNS := $(if $(DOCKER_DNS),$(DOCKER_DNS),8.8.8.8)
+DOCKER_NETWORK := $(if $(DOCKER_NETWORK),$(DOCKER_NETWORK),athenz)
+BASE_DIR=$(shell git rev-parse --show-toplevel)
+
+BUILD_DATE=$(shell date -u +'%Y-%m-%dT%H:%M:%SZ')
+VCS_REF=$(shell git rev-parse --short HEAD)
+BUILD_ARG := --build-arg 'BUILD_DATE=$(BUILD_DATE)' --build-arg 'VCS_REF=$(VCS_REF)'
+
+# specify build version by git tag
+ifdef TAG
+TAG_COMMIT := $(shell git rev-list -n 1 $(TAG))
+ifeq ($(TAG_COMMIT),)
+$(error TAG=$(TAG) is not found)
+exit 1
+endif
+endif
+
 build:
-	docker build -t wait-for-mysql -f ./deploy-scripts/common/wait-for-mysql/Dockerfile ./deploy-scripts/common/wait-for-mysql
-	docker build -t rdl-athenz-server -f ./util/rdl-athenz-server/Dockerfile ../rdl/rdl-gen-athenz-server
-	docker build -t athenz-mvn-base -f ./util/athenz-mvn-base/Dockerfile ../
-	docker build -t athenz-builder -f ./util/athenz-builder/Dockerfile ../
-	docker build -t athenz-zms-server -f ./zms/Dockerfile ../
-	docker build -t athenz-zts-server -f ./zts/Dockerfile ../
-	docker build -t athenz-ui -f ./ui/Dockerfile ../ui
-	docker build -t athenz-zms-db -f ./db/zms/Dockerfile ../servers/zms/schema
-	docker build -t athenz-zts-db -f ./db/zts/Dockerfile ../servers/zts/schema
-	docker build -t athenz-zms-cli -f ./util/zms-cli/Dockerfile ../
-	docker build -t athenz-cli-util -f ./util/Dockerfile ../
+ifneq ($(TAG_COMMIT),)
+	$(info Build using TAG=$(TAG), TAG_COMMIT=$(TAG_COMMIT))
+	git checkout $(TAG_COMMIT)
+else
+	$(info Build using current source code)
+endif
+	DOCKER_BUILDKIT=1 docker build $(BUILD_ARG) -t rdl-athenz-server -f ./util/rdl-athenz-server/Dockerfile ../rdl/rdl-gen-athenz-server
+	DOCKER_BUILDKIT=1 docker build $(BUILD_ARG) -t athenz-mvn-base -f ./util/athenz-mvn-base/Dockerfile ../
+	DOCKER_BUILDKIT=1 docker build $(BUILD_ARG) -t athenz-builder -f ./util/athenz-builder/Dockerfile ../
+	DOCKER_BUILDKIT=1 docker build $(BUILD_ARG) $(GID_ARG) $(UID_ARG) -t athenz-zms-server -f ./zms/Dockerfile ../
+	DOCKER_BUILDKIT=1 docker build $(BUILD_ARG) $(GID_ARG) $(UID_ARG) -t athenz-zts-server -f ./zts/Dockerfile ../
+	DOCKER_BUILDKIT=1 docker build $(BUILD_ARG) $(GID_ARG) $(UID_ARG) -t athenz-ui -f ./ui/Dockerfile ../ui
+	DOCKER_BUILDKIT=1 docker build $(BUILD_ARG) -t athenz-zms-db -f ./db/zms/Dockerfile ../servers/zms/schema
+	DOCKER_BUILDKIT=1 docker build $(BUILD_ARG) -t athenz-zts-db -f ./db/zts/Dockerfile ../servers/zts/schema
+	DOCKER_BUILDKIT=1 docker build $(BUILD_ARG) -t athenz-conf -f ./util/athenz-conf/Dockerfile ../
+	DOCKER_BUILDKIT=1 docker build $(BUILD_ARG) -t athenz-setup-env -f ./setup-scripts/Dockerfile ../
+	# DOCKER_BUILDKIT=1 docker build -t athenz-cli-util -f ./util/Dockerfile ../
+ifneq ($(TAG_COMMIT),)
+	git checkout -
+endif
 
-setup-dev-config:
-	sh ./setup-scripts/all-in-one.dev.sh
-setup-docker-network:
-	docker network create --subnet 172.21.0.0/16 $${DOCKER_NETWORK:-athenz}
+deploy-dev:
+	# generate self-signed certificates
+	docker run --rm -t -v "$(BASE_DIR):/athenz" --user "$(shell id -u):$(shell id -g)" athenz-setup-env sh /athenz/docker/setup-scripts/self-signed-certificates.sh
+	# ZMS
+	docker run --rm -t -v "$(BASE_DIR):/athenz" --user "$(shell id -u):$(shell id -g)" athenz-setup-env sh /athenz/docker/setup-scripts/zms-auto-config.sh
+	sh "./deploy-scripts/zms-deploy.sh"
+	docker run --rm -t --network="$(DOCKER_NETWORK)" -v "$(BASE_DIR):/athenz" --user "$(shell id -u):$(shell id -g)" athenz-setup-env sh /athenz/docker/deploy-scripts/zms-debug.sh
+	# ZTS
+	docker run --rm -t --network="$(DOCKER_NETWORK)" -v "$(BASE_DIR):/athenz" --user "$(shell id -u):$(shell id -g)" athenz-setup-env sh /athenz/docker/setup-scripts/zts-auto-config.sh
+	sh "./deploy-scripts/zts-deploy.sh"
+	docker run --rm -t --network="$(DOCKER_NETWORK)" -v "$(BASE_DIR):/athenz" --user "$(shell id -u):$(shell id -g)" athenz-setup-env sh /athenz/docker/deploy-scripts/zts-debug.sh
 
-run-docker-dev: run-zms-dev run-zts run-ui
-run-zms-dev:
-	sh ./deploy-scripts/1.1.deploy-ZMS.sh
-	sh ./deploy-scripts/1.2.config-zms-domain-admin.dev.sh
-	echo '"run-zms-dev" step DONE!'
-run-zts:
-	sh ./deploy-scripts/2.1.register-ZTS-service.sh
-	sh ./deploy-scripts/2.2.create-athenz-conf.sh
-	sh ./deploy-scripts/2.3.deploy-ZTS.sh
-	echo '"run-zms" step DONE!'
-run-ui:
-	sh ./deploy-scripts/3.1.register-UI-service.sh
-	sh ./deploy-scripts/3.2.deploy-UI.sh
-	echo '"run-ui" step DONE!'
+verify:
+	docker run --rm -t --network="$(DOCKER_NETWORK)" -v "$(BASE_DIR):/athenz" --user "$(shell id -u):$(shell id -g)" athenz-setup-env sh /athenz/docker/deploy-scripts/zms-verify.sh
+	docker run --rm -t --network="$(DOCKER_NETWORK)" -v "$(BASE_DIR):/athenz" --user "$(shell id -u):$(shell id -g)" athenz-setup-env sh /athenz/docker/deploy-scripts/zts-verify.sh
 
-remove-all: remove-containers remove-networks remove-files
+
+CONTAINERS := $(shell docker ps -aq --filter 'label=org.label-schema.url=https://www.athenz.io/')
+remove-all: remove-containers remove-networks remove-files reset-repo
 remove-containers:
-	docker ps -a | grep athenz- | awk '{print $$1}' | xargs docker stop
-	docker ps -a | grep athenz- | awk '{print $$1}' | xargs docker rm
+ifneq ($(CONTAINERS),)
+	docker stop $(shell docker ps -aq --filter 'label=org.label-schema.url=https://www.athenz.io/')
+	docker rm $(shell docker ps -aq --filter 'label=org.label-schema.url=https://www.athenz.io/')
+else
+	$(info No containers to be removed.)
+endif
 remove-networks:
-	docker network rm $${DOCKER_NETWORK:-athenz}
+	docker network rm $(DOCKER_NETWORK) || true
 remove-files:
-	sudo rm -rf ./logs
-	sudo rm -rf ./zts/var/zts_store
+	rm -rf ./logs
+	rm -rf ./zts/var/zts_store
+reset-repo:
+	git reset --hard HEAD
+	git clean -fdx
 
 clean: remove-all
-	docker image rm wait-for-mysql
-	docker image rm rdl-athenz-server
-	docker image rm athenz-mvn-base
-	docker image rm athenz-builder
-	docker image rm athenz-zms-server
-	docker image rm athenz-zts-server
-	docker image rm athenz-ui
-	docker image rm athenz-zms-db
-	docker image rm athenz-zts-db
-	docker image rm athenz-zms-cli
-	docker image rm athenz-cli-util
+	docker image rm rdl-athenz-server || true
+	docker image rm athenz-mvn-base || true
+	docker image rm athenz-builder || true
+	docker image rm athenz-zms-server || true
+	docker image rm athenz-zts-server || true
+	docker image rm athenz-ui || true
+	docker image rm athenz-zms-db || true
+	docker image rm athenz-zts-db || true
+	docker image rm athenz-conf || true
+	docker image rm athenz-setup-env || true
