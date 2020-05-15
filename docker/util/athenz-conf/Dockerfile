@@ -11,7 +11,6 @@ COPY . .
 
 WORKDIR ${GOPATH}/src/github.com/yahoo/athenz/utils/athenz-conf
 
-RUN GO111MODULE=off go get ./...
 RUN CGO_ENABLED=1 \
     CGO_CXXFLAGS="-g -Ofast -march=native" \
     CGO_FFLAGS="-g -Ofast -march=native" \
