@@ -2379,25 +2379,11 @@ public class DBService {
             // our role and domain time-stamps, and invalidate local cache entry
 
             final String roleName = AthenzUtils.extractRoleName(role.getName());
-            List<RoleMember> roleMembersWithUpdatedDueDates = getRoleMembersWithUpdatedDueDates(
-                    roleMembers,
-                    userExpiration,
-                    userExpiryMillis,
-                    serviceExpiration,
-                    serviceExpiryMillis,
-                    null,
-                    0,
-                    null,
-                    0);
-            if (insertRoleMembers(
-                    ctx,
-                    con,
-                    roleMembersWithUpdatedDueDates,
-                    domain.getName(),
-                    roleName,
-                    principal,
-                    auditRef,
-                    caller)) {
+            List<RoleMember> roleMembersWithUpdatedDueDates = getRoleMembersWithUpdatedDueDates(roleMembers,
+                    userExpiration, userExpiryMillis, serviceExpiration, serviceExpiryMillis,
+                    null, 0, null, 0, null, null);
+            if (insertRoleMembers(ctx, con, roleMembersWithUpdatedDueDates, domain.getName(),
+                    roleName, principal, auditRef, caller)) {
 
                 // update our role and domain time-stamps, and invalidate local cache entry
 
@@ -3955,6 +3941,12 @@ public class DBService {
         if (meta.getServiceReviewDays() != null) {
             role.setServiceReviewDays(meta.getServiceReviewDays());
         }
+        if (meta.getUserAuthorityFilter() != null) {
+            role.setUserAuthorityFilter(meta.getUserAuthorityFilter());
+        }
+        if (meta.getUserAuthorityExpiration() != null) {
+            role.setUserAuthorityExpiration(meta.getUserAuthorityExpiration());
+        }
     }
 
     public void executePutRoleMeta(ResourceContext ctx, String domainName, String roleName, RoleMeta meta,
@@ -3992,7 +3984,9 @@ public class DBService {
                         .setServiceReviewDays(originalRole.getServiceReviewDays())
                         .setSignAlgorithm(originalRole.getSignAlgorithm())
                         .setReviewEnabled(originalRole.getReviewEnabled())
-                        .setNotifyRoles(originalRole.getNotifyRoles());
+                        .setNotifyRoles(originalRole.getNotifyRoles())
+                        .setUserAuthorityFilter(originalRole.getUserAuthorityFilter())
+                        .setUserAuthorityExpiration(originalRole.getUserAuthorityExpiration());
 
                 // then we're going to apply the updated fields
                 // from the given object
@@ -4014,15 +4008,8 @@ public class DBService {
                 // process all the members in the role and update the expiration and review
                 // date accordingly
 
-                updateRoleMembersDueDates(
-                        ctx,
-                        con,
-                        domainName,
-                        roleName,
-                        originalRole,
-                        updatedRole,
-                        auditRef,
-                        caller);
+                updateRoleMembersDueDates(ctx, con, domainName, roleName, originalRole,
+                        updatedRole, auditRef, caller);
 
                 return;
 
@@ -4038,6 +4025,39 @@ public class DBService {
         return newDueDateMillis != 0 && (currentDueDate == null || currentDueDate.millis() > newDueDateMillis);
     }
 
+    boolean updateUserAuthorityExpiry(RoleMember roleMember, final String userAuthorityExpiry) {
+
+        Date authorityExpiry = zmsConfig.getUserAuthority().getDateAttribute(roleMember.getMemberName(), userAuthorityExpiry);
+
+        // if we don't have a date then we'll expiry the user right away
+        // otherwise we'll set the date as imposed by the user authority
+
+        boolean expiryDateUpdated = false;
+        Timestamp memberExpiry = roleMember.getExpiration();
+
+        if (authorityExpiry == null) {
+
+            // we'll update the expiration date to be the current time
+            // if the user doesn't have one or it's expires sometime
+            // in the future
+
+            if (memberExpiry == null || (memberExpiry != null && memberExpiry.millis() > System.currentTimeMillis())) {
+                roleMember.setExpiration(Timestamp.fromCurrentTime());
+                expiryDateUpdated = true;
+            }
+        } else {
+
+            // update the expiration date if it does not match to the
+            // value specified by the user authority value
+
+            if (memberExpiry == null || (memberExpiry != null && memberExpiry.millis() != authorityExpiry.getTime())) {
+                roleMember.setExpiration(Timestamp.fromDate(authorityExpiry));
+                expiryDateUpdated = true;
+            }
+        }
+        return expiryDateUpdated;
+    }
+
     List<RoleMember> getRoleMembersWithUpdatedDueDates(List<RoleMember> roleMembers,
                                                        Timestamp userExpiration,
                                                        long userExpiryMillis,
@@ -4046,7 +4066,9 @@ public class DBService {
                                                        Timestamp userReview,
                                                        long userReviewMillis,
                                                        Timestamp serviceReview,
-                                                       long serviceReviewMillis) {
+                                                       long serviceReviewMillis,
+                                                       final String userAuthorityFilter,
+                                                       final String userAuthorityExpiry) {
 
         List<RoleMember> roleMembersWithUpdatedDueDates = new ArrayList<>();
         for (RoleMember roleMember : roleMembers) {
@@ -4067,6 +4089,19 @@ public class DBService {
                     roleMember.setReviewReminder(userReview);
                     dueDateUpdated = true;
                 }
+
+                // if we have a user filter and/or expiry configured we need
+                // to make sure that the user still satisfies the filter
+                // otherwise we'll just expire the user right away
+
+                if (userAuthorityExpiry != null && updateUserAuthorityExpiry(roleMember, userAuthorityExpiry)) {
+                    dueDateUpdated = true;
+                }
+                if (userAuthorityFilter != null && !zmsConfig.getUserAuthority().isAttributeSet(roleMember.getMemberName(), userAuthorityFilter)) {
+                    roleMember.setExpiration(Timestamp.fromCurrentTime());
+                    dueDateUpdated = true;
+                }
+
             } else {
                 if (isEarlierDueDate(serviceExpiryMillis, expiration)) {
                     roleMember.setExpiration(serviceExpiration);
@@ -4075,6 +4110,19 @@ public class DBService {
                 if (isEarlierDueDate(serviceReviewMillis, reviewDate)) {
                     roleMember.setReviewReminder(serviceReview);
                     dueDateUpdated = true;
+                }
+
+                // as a final check if we're dealing with a service and we have
+                // either one of the user authority attributes set then we're
+                // going to expiry the service immediately since the role cannot
+                // contain any non-users
+
+                if (userAuthorityExpiry != null || userAuthorityFilter != null) {
+                    Timestamp serviceExpiry = roleMember.getExpiration();
+                    if (serviceExpiry == null || (serviceExpiry != null && serviceExpiry.millis() > System.currentTimeMillis())) {
+                        roleMember.setExpiration(Timestamp.fromCurrentTime());
+                        dueDateUpdated = true;
+                    }
                 }
             }
 
@@ -4119,6 +4167,37 @@ public class DBService {
         return bDataChanged;
     }
 
+    boolean isUserAuthorityValueChanged(String originalValue, String newValue) {
+
+        // if we don't have a user authority defined then
+        // we assume there are no changes
+
+        if (zmsConfig.getUserAuthority() == null) {
+            return false;
+        }
+
+        // first let's make sure if we're given empty strings
+        // we treat them as nulls
+
+        if (originalValue != null && originalValue.isEmpty()) {
+            originalValue = null;
+        }
+        if (newValue != null && newValue.isEmpty()) {
+            newValue = null;
+        }
+
+        // we're only concerned if the value was either set or changed
+        // if the value was set and now was unset, it has no impact
+        // on the existing members so we're going to treat that as
+        // if the setting was not changed
+
+        if (newValue == null) {
+            return false;
+        } else {
+            return originalValue == null || !originalValue.equalsIgnoreCase(newValue);
+        }
+    }
+
     void updateRoleMembersDueDates(ResourceContext ctx,
                                    ObjectStoreConnection con,
                                    final String domainName,
@@ -4141,6 +4220,15 @@ public class DBService {
             return;
         }
 
+        // check if the user attribute filter or expiration attributes
+        // have been changed in which case we need to verify and update
+        // members accordingly
+
+        boolean userAuthorityFilterChanged = isUserAuthorityValueChanged(originalRole.getUserAuthorityFilter(),
+                updatedRole.getUserAuthorityFilter());
+        boolean userAuthorityExpiryChanged = isUserAuthorityValueChanged(originalRole.getUserAuthorityExpiration(),
+                updatedRole.getUserAuthorityExpiration());
+
         // we only need to process the role members if the new due date
         // is more restrictive than what we had before
 
@@ -4155,7 +4243,8 @@ public class DBService {
                  updatedRole.getServiceReviewDays());
 
         if (!userMemberExpiryDayReduced && !serviceMemberExpiryDayReduced &&
-                !userMemberReviewDayReduced && !serviceMemberReviewDayReduced) {
+                !userMemberReviewDayReduced && !serviceMemberReviewDayReduced &&
+                !userAuthorityFilterChanged && !userAuthorityExpiryChanged) {
             return;
         }
 
@@ -4183,26 +4272,14 @@ public class DBService {
         // process our role members and if there were any changes processed then update
         // our role and domain time-stamps, and invalidate local cache entry
 
-
-        List<RoleMember> roleMembersWithUpdatedDueDates = getRoleMembersWithUpdatedDueDates(
-                roleMembers,
-                userExpiration,
-                userExpiryMillis,
-                serviceExpiration,
-                serviceExpiryMillis,
-                userReview,
-                userReviewMillis,
-                serviceReview,
-                serviceReviewMillis);
-        if (insertRoleMembers(
-                ctx,
-                con,
-                roleMembersWithUpdatedDueDates,
-                domainName,
-                roleName,
-                principal,
-                auditRef,
-                caller)) {
+        String userAuthorityFilter = userAuthorityFilterChanged ? updatedRole.getUserAuthorityFilter() : null;
+        String userAuthorityExpiry = userAuthorityExpiryChanged ? updatedRole.getUserAuthorityExpiration() : null;
+        List<RoleMember> roleMembersWithUpdatedDueDates = getRoleMembersWithUpdatedDueDates(roleMembers,
+                userExpiration, userExpiryMillis, serviceExpiration, serviceExpiryMillis,
+                userReview, userReviewMillis, serviceReview, serviceReviewMillis,
+                userAuthorityFilter, userAuthorityExpiry);
+        if (insertRoleMembers(ctx, con, roleMembersWithUpdatedDueDates, domainName,
+                roleName, principal, auditRef, caller)) {
 
             // update our role and domain time-stamps, and invalidate local cache entry
 

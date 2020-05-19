@@ -20,6 +20,7 @@ import org.testng.annotations.Test;
 import javax.servlet.http.HttpServletRequest;
 import java.security.cert.X509Certificate;
 import java.util.Date;
+import java.util.Set;
 
 import static org.testng.Assert.*;
 
@@ -71,6 +72,10 @@ public class AuthorityTest {
         assertTrue(authority.isValidUser("john"));
         assertNull(authority.authenticate((X509Certificate[]) null, null));
         assertNull(authority.authenticate((HttpServletRequest) null, null));
+        Set<String> attrSet = authority.booleanAttributesSupported();
+        assertTrue(attrSet.isEmpty());
+        attrSet = authority.dateAttributesSupported();
+        assertTrue(attrSet.isEmpty());
 
         assertTrue(authority.isAttributeSet("john", "local"));
         assertFalse(authority.isAttributeSet("john", "remote"));

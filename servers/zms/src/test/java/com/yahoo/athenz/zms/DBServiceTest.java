@@ -52,12 +52,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.fail;
+import static org.testng.Assert.*;
 
 @SuppressWarnings("SameParameterValue")
 public class DBServiceTest {
@@ -4414,6 +4409,17 @@ public class DBServiceTest {
         assertTrue(role.getSelfServe());
         assertFalse(role.getReviewEnabled());
         assertEquals(role.getNotifyRoles(), "role2");
+
+        meta = new RoleMeta().setUserAuthorityExpiration("expiry");
+        zms.dbService.updateRoleMetaFields(role, meta);
+        assertEquals(role.getNotifyRoles(), "role2");
+        assertEquals(role.getUserAuthorityExpiration(), "expiry");
+
+        meta = new RoleMeta().setUserAuthorityFilter("attr1");
+        zms.dbService.updateRoleMetaFields(role, meta);
+        assertEquals(role.getNotifyRoles(), "role2");
+        assertEquals(role.getUserAuthorityExpiration(), "expiry");
+        assertEquals(role.getUserAuthorityFilter(), "attr1");
     }
 
     @Test
@@ -6447,5 +6453,242 @@ public class DBServiceTest {
 
         zms.dbService.defaultRetryCount = saveRetryCount;
         zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testIsUserAuthorityValueChanged() {
+
+        Authority savedAuthority = zms.dbService.zmsConfig.getUserAuthority();
+
+        // with authority null - always false
+
+        zms.dbService.zmsConfig.setUserAuthority(null);
+        assertFalse(zms.dbService.isUserAuthorityValueChanged("filter1", "filter2"));
+
+        Authority authority = Mockito.mock(Authority.class);
+        zms.dbService.zmsConfig.setUserAuthority(authority);
+
+        assertFalse(zms.dbService.isUserAuthorityValueChanged("old", null));
+        assertFalse(zms.dbService.isUserAuthorityValueChanged(null, null));
+        assertFalse(zms.dbService.isUserAuthorityValueChanged("", null));
+        assertFalse(zms.dbService.isUserAuthorityValueChanged("", ""));
+
+        assertFalse(zms.dbService.isUserAuthorityValueChanged("old", ""));
+        assertFalse(zms.dbService.isUserAuthorityValueChanged(null, ""));
+
+        assertTrue(zms.dbService.isUserAuthorityValueChanged("old", "new"));
+        assertTrue(zms.dbService.isUserAuthorityValueChanged(null, "new"));
+        assertTrue(zms.dbService.isUserAuthorityValueChanged("", "new"));
+
+        zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
+    }
+
+    @Test
+    public void testUpdateUserAuthorityExpiry() {
+
+        Authority savedAuthority = zms.dbService.zmsConfig.getUserAuthority();
+
+        Authority authority = Mockito.mock(Authority.class);
+
+        Date currentDate = new Date();
+        Timestamp authorityDate = Timestamp.fromDate(currentDate);
+
+        Mockito.when(authority.getDateAttribute("user.john", "elevated-clearance"))
+                .thenReturn(currentDate);
+        Mockito.when(authority.getDateAttribute("user.jane", "elevated-clearance"))
+                .thenReturn(currentDate);
+        Mockito.when(authority.getDateAttribute("user.joe", "elevated-clearance"))
+                .thenReturn(null);
+
+        zms.dbService.zmsConfig.setUserAuthority(authority);
+
+        // user.joe - no expiry setting
+
+        RoleMember roleMember = new RoleMember().setMemberName("user.joe");
+        assertTrue(zms.dbService.updateUserAuthorityExpiry(roleMember, "elevated-clearance"));
+        assertNotNull(roleMember.getExpiration());
+
+        // we'll change if the expiry date is in the future
+
+        Timestamp expiryDate = Timestamp.fromMillis(System.currentTimeMillis() + 1000000);
+        roleMember.setExpiration(expiryDate);
+        assertTrue(zms.dbService.updateUserAuthorityExpiry(roleMember, "elevated-clearance"));
+        assertNotEquals(roleMember.getExpiration(), expiryDate);
+
+        // we will not change if the entry is already expired
+
+        expiryDate = Timestamp.fromMillis(System.currentTimeMillis() - 1000000);
+        roleMember.setExpiration(expiryDate);
+        assertFalse(zms.dbService.updateUserAuthorityExpiry(roleMember, "elevated-clearance"));
+        assertEquals(roleMember.getExpiration(), expiryDate);
+
+        // now let's test a user with valid authority expiry date
+        // if the user doesn't have an expiry, we'll default to the value
+        // returned by the user authority
+
+        roleMember = new RoleMember().setMemberName("user.jane");
+        assertTrue(zms.dbService.updateUserAuthorityExpiry(roleMember, "elevated-clearance"));
+        assertNotNull(roleMember.getExpiration());
+        assertEquals(roleMember.getExpiration(), authorityDate);
+
+        // if the value matches to our user authority value then no change
+
+        roleMember.setExpiration(authorityDate);
+        assertFalse(zms.dbService.updateUserAuthorityExpiry(roleMember, "elevated-clearance"));
+        assertNotNull(roleMember.getExpiration());
+        assertEquals(roleMember.getExpiration(), authorityDate);
+
+        // if no match then we change the value
+
+        roleMember.setExpiration(Timestamp.fromCurrentTime());
+        assertTrue(zms.dbService.updateUserAuthorityExpiry(roleMember, "elevated-clearance"));
+        assertNotNull(roleMember.getExpiration());
+        assertEquals(roleMember.getExpiration(), authorityDate);
+
+        zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
+    }
+
+    @Test
+    public void testUpdateRoleMembersDueDatesUserAuthorityFilter() {
+
+        Authority savedAuthority = zms.dbService.zmsConfig.getUserAuthority();
+
+        Authority authority = Mockito.mock(Authority.class);
+
+        Date currentDate = new Date();
+
+        Mockito.when(authority.isAttributeSet("user.john", "employee")).thenReturn(true);
+        Mockito.when(authority.isAttributeSet("user.jane", "employee")).thenReturn(false);
+        Mockito.when(authority.isAttributeSet("user.joe", "employee")).thenReturn(true);
+
+        zms.dbService.zmsConfig.setUserAuthority(authority);
+
+        ObjectStoreConnection mockConn = Mockito.mock(ObjectStoreConnection.class);
+        Mockito.when(mockConn.insertRoleMember(Mockito.anyString(), Mockito.anyString(), Mockito.any(),
+                Mockito.any(), Mockito.anyString())).thenReturn(true);
+
+        // we're going to make sure to throw an exception here
+        // since this should never be called
+
+        final String domainName = "user-auth-attrs";
+        Mockito.when(mockConn.updateDomainModTimestamp(domainName)).thenReturn(true);
+
+        List<RoleMember> roleMembers = new ArrayList<>();
+        roleMembers.add(new RoleMember().setMemberName("user.john"));
+        roleMembers.add(new RoleMember().setMemberName("user.jane"));
+        roleMembers.add(new RoleMember().setMemberName("sports.api"));
+        Timestamp tstamp = Timestamp.fromMillis(System.currentTimeMillis() - 10000);
+        roleMembers.add(new RoleMember().setMemberName("weather.api").setExpiration(tstamp));
+
+        Role originalRole = new Role()
+                .setName(domainName + ":role.auth-role")
+                .setRoleMembers(roleMembers);
+
+        Role updatedRole = new Role().setName(domainName + ":role.auth-role")
+                .setUserAuthorityFilter("employee")
+                .setRoleMembers(roleMembers);
+
+        zms.dbService.updateRoleMembersDueDates(mockDomRsrcCtx, mockConn, domainName,
+                "auth-role", originalRole, updatedRole, auditRef, "unit-test");
+
+        // john should not have an expiry while jane should since jane
+        // no longer has the user attribute set
+
+        RoleMember member = getRoleMember(updatedRole, "user.john");
+        assertNull(member.getExpiration());
+
+        member = getRoleMember(updatedRole, "user.jane");
+        assertNotNull(member.getExpiration());
+
+        // sports api should also have an expiry since it's not a user
+
+        member = getRoleMember(updatedRole, "sports.api");
+        assertNotNull(member.getExpiration());
+
+        // weather api should not change since it's already expired
+
+        member = getRoleMember(updatedRole, "weather.api");
+        assertEquals(member.getExpiration(), tstamp);
+
+        // reset authority to its original value
+
+        zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
+    }
+
+    @Test
+    public void testUpdateRoleMembersDueDatesUserAuthorityExpiry() {
+
+        Authority savedAuthority = zms.dbService.zmsConfig.getUserAuthority();
+
+        Authority authority = Mockito.mock(Authority.class);
+
+        Date currentDate = new Date();
+        Timestamp currentStamp = Timestamp.fromDate(currentDate);
+
+        Mockito.when(authority.getDateAttribute("user.john", "elevated-clearance"))
+                .thenReturn(currentDate);
+        Mockito.when(authority.getDateAttribute("user.joe", "elevated-clearance"))
+                .thenReturn(null);
+
+        zms.dbService.zmsConfig.setUserAuthority(authority);
+
+        ObjectStoreConnection mockConn = Mockito.mock(ObjectStoreConnection.class);
+        Mockito.when(mockConn.insertRoleMember(Mockito.anyString(), Mockito.anyString(), Mockito.any(),
+                Mockito.any(), Mockito.anyString())).thenReturn(true);
+
+        // we're going to make sure to throw an exception here
+        // since this should never be called
+
+        final String domainName = "user-auth-expiry";
+        Mockito.when(mockConn.updateDomainModTimestamp(domainName)).thenReturn(true);
+
+        List<RoleMember> roleMembers = new ArrayList<>();
+        roleMembers.add(new RoleMember().setMemberName("user.john"));
+        roleMembers.add(new RoleMember().setMemberName("sports.api"));
+        Timestamp tstamp = Timestamp.fromMillis(System.currentTimeMillis() - 10000);
+        roleMembers.add(new RoleMember().setMemberName("weather.api").setExpiration(tstamp));
+
+        Role originalRole = new Role()
+                .setName(domainName + ":role.auth-role")
+                .setRoleMembers(roleMembers);
+
+        Role updatedRole = new Role().setName(domainName + ":role.auth-role")
+                .setUserAuthorityExpiration("elevated-clearance")
+                .setRoleMembers(roleMembers);
+
+        zms.dbService.updateRoleMembersDueDates(mockDomRsrcCtx, mockConn, domainName,
+                "auth-role", originalRole, updatedRole, auditRef, "unit-test");
+
+        // john should have an expiry matching our current timestamp
+
+        RoleMember member = getRoleMember(updatedRole, "user.john");
+        assertEquals(member.getExpiration(), currentStamp);
+
+        // sports api should also have an expiry since it's not a user
+
+        member = getRoleMember(updatedRole, "sports.api");
+        assertNotNull(member.getExpiration());
+
+        // weather api should not change since it's already expired
+
+        member = getRoleMember(updatedRole, "weather.api");
+        assertEquals(member.getExpiration(), tstamp);
+
+        // reset authority to its original value
+
+        zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
+    }
+
+    RoleMember getRoleMember(Role role, final String memberName) {
+        List<RoleMember> members = role.getRoleMembers();
+        if (members == null) {
+            return null;
+        }
+        for (RoleMember member : members) {
+            if (member.getMemberName().equalsIgnoreCase(memberName)) {
+                return member;
+            }
+        }
+        return null;
     }
 }

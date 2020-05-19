@@ -10410,9 +10410,11 @@ public class ZMSImplTest {
         
         SubDomain dom = createSubDomainObject("DepthDom2", "DepthDom1",
                 "Test Domain2", "testOrg", "user.user3A");
+        dom.setSignAlgorithm("RSA");
         AthenzObject.SUB_DOMAIN.convertToLowerCase(dom);
         assertEquals(dom.getName(), "depthdom2");
         assertEquals(dom.getParent(), "depthdom1");
+        assertEquals(dom.getSignAlgorithm(), "rsa");
         assertTrue(dom.getAdminUsers().contains("user.user3a"));
 
         SubDomain dom2 = createSubDomainObject("DepthDom2", "DepthDom1",
@@ -10441,8 +10443,10 @@ public class ZMSImplTest {
         
         TopLevelDomain dom = createTopLevelDomainObject("TopLevelDomain",
                 "Test Domain1", "testOrg", "user.USER3A");
+        dom.setSignAlgorithm("EC");
         AthenzObject.TOP_LEVEL_DOMAIN.convertToLowerCase(dom);
         assertEquals(dom.getName(), "topleveldomain");
+        assertEquals(dom.getSignAlgorithm(), "ec");
         assertTrue(dom.getAdminUsers().contains("user.user3a"));
 
         TopLevelDomain dom2 = createTopLevelDomainObject("TopLevelDomain",
@@ -10470,8 +10474,10 @@ public class ZMSImplTest {
         
         UserDomain dom = createUserDomainObject("USER3A",
                 "Test Domain1", "testOrg");
+        dom.setSignAlgorithm("RSA");
         AthenzObject.USER_DOMAIN.convertToLowerCase(dom);
         assertEquals(dom.getName(), "user3a");
+        assertEquals(dom.getSignAlgorithm(), "rsa");
 
         UserDomain dom2 = createUserDomainObject("USER3B",
                 "Test Domain1", "testOrg");
@@ -10617,7 +10623,21 @@ public class ZMSImplTest {
         checkList.add("user.user2");
         checkRoleMember(checkList, role.getRoleMembers());
     }
-    
+
+    @Test
+    public void testConvertToLowerCaseRoleMeta() {
+        RoleMeta roleMeta = new RoleMeta();
+        roleMeta.setNotifyRoles("role1,Role2,roLE3");
+        roleMeta.setUserAuthorityFilter("attr1,ATTR2");
+        roleMeta.setUserAuthorityExpiration("elevatedClearance");
+        roleMeta.setSignAlgorithm("EC");
+        AthenzObject.ROLE_META.convertToLowerCase(roleMeta);
+        assertEquals(roleMeta.getNotifyRoles(), "role1,role2,role3");
+        assertEquals(roleMeta.getUserAuthorityFilter(), "attr1,attr2");
+        assertEquals(roleMeta.getUserAuthorityExpiration(), "elevatedclearance");
+        assertEquals(roleMeta.getSignAlgorithm(), "ec");
+    }
+
     @Test
     public void testConvertToLowerCaseTrustRole() {
         Role role = createRoleObject("RoleDomain", "roleName", "TRUSTDomain");
@@ -17553,13 +17573,13 @@ public class ZMSImplTest {
 
         // valid users no exception
 
-        zms.validateRoleMemberPrincipal("user.joe", "unittest");
-        zms.validateRoleMemberPrincipal("user.jane", "unittest");
+        zms.validateRoleMemberPrincipal("user.joe", null, "unittest");
+        zms.validateRoleMemberPrincipal("user.jane", null, "unittest");
 
         // invalid user request error
 
         try {
-            zms.validateRoleMemberPrincipal("user.john", "unittest");
+            zms.validateRoleMemberPrincipal("user.john", null, "unittest");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -17567,7 +17587,37 @@ public class ZMSImplTest {
 
         // non - user principals by default are accepted
 
-        zms.validateRoleMemberPrincipal("coretech.api", "unittest");
+        zms.validateRoleMemberPrincipal("coretech.api", null, "unittest");
+
+        // valid employee and contractor users
+
+        zms.validateRoleMemberPrincipal("user.joe", "employee", "unittest");
+        zms.validateRoleMemberPrincipal("user.jane", "employee", "unittest");
+        zms.validateRoleMemberPrincipal("user.jack", "contractor", "unittest");
+
+        // valid multiple attribute users
+
+        zms.validateRoleMemberPrincipal("user.joe", "employee,local", "unittest");
+        zms.validateRoleMemberPrincipal("user.jane", "employee,local", "unittest");
+        zms.validateRoleMemberPrincipal("user.jack", "contractor,local", "unittest");
+
+        // invalid employee type
+
+        try {
+            zms.validateRoleMemberPrincipal("user.jack", "employee", "unittest");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        // invalid multiple types
+
+        try {
+            zms.validateRoleMemberPrincipal("user.jack", "local,employee", "unittest");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
     }
 
     @Test
@@ -17577,13 +17627,22 @@ public class ZMSImplTest {
 
         // wildcards are always valid with no exception
 
-        zms.validateRoleMemberPrincipal("athenz.api*", "unittest");
-        zms.validateRoleMemberPrincipal("coretech.*", "unittest");
+        zms.validateRoleMemberPrincipal("athenz.api*", null, "unittest");
+        zms.validateRoleMemberPrincipal("coretech.*", null, "unittest");
+
+        // service users are never valid with user field
+
+        try {
+            zms.validateRoleMemberPrincipal("coretech.api", "employee", "unittest");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
 
         // invalid service request error
 
         try {
-            zms.validateRoleMemberPrincipal("coretech", "unittest");
+            zms.validateRoleMemberPrincipal("coretech", null, "unittest");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -17605,12 +17664,12 @@ public class ZMSImplTest {
 
         // known service - no exception
 
-        zms.validateRoleMemberPrincipal("coretech.api", "unittest");
+        zms.validateRoleMemberPrincipal("coretech.api", null, "unittest");
 
         // unknown service - exception
 
         try {
-            zms.validateRoleMemberPrincipal("coretech.backend", "unittest");
+            zms.validateRoleMemberPrincipal("coretech.backend", null, "unittest");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -17626,12 +17685,12 @@ public class ZMSImplTest {
 
         // coretech is now accepted
 
-        zms.validateRoleMemberPrincipal("coretech.backend", "unittest");
+        zms.validateRoleMemberPrincipal("coretech.backend", null, "unittest");
 
         // but coretech2 is rejected
 
         try {
-            zms.validateRoleMemberPrincipal("coretech2.backend", "unittest");
+            zms.validateRoleMemberPrincipal("coretech2.backend", null, "unittest");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -17639,7 +17698,7 @@ public class ZMSImplTest {
 
         // user principals by default are accepted
 
-        zms.validateRoleMemberPrincipal("user.john", "unittest");
+        zms.validateRoleMemberPrincipal("user.john", null, "unittest");
 
         // reset our setting
 
@@ -18782,6 +18841,318 @@ public class ZMSImplTest {
                 true, null, 0, null, 0), adminUsers, solutionTemplate, auditRef);
 
         assertNotNull(zms.getDomainTemplateDetailsList(mockDomRsrcCtx, domainName));
+    }
 
+    @Test
+    public void testIsUserAuthorityFilterValid() {
+
+        Authority savedAuthority = zms.userAuthority;
+        Authority mockAuthority = Mockito.mock(Authority.class);
+        Mockito.when(mockAuthority.isAttributeSet("user.john", "contractor")).thenReturn(true);
+        Mockito.when(mockAuthority.isAttributeSet("user.john", "employee")).thenReturn(false);
+        Mockito.when(mockAuthority.isAttributeSet("user.john", "local")).thenReturn(true);
+        zms.userAuthority = mockAuthority;
+
+        // non-users are always false
+        assertFalse(zms.isUserAuthorityFilterValid("filterList", "athenz.test"));
+
+        // single filter value
+        assertTrue(zms.isUserAuthorityFilterValid("contractor", "user.john"));
+        assertFalse(zms.isUserAuthorityFilterValid("employee", "user.john"));
+
+        // multiple values
+        assertTrue(zms.isUserAuthorityFilterValid("contractor,local", "user.john"));
+        assertTrue(zms.isUserAuthorityFilterValid("local,contractor", "user.john"));
+        assertFalse(zms.isUserAuthorityFilterValid("local,contractor,employee", "user.john"));
+        assertFalse(zms.isUserAuthorityFilterValid("local,employee,contractor", "user.john"));
+        assertFalse(zms.isUserAuthorityFilterValid("employee,contractor", "user.john"));
+
+        zms.userAuthority = savedAuthority;
+    }
+
+    @Test
+    public void testEnforcedUserAuthorityFilter() {
+
+        Authority savedAuthority = zms.userAuthority;
+
+        // null authorty, filter or empty filter
+
+        zms.userAuthority = null;
+        assertNull(zms.enforcedUserAuthorityFilter("validFilter"));
+
+        Authority mockAuthority = Mockito.mock(Authority.class);
+        zms.userAuthority = mockAuthority;
+
+        assertNull(zms.enforcedUserAuthorityFilter(null));
+        assertNull(zms.enforcedUserAuthorityFilter(""));
+
+        // valid filter
+
+        assertEquals("validFilter", zms.enforcedUserAuthorityFilter("validFilter"));
+
+        zms.userAuthority = savedAuthority;
+    }
+
+    @Test
+    public void testGetUserAuthroityExpiryAttr() {
+
+        Role role = new Role().setUserAuthorityExpiration("elevated-clearance");
+
+        Authority savedAuthority = zms.userAuthority;
+        zms.userAuthority = null;
+
+        // with authority null we always get null
+
+        assertNull(zms.getUserAuthorityExpiryAttr(role));
+
+        Authority authority = Mockito.mock(Authority.class);
+        zms.userAuthority = authority;
+
+        assertEquals("elevated-clearance", zms.getUserAuthorityExpiryAttr(role));
+
+        role.setUserAuthorityExpiration("");
+        assertNull(zms.getUserAuthorityExpiryAttr(role));
+
+        role.setUserAuthorityExpiration(null);
+        assertNull(zms.getUserAuthorityExpiryAttr(role));
+
+        zms.userAuthority = savedAuthority;
+    }
+
+    @Test
+    public void testGetUserAuthorityExpiry() {
+
+        Role role = new Role().setUserAuthorityExpiration("elevated-clearance");
+
+        Authority savedAuthority = zms.userAuthority;
+        zms.userAuthority = null;
+
+        // with authority null we always get null
+
+        assertNull(zms.getUserAuthorityExpiry("user.john", role, "unit-test"));
+
+        Authority authority = Mockito.mock(Authority.class);
+        Mockito.when(authority.getDateAttribute("user.john", "elevated-clearance"))
+                .thenReturn(new Date());
+        Mockito.when(authority.getDateAttribute("user.joe", "elevated-clearance"))
+                .thenReturn(null);
+        zms.userAuthority = authority;
+
+        assertNotNull(zms.getUserAuthorityExpiry("user.john", role, "unit-test"));
+
+        try {
+            zms.getUserAuthorityExpiry("user.joe", role, "unit-test");
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("User does not have required user authority expiry configured"));
+        }
+
+        zms.userAuthority = savedAuthority;
+    }
+
+    @Test
+    public void testUpdateRoleMemberUserAuthorityExpiry() {
+
+        Role role = new Role().setUserAuthorityExpiration("elevated-clearance");
+
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user.john"));
+        members.add(new RoleMember().setMemberName("user.joe"));
+        role.setRoleMembers(members);
+
+        Authority savedAuthority = zms.userAuthority;
+        zms.userAuthority = null;
+
+        // with authority null we always get no changes
+
+        zms.updateRoleMemberUserAuthorityExpiry(role, "unit-test");
+        assertNull(role.getRoleMembers().get(0).getExpiration());
+        assertNull(role.getRoleMembers().get(1).getExpiration());
+
+        Authority authority = Mockito.mock(Authority.class);
+        Mockito.when(authority.getDateAttribute("user.john", "elevated-clearance"))
+                .thenReturn(new Date());
+        Mockito.when(authority.getDateAttribute("user.jane", "elevated-clearance"))
+                .thenReturn(new Date());
+        Mockito.when(authority.getDateAttribute("user.joe", "elevated-clearance"))
+                .thenReturn(null);
+        zms.userAuthority = authority;
+
+        // with one valid and one invalid we should get an exception
+
+        try {
+            zms.updateRoleMemberUserAuthorityExpiry(role, "unit-test");
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Invalid member: user.joe"));
+        }
+
+        // let's have one valid user and one service
+
+        members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user.john"));
+        members.add(new RoleMember().setMemberName("sports.api"));
+        role.setRoleMembers(members);
+
+        try {
+            zms.updateRoleMemberUserAuthorityExpiry(role, "unit-test");
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("cannot have non-user member"));
+        }
+
+        // now let's have only valid members
+
+        members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user.john"));
+        members.add(new RoleMember().setMemberName("user.jane"));
+        role.setRoleMembers(members);
+
+        zms.updateRoleMemberUserAuthorityExpiry(role, "unit-test");
+        assertNotNull(role.getRoleMembers().get(0).getExpiration());
+        assertNotNull(role.getRoleMembers().get(1).getExpiration());
+
+        zms.userAuthority = savedAuthority;
+    }
+
+    @Test
+    public void testValidateRoleUserAuthorityAttributes() {
+
+        Authority savedAuthority = zms.userAuthority;
+        zms.userAuthority = null;
+
+        // with authority null we always get exceptions if we have
+        // not empty values specified
+
+        zms.validateRoleUserAuthorityAttributes(null, null, "unit-test");
+        zms.validateRoleUserAuthorityAttributes(null, "", "unit-test");
+        zms.validateRoleUserAuthorityAttributes("", null, "unit-test");
+        zms.validateRoleUserAuthorityAttributes("", "", "unit-test");
+
+        try {
+            zms.validateRoleUserAuthorityAttributes("attr1", null, "unit-test");
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("User Authority filter specified without a valid user authority"));
+        }
+
+        try {
+            zms.validateRoleUserAuthorityAttributes(null, "attr1", "unit-test");
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("User Authority expiry specified without a valid user authority"));
+        }
+
+        Authority authority = Mockito.mock(Authority.class);
+        Set<String> booleanAttrSet = new HashSet<>();
+        booleanAttrSet.add("elevated-clearance");
+        booleanAttrSet.add("full-time-employee");
+        Mockito.when(authority.booleanAttributesSupported()).thenReturn(booleanAttrSet);
+        Set<String> dateAttrSet = new HashSet<>();
+        dateAttrSet.add("term-date");
+        Mockito.when(authority.dateAttributesSupported()).thenReturn(dateAttrSet);
+        zms.userAuthority = authority;
+
+        // valid values
+
+        zms.validateRoleUserAuthorityAttributes("elevated-clearance", null, "unit-test");
+        zms.validateRoleUserAuthorityAttributes("elevated-clearance", "", "unit-test");
+        zms.validateRoleUserAuthorityAttributes("elevated-clearance,full-time-employee", null, "unit-test");
+        zms.validateRoleUserAuthorityAttributes("full-time-employee,elevated-clearance", "term-date", "unit-test");
+        zms.validateRoleUserAuthorityAttributes("", "term-date", "unit-test");
+        zms.validateRoleUserAuthorityAttributes(null, "term-date", "unit-test");
+
+        zms.validateRoleUserAuthorityAttributes(null, null, "unit-test");
+        zms.validateRoleUserAuthorityAttributes(null, "", "unit-test");
+        zms.validateRoleUserAuthorityAttributes("", null, "unit-test");
+        zms.validateRoleUserAuthorityAttributes("", "", "unit-test");
+
+        // invalid values
+
+        try {
+            zms.validateRoleUserAuthorityAttributes("elevated-clearance,contractor", null, "unit-test");
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("contractor is not a valid user authority attribute"));
+        }
+
+        try {
+            zms.validateRoleUserAuthorityAttributes("elevated-clearance", "hire-date", "unit-test");
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("hire-date is not a valid user authority date attribute"));
+        }
+
+        zms.userAuthority = savedAuthority;
+    }
+
+    @Test
+    public void testSetRoleMemberExpiration() {
+
+        Authority savedAuthority = zms.userAuthority;
+        zms.userAuthority = null;
+
+        // with authority null we always get no changes
+
+        Authority authority = Mockito.mock(Authority.class);
+        Date testDate = new Date();
+        Mockito.when(authority.getDateAttribute("user.john", "elevated-clearance"))
+                .thenReturn(testDate);
+        Mockito.when(authority.getDateAttribute("user.jane", "elevated-clearance"))
+                .thenReturn(testDate);
+        Mockito.when(authority.getDateAttribute("user.joe", "elevated-clearance"))
+                .thenReturn(null);
+        Set<String> dateAttrSet = new HashSet<>();
+        dateAttrSet.add("elevated-clearance");
+        Mockito.when(authority.dateAttributesSupported()).thenReturn(dateAttrSet);
+
+        zms.userAuthority = authority;
+
+        // add a role with an elevated clearance option
+
+        final String domainName = "userexpirydomain";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", "user.user1");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        final String roleName = "audit-role";
+        Role role = createRoleObject(domainName, roleName, null, null);
+        role.setUserAuthorityExpiration("elevated-clearance");
+        zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, role);
+
+        // add a valid member who should get the expiry date
+
+        Membership mbr = new Membership().setMemberName("user.john");
+        zms.putMembership(mockDomRsrcCtx, domainName, roleName, "user.john", auditRef, mbr);
+
+        Membership mbrResult = zms.getMembership(mockDomRsrcCtx, domainName, roleName,
+                "user.john", null);
+        assertNotNull(mbrResult);
+        assertEquals(mbrResult.getMemberName(), "user.john");
+        assertNotNull(mbrResult.getExpiration());
+        assertEquals(mbrResult.getExpiration().millis(), testDate.getTime());
+
+        // user with no expiry
+
+        mbr = new Membership().setMemberName("user.joe");
+        try {
+            zms.putMembership(mockDomRsrcCtx, domainName, roleName, "user.joe", auditRef, mbr);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("User does not have required user authority expiry configured"));
+        }
+
+        // service user
+
+        mbr = new Membership().setMemberName("sports.api");
+        try {
+            zms.putMembership(mockDomRsrcCtx, domainName, roleName, "sports.api", auditRef, mbr);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Role cannot have non-user member due to user authority expiry setup"));
+        }
+
+        zms.userAuthority = savedAuthority;
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 }

@@ -16,7 +16,9 @@
 package com.yahoo.athenz.auth;
 
 import java.security.cert.X509Certificate;
+import java.util.Collections;
 import java.util.Date;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -142,6 +144,15 @@ public interface Authority {
     }
 
     /**
+     * Set of valid boolean attributes supported by the authority
+     * @return Set of attribute names, empty set if none are supported
+     */
+
+    default Set<String> booleanAttributesSupported() {
+        return Collections.emptySet();
+    }
+
+    /**
      * Return the requested date attribute state from the user authority
      * @param username user's name or id
      * @param attribute date attribute name
@@ -149,6 +160,15 @@ public interface Authority {
      */
     default Date getDateAttribute(final String username, final String attribute) {
         return null;
+    }
+
+    /**
+     * Set of valid date attributes supported by the authority
+     * @return Set of attribute names, empty set if none are supported
+     */
+
+    default Set<String> dateAttributesSupported() {
+        return Collections.emptySet();
     }
 
     /**
