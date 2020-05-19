@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.zms;
 
+import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.zms.config.SolutionTemplates;
 
 import java.util.List;
@@ -26,6 +27,7 @@ public class ZMSConfig {
     private String userDomainPrefix;
     private List<String> addlUserCheckDomainPrefixList;
     private SolutionTemplates serverSolutionTemplates;
+    private Authority userAuthority;
 
     public String getUserDomain() {
         return userDomain;
@@ -65,5 +67,13 @@ public class ZMSConfig {
 
     public void setServerSolutionTemplates(SolutionTemplates serverSolutionTemplates) {
         this.serverSolutionTemplates = serverSolutionTemplates;
+    }
+
+    public Authority getUserAuthority() {
+        return userAuthority;
+    }
+
+    public void setUserAuthority(Authority userAuthority) {
+        this.userAuthority = userAuthority;
     }
 }

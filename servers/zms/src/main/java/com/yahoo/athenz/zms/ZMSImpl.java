@@ -297,6 +297,23 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 ROLE_MEMBER.convertToLowerCase(role.getRoleMembers());
             }
         },
+        ROLE_META {
+            void convertToLowerCase(Object obj) {
+                RoleMeta roleMeta = (RoleMeta) obj;
+                if (roleMeta.getNotifyRoles() != null) {
+                    roleMeta.setNotifyRoles(roleMeta.getNotifyRoles().toLowerCase());
+                }
+                if (roleMeta.getUserAuthorityExpiration() != null) {
+                    roleMeta.setUserAuthorityExpiration(roleMeta.getUserAuthorityExpiration().toLowerCase());
+                }
+                if (roleMeta.getUserAuthorityFilter() != null) {
+                    roleMeta.setUserAuthorityFilter(roleMeta.getUserAuthorityFilter().toLowerCase());
+                }
+                if (roleMeta.getSignAlgorithm() != null) {
+                    roleMeta.setSignAlgorithm(roleMeta.getSignAlgorithm().toLowerCase());
+                }
+            }
+        },
         ROLE_MEMBER {
             void convertToLowerCase(Object obj) {
                 @SuppressWarnings("unchecked")
@@ -327,6 +344,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 SubDomain subdomain = (SubDomain) obj;
                 subdomain.setName(subdomain.getName().toLowerCase());
                 subdomain.setParent(subdomain.getParent().toLowerCase());
+                if (subdomain.getSignAlgorithm() != null) {
+                    subdomain.setSignAlgorithm(subdomain.getSignAlgorithm().toLowerCase());
+                }
                 LIST.convertToLowerCase(subdomain.getAdminUsers());
                 DOMAIN_TEMPLATE_LIST.convertToLowerCase(subdomain.getTemplates());
             }
@@ -369,6 +389,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 if (domain.getOrg() != null) {
                     domain.setOrg(domain.getOrg().toLowerCase());
                 }
+                if (domain.getSignAlgorithm() != null) {
+                    domain.setSignAlgorithm(domain.getSignAlgorithm().toLowerCase());
+                }
             }
         },
         QUOTA {
@@ -381,6 +404,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             void convertToLowerCase(Object obj) {
                 UserDomain userDomain = (UserDomain) obj;
                 userDomain.setName(userDomain.getName().toLowerCase());
+                if (userDomain.getSignAlgorithm() != null) {
+                    userDomain.setSignAlgorithm(userDomain.getSignAlgorithm().toLowerCase());
+                }
                 DOMAIN_TEMPLATE_LIST.convertToLowerCase(userDomain.getTemplates());
             }
         },
@@ -392,6 +418,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 }
                 if (domainMeta.getOrg() != null) {
                     domainMeta.setOrg(domainMeta.getOrg().toLowerCase());
+                }
+                if (domainMeta.getSignAlgorithm() != null) {
+                    domainMeta.setSignAlgorithm(domainMeta.getSignAlgorithm().toLowerCase());
                 }
             }
         };
@@ -687,6 +716,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         zmsConfig.setUserDomainPrefix(userDomainPrefix);
         zmsConfig.setServerHostName(serverHostName);
         zmsConfig.setServerSolutionTemplates(serverSolutionTemplates);
+        zmsConfig.setUserAuthority(userAuthority);
 
         ObjectStore store = objFactory.create(keyStore);
         dbService = new DBService(store, auditLogger, zmsConfig, auditReferenceValidator);
@@ -2910,6 +2940,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         roleName = roleName.toLowerCase();
         AthenzObject.ROLE.convertToLowerCase(role);
 
+        // validate the user authority settings if they're provided
+
+        validateRoleUserAuthorityAttributes(role.getUserAuthorityFilter(), role.getUserAuthorityExpiration(), caller);
+
         final String principalDomain = getPrincipalDomain(ctx);
         metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
         metric.increment(caller, domainName, principalDomain);
@@ -2941,6 +2975,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         normalizeRoleMembers(role);
 
         // check to see if we need to validate user and service members
+        // and possibly user authority filter restrictions
 
         validateRoleMemberPrincipals(role, caller);
 
@@ -2961,6 +2996,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 role.getServiceExpiryDays(),
                 role.getRoleMembers());
 
+        // update role expiry based on user authority expiry
+        // if configured
+
+        updateRoleMemberUserAuthorityExpiry(role, caller);
+
         // update role review based on our configurations
 
         updateRoleMemberReviewReminder(role.getMemberReviewDays(), role.getServiceReviewDays(), role.getRoleMembers());
@@ -2975,16 +3015,51 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // make sure we have either one of the options enabled for verification
 
-        if (!validateUserRoleMembers && !validateServiceRoleMembers) {
+        final String userAuthorityFilter = enforcedUserAuthorityFilter(role.getUserAuthorityFilter());
+        if (!shouldValidateRoleMembers(userAuthorityFilter)) {
             return;
         }
 
         for (RoleMember roleMember : role.getRoleMembers()) {
-            validateRoleMemberPrincipal(roleMember.getMemberName(), caller);
+            validateRoleMemberPrincipal(roleMember.getMemberName(), userAuthorityFilter, caller);
         }
     }
 
-    void validateRoleMemberPrincipal(final String memberName, final String caller) {
+    void updateRoleMemberUserAuthorityExpiry(final Role role, final String caller) {
+
+        final String userAuthorityExpiry = getUserAuthorityExpiryAttr(role);
+        if (userAuthorityExpiry == null) {
+            return;
+        }
+
+        for (RoleMember roleMember : role.getRoleMembers()) {
+
+            boolean bUser = ZMSUtils.isUserDomainPrincipal(roleMember.getMemberName(), userDomainPrefix,
+                    addlUserCheckDomainPrefixList);
+
+            if (bUser) {
+
+                // if we don't have an expiry specified for the user
+                // then we're not going to allow this member
+
+                Date expiry = userAuthority.getDateAttribute(roleMember.getMemberName(), userAuthorityExpiry);
+                if (expiry == null) {
+                    throw ZMSUtils.requestError("Invalid member: " + roleMember.getMemberName() +
+                            ". No expiry date attribute specified in user authority", caller);
+                }
+                roleMember.setExpiration(Timestamp.fromDate(expiry));
+
+            } else {
+
+                // if we have a user authority expiry attribute date then then
+                // role cannot have service members
+
+                throw ZMSUtils.requestError("Role cannot have non-user member due to user authority expiry setup", caller);
+            }
+        }
+    }
+
+    void validateRoleMemberPrincipal(final String memberName, final String userAuthorityFilter, final String caller) {
 
         boolean bUser = ZMSUtils.isUserDomainPrincipal(memberName, userDomainPrefix, addlUserCheckDomainPrefixList);
         boolean bValidPrincipal = true;
@@ -2997,9 +3072,24 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 bValidPrincipal = userAuthority.isValidUser(memberName);
             }
 
+            // once we know it's a valid principal and we have a user
+            // authority filter configured, we'll check that as well
+            // if we're already determined that the principal is not
+            // valid there is no point of running this check
+
+            if (bValidPrincipal && userAuthorityFilter != null) {
+                bValidPrincipal = isUserAuthorityFilterValid(userAuthorityFilter, memberName);
+            }
+
         } else {
 
-            if (validateServiceRoleMembers) {
+            // if it's a service and we have a user authority filter specified
+            // then it's automatically assumed it's not a valid principal so we'll
+            // only evaluate if the filter is null
+
+            if (userAuthorityFilter != null) {
+                bValidPrincipal = false;
+            } else if (validateServiceRoleMembers) {
 
                 // if the account contains a wildcard character then
                 // we're going to assume it's valid
@@ -3337,13 +3427,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         RoleMember roleMember = new RoleMember();
         roleMember.setMemberName(normalizeDomainAliasUser(memberName));
-        setRoleMemberExpiration(domain, role, roleMember, membership);
+        setRoleMemberExpiration(domain, role, roleMember, membership, caller);
         setRoleMemberReview(role, roleMember, membership);
 
         // check to see if we need to validate the principal
 
-        if (validateUserRoleMembers || validateServiceRoleMembers) {
-            validateRoleMemberPrincipal(roleMember.getMemberName(), caller);
+        final String userAuthorityFilter = enforcedUserAuthorityFilter(role.getUserAuthorityFilter());
+        if (shouldValidateRoleMembers(userAuthorityFilter)) {
+            validateRoleMemberPrincipal(roleMember.getMemberName(), userAuthorityFilter, caller);
         }
 
         // authorization check which also automatically updates
@@ -3367,15 +3458,78 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         metric.stopTiming(timerMetric, domainName, principalDomain);
     }
 
+    String enforcedUserAuthorityFilter(final String userAuthorityFilter) {
+
+        // for a filter to be enforced we need to make sure we have
+        // a valid user authority object along with non-empty filter
+
+        if (userAuthority == null || userAuthorityFilter == null || userAuthorityFilter.isEmpty()) {
+            return null;
+        }
+
+        return userAuthorityFilter;
+    }
+
+    boolean shouldValidateRoleMembers(final String userAuthorityFilter) {
+        return validateUserRoleMembers || validateServiceRoleMembers || userAuthorityFilter != null;
+    }
+
+    String getUserAuthorityExpiryAttr(final Role role) {
+
+        // we must have a valid user authority
+
+        if (userAuthority == null) {
+            return null;
+        }
+
+        final String userAuthorityExpiry = role.getUserAuthorityExpiration();
+        if (userAuthorityExpiry == null || userAuthorityExpiry.isEmpty()) {
+            return null;
+        }
+
+        return userAuthorityExpiry;
+    }
+
+    Timestamp getUserAuthorityExpiry(final String userName, final Role role, final String caller) {
+
+        final String userAuthorityExpiry = getUserAuthorityExpiryAttr(role);
+        if (userAuthorityExpiry == null) {
+            return null;
+        }
+
+        // if we don't get an expiry then we're going to throw an exception
+        // since based on our config we must have an expiry specified
+
+        Date expiry = userAuthority.getDateAttribute(userName, userAuthorityExpiry);
+        if (expiry == null) {
+            throw ZMSUtils.requestError("User does not have required user authority expiry configured", caller);
+        }
+
+        return Timestamp.fromDate(expiry);
+    }
+
     void setRoleMemberExpiration(final AthenzDomain domain, final Role role, final RoleMember roleMember,
-            final Membership membership) {
+            final Membership membership, final String caller) {
 
         boolean bUser = ZMSUtils.isUserDomainPrincipal(roleMember.getMemberName(), userDomainPrefix,
                 addlUserCheckDomainPrefixList);
+
         if (bUser) {
-            roleMember.setExpiration(memberDueDateTimestamp(domain.getDomain().getMemberExpiryDays(),
-                    role.getMemberExpiryDays(), membership.getExpiration()));
+            Timestamp userAuthorityExpiry = getUserAuthorityExpiry(roleMember.memberName, role, caller);
+            if (userAuthorityExpiry != null) {
+                roleMember.setExpiration(userAuthorityExpiry);
+            } else {
+                roleMember.setExpiration(memberDueDateTimestamp(domain.getDomain().getMemberExpiryDays(),
+                        role.getMemberExpiryDays(), membership.getExpiration()));
+            }
         } else {
+            // if we have a user authority expiry attribute date then then
+            // role cannot have service members
+
+            final String userAuthorityExpiry = getUserAuthorityExpiryAttr(role);
+            if (userAuthorityExpiry != null) {
+                throw ZMSUtils.requestError("Role cannot have non-user member due to user authority expiry setup", caller);
+            }
             roleMember.setExpiration(memberDueDateTimestamp(domain.getDomain().getServiceExpiryDays(),
                     role.getServiceExpiryDays(), membership.getExpiration()));
         }
@@ -7437,6 +7591,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         domainName = domainName.toLowerCase();
         roleName = roleName.toLowerCase();
+        AthenzObject.ROLE_META.convertToLowerCase(meta);
+
+        // validate the user authority settings if they're provided
+
+        validateRoleUserAuthorityAttributes(meta.getUserAuthorityFilter(), meta.getUserAuthorityExpiration(), caller);
 
         final String principalDomain = getPrincipalDomain(ctx);
         metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
@@ -7528,20 +7687,26 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.forbiddenError("putMembershipDecision: principal is not authorized to approve / reject members", caller);
         }
 
-        // set the user state, expiration and review date values
-
-        setRoleMemberExpiration(domain, role, roleMember, membership);
-        setRoleMemberReview(role, roleMember, membership);
         roleMember.setApproved(membership.getApproved());
         roleMember.setActive(membership.getActive());
 
-        // check to see if we need to validate the principal
-        // but only if the decision is to approve. We don't
-        // want to block removal of rejected user requests
+        // set the user state, expiration and review date values
+        // no need to update the review/expiration dates if the
+        // request is going to be rejected
 
-        if (roleMember.getApproved() == Boolean.TRUE &&
-                (validateUserRoleMembers || validateServiceRoleMembers)) {
-            validateRoleMemberPrincipal(roleMember.getMemberName(), caller);
+        if (roleMember.getApproved() == Boolean.TRUE) {
+
+            setRoleMemberExpiration(domain, role, roleMember, membership, caller);
+            setRoleMemberReview(role, roleMember, membership);
+
+            // check to see if we need to validate the principal
+            // but only if the decision is to approve. We don't
+            // want to block removal of rejected user requests
+
+            final String userAuthorityFilter = enforcedUserAuthorityFilter(role.getUserAuthorityFilter());
+            if (shouldValidateRoleMembers(userAuthorityFilter)) {
+                validateRoleMemberPrincipal(roleMember.getMemberName(), userAuthorityFilter, caller);
+            }
         }
 
         dbService.executePutMembershipDecision(ctx, domainName, roleName,
@@ -7805,5 +7970,52 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         dbService.executePutRoleReview(ctx, domainName, roleName, role, auditRef, caller);
         metric.stopTiming(timerMetric, domainName, principalDomain);
+    }
+
+    boolean isUserAuthorityFilterValid(final String filterList, final String memberName) {
+
+        // in most cases we're going to have a single filter configured
+        // so we'll optimize for that case and not create an array
+
+        if (filterList.indexOf(',') == -1) {
+            return userAuthority.isAttributeSet(memberName, filterList);
+        } else {
+            final String[] filterItems = filterList.split(",");
+            for (String filterItem : filterItems) {
+                if (!userAuthority.isAttributeSet(memberName, filterItem)) {
+                    LOG.error("Principal {} does not satisfy user authority {} filter", memberName, filterItem);
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
+
+    void validateRoleUserAuthorityAttributes(final String authorityFilter, final String authorityExpiration,
+                                             final String caller) {
+
+        if (authorityFilter != null && !authorityFilter.isEmpty()) {
+            if (userAuthority == null) {
+                throw ZMSUtils.requestError("Role User Authority filter specified without a valid user authority", caller);
+            }
+
+            Set<String> attrSet = userAuthority.booleanAttributesSupported();
+            for (String attr : authorityFilter.split(","))  {
+                if (!attrSet.contains(attr)) {
+                    throw ZMSUtils.requestError(attr + " is not a valid user authority attribute", caller);
+                }
+            }
+        }
+
+        if (authorityExpiration != null && !authorityExpiration.isEmpty()) {
+            if (userAuthority == null) {
+                throw ZMSUtils.requestError("Role User Authority expiry specified without a valid user authority", caller);
+            }
+
+            Set<String> attrSet = userAuthority.dateAttributesSupported();
+            if (!attrSet.contains(authorityExpiration)) {
+                throw ZMSUtils.requestError(authorityExpiration + " is not a valid user authority date attribute", caller);
+            }
+        }
     }
 }

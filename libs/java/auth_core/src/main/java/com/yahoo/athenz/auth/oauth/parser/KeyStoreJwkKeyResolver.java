@@ -42,7 +42,8 @@ public class KeyStoreJwkKeyResolver implements SigningKeyResolver {
 
     /**
      * @param  keyStore key store get the JWT public keys
-     * @param  url      JWKS URL to download the JWT public keys
+     * @param  url JWKS URL to download the JWT public keys
+     * @param sslContext ssl context if server requires tls connections
      * @throws IllegalStateException if url is null
      */
     public KeyStoreJwkKeyResolver(KeyStore keyStore, String url, SSLContext sslContext) {
