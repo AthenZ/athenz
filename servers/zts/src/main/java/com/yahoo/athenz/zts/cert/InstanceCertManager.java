@@ -982,7 +982,7 @@ public class InstanceCertManager {
             return true;
         }
 
-        boolean result;
+        boolean result = false;
         try (SSHRecordStoreConnection storeConnection = sshStore.getConnection()) {
 
             // if it's a refresh we're going to try to update first
@@ -996,6 +996,9 @@ public class InstanceCertManager {
             // we're going to create it
 
             result = storeConnection.insertSSHCertRecord(certRecord);
+        } catch (Exception ex) {
+            LOGGER.error("Unable to store ssh certificate record for principal {} - {}",
+                    certRecord.getPrincipals(), ex.getMessage());
         }
 
         return result;
