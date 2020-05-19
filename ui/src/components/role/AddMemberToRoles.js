@@ -144,6 +144,13 @@ export default class AddMemberToRoles extends React.Component {
                           this.state.memberExpiry
                       )
                     : '',
+            reviewReminder:
+                this.state.memberReviewReminder &&
+                this.state.memberReviewReminder.length > 0
+                    ? this.dateUtils.uxDatetimeToRDLTimestamp(
+                          this.state.memberReviewReminder
+                      )
+                    : '',
         };
         // send api call and then reload existing members component
         this.api
@@ -235,6 +242,15 @@ export default class AddMemberToRoles extends React.Component {
                                 }}
                                 id='addMemberToRoles'
                                 clear={this.state.memberExpiry}
+                            />
+                        </FlatPickrInputDiv>
+                        <FlatPickrInputDiv>
+                            <FlatPicker
+                                onChange={(memberReviewReminder) => {
+                                    this.setState({ memberReviewReminder });
+                                }}
+                                id='addMemberToRoles-reminder'
+                                clear={this.state.memberReviewReminder}
                             />
                         </FlatPickrInputDiv>
                         {this.props.justificationRequired && (

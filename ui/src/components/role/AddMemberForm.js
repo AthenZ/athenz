@@ -28,7 +28,7 @@ const SectionsDiv = styled.div`
     background-color: ${(props) => props.color};
     display: grid;
     grid-gap: 24px;
-    grid-template-columns: 32% 22% 30% 10%;
+    grid-template-columns: 23% 20% 20% 20% 10%;
 `;
 
 const StyledInputMember = styled(Input)`
@@ -88,6 +88,7 @@ export default class AddMemberForm extends React.Component {
         this.state = {
             newMember: '',
             memberExpiry: '',
+            memberReviewReminder: '',
             justification: undefined,
         };
         this.dateUtils = new DateUtils();
@@ -108,6 +109,13 @@ export default class AddMemberForm extends React.Component {
                 this.state.memberExpiry && this.state.memberExpiry.length > 0
                     ? this.dateUtils.uxDatetimeToRDLTimestamp(
                           this.state.memberExpiry
+                      )
+                    : '',
+            reviewReminder:
+                this.state.memberReviewReminder &&
+                this.state.memberReviewReminder.length > 0
+                    ? this.dateUtils.uxDatetimeToRDLTimestamp(
+                          this.state.memberReviewReminder
                       )
                     : '',
         };
@@ -143,6 +151,7 @@ export default class AddMemberForm extends React.Component {
                 this.setState({
                     newMember: '',
                     memberExpiry: '',
+                    memberReviewReminder: '',
                     justification: '',
                 });
                 this.props.onChange(
@@ -159,6 +168,10 @@ export default class AddMemberForm extends React.Component {
     render() {
         let memberChanged = this.inputChanged.bind(this, 'newMember');
         let memberExpiryChanged = this.inputChanged.bind(this, 'memberExpiry');
+        let memberReviewReminderChanged = this.inputChanged.bind(
+            this,
+            'memberReviewReminder'
+        );
 
         return (
             <SectionsDiv autoComplete={'off'} data-testid='add-member-form'>
@@ -188,7 +201,19 @@ export default class AddMemberForm extends React.Component {
                         />
                     </FlatPickrInputDiv>
                 </div>
-
+                <div>
+                    <FlatPickrInputDiv>
+                        <FlatPicker
+                            onChange={memberReviewReminderChanged}
+                            clear={this.state.memberReviewReminder}
+                            placeholder='Reminder (Optional)'
+                            id={
+                                this.props.role.replace(/\./g, '_') +
+                                '-reminder'
+                            }
+                        />
+                    </FlatPickrInputDiv>
+                </div>
                 <div>
                     <div>
                         <StyledJustification

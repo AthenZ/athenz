@@ -49,7 +49,7 @@ const StyledInputLabel = styled(InputLabel)`
     font-size: 14px;
     font-weight: 700;
     padding-top: 12px;
-    width: 25%;
+    width: 17%;
 `;
 
 const StyledButtonGroup = styled(ButtonGroup)`
@@ -80,7 +80,7 @@ const StyledIncludedMembersDiv = styled.div`
 `;
 
 const SectionsDiv = styled.div`
-    width: 900px;
+    width: 1085px;
     text-align: left;
     background-color: ${colors.white};
 `;
@@ -137,7 +137,8 @@ export default class AddRole extends React.Component {
             category: 'regular',
             name: '',
             newMemberName: '',
-            newMemberDate: '',
+            memberExpiry: '',
+            memberReviewReminder: '',
             members: [],
             trustDomain: '',
             date: '',
@@ -185,9 +186,14 @@ export default class AddRole extends React.Component {
 
     addMember() {
         let name = this.state.newMemberName;
-        let date =
-            this.state.newMemberDate && this.state.newMemberDate.length > 0
-                ? this.state.newMemberDate
+        let expirationDate =
+            this.state.memberExpiry && this.state.memberExpiry.length > 0
+                ? this.state.memberExpiry
+                : '';
+        let reviewReminderDate =
+            this.state.memberReviewReminder &&
+            this.state.memberReviewReminder.length > 0
+                ? this.state.memberReviewReminder
                 : '';
         let members = this.state.members;
 
@@ -203,8 +209,13 @@ export default class AddRole extends React.Component {
         for (let i = 0; i < names.length; i++) {
             members.push({
                 memberName: names[i],
-                expiration: date
-                    ? this.dateUtils.uxDatetimeToRDLTimestamp(date)
+                expiration: expirationDate
+                    ? this.dateUtils.uxDatetimeToRDLTimestamp(expirationDate)
+                    : '',
+                reviewReminder: reviewReminderDate
+                    ? this.dateUtils.uxDatetimeToRDLTimestamp(
+                          reviewReminderDate
+                      )
                     : '',
             });
         }
@@ -212,7 +223,8 @@ export default class AddRole extends React.Component {
         this.setState({
             members,
             newMemberName: '',
-            newMemberDate: '',
+            memberExpiry: '',
+            memberReviewReminder: '',
         });
     }
 
@@ -250,7 +262,10 @@ export default class AddRole extends React.Component {
                 role.roleMembers.push({
                     memberName: this.state.newMemberName,
                     expiration: this.dateUtils.uxDatetimeToRDLTimestamp(
-                        this.state.newMemberDate
+                        this.state.memberExpiry
+                    ),
+                    reviewReminder: this.dateUtils.uxDatetimeToRDLTimestamp(
+                        this.state.memberReviewReminder
                     ),
                 });
             }
@@ -323,7 +338,14 @@ export default class AddRole extends React.Component {
 
     render() {
         let memberNameChanged = this.inputChanged.bind(this, 'newMemberName');
-        let memberDateChanged = this.inputChanged.bind(this, 'newMemberDate');
+        let memberExpiryDateChanged = this.inputChanged.bind(
+            this,
+            'memberExpiry'
+        );
+        let memberReviewReminderDateChanged = this.inputChanged.bind(
+            this,
+            'memberReviewReminder'
+        );
         let nameChanged = this.inputChanged.bind(this, 'name');
 
         let members = this.state.members
@@ -378,9 +400,19 @@ export default class AddRole extends React.Component {
                                 />
                                 <FlatPickrStyled>
                                     <Flatpicker
-                                        onChange={memberDateChanged}
-                                        clear={this.state.newMemberDate}
+                                        onChange={memberExpiryDateChanged}
+                                        clear={this.state.memberExpiry}
                                         id='addrole'
+                                    />
+                                </FlatPickrStyled>
+                                <FlatPickrStyled>
+                                    <Flatpicker
+                                        onChange={
+                                            memberReviewReminderDateChanged
+                                        }
+                                        clear={this.state.memberReviewReminder}
+                                        id='addrole-reminder'
+                                        placeholder='Reminder (Optional)'
                                     />
                                 </FlatPickrStyled>
                                 <ButtonDiv>
