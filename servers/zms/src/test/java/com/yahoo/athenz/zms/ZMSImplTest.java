@@ -18844,33 +18844,6 @@ public class ZMSImplTest {
     }
 
     @Test
-    public void testIsUserAuthorityFilterValid() {
-
-        Authority savedAuthority = zms.userAuthority;
-        Authority mockAuthority = Mockito.mock(Authority.class);
-        Mockito.when(mockAuthority.isAttributeSet("user.john", "contractor")).thenReturn(true);
-        Mockito.when(mockAuthority.isAttributeSet("user.john", "employee")).thenReturn(false);
-        Mockito.when(mockAuthority.isAttributeSet("user.john", "local")).thenReturn(true);
-        zms.userAuthority = mockAuthority;
-
-        // non-users are always false
-        assertFalse(zms.isUserAuthorityFilterValid("filterList", "athenz.test"));
-
-        // single filter value
-        assertTrue(zms.isUserAuthorityFilterValid("contractor", "user.john"));
-        assertFalse(zms.isUserAuthorityFilterValid("employee", "user.john"));
-
-        // multiple values
-        assertTrue(zms.isUserAuthorityFilterValid("contractor,local", "user.john"));
-        assertTrue(zms.isUserAuthorityFilterValid("local,contractor", "user.john"));
-        assertFalse(zms.isUserAuthorityFilterValid("local,contractor,employee", "user.john"));
-        assertFalse(zms.isUserAuthorityFilterValid("local,employee,contractor", "user.john"));
-        assertFalse(zms.isUserAuthorityFilterValid("employee,contractor", "user.john"));
-
-        zms.userAuthority = savedAuthority;
-    }
-
-    @Test
     public void testEnforcedUserAuthorityFilter() {
 
         Authority savedAuthority = zms.userAuthority;

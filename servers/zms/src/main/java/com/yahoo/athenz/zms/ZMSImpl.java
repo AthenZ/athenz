@@ -3078,7 +3078,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             // valid there is no point of running this check
 
             if (bValidPrincipal && userAuthorityFilter != null) {
-                bValidPrincipal = isUserAuthorityFilterValid(userAuthorityFilter, memberName);
+                bValidPrincipal = ZMSUtils.isUserAuthorityFilterValid(userAuthority, userAuthorityFilter, memberName);
             }
 
         } else {
@@ -7970,25 +7970,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         dbService.executePutRoleReview(ctx, domainName, roleName, role, auditRef, caller);
         metric.stopTiming(timerMetric, domainName, principalDomain);
-    }
-
-    boolean isUserAuthorityFilterValid(final String filterList, final String memberName) {
-
-        // in most cases we're going to have a single filter configured
-        // so we'll optimize for that case and not create an array
-
-        if (filterList.indexOf(',') == -1) {
-            return userAuthority.isAttributeSet(memberName, filterList);
-        } else {
-            final String[] filterItems = filterList.split(",");
-            for (String filterItem : filterItems) {
-                if (!userAuthority.isAttributeSet(memberName, filterItem)) {
-                    LOG.error("Principal {} does not satisfy user authority {} filter", memberName, filterItem);
-                    return false;
-                }
-            }
-            return true;
-        }
     }
 
     void validateRoleUserAuthorityAttributes(final String authorityFilter, final String authorityExpiration,

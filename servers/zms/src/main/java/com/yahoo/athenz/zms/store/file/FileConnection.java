@@ -1935,5 +1935,24 @@ public class FileConnection implements ObjectStoreConnection {
         putDomainStruct(domainName, domainStruct);
         return true;
     }
+
+    @Override
+    public List<MemberRole> listRolesWithUserAuthorityRestrictions() {
+
+        List<MemberRole> roles = new ArrayList<>();
+        List<String> domainNames = listDomains(null, 0);
+        for (String domainName : domainNames) {
+            DomainStruct domain = getDomainStruct(domainName);
+            if (domain == null) {
+                continue;
+            }
+            for (Role role : domain.getRoles().values()) {
+                if (role.getUserAuthorityExpiration() != null && role.getUserAuthorityFilter() != null) {
+                    roles.add(new MemberRole().setDomainName(domainName).setRoleName(role.getName()));
+                }
+            }
+        }
+        return roles;
+    }
 }
 ///CLOVER:ON
