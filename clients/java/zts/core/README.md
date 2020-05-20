@@ -27,6 +27,18 @@ which will be used for retrieving passwords. Default: `com.yahoo.athenz.auth.imp
 
 - `athenz.zts.client.client_ssl_protocol`: Client TLS protocol. Default: `TLSv1.2`
 
+- `athenz.zts.client.ehcache_xml_path`: optional reference to an ehcache xml-configuration file, so that ZTSClient data can be cached -
+     see [ehcache-documentation](https://www.ehcache.org/documentation/3.8/xml.html), [XSD](http://www.ehcache.org/ehcache.xml) and an [example](https://www.ehcache.org/documentation/3.0/examples.html#xml-with-107-extension).
+  Example XML:
+    ```
+    <config xmlns="http://www.ehcache.org/v3">
+        <cache alias="role-access">
+            <expiry><tti unit="minutes">10</tti></expiry>
+            <heap unit="entries">10000</heap>
+        </cache>
+    </config>
+    ```
+
 ## Examples
 
 ### TLS Support

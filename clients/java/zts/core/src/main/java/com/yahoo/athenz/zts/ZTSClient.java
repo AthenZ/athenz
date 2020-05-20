@@ -54,6 +54,7 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.bouncycastle.asn1.DERIA5String;
 import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.operator.OperatorCreationException;
+import org.ehcache.Cache;
 import org.glassfish.jersey.apache.connector.ApacheClientProperties;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
@@ -736,6 +737,9 @@ public class ZTSClient implements Closeable {
             service = principal.getName();
             ztsClient.addCredentials(identity.getAuthority().getHeader(), identity.getCredentials());
         }
+
+        // Init ZTSClientCache so that the delay and logs are made at system-startup, rather than on first request.
+        @SuppressWarnings("unused") ZTSClientCache ztsClientCache = ZTSClientCache.getInstance();
     }
 
     PoolingHttpClientConnectionManager createConnectionManager(SSLContext sslContext, HostnameVerifier hostnameVerifier) {
@@ -2044,9 +2048,25 @@ public class ZTSClient implements Closeable {
      * @return RoleAccess object on success. ZTSClientException will be thrown in case of failure
      */
     public RoleAccess getRoleAccess(String domainName, String principal) {
-        updateServicePrincipal();
+        updateServicePrincipal();    // TODO: Henry: what if this method returns true - the principal's credentials are changed: should we not clean up the relevant cache entries ?
+
+        // Try to fetch from cache.
+        ZTSClientCache.DomainAndPrincipal cacheKey = null;
+        Cache<ZTSClientCache.DomainAndPrincipal, RoleAccess> cache = ZTSClientCache.getInstance().getRoleAccessCache();
+        if (cache != null) {
+            cacheKey = new ZTSClientCache.DomainAndPrincipal(domainName, principal);
+            RoleAccess cachedValue = cache.get(cacheKey);
+            if (cachedValue != null) {
+                return cachedValue;
+            }
+        }
+
         try {
-            return ztsClient.getRoleAccess(domainName, principal);
+            RoleAccess roleAccess = ztsClient.getRoleAccess(domainName, principal);
+            if (cache != null) {
+                cache.put(cacheKey, roleAccess);
+            }
+            return roleAccess;
         } catch (ResourceException ex) {
             throw new ZTSClientException(ex.getCode(), ex.getMessage());
         } catch (Exception ex) {
