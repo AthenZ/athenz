@@ -9241,8 +9241,6 @@ public class JDBCConnectionTest {
 
     @Test
     public void testGetDomainTemplates() throws Exception {
-        TemplateMetaData templateDomainMapping;
-        Map<String, Integer> templateDomainMap = new HashMap<>();
         Mockito.when(mockResultSet.next())
                 .thenReturn(true)
                 .thenReturn(true)
@@ -9261,4 +9259,55 @@ public class JDBCConnectionTest {
         jdbcConn.close();
     }
 
+    @Test
+    public void testListRolesWithUserAuthorityRestrictions() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        // we have 3 entries being returned
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(false);
+        Mockito.when(mockResultSet.getString("domain_name"))
+                .thenReturn("athenz")
+                .thenReturn("athenz.subdomain")
+                .thenReturn("sports");
+        Mockito.when(mockResultSet.getString("role_name"))
+                .thenReturn("admin")
+                .thenReturn("readers")
+                .thenReturn("readers");
+
+        List<MemberRole> roles = jdbcConn.listRolesWithUserAuthorityRestrictions();
+
+        // data back is sorted
+
+        assertEquals(3, roles.size());
+        assertEquals("athenz", roles.get(0).getDomainName());
+        assertEquals("admin", roles.get(0).getRoleName());
+
+        assertEquals("athenz.subdomain", roles.get(1).getDomainName());
+        assertEquals("readers", roles.get(1).getRoleName());
+
+        assertEquals("sports", roles.get(2).getDomainName());
+        assertEquals("readers", roles.get(2).getRoleName());
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testListRolesWithUserAuthorityRestrictionsException() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockPrepStmt.executeQuery()).thenThrow(new SQLException("sql error"));
+        try {
+            jdbcConn.listRolesWithUserAuthorityRestrictions();
+            fail();
+        } catch (RuntimeException ex) {
+            assertTrue(ex.getMessage().contains("sql error"));
+        }
+        jdbcConn.close();
+    }
 }

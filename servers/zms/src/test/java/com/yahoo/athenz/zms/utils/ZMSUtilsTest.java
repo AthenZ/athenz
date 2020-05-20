@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
@@ -372,5 +373,28 @@ public class ZMSUtilsTest {
         assertNull(ZMSUtils.extractPolicyName("my-domain1", ":policy.policy1"));
         assertNull(ZMSUtils.extractPolicyName("my-domain1", "policy1"));
         assertNull(ZMSUtils.extractPolicyName("my-domain1", "policy1.policy2"));
+    }
+
+    @Test
+    public void testIsUserAuthorityFilterValid() {
+
+        Authority mockAuthority = Mockito.mock(Authority.class);
+        Mockito.when(mockAuthority.isAttributeSet("user.john", "contractor")).thenReturn(true);
+        Mockito.when(mockAuthority.isAttributeSet("user.john", "employee")).thenReturn(false);
+        Mockito.when(mockAuthority.isAttributeSet("user.john", "local")).thenReturn(true);
+
+        // non-users are always false
+        assertFalse(ZMSUtils.isUserAuthorityFilterValid(mockAuthority, "filterList", "athenz.test"));
+
+        // single filter value
+        assertTrue(ZMSUtils.isUserAuthorityFilterValid(mockAuthority, "contractor", "user.john"));
+        assertFalse(ZMSUtils.isUserAuthorityFilterValid(mockAuthority, "employee", "user.john"));
+
+        // multiple values
+        assertTrue(ZMSUtils.isUserAuthorityFilterValid(mockAuthority, "contractor,local", "user.john"));
+        assertTrue(ZMSUtils.isUserAuthorityFilterValid(mockAuthority, "local,contractor", "user.john"));
+        assertFalse(ZMSUtils.isUserAuthorityFilterValid(mockAuthority, "local,contractor,employee", "user.john"));
+        assertFalse(ZMSUtils.isUserAuthorityFilterValid(mockAuthority, "local,employee,contractor", "user.john"));
+        assertFalse(ZMSUtils.isUserAuthorityFilterValid(mockAuthority, "employee,contractor", "user.john"));
     }
 }
