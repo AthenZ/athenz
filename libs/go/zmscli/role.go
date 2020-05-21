@@ -347,18 +347,21 @@ func (cli Zms) SetRoleReviewEnabled(dn string, rn string, reviewEnabled bool) (*
 
 func getRoleMetaObject(role *zms.Role) zms.RoleMeta {
 	return zms.RoleMeta{
-		MemberExpiryDays:	role.MemberExpiryDays,
-		TokenExpiryMins:  	role.TokenExpiryMins,
-		SelfServe:        	role.SelfServe,
-		CertExpiryMins:   	role.CertExpiryMins,
-		SignAlgorithm:    	role.SignAlgorithm,
-		ReviewEnabled:    	role.ReviewEnabled,
-		NotifyRoles:      	role.NotifyRoles,
-		ServiceExpiryDays: 	role.ServiceExpiryDays,
-		MemberReviewDays: 	role.MemberReviewDays,
-		ServiceReviewDays: 	role.ServiceReviewDays,
+		MemberExpiryDays:        role.MemberExpiryDays,
+		TokenExpiryMins:         role.TokenExpiryMins,
+		SelfServe:               role.SelfServe,
+		CertExpiryMins:          role.CertExpiryMins,
+		SignAlgorithm:           role.SignAlgorithm,
+		ReviewEnabled:           role.ReviewEnabled,
+		NotifyRoles:             role.NotifyRoles,
+		ServiceExpiryDays:       role.ServiceExpiryDays,
+		MemberReviewDays:        role.MemberReviewDays,
+		ServiceReviewDays:       role.ServiceReviewDays,
+		UserAuthorityExpiration: role.UserAuthorityExpiration,
+		UserAuthorityFilter:     role.UserAuthorityFilter,
 	}
 }
+
 func (cli Zms) SetRoleSelfServe(dn string, rn string, selfServe bool) (*string, error) {
 	role, err := cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), nil, nil, nil)
 	if err != nil {
@@ -372,6 +375,38 @@ func (cli Zms) SetRoleSelfServe(dn string, rn string, selfServe bool) (*string, 
 		return nil, err
 	}
 	s := "[domain " + dn + " role " + rn + " self-serve attribute successfully updated]\n"
+	return &s, nil
+}
+
+func (cli Zms) SetRoleUserAuthorityFilter(dn string, rn, filter string) (*string, error) {
+	role, err := cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), nil, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	meta := getRoleMetaObject(role)
+	meta.UserAuthorityFilter = zms.AuthorityKeywords(filter)
+
+	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " role " + rn + " user-authority-filter attribute successfully updated]\n"
+	return &s, nil
+}
+
+func (cli Zms) SetRoleUserAuthorityExpiration(dn string, rn, filter string) (*string, error) {
+	role, err := cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), nil, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	meta := getRoleMetaObject(role)
+	meta.UserAuthorityExpiration = zms.AuthorityKeyword(filter)
+
+	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " role " + rn + " user-authority-expiration attribute successfully updated]\n"
 	return &s, nil
 }
 

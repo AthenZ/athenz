@@ -700,6 +700,14 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 			if argc == 2 {
 				return cli.SetRoleNotifyRoles(dn, args[0], args[1])
 			}
+		case "set-role-user-authority-filter":
+			if argc == 2 {
+				return cli.SetRoleUserAuthorityFilter(dn, args[0], args[1])
+			}
+		case "set-role-user-authority-expiration":
+			if argc == 2 {
+				return cli.SetRoleUserAuthorityExpiration(dn, args[0], args[1])
+			}
 		case "put-membership-decision":
 			if argc == 4 {
 				approval, err := strconv.ParseBool(args[3])
@@ -1850,7 +1858,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domain_example + " set-role-service-review-days writers 60\n")
 	case "set-role-token-expiry-mins":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   " + domain_param + " set-role-token-expiry-mins mins\n")
+		buf.WriteString("   " + domain_param + " set-role-token-expiry-mins role mins\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain  : name of the domain being updated\n")
@@ -1861,7 +1869,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domain_example + " set-role-token-expiry-mins writers 1800\n")
 	case "set-role-cert-expiry-mins":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   " + domain_param + " set-role-cert-expiry-mins mins\n")
+		buf.WriteString("   " + domain_param + " set-role-cert-expiry-mins role mins\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain  : name of the domain being updated\n")
@@ -1872,7 +1880,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domain_example + " set-role-cert-expiry-mins writers 14400\n")
 	case "set-role-token-sign-algorithm":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   " + domain_param + " set-role-token-sign-algorithm alg\n")
+		buf.WriteString("   " + domain_param + " set-role-token-sign-algorithm role alg\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain  : name of the domain being updated\n")
@@ -1883,7 +1891,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domain_example + " set-role-token-sign-algorithm writers rsa\n")
 	case "set-role-notify-roles":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   " + domain_param + " set-role-notify-roles rolename[,rolename...]]\n")
+		buf.WriteString("   " + domain_param + " set-role-notify-roles role rolename[,rolename...]]\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain  : name of the domain being updated\n")
@@ -1903,6 +1911,28 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   self-serve : enable/disable self-serve flag for the role\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domain_example + " set-role-self-serve readers true\n")
+	case "set-role-user-authority-filter":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domain_param + " set-role-user-authority-filter role attribute[,attribute...]\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain  : name of the domain being updated\n")
+		}
+		buf.WriteString("   role    : name of the role to be modified\n")
+		buf.WriteString("   attribute : comma separated listed of user authority filter attribute names\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domain_example + " set-role-user-authority-filter siteops employee,local\n")
+	case "set-role-user-authority-expiration":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domain_param + " set-role-user-authority-expiration role attribute\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain  : name of the domain being updated\n")
+		}
+		buf.WriteString("   role    : name of the role to be modified\n")
+		buf.WriteString("   attribute : user authority expiration attribute name\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domain_example + " set-role-user-authority-expiration writers elevated-clearance\n")
 	case "list-pending-members":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   list-pending-members [principal]\n")
@@ -2010,6 +2040,8 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   set-role-cert-expiry-mins group_role cert-expiry-mins\n")
 	buf.WriteString("   set-role-token-sign-algorithm group_role algorithm\n")
 	buf.WriteString("   set-role-notify-roles group_role rolename[,rolename...]\n")
+	buf.WriteString("   set-role-user-authority-filter group_role attribute[,attribute...]\n")
+	buf.WriteString("   set-role-user-authority-expiration group_role attribute\n")
 	buf.WriteString("   put-membership-decision group_role user_or_service [expiration] decision\n")
 	buf.WriteString("\n")
 	buf.WriteString(" Service commands:\n")
