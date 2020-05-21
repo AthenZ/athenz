@@ -15,7 +15,6 @@
  */
 package com.yahoo.athenz.zms;
 
-import com.amazonaws.annotation.SdkTestInternalApi;
 import com.yahoo.athenz.zms.audit.MockAuditReferenceValidatorImpl;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
 import com.yahoo.athenz.zms.store.ObjectStoreConnection;

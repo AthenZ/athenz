@@ -34,10 +34,8 @@ import com.yahoo.athenz.auth.ServerPrivateKey;
 import com.yahoo.athenz.auth.impl.*;
 import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
-import com.yahoo.athenz.zms.config.SolutionTemplates;
 import com.yahoo.athenz.zms.notification.PutMembershipNotificationTask;
 import com.yahoo.athenz.zms.store.ObjectStoreConnection;
-import com.yahoo.athenz.zms.store.file.DomainStruct;
 import org.mockito.Mockito;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -80,8 +78,6 @@ import com.yahoo.rdl.Timestamp;
 public class ZMSImplTest {
 
     public static final String ZMS_PROP_PUBLIC_KEY = "athenz.zms.publickey";
-
-    private static final byte[] PERIOD = { 46 };
 
     private ZMSImpl zms             = null;
     private String adminUser        = null;
