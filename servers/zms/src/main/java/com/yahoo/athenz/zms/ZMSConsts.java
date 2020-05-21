@@ -229,6 +229,8 @@ public final class ZMSConsts {
     public static final String DB_COLUMN_MEMBER_REVIEW_DAYS = "member_review_days";
     public static final String DB_COLUMN_TEMPLATE_NAME      = "template";
     public static final String DB_COLUMN_TEMPLATE_VERSION   = "current_version";
+    public static final String DB_COLUMN_AS_DOMAIN_NAME     = "domain_name";
+    public static final String DB_COLUMN_AS_ROLE_NAME       = "role_name";
 
     public static final String DB_COLUMN_SERVICE_REVIEW_DAYS      = "service_review_days";
     public static final String DB_COLUMN_SERVICE_EXPIRY_DAYS      = "service_expiry_days";

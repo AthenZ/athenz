@@ -34,6 +34,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -62,8 +64,11 @@ public class DBService {
     private static final String ROLE_PREFIX = "role.";
     private static final String POLICY_PREFIX = "policy.";
     private static final String TEMPLATE_DOMAIN_NAME = "_domain_";
+    private static final String AUDIT_REF = "Athenz User Authority Filter Enforcer";
+
     AuditReferenceValidator auditReferenceValidator;
-    
+    private ScheduledExecutorService userAuthorityFilterExecutor;
+
     public DBService(ObjectStore store, AuditLogger auditLogger, ZMSConfig zmsConfig, AuditReferenceValidator auditReferenceValidator) {
         
         this.store = store;
@@ -103,6 +108,12 @@ public class DBService {
         // create our quota checker class
         
         quotaCheck = new QuotaChecker();
+
+        // start our thread to process user authority changes daily
+
+        userAuthorityFilterExecutor = Executors.newScheduledThreadPool(1);
+        userAuthorityFilterExecutor.scheduleAtFixedRate(
+                new UserAuthorityFilterEnforcer(), 0, 1, TimeUnit.DAYS);
     }
 
     void setAuditRefObjectBits() {
@@ -4025,6 +4036,27 @@ public class DBService {
         return newDueDateMillis != 0 && (currentDueDate == null || currentDueDate.millis() > newDueDateMillis);
     }
 
+    boolean updateUserAuthorityFilter(RoleMember roleMember, final String userAuthorityFilter) {
+
+        // if all the attributes are set then no changes are necessary
+
+        if (ZMSUtils.isUserAuthorityFilterValid(zmsConfig.getUserAuthority(), userAuthorityFilter, roleMember.getMemberName())) {
+            return false;
+        }
+
+        // if any of the attributes is not set then we'll expiry the user right away
+
+        boolean memberUpdate = false;
+        Timestamp memberExpiry = roleMember.getExpiration();
+
+         if (memberExpiry == null || (memberExpiry != null && memberExpiry.millis() > System.currentTimeMillis())) {
+             roleMember.setExpiration(Timestamp.fromCurrentTime());
+             memberUpdate = true;
+         }
+
+         return memberUpdate;
+    }
+
     boolean updateUserAuthorityExpiry(RoleMember roleMember, final String userAuthorityExpiry) {
 
         Date authorityExpiry = zmsConfig.getUserAuthority().getDateAttribute(roleMember.getMemberName(), userAuthorityExpiry);
@@ -4097,8 +4129,7 @@ public class DBService {
                 if (userAuthorityExpiry != null && updateUserAuthorityExpiry(roleMember, userAuthorityExpiry)) {
                     dueDateUpdated = true;
                 }
-                if (userAuthorityFilter != null && !zmsConfig.getUserAuthority().isAttributeSet(roleMember.getMemberName(), userAuthorityFilter)) {
-                    roleMember.setExpiration(Timestamp.fromCurrentTime());
+                if (userAuthorityFilter != null && updateUserAuthorityFilter(roleMember, userAuthorityFilter)) {
                     dueDateUpdated = true;
                 }
 
@@ -4272,8 +4303,8 @@ public class DBService {
         // process our role members and if there were any changes processed then update
         // our role and domain time-stamps, and invalidate local cache entry
 
-        String userAuthorityFilter = userAuthorityFilterChanged ? updatedRole.getUserAuthorityFilter() : null;
-        String userAuthorityExpiry = userAuthorityExpiryChanged ? updatedRole.getUserAuthorityExpiration() : null;
+        final String userAuthorityFilter = userAuthorityFilterChanged ? updatedRole.getUserAuthorityFilter() : null;
+        final String userAuthorityExpiry = userAuthorityExpiryChanged ? updatedRole.getUserAuthorityExpiration() : null;
         List<RoleMember> roleMembersWithUpdatedDueDates = getRoleMembersWithUpdatedDueDates(roleMembers,
                 userExpiration, userExpiryMillis, serviceExpiration, serviceExpiryMillis,
                 userReview, userReviewMillis, serviceReview, serviceReviewMillis,
@@ -4630,6 +4661,111 @@ public class DBService {
 
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return con.getDomainTemplates(domainName);
+        }
+    }
+
+    void processUserAuthorityRestrictions() {
+
+        // if we don't have a user authority defined then there
+        // is no work to be done
+
+        if (zmsConfig.getUserAuthority() == null) {
+            return;
+        }
+
+        // first we need to get all the roles that have the authority
+        // filter or date expiry attributes set
+
+        List<MemberRole> roles;
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+            roles = con.listRolesWithUserAuthorityRestrictions();
+        }
+
+        if (roles == null) {
+            return;
+        }
+
+        for (MemberRole role : roles) {
+            enforceRoleUserAuthorityRestrictions(role.getDomainName(), role.getRoleName());
+        }
+    }
+
+    void enforceRoleUserAuthorityRestrictions(final String domainName, final String roleName) {
+
+        final String caller = "enforceRoleUserAuthorityRestrictions";
+        try (ObjectStoreConnection con = store.getConnection(true, true)) {
+
+            // get the role from the storage system
+
+            Role role = getRole(con, domainName, roleName, false, false, false);
+            if (role == null) {
+                return;
+            }
+
+            // update the role membership
+
+            List<RoleMember> roleMembers = role.getRoleMembers();
+            if (roleMembers == null) {
+                return;
+            }
+
+            final String userAuthorityFilter = role.getUserAuthorityFilter();
+            final String userAuthorityExpiry = role.getUserAuthorityExpiration();
+
+            List<RoleMember> updatedMembers = new ArrayList();
+            for (RoleMember roleMember : roleMembers) {
+                if (enforceRoleMemberUserAuthorityRestrictions(roleMember, userAuthorityFilter, userAuthorityExpiry)) {
+                    updatedMembers.add(roleMember);
+                }
+            }
+
+            if (insertRoleMembers(null, con, updatedMembers, domainName,
+                    roleName, ZMSConsts.SYS_AUTH_MONITOR, AUDIT_REF, caller)) {
+
+                // update our role and domain time-stamps, and invalidate local cache entry
+
+                con.updateRoleModTimestamp(domainName, roleName);
+                con.updateDomainModTimestamp(domainName);
+                cacheStore.invalidate(domainName);
+            }
+        }
+    }
+
+    boolean enforceRoleMemberUserAuthorityRestrictions(RoleMember roleMember, final String userAuthorityFilter,
+                                                       final String userAuthorityExpiry) {
+
+        // first we're going to process the user authority expiry field
+
+        boolean memberUpdated = false;
+
+        if (userAuthorityExpiry != null && updateUserAuthorityExpiry(roleMember, userAuthorityExpiry)) {
+            memberUpdated = true;
+        }
+        if (userAuthorityFilter != null && updateUserAuthorityFilter(roleMember, userAuthorityFilter)) {
+            memberUpdated = true;
+        }
+
+        return memberUpdated;
+    }
+
+    class UserAuthorityFilterEnforcer implements Runnable {
+
+        public UserAuthorityFilterEnforcer() {
+        }
+
+        @Override
+        public void run() {
+
+            LOG.info("UserAuthorityFilterEnforcer: Starting user authority filter enforcer thread...");
+
+            try {
+                processUserAuthorityRestrictions();
+            } catch (Throwable t) {
+                LOG.error("UserAuthorityFilterEnforcer: unable to enforce user authority restrictions: {}",
+                        t.getMessage());
+            }
+
+            LOG.info("UserAuthorityFilterEnforcer: Completed user authority filter enforcer thread");
         }
     }
 }

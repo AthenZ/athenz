@@ -18,6 +18,7 @@ package com.yahoo.athenz.zms.utils;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.yahoo.athenz.auth.Authority;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -390,5 +391,24 @@ public class ZMSUtils {
 
     public static String extractServiceName(String domainName, String fullServiceName) {
         return extractObjectName(domainName, fullServiceName, ".");
+    }
+
+    public static boolean isUserAuthorityFilterValid(Authority userAuthority, final String filterList, final String memberName) {
+
+        // in most cases we're going to have a single filter configured
+        // so we'll optimize for that case and not create an array
+
+        if (filterList.indexOf(',') == -1) {
+            return userAuthority.isAttributeSet(memberName, filterList);
+        } else {
+            final String[] filterItems = filterList.split(",");
+            for (String filterItem : filterItems) {
+                if (!userAuthority.isAttributeSet(memberName, filterItem)) {
+                    LOG.error("Principal {} does not satisfy user authority {} filter", memberName, filterItem);
+                    return false;
+                }
+            }
+            return true;
+        }
     }
 }

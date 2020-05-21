@@ -329,7 +329,9 @@ public class JDBCConnection implements ObjectStoreConnection {
             "WHERE role_member.review_last_notified_time=? AND role_member.review_server=?;";
 
     private static final String SQL_UPDATE_ROLE_REVIEW_TIMESTAMP = "UPDATE role SET last_reviewed_time=CURRENT_TIMESTAMP(3) WHERE role_id=?;";
-
+    private static final String SQL_LIST_ROLES_WITH_RESTRICTIONS = "SELECT domain.name as domain_name, role.name as role_name FROM role "
+            + "JOIN domain ON role.domain_id=domain.domain_id "
+            + "WHERE user_authority_filter!='' OR user_authority_expiration!='';";
 
     private static final String CACHE_DOMAIN    = "d:";
     private static final String CACHE_ROLE      = "r:";
@@ -4085,6 +4087,26 @@ public class JDBCConnection implements ObjectStoreConnection {
             throw sqlError(ex, caller);
         }
         return templateDomainMappingList;
+    }
+
+    @Override
+    public List<MemberRole> listRolesWithUserAuthorityRestrictions() {
+
+        final String caller = "listRolesWithUserAuthorityRestrictions";
+        List<MemberRole> roles = new ArrayList<>();
+        try (PreparedStatement ps = con.prepareStatement(SQL_LIST_ROLES_WITH_RESTRICTIONS)) {
+
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    roles.add(new MemberRole().setDomainName(rs.getString(ZMSConsts.DB_COLUMN_AS_DOMAIN_NAME))
+                        .setRoleName(rs.getString(ZMSConsts.DB_COLUMN_AS_ROLE_NAME)));
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+
+        return roles;
     }
 
     RuntimeException notFoundError(String caller, String objectType, String objectName) {
