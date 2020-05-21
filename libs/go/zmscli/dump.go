@@ -131,6 +131,8 @@ func (cli Zms) dumpRole(buf *bytes.Buffer, role zms.Role, auditLog bool, indent1
 	dumpBoolValue(buf, indent2, "self_serve", role.SelfServe)
 	dumpStringValue(buf, indent2, "sign_algorithm", string(role.SignAlgorithm))
 	dumpStringValue(buf, indent2, "notify_roles", string(role.NotifyRoles))
+	dumpStringValue(buf, indent2, "user_authority_filter", string(role.UserAuthorityFilter))
+	dumpStringValue(buf, indent2, "user_authority_expiration", string(role.UserAuthorityExpiration))
 	if role.RoleMembers != nil && len(role.RoleMembers) > 0 {
 		buf.WriteString(indent2)
 		buf.WriteString("members:\n")
