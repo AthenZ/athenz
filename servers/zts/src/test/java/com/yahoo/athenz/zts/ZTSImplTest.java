@@ -10872,4 +10872,27 @@ public class ZTSImplTest {
         assertNull(zts.privateECKey);
         assertNull(zts.privateRSAKey);
     }
+
+    @Test
+    public void testGetInstanceRegisterQueryLog() {
+
+        assertEquals("provider=aws&certReqInstanceId=id001&hostname=athenz.io",
+                zts.getInstanceRegisterQueryLog("aws", "id001", "athenz.io"));
+        assertEquals("provider=aws&certReqInstanceId=id001", zts.getInstanceRegisterQueryLog("aws", "id001", null));
+        assertEquals("provider=aws&hostname=athenz.io", zts.getInstanceRegisterQueryLog("aws", null, "athenz.io"));
+        assertEquals("provider=aws", zts.getInstanceRegisterQueryLog("aws", null, null));
+        assertEquals("provider=aws", zts.getInstanceRegisterQueryLog("aws", null, null));
+
+        // our max length is 1024 so we'll use the following check
+        // 46 chars + hostname so we'll get create a string with
+        // 978 chars and then pass some more in the api
+
+        StringBuilder hostnameBuilder = new StringBuilder(978);
+        for (int i = 0; i < 163; i++) {
+            hostnameBuilder.append("123456");
+        }
+
+        final String check = "provider=aws&certReqInstanceId=id001&hostname=" + hostnameBuilder.toString();
+        assertEquals(check, zts.getInstanceRegisterQueryLog("aws", "id001", hostnameBuilder.toString() + "01234"));
+    }
 }

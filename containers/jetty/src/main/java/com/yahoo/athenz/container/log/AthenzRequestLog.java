@@ -28,6 +28,7 @@ public class AthenzRequestLog extends NCSARequestLog {
 
     private static final String REQUEST_PRINCIPAL      = "com.yahoo.athenz.auth.principal";
     private static final String REQUEST_URI_SKIP_QUERY = "com.yahoo.athenz.uri.skip_query";
+    private static final String REQUEST_URI_ADDL_QUERY = "com.yahoo.athenz.uri.addl_query";
 
     private static final ThreadLocal<StringBuilder> TLS_BUILDER = ThreadLocal.withInitial(() -> new StringBuilder(256));
 
@@ -82,6 +83,11 @@ public class AthenzRequestLog extends NCSARequestLog {
     private void logRequestUri(StringBuilder buf, Request request) {
         final Object skipQuery = request.getAttribute(REQUEST_URI_SKIP_QUERY);
         append(buf, (skipQuery == Boolean.TRUE) ? request.getRequestURI() : request.getOriginalURI());
+        final Object addlQuery = request.getAttribute(REQUEST_URI_ADDL_QUERY);
+        if (addlQuery != null) {
+            buf.append('?');
+            buf.append(addlQuery.toString());
+        }
     }
 
     private void logPrincipal(StringBuilder buf, Request request) {

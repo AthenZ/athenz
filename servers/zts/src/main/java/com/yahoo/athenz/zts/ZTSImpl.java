@@ -143,7 +143,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     private static final String TYPE_INSTANCE_REGISTER_INFO = "InstanceRegisterInformation";
     private static final String TYPE_INSTANCE_REFRESH_INFO = "InstanceRefreshInformation";
     private static final String TYPE_INSTANCE_REFRESH_REQUEST = "InstanceRefreshRequest";
-    private static final String TYPE_OSTK_INSTANCE_INFO = "OSTKInstanceInformation";
     private static final String TYPE_OSTK_INSTANCE_REFRESH_REQUEST = "OSTKInstanceRefreshRequest";
     private static final String TYPE_DOMAIN_METRICS = "DomainMetrics";
     private static final String TYPE_ROLE_CERTIFICATE_REQUEST = "RoleCertificateRequest";
@@ -158,8 +157,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
     private static final long ZTS_NTOKEN_DEFAULT_EXPIRY = TimeUnit.SECONDS.convert(2, TimeUnit.HOURS);
     private static final long ZTS_NTOKEN_MAX_EXPIRY = TimeUnit.SECONDS.convert(7, TimeUnit.DAYS);
-    private static final long ZTS_ROLE_CERT_EXPIRY = TimeUnit.SECONDS.convert(30, TimeUnit.DAYS);
-    
+
     // HTTP operation types used in metrics
     private static final String HTTP_GET = "GET";
     private static final String HTTP_POST = "POST";
@@ -169,13 +167,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     private static final String KEY_GRANT_TYPE = "grant_type";
     private static final String KEY_EXPIRES_IN = "expires_in";
     private static final String KEY_PROXY_FOR_PRINCIPAL = "proxy_for_principal";
-    private static final String KEY_ID = "kid";
 
     private static final String OAUTH_GRANT_CREDENTIALS = "client_credentials";
     private static final String OAUTH_BEARER_TOKEN = "Bearer";
 
     // domain metrics prefix
     private static final String DOM_METRIX_PREFIX = "dom_metric_";
+
+    private static final String ACCESS_LOG_ADDL_QUERY = "com.yahoo.athenz.uri.addl_query";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ZTSImpl.class);
     
@@ -1552,6 +1551,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw requestError("Empty request body", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
 
+        // we want to log the request body in our access log so
+        // we know what is the client asking for but we'll just
+        // limit the request up to 1K
+
+        final String queryLog = (request.length() > 1024) ? request.substring(0, 1024) : request;
+        ctx.request().setAttribute(ACCESS_LOG_ADDL_QUERY, queryLog);
+
         // update our metric with dimension
 
         metric.increment(HTTP_REQUEST, principalDomain, principalDomain);
@@ -2604,7 +2610,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw requestError("unable to get instance for provider: " + provider,
                     caller, domain, principalDomain);
         }
-        
+
+        // include instance details in the query access log to help
+        // with debugging requests
+
+        ctx.request().setAttribute(ACCESS_LOG_ADDL_QUERY,
+                getInstanceRegisterQueryLog(provider, certReqInstanceId, info.getHostname()));
+
         InstanceConfirmation instance = generateInstanceConfirmObject(ctx, provider, domain,
                 service, info.getAttestationData(), certReqInstanceId, info.getHostname(),
                 certReq, instanceProvider.getProviderScheme());
@@ -2738,6 +2750,22 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.stopTiming(timerMetric, domain, principalDomain);
         return Response.status(ResourceException.CREATED).entity(identity)
                 .header("Location", location).build();
+    }
+
+    String getInstanceRegisterQueryLog(final String provider, final String certReqInstanceId, final String hostname) {
+
+        StringBuilder queryLog = new StringBuilder(256);
+        queryLog.append("provider=");
+        queryLog.append(provider);
+        if (certReqInstanceId != null) {
+            queryLog.append("&certReqInstanceId=");
+            queryLog.append(certReqInstanceId);
+        }
+        if (hostname != null) {
+            queryLog.append("&hostname=");
+            queryLog.append(hostname);
+        }
+        return (queryLog.length() < 1024) ? queryLog.toString() : queryLog.toString().substring(0, 1024);
     }
 
     SSHCertRecord generateSSHCertRecord(ResourceContext ctx, final String service, final String instanceId,
