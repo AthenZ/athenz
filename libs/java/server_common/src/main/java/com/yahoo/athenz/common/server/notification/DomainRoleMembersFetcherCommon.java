@@ -37,7 +37,15 @@ public class DomainRoleMembersFetcherCommon {
         }
 
         for (Role role : roles) {
+            if (role.getName() == null) {
+                continue;
+            }
+
             if (role.getName().equals(roleName)) {
+                if (role.getRoleMembers() == null) {
+                    return new HashSet<>();
+                }
+
                 return role.getRoleMembers().stream()
                         .filter(this::isUnexpiredUser)
                         .map(RoleMember::getMemberName).collect(Collectors.toSet());
