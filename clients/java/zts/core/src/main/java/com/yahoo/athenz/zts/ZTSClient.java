@@ -95,6 +95,7 @@ public class ZTSClient implements Closeable {
     ZTSRDLGeneratedClient ztsClient = null;
     ServiceIdentityProvider siaProvider = null;
     Principal principal = null;
+    ZTSClientCache ztsClientCache = ZTSClientCache.getInstance();
 
     // configurable fields
     //
@@ -539,6 +540,10 @@ public class ZTSClient implements Closeable {
         ztsClientOverride = true;
     }
 
+    public void setZTSClientCache(ZTSClientCache ztsClientCache) {
+        this.ztsClientCache = ztsClientCache;
+    }
+
     /**
      * Generate the SSLContext object based on give key/cert and trusttore
      * files. If configured, the method will monitor any changes in the given
@@ -737,9 +742,6 @@ public class ZTSClient implements Closeable {
             service = principal.getName();
             ztsClient.addCredentials(identity.getAuthority().getHeader(), identity.getCredentials());
         }
-
-        // Init ZTSClientCache so that the delay and logs are made at system-startup, rather than on first request.
-        @SuppressWarnings("unused") ZTSClientCache ztsClientCache = ZTSClientCache.getInstance();
     }
 
     PoolingHttpClientConnectionManager createConnectionManager(SSLContext sslContext, HostnameVerifier hostnameVerifier) {
@@ -2048,11 +2050,11 @@ public class ZTSClient implements Closeable {
      * @return RoleAccess object on success. ZTSClientException will be thrown in case of failure
      */
     public RoleAccess getRoleAccess(String domainName, String principal) {
-        updateServicePrincipal();    // TODO: Henry: what if this method returns true - the principal's credentials are changed: should we not clean up the relevant cache entries ?
+        updateServicePrincipal();
 
         // Try to fetch from cache.
         ZTSClientCache.DomainAndPrincipal cacheKey = null;
-        Cache<ZTSClientCache.DomainAndPrincipal, RoleAccess> cache = ZTSClientCache.getInstance().getRoleAccessCache();
+        Cache<ZTSClientCache.DomainAndPrincipal, RoleAccess> cache = ztsClientCache.getRoleAccessCache();
         if (cache != null) {
             cacheKey = new ZTSClientCache.DomainAndPrincipal(domainName, principal);
             RoleAccess cachedValue = cache.get(cacheKey);

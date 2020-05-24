@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Yahoo Inc.
+ * Copyright 2020 Verizon Media.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,12 +47,6 @@ import java.util.function.Consumer;
  *  cache from {domain+principal} to {@link RoleAccess} - see
  *  {@link com.yahoo.athenz.zts.ZTSClient#getRoleAccess(java.lang.String, java.lang.String)}.  <br><br>
  *
- * TODO: Henry - what about:
- *      {@link ZTSClient#getAccess(java.lang.String, java.lang.String, java.lang.String)}
- *      {@link ZTSClient#getResourceAccess(java.lang.String, java.lang.String, java.lang.String, java.lang.String)} ?
- *
- * TODO: Henry - no unit-tests - need to discuss
- *
  * Ehcache XML config file links: <ul>
  *      <li> Documentation: https://www.ehcache.org/documentation/3.8/xml.html
  *      <li> XSD:           http://www.ehcache.org/ehcache.xml
@@ -61,12 +55,12 @@ import java.util.function.Consumer;
  *
  * To enable caching, set the system-property {@link #ZTS_CLIENT_PROP_EHCACHE_XML_PATH_ROLE_ACCESS}
  *  to an ehcache config XML file like this example: <pre>{@code
- *     <config xmlns="http://www.ehcache.org/v3">
- *         <cache alias="role-access">
- *             <expiry><tti unit="minutes">10</tti></expiry>
- *             <heap unit="entries">10000</heap>
- *         </cache>
- *     </config>
+ *      <config xmlns="http://www.ehcache.org/v3">
+ *          <cache-template name="role-access">
+ *              <expiry><tti unit="minutes">10</tti></expiry>
+ *              <heap unit="entries">10000</heap>
+ *          </cache-template>
+ *      </config>
  * }</pre>
  */
 public class ZTSClientCache {

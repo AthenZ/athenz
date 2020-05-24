@@ -2255,6 +2255,53 @@ public class ZTSClientTest {
     }
 
     @Test
+    public void testGetRoleAccessWithCache() {
+
+        ZTSClientCache ztsClientDisabledCache = new ZTSClientCache();
+
+        System.setProperty(ZTSClientCache.ZTS_CLIENT_PROP_EHCACHE_XML_PATH_ROLE_ACCESS, this.getClass().getClassLoader().getResource("zts-client-ehcache.xml").getPath());
+        ZTSClientCache ztsClientEnabledCache = new ZTSClientCache();
+        System.clearProperty(ZTSClientCache.ZTS_CLIENT_PROP_EHCACHE_XML_PATH_ROLE_ACCESS);
+
+        class SpyZTSRDLClientMock extends ZTSRDLClientMock {
+            int getRoleAccessCount = 0;
+            public RoleAccess getRoleAccess(String domainName, String principal) {
+                getRoleAccessCount++;
+                return super.getRoleAccess(domainName, principal);
+            }
+        }
+
+        class TesterHelp {
+            void makeTest(ZTSClientCache ztsClientCache, int expectedGetRoleAccessCountCallsCount) {
+                SpyZTSRDLClientMock ztsRDLClientMock = new SpyZTSRDLClientMock();
+
+                Principal principal = SimplePrincipal.create("user_domain", "user",
+                        "v=S1;d=user_domain;n=user;s=sig", PRINCIPAL_AUTHORITY);
+                ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+                client.setZTSRDLGeneratedClient(ztsRDLClientMock);
+                client.setZTSClientCache(ztsClientCache);
+
+                // Call getRoleAccess() multiple times: the matching RDL method should only be called once - due to caching.
+                for (int cycle = 0; cycle < 3; cycle++) {
+                    RoleAccess roleAccess = client.getRoleAccess("coretech", "user.joe");
+                    List<String> roles = roleAccess.getRoles();
+                    assertEquals(roles.size(), 2);
+                    assertTrue(roles.contains("role1"));
+                }
+
+                client.close();
+                assertEquals(ztsRDLClientMock.getRoleAccessCount, expectedGetRoleAccessCountCallsCount);
+            }
+        }
+
+        // With cache disabled - com.yahoo.athenz.zts.ZTSClient.getRoleAccess() should be called 3 times
+        new TesterHelp().makeTest(ztsClientDisabledCache, 3);
+
+        // With cache enabled - com.yahoo.athenz.zts.ZTSClient.getRoleAccess() should be called only once
+        new TesterHelp().makeTest(ztsClientEnabledCache, 1);
+    }
+
+    @Test
     public void testGetAccess() {
 
         ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
