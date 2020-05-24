@@ -108,30 +108,31 @@ export default class RoleMember extends React.Component {
                         }
                     >
                         {' '}
+                        {review && (
+                            <StyledTagFullNameExpiry>
+                                {' | '}
+                                <Menu
+                                    placement='bottom-start'
+                                    trigger={
+                                        <span>
+                                            <Icon
+                                                enableTitle={false}
+                                                icon={'assignment-priority'}
+                                                color={colors.icons}
+                                                isLink
+                                                size={'1.25em'}
+                                                verticalAlign={'text-bottom'}
+                                            />
+                                        </span>
+                                    }
+                                >
+                                    <MenuDiv>{'Reminder: ' + review}</MenuDiv>
+                                </Menu>
+                            </StyledTagFullNameExpiry>
+                        )}
                         {this.props.item.memberName}{' '}
                     </StyledAnchor>
                     {fullName}
-                    {review && (
-                        <StyledTagFullNameExpiry>
-                            {' | '}
-                            <Menu
-                                placement='bottom-start'
-                                trigger={
-                                    <span>
-                                        <Icon
-                                            icon={'assignment-priority'}
-                                            color={colors.icons}
-                                            isLink
-                                            size={'1.25em'}
-                                            verticalAlign={'text-bottom'}
-                                        />
-                                    </span>
-                                }
-                            >
-                                <MenuDiv>{'Reminder: ' + review}</MenuDiv>
-                            </Menu>
-                        </StyledTagFullNameExpiry>
-                    )}
                     {exp && (
                         <StyledTagFullNameExpiry>
                             {' | '}
@@ -157,29 +158,30 @@ export default class RoleMember extends React.Component {
                         }
                     >
                         {' '}
+                        {review && (
+                            <StyledTagFullNameExpiry>
+                                <Menu
+                                    placement='bottom-start'
+                                    trigger={
+                                        <span>
+                                            <Icon
+                                                enableTitle={false}
+                                                icon={'assignment-priority'}
+                                                color={colors.icons}
+                                                isLink
+                                                size={'1.25em'}
+                                                verticalAlign={'text-bottom'}
+                                            />
+                                        </span>
+                                    }
+                                >
+                                    <MenuDiv>{'Reminder: ' + review}</MenuDiv>
+                                </Menu>
+                            </StyledTagFullNameExpiry>
+                        )}
                         {this.props.item.memberName}{' '}
                     </StyledAnchor>
                     {fullName}
-                    {review && (
-                        <StyledTagFullNameExpiry>
-                            <Menu
-                                placement='bottom-start'
-                                trigger={
-                                    <span>
-                                        <Icon
-                                            icon={'assignment-priority'}
-                                            color={colors.icons}
-                                            isLink
-                                            size={'1.25em'}
-                                            verticalAlign={'text-bottom'}
-                                        />
-                                    </span>
-                                }
-                            >
-                                <MenuDiv>{'Reminder: ' + review}</MenuDiv>
-                            </Menu>
-                        </StyledTagFullNameExpiry>
-                    )}
                     {exp && (
                         <StyledTagFullNameExpiry>
                             {' | '}
