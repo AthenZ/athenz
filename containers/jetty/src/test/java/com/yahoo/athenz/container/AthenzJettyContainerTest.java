@@ -75,6 +75,8 @@ public class AthenzJettyContainerTest {
         System.clearProperty((AthenzConsts.ATHENZ_PROP_STATUS_PORT));
         System.clearProperty(AthenzConsts.ATHENZ_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS);
         System.clearProperty(AthenzConsts.ATHENZ_PROP_KEEP_ALIVE);
+        System.clearProperty(AthenzConsts.ATHENZ_PROP_JETTY_STOP_TIMEOUT);
+        System.clearProperty(AthenzConsts.ATHENZ_PROP_JETTY_STOP_AT_SHUTDOWN);
     }
     
     @AfterClass
@@ -100,7 +102,63 @@ public class AthenzJettyContainerTest {
         assertEquals(threadPool.getThreads(), 0);
         assertEquals(threadPool.getIdleThreads(), 0);
     }
-    
+
+    @Test
+    public void testStopTimeout() {
+        System.setProperty(AthenzConsts.ATHENZ_PROP_MAX_THREADS, "100");
+
+        AthenzJettyContainer container = new AthenzJettyContainer();
+        container.createServer(100);
+
+        Server server = container.getServer();
+        assertNotNull(server);
+
+        long stopTimeout = server.getStopTimeout();
+        assertEquals(stopTimeout, 30000);
+
+        cleanup();
+
+        System.setProperty(AthenzConsts.ATHENZ_PROP_MAX_THREADS, "100");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_JETTY_STOP_TIMEOUT, "60000");
+
+        container = new AthenzJettyContainer();
+        container.createServer(100);
+
+        server = container.getServer();
+        assertNotNull(server);
+
+        stopTimeout = server.getStopTimeout();
+        assertEquals(stopTimeout, 60000);
+    }
+
+    @Test
+    public void testStopAtShutdown() {
+        System.setProperty(AthenzConsts.ATHENZ_PROP_MAX_THREADS, "100");
+
+        AthenzJettyContainer container = new AthenzJettyContainer();
+        container.createServer(100);
+
+        Server server = container.getServer();
+        assertNotNull(server);
+
+        boolean stopAtShutdown = server.getStopAtShutdown();
+        assertEquals(stopAtShutdown, false);
+
+        cleanup();
+
+        System.setProperty(AthenzConsts.ATHENZ_PROP_MAX_THREADS, "100");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_JETTY_STOP_AT_SHUTDOWN, "true");
+
+        container = new AthenzJettyContainer();
+        container.createServer(100);
+
+        server = container.getServer();
+        assertNotNull(server);
+
+        stopAtShutdown = server.getStopAtShutdown();
+        assertEquals(stopAtShutdown, true);
+    }
+
     @Test
     public void testRequestLogHandler() {
 

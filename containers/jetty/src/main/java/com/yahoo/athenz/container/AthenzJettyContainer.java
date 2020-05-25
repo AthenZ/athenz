@@ -481,6 +481,17 @@ public class AthenzJettyContainer {
         server = new Server(threadPool);
         handlers = new HandlerCollection();
         server.setHandler(handlers);
+
+        long stopTimeout = Long.parseLong(
+                System.getProperty(AthenzConsts.ATHENZ_PROP_JETTY_STOP_TIMEOUT, "30000"));
+        // The default value is 30000
+        server.setStopTimeout(stopTimeout);
+
+        boolean stopAtShutdown = Boolean.parseBoolean(
+                System.getProperty(AthenzConsts.ATHENZ_PROP_JETTY_STOP_AT_SHUTDOWN, "false"));
+        if (stopAtShutdown) {
+            server.setStopAtShutdown(true);
+        }
     }
     
     public static AthenzJettyContainer createJettyContainer() {

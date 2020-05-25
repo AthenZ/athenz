@@ -57,6 +57,8 @@ public final class AthenzConsts {
     public static final String ATHENZ_PROP_HOSTNAME               = "athenz.hostname";
     public static final String ATHENZ_PROP_JETTY_HOME             = "athenz.jetty_home";
     public static final String ATHENZ_PROP_JETTY_TEMP             = "athenz.jetty_temp";
+    public static final String ATHENZ_PROP_JETTY_STOP_AT_SHUTDOWN = "athenz.jetty_stop_at_shutdown";
+    public static final String ATHENZ_PROP_JETTY_STOP_TIMEOUT     = "athenz.jetty_stop_timeout";
     public static final String ATHENZ_PROP_DEBUG                  = "athenz.debug";
     public static final String ATHENZ_PROP_HEALTH_CHECK_URI_LIST  = "athenz.health_check_uri_list";
     public static final String ATHENZ_PROP_HEALTH_CHECK_PATH      = "athenz.health_check_path";
