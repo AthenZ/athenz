@@ -484,7 +484,6 @@ public class AthenzJettyContainer {
 
         long stopTimeout = Long.parseLong(
                 System.getProperty(AthenzConsts.ATHENZ_PROP_JETTY_STOP_TIMEOUT, "30000"));
-        // The default value is 30000
         server.setStopTimeout(stopTimeout);
 
         boolean stopAtShutdown = Boolean.parseBoolean(
