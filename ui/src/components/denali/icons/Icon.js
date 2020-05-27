@@ -36,7 +36,7 @@ const Icon = (props) => {
             ref={props.innerRef}
             data-testid='icon'
         >
-            <title>{props.icon}</title>
+            {props.enableTitle && <title>{props.icon}</title>}
             {icon.map((path, index) => (
                 <path key={index} d={path} />
             ))}
@@ -59,12 +59,15 @@ Icon.propTypes = {
     onClick: PropTypes.func,
     isLink: PropTypes.bool,
     innerRef: P.oneOfType([P.func, P.object]),
+    /*By default icon will display name on hover. Setting this to false will stop it*/
+    enableTitle: PropTypes.bool
 };
 
 Icon.defaultProps = {
     icon: 'x',
     size: '1em',
     verticalAlign: 'text-bottom',
+    enableTitle: true
 };
 
 export default Icon;
