@@ -27,7 +27,7 @@ describe('TemplateRow', () => {
         return "aws";
     }
 
-    it('should render', () => {
+    it('should render templateRow', () => {
         const color = colors.row;
         const currentVersion = 0;
         const latestVersion = 1;
@@ -73,17 +73,17 @@ describe('TemplateRow', () => {
         const latestVersion = 2;
         const keywordsToReplace = "";
         const templateDescription = "testing template description";
-        const { getByText, getByTitle,  getByTestId,  } = render(
+        const { getByTitle,  getByTestId,  } = render(
             <table>
                 <tbody>
-                <TemplateRow currentVersion={currentVersion} latestVersion={latestVersion} keywordsToReplace={keywordsToReplace} color={color} description={templateDescription}/>
+                <TemplateRow currentVersion={currentVersion}
+                             latestVersion={latestVersion}
+                             keywordsToReplace={keywordsToReplace}
+                             color={color}
+                             description={templateDescription}/>
                 </tbody>
             </table>
         );
-        const templateRow = getByTestId('template-row');
-        console.log("getBytext..", getByText('Update'));
-        console.log("getbytitle..", getByTitle('information-circle'));
-
         await waitForElement(() =>
             fireEvent.click(getByTitle('information-circle'))
         );
@@ -94,31 +94,21 @@ describe('TemplateRow', () => {
     });
 
 
-    it('should cancel the pop up', async () => {
+    it('should render templaterow with pop up', async () => {
         const color = colors.row;
         const currentVersion = 2;
         const latestVersion = 2;
         const keywordsToReplace = "";
-        // const message="";
-        // const templateDesc= '';
-        // const applyTemplate=true;
-        // const  showSuccess= true;
         const templateDescription = "testing template description";
         const templateName= 'aws';
         const domain= 'testdom';
-        // let state = {
-        //     templateDesc: '',
-        //     applyTemplate: false,
-        //     showSuccess: false,
-        //     };
 
         let params = {
             name: domain,
             domainTemplate: { templateNames: [templateName] },
         };
 
-        let toReturn = //{
-            //"metaData": [
+        let toReturn =
             [{
                 "templateName": "aws",
                 "description": "AWS access template",
@@ -136,7 +126,7 @@ describe('TemplateRow', () => {
             },
         };
 
-        const { getByText, getByTitle,  getByTestId,  } = render(
+        const {getByTestId } = render(
             <table>
                 <tbody>
                 <TemplateRow currentVersion={currentVersion}
@@ -146,14 +136,10 @@ describe('TemplateRow', () => {
                              description={templateDescription}
                              api={api}
                              errorMessage={null}
-                             //showUpdate={true}
                              templateName={templateName}
                              templateDesc={templateDescription}
-                    //_csrf={this.props._csrf}
-                    //key={templateName}
-                            onClickUpdateTemplate={onClickUpdateTemplate()}
+                             onClickUpdateTemplate={onClickUpdateTemplate()}
                              domain={domain}
-                             //data={toReturn}
                              onsubmit={returnTemplateName()}
                              onCancel={onClickUpdateTemplate()}
 
@@ -162,15 +148,6 @@ describe('TemplateRow', () => {
             </table>
         );
         const templateRow = getByTestId('template-row');
-
-        // await waitForElement(() =>
-        //     fireEvent.click(getByText('Update'))
-        // );
-        //
-        // await waitForElement(() =>
-        //     fireEvent.click(getByText('Cancel'))
-        // );
-
         expect(
             await waitForElement(() => getByTestId('template-row'))
         ).toMatchSnapshot();

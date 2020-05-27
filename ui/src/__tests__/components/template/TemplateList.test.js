@@ -25,11 +25,10 @@ describe('TemplateList', () => {
         expect(templatelist).toMatchSnapshot();
     });
 
-    it('should render test', () => {
+    it('should render with metadata array', () => {
         const left = 'left';
         const center = 'center';
-        let toReturn = //{
-            //"metaData": [
+        let toReturn =
             [{
                 "templateName": "aws",
                 "description": "AWS access template",

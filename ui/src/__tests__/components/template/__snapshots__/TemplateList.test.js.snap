@@ -85,7 +85,7 @@ exports[`TemplateList should render 1`] = `
 </div>
 `;
 
-exports[`TemplateList should render test 1`] = `
+exports[`TemplateList should render with metadata array 1`] = `
 .emotion-7 {
   margin: 20px;
 }
