@@ -43,6 +43,12 @@ export default class AddModal extends React.Component {
                 onClose={this.props.cancel}
                 title={this.props.title}
             >
+                {this.props.header != null && this.props.header && (
+                    <MessageDiv data-testid='add-modal-message'>
+                        This update requires you to enter the following
+                        parameters
+                    </MessageDiv>
+                )}
                 <MessageDiv data-testid='add-modal-message'>
                     {this.props.sections}
                 </MessageDiv>

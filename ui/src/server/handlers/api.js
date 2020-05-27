@@ -169,6 +169,43 @@ Fetchr.registerService({
 });
 
 Fetchr.registerService({
+    name: 'templates',
+    read(req, resource, params, config, callback) {
+        new Promise((resolve, reject) => {
+            req.clients.zms.getDomainTemplateDetailsList(params, function(
+                err,
+                json
+            ) {
+                if (err) {
+                    return reject(err);
+                }
+                if (!err && Array.isArray(json.metaData)) {
+                    return resolve(json.metaData);
+                }
+                return resolve([]);
+            });
+        })
+            .then((data) => {
+                return callback(null, data);
+            })
+            .catch((err) => {
+                if (err.status !== 404) {
+                    debug(
+                        `principal: ${req.session.shortId} rid: ${
+                            req.headers.rid
+                        } Error from ZMS getDomainTemplateDetailsList API: ${JSON.stringify(
+                            err
+                        )}`
+                    );
+                    callback(errorHandler.fetcherError(err));
+                } else {
+                    callback(null, []);
+                }
+            });
+    },
+});
+
+Fetchr.registerService({
     name: 'admin-domains',
     read(req, resource, params, config, callback) {
         let username = 'user.' + req.session.shortId;

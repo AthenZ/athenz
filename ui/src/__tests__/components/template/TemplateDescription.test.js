@@ -14,29 +14,22 @@
  * limitations under the License.
  */
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react';
-import Tabs from '../../../components/header/Tabs';
-import API from '../../../api';
+import { render } from '@testing-library/react';
+import TemplateDescription from '../../../components/template/TemplateDescription';
+import { colors } from '../../../components/denali/styles';
 
-describe('Tabs', () => {
+describe('TemplateDescription', () => {
     it('should render', () => {
-        const api = {
-            getStatus() {
-                return new Promise((resolve, reject) => {
-                    resolve([]);
-                });
-            },
-        };
+        const color = colors.row;
+        const description = "test description";
         const { getByTestId } = render(
-            <Tabs selectedName='history' api={api} />
+            <table>
+                <tbody>
+                <TemplateDescription description={description} color={{color}} />
+                </tbody>
+            </table>
         );
-        const tabs = getByTestId('tabgroup');
-        const tab = tabs.querySelectorAll('.denali-tab');
-        fireEvent.click(tab[0]);
-        fireEvent.click(tab[1]);
-        fireEvent.click(tab[2]);
-        fireEvent.click(tab[3]);
-        fireEvent.click(tab[4]);
-        expect(tabs).toMatchSnapshot();
+        const TemplateDesc = getByTestId('provider-table');
+        expect(TemplateDesc).toMatchSnapshot();
     });
 });

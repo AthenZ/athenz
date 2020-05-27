@@ -84,6 +84,7 @@ describe('Fetchr Server API Test', () => {
                         deleteServiceIdentity: (params, callback) => params.forcefail ? callback({status: 404}, null) : callback(undefined, {success: 'true'}),
                         putPublicKeyEntry: (params, callback) => params.forcefail ? callback({status: 404}, null) : callback(undefined, {success: 'true'}),
                         deletePublicKeyEntry: (params, callback) => params.forcefail ? callback({status: 404}, null) : callback(undefined, {success: 'true'}),
+                        getDomainTemplateDetailsList: (params, callback) => params.forcefail ? callback({status: 404}, null) : callback(undefined, {"metaData": [{"templateName": "aws", "description": "AWS access template", "currentVersion": 4, "latestVersion": 1, "timestamp": "2020-04-28T00:00:00.000Z", "autoUpdate": false}]}),
                     }
                 };
                 next();
@@ -446,6 +447,11 @@ describe('Fetchr Server API Test', () => {
                 .then((res) => {
                     expect(res.body).toEqual({ servicePageConfig: '' });
                 });
+        });
+        it('getDomainTemplateDetailsList test success', async () => {
+            await request(expressApp).get('/api/v1/templates;name=testdom1').then((res) => {
+                expect(res.body).toEqual([{"templateName": "aws", "description": "AWS access template", "currentVersion": 4, "latestVersion": 1, "timestamp": "2020-04-28T00:00:00.000Z", "autoUpdate": false}]);
+            });
         });
     });
     describe('failure tests', () => {
