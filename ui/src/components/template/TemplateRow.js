@@ -47,7 +47,6 @@ export default class TemplateRow extends React.Component {
             applyTemplate: false,
             showSuccess: false,
         };
-        this.localDate = new DateUtils();
     }
 
     toggleDescription() {

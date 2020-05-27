@@ -18,7 +18,6 @@ import Input from '../denali/Input';
 import InputLabel from '../denali/InputLabel';
 import styled from '@emotion/styled';
 import { colors } from '../denali/styles';
-import DateUtils from '../utils/DateUtils';
 import RequestUtils from '../utils/RequestUtils';
 import AddModal from '../modal/AddModal';
 
@@ -63,16 +62,7 @@ export default class ApplyTemplate extends React.Component {
         this.reloadTemplatePageOnSubmit = this.reloadTemplatePageOnSubmit.bind(
             this
         );
-        this.dateUtils = new DateUtils();
-        this.keywordsList = this.state = {
-            saving: 'nope',
-            category: 'regular',
-            name: '',
-            newMemberName: '',
-            newMemberDate: '',
-            members: [],
-            trustDomain: '',
-            date: '',
+        this.state = {
             keywordsList: [],
         };
     }
