@@ -303,12 +303,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 if (roleMeta.getNotifyRoles() != null) {
                     roleMeta.setNotifyRoles(roleMeta.getNotifyRoles().toLowerCase());
                 }
-                if (roleMeta.getUserAuthorityExpiration() != null) {
-                    roleMeta.setUserAuthorityExpiration(roleMeta.getUserAuthorityExpiration().toLowerCase());
-                }
-                if (roleMeta.getUserAuthorityFilter() != null) {
-                    roleMeta.setUserAuthorityFilter(roleMeta.getUserAuthorityFilter().toLowerCase());
-                }
                 if (roleMeta.getSignAlgorithm() != null) {
                     roleMeta.setSignAlgorithm(roleMeta.getSignAlgorithm().toLowerCase());
                 }
@@ -3062,14 +3056,15 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     void validateRoleMemberPrincipal(final String memberName, final String userAuthorityFilter, final String caller) {
 
         boolean bUser = ZMSUtils.isUserDomainPrincipal(memberName, userDomainPrefix, addlUserCheckDomainPrefixList);
-        boolean bValidPrincipal = true;
         if (bUser) {
 
             // if the account contains a wildcard then we're going
             // to let the user authority decide if it's valid or not
 
             if (validateUserRoleMembers && userAuthority != null) {
-                bValidPrincipal = userAuthority.isValidUser(memberName);
+                if (!userAuthority.isValidUser(memberName)) {
+                    throw ZMSUtils.requestError("Principal " + memberName + " is not valid", caller);
+                }
             }
 
             // once we know it's a valid principal and we have a user
@@ -3077,8 +3072,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             // if we're already determined that the principal is not
             // valid there is no point of running this check
 
-            if (bValidPrincipal && userAuthorityFilter != null) {
-                bValidPrincipal = ZMSUtils.isUserAuthorityFilterValid(userAuthority, userAuthorityFilter, memberName);
+            if (userAuthorityFilter != null) {
+                if (!ZMSUtils.isUserAuthorityFilterValid(userAuthority, userAuthorityFilter, memberName)) {
+                    throw ZMSUtils.requestError("Invalid member: " + memberName +
+                            ". Required user authority filter not valid for the member", caller);
+                }
             }
 
         } else {
@@ -3088,7 +3086,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             // only evaluate if the filter is null
 
             if (userAuthorityFilter != null) {
-                bValidPrincipal = false;
+                throw ZMSUtils.requestError("Invalid member: " + memberName +
+                        ". Required user authority filter not valid service members", caller);
             } else if (validateServiceRoleMembers) {
 
                 // if the account contains a wildcard character then
@@ -3107,17 +3106,15 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                         // are dynamic and do not need to be registered in Athenz
 
                         if (!validateServiceMemberSkipDomains.contains(domainName)) {
-                            bValidPrincipal = dbService.getServiceIdentity(domainName, serviceName, true) != null;
+                            if (dbService.getServiceIdentity(domainName, serviceName, true) == null) {
+                                throw ZMSUtils.requestError("Principal " + memberName + " is not a valid service", caller);
+                            }
                         }
                     } else {
-                        bValidPrincipal = false;
+                        throw ZMSUtils.requestError("Principal " + memberName + " is not valid", caller);
                     }
                 }
             }
-        }
-
-        if (!bValidPrincipal) {
-            throw ZMSUtils.requestError("Principal " + memberName + " is not valid", caller);
         }
     }
 

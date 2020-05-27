@@ -10625,12 +10625,12 @@ public class ZMSImplTest {
         RoleMeta roleMeta = new RoleMeta();
         roleMeta.setNotifyRoles("role1,Role2,roLE3");
         roleMeta.setUserAuthorityFilter("attr1,ATTR2");
-        roleMeta.setUserAuthorityExpiration("elevatedClearance");
+        roleMeta.setUserAuthorityExpiration("ElevatedClearance");
         roleMeta.setSignAlgorithm("EC");
         AthenzObject.ROLE_META.convertToLowerCase(roleMeta);
         assertEquals(roleMeta.getNotifyRoles(), "role1,role2,role3");
-        assertEquals(roleMeta.getUserAuthorityFilter(), "attr1,attr2");
-        assertEquals(roleMeta.getUserAuthorityExpiration(), "elevatedclearance");
+        assertEquals(roleMeta.getUserAuthorityFilter(), "attr1,ATTR2");
+        assertEquals(roleMeta.getUserAuthorityExpiration(), "ElevatedClearance");
         assertEquals(roleMeta.getSignAlgorithm(), "ec");
     }
 
