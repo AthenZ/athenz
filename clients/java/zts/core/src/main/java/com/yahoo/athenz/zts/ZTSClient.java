@@ -54,6 +54,7 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.bouncycastle.asn1.DERIA5String;
 import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.operator.OperatorCreationException;
+import org.ehcache.Cache;
 import org.glassfish.jersey.apache.connector.ApacheClientProperties;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
@@ -94,6 +95,7 @@ public class ZTSClient implements Closeable {
     ZTSRDLGeneratedClient ztsClient = null;
     ServiceIdentityProvider siaProvider = null;
     Principal principal = null;
+    ZTSClientCache ztsClientCache = ZTSClientCache.getInstance();
 
     // configurable fields
     //
@@ -536,6 +538,10 @@ public class ZTSClient implements Closeable {
     public void setZTSRDLGeneratedClient(ZTSRDLGeneratedClient client) {
         this.ztsClient = client;
         ztsClientOverride = true;
+    }
+
+    public void setZTSClientCache(ZTSClientCache ztsClientCache) {
+        this.ztsClientCache = ztsClientCache;
     }
 
     /**
@@ -2045,8 +2051,24 @@ public class ZTSClient implements Closeable {
      */
     public RoleAccess getRoleAccess(String domainName, String principal) {
         updateServicePrincipal();
+
+        // Try to fetch from cache.
+        ZTSClientCache.DomainAndPrincipal cacheKey = null;
+        Cache<ZTSClientCache.DomainAndPrincipal, RoleAccess> cache = ztsClientCache.getRoleAccessCache();
+        if (cache != null) {
+            cacheKey = new ZTSClientCache.DomainAndPrincipal(domainName, principal);
+            RoleAccess cachedValue = cache.get(cacheKey);
+            if (cachedValue != null) {
+                return cachedValue;
+            }
+        }
+
         try {
-            return ztsClient.getRoleAccess(domainName, principal);
+            RoleAccess roleAccess = ztsClient.getRoleAccess(domainName, principal);
+            if (cache != null) {
+                cache.put(cacheKey, roleAccess);
+            }
+            return roleAccess;
         } catch (ResourceException ex) {
             throw new ZTSClientException(ex.getCode(), ex.getMessage());
         } catch (Exception ex) {
