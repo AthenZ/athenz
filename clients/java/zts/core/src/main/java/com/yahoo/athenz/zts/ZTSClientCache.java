@@ -82,6 +82,7 @@ public class ZTSClientCache {
     /**
      * Get the singleton instance - which is usually a ZTSClientCache.
      * However, another class could be used (usually for tests) - by providing its class-name in the system-property {@link #ZTS_CLIENT_PROP_CACHE_CLASS}
+     * @return the singleton instance
      */
     public static ZTSClientCache getInstance() {
         return SingletonHolder.INSTANCE;
@@ -232,7 +233,10 @@ public class ZTSClientCache {
         public RoleAccessCopierAndSerializer() {
         }
 
-        /** This constructor is required by {@link Serializer} */
+        /**
+         * This constructor is required by {@link Serializer}
+         * @param classLoader ignored
+         */
         public RoleAccessCopierAndSerializer(ClassLoader classLoader) {
         }
 
