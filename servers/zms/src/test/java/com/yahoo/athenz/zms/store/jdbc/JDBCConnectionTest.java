@@ -4918,7 +4918,55 @@ public class JDBCConnectionTest {
         }
         jdbcConn.close();
     }
-    
+
+    @Test
+    public void testUpdateDomainTemplate() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        TemplateMetaData templateMetaData = new TemplateMetaData();
+        templateMetaData.setLatestVersion(4);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5); // domain id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true); // this one is for domain id
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        boolean requestSuccess = jdbcConn.updateDomainTemplate("test-domain", "aws", templateMetaData);
+
+        // this is combined for all operations above
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "test-domain");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 4);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(2, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "aws");
+
+        assertTrue(requestSuccess);
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testUpdateDomainTemplateWithInvalidDomain() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        TemplateMetaData templateMetaData = new TemplateMetaData();
+        templateMetaData.setLatestVersion(4);
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(false); // this one is for domain id
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        try {
+            jdbcConn.updateDomainTemplate("test-domain", "aws_bastion", templateMetaData);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(true);
+        }
+        jdbcConn.close();
+    }
+
     @Test
     public void testDeleteDomainTemplate() throws Exception {
         

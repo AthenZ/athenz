@@ -149,4 +149,5 @@ public interface ObjectStoreConnection extends Closeable {
     DomainRoleMembers listOverdueReviewRoleMembers(String domainName);
 
     List<TemplateMetaData> getDomainTemplates(String domainName);
+    boolean updateDomainTemplate(String domainName, String templateName, TemplateMetaData templateMetaData);
 }

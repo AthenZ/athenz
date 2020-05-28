@@ -811,6 +811,27 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
 
     @Override
+    public boolean updateDomainTemplate(String domainName, String templateName, TemplateMetaData templateMetaData) {
+
+        final String caller = "updateDomainTemplate";
+        int domainId = getDomainId(domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
+        }
+        int affectedRows;
+        try (PreparedStatement ps = con.prepareStatement(SQL_UPDATE_DOMAIN_TEMPLATE)) {
+            ps.setInt(1, templateMetaData.getLatestVersion());
+            ps.setInt(2, domainId);
+            ps.setString(3, templateName);
+            affectedRows = executeUpdate(ps, caller);
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return (affectedRows > 0);
+    }
+
+
+    @Override
     public boolean deleteDomainTemplate(String domainName, String templateName, String params) {
         
         final String caller = "deleteDomainTemplate";
