@@ -39,9 +39,6 @@ const TrStyled = styled.tr`
 `;
 
 export default class TemplateDescription extends React.Component {
-    constructor(props) {
-        super(props);
-    }
 
     render() {
         return (

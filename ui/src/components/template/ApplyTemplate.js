@@ -57,7 +57,7 @@ export default class ApplyTemplate extends React.Component {
     constructor(props) {
         super(props);
         this.api = props.api;
-        this.InitialKeywordsLoad = this.InitialKeywordsLoad.bind(this);
+        this.initialKeywordsLoad = this.initialKeywordsLoad.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
         this.reloadTemplatePageOnSubmit = this.reloadTemplatePageOnSubmit.bind(
             this
@@ -68,10 +68,10 @@ export default class ApplyTemplate extends React.Component {
     }
 
     componentDidMount() {
-        this.InitialKeywordsLoad();
+        this.initialKeywordsLoad();
     }
 
-    InitialKeywordsLoad(button) {
+    initialKeywordsLoad(button) {
         this.setState({
             keywordsList: this.props.keywords.replace(/_/g, '').split(','),
         });
