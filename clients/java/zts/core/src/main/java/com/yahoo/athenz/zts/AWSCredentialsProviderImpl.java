@@ -18,6 +18,8 @@ package com.yahoo.athenz.zts;
 import java.io.Closeable;
 import java.io.IOException;
 import javax.net.ssl.SSLContext;
+
+import com.yahoo.rdl.Timestamp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +41,7 @@ public class AWSCredentialsProviderImpl implements AWSCredentialsProvider, Close
     private Integer minExpiryTime;
     private Integer maxExpiryTime;
     private ZTSClient ztsClient;
+    private Timestamp awsCredsTimestamp;
     private volatile AWSCredentials credentials;
     private boolean closeZTSClient;
 
@@ -129,6 +132,7 @@ public class AWSCredentialsProviderImpl implements AWSCredentialsProvider, Close
         this.externalId = externalId;
         this.ztsClient = ztsClient;
         this.closeZTSClient = closeZTSClient;
+        this.awsCredsTimestamp = null;
 
         // unless the caller has disabled the refresh functionality
         // we're going to fetch the credentials so we have them in
@@ -178,18 +182,30 @@ public class AWSCredentialsProviderImpl implements AWSCredentialsProvider, Close
                         creds.getAccessKeyId(), creds.getExpiration());
             }
 
+            awsCredsTimestamp = creds.getExpiration();
             this.credentials = new BasicSessionCredentials(
                     creds.getAccessKeyId(),
                     creds.getSecretAccessKey(),
                     creds.getSessionToken());
 
-        } catch (ZTSClientException ex) {
-            credentials = null;
-            LOG.error("Refresh: Failed to get the AWS temporary credentials from ZTS: {}",
-                    ex.getMessage());
         } catch (Exception ex) {
-            credentials = null;
-            LOG.error("Refresh: Failed to refresh credentials: {}", ex.getMessage());
+
+            // if our existing credentials have already expired then
+            // we should reset it to null and throw an exception back
+            // to the client so it knows something is wrong
+
+            if (awsCredsTimestamp != null && awsCredsTimestamp.millis() <= System.currentTimeMillis()) {
+                awsCredsTimestamp = null;
+                credentials = null;
+            }
+
+            // if we have no credentials then we'll throw an exception
+            // otherwise we'll just log it
+
+            LOG.error("Refresh: Failed to get the AWS temporary credentials from ZTS", ex);
+            if (credentials == null) {
+                throw ex;
+            }
         }
     }
 }
