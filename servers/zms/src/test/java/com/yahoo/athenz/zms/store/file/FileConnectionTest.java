@@ -18,6 +18,8 @@ package com.yahoo.athenz.zms.store.file;
 import static org.testng.Assert.*;
 import java.io.File;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import com.yahoo.athenz.zms.*;
 import com.yahoo.rdl.Timestamp;
@@ -696,6 +698,18 @@ public class FileConnectionTest {
             } catch (Exception ex) {
                 assertTrue(true);
             }
+        }
+    }
+
+    @Test
+    public void testgetDomainFromTemplateName() {
+        File fileDir = new File("/home/athenz/zms_store");
+        File quotaDir = new File("/home/athenz/zms_quota");
+        Map<String, Integer> templateVersionMap = new HashMap<>();
+        templateVersionMap.put("testtemplate", 1);
+        Map<String, List<String>> domainNameTemplateListMap = new HashMap<>();
+        try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
+            assertEquals(fileconnection.getDomainFromTemplateName(templateVersionMap), domainNameTemplateListMap);
         }
     }
 }

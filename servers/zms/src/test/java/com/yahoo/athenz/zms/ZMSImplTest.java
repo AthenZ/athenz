@@ -18443,6 +18443,20 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testAutoApplyTemplate() {
+
+        ZMSImpl zmsImpl = zmsInit();
+
+        System.setProperty(ZMSConsts.ZMS_AUTO_UPDATE_TEMPLATE_FEATURE_FLAG, "true");
+        try {
+            zmsImpl.autoApplyTemplates();
+        } catch (Exception e) {
+            fail();
+        }
+        System.clearProperty(ZMSConsts.ZMS_AUTO_UPDATE_TEMPLATE_FEATURE_FLAG);
+    }
+
+    @Test
     public void testLoadPublicKeysInvalidService() {
 
         ZMSImpl zmsImpl = zmsInit();

@@ -6985,4 +6985,31 @@ public class DBServiceTest {
         zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
         zms.dbService.store = savedStore;
     }
+
+    @Test
+    public void testAutoApplySolutionTemplate() {
+
+        String caller = "testAutoApplySolutionTemplate";
+        String domainName = "solutiontemplate-autoapply";
+        Map<String, Integer> templateVersionMapping = new HashMap<>();
+        templateVersionMapping.put("templateWithService", 11);
+        templateVersionMapping.put("user_provisioning", 12);
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "domain-autoapply-test", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        List<String> templates = new ArrayList<>();
+        templates.add("templateWithService");
+        templates.add("user_provisioning");
+        DomainTemplate domainTemplate = new DomainTemplate().setTemplateNames(templates);
+        zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
+
+        Map<String, List<String>> domainTemplateUpdateMapping = zms.dbService.getDomainNamesFromTemplate(templateVersionMapping);
+        assertEquals(domainTemplateUpdateMapping.size(), 1);
+        for (String domain : domainTemplateUpdateMapping.keySet()) {
+            assertEquals(templates , domainTemplateUpdateMapping.get(domain));
+        }
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
 }

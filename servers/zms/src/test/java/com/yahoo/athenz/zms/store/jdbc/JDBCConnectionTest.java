@@ -9358,4 +9358,37 @@ public class JDBCConnectionTest {
         }
         jdbcConn.close();
     }
+
+    @Test
+    public void testGetDomainFromTemplateName() throws Exception {
+        Map<String, Integer> templateDetails = new HashMap<>();
+        templateDetails.put("aws", 1);
+        templateDetails.put("aws_bastion", 2);
+        String domainName = "testdom";
+        String templateName1 = "testtemplate";
+        String templateName2 = "testtemplate2";
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getString("name"))
+                .thenReturn(domainName); // domain name
+        Mockito.when(mockResultSet.getString("template"))
+                .thenReturn(templateName1); // template name
+        Mockito.when(mockResultSet.getString("name"))
+                .thenReturn(domainName);
+        Mockito.when(mockResultSet.getString("template"))
+                .thenReturn(templateName2);
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true).thenReturn(true).thenReturn(false); // this one is for domain id
+
+        Mockito.when(mockPrepStmt.executeQuery())
+                .thenReturn(mockResultSet);
+
+        Map<String, List<String>> domainTemplateMapping = jdbcConn.getDomainFromTemplateName(templateDetails);
+        assertEquals(domainTemplateMapping.size(), 1);
+
+        jdbcConn.close();
+
+    }
 }

@@ -870,7 +870,33 @@ public class JDBCConnection implements ObjectStoreConnection {
         Collections.sort(templates);
         return templates;
     }
-    
+
+    @Override
+    public Map<String, List<String>> getDomainFromTemplateName(Map<String, Integer> templateNameAndLatestVersion) {
+        final String caller = "getDomainsFromTemplate";
+        Map<String, List<String>> domainNameTemplateListMap = new HashMap<>();
+
+        try (PreparedStatement ps = con.prepareStatement(ZMSUtils.generateDomainTemplateVersionQuery(templateNameAndLatestVersion))) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    if (domainNameTemplateListMap.get(rs.getString(ZMSConsts.DB_COLUMN_NAME)) != null) {
+                        List<String> tempTemplateList = domainNameTemplateListMap.get(rs.getString(ZMSConsts.DB_COLUMN_NAME));
+                        tempTemplateList.add(rs.getString(ZMSConsts.DB_COLUMN_TEMPLATE_NAME));
+                        domainNameTemplateListMap.put(rs.getString(ZMSConsts.DB_COLUMN_NAME), tempTemplateList);
+                    } else {
+                        List<String> templateList = new ArrayList<>();
+                        templateList.add(rs.getString(ZMSConsts.DB_COLUMN_TEMPLATE_NAME));
+                        domainNameTemplateListMap.put(rs.getString(ZMSConsts.DB_COLUMN_NAME), templateList);
+                    }
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+
+        return domainNameTemplateListMap;
+    }
+
     int getDomainId(String domainName) {
         return getDomainId(domainName, false);
     }
