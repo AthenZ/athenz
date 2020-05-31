@@ -2790,9 +2790,24 @@ public class ZTSClientTest {
     public void testGetAWSCredentialsProvider() {
 
         ZTSClientMock client = new ZTSClientMock("http://localhost:4080");
-        assertNotNull(client.getAWSCredentialProvider("domain", "role"));
-        assertNotNull(client.getAWSCredentialProvider("domain", "role", "id", null, null));
-        assertNotNull(client.getAWSCredentialProvider("domain", "role", "id", 100, 300));
+        try {
+            client.getAWSCredentialProvider("domain", "role");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+        try {
+            client.getAWSCredentialProvider("domain", "role", "id", 100, 300);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+        try {
+            client.getAWSCredentialProvider("domain", "role", "id", null, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
     }
 
     @Test

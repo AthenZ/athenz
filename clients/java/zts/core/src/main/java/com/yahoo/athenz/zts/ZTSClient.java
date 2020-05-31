@@ -2035,8 +2035,12 @@ public class ZTSClient implements Closeable {
                         + " req-min-expiry: {} req-max-expiry: {} client-min-expiry: {} result: expired",
                         cacheKey, expiryTime, minExpiryTime, maxExpiryTime, tokenMinExpiryTime);
             }
-            
-            AWS_CREDS_CACHE.remove(cacheKey);
+
+            // if the token is completely expired then we'll remove it from the cache
+
+            if (expiryTime < 1) {
+                AWS_CREDS_CACHE.remove(cacheKey);
+            }
             return null;
         }
         
@@ -2454,8 +2458,31 @@ public class ZTSClient implements Closeable {
             awsCred = ztsClient.getAWSTemporaryCredentials(domainName, roleName,
                     maxExpiryTime, externalId);
         } catch (ResourceException ex) {
+
+            // if we have an entry in our cache then we'll return that
+            // instead of returning failure
+
+            if (cacheKey != null && !ignoreCache) {
+                awsCred = lookupAwsCredInCache(cacheKey, null, null);
+                if (awsCred != null) {
+                    return awsCred;
+                }
+            }
+
             throw new ZTSClientException(ex.getCode(), ex.getData());
+
         } catch (Exception ex) {
+
+            // if we have an entry in our cache then we'll return that
+            // instead of returning failure
+
+            if (cacheKey != null && !ignoreCache) {
+                awsCred = lookupAwsCredInCache(cacheKey, null, null);
+                if (awsCred != null) {
+                    return awsCred;
+                }
+            }
+
             throw new ZTSClientException(ZTSClientException.BAD_REQUEST, ex.getMessage());
         }
         
