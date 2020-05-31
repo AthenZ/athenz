@@ -141,10 +141,10 @@ func (cli Zms) dumpRole(buf *bytes.Buffer, role zms.Role, auditLog bool, indent1
 			buf.WriteString(indent3)
 			cli.dumpUserName(buf, string(memberItem.MemberName), true)
 			if memberItem.Expiration != nil {
-				buf.WriteString(" " + memberItem.Expiration.String())
+				buf.WriteString(" expiration: " + memberItem.Expiration.String())
 			}
 			if memberItem.ReviewReminder != nil {
-				buf.WriteString(" " + memberItem.ReviewReminder.String())
+				buf.WriteString(" review: " + memberItem.ReviewReminder.String())
 			}
 			if memberItem.Approved != nil && *memberItem.Approved == false {
 				buf.WriteString(" (pending)")
@@ -537,10 +537,10 @@ func (cli Zms) dumpDomainRoleMembers(buf *bytes.Buffer, domainRoleMembers *zms.D
 		for _, role := range roleMember.MemberRoles {
 			buf.WriteString(indent_level2_dash + string(role.RoleName))
 			if role.Expiration != nil {
-				buf.WriteString(" " + role.Expiration.String())
+				buf.WriteString(" expiration: " + role.Expiration.String())
 			}
 			if role.ReviewReminder != nil {
-				buf.WriteString(" " + role.ReviewReminder.String())
+				buf.WriteString(" review: " + role.ReviewReminder.String())
 			}
 			buf.WriteString("\n")
 		}
