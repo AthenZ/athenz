@@ -420,6 +420,11 @@ public class FileConnection implements ObjectStoreConnection {
             templates.add(templateName);
         }
         TemplateMetaData templateMeta = new TemplateMetaData();
+        templateMeta.setTemplateName(templateName);
+        templateMeta.setKeywordsToReplace(templateMetaData.getKeywordsToReplace());
+        templateMeta.setAutoUpdate(templateMetaData.getAutoUpdate());
+        templateMeta.setDescription(templateMetaData.getDescription());
+        templateMeta.setTimestamp(templateMetaData.getTimestamp());
         templateMeta.setCurrentVersion(templateMetaData.getLatestVersion());
         templateMetalist.add(templateMeta);
         domainStruct.setTemplateMeta(templateMetalist);

@@ -49,6 +49,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.constraints.AssertFalse;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -2434,6 +2435,17 @@ public class DBServiceTest {
         
         domainTemplateList = zms.dbService.listDomainTemplates(domainName);
         assertTrue(domainTemplateList.getTemplateNames().isEmpty());
+
+        DomainTemplateDetailsList domainTemplateDetailsList = zms.getDomainTemplateDetailsList(mockDomRsrcCtx, domainName);
+        List<TemplateMetaData> metaData = domainTemplateDetailsList.getMetaData();
+        for (TemplateMetaData meta:metaData) {
+            assertFalse(meta.getAutoUpdate());
+            assertEquals(10, (meta.getLatestVersion().intValue()));
+            assertNotNull(meta.getTimestamp());
+            assertEquals("templateWithService", meta.getTemplateName());
+            assertEquals("templateWithService template", meta.getDescription());
+            assertEquals("", meta.getKeywordsToReplace());
+        }
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
