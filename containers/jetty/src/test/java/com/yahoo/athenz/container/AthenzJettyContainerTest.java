@@ -23,6 +23,7 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.Slf4jRequestLog;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.handler.RequestLogHandler;
+import org.eclipse.jetty.server.handler.StatisticsHandler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.ThreadPool;
@@ -75,6 +76,8 @@ public class AthenzJettyContainerTest {
         System.clearProperty((AthenzConsts.ATHENZ_PROP_STATUS_PORT));
         System.clearProperty(AthenzConsts.ATHENZ_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS);
         System.clearProperty(AthenzConsts.ATHENZ_PROP_KEEP_ALIVE);
+        System.clearProperty(AthenzConsts.ATHENZ_PROP_GRACEFUL_SHUTDOWN);
+        System.clearProperty(AthenzConsts.ATHENZ_PROP_GRACEFUL_SHUTDOWN_TIMEOUT);
     }
     
     @AfterClass
@@ -100,7 +103,7 @@ public class AthenzJettyContainerTest {
         assertEquals(threadPool.getThreads(), 0);
         assertEquals(threadPool.getIdleThreads(), 0);
     }
-    
+
     @Test
     public void testRequestLogHandler() {
 
@@ -608,5 +611,127 @@ public class AthenzJettyContainerTest {
         }
         // reset to expected conf directory
         System.setProperty(AthenzConsts.ATHENZ_PROP_JETTY_HOME, "conf");
+    }
+
+    @Test
+    public void testGracefulShutdown() {
+        AthenzJettyContainer container;
+        Server server;
+        long stopTimeout;
+        boolean stopAtShutdown;
+
+        // If the athenz.graceful_shutdown is not true.
+        container = new AthenzJettyContainer();
+        container.createServer(100);
+        container.addServletHandlers("localhost");
+
+        server = container.getServer();
+        assertNotNull(server);
+
+        stopTimeout = server.getStopTimeout();
+        stopAtShutdown = server.getStopAtShutdown();
+
+        assertEquals(stopTimeout, 30000);
+        assertEquals(stopAtShutdown, false);
+
+        cleanup();
+
+        // If the athenz.graceful_shutdown is not true,
+        // the ahtenz.graceful_shutdown_timeout is invalid.
+        System.setProperty(AthenzConsts.ATHENZ_PROP_GRACEFUL_SHUTDOWN_TIMEOUT, "60000");
+
+        container = new AthenzJettyContainer();
+        container.createServer(100);
+        container.addServletHandlers("localhost");
+
+        server = container.getServer();
+        assertNotNull(server);
+
+        stopTimeout = server.getStopTimeout();
+        stopAtShutdown = server.getStopAtShutdown();
+
+        assertEquals(stopTimeout, 30000);
+        assertEquals(stopAtShutdown, false);
+
+        cleanup();
+
+        // If the athenz.graceful_shutdown is true.
+        System.setProperty(AthenzConsts.ATHENZ_PROP_GRACEFUL_SHUTDOWN, "true");
+
+        container = new AthenzJettyContainer();
+        container.createServer(100);
+        container.addServletHandlers("localhost");
+
+        server = container.getServer();
+        assertNotNull(server);
+
+        stopTimeout = server.getStopTimeout();
+        stopAtShutdown = server.getStopAtShutdown();
+
+        assertEquals(stopTimeout, 30000);
+        assertEquals(stopAtShutdown, true);
+
+        cleanup();
+
+        // If the athenz.graceful_shutdown is true and
+        // the athenz.graceful_shutdown_timeout is also set
+        System.setProperty(AthenzConsts.ATHENZ_PROP_GRACEFUL_SHUTDOWN, "true");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_GRACEFUL_SHUTDOWN_TIMEOUT, "60000");
+
+        container = new AthenzJettyContainer();
+        container.createServer(100);
+        container.addServletHandlers("localhost");
+
+        server = container.getServer();
+        assertNotNull(server);
+
+        stopTimeout = server.getStopTimeout();
+        stopAtShutdown = server.getStopAtShutdown();
+
+        assertEquals(stopTimeout, 60000);
+        assertEquals(stopAtShutdown, true);
+    }
+
+    @Test
+    public void testStatisticsHandler() {
+        ContextHandlerCollection contextHandlerCollection = null;
+        StatisticsHandler statisticsHandler = null;
+
+        System.setProperty(AthenzConsts.ATHENZ_PROP_GRACEFUL_SHUTDOWN, "false");
+        AthenzJettyContainer container = new AthenzJettyContainer();
+        container.createServer(100);
+        container.addServletHandlers("localhost");
+
+        Handler[] handlers = container.getHandlers().getHandlers();
+        for (Handler handler : handlers) {
+            if (handler instanceof ContextHandlerCollection) {
+                contextHandlerCollection = (ContextHandlerCollection) handler;
+            } else if (handler instanceof StatisticsHandler) {
+                statisticsHandler = (StatisticsHandler) handler;
+            }
+        }
+
+        assertNotNull(contextHandlerCollection);
+        assertNull(statisticsHandler);
+
+        cleanup();
+
+        System.setProperty(AthenzConsts.ATHENZ_PROP_GRACEFUL_SHUTDOWN, "true");
+        container = new AthenzJettyContainer();
+        container.createServer(100);
+        container.addServletHandlers("localhost");
+
+        handlers = container.getHandlers().getHandlers();
+        for (Handler handler : handlers) {
+            if (handler instanceof ContextHandlerCollection) {
+                contextHandlerCollection = (ContextHandlerCollection) handler;
+            } else if (handler instanceof StatisticsHandler) {
+                statisticsHandler = (StatisticsHandler) handler;
+            }
+        }
+
+        assertNotNull(contextHandlerCollection);
+        assertNotNull(statisticsHandler);
+        assertEquals(statisticsHandler.getHandler(), contextHandlerCollection);
     }
 }

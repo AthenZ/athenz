@@ -80,4 +80,7 @@ public final class AthenzConsts {
     public static final String ATHENZ_PROP_KEYSTORE_PASSWORD_APPNAME   = "athenz.ssl_key_store_password_appname";
     public static final String ATHENZ_PROP_KEYMANAGER_PASSWORD_APPNAME = "athenz.ssl_key_manager_password_appname";
     public static final String ATHENZ_PROP_TRUSTSTORE_PASSWORD_APPNAME = "athenz.ssl_trust_store_password_appname";
+
+    public static final String ATHENZ_PROP_GRACEFUL_SHUTDOWN = "athenz.graceful_shutdown";
+    public static final String ATHENZ_PROP_GRACEFUL_SHUTDOWN_TIMEOUT = "athenz.graceful_shutdown_timeout";
 }

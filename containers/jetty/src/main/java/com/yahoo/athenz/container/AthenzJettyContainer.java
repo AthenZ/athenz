@@ -43,6 +43,7 @@ import org.eclipse.jetty.server.SslConnectionFactory;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.RequestLogHandler;
+import org.eclipse.jetty.server.handler.StatisticsHandler;
 import org.eclipse.jetty.server.handler.gzip.GzipHandler;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -201,6 +202,22 @@ public class AthenzJettyContainer {
             gzipHandler.setHandler(contexts);
 
             handlers.addHandler(gzipHandler);
+        }
+
+        // check to see if graceful shutdown support is enabled
+        boolean gracefulShutdown = Boolean.parseBoolean(
+                System.getProperty(AthenzConsts.ATHENZ_PROP_GRACEFUL_SHUTDOWN, "false"));
+        if (gracefulShutdown) {
+            server.setStopAtShutdown(true);
+
+            long stopTimeout = Long.parseLong(
+                    System.getProperty(AthenzConsts.ATHENZ_PROP_GRACEFUL_SHUTDOWN_TIMEOUT, "30000"));
+            server.setStopTimeout(stopTimeout);
+
+            StatisticsHandler statisticsHandler = new StatisticsHandler();
+            statisticsHandler.setHandler(contexts);
+
+            handlers.addHandler(statisticsHandler);
         }
 
         handlers.addHandler(contexts);
