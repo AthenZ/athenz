@@ -76,7 +76,7 @@ public class AthenzJettyContainerTest {
         System.clearProperty((AthenzConsts.ATHENZ_PROP_STATUS_PORT));
         System.clearProperty(AthenzConsts.ATHENZ_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS);
         System.clearProperty(AthenzConsts.ATHENZ_PROP_KEEP_ALIVE);
-        System.clearProperty(AthenzConsts.ATHENZ_PROP_GRACEFUL_SHUTDOWN_SUPPORT);
+        System.clearProperty(AthenzConsts.ATHENZ_PROP_GRACEFUL_SHUTDOWN);
         System.clearProperty(AthenzConsts.ATHENZ_PROP_GRACEFUL_SHUTDOWN_TIMEOUT);
     }
     
@@ -614,13 +614,13 @@ public class AthenzJettyContainerTest {
     }
 
     @Test
-    public void testGracefulShutdownSupport() {
+    public void testGracefulShutdown() {
         AthenzJettyContainer container;
         Server server;
         long stopTimeout;
         boolean stopAtShutdown;
 
-        // If the athenz.graceful_shutdown_support is not true.
+        // If the athenz.graceful_shutdown is not true.
         container = new AthenzJettyContainer();
         container.createServer(100);
         container.addServletHandlers("localhost");
@@ -636,7 +636,7 @@ public class AthenzJettyContainerTest {
 
         cleanup();
 
-        // If the athenz.graceful_shutdown_support is not true,
+        // If the athenz.graceful_shutdown is not true,
         // the ahtenz.graceful_shutdown_timeout is invalid.
         System.setProperty(AthenzConsts.ATHENZ_PROP_GRACEFUL_SHUTDOWN_TIMEOUT, "60000");
 
@@ -655,8 +655,8 @@ public class AthenzJettyContainerTest {
 
         cleanup();
 
-        // If the athenz.graceful_shutdown_support is true.
-        System.setProperty(AthenzConsts.ATHENZ_PROP_GRACEFUL_SHUTDOWN_SUPPORT, "true");
+        // If the athenz.graceful_shutdown is true.
+        System.setProperty(AthenzConsts.ATHENZ_PROP_GRACEFUL_SHUTDOWN, "true");
 
         container = new AthenzJettyContainer();
         container.createServer(100);
@@ -673,9 +673,9 @@ public class AthenzJettyContainerTest {
 
         cleanup();
 
-        // If the athenz.graceful_shutdown_support is true and
+        // If the athenz.graceful_shutdown is true and
         // the athenz.graceful_shutdown_timeout is also set
-        System.setProperty(AthenzConsts.ATHENZ_PROP_GRACEFUL_SHUTDOWN_SUPPORT, "true");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_GRACEFUL_SHUTDOWN, "true");
         System.setProperty(AthenzConsts.ATHENZ_PROP_GRACEFUL_SHUTDOWN_TIMEOUT, "60000");
 
         container = new AthenzJettyContainer();
@@ -697,7 +697,7 @@ public class AthenzJettyContainerTest {
         ContextHandlerCollection contextHandlerCollection = null;
         StatisticsHandler statisticsHandler = null;
 
-        System.setProperty(AthenzConsts.ATHENZ_PROP_GRACEFUL_SHUTDOWN_SUPPORT, "false");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_GRACEFUL_SHUTDOWN, "false");
         AthenzJettyContainer container = new AthenzJettyContainer();
         container.createServer(100);
         container.addServletHandlers("localhost");
@@ -716,7 +716,7 @@ public class AthenzJettyContainerTest {
 
         cleanup();
 
-        System.setProperty(AthenzConsts.ATHENZ_PROP_GRACEFUL_SHUTDOWN_SUPPORT, "true");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_GRACEFUL_SHUTDOWN, "true");
         container = new AthenzJettyContainer();
         container.createServer(100);
         container.addServletHandlers("localhost");

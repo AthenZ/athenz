@@ -205,9 +205,9 @@ public class AthenzJettyContainer {
         }
 
         // check to see if graceful shutdown support is enabled
-        boolean gracefulShutdownSupport = Boolean.parseBoolean(
-                System.getProperty(AthenzConsts.ATHENZ_PROP_GRACEFUL_SHUTDOWN_SUPPORT, "false"));
-        if (gracefulShutdownSupport) {
+        boolean gracefulShutdown = Boolean.parseBoolean(
+                System.getProperty(AthenzConsts.ATHENZ_PROP_GRACEFUL_SHUTDOWN, "false"));
+        if (gracefulShutdown) {
             server.setStopAtShutdown(true);
 
             long stopTimeout = Long.parseLong(
