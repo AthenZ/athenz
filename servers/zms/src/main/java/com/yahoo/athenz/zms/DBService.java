@@ -2729,6 +2729,11 @@ public class DBService {
         if (!currentTemplateList.contains(templateName)) {
             con.insertDomainTemplate(domainName, templateName, null);
         }
+
+        //on both insert and update templates, bump up the version of the template to latest version.
+        if (template.getMetadata().getLatestVersion() != null) {
+            con.updateDomainTemplate(domainName, templateName, template.getMetadata());
+        }
         
         auditDetails.append("}");
         return true;

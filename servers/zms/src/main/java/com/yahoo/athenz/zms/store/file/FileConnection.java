@@ -389,7 +389,6 @@ public class FileConnection implements ObjectStoreConnection {
     @Override
     public boolean insertDomainTemplate(String domainName, String templateName, String params) {
         DomainStruct domainStruct = getDomainStruct(domainName);
-        TemplateMetaData templateMeta = new TemplateMetaData();
         if (domainStruct == null) {
             throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", "insertDomainTemplate");
         }
@@ -401,6 +400,47 @@ public class FileConnection implements ObjectStoreConnection {
         if (!templates.contains(templateName)) {
             templates.add(templateName);
         }
+        putDomainStruct(domainName, domainStruct);
+        return true;
+    }
+
+    @Override
+    public boolean updateDomainTemplate(String domainName, String templateName, TemplateMetaData templateMetaData) {
+        DomainStruct domainStruct = getDomainStruct(domainName);
+        if (domainStruct == null) {
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", "updateDomainTemplate");
+        }
+        if (domainStruct.getTemplates() == null) {
+            domainStruct.setTemplates(new ArrayList<>());
+        }
+        ArrayList<String> templates = domainStruct.getTemplates();
+        if (!templates.contains(templateName)) {
+            templates.add(templateName);
+        }
+
+        if (domainStruct.getTemplateMeta() == null) {
+            domainStruct.setTemplateMeta(new ArrayList<>());
+        }
+
+        TemplateMetaData domainTemplate = null;
+        ArrayList<TemplateMetaData> templateMetaList = domainStruct.getTemplateMeta();
+
+        for (TemplateMetaData meta : templateMetaList) {
+            if (meta.getTemplateName().equals(templateName)) {
+                domainTemplate = meta;
+                break;
+            }
+        }
+
+        if (domainTemplate == null) {
+            domainTemplate = new TemplateMetaData();
+            domainTemplate.setTemplateName(templateName);
+            domainTemplate.setCurrentVersion(templateMetaData.getLatestVersion());
+            templateMetaList.add(domainTemplate);
+        } else {
+            domainTemplate.setCurrentVersion(templateMetaData.getLatestVersion());
+        }
+
         putDomainStruct(domainName, domainStruct);
         return true;
     }

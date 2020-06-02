@@ -683,4 +683,19 @@ public class FileConnectionTest {
             }
         }
     }
+
+    @Test
+    public void testupdateDomainTemplate() {
+        File fileDir = new File("/home/athenz/zms_store");
+        File quotaDir = new File("/home/athenz/zms_quota");
+        TemplateMetaData templateMetaData = new TemplateMetaData();
+        try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
+            try {
+                fileconnection.updateDomainTemplate("testtemplate", "testdom", templateMetaData);
+                fail();
+            } catch (Exception ex) {
+                assertTrue(true);
+            }
+        }
+    }
 }

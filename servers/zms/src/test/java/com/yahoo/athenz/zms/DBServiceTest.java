@@ -2866,6 +2866,30 @@ public class DBServiceTest {
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
+
+    @Test
+    public void testApplySolutionTemplateWithLatestVersion() {
+
+        String caller = "testApplySolutionTemplateWithLatestVersion";
+        String domainName = "solutiontemplate-latestversion";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "domain-latestversion-test", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        List<String> templates = new ArrayList<>();
+        templates.add("templateWithService");
+        DomainTemplate domainTemplate = new DomainTemplate().setTemplateNames(templates);
+        zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
+
+        DomainTemplateDetailsList domainTemplateDetailsList = zms.getDomainTemplateDetailsList(mockDomRsrcCtx, domainName);
+        List<TemplateMetaData> metaData = domainTemplateDetailsList.getMetaData();
+        for (TemplateMetaData meta : metaData) {
+            assertEquals(10, (meta.getLatestVersion().intValue()));
+            assertEquals("templateWithService", meta.getTemplateName());
+        }
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
     
     @Test
     public void testSetupTenantAdminPolicy() {
