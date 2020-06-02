@@ -17,7 +17,6 @@ package com.yahoo.athenz.zpe;
 
 import org.testng.annotations.Test;
 
-import com.yahoo.athenz.zpe.ZpeUpdPolLoader;
 import com.yahoo.athenz.zpe.match.ZpeMatch;
 import com.yahoo.athenz.zpe.match.impl.ZpeMatchAll;
 import com.yahoo.athenz.zpe.match.impl.ZpeMatchEqual;

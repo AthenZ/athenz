@@ -19,6 +19,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
 class ZpeThreadFactory implements ThreadFactory {
+
     private static final AtomicInteger POOLNUMBER = new AtomicInteger(1);
     private final ThreadGroup group;
     private final AtomicInteger threadNumber = new AtomicInteger(1);
@@ -26,15 +27,12 @@ class ZpeThreadFactory implements ThreadFactory {
 
     public ZpeThreadFactory(String name) {
         SecurityManager s = System.getSecurityManager();
-        group = (s != null) ? s.getThreadGroup() : Thread.currentThread()
-                .getThreadGroup();
-        namePrefix = name + "-pool-" + POOLNUMBER.getAndIncrement()
-                + "-thread-";
+        group = (s != null) ? s.getThreadGroup() : Thread.currentThread().getThreadGroup();
+        namePrefix = name + "-pool-" + POOLNUMBER.getAndIncrement() + "-thread-";
     }
 
     public Thread newThread(Runnable target) {
-        Thread thrd = new Thread(group, target, namePrefix
-                + threadNumber.getAndIncrement(), 0);
+        Thread thrd = new Thread(group, target, namePrefix + threadNumber.getAndIncrement(), 0);
         thrd.setDaemon(true);
         if (thrd.getPriority() != Thread.NORM_PRIORITY) {
             thrd.setPriority(Thread.NORM_PRIORITY);

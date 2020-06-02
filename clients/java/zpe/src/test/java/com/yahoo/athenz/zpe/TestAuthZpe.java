@@ -286,7 +286,7 @@ public class TestAuthZpe {
         try {
             AuthZpeClient.setPublicKeyStoreFactoryClass("invalidclass");
             fail();
-        } catch (Exception ex) {
+        } catch (Exception ignored) {
         }
     }
 
@@ -296,7 +296,7 @@ public class TestAuthZpe {
         try {
             AuthZpeClient.setZPEClientClass("invalidclass");
             fail();
-        } catch (Exception ex) {
+        } catch (Exception ignored) {
         }
 
         AuthZpeClient.setZPEClientClass("com.yahoo.athenz.zpe.ZpeUpdater");
@@ -1328,5 +1328,50 @@ public class TestAuthZpe {
         // we should now get null since the token is expired
 
         assertNull(AuthZpeClient.validateRoleToken(rtoken.getSignedToken()));
+    }
+
+    @Test
+    public void testValidateAccessTokenWithMtlsBound() throws IOException {
+
+        Path path = Paths.get("src/test/resources/mtls_token_spec.cert");
+        String certStr = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(certStr);
+
+        AccessToken accessToken = AuthZpeClient.validateAccessToken(accessToken0AnglerRegex, cert, null);
+        assertNotNull(accessToken);
+
+        // now we're going to include the Bearer part
+
+        accessToken = AuthZpeClient.validateAccessToken("Bearer " + accessToken0AnglerRegex, cert, null);
+        assertNotNull(accessToken);
+    }
+
+    @Test
+    public void testValidateAccessTokenWithoutMtlsBound() {
+
+        AccessToken accessToken = AuthZpeClient.validateAccessToken(accessToken0AnglerRegex, null, null);
+        assertNotNull(accessToken);
+
+        // now we're going to include the Bearer part
+
+        accessToken = AuthZpeClient.validateAccessToken("Bearer " + accessToken0AnglerRegex, null, null);
+        assertNotNull(accessToken);
+    }
+
+    @Test
+    public void testValidateAccessTokenInvalid() {
+
+        // create a token with a key id that does not exist
+
+        List<String> roles = Collections.singletonList("matchall");
+        final String invalidKeyIdToken = createInvalidAccessToken("angler", roles);
+
+        AccessToken accessToken = AuthZpeClient.validateAccessToken(invalidKeyIdToken, null, null);
+        assertNull(accessToken);
+
+        // now we're going to include the Bearer part
+
+        accessToken = AuthZpeClient.validateAccessToken("Bearer " + invalidKeyIdToken, null, null);
+        assertNull(accessToken);
     }
 }
