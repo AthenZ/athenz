@@ -1888,15 +1888,6 @@ public class FileConnection implements ObjectStoreConnection {
         memberRoles.add(memberRole);
     }
 
-    ArrayList<TemplateMetaData> setTemplateNameAndVersion(String templateName, TemplateMetaData templateMetaData) {
-        ArrayList<TemplateMetaData> templateMetalist = new ArrayList<>();
-        TemplateMetaData templateMeta = new TemplateMetaData();
-        templateMeta.setTemplateName(templateName);
-        templateMeta.setCurrentVersion(templateMetaData.getLatestVersion());
-        templateMetalist.add(templateMeta);
-        return templateMetalist;
-    }
-
     @Override
     public boolean updateRoleMemberExpirationNotificationTimestamp(String server, long timestamp) {
         return updateRoleMemberNotificationTimestamp(timestamp, true);
