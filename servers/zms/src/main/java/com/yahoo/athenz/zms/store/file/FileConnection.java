@@ -419,15 +419,28 @@ public class FileConnection implements ObjectStoreConnection {
         if (!templates.contains(templateName)) {
             templates.add(templateName);
         }
-        TemplateMetaData templateMeta = new TemplateMetaData();
-        templateMeta.setTemplateName(templateName);
-        templateMeta.setKeywordsToReplace(templateMetaData.getKeywordsToReplace());
-        templateMeta.setAutoUpdate(templateMetaData.getAutoUpdate());
-        templateMeta.setDescription(templateMetaData.getDescription());
-        templateMeta.setTimestamp(templateMetaData.getTimestamp());
-        templateMeta.setCurrentVersion(templateMetaData.getLatestVersion());
-        templateMetalist.add(templateMeta);
-        domainStruct.setTemplateMeta(templateMetalist);
+
+        if (domainStruct.getTemplateMeta() == null) {
+            domainStruct.setTemplateMeta(new ArrayList<>());
+        }
+        ArrayList<TemplateMetaData> templateMetaList = domainStruct.getTemplateMeta();
+        if (!templateMetaList.isEmpty()) {
+            for (TemplateMetaData meta : templateMetaList) {
+                if (meta.getTemplateName().equals(templateName)) {
+                    meta.setCurrentVersion(templateMetaData.getLatestVersion());
+                }
+            }
+        } else {
+            TemplateMetaData templateMeta = new TemplateMetaData();
+            templateMeta.setTemplateName(templateName);
+            templateMeta.setKeywordsToReplace(templateMetaData.getKeywordsToReplace());
+            templateMeta.setAutoUpdate(templateMetaData.getAutoUpdate());
+            templateMeta.setDescription(templateMetaData.getDescription());
+            templateMeta.setTimestamp(templateMetaData.getTimestamp());
+            templateMeta.setCurrentVersion(templateMetaData.getLatestVersion());
+            templateMetalist.add(templateMeta);
+            domainStruct.setTemplateMeta(templateMetalist);
+        }
 
         putDomainStruct(domainName, domainStruct);
         return true;

@@ -2435,17 +2435,6 @@ public class DBServiceTest {
         domainTemplateList = zms.dbService.listDomainTemplates(domainName);
         assertTrue(domainTemplateList.getTemplateNames().isEmpty());
 
-        DomainTemplateDetailsList domainTemplateDetailsList = zms.getDomainTemplateDetailsList(mockDomRsrcCtx, domainName);
-        List<TemplateMetaData> metaData = domainTemplateDetailsList.getMetaData();
-        for (TemplateMetaData meta:metaData) {
-            assertFalse(meta.getAutoUpdate());
-            assertEquals(10, (meta.getLatestVersion().intValue()));
-            assertNotNull(meta.getTimestamp());
-            assertEquals("templateWithService", meta.getTemplateName());
-            assertEquals("templateWithService template", meta.getDescription());
-            assertEquals("", meta.getKeywordsToReplace());
-        }
-
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
     
@@ -2876,6 +2865,32 @@ public class DBServiceTest {
         assertTrue(domainTemplateList.getTemplateNames().isEmpty());
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testApplySolutionTemplateWithLatestVersion() {
+
+        String caller = "testApplySolutionTemplateWithLatestVersion";
+        String domainName = "solutiontemplate-latestversion";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "domain-latestversion-test", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        List<String> templates = new ArrayList<>();
+        templates.add("templateWithService");
+        DomainTemplate domainTemplate = new DomainTemplate().setTemplateNames(templates);
+        zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
+
+        DomainTemplateDetailsList domainTemplateDetailsList = zms.getDomainTemplateDetailsList(mockDomRsrcCtx, domainName);
+        List<TemplateMetaData> metaData = domainTemplateDetailsList.getMetaData();
+        for (TemplateMetaData meta : metaData) {
+            assertFalse(meta.getAutoUpdate());
+            assertEquals(10, (meta.getLatestVersion().intValue()));
+            assertNotNull(meta.getTimestamp());
+            assertEquals("templateWithService", meta.getTemplateName());
+            assertEquals("templateWithService template", meta.getDescription());
+            assertEquals("", meta.getKeywordsToReplace());
+        }
     }
     
     @Test
