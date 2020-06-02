@@ -389,7 +389,6 @@ public class FileConnection implements ObjectStoreConnection {
     @Override
     public boolean insertDomainTemplate(String domainName, String templateName, String params) {
         DomainStruct domainStruct = getDomainStruct(domainName);
-        TemplateMetaData templateMeta = new TemplateMetaData();
         if (domainStruct == null) {
             throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", "insertDomainTemplate");
         }
@@ -408,7 +407,6 @@ public class FileConnection implements ObjectStoreConnection {
     @Override
     public boolean updateDomainTemplate(String domainName, String templateName, TemplateMetaData templateMetaData) {
         DomainStruct domainStruct = getDomainStruct(domainName);
-        ArrayList<TemplateMetaData> templateMetalist = new ArrayList<>();
         if (domainStruct == null) {
             throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", "updateDomainTemplate");
         }
@@ -423,17 +421,24 @@ public class FileConnection implements ObjectStoreConnection {
         if (domainStruct.getTemplateMeta() == null) {
             domainStruct.setTemplateMeta(new ArrayList<>());
         }
+
+        TemplateMetaData domainTemplate = null;
         ArrayList<TemplateMetaData> templateMetaList = domainStruct.getTemplateMeta();
-        if (!templateMetaList.isEmpty()) {
-            for (TemplateMetaData meta : templateMetaList) {
-                if (meta.getTemplateName().equals(templateName)) {
-                    meta.setCurrentVersion(templateMetaData.getLatestVersion());
-                } else {
-                    domainStruct.setTemplateMeta(setTemplateNameAndVersion(templateName, templateMetaData));
-                }
+
+        for (TemplateMetaData meta : templateMetaList) {
+            if (meta.getTemplateName().equals(templateName)) {
+                domainTemplate = meta;
+                break;
             }
+        }
+
+        if (domainTemplate == null) {
+            domainTemplate = new TemplateMetaData();
+            domainTemplate.setTemplateName(templateName);
+            domainTemplate.setCurrentVersion(templateMetaData.getLatestVersion());
+            templateMetaList.add(domainTemplate);
         } else {
-            domainStruct.setTemplateMeta(setTemplateNameAndVersion(templateName, templateMetaData));
+            domainTemplate.setCurrentVersion(templateMetaData.getLatestVersion());
         }
 
         putDomainStruct(domainName, domainStruct);
@@ -1886,15 +1891,6 @@ public class FileConnection implements ObjectStoreConnection {
         memberRole.setDomainName(domainName);
         memberRole.setExpiration(roleMember.getExpiration());
         memberRoles.add(memberRole);
-    }
-
-    ArrayList<TemplateMetaData> setTemplateNameAndVersion(String templateName, TemplateMetaData templateMetaData) {
-        ArrayList<TemplateMetaData> templateMetalist = new ArrayList<>();
-        TemplateMetaData templateMeta = new TemplateMetaData();
-        templateMeta.setTemplateName(templateName);
-        templateMeta.setCurrentVersion(templateMetaData.getLatestVersion());
-        templateMetalist.add(templateMeta);
-        return templateMetalist;
     }
 
     @Override
