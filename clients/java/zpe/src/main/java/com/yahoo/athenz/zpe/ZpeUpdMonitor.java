@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
  * Used in monitoring the policy directory for file changes.
  */
 public class ZpeUpdMonitor implements Runnable {
+
     private static final Logger LOG = LoggerFactory.getLogger(ZpeUpdMonitor.class);
 
     private String dirName;
@@ -47,6 +48,7 @@ public class ZpeUpdMonitor implements Runnable {
         if (dirName == null) {
             return null;
         }
+
         // read all the file names in the policy directory and add to the list
 
         File pdir = new File(dirName);
@@ -75,6 +77,7 @@ public class ZpeUpdMonitor implements Runnable {
 
     @Override
     public void run() {
+
         if (updLoader == null) {
             LOG.error("run: No ZpeUpdPolLoader to monitor");
             return;
@@ -91,9 +94,21 @@ public class ZpeUpdMonitor implements Runnable {
         ZpeUpdPolLoader.cleanupRoleTokenCache();
         ZpeUpdPolLoader.cleanupAccessTokenCache();
 
+        // only process files if the feature has not
+        // been disabled
+
+        if (updLoader.skipPolicyDirCheck) {
+            return;
+        }
+
         try {
             updLoader.loadDb(loadFileStatus());
             if (firstRun) {
+
+                // if in the ZpeUpdater init method we're still
+                // blocked on wait(), this will cause the method
+                // to finish instead of waiting the full 5 secs
+
                 firstRun = false;
                 synchronized (updLoader) {
                     updLoader.notify();

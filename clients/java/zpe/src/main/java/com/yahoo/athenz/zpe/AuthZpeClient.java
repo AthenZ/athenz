@@ -519,7 +519,7 @@ public class AuthZpeClient {
             accessToken = accessToken.substring(BEARER_TOKEN.length());
         }
 
-        Map<String, AccessToken> tokenCache = zpeClt.getAccessTokenCacheMap();;
+        Map<String, AccessToken> tokenCache = zpeClt.getAccessTokenCacheMap();
         AccessToken acsToken = tokenCache.get(accessToken);
 
         // if we have a x.509 certificate provided then we need to
@@ -698,7 +698,7 @@ public class AuthZpeClient {
         long now  = System.currentTimeMillis() / 1000;
         long expiry = roleToken.getExpiryTime();
         if (expiry != 0 && expiry < now) {
-            LOG.error("ExpiryCheck: Token expired. now={} expiry={} token={}" +
+            LOG.error("ExpiryCheck: Token expired. now={} expiry={} token={}",
                     now, expiry, roleToken.getUnsignedToken());
             return true;
         }
@@ -715,6 +715,61 @@ public class AuthZpeClient {
             return true;
         }
         return false;
+    }
+
+    /**
+     * Validate the AccessToken and return the parsed token object that
+     * could be used to extract all fields from the access token. If the
+     * access token is invalid, then null object is returned.
+     * @param accessToken - value for the REST header: Authorization
+     *        ex: "Bearer authz-token"
+     * @param cert X509 Client Certificate used to establish the mTLS connection
+     *        submitting this request. can be null if no mtls binding to be verified
+     * @param certHash If the connection is coming through a proxy, this includes
+     *        the certificate hash of the client certificate that was calculated
+     *        by the proxy and forwarded in a http header. can be null if no mtls
+     *        mvnbinding to be verified
+     * @return AccessToken if the token is validated successfully otherwise null
+     */
+    public static AccessToken validateAccessToken(String accessToken, X509Certificate cert, String certHash) {
+
+        // if our client sent the full header including Bearer part
+        // we're going to strip that out
+
+        if (accessToken.startsWith(BEARER_TOKEN)) {
+            accessToken = accessToken.substring(BEARER_TOKEN.length());
+        }
+
+        Map<String, AccessToken> tokenCache = zpeClt.getAccessTokenCacheMap();
+        AccessToken acsToken = tokenCache.get(accessToken);
+
+        // if we have a x.509 certificate provided then we need to
+        // validate our mtls client certificate confirmation value
+        // before accepting the token from the cache
+
+        if (acsToken != null && cert != null && !acsToken.confirmMTLSBoundToken(cert, certHash)) {
+            return null;
+        }
+
+        if (acsToken == null) {
+
+            try {
+                if (cert == null && certHash == null) {
+                    acsToken = new AccessToken(accessToken, accessSignKeyResolver);
+                } else {
+                    acsToken = new AccessToken(accessToken, accessSignKeyResolver, cert, certHash);
+                }
+
+            } catch (Exception ex) {
+
+                LOG.error("validateAccessToken: Access Token validation failed: {}", ex.getMessage());
+                return null;
+            }
+
+            tokenCache.put(accessToken, acsToken);
+        }
+
+        return acsToken;
     }
 
     /**

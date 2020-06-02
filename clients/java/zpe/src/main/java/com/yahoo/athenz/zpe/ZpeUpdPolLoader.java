@@ -49,14 +49,17 @@ import com.yahoo.athenz.zts.SignedPolicyData;
 public class ZpeUpdPolLoader implements Closeable {
 
     private static final Logger LOG = LoggerFactory.getLogger(ZpeUpdPolLoader.class);
-     
+
+    static boolean skipPolicyDirCheck;
     static long sleepTimeMillis = -1;
     static long cleanupTokenInterval = 600000; // 600 secs = 10 minutes
     static long lastRoleTokenCleanup = System.currentTimeMillis();
     static long lastAccessTokenCleanup = System.currentTimeMillis();
 
     static {
-        
+
+        skipPolicyDirCheck = Boolean.parseBoolean(System.getProperty(ZpeConsts.ZPE_PROP_SKIP_POLICY_DIR_CHECK, "false"));
+
         String timeoutSecs = System.getProperty(ZpeConsts.ZPE_PROP_MON_TIMEOUT);
         if (timeoutSecs == null) {
             // default to 5 minutes
@@ -88,9 +91,9 @@ public class ZpeUpdPolLoader implements Closeable {
     }
 
     // create thread or event handler to monitor changes to ZpePolFiles
-    // see JavaYnetDbWrapper for scheduled thread way to monitor
     // find the java7 api for monitoring files
     // see http://docs.oracle.com/javase/tutorial/essential/io/notification.html
+
     private ScheduledThreadPoolExecutor scheduledExecutorSvc = new ScheduledThreadPoolExecutor(
             1, new ZpeThreadFactory("ZpeUpdPolLoader"));
 
@@ -116,12 +119,11 @@ public class ZpeUpdPolLoader implements Closeable {
 
     // array of file status objects
     static class ZpeFileStatus {
-        String fname;
         String domain;
         long modifyTimeMillis;
         boolean validPolFile;
         
-        ZpeFileStatus(String fname, long modTimeMillis) {
+        ZpeFileStatus(long modTimeMillis) {
             domain = null;
             modifyTimeMillis = modTimeMillis;
             validPolFile = false;
@@ -138,7 +140,7 @@ public class ZpeUpdPolLoader implements Closeable {
             try {
                 loadDb();
             } catch (Exception exc) {
-                LOG.error("loadDb Failed, exc: {}", exc);
+                LOG.error("loadDb Failed", exc);
             }
         }
     }
@@ -228,9 +230,15 @@ public class ZpeUpdPolLoader implements Closeable {
     }
 
     void loadDb() {
+
         if (updMonWorker == null) {
             updMonWorker = new ZpeUpdMonitor(this);
         }
+
+        if (skipPolicyDirCheck) {
+            return;
+        }
+
         File[] polFileNames = updMonWorker.loadFileStatus();
         loadDb(polFileNames);
     }
@@ -298,7 +306,7 @@ public class ZpeUpdPolLoader implements Closeable {
             
                 }
             } else {
-                fstat = new ZpeFileStatus(fileName, lastModMilliSeconds);
+                fstat = new ZpeFileStatus(lastModMilliSeconds);
                 fsmap.put(fileName, fstat);
             }
             loadFile(polFile);
@@ -418,7 +426,7 @@ public class ZpeUpdPolLoader implements Closeable {
         for (Policy policy : policies) {
             String pname = policy.getName();
             if (LOG.isDebugEnabled()) {
-                LOG.debug("loadFile: domain([}) policy({})", domainName, pname);
+                LOG.debug("loadFile: domain({}) policy({})", domainName, pname);
             }
             List<Assertion> assertions = policy.getAssertions();
             if (assertions == null) {

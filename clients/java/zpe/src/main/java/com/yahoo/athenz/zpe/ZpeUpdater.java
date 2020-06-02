@@ -41,14 +41,12 @@ public class ZpeUpdater implements ZpeClient {
             rootDir = File.separator + "home" + File.separator + "athenz";
         }
 
-        ZPECLT_POLDIR_DEFAULT = rootDir + File.separator + "var"
-                + File.separator + "zpe";
-        
+        ZPECLT_POLDIR_DEFAULT = rootDir + File.separator + "var" + File.separator + "zpe";
         String dirName = System.getProperty(ZpeConsts.ZPE_PROP_POLICY_DIR, ZPECLT_POLDIR_DEFAULT);
         
         try {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("static-init: start monitoring policy directory=" + dirName);
+                LOG.debug("static-init: start monitoring policy directory={}", dirName);
             }
             // load the file
             POLICYLOADER = new ZpeUpdPolLoader(dirName);
@@ -57,9 +55,8 @@ public class ZpeUpdater implements ZpeClient {
             POLICYLOADER.start();
 
         } catch (Exception exc) {
-            LOG.error("static-init: failed loading policy files. System property("
-                    + ZpeConsts.ZPE_PROP_POLICY_DIR + ") Policy-directory(" + dirName + ")",
-                    exc);
+            LOG.error("static-init: failed loading policy files. System property({}) Policy-directory({}})",
+                    ZpeConsts.ZPE_PROP_POLICY_DIR, dirName, exc);
             throw new RuntimeException(exc);
         }
     }
@@ -101,4 +98,3 @@ public class ZpeUpdater implements ZpeClient {
         return POLICYLOADER.getStandardRoleDenyMap(domain);
     }
 }
-

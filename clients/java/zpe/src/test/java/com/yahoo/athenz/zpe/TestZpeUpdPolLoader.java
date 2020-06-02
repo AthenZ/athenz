@@ -24,8 +24,7 @@ import com.yahoo.athenz.zpe.match.impl.ZpeMatchEqual;
 import com.yahoo.athenz.zpe.match.impl.ZpeMatchRegex;
 import com.yahoo.athenz.zpe.match.impl.ZpeMatchStartsWith;
 
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.*;
 
 import java.io.File;
 
@@ -34,9 +33,6 @@ public class TestZpeUpdPolLoader {
     static String TEST_POL_DIR  = "./src/test/resources/upd_pol_dir/";
     static String TEST_POL_FILE = "angler.pol";
     static String TEST_POL_GOOD_FILE = "./src/test/resources/pol_dir/angler.pol";
-    
-    static String TEST_POL_FILE_EMPTY      = "empty.pol";
-    static String TEST_POL_GOOD_FILE_EMPTY = "./src/test/resources/pol_dir/empty.pol";
 
     @Test
     public void testGetMatchObject() {
@@ -96,7 +92,7 @@ public class TestZpeUpdPolLoader {
         long lastModMilliSeconds = polFile.lastModified();
         java.util.Map<String, ZpeUpdPolLoader.ZpeFileStatus> fsmap = loader.getFileStatusMap();
         ZpeUpdPolLoader.ZpeFileStatus fstat = fsmap.get(polFile.getName());
-        assertTrue(!fstat.validPolFile);
+        assertFalse(fstat.validPolFile);
 
         // move good policy file over the bad one
         java.nio.file.Path goodFile = java.nio.file.Paths.get(TEST_POL_GOOD_FILE);
