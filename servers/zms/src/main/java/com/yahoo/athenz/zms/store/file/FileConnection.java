@@ -428,18 +428,12 @@ public class FileConnection implements ObjectStoreConnection {
             for (TemplateMetaData meta : templateMetaList) {
                 if (meta.getTemplateName().equals(templateName)) {
                     meta.setCurrentVersion(templateMetaData.getLatestVersion());
+                } else {
+                    domainStruct.setTemplateMeta(setTemplateNameAndVersion(templateName, templateMetaData));
                 }
             }
         } else {
-            TemplateMetaData templateMeta = new TemplateMetaData();
-            templateMeta.setTemplateName(templateName);
-            templateMeta.setKeywordsToReplace(templateMetaData.getKeywordsToReplace());
-            templateMeta.setAutoUpdate(templateMetaData.getAutoUpdate());
-            templateMeta.setDescription(templateMetaData.getDescription());
-            templateMeta.setTimestamp(templateMetaData.getTimestamp());
-            templateMeta.setCurrentVersion(templateMetaData.getLatestVersion());
-            templateMetalist.add(templateMeta);
-            domainStruct.setTemplateMeta(templateMetalist);
+            domainStruct.setTemplateMeta(setTemplateNameAndVersion(templateName, templateMetaData));
         }
 
         putDomainStruct(domainName, domainStruct);
@@ -1892,6 +1886,15 @@ public class FileConnection implements ObjectStoreConnection {
         memberRole.setDomainName(domainName);
         memberRole.setExpiration(roleMember.getExpiration());
         memberRoles.add(memberRole);
+    }
+
+    ArrayList<TemplateMetaData> setTemplateNameAndVersion(String templateName, TemplateMetaData templateMetaData) {
+        ArrayList<TemplateMetaData> templateMetalist = new ArrayList<>();
+        TemplateMetaData templateMeta = new TemplateMetaData();
+        templateMeta.setTemplateName(templateName);
+        templateMeta.setCurrentVersion(templateMetaData.getLatestVersion());
+        templateMetalist.add(templateMeta);
+        return templateMetalist;
     }
 
     @Override
