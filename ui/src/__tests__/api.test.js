@@ -1256,4 +1256,18 @@ describe('Fetchr Client API Test', () => {
         });
         afterEach(() => fetchrStub.restore());
     });
+    describe('getDomainTemplateDetailsList test', () => {
+        it('getDomainTemplateDetailsList test success', async () => {
+            myDataService = {
+                name: 'templates',
+                read: function (req, resource, params, config, callback) {
+                    callback(null, DATA);
+                }
+            };
+            fetchrStub = sinon.stub(Fetchr, 'isRegistered');
+            fetchrStub.returns(myDataService);
+            result = await api.getDomainTemplateDetailsList({});
+            expect(result).toEqual(DATA);
+        });
+    });
 });

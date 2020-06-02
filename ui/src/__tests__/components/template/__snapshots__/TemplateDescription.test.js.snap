@@ -1,0 +1,52 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TemplateDescription should render 1`] = `
+.emotion-3 {
+  padding: 20px;
+  text-align: left;
+  vertical-align: middle;
+  word-break: break-all;
+  font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
+  display: table-cell;
+  background-color: color:#3570f40D;
+}
+
+.emotion-2 {
+  display: table;
+  border-collapse: separate;
+  border-spacing: 2px;
+  border-color: #9a9a9a;
+}
+
+.emotion-0 {
+  padding: 20px;
+  text-align: left;
+  vertical-align: middle;
+  word-break: break-all;
+  font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
+  display: table-cell;
+}
+
+<td
+  class="emotion-3"
+  color="[object Object]"
+  colspan="7"
+  data-testid="provider-table"
+>
+  <table
+    class="emotion-2"
+  >
+    <thead>
+      <tr
+        class="emotion-1"
+      >
+        <td
+          class="emotion-0"
+        >
+          test description
+        </td>
+      </tr>
+    </thead>
+  </table>
+</td>
+`;

@@ -1,0 +1,530 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TemplateRow should render templateRow 1`] = `
+.emotion-1 {
+  fill: #188fff;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+.emotion-6 {
+  border: none;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  font-family: Helvetica,Arial,sans-serif;
+  font-weight: 300;
+  font-size: 12px;
+  line-height: 1;
+  margin: 5px;
+  min-width: 70px;
+  outline: 0;
+  padding: 8px 18px;
+  text-align: center;
+  text-shadow: none;
+  text-transform: none;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  vertical-align: baseline;
+  white-space: nowrap;
+  background: linear-gradient( to right, #3697f2, #3570f4 );
+  color: #fff;
+}
+
+.emotion-6:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-6:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
+.emotion-6:hover:not(:disabled) {
+  background: linear-gradient( to right, #3570f4, #3448f7 );
+}
+
+.emotion-0 {
+  background-color: #3570f40D;
+  text-align: left;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+.emotion-2 {
+  background-color: #3570f40D;
+  text-align: center;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+<tr
+  data-testid="template-row"
+>
+  <td
+    class="emotion-0"
+    color="#3570f40D"
+  />
+  <td
+    class="emotion-2"
+    color="#3570f40D"
+  >
+    <span>
+      <svg
+        class="emotion-1"
+        data-testid="icon"
+        height="1.25em"
+        viewBox="0 0 1024 1024"
+        width="1.25em"
+      >
+        <title>
+          information-circle
+        </title>
+        <path
+          d="M512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0.003-0.635 0.005-1.387 0.005-2.138 0-258.027-209.173-467.2-467.2-467.2-0.752 0-1.504 0.002-2.255 0.005l0.117-0zM512 896c-212.077 0-384-171.923-384-384s171.923-384 384-384c212.077 0 384 171.923 384 384v0c-1.203 211.592-172.408 382.797-383.885 383.999l-0.115 0.001z"
+        />
+        <path
+          d="M512 426.667c-23.564 0-42.667 19.103-42.667 42.667v0 256c0 23.564 19.103 42.667 42.667 42.667s42.667-19.103 42.667-42.667v0-256c0-23.564-19.103-42.667-42.667-42.667v0z"
+        />
+        <path
+          d="M554.667 298.667c0 23.564-19.103 42.667-42.667 42.667s-42.667-19.103-42.667-42.667c0-23.564 19.103-42.667 42.667-42.667s42.667 19.103 42.667 42.667z"
+        />
+      </svg>
+    </span>
+  </td>
+  <td
+    class="emotion-2"
+    color="#3570f40D"
+  >
+    0
+  </td>
+  <td
+    class="emotion-2"
+    color="#3570f40D"
+  >
+    1
+  </td>
+  <td
+    class="emotion-2"
+    color="#3570f40D"
+  />
+  <td
+    class="emotion-2"
+    color="#3570f40D"
+  >
+    <button
+      class="emotion-6 denali-button"
+      type="submit"
+    >
+      Update
+    </button>
+    
+  </td>
+</tr>
+`;
+
+exports[`TemplateRow should render templaterow with pop up 1`] = `
+.emotion-1 {
+  fill: #188fff;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+.emotion-6 {
+  border: none;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  font-family: Helvetica,Arial,sans-serif;
+  font-weight: 300;
+  font-size: 12px;
+  line-height: 1;
+  margin: 5px;
+  min-width: 70px;
+  outline: 0;
+  padding: 8px 18px;
+  text-align: center;
+  text-shadow: none;
+  text-transform: none;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  vertical-align: baseline;
+  white-space: nowrap;
+  background: transparent;
+  box-shadow: 0 0 0 1px #3697f2 inset;
+  color: #3697f2;
+}
+
+.emotion-6:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-6:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
+.emotion-6:disabled {
+  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
+}
+
+.emotion-6:hover:not(:disabled) {
+  background: #d7e2fd;
+}
+
+.emotion-0 {
+  background-color: #3570f40D;
+  text-align: left;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+.emotion-2 {
+  background-color: #3570f40D;
+  text-align: center;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+<tr
+  data-testid="template-row"
+>
+  <td
+    class="emotion-0"
+    color="#3570f40D"
+  >
+    aws
+  </td>
+  <td
+    class="emotion-2"
+    color="#3570f40D"
+  >
+    <span>
+      <svg
+        class="emotion-1"
+        data-testid="icon"
+        height="1.25em"
+        viewBox="0 0 1024 1024"
+        width="1.25em"
+      >
+        <title>
+          information-circle
+        </title>
+        <path
+          d="M512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0.003-0.635 0.005-1.387 0.005-2.138 0-258.027-209.173-467.2-467.2-467.2-0.752 0-1.504 0.002-2.255 0.005l0.117-0zM512 896c-212.077 0-384-171.923-384-384s171.923-384 384-384c212.077 0 384 171.923 384 384v0c-1.203 211.592-172.408 382.797-383.885 383.999l-0.115 0.001z"
+        />
+        <path
+          d="M512 426.667c-23.564 0-42.667 19.103-42.667 42.667v0 256c0 23.564 19.103 42.667 42.667 42.667s42.667-19.103 42.667-42.667v0-256c0-23.564-19.103-42.667-42.667-42.667v0z"
+        />
+        <path
+          d="M554.667 298.667c0 23.564-19.103 42.667-42.667 42.667s-42.667-19.103-42.667-42.667c0-23.564 19.103-42.667 42.667-42.667s42.667 19.103 42.667 42.667z"
+        />
+      </svg>
+    </span>
+  </td>
+  <td
+    class="emotion-2"
+    color="#3570f40D"
+  >
+    2
+  </td>
+  <td
+    class="emotion-2"
+    color="#3570f40D"
+  >
+    2
+  </td>
+  <td
+    class="emotion-2"
+    color="#3570f40D"
+  />
+  <td
+    class="emotion-2"
+    color="#3570f40D"
+  >
+    <button
+      class="emotion-6 denali-button"
+      type="submit"
+    >
+      Update
+    </button>
+    
+  </td>
+</tr>
+`;
+
+exports[`TemplateRow should render with description 1`] = `
+.emotion-1 {
+  fill: #188fff;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+.emotion-6 {
+  border: none;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  font-family: Helvetica,Arial,sans-serif;
+  font-weight: 300;
+  font-size: 12px;
+  line-height: 1;
+  margin: 5px;
+  min-width: 70px;
+  outline: 0;
+  padding: 8px 18px;
+  text-align: center;
+  text-shadow: none;
+  text-transform: none;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  vertical-align: baseline;
+  white-space: nowrap;
+  background: transparent;
+  box-shadow: 0 0 0 1px #3697f2 inset;
+  color: #3697f2;
+}
+
+.emotion-6:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-6:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
+.emotion-6:disabled {
+  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
+}
+
+.emotion-6:hover:not(:disabled) {
+  background: #d7e2fd;
+}
+
+.emotion-0 {
+  background-color: #3570f40D;
+  text-align: left;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+.emotion-2 {
+  background-color: #3570f40D;
+  text-align: center;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+<tr
+  data-testid="template-row"
+>
+  <td
+    class="emotion-0"
+    color="#3570f40D"
+  />
+  <td
+    class="emotion-2"
+    color="#3570f40D"
+  >
+    <span>
+      <svg
+        class="emotion-1"
+        data-testid="icon"
+        height="1.25em"
+        viewBox="0 0 1024 1024"
+        width="1.25em"
+      >
+        <title>
+          information-circle
+        </title>
+        <path
+          d="M512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0.003-0.635 0.005-1.387 0.005-2.138 0-258.027-209.173-467.2-467.2-467.2-0.752 0-1.504 0.002-2.255 0.005l0.117-0zM512 896c-212.077 0-384-171.923-384-384s171.923-384 384-384c212.077 0 384 171.923 384 384v0c-1.203 211.592-172.408 382.797-383.885 383.999l-0.115 0.001z"
+        />
+        <path
+          d="M512 426.667c-23.564 0-42.667 19.103-42.667 42.667v0 256c0 23.564 19.103 42.667 42.667 42.667s42.667-19.103 42.667-42.667v0-256c0-23.564-19.103-42.667-42.667-42.667v0z"
+        />
+        <path
+          d="M554.667 298.667c0 23.564-19.103 42.667-42.667 42.667s-42.667-19.103-42.667-42.667c0-23.564 19.103-42.667 42.667-42.667s42.667 19.103 42.667 42.667z"
+        />
+      </svg>
+    </span>
+  </td>
+  <td
+    class="emotion-2"
+    color="#3570f40D"
+  >
+    2
+  </td>
+  <td
+    class="emotion-2"
+    color="#3570f40D"
+  >
+    2
+  </td>
+  <td
+    class="emotion-2"
+    color="#3570f40D"
+  />
+  <td
+    class="emotion-2"
+    color="#3570f40D"
+  >
+    <button
+      class="emotion-6 denali-button"
+      type="submit"
+    >
+      Update
+    </button>
+    
+  </td>
+</tr>
+`;
+
+exports[`TemplateRow should render without pop up 1`] = `
+.emotion-1 {
+  fill: #188fff;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+.emotion-6 {
+  border: none;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  font-family: Helvetica,Arial,sans-serif;
+  font-weight: 300;
+  font-size: 12px;
+  line-height: 1;
+  margin: 5px;
+  min-width: 70px;
+  outline: 0;
+  padding: 8px 18px;
+  text-align: center;
+  text-shadow: none;
+  text-transform: none;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  vertical-align: baseline;
+  white-space: nowrap;
+  background: transparent;
+  box-shadow: 0 0 0 1px #3697f2 inset;
+  color: #3697f2;
+}
+
+.emotion-6:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-6:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
+.emotion-6:disabled {
+  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
+}
+
+.emotion-6:hover:not(:disabled) {
+  background: #d7e2fd;
+}
+
+.emotion-0 {
+  background-color: #3570f40D;
+  text-align: left;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+.emotion-2 {
+  background-color: #3570f40D;
+  text-align: center;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+<tr
+  data-testid="template-row"
+>
+  <td
+    class="emotion-0"
+    color="#3570f40D"
+  />
+  <td
+    class="emotion-2"
+    color="#3570f40D"
+  >
+    <span>
+      <svg
+        class="emotion-1"
+        data-testid="icon"
+        height="1.25em"
+        viewBox="0 0 1024 1024"
+        width="1.25em"
+      >
+        <title>
+          information-circle
+        </title>
+        <path
+          d="M512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0.003-0.635 0.005-1.387 0.005-2.138 0-258.027-209.173-467.2-467.2-467.2-0.752 0-1.504 0.002-2.255 0.005l0.117-0zM512 896c-212.077 0-384-171.923-384-384s171.923-384 384-384c212.077 0 384 171.923 384 384v0c-1.203 211.592-172.408 382.797-383.885 383.999l-0.115 0.001z"
+        />
+        <path
+          d="M512 426.667c-23.564 0-42.667 19.103-42.667 42.667v0 256c0 23.564 19.103 42.667 42.667 42.667s42.667-19.103 42.667-42.667v0-256c0-23.564-19.103-42.667-42.667-42.667v0z"
+        />
+        <path
+          d="M554.667 298.667c0 23.564-19.103 42.667-42.667 42.667s-42.667-19.103-42.667-42.667c0-23.564 19.103-42.667 42.667-42.667s42.667 19.103 42.667 42.667z"
+        />
+      </svg>
+    </span>
+  </td>
+  <td
+    class="emotion-2"
+    color="#3570f40D"
+  >
+    2
+  </td>
+  <td
+    class="emotion-2"
+    color="#3570f40D"
+  >
+    2
+  </td>
+  <td
+    class="emotion-2"
+    color="#3570f40D"
+  />
+  <td
+    class="emotion-2"
+    color="#3570f40D"
+  >
+    <button
+      class="emotion-6 denali-button"
+      type="submit"
+    >
+      Update
+    </button>
+    
+  </td>
+</tr>
+`;

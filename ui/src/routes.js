@@ -29,4 +29,5 @@ module.exports = routes()
     .add('policy', '/domain/:domain/policy')
     .add('search', '/search/:type/:searchterm')
     .add('service', '/domain/:domain/service')
+    .add('template', '/domain/:domain/template')
     .add('history', '/domain/:domain/history');

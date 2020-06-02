@@ -117,6 +117,21 @@
             }
         },
         {
+            "StringTypeDef": {
+                "type": "String",
+                "name": "AuthorityKeyword",
+                "comment": "A comma separated list of authority keywords",
+                "pattern": "[a-zA-Z0-9_][a-zA-Z0-9_-]*"
+            }
+        },
+        {
+            "StringTypeDef": {
+                "type": "String",
+                "name": "AuthorityKeywords",
+                "pattern": "([a-zA-Z0-9_][a-zA-Z0-9_-]*,)*[a-zA-Z0-9_][a-zA-Z0-9_-]*"
+            }
+        },
+        {
             "StructTypeDef": {
                 "type": "Struct",
                 "name": "DomainMeta",
@@ -338,6 +353,12 @@
                         "comment": "the expiration timestamp"
                     },
                     {
+                        "name": "reviewReminder",
+                        "type": "Timestamp",
+                        "optional": true,
+                        "comment": "the review reminder timestamp"
+                    },
+                    {
                         "name": "active",
                         "type": "Bool",
                         "optional": true,
@@ -374,6 +395,12 @@
                         "type": "ResourceName",
                         "optional": true,
                         "comment": "pending members only - name of the principal requesting the change"
+                    },
+                    {
+                        "name": "reviewLastNotifiedTime",
+                        "type": "Timestamp",
+                        "optional": true,
+                        "comment": "for pending membership requests, time when last notification was sent (for file store)"
                     }
                 ],
                 "closed": false
@@ -423,6 +450,18 @@
                         "comment": "all services in the role will have specified max expiry days"
                     },
                     {
+                        "name": "memberReviewDays",
+                        "type": "Int32",
+                        "optional": true,
+                        "comment": "all user members in the role will have specified max review days"
+                    },
+                    {
+                        "name": "serviceReviewDays",
+                        "type": "Int32",
+                        "optional": true,
+                        "comment": "all services in the role will have specified max review days"
+                    },
+                    {
                         "name": "reviewEnabled",
                         "type": "Bool",
                         "optional": true,
@@ -434,6 +473,18 @@
                         "type": "ResourceNames",
                         "optional": true,
                         "comment": "list of roles whose members should be notified for member review/approval"
+                    },
+                    {
+                        "name": "userAuthorityFilter",
+                        "type": "AuthorityKeywords",
+                        "optional": true,
+                        "comment": "membership filtered based on user authority configured attributes"
+                    },
+                    {
+                        "name": "userAuthorityExpiration",
+                        "type": "AuthorityKeyword",
+                        "optional": true,
+                        "comment": "expiration enforced by a user authority configured attribute"
                     }
                 ],
                 "closed": false
@@ -550,6 +601,12 @@
                         "comment": "the expiration timestamp"
                     },
                     {
+                        "name": "reviewReminder",
+                        "type": "Timestamp",
+                        "optional": true,
+                        "comment": "the review reminder timestamp"
+                    },
+                    {
                         "name": "active",
                         "type": "Bool",
                         "optional": true,
@@ -624,6 +681,12 @@
                         "type": "Timestamp",
                         "optional": true,
                         "comment": "the expiration timestamp"
+                    },
+                    {
+                        "name": "reviewReminder",
+                        "type": "Timestamp",
+                        "optional": true,
+                        "comment": "the review reminder timestamp"
                     },
                     {
                         "name": "active",
@@ -964,6 +1027,58 @@
         {
             "StructTypeDef": {
                 "type": "Struct",
+                "name": "TemplateMetaData",
+                "comment": "MetaData for template.",
+                "fields": [
+                    {
+                        "name": "templateName",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "name of the template"
+                    },
+                    {
+                        "name": "description",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "description of the template"
+                    },
+                    {
+                        "name": "currentVersion",
+                        "type": "Int32",
+                        "optional": true,
+                        "comment": "Version from DB(zms_store->domain_template->version)"
+                    },
+                    {
+                        "name": "latestVersion",
+                        "type": "Int32",
+                        "optional": true,
+                        "comment": "Bumped up version from solutions-template.json when there is a change"
+                    },
+                    {
+                        "name": "keywordsToReplace",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "placeholders in the template roles/policies to replace (ex:_service_)"
+                    },
+                    {
+                        "name": "timestamp",
+                        "type": "Timestamp",
+                        "optional": true,
+                        "comment": "the updated timestamp of the template(solution_templates.json)"
+                    },
+                    {
+                        "name": "autoUpdate",
+                        "type": "Bool",
+                        "optional": true,
+                        "comment": "flag to automatically update the roles/policies that belongs to the template"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
                 "name": "Template",
                 "comment": "Solution Template object defined on the server",
                 "fields": [
@@ -987,6 +1102,12 @@
                         "optional": true,
                         "comment": "list of services defined in this template",
                         "items": "ServiceIdentity"
+                    },
+                    {
+                        "name": "metadata",
+                        "type": "TemplateMetaData",
+                        "optional": true,
+                        "comment": "list of services defined in this template"
                     }
                 ],
                 "closed": false
@@ -1062,6 +1183,23 @@
                 "name": "ServerTemplateList",
                 "comment": "List of solution templates available in the server",
                 "fields": [],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "DomainTemplateDetailsList",
+                "comment": "List of templates with metadata details given a domain",
+                "fields": [
+                    {
+                        "name": "metaData",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "list of template metadata",
+                        "items": "TemplateMetaData"
+                    }
+                ],
                 "closed": false
             }
         },
@@ -3244,6 +3382,44 @@
                     "type": "ResourceError"
                 }
             }
+        },
+        {
+            "type": "DomainRoleMembers",
+            "method": "GET",
+            "path": "/domain/{domainName}/overdue",
+            "comment": "Get members with overdue review",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": true
+            },
+            "expected": "OK",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            },
+            "name": "GetOverdueReview"
         },
         {
             "type": "DomainRoleMembers",
@@ -5964,6 +6140,40 @@
                     "name": "template",
                     "type": "SimpleName",
                     "comment": "name of the solution template",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": true
+            },
+            "expected": "OK",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                }
+            }
+        },
+        {
+            "type": "DomainTemplateDetailsList",
+            "method": "GET",
+            "path": "/domain/{name}/templatedetails",
+            "comment": "Get a list of Solution templates with meta data details given a domain name",
+            "inputs": [
+                {
+                    "name": "name",
+                    "type": "DomainName",
+                    "comment": "List of templates given a domain name",
                     "pathParam": true,
                     "optional": false,
                     "flag": false

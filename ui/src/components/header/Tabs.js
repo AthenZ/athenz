@@ -36,6 +36,10 @@ export default class Tabs extends React.Component {
             name: 'policies',
         },
         {
+            label: 'Templates',
+            name: 'templates',
+        },
+        {
             label: 'History',
             name: 'history',
         },
@@ -85,6 +89,18 @@ export default class Tabs extends React.Component {
                     .getStatus()
                     .then(function() {
                         Router.pushRoute('history', { domain });
+                    })
+                    .catch((err) => {
+                        if (err.statusCode === 0) {
+                            window.location.reload();
+                        }
+                    });
+                break;
+            case 'templates':
+                this.props.api
+                    .getStatus()
+                    .then(function() {
+                        Router.pushRoute('template', { domain });
                     })
                     .catch((err) => {
                         if (err.statusCode === 0) {

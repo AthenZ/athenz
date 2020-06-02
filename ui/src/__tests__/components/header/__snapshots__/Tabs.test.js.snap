@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Tabs should render 1`] = `
-.emotion-4 {
+.emotion-5 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -10,13 +10,13 @@ exports[`Tabs should render 1`] = `
   border-radius: 2px;
   box-sizing: border-box;
   display: inline-grid;
-  grid-template-columns: repeat(4,1fr);
+  grid-template-columns: repeat(5,1fr);
   margin-top: 0;
   min-width: 80px;
   position: relative;
 }
 
-.emotion-4.vertical {
+.emotion-5.vertical {
   background: #f5f8fe;
   display: -webkit-box;
   display: -webkit-flex;
@@ -95,7 +95,7 @@ exports[`Tabs should render 1`] = `
 }
 
 <div
-  class="emotion-4 denali-tab-group"
+  class="emotion-5 denali-tab-group"
   data-testid="tabgroup"
 >
   <div
@@ -115,6 +115,12 @@ exports[`Tabs should render 1`] = `
     data-active="false"
   >
     Policies
+  </div>
+  <div
+    class="emotion-0 denali-tab"
+    data-active="false"
+  >
+    Templates
   </div>
   <div
     class="emotion-0 denali-tab active"

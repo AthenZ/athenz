@@ -966,6 +966,21 @@ export default (req) => {
             });
         },
 
+        getDomainTemplateDetailsList(name) {
+            return new Promise((resolve, reject) => {
+                fetchr
+                    .read('templates')
+                    .params({ name })
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
+            });
+        },
+
         getAuthOptions() {
             return new Promise((resolve, reject) => {
                 fetchr
@@ -1001,6 +1016,26 @@ export default (req) => {
                 fetchr
                     .read('service-page-config')
                     .params()
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
+            });
+        },
+
+        updateTemplate(params, _csrf) {
+            return new Promise((resolve, reject) => {
+                fetchr.updateOptions({
+                    context: {
+                        _csrf: _csrf,
+                    },
+                });
+                fetchr
+                    .create('provider')
+                    .params(params)
                     .end((err, data) => {
                         if (err) {
                             reject(err);

@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`PolicyPage should render 1`] = `
+exports[`Template Page should render 1`] = `
 .emotion-11 {
   -webkit-align-items: center;
   -webkit-box-align: center;
@@ -686,26 +686,15 @@ exports[`PolicyPage should render 1`] = `
   margin: 20px;
 }
 
-.emotion-41 {
-  padding-bottom: 20px;
-}
-
-.emotion-40 {
-  color: #3570f4;
-  -webkit-text-decoration: none;
-  text-decoration: none;
-  cursor: pointer;
-}
-
 .emotion-46 {
   width: 100%;
   border-spacing: 0;
   display: table;
   border-collapse: separate;
-  border-color: grey;
+  border-color: #9a9a9a;
 }
 
-.emotion-42 {
+.emotion-40 {
   text-align: left;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -718,7 +707,7 @@ exports[`PolicyPage should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-44 {
+.emotion-42 {
   text-align: center;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -826,7 +815,7 @@ exports[`PolicyPage should render 1`] = `
 }
 
 <div
-  data-testid="policy"
+  data-testid="template"
 >
   <div
     class="emotion-12"
@@ -960,7 +949,7 @@ exports[`PolicyPage should render 1`] = `
             <div
               class="emotion-13"
             >
-              home.pgote
+              home.test
             </div>
             <div
               class="emotion-32"
@@ -1067,14 +1056,14 @@ exports[`PolicyPage should render 1`] = `
                 Services
               </div>
               <div
-                class="emotion-33 denali-tab active"
-                data-active="true"
+                class="emotion-33 denali-tab"
+                data-active="false"
               >
                 Policies
               </div>
               <div
-                class="emotion-33 denali-tab"
-                data-active="false"
+                class="emotion-33 denali-tab active"
+                data-active="true"
               >
                 Templates
               </div>
@@ -1088,42 +1077,42 @@ exports[`PolicyPage should render 1`] = `
           </div>
           <div
             class="emotion-47"
-            data-testid="policylist"
+            data-testid="template-list"
           >
-            <div
-              class="emotion-41"
-            >
-              <a
-                class="emotion-40"
-              >
-                Add Policy
-              </a>
-              
-            </div>
             <table
               class="emotion-46"
             >
               <thead>
                 <tr>
                   <th
-                    class="emotion-42"
+                    class="emotion-40"
                   >
-                    Policy
+                    TEMPLATE
+                  </th>
+                  <th
+                    class="emotion-40"
+                  >
+                    INFO
                   </th>
                   <th
                     class="emotion-42"
                   >
-                    Modified Date
+                    CURRENT VERSION
                   </th>
                   <th
-                    class="emotion-44"
+                    class="emotion-42"
                   >
-                    Rules
+                    LATEST VERSION
                   </th>
                   <th
-                    class="emotion-44"
+                    class="emotion-42"
                   >
-                    Delete
+                    UPDATED DATE
+                  </th>
+                  <th
+                    class="emotion-42"
+                  >
+                    UPDATE VERSION
                   </th>
                 </tr>
               </thead>
