@@ -99,16 +99,9 @@ public class FileCertRecordStoreConnection implements CertRecordStoreConnection 
     }
 
     @Override
-    public boolean updateUnrefreshedCertificatesNotificationTimestamp(String lastNotifiedServer,
-                                                                      long lastNotifiedTime,
-                                                                      String provider) {
-        // Currently unimplemented for File
-        return false;
-    }
-
-    @Override
-    public List<X509CertRecord> getNotifyUnrefreshedCertificates(String lastNotifiedServer,
-                                                                 long lastNotifiedTime) {
+    public List<X509CertRecord> updateUnrefreshedCertificatesNotificationTimestamp(String lastNotifiedServer,
+                                                                                   long lastNotifiedTime,
+                                                                                   String provider) {
         // Currently unimplemented for File
         return new ArrayList<>();
     }

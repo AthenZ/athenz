@@ -1265,17 +1265,13 @@ public class InstanceCertManagerTest {
         Mockito.when(certConnection.updateUnrefreshedCertificatesNotificationTimestamp(
                 eq(lastNotifiedServer),
                 anyLong(), eq(provider)))
-                .thenReturn(true)
-                .thenReturn(false);
-        Mockito.when(certConnection.getNotifyUnrefreshedCertificates(eq(lastNotifiedServer), anyLong()))
                 .thenReturn(x509CertRecords);
+
         instance.setCertStore(certStore);
 
-        // Assert that unrefreshed certificates will return only if at least 1 row was updated
         List<X509CertRecord> unrefreshedCertificateNotifications = instance.getUnrefreshedCertsNotifications(lastNotifiedServer, provider);
         assertEquals(unrefreshedCertificateNotifications.get(0).getHostName(), "testHost");
-        unrefreshedCertificateNotifications = instance.getUnrefreshedCertsNotifications(lastNotifiedServer, provider);
-        assertEquals(unrefreshedCertificateNotifications, new ArrayList<>());
+
         instance.shutdown();
     }
 

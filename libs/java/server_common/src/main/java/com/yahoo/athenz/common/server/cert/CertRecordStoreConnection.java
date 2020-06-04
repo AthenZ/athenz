@@ -73,21 +73,13 @@ public interface CertRecordStoreConnection extends Closeable {
     int deleteExpiredX509CertRecords(int expiryTimeMins);
 
     /**
-     * Update lastNotifiedServer and lastNotifiedTime for certificate that failed to refresh for more than one day.
+     * List all certificates that failed to refresh for more than three days.
      * @param lastNotifiedServer
      * @param lastNotifiedTime
      * @param provider
-     * @return True if at least one certificate record was updated (needs notification to be sent)
+     * @return List of certificates that failed to refresh
      */
-    boolean updateUnrefreshedCertificatesNotificationTimestamp(String lastNotifiedServer,
-                                                               long lastNotifiedTime,
-                                                               String provider);
-
-    /**
-     * List all certificates that failed to refresh and require notifications to be sent
-     * @param lastNotifiedServer
-     * @param lastNotifiedTime
-     * @return List of unrefreshed certificate records that need to be modified
-     */
-    List<X509CertRecord> getNotifyUnrefreshedCertificates(String lastNotifiedServer, long lastNotifiedTime);
+    List<X509CertRecord> updateUnrefreshedCertificatesNotificationTimestamp(String lastNotifiedServer,
+                                                                            long lastNotifiedTime,
+                                                                            String provider);
 }

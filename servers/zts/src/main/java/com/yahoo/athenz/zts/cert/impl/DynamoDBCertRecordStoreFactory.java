@@ -33,8 +33,13 @@ public class DynamoDBCertRecordStoreFactory implements CertRecordStoreFactory {
             throw new ResourceException(ResourceException.SERVICE_UNAVAILABLE, "DynamoDB table name not specified");
         }
 
+        final String indexName = System.getProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_INDEX_CURRENT_TIME_NAME);
+        if (indexName == null || indexName.isEmpty()) {
+            throw new ResourceException(ResourceException.SERVICE_UNAVAILABLE, "DynamoDB index current-time not specified");
+        }
+
         AmazonDynamoDB client = getDynamoDBClient();
-        return new DynamoDBCertRecordStore(client, tableName);
+        return new DynamoDBCertRecordStore(client, tableName, indexName);
     }
 
     AmazonDynamoDB getDynamoDBClient() {
