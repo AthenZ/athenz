@@ -15,19 +15,19 @@
  */
 package com.yahoo.athenz.zts.cert.impl;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import com.amazonaws.services.dynamodbv2.document.*;
+import com.amazonaws.services.dynamodbv2.document.utils.ValueMap;
+import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.ScanRequest;
+import com.amazonaws.services.dynamodbv2.model.ScanResult;
 import com.yahoo.athenz.common.server.cert.CertRecordStoreConnection;
 import com.yahoo.athenz.common.server.cert.X509CertRecord;
 import com.yahoo.athenz.zts.ZTSConsts;
 
 
-import com.amazonaws.services.dynamodbv2.document.Item;
-import com.amazonaws.services.dynamodbv2.document.Table;
-import com.amazonaws.services.dynamodbv2.document.DynamoDB;
-import com.amazonaws.services.dynamodbv2.document.AttributeUpdate;
 import com.amazonaws.services.dynamodbv2.document.spec.DeleteItemSpec;
 import com.amazonaws.services.dynamodbv2.document.spec.UpdateItemSpec;
 
@@ -62,9 +62,11 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
     private static long expiryTime = 3660 * Long.parseLong(
             System.getProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_ITEM_TTL_HOURS, "720"));
     private Table table;
+    private AmazonDynamoDB amazonDynamoDBClient;
 
-    public DynamoDBCertRecordStoreConnection(DynamoDB dynamoDB, final String tableName) {
-        table = dynamoDB.getTable(tableName);
+    public DynamoDBCertRecordStoreConnection(AmazonDynamoDB amazonDynamoDBClient, DynamoDB dynamoDB, final String tableName) {
+        this.table = dynamoDB.getTable(tableName);
+        this.amazonDynamoDBClient = amazonDynamoDBClient;
     }
 
     @Override
@@ -85,26 +87,30 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
                 LOGGER.error("DynamoDB Get Error for {}: item not found", primaryKey);
                 return null;
             }
-            X509CertRecord certRecord = new X509CertRecord();
-            certRecord.setProvider(provider);
-            certRecord.setInstanceId(instanceId);
-            certRecord.setService(service);
-            certRecord.setCurrentSerial(item.getString(KEY_CURRENT_SERIAL));
-            certRecord.setCurrentIP(item.getString(KEY_CURRENT_IP));
-            certRecord.setCurrentTime(getDateFromItem(item, KEY_CURRENT_TIME));
-            certRecord.setPrevSerial(item.getString(KEY_PREV_SERIAL));
-            certRecord.setPrevIP(item.getString(KEY_PREV_IP));
-            certRecord.setPrevTime(getDateFromItem(item, KEY_PREV_TIME));
-            certRecord.setClientCert(item.getBoolean(KEY_CLIENT_CERT));
-            certRecord.setLastNotifiedTime(getDateFromItem(item, KEY_LAST_NOTIFIED_TIME));
-            certRecord.setLastNotifiedServer(item.getString(KEY_LAST_NOTIFIED_SERVER));
-            certRecord.setExpiryTime(getDateFromItem(item, KEY_EXPIRY_TIME));
-            certRecord.setHostName(item.getString(KEY_HOSTNAME));
-            return certRecord;
+            return itemToX509CertRecord(item);
         } catch (Exception ex) {
             LOGGER.error("DynamoDB Get Error for {}: {}/{}", primaryKey, ex.getClass(), ex.getMessage());
             return null;
         }
+    }
+
+    private X509CertRecord itemToX509CertRecord(Item item) {
+        X509CertRecord certRecord = new X509CertRecord();
+        certRecord.setProvider(item.getString(KEY_PROVIDER));
+        certRecord.setInstanceId(item.getString(KEY_INSTANCE_ID));
+        certRecord.setService(item.getString(KEY_SERVICE));
+        certRecord.setCurrentSerial(item.getString(KEY_CURRENT_SERIAL));
+        certRecord.setCurrentIP(item.getString(KEY_CURRENT_IP));
+        certRecord.setCurrentTime(getDateFromItem(item, KEY_CURRENT_TIME));
+        certRecord.setPrevSerial(item.getString(KEY_PREV_SERIAL));
+        certRecord.setPrevIP(item.getString(KEY_PREV_IP));
+        certRecord.setPrevTime(getDateFromItem(item, KEY_PREV_TIME));
+        certRecord.setClientCert(item.getBoolean(KEY_CLIENT_CERT));
+        certRecord.setLastNotifiedTime(getDateFromItem(item, KEY_LAST_NOTIFIED_TIME));
+        certRecord.setLastNotifiedServer(item.getString(KEY_LAST_NOTIFIED_SERVER));
+        certRecord.setExpiryTime(getDateFromItem(item, KEY_EXPIRY_TIME));
+        certRecord.setHostName(item.getString(KEY_HOSTNAME));
+        return certRecord;
     }
 
     private Date getDateFromItem(Item item, String key) {
@@ -142,7 +148,6 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
                             new AttributeUpdate(KEY_PREV_SERIAL).put(certRecord.getPrevSerial()),
                             new AttributeUpdate(KEY_PREV_IP).put(certRecord.getPrevIP()),
                             new AttributeUpdate(KEY_PREV_TIME).put(getLongFromDate(certRecord.getPrevTime())),
-                            new AttributeUpdate(KEY_CLIENT_CERT).put(certRecord.getClientCert()),
                             new AttributeUpdate(KEY_TTL).put(certRecord.getCurrentTime().getTime() / 1000L + expiryTime),
                             new AttributeUpdate(KEY_EXPIRY_TIME).put(getLongFromDate(certRecord.getExpiryTime()))
                     );
@@ -213,17 +218,71 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
     public boolean updateUnrefreshedCertificatesNotificationTimestamp(String lastNotifiedServer,
                                                                       long lastNotifiedTime,
                                                                       String provider) {
-        // Currently unimplemented for AWS
-        return false;
+        try {
+            ScanResult result = getRecordsWithUnrefreshedCerts(lastNotifiedTime, provider);
+            tryUpdateRecords(lastNotifiedServer, lastNotifiedTime, result);
+        } catch (Exception ex) {
+            LOGGER.error("DynamoDB updateUnrefreshedCertificatesNotificationTimestamp Error: {}/{}", ex.getClass(), ex.getMessage());
+            return false;
+        }
+
+        return true;
     }
 
     @Override
     public List<X509CertRecord> getNotifyUnrefreshedCertificates(String lastNotifiedServer, long lastNotifiedTime) {
-        // Currently unimplemented for AWS
-        return new ArrayList<>();
+
+        Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
+        expressionAttributeValues.put(":lastNotifiedServerVal", new AttributeValue().withS(lastNotifiedServer));
+        expressionAttributeValues.put(":lastNotifiedTimeVal", new AttributeValue().withN(Long.toString(lastNotifiedTime)));
+
+        ScanRequest scanRequest = new ScanRequest()
+                .withTableName(table.getTableName())
+                .withFilterExpression("lastNotifiedServer = :lastNotifiedServerVal and lastNotifiedTime = :lastNotifiedTimeVal")
+                .withExpressionAttributeValues(expressionAttributeValues);
+        ScanResult result = amazonDynamoDBClient.scan(scanRequest);
+
+        List<X509CertRecord> unrefreshedCerts = new ArrayList<>();
+        try {
+            for (Map<String, AttributeValue> itemMap : result.getItems()) {
+                Item item = ItemUtils.toItem(itemMap);
+                unrefreshedCerts.add(itemToX509CertRecord(item));
+            }
+        } catch (Exception ex) {
+            LOGGER.error("DynamoDB getNotifyUnrefreshedCertificates item conversion Error: {}/{}", ex.getClass(), ex.getMessage());
+            return new ArrayList<>();
+        }
+
+        return unrefreshedCerts;
     }
 
     private String getPrimaryKey(final String provider, final String instanceId, final String service) {
         return provider + ":" + service + ":" + instanceId;
+    }
+
+    private void tryUpdateRecords(String lastNotifiedServer, long lastNotifiedTime, ScanResult result) {
+        for (Map<String, AttributeValue> item : result.getItems()) {
+            UpdateItemSpec updateItemSpec = new UpdateItemSpec().withPrimaryKey(KEY_PRIMARY, item.get(KEY_PRIMARY).getS())
+                    .withUpdateExpression("set lastNotifiedTime = :lastNotifiedTimeVal, lastNotifiedServer = :lastNotifiedServerVal")
+                    .withValueMap(new ValueMap()
+                            .with(":lastNotifiedTimeVal", lastNotifiedTime)
+                            .withString(":lastNotifiedServerVal", lastNotifiedServer));
+
+            table.updateItem(updateItemSpec);
+        }
+    }
+
+    private ScanResult getRecordsWithUnrefreshedCerts(long lastNotifiedTime, String provider) {
+        long threeDaysAgo = lastNotifiedTime - 3 * 24 * 60 * 60 * 1000;
+
+        Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
+        expressionAttributeValues.put(":providerVal", new AttributeValue().withS(provider));
+        expressionAttributeValues.put(":threeDaysAgo", new AttributeValue().withN(Long.toString(threeDaysAgo)));
+
+        ScanRequest scanRequest = new ScanRequest()
+                .withTableName(table.getTableName())
+                .withFilterExpression("provider = :providerVal and not (lastNotifiedTime > :threeDaysAgo) and attribute_exists(hostName)")
+                .withExpressionAttributeValues(expressionAttributeValues);
+        return amazonDynamoDBClient.scan(scanRequest);
     }
 }
