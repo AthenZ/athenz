@@ -4695,10 +4695,9 @@ public class DBService {
         }
     }
 
-    Map<String, List<String>> getDomainNamesFromTemplate(Map<String, Integer> templateDetails) {
-
-        final String caller = "getDomainNamesFromTemplate";
-        final String auditRef = "";
+    Map<String, List<String>> applyTemplatesForListOfDomains(Map<String, Integer> templateDetails) {
+        final String caller = "applyTemplatesForListOfDomains";
+        final String auditRef = "AutoApplyTemplate";
         Map<String, List<String>> domainTemplateListMap;
         DomainTemplate domainTemplate = new DomainTemplate();
         try (ObjectStoreConnection con = store.getConnection(true, false)) {

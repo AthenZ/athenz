@@ -69,8 +69,7 @@ import java.security.PublicKey;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -698,7 +697,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     void loadObjectStore() {
-
         String objFactoryClass = System.getProperty(ZMSConsts.ZMS_PROP_OBJECT_STORE_FACTORY_CLASS,
                 ZMSConsts.ZMS_OBJECT_STORE_FACTORY_CLASS);
         ObjectStoreFactory objFactory;
@@ -901,7 +899,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             for (String templateName : serverSolutionTemplates.getTemplates().keySet()) {
                 Template template = serverSolutionTemplates.get(templateName);
                 if (template.getMetadata().getAutoUpdate()
-                        && template.getMetadata().getKeywordsToReplace() == "") {
+                        && template.getMetadata().getKeywordsToReplace().isEmpty()) {
                     eligibleTemplatesForAutoUpdate.put(templateName, template.getMetadata().getLatestVersion());
                 }
             }
@@ -909,18 +907,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     void autoApplyTemplates() {
-
-        if (Boolean.parseBoolean(System.getProperty(ZMSConsts.ZMS_AUTO_UPDATE_TEMPLATE_FEATURE_FLAG, "false"))) {
-            if (LOG.isInfoEnabled()) {
-                LOG.debug("List of eligible templates with version to apply .. {}", eligibleTemplatesForAutoUpdate);
-            }
-            Map<String, List<String>> domainTemplateUpdateMapping = dbService.getDomainNamesFromTemplate(eligibleTemplatesForAutoUpdate);
-
-            if (LOG.isInfoEnabled()) {
-                for (String domainName : domainTemplateUpdateMapping.keySet()) {
-                    LOG.info("List of templates applied against domain {} {}", domainName, domainTemplateUpdateMapping.get(domainName));
-                }
-            }
+        if (Boolean.parseBoolean(System.getProperty(ZMSConsts.ZMS_AUTO_UPDATE_TEMPLATE_FEATURE_FLAG, "false"))
+                && !eligibleTemplatesForAutoUpdate.isEmpty()) {
+            ExecutorService executor = Executors.newSingleThreadExecutor();
+            executor.execute(new AutoApplyTemplate(eligibleTemplatesForAutoUpdate));
+            executor.shutdown();
         }
     }
 
@@ -8024,6 +8015,27 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             Set<String> attrSet = userAuthority.dateAttributesSupported();
             if (!attrSet.contains(authorityExpiration)) {
                 throw ZMSUtils.requestError(authorityExpiration + " is not a valid user authority date attribute", caller);
+            }
+        }
+    }
+
+    class AutoApplyTemplate implements Runnable {
+        Map<String, Integer> eligibleTemplatesForAutoUpdate;
+
+        public AutoApplyTemplate(Map<String, Integer> eligibleTemplatesForAutoUpdate) {
+            this.eligibleTemplatesForAutoUpdate = eligibleTemplatesForAutoUpdate;
+        }
+
+        @Override
+        public void run() {
+            if (LOG.isInfoEnabled()) {
+                LOG.info("List of eligible templates with version to apply .. {}", eligibleTemplatesForAutoUpdate);
+            }
+            Map<String, List<String>> domainTemplateUpdateMapping = dbService.applyTemplatesForListOfDomains(eligibleTemplatesForAutoUpdate);
+            if (LOG.isInfoEnabled()) {
+                for (String domainName : domainTemplateUpdateMapping.keySet()) {
+                    LOG.info("List of templates applied against domain {} {}", domainName, domainTemplateUpdateMapping.get(domainName));
+                }
             }
         }
     }

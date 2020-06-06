@@ -7004,7 +7004,7 @@ public class DBServiceTest {
         DomainTemplate domainTemplate = new DomainTemplate().setTemplateNames(templates);
         zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
 
-        Map<String, List<String>> domainTemplateUpdateMapping = zms.dbService.getDomainNamesFromTemplate(templateVersionMapping);
+        Map<String, List<String>> domainTemplateUpdateMapping = zms.dbService.applyTemplatesForListOfDomains(templateVersionMapping);
         assertEquals(domainTemplateUpdateMapping.size(), 1);
         for (String domain : domainTemplateUpdateMapping.keySet()) {
             assertEquals(templates , domainTemplateUpdateMapping.get(domain));

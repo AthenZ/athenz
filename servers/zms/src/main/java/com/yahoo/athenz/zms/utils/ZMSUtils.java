@@ -17,7 +17,6 @@ package com.yahoo.athenz.zms.utils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import com.yahoo.athenz.auth.Authority;
 import org.slf4j.Logger;
@@ -413,16 +412,4 @@ public class ZMSUtils {
         }
     }
 
-    // To avoid firing multiple queries against DB, this function will generate 1 consolidated query for all domains->templates combination
-    public static String generateDomainTemplateVersionQuery(Map<String, Integer> templateNameAndLatestVersion) {
-        StringBuilder query = new StringBuilder("SELECT domain.name, domain_template.template FROM domain_template " +
-                "JOIN domain ON domain_template.domain_id=domain.domain_id WHERE ");
-
-        for (String templateName : templateNameAndLatestVersion.keySet()) {
-            query.append("(domain_template.template = '" + templateName + "' and current_version < " + templateNameAndLatestVersion.get(templateName) + ") OR ");
-        }
-        //To remove the last occurence of "OR" from the generated query
-        query.delete(query.lastIndexOf(") OR"), query.lastIndexOf("OR") + 3).append(");");
-        return query.toString();
-    }
 }
