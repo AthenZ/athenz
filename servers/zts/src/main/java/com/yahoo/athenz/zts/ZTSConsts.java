@@ -195,4 +195,6 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_NOTIFICATION_CERT_FAIL_IGNORED_SERVICES_LIST = "athenz.zts.notification_cert_fail_ignored_services_list";
 
     public static final String ZTS_JSON_PARSER_ERROR_RESPONSE = "{\"code\":400,\"message\":\"Invalid Object: checkout https://github.com/yahoo/athenz/tree/master/core/zts/src/main/rdl for object defintions\"}";
+
+    public static final String ZTS_PROP_STATUS_CHECKER_FACTORY_CLASS = "athenz.zts.status_checker_factory_class";
 }

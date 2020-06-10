@@ -45,6 +45,8 @@ import com.yahoo.athenz.zms.Assertion;
 import com.yahoo.athenz.zms.AssertionEffect;
 import com.yahoo.athenz.zms.Policy;
 import com.yahoo.athenz.zms.ServiceIdentity;
+import com.yahoo.athenz.zts.status.MockStatusCheckerFalse;
+import com.yahoo.athenz.zts.status.MockStatusCheckerTrue;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
@@ -8047,6 +8049,45 @@ public class ZTSImplTest {
         }
 
         System.clearProperty(ZTSConsts.ZTS_PROP_HEALTH_CHECK_PATH);
+    }
+
+    @Test
+    public void testGetStatusWithStatusChecker() {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+
+        DataStore store = new DataStore(structStore, null);
+
+        Principal principal = SimplePrincipal.create("user_domain", "user1",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        // if the MockStatusCheckerTrue is set
+        // the MockStatusCheckerTrue determines the server is healthy
+
+        System.setProperty(ZTSConsts.ZTS_PROP_STATUS_CHECKER_FACTORY_CLASS, MockStatusCheckerTrue.class.getName());
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+        ztsImpl.statusPort = 0;
+
+        Status status = ztsImpl.getStatus(context);
+        assertEquals(ResourceException.OK, status.getCode());
+
+        // if the MockStatusCheckerFalse is set
+        // the MockStatusCheckerFalse determines that there is a problem with the server
+
+        System.setProperty(ZTSConsts.ZTS_PROP_STATUS_CHECKER_FACTORY_CLASS, MockStatusCheckerFalse.class.getName());
+        ztsImpl = new ZTSImpl(mockCloudStore, store);
+        ztsImpl.statusPort = 0;
+
+        try {
+            ztsImpl.getStatus(context);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ResourceException.NOT_FOUND, ex.getCode());
+        }
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_STATUS_CHECKER_FACTORY_CLASS);
     }
 
     @Test

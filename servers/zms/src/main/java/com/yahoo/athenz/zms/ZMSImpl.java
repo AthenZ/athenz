@@ -30,6 +30,8 @@ import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
 import com.yahoo.athenz.common.server.rest.Http;
 import com.yahoo.athenz.common.server.rest.Http.AuthorityList;
+import com.yahoo.athenz.common.server.status.StatusChecker;
+import com.yahoo.athenz.common.server.status.StatusCheckerFactory;
 import com.yahoo.athenz.common.server.util.ConfigProperties;
 import com.yahoo.athenz.common.server.util.ServletRequestUtil;
 import com.yahoo.athenz.common.server.util.StringUtils;
@@ -180,6 +182,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected AuditReferenceValidator auditReferenceValidator = null;
     protected NotificationManager notificationManager = null;
     protected ObjectMapper jsonMapper;
+    protected StatusChecker statusChecker = null;
 
     // enum to represent our access response since in some cases we want to
     // handle domain not founds differently instead of just returning failure
@@ -496,6 +499,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // Initialize Notification Manager
 
         setNotificationManager();
+
+        // load the StatusChecker
+
+        loadStatusChecker();
     }
 
     private void setNotificationManager() {
@@ -913,6 +920,26 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             LOG.error("Generating empty authorized service list...");
             serverAuthorizedServices = new AuthorizedServices();
             serverAuthorizedServices.setTemplates(new HashMap<>());
+        }
+    }
+
+    void loadStatusChecker() {
+        final String statusCheckerFactoryClass = System.getProperty(ZMSConsts.ZMS_PROP_STATUS_CHECKER_FACTORY_CLASS);
+        StatusCheckerFactory statusCheckerFactory;
+
+        if (statusCheckerFactoryClass != null && !statusCheckerFactoryClass.isEmpty()) {
+
+            try {
+                statusCheckerFactory = (StatusCheckerFactory) Class.forName(statusCheckerFactoryClass).newInstance();
+            } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+                LOG.error("Invalid StatusCheckerFactory class: " + statusCheckerFactoryClass
+                        + " error: " + e.getMessage());
+                throw new IllegalArgumentException("Invalid status checker factory class");
+            }
+
+            // create our status checker
+
+            statusChecker = statusCheckerFactory.create();
         }
     }
 
@@ -7415,6 +7442,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         if (healthCheckFile != null && !healthCheckFile.exists()) {
             throw ZMSUtils.notFoundError("Error - no status available", caller);
+        }
+
+        // if the StatusChecker is set, check the server status
+
+        if (statusChecker != null && !statusChecker.check()) {
+            throw ZMSUtils.notFoundError("Error - status check failed", caller);
         }
 
         metric.stopTiming(timerMetric, null, principalDomain);

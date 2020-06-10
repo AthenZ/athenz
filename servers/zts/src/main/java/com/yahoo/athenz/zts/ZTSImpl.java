@@ -37,6 +37,8 @@ import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.dns.HostnameResolverFactory;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
 import com.yahoo.athenz.common.server.ssh.SSHCertRecord;
+import com.yahoo.athenz.common.server.status.StatusChecker;
+import com.yahoo.athenz.common.server.status.StatusCheckerFactory;
 import com.yahoo.athenz.zms.RoleMeta;
 import com.yahoo.athenz.zts.cert.*;
 import com.yahoo.athenz.zts.notification.ZTSNotificationTaskFactory;
@@ -182,7 +184,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected ZTSAuthorizer authorizer;
     protected static Validator validator;
     protected NotificationManager notificationManager = null;
-    
+    protected StatusChecker statusChecker = null;
+
     enum AthenzObject {
         DOMAIN_METRICS {
             void convertToLowerCase(Object obj) {
@@ -312,6 +315,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         setAuthorityKeyStore();
 
         setNotificationManager();
+
+        // load the StatusChecker
+
+        loadStatusChecker();
     }
 
     private void setNotificationManager() {
@@ -659,7 +666,27 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         auditLogger = auditLogFactory.create();
     }
-    
+
+    void loadStatusChecker() {
+        final String statusCheckerFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_STATUS_CHECKER_FACTORY_CLASS);
+        StatusCheckerFactory statusCheckerFactory;
+
+        if (statusCheckerFactoryClass != null && !statusCheckerFactoryClass.isEmpty()) {
+
+            try {
+                statusCheckerFactory = (StatusCheckerFactory) Class.forName(statusCheckerFactoryClass).newInstance();
+            } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+                LOGGER.error("Invalid StatusCheckerFactory class: " + statusCheckerFactoryClass
+                        + " error: " + e.getMessage());
+                throw new IllegalArgumentException("Invalid status checker factory class");
+            }
+
+            // create our status checker
+
+            statusChecker = statusCheckerFactory.create();
+        }
+    }
+
     AuditLogMsgBuilder getAuditLogMsgBuilder(ResourceContext ctx, String domainName,
             String caller, String method) {
         
@@ -4000,6 +4027,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         if (healthCheckFile != null && !healthCheckFile.exists()) {
             throw notFoundError("Error - no status available", caller,
+                    ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+        }
+
+        // if the statusChecker is set, check the status
+        if (statusChecker != null && !statusChecker.check()) {
+            throw notFoundError("Error - status check failed", caller,
                     ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
 

@@ -35,6 +35,8 @@ import com.yahoo.athenz.auth.impl.*;
 import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
 import com.yahoo.athenz.zms.notification.PutMembershipNotificationTask;
+import com.yahoo.athenz.zms.status.MockStatusCheckerFalse;
+import com.yahoo.athenz.zms.status.MockStatusCheckerTrue;
 import com.yahoo.athenz.zms.store.ObjectStoreConnection;
 import org.mockito.Mockito;
 import org.mockito.Mock;
@@ -15623,6 +15625,36 @@ public class ZMSImplTest {
         }
 
         System.clearProperty(ZMSConsts.ZMS_PROP_HEALTH_CHECK_PATH);
+    }
+
+    @Test
+    public void testGetStatusWithStatusChecker() {
+
+        // if the MockStatusCheckerTrue is set
+        // the MockStatusCheckerTrue determines the server is healthy
+
+        System.setProperty(ZMSConsts.ZMS_PROP_STATUS_CHECKER_FACTORY_CLASS, MockStatusCheckerTrue.class.getName());
+        ZMSImpl zmsImpl = zmsInit();
+        zmsImpl.statusPort = 0;
+
+        Status status = zmsImpl.getStatus(mockDomRsrcCtx);
+        assertEquals(ResourceException.OK, status.getCode());
+
+        // if the MockStatusCheckerFalse is set
+        // the MockStatusCheckerFalse determines that there is a problem with the server
+
+        System.setProperty(ZMSConsts.ZMS_PROP_STATUS_CHECKER_FACTORY_CLASS, MockStatusCheckerFalse.class.getName());
+        zmsImpl = zmsInit();
+        zmsImpl.statusPort = 0;
+
+        try {
+            zmsImpl.getStatus(mockDomRsrcCtx);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ResourceException.NOT_FOUND, ex.getCode());
+        }
+
+        System.clearProperty(ZMSConsts.ZMS_PROP_STATUS_CHECKER_FACTORY_CLASS);
     }
 
     @Test

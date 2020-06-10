@@ -283,4 +283,5 @@ public final class ZMSConsts {
     public static final String SYS_AUTH_MONITOR = "sys.auth.monitor";
     public static final String ZMS_PROP_MONITOR_IDENTITY = "athenz.zms.monitor_identity";
 
+    public static final String ZMS_PROP_STATUS_CHECKER_FACTORY_CLASS = "athenz.zms.status_checker_factory_class";
 }
