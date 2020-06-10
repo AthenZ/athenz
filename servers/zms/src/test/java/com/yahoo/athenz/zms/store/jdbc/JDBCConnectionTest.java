@@ -9380,7 +9380,7 @@ public class JDBCConnectionTest {
                 .thenReturn(templateName2);
 
         Mockito.when(mockResultSet.next())
-                .thenReturn(true).thenReturn(true).thenReturn(false); // this one is for domain id
+                .thenReturn(true).thenReturn(true).thenReturn(false);
 
         Mockito.when(mockPrepStmt.executeQuery())
                 .thenReturn(mockResultSet);
@@ -9390,5 +9390,40 @@ public class JDBCConnectionTest {
 
         jdbcConn.close();
 
+    }
+
+    @Test
+    public void testGetDomainFromTemplateNameException() throws Exception {
+
+        Map<String, Integer> templateDetails = new HashMap<>();
+        String templateName1 = "aws";
+        String templateName2 = "aws_bastion";
+        templateDetails.put(templateName1, 1);
+        templateDetails.put(templateName2, 2);
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockPrepStmt.executeQuery()).thenThrow(new SQLException("sql error"));
+        try {
+            jdbcConn.getDomainFromTemplateName(templateDetails);
+            fail();
+        } catch (RuntimeException ex) {
+            assertTrue(ex.getMessage().contains("sql error"));
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGenerateDomainTemplateVersionQuery() throws SQLException {
+        Map<String, Integer> templateDetails = new HashMap<>();
+        String templateName1 = "aws";
+        String templateName2 = "aws_bastion";
+        templateDetails.put(templateName1, 1);
+        templateDetails.put(templateName2, 2);
+        String expectedQuery = "SELECT domain.name, domain_template.template FROM domain_template JOIN domain ON domain_template.domain_id=domain.domain_id WHERE" +
+                " (domain_template.template = 'aws_bastion' and current_version < 2) OR (domain_template.template = 'aws' and current_version < 1);";
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        String generatedQuery = jdbcConn.generateDomainTemplateVersionQuery(templateDetails);
+        assertNotNull(generatedQuery);
+        assertEquals(generatedQuery, expectedQuery);
     }
 }

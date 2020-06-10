@@ -143,7 +143,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected int domainNameMaxLen;
     protected AuthorizedServices serverAuthorizedServices = null;
     protected SolutionTemplates serverSolutionTemplates = null;
-    protected Map<String, Integer> eligibleTemplatesForAutoUpdate = null;
     protected Map<String, String> serverPublicKeyMap = null;
     protected boolean readOnlyMode = false;
     protected boolean validateUserRoleMembers = false;
@@ -894,19 +893,18 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             LOG.error("Generating empty solution template list...");
             serverSolutionTemplates = new SolutionTemplates();
             serverSolutionTemplates.setTemplates(new HashMap<>());
-        } else {
-            eligibleTemplatesForAutoUpdate = new HashMap<>();
-            for (String templateName : serverSolutionTemplates.getTemplates().keySet()) {
-                Template template = serverSolutionTemplates.get(templateName);
-                if (template.getMetadata().getAutoUpdate()
-                        && template.getMetadata().getKeywordsToReplace().isEmpty()) {
-                    eligibleTemplatesForAutoUpdate.put(templateName, template.getMetadata().getLatestVersion());
-                }
-            }
         }
     }
 
     void autoApplyTemplates() {
+        Map<String, Integer> eligibleTemplatesForAutoUpdate = new HashMap<>();
+        for (String templateName : serverSolutionTemplates.getTemplates().keySet()) {
+            Template template = serverSolutionTemplates.get(templateName);
+            if (template.getMetadata().getAutoUpdate()
+                    && template.getMetadata().getKeywordsToReplace().isEmpty()) {
+                eligibleTemplatesForAutoUpdate.put(templateName, template.getMetadata().getLatestVersion());
+            }
+        }
         if (Boolean.parseBoolean(System.getProperty(ZMSConsts.ZMS_AUTO_UPDATE_TEMPLATE_FEATURE_FLAG, "false"))
                 && !eligibleTemplatesForAutoUpdate.isEmpty()) {
             ExecutorService executor = Executors.newSingleThreadExecutor();

@@ -4708,7 +4708,12 @@ public class DBService {
             domainTemplate.setTemplateNames(domainTemplateListMap.get(domainName));
             //Passing null context since it is an internal call during app start up
             //executePutDomainTemplate can bulk apply templates given a domain hence sending domainName and templatelist
-            this.executePutDomainTemplate(null, domainName, domainTemplate, auditRef, caller);
+            try {
+                this.executePutDomainTemplate(null, domainName, domainTemplate, auditRef, caller);
+            } catch (Exception ex) {
+                LOG.error("unable to apply template for domain {} and template {} error: {}", domainName, domainTemplate, ex.getMessage());
+                continue;
+            }
         }
         return domainTemplateListMap;
     }

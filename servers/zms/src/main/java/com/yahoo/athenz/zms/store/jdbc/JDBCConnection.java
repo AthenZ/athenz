@@ -4159,9 +4159,9 @@ public class JDBCConnection implements ObjectStoreConnection {
 
     // To avoid firing multiple queries against DB, this function will generate 1 consolidated query for all domains->templates combination
     public String generateDomainTemplateVersionQuery(Map<String, Integer> templateNameAndLatestVersion) {
-        StringBuilder query = new StringBuilder("SELECT domain.name, domain_template.template FROM domain_template " +
+        StringBuilder query = new StringBuilder();
+        query.append("SELECT domain.name, domain_template.template FROM domain_template " +
                 "JOIN domain ON domain_template.domain_id=domain.domain_id WHERE ");
-
         for (String templateName : templateNameAndLatestVersion.keySet()) {
             query.append("(domain_template.template = '" + templateName + "' and current_version < " + templateNameAndLatestVersion.get(templateName) + ") OR ");
         }

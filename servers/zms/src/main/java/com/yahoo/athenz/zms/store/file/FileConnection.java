@@ -496,7 +496,6 @@ public class FileConnection implements ObjectStoreConnection {
                             if (domainNameTemplateListMap.get(domainName) != null) {
                                 List<String> tempTemplateList = domainNameTemplateListMap.get(domainName);
                                 tempTemplateList.add(meta.getTemplateName());
-                                domainNameTemplateListMap.put(domainName, tempTemplateList);
                             } else {
                                 List<String> templateList = new ArrayList<>();
                                 templateList.add(meta.getTemplateName());
