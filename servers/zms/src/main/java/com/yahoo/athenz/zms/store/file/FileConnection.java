@@ -474,6 +474,43 @@ public class FileConnection implements ObjectStoreConnection {
     }
 
     @Override
+    public Map<String, List<String>> getDomainFromTemplateName(Map<String, Integer> templateNameAndLatestVersion) {
+
+        //Input - templateNameAndLatestVersion (templateName|latestVersion) from template Meta Data
+        //Output - for a given domain if domainstruct.templateMeta list has the template name and if the currentVersion is <= latestVersion..
+        //...return map of domain-> List of templatenames
+
+        Map<String, List<String>> domainNameTemplateListMap = new HashMap<>();
+        List<String> domainNames = listDomains(null, 0);
+        for (String domainName : domainNames) {
+            DomainStruct domainStruct = getDomainStruct(domainName);
+            if (domainStruct == null) {
+                throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", "updateDomainTemplate");
+            }
+            ArrayList<TemplateMetaData> templateMetaList = domainStruct.getTemplateMeta();
+
+            if (templateMetaList != null) {
+                for (TemplateMetaData meta : templateMetaList) {
+                    for (String templateName : templateNameAndLatestVersion.keySet()) {
+                        if (meta.getTemplateName().equals(templateName) && meta.getCurrentVersion() < templateNameAndLatestVersion.get(templateName)) {
+                            if (domainNameTemplateListMap.get(domainName) != null) {
+                                List<String> tempTemplateList = domainNameTemplateListMap.get(domainName);
+                                tempTemplateList.add(meta.getTemplateName());
+                            } else {
+                                List<String> templateList = new ArrayList<>();
+                                templateList.add(meta.getTemplateName());
+                                domainNameTemplateListMap.put(domainName, templateList);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return domainNameTemplateListMap;
+    }
+
+    @Override
     public List<PrincipalRole> listPrincipalRoles(String domainName, String principalName) {
 
         List<PrincipalRole> roles = new ArrayList<>();

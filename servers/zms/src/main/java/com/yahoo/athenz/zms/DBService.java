@@ -4695,6 +4695,29 @@ public class DBService {
         }
     }
 
+    Map<String, List<String>> applyTemplatesForListOfDomains(Map<String, Integer> templateDetails) {
+        final String caller = "applyTemplatesForListOfDomains";
+        final String auditRef = "AutoApplyTemplate";
+        Map<String, List<String>> domainTemplateListMap;
+        DomainTemplate domainTemplate = new DomainTemplate();
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+             domainTemplateListMap = con.getDomainFromTemplateName(templateDetails);
+        }
+
+        for (String domainName : domainTemplateListMap.keySet()) {
+            domainTemplate.setTemplateNames(domainTemplateListMap.get(domainName));
+            //Passing null context since it is an internal call during app start up
+            //executePutDomainTemplate can bulk apply templates given a domain hence sending domainName and templatelist
+            try {
+                this.executePutDomainTemplate(null, domainName, domainTemplate, auditRef, caller);
+            } catch (Exception ex) {
+                LOG.error("unable to apply template for domain {} and template {} error: {}", domainName, domainTemplate, ex.getMessage());
+                continue;
+            }
+        }
+        return domainTemplateListMap;
+    }
+
     void enforceRoleUserAuthorityRestrictions(final String domainName, final String roleName) {
 
         final String caller = "enforceRoleUserAuthorityRestrictions";

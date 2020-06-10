@@ -9358,4 +9358,72 @@ public class JDBCConnectionTest {
         }
         jdbcConn.close();
     }
+
+    @Test
+    public void testGetDomainFromTemplateName() throws Exception {
+        Map<String, Integer> templateDetails = new HashMap<>();
+        templateDetails.put("aws", 1);
+        templateDetails.put("aws_bastion", 2);
+        String domainName = "testdom";
+        String templateName1 = "testtemplate";
+        String templateName2 = "testtemplate2";
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getString("name"))
+                .thenReturn(domainName); // domain name
+        Mockito.when(mockResultSet.getString("template"))
+                .thenReturn(templateName1); // template name
+        Mockito.when(mockResultSet.getString("name"))
+                .thenReturn(domainName);
+        Mockito.when(mockResultSet.getString("template"))
+                .thenReturn(templateName2);
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true).thenReturn(true).thenReturn(false);
+
+        Mockito.when(mockPrepStmt.executeQuery())
+                .thenReturn(mockResultSet);
+
+        Map<String, List<String>> domainTemplateMapping = jdbcConn.getDomainFromTemplateName(templateDetails);
+        assertEquals(domainTemplateMapping.size(), 1);
+
+        jdbcConn.close();
+
+    }
+
+    @Test
+    public void testGetDomainFromTemplateNameException() throws Exception {
+
+        Map<String, Integer> templateDetails = new HashMap<>();
+        String templateName1 = "aws";
+        String templateName2 = "aws_bastion";
+        templateDetails.put(templateName1, 1);
+        templateDetails.put(templateName2, 2);
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockPrepStmt.executeQuery()).thenThrow(new SQLException("sql error"));
+        try {
+            jdbcConn.getDomainFromTemplateName(templateDetails);
+            fail();
+        } catch (RuntimeException ex) {
+            assertTrue(ex.getMessage().contains("sql error"));
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGenerateDomainTemplateVersionQuery() throws SQLException {
+        Map<String, Integer> templateDetails = new HashMap<>();
+        String templateName1 = "aws";
+        String templateName2 = "aws_bastion";
+        templateDetails.put(templateName1, 1);
+        templateDetails.put(templateName2, 2);
+        String expectedQuery = "SELECT domain.name, domain_template.template FROM domain_template JOIN domain ON domain_template.domain_id=domain.domain_id WHERE" +
+                " (domain_template.template = 'aws_bastion' and current_version < 2) OR (domain_template.template = 'aws' and current_version < 1);";
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        String generatedQuery = jdbcConn.generateDomainTemplateVersionQuery(templateDetails);
+        assertNotNull(generatedQuery);
+        assertEquals(generatedQuery, expectedQuery);
+    }
 }

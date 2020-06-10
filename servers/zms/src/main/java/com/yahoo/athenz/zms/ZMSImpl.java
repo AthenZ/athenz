@@ -69,8 +69,7 @@ import java.security.PublicKey;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -496,7 +495,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // Initialize Notification Manager
 
         setNotificationManager();
+
+        //autoupdate templates
+
+        autoApplyTemplates();
     }
+
 
     private void setNotificationManager() {
         ZMSNotificationTaskFactory zmsNotificationTaskFactory = new ZMSNotificationTaskFactory(dbService, userDomainPrefix);
@@ -692,7 +696,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     void loadObjectStore() {
-
         String objFactoryClass = System.getProperty(ZMSConsts.ZMS_PROP_OBJECT_STORE_FACTORY_CLASS,
                 ZMSConsts.ZMS_OBJECT_STORE_FACTORY_CLASS);
         ObjectStoreFactory objFactory;
@@ -875,7 +878,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // get the configured path for the list of service templates
 
-        String solutionTemplatesFname =  System.getProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME,
+        String solutionTemplatesFname = System.getProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME,
                 getRootDir() + "/conf/zms_server/solution_templates.json");
 
         Path path = Paths.get(solutionTemplatesFname);
@@ -890,6 +893,23 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             LOG.error("Generating empty solution template list...");
             serverSolutionTemplates = new SolutionTemplates();
             serverSolutionTemplates.setTemplates(new HashMap<>());
+        }
+    }
+
+    void autoApplyTemplates() {
+        Map<String, Integer> eligibleTemplatesForAutoUpdate = new HashMap<>();
+        for (String templateName : serverSolutionTemplates.getTemplates().keySet()) {
+            Template template = serverSolutionTemplates.get(templateName);
+            if (template.getMetadata().getAutoUpdate()
+                    && template.getMetadata().getKeywordsToReplace().isEmpty()) {
+                eligibleTemplatesForAutoUpdate.put(templateName, template.getMetadata().getLatestVersion());
+            }
+        }
+        if (Boolean.parseBoolean(System.getProperty(ZMSConsts.ZMS_AUTO_UPDATE_TEMPLATE_FEATURE_FLAG, "false"))
+                && !eligibleTemplatesForAutoUpdate.isEmpty()) {
+            ExecutorService executor = Executors.newSingleThreadExecutor();
+            executor.execute(new AutoApplyTemplate(eligibleTemplatesForAutoUpdate));
+            executor.shutdown();
         }
     }
 
@@ -7996,4 +8016,26 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
         }
     }
+
+    class AutoApplyTemplate implements Runnable {
+        Map<String, Integer> eligibleTemplatesForAutoUpdate;
+
+        public AutoApplyTemplate(Map<String, Integer> eligibleTemplatesForAutoUpdate) {
+            this.eligibleTemplatesForAutoUpdate = eligibleTemplatesForAutoUpdate;
+        }
+
+        @Override
+        public void run() {
+            if (LOG.isInfoEnabled()) {
+                LOG.info("List of eligible templates with version to apply .. {}", eligibleTemplatesForAutoUpdate);
+            }
+            Map<String, List<String>> domainTemplateUpdateMapping = dbService.applyTemplatesForListOfDomains(eligibleTemplatesForAutoUpdate);
+            if (LOG.isInfoEnabled()) {
+                for (String domainName : domainTemplateUpdateMapping.keySet()) {
+                    LOG.info("List of templates applied against domain {} {}", domainName, domainTemplateUpdateMapping.get(domainName));
+                }
+            }
+        }
+    }
+
 }

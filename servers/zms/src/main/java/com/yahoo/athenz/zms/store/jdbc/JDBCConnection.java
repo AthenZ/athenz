@@ -870,7 +870,34 @@ public class JDBCConnection implements ObjectStoreConnection {
         Collections.sort(templates);
         return templates;
     }
-    
+
+    @Override
+    public Map<String, List<String>> getDomainFromTemplateName(Map<String, Integer> templateNameAndLatestVersion) {
+        final String caller = "getDomainsFromTemplate";
+        Map<String, List<String>> domainNameTemplateListMap = new HashMap<>();
+
+        try (PreparedStatement ps = con.prepareStatement(generateDomainTemplateVersionQuery(templateNameAndLatestVersion))) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    String domainName = rs.getString(ZMSConsts.DB_COLUMN_NAME);
+                    String templateName = rs.getString(ZMSConsts.DB_COLUMN_TEMPLATE_NAME);
+                    if (domainNameTemplateListMap.get(domainName) != null) {
+                        List<String> tempTemplateList = domainNameTemplateListMap.get(domainName);
+                        tempTemplateList.add(templateName);
+                    } else {
+                        List<String> templateList = new ArrayList<>();
+                        templateList.add(templateName);
+                        domainNameTemplateListMap.put(domainName, templateList);
+                    }
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+
+        return domainNameTemplateListMap;
+    }
+
     int getDomainId(String domainName) {
         return getDomainId(domainName, false);
     }
@@ -4128,6 +4155,19 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
 
         return roles;
+    }
+
+    // To avoid firing multiple queries against DB, this function will generate 1 consolidated query for all domains->templates combination
+    public String generateDomainTemplateVersionQuery(Map<String, Integer> templateNameAndLatestVersion) {
+        StringBuilder query = new StringBuilder();
+        query.append("SELECT domain.name, domain_template.template FROM domain_template " +
+                "JOIN domain ON domain_template.domain_id=domain.domain_id WHERE ");
+        for (String templateName : templateNameAndLatestVersion.keySet()) {
+            query.append("(domain_template.template = '" + templateName + "' and current_version < " + templateNameAndLatestVersion.get(templateName) + ") OR ");
+        }
+        //To remove the last occurence of "OR" from the generated query
+        query.delete(query.lastIndexOf(") OR"), query.lastIndexOf("OR") + 3).append(");");
+        return query.toString();
     }
 
     RuntimeException notFoundError(String caller, String objectType, String objectName) {

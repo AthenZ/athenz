@@ -52,7 +52,7 @@
                 "timestamp": "2020-04-28T00:00:00.000Z",
                 "description": "platforms template",
                 "keywordsToReplace": "",
-                "autoUpdate": "false"
+                "autoUpdate": "true"
             },
         "roles": [
             {
@@ -110,8 +110,8 @@
                 "latestVersion": 10,
                 "timestamp": "2020-04-28T00:00:00.000Z",
                 "description": "User provisioning template ",
-                "keywordsToReplace": "",
-                "autoUpdate": "false"
+                "keywordsToReplace": "_track_,_input_",
+                "autoUpdate": "true"
             },
         "roles": [
             {
