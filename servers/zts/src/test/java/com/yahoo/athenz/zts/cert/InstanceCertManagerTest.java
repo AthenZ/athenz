@@ -13,7 +13,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.athenz.common.server.cert.CertRecordStore;
 import com.yahoo.athenz.common.server.cert.CertRecordStoreConnection;
 import com.yahoo.athenz.common.server.cert.X509CertRecord;
+import com.yahoo.athenz.common.server.db.RolesProvider;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
+import com.yahoo.athenz.common.server.notification.NotificationManager;
 import com.yahoo.athenz.common.server.ssh.SSHCertRecord;
 import com.yahoo.athenz.common.server.ssh.SSHRecordStore;
 import com.yahoo.athenz.common.server.ssh.SSHRecordStoreConnection;
@@ -1509,5 +1511,21 @@ public class InstanceCertManagerTest {
         assertNull(instance.getSSHCertRecord("id", "athenz.api"));
 
         instance.shutdown();
+    }
+
+    @Test
+    public void testeEnableCertStoreNotifications() {
+        InstanceCertManager instance = new InstanceCertManager(null, null, null, true);
+        boolean isEnabled = instance.enableCertStoreNotifications(null, null, null);
+        assertFalse(isEnabled);
+
+        CertRecordStore certStore = Mockito.mock(CertRecordStore.class);
+        Mockito.when(certStore.enableNotifications(any(), any(), any())).thenReturn(true);
+        instance.setCertStore(certStore);
+
+        NotificationManager notificationManager = Mockito.mock(NotificationManager.class);
+        RolesProvider rolesProvider = Mockito.mock(RolesProvider.class);
+        isEnabled = instance.enableCertStoreNotifications(notificationManager, rolesProvider, "testServer");
+        assertTrue(isEnabled);
     }
 }

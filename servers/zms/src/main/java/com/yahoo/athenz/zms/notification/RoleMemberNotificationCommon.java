@@ -16,6 +16,7 @@
 
 package com.yahoo.athenz.zms.notification;
 
+import com.yahoo.athenz.common.server.notification.DomainRoleMembersFetcher;
 import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.notification.NotificationCommon;
 import com.yahoo.athenz.common.server.notification.NotificationToEmailConverter;
@@ -36,8 +37,8 @@ public class RoleMemberNotificationCommon {
     private final NotificationCommon notificationCommon;
 
     public RoleMemberNotificationCommon(DBService dbService, String userDomainPrefix) {
-        ZMSDomainRoleMembersFetcher zmsDomainRoleMembersFetcher = new ZMSDomainRoleMembersFetcher(dbService, userDomainPrefix);
-        this.notificationCommon = new NotificationCommon(zmsDomainRoleMembersFetcher, userDomainPrefix);
+        DomainRoleMembersFetcher domainRoleMembersFetcher = new DomainRoleMembersFetcher(dbService, userDomainPrefix);
+        this.notificationCommon = new NotificationCommon(domainRoleMembersFetcher, userDomainPrefix);
     }
 
     public List<Notification> getNotificationDetails(Map<String, DomainRoleMember> members,

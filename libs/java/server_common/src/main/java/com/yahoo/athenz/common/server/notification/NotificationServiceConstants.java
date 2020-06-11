@@ -27,6 +27,8 @@ public final class NotificationServiceConstants {
     public static final String NOTIFICATION_DETAILS_ROLES_LIST          = "rolesList";
     public static final String NOTIFICATION_DETAILS_MEMBERS_LIST        = "membersList";
     public static final String NOTIFICATION_DETAILS_UNREFRESHED_CERTS   = "unrefreshedCerts";
+    public static final String NOTIFICATION_DETAILS_AWS_ZTS_HEALTH      = "awsZtsHealth";
+    public static final String NOTIFICATION_DETAILS_AFFECTED_ZTS        = "affectedZts";
 
     public static final String HTML_LOGO_CID_PLACEHOLDER = "<logo>";
     public static final String CHARSET_UTF_8 = "UTF-8";

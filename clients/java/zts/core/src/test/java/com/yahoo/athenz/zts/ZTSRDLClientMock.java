@@ -39,6 +39,7 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
 
     private Map<String, Long> lastRoleTokenFetchedTime = new HashMap<>();
     private Map<String, Long> lastAccessTokenFetchedTime = new HashMap<>();
+    private Map<String, Long> lastRoleTokenFailTime = new HashMap<>();
 
     static String getKey(String domain, String roleName, String proxyForPrincipal) {
         return domain + "-" + roleName + "-" + proxyForPrincipal;
@@ -58,6 +59,14 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
             return lastRoleTokenFetchedTime.get(key);
         }
         return -1;
+    }
+
+    long getLastTokenFailTime(String domain, String roleName) {
+        String key = domain + ":" + roleName;
+        if (lastRoleTokenFailTime.containsKey(key)) {
+            return lastRoleTokenFailTime.get(key);
+        }
+        return -1L;
     }
 
     long getLastAccessTokenFetchedTime(String domain, String roleName, String proxyForPrincipal) {
@@ -244,11 +253,14 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
     @Override
     public AWSTemporaryCredentials getAWSTemporaryCredentials(String domainName, String roleName,
             Integer durationSeconds, String externalId) {
-        
-        if (credsMap.isEmpty()) {
-            throw new ZTSClientException(ZTSClientException.NOT_FOUND, "role is not assumed");
-        }
+
         String key = domainName + ":" + roleName;
+        if (credsMap.isEmpty()) {
+            lastRoleTokenFailTime.put(key, System.currentTimeMillis());
+            throw new ZTSClientException(ZTSClientException.NOT_FOUND, "role is not assumed");
+        } else {
+            lastRoleTokenFailTime.put(key, -1L);
+        }
         AWSTemporaryCredentials creds = credsMap.get(key);
         if (creds == null) {
             return null;

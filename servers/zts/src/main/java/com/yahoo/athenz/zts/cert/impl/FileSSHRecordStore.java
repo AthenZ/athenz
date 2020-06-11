@@ -16,6 +16,8 @@
 package com.yahoo.athenz.zts.cert.impl;
 
 import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.common.server.db.RolesProvider;
+import com.yahoo.athenz.common.server.notification.NotificationManager;
 import com.yahoo.athenz.common.server.ssh.SSHRecordStore;
 import com.yahoo.athenz.common.server.ssh.SSHRecordStoreConnection;
 import com.yahoo.athenz.zts.cert.X509CertUtils;
@@ -64,5 +66,10 @@ public class FileSSHRecordStore implements SSHRecordStore {
     public void log(final Principal principal, final String ip, final String service,
                     final String instanceId) {
         X509CertUtils.logSSH(SSHLOGGER, principal, ip, service, instanceId);
+    }
+
+    @Override
+    public boolean enableNotifications(NotificationManager notificationManager, RolesProvider rolesProvider, final String serverName) {
+        return false;
     }
 }

@@ -16,6 +16,7 @@
 
 package com.yahoo.athenz.zms.notification;
 
+import com.yahoo.athenz.common.server.notification.DomainRoleMembersFetcher;
 import com.yahoo.athenz.zms.DBService;
 import com.yahoo.athenz.zms.Role;
 import com.yahoo.athenz.zms.RoleMember;
@@ -34,7 +35,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 
-public class ZMSDomainRoleMembersFetcherTest {
+public class DomainRoleMembersFetcherTest {
     @Test
     public void testGetDomainRoleMembers() {
         DBService dbsvc = Mockito.mock(DBService.class);
@@ -49,13 +50,13 @@ public class ZMSDomainRoleMembersFetcherTest {
         roleMember2.setMemberName("user.domain1rolemember2");
         adminRole.setRoleMembers(Arrays.asList(roleMember1, roleMember2));
         domainData.setRoles(Collections.singletonList(adminRole));
-        Mockito.when(dbsvc.getAthenzDomain(eq("domain1"), anyBoolean())).thenReturn(domainData);
+        Mockito.when(dbsvc.getRolesByDomain(eq("domain1"))).thenReturn(domainData.getRoles());
 
-        ZMSDomainRoleMembersFetcher zmsDomainRoleMembersFetcher = new ZMSDomainRoleMembersFetcher(
+        DomainRoleMembersFetcher domainRoleMembersFetcher = new DomainRoleMembersFetcher(
                 dbsvc,
                 USER_DOMAIN_PREFIX);
 
-        Set<String> domainRoleMembers = zmsDomainRoleMembersFetcher.getDomainRoleMembers(
+        Set<String> domainRoleMembers = domainRoleMembersFetcher.getDomainRoleMembers(
                 "domain1",
                 "domain1:role.admin");
 
@@ -66,11 +67,11 @@ public class ZMSDomainRoleMembersFetcherTest {
 
     @Test
     public void testNoDataStore() {
-        ZMSDomainRoleMembersFetcher zmsDomainRoleMembersFetcher = new ZMSDomainRoleMembersFetcher(
+        DomainRoleMembersFetcher domainRoleMembersFetcher = new DomainRoleMembersFetcher(
                 null,
                 USER_DOMAIN_PREFIX);
 
-        Set<String> domainRoleMembers = zmsDomainRoleMembersFetcher.getDomainRoleMembers(
+        Set<String> domainRoleMembers = domainRoleMembersFetcher.getDomainRoleMembers(
                 "domain1",
                 "domain1:role.admin");
 
@@ -80,11 +81,11 @@ public class ZMSDomainRoleMembersFetcherTest {
     @Test
     public void testNoDomain() {
         DBService dbsvc = Mockito.mock(DBService.class);
-        ZMSDomainRoleMembersFetcher zmsDomainRoleMembersFetcher = new ZMSDomainRoleMembersFetcher(
+        DomainRoleMembersFetcher domainRoleMembersFetcher = new DomainRoleMembersFetcher(
                 dbsvc,
                 USER_DOMAIN_PREFIX);
 
-        Set<String> domainRoleMembers = zmsDomainRoleMembersFetcher.getDomainRoleMembers(
+        Set<String> domainRoleMembers = domainRoleMembersFetcher.getDomainRoleMembers(
                 "domain1",
                 "domain1:role.admin");
 

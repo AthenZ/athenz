@@ -84,8 +84,8 @@ public class PutMembershipNotificationTaskTest {
         AthenzDomain athenzDomain2 = new AthenzDomain("sys.auth.audit.domain");
         athenzDomain2.setRoles(roles2);
 
-        Mockito.when(dbsvc.getAthenzDomain("sys.auth.audit.org", false)).thenReturn(athenzDomain1);
-        Mockito.when(dbsvc.getAthenzDomain("sys.auth.audit.domain", false)).thenReturn(athenzDomain2);
+        Mockito.when(dbsvc.getRolesByDomain("sys.auth.audit.org")).thenReturn(athenzDomain1.getRoles());
+        Mockito.when(dbsvc.getRolesByDomain("sys.auth.audit.domain")).thenReturn(athenzDomain2.getRoles());
 
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
@@ -136,7 +136,7 @@ public class PutMembershipNotificationTaskTest {
         AthenzDomain athenzDomain = new AthenzDomain("sys.auth.audit.org");
         athenzDomain.setRoles(roles);
 
-        Mockito.when(dbsvc.getAthenzDomain("sys.auth.audit.org", false)).thenReturn(athenzDomain);
+        Mockito.when(dbsvc.getRolesByDomain("sys.auth.audit.org")).thenReturn(athenzDomain.getRoles());
 
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
@@ -186,7 +186,7 @@ public class PutMembershipNotificationTaskTest {
         AthenzDomain athenzDomain = new AthenzDomain("sys.auth.audit.domain");
         athenzDomain.setRoles(roles);
 
-        Mockito.when(dbsvc.getAthenzDomain("sys.auth.audit.domain", false)).thenReturn(athenzDomain);
+        Mockito.when(dbsvc.getRolesByDomain("sys.auth.audit.domain")).thenReturn(athenzDomain.getRoles());
 
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
@@ -236,7 +236,7 @@ public class PutMembershipNotificationTaskTest {
         AthenzDomain athenzDomain = new AthenzDomain("testdomain1");
         athenzDomain.setRoles(roles);
 
-        Mockito.when(dbsvc.getAthenzDomain("testdomain1", false)).thenReturn(athenzDomain);
+        Mockito.when(dbsvc.getRolesByDomain("testdomain1")).thenReturn(athenzDomain.getRoles());
 
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
@@ -304,8 +304,8 @@ public class PutMembershipNotificationTaskTest {
         AthenzDomain athenzDomain2 = new AthenzDomain("athenz");
         athenzDomain2.setRoles(roles2);
 
-        Mockito.when(dbsvc.getAthenzDomain("testdomain1", false)).thenReturn(athenzDomain1);
-        Mockito.when(dbsvc.getAthenzDomain("athenz", false)).thenReturn(athenzDomain2);
+        Mockito.when(dbsvc.getRolesByDomain("testdomain1")).thenReturn(athenzDomain1.getRoles());
+        Mockito.when(dbsvc.getRolesByDomain("athenz")).thenReturn(athenzDomain2.getRoles());
 
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 

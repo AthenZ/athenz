@@ -7456,4 +7456,39 @@ public class DBServiceTest {
         assertFalse(zms.dbService.updateRoleMemberDisabledState(null, con, roleMembers, domainName,
                 roleName, adminUser, "auditref", "unit-test"));
     }
+
+    @Test
+    public void testGetRolesByDomain() {
+        ObjectStore saveStore = zms.dbService.store;
+        AthenzDomain athenzDomain = new AthenzDomain("test1");
+        Domain domain = new Domain().setName("test1").setMemberExpiryDays(100).setModified(Timestamp.fromCurrentTime());
+        athenzDomain.setDomain(domain);
+        Role testRole = new Role();
+        testRole.setName("admin");
+        List<Role> roles = new ArrayList<>();
+        roles.add(testRole);
+        athenzDomain.setRoles(roles);
+
+        Mockito.when(mockObjStore.getConnection(true, false)).thenReturn(mockFileConn);
+        Mockito.when(mockFileConn.getDomain(eq("test1"))).thenReturn(domain);
+        Mockito.when(mockFileConn.getAthenzDomain(eq("test1"))).thenReturn(athenzDomain);
+
+        zms.dbService.store = mockObjStore;
+
+        List<Role> rolesFetched = zms.dbService.getRolesByDomain("test1");
+        assertEquals(1, rolesFetched.size());
+        assertEquals("admin", rolesFetched.get(0).getName());
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testGetRolesByDomainUnknown() {
+        Mockito.when(mockObjStore.getConnection(true, false)).thenReturn(mockFileConn);
+        try {
+            List<Role> rolesFetched = zms.dbService.getRolesByDomain("unknownDomain");
+            fail();
+        } catch (Exception ex) {
+
+        }
+    }
 }

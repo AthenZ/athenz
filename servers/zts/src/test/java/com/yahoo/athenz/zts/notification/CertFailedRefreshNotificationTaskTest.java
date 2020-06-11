@@ -199,7 +199,7 @@ public class CertFailedRefreshNotificationTaskTest {
         records.add(record);
 
         String domainName = "domain1";
-        Mockito.when(dataStore.getDomainData(eq(domainName))).thenReturn(new DomainData());
+        Mockito.when(dataStore.getRolesByDomain(eq(domainName))).thenReturn(new ArrayList<>());
         Mockito.when(hostnameResolver.isValidHostname(eq("hostName1"))).thenReturn(true);
 
         Mockito.when(instanceCertManager.getUnrefreshedCertsNotifications(eq(serverName), anyString())).thenReturn(records);
@@ -346,10 +346,6 @@ public class CertFailedRefreshNotificationTaskTest {
 
         Map<String, String> details = new HashMap<>();
         details.put("domain", "dom1");
-        details.put("role", "role1");
-        details.put("member", "user.member1");
-        details.put("reason", "test reason");
-        details.put("requester", "user.requester");
         details.put(NOTIFICATION_DETAILS_UNREFRESHED_CERTS,
                 "domain0.service0;provider;instanceID0;Sun Mar 15 15:08:07 IST 2020;;hostName0|" +
                         "domain.bad;instanceID0;Sun Mar 15 15:08:07 IST 2020;;hostBad|" + // bad entry with missing provider

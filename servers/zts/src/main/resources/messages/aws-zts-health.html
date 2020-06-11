@@ -1,0 +1,56 @@
+<!--
+  ~  Copyright 2020 Verizon Media
+  ~
+  ~  Licensed under the Apache License, Version 2.0 (the "License");
+  ~  you may not use this file except in compliance with the License.
+  ~  You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~  Unless required by applicable law or agreed to in writing, software
+  ~  distributed under the License is distributed on an "AS IS" BASIS,
+  ~  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~  See the License for the specific language governing permissions and
+  ~  limitations under the License.
+  -->
+
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <style></style>
+</head>
+<body style="margin: 0; background: rgba(231, 232, 231, 1.0);">
+<div class="athenz-wrapper">
+    <div class="mbrapproval unrefreshedcerts">
+        <div class="logo">
+            <img src="cid:logo" class="athenzlogowhite" alt="Athenz logo"/>
+        </div>
+        <div class="hdr">ZTS on AWS connection failure</div>
+        <div class="bt">On-prem ZTS Server <b>{0}</b> failed to receive temporary AWS credentials From Cloud ZTS:</div>
+        <hr>
+        <table id="t02">
+            <thead>
+                <tr>
+                    <th class="ch">PROVIDER-AWS-ZTS</th>
+                    <th class="ch">DOMAIN</th>
+                    <th class="ch">ROLE</th>
+                    <th class="ch">EXPIRATION</th>
+                    <th class="ch">ERROR</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <hr>
+        <div class="bt unrefreshedcerts">
+            <br>Please take immediate action to resolve the error
+            <br>For additional support, please contact <a href="{2}">{3}</a>
+        </div>
+    </div>
+    <div class="footer-container">
+        <div class="footer">This is a generated email from <a href="{1}">Athenz</a>. Please do not respond.</div>
+    </div>
+</div>
+</body>
+</html>

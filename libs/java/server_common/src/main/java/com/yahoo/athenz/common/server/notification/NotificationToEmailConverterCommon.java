@@ -93,8 +93,7 @@ public class NotificationToEmailConverterCommon {
                                             String bodyTemplate,
                                             String bodyTemplateDetails,
                                             String tableValuesKey,
-                                            int tableEntryNumColumns,
-                                            String tableEntryTemplate) {
+                                            int tableEntryNumColumns) {
         // first get the template and replace placeholders
         StringBuilder body = new StringBuilder(256);
         body.append(MessageFormat.format(bodyTemplate, metaDetails.get(bodyTemplateDetails), athenzUIUrl, supportUrl, supportText));
@@ -102,13 +101,26 @@ public class NotificationToEmailConverterCommon {
         // then get table rows and replace placeholders
         StringBuilder bodyEntry = new StringBuilder(256);
         final String tableValues = metaDetails.get(tableValuesKey);
-        processEntry(bodyEntry, tableValues, RB.getString(tableEntryTemplate), tableEntryNumColumns);
+        final String tableEntryTemplate = getTableEntryTemplate(tableEntryNumColumns);
+        processEntry(bodyEntry, tableValues, tableEntryTemplate, tableEntryNumColumns);
 
         // add table rows to the template
         String bodyString = body.toString().replace(HTML_TBODY_TAG_START + HTML_TBODY_TAG_END, HTML_TBODY_TAG_START + bodyEntry + HTML_TBODY_TAG_END);
 
         // add css style to the template
         return addCssStyleToBody(bodyString);
+    }
+
+    public String getTableEntryTemplate(int numOfColumns) {
+        StringBuilder tableEntryTemplate = new StringBuilder(256);
+        tableEntryTemplate.append("<tr>");
+        for (int i = 0; i < numOfColumns; ++i) {
+            tableEntryTemplate.append("<td class=\"cv\">{");
+            tableEntryTemplate.append(i);
+            tableEntryTemplate.append("}</td>");
+        }
+        tableEntryTemplate.append("</tr>");
+        return tableEntryTemplate.toString();
     }
 
     public String addCssStyleToBody(String body) {

@@ -79,7 +79,6 @@ public class RoleMemberExpiryNotificationTask implements NotificationTask {
     public static class RoleExpiryPrincipalNotificationToEmailConverter implements NotificationToEmailConverter {
         private static final String EMAIL_TEMPLATE_PRINCIPAL_EXPIRY = "messages/principal-expiry.html";
         private static final String PRINCIPAL_EXPIRY_SUBJECT = "athenz.notification.email.principal.expiry.subject";
-        private static final String PRINCIPAL_EXPIRY_BODY_ENTRY = "athenz.notification.email.principal.expiry.body.entry";
 
         private final NotificationToEmailConverterCommon notificationToEmailConverterCommon;
         private String emailPrincipalExpiryBody;
@@ -99,8 +98,7 @@ public class RoleMemberExpiryNotificationTask implements NotificationTask {
                     emailPrincipalExpiryBody,
                     NOTIFICATION_DETAILS_MEMBER,
                     NOTIFICATION_DETAILS_ROLES_LIST,
-                    3,
-                    PRINCIPAL_EXPIRY_BODY_ENTRY);
+                    3);
         }
 
         @Override
@@ -115,7 +113,6 @@ public class RoleMemberExpiryNotificationTask implements NotificationTask {
     public static class RoleExpiryDomainNotificationToEmailConverter implements NotificationToEmailConverter {
         private static final String EMAIL_TEMPLATE_DOMAIN_MEMBER_EXPIRY = "messages/domain-member-expiry.html";
         private static final String DOMAIN_MEMBER_EXPIRY_SUBJECT = "athenz.notification.email.domain.member.expiry.subject";
-        private static final String DOMAIN_MEMBER_EXPIRY_BODY_ENTRY = "athenz.notification.email.domain.member.expiry.body.entry";
 
         private final NotificationToEmailConverterCommon notificationToEmailConverterCommon;
         private String emailDomainMemberExpiryBody;
@@ -135,8 +132,7 @@ public class RoleMemberExpiryNotificationTask implements NotificationTask {
                     emailDomainMemberExpiryBody,
                     NOTIFICATION_DETAILS_DOMAIN,
                     NOTIFICATION_DETAILS_MEMBERS_LIST,
-                    3,
-                    DOMAIN_MEMBER_EXPIRY_BODY_ENTRY);
+                    3);
         }
 
         @Override

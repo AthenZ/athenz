@@ -85,13 +85,14 @@ import com.yahoo.rdl.JSON;
 public class ZTSClient implements Closeable {
 
     private static final Logger LOG = LoggerFactory.getLogger(ZTSClient.class);
-    
+
     private String ztsUrl = null;
     private String proxyUrl = null;
     private String domain = null;
     private String service = null;
     private SSLContext sslContext = null;
-    
+    private ZTSClientNotificationSender notificationSender = null;
+
     ZTSRDLGeneratedClient ztsClient = null;
     ServiceIdentityProvider siaProvider = null;
     Principal principal = null;
@@ -413,7 +414,7 @@ public class ZTSClient implements Closeable {
     public ZTSClient(String ztsUrl, SSLContext sslContext) {
         this(ztsUrl, null, sslContext);
     }
-    
+
     /**
      * Constructs a new ZTSClient object with the given SSLContext object
      * and ZTS Server Url through the specified Proxy URL. Default read
@@ -427,9 +428,9 @@ public class ZTSClient implements Closeable {
      * for authenticating requests
      */
     public ZTSClient(String ztsUrl, String proxyUrl, SSLContext sslContext) {
-        
+
         // verify we have a valid ssl context specified
-        
+
         if (sslContext == null) {
             throw new IllegalArgumentException("SSLContext object must be specified");
         }
@@ -453,7 +454,7 @@ public class ZTSClient implements Closeable {
     public ZTSClient(String domainName, String serviceName, ServiceIdentityProvider siaProvider) {
         this(null, domainName, serviceName, siaProvider);
     }
-    
+
     /**
      * Constructs a new ZTSClient object with the given service details
      * identity provider (which will provide the ntoken for the service)
@@ -469,7 +470,7 @@ public class ZTSClient implements Closeable {
      * @param siaProvider service identity provider for the client to request principals
      */
     public ZTSClient(String ztsUrl, String domainName, String serviceName,
-            ServiceIdentityProvider siaProvider) {
+                     ServiceIdentityProvider siaProvider) {
         if (domainName == null || domainName.isEmpty()) {
             throw new IllegalArgumentException("Domain name must be specified");
         }
@@ -511,6 +512,14 @@ public class ZTSClient implements Closeable {
         if (ztsClient != null) {
             ztsClient.setProperty(name, value);
         }
+    }
+
+    /**
+     * Sets a notificationSender that will listen to notifications and send them (usually to domain admins)
+     * @param notificationSender
+     */
+    public void setNotificationSender(ZTSClientNotificationSender notificationSender) {
+        this.notificationSender = notificationSender;
     }
 
     /**
@@ -1481,7 +1490,7 @@ public class ZTSClient implements Closeable {
 
         @Override
         public void run() {
-            
+
             long currentTime = System.currentTimeMillis() / 1000;
             FETCHER_LAST_RUN_AT.set(currentTime);
             
@@ -1505,7 +1514,7 @@ public class ZTSClient implements Closeable {
             boolean svcTokenRefresh = false;
             for (PrefetchTokenScheduledItem item : PREFETCH_SCHEDULED_ITEMS) {
 
-                // see if item expires within next two minutes
+                // see if item requires refresh
 
                 if (LOG.isDebugEnabled()) {
                     final String itemName = item.sslContext == null ?
@@ -1642,6 +1651,7 @@ public class ZTSClient implements Closeable {
                 // that might have been already added to the queue
 
                 item.isInvalid(true);
+                item.lastFailTime(currentTime);
                 PREFETCH_SCHEDULED_ITEMS.remove(item);
             } else {
                 item.lastFailTime(currentTime);
@@ -1654,9 +1664,22 @@ public class ZTSClient implements Closeable {
             // our list so that we don't match other active requests
             // that might have been already added to the queue
 
+            item.lastFailTime(currentTime);
             item.isInvalid(true);
             PREFETCH_SCHEDULED_ITEMS.remove(item);
             LOG.error("PrefetchTask: Error while trying to prefetch token", ex);
+        }
+
+        if (item.shouldSendNotification()) {
+            ZTSClientNotification ztsClientNotification = new ZTSClientNotification(
+                    itemZtsClient.getZTSUrl(),
+                    item.roleName,
+                    item.tokenType.toString(),
+                    item.expiresAtUTC,
+                    item.isInvalid,
+                    item.domainName);
+            item.lastNotificationTime = currentTime;
+            item.notificationSender.sendNotification(ztsClientNotification);
         }
 
         // don't forget to restore the original client if case
@@ -1731,7 +1754,7 @@ public class ZTSClient implements Closeable {
         if (domainName == null || domainName.trim().isEmpty()) {
             throw new ZTSClientException(ZTSClientException.BAD_REQUEST, "Domain Name cannot be empty");
         }
-        
+
         AWSTemporaryCredentials awsCred = getAWSTemporaryCredentials(domainName, roleName,
                 externalId, minExpiryTime, maxExpiryTime, true);
         if (awsCred == null) {
@@ -1740,7 +1763,7 @@ public class ZTSClient implements Closeable {
             return false;
         }
         long expiryTimeUTC = awsCred.getExpiration().millis() / 1000;
-        
+
         return prefetchToken(domainName, roleName, null, minExpiryTime, maxExpiryTime, null,
                 externalId, null, expiryTimeUTC, TokenType.AWS);
     }
@@ -1780,26 +1803,27 @@ public class ZTSClient implements Closeable {
                 return false;
             }
         }
-        
+
         PrefetchTokenScheduledItem item = new PrefetchTokenScheduledItem()
-            .tokenType(tokenType)
-            .fetchTime(System.currentTimeMillis() / 1000)
-            .domainName(domainName)
-            .roleName(roleName)
-            .roleNames(roleNames)
-            .proxyForPrincipal(proxyForPrincipal)
-            .externalId(externalId)
-            .minDuration(minExpiryTime)
-            .maxDuration(maxExpiryTime)
-            .expiresAtUTC(expiryTimeUTC)
-            .idTokenServiceName(idTokenServiceName)
-            .identityDomain(domain)
-            .identityName(service)
-            .tokenMinExpiryTime(ZTSClient.tokenMinExpiryTime)
-            .providedZTSUrl(this.ztsUrl)
-            .siaIdentityProvider(siaProvider)
-            .sslContext(sslContext)
-            .proxyUrl(proxyUrl);
+                .tokenType(tokenType)
+                .fetchTime(System.currentTimeMillis() / 1000)
+                .domainName(domainName)
+                .roleName(roleName)
+                .roleNames(roleNames)
+                .proxyForPrincipal(proxyForPrincipal)
+                .externalId(externalId)
+                .minDuration(minExpiryTime)
+                .maxDuration(maxExpiryTime)
+                .expiresAtUTC(expiryTimeUTC)
+                .idTokenServiceName(idTokenServiceName)
+                .identityDomain(domain)
+                .identityName(service)
+                .tokenMinExpiryTime(ZTSClient.tokenMinExpiryTime)
+                .providedZTSUrl(this.ztsUrl)
+                .siaIdentityProvider(siaProvider)
+                .sslContext(sslContext)
+                .proxyUrl(proxyUrl)
+                .notificationSender(notificationSender);
         
         // include our zts client only if it was overridden by
         // the caller (most likely for unit test mock)
@@ -2438,7 +2462,7 @@ public class ZTSClient implements Closeable {
             }
 
             // start prefetch for this token if prefetch is enabled
-            
+
             if (enablePrefetch && prefetchAutoEnable) {
                 if (prefetchAwsCreds(domainName, roleName, externalId, minExpiryTime, maxExpiryTime)) {
                     awsCred = lookupAwsCredInCache(cacheKey, minExpiryTime, maxExpiryTime);
@@ -2488,7 +2512,7 @@ public class ZTSClient implements Closeable {
         
         // need to add the token to our cache. If our principal was
         // updated then we need to retrieve a new cache key
-        
+
         if (awsCred != null) {
             if (cacheKey == null) {
                 cacheKey = getRoleTokenCacheKey(domainName, roleName, null);
@@ -2802,9 +2826,21 @@ public class ZTSClient implements Closeable {
             return this;
         }
 
+        ZTSClientNotificationSender notificationSender = null;
+        PrefetchTokenScheduledItem notificationSender(ZTSClientNotificationSender notificationSender) {
+            this.notificationSender = notificationSender;
+            return this;
+        }
+
         long lastFailTime = 0;
         PrefetchTokenScheduledItem lastFailTime(long time) {
             lastFailTime = time;
+            return this;
+        }
+
+        long lastNotificationTime = 0;
+        PrefetchTokenScheduledItem lastNotificationTime(long time) {
+            lastNotificationTime = time;
             return this;
         }
 
@@ -2925,6 +2961,20 @@ public class ZTSClient implements Closeable {
             } else {
                 return sslContext.equals(other.sslContext);
             }
+        }
+
+        public boolean shouldSendNotification() {
+            if (notificationSender == null) {
+                return false;
+            }
+
+            // If we successfully received a token, revert lastNotificationTime to be ready for future failures
+            if (lastFailTime == 0) {
+                lastNotificationTime = 0;
+                return false;
+            }
+
+            return lastNotificationTime == 0;
         }
     }
     

@@ -81,7 +81,6 @@ public class RoleMemberReviewNotificationTask implements NotificationTask {
     public static class RoleReviewPrincipalNotificationToEmailConverter implements NotificationToEmailConverter {
         private static final String EMAIL_TEMPLATE_PRINCIPAL_REVIEW = "messages/principal-review.html";
         private static final String PRINCIPAL_REVIEW_SUBJECT = "athenz.notification.email.principal.review.subject";
-        private static final String PRINCIPAL_REVIEW_BODY_ENTRY = "athenz.notification.email.principal.review.body.entry";
 
         private final NotificationToEmailConverterCommon notificationToEmailConverterCommon;
         private String emailPrincipalReviewBody;
@@ -103,8 +102,7 @@ public class RoleMemberReviewNotificationTask implements NotificationTask {
                     emailPrincipalReviewBody,
                     NOTIFICATION_DETAILS_MEMBER,
                     NOTIFICATION_DETAILS_ROLES_LIST,
-                    3,
-                    PRINCIPAL_REVIEW_BODY_ENTRY);
+                    3);
         }
 
         @Override
@@ -119,7 +117,6 @@ public class RoleMemberReviewNotificationTask implements NotificationTask {
     public static class RoleReviewDomainNotificationToEmailConverter implements NotificationToEmailConverter {
         private static final String EMAIL_TEMPLATE_DOMAIN_MEMBER_REVIEW = "messages/domain-member-review.html";
         private static final String DOMAIN_MEMBER_REVIEW_SUBJECT = "athenz.notification.email.domain.member.review.subject";
-        private static final String DOMAIN_MEMBER_REVIEW_BODY_ENTRY = "athenz.notification.email.domain.member.review.body.entry";
 
         private final NotificationToEmailConverterCommon notificationToEmailConverterCommon;
         private String emailDomainMemberReviewBody;
@@ -141,8 +138,7 @@ public class RoleMemberReviewNotificationTask implements NotificationTask {
                     emailDomainMemberReviewBody,
                     NOTIFICATION_DETAILS_DOMAIN,
                     NOTIFICATION_DETAILS_MEMBERS_LIST,
-                    3,
-                    DOMAIN_MEMBER_REVIEW_BODY_ENTRY);
+                    3);
         }
 
         @Override

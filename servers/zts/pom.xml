@@ -196,6 +196,11 @@
       <artifactId>httpclient</artifactId>
       <version>${apache.httpclient.version}</version>
     </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>athenz-zts-java-client-core</artifactId>
+      <version>${project.parent.version}</version>
+    </dependency>
   </dependencies>
 
   <build>

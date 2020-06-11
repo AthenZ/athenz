@@ -17,6 +17,7 @@ package com.yahoo.athenz.zts.store;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.yahoo.athenz.common.server.db.RolesProvider;
 import com.yahoo.athenz.zts.*;
 import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.rdl.*;
@@ -55,7 +56,7 @@ import org.bouncycastle.jcajce.provider.asymmetric.util.EC5Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DataStore implements DataCacheProvider {
+public class DataStore implements DataCacheProvider, RolesProvider {
 
     ChangeLogStore changeLogStore;
     private CloudStore cloudStore;
@@ -1221,6 +1222,16 @@ public class DataStore implements DataCacheProvider {
 
     public Map<String, String> getPublicKeyCache() {
         return publicKeyCache;
+    }
+
+    @Override
+    public List<Role> getRolesByDomain(String domain) {
+        DomainData domainData = getDomainData(domain);
+        if (domainData == null) {
+            return new ArrayList<>();
+        }
+
+        return domainData.getRoles();
     }
 
     class DataUpdater implements Runnable {

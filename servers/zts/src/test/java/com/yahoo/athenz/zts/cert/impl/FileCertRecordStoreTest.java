@@ -19,9 +19,14 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import com.yahoo.athenz.common.server.db.RolesProvider;
+import com.yahoo.athenz.common.server.notification.NotificationManager;
+import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.*;
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertTrue;
 
 public class FileCertRecordStoreTest {
 
@@ -62,5 +67,18 @@ public class FileCertRecordStoreTest {
             assertTrue(true);
         }
         assertNull(store);
+    }
+
+    @Test
+    public void testEnableNotifications() {
+        FileCertRecordStore store = new FileCertRecordStore(new File("/tmp"));
+        boolean isEnabled = store.enableNotifications(null, null, null);
+        assertFalse(isEnabled);
+
+        NotificationManager notificationManager = Mockito.mock(NotificationManager.class);
+        RolesProvider rolesProvider = Mockito.mock(RolesProvider.class);
+        String serverName = "testServer";
+        isEnabled = store.enableNotifications(notificationManager, rolesProvider, serverName);
+        assertFalse(isEnabled); // Not supported for FileCertStore even if all dependencies provided
     }
 }

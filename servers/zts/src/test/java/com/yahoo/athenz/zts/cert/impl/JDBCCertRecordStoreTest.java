@@ -25,12 +25,15 @@ import java.sql.SQLException;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.util.Crypto;
+import com.yahoo.athenz.common.server.db.RolesProvider;
+import com.yahoo.athenz.common.server.notification.NotificationManager;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
 import com.yahoo.athenz.common.server.db.PoolableDataSource;
 
 import static org.testng.Assert.*;
+import static org.testng.AssertJUnit.assertFalse;
 
 public class JDBCCertRecordStoreTest {
 
@@ -77,5 +80,19 @@ public class JDBCCertRecordStoreTest {
         // make sure no exceptions are thrown when processing log request
 
         store.log(principal, "10.11.12.13", "athens.provider", "1234", cert);
+    }
+
+    @Test
+    public void testEnableNotifications() {
+        PoolableDataSource mockDataSrc = Mockito.mock(PoolableDataSource.class);
+        JDBCCertRecordStore store = new JDBCCertRecordStore(mockDataSrc);
+        boolean isEnabled = store.enableNotifications(null, null, null);
+        assertFalse(isEnabled);
+
+        NotificationManager notificationManager = Mockito.mock(NotificationManager.class);
+        RolesProvider rolesProvider = Mockito.mock(RolesProvider.class);
+        String serverName = "testServer";
+        isEnabled = store.enableNotifications(notificationManager, rolesProvider, serverName);
+        assertFalse(isEnabled); // Not supported for FileCertStore even if all dependencies provided
     }
 }

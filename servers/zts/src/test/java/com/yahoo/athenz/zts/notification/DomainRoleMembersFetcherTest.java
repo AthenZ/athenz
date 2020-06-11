@@ -16,6 +16,7 @@
 
 package com.yahoo.athenz.zts.notification;
 
+import com.yahoo.athenz.common.server.notification.DomainRoleMembersFetcher;
 import com.yahoo.athenz.zts.store.DataStore;
 import org.testng.annotations.Test;
 
@@ -27,16 +28,16 @@ import static org.mockito.Mockito.mock;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 
-public class ZTSDomainRoleMembersFetcherTest {
+public class DomainRoleMembersFetcherTest {
     @Test
     public void testGetDomainRoleMembers() {
         DataStore dataStore = mock(DataStore.class);
         NotificationTestsCommon.mockDomainData(1, dataStore);
-        ZTSDomainRoleMembersFetcher ztsDomainRoleMembersFetcher = new ZTSDomainRoleMembersFetcher(
+        DomainRoleMembersFetcher domainRoleMembersFetcher = new DomainRoleMembersFetcher(
                 dataStore,
                 USER_DOMAIN_PREFIX);
 
-        Set<String> domainRoleMembers = ztsDomainRoleMembersFetcher.getDomainRoleMembers(
+        Set<String> domainRoleMembers = domainRoleMembersFetcher.getDomainRoleMembers(
                 "domain1",
                 "domain1:role.admin");
 
@@ -47,11 +48,11 @@ public class ZTSDomainRoleMembersFetcherTest {
 
     @Test
     public void testNoDataStore() {
-        ZTSDomainRoleMembersFetcher ztsDomainRoleMembersFetcher = new ZTSDomainRoleMembersFetcher(
+        DomainRoleMembersFetcher domainRoleMembersFetcher = new DomainRoleMembersFetcher(
                 null,
                 USER_DOMAIN_PREFIX);
 
-        Set<String> domainRoleMembers = ztsDomainRoleMembersFetcher.getDomainRoleMembers(
+        Set<String> domainRoleMembers = domainRoleMembersFetcher.getDomainRoleMembers(
                 "domain1",
                 "domain1:role.admin");
 
@@ -61,11 +62,11 @@ public class ZTSDomainRoleMembersFetcherTest {
     @Test
     public void testNoDomain() {
         DataStore dataStore = mock(DataStore.class);
-        ZTSDomainRoleMembersFetcher ztsDomainRoleMembersFetcher = new ZTSDomainRoleMembersFetcher(
+        DomainRoleMembersFetcher domainRoleMembersFetcher = new DomainRoleMembersFetcher(
                 dataStore,
                 USER_DOMAIN_PREFIX);
 
-        Set<String> domainRoleMembers = ztsDomainRoleMembersFetcher.getDomainRoleMembers(
+        Set<String> domainRoleMembers = domainRoleMembersFetcher.getDomainRoleMembers(
                 "domain1",
                 "domain1:role.admin");
 

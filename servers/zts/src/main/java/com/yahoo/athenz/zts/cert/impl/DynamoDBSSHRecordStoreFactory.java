@@ -16,28 +16,38 @@
 package com.yahoo.athenz.zts.cert.impl;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.common.server.ssh.SSHRecordStore;
 import com.yahoo.athenz.common.server.ssh.SSHRecordStoreFactory;
 import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.ZTSConsts;
+import com.yahoo.athenz.zts.notification.ZTSClientNotificationSenderImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DynamoDBSSHRecordStoreFactory implements SSHRecordStoreFactory {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DynamoDBSSHRecordStoreFactory.class);
+    private DynamoDBClientFetcher dynamoDBClientFetcher;
+
+    public DynamoDBSSHRecordStoreFactory() {
+        this.dynamoDBClientFetcher = new DynamoDBClientFetcher();
+    }
 
     @Override
     public SSHRecordStore create(PrivateKeyStore keyStore) {
 
         final String tableName = System.getProperty(ZTSConsts.ZTS_PROP_SSH_DYNAMODB_TABLE_NAME);
         if (tableName == null || tableName.isEmpty()) {
+            LOGGER.error("SSH Store DynamoDB table name not specified");
             throw new ResourceException(ResourceException.SERVICE_UNAVAILABLE, "DynamoDB ssh table name not specified");
         }
 
-        AmazonDynamoDB client = getDynamoDBClient();
-        return new DynamoDBSSHRecordStore(client, tableName);
+        ZTSClientNotificationSenderImpl ztsClientNotificationSender = new ZTSClientNotificationSenderImpl();
+        AmazonDynamoDB client = getDynamoDBClient(ztsClientNotificationSender, keyStore);
+        return new DynamoDBSSHRecordStore(client, tableName, ztsClientNotificationSender);
     }
 
-    AmazonDynamoDB getDynamoDBClient() {
-        return AmazonDynamoDBClientBuilder.standard().build();
+    AmazonDynamoDB getDynamoDBClient(ZTSClientNotificationSenderImpl ztsClientNotificationSender, PrivateKeyStore keyStore) {
+        return dynamoDBClientFetcher.getDynamoDBClient(ztsClientNotificationSender, keyStore);
     }
 }
