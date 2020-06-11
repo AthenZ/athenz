@@ -26,6 +26,7 @@ module.exports = function(expressApp, config, secrets) {
         // locally allow 'unsafe-inline', so HMR doesn't trigger the CSP
         if (config.env === 'local') {
             scriptSrc.push(`'unsafe-inline'`);
+            scriptSrc.push(`'unsafe-eval'`);
         } else {
             scriptSrc.push(`'nonce-${req.headers.rid}'`);
         }
