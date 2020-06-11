@@ -27,11 +27,6 @@ import org.slf4j.LoggerFactory;
 
 public class DynamoDBSSHRecordStoreFactory implements SSHRecordStoreFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(DynamoDBSSHRecordStoreFactory.class);
-    private DynamoDBClientFetcher dynamoDBClientFetcher;
-
-    public DynamoDBSSHRecordStoreFactory() {
-        this.dynamoDBClientFetcher = new DynamoDBClientFetcher();
-    }
 
     @Override
     public SSHRecordStore create(PrivateKeyStore keyStore) {
@@ -48,6 +43,7 @@ public class DynamoDBSSHRecordStoreFactory implements SSHRecordStoreFactory {
     }
 
     AmazonDynamoDB getDynamoDBClient(ZTSClientNotificationSenderImpl ztsClientNotificationSender, PrivateKeyStore keyStore) {
-        return dynamoDBClientFetcher.getDynamoDBClient(ztsClientNotificationSender, keyStore);
+        DynamoDBClientFetcher dynamoDBClientFetcher = DynamoDBClientFetcherFactory.getDynamoDBClientFetcher();
+        return dynamoDBClientFetcher.getDynamoDBClient(ztsClientNotificationSender, keyStore).getAmazonDynamoDB();
     }
 }
