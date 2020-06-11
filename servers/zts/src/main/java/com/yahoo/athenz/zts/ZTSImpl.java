@@ -323,6 +323,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 serverHostName);
 
         notificationManager = new NotificationManager(ztsNotificationTaskFactory.getNotificationTasks());
+
+        // Enable notifications for instanceCertManager
+        instanceCertManager.enableCertStoreNotifications(notificationManager, dataStore, serverHostName);
+        instanceCertManager.enableSSHStoreNotifications(notificationManager, dataStore, serverHostName);
     }
 
     void loadSystemProperties() {

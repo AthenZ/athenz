@@ -56,8 +56,8 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
         this.serverName = serverName;
         this.providers = getProvidersList();
         this.instanceCertManager = instanceCertManager;
-        ZTSDomainRoleMembersFetcher ztsDomainRoleMembersFetcher = new ZTSDomainRoleMembersFetcher(dataStore, USER_DOMAIN_PREFIX);
-        this.notificationCommon = new NotificationCommon(ztsDomainRoleMembersFetcher, userDomainPrefix);
+        DomainRoleMembersFetcher domainRoleMembersFetcher = new DomainRoleMembersFetcher(dataStore, USER_DOMAIN_PREFIX);
+        this.notificationCommon = new NotificationCommon(domainRoleMembersFetcher, userDomainPrefix);
         this.hostnameResolver = hostnameResolver;
         this.certFailedRefreshNotificationToEmailConverter = new CertFailedRefreshNotificationToEmailConverter();
         globStringsMatcher = new GlobStringsMatcher(ZTSConsts.ZTS_PROP_NOTIFICATION_CERT_FAIL_IGNORED_SERVICES_LIST);

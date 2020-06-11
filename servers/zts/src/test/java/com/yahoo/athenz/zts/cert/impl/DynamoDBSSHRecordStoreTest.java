@@ -39,7 +39,7 @@ public class DynamoDBSSHRecordStoreTest {
     @Test
     public void testGetConnection() {
 
-        DynamoDBSSHRecordStore store = new DynamoDBSSHRecordStore(dbClient, "Athenz-ZTS-Table");
+        DynamoDBSSHRecordStore store = new DynamoDBSSHRecordStore(dbClient, "Athenz-ZTS-Table", null);
 
         SSHRecordStoreConnection dbConn = store.getConnection();
         assertNotNull(dbConn);
@@ -53,7 +53,7 @@ public class DynamoDBSSHRecordStoreTest {
     public void testGetConnectionException() {
 
         // passing null for table name to get exception
-        DynamoDBSSHRecordStore store = new DynamoDBSSHRecordStore(dbClient, null);
+        DynamoDBSSHRecordStore store = new DynamoDBSSHRecordStore(dbClient, null, null);
 
         try {
             store.getConnection();
@@ -65,7 +65,7 @@ public class DynamoDBSSHRecordStoreTest {
     @Test
     public void testLog() {
 
-        DynamoDBSSHRecordStore store = new DynamoDBSSHRecordStore(dbClient, "Athenz-ZTS-Table");
+        DynamoDBSSHRecordStore store = new DynamoDBSSHRecordStore(dbClient, "Athenz-ZTS-Table", null);
 
         Principal principal = SimplePrincipal.create("user", "joe", "creds");
 

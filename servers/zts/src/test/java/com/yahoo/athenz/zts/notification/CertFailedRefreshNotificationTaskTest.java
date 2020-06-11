@@ -199,7 +199,7 @@ public class CertFailedRefreshNotificationTaskTest {
         records.add(record);
 
         String domainName = "domain1";
-        Mockito.when(dataStore.getDomainData(eq(domainName))).thenReturn(new DomainData());
+        Mockito.when(dataStore.getRolesByDomain(eq(domainName))).thenReturn(new ArrayList<>());
         Mockito.when(hostnameResolver.isValidHostname(eq("hostName1"))).thenReturn(true);
 
         Mockito.when(instanceCertManager.getUnrefreshedCertsNotifications(eq(serverName), anyString())).thenReturn(records);

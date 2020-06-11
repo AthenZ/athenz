@@ -16,14 +16,19 @@
 package com.yahoo.athenz.zts.cert.impl;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.common.server.cert.CertRecordStore;
 import com.yahoo.athenz.common.server.cert.CertRecordStoreFactory;
 import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.ZTSConsts;
+import com.yahoo.athenz.zts.notification.ZTSClientNotificationSenderImpl;
 
 public class DynamoDBCertRecordStoreFactory implements CertRecordStoreFactory {
+    private DynamoDBClientFetcher dynamoDBClientFetcher;
+
+    public DynamoDBCertRecordStoreFactory() {
+        this.dynamoDBClientFetcher = new DynamoDBClientFetcher();
+    }
 
     @Override
     public CertRecordStore create(PrivateKeyStore keyStore) {
@@ -33,11 +38,12 @@ public class DynamoDBCertRecordStoreFactory implements CertRecordStoreFactory {
             throw new ResourceException(ResourceException.SERVICE_UNAVAILABLE, "DynamoDB table name not specified");
         }
 
-        AmazonDynamoDB client = getDynamoDBClient();
-        return new DynamoDBCertRecordStore(client, tableName);
+        ZTSClientNotificationSenderImpl ztsClientNotificationSender = new ZTSClientNotificationSenderImpl();
+        AmazonDynamoDB client = getDynamoDBClient(ztsClientNotificationSender);
+        return new DynamoDBCertRecordStore(client, tableName, ztsClientNotificationSender);
     }
 
-    AmazonDynamoDB getDynamoDBClient() {
-        return AmazonDynamoDBClientBuilder.standard().build();
+    AmazonDynamoDB getDynamoDBClient(ZTSClientNotificationSenderImpl ztsClientNotificationSender) {
+        return dynamoDBClientFetcher.getDynamoDBClient(ztsClientNotificationSender);
     }
 }

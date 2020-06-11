@@ -43,6 +43,7 @@ import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 
 import org.glassfish.jersey.client.JerseyClientBuilder;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -1387,7 +1388,7 @@ public class ZTSClientTest {
     }
 
     @Test
-    public void testPrefetchAwsCredShouldCallServer() throws Exception {
+    public void testPrefetchAwsCredShouldCallServerNoNotification() throws Exception {
         System.out.println("testPrefetchAwsCredShouldCallServer");
 
         ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
@@ -1403,8 +1404,9 @@ public class ZTSClientTest {
         Mockito.when(siaProvider.getIdentity(Mockito.any(),
                 Mockito.any())).thenReturn(principal);
 
+        ZTSClientNotificationSender notificationSender = Mockito.mock(ZTSClientNotificationSender.class);
         ZTSClient client = new ZTSClient("http://localhost:4080/", "user_domain",
-                "user", siaProvider);
+                "user", siaProvider, notificationSender);
         ZTSClient.cancelPrefetch();
         client.setZTSRDLGeneratedClient(ztsClientMock);
 
@@ -1492,6 +1494,97 @@ public class ZTSClientTest {
         AWSTemporaryCredentials awsCred5 = client.getAWSTemporaryCredentials(domain1, "role1");
         assertNotNull(awsCred5);
         assertNotEquals(awsCred4.getAccessKeyId(), awsCred5.getAccessKeyId());
+
+        // Assert no notifications were sent
+        Mockito.verify(notificationSender, Mockito.times(0)).sendNotification(Mockito.any(ZTSClientNotification.class));
+
+        ZTSClient.cancelPrefetch();
+        client.close();
+    }
+
+    @Test
+    public void testPrefetchAwsCredShouldSendNotifications() throws Exception {
+        System.out.println("testPrefetchAwsCredShouldSendNotifications");
+
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
+        int intervalSecs = Integer.parseInt(System.getProperty(ZTSClient.ZTS_CLIENT_PROP_PREFETCH_SLEEP_INTERVAL, "5"));
+        ztsClientMock.setTestSleepInterval(intervalSecs);
+        ztsClientMock.setExpiryTime(intervalSecs); // token expires in 5 seconds
+        ztsClientMock.setRoleName("role1");
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "auth_creds", PRINCIPAL_AUTHORITY);
+
+        ServiceIdentityProvider siaProvider = Mockito.mock(ServiceIdentityProvider.class);
+        Mockito.when(siaProvider.getIdentity(Mockito.any(),
+                Mockito.any())).thenReturn(principal);
+
+        ZTSClientNotificationSender notificationSender = Mockito.mock(ZTSClientNotificationSender.class);
+        ZTSClient client = new ZTSClient("http://localhost:4080/", "user_domain",
+                "user", siaProvider, notificationSender);
+        ZTSClient.cancelPrefetch();
+        client.setZTSRDLGeneratedClient(ztsClientMock);
+
+        String domain1 = "coretech";
+        ztsClientMock.setAwsCreds(Timestamp.fromCurrentTime(), domain1, "role1");
+        ztsClientMock.setAwsCreds(Timestamp.fromCurrentTime(), domain1, "role2");
+
+        // initially, roleToken was never fetched.
+        assertTrue(ztsClientMock.getLastRoleTokenFetchedTime(domain1, "role1", null) < 0);
+
+        // initialize the prefetch token process.
+        client.prefetchAwsCreds(domain1, "role1", null, null, null);
+        // make sure only unique items are in the queue
+        long scheduledItemsSize = client.getScheduledItemsSize();
+        //assertEquals(scheduledItemsSize, 1);
+        client.setPrefetchAutoEnable(true);
+        System.setProperty(ZTSClient.ZTS_CLIENT_PROP_PREFETCH_AUTO_ENABLE, "true");
+        AWSTemporaryCredentials awsCred1 = client.getAWSTemporaryCredentials(domain1, "role1");
+        assertNotNull(awsCred1);
+        long rtExpiry = awsCred1.getExpiration().millis();
+        System.out.println("testPrefetchAwsCredShouldCallServer: awsCred1:domain=" + domain1
+                + " expires at " + rtExpiry + " curtime_millis=" + System.currentTimeMillis());
+
+        System.out.println("testPrefetchAwsCredShouldCallServer: sleep Secs="
+                + (2 * intervalSecs) + "+0.1");
+        Thread.sleep((2 * intervalSecs * 1000) + 100);
+        System.out.println("testPrefetchAwsCredShouldCallServer: nap over so what happened");
+
+        assertEquals(client.getScheduledItemsSize(), 1);
+
+        long lastTokenFetchedTime1 = ztsClientMock.getLastRoleTokenFetchedTime(domain1, "role1", null);
+        awsCred1 = client.getAWSTemporaryCredentials(domain1, "role1");
+        long rtExpiry2 = awsCred1.getExpiration().millis();
+        System.out.println("testPrefetchAwsCredShouldCallServer: roleToken1:domain=" + domain1
+                + " expires at " + rtExpiry2 + " curtime_millis=" + System.currentTimeMillis());
+        assertTrue(rtExpiry2 > rtExpiry); // this token was refreshed
+
+        assertTrue(lastTokenFetchedTime1 > 0);
+
+        // Now clear credentials to cause failure and see if notification sent
+        ztsClientMock.credsMap.clear();
+
+        // wait a few seconds, and see subsequent fetch happened.
+        System.out.println("testPrefetchAwsCredShouldCallServer: again sleep Secs="
+                + (2 * intervalSecs) + "+0.1");
+        Thread.sleep((2 * intervalSecs * 1000) + 100);
+        System.out.println("testPrefetchAwsCredShouldCallServer: again nap over so what happened");
+
+        long lastFailureTime = ztsClientMock.getLastTokenFailTime(domain1, "role1");
+        assertNotEquals(lastFailureTime, -1L);
+
+        // assert notification sent
+        ArgumentCaptor<ZTSClientNotification> argument = ArgumentCaptor.forClass(ZTSClientNotification.class);
+        Mockito.verify(notificationSender, Mockito.times(1)).sendNotification(argument.capture());
+        assertEquals(domain1, argument.getValue().getDomain());
+
+        // Restore credentials, now fetching should work fine
+        ztsClientMock.setAwsCreds(Timestamp.fromCurrentTime(), domain1, "role1");
+        ztsClientMock.setAwsCreds(Timestamp.fromCurrentTime(), domain1, "role2");
+
+        awsCred1 = client.getAWSTemporaryCredentials(domain1, "role1");
+        lastFailureTime = ztsClientMock.getLastTokenFailTime(domain1, "role1");
+        assertEquals(lastFailureTime, -1L);
 
         ZTSClient.cancelPrefetch();
         client.close();

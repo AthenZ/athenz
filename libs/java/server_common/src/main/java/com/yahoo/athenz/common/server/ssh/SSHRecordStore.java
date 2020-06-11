@@ -16,6 +16,8 @@
 package com.yahoo.athenz.common.server.ssh;
 
 import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.common.server.db.RolesProvider;
+import com.yahoo.athenz.common.server.notification.NotificationManager;
 
 public interface SSHRecordStore {
 
@@ -50,4 +52,14 @@ public interface SSHRecordStore {
      *     is for a service as opposed to a role
      */
     void log(final Principal principal, final String ip, final String service, final String instanceId);
+
+    /**
+     * Enable notifications to be sent regarding the store health (by supported implementers)
+     * All arguments must be provided (non-null)
+     * @param notificationManager
+     * @param rolesProvider
+     * @param serverName
+     * @return true if notifications were enabled successfully
+     */
+    boolean enableNotifications(NotificationManager notificationManager, RolesProvider rolesProvider, String serverName);
 }

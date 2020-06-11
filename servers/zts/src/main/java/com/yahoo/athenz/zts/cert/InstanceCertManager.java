@@ -30,7 +30,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.net.InetAddresses;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.CryptoException;
+import com.yahoo.athenz.common.server.db.RolesProvider;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
+import com.yahoo.athenz.common.server.notification.NotificationManager;
 import com.yahoo.athenz.common.server.ssh.SSHSigner;
 import com.yahoo.athenz.common.server.ssh.SSHSignerFactory;
 import com.yahoo.athenz.common.server.ssh.SSHCertRecord;
@@ -1002,6 +1004,20 @@ public class InstanceCertManager {
         }
 
         return result;
+    }
+
+    public boolean enableCertStoreNotifications(NotificationManager notificationManager, RolesProvider rolesProvider, String serverName) {
+        if (certStore != null) {
+            return certStore.enableNotifications(notificationManager, rolesProvider, serverName);
+        }
+        return false;
+    }
+
+    public boolean enableSSHStoreNotifications(NotificationManager notificationManager, RolesProvider rolesProvider, String serverName) {
+        if (sshStore != null) {
+            return sshStore.enableNotifications(notificationManager, rolesProvider, serverName);
+        }
+        return false;
     }
 
     class ExpiredX509CertRecordCleaner implements Runnable {

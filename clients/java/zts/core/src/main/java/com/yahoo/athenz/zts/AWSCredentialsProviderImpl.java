@@ -102,6 +102,15 @@ public class AWSCredentialsProviderImpl implements AWSCredentialsProvider, Close
                 externalId, minExpiryTime, maxExpiryTime);
     }
 
+    public AWSCredentialsProviderImpl(String ztsUrl, SSLContext sslContext,
+                                      String domainName, String roleName, String externalId,
+                                      Integer minExpiryTime, Integer maxExpiryTime,
+                                      ZTSClientNotificationSender ztsClientNotificationSender) {
+
+        initCredProvider(new ZTSClient(ztsUrl, sslContext, ztsClientNotificationSender), true, domainName, roleName,
+                externalId, minExpiryTime, maxExpiryTime);
+    }
+
     /**
      * Constructs a new AWSCredentialsProvider object with the given SSLContext object,
      * ZTS Server Url, Athenz domain name and AWS Role Name to retrieve temporary

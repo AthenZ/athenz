@@ -16,14 +16,19 @@
 package com.yahoo.athenz.zts.cert.impl;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.common.server.ssh.SSHRecordStore;
 import com.yahoo.athenz.common.server.ssh.SSHRecordStoreFactory;
 import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.ZTSConsts;
+import com.yahoo.athenz.zts.notification.ZTSClientNotificationSenderImpl;
 
 public class DynamoDBSSHRecordStoreFactory implements SSHRecordStoreFactory {
+    private DynamoDBClientFetcher dynamoDBClientFetcher;
+
+    public DynamoDBSSHRecordStoreFactory() {
+        this.dynamoDBClientFetcher = new DynamoDBClientFetcher();
+    }
 
     @Override
     public SSHRecordStore create(PrivateKeyStore keyStore) {
@@ -33,11 +38,12 @@ public class DynamoDBSSHRecordStoreFactory implements SSHRecordStoreFactory {
             throw new ResourceException(ResourceException.SERVICE_UNAVAILABLE, "DynamoDB ssh table name not specified");
         }
 
-        AmazonDynamoDB client = getDynamoDBClient();
-        return new DynamoDBSSHRecordStore(client, tableName);
+        ZTSClientNotificationSenderImpl ztsClientNotificationSender = new ZTSClientNotificationSenderImpl();
+        AmazonDynamoDB client = getDynamoDBClient(ztsClientNotificationSender);
+        return new DynamoDBSSHRecordStore(client, tableName, ztsClientNotificationSender);
     }
 
-    AmazonDynamoDB getDynamoDBClient() {
-        return AmazonDynamoDBClientBuilder.standard().build();
+    AmazonDynamoDB getDynamoDBClient(ZTSClientNotificationSenderImpl ztsClientNotificationSender) {
+        return dynamoDBClientFetcher.getDynamoDBClient(ztsClientNotificationSender);
     }
 }

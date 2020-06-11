@@ -16,14 +16,32 @@
 
 package com.yahoo.athenz.common.server.notification;
 
+import com.yahoo.athenz.common.server.db.RolesProvider;
+import com.yahoo.athenz.zms.Role;
+
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
-public interface DomainRoleMembersFetcher {
-    /**
-     * Common interface to fetch domain role members. ZMS, for example will fetch from it's DB while ZTS will fetch from cache.
-     * @param domainName
-     * @param roleName
-     * @return List of domain role member names
-     */
-    Set<String> getDomainRoleMembers(String domainName, String roleName);
+public class DomainRoleMembersFetcher {
+    private final RolesProvider rolesProvider;
+    private final DomainRoleMembersFetcherCommon domainRoleMembersFetcherCommon;
+
+    public DomainRoleMembersFetcher(RolesProvider rolesProvider, String userDomainPrefix) {
+        this.rolesProvider = rolesProvider;
+        this.domainRoleMembersFetcherCommon = new DomainRoleMembersFetcherCommon(userDomainPrefix);
+    }
+
+    public Set<String> getDomainRoleMembers(String domainName, String roleName) {
+        if (rolesProvider == null) {
+            return new HashSet<>();
+        }
+
+        List<Role> roles = rolesProvider.getRolesByDomain(domainName);
+        if (roles == null) {
+            return new HashSet<>();
+        }
+
+        return domainRoleMembersFetcherCommon.getDomainRoleMembers(roleName, roles);
+    }
 }
