@@ -224,7 +224,8 @@ public class DataCacheTest {
         List<RoleMember> members1 = new ArrayList<>();
         members1.add(new RoleMember().setMemberName("user_domain.user1"));
         members1.add(new RoleMember().setMemberName("user_domain.user2"));
-        
+        members1.add(new RoleMember().setMemberName("user_domain.user3").setSystemDisabled(1));
+
         DataCache cache = new DataCache();
         cache.processRoleMembers("dom.role1", members1);
         
@@ -237,6 +238,9 @@ public class DataCacheTest {
         assertNotNull(set2);
         assertTrue(set2.contains(new MemberRole("dom.role1", 0)));
         assertEquals(set2.size(), 1);
+
+        Set<MemberRole> set3 = cache.getMemberRoleSet("user_domain.user3");
+        assertNull(set3);
     }
     
     @Test

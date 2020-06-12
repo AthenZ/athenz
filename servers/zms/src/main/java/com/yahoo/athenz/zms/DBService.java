@@ -4818,8 +4818,17 @@ public class DBService {
             return;
         }
 
+        // for each role catch any exception and ignore since we
+        // want to process all roles and not allow a single one
+        // prevent updating others
+
         for (MemberRole role : roles) {
-            enforceRoleUserAuthorityRestrictions(role.getDomainName(), role.getRoleName());
+            try {
+                enforceRoleUserAuthorityRestrictions(role.getDomainName(), role.getRoleName());
+            } catch (Exception ex) {
+                LOG.error("Unable to process user authority restrictions for {}:role.{} - {}",
+                        role.getDomainName(), role.getRoleName(), ex.getMessage());
+            }
         }
     }
 

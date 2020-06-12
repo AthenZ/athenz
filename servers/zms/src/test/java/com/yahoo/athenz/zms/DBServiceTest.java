@@ -7109,6 +7109,75 @@ public class DBServiceTest {
     }
 
     @Test
+    public void testProcessUserAuthorityRestrictionsExceptions() {
+
+        Authority savedAuthority = zms.dbService.zmsConfig.getUserAuthority();
+
+        Authority authority = Mockito.mock(Authority.class);
+
+        Mockito.when(authority.getDateAttribute("user.joe", "elevated-clearance"))
+                .thenReturn(null);
+
+        zms.dbService.zmsConfig.setUserAuthority(authority);
+
+        final String domainName = "authority-test";
+        final String roleName1 = "auth-role1";
+        final String roleName2 = "auth-role2";
+
+        ObjectStoreConnection mockConn = Mockito.mock(ObjectStoreConnection.class);
+        Mockito.when(mockConn.insertRoleMember(Mockito.anyString(), Mockito.anyString(), Mockito.any(),
+                Mockito.any(), Mockito.anyString())).thenReturn(true);
+        Mockito.when(mockConn.updateDomainModTimestamp(domainName)).thenReturn(true);
+
+        // we're going to return an exception for the first insert role member
+        // and then success for the second one
+
+        Mockito.when(mockObjStore.getConnection(true, true))
+                .thenThrow(new ResourceException(500, "DB Error"))
+                .thenReturn(mockConn);
+        Mockito.when(mockObjStore.getConnection(true, false)).thenReturn(mockConn);
+
+        // first we're going to return a null role and then a role
+        // with no members - in both cases we return without processing
+        // any code
+
+        Role role1 = new Role().setUserAuthorityExpiration("elevated-clearance");
+        List<RoleMember> roleMembers1 = new ArrayList<>();
+        roleMembers1.add(new RoleMember().setMemberName("user.joe"));
+
+        Mockito.when(mockConn.getRole(domainName, roleName1)).thenReturn(role1);
+        Mockito.when(mockConn.listRoleMembers(domainName, roleName1, false))
+                .thenReturn(roleMembers1);
+
+        Role role2 = new Role().setUserAuthorityExpiration("elevated-clearance");
+        List<RoleMember> roleMembers2 = new ArrayList<>();
+        roleMembers2.add(new RoleMember().setMemberName("user.joe"));
+
+        Mockito.when(mockConn.getRole(domainName, roleName2)).thenReturn(role2);
+        Mockito.when(mockConn.listRoleMembers(domainName, roleName2, false))
+                .thenReturn(roleMembers2);
+
+        List<MemberRole> roles = new ArrayList<>();
+        roles.add(new MemberRole().setDomainName(domainName).setRoleName(roleName1));
+        roles.add(new MemberRole().setDomainName(domainName).setRoleName(roleName2));
+
+        Mockito.when(mockConn.listRolesWithUserAuthorityRestrictions())
+                .thenReturn(roles);
+
+        ObjectStore savedStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        // the request should complete successfully
+        // for the first role we'll get an exception but we'll just log
+        // for the second role we'll get success
+
+        zms.dbService.processUserAuthorityRestrictions();
+
+        zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
+        zms.dbService.store = savedStore;
+    }
+
+    @Test
     public void testUserAuthorityFilterEnforcerException() {
 
         Authority savedAuthority = zms.dbService.zmsConfig.getUserAuthority();

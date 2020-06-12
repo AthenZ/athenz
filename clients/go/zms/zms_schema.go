@@ -153,6 +153,7 @@ func init() {
 	tRoleMember.Field("lastNotifiedTime", "Timestamp", true, nil, "for pending membership requests, time when last notification was sent")
 	tRoleMember.Field("requestPrincipal", "ResourceName", true, nil, "pending members only - name of the principal requesting the change")
 	tRoleMember.Field("reviewLastNotifiedTime", "Timestamp", true, nil, "for pending membership requests, time when last notification was sent (for file store)")
+	tRoleMember.Field("systemDisabled", "Int32", true, nil, "user disabled by system based on configured role setting")
 	sb.AddType(tRoleMember.Build())
 
 	tRoleMeta := rdl.NewStructTypeBuilder("Struct", "RoleMeta")
@@ -199,6 +200,7 @@ func init() {
 	tMembership.Field("approved", "Bool", true, true, "Flag to indicate whether membership is approved either by delegates ( in case of auditEnabled roles ) or by domain admins ( in case of selfserve roles )")
 	tMembership.Field("auditRef", "String", true, nil, "audit reference string for the change as supplied by admin")
 	tMembership.Field("requestPrincipal", "ResourceName", true, nil, "pending members only - name of the principal requesting the change")
+	tMembership.Field("systemDisabled", "Int32", true, nil, "user disabled by system based on configured role setting")
 	sb.AddType(tMembership.Build())
 
 	tDefaultAdmins := rdl.NewStructTypeBuilder("Struct", "DefaultAdmins")
@@ -216,6 +218,7 @@ func init() {
 	tMemberRole.Field("auditRef", "String", true, nil, "audit reference string for the change as supplied by admin")
 	tMemberRole.Field("requestPrincipal", "EntityName", true, nil, "pending members only - name of the principal requesting the change")
 	tMemberRole.Field("requestTime", "Timestamp", true, nil, "for pending membership requests, the request time")
+	tMemberRole.Field("systemDisabled", "Int32", true, nil, "user disabled by system based on configured role setting")
 	sb.AddType(tMemberRole.Build())
 
 	tDomainRoleMember := rdl.NewStructTypeBuilder("Struct", "DomainRoleMember")

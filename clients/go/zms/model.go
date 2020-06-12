@@ -763,6 +763,11 @@ type RoleMember struct {
 	// file store)
 	//
 	ReviewLastNotifiedTime *rdl.Timestamp `json:"reviewLastNotifiedTime,omitempty" rdl:"optional"`
+
+	//
+	// user disabled by system based on configured role setting
+	//
+	SystemDisabled *int32 `json:"systemDisabled,omitempty" rdl:"optional"`
 }
 
 //
@@ -1262,6 +1267,11 @@ type Membership struct {
 	// pending members only - name of the principal requesting the change
 	//
 	RequestPrincipal ResourceName `json:"requestPrincipal,omitempty" rdl:"optional"`
+
+	//
+	// user disabled by system based on configured role setting
+	//
+	SystemDisabled *int32 `json:"systemDisabled,omitempty" rdl:"optional"`
 }
 
 //
@@ -1454,6 +1464,11 @@ type MemberRole struct {
 	// for pending membership requests, the request time
 	//
 	RequestTime *rdl.Timestamp `json:"requestTime,omitempty" rdl:"optional"`
+
+	//
+	// user disabled by system based on configured role setting
+	//
+	SystemDisabled *int32 `json:"systemDisabled,omitempty" rdl:"optional"`
 }
 
 //
