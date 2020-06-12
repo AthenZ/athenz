@@ -1533,7 +1533,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
     String getQueryLogData(final String request) {
         // make sure any CRLFs are not set to the logger
-        String clean = request.replace( '\n', '_' ).replace( '\r', '_' );
+        final String clean = request.replace('\n', '_').replace('\r', '_');
         return (clean.length() > 1024) ? clean.substring(0, 1024) : clean;
     }
 
