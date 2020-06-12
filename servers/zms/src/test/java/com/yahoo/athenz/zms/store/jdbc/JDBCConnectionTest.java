@@ -157,11 +157,7 @@ public class JDBCConnectionTest {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
             
-        try {
-            jdbcConn.getDomainId("my-domain");
-        } catch (Exception ex) {
-            assertTrue(true);
-        }
+        assertEquals(jdbcConn.getDomainId("my-domain"), 0);
         jdbcConn.close();
     }
     
@@ -189,11 +185,7 @@ public class JDBCConnectionTest {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
             
-        try {
-            jdbcConn.getRoleId(3, "role1");
-        } catch (Exception ex) {
-            assertTrue(true);
-        }
+        assertEquals(jdbcConn.getRoleId(3, "role1"), 0);
         jdbcConn.close();
     }
     
@@ -221,11 +213,7 @@ public class JDBCConnectionTest {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
             
-        try {
-            jdbcConn.getPrincipalId("domain.user1");
-        } catch (Exception ex) {
-            assertTrue(true);
-        }
+        assertEquals(jdbcConn.getPrincipalId("domain.user1"), 0);
         jdbcConn.close();
     }
     
@@ -247,11 +235,7 @@ public class JDBCConnectionTest {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
             
-        try {
-            jdbcConn.getLastInsertId();
-        } catch (Exception ex) {
-            assertTrue(true);
-        }
+        assertEquals(jdbcConn.getLastInsertId(), 0);
         jdbcConn.close();
     }
     
@@ -279,11 +263,7 @@ public class JDBCConnectionTest {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
             
-        try {
-            jdbcConn.getPolicyId(3, "policy1");
-        } catch (Exception ex) {
-            assertTrue(true);
-        }
+        assertEquals(jdbcConn.getPolicyId(3, "policy1"), 0);
         jdbcConn.close();
     }
     
@@ -311,11 +291,7 @@ public class JDBCConnectionTest {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
             
-        try {
-            jdbcConn.getServiceId(3, "service1");
-        } catch (Exception ex) {
-            assertTrue(true);
-        }
+        assertEquals(jdbcConn.getServiceId(3, "service1"), 0);
         jdbcConn.close();
     }
     
@@ -343,11 +319,7 @@ public class JDBCConnectionTest {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
             
-        try {
-            jdbcConn.getHostId("host1");
-        } catch (Exception ex) {
-            assertTrue(true);
-        }
+        assertEquals(jdbcConn.getHostId("host1"), 0);
         jdbcConn.close();
     }
     
@@ -389,8 +361,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.getDomain("my-domain");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -492,8 +464,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.insertDomain(domain);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -546,8 +518,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.insertDomain(domain);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -645,8 +617,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.updateDomain(domain);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -699,8 +671,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.updateDomainModTimestamp("my-domain");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -714,8 +686,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.deleteDomain("my-domain");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -756,8 +728,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.listDomains(null, 0);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -962,7 +934,7 @@ public class JDBCConnectionTest {
             jdbcConn.getRole("my-domain", "role1");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(500, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -1050,8 +1022,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.insertRole("my-domain", role);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
         }
         jdbcConn.close();
     }
@@ -1067,8 +1039,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.insertRole("my-domain", role);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -1121,8 +1093,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.insertRole("my-domain", role);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -1222,8 +1194,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.updateRole("my-domain", role);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
         }
         jdbcConn.close();
     }
@@ -1239,8 +1211,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.updateRole("my-domain", role);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -1260,8 +1232,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.updateRole("my-domain", role);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -1281,8 +1253,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.updateRole("my-domain", role);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -1365,8 +1337,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.updateRoleModTimestamp("my-domain", "role1");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -1398,8 +1370,9 @@ public class JDBCConnectionTest {
 
         try {
             jdbcConn.deleteRole("my-domain", "role1");
-        } catch (Exception ex) {
-            assertTrue(true);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -1415,8 +1388,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.deleteRole("my-domain", "role1");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -1483,8 +1456,8 @@ public class JDBCConnectionTest {
         
         try {
             jdbcConn.countRoles("my-domain");
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -1505,8 +1478,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.countRoles("my-domain");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -1521,8 +1494,9 @@ public class JDBCConnectionTest {
         
         try {
             jdbcConn.listRoles("my-domain");
-        } catch (Exception ex) {
-            assertTrue(true);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -1543,8 +1517,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.listRoles("my-domain");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -1573,8 +1547,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.countRoleMembers("my-domain", "role1");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -1592,8 +1566,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.countRoleMembers("my-domain", "role1");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -1616,8 +1590,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.countRoleMembers("my-domain", "role1");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -1684,8 +1658,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.listRoleMembers("my-domain", "role1", false);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -1703,8 +1677,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.listRoleMembers("my-domain", "role1", false);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -1727,8 +1701,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.listRoleMembers("my-domain", "role1", false);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -2012,8 +1986,8 @@ public class JDBCConnectionTest {
                     new RoleMember().setMemberName("user.user1"),
                     "user.admin", "audit-ref");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -2331,8 +2305,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.getRoleMember("my-domain", "role1", "user1", 0, false);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -2346,8 +2320,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.getRoleMember("my-domain", "role1", "user.user1", 0, false);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -2359,12 +2333,10 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.getInt(1))
             .thenReturn(5) // domain id
             .thenReturn(7) // role id
-            .thenReturn(9) // member domain id
-            .thenReturn(11); // principal id
+            .thenReturn(9); // principal id
         Mockito.when(mockResultSet.next())
             .thenReturn(true) // this one is for domain id
             .thenReturn(true) // this one is for role id
-            .thenReturn(true) // member domain id
             .thenReturn(true); // principal id
             
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
@@ -2409,8 +2381,8 @@ public class JDBCConnectionTest {
             jdbcConn.deleteRoleMember("my-domain", "role1", "user.user1",
                     "user.admin", "audit-ref");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -2431,8 +2403,8 @@ public class JDBCConnectionTest {
             jdbcConn.deleteRoleMember("my-domain", "role1", "user.user1",
                     "user.admin", "audit-ref");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -2455,8 +2427,8 @@ public class JDBCConnectionTest {
             jdbcConn.deleteRoleMember("my-domain", "role1", "user.user1",
                     "user.admin", "audit-ref");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -2501,8 +2473,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.getPolicy("my-domain", "policy1");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -2578,8 +2550,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.insertPolicy("my-domain", policy);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -2684,8 +2656,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.updatePolicy("my-domain", policy);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -2734,8 +2706,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.deletePolicy("my-domain", "policy1");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -2819,8 +2791,9 @@ public class JDBCConnectionTest {
         
         try {
             jdbcConn.countPolicies("my-domain");
-        } catch (Exception ex) {
-            assertTrue(true);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -2841,8 +2814,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.countPolicies("my-domain");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -2964,8 +2937,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.insertAssertion("my-domain", "policy1", assertion);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -2984,8 +2957,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.insertAssertion("my-domain", "policy1", assertion);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
         }
         jdbcConn.close();
     }
@@ -3010,8 +2983,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.insertAssertion("my-domain", "policy1", assertion);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -3039,8 +3012,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.insertAssertion("my-domain", "policy1", assertion);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -3088,8 +3061,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.deleteAssertion("my-domain", "policy1", (long) 101);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -3108,8 +3081,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.deleteAssertion("my-domain", "policy1", (long) 101);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -3130,8 +3103,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.deleteAssertion("my-domain", "policy1", (long) 101);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -3209,8 +3182,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.getServiceIdentity("my-domain", "service1");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -3327,8 +3300,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.insertServiceIdentity("my-domain", service);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -3476,8 +3449,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.updateServiceIdentity("my-domain", service);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -3526,8 +3499,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.deleteServiceIdentity("my-domain", "service1");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -3611,8 +3584,9 @@ public class JDBCConnectionTest {
         
         try {
             jdbcConn.countServiceIdentities("my-domain");
-        } catch (Exception ex) {
-            assertTrue(true);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -3633,8 +3607,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.countServiceIdentities("my-domain");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -3717,8 +3691,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.updateServiceIdentityModTimestamp("my-domain", "service1");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -3886,8 +3860,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.countPublicKeys("my-domain", "service1");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -3904,8 +3878,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.countPublicKeys("my-domain", "service1");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -3942,8 +3916,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.countPublicKeys("my-domain", "service1");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -4049,8 +4023,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.countAssertions("my-domain", "policy1");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -4067,8 +4041,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.countAssertions("my-domain", "policy1");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -4105,8 +4079,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.countAssertions("my-domain", "policy1");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -4145,8 +4119,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.getPublicKeyEntry("my-domain", "service1", "zone1", false);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -4165,8 +4139,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.getPublicKeyEntry("my-domain", "service1", "zone1", false);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -4210,8 +4184,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.getPublicKeyEntry("my-domain", "service1", "zone1", false);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -4264,8 +4238,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.insertPublicKeyEntry("my-domain", "service1", publicKey);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -4286,8 +4260,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.insertPublicKeyEntry("my-domain", "service1", publicKey);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -4310,8 +4284,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.insertPublicKeyEntry("my-domain", "service1", publicKey);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -4364,8 +4338,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.updatePublicKeyEntry("my-domain", "service1", publicKey);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -4386,8 +4360,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.updatePublicKeyEntry("my-domain", "service1", publicKey);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -4410,8 +4384,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.updatePublicKeyEntry("my-domain", "service1", publicKey);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -4459,8 +4433,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.deletePublicKeyEntry("my-domain", "service1", "zms1");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -4479,8 +4453,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.deletePublicKeyEntry("my-domain", "service1", "zms1");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
    }
@@ -4501,8 +4475,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.deletePublicKeyEntry("my-domain", "service1", "zms1");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -4589,8 +4563,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.insertServiceHost("my-domain", "service1", "host1");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
    }
@@ -4609,8 +4583,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.insertServiceHost("my-domain", "service1", "host1");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -4634,8 +4608,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.insertServiceHost("my-domain", "service1", "host1");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -4685,8 +4659,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.deleteServiceHost("my-domain", "service1", "host1");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -4705,8 +4679,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.deleteServiceHost("my-domain", "service1", "host1");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -4727,8 +4701,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.deleteServiceHost("my-domain", "service1", "host1");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -4752,8 +4726,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.deleteServiceHost("my-domain", "service1", "host1");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -4865,8 +4839,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.insertDomainTemplate("my-domain", "platforms", null);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -4913,8 +4887,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.insertDomainTemplate("my-domain", "platforms", null);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -4961,8 +4935,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.updateDomainTemplate("test-domain", "aws_bastion", templateMetaData);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -5005,8 +4979,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.deleteDomainTemplate("my-domain", "platforms", null);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -5028,8 +5002,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.deleteDomainTemplate("my-domain", "platforms", null);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -5070,8 +5044,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.listDomainTemplates("my-domain");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -5278,8 +5252,9 @@ public class JDBCConnectionTest {
         
         try {
             jdbcConn.countEntities("my-domain");
-        } catch (Exception ex) {
-            assertTrue(true);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -5300,8 +5275,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.countEntities("my-domain");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -5348,8 +5323,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.getEntity("my-domain", "entity1");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -5370,8 +5345,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.getEntity("my-domain", "entity1");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -5407,8 +5382,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.insertEntity("my-domain", entity);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -5427,8 +5402,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.insertEntity("my-domain", entity);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -5465,8 +5440,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.updateEntity("my-domain", entity);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -5485,8 +5460,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.updateEntity("my-domain", entity);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -5519,8 +5494,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.deleteEntity("my-domain", "entity1");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -5537,8 +5512,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.deleteEntity("my-domain", "entity1");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -5566,8 +5541,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.insertPrincipal("domain.user1");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -5592,8 +5567,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.insertHost("host1");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -5684,8 +5659,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.listModifiedDomains(1454358900);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -5799,7 +5774,6 @@ public class JDBCConnectionTest {
         } catch (Exception ex) {
             fail();
         }
-        assertTrue(true);
     }
     
     @Test
@@ -6095,8 +6069,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.listRoleAuditLogs("my-domain", "role1");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -6114,8 +6088,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.listRoleAuditLogs("my-domain", "role1");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -6140,7 +6114,7 @@ public class JDBCConnectionTest {
             jdbcConn.listRoleAuditLogs("my-domain", "role1");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(500, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -6878,8 +6852,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.updatePolicyModTimestamp("my-domain", "policy1");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -6940,8 +6914,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.getAssertion("my-domain", "policy1", 101L);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -7437,8 +7411,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.getQuota("athenz");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -7518,8 +7492,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.insertQuota("athenz", quota);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -7599,8 +7573,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.updateQuota("athenz", quota);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -7648,8 +7622,7 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.deleteQuota("athenz");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (Exception ignored) {
         }
         jdbcConn.close();
     }
@@ -8081,7 +8054,7 @@ public class JDBCConnectionTest {
 
             jdbcConn.confirmRoleMember("my-domain", "role1", new RoleMember().setMemberName("user.user1").setActive(false), "user.admin", "audit-ref");
 
-        }catch (ResourceException rx){
+        } catch (ResourceException rx) {
             assertEquals(rx.getCode(), 404);
             assertTrue(rx.getMessage().contains("unknown domain"));
         }
@@ -9281,8 +9254,8 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.updateRoleReviewTimestamp("my-domain", "role1");
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -9425,5 +9398,237 @@ public class JDBCConnectionTest {
         String generatedQuery = jdbcConn.generateDomainTemplateVersionQuery(templateDetails);
         assertNotNull(generatedQuery);
         assertEquals(generatedQuery, expectedQuery);
+    }
+
+    @Test
+    public void testUpdateRoleMemberDisabledStateEanble()  throws Exception {
+        testUpdateRoleMemberDisableState(0, "ENABLE");
+    }
+
+    @Test
+    public void testUpdateRoleMemberDisabledStateDisable()  throws Exception {
+        testUpdateRoleMemberDisableState(1, "DISABLE");
+    }
+
+    private void testUpdateRoleMemberDisableState(int state, final String operation) throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7) // role id
+                .thenReturn(9); // principal id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for role id
+                .thenReturn(true); // principal id
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        boolean requestSuccess = jdbcConn.updateRoleMemberDisabledState("my-domain", "role1", "user.user1",
+                "user.admin", state, "audit-ref");
+        assertTrue(requestSuccess);
+
+        // this is combined for all operations above
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
+
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "role1");
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "user.user1");
+
+        // attributes set for disabling
+
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, state);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "audit-ref");
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "user.admin");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(4, 7);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(5, 9);
+
+        // the rest of the audit log details
+
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 7);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "user.admin");
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "user.user1");
+        Mockito.verify(mockPrepStmt, times(1)).setString(4, operation);
+        Mockito.verify(mockPrepStmt, times(1)).setString(5, "audit-ref");
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testUpdateRoleMemberDisableStateInvalidDomain() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(false); // this one is for domain id
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        try {
+            jdbcConn.updateRoleMemberDisabledState("my-domain", "role1", "user.user1",
+                    "user.admin", 0, "audit-ref");
+            fail();
+        } catch (ResourceException rx) {
+            assertEquals(rx.getCode(), 404);
+            assertTrue(rx.getMessage().contains("unknown domain"));
+        }
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testUpdateRoleMemberDisableStateInvalidRole() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5); // domain id
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(false); // this one is for role id
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        try {
+            jdbcConn.updateRoleMemberDisabledState("my-domain", "role1", "user.user1",
+                    "user.admin", 0, "audit-ref");
+            fail();
+        } catch (ResourceException rx) {
+            assertEquals(rx.getCode(), 404);
+            assertTrue(rx.getMessage().contains("unknown role"));
+        }
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testUpdateRoleMemberDisableStateInvalidPrincipal() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7); // role id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for role id
+                .thenReturn(false); // principal id
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        try {
+            jdbcConn.updateRoleMemberDisabledState("my-domain", "role1", "user.user1",
+                    "user.admin", 0, "audit-ref");
+            fail();
+        } catch (ResourceException rx) {
+            assertEquals(rx.getCode(), 404);
+            assertTrue(rx.getMessage().contains("unknown principal"));
+        }
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testUpdateRoleMemberDisableStateFailedUpdate() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7) // role id
+                .thenReturn(9); // principal id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for role id
+                .thenReturn(true); // principal id
+
+        Mockito.doReturn(0).when(mockPrepStmt).executeUpdate();
+
+        boolean requestSuccess = jdbcConn.updateRoleMemberDisabledState("my-domain", "role1", "user.user1",
+                "user.admin", 1, "audit-ref");
+        assertFalse(requestSuccess);
+
+        // this is combined for all operations above
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
+
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "role1");
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "user.user1");
+
+        // attributes set for disabling
+
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 1);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "audit-ref");
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "user.admin");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(4, 7);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(5, 9);
+
+        // no audit logs since we didn't get a successful response
+
+        Mockito.verify(mockPrepStmt, times(0)).setInt(1, 7);
+        Mockito.verify(mockPrepStmt, times(0)).setString(2, "user.admin");
+        Mockito.verify(mockPrepStmt, times(0)).setString(3, "user.user1");
+        Mockito.verify(mockPrepStmt, times(0)).setString(4, "DISABLE");
+        Mockito.verify(mockPrepStmt, times(0)).setString(5, "audit-ref");
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testUpdateRoleMemberDisableStateFailedUpdateException() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7) // role id
+                .thenReturn(9); // principal id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for role id
+                .thenReturn(true); // principal id
+
+        Mockito.when(mockPrepStmt.executeUpdate()).thenThrow(new SQLException("failed operation", "state", 1001));
+        
+        try {
+            jdbcConn.updateRoleMemberDisabledState("my-domain", "role1", "user.user1",
+                    "user.admin", 1, "audit-ref");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
+        }
+
+        // this is combined for all operations above
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
+
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "role1");
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "user.user1");
+
+        // attributes set for disabling
+
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 1);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "audit-ref");
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "user.admin");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(4, 7);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(5, 9);
+
+        // no audit logs since we didn't get a successful response
+
+        Mockito.verify(mockPrepStmt, times(0)).setInt(1, 7);
+        Mockito.verify(mockPrepStmt, times(0)).setString(2, "user.admin");
+        Mockito.verify(mockPrepStmt, times(0)).setString(3, "user.user1");
+        Mockito.verify(mockPrepStmt, times(0)).setString(4, "DISABLE");
+        Mockito.verify(mockPrepStmt, times(0)).setString(5, "audit-ref");
+
+        jdbcConn.close();
     }
 }

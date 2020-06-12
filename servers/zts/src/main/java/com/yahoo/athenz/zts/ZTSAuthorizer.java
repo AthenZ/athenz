@@ -274,9 +274,35 @@ public class ZTSAuthorizer implements Authorizer {
             return false;
         }
         
-        return checkRoleMemberExpiration(members, member);
+        return checkRoleMemberValidity(members, member);
     }
-    
+
+    boolean isMemberEnabled(RoleMember roleMember) {
+        return (roleMember.getSystemDisabled() == null || roleMember.getSystemDisabled() == 0);
+    }
+
+    boolean isMemberExpired(RoleMember roleMember) {
+        // check expiration, if is not defined, its not expired.
+        Timestamp expiration = roleMember.getExpiration();
+        return (expiration != null && expiration.millis() < System.currentTimeMillis());
+    }
+
+    boolean checkRoleMemberValidity(List<RoleMember> roleMembers, String member) {
+
+        // we need to make sure that both the user is not expired
+        // and not disabled by the system
+
+        boolean isMember = false;
+        for (RoleMember memberInfo: roleMembers) {
+            final String memberName = memberInfo.getMemberName();
+            if (memberNameMatch(memberName, member)) {
+                isMember = isMemberEnabled(memberInfo) && !isMemberExpired(memberInfo);
+                break;
+            }
+        }
+        return isMember;
+    }
+
     boolean memberNameMatch(String memberName, String matchName) {
         // we are supporting 3 formats for role members
         // *, <domain>.[user]* and <domain>.<user>
@@ -287,25 +313,6 @@ public class ZTSAuthorizer implements Authorizer {
         } else {
             return memberName.equals(matchName);
         }
-    }
-    
-    boolean checkRoleMemberExpiration(List<RoleMember> roleMembers, String member) {
-        
-        boolean isMember = false;
-        for (RoleMember memberInfo: roleMembers) {
-            final String memberName = memberInfo.getMemberName();
-            if (memberNameMatch(memberName, member)) {
-                // check expiration, if it's not defined, it's not expired.
-                Timestamp expiration = memberInfo.getExpiration();
-                if (expiration != null) {
-                    isMember = !(expiration.millis() < System.currentTimeMillis());
-                } else {
-                    isMember = true;
-                }
-                break;
-            }
-        }
-        return isMember;
     }
     
     boolean matchDelegatedTrustAssertion(com.yahoo.athenz.zms.Assertion assertion, String roleName,

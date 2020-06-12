@@ -894,6 +894,32 @@ public class FileConnection implements ObjectStoreConnection {
     }
 
     @Override
+    public boolean updateRoleMemberDisabledState(String domainName, String roleName, String principal,
+            String admin, int disabledState, String auditRef) {
+
+        DomainStruct domainStruct = getDomainStruct(domainName);
+        if (domainStruct == null) {
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", "deleteRoleMember");
+        }
+        Role role = getRoleObject(domainStruct, roleName);
+        if (role == null) {
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "role not found", "deleteRoleMember");
+        }
+        List<RoleMember> roleMembers = role.getRoleMembers();
+        if (roleMembers != null) {
+            for (int idx = 0; idx < roleMembers.size(); idx++) {
+                RoleMember roleMember = roleMembers.get(idx);
+                if (roleMember.getMemberName().equalsIgnoreCase(principal)) {
+                    roleMember.setSystemDisabled(disabledState);
+                    break;
+                }
+            }
+        }
+        putDomainStruct(domainName, domainStruct);
+        return true;
+    }
+
+    @Override
     public boolean deleteRoleMember(String domainName, String roleName, String principal,
             String admin, String auditRef) {
 

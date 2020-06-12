@@ -399,7 +399,11 @@ public class ZMSUtils {
         // so we'll optimize for that case and not create an array
 
         if (filterList.indexOf(',') == -1) {
-            return userAuthority.isAttributeSet(memberName, filterList);
+            if (!userAuthority.isAttributeSet(memberName, filterList)) {
+                LOG.error("Principal {} does not satisfy user authority {} filter", memberName, filterList);
+                return false;
+            }
+            return true;
         } else {
             final String[] filterItems = filterList.split(",");
             for (String filterItem : filterItems) {

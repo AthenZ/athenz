@@ -3193,19 +3193,26 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
 
-    boolean checkRoleMemberExpiration(List<RoleMember> roleMembers, String member) {
+    boolean isMemberEnabled(RoleMember roleMember) {
+        return (roleMember.getSystemDisabled() == null || roleMember.getSystemDisabled() == 0);
+    }
+
+    boolean isMemberExpired(RoleMember roleMember) {
+        // check expiration, if is not defined, its not expired.
+        Timestamp expiration = roleMember.getExpiration();
+        return (expiration != null && expiration.millis() < System.currentTimeMillis());
+    }
+
+    boolean checkRoleMemberValidity(List<RoleMember> roleMembers, String member) {
+
+        // we need to make sure that both the user is not expired
+        // and not disabled by the system
 
         boolean isMember = false;
         for (RoleMember memberInfo: roleMembers) {
             final String memberName = memberInfo.getMemberName();
             if (memberNameMatch(memberName, member)) {
-                // check expiration, if is not defined, its not expired.
-                Timestamp expiration = memberInfo.getExpiration();
-                if (expiration != null) {
-                    isMember = !(expiration.millis() < System.currentTimeMillis());
-                } else {
-                    isMember = true;
-                }
+                isMember = isMemberEnabled(memberInfo) && !isMemberExpired(memberInfo);
                 break;
             }
         }
@@ -3217,7 +3224,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         if (roleMembers == null) {
             return false;
         }
-        return checkRoleMemberExpiration(roleMembers, member);
+        return checkRoleMemberValidity(roleMembers, member);
     }
 
     @Override
@@ -4306,11 +4313,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return false;
     }
 
-    boolean matchRole(String domain, List<Role> roles, String rolePattern,
-            List<String> authenticatedRoles) {
+    boolean matchRole(String domain, List<Role> roles, String rolePattern, List<String> authenticatedRoles) {
         
         if (LOG.isDebugEnabled()) {
-            LOG.debug("matchRole domain: " + domain + " rolePattern: " + rolePattern);
+            LOG.debug("matchRole domain: {} rolePattern: {}", domain, rolePattern);
         }
         
         String prefix = domain + AuthorityConsts.ROLE_SEP;
@@ -4378,8 +4384,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     boolean matchPrincipal(List<Role> roles, String rolePattern, String fullUser, String trustDomain) {
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("matchPrincipal - rolePattern: " + rolePattern + " user: " + fullUser +
-                    " trust: " + trustDomain);
+            LOG.debug("matchPrincipal - rolePattern: {} user: {} trust: {}", rolePattern, fullUser, trustDomain);
         }
 
         for (Role role : roles) {
@@ -4450,8 +4455,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
         
         if (LOG.isDebugEnabled()) {
-            LOG.debug("assertionMatch: -> " + matchResult +
-                    " (effect: " + assertion.getEffect() + ")");
+            LOG.debug("assertionMatch: -> {} (effect: {})", matchResult, assertion.getEffect());
         }
 
         return matchResult;
