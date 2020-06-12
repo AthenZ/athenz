@@ -507,10 +507,36 @@ Fetchr.registerService({
         );
     },
     create(req, resource, params, body, config, callback) {
-        req.clients.zms.putPolicy(
-            params,
-            responseHandler.bind({ caller: 'putPolicy', callback, req })
-        );
+        req.clients.zms.getPolicy(params, (err) => {
+            if (err) {
+                if (err.status === 404) {
+                    return req.clients.zms.putPolicy(
+                        params,
+                        responseHandler.bind({
+                            caller: 'putPolicy',
+                            callback,
+                            req,
+                        })
+                    );
+                } else {
+                    return callback(errorHandler.fetcherError(err));
+                }
+            }
+            let customError = {
+                status: '500',
+                message: {
+                    message: `Policy ${params.policyName} exists in domain ${params.domainName}.`,
+                },
+            };
+            debug(
+                `principal: ${req.session.shortId} rid: ${
+                    req.headers.rid
+                } Error from ZMS while calling getPolicy API: ${JSON.stringify(
+                    customError
+                )}`
+            );
+            return callback(errorHandler.fetcherError(customError));
+        });
     },
     delete(req, resource, params, config, callback) {
         req.clients.zms.deletePolicy(params, function(err, data) {

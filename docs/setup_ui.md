@@ -81,7 +81,7 @@ Set the following environment variable before starting the UI Server:
 
 ```shell
 $ cd athenz-ui-X.Y
-$ export UI_SERVER=<ui-server-host-name> ZMS_SERVER=<zms-server-host-name>
+$ export UI_SERVER=<ui-server-host-name> ZMS_SERVER=<zms-server-host-name> NODE_ENV=production
 $ sudo -E bin/athenz_ui start
 ```
 
@@ -92,7 +92,7 @@ To stop the UI server, execute the following commands:
 
 ```shell
 $ cd athenz-ui-X.Y
-$ export UI_SERVER=<ui-server-host-name> ZMS_SERVER=<zms-server-host-name>
+$ export UI_SERVER=<ui-server-host-name> ZMS_SERVER=<zms-server-host-name> NODE_ENV=production
 $ sudo -E bin/athenz_ui stop
 ```
 
