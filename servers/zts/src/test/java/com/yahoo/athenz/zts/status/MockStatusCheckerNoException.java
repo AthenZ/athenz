@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package com.yahoo.athenz.zms.status;
+package com.yahoo.athenz.zts.status;
 
 import com.yahoo.athenz.common.server.status.StatusChecker;
 import com.yahoo.athenz.common.server.status.StatusCheckerFactory;
 
-public class MockStatusCheckerTrue implements StatusCheckerFactory {
+public class MockStatusCheckerNoException implements StatusCheckerFactory {
     @Override
     public StatusChecker create() {
-        return () -> true;
+        return () -> {
+        };
     }
 }

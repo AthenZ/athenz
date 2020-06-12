@@ -37,6 +37,7 @@ import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.dns.HostnameResolverFactory;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
 import com.yahoo.athenz.common.server.ssh.SSHCertRecord;
+import com.yahoo.athenz.common.server.status.StatusCheckException;
 import com.yahoo.athenz.common.server.status.StatusChecker;
 import com.yahoo.athenz.common.server.status.StatusCheckerFactory;
 import com.yahoo.athenz.zms.RoleMeta;
@@ -4031,9 +4032,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
 
         // if the statusChecker is set, check the status
-        if (statusChecker != null && !statusChecker.check()) {
-            throw notFoundError("Error - status check failed", caller,
-                    ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+
+        if (statusChecker != null) {
+            try {
+                statusChecker.check();
+            } catch (StatusCheckException e) {
+                throw error(e.getCode(), e.getMsg(), caller,
+                        ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+            }
         }
 
         metric.stopTiming(timerMetric, null, principalDomain);

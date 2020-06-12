@@ -45,8 +45,8 @@ import com.yahoo.athenz.zms.Assertion;
 import com.yahoo.athenz.zms.AssertionEffect;
 import com.yahoo.athenz.zms.Policy;
 import com.yahoo.athenz.zms.ServiceIdentity;
-import com.yahoo.athenz.zts.status.MockStatusCheckerFalse;
-import com.yahoo.athenz.zts.status.MockStatusCheckerTrue;
+import com.yahoo.athenz.zts.status.MockStatusCheckerThrowException;
+import com.yahoo.athenz.zts.status.MockStatusCheckerNoException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
@@ -8063,20 +8063,21 @@ public class ZTSImplTest {
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
         ResourceContext context = createResourceContext(principal);
 
-        // if the MockStatusCheckerTrue is set
-        // the MockStatusCheckerTrue determines the server is healthy
+        // if the MockStatusCheckerNoException is set
+        // the MockStatusCheckerNoException determines the server is healthy
 
-        System.setProperty(ZTSConsts.ZTS_PROP_STATUS_CHECKER_FACTORY_CLASS, MockStatusCheckerTrue.class.getName());
+        System.setProperty(ZTSConsts.ZTS_PROP_STATUS_CHECKER_FACTORY_CLASS, MockStatusCheckerNoException.class.getName());
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
         ztsImpl.statusPort = 0;
 
         Status status = ztsImpl.getStatus(context);
         assertEquals(ResourceException.OK, status.getCode());
 
-        // if the MockStatusCheckerFalse is set
-        // the MockStatusCheckerFalse determines that there is a problem with the server
+        // if the MockStatusCheckerThrowException is set
+        // the MockStatusCheckerThrowException determines that there is a problem with the server
 
-        System.setProperty(ZTSConsts.ZTS_PROP_STATUS_CHECKER_FACTORY_CLASS, MockStatusCheckerFalse.class.getName());
+        System.setProperty(ZTSConsts.ZTS_PROP_STATUS_CHECKER_FACTORY_CLASS,
+                MockStatusCheckerThrowException.NoArguments.class.getName());
         ztsImpl = new ZTSImpl(mockCloudStore, store);
         ztsImpl.statusPort = 0;
 
@@ -8084,7 +8085,51 @@ public class ZTSImplTest {
             ztsImpl.getStatus(context);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.NOT_FOUND, ex.getCode());
+            int code = com.yahoo.athenz.common.server.rest.ResourceException.INTERNAL_SERVER_ERROR;
+            String msg = com.yahoo.athenz.common.server.rest.ResourceException.symbolForCode(com.yahoo.athenz.zms.ResourceException.INTERNAL_SERVER_ERROR);
+            assertEquals(new ResourceError().code(code).message(msg).toString(), ex.getData().toString());
+        }
+
+        System.setProperty(ZTSConsts.ZTS_PROP_STATUS_CHECKER_FACTORY_CLASS,
+                MockStatusCheckerThrowException.NotFound.class.getName());
+        ztsImpl = new ZTSImpl(mockCloudStore, store);
+        ztsImpl.statusPort = 0;
+
+        try {
+            ztsImpl.getStatus(context);
+            fail();
+        } catch (ResourceException ex) {
+            int code = com.yahoo.athenz.common.server.rest.ResourceException.NOT_FOUND;
+            String msg = com.yahoo.athenz.common.server.rest.ResourceException.symbolForCode(com.yahoo.athenz.zms.ResourceException.NOT_FOUND);
+            assertEquals(new ResourceError().code(code).message(msg).toString(), ex.getData().toString());
+        }
+
+        System.setProperty(ZTSConsts.ZTS_PROP_STATUS_CHECKER_FACTORY_CLASS,
+                MockStatusCheckerThrowException.InternalServerErrorWithMessage.class.getName());
+        ztsImpl = new ZTSImpl(mockCloudStore, store);
+        ztsImpl.statusPort = 0;
+
+        try {
+            ztsImpl.getStatus(context);
+            fail();
+        } catch (ResourceException ex) {
+            int code = com.yahoo.athenz.common.server.rest.ResourceException.INTERNAL_SERVER_ERROR;
+            String msg = "error message";
+            assertEquals(new ResourceError().code(code).message(msg).toString(), ex.getData().toString());
+        }
+
+        System.setProperty(ZTSConsts.ZTS_PROP_STATUS_CHECKER_FACTORY_CLASS,
+                MockStatusCheckerThrowException.CauseRuntimeException.class.getName());
+        ztsImpl = new ZTSImpl(mockCloudStore, store);
+        ztsImpl.statusPort = 0;
+
+        try {
+            ztsImpl.getStatus(context);
+            fail();
+        } catch (ResourceException ex) {
+            int code = com.yahoo.athenz.common.server.rest.ResourceException.INTERNAL_SERVER_ERROR;
+            String msg = "runtime exception";
+            assertEquals(new ResourceError().code(code).message(msg).toString(), ex.getData().toString());
         }
 
         System.clearProperty(ZTSConsts.ZTS_PROP_STATUS_CHECKER_FACTORY_CLASS);

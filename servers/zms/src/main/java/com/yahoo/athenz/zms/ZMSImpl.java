@@ -30,6 +30,7 @@ import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
 import com.yahoo.athenz.common.server.rest.Http;
 import com.yahoo.athenz.common.server.rest.Http.AuthorityList;
+import com.yahoo.athenz.common.server.status.StatusCheckException;
 import com.yahoo.athenz.common.server.status.StatusChecker;
 import com.yahoo.athenz.common.server.status.StatusCheckerFactory;
 import com.yahoo.athenz.common.server.util.ConfigProperties;
@@ -7446,8 +7447,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // if the StatusChecker is set, check the server status
 
-        if (statusChecker != null && !statusChecker.check()) {
-            throw ZMSUtils.notFoundError("Error - status check failed", caller);
+        if (statusChecker != null) {
+            try {
+                statusChecker.check();
+            } catch (StatusCheckException e) {
+                throw ZMSUtils.error(e.getCode(), e.getMsg(), caller);
+            }
         }
 
         metric.stopTiming(timerMetric, null, principalDomain);
