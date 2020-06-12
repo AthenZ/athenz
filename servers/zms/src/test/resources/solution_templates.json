@@ -391,6 +391,47 @@
                 ]
             }
         ]
-    }
+    },
+      "templateWithRoleMeta" : {
+          "metadata":
+          {
+              "latestVersion": 10,
+              "timestamp": "2020-04-28T00:00:00.000Z",
+              "description": "templateWithRoleMeta template",
+              "keywordsToReplace": "",
+              "autoUpdate": "false"
+          },
+          "roles": [
+              {
+                  "name": "_domain_:role.vip_admin",
+                  "modified": "1970-01-01T00:00:00.000Z",
+                  "selfServe": "false",
+                  "memberExpiryDays": 90,
+                  "tokenExpiryMins": 30,
+                  "certExpiryMins": 10,
+                  "signAlgorithm": "test",
+                  "serviceExpiryDays": 50,
+                  "memberReviewDays": 65,
+                  "serviceReviewDays": 15,
+                  "reviewEnabled": true,
+                  "notifyRoles": "testnotify-role",
+                  "userAuthorityFilter": "none",
+                  "userAuthorityExpiration": ""
+              }
+          ],
+          "policies": [
+              {
+                  "name": "_domain_:policy.vip_admin",
+                  "modified": "1970-01-01T00:00:00.000Z",
+                  "assertions": [
+                      {
+                          "resource": "_domain_:vip*",
+                          "role": "_domain_:role.vip_admin",
+                          "action": "*"
+                      }
+                  ]
+              }
+          ]
+      }
   }
 }

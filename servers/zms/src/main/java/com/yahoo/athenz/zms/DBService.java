@@ -2820,7 +2820,20 @@ public class DBService {
         }
         Role templateRole = new Role()
                 .setName(templateRoleName)
-                .setTrust(role.getTrust());
+                .setTrust(role.getTrust())
+                //adding additional role meta attributes if present in template->roles
+                .setCertExpiryMins(role.getCertExpiryMins())
+                .setSelfServe(role.getSelfServe())
+                .setMemberExpiryDays(role.getMemberExpiryDays())
+                .setTokenExpiryMins(role.getTokenExpiryMins())
+                .setSignAlgorithm(role.getSignAlgorithm())
+                .setServiceExpiryDays(role.getServiceExpiryDays())
+                .setMemberReviewDays(role.getMemberReviewDays())
+                .setServiceReviewDays(role.getServiceReviewDays())
+                .setReviewEnabled(role.getReviewEnabled())
+                .setNotifyRoles(role.getNotifyRoles())
+                .setUserAuthorityFilter(role.getUserAuthorityFilter())
+                .setUserAuthorityExpiration(role.getUserAuthorityExpiration());
         
         List<RoleMember> roleMembers = role.getRoleMembers();
         List<RoleMember> newMembers = new ArrayList<>();
