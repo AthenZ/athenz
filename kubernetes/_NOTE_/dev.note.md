@@ -1,5 +1,5 @@
-
 <a id="markdown-dev-note" name="dev-note"></a>
+
 # DEV note
 
 <!-- TOC -->
@@ -57,16 +57,3 @@
 1. `.` V.S. `$`
     1. `there is one variable that is always global - $ - this variable will always point to the root context`
     1. [Variables](https://helm.sh/docs/chart_template_guide/variables/)
-
-<a id="markdown-docker-push" name="docker-push"></a>
-## docker push
-
-```bash
-docker tag athenz-zms-server wzyahoo/athenz-zms-server:latest
-docker push wzyahoo/athenz-zms-server:latest
-docker tag athenz-zts-server wzyahoo/athenz-zts-server:latest
-docker push wzyahoo/athenz-zts-server:latest
-
-docker tag athenz-setup-env wzyahoo/athenz-setup-env:latest
-docker push wzyahoo/athenz-setup-env:latest
-```

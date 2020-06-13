@@ -1,16 +1,16 @@
 {
-  "zmsUrl": "https://wzzms-athenz-zms.default.svc.cluster.local:4443/",
-  "ztsUrl": "https://wzzts-athenz-zts.default.svc.cluster.local:8443/",
+  "zmsUrl": "https://dev-zms-athenz-zms.default.svc.cluster.local:4443/",
+  "ztsUrl": "https://dev-zts-athenz-zts.default.svc.cluster.local:8443/",
   "zmsPublicKeys": [
     {
       "id": "0",
-      "key": "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZrd0V3WUhLb1pJemowQ0FRWUlLb1pJemowREFRY0RRZ0FFdWk2SnYxUEI4d1FkWFE1bEhHVE4vRnY2MytMOAo5WW9NT0Yrak0vVVErYzROS3J6UDFseDZWY3Q2cHh1UkliQWNMRmRCVy9FUEN2eUt6TTQzZFl3cWp3PT0KLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg--"
+      "key": "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZrd0V3WUhLb1pJemowQ0FRWUlLb1pJemowREFRY0RRZ0FFRWt3RmdZQ3AzNzRaOUp0VVBPaUlUMmQzb1VxUQpDUHVhM3dOeXhHdXQrQ01xZUVWWlNHY1VjcHBwQlhpY3k4UmVPaXByUGJ2RFZqNzRJTHY3R1R6Z1ZnPT0KLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg--"
     }
   ],
   "ztsPublicKeys": [
     {
       "id": "0",
-      "key": "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZrd0V3WUhLb1pJemowQ0FRWUlLb1pJemowREFRY0RRZ0FFN0lKTVBySUZqYlZ6amV1UDZnRVhtNXlWTGhuRApvMHJLY2ZxQUp2djhUc2s5VEpxVmZRaGprVnh0dVVTWlZpUmFZTGRKOWNqV0xIMUVrbzZTN2YwNlZBPT0KLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg--"
+      "key": "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZrd0V3WUhLb1pJemowQ0FRWUlLb1pJemowREFRY0RRZ0FFdG9mTlg2VUxOS1h0c2pXaGxBZ295M2RTVytWbwp5cUJnaitVb2Y3YnRKZmw5bEEwTk9aYzB2MXMrc2tmWlppeGhOY0FHcUtnM0R3MVQyNDl0NTA2ZW9RPT0KLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg--"
     }
   ]
 }

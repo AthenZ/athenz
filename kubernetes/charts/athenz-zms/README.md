@@ -19,7 +19,6 @@ Server for managing Athenz RBAC policy and performing centralized authorization.
     - [Points to Note](#points-to-note)
         - [Using `helm upgrade`](#using-helm-upgrade)
         - [About ZMS passwords](#about-zms-passwords)
-        - [TODO](#todo)
     - [Authors](#authors)
     - [License](#license)
     - [Acknowledgments](#acknowledgments)
@@ -97,8 +96,8 @@ The command removes all the Kubernetes components associated with the chart and 
 | **Parameter**                        | **Description**                                                                                                                                                                                                                                                                                                                                      | **Default**                                                                                                              |
 | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
 | `image.registry`                     | ZMS image registry                                                                                                                                                                                                                                                                                                                                   | `docker.io`                                                                                                              |
-| `image.repository`                   | ZMS image name                                                                                                                                                                                                                                                                                                                                       | `_your_repo_/athenz-zms-server`                                                                                              |
 | `image.tag`                          | ZMS image tag                                                                                                                                                                                                                                                                                                                                        | `latest`                                                                                                                 |
+| `image.repository`                   | ZMS image name                                                                                                                                                                                                                                                                                                                                       | `_your_repo_/athenz-zms-server`                                                                                          |
 | `image.setup.repository`             | ZMS setup image name                                                                                                                                                                                                                                                                                                                                 | `wzyahoo/athenz-setup-env`                                                                                               |
 | `image.setup.tag`                    | ZMS setup image tag                                                                                                                                                                                                                                                                                                                                  | `latest`                                                                                                                 |
 | `image.mysql.repository`             | MySQL client image name                                                                                                                                                                                                                                                                                                                              | `mariadb`                                                                                                                |
@@ -169,15 +168,15 @@ The command removes all the Kubernetes components associated with the chart and 
 <a id="markdown-values-read-from-properties-files" name="values-read-from-properties-files"></a>
 ### Values read from properties files
 
-| **Parameter**                                  | **Description**                    | **Default**                                                                   |
-| ---------------------------------------------- | ---------------------------------- | ----------------------------------------------------------------------------- |
-| `athenz.zms.jdbc_user`                         | ZMS MySQL user                     | `zms_admin`                                                                   |
+| **Parameter**                                  | **Description**                    | **Default**                                                                       |
+| ---------------------------------------------- | ---------------------------------- | --------------------------------------------------------------------------------- |
+| `athenz.zms.jdbc_user`                         | ZMS MySQL user                     | `zms_admin`                                                                       |
 | `athenz.zms.jdbc_store`                        | ZMS MySQL URL                      | `jdbc:mysql://dev-zms-db-mariadb.default.svc.cluster.local:3306/zms_server`       |
-| `athenz.zms.jdbc_ro_user`                      | ZMS MySQL (read-only) user         | `zms_admin`                                                                   |
+| `athenz.zms.jdbc_ro_user`                      | ZMS MySQL (read-only) user         | `zms_admin`                                                                       |
 | `athenz.zms.jdbc_ro_store`                     | ZMS MySQL (read-only) URL          | `jdbc:mysql://dev-zms-db-mariadb-slave.default.svc.cluster.local:3306/zms_server` |
-| `athenz.metrics.prometheus.enable`             | Prometheus metrics enabled         | `true`                                                                        |
-| `athenz.metrics.prometheus.http_server.enable` | Prometheus scrape endpoint enabled | `true`                                                                        |
-| `athenz.metrics.prometheus.http_server.port`   | Prometheus port                    | `8181`                                                                        |
+| `athenz.metrics.prometheus.enable`             | Prometheus metrics enabled         | `true`                                                                            |
+| `athenz.metrics.prometheus.http_server.enable` | Prometheus scrape endpoint enabled | `true`                                                                            |
+| `athenz.metrics.prometheus.http_server.port`   | Prometheus port                    | `8181`                                                                            |
 
 
 <a id="markdown-points-to-note" name="points-to-note"></a>
@@ -191,13 +190,7 @@ ZMS requires a restart to reload its configuration. To ensure that ZMS will alwa
 <a id="markdown-about-zms-passwords" name="about-zms-passwords"></a>
 ### About ZMS passwords
 
-Please pass the ZMS passwords as values to helm during deployment. Prevent including passwords in your properties file since config files  will be deployed as ConfigMap.
-
-<a id="markdown-todo" name="todo"></a>
-### TODO
-
-1. add `values.schema.json`
-
+Please pass the ZMS passwords as values to helm during deployment. Prevent including passwords in your properties file since config files will be deployed as ConfigMap.
 
 <a id="markdown-authors" name="authors"></a>
 ## Authors

@@ -1,4 +1,4 @@
-{{- $metricPort := (include "athenz-zts.metrics.port" .) }}
+{{- $metricsPort := (include "athenz-zts.metrics.port" .) }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -26,14 +26,14 @@ spec:
         app: {{ template "athenz-zts.name" . }}
         chart: {{ template "athenz-zts.chart" . }}
         release: {{ .Release.Name | quote }}
-      {{- if or .Values.podAnnotations $metricPort }}
+      {{- if or .Values.podAnnotations $metricsPort }}
       annotations:
         {{- if .Values.podAnnotations }}
         {{- toYaml .Values.podAnnotations | nindent 8 }}
         {{- end }}
-        {{- if $metricPort }}
+        {{- if $metricsPort }}
         prometheus.io/scrape: "true"
-        prometheus.io/port: {{ $metricPort | quote }}
+        prometheus.io/port: {{ $metricsPort | quote }}
         {{- end }}
       {{- end }}
     spec:
@@ -262,7 +262,8 @@ spec:
 {{ tpl .Values.sidecarContainers . | nindent 8 }}
         {{- end }}
         - name: zts
-          image: wzyahoo/athenz-zts-server
+          image: {{ template "athenz-zts.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
           env:
             - name: ZTS_DB_ADMIN_PASS
               valueFrom:
@@ -304,9 +305,9 @@ spec:
           ports:
             - name: zts
               containerPort: 8443
-            {{- if $metricPort }}
+            {{- if $metricsPort }}
             - name: metrics
-              containerPort: {{ $metricPort }}
+              containerPort: {{ $metricsPort }}
             {{- end }}
           livenessProbe:
             initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}

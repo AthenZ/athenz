@@ -4,18 +4,23 @@
 <!-- TOC -->
 
 - [Deploy Athenz servers using Helm](#deploy-athenz-servers-using-helm)
-    - [NOTE](#note)
-    - [Prerequisites](#prerequisites)
-    - [Steps](#steps)
-        - [0. set up ENV for the following steps](#0-set-up-env-for-the-following-steps)
-        - [1. Prepare the docker images](#1-prepare-the-docker-images)
-            - [1.1. build the Athenz docker images](#11-build-the-athenz-docker-images)
-            - [1.2. push the Athenz docker images to your own repo](#12-push-the-athenz-docker-images-to-your-own-repo)
-        - [2. Define trust of your deployment](#2-define-trust-of-your-deployment)
-        - [3. Prepare ZMS credentials](#3-prepare-zms-credentials)
-        - [4. Prepare ZTS credentials](#4-prepare-zts-credentials)
-        - [5. Deploy ZMS DB](#5-deploy-zms-db)
-        - [6. Deploy ZMS](#6-deploy-zms)
+  - [NOTE](#note)
+  - [Prerequisites](#prerequisites)
+  - [Steps](#steps)
+    - [0. Set up ENV for the following steps](#0-set-up-env-for-the-following-steps)
+    - [1. Prepare the docker images](#1-prepare-the-docker-images)
+      - [1.1. build the Athenz docker images](#11-build-the-athenz-docker-images)
+      - [1.2. push the Athenz docker images to your own repo](#12-push-the-athenz-docker-images-to-your-own-repo)
+    - [2. Define trust of your deployment](#2-define-trust-of-your-deployment)
+    - [3. Prepare ZMS credentials](#3-prepare-zms-credentials)
+    - [4. Prepare ZTS credentials](#4-prepare-zts-credentials)
+    - [5. Deploy ZMS DB](#5-deploy-zms-db)
+    - [6. Deploy ZMS](#6-deploy-zms)
+    - [7. Register ZTS service's key to ZMS](#7-register-zts-services-key-to-zms)
+    - [8. Download athenz_conf.json](#8-download-athenz_confjson)
+    - [9. Deploy ZTS DB](#9-deploy-zts-db)
+    - [10. Deploy ZTS](#10-deploy-zts)
+  - [Metrics](#metrics)
 
 <!-- /TOC -->
 
@@ -35,7 +40,7 @@
 ## Steps
 
 <a id="markdown-0-set-up-env-for-the-following-steps" name="0-set-up-env-for-the-following-steps"></a>
-### 0. set up ENV for the following steps
+### 0. Set up ENV for the following steps
 
 **Extra prerequisites**: `bash`, `python`, `openssl`, `curl`
 
@@ -66,6 +71,8 @@ export HOST_EXTERNAL_IP='172.21.97.103'
 export ZMS_RELEASE_NAME='dev-zms'
 export ZTS_RELEASE_NAME='dev-zts'
 
+export ZMS_URL="https://${HOST_EXTERNAL_IP}:30007"
+export ZTS_URL="https://${HOST_EXTERNAL_IP}:30008"
 export ZMS_HOST="${ZMS_RELEASE_NAME}-athenz-zms.default.svc.cluster.local"
 export ZTS_HOST="${ZTS_RELEASE_NAME}-athenz-zts.default.svc.cluster.local"
 ```
@@ -242,11 +249,11 @@ helm pull athenz-zms -d "${WORKSPACE}" --untar \
   --repo https://windzcuhk.github.io/athenz/kubernetes/charts
 
 # create symbolic links
-ln -sf "${ZMS_HELM_FILE}/secrets" "${WORKSPACE}/athenz-zms/files"
+ln -sf "${ZMS_HELM_FILE}/secrets" "${WORKSPACE}/athenz-zms/files/"
 
 # deploy ZMS
+# helm upgrade --install "${ZMS_RELEASE_NAME}" "${BASE_DIR}/kubernetes/charts/athenz-zms" \
 helm upgrade --install "${ZMS_RELEASE_NAME}" "${WORKSPACE}/athenz-zms" \
-helm upgrade --install "${ZMS_RELEASE_NAME}" "/Users/wfan/Desktop/dev/oss/athenz.docker/kubernetes/charts/athenz-zms" \
   --set "password.jdbc=${ZMS_DB_ADMIN_PASS}" \
   --set "password.jdbcRo=${ZMS_RODB_ADMIN_PASS}" \
   --set "password.keystore=${ZMS_KEYSTORE_PASS}" \
@@ -256,8 +263,6 @@ helm upgrade --install "${ZMS_RELEASE_NAME}" "/Users/wfan/Desktop/dev/oss/athenz
 
 ```bash
 # verify
-
-ZMS_URL='https://172.21.97.103:30007'
 # === ZMS status ===
 admin_curl --request GET --url "${ZMS_URL}/zms/v1/status" | jq
 # === ZMS service ===
@@ -269,16 +274,212 @@ admin_curl --request GET --url "${ZMS_URL}/zms/v1/principal" | jq '.service'
 ```bash
 # debug
 kubectl describe $(kubectl get pod -l "app=athenz-zms" -o name)
-kubectl logs --tail=50 --all-containers $(kubectl get pod -l "app=athenz-zms" -o name)
+kubectl logs --tail=50 --all-containers $(kubectl get pod -l "app=athenz-zms" -o name) --timestamps=true | sort
+kubectl get events --sort-by=.metadata.creationTimestamp
+
 kubectl exec -it $(kubectl get pod -l "app=athenz-zms" -o name) -- /bin/sh
 less /opt/athenz/zms/logs/zms_server/server.log
 # grep "ERROR" /opt/athenz/zms/logs/zms_server/server.log
 # ls -l -R /opt/athenz/zms/var
-# wget localhost:8181/metrics
+# wget -qO- --no-check-certificate https://localhost:4443/zms/v1/status
+# wget -qO- http://localhost:8181/metrics
 ```
 
 ```bash
 # reset
 rm -rf "${WORKSPACE}/athenz-zms"*
-helm uninstall dev-zms
+helm uninstall "${ZMS_RELEASE_NAME}"
+```
+
+<a id="markdown-7-register-zts-services-key-to-zms" name="7-register-zts-services-key-to-zms"></a>
+### 7. Register ZTS service's key to ZMS
+
+```bash
+# register ZTS service's key
+
+# === for linux ===
+# ENCODED_ZTS_PUBLIC_KEY="$(cat "${ZTS_PUBLIC_KEY_PATH}" | base64 -w 0 | tr '\+\=\/' '\.\-\_')"
+
+# === for mac ===
+ENCODED_ZTS_PUBLIC_KEY="$(cat "${ZTS_PUBLIC_KEY_PATH}" | base64 -b 0 | tr '\+\=\/' '\.\-\_')"
+DATA='{"name": "sys.auth.zts","publicKeys": [{"id": "0","key": "'"${ENCODED_ZTS_PUBLIC_KEY}"'"}]}'
+
+# delete ZTS service
+admin_curl --request DELETE -D - --url "${ZMS_URL}/zms/v1/domain/sys.auth/service/zts"
+# create ZTS service
+admin_curl --request PUT -D - --url "${ZMS_URL}/zms/v1/domain/sys.auth/service/zts" \
+  --header 'content-type: application/json' \
+  --data "${DATA}"
+# verify
+admin_curl --request GET --url "${ZMS_URL}/zms/v1/domain/sys.auth/service/zts" | jq
+```
+
+```bash
+# [optional] reset ZMS service's key
+
+# === for linux ===
+# ENCODED_ZMS_PUBLIC_KEY="$(cat "${ZMS_PUBLIC_KEY_PATH}" | base64 -w 0 | tr '\+\=\/' '\.\-\_')"
+
+# === for mac ===
+ENCODED_ZMS_PUBLIC_KEY="$(cat "${ZMS_PUBLIC_KEY_PATH}" | base64 -b 0 | tr '\+\=\/' '\.\-\_')"
+DATA='{"name": "sys.auth.zms","publicKeys": [{"id": "0","key": "'"${ENCODED_ZMS_PUBLIC_KEY}"'"}]}'
+
+admin_curl --request DELETE -D - --url "${ZMS_URL}/zms/v1/domain/sys.auth/service/zms"
+admin_curl --request PUT -D - --url "${ZMS_URL}/zms/v1/domain/sys.auth/service/zms" \
+  --header 'content-type: application/json' \
+  --data "${DATA}"
+# verify
+admin_curl --request GET --url "${ZMS_URL}/zms/v1/domain/sys.auth/service/zms" | jq
+```
+
+<a id="markdown-8-download-athenz_confjson" name="8-download-athenz_confjson"></a>
+### 8. Download athenz_conf.json
+
+```bash
+mkdir -p "${ZTS_HELM_FILE}/conf"
+athenz-conf -c "${DEV_ATHENZ_CA_PATH}" \
+  -svc-key-file "${DEV_DOMAIN_ADMIN_CERT_KEY_PATH}" \
+  -svc-cert-file "${DEV_DOMAIN_ADMIN_CERT_PATH}" \
+  -o "${ZTS_HELM_FILE}/conf/athenz_conf.json" \
+  -t "https://${ZTS_HOST}:8443" \
+  -z "${ZMS_URL}"
+sed -i '' "s,${ZMS_URL},https://${ZMS_HOST}:4443," "${ZTS_HELM_FILE}/conf/athenz_conf.json"
+
+less "${ZTS_HELM_FILE}/conf/athenz_conf.json"
+```
+
+<a id="markdown-9-deploy-zts-db" name="9-deploy-zts-db"></a>
+### 9. Deploy ZTS DB
+
+```bash
+# helm repo add bitnami https://charts.bitnami.com/bitnami
+helm install dev-zts-db bitnami/mariadb \
+  --set "rootUser.password=${ZTS_DB_ROOT_PASS}" \
+  --set "db.password=${ZTS_DB_ADMIN_PASS}" \
+  --set-file "initdbScripts.zts_server\.sql=${BASE_DIR}/servers/zts/schema/zts_server.sql" \
+  -f "${BASE_DIR}/kubernetes/docs/sample/dev-zts-db-values.yaml"
+```
+
+```bash
+# run mysql client
+kubectl run dev-zts-db-mariadb-client --rm --tty -i --restart='Never' \
+  --image docker.io/bitnami/mariadb:10.3.22-debian-10-r60 \
+  --env "ZTS_DB_ROOT_PASS=${ZTS_DB_ROOT_PASS}" \
+  --env "ZTS_DB_ADMIN_PASS=${ZTS_DB_ADMIN_PASS}" \
+  --command -- bash
+# prepare test SQLs
+cat > /tmp/root_test.sql << 'EOF'
+-- show users
+SELECT user, host FROM mysql.user;
+
+-- show grants
+show grants;
+EOF
+cat > /tmp/zts_admin_test.sql << 'EOF'
+-- show all tables
+select table_schema as database_name, table_name
+from information_schema.tables
+where table_type = 'BASE TABLE'
+and table_schema not in ('information_schema','mysql', 'performance_schema','sys')
+order by database_name, table_name;
+
+-- show grants
+show grants;
+EOF
+# test as root user
+mysql -h dev-zts-db-mariadb.default.svc.cluster.local -uroot -p"${ZTS_DB_ROOT_PASS}" < /tmp/root_test.sql
+# test as zts_admin in master
+mysql -h dev-zts-db-mariadb.default.svc.cluster.local -uzts_admin -p"${ZTS_DB_ADMIN_PASS}" < /tmp/zts_admin_test.sql
+# test as zts_admin in slave
+mysql -h dev-zts-db-mariadb-slave.default.svc.cluster.local -uzts_admin -p"${ZTS_DB_ADMIN_PASS}" < /tmp/zts_admin_test.sql
+```
+
+```bash
+# debug
+kubectl logs dev-zts-db-mariadb-master-0
+kubectl describe pod dev-zts-db-mariadb-master-0
+```
+
+```bash
+# reset
+helm uninstall dev-zts-db
+```
+
+<a id="markdown-10-deploy-zts" name="10-deploy-zts"></a>
+### 10. Deploy ZTS
+
+```bash
+# download chart
+helm pull athenz-zts -d "${WORKSPACE}" --untar \
+  --repo https://windzcuhk.github.io/athenz/kubernetes/charts
+
+# create symbolic links
+ln -sf "${ZTS_HELM_FILE}/conf/athenz_conf.json" "${WORKSPACE}/athenz-zts/files/conf/"
+ln -sf "${ZTS_HELM_FILE}/secrets" "${WORKSPACE}/athenz-zts/files/"
+
+# deploy ZTS
+# helm upgrade --install "${ZTS_RELEASE_NAME}" "${BASE_DIR}/kubernetes/charts/athenz-zts" \
+helm upgrade --install "${ZTS_RELEASE_NAME}" "${WORKSPACE}/athenz-zts" \
+  --set "password.jdbc=${ZTS_DB_ADMIN_PASS}" \
+  --set "password.keystore=${ZTS_KEYSTORE_PASS}" \
+  --set "password.truststore=${ZTS_TRUSTSTORE_PASS}" \
+  --set "password.signerKeystore=${ZTS_SIGNER_KEYSTORE_PASS}" \
+  --set "password.signerTruststore=${ZTS_SIGNER_TRUSTSTORE_PASS}" \
+  --set "password.zmsClientKeystore=${ZMS_CLIENT_KEYSTORE_PASS}" \
+  --set "password.zmsClientTruststore=${ZMS_CLIENT_TRUSTSTORE_PASS}" \
+  -f "${BASE_DIR}/kubernetes/docs/sample/dev-zts-values.yaml"
+```
+
+```bash
+# verify
+# === ZTS status ===
+admin_curl --request GET --url "${ZTS_URL}/zts/v1/status" | jq
+# === ZTS service ===
+admin_curl --request GET --url "${ZTS_URL}/zts/v1/domain/sys.auth/service/zts" | jq
+# === ZTS role token ===
+admin_curl --request GET --url "${ZTS_URL}/zts/v1/domain/sys.auth/token?role=admin" | jq '.token'
+```
+
+```bash
+# debug
+kubectl describe $(kubectl get pod -l "app=athenz-zts" -o name)
+kubectl logs --tail=100 --all-containers $(kubectl get pod -l "app=athenz-zts" -o name) --timestamps=true | sort
+kubectl get events --sort-by=.metadata.creationTimestamp
+
+kubectl exec -it $(kubectl get pod -l "app=athenz-zts" -o name) -- /bin/sh
+less /opt/athenz/zts/logs/zts_server/server.log
+# grep "ERROR" /opt/athenz/zts/logs/zts_server/server.log
+# ls -l -R /opt/athenz/zts/var
+# wget -qO- --no-check-certificate https://localhost:8443/zts/v1/status
+# wget -qO- http://localhost:8181/metrics
+```
+
+```bash
+# reset
+rm -rf "${WORKSPACE}/athenz-zts"*
+helm uninstall "${ZTS_RELEASE_NAME}"
+```
+
+<a id="markdown-metrics" name="metrics"></a>
+## Metrics
+
+ZMS and ZTS report Prometheus by default. You can deploy Prometheus and query their metrics as below.
+
+```bash
+helm repo add stable https://kubernetes-charts.storage.googleapis.com/
+helm repo update
+
+helm install prometheus stable/prometheus \
+  --set 'alertmanager.persistentVolume.enabled=false' \
+  --set 'pushgateway.persistentVolume.enabled=false' \
+  --set 'server.persistentVolume.enabled=false'
+
+kubectl get service
+
+export POD_NAME=$(kubectl get pods --namespace default -l "app=prometheus,component=server" -o jsonpath="{.items[0].metadata.name}")
+kubectl --namespace default port-forward $POD_NAME 9090
+
+open 127.0.0.1:9090
+
+helm delete prometheus
 ```
