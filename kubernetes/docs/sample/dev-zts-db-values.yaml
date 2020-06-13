@@ -1,11 +1,3 @@
-# root
-# password: "mariadb_root"
-# zms_admin
-# password: 'athenz_admin'
-# replication
-# password: "replication"
-
-
 master:
   # extraFlags: "--log_warnings=9 --skip-log-error"
   persistence:
@@ -17,20 +9,19 @@ replication:
   enabled: true
 existingSecret: false
 rootUser:
-  password: "mariadb_root"
+  # password: "mariadb"
   forcePassword: true
   injectSecretsAsVolume: false
 db:
-  name: 'zms_server'
-  user: 'zms_admin'
-  password: 'athenz_admin'
+  name: 'zts_store'
+  user: 'zts_admin'
+  # password: 'mariadbmariadb'
   forcePassword: true
   injectSecretsAsVolume: false
 replication:
   password: "replication"
   forcePassword: true
   injectSecretsAsVolume: false
-# initdbScriptsConfigMap: "{{ .Release.Namespace }}-schema"
 volumePermissions:
     enabled: false
 service:

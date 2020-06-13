@@ -160,7 +160,8 @@ spec:
 {{ tpl .Values.sidecarContainers . | nindent 8 }}
         {{- end }}
         - name: zms
-          image: wzyahoo/athenz-zms-server
+          image: {{ template "athenz-zms.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
           env:
             - name: ZMS_DB_ADMIN_PASS
               valueFrom:

@@ -1,19 +1,37 @@
 image:
-  pullPolicy: Always
+  registry: docker.io
+  repository: wzyahoo/athenz-zms-server
+  tag: '1.9.7'
+  setup:
+    repository: wzyahoo/athenz-setup-env
+    tag: '1.9.7'
 
+# password:
+  # jdbc: "mariadbmariadb"
+  # jdbcRo: "mariadbmariadb"
+  # keystore: "athenz"
+  # truststore: "athenz"
 
-password:
-  jdbc: "athenz_admin"
-  jdbcRo: "athenz_admin"
-
-# existingSecret: "wzzms-athenz-zms-2"
-# existingTLSSecret: "wzzms-athenz-zms-tls-2"
-# existingTLSCASecret: "wzzms-athenz-zms-tls-ca-2"
-# existingTLSStoreSecret: "wzzms-athenz-zms-tls-store-2"
+# files:
+#   zmsKey: "files/secrets/zms_private.pem"
+#   tls:
+#     crt: "files/secrets/tls/zms_cert.pem"
+#     key: "files/secrets/tls/zms_key.pem"
+#     ca:
+#       - "files/secrets/tls/CAs/athenz_ca.pem"
+#       - "files/secrets/tls/CAs/service_ca.pem"
+#       - "files/secrets/tls/CAs/user_ca.pem"
+#   conf: "files/conf/*"
 
 replicaCount: 1
+resources:
+  limits: {}
+  requests:
+    memory: 2048Mi
+    cpu: 250m
 
 service:
+  annotations: {}
   nodePort: 30007
 
 extraInitContainers: |

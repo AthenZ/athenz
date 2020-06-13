@@ -63,10 +63,10 @@
 
 ```bash
 docker tag athenz-zms-server wzyahoo/athenz-zms-server:latest
-docker push wzyahoo/athenz-zms-server
+docker push wzyahoo/athenz-zms-server:latest
 docker tag athenz-zts-server wzyahoo/athenz-zts-server:latest
-docker push wzyahoo/athenz-zts-server
+docker push wzyahoo/athenz-zts-server:latest
 
 docker tag athenz-setup-env wzyahoo/athenz-setup-env:latest
-docker push wzyahoo/athenz-setup-env
+docker push wzyahoo/athenz-setup-env:latest
 ```
