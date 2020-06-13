@@ -92,6 +92,13 @@ public class DataCache {
         long currentTime = System.currentTimeMillis();
         for (RoleMember member : members) {
             
+            // if the role member is disabled then we'll skip it
+            
+            Integer systemDisabled = member.getSystemDisabled();
+            if (systemDisabled != null && systemDisabled != 0) {
+                continue;
+            }
+
             // if the role member is already expired then there
             // is no point to add it to the cache
             

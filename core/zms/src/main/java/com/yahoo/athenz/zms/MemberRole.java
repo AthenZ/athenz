@@ -35,6 +35,9 @@ public class MemberRole {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Timestamp requestTime;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer systemDisabled;
 
     public MemberRole setRoleName(String roleName) {
         this.roleName = roleName;
@@ -99,6 +102,13 @@ public class MemberRole {
     public Timestamp getRequestTime() {
         return requestTime;
     }
+    public MemberRole setSystemDisabled(Integer systemDisabled) {
+        this.systemDisabled = systemDisabled;
+        return this;
+    }
+    public Integer getSystemDisabled() {
+        return systemDisabled;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -132,6 +142,9 @@ public class MemberRole {
                 return false;
             }
             if (requestTime == null ? a.requestTime != null : !requestTime.equals(a.requestTime)) {
+                return false;
+            }
+            if (systemDisabled == null ? a.systemDisabled != null : !systemDisabled.equals(a.systemDisabled)) {
                 return false;
             }
         }

@@ -180,12 +180,13 @@ public class FileConnection implements ObjectStoreConnection {
     @Override
     public boolean updateDomain(Domain domain) {
 
+        final String caller = "updateDomain";
         DomainStruct domainStruct = getDomainStruct(domain.getName());
         if (domainStruct == null) {
-            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", "updateDomain");
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", caller);
         }
 
-        verifyDomainProductIdUniqueness(domain.getName(), domain.getYpmId(), "updateDomain");
+        verifyDomainProductIdUniqueness(domain.getName(), domain.getYpmId(), caller);
 
         domainStruct.setId(domain.getId());
         domainStruct.setName(domain.getName());
@@ -485,7 +486,7 @@ public class FileConnection implements ObjectStoreConnection {
         for (String domainName : domainNames) {
             DomainStruct domainStruct = getDomainStruct(domainName);
             if (domainStruct == null) {
-                throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", "updateDomainTemplate");
+                throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", "getDomainFromTemplateName");
             }
             ArrayList<TemplateMetaData> templateMetaList = domainStruct.getTemplateMeta();
 
@@ -694,9 +695,11 @@ public class FileConnection implements ObjectStoreConnection {
 
     @Override
     public boolean updateRole(String domainName, Role role) {
+
+        final String caller = "updateRole";
         DomainStruct domainStruct = getDomainStruct(domainName);
         if (domainStruct == null) {
-            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", "updateRole");
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", caller);
         }
         if (domainStruct.getRoles() == null) {
             domainStruct.setRoles(new HashMap<>());
@@ -705,7 +708,7 @@ public class FileConnection implements ObjectStoreConnection {
 
         String roleName = ZMSUtils.extractRoleName(domainName, role.getName());
         if (roleName == null) {
-            throw ZMSUtils.error(ResourceException.BAD_REQUEST, "invalid role name", "updateRole");
+            throw ZMSUtils.error(ResourceException.BAD_REQUEST, "invalid role name", caller);
         }
         
         // here we only need to update the main attrs and not
@@ -786,13 +789,15 @@ public class FileConnection implements ObjectStoreConnection {
 
     @Override
     public List<RoleMember> listRoleMembers(String domainName, String roleName, Boolean pending) {
+
+        final String caller = "listRoleMembers";
         DomainStruct domainStruct = getDomainStruct(domainName);
         if (domainStruct == null) {
-            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", "listRoleMembers");
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", caller);
         }
         Role role = getRoleObject(domainStruct, roleName, pending);
         if (role == null) {
-            throw ZMSUtils.error(ResourceException.NOT_FOUND, "role not found", "listRoleMembers");
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "role not found", caller);
         }
         return role.getRoleMembers();
     }
@@ -811,13 +816,14 @@ public class FileConnection implements ObjectStoreConnection {
     public Membership getRoleMember(String domainName, String roleName, String principal,
             long expiration, boolean pending) {
 
+        final String caller = "getRoleMember";
         DomainStruct domainStruct = getDomainStruct(domainName);
         if (domainStruct == null) {
-            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", "getRoleMember");
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", caller);
         }
         Role role = getRoleObject(domainStruct, roleName);
         if (role == null) {
-            throw ZMSUtils.error(ResourceException.NOT_FOUND, "role not found", "getRoleMember");
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "role not found", caller);
         }
         Membership membership = new Membership()
                 .setMemberName(principal)
@@ -848,16 +854,17 @@ public class FileConnection implements ObjectStoreConnection {
     public boolean insertRoleMember(String domainName, String roleName, RoleMember member,
             String admin, String auditRef) {
 
+        final String caller = "insertRoleMember";
         DomainStruct domainStruct = getDomainStruct(domainName);
         if (domainStruct == null) {
-            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", "insertRoleMember");
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", caller);
         }
         Role role = getRoleObject(domainStruct, roleName);
         if (role == null) {
-            throw ZMSUtils.error(ResourceException.NOT_FOUND, "role not found", "insertRoleMember");
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "role not found", caller);
         }
         if (!validatePrincipalDomain(member.getMemberName())) {
-            throw ZMSUtils.error(ResourceException.NOT_FOUND, "principal domain not found", "insertRoleMember");
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "principal domain not found", caller);
         }
         // make sure our existing role as the member array
         // and if it doesn't exist then create one
@@ -894,16 +901,44 @@ public class FileConnection implements ObjectStoreConnection {
     }
 
     @Override
-    public boolean deleteRoleMember(String domainName, String roleName, String principal,
-            String admin, String auditRef) {
+    public boolean updateRoleMemberDisabledState(String domainName, String roleName, String principal,
+            String admin, int disabledState, String auditRef) {
 
+        final String caller = "updateRoleMemberDisabledState";
         DomainStruct domainStruct = getDomainStruct(domainName);
         if (domainStruct == null) {
-            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", "deleteRoleMember");
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", caller);
         }
         Role role = getRoleObject(domainStruct, roleName);
         if (role == null) {
-            throw ZMSUtils.error(ResourceException.NOT_FOUND, "role not found", "deleteRoleMember");
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "role not found", caller);
+        }
+        List<RoleMember> roleMembers = role.getRoleMembers();
+        if (roleMembers != null) {
+            for (int idx = 0; idx < roleMembers.size(); idx++) {
+                RoleMember roleMember = roleMembers.get(idx);
+                if (roleMember.getMemberName().equalsIgnoreCase(principal)) {
+                    roleMember.setSystemDisabled(disabledState);
+                    break;
+                }
+            }
+        }
+        putDomainStruct(domainName, domainStruct);
+        return true;
+    }
+
+    @Override
+    public boolean deleteRoleMember(String domainName, String roleName, String principal,
+            String admin, String auditRef) {
+
+        final String caller = "deleteRoleMember";
+        DomainStruct domainStruct = getDomainStruct(domainName);
+        if (domainStruct == null) {
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", caller);
+        }
+        Role role = getRoleObject(domainStruct, roleName);
+        if (role == null) {
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "role not found", caller);
         }
         List<RoleMember> roleMembers = role.getRoleMembers();
         if (roleMembers != null) {
@@ -1011,13 +1046,15 @@ public class FileConnection implements ObjectStoreConnection {
 
     @Override
     public boolean insertAssertion(String domainName, String policyName, Assertion assertion) {
+
+        final String caller = "insertAssertion";
         DomainStruct domainStruct = getDomainStruct(domainName);
         if (domainStruct == null) {
-            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", "insertAssertion");
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", caller);
         }
         Policy policy = getPolicyObject(domainStruct, policyName);
         if (policy == null) {
-            throw ZMSUtils.error(ResourceException.NOT_FOUND, "policy not found", "insertAssertion");
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "policy not found", caller);
         }
         List<Assertion> assertions = policy.getAssertions();
         if (assertions == null) {
@@ -1054,13 +1091,15 @@ public class FileConnection implements ObjectStoreConnection {
 
     @Override
     public boolean deleteAssertion(String domainName, String policyName, Long assertionId) {
+
+        final String caller = "deleteAssertion";
         DomainStruct domainStruct = getDomainStruct(domainName);
         if (domainStruct == null) {
-            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", "deleteAssertion");
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", caller);
         }
         Policy policy = getPolicyObject(domainStruct, policyName);
         if (policy == null) {
-            throw ZMSUtils.error(ResourceException.NOT_FOUND, "policy not found", "insertAssertion");
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "policy not found", caller);
         }
         List<Assertion> assertions = policy.getAssertions();
         boolean deleted = false;
@@ -1077,13 +1116,15 @@ public class FileConnection implements ObjectStoreConnection {
 
     @Override
     public List<Assertion> listAssertions(String domainName, String policyName) {
+
+        final String caller = "listAssertions";
         DomainStruct domainStruct = getDomainStruct(domainName);
         if (domainStruct == null) {
-            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", "listAssertions");
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", caller);
         }
         Policy policy = getPolicyObject(domainStruct, policyName);
         if (policy == null) {
-            throw ZMSUtils.error(ResourceException.NOT_FOUND, "policy not found", "listAssertions");
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "policy not found", caller);
         }
         return policy.getAssertions();
     }
@@ -1183,17 +1224,18 @@ public class FileConnection implements ObjectStoreConnection {
     @Override
     public PublicKeyEntry getPublicKeyEntry(String domainName, String serviceName,
             String keyId, boolean domainStateCheck) {
-        
+
+        final String caller = "getPublicKeyEntry";
         DomainStruct domainStruct = getDomainStruct(domainName);
         if (domainStruct == null) {
-            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", "getPublicKeyEntry");
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", caller);
         }
         if (domainStateCheck && domainStruct.getMeta().getEnabled() == Boolean.FALSE) {
-            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain disabled", "getPublicKeyEntry");
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain disabled", caller);
         }
         ServiceIdentity service = getServiceObject(domainStruct, serviceName);
         if (service == null) {
-            throw ZMSUtils.error(ResourceException.NOT_FOUND, "service not found", "getPublicKeyEntry");
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "service not found", caller);
         }
         List<PublicKeyEntry> publicKeys = service.getPublicKeys();
         if (publicKeys == null) {
@@ -1248,13 +1290,15 @@ public class FileConnection implements ObjectStoreConnection {
 
     @Override
     public boolean updatePublicKeyEntry(String domainName, String serviceName, PublicKeyEntry publicKey) {
+
+        final String caller = "updatePublicKeyEntry";
         DomainStruct domainStruct = getDomainStruct(domainName);
         if (domainStruct == null) {
-            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", "updatePublicKeyEntry");
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", caller);
         }
         ServiceIdentity service = getServiceObject(domainStruct, serviceName);
         if (service == null) {
-            throw ZMSUtils.error(ResourceException.NOT_FOUND, "service not found", "updatePublicKeyEntry");
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "service not found", caller);
         }
         updatePublicKeyEntry(service, publicKey);
         putDomainStruct(domainName, domainStruct);
@@ -1263,13 +1307,15 @@ public class FileConnection implements ObjectStoreConnection {
 
     @Override
     public boolean deletePublicKeyEntry(String domainName, String serviceName, String keyId) {
+
+        final String caller = "deletePublicKeyEntry";
         DomainStruct domainStruct = getDomainStruct(domainName);
         if (domainStruct == null) {
-            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", "deletePublicKeyEntry");
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", caller);
         }
         ServiceIdentity service = getServiceObject(domainStruct, serviceName);
         if (service == null) {
-            throw ZMSUtils.error(ResourceException.NOT_FOUND, "service not found", "deletePublicKeyEntry");
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "service not found", caller);
         }
         List<PublicKeyEntry> keyList = service.getPublicKeys();
         boolean keyRemoved = removePublicKeyEntry(keyList, keyId);
@@ -1282,39 +1328,45 @@ public class FileConnection implements ObjectStoreConnection {
 
     @Override
     public List<PublicKeyEntry> listPublicKeys(String domainName, String serviceName) {
+
+        final String caller = "listPublicKeys";
         DomainStruct domainStruct = getDomainStruct(domainName);
         if (domainStruct == null) {
-            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", "listPublicKeys");
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", caller);
         }
         ServiceIdentity service = getServiceObject(domainStruct, serviceName);
         if (service == null) {
-            throw ZMSUtils.error(ResourceException.NOT_FOUND, "service not found", "deletePublicKeyEntry");
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "service not found", caller);
         }
         return service.getPublicKeys();
     }
 
     @Override
     public List<String> listServiceHosts(String domainName, String serviceName) {
+
+        final String caller = "listServiceHosts";
         DomainStruct domainStruct = getDomainStruct(domainName);
         if (domainStruct == null) {
-            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", "listServiceHosts");
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", caller);
         }
         ServiceIdentity service = getServiceObject(domainStruct, serviceName);
         if (service == null) {
-            throw ZMSUtils.error(ResourceException.NOT_FOUND, "service not found", "deletePublicKeyEntry");
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "service not found", caller);
         }
         return service.getHosts();
     }
 
     @Override
     public boolean insertServiceHost(String domainName, String serviceName, String hostName) {
+
+        final String caller = "insertServiceHost";
         DomainStruct domainStruct = getDomainStruct(domainName);
         if (domainStruct == null) {
-            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", "insertServiceHost");
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", caller);
         }
         ServiceIdentity service = getServiceObject(domainStruct, serviceName);
         if (service == null) {
-            throw ZMSUtils.error(ResourceException.NOT_FOUND, "service not found", "insertServiceHost");
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "service not found", caller);
         }
         if (service.getHosts() == null) {
             service.setHosts(new ArrayList<>());
@@ -1327,13 +1379,15 @@ public class FileConnection implements ObjectStoreConnection {
 
     @Override
     public boolean deleteServiceHost(String domainName, String serviceName, String hostName) {
+
+        final String caller = "deleteServiceHost";
         DomainStruct domainStruct = getDomainStruct(domainName);
         if (domainStruct == null) {
-            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", "deleteServiceHost");
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", caller);
         }
         ServiceIdentity service = getServiceObject(domainStruct, serviceName);
         if (service == null) {
-            throw ZMSUtils.error(ResourceException.NOT_FOUND, "service not found", "deleteServiceHost");
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "service not found", caller);
         }
         List<String> hosts = service.getHosts();
         if (hosts == null) {
@@ -1476,13 +1530,15 @@ public class FileConnection implements ObjectStoreConnection {
 
     @Override
     public boolean updatePolicyModTimestamp(String domainName, String policyName) {
+
+        final String caller = "updatePolicyModTimestamp";
         DomainStruct domainStruct = getDomainStruct(domainName);
         if (domainStruct == null) {
-            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", "updatePolicyModTimestamp");
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", caller);
         }
         Policy policy = getPolicyObject(domainStruct, policyName);
         if (policy == null) {
-            throw ZMSUtils.error(ResourceException.NOT_FOUND, "policy not found", "updatePolicyModTimestamp");
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "policy not found", caller);
         }
         policy.setModified(Timestamp.fromCurrentTime());
         putDomainStruct(domainName, domainStruct);
@@ -1626,13 +1682,14 @@ public class FileConnection implements ObjectStoreConnection {
     public boolean confirmRoleMember(String domainName, String roleName, RoleMember member,
                                     String admin, String auditRef) {
 
+        final String caller = "confirmRoleMember";
         DomainStruct domainStruct = getDomainStruct(domainName);
         if (domainStruct == null) {
-            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", "confirmRoleMember");
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", caller);
         }
         Role role = getRoleObject(domainStruct, roleName);
         if (role == null) {
-            throw ZMSUtils.error(ResourceException.NOT_FOUND, "role not found", "confirmRoleMember");
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "role not found", caller);
         }
 
         if (role.getRoleMembers() != null && !role.getRoleMembers().isEmpty()) {
@@ -1842,13 +1899,14 @@ public class FileConnection implements ObjectStoreConnection {
     public boolean deletePendingRoleMember(String domainName, String roleName, String principal,
              String admin, String auditRef) {
 
+        final String caller = "deletePendingRoleMember";
         DomainStruct domainStruct = getDomainStruct(domainName);
         if (domainStruct == null) {
-            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", "deletePendingRoleMember");
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", caller);
         }
         Role role = getRoleObject(domainStruct, roleName);
         if (role == null) {
-            throw ZMSUtils.error(ResourceException.NOT_FOUND, "role not found", "deletePendingRoleMember");
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "role not found", caller);
         }
         List<RoleMember> roleMembers = role.getRoleMembers();
         boolean memberDeleted = false;
@@ -1985,7 +2043,7 @@ public class FileConnection implements ObjectStoreConnection {
         List<TemplateMetaData> templateDomainMappingList = new ArrayList<>();
         DomainStruct domainStruct = getDomainStruct(domainName);
         if (domainStruct == null) {
-            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", "updateRoleReviewTimestamp");
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", "getDomainTemplates");
         }
 
         List<TemplateMetaData> metaDataList = domainStruct.getTemplateMeta();

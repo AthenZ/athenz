@@ -1531,6 +1531,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return proxyName;
     }
 
+    String getQueryLogData(final String request) {
+        // make sure any CRLFs are not set to the logger
+        final String clean = request.replace('\n', '_').replace('\r', '_');
+        return (clean.length() > 1024) ? clean.substring(0, 1024) : clean;
+    }
+
     @Override
     public AccessTokenResponse postAccessTokenRequest(ResourceContext ctx, String request) {
 
@@ -1555,8 +1561,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // we know what is the client asking for but we'll just
         // limit the request up to 1K
 
-        final String queryLog = (request.length() > 1024) ? request.substring(0, 1024) : request;
-        ctx.request().setAttribute(ACCESS_LOG_ADDL_QUERY, queryLog);
+        ctx.request().setAttribute(ACCESS_LOG_ADDL_QUERY, getQueryLogData(request));
 
         // update our metric with dimension
 

@@ -29,6 +29,7 @@ type RoleMember Struct {
     Timestamp lastNotifiedTime (optional); //for pending membership requests, time when last notification was sent
     ResourceName requestPrincipal (optional); //pending members only - name of the principal requesting the change
     Timestamp reviewLastNotifiedTime (optional); //for pending membership requests, time when last notification was sent (for file store)
+    Int32 systemDisabled (optional); //user disabled by system based on configured role setting
 }
 
 //Set of metadata attributes that all roles may have and can be changed by domain admins.
@@ -75,6 +76,7 @@ type Membership Struct {
     Bool approved (optional, default=true); //Flag to indicate whether membership is approved either by delegates ( in case of auditEnabled roles ) or by domain admins ( in case of selfserve roles )
     String auditRef (optional); //audit reference string for the change as supplied by admin
     ResourceName requestPrincipal (optional); //pending members only - name of the principal requesting the change
+    Int32 systemDisabled (optional); //user disabled by system based on configured role setting
 }
 
 //The list of domain administrators.
@@ -92,6 +94,7 @@ type MemberRole Struct {
     String auditRef (optional); //audit reference string for the change as supplied by admin
     EntityName requestPrincipal (optional); //pending members only - name of the principal requesting the change
     Timestamp requestTime (optional); //for pending membership requests, the request time
+    Int32 systemDisabled (optional); //user disabled by system based on configured role setting
 }
 
 type DomainRoleMember Struct {
