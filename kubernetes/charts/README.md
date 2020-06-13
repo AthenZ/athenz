@@ -10,3 +10,10 @@ helm repo index . --url https://windzcuhk.github.io/athenz/kubernetes/charts
 git add -A; git commit -S -m "upload helm charts";
 git push origin gh-pages
 ```
+
+## Verify
+
+```bash
+helm repo add athenz https://windzcuhk.github.io/athenz/kubernetes/charts
+helm search repo athenz/
+```
