@@ -1,1 +1,0 @@
-/Users/wfan/Desktop/dev/oss/athenz.docker/servers/zms/schema/zms_server.sql
