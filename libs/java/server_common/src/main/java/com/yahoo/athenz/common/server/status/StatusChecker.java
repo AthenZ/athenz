@@ -19,7 +19,7 @@ package com.yahoo.athenz.common.server.status;
 public interface StatusChecker {
     /**
      * Check the server status
-     * @throws StatusCheckException If the server is not healthy, it will throw an exception
+     * @throws StatusCheckException throws if the server is not healthy
      */
     void check() throws StatusCheckException;
 }
