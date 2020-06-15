@@ -1,11 +1,11 @@
-<a id="markdown-athenz-zts-authz-management-system" name="athenz-zts-authz-management-system"></a>
-# Athenz ZTS (authZ Management System)
+<a id="markdown-athenz-zts-authz-token-system" name="athenz-zts-authz-token-system"></a>
+# Athenz ZTS (authZ Token System)
 
-Server for managing Athenz RBAC policy and performing centralized authorization.
+Server for caching Athenz policy from ZMS and issuing service identity.
 
 <!-- TOC -->
 
-- [Athenz ZTS (authZ Management System)](#athenz-zts-authz-management-system)
+- [Athenz ZTS (authZ Token System)](#athenz-zts-authz-token-system)
     - [Getting Started](#getting-started)
     - [Introduction](#introduction)
         - [Prerequisites](#prerequisites)

@@ -2,5 +2,7 @@
     1. update the deployment doc when the new feature is released
 1. ZMS and ZTS
     1. add `values.schema.json`
+    1. remove `wait-for-mysql.sh` and `mysql` client dependency in the chart
+        1. check DB status inside ZMS and ZTS `/status`
 1. ZTS
     1. support `athenz.zms.client.keymanager_password=dummy` and `athenz.zts.ssl_key_manager_password=`
