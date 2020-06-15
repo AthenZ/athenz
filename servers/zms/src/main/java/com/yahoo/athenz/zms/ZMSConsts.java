@@ -286,4 +286,6 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_MONITOR_IDENTITY = "athenz.zms.monitor_identity";
 
     public static final int ZMS_DISABLED_AUTHORITY_FILTER = 0x01;
+
+    public static final String ZMS_PROP_STATUS_CHECKER_FACTORY_CLASS = "athenz.zms.status_checker_factory_class";
 }
