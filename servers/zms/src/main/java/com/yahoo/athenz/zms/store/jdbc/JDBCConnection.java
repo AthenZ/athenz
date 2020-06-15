@@ -92,11 +92,13 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "SET modified=CURRENT_TIMESTAMP(3) WHERE role_id=?;";
     private static final String SQL_LIST_ROLE = "SELECT name FROM role WHERE domain_id=?;";
     private static final String SQL_COUNT_ROLE = "SELECT COUNT(*) FROM role WHERE domain_id=?;";
-    private static final String SQL_GET_ROLE_MEMBER = "SELECT principal.principal_id, role_member.expiration, role_member.review_reminder, role_member.req_principal FROM principal "
+    private static final String SQL_GET_ROLE_MEMBER = "SELECT principal.principal_id, role_member.expiration, "
+            + "role_member.review_reminder, role_member.req_principal, role_member.system_disabled FROM principal "
             + "JOIN role_member ON role_member.principal_id=principal.principal_id "
             + "JOIN role ON role.role_id=role_member.role_id "
             + "WHERE role.role_id=? AND principal.name=?;";
-    private static final String SQL_GET_TEMP_ROLE_MEMBER = "SELECT principal.principal_id, role_member.expiration, role_member.review_reminder, role_member.req_principal FROM principal "
+    private static final String SQL_GET_TEMP_ROLE_MEMBER = "SELECT principal.principal_id, role_member.expiration, "
+            + "role_member.review_reminder, role_member.req_principal, role_member.system_disabled FROM principal "
             + "JOIN role_member ON role_member.principal_id=principal.principal_id "
             + "JOIN role ON role.role_id=role_member.role_id "
             + "WHERE role.role_id=? AND principal.name=? AND role_member.expiration=?;";
@@ -110,7 +112,8 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "WHERE role.role_id=? AND principal.name=? AND pending_role_member.expiration=?;";
     private static final String SQL_STD_ROLE_MEMBER_EXISTS = "SELECT principal_id FROM role_member WHERE role_id=? AND principal_id=?;";
     private static final String SQL_PENDING_ROLE_MEMBER_EXISTS = "SELECT principal_id FROM pending_role_member WHERE role_id=? AND principal_id=?;";
-    private static final String SQL_LIST_ROLE_MEMBERS = "SELECT principal.name, role_member.expiration, role_member.review_reminder, role_member.active, role_member.audit_ref FROM principal "
+    private static final String SQL_LIST_ROLE_MEMBERS = "SELECT principal.name, role_member.expiration, "
+            + "role_member.review_reminder, role_member.active, role_member.audit_ref, role_member.system_disabled FROM principal "
             + "JOIN role_member ON role_member.principal_id=principal.principal_id "
             + "JOIN role ON role.role_id=role_member.role_id WHERE role.role_id=?;";
     private static final String SQL_LIST_PENDING_ROLE_MEMBERS = "SELECT principal.name, pending_role_member.expiration, pending_role_member.review_reminder, pending_role_member.req_time, pending_role_member.audit_ref FROM principal "
@@ -132,6 +135,8 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_DELETE_PENDING_ROLE_MEMBER = "DELETE FROM pending_role_member WHERE role_id=? AND principal_id=?;";
     private static final String SQL_UPDATE_ROLE_MEMBER = "UPDATE role_member "
             + "SET expiration=?, review_reminder=?, active=?, audit_ref=?, req_principal=? WHERE role_id=? AND principal_id=?;";
+    private static final String SQL_UPDATE_ROLE_MEMBER_DISABLED_STATE = "UPDATE role_member "
+            + "SET system_disabled=?, audit_ref=?, req_principal=? WHERE role_id=? AND principal_id=?;";
     private static final String SQL_UPDATE_PENDING_ROLE_MEMBER = "UPDATE pending_role_member "
             + "SET expiration=?, review_reminder=?, audit_ref=?, req_time=CURRENT_TIMESTAMP(3), req_principal=? WHERE role_id=? AND principal_id=?;";
     private static final String SQL_INSERT_ROLE_AUDIT_LOG = "INSERT INTO role_audit_log "
@@ -199,11 +204,13 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "JOIN domain ON domain_template.domain_id=domain.domain_id "
             + "WHERE domain.name=?;";
     private static final String SQL_GET_DOMAIN_ROLES = "SELECT * FROM role WHERE domain_id=?;";
-    private static final String SQL_GET_DOMAIN_ROLE_MEMBERS = "SELECT role.name, principal.name, role_member.expiration, role_member.review_reminder FROM principal "
+    private static final String SQL_GET_DOMAIN_ROLE_MEMBERS = "SELECT role.name, principal.name, role_member.expiration, "
+            + "role_member.review_reminder, role_member.system_disabled FROM principal "
             + "JOIN role_member ON role_member.principal_id=principal.principal_id "
             + "JOIN role ON role.role_id=role_member.role_id "
             + "WHERE role.domain_id=?;";
-    private static final String SQL_GET_REVIEW_OVERDUE_DOMAIN_ROLE_MEMBERS = "SELECT role.name, principal.name, role_member.expiration, role_member.review_reminder FROM principal "
+    private static final String SQL_GET_REVIEW_OVERDUE_DOMAIN_ROLE_MEMBERS = "SELECT role.name, principal.name, role_member.expiration, "
+            + "role_member.review_reminder, role_member.system_disabled FROM principal "
             + "JOIN role_member ON role_member.principal_id=principal.principal_id "
             + "JOIN role ON role.role_id=role_member.role_id "
             + "WHERE role.domain_id=? AND role_member.review_reminder < CURRENT_TIME;";
@@ -870,7 +877,34 @@ public class JDBCConnection implements ObjectStoreConnection {
         Collections.sort(templates);
         return templates;
     }
-    
+
+    @Override
+    public Map<String, List<String>> getDomainFromTemplateName(Map<String, Integer> templateNameAndLatestVersion) {
+        final String caller = "getDomainsFromTemplate";
+        Map<String, List<String>> domainNameTemplateListMap = new HashMap<>();
+
+        try (PreparedStatement ps = con.prepareStatement(generateDomainTemplateVersionQuery(templateNameAndLatestVersion))) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    String domainName = rs.getString(ZMSConsts.DB_COLUMN_NAME);
+                    String templateName = rs.getString(ZMSConsts.DB_COLUMN_TEMPLATE_NAME);
+                    if (domainNameTemplateListMap.get(domainName) != null) {
+                        List<String> tempTemplateList = domainNameTemplateListMap.get(domainName);
+                        tempTemplateList.add(templateName);
+                    } else {
+                        List<String> templateList = new ArrayList<>();
+                        templateList.add(templateName);
+                        domainNameTemplateListMap.put(domainName, templateList);
+                    }
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+
+        return domainNameTemplateListMap;
+    }
+
     int getDomainId(String domainName) {
         return getDomainId(domainName, false);
     }
@@ -1440,6 +1474,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                     }
                     roleMember.setActive(nullIfDefaultValue(rs.getBoolean(4), true));
                     roleMember.setAuditRef(rs.getString(5));
+                    roleMember.setSystemDisabled(nullIfDefaultValue(rs.getInt(6), 0));
                     roleMember.setApproved(true);
                     members.add(roleMember);
                 }
@@ -1640,8 +1675,8 @@ public class JDBCConnection implements ObjectStoreConnection {
         return true;
     }
 
-    boolean getRoleMembership(final String query, int roleId, final String member,
-            long expiration, Membership membership, final String caller) {
+    boolean getRoleMembership(final String query, int roleId, final String member, long expiration,
+            Membership membership, boolean disabledFlagCheck, final String caller) {
 
         try (PreparedStatement ps = con.prepareStatement(query)) {
             ps.setInt(1, roleId);
@@ -1661,6 +1696,9 @@ public class JDBCConnection implements ObjectStoreConnection {
                         membership.setReviewReminder(Timestamp.fromMillis(reviewReminder.getTime()));
                     }
                     membership.setRequestPrincipal(rs.getString(ZMSConsts.DB_COLUMN_REQ_PRINCIPAL));
+                    if (disabledFlagCheck) {
+                        membership.setSystemDisabled(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_SYSTEM_DISABLED), 0));
+                    }
                     return true;
                 }
             }
@@ -1696,14 +1734,14 @@ public class JDBCConnection implements ObjectStoreConnection {
 
         if (!pending) {
             String query = expiration == 0 ? SQL_GET_ROLE_MEMBER : SQL_GET_TEMP_ROLE_MEMBER;
-            if (getRoleMembership(query, roleId, member, expiration, membership, caller)) {
+            if (getRoleMembership(query, roleId, member, expiration, membership, true, caller)) {
                 membership.setApproved(true);
             }
         }
 
         if (!membership.getIsMember()) {
             String query = expiration == 0 ? SQL_GET_PENDING_ROLE_MEMBER : SQL_GET_TEMP_PENDING_ROLE_MEMBER;
-            if (getRoleMembership(query, roleId, member, expiration, membership, caller)) {
+            if (getRoleMembership(query, roleId, member, expiration, membership, false, caller)) {
                 membership.setApproved(false);
             }
         }
@@ -1928,7 +1966,51 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
         return result;
     }
-    
+
+    @Override
+    public boolean updateRoleMemberDisabledState(String domainName, String roleName, String principal,
+            String admin, int disabledState, String auditRef) {
+
+        final String caller = "updateRoleMemberDisabledState";
+
+        int domainId = getDomainId(domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
+        }
+        int roleId = getRoleId(domainId, roleName);
+        if (roleId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_ROLE, ZMSUtils.roleResourceName(domainName, roleName));
+        }
+        int principalId = getPrincipalId(principal);
+        if (principalId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_PRINCIPAL, principal);
+        }
+
+        int affectedRows;
+        try (PreparedStatement ps = con.prepareStatement(SQL_UPDATE_ROLE_MEMBER_DISABLED_STATE)) {
+            ps.setInt(1, disabledState);
+            ps.setString(2, processInsertValue(auditRef));
+            ps.setString(3, processInsertValue(admin));
+            ps.setInt(4, roleId);
+            ps.setInt(5, principalId);
+            affectedRows = executeUpdate(ps, caller);
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+
+        boolean result = (affectedRows > 0);
+
+        // add audit log entry for this change if the disable was successful
+        // add return the result of the audit log insert operation
+
+        if (result) {
+            final String operation = disabledState == 0 ? "ENABLE" : "DISABLE";
+            result = insertRoleAuditLog(roleId, admin, principal, operation, auditRef);
+        }
+
+        return result;
+    }
+
     @Override
     public boolean deleteRoleMember(String domainName, String roleName, String principal,
             String admin, String auditRef) {
@@ -2333,7 +2415,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     String saveValue(String value) {
         return (value.isEmpty()) ? null : value;
     }
-    
+
     UUID saveUuidValue(String value) {
         return (value.isEmpty()) ? null : UUID.fromString(value);
     }
@@ -2961,6 +3043,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                     if (reviewReminder != null) {
                         roleMember.setReviewReminder(Timestamp.fromMillis(reviewReminder.getTime()));
                     }
+                    roleMember.setSystemDisabled(nullIfDefaultValue(rs.getInt(5), 0));
                     members.add(roleMember);
                 }
             }
@@ -3684,8 +3767,6 @@ public class JDBCConnection implements ObjectStoreConnection {
                 while (rs.next()) {
                     final String roleName = rs.getString(1);
                     final String memberName = rs.getString(2);
-                    java.sql.Timestamp expiration = rs.getTimestamp(3);
-                    java.sql.Timestamp reviewReminder = rs.getTimestamp(4);
 
                     DomainRoleMember domainRoleMember = memberMap.get(memberName);
                     if (domainRoleMember == null) {
@@ -3700,12 +3781,16 @@ public class JDBCConnection implements ObjectStoreConnection {
                     }
                     MemberRole memberRole = new MemberRole();
                     memberRole.setRoleName(roleName);
+
+                    java.sql.Timestamp expiration = rs.getTimestamp(3);
                     if (expiration != null) {
                         memberRole.setExpiration(Timestamp.fromMillis(expiration.getTime()));
                     }
+                    java.sql.Timestamp reviewReminder = rs.getTimestamp(4);
                     if (reviewReminder != null) {
                         memberRole.setReviewReminder(Timestamp.fromMillis(reviewReminder.getTime()));
                     }
+                    memberRole.setSystemDisabled(nullIfDefaultValue(rs.getInt(5), 0));
                     memberRoles.add(memberRole);
                 }
             }
@@ -4128,6 +4213,19 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
 
         return roles;
+    }
+
+    // To avoid firing multiple queries against DB, this function will generate 1 consolidated query for all domains->templates combination
+    public String generateDomainTemplateVersionQuery(Map<String, Integer> templateNameAndLatestVersion) {
+        StringBuilder query = new StringBuilder();
+        query.append("SELECT domain.name, domain_template.template FROM domain_template " +
+                "JOIN domain ON domain_template.domain_id=domain.domain_id WHERE ");
+        for (String templateName : templateNameAndLatestVersion.keySet()) {
+            query.append("(domain_template.template = '" + templateName + "' and current_version < " + templateNameAndLatestVersion.get(templateName) + ") OR ");
+        }
+        //To remove the last occurence of "OR" from the generated query
+        query.delete(query.lastIndexOf(") OR"), query.lastIndexOf("OR") + 3).append(");");
+        return query.toString();
     }
 
     RuntimeException notFoundError(String caller, String objectType, String objectName) {

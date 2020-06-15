@@ -72,8 +72,7 @@ import java.security.PublicKey;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -501,6 +500,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         setNotificationManager();
 
+        //autoupdate templates
+
+        autoApplyTemplates();
+
         // load the StatusChecker
 
         loadStatusChecker();
@@ -700,7 +703,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     void loadObjectStore() {
-
         String objFactoryClass = System.getProperty(ZMSConsts.ZMS_PROP_OBJECT_STORE_FACTORY_CLASS,
                 ZMSConsts.ZMS_OBJECT_STORE_FACTORY_CLASS);
         ObjectStoreFactory objFactory;
@@ -883,7 +885,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // get the configured path for the list of service templates
 
-        String solutionTemplatesFname =  System.getProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME,
+        String solutionTemplatesFname = System.getProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME,
                 getRootDir() + "/conf/zms_server/solution_templates.json");
 
         Path path = Paths.get(solutionTemplatesFname);
@@ -898,6 +900,23 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             LOG.error("Generating empty solution template list...");
             serverSolutionTemplates = new SolutionTemplates();
             serverSolutionTemplates.setTemplates(new HashMap<>());
+        }
+    }
+
+    void autoApplyTemplates() {
+        Map<String, Integer> eligibleTemplatesForAutoUpdate = new HashMap<>();
+        for (String templateName : serverSolutionTemplates.getTemplates().keySet()) {
+            Template template = serverSolutionTemplates.get(templateName);
+            if (template.getMetadata().getAutoUpdate()
+                    && template.getMetadata().getKeywordsToReplace().isEmpty()) {
+                eligibleTemplatesForAutoUpdate.put(templateName, template.getMetadata().getLatestVersion());
+            }
+        }
+        if (Boolean.parseBoolean(System.getProperty(ZMSConsts.ZMS_AUTO_UPDATE_TEMPLATE_FEATURE_FLAG, "false"))
+                && !eligibleTemplatesForAutoUpdate.isEmpty()) {
+            ExecutorService executor = Executors.newSingleThreadExecutor();
+            executor.execute(new AutoApplyTemplate(eligibleTemplatesForAutoUpdate));
+            executor.shutdown();
         }
     }
 
@@ -3201,19 +3220,26 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
 
-    boolean checkRoleMemberExpiration(List<RoleMember> roleMembers, String member) {
+    boolean isMemberEnabled(RoleMember roleMember) {
+        return (roleMember.getSystemDisabled() == null || roleMember.getSystemDisabled() == 0);
+    }
+
+    boolean isMemberExpired(RoleMember roleMember) {
+        // check expiration, if is not defined, its not expired.
+        Timestamp expiration = roleMember.getExpiration();
+        return (expiration != null && expiration.millis() < System.currentTimeMillis());
+    }
+
+    boolean checkRoleMemberValidity(List<RoleMember> roleMembers, String member) {
+
+        // we need to make sure that both the user is not expired
+        // and not disabled by the system
 
         boolean isMember = false;
         for (RoleMember memberInfo: roleMembers) {
             final String memberName = memberInfo.getMemberName();
             if (memberNameMatch(memberName, member)) {
-                // check expiration, if is not defined, its not expired.
-                Timestamp expiration = memberInfo.getExpiration();
-                if (expiration != null) {
-                    isMember = !(expiration.millis() < System.currentTimeMillis());
-                } else {
-                    isMember = true;
-                }
+                isMember = isMemberEnabled(memberInfo) && !isMemberExpired(memberInfo);
                 break;
             }
         }
@@ -3225,7 +3251,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         if (roleMembers == null) {
             return false;
         }
-        return checkRoleMemberExpiration(roleMembers, member);
+        return checkRoleMemberValidity(roleMembers, member);
     }
 
     @Override
@@ -4314,11 +4340,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return false;
     }
 
-    boolean matchRole(String domain, List<Role> roles, String rolePattern,
-            List<String> authenticatedRoles) {
+    boolean matchRole(String domain, List<Role> roles, String rolePattern, List<String> authenticatedRoles) {
         
         if (LOG.isDebugEnabled()) {
-            LOG.debug("matchRole domain: " + domain + " rolePattern: " + rolePattern);
+            LOG.debug("matchRole domain: {} rolePattern: {}", domain, rolePattern);
         }
         
         String prefix = domain + AuthorityConsts.ROLE_SEP;
@@ -4386,8 +4411,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     boolean matchPrincipal(List<Role> roles, String rolePattern, String fullUser, String trustDomain) {
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("matchPrincipal - rolePattern: " + rolePattern + " user: " + fullUser +
-                    " trust: " + trustDomain);
+            LOG.debug("matchPrincipal - rolePattern: {} user: {} trust: {}", rolePattern, fullUser, trustDomain);
         }
 
         for (Role role : roles) {
@@ -4458,8 +4482,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
         
         if (LOG.isDebugEnabled()) {
-            LOG.debug("assertionMatch: -> " + matchResult +
-                    " (effect: " + assertion.getEffect() + ")");
+            LOG.debug("assertionMatch: -> {} (effect: {})", matchResult, assertion.getEffect());
         }
 
         return matchResult;
@@ -8034,4 +8057,26 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
         }
     }
+
+    class AutoApplyTemplate implements Runnable {
+        Map<String, Integer> eligibleTemplatesForAutoUpdate;
+
+        public AutoApplyTemplate(Map<String, Integer> eligibleTemplatesForAutoUpdate) {
+            this.eligibleTemplatesForAutoUpdate = eligibleTemplatesForAutoUpdate;
+        }
+
+        @Override
+        public void run() {
+            if (LOG.isInfoEnabled()) {
+                LOG.info("List of eligible templates with version to apply .. {}", eligibleTemplatesForAutoUpdate);
+            }
+            Map<String, List<String>> domainTemplateUpdateMapping = dbService.applyTemplatesForListOfDomains(eligibleTemplatesForAutoUpdate);
+            if (LOG.isInfoEnabled()) {
+                for (String domainName : domainTemplateUpdateMapping.keySet()) {
+                    LOG.info("List of templates applied against domain {} {}", domainName, domainTemplateUpdateMapping.get(domainName));
+                }
+            }
+        }
+    }
+
 }

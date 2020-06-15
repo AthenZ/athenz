@@ -73,6 +73,7 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_AWS_RDS_MASTER_PORT        = "athenz.zms.aws_rds_master_port";
     public static final String ZMS_PROP_AWS_RDS_REPLICA_INSTANCE   = "athenz.zms.aws_rds_replica_instance";
     public static final String ZMS_PROP_AWS_RDS_CREDS_REFRESH_TIME = "athenz.zms.aws_rds_creds_refresh_time";
+    public static final String ZMS_AUTO_UPDATE_TEMPLATE_FEATURE_FLAG = "athenz.zms.auto_update_template_feature_flag";
 
     public static final String DB_PROP_USER               = "user";
     public static final String DB_PROP_PASSWORD           = "password";
@@ -231,6 +232,7 @@ public final class ZMSConsts {
     public static final String DB_COLUMN_TEMPLATE_VERSION   = "current_version";
     public static final String DB_COLUMN_AS_DOMAIN_NAME     = "domain_name";
     public static final String DB_COLUMN_AS_ROLE_NAME       = "role_name";
+    public static final String DB_COLUMN_SYSTEM_DISABLED    = "system_disabled";
 
     public static final String DB_COLUMN_SERVICE_REVIEW_DAYS      = "service_review_days";
     public static final String DB_COLUMN_SERVICE_EXPIRY_DAYS      = "service_expiry_days";
@@ -282,6 +284,8 @@ public final class ZMSConsts {
     public static final String ZMS_PENDING_ROLE_MEMBER_LIFESPAN_DEFAULT = "30";
     public static final String SYS_AUTH_MONITOR = "sys.auth.monitor";
     public static final String ZMS_PROP_MONITOR_IDENTITY = "athenz.zms.monitor_identity";
+
+    public static final int ZMS_DISABLED_AUTHORITY_FILTER = 0x01;
 
     public static final String ZMS_PROP_STATUS_CHECKER_FACTORY_CLASS = "athenz.zms.status_checker_factory_class";
 }

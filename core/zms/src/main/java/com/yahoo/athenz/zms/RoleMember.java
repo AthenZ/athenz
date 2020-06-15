@@ -38,6 +38,9 @@ public class RoleMember {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Timestamp reviewLastNotifiedTime;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer systemDisabled;
 
     public RoleMember setMemberName(String memberName) {
         this.memberName = memberName;
@@ -109,6 +112,13 @@ public class RoleMember {
     public Timestamp getReviewLastNotifiedTime() {
         return reviewLastNotifiedTime;
     }
+    public RoleMember setSystemDisabled(Integer systemDisabled) {
+        this.systemDisabled = systemDisabled;
+        return this;
+    }
+    public Integer getSystemDisabled() {
+        return systemDisabled;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -145,6 +155,9 @@ public class RoleMember {
                 return false;
             }
             if (reviewLastNotifiedTime == null ? a.reviewLastNotifiedTime != null : !reviewLastNotifiedTime.equals(a.reviewLastNotifiedTime)) {
+                return false;
+            }
+            if (systemDisabled == null ? a.systemDisabled != null : !systemDisabled.equals(a.systemDisabled)) {
                 return false;
             }
         }

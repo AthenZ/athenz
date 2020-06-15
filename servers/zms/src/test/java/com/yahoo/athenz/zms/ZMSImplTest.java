@@ -2308,7 +2308,7 @@ public class ZMSImplTest {
             assertTrue(msg.contains("CLIENT-IP=(" + MOCKCLIENTADDR + ")"), msg);
             int index = msg.indexOf("WHAT-details=(");
             assertTrue(index != -1, msg);
-            int index2 = msg.indexOf("\"name\": \"role1\", \"trust\": \"null\", \"deleted-members\": [{\"member\": \"user.jane\", \"approved\": true}], \"added-members\": []");
+            int index2 = msg.indexOf("\"name\": \"role1\", \"trust\": \"null\", \"deleted-members\": [{\"member\": \"user.jane\", \"approved\": true, \"system-disabled\": 0}], \"added-members\": []");
             assertTrue(index2 > index, msg);
             foundError = true;
             break;
@@ -2918,7 +2918,7 @@ public class ZMSImplTest {
             }
             int index = msg.indexOf("WHAT-details=(");
             assertTrue(index != -1, msg);
-            int index2 = msg.indexOf("{\"member\": \"user.doe\", \"approved\": true}");
+            int index2 = msg.indexOf("{\"member\": \"user.doe\", \"approved\": true, \"system-disabled\": 0}");
             assertTrue(index2 > index, msg);
             foundError = true;
             break;
@@ -2951,7 +2951,7 @@ public class ZMSImplTest {
             }
             int index = msg.indexOf("WHAT-details=(");
             assertTrue(index != -1, msg);
-            int index2 = msg.indexOf("{\"member\": \"coretech.storage\", \"approved\": true}");
+            int index2 = msg.indexOf("{\"member\": \"coretech.storage\", \"approved\": true, \"system-disabled\": 0}");
             assertTrue(index2 > index, msg);
             foundError = true;
             break;
@@ -6621,6 +6621,65 @@ public class ZMSImplTest {
         }
         
         System.clearProperty(ZMSConsts.ZMS_PROP_VIRTUAL_DOMAIN);
+    }
+
+    @Test
+    public void testGetAccessFailures() {
+
+        final String domainName = "access-domain-fails";
+
+        Authority authority = Mockito.mock(Authority.class);
+        Mockito.when(authority.allowAuthorization()).thenReturn(false);
+        Principal principal1 = Mockito.mock(Principal.class);
+        Mockito.when(principal1.getAuthority()).thenReturn(authority);
+
+        // authority not authorized
+
+        assertFalse(zms.access("update", domainName + ":resource1", principal1, null));
+
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        Principal principal2 = principalAuthority.authenticate("v=U1;d=user;n=user2;s=signature",
+                "10.11.12.13", "GET", null);
+
+        // domain name missing in resource
+
+        try {
+            zms.access("update", "resource1", principal2, null);
+            fail();
+        } catch (com.yahoo.athenz.common.server.rest.ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+        }
+
+        try {
+            zms.getAccessCheck(principal2, "update", "resource1", null, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+        }
+
+        // domain is disabled
+
+        Domain dom1 = new Domain().setName(domainName).setEnabled(false);
+
+        List<String> adminUsers = new ArrayList<>();
+        adminUsers.add(adminUser);
+        zms.dbService.makeDomain(mockDomRsrcCtx, dom1, adminUsers, null, auditRef);
+
+        try {
+            zms.access("update", domainName + ":resource1", principal2, null);
+            fail();
+        } catch (com.yahoo.athenz.common.server.rest.ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+
+        try {
+            zms.getAccessCheck(principal2, "update", domainName + ":resource1", null, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 
     @Test
@@ -18521,6 +18580,20 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testAutoApplyTemplate() {
+
+        ZMSImpl zmsImpl = zmsInit();
+
+        System.setProperty(ZMSConsts.ZMS_AUTO_UPDATE_TEMPLATE_FEATURE_FLAG, "true");
+        try {
+            zmsImpl.autoApplyTemplates();
+        } catch (Exception e) {
+            fail();
+        }
+        System.clearProperty(ZMSConsts.ZMS_AUTO_UPDATE_TEMPLATE_FEATURE_FLAG);
+    }
+
+    @Test
     public void testLoadPublicKeysInvalidService() {
 
         ZMSImpl zmsImpl = zmsInit();
@@ -19201,5 +19274,89 @@ public class ZMSImplTest {
 
         zms.userAuthority = savedAuthority;
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testIsMemberEnabled() {
+
+        RoleMember roleMember = new RoleMember();
+
+        roleMember.setSystemDisabled(null);
+        assertTrue(zms.isMemberEnabled(roleMember));
+
+        roleMember.setSystemDisabled(0);
+        assertTrue(zms.isMemberEnabled(roleMember));
+
+        roleMember.setSystemDisabled(1);
+        assertFalse(zms.isMemberEnabled(roleMember));
+
+        roleMember.setSystemDisabled(3);
+        assertFalse(zms.isMemberEnabled(roleMember));
+    }
+
+    @Test
+    public void testIsMemberExpired() {
+
+        RoleMember roleMember = new RoleMember();
+
+        roleMember.setExpiration(null);
+        assertFalse(zms.isMemberExpired(roleMember));
+
+        roleMember.setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + 100000));
+        assertFalse(zms.isMemberExpired(roleMember));
+
+        roleMember.setExpiration(Timestamp.fromMillis(System.currentTimeMillis() - 1));
+        assertTrue(zms.isMemberExpired(roleMember));
+    }
+
+    @Test
+    public void testCheckRoleMemberValidity() {
+
+        List<RoleMember> roleMembers = new ArrayList<>();
+
+        // valid members
+
+        RoleMember roleMemberJoe = new RoleMember()
+                .setMemberName("user.joe");
+        RoleMember roleMemberJane = new RoleMember()
+                .setMemberName("user.jane")
+                .setSystemDisabled(null)
+                .setExpiration(null);
+        RoleMember roleMemberJohn = new RoleMember()
+                .setSystemDisabled(0)
+                .setMemberName("user.john")
+                .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + 100000));
+
+        roleMembers.add(roleMemberJoe);
+        roleMembers.add(roleMemberJane);
+        roleMembers.add(roleMemberJohn);
+
+        // invalid members
+
+        RoleMember roleMemberJoeBad = new RoleMember()
+                .setMemberName("user.joe-bad")
+                .setSystemDisabled(1);
+        RoleMember roleMemberJaneBad = new RoleMember()
+                .setMemberName("user.jane-bad")
+                .setSystemDisabled(null)
+                .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() - 1));
+        RoleMember roleMemberJohnBad = new RoleMember()
+                .setSystemDisabled(3)
+                .setMemberName("user.john-bad")
+                .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() - 10000));
+
+        roleMembers.add(roleMemberJoeBad);
+        roleMembers.add(roleMemberJaneBad);
+        roleMembers.add(roleMemberJohnBad);
+
+        // carry out the checks
+
+        assertTrue(zms.checkRoleMemberValidity(roleMembers, "user.joe"));
+        assertTrue(zms.checkRoleMemberValidity(roleMembers, "user.jane"));
+        assertTrue(zms.checkRoleMemberValidity(roleMembers, "user.john"));
+
+        assertFalse(zms.checkRoleMemberValidity(roleMembers, "user.joe-bad"));
+        assertFalse(zms.checkRoleMemberValidity(roleMembers, "user.jane-bad"));
+        assertFalse(zms.checkRoleMemberValidity(roleMembers, "user.john-bad"));
     }
 }

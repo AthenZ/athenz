@@ -131,7 +131,8 @@ public class ZMSSchema {
             .field("requestTime", "Timestamp", true, "for pending membership requests, the request time")
             .field("lastNotifiedTime", "Timestamp", true, "for pending membership requests, time when last notification was sent")
             .field("requestPrincipal", "ResourceName", true, "pending members only - name of the principal requesting the change")
-            .field("reviewLastNotifiedTime", "Timestamp", true, "for pending membership requests, time when last notification was sent (for file store)");
+            .field("reviewLastNotifiedTime", "Timestamp", true, "for pending membership requests, time when last notification was sent (for file store)")
+            .field("systemDisabled", "Int32", true, "user disabled by system based on configured role setting");
 
         sb.structType("RoleMeta")
             .comment("Set of metadata attributes that all roles may have and can be changed by domain admins.")
@@ -173,7 +174,8 @@ public class ZMSSchema {
             .field("active", "Bool", true, "Flag to indicate whether membership is active", true)
             .field("approved", "Bool", true, "Flag to indicate whether membership is approved either by delegates ( in case of auditEnabled roles ) or by domain admins ( in case of selfserve roles )", true)
             .field("auditRef", "String", true, "audit reference string for the change as supplied by admin")
-            .field("requestPrincipal", "ResourceName", true, "pending members only - name of the principal requesting the change");
+            .field("requestPrincipal", "ResourceName", true, "pending members only - name of the principal requesting the change")
+            .field("systemDisabled", "Int32", true, "user disabled by system based on configured role setting");
 
         sb.structType("DefaultAdmins")
             .comment("The list of domain administrators.")
@@ -188,7 +190,8 @@ public class ZMSSchema {
             .field("active", "Bool", true, "Flag to indicate whether membership is active", true)
             .field("auditRef", "String", true, "audit reference string for the change as supplied by admin")
             .field("requestPrincipal", "EntityName", true, "pending members only - name of the principal requesting the change")
-            .field("requestTime", "Timestamp", true, "for pending membership requests, the request time");
+            .field("requestTime", "Timestamp", true, "for pending membership requests, the request time")
+            .field("systemDisabled", "Int32", true, "user disabled by system based on configured role setting");
 
         sb.structType("DomainRoleMember")
             .field("memberName", "MemberName", false, "name of the member")

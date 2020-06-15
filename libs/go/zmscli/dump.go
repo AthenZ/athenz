@@ -149,6 +149,9 @@ func (cli Zms) dumpRole(buf *bytes.Buffer, role zms.Role, auditLog bool, indent1
 			if memberItem.Approved != nil && *memberItem.Approved == false {
 				buf.WriteString(" (pending)")
 			}
+			if memberItem.SystemDisabled != nil && *memberItem.SystemDisabled != 0 {
+				buf.WriteString(" (system-disabled)")
+			}
 			buf.WriteString("\n")
 		}
 	}
@@ -417,6 +420,9 @@ func (cli Zms) dumpRoleMembership(buf *bytes.Buffer, member zms.Membership) {
 	}
 	if member.ReviewReminder != nil {
 		buf.WriteString(indent_level1_dash + "review: " + member.ReviewReminder.String() + "\n")
+	}
+	if member.SystemDisabled != nil && *member.SystemDisabled != 0 {
+		buf.WriteString(indent_level1_dash + "system-disabled\n")
 	}
 	buf.WriteString(indent_level1_dash_lvl + "result: " + strconv.FormatBool(*member.IsMember) + "\n")
 }

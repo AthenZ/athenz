@@ -57,6 +57,7 @@ public interface ObjectStoreConnection extends Closeable {
     boolean insertDomainTemplate(String domainName, String templateName, String params);
     boolean deleteDomainTemplate(String domainName, String templateName, String params);
     List<String> listDomainTemplates(String domainName);
+    Map<String, List<String>> getDomainFromTemplateName(Map<String, Integer> templateDetails);
 
     // Role commands
     
@@ -75,6 +76,7 @@ public interface ObjectStoreConnection extends Closeable {
     Membership getRoleMember(String domainName, String roleName, String member, long expiration, boolean pending);
     boolean insertRoleMember(String domainName, String roleName, RoleMember roleMember, String principal, String auditRef);
     boolean deleteRoleMember(String domainName, String roleName, String member, String principal, String auditRef);
+    boolean updateRoleMemberDisabledState(String domainName, String roleName, String member, String principal, int disabledState, String auditRef);
     boolean deletePendingRoleMember(String domainName, String roleName, String member, String principal, String auditRef);
     boolean confirmRoleMember(String domainName, String roleName, RoleMember roleMember, String principal, String auditRef);
 

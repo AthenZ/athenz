@@ -10981,4 +10981,21 @@ public class ZTSImplTest {
         final String check = "provider=aws&certReqInstanceId=id001&hostname=" + hostnameBuilder.toString();
         assertEquals(check, zts.getInstanceRegisterQueryLog("aws", "id001", hostnameBuilder.toString() + "01234"));
     }
+
+    @Test
+    public void testGetQueryLogData() {
+
+        String request = "data\ntest\ragain";
+        assertEquals(zts.getQueryLogData(request), "data_test_again");
+
+        // generate a string with 1024 length
+
+        StringBuilder longRequest = new StringBuilder(1024);
+        for (int i = 0; i < 64; i++) {
+            longRequest.append("0123456789012345");
+        }
+        request = longRequest.toString();
+
+        assertEquals(zts.getQueryLogData(request + "abcd"), request);
+    }
 }
