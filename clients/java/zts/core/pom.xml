@@ -37,6 +37,10 @@
     </dependencies>
   </dependencyManagement>
 
+  <properties>
+    <code.coverage.min>0.62</code.coverage.min>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
