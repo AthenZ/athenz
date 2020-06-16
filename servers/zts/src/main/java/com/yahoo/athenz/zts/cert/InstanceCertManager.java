@@ -518,12 +518,8 @@ public class InstanceCertManager {
 
         try (CertRecordStoreConnection storeConnection = certStore.getConnection()) {
             long updateTs = System.currentTimeMillis();
-            if (storeConnection.updateUnrefreshedCertificatesNotificationTimestamp(serverHostName, updateTs, provider)) {
-                return storeConnection.getNotifyUnrefreshedCertificates(serverHostName, updateTs);
-            }
+            return storeConnection.updateUnrefreshedCertificatesNotificationTimestamp(serverHostName, updateTs, provider);
         }
-
-        return new ArrayList<>();
     }
 
     public X509CertRecord getX509CertRecord(final String provider, X509Certificate cert) {

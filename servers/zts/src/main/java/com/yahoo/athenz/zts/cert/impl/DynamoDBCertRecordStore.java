@@ -32,18 +32,20 @@ public class DynamoDBCertRecordStore implements CertRecordStore {
     private static final Logger LOGGER = LoggerFactory.getLogger(DynamoDBCertRecordStore.class);
     private static final Logger CERTLOGGER = LoggerFactory.getLogger("X509CertLogger");
 
-    private DynamoDB dynamoDB;
     private String tableName;
+    private String indexName;
+    private DynamoDB dynamoDB;
 
-    public DynamoDBCertRecordStore(AmazonDynamoDB client, final String tableName) {
-        dynamoDB = new DynamoDB(client);
+    public DynamoDBCertRecordStore(AmazonDynamoDB client, final String tableName, String indexName) {
+        this.dynamoDB = new DynamoDB(client);
         this.tableName = tableName;
+        this.indexName = indexName;
     }
 
     @Override
     public CertRecordStoreConnection getConnection() {
         try {
-            return new DynamoDBCertRecordStoreConnection(dynamoDB, tableName);
+            return new DynamoDBCertRecordStoreConnection(dynamoDB, tableName, indexName);
         } catch (Exception ex) {
             LOGGER.error("getConnection: {}", ex.getMessage());
             throw new ResourceException(ResourceException.SERVICE_UNAVAILABLE, ex.getMessage());

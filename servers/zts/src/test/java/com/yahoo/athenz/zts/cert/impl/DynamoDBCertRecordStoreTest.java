@@ -45,7 +45,7 @@ public class DynamoDBCertRecordStoreTest {
     @Test
     public void testGetConnection() {
 
-        DynamoDBCertRecordStore store = new DynamoDBCertRecordStore(dbClient, "Athenz-ZTS-Table");
+        DynamoDBCertRecordStore store = new DynamoDBCertRecordStore(dbClient, "Athenz-ZTS-Table", "Athenz-ZTS-Current-Time-Index");
 
         CertRecordStoreConnection dbConn = store.getConnection();
         assertNotNull(dbConn);
@@ -59,7 +59,16 @@ public class DynamoDBCertRecordStoreTest {
     public void testGetConnectionException() {
 
         // passing null for table name to get exception
-        DynamoDBCertRecordStore store = new DynamoDBCertRecordStore(dbClient, null);
+        DynamoDBCertRecordStore store = new DynamoDBCertRecordStore(dbClient, null, "Athenz-ZTS-Current-Time-Index");
+
+        try {
+            store.getConnection();
+            fail();
+        } catch (Exception ignored) {
+        }
+
+        // passing null for index name to get exception
+        store = new DynamoDBCertRecordStore(dbClient, "Athenz-ZTS-Table", null);
 
         try {
             store.getConnection();
@@ -71,7 +80,7 @@ public class DynamoDBCertRecordStoreTest {
     @Test
     public void testLog() {
 
-        DynamoDBCertRecordStore store = new DynamoDBCertRecordStore(dbClient, "Athenz-ZTS-Table");
+        DynamoDBCertRecordStore store = new DynamoDBCertRecordStore(dbClient, "Athenz-ZTS-Table", "Athenz-ZTS-Current-Time-Index");
 
         File file = new File("src/test/resources/cert_log.pem");
         String pem = null;

@@ -132,7 +132,7 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
 
     private List<X509CertRecord> getRecordsWithValidHosts(List<X509CertRecord> unrefreshedCerts) {
         return unrefreshedCerts.stream()
-                    .filter(record -> hostnameResolver.isValidHostname(record.getHostName()))
+                    .filter(record -> hostnameResolver == null || hostnameResolver.isValidHostname(record.getHostName()))
                     .collect(Collectors.toList());
     }
 

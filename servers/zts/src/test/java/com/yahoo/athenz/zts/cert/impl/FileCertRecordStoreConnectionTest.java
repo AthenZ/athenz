@@ -244,26 +244,10 @@ public class FileCertRecordStoreConnectionTest {
         FileCertRecordStoreConnection con = (FileCertRecordStoreConnection) store.getConnection();
         assertNotNull(con);
         long timestamp = System.currentTimeMillis();
-        boolean result = con.updateUnrefreshedCertificatesNotificationTimestamp(
+        List<X509CertRecord> records = con.updateUnrefreshedCertificatesNotificationTimestamp(
                 "localhost",
                 timestamp,
                 "provider");
-
-        // For File store, unrefreshed certs unimplemented. Assert false;
-        assertFalse(result);
-    }
-
-    @Test
-    public void testGetNotifyUnrefreshedCertificates() {
-        ZTSTestUtils.deleteDirectory(new File("/tmp/zts-cert-tests"));
-
-        FileCertRecordStore store = new FileCertRecordStore(new File("/tmp/zts-cert-tests"));
-        FileCertRecordStoreConnection con = (FileCertRecordStoreConnection) store.getConnection();
-        assertNotNull(con);
-        long timestamp = System.currentTimeMillis();
-        List<X509CertRecord> records = con.getNotifyUnrefreshedCertificates(
-                "localhost",
-                timestamp);
 
         // For File store, unrefreshed certs unimplemented. Assert empty collection
         assertEquals(records, new ArrayList<>());

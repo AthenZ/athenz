@@ -59,18 +59,24 @@ public class DynamoDBCertRecordStoreFactoryTest {
     public void testCreate() {
 
         System.setProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_TABLE_NAME, "Athenz-ZTS-Table");
+        System.setProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_INDEX_CURRENT_TIME_NAME, "Athenz-ZTS-Current-Time-Index");
 
         PrivateKeyStore keyStore = Mockito.mock(PrivateKeyStore.class);
 
         TestDynamoDBCertRecordStoreFactory factory = new TestDynamoDBCertRecordStoreFactory();
         CertRecordStore store = factory.create(keyStore);
         assertNotNull(store);
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_TABLE_NAME);
+        System.clearProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_INDEX_CURRENT_TIME_NAME);
     }
 
     @Test
     public void testCreateAmzClient() {
 
         System.setProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_TABLE_NAME, "Athenz-ZTS-Table");
+        System.setProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_INDEX_CURRENT_TIME_NAME, "Athenz-ZTS-Current-Time-Index");
+
 
         PrivateKeyStore keyStore = Mockito.mock(PrivateKeyStore.class);
         DynamoDBCertRecordStoreFactory factory = new DynamoDBCertRecordStoreFactory();
@@ -78,6 +84,9 @@ public class DynamoDBCertRecordStoreFactoryTest {
             factory.create(keyStore);
         } catch (Exception ignored) {
         }
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_TABLE_NAME);
+        System.clearProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_INDEX_CURRENT_TIME_NAME);
     }
 
     @Test
@@ -103,5 +112,31 @@ public class DynamoDBCertRecordStoreFactoryTest {
         }
 
         System.clearProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_TABLE_NAME);
+    }
+
+    @Test
+    public void testCreateMissingIndexName() {
+
+        PrivateKeyStore keyStore = Mockito.mock(PrivateKeyStore.class);
+
+        System.setProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_TABLE_NAME, "Athenz-ZTS-Table");
+        System.clearProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_INDEX_CURRENT_TIME_NAME);
+        DynamoDBCertRecordStoreFactory factory = new DynamoDBCertRecordStoreFactory();
+        try {
+            factory.create(keyStore);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.SERVICE_UNAVAILABLE);
+        }
+
+        System.setProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_INDEX_CURRENT_TIME_NAME, "");
+        try {
+            factory.create(keyStore);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.SERVICE_UNAVAILABLE);
+        }
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_INDEX_CURRENT_TIME_NAME);
     }
 }

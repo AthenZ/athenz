@@ -39,7 +39,7 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
             "VALUES (?,?,?,?,?,?,?,?,?,?,?,?);";
     private static final String SQL_UPDATE_X509_RECORD = "UPDATE certificates SET " +
             "currentSerial=?, currentTime=?, currentIP=?, prevSerial=?, prevTime=?, prevIP=?, " +
-            "expiryTime=?, hostName=? " +
+            "expiryTime=?, hostName=?, clientCert=? " +
             "WHERE provider=? AND instanceId=? AND service=?;";
     private static final String SQL_DELETE_X509_RECORD = "DELETE from certificates " +
             "WHERE provider=? AND instanceId=? AND service=?;";
@@ -185,9 +185,10 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
             ps.setString(6, certRecord.getPrevIP());
             ps.setTimestamp(7, getTimestampFromDate(certRecord.getExpiryTime()));
             ps.setString(8, certRecord.getHostName());
-            ps.setString(9, certRecord.getProvider());
-            ps.setString(10, certRecord.getInstanceId());
-            ps.setString(11, certRecord.getService());
+            ps.setBoolean(9, certRecord.getClientCert());
+            ps.setString(10, certRecord.getProvider());
+            ps.setString(11, certRecord.getInstanceId());
+            ps.setString(12, certRecord.getService());
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -274,7 +275,7 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
     }
 
     @Override
-    public boolean updateUnrefreshedCertificatesNotificationTimestamp(String lastNotifiedServer,
+    public List<X509CertRecord> updateUnrefreshedCertificatesNotificationTimestamp(String lastNotifiedServer,
                                                                       long lastNotifiedTime,
                                                                       String provider) {
 
@@ -289,11 +290,14 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
-        return (affectedRows > 0);
+        if (affectedRows > 0) {
+            return getNotifyUnrefreshedCertificates(lastNotifiedServer, lastNotifiedTime);
+        }
+
+        return new ArrayList<>();
     }
 
-    @Override
-    public List<X509CertRecord> getNotifyUnrefreshedCertificates(String lastNotifiedServer, long lastNotifiedTime) {
+    private List<X509CertRecord> getNotifyUnrefreshedCertificates(String lastNotifiedServer, long lastNotifiedTime) {
         final String caller = "listNotifyUnrefreshedCertificates";
         List<X509CertRecord> certRecords = new ArrayList<>();
         try (PreparedStatement ps = con.prepareStatement(SQL_LIST_NOTIFY_UNREFRESHED_X509_RECORDS)) {
