@@ -509,6 +509,7 @@ public class DBService {
         } else {
             // carrying over auditEnabled from original role
             role.setAuditEnabled(originalRole.getAuditEnabled());
+            mergeOriginalRoleAndMetaRoleAttributes(originalRole, role);
             requestSuccess = con.updateRole(domainName, role);
         }
         
@@ -558,7 +559,48 @@ public class DBService {
         auditDetails.append('}');
         return true;
     }
-    
+
+    void mergeOriginalRoleAndMetaRoleAttributes(Role originalRole, Role templateRole) {
+        //Only if the template rolemeta value is null, update with original role value
+        //else use the rolemeta value from template
+        if (templateRole.getSelfServe() == null) {
+            templateRole.setSelfServe(originalRole.getSelfServe());
+        }
+        if (templateRole.getMemberExpiryDays() == null) {
+            templateRole.setMemberExpiryDays(originalRole.getMemberExpiryDays());
+        }
+        if (templateRole.getServiceExpiryDays() == null) {
+            templateRole.setServiceExpiryDays(originalRole.getServiceExpiryDays());
+        }
+        if (templateRole.getTokenExpiryMins() == null) {
+            templateRole.setTokenExpiryMins(originalRole.getTokenExpiryMins());
+        }
+        if (templateRole.getCertExpiryMins() == null) {
+            templateRole.setCertExpiryMins(originalRole.getCertExpiryMins());
+        }
+        if (templateRole.getSignAlgorithm() == null) {
+            templateRole.setSignAlgorithm(originalRole.getSignAlgorithm());
+        }
+        if (templateRole.getReviewEnabled() == null) {
+            templateRole.setReviewEnabled(originalRole.getReviewEnabled());
+        }
+        if (templateRole.getNotifyRoles() == null) {
+            templateRole.setNotifyRoles(originalRole.getNotifyRoles());
+        }
+        if (templateRole.getMemberReviewDays() == null) {
+            templateRole.setMemberReviewDays(originalRole.getMemberReviewDays());
+        }
+        if (templateRole.getServiceReviewDays() == null) {
+            templateRole.setServiceReviewDays(originalRole.getServiceReviewDays());
+        }
+        if (templateRole.getUserAuthorityFilter() == null) {
+            templateRole.setUserAuthorityFilter(originalRole.getUserAuthorityFilter());
+        }
+        if (templateRole.getUserAuthorityExpiration() == null) {
+            templateRole.setUserAuthorityExpiration(originalRole.getUserAuthorityExpiration());
+        }
+    }
+
     private boolean processUpdateRoleMembers(ObjectStoreConnection con, Role originalRole,
             List<RoleMember> roleMembers, boolean ignoreDeletes, String domainName,
             String roleName, String admin, String auditRef, StringBuilder auditDetails) {

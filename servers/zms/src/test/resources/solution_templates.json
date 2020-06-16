@@ -432,6 +432,38 @@
                   ]
               }
           ]
+      },
+      "templateWithExistingRoleMeta" : {
+          "metadata":
+          {
+              "latestVersion": 10,
+              "timestamp": "2020-04-28T00:00:00.000Z",
+              "description": "templateWithExistingRoleMeta template",
+              "keywordsToReplace": "",
+              "autoUpdate": "false"
+          },
+          "roles": [
+              {
+                  "name": "_domain_:role.vip_admin",
+                  "modified": "1970-01-01T00:00:00.000Z",
+                  "selfServe": "true",
+                  "memberExpiryDays": 999,
+                  "userAuthorityExpiration": "newValue"
+              }
+          ],
+          "policies": [
+              {
+                  "name": "_domain_:policy.vip_admin",
+                  "modified": "1970-01-01T00:00:00.000Z",
+                  "assertions": [
+                      {
+                          "resource": "_domain_:vip*",
+                          "role": "_domain_:role.vip_admin",
+                          "action": "*"
+                      }
+                  ]
+              }
+          ]
       }
   }
 }
