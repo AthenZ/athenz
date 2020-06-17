@@ -19359,4 +19359,19 @@ public class ZMSImplTest {
         assertFalse(zms.checkRoleMemberValidity(roleMembers, "user.jane-bad"));
         assertFalse(zms.checkRoleMemberValidity(roleMembers, "user.john-bad"));
     }
+
+    @Test
+    public void testDelegatedRoleInValidTrust() {
+
+        Role role1 = createRoleObject("RoleListDom1", "Role1", "invalidTrust", "user.joe",
+                "user.jane");
+
+        try {
+            zms.validateDelegatedRole(role1, "unittest");
+            fail("delegated role invalid trust error not thrown.");
+        } catch (ResourceException e) {
+            assertEquals(e.getCode(), 400);
+        }
+
+    }
 }

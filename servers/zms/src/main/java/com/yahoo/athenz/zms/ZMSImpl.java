@@ -3011,6 +3011,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         ZMSUtils.validateRoleStructure(role, caller, domainName);
 
+        //validate delegated role has valid trust domain
+
+        if (role.getTrust() != null && !role.getTrust().isEmpty()) {
+            validateDelegatedRole(role, caller);
+        }
+
         // normalize and remove duplicate members
 
         normalizeRoleMembers(role);
@@ -3050,6 +3056,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         dbService.executePutRole(ctx, domainName, roleName, role, auditRef, caller);
         metric.stopTiming(timerMetric, domainName, principalDomain);
+    }
+
+    void validateDelegatedRole(final Role role, final String caller) {
+        AthenzDomain athenzDomain = getAthenzDomain(role.getTrust(), true);
+        if (athenzDomain == null) {
+            throw ZMSUtils.requestError("Delegated role assigned to non existing domain", caller);
+        }
     }
 
     void validateRoleMemberPrincipals(final Role role, final String caller) {
