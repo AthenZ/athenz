@@ -7,7 +7,7 @@
                 "timestamp": "2020-04-28T00:00:00.000Z",
                 "description": "Vipng template",
                 "keywordsToReplace": "",
-                "autoUpdate": "false"
+                "autoUpdate": false
             },
         "roles": [
             {
@@ -52,7 +52,7 @@
                 "timestamp": "2020-04-28T00:00:00.000Z",
                 "description": "platforms template",
                 "keywordsToReplace": "",
-                "autoUpdate": "true"
+                "autoUpdate": true
             },
         "roles": [
             {
@@ -111,7 +111,7 @@
                 "timestamp": "2020-04-28T00:00:00.000Z",
                 "description": "User provisioning template ",
                 "keywordsToReplace": "_track_,_input_",
-                "autoUpdate": "true"
+                "autoUpdate": true
             },
         "roles": [
             {
@@ -183,7 +183,7 @@
                 "timestamp": "2020-04-28T00:00:00.000Z",
                 "description": "sports template",
                 "keywordsToReplace": "",
-                "autoUpdate": "false"
+                "autoUpdate": false
             },
         "roles": [
             {
@@ -213,7 +213,7 @@
                 "timestamp": "2020-04-28T00:00:00.000Z",
                 "description": "network template",
                 "keywordsToReplace": "",
-                "autoUpdate": "false"
+                "autoUpdate": false
             },
         "roles": [
             {
@@ -284,7 +284,7 @@
                 "timestamp": "2020-04-28T00:00:00.000Z",
                 "description": "templateWithService template",
                 "keywordsToReplace": "",
-                "autoUpdate": "false"
+                "autoUpdate": false
             },
         "roles": [
             {
@@ -319,7 +319,7 @@
             "timestamp": "2020-04-28T00:00:00.000Z",
             "description": "templateWithMultipleServices template",
             "keywordsToReplace": "",
-            "autoUpdate": "false"
+            "autoUpdate": false
         },
         "roles": [
             {
@@ -358,7 +358,7 @@
                 "timestamp": "2020-04-28T00:00:00.000Z",
                 "description": "templateWithServiceWithKey template",
                 "keywordsToReplace": "",
-                "autoUpdate": "false"
+                "autoUpdate": false
             },
         "roles": [
             {
@@ -399,7 +399,7 @@
               "timestamp": "2020-04-28T00:00:00.000Z",
               "description": "templateWithRoleMeta template",
               "keywordsToReplace": "",
-              "autoUpdate": "false"
+              "autoUpdate": false
           },
           "roles": [
               {
@@ -440,7 +440,7 @@
               "timestamp": "2020-04-28T00:00:00.000Z",
               "description": "templateWithExistingRoleMeta template",
               "keywordsToReplace": "",
-              "autoUpdate": "false"
+              "autoUpdate": false
           },
           "roles": [
               {
