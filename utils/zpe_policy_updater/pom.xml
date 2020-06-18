@@ -26,6 +26,10 @@
   <name>athenz-zpe-policy-updater</name>
   <description>ZPE Policy Updater</description>
 
+  <properties>
+    <code.coverage.min>0.72</code.coverage.min>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
