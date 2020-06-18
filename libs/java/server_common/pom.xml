@@ -26,6 +26,10 @@
   <description>Athenz Server Common Packages</description>
   <packaging>jar</packaging>
 
+  <properties>
+    <code.coverage.min>0.00</code.coverage.min>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>com.fasterxml.uuid</groupId>

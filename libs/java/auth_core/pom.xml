@@ -26,6 +26,9 @@
   <name>athenz-auth-core</name>
   <description>Core Auth Interfaces</description>
 
+  <properties>
+    <code.coverage.min>0.71</code.coverage.min>
+  </properties>
   <dependencies>
     <dependency>
       <groupId>org.bouncycastle</groupId>

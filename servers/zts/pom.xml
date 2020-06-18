@@ -27,6 +27,10 @@
   <name>athenz-zts-server</name>
   <description>Athenz ZTS Server</description>
 
+  <properties>
+    <code.coverage.min>0.87</code.coverage.min>
+  </properties>
+
   <dependencyManagement>
     <dependencies>
       <dependency>
