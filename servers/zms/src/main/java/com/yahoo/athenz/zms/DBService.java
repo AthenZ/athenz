@@ -509,7 +509,6 @@ public class DBService {
         } else {
             // carrying over auditEnabled from original role
             role.setAuditEnabled(originalRole.getAuditEnabled());
-            mergeOriginalRoleAndMetaRoleAttributes(originalRole, role);
             requestSuccess = con.updateRole(domainName, role);
         }
         
@@ -2664,7 +2663,7 @@ public class DBService {
     
     boolean addSolutionTemplate(ObjectStoreConnection con, String domainName, String templateName,
             String admin, List<TemplateParam> templateParams, String auditRef, StringBuilder auditDetails) {
-        
+
         auditDetails.append("{\"name\": \"").append(templateName).append('\"');
         
         // we have already verified that our template is valid but
@@ -2695,8 +2694,14 @@ public class DBService {
                 
                 Role originalRole = getRole(con, domainName, roleName, false, false, false);
 
+                // Merge original role with template role to handle role meta data
+                // if original role is null then it is an insert operation and no need of merging
+                if (originalRole != null) {
+                    mergeOriginalRoleAndMetaRoleAttributes(originalRole, templateRole);
+                }
+
                 // now process the request
-                
+
                 firstEntry = auditLogSeparator(auditDetails, firstEntry);
                 auditDetails.append(" \"add-role\": ");
                 if (!processRole(con, originalRole, domainName, roleName, templateRole,
