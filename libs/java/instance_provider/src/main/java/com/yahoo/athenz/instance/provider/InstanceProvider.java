@@ -16,6 +16,8 @@
 package com.yahoo.athenz.instance.provider;
 
 import com.yahoo.athenz.auth.KeyStore;
+import com.yahoo.athenz.common.server.dns.HostnameResolver;
+
 import javax.net.ssl.SSLContext;
 
 public interface InstanceProvider {
@@ -79,7 +81,15 @@ public interface InstanceProvider {
      * attestation data.
      */
     void initialize(String provider, String endpoint, SSLContext sslContext, KeyStore keyStore);
-    
+
+    /**
+     * Set hostnameResolver for all provider level name lookups
+     * @param hostnameResolver
+     */
+    default void setHostnameResolver(HostnameResolver hostnameResolver) {
+    };
+
+
     /**
      * Contact the Instance provider and confirm that the requested
      * instance details are valid in order for ZTS to issue a

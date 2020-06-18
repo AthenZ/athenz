@@ -2638,7 +2638,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // validate attestation data is included in the request
         
-        InstanceProvider instanceProvider = instanceProviderManager.getProvider(provider);
+        InstanceProvider instanceProvider = instanceProviderManager.getProvider(provider, hostnameResolver);
         if (instanceProvider == null) {
             throw requestError("unable to get instance for provider: " + provider,
                     caller, domain, principalDomain);
@@ -3013,7 +3013,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // validate attestation data is included in the request
         
-        InstanceProvider instanceProvider = instanceProviderManager.getProvider(provider);
+        InstanceProvider instanceProvider = instanceProviderManager.getProvider(provider, hostnameResolver);
         if (instanceProvider == null) {
             throw requestError("unable to get instance for provider: " + provider,
                     caller, domain, principalDomain);
