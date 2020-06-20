@@ -558,7 +558,48 @@ public class DBService {
         auditDetails.append('}');
         return true;
     }
-    
+
+    void mergeOriginalRoleAndMetaRoleAttributes(Role originalRole, Role templateRole) {
+        //Only if the template rolemeta value is null, update with original role value
+        //else use the rolemeta value from template
+        if (templateRole.getSelfServe() == null) {
+            templateRole.setSelfServe(originalRole.getSelfServe());
+        }
+        if (templateRole.getMemberExpiryDays() == null) {
+            templateRole.setMemberExpiryDays(originalRole.getMemberExpiryDays());
+        }
+        if (templateRole.getServiceExpiryDays() == null) {
+            templateRole.setServiceExpiryDays(originalRole.getServiceExpiryDays());
+        }
+        if (templateRole.getTokenExpiryMins() == null) {
+            templateRole.setTokenExpiryMins(originalRole.getTokenExpiryMins());
+        }
+        if (templateRole.getCertExpiryMins() == null) {
+            templateRole.setCertExpiryMins(originalRole.getCertExpiryMins());
+        }
+        if (templateRole.getSignAlgorithm() == null) {
+            templateRole.setSignAlgorithm(originalRole.getSignAlgorithm());
+        }
+        if (templateRole.getReviewEnabled() == null) {
+            templateRole.setReviewEnabled(originalRole.getReviewEnabled());
+        }
+        if (templateRole.getNotifyRoles() == null) {
+            templateRole.setNotifyRoles(originalRole.getNotifyRoles());
+        }
+        if (templateRole.getMemberReviewDays() == null) {
+            templateRole.setMemberReviewDays(originalRole.getMemberReviewDays());
+        }
+        if (templateRole.getServiceReviewDays() == null) {
+            templateRole.setServiceReviewDays(originalRole.getServiceReviewDays());
+        }
+        if (templateRole.getUserAuthorityFilter() == null) {
+            templateRole.setUserAuthorityFilter(originalRole.getUserAuthorityFilter());
+        }
+        if (templateRole.getUserAuthorityExpiration() == null) {
+            templateRole.setUserAuthorityExpiration(originalRole.getUserAuthorityExpiration());
+        }
+    }
+
     private boolean processUpdateRoleMembers(ObjectStoreConnection con, Role originalRole,
             List<RoleMember> roleMembers, boolean ignoreDeletes, String domainName,
             String roleName, String admin, String auditRef, StringBuilder auditDetails) {
@@ -2622,7 +2663,7 @@ public class DBService {
     
     boolean addSolutionTemplate(ObjectStoreConnection con, String domainName, String templateName,
             String admin, List<TemplateParam> templateParams, String auditRef, StringBuilder auditDetails) {
-        
+
         auditDetails.append("{\"name\": \"").append(templateName).append('\"');
         
         // we have already verified that our template is valid but
@@ -2653,8 +2694,14 @@ public class DBService {
                 
                 Role originalRole = getRole(con, domainName, roleName, false, false, false);
 
+                // Merge original role with template role to handle role meta data
+                // if original role is null then it is an insert operation and no need of merging
+                if (originalRole != null) {
+                    mergeOriginalRoleAndMetaRoleAttributes(originalRole, templateRole);
+                }
+
                 // now process the request
-                
+
                 firstEntry = auditLogSeparator(auditDetails, firstEntry);
                 auditDetails.append(" \"add-role\": ");
                 if (!processRole(con, originalRole, domainName, roleName, templateRole,
@@ -2820,7 +2867,20 @@ public class DBService {
         }
         Role templateRole = new Role()
                 .setName(templateRoleName)
-                .setTrust(role.getTrust());
+                .setTrust(role.getTrust())
+                //adding additional role meta attributes if present in template->roles
+                .setCertExpiryMins(role.getCertExpiryMins())
+                .setSelfServe(role.getSelfServe())
+                .setMemberExpiryDays(role.getMemberExpiryDays())
+                .setTokenExpiryMins(role.getTokenExpiryMins())
+                .setSignAlgorithm(role.getSignAlgorithm())
+                .setServiceExpiryDays(role.getServiceExpiryDays())
+                .setMemberReviewDays(role.getMemberReviewDays())
+                .setServiceReviewDays(role.getServiceReviewDays())
+                .setReviewEnabled(role.getReviewEnabled())
+                .setNotifyRoles(role.getNotifyRoles())
+                .setUserAuthorityFilter(role.getUserAuthorityFilter())
+                .setUserAuthorityExpiration(role.getUserAuthorityExpiration());
         
         List<RoleMember> roleMembers = role.getRoleMembers();
         List<RoleMember> newMembers = new ArrayList<>();

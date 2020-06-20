@@ -7229,6 +7229,137 @@ public class DBServiceTest {
     }
 
     @Test
+    public void testApplySolutionTemplateWithRoleMetaData() {
+
+        String domainName = "solutiontemplate-rolemeta";
+        String caller = "testApplySolutionTemplateWithRoleMetaData";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        // apply the template
+
+        List<String> templates = new ArrayList<>();
+        templates.add("templateWithRoleMeta");
+        DomainTemplate domainTemplate = new DomainTemplate().setTemplateNames(templates);
+        zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
+
+        DomainTemplateList domainTemplateList = zms.dbService.listDomainTemplates(domainName);
+        assertEquals(1, domainTemplateList.getTemplateNames().size());
+
+        // verify that our role collection includes the expected roles
+
+        List<String> names = zms.dbService.listRoles(domainName);
+        assertEquals(2, names.size());
+        assertTrue(names.contains("admin"));
+        assertTrue(names.contains("vip_admin"));
+
+        Role role = zms.dbService.getRole(domainName, "vip_admin", false, false, false);
+        assertEquals(domainName + ":role.vip_admin", role.getName());
+        assertNull(role.getTrust());
+        assertNull(role.getRoleMembers());
+        assertNotNull(role.getNotifyRoles());
+        assertFalse(role.getSelfServe());
+        assertEquals(role.getMemberExpiryDays().intValue(), 90);
+        assertEquals(role.getTokenExpiryMins().intValue(), 30);
+        assertEquals(role.getCertExpiryMins().intValue(), 10);
+        assertEquals(role.getSignAlgorithm(), "test");
+        assertEquals(role.getServiceExpiryDays().intValue(), 50);
+        assertEquals(role.getMemberReviewDays().intValue(), 65);
+        assertEquals(role.getServiceReviewDays().intValue(), 15);
+        assertTrue(role.getReviewEnabled());
+        assertEquals(role.getNotifyRoles(), "testnotify-role");
+        assertEquals(role.getUserAuthorityFilter(), "none");
+        assertNull(role.getUserAuthorityExpiration());
+
+        // verify that our policy collections includes the policies defined in the template
+
+        names = zms.dbService.listPolicies(domainName);
+        assertEquals(2, names.size());
+        assertTrue(names.contains("admin"));
+        assertTrue(names.contains("vip_admin"));
+
+        // Try applying the template again. This time, there should be no changes.
+
+        zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
+
+        names = zms.dbService.listPolicies(domainName);
+        assertEquals(2, names.size());
+        assertTrue(names.contains("admin"));
+        assertTrue(names.contains("vip_admin"));
+
+        // remove the templateWithRoleMeta template
+
+        zms.dbService.executeDeleteDomainTemplate(mockDomRsrcCtx, domainName, "templateWithRoleMeta",
+                auditRef, caller);
+
+        domainTemplateList = zms.dbService.listDomainTemplates(domainName);
+        assertTrue(domainTemplateList.getTemplateNames().isEmpty());
+
+        // remove templateWithRoleMeta again to ensure same result
+
+        zms.dbService.executeDeleteDomainTemplate(mockDomRsrcCtx, domainName, "templateWithRoleMeta",
+                auditRef, caller);
+
+        domainTemplateList = zms.dbService.listDomainTemplates(domainName);
+        assertTrue(domainTemplateList.getTemplateNames().isEmpty());
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testApplySolutionTemplateOnExistingRoleWithRoleMetaData() {
+        String domainName = "solutiontemplate-existing-rolemeta";
+        String caller = "testApplySolutionTemplateOnExistingRoleWithRoleMetaData";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        // apply the template
+
+        List<String> templates = new ArrayList<>();
+        templates.add("templateWithRoleMeta");
+        DomainTemplate domainTemplate = new DomainTemplate().setTemplateNames(templates);
+        zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
+
+        DomainTemplateList domainTemplateList = zms.dbService.listDomainTemplates(domainName);
+        assertEquals(1, domainTemplateList.getTemplateNames().size());
+
+        // verify that our role collection includes the expected roles
+
+        List<String> names = zms.dbService.listRoles(domainName);
+        assertEquals(2, names.size());
+        assertTrue(names.contains("admin"));
+        assertTrue(names.contains("vip_admin"));
+
+        Role role = zms.dbService.getRole(domainName, "vip_admin", false, false, false);
+        assertEquals(domainName + ":role.vip_admin", role.getName());
+
+        //For the same role apply new role meta values to test whether it is overriding existing values.
+        templates = new ArrayList<>();
+        templates.add("templateWithExistingRoleMeta");
+        domainTemplate = new DomainTemplate().setTemplateNames(templates);
+        zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
+        role = zms.dbService.getRole(domainName, "vip_admin", false, false, false);
+        assertEquals(domainName + ":role.vip_admin", role.getName());
+        //selfserve is overwritten so expect true
+        assertTrue(role.getSelfServe()); //assert for updated Value
+        assertEquals(role.getMemberExpiryDays().intValue(), 999); //Overwritten value. assert for updated Value
+        assertEquals(role.getUserAuthorityExpiration(), "newValue"); //Overwritten value. assert for updated Value
+        assertEquals(role.getTokenExpiryMins().intValue(), 30); //Existing Value
+        assertEquals(role.getCertExpiryMins().intValue(), 10); //Existing Value
+        assertEquals(role.getSignAlgorithm(), "test"); //Existing Value
+        assertEquals(role.getServiceExpiryDays().intValue(), 50); //Existing Value
+        assertEquals(role.getMemberReviewDays().intValue(), 65); //Existing Value
+        assertEquals(role.getServiceReviewDays().intValue(), 15); //Existing Value
+        assertTrue(role.getReviewEnabled()); //Existing Value
+        assertEquals(role.getNotifyRoles(), "testnotify-role"); //Existing Value
+        assertEquals(role.getUserAuthorityFilter(), "none"); //Existing Value
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
     public void testUpdateUserAuthorityFilter() {
 
         Authority savedAuthority = zms.dbService.zmsConfig.getUserAuthority();
