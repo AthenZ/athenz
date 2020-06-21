@@ -428,7 +428,7 @@ exports[`PendingApprovalTable should render 1`] = `
           disabled=""
         >
           <div
-            class="workflowHeader"
+            class="fp-workflowHeader"
           >
             <input
               class="flatpickr-input"
@@ -439,7 +439,7 @@ exports[`PendingApprovalTable should render 1`] = `
               value=""
             />
             <input
-              class="workflowHeader form-control input"
+              class="fp-workflowHeader form-control input"
               placeholder="Expiration (Optional)"
               readonly="readonly"
               tabindex="0"

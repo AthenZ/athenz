@@ -230,7 +230,7 @@ exports[`AddMemberForm should render 1`] = `
       class="emotion-4"
     >
       <div
-        class="roleName"
+        class="fp-roleName"
       >
         <input
           class="flatpickr-input"
@@ -241,7 +241,7 @@ exports[`AddMemberForm should render 1`] = `
           value=""
         />
         <input
-          class="roleName form-control input"
+          class="fp-roleName form-control input"
           placeholder="Expiration (Optional)"
           readonly="readonly"
           tabindex="0"
@@ -274,7 +274,7 @@ exports[`AddMemberForm should render 1`] = `
       class="emotion-4"
     >
       <div
-        class="roleName-reminder"
+        class="fp-roleName-reminder"
       >
         <input
           class="flatpickr-input"
@@ -285,7 +285,7 @@ exports[`AddMemberForm should render 1`] = `
           value=""
         />
         <input
-          class="roleName-reminder form-control input"
+          class="fp-roleName-reminder form-control input"
           placeholder="Reminder (Optional)"
           readonly="readonly"
           tabindex="0"
