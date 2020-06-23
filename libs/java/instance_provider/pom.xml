@@ -107,6 +107,11 @@
       <groupId>com.amazonaws</groupId>
       <artifactId>aws-java-sdk-sts</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.yahoo.athenz</groupId>
+      <artifactId>athenz-server-common</artifactId>
+      <version>${project.parent.version}</version>
+    </dependency>
   </dependencies>
 
   <distributionManagement>

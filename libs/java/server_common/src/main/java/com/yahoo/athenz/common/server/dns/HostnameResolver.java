@@ -17,7 +17,9 @@ package com.yahoo.athenz.common.server.dns;
 
 import com.yahoo.athenz.zts.CertType;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public interface HostnameResolver {
 
@@ -31,6 +33,15 @@ public interface HostnameResolver {
      */
     default boolean isValidHostname(final String hostname) {
         return true;
+    }
+
+    /**
+     * returns the set of IP addresses that host resolves to
+     * @param host
+     * @return a set of IP addresses as strings
+     */
+    default Set<String> getAllByName(String host) {
+        return new HashSet<>();
     }
 
     /**

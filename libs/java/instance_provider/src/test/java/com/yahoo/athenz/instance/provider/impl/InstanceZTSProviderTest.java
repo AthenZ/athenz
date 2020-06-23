@@ -17,6 +17,7 @@ package com.yahoo.athenz.instance.provider.impl;
 
 import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.auth.token.PrincipalToken;
+import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
 import com.yahoo.athenz.instance.provider.ResourceException;
@@ -25,11 +26,11 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static org.testng.Assert.*;
 import static org.testng.Assert.assertEquals;
@@ -101,14 +102,84 @@ public class InstanceZTSProviderTest {
     }
 
     @Test
-    public void testValidateIPAddress() {
+    public void testValidateSanIp() {
 
         InstanceZTSProvider provider = new InstanceZTSProvider();
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, null);
-        assertTrue(provider.validateIPAddress("10.1.1.1", "10.1.1.1"));
-        assertTrue(provider.validateIPAddress("10.1.1.1", null));
-        assertTrue(provider.validateIPAddress("10.1.1.1", ""));
-        assertFalse(provider.validateIPAddress("10.1.1.1", "10.1.1.2"));
+        assertTrue(provider.validateSanIp(new String[]{"10.1.1.1"}, "10.1.1.1"));
+        assertTrue(provider.validateSanIp(null, "10.1.1.1"));
+        assertTrue(provider.validateSanIp(new String[]{}, "10.1.1.1"));
+        assertFalse(provider.validateSanIp(new String[]{""}, "10.1.1.1"));
+        assertFalse(provider.validateSanIp(new String[]{"10.1.1.2"}, "10.1.1.1"));
+        assertFalse(provider.validateSanIp(new String[]{"10.1.1.2"}, null));
+        assertFalse(provider.validateSanIp(new String[]{"10.1.1.2"}, ""));
+
+        // ipv6
+        assertTrue(provider.validateSanIp(new String[]{"2001:db8:a0b:12f0:0:0:0:1"}, "2001:db8:a0b:12f0:0:0:0:1"));
+        assertTrue(provider.validateSanIp(null, "2001:db8:a0b:12f0:0:0:0:1"));
+        assertTrue(provider.validateSanIp(new String[]{}, "2001:db8:a0b:12f0:0:0:0:1"));
+        assertFalse(provider.validateSanIp(new String[]{"2002:db9:a0b:12f0:0:0:0:1"}, "2001:db8:a0b:12f0:0:0:0:1"));
+        assertFalse(provider.validateSanIp(new String[]{"2002:db9:a0b:12f0:0:0:0:1"}, "10.1.1.1"));
+        assertFalse(provider.validateSanIp(new String[]{"2002:db9:a0b:12f0:0:0:0:1"}, null));
+        assertFalse(provider.validateSanIp(new String[]{"2002:db9:a0b:12f0:0:0:0:1"}, ""));
+
+        // ipv4 and ipv6 mixed
+        assertTrue(provider.validateSanIp(new String[]{"10.1.1.1", "2001:db8:a0b:12f0:0:0:0:1"}, "10.1.1.1"));
+        assertTrue(provider.validateSanIp(new String[]{"10.1.1.1", "2001:db8:a0b:12f0:0:0:0:1"}, "2001:db8:a0b:12f0:0:0:0:1"));
+        assertFalse(provider.validateSanIp(new String[]{"10.1.1.1", "2001:db8:a0b:12f0:0:0:0:1"}, "10.1.1.2"));
+        assertFalse(provider.validateSanIp(new String[]{"10.1.1.1", "2001:db8:a0b:12f0:0:0:0:1"}, null));
+        assertFalse(provider.validateSanIp(new String[]{"10.1.1.1", "2001:db8:a0b:12f0:0:0:0:1"}, ""));
+
+        provider.close();
+    }
+
+    @Test
+    public void testValidateHostname() {
+        HostnameResolver hostnameResolver = Mockito.mock(HostnameResolver.class);
+        Mockito.when(hostnameResolver.getAllByName("abc.athenz.com"))
+               .thenReturn(new HashSet<String>(Arrays.asList("10.1.1.1", "2001:db8:a0b:12f0:0:0:0:1")));
+
+        InstanceZTSProvider provider = new InstanceZTSProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, null);
+        provider.setHostnameResolver(hostnameResolver);
+
+        assertTrue(provider.validateHostname("abc.athenz.com", new String[]{"10.1.1.1"}));
+        assertTrue(provider.validateHostname("abc.athenz.com", new String[]{"10.1.1.1", "2001:db8:a0b:12f0:0:0:0:1"}));
+        assertFalse(provider.validateHostname("abc.athenz.com", new String[]{"10.1.1.2"}));
+        assertFalse(provider.validateHostname("abc.athenz.com", new String[]{"10.1.1.1", "1:2:3:4:5:6:7:8"}));
+        assertFalse(provider.validateHostname("abc.athenz.com", new String[]{"10.1.1.2", "1:2:3:4:5:6:7:8"}));
+
+        // If hostname is passed, sanIp must be non empty
+        assertFalse(provider.validateHostname("abc.athenz.com", null));
+        assertFalse(provider.validateHostname("abc.athenz.com", new String[]{}));
+        assertFalse(provider.validateHostname("abc.athenz.com", new String[]{""}));
+
+        // It's possible client didn't set Hostname payload. One sanIp be optionally set, and would have been matched with clientIp upstream
+        assertTrue(provider.validateHostname("", new String[]{"10.1.1.1"}));
+        assertTrue(provider.validateHostname(null, new String[]{"10.1.1.1"}));
+
+        // If more than one sanIp is passed, hostname must be non empty
+        assertFalse(provider.validateHostname(null, new String[]{"10.1.1.1", "2001:db8:a0b:12f0:0:0:0:1"}));
+        assertFalse(provider.validateHostname("", new String[]{"10.1.1.1", "2001:db8:a0b:12f0:0:0:0:1"}));
+
+        provider.close();
+    }
+
+    @Test
+    public void testValidateSanUri() {
+        InstanceZTSProvider provider = new InstanceZTSProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, null);
+        assertTrue(provider.validateSanUri("athenz://hostname/abc.athenz.com", "abc.athenz.com"));
+        assertTrue(provider.validateSanUri("spiffe://movies/sa/writer,athenz://hostname/abc.athenz.com", "abc.athenz.com"));
+        assertTrue(provider.validateSanUri("spiffe://movies/sa/writer,athenz://hostname/abc.athenz.com,athenz://instanceid/zts/abc.athenz.com", "abc.athenz.com"));
+        assertTrue(provider.validateSanUri("spiffe://movies/sa/writer,athenz://hostname/abc.athenz.com,athenz://hostname/abc.athenz.com", "abc.athenz.com"));
+
+        assertTrue(provider.validateSanUri("", "abc.athenz.com"));
+        assertTrue(provider.validateSanUri(null, "abc.athenz.com"));
+
+        assertFalse(provider.validateSanUri("athenz://hostname/abc.athenz.cm", "def.athenz.com"));
+        assertFalse(provider.validateSanUri("spiffe://movies/sa/writer,    athenz://hostname/abc.athenz.cm", "def.athenz.com"));
+        assertFalse(provider.validateSanUri("spiffe://movies/sa/writer,athenz://hostname/abc.athenz.com,athenz://hostname/def.athenz.com", "abc.athenz.com"));
         provider.close();
     }
 
@@ -246,6 +317,7 @@ public class InstanceZTSProviderTest {
         Map<String, String> attributes = new HashMap<>();
         attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_DNS, "backend.sports.zts.athenz.cloud,inst1.instanceid.athenz.zts.athenz.cloud");
         attributes.put(InstanceProvider.ZTS_INSTANCE_CSR_PUBLIC_KEY, servicePublicKeyStringK0);
+        attributes.put(InstanceProvider.ZTS_INSTANCE_CSR_PUBLIC_KEY, servicePublicKeyStringK0);
         confirmation.setAttributes(attributes);
 
         try {
@@ -256,6 +328,173 @@ public class InstanceZTSProviderTest {
         }
         provider.close();
         System.clearProperty(InstanceZTSProvider.ZTS_PRINCIPAL_LIST);
+    }
+
+    @Test
+    public void testConfirmInstanceValidHostname() throws UnknownHostException {
+
+        KeyStore keystore = Mockito.mock(KeyStore.class);
+        Mockito.when(keystore.getPublicKey("sports", "api", "v0")).thenReturn(servicePublicKeyStringK0);
+
+        HostnameResolver hostnameResolver = Mockito.mock(HostnameResolver.class);
+        Mockito.when(hostnameResolver.isValidHostname("hostabc.athenz.com")).thenReturn(true);
+        Mockito.when(hostnameResolver.getAllByName("hostabc.athenz.com")).thenReturn(
+                new HashSet<String>(Arrays.asList("10.1.1.1", "2001:db8:a0b:12f0:0:0:0:1"))
+        );
+
+        InstanceZTSProvider provider = new InstanceZTSProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, keystore);
+        provider.setHostnameResolver(hostnameResolver);
+
+        PrincipalToken tokenToSign = new PrincipalToken.Builder("1", "sports", "api")
+                .keyId("v0").salt("salt").issueTime(System.currentTimeMillis() / 1000)
+                .expirationWindow(3600).build();
+        tokenToSign.sign(servicePrivateKeyStringK0);
+
+        InstanceConfirmation confirmation = new InstanceConfirmation();
+        confirmation.setAttestationData(tokenToSign.getSignedToken());
+        confirmation.setDomain("sports");
+        confirmation.setService("api");
+        confirmation.setProvider("sys.auth.zts");
+
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_DNS, "api.sports.zts.athenz.cloud,inst1.instanceid.athenz.zts.athenz.cloud");
+        attributes.put(InstanceProvider.ZTS_INSTANCE_HOSTNAME, "hostabc.athenz.com");
+        attributes.put(InstanceProvider.ZTS_INSTANCE_CLIENT_IP, "10.1.1.1");
+        attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_IP, "10.1.1.1,2001:db8:a0b:12f0:0:0:0:1");
+        attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_URI, "athenz://instanceid/zts/hostabc.athenz.com,athenz://hostname/hostabc.athenz.com");
+        attributes.put(InstanceProvider.ZTS_INSTANCE_CSR_PUBLIC_KEY, servicePublicKeyStringK0);
+        confirmation.setAttributes(attributes);
+
+        assertNotNull(provider.confirmInstance(confirmation));
+        provider.close();
+    }
+
+    @Test
+    public void testConfirmInstanceValidHostnameIpv6() throws UnknownHostException {
+
+        KeyStore keystore = Mockito.mock(KeyStore.class);
+        Mockito.when(keystore.getPublicKey("sports", "api", "v0")).thenReturn(servicePublicKeyStringK0);
+
+        HostnameResolver hostnameResolver = Mockito.mock(HostnameResolver.class);
+        Mockito.when(hostnameResolver.isValidHostname("hostabc.athenz.com")).thenReturn(true);
+        Mockito.when(hostnameResolver.getAllByName("hostabc.athenz.com")).thenReturn(
+                new HashSet<String>(Arrays.asList("10.1.1.1", "2001:db8:a0b:12f0:0:0:0:1"))
+        );
+
+        InstanceZTSProvider provider = new InstanceZTSProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, keystore);
+        provider.setHostnameResolver(hostnameResolver);
+
+        PrincipalToken tokenToSign = new PrincipalToken.Builder("1", "sports", "api")
+                .keyId("v0").salt("salt").issueTime(System.currentTimeMillis() / 1000)
+                .expirationWindow(3600).build();
+        tokenToSign.sign(servicePrivateKeyStringK0);
+
+        InstanceConfirmation confirmation = new InstanceConfirmation();
+        confirmation.setAttestationData(tokenToSign.getSignedToken());
+        confirmation.setDomain("sports");
+        confirmation.setService("api");
+        confirmation.setProvider("sys.auth.zts");
+
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_DNS, "api.sports.zts.athenz.cloud,inst1.instanceid.athenz.zts.athenz.cloud");
+        attributes.put(InstanceProvider.ZTS_INSTANCE_HOSTNAME, "hostabc.athenz.com");
+        attributes.put(InstanceProvider.ZTS_INSTANCE_CLIENT_IP, "2001:db8:a0b:12f0:0:0:0:1");
+        attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_IP, "10.1.1.1,2001:db8:a0b:12f0:0:0:0:1");
+        attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_URI, "athenz://instanceid/zts/hostabc.athenz.com,athenz://hostname/hostabc.athenz.com");
+        attributes.put(InstanceProvider.ZTS_INSTANCE_CSR_PUBLIC_KEY, servicePublicKeyStringK0);
+        confirmation.setAttributes(attributes);
+
+        assertNotNull(provider.confirmInstance(confirmation));
+        provider.close();
+    }
+
+    @Test
+    public void testConfirmInstanceUnknownHostname() throws UnknownHostException {
+
+        KeyStore keystore = Mockito.mock(KeyStore.class);
+        Mockito.when(keystore.getPublicKey("sports", "api", "v0")).thenReturn(servicePublicKeyStringK0);
+
+        HostnameResolver hostnameResolver = Mockito.mock(HostnameResolver.class);
+        Mockito.when(hostnameResolver.isValidHostname("hostabc.athenz.com")).thenReturn(true);
+        Mockito.when(hostnameResolver.getAllByName("hostabc.athenz.com")).thenReturn(new HashSet<String>(Arrays.asList("10.1.1.2")));
+
+        InstanceZTSProvider provider = new InstanceZTSProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, keystore);
+        provider.setHostnameResolver(hostnameResolver);
+
+        PrincipalToken tokenToSign = new PrincipalToken.Builder("1", "sports", "api")
+                .keyId("v0").salt("salt").issueTime(System.currentTimeMillis() / 1000)
+                .expirationWindow(3600).build();
+        tokenToSign.sign(servicePrivateKeyStringK0);
+
+        InstanceConfirmation confirmation = new InstanceConfirmation();
+        confirmation.setAttestationData(tokenToSign.getSignedToken());
+        confirmation.setDomain("sports");
+        confirmation.setService("api");
+        confirmation.setProvider("sys.auth.zts");
+
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_DNS, "api.sports.zts.athenz.cloud,inst1.instanceid.athenz.zts.athenz.cloud");
+        attributes.put(InstanceProvider.ZTS_INSTANCE_HOSTNAME, "hostabc.athenz.com");
+        attributes.put(InstanceProvider.ZTS_INSTANCE_CLIENT_IP, "10.1.1.1");
+        attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_IP, "10.1.1.1");
+        attributes.put(InstanceProvider.ZTS_INSTANCE_CSR_PUBLIC_KEY, servicePublicKeyStringK0);
+        confirmation.setAttributes(attributes);
+
+        try {
+            provider.confirmInstance(confirmation);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+            assertTrue(ex.getMessage().contains("validate certificate request hostname"));
+        }
+        provider.close();
+    }
+
+    @Test
+    public void testConfirmInstanceInvalidHostnameUri() throws UnknownHostException {
+
+        KeyStore keystore = Mockito.mock(KeyStore.class);
+        Mockito.when(keystore.getPublicKey("sports", "api", "v0")).thenReturn(servicePublicKeyStringK0);
+
+        HostnameResolver hostnameResolver = Mockito.mock(HostnameResolver.class);
+        Mockito.when(hostnameResolver.isValidHostname("hostabc.athenz.com")).thenReturn(true);
+        Mockito.when(hostnameResolver.getAllByName("hostabc.athenz.com")).thenReturn(new HashSet<String>(Arrays.asList("10.1.1.1")));
+
+        InstanceZTSProvider provider = new InstanceZTSProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, keystore);
+        provider.setHostnameResolver(hostnameResolver);
+
+        PrincipalToken tokenToSign = new PrincipalToken.Builder("1", "sports", "api")
+                .keyId("v0").salt("salt").issueTime(System.currentTimeMillis() / 1000)
+                .expirationWindow(3600).build();
+        tokenToSign.sign(servicePrivateKeyStringK0);
+
+        InstanceConfirmation confirmation = new InstanceConfirmation();
+        confirmation.setAttestationData(tokenToSign.getSignedToken());
+        confirmation.setDomain("sports");
+        confirmation.setService("api");
+        confirmation.setProvider("sys.auth.zts");
+
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_DNS, "api.sports.zts.athenz.cloud,inst1.instanceid.athenz.zts.athenz.cloud");
+        attributes.put(InstanceProvider.ZTS_INSTANCE_HOSTNAME, "hostabc.athenz.com");
+        attributes.put(InstanceProvider.ZTS_INSTANCE_CLIENT_IP, "10.1.1.1");
+        attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_IP, "10.1.1.1");
+        attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_URI, "athenz://instanceid/zts/def.athenz.com,athenz://hostname/def.athenz.com");
+        attributes.put(InstanceProvider.ZTS_INSTANCE_CSR_PUBLIC_KEY, servicePublicKeyStringK0);
+        confirmation.setAttributes(attributes);
+
+        try {
+            provider.confirmInstance(confirmation);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+            assertTrue(ex.getMessage().contains("validate certificate request URI hostname"));
+        }
+        provider.close();
     }
 
     @Test
@@ -327,7 +566,7 @@ public class InstanceZTSProviderTest {
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 403);
-            assertTrue(ex.getMessage().contains("validate certificate request hostnames"));
+            assertTrue(ex.getMessage().contains("validate certificate request DNS"));
         }
         provider.close();
     }

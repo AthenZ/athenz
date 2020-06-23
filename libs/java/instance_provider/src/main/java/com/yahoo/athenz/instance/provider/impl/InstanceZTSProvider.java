@@ -18,6 +18,7 @@ package com.yahoo.athenz.instance.provider.impl;
 import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.auth.token.PrincipalToken;
 import com.yahoo.athenz.auth.token.Token;
+import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
 import com.yahoo.athenz.instance.provider.ResourceException;
@@ -31,8 +32,10 @@ import java.util.regex.Pattern;
 
 public class InstanceZTSProvider implements InstanceProvider {
 
+
     private static final Logger LOGGER = LoggerFactory.getLogger(InstanceZTSProvider.class);
     private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
+    private static final String URI_HOSTNAME_PREFIX = "athenz://hostname/";
 
     static final String ZTS_PROVIDER_DNS_SUFFIX  = "athenz.zts.provider_dns_suffix";
     static final String ZTS_PRINCIPAL_LIST       = "athenz.zts.provider_service_list";
@@ -40,6 +43,7 @@ public class InstanceZTSProvider implements InstanceProvider {
     KeyStore keyStore = null;
     String dnsSuffix = null;
     Set<String> principals = null;
+    HostnameResolver hostnameResolver = null;
 
     @Override
     public Scheme getProviderScheme() {
@@ -66,6 +70,11 @@ public class InstanceZTSProvider implements InstanceProvider {
             dnsSuffix = "zts.athenz.cloud";
         }
         this.keyStore = keyStore;
+    }
+
+    @Override
+    public void setHostnameResolver(HostnameResolver hostnameResolver) {
+        this.hostnameResolver = hostnameResolver;
     }
 
     private ResourceException forbiddenError(String message) {
@@ -100,19 +109,40 @@ public class InstanceZTSProvider implements InstanceProvider {
             throw forbiddenError("Unable to validate Certificate Request Auth Token");
         }
 
-        // validate the certificate host names
-        
-        StringBuilder instanceId = new StringBuilder(256);
-        if (!InstanceUtils.validateCertRequestHostnames(instanceAttributes, instanceDomain,
-                instanceService, dnsSuffix, instanceId)) {
-            throw forbiddenError("Unable to validate certificate request hostnames");
-        }
+        String clientIp = InstanceUtils.getInstanceProperty(instanceAttributes, InstanceProvider.ZTS_INSTANCE_CLIENT_IP);
+        String sanIpStr = InstanceUtils.getInstanceProperty(instanceAttributes, InstanceProvider.ZTS_INSTANCE_SAN_IP);
+        String hostname = InstanceUtils.getInstanceProperty(instanceAttributes, InstanceProvider.ZTS_INSTANCE_HOSTNAME);
+        String sanUri   = InstanceUtils.getInstanceProperty(instanceAttributes, InstanceProvider.ZTS_INSTANCE_SAN_URI);
 
         // validate the IP address if one is provided
 
-        if (!validateIPAddress(InstanceUtils.getInstanceProperty(instanceAttributes, InstanceProvider.ZTS_INSTANCE_CLIENT_IP),
-                InstanceUtils.getInstanceProperty(instanceAttributes, InstanceProvider.ZTS_INSTANCE_SAN_IP))) {
+        String[] sanIps = null;
+        if (sanIpStr != null && !sanIpStr.isEmpty()) {
+            sanIps = sanIpStr.split(",");
+        }
+
+        if (!validateSanIp(sanIps, clientIp)) {
             throw forbiddenError("Unable to validate request IP address");
+        }
+
+        // validate the hostname in payload
+        // IP in clientIP can be NATed. For validating hostname, rely on sanIPs, which come from the client, and are already matched with clientIp
+
+        if (!validateHostname(hostname, sanIps)) {
+            throw forbiddenError("Unable to validate certificate request hostname");
+        }
+
+        // validate san URI
+        if (!validateSanUri(sanUri, hostname)) {
+            throw forbiddenError("Unable to validate certificate request URI hostname");
+        }
+
+        // validate the certificate san DNS names
+
+        StringBuilder instanceId = new StringBuilder(256);
+        if (!InstanceUtils.validateCertRequestSanDnsNames(instanceAttributes, instanceDomain,
+                instanceService, dnsSuffix, instanceId)) {
+            throw forbiddenError("Unable to validate certificate request DNS");
         }
 
         // set our cert attributes in the return object
@@ -127,23 +157,112 @@ public class InstanceZTSProvider implements InstanceProvider {
 
     @Override
     public InstanceConfirmation refreshInstance(InstanceConfirmation confirmation) {
-        
+
         // we do not allow refresh of zts provider certificates
         // the caller should just request a new certificate
 
         throw forbiddenError("ZTS Provider X.509 Certificates cannot be refreshed");
     }
 
-    boolean validateIPAddress(final String clientIP, final String sanIPs) {
+    /**
+     * verifies that at least one of the sanIps matches clientIp
+     * @param sanIps
+     * @param clientIp
+     * @return true if sanIps is null or one of the sanIps matches. false otherwise
+     */
+    boolean validateSanIp(final String[] sanIps, final String clientIp) {
 
-        // if we have an IP specified in the CSR, it must match our client IP
+        LOGGER.debug("Validating sanIps: {}, clientIp: {}", sanIps, clientIp);
 
-        if (sanIPs == null || sanIPs.isEmpty()) {
+        // if we have an IP specified in the CSR, one of the sanIp must match our client IP
+        if (sanIps == null || sanIps.length == 0) {
             return true;
         }
 
-        return (sanIPs.equals(clientIP));
+        if (clientIp == null || clientIp.isEmpty()) {
+            return false;
+        }
+
+        // It's possible both ipv4, ipv6 addresses are mentioned in sanIP
+        for (String sanIp: sanIps) {
+            if (sanIp.equals(clientIp)) {
+                return true;
+            }
+        }
+
+        LOGGER.error("Unable to match sanIp: {} with clientIp:{}", sanIps, clientIp);
+        return false;
     }
+
+    /**
+     * returns true if an empty hostname attribute is passed
+     * returns true if a non-empty hostname attribute is passed and all IPs passed in sanIp match the IPs that hostname resolves to.
+     * returns false in all other cases
+     * @param hostname
+     * @param sanIps
+     * @return true or false
+     */
+    boolean validateHostname(final String hostname, final String[] sanIps) {
+
+        LOGGER.debug("Validating hostname: {}, sanIps: {}", hostname, sanIps);
+
+        if (hostname == null || hostname.isEmpty()) {
+            LOGGER.info("Request contains no hostname entry for validation");
+            // if more than one sanIp is passed, all sanIPs must map to hostname, and hostname is a must
+            if (sanIps != null && sanIps.length > 1) {
+                LOGGER.error("SanIps:{} > 1, and hostname is empty", sanIps);
+                return false;
+            }
+            return true;
+        }
+
+        // IP in clientIp can be NATed. Rely on sanIp, which comes from the client, and is already matched with clientIp
+        // sanIp should be non-empty
+        if (sanIps == null || sanIps.length == 0) {
+            LOGGER.error("Request contains no sanIp entry for hostname:{} validation", hostname);
+            return false;
+        }
+
+        // All entries in sanIP must be one of the IPs that hostname resolves
+        Set<String>  hostIps = hostnameResolver.getAllByName(hostname);
+        for (String sanIp: sanIps) {
+            if (!hostIps.contains(sanIp)) {
+                LOGGER.error("One of sanIp: {} is not present in HostIps: {}", hostIps, sanIps);
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * verifies if sanUri contains athenz://hostname/, the value matches the hostname
+     * @param sanUri
+     * @param hostname
+     * @return
+     */
+    boolean validateSanUri(final String sanUri, final String hostname) {
+
+        LOGGER.debug("Validating sanUri: {}, hostname: {}", sanUri, hostname);
+
+        if (sanUri == null || sanUri.isEmpty()) {
+            LOGGER.info("Request contains no sanURI to verify");
+            return true;
+        }
+
+        for (String uri: sanUri.split(",")) {
+            int idx = uri.indexOf(URI_HOSTNAME_PREFIX);
+            if (idx != -1) {
+                if (!uri.substring(idx + URI_HOSTNAME_PREFIX.length()).equals(hostname)) {
+                    LOGGER.error("SanURI: {} does not contain hostname: {}", sanUri, hostname);
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
 
     boolean validateToken(final String signedToken, final String domainName,
             final String serviceName, final String csrPublicKey, StringBuilder errMsg) {
@@ -231,4 +350,6 @@ public class InstanceZTSProvider implements InstanceProvider {
 
         return normAthenzPublicKey.equals(normCsrPublicKey);
     }
+
+
 }

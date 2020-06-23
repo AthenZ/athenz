@@ -45,9 +45,9 @@ public class InstanceUtils {
         return value;
     }
 
-    public static boolean validateCertRequestHostnames(final Map<String, String> attributes,
-            final String domain, final String service, final String dnsSuffix,
-            StringBuilder instanceId) {
+    public static boolean validateCertRequestSanDnsNames(final Map<String, String> attributes,
+                                                         final String domain, final String service, final String dnsSuffix,
+                                                         StringBuilder instanceId) {
 
         // make sure we have valid dns suffix specified
 
@@ -56,7 +56,7 @@ public class InstanceUtils {
             return false;
         }
 
-        // first check to see if we're given any hostnames to validate
+        // first check to see if we're given any san dns names to validate
         // if the list is empty then something is not right thus we'll
         // reject the request
 
