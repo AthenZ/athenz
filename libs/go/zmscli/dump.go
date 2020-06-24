@@ -247,6 +247,15 @@ func (cli Zms) dumpPolicy(buf *bytes.Buffer, policy zms.Policy, indent1 string, 
 	}
 }
 
+func (cli Zms) dumpMetadata(buf *bytes.Buffer, data *zms.TemplateMetaData, indent1 string, templateName string) {
+	buf.WriteString(indent_level1 + "metadata:\n")
+	dumpStringValue(buf, indent1, "template-name", templateName)
+	dumpStringValue(buf, indent1, "description", data.Description)
+	dumpStringValue(buf, indent1, "keywords-to-replace", data.KeywordsToReplace)
+	dumpInt32Value(buf, indent1, "latest-version", data.LatestVersion)
+	dumpBoolValue(buf, indent1, "auto-update", data.AutoUpdate)
+}
+
 func (cli Zms) dumpPolicies(buf *bytes.Buffer, dn string) {
 	buf.WriteString(indent_level1)
 	buf.WriteString("policies:\n")
