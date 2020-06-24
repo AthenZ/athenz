@@ -2789,7 +2789,7 @@ public class ZTSClientTest {
     @Test
     public void testGetAWSCredentialsProvider() {
 
-        ZTSClientMock client = new ZTSClientMock("http://localhost:4080");
+        ZTSClientMock client = new ZTSClientMock("http://localhost:40888");
         try {
             client.getAWSCredentialProvider("domain", "role");
             fail();
