@@ -46,6 +46,7 @@ func (cli Zms) ShowServerTemplate(templateName string) (*string, error) {
 	}
 	var buf bytes.Buffer
 	buf.WriteString("template:\n")
+	cli.dumpMetadata(&buf, template.Metadata, indent_level2_dash, templateName)
 	buf.WriteString(indent_level1 + "roles:\n")
 	for _, role := range template.Roles {
 		cli.dumpRole(&buf, *role, false, indent_level2_dash, indent_level2_dash_lvl)
