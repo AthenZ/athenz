@@ -174,6 +174,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     private static final String OAUTH_GRANT_CREDENTIALS = "client_credentials";
     private static final String OAUTH_BEARER_TOKEN = "Bearer";
 
+    private static final String USER_AGENT_HDR = "User-Agent";
+
     // domain metrics prefix
     private static final String DOM_METRIX_PREFIX = "dom_metric_";
 
@@ -2663,11 +2665,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             metric.increment("providerconfirm_failure", domain, provider);
             int code = (ex.getCode() == ResourceException.GATEWAY_TIMEOUT) ?
                     ResourceException.GATEWAY_TIMEOUT : ResourceException.FORBIDDEN;
-            throw error(code, "unable to verify attestation data: " + ex.getMessage(),
+            throw error(code, getExceptionMsg("unable to verify attestation data: ", ctx, ex, info.getHostname()),
                     caller, domain, principalDomain);
         } catch (Exception ex) {
             metric.increment("providerconfirm_failure", domain, provider);
-            throw forbiddenError("unable to verify attestation data: " + ex.getMessage(),
+            throw forbiddenError(getExceptionMsg("unable to verify attestation data: ", ctx, ex, info.getHostname()),
                     caller, domain, principalDomain);
         } finally {
             metric.stopTiming(timerProviderMetric, provider, principalDomain);
@@ -3032,11 +3034,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             metric.increment("providerconfirm_failure", domain, provider);
             int code = (ex.getCode() == ResourceException.GATEWAY_TIMEOUT) ?
                     ResourceException.GATEWAY_TIMEOUT : ResourceException.FORBIDDEN;
-            throw error(code, "unable to verify attestation data: " + ex.getMessage(),
+            throw error(code, getExceptionMsg("unable to verify attestation data: ", ctx, ex, info.getHostname()),
                     caller, domain, principalDomain);
         } catch (Exception ex) {
             metric.increment("providerconfirm_failure", domain, provider);
-            throw forbiddenError("unable to verify attestation data: " + ex.getMessage(),
+            throw forbiddenError(getExceptionMsg("unable to verify attestation data: ", ctx, ex, info.getHostname()),
                     caller, domain, principalDomain);
         } finally {
             metric.stopTiming(timerProviderMetric, provider, principalDomain);
@@ -4168,7 +4170,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 authFreeUriSet, authFreeUriList);
         return new RsrcCtxWrapper(request, response, authorities, optionalAuth, authorizer, metric);
     }
-    
+
+    String getExceptionMsg(String prefix, ResourceContext ctx, Exception ex, String hostname) {
+        return prefix + ex.getMessage() +
+                " client: " + ctx.request().getHeader(USER_AGENT_HDR) +
+                " clientIP: " + ctx.request().getRemoteAddr() +
+                " clientHost: " + (hostname == null ? "NA" : hostname);
+    }
+
     Authority getAuthority(String className) {
         
         LOGGER.debug("Loading authority {}...", className);
