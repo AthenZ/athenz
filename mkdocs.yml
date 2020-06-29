@@ -20,6 +20,15 @@ nav:
         - ZMS Server: setup_zms_prod.md
         - ZTS Server: setup_zts_prod.md
         - UI Server: setup_ui_prod.md
+- Management:
+    - Role Delegation: role_delegation.md
+    - Access/Role Token Limit Expiry Support: token_expiration.md
+    - Role Certificate Limit Expiry Support: role_cert_expiration.md
+    - Review Enabled Roles: review_enabled_roles.md
+    - Email Notifications: email_notifications.md
+    - Role Member Auto Expiry and Notification Support: member_expiration.md
+    - Role Member Review Reminder Support: member_soft_expiration.md
+    - Self-Served Roles: self_serve_roles.md
 - AWS Setup:
     - Introduction: aws_athenz_setup.md
     - ZMS Server : aws_zms_setup.md
