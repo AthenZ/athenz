@@ -21,6 +21,7 @@ import com.yahoo.athenz.auth.AuthorityConsts;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.util.AthenzUtils;
 import com.yahoo.athenz.common.server.audit.AuditReferenceValidator;
+import com.yahoo.athenz.common.server.db.RolesProvider;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.util.StringUtils;
@@ -39,7 +40,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-public class DBService {
+public class DBService implements RolesProvider {
     
     ObjectStore store;
     BitSet auditRefSet;
@@ -158,6 +159,16 @@ public class DBService {
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return con.listOverdueReviewRoleMembers(domainName);
         }
+    }
+
+    @Override
+    public List<Role> getRolesByDomain(String domain) {
+        AthenzDomain athenzDomain = getAthenzDomain(domain, false);
+        if (domain == null) {
+            return new ArrayList<>();
+        }
+
+        return athenzDomain.getRoles();
     }
 
     static class DataCache {

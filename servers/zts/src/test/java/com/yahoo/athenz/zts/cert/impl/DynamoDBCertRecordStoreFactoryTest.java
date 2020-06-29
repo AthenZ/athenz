@@ -19,6 +19,7 @@ import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 import com.amazonaws.services.dynamodbv2.document.Table;
 import com.yahoo.athenz.common.server.cert.CertRecordStore;
 import com.yahoo.athenz.zts.ResourceException;
+import com.yahoo.athenz.zts.notification.ZTSClientNotificationSenderImpl;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
@@ -38,13 +39,12 @@ public class DynamoDBCertRecordStoreFactoryTest {
 
     @Mock private AmazonDynamoDB dbClient;
     @Mock private Table table;
-
     @Mock private DynamoDB dynamoDB;
 
     class TestDynamoDBCertRecordStoreFactory extends DynamoDBCertRecordStoreFactory {
 
         @Override
-        AmazonDynamoDB getDynamoDBClient() {
+        AmazonDynamoDB getDynamoDBClient(ZTSClientNotificationSenderImpl ztsClientNotificationSender, PrivateKeyStore keyStore) {
             return dbClient;
         }
     }
@@ -79,7 +79,7 @@ public class DynamoDBCertRecordStoreFactoryTest {
 
 
         PrivateKeyStore keyStore = Mockito.mock(PrivateKeyStore.class);
-        DynamoDBCertRecordStoreFactory factory = new DynamoDBCertRecordStoreFactory();
+        TestDynamoDBCertRecordStoreFactory factory = new TestDynamoDBCertRecordStoreFactory();
         try {
             factory.create(keyStore);
         } catch (Exception ignored) {
@@ -95,7 +95,7 @@ public class DynamoDBCertRecordStoreFactoryTest {
         PrivateKeyStore keyStore = Mockito.mock(PrivateKeyStore.class);
 
         System.clearProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_TABLE_NAME);
-        DynamoDBCertRecordStoreFactory factory = new DynamoDBCertRecordStoreFactory();
+        TestDynamoDBCertRecordStoreFactory factory = new TestDynamoDBCertRecordStoreFactory();
         try {
             factory.create(keyStore);
             fail();

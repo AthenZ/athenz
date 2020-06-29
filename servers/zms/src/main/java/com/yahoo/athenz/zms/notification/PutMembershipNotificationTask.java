@@ -43,7 +43,7 @@ public class PutMembershipNotificationTask implements NotificationTask {
         this.org = org;
         this.role = role;
         this.details = details;
-        DomainRoleMembersFetcher domainRoleMembersFetcher = new ZMSDomainRoleMembersFetcher(dbService, userDomainPrefix);
+        DomainRoleMembersFetcher domainRoleMembersFetcher = new DomainRoleMembersFetcher(dbService, userDomainPrefix);
         this.notificationCommon = new NotificationCommon(domainRoleMembersFetcher, userDomainPrefix);
         this.putMembershipNotificationToEmailConverter = new PutMembershipNotificationToEmailConverter();
     }

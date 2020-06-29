@@ -56,8 +56,8 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
         this.serverName = serverName;
         this.providers = getProvidersList();
         this.instanceCertManager = instanceCertManager;
-        ZTSDomainRoleMembersFetcher ztsDomainRoleMembersFetcher = new ZTSDomainRoleMembersFetcher(dataStore, USER_DOMAIN_PREFIX);
-        this.notificationCommon = new NotificationCommon(ztsDomainRoleMembersFetcher, userDomainPrefix);
+        DomainRoleMembersFetcher domainRoleMembersFetcher = new DomainRoleMembersFetcher(dataStore, USER_DOMAIN_PREFIX);
+        this.notificationCommon = new NotificationCommon(domainRoleMembersFetcher, userDomainPrefix);
         this.hostnameResolver = hostnameResolver;
         this.certFailedRefreshNotificationToEmailConverter = new CertFailedRefreshNotificationToEmailConverter();
         globStringsMatcher = new GlobStringsMatcher(ZTSConsts.ZTS_PROP_NOTIFICATION_CERT_FAIL_IGNORED_SERVICES_LIST);
@@ -190,7 +190,6 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
     public static class CertFailedRefreshNotificationToEmailConverter implements NotificationToEmailConverter {
         private static final String EMAIL_TEMPLATE_UNREFRESHED_CERTS = "messages/unrefreshed-certs.html";
         private static final String UNREFRESHED_CERTS_SUBJECT = "athenz.notification.email.unrefreshed.certs.subject";
-        private static final String UNREFRESHED_CERTS_BODY_ENTRY = "athenz.notification.email.unrefreshed.certs.body.entry";
 
         private final NotificationToEmailConverterCommon notificationToEmailConverterCommon;
         private String emailUnrefreshedCertsBody;
@@ -210,8 +209,7 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
                     emailUnrefreshedCertsBody,
                     NOTIFICATION_DETAILS_DOMAIN,
                     NOTIFICATION_DETAILS_UNREFRESHED_CERTS,
-                    6,
-                    UNREFRESHED_CERTS_BODY_ENTRY);
+                    6);
         }
 
         @Override

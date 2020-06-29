@@ -101,7 +101,6 @@ public class NotificationManagerTest {
 
         AthenzDomain mockAthenzDomain = Mockito.mock(AthenzDomain.class);
 
-        Mockito.when(dbsvc.getAthenzDomain("testdom", false)).thenReturn(mockAthenzDomain);
         List<Role> roles = new ArrayList<>();
         List<RoleMember> members = new ArrayList<>();
 
@@ -133,6 +132,8 @@ public class NotificationManagerTest {
         Mockito.when(mockAthenzDomain.getName()).thenReturn("testdom");
         Mockito.when(mockAthenzDomain.getRoles()).thenReturn(roles);
 
+        Mockito.when(dbsvc.getRolesByDomain("testdom")).thenReturn(roles);
+
         Set<String> recipients = new HashSet<>();
         recipients.add("testdom:role.role1");
         recipients.add("user.user3");
@@ -141,8 +142,8 @@ public class NotificationManagerTest {
         details.put("domain", "testdom");
         details.put("role", "role1");
 
-        ZMSDomainRoleMembersFetcher zmsDomainRoleMembersFetcher = new ZMSDomainRoleMembersFetcher(dbsvc, USER_DOMAIN_PREFIX);
-        NotificationCommon notificationCommon = new NotificationCommon(zmsDomainRoleMembersFetcher, USER_DOMAIN_PREFIX);
+        DomainRoleMembersFetcher domainRoleMembersFetcher = new DomainRoleMembersFetcher(dbsvc, USER_DOMAIN_PREFIX);
+        NotificationCommon notificationCommon = new NotificationCommon(domainRoleMembersFetcher, USER_DOMAIN_PREFIX);
         PutMembershipNotificationTask.PutMembershipNotificationToEmailConverter converter = new PutMembershipNotificationTask.PutMembershipNotificationToEmailConverter();
         Notification notification = notificationCommon.createNotification(recipients, details, converter);
         assertNotNull(notification);
@@ -166,8 +167,8 @@ public class NotificationManagerTest {
         DBService dbsvc = Mockito.mock(DBService.class);
         Mockito.when(dbsvc.getPendingMembershipApproverRoles()).thenReturn(Collections.emptySet());
 
-        ZMSDomainRoleMembersFetcher zmsDomainRoleMembersFetcher = new ZMSDomainRoleMembersFetcher(dbsvc, USER_DOMAIN_PREFIX);
-        NotificationCommon notificationCommon = new NotificationCommon(zmsDomainRoleMembersFetcher, USER_DOMAIN_PREFIX);
+        DomainRoleMembersFetcher domainRoleMembersFetcher = new DomainRoleMembersFetcher(dbsvc, USER_DOMAIN_PREFIX);
+        NotificationCommon notificationCommon = new NotificationCommon(domainRoleMembersFetcher, USER_DOMAIN_PREFIX);
         assertNull(notificationCommon.createNotification((Set<String>) null, null, null));
         assertNull(notificationCommon.createNotification(Collections.emptySet(), null, null));
     }
@@ -196,8 +197,8 @@ public class NotificationManagerTest {
         Mockito.when(mockAthenzDomain.getName()).thenReturn("testdom");
         Mockito.when(mockAthenzDomain.getRoles()).thenReturn(roles);
 
-        ZMSDomainRoleMembersFetcher zmsDomainRoleMembersFetcher = new ZMSDomainRoleMembersFetcher(dbsvc, USER_DOMAIN_PREFIX);
-        NotificationCommon notificationCommon = new NotificationCommon(zmsDomainRoleMembersFetcher, USER_DOMAIN_PREFIX);
+        DomainRoleMembersFetcher domainRoleMembersFetcher = new DomainRoleMembersFetcher(dbsvc, USER_DOMAIN_PREFIX);
+        NotificationCommon notificationCommon = new NotificationCommon(domainRoleMembersFetcher, USER_DOMAIN_PREFIX);
         PendingMembershipApprovalNotificationTask.PendingMembershipApprovalNotificationToEmailConverter converter = new PendingMembershipApprovalNotificationTask.PendingMembershipApprovalNotificationToEmailConverter();
         Notification notification = notificationCommon.createNotification(recipients, null, converter);
         assertNull(notification);
@@ -262,8 +263,8 @@ public class NotificationManagerTest {
         // call
 
         Mockito.when(dbsvc.getRoleExpiryMembers()).thenReturn(null);
-        ZMSDomainRoleMembersFetcher zmsDomainRoleMembersFetcher = new ZMSDomainRoleMembersFetcher(dbsvc, USER_DOMAIN_PREFIX);
-        NotificationCommon notificationCommon = new NotificationCommon(zmsDomainRoleMembersFetcher, USER_DOMAIN_PREFIX);
+        DomainRoleMembersFetcher domainRoleMembersFetcher = new DomainRoleMembersFetcher(dbsvc, USER_DOMAIN_PREFIX);
+        NotificationCommon notificationCommon = new NotificationCommon(domainRoleMembersFetcher, USER_DOMAIN_PREFIX);
 
         Map<String, String> details = new HashMap<>();
         PendingMembershipApprovalNotificationTask.PendingMembershipApprovalNotificationToEmailConverter converter = new PendingMembershipApprovalNotificationTask.PendingMembershipApprovalNotificationToEmailConverter();

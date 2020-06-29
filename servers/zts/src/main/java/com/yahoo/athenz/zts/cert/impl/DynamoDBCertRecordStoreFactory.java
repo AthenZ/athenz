@@ -16,33 +16,45 @@
 package com.yahoo.athenz.zts.cert.impl;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.common.server.cert.CertRecordStore;
 import com.yahoo.athenz.common.server.cert.CertRecordStoreFactory;
 import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.ZTSConsts;
+import com.yahoo.athenz.zts.notification.ZTSClientNotificationSenderImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DynamoDBCertRecordStoreFactory implements CertRecordStoreFactory {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DynamoDBCertRecordStoreFactory.class);
+
+    private DynamoDBClientFetcher dynamoDBClientFetcher;
+
+    public DynamoDBCertRecordStoreFactory() {
+        this.dynamoDBClientFetcher = new DynamoDBClientFetcher();
+    }
 
     @Override
     public CertRecordStore create(PrivateKeyStore keyStore) {
 
         final String tableName = System.getProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_TABLE_NAME);
         if (tableName == null || tableName.isEmpty()) {
+            LOGGER.error("Cert Store DynamoDB table name not specified");
             throw new ResourceException(ResourceException.SERVICE_UNAVAILABLE, "DynamoDB table name not specified");
         }
 
         final String indexName = System.getProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_INDEX_CURRENT_TIME_NAME);
         if (indexName == null || indexName.isEmpty()) {
+            LOGGER.error("Cert Store DynamoDB index current-time not specified");
             throw new ResourceException(ResourceException.SERVICE_UNAVAILABLE, "DynamoDB index current-time not specified");
         }
 
-        AmazonDynamoDB client = getDynamoDBClient();
-        return new DynamoDBCertRecordStore(client, tableName, indexName);
+        ZTSClientNotificationSenderImpl ztsClientNotificationSender = new ZTSClientNotificationSenderImpl();
+        AmazonDynamoDB client = getDynamoDBClient(ztsClientNotificationSender, keyStore);
+        return new DynamoDBCertRecordStore(client, tableName, indexName, ztsClientNotificationSender);
     }
 
-    AmazonDynamoDB getDynamoDBClient() {
-        return AmazonDynamoDBClientBuilder.standard().build();
+    AmazonDynamoDB getDynamoDBClient(ZTSClientNotificationSenderImpl ztsClientNotificationSender, PrivateKeyStore keyStore) {
+        return dynamoDBClientFetcher.getDynamoDBClient(ztsClientNotificationSender, keyStore);
     }
 }

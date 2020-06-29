@@ -476,6 +476,22 @@ public class DynamoDBCertRecordStoreConnectionTest {
         assertEquals(records.get(1).getLastNotifiedTime(), now);
     }
 
+    @Test
+    public void testUpdateUnrefreshedCertificatesNotificationTimestampException() {
+        Mockito.doThrow(new AmazonDynamoDBException("invalid operation"))
+                .when(table).updateItem(any(UpdateItemSpec.class));
+
+        DynamoDBCertRecordStoreConnection dbConn = getDBConnection();
+        List<X509CertRecord> result = dbConn.updateUnrefreshedCertificatesNotificationTimestamp(
+                "serverTest",
+                1591706189000L,
+                "providerTest");
+
+        assertEquals(result.size(), 0);
+
+        dbConn.close();
+    }
+
     private Map<String, AttributeValue> generateAttributeValues(String service,
                                                                 String instanceId,
                                                                 String currentTime,

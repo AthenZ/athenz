@@ -4078,4 +4078,35 @@ public class DataStoreTest {
 
         assertEquals(encodedInt4, new String(encoder.encode(store.toIntegerBytes(bigInt4, true))));
     }
+
+    @Test
+    public void testGetRolesByDomain() {
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                pkey, "0");
+        DataStore store = new DataStore(clogStore, null);
+
+        DataCache dataCache = new DataCache();
+
+        Role role = new Role();
+        role.setName("coretech:role.admin");
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user_domain.user"));
+        role.setRoleMembers(members);
+
+        List<Role> roles = new ArrayList<>();
+        roles.add(role);
+
+        DomainData domainData = new DomainData();
+        domainData.setRoles(roles);
+        dataCache.setDomainData(domainData);
+
+        store.addDomainToCache("coretech", dataCache);
+        List<Role> fetchedRoles = store.getRolesByDomain("coretech");
+
+        assertEquals(fetchedRoles.size(), 1);
+        assertEquals(fetchedRoles.get(0).getName(), "coretech:role.admin");
+
+        fetchedRoles = store.getRolesByDomain("unknownDomain");
+        assertEquals(fetchedRoles.size(), 0);
+    }
 }

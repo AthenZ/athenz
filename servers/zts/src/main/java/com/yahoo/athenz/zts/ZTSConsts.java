@@ -103,6 +103,19 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_CERT_DYNAMODB_ITEM_TTL_HOURS            = "athenz.zts.cert_dynamodb_item_ttl_hours";
     public static final String ZTS_PROP_CERT_DYNAMODB_INDEX_CURRENT_TIME_NAME   = "athenz.zts.cert_dynamodb_index_current_time_name";
 
+    public static final String ZTS_PROP_DYNAMODB_KEY_PATH            = "athenz.zts.dynamodb_key_path";
+    public static final String ZTS_PROP_DYNAMODB_CERT_PATH           = "athenz.zts.dynamodb_cert_path";
+    public static final String ZTS_PROP_DYNAMODB_DOMAIN              = "athenz.zts.dynamodb_aws_domain";
+    public static final String ZTS_PROP_DYNAMODB_ROLE                = "athenz.zts.dynamodb_aws_role";
+    public static final String ZTS_PROP_DYNAMODB_TRUSTSTORE          = "athenz.zts.dynamodb_trust_store_path";
+    public static final String ZTS_PROP_DYNAMODB_TRUSTSTORE_PASSWORD = "athenz.zts.dynamodb_trust_store_password";
+    public static final String ZTS_PROP_DYNAMODB_TRUSTSTORE_APPNAME = "athenz.zts.dynamodb_trust_store_app_name";
+    public static final String ZTS_PROP_DYNAMODB_REGION              = "athenz.zts.dynamodb_region";
+    public static final String ZTS_PROP_DYNAMODB_ZTS_URL             = "athenz.zts.dynamodb_zts_url";
+    public static final String ZTS_PROP_DYNAMODB_EXTERNAL_ID         = "athenz.zts.dynamodb_external_id";
+    public static final String ZTS_PROP_DYNAMODB_MIN_EXPIRY_TIME     = "athenz.zts.dynamodb_min_expiry_time";
+    public static final String ZTS_PROP_DYNAMODB_MAX_EXPIRY_TIME     = "athenz.zts.dynamodb_max_expiry_time";
+
     public static final String ZTS_PROP_SSH_JDBC_STORE               = "athenz.zts.ssh_jdbc_store";
     public static final String ZTS_PROP_SSH_JDBC_USER                = "athenz.zts.ssh_jdbc_user";
     public static final String ZTS_PROP_SSH_JDBC_PASSWORD            = "athenz.zts.ssh_jdbc_password";
@@ -192,8 +205,9 @@ public final class ZTSConsts {
     public static final String ZTS_PRINCIPAL_AUTHORITY_CLASS       = "com.yahoo.athenz.auth.impl.PrincipalAuthority";
     public static final String ZTS_CERT_RECORD_STORE_FACTORY_CLASS = "com.yahoo.athenz.zts.cert.impl.FileCertRecordStoreFactory";
 
-    public static final String ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST = "athenz.zts.notification_cert_fail_provider_list";
-    public static final String ZTS_PROP_NOTIFICATION_CERT_FAIL_IGNORED_SERVICES_LIST = "athenz.zts.notification_cert_fail_ignored_services_list";
+    public static final String ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST            = "athenz.zts.notification_cert_fail_provider_list";
+    public static final String ZTS_PROP_NOTIFICATION_CERT_FAIL_IGNORED_SERVICES_LIST    = "athenz.zts.notification_cert_fail_ignored_services_list";
+    public static final String ZTS_PROP_NOTIFICATION_AWS_HEALTH_DOMAIN                  = "athenz.zts.notification_aws_health_domain";
 
     public static final String ZTS_JSON_PARSER_ERROR_RESPONSE = "{\"code\":400,\"message\":\"Invalid Object: checkout https://github.com/yahoo/athenz/tree/master/core/zts/src/main/rdl for object defintions\"}";
 

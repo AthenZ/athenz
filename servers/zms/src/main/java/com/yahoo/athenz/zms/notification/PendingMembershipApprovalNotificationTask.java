@@ -39,8 +39,8 @@ public class PendingMembershipApprovalNotificationTask implements NotificationTa
         this.dbService = dbService;
         this.pendingRoleMemberLifespan = pendingRoleMemberLifespan;
         this.monitorIdentity = monitorIdentity;
-        ZMSDomainRoleMembersFetcher zmsDomainRoleMembersFetcher = new ZMSDomainRoleMembersFetcher(dbService, USER_DOMAIN_PREFIX);
-        this.notificationCommon = new NotificationCommon(zmsDomainRoleMembersFetcher, userDomainPrefix);
+        DomainRoleMembersFetcher domainRoleMembersFetcher = new DomainRoleMembersFetcher(dbService, USER_DOMAIN_PREFIX);
+        this.notificationCommon = new NotificationCommon(domainRoleMembersFetcher, userDomainPrefix);
         this.pendingMembershipApprovalNotificationToEmailConverter = new PendingMembershipApprovalNotificationToEmailConverter();
     }
 

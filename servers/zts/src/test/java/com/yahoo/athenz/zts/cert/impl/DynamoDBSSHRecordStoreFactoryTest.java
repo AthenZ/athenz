@@ -22,6 +22,7 @@ import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.common.server.ssh.SSHRecordStore;
 import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.ZTSConsts;
+import com.yahoo.athenz.zts.notification.ZTSClientNotificationSenderImpl;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
@@ -38,9 +39,8 @@ public class DynamoDBSSHRecordStoreFactoryTest {
     @Mock private DynamoDB dynamoDB;
 
     class TestDynamoDBSSHRecordStoreFactory extends DynamoDBSSHRecordStoreFactory {
-
         @Override
-        AmazonDynamoDB getDynamoDBClient() {
+        AmazonDynamoDB getDynamoDBClient(ZTSClientNotificationSenderImpl ztsClientNotificationSender, PrivateKeyStore keyStore) {
             return dbClient;
         }
     }
@@ -69,7 +69,7 @@ public class DynamoDBSSHRecordStoreFactoryTest {
         System.setProperty(ZTSConsts.ZTS_PROP_SSH_DYNAMODB_TABLE_NAME, "Athenz-ZTS-Table");
 
         PrivateKeyStore keyStore = Mockito.mock(PrivateKeyStore.class);
-        DynamoDBSSHRecordStoreFactory factory = new DynamoDBSSHRecordStoreFactory();
+        TestDynamoDBSSHRecordStoreFactory factory = new TestDynamoDBSSHRecordStoreFactory();
         try {
             factory.create(keyStore);
         } catch (Exception ignored) {
@@ -82,7 +82,7 @@ public class DynamoDBSSHRecordStoreFactoryTest {
         PrivateKeyStore keyStore = Mockito.mock(PrivateKeyStore.class);
 
         System.clearProperty(ZTSConsts.ZTS_PROP_SSH_DYNAMODB_TABLE_NAME);
-        DynamoDBSSHRecordStoreFactory factory = new DynamoDBSSHRecordStoreFactory();
+        TestDynamoDBSSHRecordStoreFactory factory = new TestDynamoDBSSHRecordStoreFactory();
         try {
             factory.create(keyStore);
             fail();
