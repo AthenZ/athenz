@@ -22,13 +22,14 @@ import org.testng.annotations.Test;
 
 import static com.yahoo.athenz.zts.ZTSConsts.*;
 import static org.mockito.Mockito.when;
+
 import static org.testng.AssertJUnit.*;
 
 public class DynamoDBClientSettingsTest {
     @Test
     public void credentialsNotProvided() {
         PrivateKeyStore keyStore = Mockito.mock(PrivateKeyStore.class);
-        DynamoDBClientFetcher.DynamoDBClientSettings dynamoDBClientSettings = new DynamoDBClientFetcher.DynamoDBClientSettings(keyStore);
+        DynamoDBClientSettings dynamoDBClientSettings = new DynamoDBClientSettings(keyStore);
         assertFalse(dynamoDBClientSettings.areCredentialsProvided());
     }
 
@@ -47,7 +48,7 @@ public class DynamoDBClientSettingsTest {
         when(keyStore.getApplicationSecret(Mockito.eq("test.appname"), Mockito.eq("test.truststore.password")))
                 .thenReturn("decryptedPassword");
 
-        DynamoDBClientFetcher.DynamoDBClientSettings dynamoDBClientSettings = new DynamoDBClientFetcher.DynamoDBClientSettings(keyStore);
+        DynamoDBClientSettings dynamoDBClientSettings = new DynamoDBClientSettings(keyStore);
         assertTrue(dynamoDBClientSettings.areCredentialsProvided());
 
         assertEquals("test.keypath", dynamoDBClientSettings.getKeyPath());

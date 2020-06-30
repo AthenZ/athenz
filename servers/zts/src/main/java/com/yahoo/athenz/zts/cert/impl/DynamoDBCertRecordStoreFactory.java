@@ -28,12 +28,6 @@ import org.slf4j.LoggerFactory;
 public class DynamoDBCertRecordStoreFactory implements CertRecordStoreFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(DynamoDBCertRecordStoreFactory.class);
 
-    private DynamoDBClientFetcher dynamoDBClientFetcher;
-
-    public DynamoDBCertRecordStoreFactory() {
-        this.dynamoDBClientFetcher = new DynamoDBClientFetcher();
-    }
-
     @Override
     public CertRecordStore create(PrivateKeyStore keyStore) {
 
@@ -55,6 +49,7 @@ public class DynamoDBCertRecordStoreFactory implements CertRecordStoreFactory {
     }
 
     AmazonDynamoDB getDynamoDBClient(ZTSClientNotificationSenderImpl ztsClientNotificationSender, PrivateKeyStore keyStore) {
-        return dynamoDBClientFetcher.getDynamoDBClient(ztsClientNotificationSender, keyStore);
+        DynamoDBClientFetcher dynamoDBClientFetcher = DynamoDBClientFetcherFactory.getDynamoDBClientFetcher();
+        return dynamoDBClientFetcher.getDynamoDBClient(ztsClientNotificationSender, keyStore).getAmazonDynamoDB();
     }
 }
