@@ -159,59 +159,6 @@ public class ZMSUtilsTest {
         assertTrue(ZMSUtils.assumeRoleResourceMatch("domain1:role.role1", assertion));
     }
     
-    @DataProvider(name = "roles")
-    public static Object[][] getRoles() {
-        String domainName = "test_domain";
-
-        Role role1 = new Role();
-        String memberName = "member";
-        RoleMember roleMember = new RoleMember().setMemberName(memberName);
-        
-        Role role2 = new Role();
-        role2.setMembers(Collections.singletonList(memberName));
-        role2.setRoleMembers(Collections.singletonList(roleMember));
-        
-        Role role3 = new Role();
-        role3.setRoleMembers(Collections.singletonList(roleMember));
-        
-        Role role4 = new Role();
-        role4.setRoleMembers(Collections.singletonList(roleMember));
-        role4.setTrust("trust");
-        
-        Role role5 = new Role();
-        role5.setMembers(Collections.singletonList(memberName));
-        role5.setTrust("trust");
-        
-        Role role6 = new Role();
-        role6.setTrust("trust");
-        
-        return new Object[][] {
-            {domainName, role1, false}, 
-            {domainName, role2, true}, 
-            {domainName, role3, false}, 
-            {domainName, role4, true},
-            {domainName, role5, true}, 
-            {"trust", role6, true}, 
-            {"test_domain", role6, false}, 
-        };
-    }
-
-    @Test(dataProvider = "roles")
-    public void testValidateRoleMembers(String domainName, Role role, boolean expectedFailure) {
-        try {
-            ZMSUtils.validateRoleStructure(role, null, domainName);
-            if (expectedFailure) {
-                fail();
-            }
-        } catch (ResourceException e) {
-            if (expectedFailure) {
-                assertEquals(e.getCode(), 400);
-            } else {
-                fail("should not have failed with ResourceException");
-            }
-        }
-    }
-    
     @DataProvider(name = "members")
     public static Object[][] getMembers() {
         return new Object[][] {

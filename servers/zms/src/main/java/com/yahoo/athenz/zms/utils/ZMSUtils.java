@@ -167,34 +167,6 @@ public class ZMSUtils {
         return roleName.matches(rezPattern);
     }
     
-    public static void validateRoleStructure(final Role role, final String caller,
-            final String domainName) {
-        
-        if ((role.getMembers() != null && !role.getMembers().isEmpty()) 
-                && (role.getRoleMembers() != null && !role.getRoleMembers().isEmpty())) {
-            throw ZMSUtils.requestError("validateRoleMembers: Role cannot have both members and roleMembers set", caller);
-        }
-        
-        // if this is a delegated role then validate that it's not
-        // delegated back to itself and there are no members since
-        // those 2 fields are mutually exclusive
-        
-        if (role.getTrust() != null && !role.getTrust().isEmpty()) {
-            
-            if (role.getRoleMembers() != null && !role.getRoleMembers().isEmpty()) {
-                throw ZMSUtils.requestError("validateRoleMembers: Role cannot have both roleMembers and delegated domain set", caller);
-            }
-            
-            if (role.getMembers() != null && !role.getMembers().isEmpty()) {
-                throw ZMSUtils.requestError("validateRoleMembers: Role cannot have both members and delegated domain set", caller);
-            }
-            
-            if (domainName.equals(role.getTrust())) {
-                throw ZMSUtils.requestError("validateRoleMembers: Role cannot be delegated to itself", caller);
-            }
-        }
-    }
-    
     public static void removeMembers(List<RoleMember> originalRoleMembers, List<RoleMember> removeRoleMembers) {
         if (removeRoleMembers == null || originalRoleMembers == null) {
             return;

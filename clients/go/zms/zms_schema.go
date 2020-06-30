@@ -167,9 +167,9 @@ func init() {
 	tRoleMeta.Field("memberReviewDays", "Int32", true, nil, "all user members in the role will have specified max review days")
 	tRoleMeta.Field("serviceReviewDays", "Int32", true, nil, "all services in the role will have specified max review days")
 	tRoleMeta.Field("reviewEnabled", "Bool", true, false, "Flag indicates whether or not role updates require another review and approval")
-	tRoleMeta.Field("notifyRoles", "ResourceNames", true, nil, "list of roles whose members should be notified for member review/approval")
-	tRoleMeta.Field("userAuthorityFilter", "AuthorityKeywords", true, nil, "membership filtered based on user authority configured attributes")
-	tRoleMeta.Field("userAuthorityExpiration", "AuthorityKeyword", true, nil, "expiration enforced by a user authority configured attribute")
+	tRoleMeta.Field("notifyRoles", "String", true, nil, "list of roles whose members should be notified for member review/approval")
+	tRoleMeta.Field("userAuthorityFilter", "String", true, nil, "membership filtered based on user authority configured attributes")
+	tRoleMeta.Field("userAuthorityExpiration", "String", true, nil, "expiration enforced by a user authority configured attribute")
 	sb.AddType(tRoleMeta.Build())
 
 	tRole := rdl.NewStructTypeBuilder("RoleMeta", "Role")

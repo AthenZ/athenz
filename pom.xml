@@ -96,6 +96,7 @@
 
   <modules>
     <module>rdl/rdl-gen-athenz-server</module>
+    <module>rdl/rdl-gen-athenz-go-model</module>
     <module>rdl/rdl-gen-athenz-go-client</module>
     <module>core/zms</module>
     <module>core/zts</module>

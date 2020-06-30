@@ -145,9 +145,9 @@ public class ZMSSchema {
             .field("memberReviewDays", "Int32", true, "all user members in the role will have specified max review days")
             .field("serviceReviewDays", "Int32", true, "all services in the role will have specified max review days")
             .field("reviewEnabled", "Bool", true, "Flag indicates whether or not role updates require another review and approval", false)
-            .field("notifyRoles", "ResourceNames", true, "list of roles whose members should be notified for member review/approval")
-            .field("userAuthorityFilter", "AuthorityKeywords", true, "membership filtered based on user authority configured attributes")
-            .field("userAuthorityExpiration", "AuthorityKeyword", true, "expiration enforced by a user authority configured attribute");
+            .field("notifyRoles", "String", true, "list of roles whose members should be notified for member review/approval")
+            .field("userAuthorityFilter", "String", true, "membership filtered based on user authority configured attributes")
+            .field("userAuthorityExpiration", "String", true, "expiration enforced by a user authority configured attribute");
 
         sb.structType("Role", "RoleMeta")
             .comment("The representation for a Role with set of members.")

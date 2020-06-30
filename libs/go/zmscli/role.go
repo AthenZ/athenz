@@ -384,7 +384,7 @@ func (cli Zms) SetRoleUserAuthorityFilter(dn string, rn, filter string) (*string
 		return nil, err
 	}
 	meta := getRoleMetaObject(role)
-	meta.UserAuthorityFilter = zms.AuthorityKeywords(filter)
+	meta.UserAuthorityFilter = filter
 
 	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
 	if err != nil {
@@ -400,7 +400,7 @@ func (cli Zms) SetRoleUserAuthorityExpiration(dn string, rn, filter string) (*st
 		return nil, err
 	}
 	meta := getRoleMetaObject(role)
-	meta.UserAuthorityExpiration = zms.AuthorityKeyword(filter)
+	meta.UserAuthorityExpiration = filter
 
 	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
 	if err != nil {
@@ -528,7 +528,7 @@ func (cli Zms) SetRoleNotifyRoles(dn string, rn string, notifyRoles string) (*st
 		return nil, err
 	}
 	meta := getRoleMetaObject(role)
-	meta.NotifyRoles = zms.ResourceNames(notifyRoles)
+	meta.NotifyRoles = notifyRoles
 
 	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
 	if err != nil {
