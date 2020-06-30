@@ -125,6 +125,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     private static final String TYPE_ROLE_SYSTEM_META = "RoleSystemMeta";
     private static final String TYPE_ROLE_META = "RoleMeta";
     private static final String TYPE_SERVICE_IDENTITY_SYSTEM_META = "ServiceIdentitySystemMeta";
+    private static final String TYPE_RESOURCE_NAMES = "ResourceNames";
+    private static final String TYPE_AUTHORITY_KEYWORD = "AuthorityKeyword";
+    private static final String TYPE_AUTHORITY_KEYWORDS = "AuthorityKeywords";
 
     private static final String SERVER_READ_ONLY_MESSAGE = "Server in Maintenance Read-Only mode. Please try your request later";
 
@@ -1710,12 +1713,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return (userAuthority == null) ? userName : userAuthority.getUserDomainName(userName);
     }
 
-    void validateString(final String value, final String type, final String caller) {
-        if (value != null && !value.isEmpty()) {
-            validate(value, type, caller);
-        }
-    }
-
     @Override
     public void putDomainMeta(ResourceContext ctx, String domainName, String auditRef,
             DomainMeta meta) {
@@ -1730,12 +1727,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateRequest(ctx.request(), caller);
 
-        validate(meta, TYPE_DOMAIN_META, caller);
-        validateString(meta.getApplicationId(), TYPE_COMPOUND_NAME, caller);
-
-        // validate meta values - for now we're making sure we're not
+        // validate meta values - validator will enforce any patters
+        // defined in the schema and we need to validate the rest of the
+        // integer and string values. for now we're making sure we're not
         // getting any negative values for our integer settings
 
+        validate(meta, TYPE_DOMAIN_META, caller);
         validateDomainMetaValues(meta);
 
         // for consistent handling of all requests, we're going to convert
@@ -1765,6 +1762,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         metric.stopTiming(timerMetric, domainName, principalDomain);
     }
 
+    void validateString(final String value, final String type, final String caller) {
+        if (value != null && !value.isEmpty()) {
+            validate(value, type, caller);
+        }
+    }
+
     void validateIntegerValue(final Integer value, final String fieldName) {
         if (value != null && value < 0) {
             throw ZMSUtils.requestError(fieldName + " cannot be negative", "validateMetaFields");
@@ -1772,21 +1775,50 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     void validateDomainMetaValues(DomainMeta meta) {
+
+        final String caller = "validateDomainMetaValues";
+
         validateIntegerValue(meta.getServiceCertExpiryMins(), "serviceCertExpiryMins");
         validateIntegerValue(meta.getMemberExpiryDays(), "memberExpiryDays");
         validateIntegerValue(meta.getRoleCertExpiryMins(), "roleCertExpiryMins");
         validateIntegerValue(meta.getServiceExpiryDays(), "serviceExpiryDays");
         validateIntegerValue(meta.getTokenExpiryMins(), "tokenExpiryMins");
         validateIntegerValue(meta.getYpmId(), "ypmId");
+
+        validateString(meta.getApplicationId(), TYPE_COMPOUND_NAME, caller);
+        validateString(meta.getAccount(), TYPE_COMPOUND_NAME, caller);
     }
 
     void validateRoleMetaValues(RoleMeta meta) {
+
+        final String caller = "validateRoleMetaValues";
+
         validateIntegerValue(meta.getMemberExpiryDays(), "memberExpiryDays");
         validateIntegerValue(meta.getServiceExpiryDays(), "serviceExpiryDays");
         validateIntegerValue(meta.getTokenExpiryMins(), "tokenExpiryMins");
         validateIntegerValue(meta.getCertExpiryMins(), "certExpiryMins");
         validateIntegerValue(meta.getMemberReviewDays(), "memberReviewDays");
         validateIntegerValue(meta.getServiceReviewDays(), "serviceReviewDays");
+
+        validateString(meta.getNotifyRoles(), TYPE_RESOURCE_NAMES, caller);
+        validateString(meta.getUserAuthorityFilter(), TYPE_AUTHORITY_KEYWORDS, caller);
+        validateString(meta.getUserAuthorityExpiration(), TYPE_AUTHORITY_KEYWORD, caller);
+    }
+
+    void validateRoleValues(Role role) {
+
+        final String caller = "validateRoleValues";
+
+        validateIntegerValue(role.getMemberExpiryDays(), "memberExpiryDays");
+        validateIntegerValue(role.getServiceExpiryDays(), "serviceExpiryDays");
+        validateIntegerValue(role.getTokenExpiryMins(), "tokenExpiryMins");
+        validateIntegerValue(role.getCertExpiryMins(), "certExpiryMins");
+        validateIntegerValue(role.getMemberReviewDays(), "memberReviewDays");
+        validateIntegerValue(role.getServiceReviewDays(), "serviceReviewDays");
+
+        validateString(role.getNotifyRoles(), TYPE_RESOURCE_NAMES, caller);
+        validateString(role.getUserAuthorityFilter(), TYPE_AUTHORITY_KEYWORDS, caller);
+        validateString(role.getUserAuthorityExpiration(), TYPE_AUTHORITY_KEYWORD, caller);
     }
 
     @Override
@@ -1803,13 +1835,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateRequest(ctx.request(), caller);
 
-        validate(meta, TYPE_DOMAIN_META, caller);
         validate(attribute, TYPE_SIMPLE_NAME, caller);
-        validateString(meta.getAccount(), TYPE_COMPOUND_NAME, caller);
 
-        // validate meta values - for now we're making sure we're not
+        // validate meta values - validator will enforce any patters
+        // defined in the schema and we need to validate the rest of the
+        // integer and string values. for now we're making sure we're not
         // getting any negative values for our integer settings
 
+        validate(meta, TYPE_DOMAIN_META, caller);
         validateDomainMetaValues(meta);
 
         // for consistent handling of all requests, we're going to convert
@@ -2972,6 +3005,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(roleName, TYPE_ENTITY_NAME, caller);
         validate(role, TYPE_ROLE, caller);
+        validateRoleValues(role);
 
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case (e.g. domain, role,
@@ -3009,13 +3043,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // validate role and trust settings are as expected
 
-        ZMSUtils.validateRoleStructure(role, caller, domainName);
-
-        //validate delegated role has valid trust domain
-
-        if (role.getTrust() != null && !role.getTrust().isEmpty()) {
-            validateDelegatedRole(role, caller);
-        }
+        validateRoleStructure(role, domainName, caller);
 
         // normalize and remove duplicate members
 
@@ -3058,10 +3086,35 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         metric.stopTiming(timerMetric, domainName, principalDomain);
     }
 
-    void validateDelegatedRole(final Role role, final String caller) {
-        AthenzDomain athenzDomain = getAthenzDomain(role.getTrust(), true);
-        if (athenzDomain == null) {
-            throw ZMSUtils.requestError("Delegated role assigned to non existing domain", caller);
+   void validateRoleStructure(final Role role, final String domainName, final String caller) {
+
+        if ((role.getMembers() != null && !role.getMembers().isEmpty())
+                && (role.getRoleMembers() != null && !role.getRoleMembers().isEmpty())) {
+            throw ZMSUtils.requestError("validateRoleMembers: Role cannot have both members and roleMembers set", caller);
+        }
+
+        // if this is a delegated role then validate that it's not
+        // delegated back to itself and there are no members since
+        // those 2 fields are mutually exclusive
+
+        if (role.getTrust() != null && !role.getTrust().isEmpty()) {
+
+            AthenzDomain athenzDomain = getAthenzDomain(role.getTrust(), true);
+            if (athenzDomain == null) {
+                throw ZMSUtils.requestError("Delegated role assigned to non existing domain", caller);
+            }
+
+            if (role.getRoleMembers() != null && !role.getRoleMembers().isEmpty()) {
+                throw ZMSUtils.requestError("validateRoleMembers: Role cannot have both roleMembers and delegated domain set", caller);
+            }
+
+            if (role.getMembers() != null && !role.getMembers().isEmpty()) {
+                throw ZMSUtils.requestError("validateRoleMembers: Role cannot have both members and delegated domain set", caller);
+            }
+
+            if (domainName.equals(role.getTrust())) {
+                throw ZMSUtils.requestError("validateRoleMembers: Role cannot be delegated to itself", caller);
+            }
         }
     }
 
@@ -7649,11 +7702,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateRequest(ctx.request(), caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(roleName, TYPE_ENTITY_NAME, caller);
-        validate(meta, TYPE_ROLE_META, caller);
 
-        // validate meta values - for now we're making sure we're not
+        // validate meta values - validator will enforce any patters
+        // defined in the schema and we need to validate the rest of the
+        // integer and string values. for now we're making sure we're not
         // getting any negative values for our integer settings
 
+        validate(meta, TYPE_ROLE_META, caller);
         validateRoleMetaValues(meta);
 
         // for consistent handling of all requests, we're going to convert

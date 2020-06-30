@@ -19360,18 +19360,68 @@ public class ZMSImplTest {
         assertFalse(zms.checkRoleMemberValidity(roleMembers, "user.john-bad"));
     }
 
-    @Test
-    public void testDelegatedRoleInValidTrust() {
+    @DataProvider(name = "delegatedRoles")
+    public static Object[][] getDelegatedRoles() {
+        String domainName = "test_domain";
 
-        Role role1 = createRoleObject("RoleListDom1", "Role1", "invalidTrust", "user.joe",
-                "user.jane");
+        Role role1 = new Role();
+        String memberName = "member";
+        RoleMember roleMember = new RoleMember().setMemberName(memberName);
+
+        Role role2 = new Role();
+        role2.setMembers(Collections.singletonList(memberName));
+        role2.setRoleMembers(Collections.singletonList(roleMember));
+
+        Role role3 = new Role();
+        role3.setRoleMembers(Collections.singletonList(roleMember));
+
+        Role role4 = new Role();
+        role4.setRoleMembers(Collections.singletonList(roleMember));
+        role4.setTrust("trust");
+
+        Role role5 = new Role();
+        role5.setMembers(Collections.singletonList(memberName));
+        role5.setTrust("trust");
+
+        Role role6 = new Role();
+        role6.setTrust("trust");
+
+        Role role7 = new Role();
+        role7.setTrust("trust-notfound");
+
+        return new Object[][] {
+                {domainName, role1, false},
+                {domainName, role2, true},
+                {domainName, role3, false},
+                {domainName, role4, true},
+                {domainName, role5, true},
+                {"trust", role6, true},
+                {"test_domain", role6, false},
+                {"test_domain", role7, true}
+        };
+    }
+
+    @Test(dataProvider = "delegatedRoles")
+    public void testValidateRoleStructure(String domainName, Role role, boolean expectedFailure) {
+
+        final String trustDomainName = "trust";
+        TopLevelDomain dom1 = createTopLevelDomainObject(trustDomainName,
+                "Test Domain1", "testOrg", "user.user1");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
         try {
-            zms.validateDelegatedRole(role1, "unittest");
-            fail("delegated role invalid trust error not thrown.");
+            zms.validateRoleStructure(role, domainName, "unittest");
+            if (expectedFailure) {
+                fail();
+            }
         } catch (ResourceException e) {
-            assertEquals(e.getCode(), 400);
+            if (expectedFailure) {
+                assertEquals(e.getCode(), 400);
+            } else {
+                fail("should not have failed with ResourceException");
+            }
         }
 
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, trustDomainName, auditRef);
     }
 }

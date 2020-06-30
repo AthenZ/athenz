@@ -118,7 +118,7 @@ type DomainMeta struct {
 	//
 	// a description of the domain
 	//
-	Description string `json:"description,omitempty" rdl:"optional"`
+	Description string `json:"description" rdl:"optional"`
 
 	//
 	// a reference to an Organization. (i.e. org:media)
@@ -141,7 +141,7 @@ type DomainMeta struct {
 	// associated cloud (i.e. aws) account id (system attribute - uniqueness
 	// check)
 	//
-	Account string `json:"account,omitempty" rdl:"optional"`
+	Account string `json:"account" rdl:"optional"`
 
 	//
 	// associated product id (system attribute - uniqueness check)
@@ -151,12 +151,12 @@ type DomainMeta struct {
 	//
 	// associated application id
 	//
-	ApplicationId string `json:"applicationId,omitempty" rdl:"optional"`
+	ApplicationId string `json:"applicationId" rdl:"optional"`
 
 	//
 	// domain certificate dns domain (system attribute)
 	//
-	CertDnsDomain string `json:"certDnsDomain,omitempty" rdl:"optional"`
+	CertDnsDomain string `json:"certDnsDomain" rdl:"optional"`
 
 	//
 	// all user members in the domain will have specified max expiry days
@@ -290,7 +290,7 @@ type Domain struct {
 	//
 	// a description of the domain
 	//
-	Description string `json:"description,omitempty" rdl:"optional"`
+	Description string `json:"description" rdl:"optional"`
 
 	//
 	// a reference to an Organization. (i.e. org:media)
@@ -313,7 +313,7 @@ type Domain struct {
 	// associated cloud (i.e. aws) account id (system attribute - uniqueness
 	// check)
 	//
-	Account string `json:"account,omitempty" rdl:"optional"`
+	Account string `json:"account" rdl:"optional"`
 
 	//
 	// associated product id (system attribute - uniqueness check)
@@ -323,12 +323,12 @@ type Domain struct {
 	//
 	// associated application id
 	//
-	ApplicationId string `json:"applicationId,omitempty" rdl:"optional"`
+	ApplicationId string `json:"applicationId" rdl:"optional"`
 
 	//
 	// domain certificate dns domain (system attribute)
 	//
-	CertDnsDomain string `json:"certDnsDomain,omitempty" rdl:"optional"`
+	CertDnsDomain string `json:"certDnsDomain" rdl:"optional"`
 
 	//
 	// all user members in the domain will have specified max expiry days
@@ -548,7 +548,7 @@ type RoleList struct {
 	// be used in the next role list request as the value for the skip query
 	// parameter.
 	//
-	Next string `json:"next,omitempty" rdl:"optional"`
+	Next string `json:"next" rdl:"optional"`
 }
 
 //
@@ -634,7 +634,7 @@ type RoleAuditLog struct {
 	//
 	// audit reference string for the change as supplied by admin
 	//
-	AuditRef string `json:"auditRef,omitempty" rdl:"optional"`
+	AuditRef string `json:"auditRef" rdl:"optional"`
 }
 
 //
@@ -741,7 +741,7 @@ type RoleMember struct {
 	//
 	// audit reference string for the change as supplied by admin
 	//
-	AuditRef string `json:"auditRef,omitempty" rdl:"optional"`
+	AuditRef string `json:"auditRef" rdl:"optional"`
 
 	//
 	// for pending membership requests, the request time
@@ -898,17 +898,17 @@ type RoleMeta struct {
 	//
 	// list of roles whose members should be notified for member review/approval
 	//
-	NotifyRoles ResourceNames `json:"notifyRoles,omitempty" rdl:"optional"`
+	NotifyRoles string `json:"notifyRoles" rdl:"optional"`
 
 	//
 	// membership filtered based on user authority configured attributes
 	//
-	UserAuthorityFilter AuthorityKeywords `json:"userAuthorityFilter,omitempty" rdl:"optional"`
+	UserAuthorityFilter string `json:"userAuthorityFilter" rdl:"optional"`
 
 	//
 	// expiration enforced by a user authority configured attribute
 	//
-	UserAuthorityExpiration AuthorityKeyword `json:"userAuthorityExpiration,omitempty" rdl:"optional"`
+	UserAuthorityExpiration string `json:"userAuthorityExpiration" rdl:"optional"`
 }
 
 //
@@ -951,21 +951,21 @@ func (self *RoleMeta) Validate() error {
 		}
 	}
 	if self.NotifyRoles != "" {
-		val := rdl.Validate(ZMSSchema(), "ResourceNames", self.NotifyRoles)
+		val := rdl.Validate(ZMSSchema(), "String", self.NotifyRoles)
 		if !val.Valid {
-			return fmt.Errorf("RoleMeta.notifyRoles does not contain a valid ResourceNames (%v)", val.Error)
+			return fmt.Errorf("RoleMeta.notifyRoles does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.UserAuthorityFilter != "" {
-		val := rdl.Validate(ZMSSchema(), "AuthorityKeywords", self.UserAuthorityFilter)
+		val := rdl.Validate(ZMSSchema(), "String", self.UserAuthorityFilter)
 		if !val.Valid {
-			return fmt.Errorf("RoleMeta.userAuthorityFilter does not contain a valid AuthorityKeywords (%v)", val.Error)
+			return fmt.Errorf("RoleMeta.userAuthorityFilter does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.UserAuthorityExpiration != "" {
-		val := rdl.Validate(ZMSSchema(), "AuthorityKeyword", self.UserAuthorityExpiration)
+		val := rdl.Validate(ZMSSchema(), "String", self.UserAuthorityExpiration)
 		if !val.Valid {
-			return fmt.Errorf("RoleMeta.userAuthorityExpiration does not contain a valid AuthorityKeyword (%v)", val.Error)
+			return fmt.Errorf("RoleMeta.userAuthorityExpiration does not contain a valid String (%v)", val.Error)
 		}
 	}
 	return nil
@@ -1027,17 +1027,17 @@ type Role struct {
 	//
 	// list of roles whose members should be notified for member review/approval
 	//
-	NotifyRoles ResourceNames `json:"notifyRoles,omitempty" rdl:"optional"`
+	NotifyRoles string `json:"notifyRoles" rdl:"optional"`
 
 	//
 	// membership filtered based on user authority configured attributes
 	//
-	UserAuthorityFilter AuthorityKeywords `json:"userAuthorityFilter,omitempty" rdl:"optional"`
+	UserAuthorityFilter string `json:"userAuthorityFilter" rdl:"optional"`
 
 	//
 	// expiration enforced by a user authority configured attribute
 	//
-	UserAuthorityExpiration AuthorityKeyword `json:"userAuthorityExpiration,omitempty" rdl:"optional"`
+	UserAuthorityExpiration string `json:"userAuthorityExpiration" rdl:"optional"`
 
 	//
 	// name of the role
@@ -1122,21 +1122,21 @@ func (self *Role) Validate() error {
 		}
 	}
 	if self.NotifyRoles != "" {
-		val := rdl.Validate(ZMSSchema(), "ResourceNames", self.NotifyRoles)
+		val := rdl.Validate(ZMSSchema(), "String", self.NotifyRoles)
 		if !val.Valid {
-			return fmt.Errorf("Role.notifyRoles does not contain a valid ResourceNames (%v)", val.Error)
+			return fmt.Errorf("Role.notifyRoles does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.UserAuthorityFilter != "" {
-		val := rdl.Validate(ZMSSchema(), "AuthorityKeywords", self.UserAuthorityFilter)
+		val := rdl.Validate(ZMSSchema(), "String", self.UserAuthorityFilter)
 		if !val.Valid {
-			return fmt.Errorf("Role.userAuthorityFilter does not contain a valid AuthorityKeywords (%v)", val.Error)
+			return fmt.Errorf("Role.userAuthorityFilter does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.UserAuthorityExpiration != "" {
-		val := rdl.Validate(ZMSSchema(), "AuthorityKeyword", self.UserAuthorityExpiration)
+		val := rdl.Validate(ZMSSchema(), "String", self.UserAuthorityExpiration)
 		if !val.Valid {
-			return fmt.Errorf("Role.userAuthorityExpiration does not contain a valid AuthorityKeyword (%v)", val.Error)
+			return fmt.Errorf("Role.userAuthorityExpiration does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.Name == "" {
@@ -1261,7 +1261,7 @@ type Membership struct {
 	//
 	// audit reference string for the change as supplied by admin
 	//
-	AuditRef string `json:"auditRef,omitempty" rdl:"optional"`
+	AuditRef string `json:"auditRef" rdl:"optional"`
 
 	//
 	// pending members only - name of the principal requesting the change
@@ -1453,7 +1453,7 @@ type MemberRole struct {
 	//
 	// audit reference string for the change as supplied by admin
 	//
-	AuditRef string `json:"auditRef,omitempty" rdl:"optional"`
+	AuditRef string `json:"auditRef" rdl:"optional"`
 
 	//
 	// pending members only - name of the principal requesting the change
@@ -2144,7 +2144,7 @@ type ServiceIdentity struct {
 	//
 	// description of the service
 	//
-	Description string `json:"description,omitempty" rdl:"optional"`
+	Description string `json:"description" rdl:"optional"`
 
 	//
 	// array of public keys for key rotation
@@ -2154,7 +2154,7 @@ type ServiceIdentity struct {
 	//
 	// if present, then this service can provision tenants via this endpoint.
 	//
-	ProviderEndpoint string `json:"providerEndpoint,omitempty" rdl:"optional"`
+	ProviderEndpoint string `json:"providerEndpoint" rdl:"optional"`
 
 	//
 	// the timestamp when this entry was last modified
@@ -2164,7 +2164,7 @@ type ServiceIdentity struct {
 	//
 	// the path of the executable that runs the service
 	//
-	Executable string `json:"executable,omitempty" rdl:"optional"`
+	Executable string `json:"executable" rdl:"optional"`
 
 	//
 	// list of host names that this service can run on
@@ -2174,12 +2174,12 @@ type ServiceIdentity struct {
 	//
 	// local (unix) user name this service can run as
 	//
-	User string `json:"user,omitempty" rdl:"optional"`
+	User string `json:"user" rdl:"optional"`
 
 	//
 	// local (unix) group name this service can run as
 	//
-	Group string `json:"group,omitempty" rdl:"optional"`
+	Group string `json:"group" rdl:"optional"`
 }
 
 //
@@ -2332,7 +2332,7 @@ type ServiceIdentityList struct {
 	// be used in the next service list request as the value for the skip query
 	// parameter.
 	//
-	Next string `json:"next,omitempty" rdl:"optional"`
+	Next string `json:"next" rdl:"optional"`
 }
 
 //
@@ -2399,7 +2399,7 @@ type ServiceIdentitySystemMeta struct {
 	//
 	// provider callback endpoint
 	//
-	ProviderEndpoint string `json:"providerEndpoint,omitempty" rdl:"optional"`
+	ProviderEndpoint string `json:"providerEndpoint" rdl:"optional"`
 }
 
 //
@@ -2452,12 +2452,12 @@ type TemplateMetaData struct {
 	//
 	// name of the template
 	//
-	TemplateName string `json:"templateName,omitempty" rdl:"optional"`
+	TemplateName string `json:"templateName" rdl:"optional"`
 
 	//
 	// description of the template
 	//
-	Description string `json:"description,omitempty" rdl:"optional"`
+	Description string `json:"description" rdl:"optional"`
 
 	//
 	// Version from DB(zms_store->domain_template->version)
@@ -2472,7 +2472,7 @@ type TemplateMetaData struct {
 	//
 	// placeholders in the template roles/policies to replace (ex:_service_)
 	//
-	KeywordsToReplace string `json:"keywordsToReplace,omitempty" rdl:"optional"`
+	KeywordsToReplace string `json:"keywordsToReplace" rdl:"optional"`
 
 	//
 	// the updated timestamp of the template(solution_templates.json)
@@ -3011,7 +3011,7 @@ type DomainList struct {
 	// be used in the next domain list request as the value for the skip query
 	// parameter.
 	//
-	Next string `json:"next,omitempty" rdl:"optional"`
+	Next string `json:"next" rdl:"optional"`
 }
 
 //
@@ -3078,7 +3078,7 @@ type TopLevelDomain struct {
 	//
 	// a description of the domain
 	//
-	Description string `json:"description,omitempty" rdl:"optional"`
+	Description string `json:"description" rdl:"optional"`
 
 	//
 	// a reference to an Organization. (i.e. org:media)
@@ -3101,7 +3101,7 @@ type TopLevelDomain struct {
 	// associated cloud (i.e. aws) account id (system attribute - uniqueness
 	// check)
 	//
-	Account string `json:"account,omitempty" rdl:"optional"`
+	Account string `json:"account" rdl:"optional"`
 
 	//
 	// associated product id (system attribute - uniqueness check)
@@ -3111,12 +3111,12 @@ type TopLevelDomain struct {
 	//
 	// associated application id
 	//
-	ApplicationId string `json:"applicationId,omitempty" rdl:"optional"`
+	ApplicationId string `json:"applicationId" rdl:"optional"`
 
 	//
 	// domain certificate dns domain (system attribute)
 	//
-	CertDnsDomain string `json:"certDnsDomain,omitempty" rdl:"optional"`
+	CertDnsDomain string `json:"certDnsDomain" rdl:"optional"`
 
 	//
 	// all user members in the domain will have specified max expiry days
@@ -3274,7 +3274,7 @@ type SubDomain struct {
 	//
 	// a description of the domain
 	//
-	Description string `json:"description,omitempty" rdl:"optional"`
+	Description string `json:"description" rdl:"optional"`
 
 	//
 	// a reference to an Organization. (i.e. org:media)
@@ -3297,7 +3297,7 @@ type SubDomain struct {
 	// associated cloud (i.e. aws) account id (system attribute - uniqueness
 	// check)
 	//
-	Account string `json:"account,omitempty" rdl:"optional"`
+	Account string `json:"account" rdl:"optional"`
 
 	//
 	// associated product id (system attribute - uniqueness check)
@@ -3307,12 +3307,12 @@ type SubDomain struct {
 	//
 	// associated application id
 	//
-	ApplicationId string `json:"applicationId,omitempty" rdl:"optional"`
+	ApplicationId string `json:"applicationId" rdl:"optional"`
 
 	//
 	// domain certificate dns domain (system attribute)
 	//
-	CertDnsDomain string `json:"certDnsDomain,omitempty" rdl:"optional"`
+	CertDnsDomain string `json:"certDnsDomain" rdl:"optional"`
 
 	//
 	// all user members in the domain will have specified max expiry days
@@ -3484,7 +3484,7 @@ type UserDomain struct {
 	//
 	// a description of the domain
 	//
-	Description string `json:"description,omitempty" rdl:"optional"`
+	Description string `json:"description" rdl:"optional"`
 
 	//
 	// a reference to an Organization. (i.e. org:media)
@@ -3507,7 +3507,7 @@ type UserDomain struct {
 	// associated cloud (i.e. aws) account id (system attribute - uniqueness
 	// check)
 	//
-	Account string `json:"account,omitempty" rdl:"optional"`
+	Account string `json:"account" rdl:"optional"`
 
 	//
 	// associated product id (system attribute - uniqueness check)
@@ -3517,12 +3517,12 @@ type UserDomain struct {
 	//
 	// associated application id
 	//
-	ApplicationId string `json:"applicationId,omitempty" rdl:"optional"`
+	ApplicationId string `json:"applicationId" rdl:"optional"`
 
 	//
 	// domain certificate dns domain (system attribute)
 	//
-	CertDnsDomain string `json:"certDnsDomain,omitempty" rdl:"optional"`
+	CertDnsDomain string `json:"certDnsDomain" rdl:"optional"`
 
 	//
 	// all user members in the domain will have specified max expiry days
@@ -3959,7 +3959,7 @@ type PolicyList struct {
 	// be used in the next policy list request as the value for the skip query
 	// parameter.
 	//
-	Next string `json:"next,omitempty" rdl:"optional"`
+	Next string `json:"next" rdl:"optional"`
 }
 
 //
@@ -4723,7 +4723,7 @@ type DomainData struct {
 	//
 	// a description of the domain
 	//
-	Description string `json:"description,omitempty" rdl:"optional"`
+	Description string `json:"description" rdl:"optional"`
 
 	//
 	// a reference to an Organization. (i.e. org:media)
@@ -4746,7 +4746,7 @@ type DomainData struct {
 	// associated cloud (i.e. aws) account id (system attribute - uniqueness
 	// check)
 	//
-	Account string `json:"account,omitempty" rdl:"optional"`
+	Account string `json:"account" rdl:"optional"`
 
 	//
 	// associated product id (system attribute - uniqueness check)
@@ -4756,12 +4756,12 @@ type DomainData struct {
 	//
 	// associated application id
 	//
-	ApplicationId string `json:"applicationId,omitempty" rdl:"optional"`
+	ApplicationId string `json:"applicationId" rdl:"optional"`
 
 	//
 	// domain certificate dns domain (system attribute)
 	//
-	CertDnsDomain string `json:"certDnsDomain,omitempty" rdl:"optional"`
+	CertDnsDomain string `json:"certDnsDomain" rdl:"optional"`
 
 	//
 	// all user members in the domain will have specified max expiry days
@@ -4962,12 +4962,12 @@ type SignedDomain struct {
 	//
 	// signature generated based on the domain object
 	//
-	Signature string `json:"signature,omitempty" rdl:"optional"`
+	Signature string `json:"signature" rdl:"optional"`
 
 	//
 	// the identifier of the key used to generate the signature
 	//
-	KeyId string `json:"keyId,omitempty" rdl:"optional"`
+	KeyId string `json:"keyId" rdl:"optional"`
 }
 
 //
@@ -5184,7 +5184,7 @@ type UserToken struct {
 	//
 	// Authorization header name for the token
 	//
-	Header string `json:"header,omitempty" rdl:"optional"`
+	Header string `json:"header" rdl:"optional"`
 }
 
 //
