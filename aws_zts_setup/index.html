@@ -1,0 +1,1826 @@
+
+
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Athenz User Guide">
+      
+      
+      
+      <link rel="shortcut icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-5.4.0">
+    
+    
+      
+        <title>ZTS Server - Athenz</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.fe0cca5b.min.css">
+      
+      
+    
+    
+    
+      
+        <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>body,input{font-family:"Roboto",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono",SFMono-Regular,Consolas,Menlo,monospace}</style>
+      
+    
+    
+    
+      <link rel="stylesheet" href="../extra.css">
+    
+    
+      
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#setup-zts-on-aws" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header-nav md-grid" aria-label="Header">
+    <a href=".." title="Athenz" class="md-header-nav__button md-logo" aria-label="Athenz">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 003-3 3 3 0 00-3-3 3 3 0 00-3 3 3 3 0 003 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    <label class="md-header-nav__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header-nav__title" data-md-component="header-title">
+      
+        <div class="md-header-nav__ellipsis">
+          <span class="md-header-nav__topic md-ellipsis">
+            Athenz
+          </span>
+          <span class="md-header-nav__topic md-ellipsis">
+            
+              ZTS Server
+            
+          </span>
+        </div>
+      
+    </div>
+    
+      <label class="md-header-nav__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" data-md-state="active">
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <button type="reset" class="md-search__icon md-icon" aria-label="Clear" data-md-component="search-reset" tabindex="-1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header-nav__source">
+        
+<a href="https://github.com/yahoo/athenz/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 00-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 01-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 000 40.81l195.61 195.6a28.86 28.86 0 0040.8 0l194.69-194.69a28.86 28.86 0 000-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+        
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Athenz" class="md-nav__button md-logo" aria-label="Athenz">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 003-3 3 3 0 00-3-3 3 3 0 00-3 3 3 3 0 003 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    Athenz
+  </label>
+  
+    <div class="md-nav__source">
+      
+<a href="https://github.com/yahoo/athenz/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 00-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 01-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 000 40.81l195.61 195.6a28.86 28.86 0 0040.8 0l194.69-194.69a28.86 28.86 0 000-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1" type="checkbox" id="nav-1">
+    
+    <label class="md-nav__link" for="nav-1">
+      Getting Started
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Getting Started" data-md-level="1">
+      <label class="md-nav__title" for="nav-1">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Getting Started
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href=".." title="About" class="md-nav__link">
+      About
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../dev_environment/" title="Development Environment" class="md-nav__link">
+      Development Environment
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1-3" type="checkbox" id="nav-1-3">
+    
+    <label class="md-nav__link" for="nav-1-3">
+      Local/Development Environment Setup
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Local/Development Environment Setup" data-md-level="2">
+      <label class="md-nav__title" for="nav-1-3">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Local/Development Environment Setup
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../setup_zms/" title="ZMS Server" class="md-nav__link">
+      ZMS Server
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../setup_zts/" title="ZTS Server" class="md-nav__link">
+      ZTS Server
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../setup_ui/" title="UI Server" class="md-nav__link">
+      UI Server
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1-4" type="checkbox" id="nav-1-4">
+    
+    <label class="md-nav__link" for="nav-1-4">
+      Production Environment Setup
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Production Environment Setup" data-md-level="2">
+      <label class="md-nav__title" for="nav-1-4">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Production Environment Setup
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../setup_zms_prod/" title="ZMS Server" class="md-nav__link">
+      ZMS Server
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../setup_zts_prod/" title="ZTS Server" class="md-nav__link">
+      ZTS Server
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../setup_ui_prod/" title="UI Server" class="md-nav__link">
+      UI Server
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-2" type="checkbox" id="nav-2">
+    
+    <label class="md-nav__link" for="nav-2">
+      Management
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Management" data-md-level="1">
+      <label class="md-nav__title" for="nav-2">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Management
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../role_delegation/" title="Role Delegation" class="md-nav__link">
+      Role Delegation
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../token_expiration/" title="Access/Role Token Limit Expiry Support" class="md-nav__link">
+      Access/Role Token Limit Expiry Support
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../role_cert_expiration/" title="Role Certificate Limit Expiry Support" class="md-nav__link">
+      Role Certificate Limit Expiry Support
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../review_enabled_roles/" title="Review Enabled Roles" class="md-nav__link">
+      Review Enabled Roles
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../email_notifications/" title="Email Notifications" class="md-nav__link">
+      Email Notifications
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../member_expiration/" title="Role Member Auto Expiry and Notification Support" class="md-nav__link">
+      Role Member Auto Expiry and Notification Support
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../member_soft_expiration/" title="Role Member Review Reminder Support" class="md-nav__link">
+      Role Member Review Reminder Support
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../self_serve_roles/" title="Self-Served Roles" class="md-nav__link">
+      Self-Served Roles
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3" checked>
+    
+    <label class="md-nav__link" for="nav-3">
+      AWS Setup
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="AWS Setup" data-md-level="1">
+      <label class="md-nav__title" for="nav-3">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        AWS Setup
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../aws_athenz_setup/" title="Introduction" class="md-nav__link">
+      Introduction
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../aws_zms_setup/" title="ZMS Server" class="md-nav__link">
+      ZMS Server
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+    
+      
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        ZTS Server
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 9h14V7H3v2m0 4h14v-2H3v2m0 4h14v-2H3v2m16 0h2v-2h-2v2m0-10v2h2V7h-2m0 6h2v-2h-2v2z"/></svg>
+        </span>
+      </label>
+    
+    <a href="./" title="ZTS Server" class="md-nav__link md-nav__link--active">
+      ZTS Server
+    </a>
+    
+      
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#iam-role-setup" class="md-nav__link">
+    IAM Role Setup
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#vpc-setup" class="md-nav__link">
+    VPC Setup
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rds-setup" class="md-nav__link">
+    RDS Setup
+  </a>
+  
+    <nav class="md-nav" aria-label="RDS Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#create-aurora-mysql-cluster" class="md-nav__link">
+    Create Aurora MySQL cluster
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schema-setup" class="md-nav__link">
+    Schema Setup
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#create-s3-bucket-to-store-zts-data" class="md-nav__link">
+    Create S3 Bucket to Store ZTS Data
+  </a>
+  
+    <nav class="md-nav" aria-label="Create S3 Bucket to Store ZTS Data">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#generate-and-upload-service-private-key-and-id" class="md-nav__link">
+    Generate and Upload Service Private Key and Id
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#upload-server-x509-cert-and-key" class="md-nav__link">
+    Upload Server X.509 Cert and Key
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#upload-rds-ca-certs" class="md-nav__link">
+    Upload RDS CA Certs
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#upload-truststore-password" class="md-nav__link">
+    Upload truststore password
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#upload-zts-db-user-password" class="md-nav__link">
+    Upload ZTS DB User Password
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#upload-zms-ca-certs" class="md-nav__link">
+    Upload ZMS CA Certs
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#upload-zts-and-zms-public-keys" class="md-nav__link">
+    Upload ZTS and ZMS Public keys
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#upload-self-cert-signer-key" class="md-nav__link">
+    Upload Self Cert Signer Key
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#update-the-policy-for-s3-bucket-for-audit-logs" class="md-nav__link">
+    Update the  policy for S3 bucket for Audit logs
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#update-zms-data-bucket" class="md-nav__link">
+    Update ZMS Data Bucket
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#register-zts-service" class="md-nav__link">
+    Register ZTS Service
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configure-variables-and-properties" class="md-nav__link">
+    Configure Variables and Properties
+  </a>
+  
+    <nav class="md-nav" aria-label="Configure Variables and Properties">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#edit-aws_initsh" class="md-nav__link">
+    Edit aws_init.sh
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#edit-the-properties-file" class="md-nav__link">
+    Edit the properties file
+  </a>
+  
+    <nav class="md-nav" aria-label="Edit the properties file">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#database-access" class="md-nav__link">
+    Database Access
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#athenz-ca-x509-certificate-issuing" class="md-nav__link">
+    Athenz CA X.509 Certificate Issuing
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#truststore-and-keystore-settings" class="md-nav__link">
+    Truststore and Keystore Settings
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#packer" class="md-nav__link">
+    Packer
+  </a>
+  
+    <nav class="md-nav" aria-label="Packer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#packer-vpc-setup" class="md-nav__link">
+    Packer VPC Setup
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#build-zts-image" class="md-nav__link">
+    Build ZTS image
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deploy-zts" class="md-nav__link">
+    Deploy ZTS
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+    
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../aws_ui_setup/" title="UI Server" class="md-nav__link">
+      UI Server
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-4" type="checkbox" id="nav-4">
+    
+    <label class="md-nav__link" for="nav-4">
+      Architecture
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Architecture" data-md-level="1">
+      <label class="md-nav__title" for="nav-4">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Architecture
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../data_model/" title="Data Model" class="md-nav__link">
+      Data Model
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../system_view/" title="System View" class="md-nav__link">
+      System View
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../auth_flow/" title="Authorization Flow" class="md-nav__link">
+      Authorization Flow
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-5" type="checkbox" id="nav-5">
+    
+    <label class="md-nav__link" for="nav-5">
+      Features
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Features" data-md-level="1">
+      <label class="md-nav__title" for="nav-5">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Features
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../copper_argos/" title="Service Identity X.509 Certificates - Copper Argos" class="md-nav__link">
+      Service Identity X.509 Certificates - Copper Argos
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-6" type="checkbox" id="nav-6">
+    
+    <label class="md-nav__link" for="nav-6">
+      Developer Guide
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Developer Guide" data-md-level="1">
+      <label class="md-nav__title" for="nav-6">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Developer Guide
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../dev_centralized_access/" title="Centralized Access Control" class="md-nav__link">
+      Centralized Access Control
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../example_java_centralized_access/" title="Java Client/Servlet Example" class="md-nav__link">
+      Java Client/Servlet Example
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../example_go_centralized_access/" title="Go Client/Server Example" class="md-nav__link">
+      Go Client/Server Example
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../dev_decentralized_access/" title="Decentralized Access Control" class="md-nav__link">
+      Decentralized Access Control
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../example_java_decentralized_access/" title="Java Client/Servlet Example" class="md-nav__link">
+      Java Client/Servlet Example
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-7" type="checkbox" id="nav-7">
+    
+    <label class="md-nav__link" for="nav-7">
+      Customizing Athenz
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Customizing Athenz" data-md-level="1">
+      <label class="md-nav__title" for="nav-7">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Customizing Athenz
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../principal_authentication/" title="Principal Authentication" class="md-nav__link">
+      Principal Authentication
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../private_key_store/" title="Private Key Store" class="md-nav__link">
+      Private Key Store
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../cert_signer/" title="Certificate Signer" class="md-nav__link">
+      Certificate Signer
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../copper_argos_dev/" title="Service Identity X.509 Certificate Support Requirements - Copper Argos" class="md-nav__link">
+      Service Identity X.509 Certificate Support Requirements - Copper Argos
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-8" type="checkbox" id="nav-8">
+    
+    <label class="md-nav__link" for="nav-8">
+      User Guide
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="User Guide" data-md-level="1">
+      <label class="md-nav__title" for="nav-8">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        User Guide
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../zms_client/" title="ZMS Client Utility" class="md-nav__link">
+      ZMS Client Utility
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../setup_zpu/" title="ZPU Utility" class="md-nav__link">
+      ZPU Utility
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../reg_service_guide/" title="Registering ZMS Service Identity" class="md-nav__link">
+      Registering ZMS Service Identity
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#iam-role-setup" class="md-nav__link">
+    IAM Role Setup
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#vpc-setup" class="md-nav__link">
+    VPC Setup
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rds-setup" class="md-nav__link">
+    RDS Setup
+  </a>
+  
+    <nav class="md-nav" aria-label="RDS Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#create-aurora-mysql-cluster" class="md-nav__link">
+    Create Aurora MySQL cluster
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schema-setup" class="md-nav__link">
+    Schema Setup
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#create-s3-bucket-to-store-zts-data" class="md-nav__link">
+    Create S3 Bucket to Store ZTS Data
+  </a>
+  
+    <nav class="md-nav" aria-label="Create S3 Bucket to Store ZTS Data">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#generate-and-upload-service-private-key-and-id" class="md-nav__link">
+    Generate and Upload Service Private Key and Id
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#upload-server-x509-cert-and-key" class="md-nav__link">
+    Upload Server X.509 Cert and Key
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#upload-rds-ca-certs" class="md-nav__link">
+    Upload RDS CA Certs
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#upload-truststore-password" class="md-nav__link">
+    Upload truststore password
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#upload-zts-db-user-password" class="md-nav__link">
+    Upload ZTS DB User Password
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#upload-zms-ca-certs" class="md-nav__link">
+    Upload ZMS CA Certs
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#upload-zts-and-zms-public-keys" class="md-nav__link">
+    Upload ZTS and ZMS Public keys
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#upload-self-cert-signer-key" class="md-nav__link">
+    Upload Self Cert Signer Key
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#update-the-policy-for-s3-bucket-for-audit-logs" class="md-nav__link">
+    Update the  policy for S3 bucket for Audit logs
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#update-zms-data-bucket" class="md-nav__link">
+    Update ZMS Data Bucket
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#register-zts-service" class="md-nav__link">
+    Register ZTS Service
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configure-variables-and-properties" class="md-nav__link">
+    Configure Variables and Properties
+  </a>
+  
+    <nav class="md-nav" aria-label="Configure Variables and Properties">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#edit-aws_initsh" class="md-nav__link">
+    Edit aws_init.sh
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#edit-the-properties-file" class="md-nav__link">
+    Edit the properties file
+  </a>
+  
+    <nav class="md-nav" aria-label="Edit the properties file">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#database-access" class="md-nav__link">
+    Database Access
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#athenz-ca-x509-certificate-issuing" class="md-nav__link">
+    Athenz CA X.509 Certificate Issuing
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#truststore-and-keystore-settings" class="md-nav__link">
+    Truststore and Keystore Settings
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#packer" class="md-nav__link">
+    Packer
+  </a>
+  
+    <nav class="md-nav" aria-label="Packer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#packer-vpc-setup" class="md-nav__link">
+    Packer VPC Setup
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#build-zts-image" class="md-nav__link">
+    Build ZTS image
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deploy-zts" class="md-nav__link">
+    Deploy ZTS
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                  <a href="https://github.com/yahoo/athenz/edit/master/docs/aws_zts_setup.md" title="Edit this page" class="md-content__button md-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+                  </a>
+                
+                
+                  
+                
+                
+                <h1 id="setup-zts-on-aws">Setup ZTS on AWS</h1>
+<ul>
+<li><a href="#iam-role-setup">IAM role setup</a></li>
+<li><a href="#vpc-setup">VPC setup</a></li>
+<li><a href="#rds-setup">RDS Setup</a><ul>
+<li><a href="#create-aurora-mysql-cluster">Create Aurora Mysql cluster</a></li>
+<li><a href="#schema-setup">Schema setup</a></li>
+</ul>
+</li>
+<li><a href="#create-s3-bucket-to-store-zts-data">S3 bucket for zts data</a>    <ul>
+<li><a href="#generate-and-upload-service-private-key-and-id">Generate and upload service private key and Id</a></li>
+<li><a href="#upload-server-x-509-cert-and-key">Upload server X.509 cert and key</a></li>
+<li><a href="#upload-rds-ca-certs">Upload RDS CA Certs</a></li>
+<li><a href="#upload-truststore-password">Upload truststore password</a> </li>
+<li><a href="#upload-zts-db-user-password">Upload ZTS DB User Password</a></li>
+<li><a href="#upload-zms-ca-certs">Upload ZMS CA Certs</a></li>
+<li><a href="#upload-zts-and-zms-public-keys">Upload ZTS and ZMS Public keys</a></li>
+<li><a href="#upload-self-cert-signer-key">Upload Self Cert Signer Key</a></li>
+</ul>
+</li>
+<li><a href="#update-the-policy-for-s3-bucket-for-audit-logs">Update the policy for S3 bucket for Audit logs</a></li>
+<li><a href="#update-zms-data-bucket">Update ZMS DATA BUCKET</a></li>
+<li><a href="#register-zts-service">Register ZTS Service</a></li>
+<li><a href="#configure-variables-and-properties">Configure Variables and Properties</a><ul>
+<li><a href="#edit-aws_init-sh">aws_init.sh</a></li>
+<li><a href="#edit-the-properties-file">Edit the properties file</a><ul>
+<li><a href="#database-access">Database Access</a></li>
+<li><a href="#athenz-ca-x-509-certificate-issuing">Athenz CA X.509 Certificate Issuing</a></li>
+<li><a href="#truststore-and-keystore-settings">Truststore and Keystore Settings</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#packer">Packer</a><ul>
+<li><a href="#packer-vpc-setup">Packer VPC setup</a></li>
+<li><a href="#build-zts-image">Build ZTS Image</a></li>
+</ul>
+</li>
+<li><a href="#deploy-zts">Deploy ZTS</a> </li>
+</ul>
+<h2 id="iam-role-setup">IAM Role Setup</h2>
+<p>Create an EC2 profile role for ZTS using <a href="https://github.com/yahoo/athenz/blob/master/aws-setup/zts-setup/cloud-formation/athens-zts-aws-roles-setup.yaml">cloudformation template</a>. This template creates a role named <code>athenz.zts-service</code></p>
+<h2 id="vpc-setup">VPC Setup</h2>
+<p>Setup VPC using the <a href="https://github.com/yahoo/athenz/blob/master/aws-setup/zts-setup/cloud-formation/athens-zts-aws-resource-setup.yaml">cloudformation template</a> and giving the following mandatory parameters:</p>
+<ul>
+<li><code>Route53HostedZoneName</code></li>
+<li><code>Route53RecordName</code></li>
+<li><code>S3AccessLogBucketName</code> (Created during ZMS Setup)</li>
+<li><code>Environment</code></li>
+</ul>
+<p>The other parameters are set by default. Change them as per your requirements.</p>
+<p><em>NOTE - Modifying the other defaults might require subsequent changes.</em></p>
+<p>Following resources will be created after executing the template:
+1. 2 availability zones
+1. Public &amp; Private subnets for zts in each availability zone
+1. Public &amp; Private subnets for cert signer in each availability zone
+1. 4 NAT gateways and elastic IPs
+1. NACL's for the subnets
+1. Internet gateways for all public subnets
+1. Route tables for all subnets
+1. Elastic load balancer
+1. Route 53 DNS entry
+1. ZTS Server &amp; ELB security groups</p>
+<h2 id="rds-setup">RDS Setup</h2>
+<h3 id="create-aurora-mysql-cluster">Create Aurora MySQL cluster</h3>
+<p>Setup an Aurora MySQL cluster using cloudformation <a href="https://github.com/yahoo/athenz/blob/master/aws-setup/zts-setup/cloud-formation/athens-zts-aws-rds-setup.yaml">template</a> by giving the following mandatory parameters:</p>
+<ul>
+<li><code>Route53HostedZoneName</code></li>
+<li><code>Route53RecordName</code></li>
+<li><code>DatabaseUsername</code></li>
+<li><code>DatabasePassword</code></li>
+<li><code>Environment</code></li>
+</ul>
+<p>The other parameters are set by default. Change them as per your requirements.</p>
+<h3 id="schema-setup">Schema Setup</h3>
+<p>Create an instance in your private subnet and ssh login into it. After logging in, install the mysql client and use the following command to connect to the cluster using Database Root Credentials:</p>
+<div class="codehilite"><pre><span></span><code><span class="err">mysql -h &lt;RDS_CLUSTER_ENDPOINT&gt; -P 3306 -u &lt;DB_USER&gt; -p</span>
+</code></pre></div>
+
+
+<p>Copy the <a href="https://github.com/yahoo/athenz/blob/master/servers/zts/schema/zts_server.sql">zts_server.sql</a> file from the Athenz Git repository onto this host and create the database using the following command</p>
+<div class="codehilite"><pre><span></span><code><span class="err">mysql -h &lt;RDS_CLUSTER_ENDPOINT&gt; -P 3306 -u &lt;DB_USER&gt; -p  &lt; zts_server.sql</span>
+</code></pre></div>
+
+
+<p>Create a user with full privileges on zts database created above. For e.g. If your ZTS Server will be running on zts1.athenz.com and user to be created is <code>athenz-zts</code> having password <code>athenz-zts</code>:</p>
+<div class="codehilite"><pre><span></span><code><span class="err">CREATE USER &#39;athenz-zts&#39;@&#39;zts1.athenz.com&#39; IDENTIFIED BY &#39;athenz-zts&#39;;</span>
+<span class="err">GRANT ALL PRIVILEGES ON zts_store TO &#39;athenz-zts&#39;@&#39;zts1.athenz.com&#39;;</span>
+<span class="err">FLUSH PRIVILEGES;</span>
+</code></pre></div>
+
+
+<h2 id="create-s3-bucket-to-store-zts-data">Create S3 Bucket to Store ZTS Data</h2>
+<p>Create a S3 bucket for storing ZTS certificates, keys and other configuration data with appropriate policy as follows:</p>
+<div class="codehilite"><pre><span></span><code><span class="err">{</span>
+<span class="err">&quot;Version&quot;: &quot;2012-10-17&quot;,</span>
+<span class="err">&quot;Statement&quot;: [</span>
+<span class="err">    {</span>
+<span class="err">        &quot;Sid&quot;: &quot;&quot;,</span>
+<span class="err">        &quot;Effect&quot;: &quot;Allow&quot;,</span>
+<span class="err">        &quot;Principal&quot;: {</span>
+<span class="err">            &quot;AWS&quot;: &quot;arn:aws:iam::&lt;aws_account_id&gt;:role/athenz.zts-service&quot;</span>
+<span class="err">        },</span>
+<span class="err">        &quot;Action&quot;: &quot;s3:GetObject&quot;,</span>
+<span class="err">        &quot;Resource&quot;: &quot;arn:aws:s3::: &lt;bucket-name&gt; /*&quot;</span>
+<span class="err">    }</span>
+<span class="err">    ]</span>
+<span class="err">}</span>
+</code></pre></div>
+
+
+<p>Also enable Default Encryption for your bucket.</p>
+<p><em>NOTE - athenz.zts-service is the EC2 role created using IAM template above</em> </p>
+<h3 id="generate-and-upload-service-private-key-and-id">Generate and Upload Service Private Key and Id</h3>
+<p>Generate a unique private key that ZTS Server will use to sign any Role Tokens it issues:</p>
+<div class="codehilite"><pre><span></span><code><span class="err">openssl genrsa -out service_private_key 2048</span>
+<span class="err">openssl rsa -in service_private_key -pubout &gt; zts_service_x509_key_public</span>
+</code></pre></div>
+
+
+<p>Upload the service private key with name <code>service_private_key</code> onto the s3 bucket.</p>
+<p>Upload the service private key id with name <code>service_private_key_id</code> onto the s3 bucket. This file just contains
+the id of private key. It is not mandatory as the id defaults to <code>0</code> if not specified </p>
+<h3 id="upload-server-x509-cert-and-key">Upload Server X.509 Cert and Key</h3>
+<p><em>NOTE - While it is still possible to generate and use a self-signed X.509 certificate for ZTS Servers,
+it is recommended to purchase one for your production server from a well known certificate authority.
+Having such a certificate installed on your ZTS Servers will no longer require to distribute the
+server's CA certificate to other hosts (e.g. Hosts running ZPU).</em></p>
+<ul>
+<li>
+<p>Follow the instructions provided by the Certificate Authority that you're going to purchase your certificate from, to generate your private key and Certificate Request (CSR). Submit your CSR to your CA to generate a x.509 certificate for your ZMS server.</p>
+</li>
+<li>
+<p>If you are using self signed certs then run the following commands:</p>
+</li>
+</ul>
+<div class="codehilite"><pre><span></span><code><span class="err">openssl genrsa -des3 -out zts_ca_key 4096 (Create ZTS CA Key)</span>
+<span class="err">openssl req -x509 -new -nodes -key zts_ca_key -sha256 -days 1024 -out service_x509_ca_certs  (Generate CA Cert)</span>
+<span class="err">openssl genrsa -out service_x509_key 2048  (Generate your private key)</span>
+<span class="err">openssl req -new -key service_x509_key -out service_x509_csr  (Generate your CSR)</span>
+<span class="err">openssl x509 -req -in service_x509_csr -CA service_x509_ca_certs -CAkey zts_ca_key -CAcreateserial -out service_x509_cert -days 730 -sha256  (Generate your Certificate)</span>
+</code></pre></div>
+
+
+<ul>
+<li>Verify your certs</li>
+</ul>
+<div class="codehilite"><pre><span></span><code><span class="err">openssl x509 -in service_x509_ca_certs -text -noout</span>
+<span class="err">openssl x509 -in service_x509_cert -text -noout</span>
+</code></pre></div>
+
+
+<p>Once you have received your X509 certificate and key:
+    - Upload the certificate with on s3 bucket with name <code>service_x509_cert</code>
+    - Upload the private key with name <code>service_x509_key</code>
+    - Upload the Root CA cert with name <code>service_x509_ca_certs</code></p>
+<h3 id="upload-rds-ca-certs">Upload RDS CA Certs</h3>
+<ul>
+<li>Upload the RDS CA Certs with key <code>service_rds_ca_certs</code></li>
+</ul>
+<p>For details on AWS RDS Certs, Please refer <a href="https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.SSL.html">RDS SSL Certificates in AWS</a></p>
+<h3 id="upload-truststore-password">Upload truststore password</h3>
+<ul>
+<li>Upload password you want to use for truststore with name <code>service_x509_store_pwd</code></li>
+</ul>
+<h3 id="upload-zts-db-user-password">Upload ZTS DB User Password</h3>
+<ul>
+<li>Create a file containing only the password for ZTS Database user(<code>athenz-zts</code>) created above during RDS schema setup</li>
+<li>Upload the file to bucket with name <code>db_user_data</code></li>
+</ul>
+<h3 id="upload-zms-ca-certs">Upload ZMS CA Certs</h3>
+<ul>
+<li>Upload ZMS CA Cert with key <code>zms_service_x509_ca_certs</code>. They will be added to ZTS truststore so that ZTS can communicate securely with ZMS</li>
+</ul>
+<h3 id="upload-zts-and-zms-public-keys">Upload ZTS and ZMS Public keys</h3>
+<ul>
+<li>Upload ZTS public key with name <code>zts_service_x509_key_public.pem</code></li>
+<li>Upload ZMS public key with name <code>zms_service_x509_key_public.pem</code></li>
+</ul>
+<p>They are required to generate athenz.conf file at <code>/opt/zts/conf</code> to include the ZTS and ZMS Server URL and the registered public keys that the athenz client libraries and utilities will use to establish connections and validate any data signed by the ZTS and ZMS Server.</p>
+<h3 id="upload-self-cert-signer-key">Upload Self Cert Signer Key</h3>
+<p>You can use SelfCertSigner or have your implementation of Cert Signer.</p>
+<p>Refer <a href="../cert_signer/">Certificate Signer</a> for full details how to implement your cert signer.</p>
+<p>If you are using self cert signer then</p>
+<ul>
+<li>Generate a private key and upload it to s3 bucket with name <code>self_cert_signer_key</code></li>
+</ul>
+<h2 id="update-the-policy-for-s3-bucket-for-audit-logs">Update the  policy for S3 bucket for Audit logs</h2>
+<p>Update the bucket policy for S3 bucket created for audit logs during zms setup to allow <code>athenz.zts-service</code> role to read and write to it.</p>
+<div class="codehilite"><pre><span></span><code><span class="err">{</span>
+<span class="err">&quot;Version&quot;: &quot;2012-10-17&quot;,</span>
+<span class="err">&quot;Statement&quot;: [</span>
+<span class="err">    {</span>
+<span class="err">        &quot;Sid&quot;: &quot;&quot;,</span>
+<span class="err">        &quot;Effect&quot;: &quot;Allow&quot;,</span>
+<span class="err">        &quot;Principal&quot;: {</span>
+<span class="err">            &quot;AWS&quot;: [</span>
+<span class="err">                &quot;arn:aws:iam::&lt;aws_account_id&gt;:role/athenz.zms-service&quot;</span>
+<span class="err">                &quot;arn:aws:iam::&lt;aws_account_id&gt;:role/athenz.zts-service&quot;</span>
+<span class="err">            ]</span>
+<span class="err">        },</span>
+<span class="err">        ...</span>
+<span class="err">]</span>
+<span class="err">}</span>
+</code></pre></div>
+
+
+<h2 id="update-zms-data-bucket">Update ZMS Data Bucket</h2>
+<ul>
+<li>Upload zts service public key to ZMS Data Bucket with key <code>zts_service_x509_key_public.pem</code></li>
+</ul>
+<h2 id="register-zts-service">Register ZTS Service</h2>
+<p>In order for ZTS to access ZMS domain data, it must identify itself as a registered service in ZMS. Use <code>zms-cli</code> utility to register a new service in <code>sys.auth</code> domain. If ZMS Servers are running with a X509 certificate from a well know certificate authority (not a self-signed one) we don't need to reference the CA cert like we are doing below for self signed certs.</p>
+<p>Login into your zms-server instance as domain admin you created during zms setup and run the below commands:</p>
+<div class="codehilite"><pre><span></span><code><span class="err">- Download ZMS CA Certs(If using self signed certs)</span>
+<span class="err">    aws s3 cp s3://&lt;zms_bucket_name&gt;/zms_service_x509_ca_certs /tmp/zms_service_x509_ca_certs</span>
+<span class="err">- Download ZTS public key</span>
+<span class="err">    aws s3 cp s3://&lt;zms_bucket_name&gt;/zts_service_x509_key_public.pem /tmp/zts_service_x509_key_public.pem</span>
+<span class="err">- Register Service using zms-cli</span>
+<span class="err">    /opt/zts/bin/zms-cli -c /tmp/service_x509_ca_certs -z &lt;zms_url&gt; -d sys.auth add-service zts 0 /tmp/zts_service_x509_key_public.pem</span>
+</code></pre></div>
+
+
+<p><em>NOTE - Append /zms/v1 to your url in the command above</em></p>
+<p>For e.g. if your zms server is running at https://zms.athenz.com:4443 then pass <code>https://zms.athenz.com:4443/zms/v1</code>.</p>
+<h2 id="configure-variables-and-properties">Configure Variables and Properties</h2>
+<h3 id="edit-aws_initsh">Edit aws_init.sh</h3>
+<p>Update the bucket names in <code>athenz/aws-setup/zts-setup/build/bin/aws_init.sh</code> by editing the below lines:</p>
+<div class="codehilite"><pre><span></span><code><span class="err">export ZTS_DATA_BUCKET_NAME=&quot;&lt;The name of your zts data bucket&gt;&quot;</span>
+<span class="err">export ZTS_AUDIT_LOG_BUCKET_NAME=&quot;&lt;The name of your zms audit data bucket&gt;&quot;</span>
+<span class="err">export ZTS_URL=&quot;&lt;zts_url&gt;&quot;</span>
+<span class="err">export ZMS_URL=&quot;&quot;&lt;zms_url&gt;&quot;</span>
+<span class="err">export RDS_MASTER=&quot;&lt;zts-rds-databasecluster-endpoint&gt;&quot;</span>
+</code></pre></div>
+
+
+<p>The other variables are for trust store &amp; key store setup. We recommend to use the defaults but if you change then update the corresponding values in <code>athenz.properties</code> file discussed later.</p>
+<h3 id="edit-the-properties-file">Edit the properties file</h3>
+<h4 id="database-access">Database Access</h4>
+<p>Modify the following settings in <code>zts.properties</code> file located at <code>athenz/aws-setup/zts-setup/build/conf/zts.properties</code> if RDS username &amp; RDS password filename (stored on S3) are different from defaults suggested above.</p>
+<div class="codehilite"><pre><span></span><code><span class="err">athenz.zts.cert_record_store_factory_class=com.yahoo.athenz.zts.cert.impl.JDBCCertRecordStoreFactory</span>
+<span class="err">athenz.zts.cert_jdbc_user=athenz-zts</span>
+<span class="err">athenz.zts.cert_jdbc_password=db_user_data</span>
+</code></pre></div>
+
+
+<h4 id="athenz-ca-x509-certificate-issuing">Athenz CA X.509 Certificate Issuing</h4>
+<p>For authenticating services using X509 certificates, ZTS Servers expect the configured cert signer factory class names in its athenz.zts.cert_signer_factory_class system property. Self Cert Signer <code>com.yahoo.athenz.zts.cert.impl.SelfCertSignerFactory</code> is a sample implementation of cert Signer we have for development environment. You can use SelfCertSigner or have your implementation of Cert Signer.</p>
+<p>If you are using self cert signer make the below changes:</p>
+<p>The self cert signer key you uploaded in above steps has to be downloaded on the box. The default is to download 
+it to  <code>/opt/zts/conf/self_cert_signer_key</code>. If you using the defaults, uncomment the below lines in <code>initialize_zts.sh</code> </p>
+<div class="codehilite"><pre><span></span><code><span class="err"># echo &quot;Downloading self cert signer key&quot;</span>
+<span class="err"># aws s3 cp s3://$bucket_name/self_cert_signer_key /opt/zts/conf/self_cert_signer_key</span>
+</code></pre></div>
+
+
+<p>Edit the below properties in <code>zts.properties</code> file accordingly:</p>
+<div class="codehilite"><pre><span></span><code><span class="err"># athenz.zts.self_signer_private_key_fname=/opt/zts/conf/self_cert_signer_key</span>
+<span class="err"># athenz.zts.self_signer_private_key_password=</span>
+<span class="err"># athenz.zts.self_signer_cert_dn=C=US,ST=CA,L=Sunnyvale,O=Oath,OU=Athenz,CN=zts.aws.oath.cloud</span>
+</code></pre></div>
+
+
+<h3 id="truststore-and-keystore-settings">Truststore and Keystore Settings</h3>
+<p>If you modified the truststore and keystore paths and password in the <code>aws_init.sh</code> file then change the below settings in <code>athenz.properties</code> file located at <code>athenz/aws-setup/zts-setup/build/conf/athenz.properties</code>:</p>
+<div class="codehilite"><pre><span></span><code><span class="err">athenz.ssl_key_store=/opt/zts/conf/zts_keystore.pkcs12 //path to the keystore file that contains the server&#39;s certificate</span>
+<span class="err">athenz.ssl_key_store_type=PKCS12 //specifies the type for the keystore specified in the</span>
+<span class="err">athenz.ssl_key_store_password=service_x509_store_pwd //S3 bucket  key name for Password for the keystore specified in the athenz.ssl_key_store property</span>
+<span class="err">athenz.ssl_trust_store=/opt/zts/conf/zts_truststore.jks //path to the trust store file that contains CA certificates trusted by this Jetty instance</span>
+<span class="err">athenz.ssl_trust_store_type=JKS //specifies the type for the truststore specified</span>
+<span class="err">athenz.ssl_trust_store_password=service_x509_store_pwd //password for the truststore</span>
+</code></pre></div>
+
+
+<p>Update the following in zts.properties file:</p>
+<div class="codehilite"><pre><span></span><code><span class="err">athenz.zts.ssl_key_store=/opt/zts/conf/zts_keystore.pkcs12 //path to the keystore file that contains the server&#39;s certificate</span>
+<span class="err">athenz.zts.ssl_key_store_type=PKCS12 //specifies the type for the keystore specified in the</span>
+<span class="err">athenz.zts.ssl_key_store_password=service_x509_store_pwd //S3 bucket  key name for Password for the keystore specified in the athenz.ssl_key_store property</span>
+<span class="err">athenz.zts.ssl_trust_store=/opt/zts/conf/zts_truststore.jks //path to the trust store file that contains CA certificates trusted by this Jetty instance</span>
+<span class="err">athenz.zts.ssl_trust_store_type=JKS //specifies the type for the truststore specified</span>
+<span class="err">athenz.zts.ssl_trust_store_password=service_x509_store_pwd //password for the truststore</span>
+</code></pre></div>
+
+
+<h2 id="packer">Packer</h2>
+<h3 id="packer-vpc-setup">Packer VPC Setup</h3>
+<p>Packer VPC was set during zms setup, update <code>packer.json</code> accordingly:</p>
+<div class="codehilite"><pre><span></span><code><span class="err">{</span>
+   <span class="s2">&quot;subnet_id&quot;</span><span class="p">:</span><span class="s2">&quot;&lt;packer_public_subnet_id&gt;&quot;</span><span class="p">,</span>
+   <span class="s2">&quot;vpc_id&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;vpc_id&gt;&quot;</span><span class="p">,</span>
+   <span class="s2">&quot;aws_region&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;aws-region where you created the resources&gt;&quot;</span><span class="p">,</span>
+   <span class="s2">&quot;aws_ami_name&quot;</span><span class="p">:</span> <span class="s2">&quot;zts-aws-cd-image&quot;</span><span class="p">,</span>
+   <span class="s2">&quot;aws_access_key&quot;</span><span class="p">:</span> <span class="s2">&quot;{{env `AWS_ACCESS_KEY_ID`}}&quot;</span><span class="p">,</span>
+   <span class="s2">&quot;aws_secret_key&quot;</span><span class="p">:</span> <span class="s2">&quot;{{env `AWS_SECRET_ACCESS_KEY`}}&quot;</span><span class="p">,</span>
+   <span class="s2">&quot;aws_session_token&quot;</span><span class="p">:</span> <span class="s2">&quot;{{env `AWS_SESSION_TOKEN`}}&quot;</span><span class="p">,</span>
+   <span class="s2">&quot;ssh_keypair_name&quot;</span><span class="p">:</span><span class="s2">&quot;&lt;EC2_SSH_Key_Name&gt;&quot;</span><span class="p">,</span>
+   <span class="s2">&quot;ssh_private_key_file&quot;</span><span class="p">:</span><span class="s2">&quot;&lt;PATH_TO_SSH_KEYPAIR&gt;&quot;</span><span class="p">,</span>
+   <span class="s2">&quot;source_ami&quot;</span><span class="p">:</span> <span class="s2">&quot;ami-02c71d7a&quot;</span>
+<span class="err">}</span>
+</code></pre></div>
+
+
+<h3 id="build-zts-image">Build ZTS image</h3>
+<p>Build the image with packer using the following command </p>
+<div class="codehilite"><pre><span></span><code><span class="err">cd /aws-setup/zts-setup</span>
+<span class="err">packer build packer/aws/packer.json</span>
+</code></pre></div>
+
+
+<h2 id="deploy-zts">Deploy ZTS</h2>
+<p>Run <a href="https://github.com/yahoo/athenz/blob/master/aws-setup/zts-setup/cloud-formation/athenz-zts-aws-instance-deployment.yaml">cloudformation template</a> to bring up the zts-instances in 2 availability zones.</p>
+<ul>
+<li>The imageID parameter should be set to the image created in above step.</li>
+</ul>
+<p>The ZTS Server is now up and running.</p>
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
+        
+          <a href="../aws_zms_setup/" title="ZMS Server" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+            </div>
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                ZMS Server
+              </div>
+            </div>
+          </a>
+        
+        
+          <a href="../aws_ui_setup/" title="UI Server" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Next
+                </span>
+                UI Server
+              </div>
+            </div>
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    </div>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
+      </div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    
+      <script src="../assets/javascripts/vendor.d710d30a.min.js"></script>
+      <script src="../assets/javascripts/bundle.b39636ac.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents"}</script>
+      
+      <script>
+        app = initialize({
+          base: "..",
+          features: [],
+          search: Object.assign({
+            worker: "../assets/javascripts/worker/search.a68abb33.min.js"
+          }, typeof search !== "undefined" && search)
+        })
+      </script>
+      
+    
+  </body>
+</html>

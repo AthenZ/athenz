@@ -1,0 +1,1527 @@
+
+
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Athenz User Guide">
+      
+      
+      
+      <link rel="shortcut icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-5.4.0">
+    
+    
+      
+        <title>Authorization Flow - Athenz</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.fe0cca5b.min.css">
+      
+      
+    
+    
+    
+      
+        <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>body,input{font-family:"Roboto",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono",SFMono-Regular,Consolas,Menlo,monospace}</style>
+      
+    
+    
+    
+      <link rel="stylesheet" href="../extra.css">
+    
+    
+      
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#architecture-authorization-flow" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header-nav md-grid" aria-label="Header">
+    <a href=".." title="Athenz" class="md-header-nav__button md-logo" aria-label="Athenz">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 003-3 3 3 0 00-3-3 3 3 0 00-3 3 3 3 0 003 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    <label class="md-header-nav__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header-nav__title" data-md-component="header-title">
+      
+        <div class="md-header-nav__ellipsis">
+          <span class="md-header-nav__topic md-ellipsis">
+            Athenz
+          </span>
+          <span class="md-header-nav__topic md-ellipsis">
+            
+              Authorization Flow
+            
+          </span>
+        </div>
+      
+    </div>
+    
+      <label class="md-header-nav__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" data-md-state="active">
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <button type="reset" class="md-search__icon md-icon" aria-label="Clear" data-md-component="search-reset" tabindex="-1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header-nav__source">
+        
+<a href="https://github.com/yahoo/athenz/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 00-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 01-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 000 40.81l195.61 195.6a28.86 28.86 0 0040.8 0l194.69-194.69a28.86 28.86 0 000-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+        
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Athenz" class="md-nav__button md-logo" aria-label="Athenz">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 003-3 3 3 0 00-3-3 3 3 0 00-3 3 3 3 0 003 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    Athenz
+  </label>
+  
+    <div class="md-nav__source">
+      
+<a href="https://github.com/yahoo/athenz/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 00-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 01-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 000 40.81l195.61 195.6a28.86 28.86 0 0040.8 0l194.69-194.69a28.86 28.86 0 000-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1" type="checkbox" id="nav-1">
+    
+    <label class="md-nav__link" for="nav-1">
+      Getting Started
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Getting Started" data-md-level="1">
+      <label class="md-nav__title" for="nav-1">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Getting Started
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href=".." title="About" class="md-nav__link">
+      About
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../dev_environment/" title="Development Environment" class="md-nav__link">
+      Development Environment
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1-3" type="checkbox" id="nav-1-3">
+    
+    <label class="md-nav__link" for="nav-1-3">
+      Local/Development Environment Setup
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Local/Development Environment Setup" data-md-level="2">
+      <label class="md-nav__title" for="nav-1-3">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Local/Development Environment Setup
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../setup_zms/" title="ZMS Server" class="md-nav__link">
+      ZMS Server
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../setup_zts/" title="ZTS Server" class="md-nav__link">
+      ZTS Server
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../setup_ui/" title="UI Server" class="md-nav__link">
+      UI Server
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1-4" type="checkbox" id="nav-1-4">
+    
+    <label class="md-nav__link" for="nav-1-4">
+      Production Environment Setup
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Production Environment Setup" data-md-level="2">
+      <label class="md-nav__title" for="nav-1-4">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Production Environment Setup
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../setup_zms_prod/" title="ZMS Server" class="md-nav__link">
+      ZMS Server
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../setup_zts_prod/" title="ZTS Server" class="md-nav__link">
+      ZTS Server
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../setup_ui_prod/" title="UI Server" class="md-nav__link">
+      UI Server
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-2" type="checkbox" id="nav-2">
+    
+    <label class="md-nav__link" for="nav-2">
+      Management
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Management" data-md-level="1">
+      <label class="md-nav__title" for="nav-2">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Management
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../role_delegation/" title="Role Delegation" class="md-nav__link">
+      Role Delegation
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../token_expiration/" title="Access/Role Token Limit Expiry Support" class="md-nav__link">
+      Access/Role Token Limit Expiry Support
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../role_cert_expiration/" title="Role Certificate Limit Expiry Support" class="md-nav__link">
+      Role Certificate Limit Expiry Support
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../review_enabled_roles/" title="Review Enabled Roles" class="md-nav__link">
+      Review Enabled Roles
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../email_notifications/" title="Email Notifications" class="md-nav__link">
+      Email Notifications
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../member_expiration/" title="Role Member Auto Expiry and Notification Support" class="md-nav__link">
+      Role Member Auto Expiry and Notification Support
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../member_soft_expiration/" title="Role Member Review Reminder Support" class="md-nav__link">
+      Role Member Review Reminder Support
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../self_serve_roles/" title="Self-Served Roles" class="md-nav__link">
+      Self-Served Roles
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3">
+    
+    <label class="md-nav__link" for="nav-3">
+      AWS Setup
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="AWS Setup" data-md-level="1">
+      <label class="md-nav__title" for="nav-3">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        AWS Setup
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../aws_athenz_setup/" title="Introduction" class="md-nav__link">
+      Introduction
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../aws_zms_setup/" title="ZMS Server" class="md-nav__link">
+      ZMS Server
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../aws_zts_setup/" title="ZTS Server" class="md-nav__link">
+      ZTS Server
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../aws_ui_setup/" title="UI Server" class="md-nav__link">
+      UI Server
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-4" type="checkbox" id="nav-4" checked>
+    
+    <label class="md-nav__link" for="nav-4">
+      Architecture
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Architecture" data-md-level="1">
+      <label class="md-nav__title" for="nav-4">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Architecture
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../data_model/" title="Data Model" class="md-nav__link">
+      Data Model
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../system_view/" title="System View" class="md-nav__link">
+      System View
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+    
+      
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        Authorization Flow
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 9h14V7H3v2m0 4h14v-2H3v2m0 4h14v-2H3v2m16 0h2v-2h-2v2m0-10v2h2V7h-2m0 6h2v-2h-2v2z"/></svg>
+        </span>
+      </label>
+    
+    <a href="./" title="Authorization Flow" class="md-nav__link md-nav__link--active">
+      Authorization Flow
+    </a>
+    
+      
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#use-cases" class="md-nav__link">
+    Use Cases
+  </a>
+  
+    <nav class="md-nav" aria-label="Use Cases">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#manage-access-control-and-permissions-for-resources" class="md-nav__link">
+    Manage Access Control and Permissions for Resources
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#real-time-service-security" class="md-nav__link">
+    Real-Time Service Security
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#authorization-flow" class="md-nav__link">
+    Authorization Flow
+  </a>
+  
+    <nav class="md-nav" aria-label="Authorization Flow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#centralized-access-control-control-plane" class="md-nav__link">
+    Centralized Access Control (Control-Plane)
+  </a>
+  
+    <nav class="md-nav" aria-label="Centralized Access Control (Control-Plane)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#principals" class="md-nav__link">
+    Principals
+  </a>
+  
+    <nav class="md-nav" aria-label="Principals">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#authenticated-service" class="md-nav__link">
+    Authenticated Service
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#decentralized-access-control-data-plane" class="md-nav__link">
+    Decentralized Access Control (Data-Plane)
+  </a>
+  
+    <nav class="md-nav" aria-label="Decentralized Access Control (Data-Plane)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#policy-engine" class="md-nav__link">
+    Policy Engine
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reserved-domains" class="md-nav__link">
+    Reserved Domains
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#management-scenarios" class="md-nav__link">
+    Management Scenarios
+  </a>
+  
+    <nav class="md-nav" aria-label="Management Scenarios">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#simple-centralized-scenario" class="md-nav__link">
+    Simple Centralized Scenario
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multi-tenancy-scenario" class="md-nav__link">
+    Multi-tenancy Scenario
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#service-authentication" class="md-nav__link">
+    Service Authentication
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+    
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-5" type="checkbox" id="nav-5">
+    
+    <label class="md-nav__link" for="nav-5">
+      Features
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Features" data-md-level="1">
+      <label class="md-nav__title" for="nav-5">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Features
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../copper_argos/" title="Service Identity X.509 Certificates - Copper Argos" class="md-nav__link">
+      Service Identity X.509 Certificates - Copper Argos
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-6" type="checkbox" id="nav-6">
+    
+    <label class="md-nav__link" for="nav-6">
+      Developer Guide
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Developer Guide" data-md-level="1">
+      <label class="md-nav__title" for="nav-6">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Developer Guide
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../dev_centralized_access/" title="Centralized Access Control" class="md-nav__link">
+      Centralized Access Control
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../example_java_centralized_access/" title="Java Client/Servlet Example" class="md-nav__link">
+      Java Client/Servlet Example
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../example_go_centralized_access/" title="Go Client/Server Example" class="md-nav__link">
+      Go Client/Server Example
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../dev_decentralized_access/" title="Decentralized Access Control" class="md-nav__link">
+      Decentralized Access Control
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../example_java_decentralized_access/" title="Java Client/Servlet Example" class="md-nav__link">
+      Java Client/Servlet Example
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-7" type="checkbox" id="nav-7">
+    
+    <label class="md-nav__link" for="nav-7">
+      Customizing Athenz
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Customizing Athenz" data-md-level="1">
+      <label class="md-nav__title" for="nav-7">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Customizing Athenz
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../principal_authentication/" title="Principal Authentication" class="md-nav__link">
+      Principal Authentication
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../private_key_store/" title="Private Key Store" class="md-nav__link">
+      Private Key Store
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../cert_signer/" title="Certificate Signer" class="md-nav__link">
+      Certificate Signer
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../copper_argos_dev/" title="Service Identity X.509 Certificate Support Requirements - Copper Argos" class="md-nav__link">
+      Service Identity X.509 Certificate Support Requirements - Copper Argos
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-8" type="checkbox" id="nav-8">
+    
+    <label class="md-nav__link" for="nav-8">
+      User Guide
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="User Guide" data-md-level="1">
+      <label class="md-nav__title" for="nav-8">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        User Guide
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../zms_client/" title="ZMS Client Utility" class="md-nav__link">
+      ZMS Client Utility
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../setup_zpu/" title="ZPU Utility" class="md-nav__link">
+      ZPU Utility
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../reg_service_guide/" title="Registering ZMS Service Identity" class="md-nav__link">
+      Registering ZMS Service Identity
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#use-cases" class="md-nav__link">
+    Use Cases
+  </a>
+  
+    <nav class="md-nav" aria-label="Use Cases">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#manage-access-control-and-permissions-for-resources" class="md-nav__link">
+    Manage Access Control and Permissions for Resources
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#real-time-service-security" class="md-nav__link">
+    Real-Time Service Security
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#authorization-flow" class="md-nav__link">
+    Authorization Flow
+  </a>
+  
+    <nav class="md-nav" aria-label="Authorization Flow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#centralized-access-control-control-plane" class="md-nav__link">
+    Centralized Access Control (Control-Plane)
+  </a>
+  
+    <nav class="md-nav" aria-label="Centralized Access Control (Control-Plane)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#principals" class="md-nav__link">
+    Principals
+  </a>
+  
+    <nav class="md-nav" aria-label="Principals">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#authenticated-service" class="md-nav__link">
+    Authenticated Service
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#decentralized-access-control-data-plane" class="md-nav__link">
+    Decentralized Access Control (Data-Plane)
+  </a>
+  
+    <nav class="md-nav" aria-label="Decentralized Access Control (Data-Plane)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#policy-engine" class="md-nav__link">
+    Policy Engine
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reserved-domains" class="md-nav__link">
+    Reserved Domains
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#management-scenarios" class="md-nav__link">
+    Management Scenarios
+  </a>
+  
+    <nav class="md-nav" aria-label="Management Scenarios">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#simple-centralized-scenario" class="md-nav__link">
+    Simple Centralized Scenario
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multi-tenancy-scenario" class="md-nav__link">
+    Multi-tenancy Scenario
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#service-authentication" class="md-nav__link">
+    Service Authentication
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                  <a href="https://github.com/yahoo/athenz/edit/master/docs/auth_flow.md" title="Edit this page" class="md-content__button md-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+                  </a>
+                
+                
+                  
+                
+                
+                <h1 id="architecture-authorization-flow">Architecture - Authorization Flow</h1>
+<hr />
+<ul>
+<li><a href="#use-cases">Use Cases</a><ul>
+<li><a href="#manage-access-control-and-permissions-for-resources">Manage Access Control / Permissions for Resources</a></li>
+<li><a href="#real-time-service-security">Real-Time Service Security</a></li>
+</ul>
+</li>
+<li><a href="#authorization-flow">Authorization Flow</a><ul>
+<li><a href="#centralized-access-control-control-plane">Centralized Access Control (Control-Plane)</a><ul>
+<li><a href="#principals">Principals</a><ul>
+<li><a href="#authenticated-service">Authenticated Service</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#decentralized-access-control-data-plane">Decentralized Access Control (Data-Plane)</a><ul>
+<li><a href="#policy-engine">Policy Engine</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#reserved-domains">Reserved Domains</a></li>
+<li><a href="#management-scenarios">Management Scenarios</a><ul>
+<li><a href="#simple-centralized-scenario">Simple Centralized Scenario</a></li>
+<li><a href="#multi-tenancy-scenario">Multi-tenancy Scenario</a></li>
+<li><a href="#service-authentication">Service Authentication</a></li>
+</ul>
+</li>
+</ul>
+<h2 id="use-cases">Use Cases</h2>
+<hr />
+<h3 id="manage-access-control-and-permissions-for-resources">Manage Access Control and Permissions for Resources</h3>
+<hr />
+<p>Athenz allows you to manage access control and permissions to resources
+through the centralized authori<strong>z</strong>ation <strong>m</strong>anagement <strong>s</strong>ervice
+(ZMS) and domain configuration that defines resources, roles, and
+actions.</p>
+<p>The diagram below shows a simplification of the use case without domain
+configuration.</p>
+<p><img alt="Use Case for User Authorization" src="../images/use_case-user_auth.png" /></p>
+<p>Your domain configuration file gives you fine control over who can
+access resources and what actions can be taken. ZMS manages your domain
+files and provides a RESTful API that allows you to create and modify
+domain configurations.</p>
+<p>This gives you the ability to control <strong>user access</strong>,
+<strong>tenancy</strong>, and secure <strong>editorial content</strong> and <strong>infrastructure
+assets</strong>.</p>
+<h3 id="real-time-service-security">Real-Time Service Security</h3>
+<hr />
+<p>Athenz provides endpoint protection for services, so a service such as
+Sports in the diagram below doesn't need to set network ACLs for other
+services wanting to access data. Instead, services are authorized by
+Athenz to access resources from another service based on the permissions
+defined by the domain administrator.</p>
+<p><img alt="Use Case for Service Authorization" src="../images/use_case-service_auth.png" /></p>
+<h2 id="authorization-flow">Authorization Flow</h2>
+<hr />
+<h3 id="centralized-access-control-control-plane">Centralized Access Control (Control-Plane)</h3>
+<hr />
+<p>A traditional centralized mechanism works as expected for services that
+are not dealing with the decentralized authorization: the server with
+resources can simply ask the ZMS directly about access, passing the
+service identity and resource/action information to get a simple boolean answer.
+This does not scale well enough for data-plane access, since a central
+service must be consulted, but requires no local installation of the ZPE
+and related storage and synchronization logic. It is suitable for provisioning
+and configuration use cases where the number of requests processed by the server
+are small and the latency for authorization checks is not important.</p>
+<h4 id="principals">Principals</h4>
+<hr />
+<p>In Athenz, actors that can assume a role are called principals.
+Principals can be users or services, and users can be those looking for
+resources from a service or use the ZMS management console. In the
+following sections, we'll look at centralized authorization for the service
+principal we just discussed.</p>
+<h5 id="authenticated-service">Authenticated Service</h5>
+<hr />
+<p>To contact Athenz Services (ZMS/ZTS) or other Athenz Enabled services,
+the client service must first obtain an Athenz CA issued X.509 certificate. The services
+establish standard mutual TLS communication with other Athenz Enabled Services. 
+Once the mutual TLS authentication is established, the provider service contacts Athenz Management
+Service directly to determine if a specific authenticated service
+has been authorized to carry out the given action on the requested resource. 
+The application receives a simple boolean answer whether or not the request
+should be processed or rejected. </p>
+<p><img alt="Authenticated Service as Principal" src="../images/centralized_authz_service.png" /></p>
+<p>The domain administrator can create a separate service that only has
+access for the given provider, thus provider having access to the
+service's identity will not have access to any other resource.</p>
+<p>Refer <a href="../service_authentication/">Service Authentication</a> for
+full details on X.509 certificate based authentication.</p>
+<h3 id="decentralized-access-control-data-plane">Decentralized Access Control (Data-Plane)</h3>
+<hr />
+<p>A more interesting scenario introduces the local policy engine (ZPE),
+and a few supporting changes. Rather than directly asking for an access
+check with a principal identity, the identity is instead used to get a
+ZToken, and that is presented to the target service until it expires.
+This mechanism allows a service to make a completely local access check
+against ZPE, given a ZToken and locally cached policies.</p>
+<p>Specifically, as shown in the diagram below, the client service/user
+presents an X.509 certificate from SIA Provider to get an
+authorization token (ZToken) from ZTS, and then presents the ZToken
+to a target service to access its resources.</p>
+<p><img alt="Decentralized Authorization for Services" src="../images/decentralized_authz_service.png" /></p>
+<p>That service can make use of a local ZPE to validate the role assertions
+in the ZToken, and then correlate them to the asynchronously updated
+Policies for the domain involved. The ZPE can make the decision locally,
+without going off box. It has no knowledge about specific users, only
+roles, and because roles and policies are always in the domain, the
+amount of data to distribute to the machine is small.</p>
+<h4 id="policy-engine">Policy Engine</h4>
+<hr />
+<p>The Policy Engine (ZPE) only needs to deal with policies and their roles,
+actions, and resources. Concepts like groups would only affect how a
+principal can assume a role, so is involved in getting the ZToken, but not
+using it in the ZPE. When evaluating policies, the relevant assertions of
+all relevant policies must be considered. Assertions are treated like a
+big "OR" with the default effect of "Allow", whereas any single "Deny" will
+override any other assertions. The policies can have prefix-matching wildcards,
+so that glob-style matching needs to be part of the "is this assertion relevant"
+logic.</p>
+<p>The policies must be fetched from ZTS for the ZPE to operate. Additionally, the
+policies must be refreshed as they change. It is expected that policies
+will change at a much lower frequency than user/role assignments, so a daily
+pull may be fine for this.</p>
+<p>The policies are not sensitive (secret) information, but their integrity is
+important, so the policies fetched (per domain) is signed by both ZMS and ZTS
+servers. This requires a predictable serialization of the policy data structures.
+That will be fields in the order the schema specifies, serialized to JSON, then
+signed.</p>
+<p>The actual fetch is performed by a locally running distribution agent, which could
+be implemented as a cron job or other async fetching mechanism. The resulting policies
+could be atomically changed per domain. Because the ZPE only will have policies for
+the domains of services running on the same host/container, there will be relatively
+few of them.</p>
+<p>The API for getting signed policies actually gets many policies in a single list,
+which is signed as a whole according to the ordering rules above.</p>
+<h2 id="reserved-domains">Reserved Domains</h2>
+<hr />
+<p>The following domains are reserved and are automatically provisioned during
+server startup:</p>
+<ul>
+<li>user - The reserved domain for authenticated users.</li>
+<li>sys - The reserved domain for managing system activities</li>
+<li>sys.auth - The Athenz domain itself, which is where policies governing
+  the top level domains reside.</li>
+</ul>
+<h2 id="management-scenarios">Management Scenarios</h2>
+<hr />
+<h3 id="simple-centralized-scenario">Simple Centralized Scenario</h3>
+<hr />
+<p>In the simplest scenario, one would perform the following actions. Note that
+even in this case, the management calls themselves are protected by Athenz,
+so for example one property admin cannot modify another property's domain.</p>
+<ol>
+<li>Set up domains as a super admin</li>
+<li>Assign domain administrators for the domain</li>
+<li>Create services in the domain</li>
+<li>Create roles, as the domain admin, to model the expected activity. Assign
+   users and services as needed.</li>
+<li>Create policies, with references to resources that are the target of various actions</li>
+<li>The services would implement the access check calls to enforce access
+   based on the ZMS "access check" API. This may happen in a container or filter.</li>
+</ol>
+<h3 id="multi-tenancy-scenario">Multi-tenancy Scenario</h3>
+<hr />
+<p>Setting up a tenant in a provider requires the concepts of a cross-domain
+"trust relation". Such a trust relation can be implemented as follows:</p>
+<ol>
+<li>A Policy is set up in the group-defining domain (Domain-A) that asserts
+   that one of its local Roles can “assume” a role in the target Domain.
+   The role used in this policy is arbitrary, under the control of Domain-A,
+   who can add/remove users from it as it needs.</li>
+<li>A Role is created in the target Domain-B, but instead of specifying users,
+   the trusted domain is set to Domain-A.</li>
+<li>Domain-B can then set up whatever policies it needs to protect relevant
+   resources, by referring to its special role as the principal</li>
+<li>At access check time, when the policy is encountered that indicates a role
+   that is trusted, that role (in another Domain) must then be consulted to
+   determine who can assume the role.</li>
+</ol>
+<h3 id="service-authentication">Service Authentication</h3>
+<hr />
+<p>Refer <a href="../service_authentication/">Service Authentication</a> for
+full details on X.509 cerificate based authentication.</p>
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
+        
+          <a href="../system_view/" title="System View" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+            </div>
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                System View
+              </div>
+            </div>
+          </a>
+        
+        
+          <a href="../copper_argos/" title="Service Identity X.509 Certificates - Copper Argos" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Next
+                </span>
+                Service Identity X.509 Certificates - Copper Argos
+              </div>
+            </div>
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    </div>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
+      </div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    
+      <script src="../assets/javascripts/vendor.d710d30a.min.js"></script>
+      <script src="../assets/javascripts/bundle.b39636ac.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents"}</script>
+      
+      <script>
+        app = initialize({
+          base: "..",
+          features: [],
+          search: Object.assign({
+            worker: "../assets/javascripts/worker/search.a68abb33.min.js"
+          }, typeof search !== "undefined" && search)
+        })
+      </script>
+      
+    
+  </body>
+</html>

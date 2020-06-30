@@ -1,0 +1,1765 @@
+
+
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Athenz User Guide">
+      
+      
+      
+      <link rel="shortcut icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-5.4.0">
+    
+    
+      
+        <title>ZMS Client Utility - Athenz</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.fe0cca5b.min.css">
+      
+      
+    
+    
+    
+      
+        <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>body,input{font-family:"Roboto",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono",SFMono-Regular,Consolas,Menlo,monospace}</style>
+      
+    
+    
+    
+      <link rel="stylesheet" href="../extra.css">
+    
+    
+      
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#zms-client-utility" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header-nav md-grid" aria-label="Header">
+    <a href=".." title="Athenz" class="md-header-nav__button md-logo" aria-label="Athenz">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 003-3 3 3 0 00-3-3 3 3 0 00-3 3 3 3 0 003 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    <label class="md-header-nav__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header-nav__title" data-md-component="header-title">
+      
+        <div class="md-header-nav__ellipsis">
+          <span class="md-header-nav__topic md-ellipsis">
+            Athenz
+          </span>
+          <span class="md-header-nav__topic md-ellipsis">
+            
+              ZMS Client Utility
+            
+          </span>
+        </div>
+      
+    </div>
+    
+      <label class="md-header-nav__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" data-md-state="active">
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <button type="reset" class="md-search__icon md-icon" aria-label="Clear" data-md-component="search-reset" tabindex="-1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header-nav__source">
+        
+<a href="https://github.com/yahoo/athenz/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 00-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 01-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 000 40.81l195.61 195.6a28.86 28.86 0 0040.8 0l194.69-194.69a28.86 28.86 0 000-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+        
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Athenz" class="md-nav__button md-logo" aria-label="Athenz">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 003-3 3 3 0 00-3-3 3 3 0 00-3 3 3 3 0 003 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    Athenz
+  </label>
+  
+    <div class="md-nav__source">
+      
+<a href="https://github.com/yahoo/athenz/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 00-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 01-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 000 40.81l195.61 195.6a28.86 28.86 0 0040.8 0l194.69-194.69a28.86 28.86 0 000-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1" type="checkbox" id="nav-1">
+    
+    <label class="md-nav__link" for="nav-1">
+      Getting Started
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Getting Started" data-md-level="1">
+      <label class="md-nav__title" for="nav-1">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Getting Started
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href=".." title="About" class="md-nav__link">
+      About
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../dev_environment/" title="Development Environment" class="md-nav__link">
+      Development Environment
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1-3" type="checkbox" id="nav-1-3">
+    
+    <label class="md-nav__link" for="nav-1-3">
+      Local/Development Environment Setup
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Local/Development Environment Setup" data-md-level="2">
+      <label class="md-nav__title" for="nav-1-3">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Local/Development Environment Setup
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../setup_zms/" title="ZMS Server" class="md-nav__link">
+      ZMS Server
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../setup_zts/" title="ZTS Server" class="md-nav__link">
+      ZTS Server
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../setup_ui/" title="UI Server" class="md-nav__link">
+      UI Server
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1-4" type="checkbox" id="nav-1-4">
+    
+    <label class="md-nav__link" for="nav-1-4">
+      Production Environment Setup
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Production Environment Setup" data-md-level="2">
+      <label class="md-nav__title" for="nav-1-4">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Production Environment Setup
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../setup_zms_prod/" title="ZMS Server" class="md-nav__link">
+      ZMS Server
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../setup_zts_prod/" title="ZTS Server" class="md-nav__link">
+      ZTS Server
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../setup_ui_prod/" title="UI Server" class="md-nav__link">
+      UI Server
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-2" type="checkbox" id="nav-2">
+    
+    <label class="md-nav__link" for="nav-2">
+      Management
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Management" data-md-level="1">
+      <label class="md-nav__title" for="nav-2">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Management
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../role_delegation/" title="Role Delegation" class="md-nav__link">
+      Role Delegation
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../token_expiration/" title="Access/Role Token Limit Expiry Support" class="md-nav__link">
+      Access/Role Token Limit Expiry Support
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../role_cert_expiration/" title="Role Certificate Limit Expiry Support" class="md-nav__link">
+      Role Certificate Limit Expiry Support
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../review_enabled_roles/" title="Review Enabled Roles" class="md-nav__link">
+      Review Enabled Roles
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../email_notifications/" title="Email Notifications" class="md-nav__link">
+      Email Notifications
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../member_expiration/" title="Role Member Auto Expiry and Notification Support" class="md-nav__link">
+      Role Member Auto Expiry and Notification Support
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../member_soft_expiration/" title="Role Member Review Reminder Support" class="md-nav__link">
+      Role Member Review Reminder Support
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../self_serve_roles/" title="Self-Served Roles" class="md-nav__link">
+      Self-Served Roles
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3">
+    
+    <label class="md-nav__link" for="nav-3">
+      AWS Setup
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="AWS Setup" data-md-level="1">
+      <label class="md-nav__title" for="nav-3">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        AWS Setup
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../aws_athenz_setup/" title="Introduction" class="md-nav__link">
+      Introduction
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../aws_zms_setup/" title="ZMS Server" class="md-nav__link">
+      ZMS Server
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../aws_zts_setup/" title="ZTS Server" class="md-nav__link">
+      ZTS Server
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../aws_ui_setup/" title="UI Server" class="md-nav__link">
+      UI Server
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-4" type="checkbox" id="nav-4">
+    
+    <label class="md-nav__link" for="nav-4">
+      Architecture
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Architecture" data-md-level="1">
+      <label class="md-nav__title" for="nav-4">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Architecture
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../data_model/" title="Data Model" class="md-nav__link">
+      Data Model
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../system_view/" title="System View" class="md-nav__link">
+      System View
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../auth_flow/" title="Authorization Flow" class="md-nav__link">
+      Authorization Flow
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-5" type="checkbox" id="nav-5">
+    
+    <label class="md-nav__link" for="nav-5">
+      Features
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Features" data-md-level="1">
+      <label class="md-nav__title" for="nav-5">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Features
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../copper_argos/" title="Service Identity X.509 Certificates - Copper Argos" class="md-nav__link">
+      Service Identity X.509 Certificates - Copper Argos
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-6" type="checkbox" id="nav-6">
+    
+    <label class="md-nav__link" for="nav-6">
+      Developer Guide
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Developer Guide" data-md-level="1">
+      <label class="md-nav__title" for="nav-6">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Developer Guide
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../dev_centralized_access/" title="Centralized Access Control" class="md-nav__link">
+      Centralized Access Control
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../example_java_centralized_access/" title="Java Client/Servlet Example" class="md-nav__link">
+      Java Client/Servlet Example
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../example_go_centralized_access/" title="Go Client/Server Example" class="md-nav__link">
+      Go Client/Server Example
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../dev_decentralized_access/" title="Decentralized Access Control" class="md-nav__link">
+      Decentralized Access Control
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../example_java_decentralized_access/" title="Java Client/Servlet Example" class="md-nav__link">
+      Java Client/Servlet Example
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-7" type="checkbox" id="nav-7">
+    
+    <label class="md-nav__link" for="nav-7">
+      Customizing Athenz
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Customizing Athenz" data-md-level="1">
+      <label class="md-nav__title" for="nav-7">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Customizing Athenz
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../principal_authentication/" title="Principal Authentication" class="md-nav__link">
+      Principal Authentication
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../private_key_store/" title="Private Key Store" class="md-nav__link">
+      Private Key Store
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../cert_signer/" title="Certificate Signer" class="md-nav__link">
+      Certificate Signer
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../copper_argos_dev/" title="Service Identity X.509 Certificate Support Requirements - Copper Argos" class="md-nav__link">
+      Service Identity X.509 Certificate Support Requirements - Copper Argos
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-8" type="checkbox" id="nav-8" checked>
+    
+    <label class="md-nav__link" for="nav-8">
+      User Guide
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="User Guide" data-md-level="1">
+      <label class="md-nav__title" for="nav-8">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        User Guide
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+    
+      
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        ZMS Client Utility
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 9h14V7H3v2m0 4h14v-2H3v2m0 4h14v-2H3v2m16 0h2v-2h-2v2m0-10v2h2V7h-2m0 6h2v-2h-2v2z"/></svg>
+        </span>
+      </label>
+    
+    <a href="./" title="ZMS Client Utility" class="md-nav__link md-nav__link--active">
+      ZMS Client Utility
+    </a>
+    
+      
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    Overview
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#getting-software" class="md-nav__link">
+    Getting Software
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    Prerequisites
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#getting-help" class="md-nav__link">
+    Getting Help
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#specifying-zms-environments" class="md-nav__link">
+    Specifying ZMS Environments
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-the-zms-client-authenticates" class="md-nav__link">
+    How the ZMS Client Authenticates
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#listing-registered-domains-in-athenz" class="md-nav__link">
+    Listing registered domains in Athenz
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#displaying-administrators-for-a-product-domain" class="md-nav__link">
+    Displaying Administrators for a Product Domain
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adding-domains" class="md-nav__link">
+    Adding Domains
+  </a>
+  
+    <nav class="md-nav" aria-label="Adding Domains">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    Examples
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#registering-personal-domains" class="md-nav__link">
+    Registering Personal Domains
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adding-and-removing-administrators" class="md-nav__link">
+    Adding and Removing Administrators
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adding-a-group-role" class="md-nav__link">
+    Adding a Group Role
+  </a>
+  
+    <nav class="md-nav" aria-label="Adding a Group Role">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_1" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example" class="md-nav__link">
+    Example
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#managing-a-group-role-membership" class="md-nav__link">
+    Managing a Group Role Membership
+  </a>
+  
+    <nav class="md-nav" aria-label="Managing a Group Role Membership">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_2" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example_1" class="md-nav__link">
+    Example
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adding-a-policy" class="md-nav__link">
+    Adding a Policy
+  </a>
+  
+    <nav class="md-nav" aria-label="Adding a Policy">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_3" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example_2" class="md-nav__link">
+    Example
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+    
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../setup_zpu/" title="ZPU Utility" class="md-nav__link">
+      ZPU Utility
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../reg_service_guide/" title="Registering ZMS Service Identity" class="md-nav__link">
+      Registering ZMS Service Identity
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    Overview
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#getting-software" class="md-nav__link">
+    Getting Software
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    Prerequisites
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#getting-help" class="md-nav__link">
+    Getting Help
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#specifying-zms-environments" class="md-nav__link">
+    Specifying ZMS Environments
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-the-zms-client-authenticates" class="md-nav__link">
+    How the ZMS Client Authenticates
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#listing-registered-domains-in-athenz" class="md-nav__link">
+    Listing registered domains in Athenz
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#displaying-administrators-for-a-product-domain" class="md-nav__link">
+    Displaying Administrators for a Product Domain
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adding-domains" class="md-nav__link">
+    Adding Domains
+  </a>
+  
+    <nav class="md-nav" aria-label="Adding Domains">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    Examples
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#registering-personal-domains" class="md-nav__link">
+    Registering Personal Domains
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adding-and-removing-administrators" class="md-nav__link">
+    Adding and Removing Administrators
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adding-a-group-role" class="md-nav__link">
+    Adding a Group Role
+  </a>
+  
+    <nav class="md-nav" aria-label="Adding a Group Role">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_1" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example" class="md-nav__link">
+    Example
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#managing-a-group-role-membership" class="md-nav__link">
+    Managing a Group Role Membership
+  </a>
+  
+    <nav class="md-nav" aria-label="Managing a Group Role Membership">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_2" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example_1" class="md-nav__link">
+    Example
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adding-a-policy" class="md-nav__link">
+    Adding a Policy
+  </a>
+  
+    <nav class="md-nav" aria-label="Adding a Policy">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_3" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example_2" class="md-nav__link">
+    Example
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                  <a href="https://github.com/yahoo/athenz/edit/master/docs/zms_client.md" title="Edit this page" class="md-content__button md-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+                  </a>
+                
+                
+                  
+                
+                
+                <h1 id="zms-client-utility">ZMS Client Utility</h1>
+<hr />
+<ul>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#getting-software">Getting Software</a></li>
+<li><a href="#prerequisites">Prerequisites</a></li>
+<li><a href="#getting-help">Getting Help</a></li>
+<li><a href="#specifying-zms-environments">Specifying ZMS Environments</a></li>
+<li><a href="#how-the-zms-client-authenticates">How the ZMS Client Authenticates</a></li>
+<li><a href="#listing-registered-domains-in-athenz">Listing registered domains in Athenz</a></li>
+<li><a href="#displaying-administrators-for-a-product-domain">Displaying Administrators for a Product Domain</a></li>
+<li><a href="#adding-domains">Adding Domains</a><ul>
+<li><a href="#parameters">Parameters</a></li>
+<li><a href="#examples">Examples</a></li>
+</ul>
+</li>
+<li><a href="#registering-personal-domains">Registering Personal Domains</a></li>
+<li><a href="#adding-and-removing-administrators">Adding and Removing Administrators</a></li>
+<li><a href="#adding-a-group-role">Adding a Group Role</a><ul>
+<li><a href="#parameters-1">Parameters</a></li>
+<li><a href="#example">Example</a></li>
+</ul>
+</li>
+<li><a href="#managing-a-group-role-membership">Managing a Group Role Membership</a><ul>
+<li><a href="#parameters-2">Parameters</a></li>
+<li><a href="#example-1">Example</a></li>
+</ul>
+</li>
+<li><a href="#adding-a-policy">Adding a Policy</a><ul>
+<li><a href="#parameters-3">Parameters</a></li>
+<li><a href="#example-2">Example</a></li>
+</ul>
+</li>
+</ul>
+<h2 id="overview">Overview</h2>
+<hr />
+<p>The ZMS client utility allows administrators to manage Athenz domains,
+to check domain details, create personal domains, and add other
+administrators.</p>
+<h2 id="getting-software">Getting Software</h2>
+<hr />
+<p>Download latest ZMS Client utility binary release from Bintray - click
+on the <code>Files</code> tab, choose the latest version directory and then
+download the <code>athenz-utils-&lt;latest-version&gt;-bin.tar.gz</code> file::</p>
+<p><a href="https://bintray.com/yahoo/maven/athenz-utils/_latestVersion"> <img alt="Download" src="https://api.bintray.com/packages/yahoo/maven/athenz-utils/images/download.svg" /> </a></p>
+<div class="codehilite"><pre><span></span><code>$ tar xvfz athenz-utils-X.Y-bin.tar.gz
+</code></pre></div>
+
+
+<h2 id="prerequisites">Prerequisites</h2>
+<hr />
+<p>Before you can use the ZMS client utility, you need to have
+asked the Athenz administrators to create your top level domain.</p>
+<h2 id="getting-help">Getting Help</h2>
+<hr />
+<p>The help argument for the utility will display all commands available
+through utility.</p>
+<div class="codehilite"><pre><span></span><code>$ zms-cli <span class="nb">help</span>
+</code></pre></div>
+
+
+<p>To get additional details about a specific command:</p>
+<div class="codehilite"><pre><span></span><code><span class="err">$</span><span class="w"> </span><span class="n">zms</span><span class="o">-</span><span class="n">cli</span><span class="w"> </span><span class="n">help</span><span class="w"> </span><span class="o">[</span><span class="n">command</span><span class="o">]</span><span class="w"></span>
+</code></pre></div>
+
+
+<p>For example, to get complete details on how to add a domain including
+examples:</p>
+<div class="codehilite"><pre><span></span><code>$ zms-cli <span class="nb">help</span> add-domain
+</code></pre></div>
+
+
+<h2 id="specifying-zms-environments">Specifying ZMS Environments</h2>
+<hr />
+<p>Use the <code>-z</code> option to point to the required environment for executing commands.</p>
+<div class="codehilite"><pre><span></span><code>$ zms-cli -z https://zms-server.athenzcompany.com:4443/zms/v1 -d athenz show-domain
+</code></pre></div>
+
+
+<h2 id="how-the-zms-client-authenticates">How the ZMS Client Authenticates</h2>
+<hr />
+<p>The Athenz ZMS server requires the user to provide its <code>UserToken</code> to
+authorize the requests. The <code>UserToken</code> is obtained from the ZMS Server
+with the user’s credentials and is valid for one hour.</p>
+<p>Before communicating with the ZMS Server, the <code>zms-cli</code> utility:</p>
+<ol>
+<li>prompts for the user's password</li>
+<li>generates an Authorization header and passes it to ZMS to retrieve a <code>UserToken</code></li>
+</ol>
+<p>After communicating with the ZMS Server, the <code>zms-cli</code> utility caches
+the user's NToken in the user's home directory in the file <code>.ntoken</code>.
+It will continue to use the token until it expires, and then will prompt
+for the user's password.</p>
+<h2 id="listing-registered-domains-in-athenz">Listing registered domains in Athenz</h2>
+<hr />
+<p>To find out what domains have been provisioned in Athenz, run the
+following:</p>
+<div class="codehilite"><pre><span></span><code>$ zms-cli list-domain
+</code></pre></div>
+
+
+<p>The list-domain command also takes an optional prefix argument to filter
+the domains and only return those that start with the specified string.
+For example, if the user wants to list only the domains that have been
+configured in the <code>athenz</code> product domain, he/she will run the following
+command:</p>
+<div class="codehilite"><pre><span></span><code>$ zms-cli list-domain athenz
+    domains:
+  - athenz
+  - athenz.ci
+  - athenz.qa
+</code></pre></div>
+
+
+<h2 id="displaying-administrators-for-a-product-domain">Displaying Administrators for a Product Domain</h2>
+<hr />
+<p>To view the full list of administrators for a given domain, run the
+following:</p>
+<div class="codehilite"><pre><span></span><code>$ zms-cli -d &lt;domain-name&gt; show-role admin
+</code></pre></div>
+
+
+<p>For example, to view the Athenz system administrators for the domain
+<code>media.news</code>:</p>
+<div class="codehilite"><pre><span></span><code>$ zms-cli -d media.news show-role admin
+</code></pre></div>
+
+
+<h2 id="adding-domains">Adding Domains</h2>
+<hr />
+<p>The Top Level Product Domains in ZMS are provisioned by Athenz
+administrators.</p>
+<p>Once the Product Domain has been created, the designated domain
+administrators can create any subdomains as necessary.</p>
+<p>To create a new domain, the administrator uses the <code>add-domain</code> command:</p>
+<div class="codehilite"><pre><span></span><code>$ zms-cli add-domain &lt;product sub domain&gt; <span class="o">[</span>&lt;admin1&gt; &lt;admin2&gt; ...<span class="o">]</span>
+</code></pre></div>
+
+
+<h3 id="parameters">Parameters</h3>
+<div class="codehilite"><pre><span></span><code><span class="err">&lt;domain&gt;</span>
+</code></pre></div>
+
+
+<p>The name of the domain to be added, which could either be a product
+domain or a subdomain. For example, to add a subdomain called <code>storage</code>
+in the <code>athenz</code> domain, the value for <code>&lt;domain&gt;</code> would be
+<code>athenz.storage</code>. The parent domain must exist before a subdomain
+can be created. The domain name can only include any letters, digits and
+the '-' character. The maximum length of the domain name (including all
+subdomain parts) is 256 bytes.</p>
+<div class="codehilite"><pre><span></span><code><span class="err">[&lt;admin1&gt; ...]</span>
+</code></pre></div>
+
+
+<p>A space-separated list of administrators for the domain. The user
+creating the domain is automatically added as an administrator.</p>
+<h3 id="examples">Examples</h3>
+<p>If user <code>joe</code> executes the command below, the product domain <code>coretech</code>
+is created and will include <code>user.joe</code> as an administrator:</p>
+<div class="codehilite"><pre><span></span><code>$ zms-cli add-domain coretech
+</code></pre></div>
+
+
+<p>When user <code>joe</code> executes the command below, the sub domain <code>athenz.ci</code>
+is created and will have the administrators <code>yby.joe</code>, <code>yby.john</code>, and
+<code>yby.jane</code>:</p>
+<div class="codehilite"><pre><span></span><code>$ zms-cli add-domain athenz.ci yby.john yby.jane
+</code></pre></div>
+
+
+<h2 id="registering-personal-domains">Registering Personal Domains</h2>
+<hr />
+<p>ZMS supports Personal Domains. These domains are provisioned for users
+in the User <code>user</code> domain and have the same functionality as Product
+Domains in Athenz. The Personal Domain uses the syntax <code>user.&lt;user-id&gt;</code>
+and can have configured number of subdomains (default 2).</p>
+<p>For example, if your user ID is joe and you'd like to create a
+Personal Domain, you would run the following command:</p>
+<div class="codehilite"><pre><span></span><code>$ zms-cli add-domain user.joe
+</code></pre></div>
+
+
+<p>Then, to create a subdomain called <code>athenz-test</code> in your Personal
+Domain, you would run the following command:</p>
+<div class="codehilite"><pre><span></span><code>$ zms-cli add-domain user.joe.athenz-test
+</code></pre></div>
+
+
+<p>If the user wants to list only his/her personal domains that have been
+registered, he/she will run the following command:</p>
+<div class="codehilite"><pre><span></span><code>$ zms-cli list-domain user.&lt;user-id&gt;
+</code></pre></div>
+
+
+<h2 id="adding-and-removing-administrators">Adding and Removing Administrators</h2>
+<hr />
+<p>Domain administrators are the principals listed as members of the role
+<code>admin</code>. When you create a domain, the role and corresponding policy
+<code>role</code> are created. Administrators can manage the list of current domain
+administrators by adding or removing members in the <code>admin</code> role.</p>
+<p>To add one or more administrators:</p>
+<div class="codehilite"><pre><span></span><code>$ zms-cli -d &lt;domain&gt; add-member admin &lt;user1&gt; <span class="o">[</span>&lt;user2&gt; ...<span class="o">]</span>
+</code></pre></div>
+
+
+<p>To remove existing domain administrators:</p>
+<div class="codehilite"><pre><span></span><code>$ zms-cli -d &lt;domain&gt; delete-member admin &lt;user1&gt; <span class="o">[</span>&lt;user2&gt; ...<span class="o">]</span>
+</code></pre></div>
+
+
+<p>ZMS allows you to remove yourself from the <code>admin</code> role.</p>
+<div class="codehilite"><pre><span></span><code><span class="n">Once</span> <span class="n">you</span><span class="s1">&#39;ve been removed, you&#39;</span><span class="n">ll</span> <span class="n">need</span> <span class="k">to</span> <span class="n">ask</span> <span class="n">another</span> <span class="n">domain</span>
+<span class="n">administrator</span> <span class="k">to</span> <span class="n">re</span><span class="o">-</span><span class="k">add</span> <span class="n">you</span> <span class="k">to</span> <span class="n">the</span> <span class="ss">`admin`</span> <span class="n">role</span><span class="p">.</span>
+</code></pre></div>
+
+
+<h2 id="adding-a-group-role">Adding a Group Role</h2>
+<hr />
+<p>To add new group role to a domain, the administrator will execute the
+following zms-cli command:</p>
+<div class="codehilite"><pre><span></span><code>$ zms-cli -d &lt;domain&gt; add-group-role &lt;role&gt; &lt;member&gt; <span class="o">[</span>&lt;member&gt; ...<span class="o">]</span>
+</code></pre></div>
+
+
+<h3 id="parameters_1">Parameters</h3>
+<div class="codehilite"><pre><span></span><code><span class="err">&lt;domain&gt;</span>
+</code></pre></div>
+
+
+<p>The name of the domain that the new role belongs to.</p>
+<div class="codehilite"><pre><span></span><code><span class="err">&lt;role&gt;</span>
+</code></pre></div>
+
+
+<p>The name of the new role to be added.</p>
+<div class="codehilite"><pre><span></span><code><span class="err">&lt;member&gt; [&lt;member&gt; ...]</span>
+</code></pre></div>
+
+
+<p>A space-separated list of members for the role. At least one member must
+be specified. If the member is a regular user, then user's id
+must be prefixed with <code>user.</code>. Once the group has been created, the
+administrator can add and/or delete members using the <code>add-member</code> and
+<code>delete-member</code> commands.</p>
+<h3 id="example">Example</h3>
+<p>When the domain administrator executes the command below, a new role
+called <code>readers</code> will be added to the the domain <code>athenz.ci</code> will
+have the following members: user - <code>yby.john</code> and service -
+<code>media.sports.storage</code>:</p>
+<div class="codehilite"><pre><span></span><code>$ zms-cli -d athenz.ci add-group-role readers yby.john media.sports.storage
+</code></pre></div>
+
+
+<h2 id="managing-a-group-role-membership">Managing a Group Role Membership</h2>
+<hr />
+<p>To add and/or delete members to/from a given role in a domain, the
+administrator will execute the following zms-cli commands:</p>
+<div class="codehilite"><pre><span></span><code>$ zms-cli -d &lt;domain&gt; add-member &lt;role&gt; &lt;member&gt; <span class="o">[</span>&lt;member&gt; ...<span class="o">]</span>
+$ zms-cli -d &lt;domain&gt; delete-member &lt;role&gt; &lt;member&gt; <span class="o">[</span>&lt;member&gt; ...<span class="o">]</span>
+</code></pre></div>
+
+
+<h3 id="parameters_2">Parameters</h3>
+<div class="codehilite"><pre><span></span><code><span class="err">&lt;domain&gt;</span>
+</code></pre></div>
+
+
+<p>The name of the domain that the role belongs to.</p>
+<div class="codehilite"><pre><span></span><code><span class="err">&lt;role&gt;</span>
+</code></pre></div>
+
+
+<p>The name of the role that will be modified to add or remove members.</p>
+<div class="codehilite"><pre><span></span><code><span class="err">&lt;member&gt; [&lt;member&gt; ...]</span>
+</code></pre></div>
+
+
+<p>A space-separated list of members to be added to the role or to be
+removed from the role. At least one member must be specified. If the
+member is a regular user, the user's id must be prefixed with
+<code>user.</code>.</p>
+<p>When specifying service identities as members you must provide
+the full service name in then &lt;domain-name&gt;.&lt;service-name&gt; format.</p>
+<h3 id="example_1">Example</h3>
+<p>To add two new members: service "media.sports.storage" and user
+"yby.john", to a role called "readers" in the domain "athenz", the
+domain administrator will execute the following command:</p>
+<div class="codehilite"><pre><span></span><code>$ zms-cli -d athenz add-member readers yby.john media.sports.storage
+</code></pre></div>
+
+
+<p>To delete member "media.sports.storage" from a role called "writers" in
+the domain "athenz", the domain administrator will execute the
+following command:</p>
+<div class="codehilite"><pre><span></span><code>$ zms-cli -d athenz delete-member writers media.sports.storage
+</code></pre></div>
+
+
+<h2 id="adding-a-policy">Adding a Policy</h2>
+<hr />
+<p>To add new policy to a domain, the administrator will execute the
+following zms-cli command:</p>
+<div class="codehilite"><pre><span></span><code>$ zms-cli -d &lt;domain&gt; add-policy &lt;policy&gt; <span class="o">[</span>&lt;assertion&gt;<span class="o">]</span>
+</code></pre></div>
+
+
+<h3 id="parameters_3">Parameters</h3>
+<div class="codehilite"><pre><span></span><code><span class="err">&lt;domain&gt;</span>
+</code></pre></div>
+
+
+<p>The name of the domain that the new policy belongs to.</p>
+<div class="codehilite"><pre><span></span><code><span class="err">&lt;policy&gt;</span>
+</code></pre></div>
+
+
+<p>The name of the new policy to be added.</p>
+<div class="codehilite"><pre><span></span><code><span class="err">[&lt;assertion&gt;] where &lt;assertion&gt; is &#39;&lt;effect&gt; &lt;action&gt; to &lt;role&gt; on &lt;resource&gt;&#39;</span>
+</code></pre></div>
+
+
+<p>The value effect must be either 'grant' or 'deny'. The action is the
+domain administrator defined action available for the resource (e.g.
+read, write, delete). The role is the name of the role this assertion
+applies to. The resource is the name of the resource this assertion
+applies to. Once the policy has been created, the administrator can add
+and/or delete assertions using the <code>add-assertion</code> and
+<code>delete-assertion</code> commands.</p>
+<h3 id="example_2">Example</h3>
+<p>When the domain administrator executes the command below, a new policy
+called <code>writers</code> will be added to the the domain <code>athenz.ci</code> that
+will grant <code>write</code> access to all the members of the <code>sports_writers</code>
+role on <code>articles.sports.*</code>:</p>
+<div class="codehilite"><pre><span></span><code>$ zms-cli -d athenz.ci add-policy writers grant write to sports_writers on <span class="s1">&#39;articles.sports.*&#39;</span>
+</code></pre></div>
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
+        
+          <a href="../copper_argos_dev/" title="Service Identity X.509 Certificate Support Requirements - Copper Argos" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+            </div>
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                Service Identity X.509 Certificate Support Requirements - Copper Argos
+              </div>
+            </div>
+          </a>
+        
+        
+          <a href="../setup_zpu/" title="ZPU Utility" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Next
+                </span>
+                ZPU Utility
+              </div>
+            </div>
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    </div>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
+      </div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    
+      <script src="../assets/javascripts/vendor.d710d30a.min.js"></script>
+      <script src="../assets/javascripts/bundle.b39636ac.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents"}</script>
+      
+      <script>
+        app = initialize({
+          base: "..",
+          features: [],
+          search: Object.assign({
+            worker: "../assets/javascripts/worker/search.a68abb33.min.js"
+          }, typeof search !== "undefined" && search)
+        })
+      </script>
+      
+    
+  </body>
+</html>

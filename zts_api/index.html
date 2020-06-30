@@ -1,0 +1,3708 @@
+
+
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Athenz User Guide">
+      
+      
+      
+      <link rel="shortcut icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-5.4.0">
+    
+    
+      
+        <title>ZTS API - Athenz</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.fe0cca5b.min.css">
+      
+      
+    
+    
+    
+      
+        <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>body,input{font-family:"Roboto",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono",SFMono-Regular,Consolas,Menlo,monospace}</style>
+      
+    
+    
+    
+      <link rel="stylesheet" href="../extra.css">
+    
+    
+      
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#zts-api" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header-nav md-grid" aria-label="Header">
+    <a href=".." title="Athenz" class="md-header-nav__button md-logo" aria-label="Athenz">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 003-3 3 3 0 00-3-3 3 3 0 00-3 3 3 3 0 003 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    <label class="md-header-nav__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header-nav__title" data-md-component="header-title">
+      
+        <div class="md-header-nav__ellipsis">
+          <span class="md-header-nav__topic md-ellipsis">
+            Athenz
+          </span>
+          <span class="md-header-nav__topic md-ellipsis">
+            
+              ZTS API
+            
+          </span>
+        </div>
+      
+    </div>
+    
+      <label class="md-header-nav__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" data-md-state="active">
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <button type="reset" class="md-search__icon md-icon" aria-label="Clear" data-md-component="search-reset" tabindex="-1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header-nav__source">
+        
+<a href="https://github.com/yahoo/athenz/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 00-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 01-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 000 40.81l195.61 195.6a28.86 28.86 0 0040.8 0l194.69-194.69a28.86 28.86 0 000-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+        
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Athenz" class="md-nav__button md-logo" aria-label="Athenz">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 003-3 3 3 0 00-3-3 3 3 0 00-3 3 3 3 0 003 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    Athenz
+  </label>
+  
+    <div class="md-nav__source">
+      
+<a href="https://github.com/yahoo/athenz/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 00-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 01-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 000 40.81l195.61 195.6a28.86 28.86 0 0040.8 0l194.69-194.69a28.86 28.86 0 000-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1" type="checkbox" id="nav-1">
+    
+    <label class="md-nav__link" for="nav-1">
+      Getting Started
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Getting Started" data-md-level="1">
+      <label class="md-nav__title" for="nav-1">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Getting Started
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href=".." title="About" class="md-nav__link">
+      About
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../dev_environment/" title="Development Environment" class="md-nav__link">
+      Development Environment
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1-3" type="checkbox" id="nav-1-3">
+    
+    <label class="md-nav__link" for="nav-1-3">
+      Local/Development Environment Setup
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Local/Development Environment Setup" data-md-level="2">
+      <label class="md-nav__title" for="nav-1-3">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Local/Development Environment Setup
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../setup_zms/" title="ZMS Server" class="md-nav__link">
+      ZMS Server
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../setup_zts/" title="ZTS Server" class="md-nav__link">
+      ZTS Server
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../setup_ui/" title="UI Server" class="md-nav__link">
+      UI Server
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1-4" type="checkbox" id="nav-1-4">
+    
+    <label class="md-nav__link" for="nav-1-4">
+      Production Environment Setup
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Production Environment Setup" data-md-level="2">
+      <label class="md-nav__title" for="nav-1-4">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Production Environment Setup
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../setup_zms_prod/" title="ZMS Server" class="md-nav__link">
+      ZMS Server
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../setup_zts_prod/" title="ZTS Server" class="md-nav__link">
+      ZTS Server
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../setup_ui_prod/" title="UI Server" class="md-nav__link">
+      UI Server
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-2" type="checkbox" id="nav-2">
+    
+    <label class="md-nav__link" for="nav-2">
+      Management
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Management" data-md-level="1">
+      <label class="md-nav__title" for="nav-2">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Management
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../role_delegation/" title="Role Delegation" class="md-nav__link">
+      Role Delegation
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../token_expiration/" title="Access/Role Token Limit Expiry Support" class="md-nav__link">
+      Access/Role Token Limit Expiry Support
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../role_cert_expiration/" title="Role Certificate Limit Expiry Support" class="md-nav__link">
+      Role Certificate Limit Expiry Support
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../review_enabled_roles/" title="Review Enabled Roles" class="md-nav__link">
+      Review Enabled Roles
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../email_notifications/" title="Email Notifications" class="md-nav__link">
+      Email Notifications
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../member_expiration/" title="Role Member Auto Expiry and Notification Support" class="md-nav__link">
+      Role Member Auto Expiry and Notification Support
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../member_soft_expiration/" title="Role Member Review Reminder Support" class="md-nav__link">
+      Role Member Review Reminder Support
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../self_serve_roles/" title="Self-Served Roles" class="md-nav__link">
+      Self-Served Roles
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3">
+    
+    <label class="md-nav__link" for="nav-3">
+      AWS Setup
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="AWS Setup" data-md-level="1">
+      <label class="md-nav__title" for="nav-3">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        AWS Setup
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../aws_athenz_setup/" title="Introduction" class="md-nav__link">
+      Introduction
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../aws_zms_setup/" title="ZMS Server" class="md-nav__link">
+      ZMS Server
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../aws_zts_setup/" title="ZTS Server" class="md-nav__link">
+      ZTS Server
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../aws_ui_setup/" title="UI Server" class="md-nav__link">
+      UI Server
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-4" type="checkbox" id="nav-4">
+    
+    <label class="md-nav__link" for="nav-4">
+      Architecture
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Architecture" data-md-level="1">
+      <label class="md-nav__title" for="nav-4">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Architecture
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../data_model/" title="Data Model" class="md-nav__link">
+      Data Model
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../system_view/" title="System View" class="md-nav__link">
+      System View
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../auth_flow/" title="Authorization Flow" class="md-nav__link">
+      Authorization Flow
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-5" type="checkbox" id="nav-5">
+    
+    <label class="md-nav__link" for="nav-5">
+      Features
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Features" data-md-level="1">
+      <label class="md-nav__title" for="nav-5">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Features
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../copper_argos/" title="Service Identity X.509 Certificates - Copper Argos" class="md-nav__link">
+      Service Identity X.509 Certificates - Copper Argos
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-6" type="checkbox" id="nav-6">
+    
+    <label class="md-nav__link" for="nav-6">
+      Developer Guide
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Developer Guide" data-md-level="1">
+      <label class="md-nav__title" for="nav-6">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Developer Guide
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../dev_centralized_access/" title="Centralized Access Control" class="md-nav__link">
+      Centralized Access Control
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../example_java_centralized_access/" title="Java Client/Servlet Example" class="md-nav__link">
+      Java Client/Servlet Example
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../example_go_centralized_access/" title="Go Client/Server Example" class="md-nav__link">
+      Go Client/Server Example
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../dev_decentralized_access/" title="Decentralized Access Control" class="md-nav__link">
+      Decentralized Access Control
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../example_java_decentralized_access/" title="Java Client/Servlet Example" class="md-nav__link">
+      Java Client/Servlet Example
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-7" type="checkbox" id="nav-7">
+    
+    <label class="md-nav__link" for="nav-7">
+      Customizing Athenz
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Customizing Athenz" data-md-level="1">
+      <label class="md-nav__title" for="nav-7">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Customizing Athenz
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../principal_authentication/" title="Principal Authentication" class="md-nav__link">
+      Principal Authentication
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../private_key_store/" title="Private Key Store" class="md-nav__link">
+      Private Key Store
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../cert_signer/" title="Certificate Signer" class="md-nav__link">
+      Certificate Signer
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../copper_argos_dev/" title="Service Identity X.509 Certificate Support Requirements - Copper Argos" class="md-nav__link">
+      Service Identity X.509 Certificate Support Requirements - Copper Argos
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-8" type="checkbox" id="nav-8">
+    
+    <label class="md-nav__link" for="nav-8">
+      User Guide
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="User Guide" data-md-level="1">
+      <label class="md-nav__title" for="nav-8">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        User Guide
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../zms_client/" title="ZMS Client Utility" class="md-nav__link">
+      ZMS Client Utility
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../setup_zpu/" title="ZPU Utility" class="md-nav__link">
+      ZPU Utility
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../reg_service_guide/" title="Registering ZMS Service Identity" class="md-nav__link">
+      Registering ZMS Service Identity
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#introduction" class="md-nav__link">
+    Introduction
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#authentication" class="md-nav__link">
+    Authentication
+  </a>
+  
+    <nav class="md-nav" aria-label="Authentication">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#x509-certificate-support" class="md-nav__link">
+    X.509 Certificate Support
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#serviceuser-ntoken-support" class="md-nav__link">
+    Service/User NToken Support
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#authorization" class="md-nav__link">
+    Authorization
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#types" class="md-nav__link">
+    Types
+  </a>
+  
+    <nav class="md-nav" aria-label="Types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#access" class="md-nav__link">
+    Access
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#accesstokenresponse" class="md-nav__link">
+    AccessTokenResponse
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#actionname" class="md-nav__link">
+    ActionName
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#authorityname" class="md-nav__link">
+    AuthorityName
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#awsarnrolename" class="md-nav__link">
+    AWSArnRoleName
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#awsrolename" class="md-nav__link">
+    AWSRoleName
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#awsrolepath" class="md-nav__link">
+    AWSRolePath
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#awsrolepathelement" class="md-nav__link">
+    AWSRolePathElement
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#awstemporarycredentials" class="md-nav__link">
+    AWSTemporaryCredentials
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#compoundname" class="md-nav__link">
+    CompoundName
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#domainname" class="md-nav__link">
+    DomainName
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#entityname" class="md-nav__link">
+    EntityName
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#identity" class="md-nav__link">
+    Identity
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#instanceidentity" class="md-nav__link">
+    InstanceIdentity
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#instancerefreshrequest" class="md-nav__link">
+    InstanceRefreshRequest
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#instanceregisterinformation" class="md-nav__link">
+    InstanceRegisterInformation
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#jwk" class="md-nav__link">
+    JWK
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#jwklist" class="md-nav__link">
+    JWKList
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pathelement" class="md-nav__link">
+    PathElement
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#resourcename" class="md-nav__link">
+    ResourceName
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#roleaccess" class="md-nav__link">
+    RoleAccess
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rolecertificaterequest" class="md-nav__link">
+    RoleCertificateRequest
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#roletoken" class="md-nav__link">
+    RoleToken
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#servicename" class="md-nav__link">
+    ServiceName
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signedtoken" class="md-nav__link">
+    SignedToken
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#simplename" class="md-nav__link">
+    SimpleName
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ybase64" class="md-nav__link">
+    YBase64
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yencoded" class="md-nav__link">
+    YEncoded
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yrn" class="md-nav__link">
+    YRN
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#resources" class="md-nav__link">
+    Resources
+  </a>
+  
+    <nav class="md-nav" aria-label="Resources">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#access_1" class="md-nav__link">
+    Access
+  </a>
+  
+    <nav class="md-nav" aria-label="Access">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#get-accessaction" class="md-nav__link">
+    GET /access/{action}
+  </a>
+  
+    <nav class="md-nav" aria-label="GET /access/{action}">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#request-parameters" class="md-nav__link">
+    Request Parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#responses" class="md-nav__link">
+    Responses
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#accesstoken" class="md-nav__link">
+    AccessToken
+  </a>
+  
+    <nav class="md-nav" aria-label="AccessToken">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#post-oauth2token" class="md-nav__link">
+    POST "/oauth2/token"
+  </a>
+  
+    <nav class="md-nav" aria-label="POST "/oauth2/token"">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#request-parameters_1" class="md-nav__link">
+    Request Parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#responses_1" class="md-nav__link">
+    Responses
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aws-temporary-credentials" class="md-nav__link">
+    AWS Temporary Credentials
+  </a>
+  
+    <nav class="md-nav" aria-label="AWS Temporary Credentials">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#get-domaindomainnamerolerolenamecreds" class="md-nav__link">
+    GET "/domain/{domainName}/role/{roleName}/creds"
+  </a>
+  
+    <nav class="md-nav" aria-label="GET "/domain/{domainName}/role/{roleName}/creds"">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#request-parameters_2" class="md-nav__link">
+    Request Parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#responses_2" class="md-nav__link">
+    Responses
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#identityrefresh" class="md-nav__link">
+    IdentityRefresh
+  </a>
+  
+    <nav class="md-nav" aria-label="IdentityRefresh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#post-instancedomainservicerefresh" class="md-nav__link">
+    POST "/instance/{domain}/{service}/refresh"
+  </a>
+  
+    <nav class="md-nav" aria-label="POST "/instance/{domain}/{service}/refresh"">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#request-parameters_3" class="md-nav__link">
+    Request Parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#responses_3" class="md-nav__link">
+    Responses
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#instancedelete" class="md-nav__link">
+    InstanceDelete
+  </a>
+  
+    <nav class="md-nav" aria-label="InstanceDelete">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#delete-instanceproviderdomainserviceinstanceid" class="md-nav__link">
+    DELETE "/instance/{provider}/{domain}/{service}/{instanceId}"
+  </a>
+  
+    <nav class="md-nav" aria-label="DELETE "/instance/{provider}/{domain}/{service}/{instanceId}"">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#request-parameters_4" class="md-nav__link">
+    Request Parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#responses_4" class="md-nav__link">
+    Responses
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#instancerefresh" class="md-nav__link">
+    InstanceRefresh
+  </a>
+  
+    <nav class="md-nav" aria-label="InstanceRefresh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#post-instanceproviderdomainserviceinstanceid" class="md-nav__link">
+    POST "/instance/{provider}/{domain}/{service}/{instanceId}"
+  </a>
+  
+    <nav class="md-nav" aria-label="POST "/instance/{provider}/{domain}/{service}/{instanceId}"">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#request-parameters_5" class="md-nav__link">
+    Request Parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#responses_5" class="md-nav__link">
+    Responses
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#instanceregister" class="md-nav__link">
+    InstanceRegister
+  </a>
+  
+    <nav class="md-nav" aria-label="InstanceRegister">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#post-instance" class="md-nav__link">
+    POST "/instance"
+  </a>
+  
+    <nav class="md-nav" aria-label="POST "/instance"">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#responses_6" class="md-nav__link">
+    Responses
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#jwklist_1" class="md-nav__link">
+    JWKList
+  </a>
+  
+    <nav class="md-nav" aria-label="JWKList">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#get-oauth2keys" class="md-nav__link">
+    GET "/oauth2/keys"
+  </a>
+  
+    <nav class="md-nav" aria-label="GET "/oauth2/keys"">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#request-parameters_6" class="md-nav__link">
+    Request Parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#responses_7" class="md-nav__link">
+    Responses
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#roleaccess_1" class="md-nav__link">
+    RoleAccess
+  </a>
+  
+    <nav class="md-nav" aria-label="RoleAccess">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#get-accessdomaindomainnameprincipalprincipal" class="md-nav__link">
+    GET "/access/domain/{domainName}/principal/{principal}"
+  </a>
+  
+    <nav class="md-nav" aria-label="GET "/access/domain/{domainName}/principal/{principal}"">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#request-parameters_7" class="md-nav__link">
+    Request Parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#responses_8" class="md-nav__link">
+    Responses
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rolecertificate" class="md-nav__link">
+    RoleCertificate
+  </a>
+  
+    <nav class="md-nav" aria-label="RoleCertificate">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#post-domaindomainnamerolerolenametoken" class="md-nav__link">
+    POST "/domain/{domainName}/role/{roleName}/token"
+  </a>
+  
+    <nav class="md-nav" aria-label="POST "/domain/{domainName}/role/{roleName}/token"">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#request-parameters_8" class="md-nav__link">
+    Request Parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#responses_9" class="md-nav__link">
+    Responses
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rolecheckaccess" class="md-nav__link">
+    RoleCheckAccess
+  </a>
+  
+    <nav class="md-nav" aria-label="RoleCheckAccess">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#get-accessdomaindomainnamerolerolenameprincipalprincipal" class="md-nav__link">
+    GET "/access/domain/{domainName}/role/{roleName}/principal/{principal}"
+  </a>
+  
+    <nav class="md-nav" aria-label="GET "/access/domain/{domainName}/role/{roleName}/principal/{principal}"">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#request-parameters_9" class="md-nav__link">
+    Request Parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#responses_10" class="md-nav__link">
+    Responses
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#roletoken_1" class="md-nav__link">
+    RoleToken
+  </a>
+  
+    <nav class="md-nav" aria-label="RoleToken">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#get-domaindomainnametoken" class="md-nav__link">
+    GET "/domain/{domainName}/token"
+  </a>
+  
+    <nav class="md-nav" aria-label="GET "/domain/{domainName}/token"">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#request-parameters_10" class="md-nav__link">
+    Request Parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#responses_11" class="md-nav__link">
+    Responses
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                  <a href="https://github.com/yahoo/athenz/edit/master/docs/zts_api.md" title="Edit this page" class="md-content__button md-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+                  </a>
+                
+                
+                  
+                
+                
+                <h1 id="zts-api">ZTS API</h1>
+<h2 id="introduction">Introduction</h2>
+<p>The Authorization Token Service (ZTS) API</p>
+<p>This API has the following attributes:</p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>namespace</td>
+<td>com.yahoo.auth.zts</td>
+</tr>
+<tr>
+<td>version</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+<h2 id="authentication">Authentication</h2>
+<h3 id="x509-certificate-support">X.509 Certificate Support</h3>
+<p>All ZMS API commands require that the client use a TLS certificate issued by Athenz.
+Services can use their Athenz Issued Service Identity certificates when communicating
+with ZMS.</p>
+<h3 id="serviceuser-ntoken-support">Service/User NToken Support</h3>
+<p>All ZMS API commands require that the principal executing the operation to be authenticated
+by providing its ServiceToken as part of the request. The NToken must be passed as the
+value of the <strong>Athenz-Principal-Auth</strong> header in the request. If the Authority used to
+authenticate the user credentials does not support authorization, then the user first
+must obtain a NToken from ZMS server and then use that NToken in its request.</p>
+<h2 id="authorization">Authorization</h2>
+<p>Limited number of ZTS API endpoints are authorized against the configured
+policy data to verify that the principal has been given the rights to make
+the requested change. Each request description below gives the authorization command
+that includes the action and resource that the ZTS Server will run the authorization
+check against. For example, to delete an instance from the local database we have
+the following authorize statement:</p>
+<div class="codehilite"><pre><span></span><code><span class="err">authorize(&quot;delete&quot;, &quot;{domain}:instance.{instanceId}&quot;);</span>
+</code></pre></div>
+
+
+<p>This indicates that the principal requesting to delete instance id host001 from
+athenz.ci domain must have grant rights to action "delete" for resource called
+"instance.host001" in domain "athenz.ci".</p>
+<h2 id="types">Types</h2>
+<h3 id="access">Access</h3>
+<p>Access can be checked and returned as this resource.</p>
+<p><code>Access</code> is a <code>Struct</code> type with the following fields:</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Options</th>
+<th>Description</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>granted</td>
+<td>Bool</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="accesstokenresponse">AccessTokenResponse</h3>
+<p>OAuth2 Access Token response.</p>
+<p><code>AccessTokenResponse</code> is a <code>Struct</code> type with the following fields:</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Options</th>
+<th>Description</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>access_token</td>
+<td>String</td>
+<td></td>
+<td>Oauth2 Access token in JWT format</td>
+<td></td>
+</tr>
+<tr>
+<td>token_type</td>
+<td>String</td>
+<td></td>
+<td></td>
+<td>For Athenz this will always be Bearer</td>
+</tr>
+<tr>
+<td>expires_in</td>
+<td>Int32</td>
+<td></td>
+<td>Number of seconds the access token is valid for</td>
+<td></td>
+</tr>
+<tr>
+<td>scope</td>
+<td>List<String></td>
+<td></td>
+<td>List of roles the principal has access to</td>
+<td></td>
+</tr>
+<tr>
+<td>refresh_token</td>
+<td>String</td>
+<td></td>
+<td>Not issued by Athenz</td>
+<td></td>
+</tr>
+<tr>
+<td>id_token</td>
+<td>String</td>
+<td></td>
+<td>ID token valid for 1 hour</td>
+<td>Returned only if openid/service-name scopes provided as part of the request</td>
+</tr>
+</tbody>
+</table>
+<h3 id="actionname">ActionName</h3>
+<p>An action (operation) name.</p>
+<p><code>ActionName</code> is a <code>String</code> type with the following options:</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Value</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>pattern</td>
+<td>{CompoundName}</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="authorityname">AuthorityName</h3>
+<p>Used as the prefix in a signed assertion. This uniquely identifies a signing authority. i.e. ^user^</p>
+<p><code>AuthorityName</code> is a <code>String</code> type with the following options:</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Value</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>pattern</td>
+<td>{CompoundName}</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="awsarnrolename">AWSArnRoleName</h3>
+<p>AWS full role name with path</p>
+<p><code>AWSArnRoleName</code> is a <code>String</code> type with the following options:</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Value</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>pattern</td>
+<td><code>({AWSRolePath})*{AWSRoleName}</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="awsrolename">AWSRoleName</h3>
+<p>AWS role name without the path</p>
+<p><code>AWSRoleName</code> is a <code>String</code> type with the following options:</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Value</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>pattern</td>
+<td><code>[a-zA-Z0-9-\\._=+@,]*</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="awsrolepath">AWSRolePath</h3>
+<p>AWS role path</p>
+<p><code>AWSRolePath</code> is a <code>String</code> type with the following options:</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Value</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>pattern</td>
+<td><code>({AWSRolePathElement}/)+</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="awsrolepathelement">AWSRolePathElement</h3>
+<p>AWS role path single element</p>
+<p><code>AWSRolePathElement</code> is a <code>String</code> type with the following options:</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Value</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>pattern</td>
+<td><code>[a-zA-Z0-9][a-zA-Z0-9-\\._]*</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="awstemporarycredentials">AWSTemporaryCredentials</h3>
+<p>AWS Temporary credentials</p>
+<p><code>AWSTemporaryCredentials</code> is a <code>Struct</code> type with the following fields:</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Options</th>
+<th>Description</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>accessKeyId</td>
+<td>String</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>secretAccessKey</td>
+<td>String</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>sessionToken</td>
+<td>String</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>expiration</td>
+<td>Timestamp</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="compoundname">CompoundName</h3>
+<p>A compound name. Most names in this API are compound names.</p>
+<p><code>CompoundName</code> is a <code>String</code> type with the following options:</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Value</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>pattern</td>
+<td>({SimpleName}<em>.)</em>{SimpleName}*</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="domainname">DomainName</h3>
+<p>A domain name is the general qualifier prefix, as its uniqueness is managed.</p>
+<p><code>DomainName</code> is a <code>String</code> type with the following options:</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Value</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>pattern</td>
+<td>{CompoundName}</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="entityname">EntityName</h3>
+<p>An entity name is a short form of a resource name, including only the domain and entity.</p>
+<p><code>EntityName</code> is a <code>String</code> type with the following options:</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Value</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>pattern</td>
+<td>{CompoundName}</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="identity">Identity</h3>
+<p>A signed identity object that could be either a client certificate or just a regular
+NToken (depending if the request contained a csr or not).</p>
+<p><code>Identity</code> is a <code>Struct</code> type with the following fields:</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Options</th>
+<th>Description</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>name</td>
+<td>CompoundName</td>
+<td></td>
+<td>Name of the identity</td>
+<td></td>
+</tr>
+<tr>
+<td>certificate</td>
+<td>String</td>
+<td>optional</td>
+<td>TLS Certificate</td>
+<td></td>
+</tr>
+<tr>
+<td>caCertBundle</td>
+<td>String</td>
+<td>optional</td>
+<td>CA certificate chain</td>
+<td></td>
+</tr>
+<tr>
+<td>sshServerCert</td>
+<td>String</td>
+<td>optional</td>
+<td>SSH server certificate</td>
+<td></td>
+</tr>
+<tr>
+<td>serviceToken</td>
+<td>SignedToken</td>
+<td>optional</td>
+<td>Service NToken</td>
+<td></td>
+</tr>
+<tr>
+<td>attributes</td>
+<td>Map&lt;String, String&gt;</td>
+<td>optional</td>
+<td>config like attributes</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="instanceidentity">InstanceIdentity</h3>
+<p>A signed instance identity object that includes client certificate</p>
+<p><code>InstanceIdentity</code> is a <code>Struct</code> type with the following fields:</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Options</th>
+<th>Description</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>provider</td>
+<td>ServiceName</td>
+<td></td>
+<td>provider service name</td>
+<td></td>
+</tr>
+<tr>
+<td>name</td>
+<td>ServiceName</td>
+<td></td>
+<td>Name of the identity</td>
+<td></td>
+</tr>
+<tr>
+<td>instanceId</td>
+<td>PathElement</td>
+<td></td>
+<td>unique instance id</td>
+<td></td>
+</tr>
+<tr>
+<td>x509Certificate</td>
+<td>String</td>
+<td>optional</td>
+<td>TLS Certificate</td>
+<td></td>
+</tr>
+<tr>
+<td>x509CertificateSigner</td>
+<td>String</td>
+<td>optional</td>
+<td>CA certificate chain</td>
+<td></td>
+</tr>
+<tr>
+<td>sshCertificate</td>
+<td>String</td>
+<td>optional</td>
+<td>SSH server certificate</td>
+<td></td>
+</tr>
+<tr>
+<td>sshCertificateSigner</td>
+<td>String</td>
+<td>optional</td>
+<td>SSH server certificate signer pubilc key</td>
+<td></td>
+</tr>
+<tr>
+<td>serviceToken</td>
+<td>SignedToken</td>
+<td>optional</td>
+<td>Service NToken</td>
+<td></td>
+</tr>
+<tr>
+<td>attributes</td>
+<td>Map&lt;String, String&gt;</td>
+<td>optional</td>
+<td>config like attributes</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="instancerefreshrequest">InstanceRefreshRequest</h3>
+<p>A certificate refresh request.</p>
+<p><code>InstanceRefreshRequest</code> is a <code>Struct</code> type with the following fields:</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Options</th>
+<th>Description</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>csr</td>
+<td>String</td>
+<td>optional</td>
+<td>cert CSR if requesting TLS certificate</td>
+<td></td>
+</tr>
+<tr>
+<td>expiryTime</td>
+<td>Int32</td>
+<td>optional</td>
+<td>In seconds how long certificate should be valid for</td>
+<td></td>
+</tr>
+<tr>
+<td>keyId</td>
+<td>String</td>
+<td>optional</td>
+<td>public key identifier</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="instanceregisterinformation">InstanceRegisterInformation</h3>
+<p>Request to request an instance with ZTS and request X.509 Certificate
+for the service.</p>
+<p><code>InstanceRegisterInformation</code> is a <code>Struct</code> type with the following fields:</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Options</th>
+<th>Description</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>provider</td>
+<td>ServiceName</td>
+<td></td>
+<td>provider service name</td>
+<td>e.g. athenz.aws.us-west-2</td>
+</tr>
+<tr>
+<td>domain</td>
+<td>DomainName</td>
+<td></td>
+<td>instance domain name</td>
+<td></td>
+</tr>
+<tr>
+<td>service</td>
+<td>ServiceName</td>
+<td></td>
+<td>instance service name</td>
+<td></td>
+</tr>
+<tr>
+<td>attestationData</td>
+<td>String</td>
+<td></td>
+<td>identity attestation data</td>
+<td></td>
+</tr>
+<tr>
+<td>csr</td>
+<td>String</td>
+<td></td>
+<td>cert CSR if requesting TLS certificate</td>
+<td></td>
+</tr>
+<tr>
+<td>ssh</td>
+<td>String</td>
+<td>optional</td>
+<td>ssh CSR if requesting SSH certificate</td>
+<td></td>
+</tr>
+<tr>
+<td>token</td>
+<td>Bool</td>
+<td>optional</td>
+<td>boolean flag indicating ntoken with cert</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="jwk">JWK</h3>
+<p>Json Web Key.</p>
+<p><code>JWK</code> is a <code>Struct</code> type with the following fields:</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Options</th>
+<th>Description</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>kty</td>
+<td>String</td>
+<td></td>
+<td>key type</td>
+<td>e.g. EC or RSA</td>
+</tr>
+<tr>
+<td>kid</td>
+<td>String</td>
+<td></td>
+<td>key id</td>
+<td></td>
+</tr>
+<tr>
+<td>alg</td>
+<td>String</td>
+<td></td>
+<td>key algorithm</td>
+<td>e.g. RS256 or ES256</td>
+</tr>
+<tr>
+<td>use</td>
+<td>String</td>
+<td></td>
+<td>key usage</td>
+<td>e.g. sig for signing or enc for encryption</td>
+</tr>
+<tr>
+<td>crv</td>
+<td>String</td>
+<td></td>
+<td>EC curve name</td>
+<td>e.g. prime256v1, P-256</td>
+</tr>
+<tr>
+<td>x</td>
+<td>String</td>
+<td></td>
+<td>EC key x value</td>
+<td></td>
+</tr>
+<tr>
+<td>y</td>
+<td>String</td>
+<td></td>
+<td>EC key y value</td>
+<td></td>
+</tr>
+<tr>
+<td>n</td>
+<td>String</td>
+<td></td>
+<td>RSA key modulus value</td>
+<td></td>
+</tr>
+<tr>
+<td>e</td>
+<td>String</td>
+<td></td>
+<td>RSA key public exponent value</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="jwklist">JWKList</h3>
+<p>Json Web Key List</p>
+<p><code>JWKList</code> is a <code>Struct</code> type with the following fields:</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Options</th>
+<th>Description</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>keys</td>
+<td>Array<JWK></td>
+<td></td>
+<td>List of JWKs</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="pathelement">PathElement</h3>
+<p>A uri safe path element</p>
+<p><code>PathElement</code> is a <code>String</code> type with the following options:</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Value</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>pattern</td>
+<td><code>[a-zA-Z0-9-\\._~=+@$,:]*</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="resourcename">ResourceName</h3>
+<p>A shorthand for a YRN with no service or location. The 'tail' of a YRN,
+just the domain:entity. Note that the EntityName part is optional, that is,
+a domain name followed by a colon is valid resource name.</p>
+<p><code>ResourceName</code> is a <code>String</code> type with the following options:</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Value</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>pattern</td>
+<td>{DomainName}(:{EntityName})?</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="roleaccess">RoleAccess</h3>
+<p>RoleAccess is a <code>Struct</code> type with the following fields:</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Options</th>
+<th>Description</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>roles</td>
+<td>Array&lt;EntityName&gt;</td>
+<td></td>
+<td>list of roles principal has access to</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="rolecertificaterequest">RoleCertificateRequest</h3>
+<p>A role certificate request.</p>
+<p><code>RoleCertificateRequest</code> is a <code>Struct</code> type with the following fields:</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Options</th>
+<th>Description</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>csr</td>
+<td>String</td>
+<td>optional</td>
+<td>cert CSR if requesting TLS certificate</td>
+<td></td>
+</tr>
+<tr>
+<td>expiryTime</td>
+<td>Int32</td>
+<td>optional</td>
+<td>In seconds how long certificate should be valid for</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="roletoken">RoleToken</h3>
+<p>A signed role token returned by ZTS.</p>
+<p><code>RoleToken</code> is a <code>Struct</code> type with the following fields:</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Options</th>
+<th>Description</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>token</td>
+<td>SignedToken</td>
+<td></td>
+<td>Role Token</td>
+<td></td>
+</tr>
+<tr>
+<td>expiryTime</td>
+<td>Integer</td>
+<td></td>
+<td>Expiry Time</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="servicename">ServiceName</h3>
+<p>A service name will generally be a unique subdomain</p>
+<p><code>ServiceName</code> is a <code>String</code> type with the following options:</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Value</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>pattern</td>
+<td>{CompoundName}</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="signedtoken">SignedToken</h3>
+<p>A signed assertion if identity. For example: the YBY cookie value. This token will
+only make sense to the authority that generated it, so it is beneficial to have
+something in the value that is cheaply recognized to quickly reject if it belongs
+to another authority.</p>
+<p><code>SignedToken</code> is a <code>String</code> type with the following options:</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Value</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>pattern</td>
+<td><code>[a-zA-Z0-9\\._%=;,-]*</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="simplename">SimpleName</h3>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Value</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>pattern</td>
+<td><code>[a-zA-Z0-9_][a-zA-Z0-9_-]*</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="ybase64">YBase64</h3>
+<p>The Y-specific URL-safe Base64 variant.</p>
+<p><code>YBase64</code> is a <code>String</code> type with the following options:</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Value</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>pattern</td>
+<td><code>[a-zA-Z0-9\._-]+</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="yencoded">YEncoded</h3>
+<p>YEncoded includes ybase64 chars, as well as - and %. This can represent a YBY cookie and URL-encoded values</p>
+<p><code>YEncoded</code> is a <code>String</code> type with the following options:</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Value</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>pattern</td>
+<td><code>[a-zA-Z0-9\._%--]*</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="yrn">YRN</h3>
+<p>A full Resource name (YRN)</p>
+<p><code>YRN</code> is a <code>String</code> type with the following options:</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Value</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>pattern</td>
+<td>(yrn:({ServiceName})?:({LocationName})?:)?{ResourceName}</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="resources">Resources</h2>
+<h3 id="access_1">Access</h3>
+<h4 id="get-accessaction">GET /access/{action}</h4>
+<ul>
+<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authorization">Authorization</a>: None</li>
+</ul>
+<p>Check access for the specified operation/action on the specified resource for the currently authenticated user
+if the principal query parameter is not specified. If the principal query parameter is specified, the
+access check verifies if that principal has access for the specified action on the resource.
+This is the slow centralized access for control-plane purposes.</p>
+<h5 id="request-parameters">Request Parameters</h5>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Source</th>
+<th>Options</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>action</td>
+<td>ActionName</td>
+<td>path</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>domain</td>
+<td>DomainName</td>
+<td>query: domain</td>
+<td>optional</td>
+<td></td>
+</tr>
+<tr>
+<td>principal</td>
+<td>EntityName</td>
+<td>query: principal</td>
+<td>optional</td>
+<td></td>
+</tr>
+<tr>
+<td>resource</td>
+<td>String</td>
+<td>query: resource</td>
+<td>required</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h5 id="responses">Responses</h5>
+<p>Expected:</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>200 OK</td>
+<td>Access</td>
+</tr>
+</tbody>
+</table>
+<p>Exception:</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>400 Bad Request</td>
+<td>ResourceError</td>
+</tr>
+<tr>
+<td>401 Unauthorized</td>
+<td>ResourceError</td>
+</tr>
+<tr>
+<td>404 Not Found</td>
+<td>ResourceError</td>
+</tr>
+</tbody>
+</table>
+<h3 id="accesstoken">AccessToken</h3>
+<h4 id="post-oauth2token">POST "/oauth2/token"</h4>
+<ul>
+<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authorization">Authorization</a>: None</li>
+</ul>
+<p>Return an oauth2 access token for the specific set of roles in the namespace that the user can assume.
+To request an access token from ZTS Server, the client will send a POST
+request with <code>application/x-www-form-urlencoded</code> content-type and the request body must
+contain the following parameters:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">grant_type</span> <span class="o">:</span> <span class="n">Value</span> <span class="n">MUST</span> <span class="n">be</span> <span class="kd">set</span> <span class="n">to</span> <span class="s2">&quot;client_credentials&quot;</span>
+<span class="n">scope</span> <span class="o">:</span> <span class="n">list</span> <span class="n">of</span> <span class="n">scopes</span><span class="o">/</span><span class="n">roles</span> <span class="n">requested</span> <span class="k">in</span> <span class="n">the</span> <span class="n">access</span> <span class="n">token</span><span class="o">.</span> <span class="n">The</span> <span class="n">caller</span>
+        <span class="n">can</span> <span class="n">either</span> <span class="n">specify</span> <span class="n">to</span> <span class="k">include</span> <span class="n">all</span> <span class="n">roles</span> <span class="n">the</span> <span class="n">principal</span> <span class="n">has</span> <span class="n">access</span>
+        <span class="n">to</span> <span class="k">in</span> <span class="n">a</span> <span class="n">specific</span> <span class="n">domain</span> <span class="o">(</span><span class="n">e</span><span class="o">.</span><span class="na">g</span><span class="o">.</span> <span class="o">&lt;</span><span class="n">domain</span><span class="o">-</span><span class="n">name</span><span class="o">&gt;:</span><span class="n">domain</span><span class="o">)</span> <span class="n">or</span> <span class="n">ask</span> <span class="k">for</span>
+        <span class="n">specific</span> <span class="n">roles</span> <span class="n">only</span> <span class="o">(</span><span class="n">e</span><span class="o">.</span><span class="na">g</span><span class="o">.</span> <span class="o">&lt;</span><span class="n">domain</span><span class="o">-</span><span class="n">name</span><span class="o">&gt;:</span><span class="n">role</span><span class="o">.&lt;</span><span class="n">role1</span><span class="o">&gt;).</span> <span class="n">Scopes</span>
+        <span class="n">are</span> <span class="n">separated</span> <span class="n">by</span> <span class="n">spaces</span><span class="o">.</span>
+        <span class="n">To</span> <span class="n">request</span> <span class="n">an</span> <span class="n">ID</span> <span class="n">token</span><span class="o">,</span> <span class="n">the</span> <span class="n">scope</span> <span class="n">must</span> <span class="k">include</span> <span class="s1">&#39;openid&#39;</span> <span class="n">and</span> <span class="n">audience</span>
+        <span class="n">service</span> <span class="n">name</span> <span class="o">(</span><span class="n">e</span><span class="o">.</span><span class="na">g</span><span class="o">.</span> <span class="o">&lt;</span><span class="n">domain</span><span class="o">-</span><span class="n">name</span><span class="o">&gt;:</span><span class="n">service</span><span class="o">.&lt;</span><span class="n">service</span><span class="o">-</span><span class="n">name</span><span class="o">&gt;).</span> <span class="n">The</span> <span class="n">domain</span>
+        <span class="n">name</span> <span class="k">in</span> <span class="n">id</span> <span class="n">token</span> <span class="n">request</span> <span class="n">match</span> <span class="n">the</span> <span class="n">domain</span> <span class="n">name</span> <span class="k">in</span> <span class="n">the</span> <span class="n">access</span> <span class="n">token</span>
+        <span class="n">scope</span><span class="o">.</span>
+<span class="n">expires_in</span> <span class="o">:</span> <span class="n">requested</span> <span class="n">expiry</span> <span class="n">time</span> <span class="k">for</span> <span class="n">access</span> <span class="n">token</span> <span class="k">in</span> <span class="n">seconds</span>
+</code></pre></div>
+
+
+<h5 id="request-parameters_1">Request Parameters</h5>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Source</th>
+<th>Options</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>req</td>
+<td>String</td>
+<td>body</td>
+<td></td>
+<td>request to fetch access token (see above)</td>
+</tr>
+</tbody>
+</table>
+<h5 id="responses_1">Responses</h5>
+<p>Expected:</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>200 OK</td>
+<td>AccessTokenResponse</td>
+</tr>
+<tr>
+<td>403 FORBIDDEN</td>
+<td>Principal does not have access to any roles in this domain</td>
+</tr>
+</tbody>
+</table>
+<p>Exception:</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>400 Bad Request</td>
+<td>ResourceError</td>
+</tr>
+<tr>
+<td>401 Unauthorized</td>
+<td>ResourceError</td>
+</tr>
+<tr>
+<td>403 Forbidden</td>
+<td>ResourceError</td>
+</tr>
+<tr>
+<td>404 Not Found</td>
+<td>ResourceError</td>
+</tr>
+</tbody>
+</table>
+<h3 id="aws-temporary-credentials">AWS Temporary Credentials</h3>
+<h4 id="get-domaindomainnamerolerolenamecreds">GET "/domain/{domainName}/role/{roleName}/creds"</h4>
+<ul>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
+<li><a href="#authorization">Authorization</a>: None</li>
+</ul>
+<p>Perform an AWS AssumeRole of the target role and return the credentials. ZTS
+must have been granted the ability to assume the role in IAM, and granted
+the ability to ASSUME_AWS_ROLE in Athenz for this to succeed. There are two
+optional query parameters to specify the duration in seconds for the requested
+credentials and the external id. Both of these options require the role to be
+configured accordingly in AWS IAM.</p>
+<h5 id="request-parameters_2">Request Parameters</h5>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Source</th>
+<th>Options</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>domainName</td>
+<td>DomainName</td>
+<td>path</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>roleName</td>
+<td>EntityName</td>
+<td>path</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>durationSeconds</td>
+<td>Integer</td>
+<td>query: durationSeconds</td>
+<td>optional</td>
+<td>Duration in seconds - min: 900, max: 43200. Must be configured in IAM</td>
+</tr>
+<tr>
+<td>externalId</td>
+<td>String</td>
+<td>query: externalId</td>
+<td>optional</td>
+<td>External ID configured in IAM for the given role</td>
+</tr>
+</tbody>
+</table>
+<h5 id="responses_2">Responses</h5>
+<p>Expected:</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>200 OK</td>
+<td>Access</td>
+</tr>
+</tbody>
+</table>
+<p>Exception:</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>400 Bad Request</td>
+<td>ResourceError</td>
+</tr>
+<tr>
+<td>401 Unauthorized</td>
+<td>ResourceError</td>
+</tr>
+<tr>
+<td>403 Forbidden</td>
+<td>ResourceError</td>
+</tr>
+<tr>
+<td>404 Not Found</td>
+<td>ResourceError</td>
+</tr>
+</tbody>
+</table>
+<h3 id="identityrefresh">IdentityRefresh</h3>
+<h4 id="post-instancedomainservicerefresh">POST "/instance/{domain}/{service}/refresh"</h4>
+<ul>
+<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authorization">Authorization</a>: None</li>
+</ul>
+<p>Refresh self identity if the original identity was issued by ZTS. The token must
+include the original requestor's name and the server will verify that the service
+still has authorization to grant inception to the current service requesting to
+refresh its identity</p>
+<h5 id="request-parameters_3">Request Parameters</h5>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Source</th>
+<th>Options</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>domain</td>
+<td>DomainName</td>
+<td>path</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>service</td>
+<td>SimpleName</td>
+<td>path</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>req</td>
+<td>InstanceRefreshRequest</td>
+<td>body</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h5 id="responses_3">Responses</h5>
+<p>Expected:</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>200 OK</td>
+<td>Identity</td>
+</tr>
+</tbody>
+</table>
+<p>Exception:</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>400 Bad Request</td>
+<td>ResourceError</td>
+</tr>
+<tr>
+<td>401 Unauthorized</td>
+<td>ResourceError</td>
+</tr>
+<tr>
+<td>403 Forbidden</td>
+<td>ResourceError</td>
+</tr>
+<tr>
+<td>404 Not Found</td>
+<td>ResourceError</td>
+</tr>
+</tbody>
+</table>
+<h3 id="instancedelete">InstanceDelete</h3>
+<h4 id="delete-instanceproviderdomainserviceinstanceid">DELETE "/instance/{provider}/{domain}/{service}/{instanceId}"</h4>
+<ul>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
+<li><a href="#authorization">Authorization</a>: authorize("delete", "{domain}:instance.{instanceId}");</li>
+</ul>
+<p>Delete the specified instance and no longer allow certificate refresh.</p>
+<h5 id="request-parameters_4">Request Parameters</h5>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Source</th>
+<th>Options</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>provider</td>
+<td>ServiceName</td>
+<td>path</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>service</td>
+<td>SimpleName</td>
+<td>path</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>instanceId</td>
+<td>PathElement</td>
+<td>path</td>
+<td></td>
+<td>unique instance id in provider's namespace</td>
+</tr>
+</tbody>
+</table>
+<h5 id="responses_4">Responses</h5>
+<p>Expected:</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>204</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>Exception:</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>400 Bad Request</td>
+<td>ResourceError</td>
+</tr>
+<tr>
+<td>401 Unauthorized</td>
+<td>ResourceError</td>
+</tr>
+<tr>
+<td>403 Forbidden</td>
+<td>ResourceError</td>
+</tr>
+<tr>
+<td>404 Not Found</td>
+<td>ResourceError</td>
+</tr>
+<tr>
+<td>500 Internal Server Error</td>
+<td>ResourceError</td>
+</tr>
+</tbody>
+</table>
+<h3 id="instancerefresh">InstanceRefresh</h3>
+<h4 id="post-instanceproviderdomainserviceinstanceid">POST "/instance/{provider}/{domain}/{service}/{instanceId}"</h4>
+<ul>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
+<li><a href="#authorization">Authorization</a>: None</li>
+</ul>
+<p>Refresh the current certificate for this instance.</p>
+<h5 id="request-parameters_5">Request Parameters</h5>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Source</th>
+<th>Options</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>provider</td>
+<td>ServiceName</td>
+<td>path</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>service</td>
+<td>SimpleName</td>
+<td>path</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>instanceId</td>
+<td>PathElement</td>
+<td>path</td>
+<td></td>
+<td>unique instance id in provider's namespace</td>
+</tr>
+<tr>
+<td>info</td>
+<td>InstanceRefreshInformation</td>
+<td>body</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h5 id="responses_5">Responses</h5>
+<p>Expected:</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>200 OK</td>
+<td>InstanceIdentity</td>
+</tr>
+</tbody>
+</table>
+<p>Exception:</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>400 Bad Request</td>
+<td>ResourceError</td>
+</tr>
+<tr>
+<td>401 Unauthorized</td>
+<td>ResourceError</td>
+</tr>
+<tr>
+<td>403 Forbidden</td>
+<td>ResourceError</td>
+</tr>
+<tr>
+<td>404 Not Found</td>
+<td>ResourceError</td>
+</tr>
+<tr>
+<td>500 Internal Server Error</td>
+<td>ResourceError</td>
+</tr>
+</tbody>
+</table>
+<h3 id="instanceregister">InstanceRegister</h3>
+<h4 id="post-instance">POST "/instance"</h4>
+<ul>
+<li><a href="#authentication">Authentication</a>: None</li>
+<li><a href="#authorization">Authorization</a>: None</li>
+</ul>
+<p>Register the instance for a given provider and return x.509 certificate
+for the service to identity itself against other Athenz enabled services.</p>
+<h5 id="responses_6">Responses</h5>
+<p>Expected:</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>201 CREATED</td>
+<td>InstanceIdentity</td>
+</tr>
+</tbody>
+</table>
+<p>Exception:</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>400 Bad Request</td>
+<td>ResourceError</td>
+</tr>
+<tr>
+<td>401 Unauthorized</td>
+<td>ResourceError</td>
+</tr>
+<tr>
+<td>403 Forbidden</td>
+<td>ResourceError</td>
+</tr>
+<tr>
+<td>404 Not Found</td>
+<td>ResourceError</td>
+</tr>
+<tr>
+<td>500 Internal Server Error</td>
+<td>ResourceError</td>
+</tr>
+</tbody>
+</table>
+<h3 id="jwklist_1">JWKList</h3>
+<h4 id="get-oauth2keys">GET "/oauth2/keys"</h4>
+<ul>
+<li><a href="#authentication">Authentication</a>: Certificate,NToken</li>
+<li><a href="#authorization">Authorization</a>: None</li>
+</ul>
+<p>Returns list of Json Web Keys (JWKs) that can be used by the ZTS Server
+to sign OAuth2 Access/Id Tokens. If the optional rfc=true query argument
+is specified, then we return the EC key curve names strictly based
+on the JWK RFC - e.g. P-256.</p>
+<h5 id="request-parameters_6">Request Parameters</h5>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Source</th>
+<th>Options</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>rfc</td>
+<td>Boolean</td>
+<td>query: rfc</td>
+<td>optional</td>
+<td>if true then use rfc defined curve names - e.g. P-256</td>
+</tr>
+</tbody>
+</table>
+<h5 id="responses_7">Responses</h5>
+<p>Expected:</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>200 OK</td>
+<td>JWKList</td>
+</tr>
+</tbody>
+</table>
+<p>Exception:</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>400 Bad Request</td>
+<td>ResourceError</td>
+</tr>
+<tr>
+<td>401 Unauthorized</td>
+<td>ResourceError</td>
+</tr>
+</tbody>
+</table>
+<h3 id="roleaccess_1">RoleAccess</h3>
+<h4 id="get-accessdomaindomainnameprincipalprincipal">GET "/access/domain/{domainName}/principal/{principal}"</h4>
+<ul>
+<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authorization">Authorization</a>: None</li>
+</ul>
+<p>List the roles that the given principal has in the domain.</p>
+<h5 id="request-parameters_7">Request Parameters</h5>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Source</th>
+<th>Options</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>domainName</td>
+<td>DomainName</td>
+<td>path</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>principal</td>
+<td>EntityName</td>
+<td>path</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h5 id="responses_8">Responses</h5>
+<p>Expected:</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>200 OK</td>
+<td>RoleAccess</td>
+</tr>
+</tbody>
+</table>
+<p>Exception:</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>400 Bad Request</td>
+<td>ResourceError</td>
+</tr>
+<tr>
+<td>401 Unauthorized</td>
+<td>ResourceError</td>
+</tr>
+<tr>
+<td>403 Forbidden</td>
+<td>ResourceError</td>
+</tr>
+<tr>
+<td>404 Not Found</td>
+<td>ResourceError</td>
+</tr>
+</tbody>
+</table>
+<h3 id="rolecertificate">RoleCertificate</h3>
+<h4 id="post-domaindomainnamerolerolenametoken">POST "/domain/{domainName}/role/{roleName}/token"</h4>
+<ul>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
+<li><a href="#authorization">Authorization</a>: None</li>
+</ul>
+<p>Return a TLS certificate for the specific role in the namespace that
+the principal can assume. Role certificates are valid for 30 days
+by default.</p>
+<h5 id="request-parameters_8">Request Parameters</h5>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Source</th>
+<th>Options</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>domainName</td>
+<td>DomainName</td>
+<td>path</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>roleName</td>
+<td>EntityName</td>
+<td>path</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>req</td>
+<td>RoleCertificateRequest</td>
+<td>body</td>
+<td></td>
+<td>csr request</td>
+</tr>
+</tbody>
+</table>
+<h5 id="responses_9">Responses</h5>
+<p>Expected:</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>200 OK</td>
+<td>RoleToken</td>
+</tr>
+<tr>
+<td>403 FORBIDDEN</td>
+<td>Principal does not have access to any roles in this domain</td>
+</tr>
+</tbody>
+</table>
+<p>Exception:</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>400 Bad Request</td>
+<td>ResourceError</td>
+</tr>
+<tr>
+<td>401 Unauthorized</td>
+<td>ResourceError</td>
+</tr>
+<tr>
+<td>403 Forbidden</td>
+<td>ResourceError</td>
+</tr>
+<tr>
+<td>404 Not Found</td>
+<td>ResourceError</td>
+</tr>
+</tbody>
+</table>
+<h3 id="rolecheckaccess">RoleCheckAccess</h3>
+<h4 id="get-accessdomaindomainnamerolerolenameprincipalprincipal">GET "/access/domain/{domainName}/role/{roleName}/principal/{principal}"</h4>
+<ul>
+<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authorization">Authorization</a>: None</li>
+</ul>
+<p>Check whether or not the given principal is included in the given role in the specified domain.</p>
+<h5 id="request-parameters_9">Request Parameters</h5>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Source</th>
+<th>Options</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>domainName</td>
+<td>DomainName</td>
+<td>path</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>roleName</td>
+<td>EntityName</td>
+<td>path</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>principal</td>
+<td>EntityName</td>
+<td>path</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h5 id="responses_10">Responses</h5>
+<p>Expected:</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>200 OK</td>
+<td>Access</td>
+</tr>
+</tbody>
+</table>
+<p>Exception:</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>400 Bad Request</td>
+<td>ResourceError</td>
+</tr>
+<tr>
+<td>401 Unauthorized</td>
+<td>ResourceError</td>
+</tr>
+<tr>
+<td>403 Forbidden</td>
+<td>ResourceError</td>
+</tr>
+<tr>
+<td>404 Not Found</td>
+<td>ResourceError</td>
+</tr>
+</tbody>
+</table>
+<h3 id="roletoken_1">RoleToken</h3>
+<h4 id="get-domaindomainnametoken">GET "/domain/{domainName}/token"</h4>
+<ul>
+<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authorization">Authorization</a>: None</li>
+</ul>
+<p>Return a security token for the specific set of roles in the namespace that the user can assume.
+If the role query element is omitted, then all roles in the namespace that the authenticated
+user can assume are returned. The caller can specify how long the RoleToken should be
+valid for by specifying the minExpiryTime and maxExpiryTime parameters. The minExpiryTime
+specifies that the returned RoleToken must be at least valid (min/lower bound) for specified
+number of seconds, while maxExpiryTime specifies that the RoleToken must be at most valid
+(max/upper bound) for specified number of seconds. If both values are the same, the server
+must return a RoleToken for that many seconds. If no values are specified, the server's
+default RoleToken Timeout value is used.</p>
+<h5 id="request-parameters_10">Request Parameters</h5>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Source</th>
+<th>Options</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>domainName</td>
+<td>DomainName</td>
+<td>path</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>role</td>
+<td>EntityList</td>
+<td>query: role</td>
+<td>optional</td>
+<td>comma separated list of roles</td>
+</tr>
+<tr>
+<td>minExpiryTime</td>
+<td>Integer</td>
+<td>query: minExpiryTime</td>
+<td>optional</td>
+<td></td>
+</tr>
+<tr>
+<td>maxExpiryTime</td>
+<td>Integer</td>
+<td>query: maxExpiryTime</td>
+<td>optional</td>
+<td></td>
+</tr>
+<tr>
+<td>proxyForPrincipal</td>
+<td>EntityName</td>
+<td>query: proxyForPrincipal</td>
+<td>optional</td>
+<td>request is proxy for this principal</td>
+</tr>
+</tbody>
+</table>
+<h5 id="responses_11">Responses</h5>
+<p>Expected:</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>200 OK</td>
+<td>RoleToken</td>
+</tr>
+<tr>
+<td>403 FORBIDDEN</td>
+<td>Principal does not have access to any roles in this domain</td>
+</tr>
+</tbody>
+</table>
+<p>Exception:</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>400 Bad Request</td>
+<td>ResourceError</td>
+</tr>
+<tr>
+<td>401 Unauthorized</td>
+<td>ResourceError</td>
+</tr>
+<tr>
+<td>403 Forbidden</td>
+<td>ResourceError</td>
+</tr>
+<tr>
+<td>404 Not Found</td>
+<td>ResourceError</td>
+</tr>
+</tbody>
+</table>
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+      </main>
+      
+        
+<footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
+      </div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    
+      <script src="../assets/javascripts/vendor.d710d30a.min.js"></script>
+      <script src="../assets/javascripts/bundle.b39636ac.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents"}</script>
+      
+      <script>
+        app = initialize({
+          base: "..",
+          features: [],
+          search: Object.assign({
+            worker: "../assets/javascripts/worker/search.a68abb33.min.js"
+          }, typeof search !== "undefined" && search)
+        })
+      </script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,1659 @@
+
+
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Athenz User Guide">
+      
+      
+      
+      <link rel="shortcut icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-5.4.0">
+    
+    
+      
+        <title>Decentralized Access Control - Athenz</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.fe0cca5b.min.css">
+      
+      
+    
+    
+    
+      
+        <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>body,input{font-family:"Roboto",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono",SFMono-Regular,Consolas,Menlo,monospace}</style>
+      
+    
+    
+    
+      <link rel="stylesheet" href="../extra.css">
+    
+    
+      
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#developer-guide-decentralized-access-control" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header-nav md-grid" aria-label="Header">
+    <a href=".." title="Athenz" class="md-header-nav__button md-logo" aria-label="Athenz">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 003-3 3 3 0 00-3-3 3 3 0 00-3 3 3 3 0 003 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    <label class="md-header-nav__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header-nav__title" data-md-component="header-title">
+      
+        <div class="md-header-nav__ellipsis">
+          <span class="md-header-nav__topic md-ellipsis">
+            Athenz
+          </span>
+          <span class="md-header-nav__topic md-ellipsis">
+            
+              Decentralized Access Control
+            
+          </span>
+        </div>
+      
+    </div>
+    
+      <label class="md-header-nav__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" data-md-state="active">
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <button type="reset" class="md-search__icon md-icon" aria-label="Clear" data-md-component="search-reset" tabindex="-1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header-nav__source">
+        
+<a href="https://github.com/yahoo/athenz/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 00-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 01-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 000 40.81l195.61 195.6a28.86 28.86 0 0040.8 0l194.69-194.69a28.86 28.86 0 000-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+        
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Athenz" class="md-nav__button md-logo" aria-label="Athenz">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 003-3 3 3 0 00-3-3 3 3 0 00-3 3 3 3 0 003 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    Athenz
+  </label>
+  
+    <div class="md-nav__source">
+      
+<a href="https://github.com/yahoo/athenz/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 00-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 01-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 000 40.81l195.61 195.6a28.86 28.86 0 0040.8 0l194.69-194.69a28.86 28.86 0 000-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1" type="checkbox" id="nav-1">
+    
+    <label class="md-nav__link" for="nav-1">
+      Getting Started
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Getting Started" data-md-level="1">
+      <label class="md-nav__title" for="nav-1">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Getting Started
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href=".." title="About" class="md-nav__link">
+      About
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../dev_environment/" title="Development Environment" class="md-nav__link">
+      Development Environment
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1-3" type="checkbox" id="nav-1-3">
+    
+    <label class="md-nav__link" for="nav-1-3">
+      Local/Development Environment Setup
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Local/Development Environment Setup" data-md-level="2">
+      <label class="md-nav__title" for="nav-1-3">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Local/Development Environment Setup
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../setup_zms/" title="ZMS Server" class="md-nav__link">
+      ZMS Server
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../setup_zts/" title="ZTS Server" class="md-nav__link">
+      ZTS Server
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../setup_ui/" title="UI Server" class="md-nav__link">
+      UI Server
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1-4" type="checkbox" id="nav-1-4">
+    
+    <label class="md-nav__link" for="nav-1-4">
+      Production Environment Setup
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Production Environment Setup" data-md-level="2">
+      <label class="md-nav__title" for="nav-1-4">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Production Environment Setup
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../setup_zms_prod/" title="ZMS Server" class="md-nav__link">
+      ZMS Server
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../setup_zts_prod/" title="ZTS Server" class="md-nav__link">
+      ZTS Server
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../setup_ui_prod/" title="UI Server" class="md-nav__link">
+      UI Server
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-2" type="checkbox" id="nav-2">
+    
+    <label class="md-nav__link" for="nav-2">
+      Management
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Management" data-md-level="1">
+      <label class="md-nav__title" for="nav-2">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Management
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../role_delegation/" title="Role Delegation" class="md-nav__link">
+      Role Delegation
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../token_expiration/" title="Access/Role Token Limit Expiry Support" class="md-nav__link">
+      Access/Role Token Limit Expiry Support
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../role_cert_expiration/" title="Role Certificate Limit Expiry Support" class="md-nav__link">
+      Role Certificate Limit Expiry Support
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../review_enabled_roles/" title="Review Enabled Roles" class="md-nav__link">
+      Review Enabled Roles
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../email_notifications/" title="Email Notifications" class="md-nav__link">
+      Email Notifications
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../member_expiration/" title="Role Member Auto Expiry and Notification Support" class="md-nav__link">
+      Role Member Auto Expiry and Notification Support
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../member_soft_expiration/" title="Role Member Review Reminder Support" class="md-nav__link">
+      Role Member Review Reminder Support
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../self_serve_roles/" title="Self-Served Roles" class="md-nav__link">
+      Self-Served Roles
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3">
+    
+    <label class="md-nav__link" for="nav-3">
+      AWS Setup
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="AWS Setup" data-md-level="1">
+      <label class="md-nav__title" for="nav-3">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        AWS Setup
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../aws_athenz_setup/" title="Introduction" class="md-nav__link">
+      Introduction
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../aws_zms_setup/" title="ZMS Server" class="md-nav__link">
+      ZMS Server
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../aws_zts_setup/" title="ZTS Server" class="md-nav__link">
+      ZTS Server
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../aws_ui_setup/" title="UI Server" class="md-nav__link">
+      UI Server
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-4" type="checkbox" id="nav-4">
+    
+    <label class="md-nav__link" for="nav-4">
+      Architecture
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Architecture" data-md-level="1">
+      <label class="md-nav__title" for="nav-4">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Architecture
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../data_model/" title="Data Model" class="md-nav__link">
+      Data Model
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../system_view/" title="System View" class="md-nav__link">
+      System View
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../auth_flow/" title="Authorization Flow" class="md-nav__link">
+      Authorization Flow
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-5" type="checkbox" id="nav-5">
+    
+    <label class="md-nav__link" for="nav-5">
+      Features
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Features" data-md-level="1">
+      <label class="md-nav__title" for="nav-5">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Features
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../copper_argos/" title="Service Identity X.509 Certificates - Copper Argos" class="md-nav__link">
+      Service Identity X.509 Certificates - Copper Argos
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-6" type="checkbox" id="nav-6" checked>
+    
+    <label class="md-nav__link" for="nav-6">
+      Developer Guide
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Developer Guide" data-md-level="1">
+      <label class="md-nav__title" for="nav-6">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Developer Guide
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../dev_centralized_access/" title="Centralized Access Control" class="md-nav__link">
+      Centralized Access Control
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../example_java_centralized_access/" title="Java Client/Servlet Example" class="md-nav__link">
+      Java Client/Servlet Example
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../example_go_centralized_access/" title="Go Client/Server Example" class="md-nav__link">
+      Go Client/Server Example
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+    
+      
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        Decentralized Access Control
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 9h14V7H3v2m0 4h14v-2H3v2m0 4h14v-2H3v2m16 0h2v-2h-2v2m0-10v2h2V7h-2m0 6h2v-2h-2v2z"/></svg>
+        </span>
+      </label>
+    
+    <a href="./" title="Decentralized Access Control" class="md-nav__link md-nav__link--active">
+      Decentralized Access Control
+    </a>
+    
+      
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#client-obtaining-roletokens-from-zts-server" class="md-nav__link">
+    Client - Obtaining RoleTokens from ZTS Server
+  </a>
+  
+    <nav class="md-nav" aria-label="Client - Obtaining RoleTokens from ZTS Server">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#obtaining-serviceidentityprovider-object" class="md-nav__link">
+    Obtaining ServiceIdentityProvider object
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#zts-client-object" class="md-nav__link">
+    ZTS Client Object
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#obtaining-a-role-token" class="md-nav__link">
+    Obtaining a Role Token
+  </a>
+  
+    <nav class="md-nav" aria-label="Obtaining a Role Token">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#zts-getroletoken-error-codes" class="md-nav__link">
+    ZTS getRoleToken Error Codes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#token-caching" class="md-nav__link">
+    Token Caching
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#token-prefetch-caching" class="md-nav__link">
+    Token Prefetch Caching
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#server-authorization-checks" class="md-nav__link">
+    Server - Authorization Checks
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+    
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../example_java_decentralized_access/" title="Java Client/Servlet Example" class="md-nav__link">
+      Java Client/Servlet Example
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-7" type="checkbox" id="nav-7">
+    
+    <label class="md-nav__link" for="nav-7">
+      Customizing Athenz
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Customizing Athenz" data-md-level="1">
+      <label class="md-nav__title" for="nav-7">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Customizing Athenz
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../principal_authentication/" title="Principal Authentication" class="md-nav__link">
+      Principal Authentication
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../private_key_store/" title="Private Key Store" class="md-nav__link">
+      Private Key Store
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../cert_signer/" title="Certificate Signer" class="md-nav__link">
+      Certificate Signer
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../copper_argos_dev/" title="Service Identity X.509 Certificate Support Requirements - Copper Argos" class="md-nav__link">
+      Service Identity X.509 Certificate Support Requirements - Copper Argos
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-8" type="checkbox" id="nav-8">
+    
+    <label class="md-nav__link" for="nav-8">
+      User Guide
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="User Guide" data-md-level="1">
+      <label class="md-nav__title" for="nav-8">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        User Guide
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../zms_client/" title="ZMS Client Utility" class="md-nav__link">
+      ZMS Client Utility
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../setup_zpu/" title="ZPU Utility" class="md-nav__link">
+      ZPU Utility
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../reg_service_guide/" title="Registering ZMS Service Identity" class="md-nav__link">
+      Registering ZMS Service Identity
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#client-obtaining-roletokens-from-zts-server" class="md-nav__link">
+    Client - Obtaining RoleTokens from ZTS Server
+  </a>
+  
+    <nav class="md-nav" aria-label="Client - Obtaining RoleTokens from ZTS Server">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#obtaining-serviceidentityprovider-object" class="md-nav__link">
+    Obtaining ServiceIdentityProvider object
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#zts-client-object" class="md-nav__link">
+    ZTS Client Object
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#obtaining-a-role-token" class="md-nav__link">
+    Obtaining a Role Token
+  </a>
+  
+    <nav class="md-nav" aria-label="Obtaining a Role Token">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#zts-getroletoken-error-codes" class="md-nav__link">
+    ZTS getRoleToken Error Codes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#token-caching" class="md-nav__link">
+    Token Caching
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#token-prefetch-caching" class="md-nav__link">
+    Token Prefetch Caching
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#server-authorization-checks" class="md-nav__link">
+    Server - Authorization Checks
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                  <a href="https://github.com/yahoo/athenz/edit/master/docs/dev_decentralized_access.md" title="Edit this page" class="md-content__button md-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+                  </a>
+                
+                
+                  
+                
+                
+                <h1 id="developer-guide-decentralized-access-control">Developer guide - Decentralized Access Control</h1>
+<hr />
+<ul>
+<li><a href="#client---obtaining-roletokens-from-zts-server">Client - Obtaining RoleTokens from ZTS Server</a><ul>
+<li><a href="#obtaining-serviceidentityprovider-object">Obtaining ServiceIdentityProvider object</a></li>
+<li><a href="#zts-client-object">ZTS Client Object</a></li>
+<li><a href="#obtaining-a-role-token">Obtaining a Role Token</a><ul>
+<li><a href="#zts-getroletoken-error-codes">ZTS getRoleToken Error Codes</a></li>
+</ul>
+</li>
+<li><a href="#token-caching">Token Caching</a></li>
+<li><a href="#token-prefetch-caching">Token Prefetch Caching</a></li>
+</ul>
+</li>
+<li><a href="#server---authorization-checks">Server - Authorization Checks</a></li>
+</ul>
+<p>In the decentralized access control model, the client service/user
+presents an authentication token (NToken) from SIA Provider to get an
+authorization token (ZToken) from ZTS, and then presents the ZToken
+to a target service to access its resources.</p>
+<p><img alt="Decentralized Authorization for Services" src="../images/decentralized_authz_for_services.png" /></p>
+<p>The required steps to setup the environment for provider and tenant
+services to support decentralized access control are as follows:</p>
+<ul>
+<li>System administrator creates the provider and tenant domains.</li>
+<li>Tenant Domain administrator generates a public/private key pair
+  and registers a service in its domain.</li>
+<li>Provider Domain administrator creates a role and policy that
+  grants access to the given role with configured action and resource.</li>
+<li>Provider Domain administrator adds the Tenant Service to the
+  role to grant access.</li>
+<li>Provider Domain administrator installs Athenz Policy Engine
+  Updater (ZPU) on the hosts that will be running the provider
+  service. ZPU must be configured with the provider domain name
+  and setup to run as a cron job to periodically download the
+  latest policy files for the server/provider domain.</li>
+<li>Tenant Domain administrator installs the private key on the host
+  that will be running the client/tenant service.</li>
+</ul>
+<p>The next two sections describe the code changes that the developers
+must make to their services to support authorized access.</p>
+<h2 id="client-obtaining-roletokens-from-zts-server">Client - Obtaining RoleTokens from ZTS Server</h2>
+<hr />
+<p>The client must carry out two major steps in order to retrieve a role
+token from ZTS Server. First, using the service's name and private key
+it needs to generate a ServiceIdentityProvider object which then it
+can use to retrieve a role token using ZTS Client Library.</p>
+<h3 id="obtaining-serviceidentityprovider-object">Obtaining ServiceIdentityProvider object</h3>
+<hr />
+<p>First you need to update your Java project <code>pom.xml</code> file to indicate
+the dependency on the Athenz auth_core Library:</p>
+<div class="codehilite"><pre><span></span><code><span class="nt">&lt;dependency&gt;</span>
+    <span class="nt">&lt;groupId&gt;</span>com.yahoo.athenz<span class="nt">&lt;/groupId&gt;</span>
+    <span class="nt">&lt;artifactId&gt;</span>athenz-auth-core<span class="nt">&lt;/artifactId&gt;</span>
+    <span class="nt">&lt;version&gt;</span>1.X.Y<span class="nt">&lt;/version&gt;</span>
+<span class="nt">&lt;/dependency&gt;</span>
+
+<span class="nt">&lt;repositories&gt;</span>
+  <span class="nt">&lt;repository&gt;</span>
+    <span class="nt">&lt;id&gt;</span>bintray-yahoo-maven<span class="nt">&lt;/id&gt;</span>
+    <span class="nt">&lt;name&gt;</span>bintray<span class="nt">&lt;/name&gt;</span>
+    <span class="nt">&lt;url&gt;</span>https://yahoo.bintray.com/maven<span class="nt">&lt;/url&gt;</span>
+  <span class="nt">&lt;/repository&gt;</span>
+<span class="nt">&lt;/repositories&gt;</span>
+</code></pre></div>
+
+
+<p>The domain administrator must have already generated a public/private key pair
+for the service and registered public key in Athenz. The private key must be
+available on the host where the service will be running.</p>
+<div class="codehilite"><pre><span></span><code>    <span class="o">//</span> <span class="n">we</span><span class="err">&#39;</span><span class="n">re</span> <span class="n">going</span> <span class="k">to</span> <span class="k">extract</span> <span class="n">our</span> <span class="n">private</span> <span class="k">key</span> <span class="k">from</span> <span class="n">a</span> <span class="n">given</span> <span class="n">file</span>
+
+    <span class="n">File</span> <span class="n">rsaPrivateKey</span> <span class="o">=</span> <span class="k">new</span> <span class="n">File</span><span class="p">(</span><span class="ss">&quot;/home/athenz/service/rsa_private.key&quot;</span><span class="p">);</span>
+    <span class="n">PrivateKey</span> <span class="n">privateKey</span> <span class="o">=</span> <span class="n">Crypto</span><span class="p">.</span><span class="n">loadPrivateKey</span><span class="p">(</span><span class="n">rsaPrivateKey</span><span class="p">);</span>
+
+    <span class="o">//</span> <span class="n">setup</span> <span class="n">the</span> <span class="k">key</span> <span class="n">identifier</span> <span class="n">that</span> <span class="n">the</span> <span class="n">corresponding</span> <span class="k">public</span> <span class="k">key</span>
+    <span class="o">//</span> <span class="n">has</span> <span class="n">been</span> <span class="n">registered</span> <span class="k">in</span> <span class="n">ZMS</span><span class="p">,</span> <span class="k">and</span> <span class="k">set</span> <span class="n">the</span> <span class="n">timeout</span> <span class="k">to</span> <span class="n">be</span> <span class="mi">1</span> <span class="n">hour</span>
+
+    <span class="n">String</span> <span class="n">keyId</span> <span class="o">=</span> <span class="ss">&quot;v0&quot;</span><span class="p">;</span>
+    <span class="n">long</span> <span class="n">tokenTimeout</span> <span class="o">=</span> <span class="n">TimeUnit</span><span class="p">.</span><span class="n">SECONDS</span><span class="p">.</span><span class="k">convert</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">TimeUnit</span><span class="p">.</span><span class="n">HOURS</span><span class="p">);</span>
+
+    <span class="o">//</span> <span class="k">create</span> <span class="n">our</span> <span class="n">authority</span> <span class="k">and</span> <span class="n">sia</span> <span class="n">provider</span> <span class="k">object</span>
+
+    <span class="n">Authority</span> <span class="n">authority</span> <span class="o">=</span> <span class="k">new</span> <span class="n">PrincipalAuthority</span><span class="p">();</span>
+    <span class="n">SimpleServiceIdentityProvider</span> <span class="n">siaProvider</span> <span class="o">=</span> 
+        <span class="k">new</span> <span class="n">SimpleServiceIdentityProvider</span><span class="p">(</span><span class="n">authority</span><span class="p">,</span> <span class="n">privateKey</span><span class="p">,</span> <span class="n">keyId</span><span class="p">,</span> <span class="n">tokenTimeout</span><span class="p">);</span>
+</code></pre></div>
+
+
+<h3 id="zts-client-object">ZTS Client Object</h3>
+<hr />
+<p>First you need to update your Java project <code>pom.xml</code> file to indicate
+the dependency on the ZTS Java Client Library:</p>
+<div class="codehilite"><pre><span></span><code><span class="nt">&lt;dependency&gt;</span>
+    <span class="nt">&lt;groupId&gt;</span>com.yahoo.athenz<span class="nt">&lt;/groupId&gt;</span>
+    <span class="nt">&lt;artifactId&gt;</span>athenz-zts-java-client<span class="nt">&lt;/artifactId&gt;</span>
+    <span class="nt">&lt;version&gt;</span>1.X.Y<span class="nt">&lt;/version&gt;</span>
+<span class="nt">&lt;/dependency&gt;</span>
+
+<span class="nt">&lt;repositories&gt;</span>
+  <span class="nt">&lt;repository&gt;</span>
+    <span class="nt">&lt;id&gt;</span>bintray-yahoo-maven<span class="nt">&lt;/id&gt;</span>
+    <span class="nt">&lt;name&gt;</span>bintray<span class="nt">&lt;/name&gt;</span>
+    <span class="nt">&lt;url&gt;</span>https://yahoo.bintray.com/maven<span class="nt">&lt;/url&gt;</span>
+  <span class="nt">&lt;/repository&gt;</span>
+<span class="nt">&lt;/repositories&gt;</span>
+</code></pre></div>
+
+
+<p>ZTS Client Library provides several constructors; however, the most
+commonly used one would be the constructor to create a client object
+based on a given domain and service identifier.</p>
+<div class="codehilite"><pre><span></span><code><span class="err">    /**</span>
+<span class="err">    * Constructs a new ZTSClient object with the given service identity</span>
+<span class="err">    * and media type set to application/json. The url for ZTS Server is</span>
+<span class="err">    * automatically retrieved from the athenz_config package&#39;s configuration</span>
+<span class="err">    * file (zts_url field). The service&#39;s principal token will be retrieved</span>
+<span class="err">    * from the SIA Provider.</span>
+<span class="err">    * Default read and connect timeout values are 30000ms (30sec). The application can</span>
+<span class="err">    * change these values by using the yahoo.zts_java_client.read_timeout and</span>
+<span class="err">    * yahoo.zts_java_client.connect_timeout system properties. The values specified</span>
+<span class="err">    * for timeouts must be in milliseconds.</span>
+<span class="err">    * @param domainName name of the domain</span>
+<span class="err">    * @param serviceName name of the service</span>
+<span class="err">    * @param siaProvider ServiceIdentityProvider object for the given service</span>
+<span class="err">    */</span>
+<span class="err">    public ZTSClient(String domainName, String serviceName, ServiceIdentityProvider siaProvider);</span>
+</code></pre></div>
+
+
+<p>ZTSClient object must be closed to release any allocated resources. ZTSClient
+class implements Closeable interface.</p>
+<p>The client library automatically retrieves the URL of the ZTS server
+from its configuration file.</p>
+<p>For example, if you have already registered service called <code>storage</code> in
+the domain <code>athenz</code>, use the command below to instantiate a ZTS
+Client object:</p>
+<div class="codehilite"><pre><span></span><code><span class="err">    SimpleServiceIdentityProvider siaProvider = </span>
+<span class="err">        new SimpleServiceIdentityProvider(authority, privateKey, keyId, tokenTimeout);</span>
+<span class="err">    try (ZTSClient ztsClient = new ZTSClient(&quot;athenz&quot;, &quot;storage&quot;, siaProvider)) {</span>
+<span class="err">       // carry out requests against ZTS Server</span>
+<span class="err">    }</span>
+</code></pre></div>
+
+
+<p>If your application will only handle a single service, then rather than
+creating and destroying a ZTSClient object for every request, you can
+just create a single instance of the ZTSClient and use that instance
+by multiple threads to request role tokens:</p>
+<div class="codehilite"><pre><span></span><code>    <span class="o">//</span> <span class="k">in</span> <span class="n">your</span> <span class="n">service</span> <span class="n">initialization</span> <span class="k">method</span>
+
+    <span class="n">void</span> <span class="n">initZTSClient</span><span class="p">(</span><span class="n">String</span> <span class="n">domainName</span><span class="p">,</span> <span class="n">String</span> <span class="n">serviceName</span><span class="p">,</span> <span class="n">String</span> <span class="n">privateKeyPath</span><span class="p">,</span> <span class="n">String</span> <span class="n">keyId</span><span class="p">)</span> <span class="err">{</span>
+
+        <span class="n">File</span> <span class="n">rsaPrivateKey</span> <span class="o">=</span> <span class="k">new</span> <span class="n">File</span><span class="p">(</span><span class="ss">&quot;/home/athenz/service/rsa_private.key&quot;</span><span class="p">);</span>
+        <span class="n">PrivateKey</span> <span class="n">privateKey</span> <span class="o">=</span> <span class="n">Crypto</span><span class="p">.</span><span class="n">loadPrivateKey</span><span class="p">(</span><span class="n">rsaPrivateKey</span><span class="p">);</span>
+
+        <span class="o">//</span> <span class="k">set</span> <span class="n">the</span> <span class="n">timeout</span> <span class="k">to</span> <span class="n">be</span> <span class="mi">1</span> <span class="n">hour</span>
+
+        <span class="n">long</span> <span class="n">tokenTimeout</span> <span class="o">=</span> <span class="n">TimeUnit</span><span class="p">.</span><span class="n">SECONDS</span><span class="p">.</span><span class="k">convert</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">TimeUnit</span><span class="p">.</span><span class="n">HOURS</span><span class="p">);</span>
+
+        <span class="o">//</span> <span class="k">create</span> <span class="n">our</span> <span class="n">authority</span> <span class="k">and</span> <span class="n">sia</span> <span class="n">provider</span> <span class="k">object</span>
+
+        <span class="n">Authority</span> <span class="n">authority</span> <span class="o">=</span> <span class="k">new</span> <span class="n">PrincipalAuthority</span><span class="p">();</span>
+        <span class="n">SimpleServiceIdentityProvider</span> <span class="n">siaProvider</span> <span class="o">=</span> 
+            <span class="k">new</span> <span class="n">SimpleServiceIdentityProvider</span><span class="p">(</span><span class="n">authority</span><span class="p">,</span> <span class="n">privateKey</span><span class="p">,</span> <span class="n">keyId</span><span class="p">,</span> <span class="n">tokenTimeout</span><span class="p">);</span>
+        <span class="n">ztsClient</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ZTSClient</span><span class="p">(</span><span class="n">domainName</span><span class="p">,</span> <span class="n">serviceName</span><span class="p">,</span> <span class="n">siaProvider</span><span class="p">);</span>
+    <span class="err">}</span>
+
+    <span class="o">//</span> <span class="k">then</span> <span class="k">in</span> <span class="n">our</span> <span class="n">service</span> <span class="n">processing</span> <span class="n">code</span> <span class="n">you</span> <span class="n">can</span> <span class="n">use</span> <span class="n">the</span> <span class="n">ztsClient</span>
+    <span class="o">//</span> <span class="n">instance</span> <span class="k">to</span> <span class="n">retrieve</span> <span class="k">role</span> <span class="n">tokens</span> <span class="k">for</span> <span class="n">your</span> <span class="n">requested</span> <span class="k">domain</span> <span class="k">and</span> <span class="k">role</span>
+
+    <span class="n">RoleToken</span> <span class="n">roleToken</span> <span class="o">=</span> <span class="n">ztsClient</span><span class="p">.</span><span class="n">getRoleToken</span><span class="p">(</span><span class="n">providerDomain</span><span class="p">,</span> <span class="n">roleName</span><span class="p">);</span>
+</code></pre></div>
+
+
+<h3 id="obtaining-a-role-token">Obtaining a Role Token</h3>
+<hr />
+<p>To obtain a Role Token, the application would use one the following methods
+from the <code>ZTSClient</code> class:</p>
+<div class="codehilite"><pre><span></span><code><span class="w">    </span><span class="cm">/**</span>
+<span class="cm">     * For the specified requester(user/service) return the corresponding Role Token that</span>
+<span class="cm">     * includes the list of roles that the principal has access to in the specified domain.</span>
+<span class="cm">     * The client will automatically fulfill the request from the cache, if possible.</span>
+<span class="cm">     * The default minimum expiry time is 900 secs (15 mins).</span>
+<span class="cm">     * @param domainName name of the domain</span>
+<span class="cm">     * @return ZTS generated Role Token. ZTSClientException will be thrown in case of failure</span>
+<span class="cm">     */</span><span class="w"></span>
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="n">RoleToken</span><span class="w"> </span><span class="n">getRoleToken</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">domainName</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">    </span><span class="cm">/**</span>
+<span class="cm">     * For the specified requester(user/service) return the corresponding Role Token that</span>
+<span class="cm">     * includes the specified role name that the principal has access to in the specified</span>
+<span class="cm">     * domain. The client will automatically fulfill the request from the cache, if possible.</span>
+<span class="cm">     * The default minimum expiry time is 900 secs (15 mins).</span>
+<span class="cm">     * @param domainName name of the domain</span>
+<span class="cm">     * @param roleName only interested in roles with this value</span>
+<span class="cm">     * @return ZTS generated Role Token. ZTSClientException will be thrown in case of failure</span>
+<span class="cm">     */</span><span class="w"></span>
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="n">RoleToken</span><span class="w"> </span><span class="n">getRoleToken</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">domainName</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">roleName</span><span class="p">);</span><span class="w"></span>
+</code></pre></div>
+
+
+<p>In the simplest case, the method only requires the caller to specify the
+domain that the application will be accessing. Thus, it needs a Role
+Token for that domain. For example, if the <code>athenz.storage</code> service
+identifier is trying to access a resource from a domain <code>weather</code>, then
+the API call to retrieve the <code>roleToken</code> would be the following:</p>
+<div class="codehilite"><pre><span></span><code><span class="err">    RoleToken roleToken = null;</span>
+<span class="err">    try {</span>
+<span class="err">       roleToken = ztsClient.getRoleToken(&quot;weather&quot;);</span>
+<span class="err">    } catch (ZTSClientException ex) {</span>
+<span class="err">       // log error using ex.getCode() and ex.getMessage()</span>
+<span class="err">    }</span>
+</code></pre></div>
+
+
+<p>Then the client will include the retrieved Role Token value as one of
+its headers when submitting its request to the provider service:</p>
+<div class="codehilite"><pre><span></span><code><span class="err">    ztsClient.getHeader();  // returns Header name: &quot;Athenz-Role-Auth&quot;</span>
+<span class="err">    roleToken.getToken() // returns header value </span>
+</code></pre></div>
+
+
+<p>However, the above method returns a RoleToken that includes all the roles
+the given principal has access to the provider domain. This may not be
+desirable as it violates the principle of least privilege. Instead, the
+caller should (in fact, the system administrator has the option to require
+this rather than making it possible) specify the roleName that it requires
+to complete its request.For example, if the <code>athenz.storage</code> service
+identifier is trying to access a resource from a domain <code>weather</code> and requires
+only read access which is granted to the service as being member of the <code>readers</code>
+role in the <code>weather</code> domain, then the API call to retrieve the <code>roleToken</code>
+would be the following:</p>
+<div class="codehilite"><pre><span></span><code><span class="err">    RoleToken roleToken = null;</span>
+<span class="err">    try {</span>
+<span class="err">       roleToken = ztsClient.getRoleToken(&quot;weather&quot;, &quot;readers&quot;);</span>
+<span class="err">    } catch (ZTSClientException ex) {</span>
+<span class="err">       // log error using ex.getCode() and ex.getMessage()</span>
+<span class="err">    }</span>
+</code></pre></div>
+
+
+<h4 id="zts-getroletoken-error-codes">ZTS getRoleToken Error Codes</h4>
+<hr />
+<p>When communicating with ZTS Server to obtain a RoleToken, the ZTS Server
+will return the following 4xx error codes if it's unable to successfully
+process the request:</p>
+<ul>
+<li><strong>400</strong> The domain name specified in the request to issue a
+    RoleToken for contains invalid characters.</li>
+<li><strong>401</strong> The request could not be successfully authenticated. This
+    usually indicates that either the Service is not properly registered
+    in ZMS or there is a mismatch between the registered public key and
+    the private key that was used to generate the ServiceToken.</li>
+<li><strong>403</strong> The service identity does not have access to any resources
+    in the specified domain.</li>
+<li><strong>404</strong> The domain specified in the request to issue a RoleToken for
+    does not exist.</li>
+</ul>
+<h3 id="token-caching">Token Caching</h3>
+<hr />
+<p>The ZTS Client Library automatically caches any tokens returned by the
+ZTS Server, so any subsequent requests for a Role Token for the same
+domain are fulfilled from the local cache as opposed to connecting to
+the ZTS Server every time. This provides better performance by reusing
+the same Role Token because they’re valid for two hours by default. The
+client library will only return cached Role Tokens if they’re valid for
+at least 15 minutes. If you want to change this default time, the
+application can set the following system property before starting their
+application:</p>
+<div class="codehilite"><pre><span></span><code><span class="err">athenz.zts.client.token_min_expiry_time</span>
+</code></pre></div>
+
+
+<p>The value of this property must be specified in seconds. If for any
+reason you need to disable caching or have better control how long to
+cache tokens, the application can use the full <code>getRoleToken</code> API as
+shown below:</p>
+<div class="codehilite"><pre><span></span><code><span class="err">    /**</span>
+<span class="err">     * For the specified requester(user/service) return the corresponding</span>
+<span class="err">     * Role Token that includes the list of roles that the principal has</span>
+<span class="err">     * access to in the specified domain</span>
+<span class="err">     * @param domainName name of the domain</span>
+<span class="err">     * @param roleName (optional) only interested in the specified role</span>
+<span class="err">     * @param trustDomain (optional) only look for trusted roles in this domain</span>
+<span class="err">     * @param minExpiryTime (optional) specifies that the returned RoleToken</span>
+<span class="err">     *        must be at least valid (min/lower bound) for specified number</span>
+<span class="err">     *        of seconds,</span>
+<span class="err">     * @param maxExpiryTime (optional) specifies that the returned RoleToken</span>
+<span class="err">     *        must be at most valid (max/upper bound) for specified number</span>
+<span class="err">     *        of seconds.</span>
+<span class="err">     * @param ignoreCache ignore the cache and retrieve the token from ZTS Server</span>
+<span class="err">     * @return ZTS generated Role Token</span>
+<span class="err">    */</span>
+<span class="err">    public RoleToken getRoleToken(String domainName, String roleName,</span>
+<span class="err">        Integer minExpiryTime, Integer maxExpiryTime, boolean ignoreCache);</span>
+</code></pre></div>
+
+
+<p>To completely disable caching, the <code>ignoreCache</code> argument (the last
+boolean argument) in the <code>getRoleToken</code> method can be passed <code>true</code>.</p>
+<p>For example, the following call disables caching:</p>
+<div class="codehilite"><pre><span></span><code><span class="err">    RoleToken roleToken = null;</span>
+<span class="err">    try {</span>
+<span class="err">        roleToken = ztsClient.getRoleToken(&quot;weather&quot;, &quot;readers&quot;, null, null, null, true);</span>
+<span class="err">    } catch (ZTSClientException ex) {</span>
+<span class="err">        // log error using ex.getCode() and ex.getMessage()</span>
+<span class="err">    }</span>
+</code></pre></div>
+
+
+<p>The code above will contact the ZTS Server every time the applications
+requests a role token for accessing resources in domain <code>weather</code>.</p>
+<p>The other two important arguments for token caching are the
+<code>minExpiryTime</code> and <code>maxExpiryTime</code> arguments. When passed <code>null</code>, the
+client library uses the default values, which as described above gets
+tokens that are valid for two hours and caches them until they’re 15
+minutes from expiration time.</p>
+<p>If your application wants to take advantage of longer caching, then it
+can request tokens from the ZTS Server with an expiration time longer
+than the default two hours. For example, the requirements for your
+server might be that you can use role tokens that must be at least 30
+minutes from expiration and they can be valid for up to four hours.</p>
+<p>For example, the following would set up the API call that requests
+tokens from the Weather server that can only be used if they are 30
+minutes from expiration and last four hours:</p>
+<div class="codehilite"><pre><span></span><code><span class="err">    RoleToken roleToken = null;</span>
+<span class="err">    try {</span>
+<span class="err">        roleToken = ztsClient.getRoleToken(&quot;weather&quot;, &quot;readers&quot;, null,</span>
+<span class="err">            30 * 60, 4 * 60 * 60, true);</span>
+<span class="err">    } catch (ZTSClientException ex) {</span>
+<span class="err">        // log error using ex.getCode() and ex.getMessage()</span>
+<span class="err">    }</span>
+</code></pre></div>
+
+
+<p>With the above request configuration, your client library will only make
+a single connection to the ZTS Server to retrieve a new token once every
+three hours and 30 minutes. All other requests within that time frame
+will be fulfilled from the local cache.</p>
+<h3 id="token-prefetch-caching">Token Prefetch Caching</h3>
+<hr />
+<p>In addition to the caching described above, the cache can be kept
+<code>fresh</code> automatically by the ZTS Client library. The library detects
+when a token will expire within a short period of time and will actively
+retrieve a new token to replace it. In this way, the client will always
+get a usable token from the cache. With configuration, the prefetch
+mechanism can be triggered automatically upon calling any of the
+<code>getRoleToken</code> API.</p>
+<p>By default the feature is disabled, but can be enabled via a System
+Property. Here is an example of enabling automatic prefetch of tokens.</p>
+<div class="codehilite"><pre><span></span><code><span class="err">    athenz.zts.client.prefetch_auto_enable=true</span>
+</code></pre></div>
+
+
+<p>To use the prefetch caching feature with <code>getRoleToken</code>, specify the
+<code>ignoreCache</code> boolean argument with value <code>false</code>.</p>
+<h2 id="server-authorization-checks">Server - Authorization Checks</h2>
+<hr />
+<p>In the Athenz enabled server the general processing of a client request
+goes as follows:</p>
+<ol>
+<li>Your service extracts the Role Token from the header
+    (<code>Athenz-Role-Auth</code>) of the incoming request which it will pass it to
+    the ZPE API.</li>
+<li>Your service determines the Action and Resource based on the client
+    request. Then the service calls the ZPE API with the Action,
+    Resource, and Role Token to determine authorization access.</li>
+</ol>
+<p>Additionally, the system administrator needs to make sure that
+ZPU (Athenz ZPE Policy Updater) utility is installed and configured
+to run on the server host. ZPU will download the configured domain
+policy data that is used by the ZPE library for authorization
+checks.</p>
+<p>First, you need to update your Java project <code>pom.xml</code> file to indicate
+your dependency on the ZPE Java Client Library:</p>
+<div class="codehilite"><pre><span></span><code><span class="nt">&lt;dependency&gt;</span>
+    <span class="nt">&lt;groupId&gt;</span>com.yahoo.athenz<span class="nt">&lt;/groupId&gt;</span>
+    <span class="nt">&lt;artifactId&gt;</span>athenz-zpe-java-client<span class="nt">&lt;/artifactId&gt;</span>
+    <span class="nt">&lt;version&gt;</span>1.X.Y<span class="nt">&lt;/version&gt;</span>
+<span class="nt">&lt;/dependency&gt;</span>
+
+<span class="nt">&lt;repositories&gt;</span>
+  <span class="nt">&lt;repository&gt;</span>
+    <span class="nt">&lt;id&gt;</span>bintray-yahoo-maven<span class="nt">&lt;/id&gt;</span>
+    <span class="nt">&lt;name&gt;</span>bintray<span class="nt">&lt;/name&gt;</span>
+    <span class="nt">&lt;url&gt;</span>https://yahoo.bintray.com/maven<span class="nt">&lt;/url&gt;</span>
+  <span class="nt">&lt;/repository&gt;</span>
+<span class="nt">&lt;/repositories&gt;</span>
+</code></pre></div>
+
+
+<p>In your server startup code you must initialize the Athenz
+ZPE Client object which will process and load all the policy
+files configured and downloaded by ZPU on this host.</p>
+<div class="codehilite"><pre><span></span><code><span class="err">    AuthZpeClient.init();</span>
+</code></pre></div>
+
+
+<p>Now, the most important part of the rest of the required code is to
+determine the resource and action based on the given http request.
+Once you have those two values determined, then all that is left
+is to extract the ZToken and call ZPE method for the authorization
+check.</p>
+<div class="codehilite"><pre><span></span><code>    <span class="n">HttpServletRequest</span> <span class="n">req</span> <span class="o">=</span> <span class="p">(</span><span class="n">HttpServletRequest</span><span class="p">)</span><span class="n">servletRequest</span><span class="p">;</span>
+
+    <span class="o">//</span> <span class="n">your</span> <span class="k">method</span> <span class="k">of</span> <span class="n">extracting</span> <span class="n">the</span> <span class="n">resource</span> <span class="n">value</span> <span class="k">from</span> <span class="n">the</span> <span class="n">http</span>
+    <span class="o">//</span> <span class="n">request</span><span class="p">.</span> <span class="n">It</span> <span class="n">might</span> <span class="n">need</span> <span class="k">to</span> <span class="n">look</span> <span class="k">at</span> <span class="n">just</span> <span class="n">the</span> <span class="n">URI</span> <span class="k">or</span> <span class="n">possibly</span>
+    <span class="o">//</span> <span class="n">the</span> <span class="k">full</span> <span class="n">body</span> <span class="k">of</span> <span class="n">the</span> <span class="n">request</span><span class="p">.</span>
+
+    <span class="n">String</span> <span class="n">resource</span> <span class="o">=</span> <span class="n">translateToMyServiceResource</span><span class="p">(</span><span class="n">req</span><span class="p">);</span>
+
+    <span class="o">//</span> <span class="n">your</span> <span class="k">method</span> <span class="k">of</span> <span class="n">extracting</span> <span class="n">an</span> <span class="n">action</span> <span class="n">string</span> <span class="k">from</span> <span class="n">the</span> <span class="n">http</span>
+    <span class="o">//</span> <span class="n">request</span><span class="p">.</span>
+
+    <span class="n">String</span> <span class="n">action</span> <span class="o">=</span> <span class="n">translateToMyServiceAction</span><span class="p">(</span><span class="n">req</span><span class="p">);</span>
+
+    <span class="o">//</span> <span class="n">finally</span> <span class="k">extract</span> <span class="n">the</span> <span class="n">ntoken</span> <span class="k">from</span> <span class="n">the</span> <span class="n">header</span><span class="p">.</span>
+
+    <span class="n">String</span> <span class="n">zToken</span> <span class="o">=</span> <span class="n">req</span><span class="p">.</span><span class="n">getHeader</span><span class="p">(</span><span class="err">“</span><span class="n">Athenz</span><span class="o">-</span><span class="k">Role</span><span class="o">-</span><span class="n">Auth</span><span class="err">”</span><span class="p">);</span>
+
+    <span class="o">//</span> <span class="n">this</span> <span class="k">is</span> <span class="n">a</span> <span class="n">thread</span><span class="o">-</span><span class="n">safe</span> <span class="k">call</span>
+
+    <span class="n">AccessCheckStatus</span> <span class="n">status</span> <span class="o">=</span> <span class="n">AuthZpeClient</span><span class="p">.</span><span class="n">allowAccess</span><span class="p">(</span><span class="n">zToken</span><span class="p">,</span> <span class="n">resource</span><span class="p">,</span> <span class="n">action</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">status</span> <span class="o">!=</span> <span class="n">AccessCheckStatus</span><span class="p">.</span><span class="n">ALLOW</span><span class="p">)</span> <span class="err">{</span>
+      <span class="o">//</span> <span class="n">status</span> <span class="n">provides</span> <span class="k">specific</span> <span class="n">enum</span> <span class="n">value</span> <span class="k">for</span> <span class="k">each</span> <span class="n">reason</span>
+      <span class="o">//</span> <span class="n">why</span> <span class="n">the</span> <span class="k">access</span> <span class="k">check</span> <span class="n">was</span> <span class="n">denied</span><span class="p">.</span> <span class="k">For</span> <span class="n">example</span> <span class="o">-</span> <span class="n">here</span> <span class="k">are</span> 
+      <span class="o">//</span> <span class="k">some</span> <span class="k">of</span> <span class="n">the</span> <span class="n">possible</span> <span class="k">values</span> <span class="n">that</span> <span class="k">are</span> <span class="n">returned</span><span class="p">:</span>
+      <span class="o">//</span> <span class="n">AccessCheckStatus</span><span class="p">.</span><span class="n">DENY</span> <span class="o">-</span> <span class="k">specific</span> <span class="k">rule</span> <span class="n">caused</span> <span class="n">the</span> <span class="n">deny</span> <span class="n">effect</span>
+      <span class="o">//</span> <span class="n">AccessCheckStatus</span><span class="p">.</span><span class="n">DENY_NO_MATCH</span> <span class="o">-</span> <span class="n">there</span> <span class="n">was</span> <span class="k">no</span> <span class="k">match</span> <span class="k">to</span> <span class="k">any</span> <span class="n">assertions</span> 
+      <span class="o">//</span>   <span class="k">defined</span> <span class="k">in</span> <span class="n">the</span> <span class="k">domain</span> <span class="n">policy</span> <span class="n">file</span> <span class="n">so</span> <span class="n">the</span> <span class="k">default</span> <span class="n">DENY</span> <span class="n">effect</span> <span class="n">was</span> <span class="n">returned</span>
+      <span class="o">//</span> <span class="n">AccessCheckStatus</span><span class="p">.</span><span class="n">DENY_ROLETOKEN_INVALID</span> <span class="o">-</span> <span class="n">The</span> <span class="n">roletoken</span> <span class="n">provided</span> <span class="k">in</span> <span class="n">the</span> 
+      <span class="o">//</span>   <span class="n">request</span> <span class="n">was</span> <span class="n">either</span> <span class="n">invalid</span> <span class="k">or</span> <span class="n">expired</span>
+      <span class="n">throw</span> <span class="k">new</span> <span class="k">Exception</span><span class="p">(</span><span class="err">“</span><span class="k">Access</span> <span class="n">denied</span><span class="err">”</span><span class="p">);</span>
+    <span class="err">}</span>
+</code></pre></div>
+
+
+<p>If you want to know which role caused the allow or deny a match to be
+returned by the API call, you can use the following API:</p>
+<div class="codehilite"><pre><span></span><code><span class="err">    StringBuilder matchRoleName = new StringBuilder(256);</span>
+<span class="err">    AccessCheckStatus status = AuthZpeClient.allowAccess(zToken, resource, action, matchRoleName);</span>
+<span class="err">    if (status != AccessCheckStatus.ALLOW) {</span>
+<span class="err">      throw new Exception(“Access denied”);</span>
+<span class="err">    }</span>
+</code></pre></div>
+
+
+<p>The variable <code>matchRoleName</code> will include the name of the role from the
+assertion that matched the given action and resource.</p>
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
+        
+          <a href="../example_go_centralized_access/" title="Go Client/Server Example" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+            </div>
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                Go Client/Server Example
+              </div>
+            </div>
+          </a>
+        
+        
+          <a href="../example_java_decentralized_access/" title="Java Client/Servlet Example" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Next
+                </span>
+                Java Client/Servlet Example
+              </div>
+            </div>
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    </div>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
+      </div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    
+      <script src="../assets/javascripts/vendor.d710d30a.min.js"></script>
+      <script src="../assets/javascripts/bundle.b39636ac.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents"}</script>
+      
+      <script>
+        app = initialize({
+          base: "..",
+          features: [],
+          search: Object.assign({
+            worker: "../assets/javascripts/worker/search.a68abb33.min.js"
+          }, typeof search !== "undefined" && search)
+        })
+      </script>
+      
+    
+  </body>
+</html>
