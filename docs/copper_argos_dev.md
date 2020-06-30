@@ -27,7 +27,7 @@
 ## What is Copper Argos
 -----------------------
 
-Copper Argos is to extend Athenz with generalized model for service providers to launch other identities in an authorized way thru a callback-based verification model. With this model each provider is responsible for their instance document verification service instead of embedding that logic inside ZTS.
+Copper Argos extends Athenz with generalized model for service providers to launch other identities in an authorized way through a callback-based verification model. With this model each provider is responsible for their instance document verification service instead of embedding that logic inside ZTS.
 
 ## Provider Service Registration
 --------------------------------

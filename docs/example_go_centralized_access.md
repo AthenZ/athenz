@@ -10,10 +10,10 @@
         * [Client Import Dependency Update](#client-import-dependency-update)
         * [Obtaining NTokens](#obtaining-ntokens)
         * [Build Go zms_svctoken Client Utility](#build-go-zms_svctoken-client-utility)
-    * [Servlet Changes](#servlet-changes)
-        * [Servlet Project Dependency Update](#servlet-project-dependency-update)
+    * [Server Changes](#server-changes)
+        * [Server Project Dependency Update](#server-project-dependency-update)
         * [Authorization Checks](#authorization-checks)
-        * [Build Servlet](#build-servlet)
+        * [Build Server](#build-server)
 * [Deploying Example Servlet](#deploying-example-servlet)
 * [Test Cases](#test-cases)
     * [Invalid Access Without ServiceToken](#invalid-access-without-servicetoken)
@@ -135,7 +135,7 @@ that utilizes our zmssvctoken go library to generate
 service identity tokens. The full client source code is
 available from:
 
-https://github.com/yahoo/athenz/blob/master/utils/zms-svctoken/zms-svctoken.go
+<https://github.com/yahoo/athenz/blob/master/utils/zms-svctoken/zms-svctoken.go>
 
 #### Client Import Dependency Update
 ------------------------------------
@@ -203,7 +203,7 @@ $ go get github.com/yahoo/athenz/utils/zms-svctoken/...
 
 The full server source code is available from:
 
-https://github.com/yahoo/athenz/tree/master/examples/go/centralized-use-case/server
+<https://github.com/yahoo/athenz/tree/master/examples/go/centralized-use-case/server>
 
 #### Server Import Dependency Update
 ------------------------------------
@@ -313,7 +313,7 @@ for specific services. We're running our go server on the local
 box so we're using localhost as the hostname.
 
 * The zms_svctoken utility should already be built and installed
-on your host. cd to the directory that includes the private keys for the test
+on your host.  `cd` to the directory that includes the private keys for the test
 services we created in the section [Athenz Management Setup](#athenz-management-setup)
 above.
 
