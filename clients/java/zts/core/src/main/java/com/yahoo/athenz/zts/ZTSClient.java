@@ -46,6 +46,7 @@ import com.oath.auth.KeyRefresher;
 import com.oath.auth.KeyRefresherException;
 import com.oath.auth.KeyRefresherListener;
 import com.oath.auth.Utils;
+import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
@@ -110,6 +111,7 @@ public class ZTSClient implements Closeable {
     static private int reqConnectTimeout = 30000;
     static private String x509CertDNSName = null;
     static private String confZtsUrl = null;
+    static private JwtsSigningKeyResolver resolver = null;
     
     private boolean enablePrefetch = true;
     private boolean ztsClientOverride = false;
@@ -172,6 +174,7 @@ public class ZTSClient implements Closeable {
     private static ServiceLoader<ZTSClientService> ztsTokenProviders;
     private static AtomicReference<Set<String>> svcLoaderCacheKeys;
     private static PrivateKeyStore PRIVATE_KEY_STORE = loadServicePrivateKey();
+    private static ZTSAccessTokenFileLoader ztsAccessTokenFileLoader;
 
     enum TokenType {
         ROLE,
@@ -219,6 +222,10 @@ public class ZTSClient implements Closeable {
         // finally retrieve our configuration ZTS url from our config file
         
         lookupZTSUrl();
+
+        // init zts file utility
+
+        initZTSAccessTokenFileLoader();
         
         return true;
     }
@@ -327,7 +334,19 @@ public class ZTSClient implements Closeable {
             }
         }
     }
-    
+
+    public static void initZTSAccessTokenFileLoader() {
+        if (resolver == null) {
+            resolver = new JwtsSigningKeyResolver(null, null);
+        }
+        ztsAccessTokenFileLoader = new ZTSAccessTokenFileLoader(resolver);
+        ztsAccessTokenFileLoader.preload();
+    }
+
+    public static void setAccessTokenSignKeyResolver(JwtsSigningKeyResolver jwtsSigningKeyResolver) {
+        resolver = jwtsSigningKeyResolver;
+    }
+
     /**
      * Constructs a new ZTSClient object with default settings.
      * The url for ZTS Server is automatically retrieved from the athenz
@@ -1141,7 +1160,7 @@ public class ZTSClient implements Closeable {
     public AccessTokenResponse getAccessToken(String domainName, List<String> roleNames, String idTokenServiceName,
             String proxyForPrincipal, long expiryTime, boolean ignoreCache) {
 
-        AccessTokenResponse accessTokenResponse;
+        AccessTokenResponse accessTokenResponse = null;
 
         // first lookup in our cache to see if it can be satisfied
         // only if we're not asked to ignore the cache
@@ -1168,30 +1187,40 @@ public class ZTSClient implements Closeable {
             }
         }
 
+        // if no hit then we need to look up in disk
+        try {
+            accessTokenResponse = ztsAccessTokenFileLoader.lookupAccessTokenFromDisk(domainName, roleNames);
+        } catch (IOException e) {
+            LOG.error("GetAccessToken: failed to load access token from disk ", e.getMessage());
+        }
+
         // if no hit then we need to request a new token from ZTS
 
-        updateServicePrincipal();
-        try {
-            final String requestBody = generateAccessTokenRequestBody(domainName, roleNames,
-                    idTokenServiceName, proxyForPrincipal, expiryTime);
-            accessTokenResponse = ztsClient.postAccessTokenRequest(requestBody);
-        } catch (ResourceException ex) {
-            if (cacheKey != null && !ignoreCache) {
-                accessTokenResponse = lookupAccessTokenResponseInCache(cacheKey, -1);
-                if (accessTokenResponse != null) {
-                    return accessTokenResponse;
+        if (accessTokenResponse == null) {
+            updateServicePrincipal();
+            try {
+                final String requestBody = generateAccessTokenRequestBody(domainName, roleNames,
+                        idTokenServiceName, proxyForPrincipal, expiryTime);
+                accessTokenResponse = ztsClient.postAccessTokenRequest(requestBody);
+            } catch (ResourceException ex) {
+                if (cacheKey != null && !ignoreCache) {
+                    accessTokenResponse = lookupAccessTokenResponseInCache(cacheKey, -1);
+                    if (accessTokenResponse != null) {
+                        return accessTokenResponse;
+                    }
                 }
-            }
-            throw new ZTSClientException(ex.getCode(), ex.getData());
-        } catch (Exception ex) {
-            if (cacheKey != null && !ignoreCache) {
-                accessTokenResponse = lookupAccessTokenResponseInCache(cacheKey, -1);
-                if (accessTokenResponse != null) {
-                    return accessTokenResponse;
+                throw new ZTSClientException(ex.getCode(), ex.getData());
+            } catch (Exception ex) {
+                if (cacheKey != null && !ignoreCache) {
+                    accessTokenResponse = lookupAccessTokenResponseInCache(cacheKey, -1);
+                    if (accessTokenResponse != null) {
+                        return accessTokenResponse;
+                    }
                 }
+                throw new ZTSClientException(ZTSClientException.BAD_REQUEST, ex.getMessage());
             }
-            throw new ZTSClientException(ZTSClientException.BAD_REQUEST, ex.getMessage());
         }
+
 
         // need to add the token to our cache. If our principal was
         // updated then we need to retrieve a new cache key
@@ -1204,6 +1233,7 @@ public class ZTSClient implements Closeable {
                 ACCESS_TOKEN_CACHE.put(cacheKey, new AccessTokenResponseCacheEntry(accessTokenResponse));
             }
         }
+
         return accessTokenResponse;
     }
 

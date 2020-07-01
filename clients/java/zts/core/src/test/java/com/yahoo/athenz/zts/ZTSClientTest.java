@@ -15,6 +15,8 @@
  */
 package com.yahoo.athenz.zts;
 
+import static com.yahoo.athenz.zts.AccessTokenTestFileHelper.setupInvalidTokenFile;
+import static com.yahoo.athenz.zts.AccessTokenTestFileHelper.setupTokenFile;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotEquals;
@@ -23,6 +25,7 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
 import org.bouncycastle.asn1.x500.RDN;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.style.BCStyle;
@@ -31,7 +34,10 @@ import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
@@ -3012,6 +3018,32 @@ public class ZTSClientTest {
                 Collections.singletonList("readers"), "backend", null));
 
         client.close();
+    }
+
+    @Test
+    public void testGetAccessTokenFromFile() {
+        File ecPublicKey = new File("./src/test/resources/ec_public.key");
+        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(null, null);
+        PublicKey publicKey = Crypto.loadPublicKey(ecPublicKey);
+        resolver.addPublicKey("eckey1", publicKey);
+        Path path = Paths.get("./src/test/resources/");
+        System.setProperty(ZTSAccessTokenFileLoader.ACCESS_TOKEN_PATH_PROPERTY, path.toString());
+        setupTokenFile();
+        setupInvalidTokenFile();
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "auth_creds", PRINCIPAL_AUTHORITY);
+
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+        client.setZTSRDLGeneratedClient(ztsClientMock);
+        ZTSClient.setAccessTokenSignKeyResolver(resolver);
+        ZTSClient.initZTSAccessTokenFileLoader();
+
+        AccessTokenResponse accessTokenResponse = client.getAccessToken("test.domain", Collections.singletonList("admin"), 3600);
+        assertNotNull(accessTokenResponse);
+        assertEquals(accessTokenResponse.getScope(), "admin");
+        assertTrue(28800 == accessTokenResponse.getExpires_in());
     }
 
     @Test
