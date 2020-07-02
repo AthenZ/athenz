@@ -388,4 +388,22 @@ public class ZMSUtils {
         }
     }
 
+    public static String combineUserAuthorityFilters(final String roleUserAuthorityFilter, final String domainUserAuthorityFilter) {
+
+        String authorityFilter = null;
+        if (roleUserAuthorityFilter != null && !roleUserAuthorityFilter.isEmpty()) {
+            authorityFilter = roleUserAuthorityFilter;
+        }
+
+        if (domainUserAuthorityFilter != null && !domainUserAuthorityFilter.isEmpty()) {
+            if (authorityFilter == null) {
+                authorityFilter = domainUserAuthorityFilter;
+            } else {
+                // no need for extra work to remove duplicates
+                authorityFilter += "," + domainUserAuthorityFilter;
+            }
+        }
+
+        return authorityFilter;
+    }
 }

@@ -76,7 +76,7 @@
     <jackson.annotations.version>2.11.0</jackson.annotations.version>
     <jackson.jaxrs.version>2.11.0</jackson.jaxrs.version>
     <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
-    <rdl.version>1.5.2</rdl.version>
+    <rdl.version>1.5.3</rdl.version>
     <bouncycastle.version>1.65</bouncycastle.version>
     <aws.version>1.11.802</aws.version>
     <guava.version>29.0-jre</guava.version>

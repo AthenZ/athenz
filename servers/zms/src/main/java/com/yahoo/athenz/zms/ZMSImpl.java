@@ -1224,6 +1224,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
         }
 
+        // if we're provided a user authority filter then we need to
+        // make sure it's valid
+
+        validateUserAuthorityFilterAttribute(detail.getUserAuthorityFilter(), caller);
+
+        // process our top level domain request
+
         Domain topLevelDomain = new Domain()
                 .setName(domainName)
                 .setAuditEnabled(detail.getAuditEnabled())
@@ -1239,7 +1246,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setTokenExpiryMins(detail.getTokenExpiryMins())
                 .setServiceCertExpiryMins(detail.getServiceCertExpiryMins())
                 .setRoleCertExpiryMins(detail.getRoleCertExpiryMins())
-                .setSignAlgorithm(detail.getSignAlgorithm());
+                .setSignAlgorithm(detail.getSignAlgorithm())
+                .setUserAuthorityFilter(detail.getUserAuthorityFilter());
+
+        // before processing validate the fields
+
+        validateDomainValues(topLevelDomain);
 
         List<String> adminUsers = normalizedAdminUsers(detail.getAdminUsers());
         Domain domain = createTopLevelDomain(ctx, topLevelDomain, adminUsers, solutionTemplates, auditRef);
@@ -1402,6 +1414,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setRoleCertExpiryMins(detail.getRoleCertExpiryMins())
                 .setSignAlgorithm(detail.getSignAlgorithm());
 
+        // before processing validate the fields
+
+        validateDomainValues(subDomain);
+
         Domain domain = createSubDomain(ctx, subDomain, adminUsers, solutionTemplates, auditRef, caller);
         metric.stopTiming(timerMetric, name, principalDomain);
         return domain;
@@ -1485,6 +1501,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         if (parentDomain != null && parentDomain.getDomain() != null) {
             detail.setAuditEnabled(parentDomain.getDomain().getAuditEnabled());
             detail.setOrg(parentDomain.getDomain().getOrg());
+            detail.setUserAuthorityFilter(parentDomain.getDomain().getUserAuthorityFilter());
         }
 
         Domain subDomain = new Domain()
@@ -1503,6 +1520,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setServiceCertExpiryMins(detail.getServiceCertExpiryMins())
                 .setRoleCertExpiryMins(detail.getRoleCertExpiryMins())
                 .setSignAlgorithm(detail.getSignAlgorithm());
+
+        // before processing validate the fields
+
+        validateDomainValues(subDomain);
 
         Domain domain = createSubDomain(ctx, subDomain, adminUsers, solutionTemplates, auditRef, caller);
         metric.stopTiming(timerMetric, parent, principalDomain);
@@ -1774,6 +1795,21 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
 
+    void validateDomainValues(Domain domain) {
+
+        final String caller = "validateDomainValues";
+
+        validateIntegerValue(domain.getServiceCertExpiryMins(), "serviceCertExpiryMins");
+        validateIntegerValue(domain.getMemberExpiryDays(), "memberExpiryDays");
+        validateIntegerValue(domain.getRoleCertExpiryMins(), "roleCertExpiryMins");
+        validateIntegerValue(domain.getServiceExpiryDays(), "serviceExpiryDays");
+        validateIntegerValue(domain.getTokenExpiryMins(), "tokenExpiryMins");
+
+        validateString(domain.getApplicationId(), TYPE_COMPOUND_NAME, caller);
+        validateString(domain.getAccount(), TYPE_COMPOUND_NAME, caller);
+        validateString(domain.getUserAuthorityFilter(), TYPE_AUTHORITY_KEYWORDS, caller);
+    }
+
     void validateDomainMetaValues(DomainMeta meta) {
 
         final String caller = "validateDomainMetaValues";
@@ -1882,6 +1918,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 ZMSConsts.SYSTEM_META_PRODUCT_ID.equals(attribute)) {
              throw ZMSUtils.requestError("Unique Product Id must be specified for top level domain", caller);
         }
+
+        // if we're provided a user authority filter then we need to
+        // make sure it's valid
+
+        validateUserAuthorityFilterAttribute(meta.getUserAuthorityFilter(), caller);
 
         // if this is just to update the timestamp then we will handle it separately
 
@@ -3052,7 +3093,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // check to see if we need to validate user and service members
         // and possibly user authority filter restrictions
 
-        validateRoleMemberPrincipals(role, caller);
+        validateRoleMemberPrincipals(role, domain.getUserAuthorityFilter(), caller);
 
         // if the role is review enabled then it cannot contain
         // role members as we want review and audit enabled roles
@@ -3118,11 +3159,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
 
-    void validateRoleMemberPrincipals(final Role role, final String caller) {
+    void validateRoleMemberPrincipals(final Role role, final String domainUserAuthorityFilter, final String caller) {
 
         // make sure we have either one of the options enabled for verification
 
-        final String userAuthorityFilter = enforcedUserAuthorityFilter(role.getUserAuthorityFilter());
+        final String userAuthorityFilter = enforcedUserAuthorityFilter(role.getUserAuthorityFilter(),
+                domainUserAuthorityFilter);
+
         if (!shouldValidateRoleMembers(userAuthorityFilter)) {
             return;
         }
@@ -3194,14 +3237,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         } else {
 
-            // if it's a service and we have a user authority filter specified
-            // then it's automatically assumed it's not a valid principal so we'll
-            // only evaluate if the filter is null
-
-            if (userAuthorityFilter != null) {
-                throw ZMSUtils.requestError("Invalid member: " + memberName +
-                        ". Required user authority filter not valid service members", caller);
-            } else if (validateServiceRoleMembers) {
+            if (validateServiceRoleMembers) {
 
                 // if the account contains a wildcard character then
                 // we're going to assume it's valid
@@ -3549,7 +3585,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // check to see if we need to validate the principal
 
-        final String userAuthorityFilter = enforcedUserAuthorityFilter(role.getUserAuthorityFilter());
+        final String userAuthorityFilter = enforcedUserAuthorityFilter(role.getUserAuthorityFilter(),
+                domain.getDomain().getUserAuthorityFilter());
         if (shouldValidateRoleMembers(userAuthorityFilter)) {
             validateRoleMemberPrincipal(roleMember.getMemberName(), userAuthorityFilter, caller);
         }
@@ -3575,16 +3612,16 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         metric.stopTiming(timerMetric, domainName, principalDomain);
     }
 
-    String enforcedUserAuthorityFilter(final String userAuthorityFilter) {
+    String enforcedUserAuthorityFilter(final String roleUserAuthorityFilter, final String domainUserAuthorityFilter) {
 
         // for a filter to be enforced we need to make sure we have
         // a valid user authority object along with non-empty filter
 
-        if (userAuthority == null || userAuthorityFilter == null || userAuthorityFilter.isEmpty()) {
+        if (userAuthority == null) {
             return null;
         }
 
-        return userAuthorityFilter;
+        return ZMSUtils.combineUserAuthorityFilters(roleUserAuthorityFilter, domainUserAuthorityFilter);
     }
 
     boolean shouldValidateRoleMembers(final String userAuthorityFilter) {
@@ -7829,7 +7866,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             // but only if the decision is to approve. We don't
             // want to block removal of rejected user requests
 
-            final String userAuthorityFilter = enforcedUserAuthorityFilter(role.getUserAuthorityFilter());
+            final String userAuthorityFilter = enforcedUserAuthorityFilter(role.getUserAuthorityFilter(),
+                    domain.getDomain().getUserAuthorityFilter());
             if (shouldValidateRoleMembers(userAuthorityFilter)) {
                 validateRoleMemberPrincipal(roleMember.getMemberName(), userAuthorityFilter, caller);
             }
@@ -8098,8 +8136,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         metric.stopTiming(timerMetric, domainName, principalDomain);
     }
 
-    void validateRoleUserAuthorityAttributes(final String authorityFilter, final String authorityExpiration,
-                                             final String caller) {
+    void validateUserAuthorityFilterAttribute(final String authorityFilter, final String caller)  {
 
         if (authorityFilter != null && !authorityFilter.isEmpty()) {
             if (userAuthority == null) {
@@ -8113,6 +8150,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 }
             }
         }
+    }
+
+    void validateUserAuthorityDateAttribute(final String authorityExpiration, final String caller) {
 
         if (authorityExpiration != null && !authorityExpiration.isEmpty()) {
             if (userAuthority == null) {
@@ -8124,6 +8164,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 throw ZMSUtils.requestError(authorityExpiration + " is not a valid user authority date attribute", caller);
             }
         }
+    }
+
+    void validateRoleUserAuthorityAttributes(final String authorityFilter, final String authorityExpiration,
+                                             final String caller) {
+        validateUserAuthorityFilterAttribute(authorityFilter, caller);
+        validateUserAuthorityDateAttribute(authorityExpiration, caller);
     }
 
     class AutoApplyTemplate implements Runnable {

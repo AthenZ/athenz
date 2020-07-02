@@ -96,7 +96,8 @@ public class ZMSSchema {
             .field("serviceCertExpiryMins", "Int32", true, "service identity certs issued for this domain will have specified max timeout in mins")
             .field("roleCertExpiryMins", "Int32", true, "role certs issued for this domain will have specified max timeout in mins")
             .field("signAlgorithm", "SimpleName", true, "rsa or ec signing algorithm to be used for tokens")
-            .field("serviceExpiryDays", "Int32", true, "all services in the domain will have specified max expiry days");
+            .field("serviceExpiryDays", "Int32", true, "all services in the domain will have specified max expiry days")
+            .field("userAuthorityFilter", "String", true, "membership filtered based on user authority configured attributes");
 
         sb.structType("Domain", "DomainMeta")
             .comment("A domain is an independent partition of users, roles, and resources. Its name represents the definition of a namespace; the only way a new namespace can be created, from the top, is by creating Domains. Administration of a domain is governed by the parent domain (using reverse-DNS namespaces). The top level domains are governed by the special \"sys.auth\" domain.")

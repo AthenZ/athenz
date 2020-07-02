@@ -2347,7 +2347,8 @@ public class DBService implements RolesProvider {
                         .setTokenExpiryMins(domain.getTokenExpiryMins())
                         .setRoleCertExpiryMins(domain.getRoleCertExpiryMins())
                         .setServiceCertExpiryMins(domain.getServiceCertExpiryMins())
-                        .setSignAlgorithm(domain.getSignAlgorithm());
+                        .setSignAlgorithm(domain.getSignAlgorithm())
+                        .setUserAuthorityFilter(domain.getUserAuthorityFilter());
 
                 // then we're going to apply the updated fields
                 // from the given object
@@ -2375,12 +2376,71 @@ public class DBService implements RolesProvider {
                 // date accordingly
 
                 updateDomainMembersExpiration(ctx, con, domain, updatedDomain, auditRef, caller);
+
+                // if the domain user attribute expiry has changed we need to
+                // process all the members in the domain accordingly
+
+                updateDomainMembersUserAuthorityFilter(ctx, con, domain, updatedDomain, auditRef, caller);
+
                 return;
 
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
                     throw ex;
                 }
+            }
+        }
+    }
+
+    void updateDomainMembersUserAuthorityFilter(ResourceContext ctx, ObjectStoreConnection con, Domain domain,
+                                               Domain updatedDomain, String auditRef, String caller) {
+
+        // check if the authority filter has changed otherwise we have
+        // nothing to do
+
+        if (!isUserAuthorityFilterChanged(domain.getUserAuthorityFilter(), updatedDomain.getUserAuthorityFilter())) {
+            return;
+        }
+
+        final String domainName = domain.getName();
+        AthenzDomain athenzDomain;
+        try {
+            athenzDomain = getAthenzDomain(con, domainName);
+        } catch (ResourceException ex) {
+            LOG.error("unable to fetch domain {}: {}", domainName, ex.getMessage());
+            return;
+        }
+
+        final String principal = getPrincipalName(ctx);
+        for (Role role : athenzDomain.getRoles()) {
+
+            // if it's a delegated role then we have nothing to do
+
+            if (role.getTrust() != null && !role.getTrust().isEmpty()) {
+                continue;
+            }
+
+            // if no role members, then there is nothing to do
+
+            final List<RoleMember> roleMembers = role.getRoleMembers();
+            if (roleMembers == null || roleMembers.isEmpty()) {
+                continue;
+            }
+
+            // process our role members and if there were any changes processed then update
+            // our role and domain time-stamps, and invalidate local cache entry
+
+            final String roleName = AthenzUtils.extractRoleName(role.getName());
+            List<RoleMember> roleMembersWithUpdatedDisabledState = getRoleMembersWithUpdatedDisabledState(roleMembers,
+                    role.getUserAuthorityFilter(), updatedDomain.getUserAuthorityFilter());
+            if (updateRoleMemberDisabledState(ctx, con, roleMembersWithUpdatedDisabledState, domainName,
+                    roleName, principal, auditRef, caller)) {
+
+                // update our role and domain time-stamps, and invalidate local cache entry
+
+                con.updateRoleModTimestamp(domainName, roleName);
+                con.updateDomainModTimestamp(domainName);
+                cacheStore.invalidate(domainName);
             }
         }
     }
@@ -2531,6 +2591,9 @@ public class DBService implements RolesProvider {
                 break;
             case ZMSConsts.SYSTEM_META_AUDIT_ENABLED:
                 domain.setAuditEnabled(meta.getAuditEnabled());
+                break;
+            case ZMSConsts.SYSTEM_META_USER_AUTH_FILTER:
+                domain.setUserAuthorityFilter(meta.getUserAuthorityFilter());
                 break;
             case ZMSConsts.SYSTEM_META_ENABLED:
                 domain.setEnabled(meta.getEnabled());
@@ -3774,6 +3837,8 @@ public class DBService implements RolesProvider {
                 .append("\", \"tokenExpiryMins\": \"").append(domain.getTokenExpiryMins())
                 .append("\", \"serviceCertExpiryMins\": \"").append(domain.getServiceCertExpiryMins())
                 .append("\", \"roleCertExpiryMins\": \"").append(domain.getRoleCertExpiryMins())
+                .append("\", \"signAlgorithm\": \"").append(domain.getSignAlgorithm())
+                .append("\", \"userAuthorityFilter\": \"").append(domain.getUserAuthorityFilter())
                 .append("\"}");
     }
 
@@ -3800,6 +3865,9 @@ public class DBService implements RolesProvider {
                 .append("\", \"serviceReviewDays\": \"").append(role.getServiceReviewDays())
                 .append("\", \"reviewEnabled\": \"").append(role.getReviewEnabled())
                 .append("\", \"notifyRoles\": \"").append(role.getNotifyRoles())
+                .append("\", \"signAlgorithm\": \"").append(role.getSignAlgorithm())
+                .append("\", \"userAuthorityFilter\": \"").append(role.getUserAuthorityFilter())
+                .append("\", \"userAuthorityExpiration\": \"").append(role.getUserAuthorityExpiration())
                 .append("\"}");
     }
 
@@ -4121,19 +4189,32 @@ public class DBService implements RolesProvider {
         return newDueDateMillis != 0 && (currentDueDate == null || currentDueDate.millis() > newDueDateMillis);
     }
 
-    boolean updateUserAuthorityFilter(RoleMember roleMember, final String userAuthorityFilter) {
+    int getMemberUserAuthorityState(final String roleMemberName, final String authorityFilter, int currentState) {
 
-        // if all the attributes are set then we need to make sure
-        // the members disabled state does not have the authority
-        // filter bit set
+        boolean bUser = ZMSUtils.isUserDomainPrincipal(roleMemberName, zmsConfig.getUserDomainPrefix(),
+                zmsConfig.getAddlUserCheckDomainPrefixList());
+
+        // if we have a user then we'll check if the filter is still valid
+        // for the user. for services, we just ignore from any checks
 
         int newState;
-        int currentState = roleMember.getSystemDisabled() == null ? 0 : roleMember.getSystemDisabled();
-        if (ZMSUtils.isUserAuthorityFilterValid(zmsConfig.getUserAuthority(), userAuthorityFilter, roleMember.getMemberName())) {
-            newState = currentState & ~ZMSConsts.ZMS_DISABLED_AUTHORITY_FILTER;
+        if (bUser) {
+            if (ZMSUtils.isUserAuthorityFilterValid(zmsConfig.getUserAuthority(), authorityFilter, roleMemberName)) {
+                newState = currentState & ~ZMSConsts.ZMS_DISABLED_AUTHORITY_FILTER;
+            } else {
+                newState = currentState | ZMSConsts.ZMS_DISABLED_AUTHORITY_FILTER;
+            }
         } else {
-            newState = currentState | ZMSConsts.ZMS_DISABLED_AUTHORITY_FILTER;
+            newState = currentState;
         }
+        return newState;
+    }
+
+    boolean updateUserAuthorityFilter(RoleMember roleMember, final String userAuthorityFilter) {
+
+        int currentState = roleMember.getSystemDisabled() == null ? 0 : roleMember.getSystemDisabled();
+        int newState = getMemberUserAuthorityState(roleMember.getMemberName(), userAuthorityFilter, currentState);
+
         if (newState != currentState) {
             roleMember.setSystemDisabled(newState);
             return true;
@@ -4174,17 +4255,20 @@ public class DBService implements RolesProvider {
         return expiryDateUpdated;
     }
 
-    List<RoleMember> getRoleMembersWithUpdatedDisabledState(List<RoleMember> roleMembers, final String authorityFilter) {
+    List<RoleMember> getRoleMembersWithUpdatedDisabledState(List<RoleMember> roleMembers, final String roleUserAuthorityFilter,
+                                                            final String domainUserAuthorityFilter) {
 
-        List<RoleMember> roleMembersWithUpdatedDueDates = new ArrayList<>();
+        List<RoleMember> roleMembersWithUpdatedDisabledStates = new ArrayList<>();
+
+        // combine the user and domain authority lists to have a single value
+
+        final String userAuthorityFilter = ZMSUtils.combineUserAuthorityFilters(roleUserAuthorityFilter,
+                domainUserAuthorityFilter);
 
         // if the authority filter is null or empty then we're going to go
         // through all of the members and remove the system disabled bit
         // set for user authority
 
-        boolean filterDisabled = authorityFilter == null || authorityFilter.isEmpty();
-
-        int newState;
         for (RoleMember roleMember : roleMembers) {
 
             int currentState = roleMember.getSystemDisabled() == null ? 0 : roleMember.getSystemDisabled();
@@ -4192,31 +4276,20 @@ public class DBService implements RolesProvider {
             // if the filter is disabled then we're going through the list and
             // make sure the disabled bit for the filter is unset
 
-            if (filterDisabled) {
+            int newState;
+            if (userAuthorityFilter == null) {
                 newState = currentState & ~ZMSConsts.ZMS_DISABLED_AUTHORITY_FILTER;
             } else {
-
-                boolean bUser = ZMSUtils.isUserDomainPrincipal(roleMember.getMemberName(), zmsConfig.getUserDomainPrefix(),
-                        zmsConfig.getAddlUserCheckDomainPrefixList());
-
-                // if we have a user then we'll check if the filter is still valid
-                // for the user. for services, all should be disabled as they should
-                // not be included in this role
-
-                if (bUser && ZMSUtils.isUserAuthorityFilterValid(zmsConfig.getUserAuthority(), authorityFilter, roleMember.getMemberName())) {
-                    newState = currentState & ~ZMSConsts.ZMS_DISABLED_AUTHORITY_FILTER;
-                } else {
-                    newState = currentState | ZMSConsts.ZMS_DISABLED_AUTHORITY_FILTER;
-                }
+                newState = getMemberUserAuthorityState(roleMember.getMemberName(), userAuthorityFilter, currentState);
             }
 
             if (newState != currentState) {
                 roleMember.setSystemDisabled(newState);
-                roleMembersWithUpdatedDueDates.add(roleMember);
+                roleMembersWithUpdatedDisabledStates.add(roleMember);
             }
         }
 
-        return roleMembersWithUpdatedDueDates;
+        return roleMembersWithUpdatedDisabledStates;
     }
 
     List<RoleMember> getRoleMembersWithUpdatedDueDates(List<RoleMember> roleMembers, Timestamp userExpiration,
@@ -4430,7 +4503,7 @@ public class DBService implements RolesProvider {
         // our role and domain time-stamps, and invalidate local cache entry
 
         List<RoleMember> roleMembersWithUpdatedDisabledState = getRoleMembersWithUpdatedDisabledState(roleMembers,
-                updatedRole.getUserAuthorityFilter());
+                updatedRole.getUserAuthorityFilter(), getDomainUserAuthorityFilter(con, domainName));
         if (updateRoleMemberDisabledState(ctx, con, roleMembersWithUpdatedDisabledState, domainName,
                 roleName, principal, auditRef, caller)) {
 
@@ -4440,6 +4513,14 @@ public class DBService implements RolesProvider {
             con.updateDomainModTimestamp(domainName);
             cacheStore.invalidate(domainName);
         }
+    }
+
+    String getDomainUserAuthorityFilter(ObjectStoreConnection con, final String domainName) {
+        Domain domain = con.getDomain(domainName);
+        if (domain == null) {
+            return null;
+        }
+        return domain.getUserAuthorityFilter();
     }
 
     void updateRoleMembersDueDates(ResourceContext ctx, ObjectStoreConnection con, final String domainName,
@@ -4880,7 +4961,7 @@ public class DBService implements RolesProvider {
         // first we need to get all the roles that have the authority
         // filter or date expiry attributes set
 
-        List<MemberRole> roles;
+        List<PrincipalRole> roles;
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             roles = con.listRolesWithUserAuthorityRestrictions();
         }
@@ -4893,9 +4974,10 @@ public class DBService implements RolesProvider {
         // want to process all roles and not allow a single one
         // prevent updating others
 
-        for (MemberRole role : roles) {
+        for (PrincipalRole role : roles) {
             try {
-                enforceRoleUserAuthorityRestrictions(role.getDomainName(), role.getRoleName());
+                enforceRoleUserAuthorityRestrictions(role.getDomainName(), role.getRoleName(),
+                        role.getDomainUserAuthorityFilter());
             } catch (Exception ex) {
                 LOG.error("Unable to process user authority restrictions for {}:role.{} - {}",
                         role.getDomainName(), role.getRoleName(), ex.getMessage());
@@ -4919,14 +5001,16 @@ public class DBService implements RolesProvider {
             try {
                 this.executePutDomainTemplate(null, domainName, domainTemplate, auditRef, caller);
             } catch (Exception ex) {
-                LOG.error("unable to apply template for domain {} and template {} error: {}", domainName, domainTemplate, ex.getMessage());
+                LOG.error("unable to apply template for domain {} and template {} error: {}",
+                        domainName, domainTemplate, ex.getMessage());
                 continue;
             }
         }
         return domainTemplateListMap;
     }
 
-    void enforceRoleUserAuthorityRestrictions(final String domainName, final String roleName) {
+    void enforceRoleUserAuthorityRestrictions(final String domainName, final String roleName,
+                                              final String domainUserAuthorityFilter) {
 
         final String caller = "enforceRoleUserAuthorityRestrictions";
         try (ObjectStoreConnection con = store.getConnection(true, true)) {
@@ -4964,9 +5048,11 @@ public class DBService implements RolesProvider {
             // now process authority filter restriction
 
             boolean filterDBUpdated = false;
-            final String userAuthorityFilter = role.getUserAuthorityFilter();
+            final String userAuthorityFilter = ZMSUtils.combineUserAuthorityFilters(role.getUserAuthorityFilter(),
+                    domainUserAuthorityFilter);
             if (userAuthorityFilter != null) {
                 List<RoleMember> updatedMembers = new ArrayList();
+
                 for (RoleMember roleMember : roleMembers) {
                     if (updateUserAuthorityFilter(roleMember, userAuthorityFilter)) {
                         updatedMembers.add(roleMember);

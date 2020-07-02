@@ -53,6 +53,9 @@ public class DomainMeta {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Integer serviceExpiryDays;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String userAuthorityFilter;
 
     public DomainMeta setDescription(String description) {
         this.description = description;
@@ -152,6 +155,13 @@ public class DomainMeta {
     public Integer getServiceExpiryDays() {
         return serviceExpiryDays;
     }
+    public DomainMeta setUserAuthorityFilter(String userAuthorityFilter) {
+        this.userAuthorityFilter = userAuthorityFilter;
+        return this;
+    }
+    public String getUserAuthorityFilter() {
+        return userAuthorityFilter;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -200,6 +210,9 @@ public class DomainMeta {
                 return false;
             }
             if (serviceExpiryDays == null ? a.serviceExpiryDays != null : !serviceExpiryDays.equals(a.serviceExpiryDays)) {
+                return false;
+            }
+            if (userAuthorityFilter == null ? a.userAuthorityFilter != null : !userAuthorityFilter.equals(a.userAuthorityFilter)) {
                 return false;
             }
         }

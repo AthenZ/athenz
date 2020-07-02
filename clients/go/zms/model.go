@@ -188,6 +188,11 @@ type DomainMeta struct {
 	// all services in the domain will have specified max expiry days
 	//
 	ServiceExpiryDays *int32 `json:"serviceExpiryDays,omitempty" rdl:"optional"`
+
+	//
+	// membership filtered based on user authority configured attributes
+	//
+	UserAuthorityFilter string `json:"userAuthorityFilter" rdl:"optional"`
 }
 
 //
@@ -272,6 +277,12 @@ func (self *DomainMeta) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "SimpleName", self.SignAlgorithm)
 		if !val.Valid {
 			return fmt.Errorf("DomainMeta.signAlgorithm does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	if self.UserAuthorityFilter != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.UserAuthorityFilter)
+		if !val.Valid {
+			return fmt.Errorf("DomainMeta.userAuthorityFilter does not contain a valid String (%v)", val.Error)
 		}
 	}
 	return nil
@@ -360,6 +371,11 @@ type Domain struct {
 	// all services in the domain will have specified max expiry days
 	//
 	ServiceExpiryDays *int32 `json:"serviceExpiryDays,omitempty" rdl:"optional"`
+
+	//
+	// membership filtered based on user authority configured attributes
+	//
+	UserAuthorityFilter string `json:"userAuthorityFilter" rdl:"optional"`
 
 	//
 	// the common name to be referred to, the symbolic id. It is immutable
@@ -459,6 +475,12 @@ func (self *Domain) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "SimpleName", self.SignAlgorithm)
 		if !val.Valid {
 			return fmt.Errorf("Domain.signAlgorithm does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	if self.UserAuthorityFilter != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.UserAuthorityFilter)
+		if !val.Valid {
+			return fmt.Errorf("Domain.userAuthorityFilter does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.Name == "" {
@@ -3150,6 +3172,11 @@ type TopLevelDomain struct {
 	ServiceExpiryDays *int32 `json:"serviceExpiryDays,omitempty" rdl:"optional"`
 
 	//
+	// membership filtered based on user authority configured attributes
+	//
+	UserAuthorityFilter string `json:"userAuthorityFilter" rdl:"optional"`
+
+	//
 	// name of the domain
 	//
 	Name SimpleName `json:"name"`
@@ -3252,6 +3279,12 @@ func (self *TopLevelDomain) Validate() error {
 			return fmt.Errorf("TopLevelDomain.signAlgorithm does not contain a valid SimpleName (%v)", val.Error)
 		}
 	}
+	if self.UserAuthorityFilter != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.UserAuthorityFilter)
+		if !val.Valid {
+			return fmt.Errorf("TopLevelDomain.userAuthorityFilter does not contain a valid String (%v)", val.Error)
+		}
+	}
 	if self.Name == "" {
 		return fmt.Errorf("TopLevelDomain.name is missing but is a required field")
 	} else {
@@ -3344,6 +3377,11 @@ type SubDomain struct {
 	// all services in the domain will have specified max expiry days
 	//
 	ServiceExpiryDays *int32 `json:"serviceExpiryDays,omitempty" rdl:"optional"`
+
+	//
+	// membership filtered based on user authority configured attributes
+	//
+	UserAuthorityFilter string `json:"userAuthorityFilter" rdl:"optional"`
 
 	//
 	// name of the domain
@@ -3453,6 +3491,12 @@ func (self *SubDomain) Validate() error {
 			return fmt.Errorf("SubDomain.signAlgorithm does not contain a valid SimpleName (%v)", val.Error)
 		}
 	}
+	if self.UserAuthorityFilter != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.UserAuthorityFilter)
+		if !val.Valid {
+			return fmt.Errorf("SubDomain.userAuthorityFilter does not contain a valid String (%v)", val.Error)
+		}
+	}
 	if self.Name == "" {
 		return fmt.Errorf("SubDomain.name is missing but is a required field")
 	} else {
@@ -3556,6 +3600,11 @@ type UserDomain struct {
 	ServiceExpiryDays *int32 `json:"serviceExpiryDays,omitempty" rdl:"optional"`
 
 	//
+	// membership filtered based on user authority configured attributes
+	//
+	UserAuthorityFilter string `json:"userAuthorityFilter" rdl:"optional"`
+
+	//
 	// user id which will be the domain name
 	//
 	Name SimpleName `json:"name"`
@@ -3648,6 +3697,12 @@ func (self *UserDomain) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "SimpleName", self.SignAlgorithm)
 		if !val.Valid {
 			return fmt.Errorf("UserDomain.signAlgorithm does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	if self.UserAuthorityFilter != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.UserAuthorityFilter)
+		if !val.Valid {
+			return fmt.Errorf("UserDomain.userAuthorityFilter does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.Name == "" {
@@ -4795,6 +4850,11 @@ type DomainData struct {
 	ServiceExpiryDays *int32 `json:"serviceExpiryDays,omitempty" rdl:"optional"`
 
 	//
+	// membership filtered based on user authority configured attributes
+	//
+	UserAuthorityFilter string `json:"userAuthorityFilter" rdl:"optional"`
+
+	//
 	// name of the domain
 	//
 	Name DomainName `json:"name"`
@@ -4919,6 +4979,12 @@ func (self *DomainData) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "SimpleName", self.SignAlgorithm)
 		if !val.Valid {
 			return fmt.Errorf("DomainData.signAlgorithm does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	if self.UserAuthorityFilter != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.UserAuthorityFilter)
+		if !val.Valid {
+			return fmt.Errorf("DomainData.userAuthorityFilter does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.Name == "" {

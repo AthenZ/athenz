@@ -26,6 +26,10 @@
   <name>athenz-zms-core</name>
   <description>Core ZMS Interfaces</description>
 
+  <properties>
+    <code.coverage.min>0.99</code.coverage.min>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>com.yahoo.rdl</groupId>

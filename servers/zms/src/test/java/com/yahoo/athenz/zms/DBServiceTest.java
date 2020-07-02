@@ -101,6 +101,8 @@ public class DBServiceTest {
         System.setProperty(ZMSConsts.ZMS_PROP_FILE_NAME, "src/test/resources/zms.properties");
         System.setProperty(ZMSConsts.ZMS_PROP_AUDIT_REF_CHECK_OBJECTS,
                 "role,policy,service,domain,entity,tenancy,template");
+        System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME,
+                "src/test/resources/solution_templates.json");
         initializeZms();
     }
 
@@ -4454,8 +4456,9 @@ public class DBServiceTest {
         assertEquals(auditDetails.toString(),
                 "{\"name\": \"role1\", \"selfServe\": \"true\", \"memberExpiryDays\": \"null\","
                         + " \"serviceExpiryDays\": \"null\", \"tokenExpiryMins\": \"null\","
-                        + " \"certExpiryMins\": \"null\", \"memberReviewDays\": \"null\", \"serviceReviewDays\": \"null\", \"reviewEnabled\": \"false\","
-                        + " \"notifyRoles\": \"null\"}");
+                        + " \"certExpiryMins\": \"null\", \"memberReviewDays\": \"null\", \"serviceReviewDays\": \"null\","
+                        + " \"reviewEnabled\": \"false\", \"notifyRoles\": \"null\", \"signAlgorithm\": \"null\","
+                        + " \"userAuthorityFilter\": \"null\", \"userAuthorityExpiration\": \"null\"}");
     }
 
     @Test
@@ -4994,7 +4997,7 @@ public class DBServiceTest {
         try {
             zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "metadom1", meta, "org", false, auditRef, "putDomainMeta");
             fail();
-        }catch (ResourceException re) {
+        } catch (ResourceException re) {
             assertEquals(re.getCode(), 403);
         }
 
@@ -5583,7 +5586,72 @@ public class DBServiceTest {
     }
 
     @Test
-    public void updateDomainMembersExpirationNoChanges() {
+    public void testExecutePutDomainMetaUserAuthorityFilterUpdate() {
+
+        Authority savedAuthority = zms.dbService.zmsConfig.getUserAuthority();
+
+        Authority authority = Mockito.mock(Authority.class);
+
+        Mockito.when(authority.isAttributeSet("user.john", "employee")).thenReturn(true);
+        Mockito.when(authority.isAttributeSet("user.jane", "employee")).thenReturn(false);
+        Mockito.when(authority.isAttributeSet("user.joe", "employee")).thenReturn(true);
+
+        zms.dbService.zmsConfig.setUserAuthority(authority);
+
+        final String domainName = "domain-meta-user-authority-filter";
+        List<String> admins = new ArrayList<>();
+        admins.add(adminUser);
+
+        zms.dbService.makeDomain(mockDomRsrcCtx, ZMSTestUtils.makeDomainObject(domainName, "test desc",
+                "org", false, "", 1234, "", 0), admins, null, auditRef);
+
+        Role role1 = createRoleObject(domainName, "role1", null, "user.john", "user.jane");
+        role1.getRoleMembers().add(new RoleMember().setMemberName("sys.auth.api").setApproved(true));
+        zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role1", role1, "test", "putrole");
+
+        Role role2 = createRoleObject(domainName, "role2", null, null, null);
+        zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role2", role2, "test", "putrole");
+
+        Role role3 = createRoleObject(domainName, "role3", "coretech", null, null);
+        zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role3", role3, "test", "putrole");
+
+        DomainMeta meta = new DomainMeta().setUserAuthorityFilter("employee");
+        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, domainName, meta, "userauthorityfilter", false, auditRef, "putDomainMeta");
+
+        Role resRole1 = zms.dbService.getRole(domainName, "role1", false, true, false);
+
+        // verify jane has been disabled due to authority check
+
+        RoleMember member = getRoleMember(resRole1, "user.john");
+        assertNull(member.getSystemDisabled());
+
+        member = getRoleMember(resRole1, "user.jane");
+        assertEquals(1, member.getSystemDisabled().intValue());
+
+        member = getRoleMember(resRole1, "sys.auth.api");
+        assertNull(member.getSystemDisabled());
+
+        // verify that all users in role2 have not changed since the role already
+        // has an expiration
+
+        Role resRole2 = zms.dbService.getRole(domainName, "role2", false, true, false);
+        assertNull(resRole2.getRoleMembers());
+
+        // verify our trust role
+
+        Role resRole3 = zms.dbService.getRole(domainName, "role3", false, true, false);
+        assertEquals(resRole3.getTrust(), "coretech");
+        assertNull(resRole3.getRoleMembers());
+
+        zms.dbService.executeDeleteDomain(mockDomRsrcCtx, domainName, auditRef, "deletedomain");
+
+        // reset authority to its original value
+
+        zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
+    }
+
+    @Test
+    public void testUpdateDomainMembersExpirationNoChanges() {
 
         final String domainName = "domain-meta-expiry";
         List<String> admins = new ArrayList<>();
@@ -5635,21 +5703,26 @@ public class DBServiceTest {
     @Test
     public void testUpdateDomainMembersExpirationFailure() {
 
-        Domain domain = new Domain().setName("test1").setMemberExpiryDays(100).setModified(Timestamp.fromCurrentTime());
-        Domain updateDomain = new Domain().setName("test1").setMemberExpiryDays(50);
+        final String domainName = "expiration-failure";
+        Domain domain = new Domain().setName(domainName).setMemberExpiryDays(100)
+                .setModified(Timestamp.fromCurrentTime());
+        Domain updateDomain = new Domain().setName(domainName).setMemberExpiryDays(50);
 
         ObjectStoreConnection mockConn = Mockito.mock(ObjectStoreConnection.class);
 
         // we're going to make sure to throw an exception here
         // since this should never be called
 
-        AthenzDomain athenzDomain = new AthenzDomain("test1");
-        athenzDomain.setDomain(domain);
-        Mockito.when(mockConn.getAthenzDomain("test1")).thenReturn(athenzDomain);
-        Mockito.when(mockConn.updateDomainModTimestamp("test1")).thenThrow(new IllegalArgumentException());
+        Mockito.when(mockConn.getAthenzDomain(domainName)).thenThrow(new ResourceException(400));
+
+        Authority savedAuthority = zms.dbService.zmsConfig.getUserAuthority();
+        Authority authority = Mockito.mock(Authority.class);
+        zms.dbService.zmsConfig.setUserAuthority(authority);
 
         zms.dbService.updateDomainMembersExpiration(mockDomRsrcCtx, mockConn, domain, updateDomain, auditRef,
                 "testUpdateMdomainMembersExpirationFailure");
+
+        zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
     }
 
     @Test
@@ -5659,8 +5732,8 @@ public class DBServiceTest {
         List<String> admins = new ArrayList<>();
         admins.add(adminUser);
 
-        zms.dbService.makeDomain(mockDomRsrcCtx, ZMSTestUtils.makeDomainObject(domainName, "test desc", "org", false,
-                "", 1234, "", 0), admins, null, auditRef);
+        zms.dbService.makeDomain(mockDomRsrcCtx, ZMSTestUtils.makeDomainObject(domainName, "test desc",
+                "org", false, "", 1234, "", 0), admins, null, auditRef);
 
         Domain domain = new Domain().setName(domainName).setMemberExpiryDays(100)
                 .setModified(Timestamp.fromCurrentTime());
@@ -5676,10 +5749,78 @@ public class DBServiceTest {
         // we're going to make sure to throw an exception here
         // since this should never be called
 
-        Mockito.when(mockConn.updateDomainModTimestamp(domainName)).thenThrow(new IllegalArgumentException());
+        Mockito.when(mockConn.updateDomainModTimestamp(domainName)).thenThrow(new ResourceException(400));
+
+        Authority savedAuthority = zms.dbService.zmsConfig.getUserAuthority();
+        Authority authority = Mockito.mock(Authority.class);
+        zms.dbService.zmsConfig.setUserAuthority(authority);
 
         zms.dbService.updateDomainMembersExpiration(mockDomRsrcCtx, mockConn, domain, updateDomain, auditRef,
                 "testUpdateDomainMembersExpirationFailure");
+
+        zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
+        zms.dbService.executeDeleteDomain(mockDomRsrcCtx, domainName, auditRef, "deletedomain");
+    }
+
+    @Test
+    public void testUpdateDomainMembersUserAuthorityFilterFailure() {
+
+        final String domainName = "domain-meta-user-authority-filter";
+        Domain domain = new Domain().setName(domainName).setUserAuthorityFilter("contractor")
+                .setModified(Timestamp.fromCurrentTime());
+        Domain updateDomain = new Domain().setName(domainName).setUserAuthorityFilter("employee");
+
+        ObjectStoreConnection mockConn = Mockito.mock(ObjectStoreConnection.class);
+
+        // we're going to make sure to throw an exception here
+        // since this should never be called
+
+        Mockito.when(mockConn.getAthenzDomain(domainName)).thenThrow(new ResourceException(400));
+
+        Authority savedAuthority = zms.dbService.zmsConfig.getUserAuthority();
+        Authority authority = Mockito.mock(Authority.class);
+        zms.dbService.zmsConfig.setUserAuthority(authority);
+
+        zms.dbService.updateDomainMembersUserAuthorityFilter(mockDomRsrcCtx, mockConn, domain, updateDomain,
+                auditRef, "testUpdateDomainMembersUserAuthorityFilterFailure");
+
+        zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
+    }
+
+    @Test
+    public void testUpdateDomainMemberUserAuthorityFilterObjectStoreFailure() {
+
+        final String domainName = "domain-meta-user-authority-filter";
+        List<String> admins = new ArrayList<>();
+        admins.add("user.john");
+
+        zms.dbService.makeDomain(mockDomRsrcCtx, ZMSTestUtils.makeDomainObject(domainName, "test desc",
+                "org", false, "", 1234, "", 0), admins, null, auditRef);
+
+        AthenzDomain athenzDomain = zms.dbService.getAthenzDomain(domainName, false);
+        Domain domain = new Domain().setName(domainName).setUserAuthorityFilter("contractor")
+                .setModified(Timestamp.fromCurrentTime());
+        Domain updateDomain = new Domain().setName(domainName).setUserAuthorityFilter("employee");
+
+        ObjectStoreConnection mockConn = Mockito.mock(ObjectStoreConnection.class);
+        Mockito.when(mockConn.getAthenzDomain(domainName)).thenReturn(athenzDomain);
+        Mockito.when(mockConn.updateRoleMemberDisabledState(Mockito.anyString(), Mockito.anyString(),
+                Mockito.anyString(), Mockito.anyString(), Mockito.anyInt(), Mockito.anyString()))
+                .thenReturn(false);
+
+        // we're going to make sure to throw an exception here
+        // since this should never be called
+
+        Mockito.when(mockConn.updateDomainModTimestamp(domainName)).thenThrow(new IllegalArgumentException());
+
+        Authority savedAuthority = zms.dbService.zmsConfig.getUserAuthority();
+        Authority authority = Mockito.mock(Authority.class);
+        zms.dbService.zmsConfig.setUserAuthority(authority);
+
+        zms.dbService.updateDomainMembersUserAuthorityFilter(mockDomRsrcCtx, mockConn, domain, updateDomain,
+                auditRef, "testUpdateDomainMemberUserAuthorityFilterObjectStoreFailure");
+
+        zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
 
         zms.dbService.executeDeleteDomain(mockDomRsrcCtx, domainName, auditRef, "deletedomain");
     }
@@ -6629,18 +6770,17 @@ public class DBServiceTest {
         assertNull(member.getExpiration());
         assertEquals(member.getSystemDisabled(), Integer.valueOf(ZMSConsts.ZMS_DISABLED_AUTHORITY_FILTER));
 
-        // sports api should also have disabled set since it's not a user
+        // sports api should not be disabled set since it's not a user
 
         member = getRoleMember(updatedRole, "sports.api");
         assertNull(member.getExpiration());
-        assertEquals(member.getSystemDisabled(), Integer.valueOf(ZMSConsts.ZMS_DISABLED_AUTHORITY_FILTER));
+        assertNull(member.getSystemDisabled());
 
         // weather api expiry should not change since it's already expired
-        // but it should have disabled state
 
         member = getRoleMember(updatedRole, "weather.api");
         assertEquals(member.getExpiration(), tstamp);
-        assertEquals(member.getSystemDisabled(), Integer.valueOf(ZMSConsts.ZMS_DISABLED_AUTHORITY_FILTER));
+        assertNull(member.getSystemDisabled());
 
         // now let's reset the state back to null which should
         // remove the filter disabled flag
@@ -6660,11 +6800,11 @@ public class DBServiceTest {
 
         member = getRoleMember(updatedRole, "sports.api");
         assertNull(member.getExpiration());
-        assertEquals(member.getSystemDisabled(), Integer.valueOf(0));
+        assertNull(member.getSystemDisabled());
 
         member = getRoleMember(updatedRole, "weather.api");
         assertEquals(member.getExpiration(), tstamp);
-        assertEquals(member.getSystemDisabled(), Integer.valueOf(0));
+        assertNull(member.getSystemDisabled());
 
         // reset authority to its original value
 
@@ -6814,62 +6954,6 @@ public class DBServiceTest {
         return null;
     }
 
-//    @Test
-//    public void testEnforceRoleMemberUserAuthorityRestrictionsNoValues() {
-//
-//        // without filter values - we always have no change
-//
-//        RoleMember roleMember = new RoleMember();
-//        assertFalse(zms.dbService.enforceRoleMemberUserAuthorityRestrictions(roleMember, null, null));
-//    }
-//
-//    @Test
-//    public void testEnforceRoleMemberUserAuthorityRestrictionsExpiry() {
-//
-//        // user change with expiry field
-//
-//        Authority savedAuthority = zms.dbService.zmsConfig.getUserAuthority();
-//
-//        Authority authority = Mockito.mock(Authority.class);
-//        Mockito.when(authority.getDateAttribute("user.joe", "elevated-clearance"))
-//                .thenReturn(null);
-//
-//        zms.dbService.zmsConfig.setUserAuthority(authority);
-//
-//        RoleMember roleMember = new RoleMember().setMemberName("user.joe");
-//        assertTrue(zms.dbService.enforceRoleMemberUserAuthorityRestrictions(roleMember, null, "elevated-clearance"));
-//
-//        // reset authority to its original value
-//
-//        zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
-//    }
-//
-//    @Test
-//    public void testEnforceRoleMemberUserAuthorityRestrictionsAttrs() {
-//
-//        // user change with expiry field
-//
-//        Authority savedAuthority = zms.dbService.zmsConfig.getUserAuthority();
-//
-//        Authority authority = Mockito.mock(Authority.class);
-//        Mockito.when(authority.isAttributeSet("user.joe", "employee"))
-//                .thenReturn(false);
-//
-//        zms.dbService.zmsConfig.setUserAuthority(authority);
-//
-//        RoleMember roleMember = new RoleMember().setMemberName("user.joe");
-//        assertTrue(zms.dbService.enforceRoleMemberUserAuthorityRestrictions(roleMember, "employee", null));
-//
-//        // now set the expiry in the past so no change
-//
-//        roleMember.setExpiration(Timestamp.fromMillis(System.currentTimeMillis() - 100000));
-//        assertFalse(zms.dbService.enforceRoleMemberUserAuthorityRestrictions(roleMember, "employee", null));
-//
-//        // reset authority to its original value
-//
-//        zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
-//    }
-
     @Test
     public void testEnforceRoleUserAuthorityRestrictionsEmptyRoles() {
 
@@ -6904,8 +6988,8 @@ public class DBServiceTest {
         // calling the enforce twice - first time we should get null role
         // and second time role with no members
 
-        zms.dbService.enforceRoleUserAuthorityRestrictions(domainName, roleName);
-        zms.dbService.enforceRoleUserAuthorityRestrictions(domainName, roleName);
+        zms.dbService.enforceRoleUserAuthorityRestrictions(domainName, roleName, null);
+        zms.dbService.enforceRoleUserAuthorityRestrictions(domainName, roleName, null);
 
         zms.dbService.store = savedStore;
     }
@@ -6949,7 +7033,7 @@ public class DBServiceTest {
 
         // the request should complete successfully
 
-        zms.dbService.enforceRoleUserAuthorityRestrictions(domainName, roleName);
+        zms.dbService.enforceRoleUserAuthorityRestrictions(domainName, roleName, null);
 
         zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
         zms.dbService.store = savedStore;
@@ -6997,7 +7081,7 @@ public class DBServiceTest {
 
         // the request should complete successfully
 
-        zms.dbService.enforceRoleUserAuthorityRestrictions(domainName, roleName);
+        zms.dbService.enforceRoleUserAuthorityRestrictions(domainName, roleName, null);
 
         zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
         zms.dbService.store = savedStore;
@@ -7043,7 +7127,7 @@ public class DBServiceTest {
 
         // the request should complete successfully
 
-        zms.dbService.enforceRoleUserAuthorityRestrictions(domainName, roleName);
+        zms.dbService.enforceRoleUserAuthorityRestrictions(domainName, roleName, null);
 
         zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
         zms.dbService.store = savedStore;
@@ -7087,8 +7171,11 @@ public class DBServiceTest {
         // first we're going to return no roles and then list of roles
         // in the second one
 
-        List<MemberRole> roles = new ArrayList<>();
-        roles.add(new MemberRole().setDomainName(domainName).setRoleName(roleName));
+        List<PrincipalRole> roles = new ArrayList<>();
+        PrincipalRole prRole = new PrincipalRole();
+        prRole.setDomainName(domainName);
+        prRole.setRoleName(roleName);
+        roles.add(prRole);
 
         Mockito.when(mockConn.listRolesWithUserAuthorityRestrictions())
                 .thenReturn(null)
@@ -7157,9 +7244,15 @@ public class DBServiceTest {
         Mockito.when(mockConn.listRoleMembers(domainName, roleName2, false))
                 .thenReturn(roleMembers2);
 
-        List<MemberRole> roles = new ArrayList<>();
-        roles.add(new MemberRole().setDomainName(domainName).setRoleName(roleName1));
-        roles.add(new MemberRole().setDomainName(domainName).setRoleName(roleName2));
+        List<PrincipalRole> roles = new ArrayList<>();
+        PrincipalRole prRole1 = new PrincipalRole();
+        prRole1.setDomainName(domainName);
+        prRole1.setRoleName(roleName1);
+        roles.add(prRole1);
+        PrincipalRole prRole2 = new PrincipalRole();
+        prRole2.setDomainName(domainName);
+        prRole2.setRoleName(roleName2);
+        roles.add(prRole2);
 
         Mockito.when(mockConn.listRolesWithUserAuthorityRestrictions())
                 .thenReturn(roles);
@@ -7483,12 +7576,36 @@ public class DBServiceTest {
 
     @Test
     public void testGetRolesByDomainUnknown() {
+
         Mockito.when(mockObjStore.getConnection(true, false)).thenReturn(mockFileConn);
         try {
-            List<Role> rolesFetched = zms.dbService.getRolesByDomain("unknownDomain");
+            zms.dbService.getRolesByDomain("unknownDomain");
             fail();
-        } catch (Exception ex) {
-
+        } catch (Exception ignored) {
         }
+    }
+
+    @Test
+    public void testGetDomainUserAuthorityFilter() {
+
+        String domainName = "getdomain-user-authority-filter";
+
+        Authority savedAuthority = zms.dbService.zmsConfig.getUserAuthority();
+        Authority authority = Mockito.mock(Authority.class);
+        zms.dbService.zmsConfig.setUserAuthority(authority);
+
+        List<String> admins = new ArrayList<>();
+        admins.add(adminUser);
+
+        Domain domain = ZMSTestUtils.makeDomainObject(domainName, "test desc", "testOrg",
+                false, "", 1234, "", 0);
+        domain.setUserAuthorityFilter("employee");
+        zms.dbService.makeDomain(mockDomRsrcCtx, domain, admins, null, auditRef);
+
+        ObjectStoreConnection conn = zms.dbService.store.getConnection(true, false);
+        assertEquals("employee", zms.dbService.getDomainUserAuthorityFilter(conn, domainName));
+
+        zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 }

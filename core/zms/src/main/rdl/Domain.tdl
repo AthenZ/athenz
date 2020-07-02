@@ -20,6 +20,7 @@ type DomainMeta Struct {
     Int32 roleCertExpiryMins (optional); //role certs issued for this domain will have specified max timeout in mins
     SimpleName signAlgorithm (optional); //rsa or ec signing algorithm to be used for tokens
     Int32 serviceExpiryDays (optional); //all services in the domain will have specified max expiry days
+    String userAuthorityFilter (optional); //membership filtered based on user authority configured attributes
 }
 
 //A domain is an independent partition of users, roles, and resources.

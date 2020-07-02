@@ -48,11 +48,11 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_INSERT_DOMAIN = "INSERT INTO domain "
             + "(name, description, org, uuid, enabled, audit_enabled, account, ypm_id, application_id, cert_dns_domain,"
             + " member_expiry_days, token_expiry_mins, service_cert_expiry_mins, role_cert_expiry_mins, sign_algorithm,"
-            + " service_expiry_days) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+            + " service_expiry_days, user_authority_filter) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
     private static final String SQL_UPDATE_DOMAIN = "UPDATE domain "
             + "SET description=?, org=?, uuid=?, enabled=?, audit_enabled=?, account=?, ypm_id=?, application_id=?,"
             + " cert_dns_domain=?, member_expiry_days=?, token_expiry_mins=?, service_cert_expiry_mins=?,"
-            + " role_cert_expiry_mins=?, sign_algorithm=?, service_expiry_days=? WHERE name=?;";
+            + " role_cert_expiry_mins=?, sign_algorithm=?, service_expiry_days=?, user_authority_filter=? WHERE name=?;";
     private static final String SQL_UPDATE_DOMAIN_MOD_TIMESTAMP = "UPDATE domain "
             + "SET modified=CURRENT_TIMESTAMP(3) WHERE name=?;";
     private static final String SQL_GET_DOMAIN_MOD_TIMESTAMP = "SELECT modified FROM domain WHERE name=?;";
@@ -336,9 +336,10 @@ public class JDBCConnection implements ObjectStoreConnection {
             "WHERE role_member.review_last_notified_time=? AND role_member.review_server=?;";
 
     private static final String SQL_UPDATE_ROLE_REVIEW_TIMESTAMP = "UPDATE role SET last_reviewed_time=CURRENT_TIMESTAMP(3) WHERE role_id=?;";
-    private static final String SQL_LIST_ROLES_WITH_RESTRICTIONS = "SELECT domain.name as domain_name, role.name as role_name FROM role "
-            + "JOIN domain ON role.domain_id=domain.domain_id "
-            + "WHERE user_authority_filter!='' OR user_authority_expiration!='';";
+    private static final String SQL_LIST_ROLES_WITH_RESTRICTIONS = "SELECT domain.name as domain_name, "
+            + "role.name as role_name, domain.user_authority_filter as domain_user_authority_filter FROM role "
+            + "JOIN domain ON role.domain_id=domain.domain_id WHERE role.user_authority_filter!='' "
+            + "OR role.user_authority_expiration!='' OR domain.user_authority_filter!='';";
 
     private static final String CACHE_DOMAIN    = "d:";
     private static final String CACHE_ROLE      = "r:";
@@ -477,7 +478,8 @@ public class JDBCConnection implements ObjectStoreConnection {
                 .setServiceCertExpiryMins(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_SERVICE_CERT_EXPIRY_MINS), 0))
                 .setApplicationId(saveValue(rs.getString(ZMSConsts.DB_COLUMN_APPLICATION_ID)))
                 .setSignAlgorithm(saveValue(rs.getString(ZMSConsts.DB_COLUMN_SIGN_ALGORITHM)))
-                .setServiceExpiryDays(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_SERVICE_EXPIRY_DAYS), 0));
+                .setServiceExpiryDays(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_SERVICE_EXPIRY_DAYS), 0))
+                .setUserAuthorityFilter(saveValue(rs.getString(ZMSConsts.DB_COLUMN_USER_AUTHORITY_FILTER)));
     }
     
     @Override
@@ -528,6 +530,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setInt(14, processInsertValue(domain.getRoleCertExpiryMins()));
             ps.setString(15, processInsertValue(domain.getSignAlgorithm()));
             ps.setInt(16, processInsertValue(domain.getServiceExpiryDays()));
+            ps.setString(17, processInsertValue(domain.getUserAuthorityFilter()));
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -615,7 +618,8 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setInt(13, processInsertValue(domain.getRoleCertExpiryMins()));
             ps.setString(14, processInsertValue(domain.getSignAlgorithm()));
             ps.setInt(15, processInsertValue(domain.getServiceExpiryDays()));
-            ps.setString(16, domain.getName());
+            ps.setString(16, processInsertValue(domain.getUserAuthorityFilter()));
+            ps.setString(17, domain.getName());
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -4196,16 +4200,19 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
 
     @Override
-    public List<MemberRole> listRolesWithUserAuthorityRestrictions() {
+    public List<PrincipalRole> listRolesWithUserAuthorityRestrictions() {
 
         final String caller = "listRolesWithUserAuthorityRestrictions";
-        List<MemberRole> roles = new ArrayList<>();
+        List<PrincipalRole> roles = new ArrayList<>();
         try (PreparedStatement ps = con.prepareStatement(SQL_LIST_ROLES_WITH_RESTRICTIONS)) {
 
             try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
-                    roles.add(new MemberRole().setDomainName(rs.getString(ZMSConsts.DB_COLUMN_AS_DOMAIN_NAME))
-                        .setRoleName(rs.getString(ZMSConsts.DB_COLUMN_AS_ROLE_NAME)));
+                    PrincipalRole prRole = new PrincipalRole();
+                    prRole.setDomainName(rs.getString(ZMSConsts.DB_COLUMN_AS_DOMAIN_NAME));
+                    prRole.setRoleName(rs.getString(ZMSConsts.DB_COLUMN_AS_ROLE_NAME));
+                    prRole.setDomainUserAuthorityFilter(rs.getString(ZMSConsts.DB_COLUMN_AS_DOMAIN_USER_AUTHORITY_FILTER));
+                    roles.add(prRole);
                 }
             }
         } catch (SQLException ex) {

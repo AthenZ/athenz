@@ -225,8 +225,6 @@ public final class ZMSConsts {
     public static final String DB_COLUMN_NOTIFY_ROLES       = "notify_roles";
     public static final String DB_COLUMN_LAST_REVIEWED_TIME = "last_reviewed_time";
     public static final String DB_COLUMN_REQ_PRINCIPAL      = "req_principal";
-    public static final String DB_COLUMN_USER_AUTHORITY_FILTER     = "user_authority_filter";
-    public static final String DB_COLUMN_USER_AUTHORITY_EXPIRATION = "user_authority_expiration";
     public static final String DB_COLUMN_MEMBER_REVIEW_DAYS = "member_review_days";
     public static final String DB_COLUMN_TEMPLATE_NAME      = "template";
     public static final String DB_COLUMN_TEMPLATE_VERSION   = "current_version";
@@ -238,6 +236,10 @@ public final class ZMSConsts {
     public static final String DB_COLUMN_SERVICE_EXPIRY_DAYS      = "service_expiry_days";
     public static final String DB_COLUMN_ROLE_CERT_EXPIRY_MINS    = "role_cert_expiry_mins";
     public static final String DB_COLUMN_SERVICE_CERT_EXPIRY_MINS = "service_cert_expiry_mins";
+
+    public static final String DB_COLUMN_USER_AUTHORITY_FILTER           = "user_authority_filter";
+    public static final String DB_COLUMN_USER_AUTHORITY_EXPIRATION       = "user_authority_expiration";
+    public static final String DB_COLUMN_AS_DOMAIN_USER_AUTHORITY_FILTER = "domain_user_authority_filter";
 
     public static final String ADMIN_POLICY_NAME = "admin";
     public static final String ADMIN_ROLE_NAME   = "admin";
@@ -258,6 +260,7 @@ public final class ZMSConsts {
     public static final String SYSTEM_META_ACCOUNT           = "account";
     public static final String SYSTEM_META_CERT_DNS_DOMAIN   = "certdnsdomain";
     public static final String SYSTEM_META_AUDIT_ENABLED     = "auditenabled";
+    public static final String SYSTEM_META_USER_AUTH_FILTER  = "userauthorityfilter";
     public static final String SYSTEM_META_ENABLED           = "enabled";
     public static final String SYSTEM_META_ORG               = "org";
     public static final String SYSTEM_META_LAST_MOD_TIME     = "modified";

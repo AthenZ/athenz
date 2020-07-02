@@ -53,6 +53,9 @@ public class DomainData {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Integer serviceExpiryDays;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String userAuthorityFilter;
     public String name;
     public List<Role> roles;
     public SignedPolicies policies;
@@ -158,6 +161,13 @@ public class DomainData {
     public Integer getServiceExpiryDays() {
         return serviceExpiryDays;
     }
+    public DomainData setUserAuthorityFilter(String userAuthorityFilter) {
+        this.userAuthorityFilter = userAuthorityFilter;
+        return this;
+    }
+    public String getUserAuthorityFilter() {
+        return userAuthorityFilter;
+    }
     public DomainData setName(String name) {
         this.name = name;
         return this;
@@ -248,6 +258,9 @@ public class DomainData {
                 return false;
             }
             if (serviceExpiryDays == null ? a.serviceExpiryDays != null : !serviceExpiryDays.equals(a.serviceExpiryDays)) {
+                return false;
+            }
+            if (userAuthorityFilter == null ? a.userAuthorityFilter != null : !userAuthorityFilter.equals(a.userAuthorityFilter)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

@@ -580,6 +580,10 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 				}
 				return cli.SetDomainAuditEnabled(dn, auditEnabled)
 			}
+		case "set-domain-user-authority-filter":
+			if argc == 1 {
+				return cli.SetDomainUserAuthorityFilter(dn, args[0])
+			}
 		case "set-product-id", "set-domain-product-id":
 			if argc == 1 {
 				productID, err := cli.getInt32(args[0])
@@ -879,6 +883,16 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   audit-enabled : enable/disable audit flag for the domain\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domain_example + " set-audit-enabled true\n")
+	case "set-domain-user-authority-filter":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domain_param + " set-domain-user-authority-filter filter\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain        : name of the domain being updated\n")
+		}
+		buf.WriteString("   filter : comma separated list of user authority filters\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domain_example + " set-domain-user-authority-filter OnShore-US\n")
 	case "set-product-id", "set-domain-product-id":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domain_param + " set-product-id product-id\n")
@@ -1990,6 +2004,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   set-domain-service-cert-expiry-mins cert-expiry-mins\n")
 	buf.WriteString("   set-domain-role-cert-expiry-mins cert-expiry-mins\n")
 	buf.WriteString("   set-domain-token-sign-algorithm algorithm\n")
+	buf.WriteString("   set-domain-user-authority-filter filter\n")
 	buf.WriteString("   import-domain domain [file.yaml [admin ...]] - no file means stdin\n")
 	buf.WriteString("   export-domain domain [file.yaml] - no file means stdout\n")
 	buf.WriteString("   delete-domain domain\n")
