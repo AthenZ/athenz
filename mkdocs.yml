@@ -20,6 +20,9 @@ nav:
         - ZMS Server: setup_zms_prod.md
         - ZTS Server: setup_zts_prod.md
         - UI Server: setup_ui_prod.md
+    - Service Identity Registration:
+        - Using X.509 Certificates: service_x509_credentials.md
+        - Using Public/Private Key Pairs: reg_service_guide.md
 - Management:
     - Role Delegation: role_delegation.md
     - Access/Role Token Limit Expiry Support: token_expiration.md
@@ -29,7 +32,14 @@ nav:
     - Role Member Auto Expiry and Notification Support: member_expiration.md
     - Role Member Review Reminder Support: member_soft_expiration.md
     - Self-Served Roles: self_serve_roles.md
+- Authentication:
+    - Athenz Service Identity X.509 Certificate for AWS EC2 instances: service_x509_credentials_aws.md
+    - Athenz Service Identity X.509 Certificate for AWS ECS containers: service_x509_credentials_aws_ecs.md
+    - Athenz Service Identity X.509 Certificate for AWS Fargate tasks: service_x509_credentials_aws_fargate.md
+    - Athenz Service Identity X.509 Certificate for AWS EKS pods: service_x509_credentials_aws_eks.md
+    - Athenz Service Identity X.509 Certificate for AWS Lambda functions: service_x509_credentials_aws_lambda.md
 - AWS Setup:
+    - AWS Temp Credentials: aws_temp_creds.md
     - Introduction: aws_athenz_setup.md
     - ZMS Server : aws_zms_setup.md
     - ZTS Server: aws_zts_setup.md
@@ -54,6 +64,4 @@ nav:
 - User Guide:
     - ZMS Client Utility: zms_client.md
     - ZPU Utility: setup_zpu.md
-    - Registering ZMS Service Identity: reg_service_guide.md
-
 
