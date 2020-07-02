@@ -98,7 +98,8 @@ public class FileConnection implements ObjectStoreConnection {
                 .setTokenExpiryMins(domainStruct.getMeta().getTokenExpiryMins())
                 .setServiceCertExpiryMins(domainStruct.getMeta().getServiceCertExpiryMins())
                 .setRoleCertExpiryMins(domainStruct.getMeta().getRoleCertExpiryMins())
-                .setSignAlgorithm(domainStruct.getMeta().getSignAlgorithm());
+                .setSignAlgorithm(domainStruct.getMeta().getSignAlgorithm())
+                .setUserAuthorityFilter(domainStruct.getMeta().getUserAuthorityFilter());
         if (domainStruct.getMeta().getAuditEnabled() != null) {
             domain.setAuditEnabled(domainStruct.getMeta().getAuditEnabled());
         } else {
@@ -158,7 +159,8 @@ public class FileConnection implements ObjectStoreConnection {
                 .setTokenExpiryMins(domain.getTokenExpiryMins())
                 .setServiceCertExpiryMins(domain.getServiceCertExpiryMins())
                 .setRoleCertExpiryMins(domain.getRoleCertExpiryMins())
-                .setSignAlgorithm(domain.getSignAlgorithm());
+                .setSignAlgorithm(domain.getSignAlgorithm())
+                .setUserAuthorityFilter(domain.getUserAuthorityFilter());
         domainStruct.setMeta(meta);
         
         putDomainStruct(domain.getName(), domainStruct);
@@ -2072,18 +2074,24 @@ public class FileConnection implements ObjectStoreConnection {
     }
 
     @Override
-    public List<MemberRole> listRolesWithUserAuthorityRestrictions() {
+    public List<PrincipalRole> listRolesWithUserAuthorityRestrictions() {
 
-        List<MemberRole> roles = new ArrayList<>();
+        List<PrincipalRole> roles = new ArrayList<>();
         List<String> domainNames = listDomains(null, 0);
         for (String domainName : domainNames) {
             DomainStruct domain = getDomainStruct(domainName);
             if (domain == null) {
                 continue;
             }
+            final String domainUserAuthorityFilter = domain.getMeta().getUserAuthorityFilter();
             for (Role role : domain.getRoles().values()) {
-                if (role.getUserAuthorityExpiration() != null && role.getUserAuthorityFilter() != null) {
-                    roles.add(new MemberRole().setDomainName(domainName).setRoleName(role.getName()));
+                if (domainUserAuthorityFilter != null || role.getUserAuthorityExpiration() != null ||
+                        role.getUserAuthorityFilter() != null) {
+                    PrincipalRole prRole = new PrincipalRole();
+                    prRole.setDomainName(domainName);
+                    prRole.setRoleName(role.getName());
+                    prRole.setDomainUserAuthorityFilter(domainUserAuthorityFilter);
+                    roles.add(prRole);
                 }
             }
         }

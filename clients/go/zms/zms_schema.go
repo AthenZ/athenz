@@ -113,6 +113,7 @@ func init() {
 	tDomainMeta.Field("roleCertExpiryMins", "Int32", true, nil, "role certs issued for this domain will have specified max timeout in mins")
 	tDomainMeta.Field("signAlgorithm", "SimpleName", true, nil, "rsa or ec signing algorithm to be used for tokens")
 	tDomainMeta.Field("serviceExpiryDays", "Int32", true, nil, "all services in the domain will have specified max expiry days")
+	tDomainMeta.Field("userAuthorityFilter", "String", true, nil, "membership filtered based on user authority configured attributes")
 	sb.AddType(tDomainMeta.Build())
 
 	tDomain := rdl.NewStructTypeBuilder("DomainMeta", "Domain")

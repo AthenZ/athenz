@@ -110,6 +110,7 @@ libs/go/ztsclientutil/pkg/
 libs/go/ztsclientutil/src/
 rdl/rdl-gen-athenz-server/rdl-gen-athenz-server
 rdl/rdl-gen-athenz-go-client/rdl-gen-athenz-go-client
+rdl/rdl-gen-athenz-go-model/rdl-gen-athenz-go-model
 aws-setup/ui-setup/tars/
 aws-setup/zms-setup/tars/
 aws-setup/zts-setup/tars/

@@ -39,7 +39,7 @@
   </dependencyManagement>
 
   <properties>
-    <code.coverage.min>0.82</code.coverage.min>
+    <code.coverage.min>0.96</code.coverage.min>
   </properties>
 
   <dependencies>
@@ -176,6 +176,17 @@
           <arguments>
             <argument>scripts/make_stubs.sh</argument>
           </arguments>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>**/ZMSResources.*</exclude>
+            <exclude>**/FileConnection.*</exclude>
+            <exclude>**/FileObjectStore.*</exclude>
+          </excludes>
         </configuration>
       </plugin>
     </plugins>

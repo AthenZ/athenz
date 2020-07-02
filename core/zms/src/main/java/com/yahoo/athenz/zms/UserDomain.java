@@ -53,6 +53,9 @@ public class UserDomain {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Integer serviceExpiryDays;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String userAuthorityFilter;
     public String name;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -156,6 +159,13 @@ public class UserDomain {
     public Integer getServiceExpiryDays() {
         return serviceExpiryDays;
     }
+    public UserDomain setUserAuthorityFilter(String userAuthorityFilter) {
+        this.userAuthorityFilter = userAuthorityFilter;
+        return this;
+    }
+    public String getUserAuthorityFilter() {
+        return userAuthorityFilter;
+    }
     public UserDomain setName(String name) {
         this.name = name;
         return this;
@@ -218,6 +228,9 @@ public class UserDomain {
                 return false;
             }
             if (serviceExpiryDays == null ? a.serviceExpiryDays != null : !serviceExpiryDays.equals(a.serviceExpiryDays)) {
+                return false;
+            }
+            if (userAuthorityFilter == null ? a.userAuthorityFilter != null : !userAuthorityFilter.equals(a.userAuthorityFilter)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

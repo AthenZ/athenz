@@ -464,6 +464,18 @@ func (cli Zms) SetDomainAuditEnabled(dn string, auditEnabled bool) (*string, err
 	return &s, nil
 }
 
+func (cli Zms) SetDomainUserAuthorityFilter(dn, filter string) (*string, error) {
+	meta := zms.DomainMeta{
+		UserAuthorityFilter: filter,
+	}
+	err := cli.Zms.PutDomainSystemMeta(zms.DomainName(dn), zms.SimpleName("userauthorityfilter"), cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " metadata successfully updated]\n"
+	return &s, nil
+}
+
 func (cli Zms) SetDomainMemberExpiryDays(dn string, days int32) (*string, error) {
 	domain, err := cli.Zms.GetDomain(zms.DomainName(dn))
 	if err != nil {

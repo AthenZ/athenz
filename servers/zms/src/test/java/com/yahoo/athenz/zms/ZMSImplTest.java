@@ -17671,7 +17671,7 @@ public class ZMSImplTest {
         roleMembers.add(new RoleMember().setMemberName("coretech.backend"));
 
         Role role = new Role().setRoleMembers(roleMembers);
-        zms.validateRoleMemberPrincipals(role, "unittest");
+        zms.validateRoleMemberPrincipals(role, null, "unittest");
 
         // enable user authority check
 
@@ -17685,13 +17685,13 @@ public class ZMSImplTest {
         roleMembers.add(new RoleMember().setMemberName("user.jane"));
         role.setRoleMembers(roleMembers);
 
-        zms.validateRoleMemberPrincipals(role, "unittest");
+        zms.validateRoleMemberPrincipals(role, null, "unittest");
 
         // add one more invalid user
 
         roleMembers.add(new RoleMember().setMemberName("user.john"));
         try {
-            zms.validateRoleMemberPrincipals(role, "unittest");
+            zms.validateRoleMemberPrincipals(role, null, "unittest");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -17763,13 +17763,14 @@ public class ZMSImplTest {
         zms.validateRoleMemberPrincipal("athenz.api*", null, "unittest");
         zms.validateRoleMemberPrincipal("coretech.*", null, "unittest");
 
-        // service users are never valid with user field
+        // should get back domain not found response since we'll ignore
+        // the authority filter for services
 
         try {
             zms.validateRoleMemberPrincipal("coretech.api", "employee", "unittest");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
 
         // invalid service request error
@@ -18998,17 +18999,26 @@ public class ZMSImplTest {
         // null authorty, filter or empty filter
 
         zms.userAuthority = null;
-        assertNull(zms.enforcedUserAuthorityFilter("validFilter"));
+        assertNull(zms.enforcedUserAuthorityFilter("validFilter", null));
+        assertNull(zms.enforcedUserAuthorityFilter(null, "validFilter"));
+        assertNull(zms.enforcedUserAuthorityFilter("validFilter", "validFilter"));
+        assertNull(zms.enforcedUserAuthorityFilter(null, null));
 
         Authority mockAuthority = Mockito.mock(Authority.class);
         zms.userAuthority = mockAuthority;
 
-        assertNull(zms.enforcedUserAuthorityFilter(null));
-        assertNull(zms.enforcedUserAuthorityFilter(""));
+        assertNull(zms.enforcedUserAuthorityFilter(null, null));
+        assertNull(zms.enforcedUserAuthorityFilter("", null));
+        assertNull(zms.enforcedUserAuthorityFilter(null, ""));
 
         // valid filter
 
-        assertEquals("validFilter", zms.enforcedUserAuthorityFilter("validFilter"));
+        assertEquals("validFilter", zms.enforcedUserAuthorityFilter("validFilter", null));
+        assertEquals("validFilter", zms.enforcedUserAuthorityFilter(null, "validFilter"));
+        assertEquals("validFilter", zms.enforcedUserAuthorityFilter("validFilter", ""));
+        assertEquals("validFilter", zms.enforcedUserAuthorityFilter("", "validFilter"));
+        assertEquals("validFilter1,validFilter2", zms.enforcedUserAuthorityFilter("validFilter1", "validFilter2"));
+        assertEquals("validFilter,validFilter", zms.enforcedUserAuthorityFilter("validFilter", "validFilter"));
 
         zms.userAuthority = savedAuthority;
     }

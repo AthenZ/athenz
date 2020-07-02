@@ -78,6 +78,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_CERT_DNS_DOMAIN);
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_APPLICATION_ID);
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_SIGN_ALGORITHM);
+        Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_USER_AUTHORITY_FILTER);
         Mockito.doReturn("12345").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_ACCOUNT);
         Mockito.doReturn(1001).when(mockResultSet).getInt(ZMSConsts.DB_COLUMN_PRODUCT_ID);
 
@@ -90,6 +91,7 @@ public class JDBCConnectionTest {
         assertNull(domain.getDescription());
         assertNull(domain.getOrg());
         assertNull(domain.getId());
+        assertNull(domain.getUserAuthorityFilter());
         jdbcConn.close();
     }
 
@@ -109,6 +111,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_CERT_DNS_DOMAIN);
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_APPLICATION_ID);
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_SIGN_ALGORITHM);
+        Mockito.doReturn("OnShore").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_USER_AUTHORITY_FILTER);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Domain domain = jdbcConn.getDomain("my-domain");
@@ -119,6 +122,7 @@ public class JDBCConnectionTest {
         assertNull(domain.getDescription());
         assertNull(domain.getOrg());
         assertNull(domain.getId());
+        assertEquals("OnShore", domain.getUserAuthorityFilter());
         jdbcConn.close();
     }
     
@@ -339,6 +343,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_CERT_DNS_DOMAIN);
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_APPLICATION_ID);
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_SIGN_ALGORITHM);
+        Mockito.doReturn("OnShore").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_USER_AUTHORITY_FILTER);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Domain domain = jdbcConn.getDomain("my-domain");
@@ -349,6 +354,7 @@ public class JDBCConnectionTest {
         assertEquals("my own domain", domain.getDescription());
         assertEquals("cloud_services", domain.getOrg());
         assertEquals(UUID.fromString("e5e97240-e94e-11e4-8163-6d083f3f473f"), domain.getId());
+        assertEquals(domain.getUserAuthorityFilter(), "OnShore");
         jdbcConn.close();
     }
     
@@ -544,7 +550,8 @@ public class JDBCConnectionTest {
                 .setTokenExpiryMins(10)
                 .setServiceCertExpiryMins(20)
                 .setRoleCertExpiryMins(30)
-                .setSignAlgorithm("ec");
+                .setSignAlgorithm("ec")
+                .setUserAuthorityFilter("OnShore");
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         boolean requestSuccess = jdbcConn.updateDomain(domain);
@@ -565,7 +572,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setInt(13, 30);
         Mockito.verify(mockPrepStmt, times(1)).setString(14, "ec");
         Mockito.verify(mockPrepStmt, times(1)).setInt(15, 50);
-        Mockito.verify(mockPrepStmt, times(1)).setString(16, "my-domain");
+        Mockito.verify(mockPrepStmt, times(1)).setString(16, "OnShore");
+        Mockito.verify(mockPrepStmt, times(1)).setString(17, "my-domain");
         jdbcConn.close();
     }
     
@@ -597,7 +605,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setInt(13, 0);
         Mockito.verify(mockPrepStmt, times(1)).setString(14, "");
         Mockito.verify(mockPrepStmt, times(1)).setInt(15, 0);
-        Mockito.verify(mockPrepStmt, times(1)).setString(16, "my-domain");
+        Mockito.verify(mockPrepStmt, times(1)).setString(16, "");
+        Mockito.verify(mockPrepStmt, times(1)).setString(17, "my-domain");
         jdbcConn.close();
     }
     
@@ -5601,12 +5610,11 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ORG)).thenReturn("");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_UUID)).thenReturn("");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_DESCRIPTION)).thenReturn("");
-        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_DESCRIPTION)).thenReturn("");
-        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_DESCRIPTION)).thenReturn("");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_SIGN_ALGORITHM)).thenReturn("rsa");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_CERT_DNS_DOMAIN)).thenReturn("");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_APPLICATION_ID)).thenReturn("");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_NOTIFY_ROLES)).thenReturn("");
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_USER_AUTHORITY_FILTER)).thenReturn("");
 
         DomainMetaList list = jdbcConn.listModifiedDomains(1454358900);
         
@@ -9299,20 +9307,27 @@ public class JDBCConnectionTest {
                 .thenReturn("admin")
                 .thenReturn("readers")
                 .thenReturn("readers");
+        Mockito.when(mockResultSet.getString("domain_user_authority_filter"))
+                .thenReturn("OnShore-US")
+                .thenReturn("")
+                .thenReturn("");
 
-        List<MemberRole> roles = jdbcConn.listRolesWithUserAuthorityRestrictions();
+        List<PrincipalRole> roles = jdbcConn.listRolesWithUserAuthorityRestrictions();
 
         // data back is sorted
 
         assertEquals(3, roles.size());
         assertEquals("athenz", roles.get(0).getDomainName());
         assertEquals("admin", roles.get(0).getRoleName());
+        assertEquals("OnShore-US", roles.get(0).getDomainUserAuthorityFilter());
 
         assertEquals("athenz.subdomain", roles.get(1).getDomainName());
         assertEquals("readers", roles.get(1).getRoleName());
+        assertTrue(roles.get(1).getDomainUserAuthorityFilter().isEmpty());
 
         assertEquals("sports", roles.get(2).getDomainName());
         assertEquals("readers", roles.get(2).getRoleName());
+        assertTrue(roles.get(2).getDomainUserAuthorityFilter().isEmpty());
 
         jdbcConn.close();
     }
