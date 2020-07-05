@@ -17,6 +17,7 @@ package com.yahoo.athenz.zms;
 
 import com.google.common.primitives.Bytes;
 import com.yahoo.athenz.auth.*;
+import com.yahoo.athenz.auth.impl.RoleAuthority;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.token.PrincipalToken;
 import com.yahoo.athenz.auth.util.Crypto;
@@ -2142,24 +2143,46 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return SimplePrincipal.create(domain, name, (String) null);
     }
 
-    boolean validRoleTokenAccess(String trustDomain, String domainName, String principalName) {
+    boolean validateRoleBasedAccessCheck(List<String> roles, final String trustDomain, final String domainName,
+                                         final String principalName, Authority authority) {
 
-        if (trustDomain != null) {
-            if (LOG.isWarnEnabled()) {
-                LOG.warn("validRoleTokenAccess: Cannot access cross-domain resources with RoleToken");
-            }
+        // we must have a valid authority to do the check
+
+        if (authority == null) {
+            LOG.error("validateRoleBasedAccessCheck: principal has no valid authority");
             return false;
         }
 
-        // for Role tokens we don't have a name component in the principal
-        // so the principal name should be the same as the domain value 
-        // thus it must match the domain name from the resource
-
-        if (!domainName.equalsIgnoreCase(principalName)) {
-            if (LOG.isWarnEnabled()) {
-                LOG.warn("validRoleTokenAccess: resource domain does not match RoleToken domain");
-            }
+        if (trustDomain != null) {
+            LOG.error("validateRoleBasedAccessCheck: Cannot access cross-domain resources with role");
             return false;
+        }
+
+        if (authority instanceof RoleAuthority) {
+
+            // for Role tokens we don't have a name component in the principal
+            // so the principal name should be the same as the domain value
+            // thus it must match the domain name from the resource
+
+            if (!domainName.equalsIgnoreCase(principalName)) {
+                LOG.error("validateRoleBasedAccessCheckq: resource domain {} does not match RoleToken domain {}",
+                        domainName, principalName);
+                return false;
+            }
+        } else {
+
+            // for role certificates we're maintaining the full
+            // role name in the list so we're going to make sure
+            // they all have the correct prefix
+
+            final String prefix = domainName + AuthorityConsts.ROLE_SEP;
+            for (String role : roles) {
+                if (!role.startsWith(prefix)) {
+                    LOG.error("validRoleBasedAccessCheck: role {} does not start with resource domain {}",
+                        role, domainName);
+                    return false;
+                }
+            }
         }
 
         return true;
@@ -2432,7 +2455,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // make sure it's valid before processing it
 
         List<String> authenticatedRoles = principal.getRoles();
-        if (authenticatedRoles != null && !validRoleTokenAccess(trustDomain, domain.getName(), identity)) {
+        if (authenticatedRoles != null && !validateRoleBasedAccessCheck(authenticatedRoles, trustDomain,
+                domain.getName(), identity, principal.getAuthority())) {
             return AccessStatus.DENIED_INVALID_ROLE_TOKEN;
         }
 
@@ -4452,13 +4476,16 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         String prefix = domain + AuthorityConsts.ROLE_SEP;
         int prefixLen = prefix.length();
         for (Role role : roles) {
-            String name = role.getName();
+            final String name = role.getName();
             if (!name.matches(rolePattern)) {
                 continue;
             }
-            
-            String shortName = name.substring(prefixLen);
-            if (authenticatedRoles.contains(shortName)) {
+
+            // depending if the authority we either have the full role name
+            // or only the short name (we have verified the prefix already)
+            // so we're going to check both
+
+            if (authenticatedRoles.contains(name) || authenticatedRoles.contains(name.substring(prefixLen))) {
                 return true;
             }
         }

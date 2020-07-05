@@ -8414,18 +8414,38 @@ public class ZMSImplTest {
     }
     
     @Test
-    public void testValidRoleTokenAccessTrustDomain() {
-        assertFalse(zms.validRoleTokenAccess("TrustDomain", "Domain1", "Domain1"));
+    public void testValidateRoleBasedAccessCheckTrustDomain() {
+        RoleAuthority authority = new RoleAuthority();
+        assertFalse(zms.validateRoleBasedAccessCheck(Collections.emptyList(), "trustdomain",
+                "domain1", "domain1", authority));
     }
     
     @Test
-    public void testValidRoleTokenAccessMismatchNames() {
-        assertFalse(zms.validRoleTokenAccess(null, "Domain1", "Domain2"));
+    public void testValidateRoleBasedAccessCheckMismatchNames() {
+        RoleAuthority roleAuthority = new RoleAuthority();
+        assertFalse(zms.validateRoleBasedAccessCheck(Collections.emptyList(), null, "domain1",
+                "domain2", roleAuthority));
+
+        CertificateAuthority certAuthority = new CertificateAuthority();
+        List<String> roles = new ArrayList<>();
+        roles.add("domain1:role.readers");
+        roles.add("domain2:role.readers");
+        assertFalse(zms.validateRoleBasedAccessCheck(roles, null, "domain1",
+                "domain1", certAuthority));
     }
     
     @Test
-    public void testValidRoleTokenAccessValid() {
-        assertTrue(zms.validRoleTokenAccess(null, "Domain1", "Domain1"));
+    public void testValidateRoleBasedAccessCheckValid() {
+        RoleAuthority roleAuthority = new RoleAuthority();
+        assertTrue(zms.validateRoleBasedAccessCheck(Collections.emptyList(), null, "domain1",
+                "domain1", roleAuthority));
+
+        CertificateAuthority certAuthority = new CertificateAuthority();
+        List<String> roles = new ArrayList<>();
+        roles.add("domain1:role.readers");
+        roles.add("domain1:role.writers");
+        assertTrue(zms.validateRoleBasedAccessCheck(roles, null, "domain1",
+                "domain1", certAuthority));
     }
     
     @Test
@@ -13272,6 +13292,24 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testAssertionMatchAuthenticatedRoles() {
+        Role role = new Role().setName("domain:role.role1");
+        ArrayList<Role> roles = new ArrayList<>();
+        roles.add(role);
+
+        ArrayList<String> authRoles = new ArrayList<>();
+        authRoles.add("domain:role.role1");
+
+        Assertion assertion = new Assertion();
+        assertion.setAction("write");
+        assertion.setResource("domain:db.write");
+        assertion.setRole("domain:role.role1");
+
+        assertTrue(zms.assertionMatch(assertion, "user.john", "write", "domain:db.write", "domain",
+                roles, authRoles, null));
+    }
+
+    @Test
     public void testMatchRoleNoRoles() {
         assertFalse(zms.matchRole("domain", new ArrayList<>(), "role", null));
     }
@@ -13282,7 +13320,7 @@ public class ZMSImplTest {
     }
     
     @Test
-    public void testMatchRoleAuthRoleNoMatch() {
+    public void testMatchRoleAuthRoleNoMatchShortName() {
         Role role = new Role().setName("domain:role.role1");
         ArrayList<Role> roles = new ArrayList<>();
         roles.add(role);
@@ -13294,7 +13332,19 @@ public class ZMSImplTest {
     }
 
     @Test
-    public void testMatchRoleNoMatch() {
+    public void testMatchRoleAuthRoleNoMatchFullName() {
+        Role role = new Role().setName("domain:role.role1");
+        ArrayList<Role> roles = new ArrayList<>();
+        roles.add(role);
+
+        ArrayList<String> authRoles = new ArrayList<>();
+        authRoles.add("domain:role.role3");
+
+        assertFalse(zms.matchRole("domain", roles, "domain:role\\.role1.*", authRoles));
+    }
+
+    @Test
+    public void testMatchRoleNoMatchPattern() {
         Role role = new Role().setName("domain:role.role2");
         ArrayList<Role> roles = new ArrayList<>();
         roles.add(role);
@@ -13306,7 +13356,7 @@ public class ZMSImplTest {
     }
 
     @Test
-    public void testMatchRole() {
+    public void testMatchRoleShortName() {
         Role role = new Role().setName("domain:role.role1");
         ArrayList<Role> roles = new ArrayList<>();
         roles.add(role);
@@ -13316,7 +13366,19 @@ public class ZMSImplTest {
         
         assertTrue(zms.matchRole("domain", roles, "domain:role\\.role.*", authRoles));
     }
-    
+
+    @Test
+    public void testMatchRoleFullName() {
+        Role role = new Role().setName("domain:role.role1");
+        ArrayList<Role> roles = new ArrayList<>();
+        roles.add(role);
+
+        ArrayList<String> authRoles = new ArrayList<>();
+        authRoles.add("domain:role.role1");
+
+        assertTrue(zms.matchRole("domain", roles, "domain:role\\.role.*", authRoles));
+    }
+
     @Test
     public void testExtractDomainName() {
         assertEquals(zms.extractDomainName("domain:entity"), "domain");
