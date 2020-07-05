@@ -521,7 +521,7 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 				return cli.DeleteProviderResourceGroupRoles(dn, args[0], args[1], args[2])
 			}
 		case "set-domain-meta":
-			if argc == 2 {
+			if argc == 1 {
 				return cli.SetDomainMeta(dn, args[0])
 			}
 		case "set-aws-account", "set-domain-account":
