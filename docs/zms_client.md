@@ -20,9 +20,12 @@
 * [Managing a Group Role Membership](#managing-a-group-role-membership)
     * [Parameters](#parameters-2)
     * [Example](#example-1)
+* [Adding a temporary Role Membership with expiration date](#adding-a-temporary-role-membership-with-expiration-date)   
+     * [Parameters](#parameters-3)
+     * [Example](#example-2)
 * [Adding a Policy](#adding-a-policy)
-    * [Parameters](#parameters-3)
-    * [Example](#example-2)
+    * [Parameters](#parameters-4)
+    * [Example](#example-3)
 
 ## Overview
 ----------
@@ -220,7 +223,7 @@ following zms-cli command:
 
     $ zms-cli -d <domain> add-group-role <role> <member> [<member> ...]
 
-### Parameters
+<h3 id="parameters-1">Parameters</h3>
 
     <domain>
 
@@ -256,7 +259,7 @@ administrator will execute the following zms-cli commands:
     $ zms-cli -d <domain> add-member <role> <member> [<member> ...]
     $ zms-cli -d <domain> delete-member <role> <member> [<member> ...]
 
-### Parameters
+<h3 id="parameters-2">Parameters</h3>
 
     <domain>
 
@@ -276,7 +279,7 @@ member is a regular user, the user's id must be prefixed with
 When specifying service identities as members you must provide
 the full service name in then &lt;domain-name&gt;.&lt;service-name&gt; format.
 
-### Example
+<h3 id="example-1">Example</h3>
 
 To add two new members: service "media.sports.storage" and user
 "yby.john", to a role called "readers" in the domain "athenz", the
@@ -290,6 +293,55 @@ following command:
 
     $ zms-cli -d athenz delete-member writers media.sports.storage
 
+## Adding a temporary Role Membership with expiration date
+----------------------------------------------------------
+
+To add a temporary member to a given role in a domain, the administrator
+will execute the following zms-cli commands:
+
+```
+$ zms-cli -d <domain> add-temporary-member <role> <member> <expiration>
+```
+
+<h3 id="parameters-3">Parameters</h3>
+
+```
+<domain>
+```
+
+The name of the domain that the role belongs to.
+
+```
+<role>
+```
+
+The name of the role that will be modified to add.
+
+```
+<member>
+```
+
+A member to be added to the role. Only one member must be specified. If
+the member is a regular user, the user's short id must be prefixed
+with `user.`.
+
+```
+<expiration>
+```
+
+Expiration date. It is expected to be in UTC timezone in the form of
+`YYYY-MM-DDTHH:MM:SSZ` - for example: 2017-03-02T15:04:00Z
+
+<h3 id="example-2">Example</h3>
+
+To add a new member: user `user.john`, to a role called `readers` in the
+domain `sports.nhl`, with expiration date set to 1PM UTC time on Sep. 3rd, 2018,
+the domain administrator will execute the following command:
+
+```
+$ zms-cli -d sports.nhl add-temporary-member readers user.john 2018-09-03T13:00:00Z
+```
+
 ## Adding a Policy
 ------------------
 
@@ -298,7 +350,7 @@ following zms-cli command:
 
     $ zms-cli -d <domain> add-policy <policy> [<assertion>]
 
-### Parameters
+<h3 id="parameters-4">Parameters</h3>
 
     <domain>
 
@@ -318,7 +370,7 @@ applies to. Once the policy has been created, the administrator can add
 and/or delete assertions using the `add-assertion` and
 `delete-assertion` commands.
 
-### Example
+<h3 id="example-3">Example</h3>
 
 When the domain administrator executes the command below, a new policy
 called `writers` will be added to the the domain `athenz.ci` that

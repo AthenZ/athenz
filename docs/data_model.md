@@ -58,7 +58,7 @@ decentralized authorization, and how to set up role-based authorization.
 * Policy - a set of assertions that govern usage of resources
 * Assertion - a quadruple of &lt;effect, role, action, resource&gt;
 * Principal - an authenticated user or service that assumes one or more roles
-* User - a user identity that is authenticate by a particular authority like Bouncer
+* User - a user identity that is authenticated by a particular authority
 * Service - An identity that exposes reusable resources, authenticated by
   an Athenz-aware container, reachable via an explicit endpoint.
 * Provider - a type of service that participates in the multi-tenant provisioning protocol.
