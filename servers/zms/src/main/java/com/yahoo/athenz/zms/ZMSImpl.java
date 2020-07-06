@@ -2165,7 +2165,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             // thus it must match the domain name from the resource
 
             if (!domainName.equalsIgnoreCase(principalName)) {
-                LOG.error("validateRoleBasedAccessCheckq: resource domain {} does not match RoleToken domain {}",
+                LOG.error("validateRoleBasedAccessCheck: resource domain {} does not match RoleToken domain {}",
                         domainName, principalName);
                 return false;
             }
@@ -2178,7 +2178,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             final String prefix = domainName + AuthorityConsts.ROLE_SEP;
             for (String role : roles) {
                 if (!role.startsWith(prefix)) {
-                    LOG.error("validRoleBasedAccessCheck: role {} does not start with resource domain {}",
+                    LOG.error("validateRoleBasedAccessCheck: role {} does not start with resource domain {}",
                         role, domainName);
                     return false;
                 }
