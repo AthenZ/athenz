@@ -55,6 +55,7 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.mockito.ArgumentCaptor;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -90,6 +91,7 @@ import com.yahoo.rdl.Schema;
 import com.yahoo.rdl.Timestamp;
 
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.testng.Assert.*;
 
 public class ZTSImplTest {
@@ -5977,7 +5979,7 @@ public class ZTSImplTest {
         }
     }
 
-    private void testPostInstanceRefreshInformation(final String csrPath) throws IOException {
+    private void testPostInstanceRefreshInformation(final String csrPath, final String hostname) throws IOException {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
@@ -6025,6 +6027,9 @@ public class ZTSImplTest {
 
         InstanceRefreshInformation info = new InstanceRefreshInformation()
                 .setCsr(certCsr).setToken(true);
+        if (hostname != null) {
+            info.setHostname(hostname);
+        }
 
         CertificateAuthority certAuthority = new CertificateAuthority();
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
@@ -6039,6 +6044,12 @@ public class ZTSImplTest {
                 "athenz.provider", "athenz", "production", "1001", info);
         assertNotNull(instanceIdentity);
         assertNotNull(instanceIdentity.getServiceToken());
+
+        ArgumentCaptor<X509CertRecord> captor = ArgumentCaptor.forClass(X509CertRecord.class);
+        Mockito.verify(instanceManager, atLeastOnce()).updateX509CertRecord(captor.capture());
+        X509CertRecord actualCert = captor.getValue();
+
+        assertEquals(actualCert.getHostName(), hostname);
     }
 
     @Test
@@ -6211,12 +6222,17 @@ public class ZTSImplTest {
 
     @Test
     public void testPostInstanceRefreshInformationInstanceIdDns() throws IOException {
-        testPostInstanceRefreshInformation("src/test/resources/athenz.instanceid.csr");
+        testPostInstanceRefreshInformation("src/test/resources/athenz.instanceid.csr", null);
     }
 
     @Test
     public void testPostInstanceRefreshInformationInstanceIdUri() throws IOException {
-        testPostInstanceRefreshInformation("src/test/resources/athenz.instance.prod.uri.csr");
+        testPostInstanceRefreshInformation("src/test/resources/athenz.instance.prod.uri.csr", null);
+    }
+
+    @Test
+    public void testPostInstanceRefreshInformationInstanceWithHostname() throws IOException {
+        testPostInstanceRefreshInformation("src/test/resources/athenz.instance.prod.uri.csr", "test.hostname.athenz.cloud");
     }
 
     @Test

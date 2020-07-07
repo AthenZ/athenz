@@ -3150,6 +3150,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             x509CertRecord.setCurrentIP(reqIp);
             x509CertRecord.setCurrentTime(new Date());
             x509CertRecord.setExpiryTime(newCert.getNotAfter());
+            x509CertRecord.setHostName(info.getHostname());
 
             // we must be able to update our record db otherwise we will
             // not be able to validate the refresh request next time
