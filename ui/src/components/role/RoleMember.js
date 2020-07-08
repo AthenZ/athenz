@@ -34,7 +34,6 @@ const StyledTag = styled(Tag)`
     padding: 7px 8px 7px 10px;
 `;
 const StyledTagFullNameExpiry = styled.span`
-    color: #303030;
     font-size: 11px;
 `;
 
@@ -46,10 +45,12 @@ const MenuDiv = styled.div`
 `;
 
 const StyledAnchor = styled.a`
-    color: #3570f4;
     text-decoration: none;
     cursor: pointer;
 `;
+
+const StyledAnchorActiveInline = { color: '#3570f4' };
+const StyledTagFullNameExpiryActiveInline = { color: '#303030' };
 
 export default class RoleMember extends React.Component {
     constructor(props) {
@@ -87,7 +88,13 @@ export default class RoleMember extends React.Component {
             : this.props.item.memberName;
         if (this.props.item.memberFullName) {
             fullName = (
-                <StyledTagFullNameExpiry>
+                <StyledTagFullNameExpiry
+                    style={
+                        this.props.item.systemDisabled
+                            ? {}
+                            : StyledTagFullNameExpiryActiveInline
+                    }
+                >
                     ({this.props.item.memberFullName})
                 </StyledTagFullNameExpiry>
             );
@@ -98,8 +105,14 @@ export default class RoleMember extends React.Component {
                     onClick={this.props.onClick}
                     onClickRemove={this.onClickPendingRemove}
                     noanim={this.props.noanim}
+                    disabled={this.props.item.systemDisabled}
                 >
                     <StyledAnchor
+                        style={
+                            this.props.item.systemDisabled
+                                ? {}
+                                : StyledAnchorActiveInline
+                        }
                         onClick={() =>
                             window.open(
                                 this.props.userProfileLink.url,
@@ -109,8 +122,13 @@ export default class RoleMember extends React.Component {
                     >
                         {' '}
                         {review && (
-                            <StyledTagFullNameExpiry>
-                                {' | '}
+                            <StyledTagFullNameExpiry
+                                style={
+                                    this.props.item.systemDisabled
+                                        ? {}
+                                        : StyledTagFullNameExpiryActiveInline
+                                }
+                            >
                                 <Menu
                                     placement='bottom-start'
                                     trigger={
@@ -134,7 +152,13 @@ export default class RoleMember extends React.Component {
                     </StyledAnchor>
                     {fullName}
                     {exp && (
-                        <StyledTagFullNameExpiry>
+                        <StyledTagFullNameExpiry
+                            style={
+                                this.props.item.systemDisabled
+                                    ? {}
+                                    : StyledTagFullNameExpiryActiveInline
+                            }
+                        >
                             {' | '}
                             {exp}
                         </StyledTagFullNameExpiry>
@@ -148,8 +172,14 @@ export default class RoleMember extends React.Component {
                     onClick={this.props.onClick}
                     onClickRemove={this.onClickRemove}
                     noanim={this.props.noanim}
+                    disabled={this.props.item.systemDisabled}
                 >
                     <StyledAnchor
+                        style={
+                            this.props.item.systemDisabled
+                                ? {}
+                                : StyledAnchorActiveInline
+                        }
                         onClick={() =>
                             window.open(
                                 this.props.userProfileLink.url,
@@ -159,7 +189,13 @@ export default class RoleMember extends React.Component {
                     >
                         {' '}
                         {review && (
-                            <StyledTagFullNameExpiry>
+                            <StyledTagFullNameExpiry
+                                style={
+                                    this.props.item.systemDisabled
+                                        ? {}
+                                        : StyledTagFullNameExpiryActiveInline
+                                }
+                            >
                                 <Menu
                                     placement='bottom-start'
                                     trigger={
@@ -183,7 +219,13 @@ export default class RoleMember extends React.Component {
                     </StyledAnchor>
                     {fullName}
                     {exp && (
-                        <StyledTagFullNameExpiry>
+                        <StyledTagFullNameExpiry
+                            style={
+                                this.props.item.systemDisabled
+                                    ? {}
+                                    : StyledTagFullNameExpiryActiveInline
+                            }
+                        >
                             {' | '}
                             {exp}
                         </StyledTagFullNameExpiry>
