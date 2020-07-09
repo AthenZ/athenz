@@ -64,7 +64,7 @@
         <version>${maven-surefire-plugin.version}</version>
         <configuration>
           <argLine>
-            @{argLine}-javaagent:${settings.localRepository}/org/jmockit/jmockit/${jmockit.version}/jmockit-${jmockit.version}.jar
+            -javaagent:${settings.localRepository}/org/jmockit/jmockit/${jmockit.version}/jmockit-${jmockit.version}.jar
           </argLine>
           <!-- ... -->
         </configuration>
