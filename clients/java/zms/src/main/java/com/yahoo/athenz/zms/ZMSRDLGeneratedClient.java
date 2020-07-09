@@ -664,6 +664,30 @@ public class ZMSRDLGeneratedClient {
 
     }
 
+    public DomainRoleMember getPrincipalRoles(String principal, String domainName) {
+        WebTarget target = base.path("/role");
+        if (principal != null) {
+            target = target.queryParam("principal", principal);
+        }
+        if (domainName != null) {
+            target = target.queryParam("domain", domainName);
+        }
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+        }
+        Response response = invocationBuilder.get();
+        int code = response.getStatus();
+        switch (code) {
+        case 200:
+            return response.readEntity(DomainRoleMember.class);
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
     public Membership putMembership(String domainName, String roleName, String memberName, String auditRef, Membership membership) {
         WebTarget target = base.path("/domain/{domainName}/role/{roleName}/member/{memberName}")
             .resolveTemplate("domainName", domainName)

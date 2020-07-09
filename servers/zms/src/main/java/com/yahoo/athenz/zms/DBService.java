@@ -2034,6 +2034,12 @@ public class DBService implements RolesProvider {
         }
     }
 
+    DomainRoleMember getPrincipalRoles(String principal, String domainName) {
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+            return con.getPrincipalRoles(principal, domainName);
+        }
+    }
+
     Role getRole(String domainName, String roleName, Boolean auditLog, Boolean expand, Boolean pending) {
 
         try (ObjectStoreConnection con = store.getConnection(true, false)) {

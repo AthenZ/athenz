@@ -7694,6 +7694,254 @@ public class JDBCConnectionTest {
         jdbcConn.close();
     }
 
+    @Test
+    public void testGetPrincipalRoles() throws SQLException {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(1);  // Principal id will be 1
+
+        // domain role members
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // True for getting principal_id
+                .thenReturn(true) // True for the returned members (6 total)
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(false);
+
+        Mockito.when(mockResultSet.getString(1)) // role names
+                .thenReturn("role1")  // role1 in domain1
+                .thenReturn("role1")  // role1 in domain2
+                .thenReturn("role2")  // role2 in domain1
+                .thenReturn("role2")  // role2 in domain3
+                .thenReturn("role3")  // role3 in domain3
+                .thenReturn("role4"); // role4 in domain3
+
+        Mockito.when(mockResultSet.getString(2)) // domain names
+                .thenReturn("domain1")
+                .thenReturn("domain2")
+                .thenReturn("domain1")
+                .thenReturn("domain3")
+                .thenReturn("domain3")
+                .thenReturn("domain3");
+
+        java.sql.Timestamp testTimestamp = new java.sql.Timestamp(1454358916);
+        Mockito.when(mockResultSet.getTimestamp(3)) // expiration
+                .thenReturn(testTimestamp)
+                .thenReturn(testTimestamp)
+                .thenReturn(null)
+                .thenReturn(null)
+                .thenReturn(null)
+                .thenReturn(testTimestamp);
+
+        Mockito.when(mockResultSet.getTimestamp(4)) // review reminder
+                .thenReturn(null)
+                .thenReturn(testTimestamp)
+                .thenReturn(testTimestamp)
+                .thenReturn(null)
+                .thenReturn(null)
+                .thenReturn(null);
+
+        Mockito.when(mockResultSet.getInt(5)) // System disabled
+                .thenReturn(0)
+                .thenReturn(0)
+                .thenReturn(1)
+                .thenReturn(1)
+                .thenReturn(0)
+                .thenReturn(0);
+
+        String principalName = "user.testUser";
+        MemberRole memberRole0 = new MemberRole();
+        memberRole0.setRoleName("role1");
+        memberRole0.setDomainName("domain1");
+        memberRole0.setExpiration(Timestamp.fromMillis(testTimestamp.getTime()));
+        memberRole0.setReviewReminder(null);
+
+        MemberRole memberRole1 = new MemberRole();
+        memberRole1.setRoleName("role1");
+        memberRole1.setDomainName("domain2");
+        memberRole1.setExpiration(Timestamp.fromMillis(testTimestamp.getTime()));
+        memberRole1.setReviewReminder(Timestamp.fromMillis(testTimestamp.getTime()));
+
+        MemberRole memberRole2 = new MemberRole();
+        memberRole2.setRoleName("role2");
+        memberRole2.setDomainName("domain1");
+        memberRole2.setExpiration(null);
+        memberRole2.setReviewReminder(Timestamp.fromMillis(testTimestamp.getTime()));
+        memberRole2.setSystemDisabled(1);
+
+        MemberRole memberRole3 = new MemberRole();
+        memberRole3.setRoleName("role2");
+        memberRole3.setDomainName("domain3");
+        memberRole3.setExpiration(null);
+        memberRole3.setReviewReminder(null);
+        memberRole3.setSystemDisabled(1);
+
+        MemberRole memberRole4 = new MemberRole();
+        memberRole4.setRoleName("role3");
+        memberRole4.setDomainName("domain3");
+        memberRole4.setExpiration(null);
+        memberRole4.setReviewReminder(null);
+
+        MemberRole memberRole5 = new MemberRole();
+        memberRole5.setRoleName("role4");
+        memberRole5.setDomainName("domain3");
+        memberRole5.setExpiration(Timestamp.fromMillis(testTimestamp.getTime()));
+        memberRole5.setReviewReminder(null);
+
+        DomainRoleMember roleMember = jdbcConn.getPrincipalRoles(principalName, null);
+        assertEquals(roleMember.getMemberName(), principalName);
+        assertEquals(roleMember.getMemberRoles().size(), 6);
+        assertEquals(roleMember.getMemberRoles().get(0), memberRole0);
+        assertEquals(roleMember.getMemberRoles().get(1), memberRole1);
+        assertEquals(roleMember.getMemberRoles().get(2), memberRole2);
+        assertEquals(roleMember.getMemberRoles().get(3), memberRole3);
+        assertEquals(roleMember.getMemberRoles().get(4), memberRole4);
+        assertEquals(roleMember.getMemberRoles().get(5), memberRole5);
+    }
+
+    @Test
+    public void testGetPrincipalRolesDomain() throws SQLException {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(1)  // Principal id will be 1
+                .thenReturn(1); // Domain id will be 1
+
+        // domain role members
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // True for getting principal_id
+                .thenReturn(true) // True for getting domain_id
+                .thenReturn(true) // True for the returned members (3 total)
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(false);
+
+        Mockito.when(mockResultSet.getString(1)) // role names
+                .thenReturn("role2")  // role2 in domain3
+                .thenReturn("role3")  // role3 in domain3
+                .thenReturn("role4"); // role4 in domain3
+
+        Mockito.when(mockResultSet.getString(2)) // domain names
+                .thenReturn("domain3")
+                .thenReturn("domain3")
+                .thenReturn("domain3");
+
+        java.sql.Timestamp testTimestamp = new java.sql.Timestamp(1454358916);
+        Mockito.when(mockResultSet.getTimestamp(3)) // expiration
+                .thenReturn(null)
+                .thenReturn(null)
+                .thenReturn(testTimestamp);
+
+        Mockito.when(mockResultSet.getTimestamp(4)) // review reminder
+                .thenReturn(null)
+                .thenReturn(null)
+                .thenReturn(null);
+
+        Mockito.when(mockResultSet.getInt(5)) // System disabled
+                .thenReturn(1)
+                .thenReturn(0)
+                .thenReturn(0);
+
+        String principalName = "user.testUser";
+
+        MemberRole memberRole3 = new MemberRole();
+        memberRole3.setRoleName("role2");
+        memberRole3.setDomainName("domain3");
+        memberRole3.setExpiration(null);
+        memberRole3.setReviewReminder(null);
+        memberRole3.setSystemDisabled(1);
+
+        MemberRole memberRole4 = new MemberRole();
+        memberRole4.setRoleName("role3");
+        memberRole4.setDomainName("domain3");
+        memberRole4.setExpiration(null);
+        memberRole4.setReviewReminder(null);
+
+        MemberRole memberRole5 = new MemberRole();
+        memberRole5.setRoleName("role4");
+        memberRole5.setDomainName("domain3");
+        memberRole5.setExpiration(Timestamp.fromMillis(testTimestamp.getTime()));
+        memberRole5.setReviewReminder(null);
+
+        DomainRoleMember roleMember = jdbcConn.getPrincipalRoles(principalName, "domain3");
+        assertEquals(roleMember.getMemberName(), principalName);
+        assertEquals(roleMember.getMemberRoles().size(), 3);
+        assertEquals(roleMember.getMemberRoles().get(0), memberRole3);
+        assertEquals(roleMember.getMemberRoles().get(1), memberRole4);
+        assertEquals(roleMember.getMemberRoles().get(2), memberRole5);
+    }
+
+    @Test
+    public void testGetPrincipalRolesInvalidDomain() throws SQLException {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(1); // Principal id will be 1
+
+        // domain role members
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // True for getting principal_id
+                .thenThrow(new SQLException("error getting domain_id")); // Throw exception when trying to get domain_id
+
+        String principalName = "user.testUser";
+
+        try {
+            jdbcConn.getPrincipalRoles(principalName, "unknownDomain");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+            assertEquals(ex.getData().toString(), "{code: 404, message: \"unknown domain - unknownDomain\"}");
+        }
+    }
+
+    @Test
+    public void testGetPrincipalRolesInvalidPrincipal() throws SQLException {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        try {
+            jdbcConn.getPrincipalRoles("johndoe", null);
+            fail();
+        } catch (ResourceException exception) {
+            assertEquals(exception.getCode(), ResourceException.NOT_FOUND);
+            assertEquals(exception.getData().toString(), "{code: 404, message: \"unknown principal - johndoe\"}");
+        }
+    }
+
+    @Test
+    public void testGetPrincipalRolesException() throws SQLException {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(1);  // Principal id will be 1
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // True for getting principal_id
+                .thenThrow(new SQLTimeoutException("failed operation - timeout", "state", 1001));
+
+        try {
+            jdbcConn.getPrincipalRoles("johndoe", null);
+            fail();
+        } catch (ResourceException exception) {
+            assertEquals(exception.getCode(), 503);
+            assertEquals(exception.getData().toString(), "{code: 503, message: \"Statement cancelled due to timeout\"}");
+
+        }
+    }
+
+    @Test
+    public void testGetPrincipalRolesNoRuleMembers() throws SQLException {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(1);  // Principal id will be 1
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // True for getting principal_id
+                .thenReturn(false); // Not member of any roles
+
+        DomainRoleMember domainRoleMember = jdbcConn.getPrincipalRoles("johndoe", null);
+        assertEquals(domainRoleMember.getMemberName(), "johndoe");
+        assertEquals(domainRoleMember.getMemberRoles().size(), 0);
+    }
+
     private void domainRoleMembers(Function<String, DomainRoleMembers> jdbcFunc,
                                    Function<MemberRole, Timestamp> timestampGetter) throws Exception {
         Mockito.when(mockResultSet.getInt(1))

@@ -81,6 +81,7 @@ public interface ObjectStoreConnection extends Closeable {
     boolean confirmRoleMember(String domainName, String roleName, RoleMember roleMember, String principal, String auditRef);
 
     DomainRoleMembers listDomainRoleMembers(String domainName);
+    DomainRoleMember getPrincipalRoles(String principal, String domainName);
     List<PrincipalRole> listRolesWithUserAuthorityRestrictions();
 
     // Policy commands
