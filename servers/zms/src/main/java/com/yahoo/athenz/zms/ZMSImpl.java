@@ -53,6 +53,7 @@ import com.yahoo.rdl.Timestamp;
 import com.yahoo.rdl.UUID;
 import com.yahoo.rdl.Validator;
 import com.yahoo.rdl.Validator.Result;
+import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -2940,6 +2941,34 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         DomainRoleMembers roleMembers = dbService.listDomainRoleMembers(domainName);
         metric.stopTiming(timerMetric, domainName, principalDomain);
         return roleMembers;
+    }
+
+    @Override
+    public DomainRoleMember getAllRoles(ResourceContext context, String principal) {
+        final String caller = "getallroles";
+        metric.increment(ZMSConsts.HTTP_GET);
+        logPrincipal(context);
+
+        if (StringUtil.isEmpty(principal)) {
+            // If principal not specified, get roles for current user
+            principal = ((RsrcCtxWrapper) context).principal().getFullName();
+        }
+        validateRequest(context.request(), caller);
+        validate(principal, TYPE_ENTITY_NAME, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+
+        principal = principal.toLowerCase();
+
+        metric.increment(ZMSConsts.HTTP_REQUEST, null);
+        metric.increment(caller, null);
+        Object timerMetric = metric.startTiming("getallroles_timing", null);
+
+        DomainRoleMember roleMember = dbService.getAllRoles(principal);
+        metric.stopTiming(timerMetric, null, null);
+        return roleMember;
     }
 
     @Override

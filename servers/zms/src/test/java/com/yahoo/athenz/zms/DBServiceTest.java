@@ -53,6 +53,7 @@ import javax.servlet.http.HttpServletRequest;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
 
 @SuppressWarnings("SameParameterValue")
 public class DBServiceTest {
@@ -2380,7 +2381,7 @@ public class DBServiceTest {
         templates.add("templateWithService");
         DomainTemplate domainTemplate = new DomainTemplate().setTemplateNames(templates);
         zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
-        
+
         DomainTemplateList domainTemplateList = zms.dbService.listDomainTemplates(domainName);
         assertEquals(1, domainTemplateList.getTemplateNames().size());
         
@@ -6041,6 +6042,74 @@ public class DBServiceTest {
         assertEquals(responseRoleMemberList.get(1).getMemberName(), "user.overduereview2");
 
         zms.dbService.executeDeleteDomain(mockDomRsrcCtx, domainName1, auditRef, "deletedomain");
+    }
+
+    @Test
+    public void testGetAllRoles() {
+        createMockDomain("domain1");
+        createMockDomain("domain2");
+        createMockDomain("domain3");
+
+        String principal = "user.johndoe";
+
+        List<RoleMember> roleMembers = new ArrayList<>();
+        roleMembers.add(new RoleMember().setMemberName("user.test1"));
+        roleMembers.add(new RoleMember().setMemberName("user.test2"));
+        roleMembers.add(new RoleMember().setMemberName(principal));
+
+        // Create role1 in domain1 with members and principal
+        Role role = createRoleObject("domain1", "role1", null, roleMembers);
+        zms.dbService.executePutRole(mockDomRsrcCtx, "domain1", "role1", role, "test", "putrole");
+
+        // Create role2 in domain1 with members and principal
+        role = createRoleObject("domain1", "role2", null, roleMembers);
+        zms.dbService.executePutRole(mockDomRsrcCtx, "domain1", "role2", role, "test", "putrole");
+
+        roleMembers = new ArrayList<>();
+        roleMembers.add(new RoleMember().setMemberName("user.test1"));
+        roleMembers.add(new RoleMember().setMemberName("user.test2"));
+
+        // Create role1 in domain2 with members but without the principal
+        role = createRoleObject("domain2", "role1", null, roleMembers);
+        zms.dbService.executePutRole(mockDomRsrcCtx, "domain2", "role1", role, "test", "putrole");
+
+        roleMembers = new ArrayList<>();
+        roleMembers.add(new RoleMember().setMemberName(principal));
+
+        // Create role1 in domain3 only principal
+        role = createRoleObject("domain3", "role1", null, roleMembers);
+        zms.dbService.executePutRole(mockDomRsrcCtx, "domain3", "role1", role, "test", "putrole");
+
+        DomainRoleMember domainRoleMember = zms.dbService.getAllRoles(principal);
+        MemberRole memberRole0 = new MemberRole();
+        memberRole0.setMemberName(principal);
+        memberRole0.setDomainName("domain1");
+        memberRole0.setRoleName("domain1:role.role1");
+
+        MemberRole memberRole1 = new MemberRole();
+        memberRole1.setMemberName(principal);
+        memberRole1.setDomainName("domain1");
+        memberRole1.setRoleName("domain1:role.role2");
+
+        MemberRole memberRole2 = new MemberRole();
+        memberRole2.setMemberName(principal);
+        memberRole2.setDomainName("domain2");
+        memberRole2.setRoleName("domain2:role.role1");
+
+        assertEquals(domainRoleMember.getMemberName(), principal);
+        assertEquals(domainRoleMember.getMemberRoles().get(0), memberRole0);
+
+        zms.dbService.executeDeleteDomain(mockDomRsrcCtx, "domain1", auditRef, "deletedomain");
+        zms.dbService.executeDeleteDomain(mockDomRsrcCtx, "domain2", auditRef, "deletedomain");
+        zms.dbService.executeDeleteDomain(mockDomRsrcCtx, "domain3", auditRef, "deletedomain");
+    }
+
+    private void createMockDomain(String domainName) {
+        List<String> admins = new ArrayList<>();
+        admins.add(adminUser);
+
+        TopLevelDomain domain = createTopLevelDomainObject(domainName, "Test " + domainName, "testorg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, domain);
     }
 
     @Test

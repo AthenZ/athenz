@@ -902,6 +902,18 @@ func init() {
 	mGetDomainRoleMembers.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetDomainRoleMembers.Build())
 
+	mGetAllRoles := rdl.NewResourceBuilder("DomainRoleMember", "GET", "/all_roles")
+	mGetAllRoles.Comment("Fetch all the roles across domains by either calling or specified principal")
+	mGetAllRoles.Name("GetAllRoles")
+	mGetAllRoles.Input("principal", "EntityName", false, "principal", "", true, nil, "")
+	mGetAllRoles.Auth("", "", true, "")
+	mGetAllRoles.Exception("BAD_REQUEST", "ResourceError", "")
+	mGetAllRoles.Exception("FORBIDDEN", "ResourceError", "")
+	mGetAllRoles.Exception("NOT_FOUND", "ResourceError", "")
+	mGetAllRoles.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
+	mGetAllRoles.Exception("UNAUTHORIZED", "ResourceError", "")
+	sb.AddResource(mGetAllRoles.Build())
+
 	mPutMembership := rdl.NewResourceBuilder("Membership", "PUT", "/domain/{domainName}/role/{roleName}/member/{memberName}")
 	mPutMembership.Comment("Add the specified user to the role's member list. If the role is neither auditEnabled nor selfserve, then it will use authorize (\"update\", \"{domainName}:role.{roleName}\") otherwise membership will be sent for approval to either designated delegates ( in case of auditEnabled roles ) or to domain admins ( in case of selfserve roles )")
 	mPutMembership.Input("domainName", "DomainName", true, "", "", false, nil, "name of the domain")

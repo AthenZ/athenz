@@ -1640,6 +1640,43 @@ public class FileConnection implements ObjectStoreConnection {
     }
 
     @Override
+    public DomainRoleMember getAllRoles(String principal) {
+        DomainRoleMember domainRoleMember = new DomainRoleMember();
+        domainRoleMember.setMemberName(principal);
+        domainRoleMember.setMemberRoles(new ArrayList<>());
+
+        String[] fnames = getDomainList();
+        for (String domainName : fnames) {
+            DomainStruct dom = getDomainStruct(domainName);
+            if (dom == null) {
+                continue;
+            }
+
+            for (Role role: dom.getRoles().values()) {
+                List<RoleMember> roleMembers = role.getRoleMembers();
+                if (roleMembers == null) {
+                    continue;
+                }
+                for (RoleMember roleMember : roleMembers) {
+                    if (!roleMember.getMemberName().equals(principal)) {
+                        continue;
+                    }
+
+                    MemberRole memberRole = new MemberRole();
+                    memberRole.setMemberName(principal);
+                    memberRole.setDomainName(domainName);
+                    memberRole.setReviewReminder(roleMember.getReviewReminder());
+                    memberRole.setExpiration(roleMember.getExpiration());
+                    memberRole.setRoleName(role.getName());
+                    domainRoleMember.getMemberRoles().add(memberRole);
+                }
+            }
+        }
+
+        return domainRoleMember;
+    }
+
+    @Override
     public DomainRoleMembers listOverdueReviewRoleMembers(String domainName) {
         return listReviewRoleMembersWithFilter(domainName, (roleMember -> {
             if (roleMember.getReviewReminder() == null) {

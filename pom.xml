@@ -229,11 +229,13 @@
               <goal>check</goal>
             </goals>
             <configuration>
+              <excludes>
+                <exclude>*Test</exclude>
+                <exclude>**/*ZMSRDLGeneratedClient*</exclude>
+              </excludes>
               <rules>
                 <rules>
                   <rule>
-                    <element>PACKAGE</element>
-                    <excludes>*Test</excludes>
                     <limits>
                       <limit>
                         <counter>LINE</counter>

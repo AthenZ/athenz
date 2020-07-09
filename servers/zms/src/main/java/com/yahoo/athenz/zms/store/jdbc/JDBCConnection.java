@@ -209,6 +209,13 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "JOIN role_member ON role_member.principal_id=principal.principal_id "
             + "JOIN role ON role.role_id=role_member.role_id "
             + "WHERE role.domain_id=?;";
+
+    private static final String SQL_GET_ALL_ROLES = "SELECT role.name, domain.name, role_member.expiration, "
+            + "role_member.review_reminder, role_member.system_disabled FROM role_member "
+            + "JOIN role ON role.role_id=role_member.role_id "
+            + "JOIN domain ON domain.domain_id=role.domain_id "
+            + "WHERE role_member.principal_id=?;";
+
     private static final String SQL_GET_REVIEW_OVERDUE_DOMAIN_ROLE_MEMBERS = "SELECT role.name, principal.name, role_member.expiration, "
             + "role_member.review_reminder, role_member.system_disabled FROM principal "
             + "JOIN role_member ON role_member.principal_id=principal.principal_id "
@@ -3749,6 +3756,50 @@ public class JDBCConnection implements ObjectStoreConnection {
     @Override
     public DomainRoleMembers listDomainRoleMembers(String domainName) {
         return listDomainRoleMembersWithQuery(domainName, SQL_GET_DOMAIN_ROLE_MEMBERS, "listDomainRoleMembers");
+    }
+
+    @Override
+    public DomainRoleMember getAllRoles(String principal) {
+        final String caller = "getAllRoles";
+
+        int principalId = getPrincipalId(principal);
+        if (principalId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_PRINCIPAL, principal);
+        }
+
+        DomainRoleMember roleMember = new DomainRoleMember();
+        roleMember.setMemberRoles(new ArrayList<>());
+        roleMember.setMemberName(principal);
+        try (PreparedStatement ps = con.prepareStatement(SQL_GET_ALL_ROLES)) {
+            ps.setInt(1, principalId);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    final String roleName = rs.getString(1);
+                    final String domainName = rs.getString(2);
+
+                    MemberRole memberRole = new MemberRole();
+                    memberRole.setMemberName(principal);
+                    memberRole.setRoleName(roleName);
+                    memberRole.setDomainName(domainName);
+
+                    java.sql.Timestamp expiration = rs.getTimestamp(3);
+                    if (expiration != null) {
+                        memberRole.setExpiration(Timestamp.fromMillis(expiration.getTime()));
+                    }
+                    java.sql.Timestamp reviewReminder = rs.getTimestamp(4);
+                    if (reviewReminder != null) {
+                        memberRole.setReviewReminder(Timestamp.fromMillis(reviewReminder.getTime()));
+                    }
+                    memberRole.setSystemDisabled(nullIfDefaultValue(rs.getInt(5), 0));
+
+                    roleMember.getMemberRoles().add(memberRole);
+                }
+
+                return roleMember;
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
     }
 
     @Override

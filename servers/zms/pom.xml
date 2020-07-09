@@ -184,6 +184,9 @@
         <configuration>
           <excludes>
             <exclude>**/ZMSResources.*</exclude>
+            <exclude>**/ZMSSchema.*</exclude>
+            <exclude>**/ZMSHandler.*</exclude>
+            <exclude>**/ZMSConsts.*</exclude>
             <exclude>**/FileConnection.*</exclude>
             <exclude>**/FileObjectStore.*</exclude>
           </excludes>
