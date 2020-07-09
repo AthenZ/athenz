@@ -8415,37 +8415,36 @@ public class ZMSImplTest {
     
     @Test
     public void testValidateRoleBasedAccessCheckTrustDomain() {
-        RoleAuthority authority = new RoleAuthority();
         assertFalse(zms.validateRoleBasedAccessCheck(Collections.emptyList(), "trustdomain",
-                "domain1", "domain1", authority));
+                "domain1", "domain1"));
     }
     
     @Test
     public void testValidateRoleBasedAccessCheckMismatchNames() {
-        RoleAuthority roleAuthority = new RoleAuthority();
-        assertFalse(zms.validateRoleBasedAccessCheck(Collections.emptyList(), null, "domain1",
-                "domain2", roleAuthority));
 
-        CertificateAuthority certAuthority = new CertificateAuthority();
         List<String> roles = new ArrayList<>();
+        roles.add("readers");
+        assertFalse(zms.validateRoleBasedAccessCheck(roles, null, "domain1", "domain2"));
+
+        roles = new ArrayList<>();
         roles.add("domain1:role.readers");
         roles.add("domain2:role.readers");
-        assertFalse(zms.validateRoleBasedAccessCheck(roles, null, "domain1",
-                "domain1", certAuthority));
+        assertFalse(zms.validateRoleBasedAccessCheck(roles, null, "domain1", "domain1"));
     }
     
     @Test
     public void testValidateRoleBasedAccessCheckValid() {
-        RoleAuthority roleAuthority = new RoleAuthority();
-        assertTrue(zms.validateRoleBasedAccessCheck(Collections.emptyList(), null, "domain1",
-                "domain1", roleAuthority));
+        assertTrue(zms.validateRoleBasedAccessCheck(Collections.emptyList(), null, "domain1", "domain1"));
 
-        CertificateAuthority certAuthority = new CertificateAuthority();
         List<String> roles = new ArrayList<>();
+        roles.add("readers");
+        assertTrue(zms.validateRoleBasedAccessCheck(roles, null, "domain1", "domain1"));
+
+        roles = new ArrayList<>();
         roles.add("domain1:role.readers");
         roles.add("domain1:role.writers");
-        assertTrue(zms.validateRoleBasedAccessCheck(roles, null, "domain1",
-                "domain1", certAuthority));
+        assertTrue(zms.validateRoleBasedAccessCheck(roles, null, "domain1", "domain1"));
+        assertTrue(zms.validateRoleBasedAccessCheck(roles, null, "domain1", "domain2"));
     }
     
     @Test

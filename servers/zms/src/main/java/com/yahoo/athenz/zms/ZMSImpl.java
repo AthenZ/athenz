@@ -17,7 +17,6 @@ package com.yahoo.athenz.zms;
 
 import com.google.common.primitives.Bytes;
 import com.yahoo.athenz.auth.*;
-import com.yahoo.athenz.auth.impl.RoleAuthority;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.token.PrincipalToken;
 import com.yahoo.athenz.auth.util.Crypto;
@@ -2144,44 +2143,49 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     boolean validateRoleBasedAccessCheck(List<String> roles, final String trustDomain, final String domainName,
-                                         final String principalName, Authority authority) {
-
-        // we must have a valid authority to do the check
-
-        if (authority == null) {
-            LOG.error("validateRoleBasedAccessCheck: principal has no valid authority");
-            return false;
-        }
+                                         final String principalName) {
 
         if (trustDomain != null) {
             LOG.error("validateRoleBasedAccessCheck: Cannot access cross-domain resources with role");
             return false;
         }
 
-        if (authority instanceof RoleAuthority) {
+        // for Role tokens we don't have a name component in the principal
+        // so the principal name should be the same as the domain value
+        // thus it must match the domain name from the resource
 
-            // for Role tokens we don't have a name component in the principal
-            // so the principal name should be the same as the domain value
-            // thus it must match the domain name from the resource
+        boolean bResourceDomainMatch = domainName.equalsIgnoreCase(principalName);
 
-            if (!domainName.equalsIgnoreCase(principalName)) {
-                LOG.error("validateRoleBasedAccessCheck: resource domain {} does not match RoleToken domain {}",
-                        domainName, principalName);
+        // now we're going to go through all the roles specified and make
+        // sure if it contains ':role.' separator then the domain must
+        // our requested domain name. If the role does not have the separator
+        // then the bResourceDomainMatch must be true
+
+        final String prefix = domainName + AuthorityConsts.ROLE_SEP;
+        for (String role : roles) {
+
+            // if our role starts with the prefix then we're good
+
+            if (role.startsWith(prefix)) {
+                continue;
+            }
+
+            // otherwise if it has a role separator then it's an error
+            // not to match the domain
+
+            if (role.contains(AuthorityConsts.ROLE_SEP)) {
+                LOG.error("validateRoleBasedAccessCheck: role {} does not start with resource domain {}",
+                        role, domainName);
                 return false;
             }
-        } else {
 
-            // for role certificates we're maintaining the full
-            // role name in the list so we're going to make sure
-            // they all have the correct prefix
+            // so at this point we don't have a separator so our
+            // resource and principal domains must match
 
-            final String prefix = domainName + AuthorityConsts.ROLE_SEP;
-            for (String role : roles) {
-                if (!role.startsWith(prefix)) {
-                    LOG.error("validateRoleBasedAccessCheck: role {} does not start with resource domain {}",
-                        role, domainName);
-                    return false;
-                }
+            if (!bResourceDomainMatch) {
+                LOG.error("validateRoleBasedAccessCheck: resource domain {} does not match role domain {}",
+                        domainName, principalName);
+                return false;
             }
         }
 
@@ -2456,7 +2460,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         List<String> authenticatedRoles = principal.getRoles();
         if (authenticatedRoles != null && !validateRoleBasedAccessCheck(authenticatedRoles, trustDomain,
-                domain.getName(), identity, principal.getAuthority())) {
+                domain.getName(), identity)) {
             return AccessStatus.DENIED_INVALID_ROLE_TOKEN;
         }
 
