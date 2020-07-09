@@ -14,6 +14,8 @@ before_install:
 - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 50
 - sudo apt-get install g++-4.8
 - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 50
+before_script:
+- export MAVEN_SKIP_RC=true
 script: mvn install -DargLine="-Dlogback.configurationFile=src/test/resources/travis_logback.xml"
 after_success:
 - test "${TRAVIS_PULL_REQUEST}" == "false" && test "${TRAVIS_TAG}" != "" && ./travis/publish_to_bintray.sh
