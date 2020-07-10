@@ -27,7 +27,7 @@
   <description>ZMS Java Client Library</description>
 
   <properties>
-    <code.coverage.min>0.42</code.coverage.min>
+    <code.coverage.min>0.95</code.coverage.min>
   </properties>
 
   <dependencies>
@@ -141,6 +141,16 @@
 
   <build>
     <plugins>
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>**/ZMSRDLGeneratedClient.*</exclude>
+            <exclude>*Test</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>

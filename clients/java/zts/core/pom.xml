@@ -38,7 +38,7 @@
   </dependencyManagement>
 
   <properties>
-    <code.coverage.min>0.61</code.coverage.min>
+    <code.coverage.min>0.73</code.coverage.min>
   </properties>
 
   <dependencies>
@@ -172,6 +172,16 @@
 
   <build>
     <plugins>
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>**/ZTSRDLGeneratedClient.*</exclude>
+            <exclude>**/*Mock.*</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>

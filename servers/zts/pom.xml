@@ -28,7 +28,7 @@
   <description>Athenz ZTS Server</description>
 
   <properties>
-    <code.coverage.min>0.86</code.coverage.min>
+    <code.coverage.min>0.92</code.coverage.min>
   </properties>
 
   <dependencyManagement>
@@ -206,6 +206,15 @@
   <build>
     <finalName>zts</finalName>
     <plugins>
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>**/ZTSResources.*</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
