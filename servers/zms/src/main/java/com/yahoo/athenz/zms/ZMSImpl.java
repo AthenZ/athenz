@@ -1253,7 +1253,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateDomainValues(topLevelDomain);
 
-        List<String> adminUsers = normalizedAdminUsers(detail.getAdminUsers());
+        List<String> adminUsers = normalizedAdminUsers(detail.getAdminUsers(), detail.getUserAuthorityFilter(), caller);
         Domain domain = createTopLevelDomain(ctx, topLevelDomain, adminUsers, solutionTemplates, auditRef);
         metric.stopTiming(timerMetric, domainName, principalDomain);
         return domain;
@@ -1388,8 +1388,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // we're dealing with user's top level domain so the parent is going
         // to be the home domain and the admin of the domain is the user
 
+        final String userDomainAdmin = userDomainPrefix + principal.getName();
+        validateRoleMemberPrincipal(userDomainAdmin, null, caller);
+
         List<String> adminUsers = new ArrayList<>();
-        adminUsers.add(userDomainPrefix + principal.getName());
+        adminUsers.add(userDomainAdmin);
 
         List<String> solutionTemplates = null;
         DomainTemplateList templates = detail.getTemplates();
@@ -1493,16 +1496,23 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
         }
 
-        List<String> adminUsers = normalizedAdminUsers(detail.getAdminUsers());
-
-        // inherit audit_enabled flag and organization from parent domain
+        // verify that the parent domain exists
 
         AthenzDomain parentDomain = getAthenzDomain(parent, false);
-        if (parentDomain != null && parentDomain.getDomain() != null) {
-            detail.setAuditEnabled(parentDomain.getDomain().getAuditEnabled());
-            detail.setOrg(parentDomain.getDomain().getOrg());
-            detail.setUserAuthorityFilter(parentDomain.getDomain().getUserAuthorityFilter());
+        if (parentDomain == null || parentDomain.getDomain() == null) {
+            throw ZMSUtils.notFoundError("Invalid parent domain: " + parent, caller);
         }
+
+        // inherit audit_enabled flag, organization and user authority settings
+        // from the parent domain
+
+        detail.setAuditEnabled(parentDomain.getDomain().getAuditEnabled());
+        detail.setOrg(parentDomain.getDomain().getOrg());
+        detail.setUserAuthorityFilter(parentDomain.getDomain().getUserAuthorityFilter());
+
+        // generate and verify admin users
+
+        List<String> adminUsers = normalizedAdminUsers(detail.getAdminUsers(), detail.getUserAuthorityFilter(), caller);
 
         Domain subDomain = new Domain()
                 .setName(detail.getParent() + "." + detail.getName())
@@ -2980,10 +2990,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return role;
     }
 
-    List<String> normalizedAdminUsers(List<String> admins) {
+    List<String> normalizedAdminUsers(List<String> admins, final String domainUserAuthorityFilter, final String caller) {
         List<String> normalizedAdmins = new ArrayList<>();
         for (String admin : admins) {
             normalizedAdmins.add(normalizeDomainAliasUser(admin));
+        }
+        // now go through the list and make sure they're all valid
+        for (String admin : normalizedAdmins) {
+            validateRoleMemberPrincipal(admin, domainUserAuthorityFilter, caller);
         }
         return normalizedAdmins;
     }
@@ -7135,13 +7149,16 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // policy, service, etc name)
         
         domainName = domainName.toLowerCase();
-        AthenzObject.DEFAULT_ADMINS.convertToLowerCase(defaultAdmins);
-        defaultAdmins.setAdmins(normalizedAdminUsers(defaultAdmins.getAdmins()));
-        
+
         AthenzDomain domain = getAthenzDomain(domainName, false);
         if (domain == null) {
             throw ZMSUtils.notFoundError("putDefaultAdmins: Domain not found: '" + domainName + "'", caller);
         }
+
+        // normalize and validate requested admin users
+
+        AthenzObject.DEFAULT_ADMINS.convertToLowerCase(defaultAdmins);
+        defaultAdmins.setAdmins(normalizedAdminUsers(defaultAdmins.getAdmins(), domain.getDomain().getUserAuthorityFilter(), caller));
         
         Role adminRole = null;
         for (Role role : domain.getRoles()) {
