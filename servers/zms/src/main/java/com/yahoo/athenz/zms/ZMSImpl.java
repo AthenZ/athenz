@@ -7894,9 +7894,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // authorization check
 
-        if (!isAllowedPutMembershipDecision(principal, domain, role, roleMember)) {
-            throw ZMSUtils.forbiddenError("putMembershipDecision: principal is not authorized to approve / reject members", caller);
-        }
+        validatePutMembershipDecisionAuthorization(principal, domain, role, roleMember);
 
         roleMember.setApproved(membership.getApproved());
         roleMember.setActive(membership.getActive());
@@ -7926,7 +7924,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         metric.stopTiming(timerMetric, domainName, principalDomain);
     }
 
-    private boolean isAllowedPutMembershipDecision(final Principal principal, final AthenzDomain domain,
+    private void validatePutMembershipDecisionAuthorization(final Principal principal, final AthenzDomain domain,
             final Role role, final RoleMember roleMember) {
 
         final String caller = "putmembershipdecision";
@@ -7935,19 +7933,26 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // out the authorization in the sys.auth.audit domains
 
         if (role.getAuditEnabled() == Boolean.TRUE) {
-            return isAllowedAuditRoleMembershipApproval(principal, domain);
+            if (!isAllowedAuditRoleMembershipApproval(principal, domain)) {
+                throw ZMSUtils.forbiddenError("principal " + principal.getFullName()
+                        + " is not authorized to approve / reject members", caller);
+            }
+            return;
         }
 
         // otherwise we're going to do a standard check if the principal
         // is authorized to update the domain role membership
 
-        boolean allowed = isAllowedPutMembershipAccess(principal, domain, role.getName());
+        if (!isAllowedPutMembershipAccess(principal, domain, role.getName())) {
+            throw ZMSUtils.forbiddenError("principal " + principal.getFullName()
+                    + " is not authorized to approve / reject members", caller);
+        }
 
         // if the user is allowed to make changes in the domain but
         // the role is review enabled then we need to make sure
         // the approver cannot be the same as the requester
 
-        if (allowed && role.getReviewEnabled() == Boolean.TRUE) {
+        if (role.getReviewEnabled() == Boolean.TRUE) {
 
             Membership pendingMember = dbService.getMembership(domain.getName(),
                     ZMSUtils.extractRoleName(domain.getName(), role.getName()),
@@ -7956,16 +7961,15 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             // if the member is not found then we're going to throw a not found exception
 
             if (!pendingMember.getIsMember()) {
-                throw ZMSUtils.notFoundError("Pending member " + roleMember.getMemberName() + " not found", caller);
+                throw ZMSUtils.notFoundError("pending member " + roleMember.getMemberName()
+                        + " not found", caller);
             }
 
             if (pendingMember.getRequestPrincipal().equalsIgnoreCase(principal.getFullName())) {
-                LOG.error("Principal {} cannot approve his/her own request", principal.getFullName());
-                allowed = false;
+                throw ZMSUtils.forbiddenError("principal " + principal.getFullName()
+                        + " cannot approve his/her own request", caller);
             }
         }
-
-        return allowed;
     }
 
     boolean isAllowedAuditRoleMembershipApproval(Principal principal, final AthenzDomain reqDomain) {

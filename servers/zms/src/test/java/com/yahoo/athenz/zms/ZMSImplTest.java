@@ -17305,7 +17305,7 @@ public class ZMSImplTest {
             zms.putMembershipDecision(mockDomRsrcCtx, domainName, roleName, "user.bob", auditRef, mbr);
             fail();
         } catch (ResourceException ex) {
-            assertTrue(ex.getMessage().contains("principal is not authorized to approve / reject members"));
+            assertTrue(ex.getMessage().contains("cannot approve his/her own request"));
         }
 
         // revert back to admin principal
@@ -17602,6 +17602,76 @@ public class ZMSImplTest {
 
         clenaupPrincipalAuditedRoleApprovalByOrg(zms, "testOrg");
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "testdomain1", auditRef);
+    }
+
+    @Test
+    public void testPutMembershipDecisionReviewEnabledUnauthorized() {
+
+        final String domainName = "review-enabled-domain-forbidden";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Approval test Domain1",
+                "testOrg", "user.user1");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        final String roleName = "review-role";
+        Role role1 = createRoleObject(domainName, roleName, null, null, null);
+        zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, role1);
+
+        RoleMeta rm = new RoleMeta().setReviewEnabled(true);
+        zms.putRoleMeta(mockDomRsrcCtx, domainName, roleName, auditRef, rm);
+
+        // add a user to the role
+
+        Membership mbr = new Membership();
+        mbr.setMemberName("user.bob");
+        mbr.setActive(false);
+        mbr.setApproved(false);
+
+        zms.putMembership(mockDomRsrcCtx, domainName, roleName, "user.bob", auditRef, mbr);
+
+        // verify the user is added with pending state
+
+        Role resrole = zms.getRole(mockDomRsrcCtx, domainName, roleName, false, false, true);
+        assertEquals(resrole.getRoleMembers().size(), 1);
+        assertEquals(resrole.getRoleMembers().get(0).getMemberName(), "user.bob");
+        assertFalse(resrole.getRoleMembers().get(0).getApproved());
+
+        // now try as the second admin himself to approve this user and it must
+        // be rejected since second admin is not authorized
+
+        mbr = new Membership();
+        mbr.setMemberName("user.bob");
+        mbr.setActive(true);
+        mbr.setApproved(true);
+
+        // switch to user.user2 principal to add a member to a role
+
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String unsignedCreds = "v=U1;d=user;n=user2";
+        final Principal rsrcPrince = SimplePrincipal.create("user", "user2",
+                unsignedCreds + ";s=signature", 0, principalAuthority);
+        ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
+        Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcPrince);
+        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcPrince);
+
+        try {
+            zms.putMembershipDecision(mockDomRsrcCtx, domainName, roleName, "user.bob", auditRef, mbr);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("not authorized to approve / reject members"));
+        }
+
+        // revert back to admin principal
+
+        Authority adminPrincipalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String adminUnsignedCreds = "v=U1;d=user;n=user1";
+        final Principal rsrcAdminPrince = SimplePrincipal.create("user", "user1",
+                adminUnsignedCreds + ";s=signature", 0, adminPrincipalAuthority);
+        ((SimplePrincipal) rsrcAdminPrince).setUnsignedCreds(adminUnsignedCreds);
+
+        Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
+        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 
     @Test
