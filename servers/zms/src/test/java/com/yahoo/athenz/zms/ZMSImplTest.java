@@ -205,16 +205,6 @@ public class ZMSImplTest {
         return rsrcCtxWrapper;
     }
 
-//    private Object getWebAppExcEntity(javax.ws.rs.WebApplicationException wex) {
-//        javax.ws.rs.core.Response resp = wex.getResponse();
-//        return resp.getEntity();
-//    }
-//
-//    private Object getWebAppExcETagMapValue(javax.ws.rs.WebApplicationException wex) {
-//        javax.ws.rs.core.MultivaluedMap<String, Object> mvmap = wex.getResponse().getMetadata();
-//        return mvmap.getFirst("ETag");
-//    }
-
     private ZMSImpl zmsInit() {
         // we want to make sure we start we clean dir structure
         FileConnection.deleteDirectory(new File(ZMS_DATA_STORE_PATH));
@@ -1232,7 +1222,36 @@ public class ZMSImplTest {
             assertTrue(true);
         }
     }
-    
+
+    @Test
+    public void testCeateSubDomainNoParent() {
+
+        SubDomain dom = createSubDomainObject("sub", "parent",
+                "Test Domain", "testOrg", adminUser);
+        try {
+            zms.postSubDomain(mockDomRsrcCtx, "parent", auditRef, dom);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+
+        // now first create the parent
+
+        TopLevelDomain dom1 = createTopLevelDomainObject("parent",
+                "Test Domain", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        // and then create the subdomain
+
+        Domain resDom = zms.postSubDomain(mockDomRsrcCtx, "parent", auditRef, dom);
+        assertNotNull(resDom);
+
+        // clean up domains
+
+        zms.deleteSubDomain(mockDomRsrcCtx, "parent", "sub", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "parent", auditRef);
+    }
+
     @Test
     public void testCreateSubDomainWithVirtualLimit() {
         
@@ -1271,9 +1290,14 @@ public class ZMSImplTest {
         System.setProperty(ZMSConsts.ZMS_PROP_VIRTUAL_DOMAIN_LIMIT, "5");
         ZMSImpl zmsTest = zmsInit();
 
-        SubDomain dom = createSubDomainObject("sub1", "user.user1",
+        SubDomain dom = createSubDomainObject("user1", "user",
+                "Test Domain", "testOrg", adminUser);
+        Domain resDom = zmsTest.postSubDomain(mockDomRsrcCtx, "user", auditRef, dom);
+        assertNotNull(resDom);
+
+        dom = createSubDomainObject("sub1", "user.user1",
                 "Test Domain2", "testOrg", adminUser);
-        Domain resDom = zmsTest.postSubDomain(mockDomRsrcCtx, "user.user1", auditRef, dom);
+        resDom = zmsTest.postSubDomain(mockDomRsrcCtx, "user.user1", auditRef, dom);
         assertNotNull(resDom);
         
         dom = createSubDomainObject("sub2", "user.user1",
@@ -1319,6 +1343,7 @@ public class ZMSImplTest {
         zms.deleteSubDomain(mockDomRsrcCtx, "user.user1", "sub3", auditRef);
         zms.deleteSubDomain(mockDomRsrcCtx, "user.user1", "sub2", auditRef);
         zms.deleteSubDomain(mockDomRsrcCtx, "user.user1", "sub1", auditRef);
+        zms.deleteSubDomain(mockDomRsrcCtx, "user", "user1", auditRef);
         System.clearProperty(ZMSConsts.ZMS_PROP_VIRTUAL_DOMAIN_LIMIT);
     }
     
@@ -1327,10 +1352,15 @@ public class ZMSImplTest {
         
         System.setProperty(ZMSConsts.ZMS_PROP_VIRTUAL_DOMAIN_LIMIT, "0");
         ZMSImpl zmsTest = zmsInit();
-        
-        SubDomain dom = createSubDomainObject("sub1", "user.user1",
+
+        SubDomain dom = createSubDomainObject("user1", "user",
+                "Test Domain", "testOrg", adminUser);
+        Domain resDom = zmsTest.postSubDomain(mockDomRsrcCtx, "user", auditRef, dom);
+        assertNotNull(resDom);
+
+        dom = createSubDomainObject("sub1", "user.user1",
                 "Test Domain2", "testOrg", adminUser);
-        Domain resDom = zmsTest.postSubDomain(mockDomRsrcCtx, "user.user1", auditRef, dom);
+        resDom = zmsTest.postSubDomain(mockDomRsrcCtx, "user.user1", auditRef, dom);
         assertNotNull(resDom);
         
         dom = createSubDomainObject("sub2", "user.user1",
@@ -1364,6 +1394,7 @@ public class ZMSImplTest {
         zms.deleteSubDomain(mockDomRsrcCtx, "user.user1", "sub3", auditRef);
         zms.deleteSubDomain(mockDomRsrcCtx, "user.user1", "sub2", auditRef);
         zms.deleteSubDomain(mockDomRsrcCtx, "user.user1", "sub1", auditRef);
+        zms.deleteSubDomain(mockDomRsrcCtx, "user", "user1", auditRef);
         System.clearProperty(ZMSConsts.ZMS_PROP_VIRTUAL_DOMAIN_LIMIT);
     }
     
@@ -5378,6 +5409,19 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testPutDefaultAdminsInvalidDomain() {
+
+        DefaultAdmins admins = new DefaultAdmins();
+
+        try {
+            zms.putDefaultAdmins(mockDomRsrcCtx, "sports", auditRef, admins);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+    }
+
+    @Test
     public void testPutDefaultAdmins() {
 
         TopLevelDomain sportsDomain = createTopLevelDomainObject("sports",
@@ -8466,16 +8510,22 @@ public class ZMSImplTest {
         System.setProperty(ZMSConsts.ZMS_PROP_VIRTUAL_DOMAIN_LIMIT, "2");
         ZMSImpl zmsTest = zmsInit();
 
+        SubDomain dom = createSubDomainObject("user1", "user",
+                "Test Domain", "testOrg", adminUser);
+        Domain resDom = zmsTest.postSubDomain(mockDomRsrcCtx, "user", auditRef, dom);
+        assertNotNull(resDom);
+
         assertFalse(zmsTest.hasExceededVirtualSubDomainLimit("user.user1"));
         
-        SubDomain dom = createSubDomainObject("sub1", "user.user1",
+        dom = createSubDomainObject("sub1", "user.user1",
                 "Test Domain2", "testOrg", adminUser);
-        Domain resDom = zms.postSubDomain(mockDomRsrcCtx, "user.user1", auditRef, dom);
+        resDom = zms.postSubDomain(mockDomRsrcCtx, "user.user1", auditRef, dom);
         assertNotNull(resDom);
         
         assertFalse(zmsTest.hasExceededVirtualSubDomainLimit("user.user1"));
         
         zms.deleteSubDomain(mockDomRsrcCtx, "user.user1", "sub1", auditRef);
+        zms.deleteSubDomain(mockDomRsrcCtx, "user", "user1", auditRef);
         System.clearProperty(ZMSConsts.ZMS_PROP_VIRTUAL_DOMAIN_LIMIT);
     }
     
@@ -8484,10 +8534,15 @@ public class ZMSImplTest {
         
         System.setProperty(ZMSConsts.ZMS_PROP_VIRTUAL_DOMAIN_LIMIT, "2");
         ZMSImpl zmsTest = zmsInit();
-        
-        SubDomain dom = createSubDomainObject("sub1", "user.user1",
+
+        SubDomain dom = createSubDomainObject("user1", "user",
+                "Test Domain", "testOrg", adminUser);
+        Domain resDom = zmsTest.postSubDomain(mockDomRsrcCtx, "user", auditRef, dom);
+        assertNotNull(resDom);
+
+        dom = createSubDomainObject("sub1", "user.user1",
                 "Test Domain2", "testOrg", adminUser);
-        Domain resDom = zms.postSubDomain(mockDomRsrcCtx, "user.user1", auditRef, dom);
+        resDom = zms.postSubDomain(mockDomRsrcCtx, "user.user1", auditRef, dom);
         assertNotNull(resDom);
         
         dom = createSubDomainObject("sub2", "user.user1",
@@ -8499,6 +8554,7 @@ public class ZMSImplTest {
         
         zms.deleteSubDomain(mockDomRsrcCtx, "user.user1", "sub1", auditRef);
         zms.deleteSubDomain(mockDomRsrcCtx, "user.user1", "sub2", auditRef);
+        zms.deleteSubDomain(mockDomRsrcCtx, "user", "user1", auditRef);
         System.clearProperty(ZMSConsts.ZMS_PROP_VIRTUAL_DOMAIN_LIMIT);
     }
     
@@ -8508,11 +8564,16 @@ public class ZMSImplTest {
         System.setProperty(ZMSConsts.ZMS_PROP_VIRTUAL_DOMAIN_LIMIT, "3");
         ZMSImpl zmsTest = zmsInit();
 
+        SubDomain dom = createSubDomainObject("user1", "user",
+                "Test Domain", "testOrg", adminUser);
+        Domain resDom = zmsTest.postSubDomain(mockDomRsrcCtx, "user", auditRef, dom);
+        assertNotNull(resDom);
+
         assertFalse(zmsTest.hasExceededVirtualSubDomainLimit("user.user1"));
         
-        SubDomain dom = createSubDomainObject("sub1", "user.user1",
+        dom = createSubDomainObject("sub1", "user.user1",
                 "Test Domain2", "testOrg", adminUser);
-        Domain resDom = zms.postSubDomain(mockDomRsrcCtx, "user.user1", auditRef, dom);
+        resDom = zms.postSubDomain(mockDomRsrcCtx, "user.user1", auditRef, dom);
         assertNotNull(resDom);
         
         dom = createSubDomainObject("sub2", "user.user1.sub1",
@@ -8524,6 +8585,7 @@ public class ZMSImplTest {
         
         zms.deleteSubDomain(mockDomRsrcCtx, "user.user1.sub1", "sub2", auditRef);
         zms.deleteSubDomain(mockDomRsrcCtx, "user.user1", "sub1", auditRef);
+        zms.deleteSubDomain(mockDomRsrcCtx, "user", "user1", auditRef);
         System.clearProperty(ZMSConsts.ZMS_PROP_VIRTUAL_DOMAIN_LIMIT);
     }
     
@@ -8532,10 +8594,15 @@ public class ZMSImplTest {
         
         System.setProperty(ZMSConsts.ZMS_PROP_VIRTUAL_DOMAIN_LIMIT, "2");
         ZMSImpl zmsTest = zmsInit();
-        
-        SubDomain dom = createSubDomainObject("sub1", "user.user1",
+
+        SubDomain dom = createSubDomainObject("user1", "user",
+                "Test Domain", "testOrg", adminUser);
+        Domain resDom = zmsTest.postSubDomain(mockDomRsrcCtx, "user", auditRef, dom);
+        assertNotNull(resDom);
+
+        dom = createSubDomainObject("sub1", "user.user1",
                 "Test Domain2", "testOrg", adminUser);
-        Domain resDom = zms.postSubDomain(mockDomRsrcCtx, "user.user1", auditRef, dom);
+        resDom = zms.postSubDomain(mockDomRsrcCtx, "user.user1", auditRef, dom);
         assertNotNull(resDom);
         
         dom = createSubDomainObject("sub2", "user.user1.sub1",
@@ -8548,6 +8615,7 @@ public class ZMSImplTest {
         
         zms.deleteSubDomain(mockDomRsrcCtx, "user.user1.sub1", "sub2", auditRef);
         zms.deleteSubDomain(mockDomRsrcCtx, "user.user1", "sub1", auditRef);
+        zms.deleteSubDomain(mockDomRsrcCtx, "user", "user1", auditRef);
         System.clearProperty(ZMSConsts.ZMS_PROP_VIRTUAL_DOMAIN_LIMIT);
     }
 
@@ -15551,7 +15619,7 @@ public class ZMSImplTest {
         zmsImpl.userDomainAlias = null;
         zmsImpl.userDomainAliasPrefix = null;
         
-        List<String> normList = zmsImpl.normalizedAdminUsers(list);
+        List<String> normList = zmsImpl.normalizedAdminUsers(list, null, "unit-test");
         assertEquals(normList.size(), 4);
         assertTrue(normList.contains("user-alias.user1"));
         assertTrue(normList.contains("user-alias.user1.svc"));
@@ -15561,7 +15629,7 @@ public class ZMSImplTest {
         zmsImpl.userDomainAlias = "user-alias";
         zmsImpl.userDomainAliasPrefix = "user-alias.";
         
-        normList = zmsImpl.normalizedAdminUsers(list);
+        normList = zmsImpl.normalizedAdminUsers(list, null, "unit-test");
         assertEquals(normList.size(), 4);
         assertTrue(normList.contains("user.user1"));
         assertTrue(normList.contains("user-alias.user1.svc"));
@@ -18598,6 +18666,15 @@ public class ZMSImplTest {
             assertTrue(ex.getMessage().contains("Invalid authority"));
         }
         System.clearProperty(ZMSConsts.ZMS_PROP_AUTHORITY_CLASSES);
+
+        System.setProperty(ZMSConsts.ZMS_PROP_STATUS_CHECKER_FACTORY_CLASS, "invalid.class");
+        try {
+            zmsImpl.loadStatusChecker();
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Invalid status checker"));
+        }
+        System.clearProperty(ZMSConsts.ZMS_PROP_STATUS_CHECKER_FACTORY_CLASS);
     }
 
     @Test
