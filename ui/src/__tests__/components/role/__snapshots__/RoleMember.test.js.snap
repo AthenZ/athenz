@@ -83,7 +83,6 @@ exports[`RoleMember should render 1`] = `
 }
 
 .emotion-0 {
-  color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
@@ -95,6 +94,7 @@ exports[`RoleMember should render 1`] = `
 >
   <a
     class="emotion-0"
+    style="color: rgb(53, 112, 244);"
   >
      
     user.test2
