@@ -49,8 +49,8 @@ const StyledAnchor = styled.a`
     cursor: pointer;
 `;
 
-const StyledAnchorActiveInline = { color: '#3570f4' };
-const StyledTagFullNameExpiryActiveInline = { color: '#303030' };
+const StyledAnchorActiveInline = { color: colors.linkActive };
+const StyledTagFullNameExpiryActiveInline = { color: colors.black };
 
 export default class RoleMember extends React.Component {
     constructor(props) {
