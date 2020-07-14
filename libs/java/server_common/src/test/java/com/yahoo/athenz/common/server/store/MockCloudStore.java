@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package com.yahoo.athenz.zts.store;
+package com.yahoo.athenz.common.server.store;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
@@ -22,7 +22,6 @@ import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.AssumeRoleResult;
 import com.amazonaws.services.securitytoken.model.GetCallerIdentityRequest;
 import com.amazonaws.services.securitytoken.model.GetCallerIdentityResult;
-import com.yahoo.athenz.common.server.store.CloudStore;
 import com.yahoo.athenz.zts.AWSTemporaryCredentials;
 import org.mockito.Mockito;
 

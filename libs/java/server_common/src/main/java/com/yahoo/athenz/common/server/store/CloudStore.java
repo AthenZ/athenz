@@ -1,53 +1,48 @@
 /*
- * Copyright 2016 Yahoo Inc.
+ *  Copyright 2020 Verizon Media
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
-package com.yahoo.athenz.zts.store;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.ConcurrentHashMap;
+package com.yahoo.athenz.common.server.store;
 
 import com.amazonaws.AmazonServiceException;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicSessionCredentials;
+import com.amazonaws.regions.Regions;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
+import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
+import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
+import com.amazonaws.services.securitytoken.model.AssumeRoleResult;
+import com.amazonaws.services.securitytoken.model.Credentials;
+import com.yahoo.athenz.common.server.util.ConfigProperties;
+import com.yahoo.athenz.zms.ResourceException;
+import com.yahoo.athenz.zts.AWSTemporaryCredentials;
+import com.yahoo.rdl.JSON;
+import com.yahoo.rdl.Struct;
+import com.yahoo.rdl.Timestamp;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.amazonaws.regions.Regions;
-import com.amazonaws.auth.BasicSessionCredentials;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
-import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
-import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
-import com.amazonaws.services.securitytoken.model.AssumeRoleResult;
-import com.amazonaws.services.securitytoken.model.Credentials;
-import com.yahoo.athenz.zts.AWSTemporaryCredentials;
-import com.yahoo.athenz.zts.ResourceException;
-import com.yahoo.athenz.zts.ZTSConsts;
-import com.yahoo.athenz.zts.utils.ZTSUtils;
-import com.yahoo.rdl.JSON;
-import com.yahoo.rdl.Struct;
-import com.yahoo.rdl.Timestamp;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.*;
+
+import static com.yahoo.athenz.common.ServerCommonConsts.*;
 
 public class CloudStore {
 
@@ -82,20 +77,20 @@ public class CloudStore {
 
         // check to see if we are given region name
 
-        awsRegion = System.getProperty(ZTSConsts.ZTS_PROP_AWS_REGION_NAME);
+        awsRegion = System.getProperty(ZTS_PROP_AWS_REGION_NAME);
 
         // get the default cache timeout in seconds
 
         cacheTimeout = Integer.parseInt(
-                System.getProperty(ZTSConsts.ZTS_PROP_AWS_CREDS_CACHE_TIMEOUT, "600"));
+                System.getProperty(ZTS_PROP_AWS_CREDS_CACHE_TIMEOUT, "600"));
 
         invalidCacheTimeout = Integer.parseInt(
-                System.getProperty(ZTSConsts.ZTS_PROP_AWS_CREDS_INVALID_CACHE_TIMEOUT, "120"));
+                System.getProperty(ZTS_PROP_AWS_CREDS_INVALID_CACHE_TIMEOUT, "120"));
 
         // initialize aws support
 
         awsEnabled = Boolean.parseBoolean(
-                System.getProperty(ZTSConsts.ZTS_PROP_AWS_ENABLED, "false"));
+                System.getProperty(ZTS_PROP_AWS_ENABLED, "false"));
         initializeAwsSupport();
     }
 
@@ -163,8 +158,8 @@ public class CloudStore {
 
         // Start our thread to get/update aws temporary credentials
 
-        int credsUpdateTime = ZTSUtils.retrieveConfigSetting(
-                ZTSConsts.ZTS_PROP_AWS_CREDS_UPDATE_TIMEOUT, 900);
+        int credsUpdateTime = ConfigProperties.retrieveConfigSetting(
+                ZTS_PROP_AWS_CREDS_UPDATE_TIMEOUT, 900);
 
         scheduledThreadPool = Executors.newScheduledThreadPool(1);
         scheduledThreadPool.scheduleAtFixedRate(new AWSCredentialsUpdater(), credsUpdateTime,
@@ -371,7 +366,7 @@ public class CloudStore {
     }
 
     AssumeRoleRequest getAssumeRoleRequest(String account, String roleName, String principal,
-            Integer durationSeconds, String externalId) {
+                                           Integer durationSeconds, String externalId) {
 
         // assume the target role to get the credentials for the client
         // aws format is arn:aws:iam::<account-id>:role/<role-name>
@@ -394,7 +389,7 @@ public class CloudStore {
         return req;
     }
 
-    AWSSecurityTokenService getTokenServiceClient() {
+    public AWSSecurityTokenService getTokenServiceClient() {
 
         return AWSSecurityTokenServiceClientBuilder.standard()
                 .withCredentials(new AWSStaticCredentialsProvider(credentials))
@@ -403,7 +398,7 @@ public class CloudStore {
     }
 
     String getCacheKey(final String account, final String roleName, final String principal,
-            Integer durationSeconds, final String externalId) {
+                       Integer durationSeconds, final String externalId) {
 
         // if our cache is disabled there is no need to generate
         // a cache key since all other operations are no-ops
@@ -519,7 +514,7 @@ public class CloudStore {
     }
 
     public AWSTemporaryCredentials assumeAWSRole(String account, String roleName, String principal,
-            Integer durationSeconds, String externalId) {
+                                                 Integer durationSeconds, String externalId) {
 
         if (!awsEnabled) {
             throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR,
@@ -589,7 +584,7 @@ public class CloudStore {
         return cloudAccountCache.get(domainName);
     }
 
-    void updateAccount(String domainName, String account) {
+    public void updateAccount(String domainName, String account) {
 
         /* if we have a value specified for the domain, then we're just
          * going to insert it into our map and update the record. If
@@ -643,7 +638,7 @@ public class CloudStore {
             return null;
         }
 
-        String sshType = keyReq.getString(ZTSConsts.ZTS_SSH_TYPE);
+        String sshType = keyReq.getString(ZTS_SSH_TYPE);
         if (sshType == null) {
             LOGGER.error("getSshKeyReqType: SSH Key request does not have certtype: {}", sshKeyReq);
         }

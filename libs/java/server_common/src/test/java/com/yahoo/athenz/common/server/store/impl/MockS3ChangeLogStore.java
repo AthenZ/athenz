@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.zts.store.impl;
+package com.yahoo.athenz.common.server.store.impl;
 
 import static org.mockito.Mockito.mock;
 
 import com.amazonaws.services.s3.AmazonS3;
-import com.yahoo.athenz.zts.store.CloudStore;
-import com.yahoo.athenz.zts.store.impl.S3ChangeLogStore;
+import com.yahoo.athenz.common.server.store.CloudStore;
 import org.mockito.Mockito;
 
 import java.util.concurrent.ExecutorService;

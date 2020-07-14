@@ -17,7 +17,7 @@ package com.yahoo.athenz.zts.cert.impl;
 
 import com.yahoo.athenz.common.server.ssh.SSHCertRecord;
 import com.yahoo.athenz.common.server.ssh.SSHRecordStoreConnection;
-import com.yahoo.athenz.zts.utils.FilesHelper;
+import com.yahoo.athenz.common.server.util.FilesHelper;
 import com.yahoo.rdl.JSON;
 
 import java.io.File;

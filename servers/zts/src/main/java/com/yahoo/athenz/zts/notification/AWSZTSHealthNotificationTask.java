@@ -24,10 +24,8 @@ import com.yahoo.athenz.zts.ZTSConsts;
 
 import java.util.*;
 
-import static com.yahoo.athenz.common.ServerCommonConsts.ADMIN_ROLE_NAME;
-import static com.yahoo.athenz.common.ServerCommonConsts.USER_DOMAIN_PREFIX;
+import static com.yahoo.athenz.common.ServerCommonConsts.*;
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
-import static com.yahoo.athenz.zts.ZTSConsts.ATHENZ_SYS_DOMAIN;
 
 public class AWSZTSHealthNotificationTask implements NotificationTask {
     private final static String DESCRIPTION = "ZTS On AWS Health Notification";

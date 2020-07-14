@@ -19,12 +19,13 @@ import java.util.*;
 
 import com.yahoo.athenz.auth.util.AthenzUtils;
 import com.yahoo.athenz.zms.*;
-import com.yahoo.athenz.zts.ZTSConsts;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.CryptoException;
+
+import static com.yahoo.athenz.common.ServerCommonConsts.ATHENZ_SYS_DOMAIN;
 
 public class DataCache {
 
@@ -265,7 +266,7 @@ public class DataCache {
         // for now we're only processing launch assertion if the
         // domain happens to be the sys.auth domain
 
-        if (!domainName.equals(ZTSConsts.ATHENZ_SYS_DOMAIN)) {
+        if (!domainName.equals(ATHENZ_SYS_DOMAIN)) {
             return;
         }
 
