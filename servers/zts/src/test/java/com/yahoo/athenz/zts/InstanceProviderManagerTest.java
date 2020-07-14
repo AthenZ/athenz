@@ -24,6 +24,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static com.yahoo.athenz.common.ServerCommonConsts.PROP_ATHENZ_CONF;
+import static com.yahoo.athenz.common.ServerCommonConsts.ZTS_PROP_FILE_NAME;
 import static org.testng.Assert.fail;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
@@ -32,6 +34,8 @@ import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.assertFalse;
 
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
+import com.yahoo.athenz.common.server.store.ChangeLogStore;
+import com.yahoo.athenz.zts.store.MockZMSFileChangeLogStore;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -45,13 +49,8 @@ import com.yahoo.athenz.zms.Role;
 import com.yahoo.athenz.zms.RoleMember;
 import com.yahoo.athenz.zms.ServiceIdentity;
 import com.yahoo.athenz.zms.SignedDomain;
-import com.yahoo.athenz.zts.InstanceProviderManager;
 import com.yahoo.athenz.zts.InstanceProviderManager.ProviderScheme;
-import com.yahoo.athenz.zts.ZTSConsts;
-import com.yahoo.athenz.zts.store.ChangeLogStore;
 import com.yahoo.athenz.zts.store.DataStore;
-import com.yahoo.athenz.zts.store.impl.MockZMSFileChangeLogStore;
-import com.yahoo.athenz.zts.store.impl.ZMSFileChangeLogStore;
 import com.yahoo.rdl.Timestamp;
 
 import javax.net.ssl.SSLContext;
@@ -66,8 +65,8 @@ public class InstanceProviderManagerTest {
     
     @BeforeClass
     public void setUpClass() {
-        System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
-        System.setProperty(ZTSConsts.ZTS_PROP_FILE_NAME, "src/test/resources/zts.properties");
+        System.setProperty(PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
+        System.setProperty(ZTS_PROP_FILE_NAME, "src/test/resources/zts.properties");
     }
     
     @BeforeMethod

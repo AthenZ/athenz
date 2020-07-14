@@ -26,7 +26,7 @@ import java.util.List;
 
 import com.yahoo.athenz.common.server.cert.CertRecordStoreConnection;
 import com.yahoo.athenz.common.server.cert.X509CertRecord;
-import com.yahoo.athenz.zts.utils.FilesHelper;
+import com.yahoo.athenz.common.server.util.FilesHelper;
 import com.yahoo.rdl.JSON;
 
 public class FileCertRecordStoreConnection implements CertRecordStoreConnection {

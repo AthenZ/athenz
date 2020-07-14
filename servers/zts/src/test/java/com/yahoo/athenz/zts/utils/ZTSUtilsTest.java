@@ -28,6 +28,7 @@ import java.nio.file.Paths;
 
 import com.google.common.io.Resources;
 import com.yahoo.athenz.common.server.cert.X509CertRecord;
+import com.yahoo.athenz.common.server.util.ConfigProperties;
 import com.yahoo.athenz.zts.cert.InstanceCertManager;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
@@ -69,17 +70,17 @@ public class ZTSUtilsTest {
     public void testRetrieveConfigSetting() {
         
         System.setProperty("prop1", "1001");
-        assertEquals(1001, ZTSUtils.retrieveConfigSetting("prop1", 99));
-        assertEquals(99, ZTSUtils.retrieveConfigSetting("prop2", 99));
+        assertEquals(1001, ConfigProperties.retrieveConfigSetting("prop1", 99));
+        assertEquals(99, ConfigProperties.retrieveConfigSetting("prop2", 99));
 
         System.setProperty("prop1", "-101");
-        assertEquals(99, ZTSUtils.retrieveConfigSetting("prop1", 99));
+        assertEquals(99, ConfigProperties.retrieveConfigSetting("prop1", 99));
 
         System.setProperty("prop1", "0");
-        assertEquals(99, ZTSUtils.retrieveConfigSetting("prop1", 99));
+        assertEquals(99, ConfigProperties.retrieveConfigSetting("prop1", 99));
         
         System.setProperty("prop1", "abc");
-        assertEquals(99, ZTSUtils.retrieveConfigSetting("prop1", 99));
+        assertEquals(99, ConfigProperties.retrieveConfigSetting("prop1", 99));
     }
     
     @Test
