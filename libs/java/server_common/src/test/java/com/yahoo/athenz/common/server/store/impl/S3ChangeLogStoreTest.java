@@ -1,20 +1,21 @@
 /*
- * Copyright 2019 Oath Holdings, Inc.
+ *  Copyright 2020 Verizon Media
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
-package com.yahoo.athenz.zts.store.impl;
+package com.yahoo.athenz.common.server.store.impl;
 
+import static com.yahoo.athenz.common.ServerCommonConsts.ZTS_PROP_AWS_BUCKET_NAME;
 import static org.mockito.Mockito.*;
 import static org.testng.Assert.*;
 
@@ -23,8 +24,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import com.amazonaws.services.s3.AmazonS3;
-import com.yahoo.athenz.zts.ZTSConsts;
-import com.yahoo.athenz.zts.store.CloudStore;
+import com.yahoo.athenz.common.server.store.CloudStore;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.mockito.Mockito;
 import org.testng.annotations.BeforeMethod;
@@ -49,12 +49,12 @@ public class S3ChangeLogStoreTest {
 
     @BeforeMethod
     public void setup() {
-        System.setProperty(ZTSConsts.ZTS_PROP_AWS_BUCKET_NAME, "s3-unit-test-bucket-name");
+        System.setProperty(ZTS_PROP_AWS_BUCKET_NAME, "s3-unit-test-bucket-name");
     }
 
     @Test
     public void testInvalidBucketName() {
-        System.clearProperty(ZTSConsts.ZTS_PROP_AWS_BUCKET_NAME);
+        System.clearProperty(ZTS_PROP_AWS_BUCKET_NAME);
         try {
             new S3ChangeLogStore(null);
             fail();
@@ -62,7 +62,7 @@ public class S3ChangeLogStoreTest {
             assertTrue(ex.getMessage().contains("S3 Bucket name cannot be null"));
         }
 
-        System.setProperty(ZTSConsts.ZTS_PROP_AWS_BUCKET_NAME, "");
+        System.setProperty(ZTS_PROP_AWS_BUCKET_NAME, "");
         try {
             new S3ChangeLogStore(null);
             fail();
@@ -70,7 +70,7 @@ public class S3ChangeLogStoreTest {
             assertTrue(ex.getMessage().contains("S3 Bucket name cannot be null"));
         }
 
-        System.setProperty(ZTSConsts.ZTS_PROP_AWS_BUCKET_NAME, "s3-unit-test-bucket-name");
+        System.setProperty(ZTS_PROP_AWS_BUCKET_NAME, "s3-unit-test-bucket-name");
         assertNotNull(new S3ChangeLogStore(null));
     }
 

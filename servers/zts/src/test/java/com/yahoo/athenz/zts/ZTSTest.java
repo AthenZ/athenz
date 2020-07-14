@@ -15,6 +15,8 @@
  */
 package com.yahoo.athenz.zts;
 
+import static com.yahoo.athenz.common.ServerCommonConsts.PROP_ATHENZ_CONF;
+import static com.yahoo.athenz.common.ServerCommonConsts.ZTS_PROP_FILE_NAME;
 import static org.testng.Assert.assertNotNull;
 
 import com.yahoo.athenz.auth.impl.FilePrivateKeyStore;
@@ -36,11 +38,11 @@ public class ZTSTest {
     public void testZTSBinder() {
         System.setProperty(ZTSConsts.ZTS_PROP_CHANGE_LOG_STORE_DIR, ZTS_DATA_STORE_PATH);
         System.setProperty(ZTSConsts.ZTS_PROP_CHANGE_LOG_STORE_FACTORY_CLASS,
-                "com.yahoo.athenz.zts.store.impl.MockZMSFileChangeLogStoreFactory");
+                "com.yahoo.athenz.zts.store.MockZMSFileChangeLogStoreFactory");
         System.setProperty(ZTSConsts.ZTS_PROP_CERTSIGN_BASE_URI, "https://localhost:443/certsign/v2");
         System.setProperty(ZTSConsts.ZTS_PROP_CERT_FILE_STORE_PATH, "/tmp/zts_server_cert_store");
-        System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
-        System.setProperty(ZTSConsts.ZTS_PROP_FILE_NAME, "src/test/resources/zts.properties");
+        System.setProperty(PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
+        System.setProperty(ZTS_PROP_FILE_NAME, "src/test/resources/zts.properties");
         System.setProperty(ZTSConsts.ZTS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
                 "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory");
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY,

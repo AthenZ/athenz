@@ -18,6 +18,9 @@ package com.yahoo.athenz.zts.store;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.yahoo.athenz.common.server.db.RolesProvider;
+import com.yahoo.athenz.common.server.store.ChangeLogStore;
+import com.yahoo.athenz.common.server.store.CloudStore;
+import com.yahoo.athenz.common.server.util.ConfigProperties;
 import com.yahoo.athenz.zts.*;
 import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.rdl.*;
@@ -32,7 +35,6 @@ import com.yahoo.athenz.zms.SignedDomains;
 import com.yahoo.athenz.zts.cache.DataCache;
 import com.yahoo.athenz.zts.cache.DataCacheProvider;
 import com.yahoo.athenz.zts.cache.MemberRole;
-import com.yahoo.athenz.zts.utils.ZTSUtils;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -55,6 +57,9 @@ import org.bouncycastle.asn1.x9.X9ECParameters;
 import org.bouncycastle.jcajce.provider.asymmetric.util.EC5Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.yahoo.athenz.common.ServerCommonConsts.ATHENZ_SYS_DOMAIN;
+import static com.yahoo.athenz.common.ServerCommonConsts.PROP_ATHENZ_CONF;
 
 public class DataStore implements DataCacheProvider, RolesProvider {
 
@@ -110,9 +115,9 @@ public class DataStore implements DataCacheProvider, RolesProvider {
         /* our configured values are going to be in seconds so we need
          * to convert our input in seconds to milliseconds */
         
-        updDomainRefreshTime = ZTSUtils.retrieveConfigSetting(ZTS_PROP_DOMAIN_UPDATE_TIMEOUT, 60);
-        delDomainRefreshTime = ZTSUtils.retrieveConfigSetting(ZTS_PROP_DOMAIN_DELETE_TIMEOUT, 3600);
-        checkDomainRefreshTime = ZTSUtils.retrieveConfigSetting(ZTS_PROP_DOMAIN_CHECK_TIMEOUT, 600);
+        updDomainRefreshTime = ConfigProperties.retrieveConfigSetting(ZTS_PROP_DOMAIN_UPDATE_TIMEOUT, 60);
+        delDomainRefreshTime = ConfigProperties.retrieveConfigSetting(ZTS_PROP_DOMAIN_DELETE_TIMEOUT, 3600);
+        checkDomainRefreshTime = ConfigProperties.retrieveConfigSetting(ZTS_PROP_DOMAIN_CHECK_TIMEOUT, 600);
 
         /* we will not let our domain delete/check update time be shorter
          * than the domain update time so if that's the case we'll
@@ -147,7 +152,7 @@ public class DataStore implements DataCacheProvider, RolesProvider {
     boolean loadAthenzPublicKeys() {
 
         final String rootDir = ZTSImpl.getRootDir();
-        String confFileName = System.getProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF,
+        String confFileName = System.getProperty(PROP_ATHENZ_CONF,
                 rootDir + "/conf/athenz/athenz.conf");
         Path path = Paths.get(confFileName);
         AthenzConfig conf;
@@ -632,7 +637,7 @@ public class DataStore implements DataCacheProvider, RolesProvider {
             return false;
         }
 
-        return zmsDomainList.contains(ZTSConsts.ATHENZ_SYS_DOMAIN);
+        return zmsDomainList.contains(ATHENZ_SYS_DOMAIN);
     }
     
     // API

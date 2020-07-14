@@ -1,20 +1,22 @@
 /*
- * Copyright 2016 Yahoo Inc.
+ *  Copyright 2020 Verizon Media
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
-package com.yahoo.athenz.zts.store.impl;
+package com.yahoo.athenz.common.server.store.impl;
 
+import static com.yahoo.athenz.common.ServerCommonConsts.PROP_ATHENZ_CONF;
+import static com.yahoo.athenz.common.ServerCommonConsts.ZTS_PROP_FILE_NAME;
 import static org.testng.Assert.*;
 
 import java.io.File;
@@ -31,10 +33,9 @@ import java.security.PrivateKey;
 import java.util.Set;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yahoo.athenz.CommonTestUtils;
 import com.yahoo.athenz.auth.util.Crypto;
-import com.yahoo.athenz.zts.ZTSConsts;
-import com.yahoo.athenz.zts.ZTSTestUtils;
-import com.yahoo.athenz.zts.utils.FilesHelper;
+import com.yahoo.athenz.common.server.util.FilesHelper;
 import org.mockito.Mockito;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -67,14 +68,14 @@ public class ZMSFileChangeLogStoreTest {
     
     @BeforeMethod
     public void setup() {
-        ZTSTestUtils.deleteDirectory(new File(FSTORE_PATH));
-        System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
-        System.setProperty(ZTSConsts.ZTS_PROP_FILE_NAME, "src/test/resources/zts.properties");
+        CommonTestUtils.deleteDirectory(new File(FSTORE_PATH));
+        System.setProperty(PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
+        System.setProperty(ZTS_PROP_FILE_NAME, "src/test/resources/zts.properties");
     }
     
     @AfterMethod
     public void shutdown() {
-        ZTSTestUtils.deleteDirectory(new File(FSTORE_PATH));
+        CommonTestUtils.deleteDirectory(new File(FSTORE_PATH));
     }
  
     @Test

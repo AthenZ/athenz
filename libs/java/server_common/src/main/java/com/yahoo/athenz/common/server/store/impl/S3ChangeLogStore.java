@@ -1,44 +1,40 @@
 /*
- * Copyright 2019 Oath Holdings, Inc.
+ *  Copyright 2020 Verizon Media
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
-package com.yahoo.athenz.zts.store.impl;
+
+package com.yahoo.athenz.common.server.store.impl;
+
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.*;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yahoo.athenz.common.server.store.ChangeLogStore;
+import com.yahoo.athenz.common.server.store.CloudStore;
+import com.yahoo.athenz.zms.SignedDomain;
+import com.yahoo.athenz.zms.SignedDomains;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.ListObjectsRequest;
-import com.amazonaws.services.s3.model.ObjectListing;
-import com.amazonaws.services.s3.model.S3Object;
-import com.amazonaws.services.s3.model.S3ObjectInputStream;
-import com.amazonaws.services.s3.model.S3ObjectSummary;
-import com.yahoo.athenz.zms.SignedDomain;
-import com.yahoo.athenz.zms.SignedDomains;
-import com.yahoo.athenz.zts.ZTSConsts;
-import com.yahoo.athenz.zts.store.ChangeLogStore;
-import com.yahoo.athenz.zts.store.CloudStore;
+import static com.yahoo.athenz.common.ServerCommonConsts.ZTS_PROP_AWS_BUCKET_NAME;
 
 public class S3ChangeLogStore implements ChangeLogStore {
-
     private static final Logger LOGGER = LoggerFactory.getLogger(S3ChangeLogStore.class);
 
     long lastModTime;
@@ -56,12 +52,12 @@ public class S3ChangeLogStore implements ChangeLogStore {
 
     public S3ChangeLogStore(CloudStore cloudStore) {
         this.cloudStore = cloudStore;
-        s3BucketName = System.getProperty(ZTSConsts.ZTS_PROP_AWS_BUCKET_NAME);
+        s3BucketName = System.getProperty(ZTS_PROP_AWS_BUCKET_NAME);
         if (s3BucketName == null || s3BucketName.isEmpty()) {
             LOGGER.error("S3 Bucket name cannot be null");
             throw new RuntimeException("S3ChangeLogStore: S3 Bucket name cannot be null");
         }
-        
+
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("AWSS3ChangeLog: S3 Bucket name: " + s3BucketName);
         }
@@ -121,7 +117,7 @@ public class S3ChangeLogStore implements ChangeLogStore {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("getSignedDomain with S3: {}", domainName);
         }
-        
+
         SignedDomain signedDomain = null;
         try {
             S3Object object = s3.getObject(s3BucketName, domainName);
@@ -134,7 +130,7 @@ public class S3ChangeLogStore implements ChangeLogStore {
         }
         return signedDomain;
     }
-    
+
     @SuppressWarnings("EmptyMethod")
     @Override
     public void removeLocalDomain(String domainName) {
@@ -159,79 +155,79 @@ public class S3ChangeLogStore implements ChangeLogStore {
      * @param modTime only include domains newer than this timestamp
      */
     void listObjects(AmazonS3 s3, Collection<String> domains, long modTime) {
-        
+
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("listObjects: Retrieving domains from {} with mod time > {}",
                     s3BucketName, modTime);
         }
-        
+
         ObjectListing objectListing = s3.listObjects(new ListObjectsRequest()
                 .withBucketName(s3BucketName));
-        
+
         String objectName;
         while (objectListing != null) {
-            
+
             // process each entry in our result set and add the domain
             // name to our return list
 
             final List<S3ObjectSummary> objectSummaries = objectListing.getObjectSummaries();
             boolean listTruncated = objectListing.isTruncated();
-            
+
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("listObjects: retrieved {} objects, more objects available - {}",
                         objectSummaries.size(), listTruncated);
             }
-            
+
             for (S3ObjectSummary objectSummary : objectSummaries) {
-                
+
                 // if mod time is specified then make sure we automatically skip
                 // any domains older than the specified value
-                
+
                 if (modTime > 0 && objectSummary.getLastModified().getTime() <= modTime) {
                     continue;
                 }
-                
+
                 // for now skip any folders/objects that start with '.'
-                
+
                 objectName = objectSummary.getKey();
                 if (objectName.charAt(0) == '.') {
                     continue;
                 }
                 domains.add(objectName);
             }
-            
+
             // check if the object listing is truncated or not (break out in this case)
             // technically we can skip this call and just call listNextBatchOfResults
-            // since that returns null if the object listing is not truncated but 
+            // since that returns null if the object listing is not truncated but
             // this direct check here makes the logic easier to follow
-            
+
             if (!listTruncated) {
                 break;
             }
-            
+
             objectListing = s3.listNextBatchOfObjects(objectListing);
         }
     }
-    
+
     @Override
     public List<String> getLocalDomainList() {
-        
+
         // check to see if we need to maintain our last modification time.
         // this will be necessary if our last mod time field is null. We need
         // to save the timestamp at the beginning just in case we end up getting
         // paged results and while processing the last page, the Syncer pushes
         // updated domains from the earlier pages
-        
+
         if (lastModTime == 0) {
             lastModTime = System.currentTimeMillis();
         }
-        
+
         // we are going to initialize our s3 client here since
         // this is the first entry point before we start
         // fetching all the domains individually
-        
+
         awsS3Client = getS3Client();
-        
+
         ArrayList<String> domains = new ArrayList<>();
         listObjects(awsS3Client, domains, 0);
         tempSignedDomainMap.clear();
@@ -288,12 +284,12 @@ public class S3ChangeLogStore implements ChangeLogStore {
 
     @Override
     public Set<String> getServerDomainList() {
-        
+
         // for the server domain list operation since it's called
         // periodically by the thread to see if any domains have
         // been deleted, we're going to get a new s3 client
         // instead of using our original client
-        
+
         HashSet<String> domains = new HashSet<>();
         listObjects(getS3Client(), domains, 0);
         return domains;
@@ -321,28 +317,28 @@ public class S3ChangeLogStore implements ChangeLogStore {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("getUpdatedSignedDomains: Retrieving updating signed domains from S3...");
         }
-        
+
         // We need save the timestamp at the beginning just in case we end up getting
         // paged results and while processing the last page, S3 gets pushed
         // updated domains from the earlier pages
-        
+
         lastModTimeBuffer.append(System.currentTimeMillis());
-        
+
         // AWS S3 API does not provide support for listing objects filtered
         // based on its last modification timestamp so we need to get
         // the full list and filter ourselves
-        
+
         // instead of using our fetched s3 client, we're going to
         // obtain a new one to get the changes
-        
+
         AmazonS3 s3 = getS3Client();
         ArrayList<String> domains = new ArrayList<>();
         listObjects(s3, domains, lastModTime);
-        
+
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("getUpdatedSignedDomains: {} updated domains", domains.size());
         }
-        
+
         ArrayList<SignedDomain> signedDomainList = new ArrayList<>();
         SignedDomain signedDomain;
         for (String domain : domains) {
@@ -351,7 +347,7 @@ public class S3ChangeLogStore implements ChangeLogStore {
                 signedDomainList.add(signedDomain);
             }
         }
-        
+
         SignedDomains signedDomains = new SignedDomains();
         signedDomains.setDomains(signedDomainList);
         return signedDomains;

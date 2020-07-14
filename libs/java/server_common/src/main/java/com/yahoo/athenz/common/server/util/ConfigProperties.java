@@ -79,4 +79,29 @@ public class ConfigProperties {
         
         return port;
     }
+
+    public static int retrieveConfigSetting(String property, int defaultValue) {
+
+        int settingValue;
+        try {
+            String propValue = System.getProperty(property);
+            if (propValue == null) {
+                return defaultValue;
+            }
+
+            settingValue = Integer.parseInt(propValue);
+
+            if (settingValue <= 0) {
+                LOGGER.error("Invalid " + property + " value: " + propValue +
+                        ", defaulting to " + defaultValue + " seconds");
+                settingValue = defaultValue;
+            }
+        } catch (Exception ex) {
+            LOGGER.error("Invalid " + property + " value, defaulting to " +
+                    defaultValue + " seconds: " + ex.getMessage());
+            settingValue = defaultValue;
+        }
+
+        return settingValue;
+    }
 }
