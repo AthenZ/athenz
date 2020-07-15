@@ -129,6 +129,20 @@ resource DomainRoleMembers GET "/domain/{domainName}/member" {
     }
 }
 
+// Fetch all the roles across domains by either calling or specified principal
+resource DomainRoleMember GET "/role?principal={principal}&domain={domainName}" (name=getPrincipalRoles) {
+    EntityName principal (optional); //If not present, will return roles for the user making the call
+    DomainName domainName (optional); //If not present, will return roles from all domains
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
 //Add the specified user to the role's member list.
 //If the role is neither auditEnabled nor selfserve, then it will use authorize ("update", "{domainName}:role.{roleName}")
 //otherwise membership will be sent for approval to either designated delegates ( in case of auditEnabled roles ) or to

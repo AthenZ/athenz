@@ -23,6 +23,7 @@ import com.yahoo.athenz.zms.store.ObjectStoreConnection;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
 import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Timestamp;
+import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -1637,6 +1638,52 @@ public class FileConnection implements ObjectStoreConnection {
     @Override
     public DomainRoleMembers listDomainRoleMembers(String domainName) {
         return listReviewRoleMembersWithFilter(domainName, (roleMember -> true), "listDomainRoleMembers");
+    }
+
+    @Override
+    public DomainRoleMember getPrincipalRoles(String principal, String domainName) {
+        DomainRoleMember domainRoleMember = new DomainRoleMember();
+        domainRoleMember.setMemberName(principal);
+        domainRoleMember.setMemberRoles(new ArrayList<>());
+
+        if (!StringUtil.isEmpty(domainName)) {
+            getDomainRolesForPrincipal(principal, domainRoleMember, domainName);
+        } else {
+            String[] fnames = getDomainList();
+            for (String domain : fnames) {
+                getDomainRolesForPrincipal(principal, domainRoleMember, domain);
+            }
+        }
+
+        return domainRoleMember;
+    }
+
+    private void getDomainRolesForPrincipal(String principal, DomainRoleMember domainRoleMember, String domain) {
+        DomainStruct dom = getDomainStruct(domain);
+        if (dom == null) {
+            return;
+        }
+
+        for (Role role: dom.getRoles().values()) {
+            List<RoleMember> roleMembers = role.getRoleMembers();
+            if (roleMembers == null) {
+                continue;
+            }
+            for (RoleMember roleMember : roleMembers) {
+                if (!roleMember.getMemberName().equals(principal)) {
+                    continue;
+                }
+
+                MemberRole memberRole = new MemberRole();
+                memberRole.setMemberName(principal);
+                memberRole.setDomainName(domain);
+                memberRole.setReviewReminder(roleMember.getReviewReminder());
+                memberRole.setExpiration(roleMember.getExpiration());
+                memberRole.setRoleName(role.getName());
+                memberRole.setSystemDisabled(roleMember.getSystemDisabled());
+                domainRoleMember.getMemberRoles().add(memberRole);
+            }
+        }
     }
 
     @Override

@@ -183,9 +183,9 @@
         <artifactId>jacoco-maven-plugin</artifactId>
         <configuration>
           <excludes>
-            <exclude>**/ZMSResources.*</exclude>
-            <exclude>**/FileConnection.*</exclude>
-            <exclude>**/FileObjectStore.*</exclude>
+            <exclude>**/ZMSResources.class</exclude>
+            <exclude>**/FileConnection.class</exclude>
+            <exclude>**/FileObjectStore.class</exclude>
           </excludes>
         </configuration>
       </plugin>

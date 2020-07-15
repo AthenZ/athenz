@@ -19,6 +19,7 @@ import java.sql.*;
 import java.util.*;
 
 import com.yahoo.athenz.zms.*;
+import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -209,6 +210,19 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "JOIN role_member ON role_member.principal_id=principal.principal_id "
             + "JOIN role ON role.role_id=role_member.role_id "
             + "WHERE role.domain_id=?;";
+
+    private static final String SQL_GET_PRINCIPAL_ROLES = "SELECT role.name, domain.name, role_member.expiration, "
+            + "role_member.review_reminder, role_member.system_disabled FROM role_member "
+            + "JOIN role ON role.role_id=role_member.role_id "
+            + "JOIN domain ON domain.domain_id=role.domain_id "
+            + "WHERE role_member.principal_id=?;";
+
+    private static final String SQL_GET_PRINCIPAL_ROLES_DOMAIN = "SELECT role.name, domain.name, role_member.expiration, "
+            + "role_member.review_reminder, role_member.system_disabled FROM role_member "
+            + "JOIN role ON role.role_id=role_member.role_id "
+            + "JOIN domain ON domain.domain_id=role.domain_id "
+            + "WHERE role_member.principal_id=? AND domain.domain_id=?;";
+
     private static final String SQL_GET_REVIEW_OVERDUE_DOMAIN_ROLE_MEMBERS = "SELECT role.name, principal.name, role_member.expiration, "
             + "role_member.review_reminder, role_member.system_disabled FROM principal "
             + "JOIN role_member ON role_member.principal_id=principal.principal_id "
@@ -3749,6 +3763,68 @@ public class JDBCConnection implements ObjectStoreConnection {
     @Override
     public DomainRoleMembers listDomainRoleMembers(String domainName) {
         return listDomainRoleMembersWithQuery(domainName, SQL_GET_DOMAIN_ROLE_MEMBERS, "listDomainRoleMembers");
+    }
+
+    @Override
+    public DomainRoleMember getPrincipalRoles(String principal, String domainName) {
+        final String caller = "getPrincipalRoles";
+
+        int principalId = getPrincipalId(principal);
+        if (principalId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_PRINCIPAL, principal);
+        }
+
+        DomainRoleMember roleMember = new DomainRoleMember();
+        roleMember.setMemberRoles(new ArrayList<>());
+        roleMember.setMemberName(principal);
+        if (StringUtil.isEmpty(domainName)) {
+            try (PreparedStatement ps = con.prepareStatement(SQL_GET_PRINCIPAL_ROLES)) {
+                ps.setInt(1, principalId);
+                return getRolesForPrincipal(caller, roleMember, ps);
+            } catch (SQLException ex) {
+                throw sqlError(ex, caller);
+            }
+        } else {
+            int domainId = getDomainId(domainName);
+            if (domainId == 0) {
+                throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
+            }
+
+            try (PreparedStatement ps = con.prepareStatement(SQL_GET_PRINCIPAL_ROLES_DOMAIN)) {
+                ps.setInt(1, principalId);
+                ps.setInt(2, domainId);
+                return getRolesForPrincipal(caller, roleMember, ps);
+            } catch (SQLException ex) {
+                throw sqlError(ex, caller);
+            }
+        }
+    }
+
+    private DomainRoleMember getRolesForPrincipal(String caller, DomainRoleMember roleMember, PreparedStatement ps) throws SQLException {
+        try (ResultSet rs = executeQuery(ps, caller)) {
+            while (rs.next()) {
+                final String roleName = rs.getString(1);
+                final String domain = rs.getString(2);
+
+                MemberRole memberRole = new MemberRole();
+                memberRole.setRoleName(roleName);
+                memberRole.setDomainName(domain);
+
+                java.sql.Timestamp expiration = rs.getTimestamp(3);
+                if (expiration != null) {
+                    memberRole.setExpiration(Timestamp.fromMillis(expiration.getTime()));
+                }
+                java.sql.Timestamp reviewReminder = rs.getTimestamp(4);
+                if (reviewReminder != null) {
+                    memberRole.setReviewReminder(Timestamp.fromMillis(reviewReminder.getTime()));
+                }
+                memberRole.setSystemDisabled(nullIfDefaultValue(rs.getInt(5), 0));
+
+                roleMember.getMemberRoles().add(memberRole);
+            }
+
+            return roleMember;
+        }
     }
 
     @Override

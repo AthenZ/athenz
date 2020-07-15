@@ -2839,6 +2839,115 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testGetPrincipalRoles() {
+        createDomain("domain1");
+        createDomain("domain2");
+        createDomain("domain3");
+
+        String principal = "user.johndoe";
+
+        insertRecordsForGetPrincipalRolesTest(principal);
+        DomainRoleMember domainRoleMember = zms.getPrincipalRoles(mockDomRsrcCtx, principal, null);
+        verifyGetPrincipalRoles(principal, domainRoleMember, true);
+        domainRoleMember = zms.getPrincipalRoles(mockDomRsrcCtx, principal, "domain1");
+        verifyGetPrincipalRoles(principal, domainRoleMember, false);
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx,"domain1", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx,"domain2", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx,"domain3", auditRef);
+    }
+
+    @Test
+    public void testGetPrincipalRolesCurrentPrincipal() {
+        createDomain("domain1");
+        createDomain("domain2");
+        createDomain("domain3");
+
+        String principalName = "user.johndoe";
+
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String unsignedCreds = "v=U1;d=user;n=johndoe";
+        Principal principal = SimplePrincipal.create("user", "johndoe", unsignedCreds + ";s=signature",
+                0, principalAuthority);
+        ((SimplePrincipal) principal).setUnsignedCreds(unsignedCreds);
+
+        ResourceContext rsrcCtx1 = createResourceContext(principal);
+
+        insertRecordsForGetPrincipalRolesTest(principalName);
+        DomainRoleMember domainRoleMember = zms.getPrincipalRoles(rsrcCtx1, null, null); // we'll don't pass a principal. Current user will be used
+        verifyGetPrincipalRoles(principalName, domainRoleMember, true);
+        domainRoleMember = zms.getPrincipalRoles(rsrcCtx1, null, "domain1"); // we'll don't pass a principal. Current user will be used
+        verifyGetPrincipalRoles(principalName, domainRoleMember, false);
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx,"domain1", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx,"domain2", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx,"domain3", auditRef);
+    }
+
+    private void verifyGetPrincipalRoles(String principal, DomainRoleMember domainRoleMember, boolean isAllDomains) {
+        MemberRole memberRole0 = new MemberRole();
+        memberRole0.setMemberName(principal);
+        memberRole0.setDomainName("domain1");
+        memberRole0.setRoleName("domain1:role.role1");
+
+        MemberRole memberRole1 = new MemberRole();
+        memberRole1.setMemberName(principal);
+        memberRole1.setDomainName("domain1");
+        memberRole1.setRoleName("domain1:role.role2");
+
+        MemberRole memberRole2 = new MemberRole();
+        memberRole2.setMemberName(principal);
+        memberRole2.setDomainName("domain3");
+        memberRole2.setRoleName("domain3:role.role1");
+
+        assertEquals(domainRoleMember.getMemberName(), principal);
+        assertEquals(domainRoleMember.getMemberRoles().get(0), memberRole0);
+        assertEquals(domainRoleMember.getMemberRoles().get(1), memberRole1);
+        if (isAllDomains) {
+            assertEquals(domainRoleMember.getMemberRoles().size(), 3);
+            assertEquals(domainRoleMember.getMemberRoles().get(2), memberRole2);
+        } else {
+            assertEquals(domainRoleMember.getMemberRoles().size(), 2);
+        }
+    }
+
+    private void insertRecordsForGetPrincipalRolesTest(String principal) {
+        List<RoleMember> roleMembers = new ArrayList<>();
+        roleMembers.add(new RoleMember().setMemberName("user.test1"));
+        roleMembers.add(new RoleMember().setMemberName("user.test2"));
+        roleMembers.add(new RoleMember().setMemberName(principal));
+
+        // Create role1 in domain1 with members and principal
+        Role role = createRoleObject("domain1", "Role1", null, roleMembers);
+        zms.putRole(mockDomRsrcCtx, "domain1", "Role1", auditRef, role);
+
+        // Create role2 in domain1 with members and principal
+        role = createRoleObject("domain1", "role2", null, roleMembers);
+        zms.putRole(mockDomRsrcCtx, "domain1", "Role2", auditRef, role);
+
+        roleMembers = new ArrayList<>();
+        roleMembers.add(new RoleMember().setMemberName("user.test1"));
+        roleMembers.add(new RoleMember().setMemberName("user.test2"));
+
+        // Create role1 in domain2 with members but without the principal
+        role = createRoleObject("domain2", "role1", null, roleMembers);
+        zms.putRole(mockDomRsrcCtx, "domain2", "Role1", auditRef, role);
+
+        roleMembers = new ArrayList<>();
+        roleMembers.add(new RoleMember().setMemberName(principal));
+
+        // Create role1 in domain3 only principal
+        role = createRoleObject("domain3", "role1", null, roleMembers);
+        zms.putRole(mockDomRsrcCtx, "domain3", "Role1", auditRef, role);
+    }
+
+    private void createDomain(String domainName) {
+        TopLevelDomain dom = createTopLevelDomainObject(domainName,
+                "Test " + domainName, "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom);
+    }
+
+    @Test
     public void testGetMembership() {
 
         TopLevelDomain dom1 = createTopLevelDomainObject("MbrGetRoleDom1",

@@ -230,11 +230,18 @@
               <goal>check</goal>
             </goals>
             <configuration>
+              <excludes>
+                <exclude>*Test</exclude>
+                <exclude>**/*ZMSRDLGeneratedClient.class</exclude>
+                <exclude>**/ZMSResources.class</exclude>
+                <exclude>**/ZMSHandler.class</exclude>
+                <exclude>**/ZMSConsts.class</exclude>
+                <exclude>**/FileConnection.class</exclude>
+                <exclude>**/FileObjectStore.class</exclude>
+              </excludes>
               <rules>
                 <rules>
                   <rule>
-                    <element>PACKAGE</element>
-                    <excludes>*Test</excludes>
                     <limits>
                       <limit>
                         <counter>LINE</counter>
