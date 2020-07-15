@@ -1964,9 +1964,9 @@ public class DBService implements RolesProvider {
         }
     }
     
-    List<String> listDomains(String prefix, long modifiedSince) {
+    List<String> listDomains(String prefix, long modifiedSince, boolean masterCopy) {
         
-        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+        try (ObjectStoreConnection con = store.getConnection(true, masterCopy)) {
             return con.listDomains(prefix, modifiedSince);
         }
     }

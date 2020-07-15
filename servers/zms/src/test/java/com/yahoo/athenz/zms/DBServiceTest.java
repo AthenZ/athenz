@@ -3098,7 +3098,7 @@ public class DBServiceTest {
         assertNotNull(list.getNames());
         assertTrue(list.getNames().contains(domainName));
 
-        List<String> doms = zms.dbService.listDomains(null, 0);
+        List<String> doms = zms.dbService.listDomains(null, 0, false);
         
         // all domains have admin role
         

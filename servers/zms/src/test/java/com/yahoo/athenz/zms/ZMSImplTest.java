@@ -9801,7 +9801,7 @@ public class ZMSImplTest {
                 "Test Domain2", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
 
-        DomainList domList = zms.listDomains(null, null, null, null, 0);
+        DomainList domList = zms.listDomains(null, null, null, null, 0, false);
         assertNotNull(domList);
 
         assertTrue(domList.getNames().contains("ListDom1".toLowerCase()));
@@ -9822,7 +9822,7 @@ public class ZMSImplTest {
                 "Test Domain2", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
 
-        DomainList domList = zms.listDomains(1, null, null, null, 0);
+        DomainList domList = zms.listDomains(1, null, null, null, 0, false);
         assertEquals(1, domList.getNames().size());
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "LimitDom1", auditRef);
@@ -9844,16 +9844,16 @@ public class ZMSImplTest {
                 "Test Domain3", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom3);
 
-        DomainList domList = zms.listDomains(null, null, null, null, 0);
+        DomainList domList = zms.listDomains(null, null, null, null, 0, false);
         int size = domList.getNames().size();
         assertTrue(size > 3);
 
         // ask for only for 2 domains back
-        domList = zms.listDomains(2, null, null, null, 0);
+        domList = zms.listDomains(2, null, null, null, 0, false);
         assertEquals(domList.getNames().size(), 2);
 
         // ask for the remaining domains
-        DomainList remList = zms.listDomains(null, domList.getNext(), null, null, 0);
+        DomainList remList = zms.listDomains(null, domList.getNext(), null, null, 0, false);
         assertEquals(remList.getNames().size(), size - 2);
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "SkipDom1", auditRef);
@@ -9875,7 +9875,7 @@ public class ZMSImplTest {
                 "Test Domain2", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
 
-        DomainList domList = zms.listDomains(null, null, "prefix", null, 0);
+        DomainList domList = zms.listDomains(null, null, "prefix", null, 0, false);
 
         assertFalse(domList.getNames().contains(noPrefixDom));
         assertTrue(domList.getNames().contains(prefixDom));
@@ -9899,7 +9899,7 @@ public class ZMSImplTest {
                 "DepthDom1.DepthDom2", "Test Domain3", "testOrg", adminUser);
         zms.postSubDomain(mockDomRsrcCtx, "DepthDom1.DepthDom2", auditRef, dom3);
 
-        DomainList domList = zms.listDomains(null, null, null, 1, 0);
+        DomainList domList = zms.listDomains(null, null, null, 1, 0, false);
 
         assertTrue(domList.getNames().contains("DepthDom1".toLowerCase()));
         assertTrue(domList.getNames().contains("DepthDom1.DepthDom2".toLowerCase()));
