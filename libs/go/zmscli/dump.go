@@ -561,3 +561,18 @@ func (cli Zms) dumpDomainRoleMembers(buf *bytes.Buffer, domainRoleMembers *zms.D
 		}
 	}
 }
+
+func (cli Zms) dumpRolesPrincipal(buf *bytes.Buffer, roleMember *zms.DomainRoleMember) {
+	buf.WriteString( "member: " + string(roleMember.MemberName) + "\n")
+	buf.WriteString( "roles:\n")
+	for _, role := range roleMember.MemberRoles {
+		buf.WriteString(indent_level1_dash + string(role.RoleName) + " domain: " + string(role.DomainName))
+		if role.Expiration != nil {
+			buf.WriteString(" expiration: " + role.Expiration.String())
+		}
+		if role.ReviewReminder != nil {
+			buf.WriteString(" review: " + role.ReviewReminder.String())
+		}
+		buf.WriteString("\n")
+	}
+}

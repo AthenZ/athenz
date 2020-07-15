@@ -317,6 +317,18 @@ func (cli Zms) ListDomainRoleMembers(dn string) (*string, error) {
 	return &s, nil
 }
 
+func (cli Zms) ShowRolesPrincipal(principal string, dn string) (*string, error) {
+	var buf bytes.Buffer
+	domainRoleMember, err := cli.Zms.GetPrincipalRoles(zms.EntityName(principal), zms.DomainName(dn))
+	if err != nil {
+		return nil, err
+	}
+	buf.WriteString("roles for principal:\n")
+	cli.dumpRolesPrincipal(&buf, domainRoleMember)
+	s := buf.String()
+	return &s, nil
+}
+
 func (cli Zms) SetRoleAuditEnabled(dn string, rn string, auditEnabled bool) (*string, error) {
 	meta := zms.RoleSystemMeta{
 		AuditEnabled: &auditEnabled,
