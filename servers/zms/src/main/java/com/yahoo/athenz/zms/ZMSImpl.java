@@ -970,7 +970,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         final String caller = "initstore";
 
-        List<String> domains = dbService.listDomains(null, 0);
+        List<String> domains = dbService.listDomains(null, 0, true);
         if (domains.size() > 0 && domains.contains(SYS_AUTH)) {
             return;
         }
@@ -1120,7 +1120,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         } else if (roleMember != null || roleName != null) {
             dlist = dbService.lookupDomainByRole(normalizeDomainAliasUser(roleMember), roleName);
         } else {
-            dlist = listDomains(limit, skip, prefix, depth, modTime);
+            dlist = listDomains(limit, skip, prefix, depth, modTime, false);
         }
 
         metric.stopTiming(timerMetric, null, principalDomain);
@@ -1299,7 +1299,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.requestError("Cannot delete reserved system domain", caller);
         }
 
-        DomainList subDomainList = listDomains(null, null, domainName + ".", null, 0);
+        DomainList subDomainList = listDomains(null, null, domainName + ".", null, 0, true);
         if (subDomainList.getNames().size() > 0) {
             throw ZMSUtils.requestError(caller + ": Cannot delete domain " +
                     domainName + ": " + subDomainList.getNames().size() + " subdomains of it exist", caller);
@@ -1333,7 +1333,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // retrieve the number of domains with this prefix
 
-        DomainList dlist = listDomains(null, null, userDomainCheck, null, 0);
+        DomainList dlist = listDomains(null, null, userDomainCheck, null, 0, true);
         if (dlist.getNames().size() < virtualDomainLimit) {
             return false;
         }
@@ -7009,11 +7009,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return countDots(name) > depth;
     }
     
-    DomainList listDomains(Integer limit, String skip, String prefix, Integer depth, long modTime) {
+    DomainList listDomains(Integer limit, String skip, String prefix, Integer depth, long modTime, boolean masterCopy) {
             
         //note: we don't use the store's options, because we also need to filter on depth
         
-        List<String> allDomains = dbService.listDomains(prefix, modTime);
+        List<String> allDomains = dbService.listDomains(prefix, modTime, masterCopy);
         List<String> names = new ArrayList<>();
         
         for (String name : allDomains) {
@@ -7608,7 +7608,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // for now we're going to verify our database connectivity
         // in case of failure we're going to return not found
 
-        DomainList dlist = listDomains(null, null, null, null, 0);
+        DomainList dlist = listDomains(null, null, null, null, 0, false);
         if (dlist.getNames() == null || dlist.getNames().isEmpty()) {
             throw ZMSUtils.notFoundError("Error - no domains available", caller);
         }
