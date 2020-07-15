@@ -2191,6 +2191,17 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             return false;
         }
 
+        // validate uriHostname in request matches the uriHostname in cert
+        if (!validateUriHostname(certReq.getUriHostname(), cert)) {
+            return false;
+        }
+
+        // validate InstanceID in request matches the instanceid in the cert
+        if (!validateInstanceId(certReq.getInstanceId(), cert)) {
+            // Todo: minitor the logs, and make this a hard failure in later iteration
+            LOGGER.error("unable to match request id: {} with cert id: {}", certReq.getInstanceId(), X509CertUtils.extractRequestInstanceId(cert));
+        }
+
         // validate the ip address if any provided
 
         return verifyCertRequestIP ? certReq.validateIPAddress(cert, ip) : true;
@@ -2210,6 +2221,37 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // validate the CSR subject ou field
 
         return certReq.validateSubjectOUField(null, certOU, validCertSubjectOrgUnitValues);
+    }
+
+    /**
+     * validateUriHostname verifies that a non-empty uriHostname (typically found in SanURI of the CSR) matches
+     * the hostname present in SanURI of the certificate of the request
+     * @param uriHostname hostname present in SanURI of the request CSR
+     * @param cert incoming request certificate
+     * @return true or false
+     */
+    boolean validateUriHostname(String uriHostname, X509Certificate cert) {
+        // if there is no hostname in SanURI, there is nothing to do
+        if (uriHostname == null || uriHostname.isEmpty()) {
+            return true;
+        }
+
+        return uriHostname.equals(X509CertUtils.extractItemFromURI(Crypto.extractX509CertURIs(cert), ZTSConsts.ZTS_CERT_HOSTNAME_URI));
+    }
+
+    /**
+     * validateInstanceId verifies that when non-empty instanceId (found in SanURI of the CSR) matches the instanceId
+     * present in the certificate of the request
+     * @param instanceId id present in the CSR
+     * @param cert incoming request certificate
+     * @return true or false
+     */
+    boolean validateInstanceId(String instanceId, X509Certificate cert) {
+        if (instanceId == null || instanceId.isEmpty()) {
+            return true;
+        }
+
+        return instanceId.equals(X509CertUtils.extractRequestInstanceId(cert));
     }
 
     @Override
@@ -4180,7 +4222,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return prefix + ex.getMessage() +
                 " client: " + ctx.request().getHeader(USER_AGENT_HDR) +
                 " clientIP: " + ctx.request().getRemoteAddr() +
-                " clientHost: " + (hostname == null ? "NA" : hostname);
+                " clientHost: " + hostname;
     }
 
     Authority getAuthority(String className) {
