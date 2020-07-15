@@ -251,6 +251,12 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 				principal = args[0]
 			}
 			return cli.ListPendingDomainRoleMembers(principal)
+		case "show-roles-principal" :
+			if argc == 0 {
+				return cli.ShowRolesPrincipal("", dn)
+			} else if argc == 1 {
+				return cli.ShowRolesPrincipal(args[0], dn)
+			}
 		case "help":
 			return cli.helpCommand(args)
 		default:
@@ -1178,6 +1184,21 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domain_example + " show-role admin log\n")
 		buf.WriteString("   " + domain_example + " show-role delegated-role expand\n")
 		buf.WriteString("   " + domain_example + " show-role myrole pending\n")
+
+	case "show-roles-principal":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domain_param + " show-roles-principal principal\n")
+		if !interactive {
+			buf.WriteString(" parameters:\n")
+			buf.WriteString("   domain    : optional name of the domain that roles belong to\n")
+			buf.WriteString("             : if not specified will retrieve roles from all domains\n")
+			buf.WriteString("   principal : optional name of the principal to retrieve the list of roles for\n")
+			buf.WriteString("             : if not specified will retrieve roles for current principal\n")
+		}
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domain_example + " show-roles-principal user.johndoe\n")
+		buf.WriteString("   " + domain_example + " show-roles-principal\n")
+		buf.WriteString("   show-roles-principal\n")
 	case "add-delegated-role":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domain_param + " add-delegated-role role trusted_domain\n")
@@ -2016,6 +2037,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString(" Role commands:\n")
 	buf.WriteString("   list-role\n")
 	buf.WriteString("   show-role role [log | expand]\n")
+	buf.WriteString("   show-roles-principal\n")
 	buf.WriteString("   add-delegated-role role trusted_domain\n")
 	buf.WriteString("   add-group-role role member [member ... ]\n")
 	buf.WriteString("   add-member group_role user_or_service [user_or_service ...]\n")
