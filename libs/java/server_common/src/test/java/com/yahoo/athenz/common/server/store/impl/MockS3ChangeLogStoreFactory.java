@@ -16,15 +16,15 @@
 package com.yahoo.athenz.common.server.store.impl;
 
 import com.yahoo.athenz.common.server.store.ChangeLogStore;
-import com.yahoo.athenz.common.server.store.CloudStore;
+import com.yahoo.athenz.common.server.store.S3ClientFactory;
 
 import java.security.PrivateKey;
 
 public class MockS3ChangeLogStoreFactory extends S3ChangeLogStoreFactory {
-    
+
     @Override
     public ChangeLogStore create(String ztsHomeDir, PrivateKey privateKey,
-                                 String privateKeyId, CloudStore cloudStore) {
-        return new MockS3ChangeLogStore(cloudStore);
+                                 String privateKeyId) {
+        return new MockS3ChangeLogStore(new S3ClientFactory());
     }
 }

@@ -156,6 +156,8 @@ public final class ZTSConsts {
 
     public static final String ZTS_SSH_HOST = "host";
     public static final String ZTS_SSH_USER = "user";
+    public static final String ZTS_SSH_TYPE = "certtype";
+
 
     public static final String ZTS_CERT_DNS_SUFFIX   = ".athenz.cloud";
     public static final String ZTS_ACTION_LAUNCH     = "launch";
@@ -172,6 +174,9 @@ public final class ZTSConsts {
     public static final String EC    = "EC";
     public static final String ECDSA = "ECDSA";
 
+    public static final String ZTS_PROP_AWS_CREDS_CACHE_TIMEOUT             = "athenz.zts.aws_creds_cache_timeout";
+    public static final String ZTS_PROP_AWS_CREDS_INVALID_CACHE_TIMEOUT     = "athenz.zts.aws_creds_invalid_cache_timeout";
+    public static final String ZTS_PROP_AWS_ENABLED                         = "athenz.zts.aws_enabled";
     public static final String ZTS_PROP_METRIC_FACTORY_CLASS             = "athenz.zts.metric_factory_class";
     public static final String ZTS_PROP_CERT_SIGNER_FACTORY_CLASS        = "athenz.zts.cert_signer_factory_class";
     public static final String ZTS_PROP_SSH_SIGNER_FACTORY_CLASS         = "athenz.zts.ssh_signer_factory_class";

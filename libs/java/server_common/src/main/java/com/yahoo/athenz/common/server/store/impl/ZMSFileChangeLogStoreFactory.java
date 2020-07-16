@@ -18,7 +18,6 @@ package com.yahoo.athenz.common.server.store.impl;
 
 import com.yahoo.athenz.common.server.store.ChangeLogStore;
 import com.yahoo.athenz.common.server.store.ChangeLogStoreFactory;
-import com.yahoo.athenz.common.server.store.CloudStore;
 
 import java.io.File;
 import java.security.PrivateKey;
@@ -28,7 +27,7 @@ public class ZMSFileChangeLogStoreFactory implements ChangeLogStoreFactory {
     private static final String ZTS_DATA_STORE = "zts_store";
 
     public ChangeLogStore create(String ztsHomeDir, PrivateKey privateKey,
-                                 String privateKeyId, CloudStore cloudStore) {
+                                 String privateKeyId) {
 
         return new ZMSFileChangeLogStore(ztsHomeDir + File.separator + ZTS_DATA_STORE, privateKey,
                 privateKeyId);

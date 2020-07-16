@@ -21,7 +21,7 @@ import com.amazonaws.services.s3.model.*;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.athenz.common.server.store.ChangeLogStore;
-import com.yahoo.athenz.common.server.store.CloudStore;
+import com.yahoo.athenz.common.server.store.S3ClientFactory;
 import com.yahoo.athenz.zms.SignedDomain;
 import com.yahoo.athenz.zms.SignedDomains;
 import org.slf4j.Logger;
@@ -41,7 +41,6 @@ public class S3ChangeLogStore implements ChangeLogStore {
     AmazonS3 awsS3Client = null;
 
     private String s3BucketName;
-    private CloudStore cloudStore;
     private ObjectMapper jsonMapper;
 
     private static final String NUMBER_OF_THREADS = "athenz.zts.bucket.threads";
@@ -49,9 +48,10 @@ public class S3ChangeLogStore implements ChangeLogStore {
     private int nThreads = Integer.parseInt(System.getProperty(NUMBER_OF_THREADS, "10"));
     private int defaultTimeoutSeconds = Integer.parseInt(System.getProperty(DEFAULT_TIMEOUT_SECONDS, "1800"));
     private volatile HashMap<String, SignedDomain> tempSignedDomainMap = new HashMap<>();
+    private S3ClientFactory s3ClientFactory;
 
-    public S3ChangeLogStore(CloudStore cloudStore) {
-        this.cloudStore = cloudStore;
+    public S3ChangeLogStore(S3ClientFactory s3ClientFactory) {
+        this.s3ClientFactory = s3ClientFactory;
         s3BucketName = System.getProperty(ZTS_PROP_AWS_BUCKET_NAME);
         if (s3BucketName == null || s3BucketName.isEmpty()) {
             LOGGER.error("S3 Bucket name cannot be null");
@@ -363,7 +363,7 @@ public class S3ChangeLogStore implements ChangeLogStore {
     }
 
     AmazonS3 getS3Client() {
-        return cloudStore.getS3Client();
+        return s3ClientFactory.create();
     }
 
     public ExecutorService getExecutorService() {

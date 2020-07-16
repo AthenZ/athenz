@@ -23,13 +23,9 @@ public final class ServerCommonConsts {
 
     public static final String USER_DOMAIN_PREFIX = "user.";
 
-    // For CloudStore
-    public static final String ZTS_PROP_AWS_REGION_NAME                     = "athenz.zts.aws_region_name";
-    public static final String ZTS_PROP_AWS_CREDS_CACHE_TIMEOUT             = "athenz.zts.aws_creds_cache_timeout";
-    public static final String ZTS_PROP_AWS_CREDS_INVALID_CACHE_TIMEOUT     = "athenz.zts.aws_creds_invalid_cache_timeout";
-    public static final String ZTS_PROP_AWS_ENABLED                         = "athenz.zts.aws_enabled";
-    public static final String ZTS_PROP_AWS_CREDS_UPDATE_TIMEOUT            = "athenz.zts.aws_creds_update_timeout";
-    public static final String ZTS_SSH_TYPE                                 = "certtype";
+    public static final String ZTS_PROP_AWS_REGION_NAME               = "athenz.zts.aws_region_name";
+    public static final String ZTS_PROP_AWS_CREDS_UPDATE_TIMEOUT      = "athenz.zts.aws_creds_update_timeout";
+    public static final int ZTS_PROP_AWS_CREDS_UPDATE_TIMEOUT_DEFAULT = 900;
 
     // For S3ChangeLogStore
     public static final String ZTS_PROP_AWS_BUCKET_NAME = "athenz.zts.aws_bucket_name";

@@ -41,7 +41,7 @@ import com.yahoo.athenz.common.server.cert.X509CertRecord;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.store.ChangeLogStore;
-import com.yahoo.athenz.common.server.store.CloudStore;
+import com.yahoo.athenz.zts.store.CloudStore;
 import com.yahoo.athenz.common.server.store.impl.ZMSFileChangeLogStore;
 import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.zms.Assertion;
@@ -205,7 +205,6 @@ public class ZTSImplTest {
                 privateKey, "0");
 
         cloudStore = new CloudStore();
-        cloudStore.setHttpClient(null);
 
         System.setProperty(ZTSConsts.ZTS_PROP_OSTK_HOST_SIGNER_SERVICE, "sys.auth.hostsignd");
         System.setProperty(ZTSConsts.ZTS_PROP_CERT_ALLOWED_O_VALUES, "Athenz, Inc.|My Test Company|Athenz|Yahoo");
@@ -3905,7 +3904,6 @@ public class ZTSImplTest {
         // create zts with a metric we can verify
         
         CloudStore cloudStore = new CloudStore();
-        cloudStore.setHttpClient(null);
         ZtsMetricTester metric = new ZtsMetricTester();
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         ZTSImpl.serverHostName = "localhost";
@@ -4122,7 +4120,6 @@ public class ZTSImplTest {
         // create zts with a metric we can verify
 
         CloudStore cloudStore = new CloudStore();
-        cloudStore.setHttpClient(null);
         ZtsMetricTester metric = new ZtsMetricTester();
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         ZTSImpl.serverHostName = "localhost";
@@ -9347,7 +9344,6 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -9413,7 +9409,6 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -9455,7 +9450,6 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -9506,7 +9500,6 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private_ec.pem");
 
         CloudStore cloudStore = new CloudStore();
-        cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -9548,7 +9541,6 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -9572,7 +9564,6 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -9613,7 +9604,6 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -9680,7 +9670,6 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -9827,7 +9816,6 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -9879,7 +9867,6 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -9990,7 +9977,6 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");

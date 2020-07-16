@@ -42,7 +42,7 @@ import com.yahoo.athenz.common.server.status.StatusChecker;
 import com.yahoo.athenz.common.server.status.StatusCheckerFactory;
 import com.yahoo.athenz.common.server.store.ChangeLogStore;
 import com.yahoo.athenz.common.server.store.ChangeLogStoreFactory;
-import com.yahoo.athenz.common.server.store.CloudStore;
+import com.yahoo.athenz.zts.store.CloudStore;
 import com.yahoo.athenz.zms.RoleMeta;
 import com.yahoo.athenz.zts.cert.*;
 import com.yahoo.athenz.zts.notification.ZTSNotificationTaskFactory;
@@ -554,7 +554,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // create our struct store
         
-        return clogFactory.create(homeDir, privateKey.getKey(), privateKey.getId(), cloudStore);
+        return clogFactory.create(homeDir, privateKey.getKey(), privateKey.getId());
     }
     
     void loadMetricObject() {

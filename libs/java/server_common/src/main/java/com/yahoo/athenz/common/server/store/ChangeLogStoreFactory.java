@@ -25,9 +25,8 @@ public interface ChangeLogStoreFactory {
      * @param ztsHomeDir the home directory for the ZTS Server instance (e.g. /home/athenz/var/zts_server)
      * @param privateKey the PrivateKey to generate service tokens when communicating with ZMS Server
      * @param privateKeyId the private key identifier
-     * @param cloudStore represents an AWS instance
      * @return ChangeLogStore instance
      */
     ChangeLogStore create(String ztsHomeDir, PrivateKey privateKey,
-                          String privateKeyId, CloudStore cloudStore);
+                          String privateKeyId);
 }

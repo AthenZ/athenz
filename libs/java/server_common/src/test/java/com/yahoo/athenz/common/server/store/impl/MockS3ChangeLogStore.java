@@ -18,7 +18,7 @@ package com.yahoo.athenz.common.server.store.impl;
 import static org.mockito.Mockito.mock;
 
 import com.amazonaws.services.s3.AmazonS3;
-import com.yahoo.athenz.common.server.store.CloudStore;
+import com.yahoo.athenz.common.server.store.S3ClientFactory;
 import org.mockito.Mockito;
 
 import java.util.concurrent.ExecutorService;
@@ -28,13 +28,14 @@ class MockS3ChangeLogStore extends S3ChangeLogStore {
     int execService = 0;
     ExecutorService executorService = Mockito.mock(ExecutorService.class);
     AmazonS3 awsS3Client;
-    public MockS3ChangeLogStore(CloudStore cloudStore) {
-        super(cloudStore);
+
+    public MockS3ChangeLogStore(S3ClientFactory s3ClientFactory) {
+        super(s3ClientFactory);
         awsS3Client = mock(AmazonS3.class);
     }
 
-    public MockS3ChangeLogStore(CloudStore cloudStore, int executorService) {
-        super(cloudStore);
+    public MockS3ChangeLogStore(S3ClientFactory s3ClientFactory, int executorService) {
+        super(s3ClientFactory);
         awsS3Client = mock(AmazonS3.class);
         this.execService = executorService;
     }

@@ -23,10 +23,7 @@ import java.io.*;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.yahoo.athenz.common.server.store.CloudStore;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.mockito.Mockito;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -644,17 +641,5 @@ public class S3ChangeLogStoreTest {
         DomainData domainData = domainList.get(0).getDomain();
         assertNotNull(domainData);
         assertEquals(domainData.getName(), "iaas");
-    }
-
-    @Test
-    public void testGetS3Client() {
-
-        CloudStore cloudStore = Mockito.mock(CloudStore.class);
-        AmazonS3 s3 = Mockito.mock(AmazonS3.class);
-
-        Mockito.when(cloudStore.getS3Client()).thenReturn(s3);
-        S3ChangeLogStore store = new S3ChangeLogStore(cloudStore);
-        AmazonS3 s3Client = store.getS3Client();
-        assertNotNull(s3Client);
     }
 }

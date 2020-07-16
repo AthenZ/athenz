@@ -14,51 +14,51 @@
  *  limitations under the License.
  */
 
-package com.yahoo.athenz.common.server.store;
+package com.yahoo.athenz.zts.store;
 
 import com.amazonaws.AmazonServiceException;
+import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicSessionCredentials;
 import com.amazonaws.regions.Regions;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.AssumeRoleResult;
 import com.amazonaws.services.securitytoken.model.Credentials;
+import com.yahoo.athenz.common.server.store.AWSCredentialsRefresher;
 import com.yahoo.athenz.common.server.util.ConfigProperties;
 import com.yahoo.athenz.zms.ResourceException;
 import com.yahoo.athenz.zts.AWSTemporaryCredentials;
 import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
-import org.eclipse.jetty.client.HttpClient;
-import org.eclipse.jetty.client.api.ContentResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
-import static com.yahoo.athenz.common.ServerCommonConsts.*;
+import static com.yahoo.athenz.common.ServerCommonConsts.ZTS_PROP_AWS_CREDS_UPDATE_TIMEOUT;
+import static com.yahoo.athenz.common.ServerCommonConsts.ZTS_PROP_AWS_CREDS_UPDATE_TIMEOUT_DEFAULT;
+import static com.yahoo.athenz.zts.ZTSConsts.*;
 
 public class CloudStore {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CloudStore.class);
     private static final String AWS_ROLE_SESSION_NAME = "athenz-zts-service";
 
-    String awsRole = null;
-    String awsRegion;
     boolean awsEnabled;
     int cacheTimeout;
     int invalidCacheTimeout;
-    BasicSessionCredentials credentials;
     private Map<String, String> cloudAccountCache;
     ConcurrentHashMap<String, AWSTemporaryCredentials> awsCredsCache;
     ConcurrentHashMap<String, Long> awsInvalidCredsCache;
-    private HttpClient httpClient;
+    AWSCredentialsRefresher awsCredentialsRefresher = null;
+
 
     private ScheduledExecutorService scheduledThreadPool = null;
 
@@ -69,15 +69,6 @@ public class CloudStore {
         cloudAccountCache = new HashMap<>();
         awsCredsCache = new ConcurrentHashMap<>();
         awsInvalidCredsCache = new ConcurrentHashMap<>();
-
-        // Instantiate and start our HttpClient
-
-        httpClient = new HttpClient();
-        setupHttpClient(httpClient);
-
-        // check to see if we are given region name
-
-        awsRegion = System.getProperty(ZTS_PROP_AWS_REGION_NAME);
 
         // get the default cache timeout in seconds
 
@@ -94,38 +85,13 @@ public class CloudStore {
         initializeAwsSupport();
     }
 
-    void setupHttpClient(HttpClient client) {
-
-        client.setFollowRedirects(false);
-        client.setStopTimeout(1000);
-        try {
-            client.start();
-        } catch (Exception ex) {
-            LOGGER.error("CloudStore: unable to start http client", ex);
-            throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR,
-                    "Http client not available");
-        }
-    }
-
     public void close() {
         if (scheduledThreadPool != null) {
             scheduledThreadPool.shutdownNow();
         }
-        stopHttpClient();
-    }
 
-    public void setHttpClient(HttpClient client) {
-        stopHttpClient();
-        httpClient = client;
-    }
-
-    private void stopHttpClient() {
-        if (httpClient == null) {
-            return;
-        }
-        try {
-            httpClient.stop();
-        } catch (Exception ignored) {
+        if (awsCredentialsRefresher != null) {
+            awsCredentialsRefresher.close();
         }
     }
 
@@ -142,230 +108,22 @@ public class CloudStore {
             return;
         }
 
-        // initialize and load our bootstrap data
+        // Instantiate credentials fetcher (null check for tests that override it)
+        if (awsCredentialsRefresher == null) {
+            awsCredentialsRefresher = new AWSCredentialsRefresher();
 
-        if (!loadBootMetaData()) {
-            throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR,
-                    "Unable to load boot data");
         }
-
-        // finally fetch the role credentials
-
-        if (!fetchRoleCredentials())  {
-            throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR,
-                    "Unable to fetch aws role credentials");
-        }
-
-        // Start our thread to get/update aws temporary credentials
+        // Start Credentials Cache Cleaner Task
 
         int credsUpdateTime = ConfigProperties.retrieveConfigSetting(
-                ZTS_PROP_AWS_CREDS_UPDATE_TIMEOUT, 900);
+                ZTS_PROP_AWS_CREDS_UPDATE_TIMEOUT, ZTS_PROP_AWS_CREDS_UPDATE_TIMEOUT_DEFAULT);
 
         scheduledThreadPool = Executors.newScheduledThreadPool(1);
-        scheduledThreadPool.scheduleAtFixedRate(new AWSCredentialsUpdater(), credsUpdateTime,
+        scheduledThreadPool.scheduleAtFixedRate(new AWSCredentialsCacheCleaner(), credsUpdateTime,
                 credsUpdateTime, TimeUnit.SECONDS);
     }
 
-    public AmazonS3 getS3Client() {
-
-        if (!awsEnabled) {
-            throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR,
-                    "AWS Support not enabled");
-        }
-
-        if (credentials == null) {
-            throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR,
-                    "AWS Role credentials are not available");
-        }
-
-        return AmazonS3ClientBuilder.standard()
-                .withCredentials(new AWSStaticCredentialsProvider(credentials))
-                .withRegion(Regions.fromName(awsRegion))
-                .build();
-    }
-
-    boolean loadBootMetaData() {
-
-        // first load the dynamic document
-
-        String document = getMetaData("/dynamic/instance-identity/document");
-        if (document == null) {
-            return false;
-        }
-
-        if (!parseInstanceInfo(document)) {
-            LOGGER.error("CloudStore: unable to parse instance identity document: {}", document);
-            return false;
-        }
-
-        // then the document signature
-
-        String docSignature = getMetaData("/dynamic/instance-identity/pkcs7");
-        if (docSignature == null) {
-            return false;
-        }
-
-        // next the iam profile data
-
-        String iamRole = getMetaData("/meta-data/iam/info");
-        if (iamRole == null) {
-            return false;
-        }
-
-        // now parse and extract the profile details. we'll catch
-        // all possible index out of bounds exceptions here and just
-        // report the error and return false
-
-        if (!parseIamRoleInfo(iamRole)) {
-            LOGGER.error("CloudStore: unable to parse iam role data: {}", iamRole);
-            return false;
-        }
-
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("CloudStore: service meta information:");
-            LOGGER.debug("CloudStore: role:   {}", awsRole);
-            LOGGER.debug("CloudStore: region: {}", awsRegion);
-        }
-        return true;
-    }
-
-    boolean parseInstanceInfo(String document) {
-
-        Struct instStruct = JSON.fromString(document, Struct.class);
-        if (instStruct == null) {
-            LOGGER.error("CloudStore: unable to parse instance identity document: {}", document);
-            return false;
-        }
-
-        // if we're overriding the region name, then we'll
-        // extract that value here
-
-        if (awsRegion == null || awsRegion.isEmpty()) {
-            awsRegion = instStruct.getString("region");
-            if (awsRegion == null || awsRegion.isEmpty()) {
-                LOGGER.error("CloudStore: unable to extract region from instance identity document: {}",
-                        document);
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    boolean parseIamRoleInfo(String iamRole) {
-
-        Struct iamRoleStruct = JSON.fromString(iamRole, Struct.class);
-        if (iamRoleStruct == null) {
-            LOGGER.error("CloudStore: unable to parse iam role data: {}", iamRole);
-            return false;
-        }
-
-        // extract and parse our profile arn
-        // "InstanceProfileArn" : "arn:aws:iam::1111111111111:instance-profile/iaas.athenz.zts,athenz",
-
-        String profileArn = iamRoleStruct.getString("InstanceProfileArn");
-        if (profileArn == null || profileArn.isEmpty()) {
-            LOGGER.error("CloudStore: unable to extract InstanceProfileArn from iam role data: {}", iamRole);
-            return false;
-        }
-
-        return parseInstanceProfileArn(profileArn);
-    }
-
-    boolean parseInstanceProfileArn(String profileArn) {
-
-        // "InstanceProfileArn" : "arn:aws:iam::1111111111111:instance-profile/iaas.athenz.zts,athenz",
-
-        if (!profileArn.startsWith("arn:aws:iam::")) {
-            LOGGER.error("CloudStore: InstanceProfileArn does not start with 'arn:aws:iam::' : {}",
-                    profileArn);
-            return false;
-        }
-
-        int idx = profileArn.indexOf(":instance-profile/");
-        if (idx == -1) {
-            LOGGER.error("CloudStore: unable to parse InstanceProfileArn: {}", profileArn);
-            return false;
-        }
-
-        final String awsProfile = profileArn.substring(idx + ":instance-profile/".length());
-
-        // make sure we have valid profile and account data
-
-        if (awsProfile.isEmpty()) {
-            LOGGER.error("CloudStore: unable to extract profile/account data from InstanceProfileArn: {}",
-                    profileArn);
-            return false;
-        }
-
-        // we need to extract the role from the profile
-
-        idx = awsProfile.indexOf(',');
-        if (idx == -1) {
-            awsRole = awsProfile;
-        } else {
-            awsRole = awsProfile.substring(0, idx);
-        }
-
-        return true;
-    }
-
-    boolean fetchRoleCredentials() {
-
-        // verify that we have a valid awsRole already retrieved
-
-        if (awsRole == null || awsRole.isEmpty()) {
-            LOGGER.error("CloudStore: awsRole is not available to fetch role credentials");
-            return false;
-        }
-
-        final String creds = getMetaData("/meta-data/iam/security-credentials/" + awsRole);
-        if (creds == null) {
-            return false;
-        }
-
-        Struct credsStruct = JSON.fromString(creds, Struct.class);
-        if (credsStruct == null) {
-            LOGGER.error("CloudStore: unable to parse role credentials data: {}", creds);
-            return false;
-        }
-
-        String accessKeyId = credsStruct.getString("AccessKeyId");
-        String secretAccessKey = credsStruct.getString("SecretAccessKey");
-        String token = credsStruct.getString("Token");
-
-        credentials = new BasicSessionCredentials(accessKeyId, secretAccessKey, token);
-        return true;
-    }
-
-    String getMetaData(String path) {
-
-        final String baseUri = "http://169.254.169.254/latest";
-        ContentResponse response;
-        try {
-            response = httpClient.GET(baseUri + path);
-        } catch (InterruptedException | ExecutionException | TimeoutException ex) {
-            LOGGER.error("CloudStore: unable to fetch requested uri '{}':{}",
-                    path, ex.getMessage());
-            return null;
-        }
-        if (response.getStatus() != 200) {
-            LOGGER.error("CloudStore: unable to fetch requested uri '{}' status:{}",
-                    path, response.getStatus());
-            return null;
-        }
-
-        String data = response.getContentAsString();
-        if (data == null || data.isEmpty()) {
-            LOGGER.error("CloudStore: received empty response from uri '{}' status:{}",
-                    path, response.getStatus());
-            return null;
-        }
-
-        return data;
-    }
-
-    AssumeRoleRequest getAssumeRoleRequest(String account, String roleName, String principal,
+    AssumeRoleRequest getAssumeRoleRequest(String account, String roleName,
                                            Integer durationSeconds, String externalId) {
 
         // assume the target role to get the credentials for the client
@@ -390,6 +148,8 @@ public class CloudStore {
     }
 
     public AWSSecurityTokenService getTokenServiceClient() {
+        AWSCredentials credentials = awsCredentialsRefresher.getCredentials();
+        String awsRegion = awsCredentialsRefresher.getAwsRegion();
 
         return AWSSecurityTokenServiceClientBuilder.standard()
                 .withCredentials(new AWSStaticCredentialsProvider(credentials))
@@ -540,7 +300,7 @@ public class CloudStore {
             return null;
         }
 
-        AssumeRoleRequest req = getAssumeRoleRequest(account, roleName, principal,
+        AssumeRoleRequest req = getAssumeRoleRequest(account, roleName,
                 durationSeconds, externalId);
 
         try {
@@ -598,33 +358,26 @@ public class CloudStore {
         }
     }
 
-    class AWSCredentialsUpdater implements Runnable {
+    class AWSCredentialsCacheCleaner implements Runnable {
 
         @Override
         public void run() {
 
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("AWSCredentialsUpdater: Starting aws credentials updater task...");
-            }
-
-            try {
-                fetchRoleCredentials();
-            } catch (Exception ex) {
-                LOGGER.error("AWSCredentialsUpdater: unable to fetch aws role credentials: {}",
-                        ex.getMessage());
+                LOGGER.debug("AWSCredentialsCacheCleaner: Starting aws credentials cache cleaner task...");
             }
 
             try {
                 removeExpiredCredentials();
             } catch (Exception ex) {
-                LOGGER.error("AWSCredentialsUpdater: unable to remove expired aws credentials: {}",
+                LOGGER.error("AWSCredentialsCacheCleaner: unable to remove expired aws credentials: {}",
                         ex.getMessage());
             }
 
             try {
                 removeExpiredInvalidCredentials();
             } catch (Exception ex) {
-                LOGGER.error("AWSCredentialsUpdater: unable to remove expired invalid aws credentials: {}",
+                LOGGER.error("AWSCredentialsCacheCleaner: unable to remove expired invalid aws credentials: {}",
                         ex.getMessage());
             }
         }

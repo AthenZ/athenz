@@ -37,7 +37,7 @@ public class ZMSFileChangeLogStoreFactoryTest {
         PrivateKey pkey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
         
         ZMSFileChangeLogStoreFactory factory = new ZMSFileChangeLogStoreFactory();
-        ChangeLogStore store = factory.create(ZTS_DATA_STORE_PATH, pkey, "0", null);
+        ChangeLogStore store = factory.create(ZTS_DATA_STORE_PATH, pkey, "0");
         assertNotNull(store);
     }
 }
