@@ -3304,7 +3304,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             // if we're already determined that the principal is not
             // valid there is no point of running this check
 
-            if (userAuthorityFilter != null) {
+            if (!StringUtil.isEmpty(userAuthorityFilter)) {
                 if (!ZMSUtils.isUserAuthorityFilterValid(userAuthority, userAuthorityFilter, memberName)) {
                     throw ZMSUtils.requestError("Invalid member: " + memberName +
                             ". Required user authority filter not valid for the member", caller);
