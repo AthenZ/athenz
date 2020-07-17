@@ -32,12 +32,8 @@ public class X509ServiceCertRequest extends X509CertRequest {
             final String serviceDnsSuffix, final String instanceHostname, final List<String> instanceHostCnames,
             HostnameResolver hostnameResolver, StringBuilder errorMsg) {
 
-        // parse the cert request (csr) to extract the DNS entries
-        // along with IP addresses. Validate that all hostnames
-        // include the same dns suffix and the instance id required
-        // hostname is specified
-
-        if (!parseCertRequest(errorMsg)) {
+        // instanceId must be non empty
+        if (instanceId == null || instanceId.isEmpty()) {
             return false;
         }
 
@@ -47,6 +43,11 @@ public class X509ServiceCertRequest extends X509CertRequest {
         final String infoCommonName = domainName + "." + serviceName;
         if (!validateCommonName(infoCommonName)) {
             errorMsg.append("Unable to validate CSR common name");
+            return false;
+        }
+
+        // ensure the uri Hostname is same as instance Hostname that gets further verified later
+        if (!validateUriHostname(instanceHostname)) {
             return false;
         }
 

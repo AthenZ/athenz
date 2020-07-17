@@ -30,7 +30,6 @@ import java.util.Collection;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.util.Crypto;
-import com.yahoo.athenz.zts.cert.X509CertUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.Test;
@@ -120,21 +119,21 @@ public class X509CertUtilsTest {
         // first no list
 
         List<String> uriList = new ArrayList<>();
-        assertNull(X509CertUtils.extractReqeustInstanceIdFromURI(uriList));
+        assertNull(X509CertUtils.extractRequestInstanceIdFromURI(uriList));
 
         // does not start with uri
 
         uriList.add("spiffe://athenz/sa/api");
-        assertNull(X509CertUtils.extractReqeustInstanceIdFromURI(uriList));
+        assertNull(X509CertUtils.extractRequestInstanceIdFromURI(uriList));
 
         // does not have correct format
 
         uriList.add("athenz://instanceid/provider-id-001");
-        assertNull(X509CertUtils.extractReqeustInstanceIdFromURI(uriList));
+        assertNull(X509CertUtils.extractRequestInstanceIdFromURI(uriList));
 
         // finally correct format
 
         uriList.add("athenz://instanceid/provider/id-001");
-        assertEquals(X509CertUtils.extractReqeustInstanceIdFromURI(uriList), "id-001");
+        assertEquals(X509CertUtils.extractRequestInstanceIdFromURI(uriList), "id-001");
     }
 }

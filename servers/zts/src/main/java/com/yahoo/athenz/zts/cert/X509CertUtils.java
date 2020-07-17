@@ -29,7 +29,7 @@ public class X509CertUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(X509RoleCertRequest.class);
     private static final ThreadLocal<StringBuilder> TLS_BUILDER = ThreadLocal.withInitial(() -> new StringBuilder(256));
 
-    public static String extractReqeustInstanceIdFromURI(final List<String> uriList) {
+    public static String extractRequestInstanceIdFromURI(final List<String> uriList) {
 
         for (String uri : uriList) {
             if (!uri.startsWith(ZTSConsts.ZTS_CERT_INSTANCE_ID_URI)) {
@@ -45,7 +45,18 @@ public class X509CertUtils {
         return null;
     }
 
-    public static String extractReqeustInstanceIdFromDnsNames(final List<String> dnsNames) {
+    public static String extractItemFromURI(final List<String> uriList, final String item) {
+
+        for (String uri : uriList) {
+            if (uri.startsWith(item)) {
+                return uri.substring(item.length());
+            }
+        }
+
+        return null;
+    }
+
+    public static String extractRequestInstanceIdFromDnsNames(final List<String> dnsNames) {
 
         for (String dnsName : dnsNames) {
             int idx = dnsName.indexOf(ZTSConsts.ZTS_CERT_INSTANCE_ID_DNS);
@@ -68,7 +79,7 @@ public class X509CertUtils {
         // athenz://instanceid/<provider>/<instance-id>
 
         final List<String> uriList = Crypto.extractX509CertURIs(cert);
-        final String instanceId = extractReqeustInstanceIdFromURI(uriList);
+        final String instanceId = extractRequestInstanceIdFromURI(uriList);
         if (instanceId != null) {
             return instanceId;
         }
@@ -76,7 +87,7 @@ public class X509CertUtils {
         // if no uri, then we'll fall back to our old dnsName field
 
         final List<String> dnsNames = Crypto.extractX509CertDnsNames(cert);
-        return extractReqeustInstanceIdFromDnsNames(dnsNames);
+        return extractRequestInstanceIdFromDnsNames(dnsNames);
     }
 
     public static void logCert(final Logger certLogger, final Principal principal,

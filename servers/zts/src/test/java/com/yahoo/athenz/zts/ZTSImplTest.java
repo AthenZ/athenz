@@ -4298,6 +4298,83 @@ public class ZTSImplTest {
     }
 
     @Test
+    public void testValidateRoleCertificateRequestWithUriHostname() throws IOException {
+        Path path = Paths.get("src/test/resources/athenz.examples.role-uri-hostname-only.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        path = Paths.get("src/test/resources/athenz.examples.no-uri.pem");
+        String pem = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(pem);
+
+        Set<String> roles = new HashSet<>();
+        roles.add("readers");
+
+        // if the CSR has hostname, but the cert doesn't have hostname, it should result in false
+        assertFalse(zts.validateRoleCertificateRequest(csr, "athenz.examples", roles, "athenz.examples.httpd",
+                null, cert, "10.0.0.1"));
+
+        path = Paths.get("src/test/resources/athenz.examples.uri-hostname-only.pem");
+        pem = new String(Files.readAllBytes(path));
+        cert = Crypto.loadX509Certificate(pem);
+
+        assertTrue(zts.validateRoleCertificateRequest(csr, "athenz.examples", roles, "athenz.examples.httpd",
+                null, cert, "10.0.0.1"));
+
+        path = Paths.get("src/test/resources/athenz.examples.role-uri-instanceid-hostname.csr");
+        csr = new String(Files.readAllBytes(path));
+
+        // if CSR has hostname+instanceid, and cert has only hostname, it should result in false
+        // Todo: ignoring instanceid mismatches. in later iterations, this will be a failure
+        assertTrue(zts.validateRoleCertificateRequest(csr, "athenz.examples", roles, "athenz.examples.httpd",
+                null, cert, "10.0.0.1"));
+
+        path = Paths.get("src/test/resources/athenz.examples.uri-instanceid-hostname.pem");
+        pem = new String(Files.readAllBytes(path));
+        cert = Crypto.loadX509Certificate(pem);
+
+        assertTrue(zts.validateRoleCertificateRequest(csr, "athenz.examples", roles, "athenz.examples.httpd",
+                null, cert, "10.0.0.1"));
+    }
+
+    @Test
+    public void testValidateUriHostname() throws IOException {
+        Path path = Paths.get("src/test/resources/athenz.examples.no-uri.pem");
+        String pem = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(pem);
+
+        assertTrue(zts.validateUriHostname("", null));
+        assertTrue(zts.validateUriHostname(null, null));
+
+        assertFalse(zts.validateUriHostname("abc.athenz.com", cert));
+
+        path = Paths.get("src/test/resources/athenz.examples.uri-hostname-only.pem");
+        pem = new String(Files.readAllBytes(path));
+        cert = Crypto.loadX509Certificate(pem);
+
+        assertTrue(zts.validateUriHostname("abc.athenz.com", cert));
+        assertFalse(zts.validateUriHostname("def.athenz.com", cert));
+    }
+
+    @Test
+    public void testValidateInstanceId() throws IOException {
+        Path path = Paths.get("src/test/resources/athenz.examples.no-uri.pem");
+        String pem = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(pem);
+
+        assertTrue(zts.validateInstanceId("", null));
+        assertTrue(zts.validateInstanceId(null, null));
+
+        assertFalse(zts.validateInstanceId("1001", cert));
+
+        path = Paths.get("src/test/resources/athenz.examples.uri-instanceid-hostname.pem");
+        pem = new String(Files.readAllBytes(path));
+        cert = Crypto.loadX509Certificate(pem);
+
+        assertTrue(zts.validateInstanceId("1001", cert));
+        assertFalse(zts.validateInstanceId("1002", cert));
+    }
+
+    @Test
     public void testValidateRoleCertificateRequestOUWithCert() throws IOException {
 
         Path path = Paths.get("src/test/resources/valid_email.csr");
@@ -4333,6 +4410,10 @@ public class ZTSImplTest {
         Path path = Paths.get("src/test/resources/role_single_ip.csr");
         String csr = new String(Files.readAllBytes(path));
 
+        path = Paths.get("src/test/resources/athenz.instanceid.pem");
+        String pem = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(pem);
+
         Set<String> roles = new HashSet<>();
         roles.add("writers");
 
@@ -4341,17 +4422,17 @@ public class ZTSImplTest {
         zts.verifyCertRequestIP = false;
         zts.validCertSubjectOrgValues = null;
         assertTrue(zts.validateRoleCertificateRequest(csr, "athenz", roles, "athenz.production",
-                null, null, "10.11.12.13"));
+                null, cert, "10.11.12.13"));
         assertTrue(zts.validateRoleCertificateRequest(csr, "athenz", roles, "athenz.production",
-                null, null, "10.11.12.14"));
+                null, cert, "10.11.12.14"));
 
         // enable validation and the mismatch one should fail
 
         zts.verifyCertRequestIP = true;
         assertTrue(zts.validateRoleCertificateRequest(csr, "athenz", roles, "athenz.production",
-                null, null, "10.11.12.13"));
+                null, cert, "10.11.12.13"));
         assertFalse(zts.validateRoleCertificateRequest(csr, "athenz", roles, "athenz.production",
-                null, null, "10.11.12.14"));
+                null, cert, "10.11.12.14"));
     }
 
     @Test
