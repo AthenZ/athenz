@@ -17,7 +17,6 @@ package com.yahoo.athenz.zts.store;
 
 import com.yahoo.athenz.common.server.store.ChangeLogStore;
 import com.yahoo.athenz.common.server.store.ChangeLogStoreFactory;
-import com.yahoo.athenz.common.server.store.CloudStore;
 
 import java.security.PrivateKey;
 
@@ -25,7 +24,7 @@ public class MockZMSFileChangeLogStoreFactory implements ChangeLogStoreFactory {
 
     @Override
     public ChangeLogStore create(String ztsHomeDir, PrivateKey privateKey,
-                                 String privateKeyId, CloudStore cloudStore) {
+                                 String privateKeyId) {
         return new MockZMSFileChangeLogStore(ztsHomeDir, privateKey, privateKeyId);
     }
 }

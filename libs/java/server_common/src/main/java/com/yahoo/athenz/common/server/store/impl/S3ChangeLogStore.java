@@ -17,13 +17,15 @@
 package com.yahoo.athenz.common.server.store.impl;
 
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.*;
+import com.amazonaws.util.EC2MetadataUtils;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.athenz.common.server.store.ChangeLogStore;
-import com.yahoo.athenz.common.server.store.CloudStore;
 import com.yahoo.athenz.zms.SignedDomain;
 import com.yahoo.athenz.zms.SignedDomains;
+import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,6 +35,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.ZTS_PROP_AWS_BUCKET_NAME;
+import static com.yahoo.athenz.common.ServerCommonConsts.ZTS_PROP_AWS_REGION_NAME;
 
 public class S3ChangeLogStore implements ChangeLogStore {
     private static final Logger LOGGER = LoggerFactory.getLogger(S3ChangeLogStore.class);
@@ -41,7 +44,7 @@ public class S3ChangeLogStore implements ChangeLogStore {
     AmazonS3 awsS3Client = null;
 
     private String s3BucketName;
-    private CloudStore cloudStore;
+    private String awsRegion;
     private ObjectMapper jsonMapper;
 
     private static final String NUMBER_OF_THREADS = "athenz.zts.bucket.threads";
@@ -50,8 +53,17 @@ public class S3ChangeLogStore implements ChangeLogStore {
     private int defaultTimeoutSeconds = Integer.parseInt(System.getProperty(DEFAULT_TIMEOUT_SECONDS, "1800"));
     private volatile HashMap<String, SignedDomain> tempSignedDomainMap = new HashMap<>();
 
-    public S3ChangeLogStore(CloudStore cloudStore) {
-        this.cloudStore = cloudStore;
+    public S3ChangeLogStore() {
+        init();
+        initAwsRegion();
+    }
+
+    public S3ChangeLogStore(String awsRegion) {
+        init();
+        this.awsRegion = awsRegion;
+    }
+
+    void init() {
         s3BucketName = System.getProperty(ZTS_PROP_AWS_BUCKET_NAME);
         if (s3BucketName == null || s3BucketName.isEmpty()) {
             LOGGER.error("S3 Bucket name cannot be null");
@@ -66,6 +78,13 @@ public class S3ChangeLogStore implements ChangeLogStore {
 
         jsonMapper = new ObjectMapper();
         jsonMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    }
+
+    void initAwsRegion() {
+        awsRegion = System.getProperty(ZTS_PROP_AWS_REGION_NAME);
+        if (StringUtil.isEmpty(awsRegion)) {
+            awsRegion = EC2MetadataUtils.getEC2InstanceRegion();
+        }
     }
 
     @Override
@@ -363,7 +382,13 @@ public class S3ChangeLogStore implements ChangeLogStore {
     }
 
     AmazonS3 getS3Client() {
-        return cloudStore.getS3Client();
+        if (StringUtil.isEmpty(awsRegion)) {
+            throw new RuntimeException("S3ChangeLogStore: Couldn't detect AWS region");
+        }
+
+        return AmazonS3ClientBuilder.standard()
+                .withRegion(awsRegion)
+                .build();
     }
 
     public ExecutorService getExecutorService() {

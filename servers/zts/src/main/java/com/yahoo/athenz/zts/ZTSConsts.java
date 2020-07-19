@@ -51,6 +51,11 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_HEALTH_CHECK_PATH      = "athenz.zts.health_check_path";
     public static final String ZTS_PROP_SERVER_REGION          = "athenz.zts.server_region";
 
+    public static final String ZTS_PROP_AWS_CREDS_CACHE_TIMEOUT             = "athenz.zts.aws_creds_cache_timeout";
+    public static final String ZTS_PROP_AWS_CREDS_INVALID_CACHE_TIMEOUT     = "athenz.zts.aws_creds_invalid_cache_timeout";
+    public static final String ZTS_PROP_AWS_ENABLED                         = "athenz.zts.aws_enabled";
+    public static final String ZTS_PROP_AWS_CREDS_UPDATE_TIMEOUT            = "athenz.zts.aws_creds_update_timeout";
+
     public static final String ZTS_PROP_CERT_REFRESH_IP_FNAME  = "athenz.zts.cert_refresh_ip_fname";
     public static final String ZTS_PROP_CERT_ALLOWED_O_VALUES  = "athenz.zts.cert_allowed_o_values";
     public static final String ZTS_PROP_CERT_ALLOWED_OU_VALUES = "athenz.zts.cert_allowed_ou_values";
@@ -156,6 +161,7 @@ public final class ZTSConsts {
 
     public static final String ZTS_SSH_HOST = "host";
     public static final String ZTS_SSH_USER = "user";
+    public static final String ZTS_SSH_TYPE = "certtype";
 
     public static final String ZTS_CERT_DNS_SUFFIX   = ".athenz.cloud";
     public static final String ZTS_ACTION_LAUNCH     = "launch";

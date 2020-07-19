@@ -14,9 +14,10 @@
  *  limitations under the License.
  */
 
-package com.yahoo.athenz.common.server.store;
+package com.yahoo.athenz.zts.store;
 
-import static com.yahoo.athenz.common.ServerCommonConsts.*;
+import static com.yahoo.athenz.common.ServerCommonConsts.ZTS_PROP_AWS_PUBLIC_CERT;
+import static com.yahoo.athenz.common.ServerCommonConsts.ZTS_PROP_AWS_REGION_NAME;
 import static org.testng.Assert.*;
 
 import java.util.Date;
@@ -34,9 +35,11 @@ import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.AssumeRoleResult;
 import com.amazonaws.services.securitytoken.model.Credentials;
 import com.yahoo.athenz.zts.AWSTemporaryCredentials;
-import com.yahoo.athenz.zms.ResourceException;
+import com.yahoo.athenz.zts.ResourceException;
+import com.yahoo.athenz.zts.ZTSConsts;
 
 public class CloudStoreTest {
+
     private final static String AWS_INSTANCE_DOCUMENT = "{\n"
             + "  \"devpayProductCodes\" : null,\n"
             + "  \"availabilityZone\" : \"us-west-2a\",\n"
@@ -720,7 +723,7 @@ public class CloudStoreTest {
 
         // set creds update time every second
 
-        System.setProperty(ZTS_PROP_AWS_CREDS_UPDATE_TIMEOUT, "1");
+        System.setProperty(ZTSConsts.ZTS_PROP_AWS_CREDS_UPDATE_TIMEOUT, "1");
 
         store.awsEnabled = true;
         store.initializeAwsSupport();
@@ -734,7 +737,7 @@ public class CloudStoreTest {
         }
         store.close();
 
-        System.clearProperty(ZTS_PROP_AWS_CREDS_UPDATE_TIMEOUT);
+        System.clearProperty(ZTSConsts.ZTS_PROP_AWS_CREDS_UPDATE_TIMEOUT);
     }
 
     @Test
@@ -905,7 +908,7 @@ public class CloudStoreTest {
 
     @Test
     public void testGetCachedCredsDisabled() {
-        System.setProperty(ZTS_PROP_AWS_CREDS_CACHE_TIMEOUT, "0");
+        System.setProperty(ZTSConsts.ZTS_PROP_AWS_CREDS_CACHE_TIMEOUT, "0");
         CloudStore cloudStore = new CloudStore();
 
         assertNull(cloudStore.getCacheKey("account", "role", "user", null, null));
@@ -923,7 +926,7 @@ public class CloudStoreTest {
         // with disabled cache there is nothing to match
         assertNull(cloudStore.getCachedCreds("account:role:user::", null));
         cloudStore.close();
-        System.clearProperty(ZTS_PROP_AWS_CREDS_CACHE_TIMEOUT);
+        System.clearProperty(ZTSConsts.ZTS_PROP_AWS_CREDS_CACHE_TIMEOUT);
     }
 
     @Test

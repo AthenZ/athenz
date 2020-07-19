@@ -27,7 +27,7 @@ public class S3ChangeLogStoreFactoryTest {
     public void testCreateStore() {
         System.setProperty(ZTS_PROP_AWS_BUCKET_NAME, "s3-unit-test-bucket-name");
         S3ChangeLogStoreFactory factory = new S3ChangeLogStoreFactory();
-        ChangeLogStore store = factory.create(null, null, null, null);
+        ChangeLogStore store = factory.create(null, null, null);
         assertNotNull(store);
     }
 }

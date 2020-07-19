@@ -19,7 +19,6 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.yahoo.athenz.common.server.db.RolesProvider;
 import com.yahoo.athenz.common.server.store.ChangeLogStore;
-import com.yahoo.athenz.common.server.store.CloudStore;
 import com.yahoo.athenz.common.server.util.ConfigProperties;
 import com.yahoo.athenz.zts.*;
 import com.yahoo.athenz.zts.ResourceException;

@@ -14,38 +14,45 @@
  *  limitations under the License.
  */
 
-package com.yahoo.athenz.common.server.store;
+package com.yahoo.athenz.zts.store;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.amazonaws.AmazonServiceException;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicSessionCredentials;
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
-import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
-import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
-import com.amazonaws.services.securitytoken.model.AssumeRoleResult;
-import com.amazonaws.services.securitytoken.model.Credentials;
 import com.yahoo.athenz.common.server.util.ConfigProperties;
-import com.yahoo.athenz.zms.ResourceException;
-import com.yahoo.athenz.zts.AWSTemporaryCredentials;
-import com.yahoo.rdl.JSON;
-import com.yahoo.rdl.Struct;
-import com.yahoo.rdl.Timestamp;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.*;
+import com.amazonaws.regions.Regions;
+import com.amazonaws.auth.BasicSessionCredentials;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
+import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
+import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
+import com.amazonaws.services.securitytoken.model.AssumeRoleResult;
+import com.amazonaws.services.securitytoken.model.Credentials;
+import com.yahoo.athenz.zts.AWSTemporaryCredentials;
+import com.yahoo.athenz.zts.ResourceException;
+import com.yahoo.athenz.zts.ZTSConsts;
+import com.yahoo.rdl.JSON;
+import com.yahoo.rdl.Struct;
+import com.yahoo.rdl.Timestamp;
 
-import static com.yahoo.athenz.common.ServerCommonConsts.*;
+import static com.yahoo.athenz.common.ServerCommonConsts.ZTS_PROP_AWS_REGION_NAME;
 
 public class CloudStore {
-
     private static final Logger LOGGER = LoggerFactory.getLogger(CloudStore.class);
     private static final String AWS_ROLE_SESSION_NAME = "athenz-zts-service";
 
@@ -82,15 +89,15 @@ public class CloudStore {
         // get the default cache timeout in seconds
 
         cacheTimeout = Integer.parseInt(
-                System.getProperty(ZTS_PROP_AWS_CREDS_CACHE_TIMEOUT, "600"));
+                System.getProperty(ZTSConsts.ZTS_PROP_AWS_CREDS_CACHE_TIMEOUT, "600"));
 
         invalidCacheTimeout = Integer.parseInt(
-                System.getProperty(ZTS_PROP_AWS_CREDS_INVALID_CACHE_TIMEOUT, "120"));
+                System.getProperty(ZTSConsts.ZTS_PROP_AWS_CREDS_INVALID_CACHE_TIMEOUT, "120"));
 
         // initialize aws support
 
         awsEnabled = Boolean.parseBoolean(
-                System.getProperty(ZTS_PROP_AWS_ENABLED, "false"));
+                System.getProperty(ZTSConsts.ZTS_PROP_AWS_ENABLED, "false"));
         initializeAwsSupport();
     }
 
@@ -159,7 +166,7 @@ public class CloudStore {
         // Start our thread to get/update aws temporary credentials
 
         int credsUpdateTime = ConfigProperties.retrieveConfigSetting(
-                ZTS_PROP_AWS_CREDS_UPDATE_TIMEOUT, 900);
+                ZTSConsts.ZTS_PROP_AWS_CREDS_UPDATE_TIMEOUT, 900);
 
         scheduledThreadPool = Executors.newScheduledThreadPool(1);
         scheduledThreadPool.scheduleAtFixedRate(new AWSCredentialsUpdater(), credsUpdateTime,
@@ -389,7 +396,7 @@ public class CloudStore {
         return req;
     }
 
-    public AWSSecurityTokenService getTokenServiceClient() {
+    AWSSecurityTokenService getTokenServiceClient() {
 
         return AWSSecurityTokenServiceClientBuilder.standard()
                 .withCredentials(new AWSStaticCredentialsProvider(credentials))
@@ -584,7 +591,7 @@ public class CloudStore {
         return cloudAccountCache.get(domainName);
     }
 
-    public void updateAccount(String domainName, String account) {
+    void updateAccount(String domainName, String account) {
 
         /* if we have a value specified for the domain, then we're just
          * going to insert it into our map and update the record. If
@@ -638,7 +645,7 @@ public class CloudStore {
             return null;
         }
 
-        String sshType = keyReq.getString(ZTS_SSH_TYPE);
+        String sshType = keyReq.getString(ZTSConsts.ZTS_SSH_TYPE);
         if (sshType == null) {
             LOGGER.error("getSshKeyReqType: SSH Key request does not have certtype: {}", sshKeyReq);
         }

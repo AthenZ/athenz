@@ -18,7 +18,6 @@ package com.yahoo.athenz.common.server.store.impl;
 
 import com.yahoo.athenz.common.server.store.ChangeLogStore;
 import com.yahoo.athenz.common.server.store.ChangeLogStoreFactory;
-import com.yahoo.athenz.common.server.store.CloudStore;
 
 import java.security.PrivateKey;
 
@@ -26,9 +25,9 @@ public class S3ChangeLogStoreFactory implements ChangeLogStoreFactory {
 
     @Override
     public ChangeLogStore create(String ztsHomeDir, PrivateKey privateKey,
-                                 String privateKeyId, CloudStore cloudStore) {
+                                 String privateKeyId) {
 
-        return new S3ChangeLogStore(cloudStore);
+        return new S3ChangeLogStore();
     }
 
 }
