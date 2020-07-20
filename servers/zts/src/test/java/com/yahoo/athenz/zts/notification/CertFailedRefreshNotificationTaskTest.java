@@ -45,6 +45,92 @@ public class CertFailedRefreshNotificationTaskTest {
     private HostnameResolver hostnameResolver;
     private final String userDomainPrefix = "user.";
     private final String serverName = "testServer";
+    private final int httpsPort = 4443;
+    private final String htmlSeveralRecords =
+            "<div class=\"athenz-wrapper\">\n" +
+                    "    <div class=\"mbrapproval unrefreshedcerts\">\n" +
+                    "        <div class=\"logo\">\n" +
+                    "            <img src=\"cid:logo\" class=\"athenzlogowhite\" alt=\"Athenz logo\"/>\n" +
+                    "        </div>\n" +
+                    "        <div class=\"hdr\">Unrefreshed Certificates Details</div>\n" +
+                    "        <div class=\"bt\">You have one or more certificates that failed to refresh in your Athenz domain <b>dom1</b>:</div>\n" +
+                    "        <hr>\n" +
+                    "        <table id=\"t02\">\n" +
+                    "            <thead>\n" +
+                    "                <tr>\n" +
+                    "                    <th class=\"ch\">SERVICE</th>\n" +
+                    "                    <th class=\"ch\">PROVIDER</th>\n" +
+                    "                    <th class=\"ch\">INSTANCE ID</th>\n" +
+                    "                    <th class=\"ch\">UPDATE TIME</th>\n" +
+                    "                    <th class=\"ch\">EXPIRATION TIME</th>\n" +
+                    "                    <th class=\"ch\">HOSTNAME</th>\n" +
+                    "                </tr>\n" +
+                    "            </thead>\n" +
+                    "            <tbody><tr><td class=\"cv\">domain0.service0</td><td class=\"cv\">provider</td><td class=\"cv\">instanceID0</td><td class=\"cv\">Sun Mar 15 15:08:07 IST 2020</td><td class=\"cv\"></td><td class=\"cv\">hostName0</td></tr>\n" +
+                    "<tr><td class=\"cv\">domain0.service0</td><td class=\"cv\">provider</td><td class=\"cv\">instanceID0</td><td class=\"cv\">Sun Mar 15 15:08:07 IST 2020</td><td class=\"cv\"></td><td class=\"cv\">secondHostName0</td></tr>\n" +
+                    "</tbody>\n" +
+                    "        </table>\n" +
+                    "        <hr>\n" +
+                    "        <div class=\"bt unrefreshedcerts\">\n" +
+                    "            <br>Please review this list and take one of the following actions:\n" +
+                    "            <br>\n" +
+                    "            <br> 1. Login to the hosts and verify sia runs on schedule\n" +
+                    "            <br>\n" +
+                    "            <br> 2. For entries belonging to hosts that were re-bootstrapped or changed identity, please delete the\n" +
+                    "            <br> record by running the following command:\n" +
+                    "            <br><b>curl --key <KEY> --cert <CERT> -X DELETE https://testServer:4443/zts/v1/instance/PROVIDER/dom1/SERVICE/INSTANCE-ID </b>\n" +
+                    "            <br>\n" +
+                    "            <br>For additional support, please contact <a href=\"https://link.to.athenz.channel.com\">#Athenz slack channel</a>\n" +
+                    "        </div>\n" +
+                    "    </div>\n" +
+                    "    <div class=\"footer-container\">\n" +
+                    "        <div class=\"footer\">This is a generated email from <a href=\"https://ui-athenz.example.com/\">Athenz</a>. Please do not respond.</div>\n" +
+                    "    </div>\n" +
+                    "</div>\n" +
+                    "</body>\n" +
+                    "</html>";
+    private final String htmlSingleRecord =
+            "<div class=\"athenz-wrapper\">\n" +
+                    "    <div class=\"mbrapproval unrefreshedcerts\">\n" +
+                    "        <div class=\"logo\">\n" +
+                    "            <img src=\"cid:logo\" class=\"athenzlogowhite\" alt=\"Athenz logo\"/>\n" +
+                    "        </div>\n" +
+                    "        <div class=\"hdr\">Unrefreshed Certificates Details</div>\n" +
+                    "        <div class=\"bt\">You have one or more certificates that failed to refresh in your Athenz domain <b>dom1</b>:</div>\n" +
+                    "        <hr>\n" +
+                    "        <table id=\"t02\">\n" +
+                    "            <thead>\n" +
+                    "                <tr>\n" +
+                    "                    <th class=\"ch\">SERVICE</th>\n" +
+                    "                    <th class=\"ch\">PROVIDER</th>\n" +
+                    "                    <th class=\"ch\">INSTANCE ID</th>\n" +
+                    "                    <th class=\"ch\">UPDATE TIME</th>\n" +
+                    "                    <th class=\"ch\">EXPIRATION TIME</th>\n" +
+                    "                    <th class=\"ch\">HOSTNAME</th>\n" +
+                    "                </tr>\n" +
+                    "            </thead>\n" +
+                    "            <tbody><tr><td class=\"cv\">dom1.service1</td><td class=\"cv\">provider1</td><td class=\"cv\">instanceid1</td><td class=\"cv\">Sun Mar 15 15:08:07 IST 2020</td><td class=\"cv\"></td><td class=\"cv\">hostName1</td></tr>\n" +
+                    "</tbody>\n" +
+                    "        </table>\n" +
+                    "        <hr>\n" +
+                    "        <div class=\"bt unrefreshedcerts\">\n" +
+                    "            <br>Please review this list and take one of the following actions:\n" +
+                    "            <br>\n" +
+                    "            <br> 1. Login to the hosts and verify sia runs on schedule\n" +
+                    "            <br>\n" +
+                    "            <br> 2. For entries belonging to hosts that were re-bootstrapped or changed identity, please delete the\n" +
+                    "            <br> record by running the following command:\n" +
+                    "            <br><b>curl --key <KEY> --cert <CERT> -X DELETE https://testServer:4443/zts/v1/instance/provider1/dom1/dom1.service1/instanceid1 </b>\n" +
+                    "            <br>\n" +
+                    "            <br>For additional support, please contact <a href=\"https://link.to.athenz.channel.com\">#Athenz slack channel</a>\n" +
+                    "        </div>\n" +
+                    "    </div>\n" +
+                    "    <div class=\"footer-container\">\n" +
+                    "        <div class=\"footer\">This is a generated email from <a href=\"https://ui-athenz.example.com/\">Athenz</a>. Please do not respond.</div>\n" +
+                    "    </div>\n" +
+                    "</div>\n" +
+                    "</body>\n" +
+                    "</html>";
 
     @BeforeClass
     public void setup() {
@@ -71,7 +157,8 @@ public class CertFailedRefreshNotificationTaskTest {
                 dataStore,
                 hostnameResolver,
                 userDomainPrefix,
-                serverName);
+                serverName,
+                httpsPort);
 
         List<Notification> notifications = certFailedRefreshNotificationTask.getNotifications();
         assertEquals(0, notifications.size());
@@ -119,7 +206,8 @@ public class CertFailedRefreshNotificationTaskTest {
                 dataStore,
                 hostnameResolver,
                 userDomainPrefix,
-                serverName);
+                serverName,
+                httpsPort);
 
         List<Notification> notifications = certFailedRefreshNotificationTask.getNotifications();
         assertEquals(6, notifications.size());
@@ -177,7 +265,8 @@ public class CertFailedRefreshNotificationTaskTest {
                 dataStore,
                 hostnameResolver,
                 userDomainPrefix,
-                serverName);
+                serverName,
+                httpsPort);
 
         List<Notification> notifications = certFailedRefreshNotificationTask.getNotifications();
         assertEquals(4, notifications.size());
@@ -208,7 +297,8 @@ public class CertFailedRefreshNotificationTaskTest {
                 dataStore,
                 hostnameResolver,
                 userDomainPrefix,
-                serverName);
+                serverName,
+                httpsPort);
 
         List<Notification> notifications = certFailedRefreshNotificationTask.getNotifications();
         assertEquals(new ArrayList<>(), notifications);
@@ -242,7 +332,8 @@ public class CertFailedRefreshNotificationTaskTest {
                 dataStore,
                 hostnameResolver,
                 userDomainPrefix,
-                serverName);
+                serverName,
+                httpsPort);
 
         List<Notification> notifications = certFailedRefreshNotificationTask.getNotifications();
         assertEquals(3, notifications.size());
@@ -263,7 +354,8 @@ public class CertFailedRefreshNotificationTaskTest {
                 dataStore,
                 hostnameResolver,
                 userDomainPrefix,
-                serverName);
+                serverName,
+                httpsPort);
         List<Notification> notifications = certFailedRefreshNotificationTask.getNotifications();
         assertEquals(new ArrayList<>(), notifications);
     }
@@ -296,7 +388,8 @@ public class CertFailedRefreshNotificationTaskTest {
                 dataStore,
                 hostnameResolver,
                 userDomainPrefix,
-                serverName);
+                serverName,
+                httpsPort);
 
         List<Notification> notifications = certFailedRefreshNotificationTask.getNotifications();
         assertEquals(6, notifications.size());
@@ -332,17 +425,20 @@ public class CertFailedRefreshNotificationTaskTest {
                 dataStore,
                 hostnameResolver,
                 userDomainPrefix,
-                serverName);
+                serverName,
+                httpsPort);
 
         String description = certFailedRefreshNotificationTask.getDescription();
         assertEquals("certificate failed refresh notification", description);
     }
 
     @Test
-    public void testGetEmailBody() {
+    public void testGetEmailBodyMultipleRecords() {
         System.setProperty("athenz.notification_workflow_url", "https://athenz.example.com/workflow");
         System.setProperty("athenz.notification_support_text", "#Athenz slack channel");
         System.setProperty("athenz.notification_support_url", "https://link.to.athenz.channel.com");
+        System.setProperty("athenz.notification_athenz_ui_url", "https://ui-athenz.example.com/");
+
 
         Map<String, String> details = new HashMap<>();
         details.put("domain", "dom1");
@@ -353,35 +449,54 @@ public class CertFailedRefreshNotificationTaskTest {
 
         Notification notification = new Notification();
         notification.setDetails(details);
-        CertFailedRefreshNotificationTask.CertFailedRefreshNotificationToEmailConverter converter = new CertFailedRefreshNotificationTask.CertFailedRefreshNotificationToEmailConverter();
+        CertFailedRefreshNotificationTask.CertFailedRefreshNotificationToEmailConverter converter = new CertFailedRefreshNotificationTask.CertFailedRefreshNotificationToEmailConverter(serverName, httpsPort);
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
 
         String body = notificationAsEmail.getBody();
         assertNotNull(body);
-        assertTrue(body.contains("domain0.service0"));
-        assertTrue(body.contains("hostName0"));
-        assertTrue(body.contains("secondHostName0"));
-        assertTrue(body.contains("instanceID0"));
-        assertTrue(body.contains("Sun Mar 15 15:08:07 IST 2020"));
+        assertTrue(body.contains(htmlSeveralRecords));
 
         // make sure the bad entries are not included
         assertFalse(body.contains("domain.bad"));
         assertFalse(body.contains("hostBad"));
 
-        // Make sure support text and url do appear
+        System.clearProperty("athenz.notification_workflow_url");
+        System.clearProperty("notification_support_text");
+        System.clearProperty("notification_support_url");
+        System.clearProperty("athenz.notification_athenz_ui_url");
+    }
 
-        assertTrue(body.contains("slack"));
-        assertTrue(body.contains("link.to.athenz.channel.com"));
+    @Test
+    public void testGetEmailBodySingleRecord() {
+        System.setProperty("athenz.notification_workflow_url", "https://athenz.example.com/workflow");
+        System.setProperty("athenz.notification_support_text", "#Athenz slack channel");
+        System.setProperty("athenz.notification_support_url", "https://link.to.athenz.channel.com");
+        System.setProperty("athenz.notification_athenz_ui_url", "https://ui-athenz.example.com/");
+
+        Map<String, String> details = new HashMap<>();
+        details.put("domain", "dom1");
+        details.put(NOTIFICATION_DETAILS_UNREFRESHED_CERTS,
+                "dom1.service1;provider1;instanceid1;Sun Mar 15 15:08:07 IST 2020;;hostName1");
+
+        Notification notification = new Notification();
+        notification.setDetails(details);
+        CertFailedRefreshNotificationTask.CertFailedRefreshNotificationToEmailConverter converter = new CertFailedRefreshNotificationTask.CertFailedRefreshNotificationToEmailConverter(serverName, httpsPort);
+        NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
+
+        String body = notificationAsEmail.getBody();
+        assertNotNull(body);
+        assertTrue(body.contains(htmlSingleRecord));
 
         System.clearProperty("athenz.notification_workflow_url");
         System.clearProperty("notification_support_text");
         System.clearProperty("notification_support_url");
+        System.clearProperty("athenz.notification_athenz_ui_url");
     }
 
     @Test
     public void getEmailSubject() {
         Notification notification = new Notification();
-        CertFailedRefreshNotificationTask.CertFailedRefreshNotificationToEmailConverter converter = new CertFailedRefreshNotificationTask.CertFailedRefreshNotificationToEmailConverter();
+        CertFailedRefreshNotificationTask.CertFailedRefreshNotificationToEmailConverter converter = new CertFailedRefreshNotificationTask.CertFailedRefreshNotificationToEmailConverter(serverName, httpsPort);
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
         String subject = notificationAsEmail.getSubject();
         Assert.assertEquals(subject, "Athenz Unrefreshed Certificates Notification");

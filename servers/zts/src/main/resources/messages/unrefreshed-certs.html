@@ -45,7 +45,14 @@
         </table>
         <hr>
         <div class="bt unrefreshedcerts">
-            <br>Please review this list and, if necessary, login to the hosts and verify sia runs on schedule.
+            <br>Please review this list and take one of the following actions:
+            <br>
+            <br> 1. Login to the hosts and verify sia runs on schedule
+            <br>
+            <br> 2. For entries belonging to hosts that were re-bootstrapped or changed identity, please delete the
+            <br> record by running the following command:
+            <br><b>curl --key <KEY> --cert <CERT> -X DELETE https://{4}/zts/v1/instance/{5}/{6}/{7}/{8} </b>
+            <br>
             <br>For additional support, please contact <a href="{2}">{3}</a>
         </div>
     </div>

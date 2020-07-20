@@ -332,7 +332,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 dataStore,
                 hostnameResolver,
                 userDomainPrefix,
-                serverHostName);
+                serverHostName,
+                httpsPort);
 
         notificationManager = new NotificationManager(ztsNotificationTaskFactory.getNotificationTasks());
 
