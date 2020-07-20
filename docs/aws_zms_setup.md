@@ -212,7 +212,7 @@ Create another bucket for audit logs having the following bucket policy:
         "Effect": "Allow",
         "Principal": {
             "AWS": [
-                "arn:aws:iam::488664618023:role/athenz.zms-service"
+                "arn:aws:iam::<account-id>:role/athenz.zms-service"
             ]
         },
         "Action": [
