@@ -23,6 +23,21 @@ public final class ServerCommonConsts {
 
     public static final String USER_DOMAIN_PREFIX = "user.";
 
+    // For S3ChangeLogStore
+    public static final String ZTS_PROP_AWS_BUCKET_NAME = "athenz.zts.aws_bucket_name";
+    public static final String ZTS_PROP_AWS_REGION_NAME = "athenz.zts.aws_region_name";
+
+    // For ZMSFileChangeLogStore
+    public static final String ZTS_PROP_ZMS_URL_OVERRIDE    = "athenz.zts.zms_url";
+    public static final String ATHENZ_SYS_DOMAIN            = "sys.auth";
+    public static final String ZTS_SERVICE                  = "zts";
+    public static final String PROP_USER_DOMAIN             = "athenz.user_domain";
+    public static final String PROP_ATHENZ_CONF             = "athenz.athenz_conf";
+    public static final String ZTS_PROP_FILE_NAME           = "athenz.zts.prop_file";
+
+    // for tests
+    public static final String ZTS_PROP_AWS_PUBLIC_CERT = "athenz.zts.aws_public_cert";
+
     private ServerCommonConsts() {
     }
 }

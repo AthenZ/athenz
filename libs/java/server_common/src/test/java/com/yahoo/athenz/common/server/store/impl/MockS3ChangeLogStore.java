@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.zts.store.impl;
+package com.yahoo.athenz.common.server.store.impl;
 
 import static org.mockito.Mockito.mock;
 
 import com.amazonaws.services.s3.AmazonS3;
-import com.yahoo.athenz.zts.store.CloudStore;
-import com.yahoo.athenz.zts.store.impl.S3ChangeLogStore;
 import org.mockito.Mockito;
 
 import java.util.concurrent.ExecutorService;
@@ -29,13 +27,13 @@ class MockS3ChangeLogStore extends S3ChangeLogStore {
     int execService = 0;
     ExecutorService executorService = Mockito.mock(ExecutorService.class);
     AmazonS3 awsS3Client;
-    public MockS3ChangeLogStore(CloudStore cloudStore) {
-        super(cloudStore);
+    public MockS3ChangeLogStore() {
+        super();
         awsS3Client = mock(AmazonS3.class);
     }
 
-    public MockS3ChangeLogStore(CloudStore cloudStore, int executorService) {
-        super(cloudStore);
+    public MockS3ChangeLogStore(int executorService) {
+        super();
         awsS3Client = mock(AmazonS3.class);
         this.execService = executorService;
     }

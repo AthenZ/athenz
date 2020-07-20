@@ -15,6 +15,8 @@
  */
 package com.yahoo.athenz.zts.store;
 
+import static com.yahoo.athenz.common.ServerCommonConsts.PROP_ATHENZ_CONF;
+import static com.yahoo.athenz.common.ServerCommonConsts.PROP_USER_DOMAIN;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.*;
@@ -32,6 +34,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.*;
 
+import com.yahoo.athenz.common.server.store.ChangeLogStore;
 import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.ZTSTestUtils;
@@ -51,7 +54,6 @@ import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.cache.DataCache;
 import com.yahoo.athenz.zts.cache.MemberRole;
 import com.yahoo.athenz.zts.store.DataStore.DataUpdater;
-import com.yahoo.athenz.zts.store.impl.MockZMSFileChangeLogStore;
 import com.yahoo.rdl.JSON;
 
 public class DataStoreTest {
@@ -112,7 +114,7 @@ public class DataStoreTest {
                 "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory");
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY,
                 "src/test/resources/unit_test_zts_private.pem");
-        System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF,  "src/test/resources/athenz.conf");
+        System.setProperty(PROP_ATHENZ_CONF,  "src/test/resources/athenz.conf");
     }
     
     @BeforeMethod
@@ -128,7 +130,7 @@ public class DataStoreTest {
         
         pkey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
         
-        userDomain = System.getProperty(ZTSConsts.ZTS_PROP_USER_DOMAIN, "user");
+        userDomain = System.getProperty(PROP_USER_DOMAIN, "user");
     }
     
     @AfterMethod
@@ -174,7 +176,7 @@ public class DataStoreTest {
         ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 pkey, "0");
 
-        System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF, "src/test/resources/athenz_no_zms_publickeys.conf");
+        System.setProperty(PROP_ATHENZ_CONF, "src/test/resources/athenz_no_zms_publickeys.conf");
         try {
             new DataStore(clogStore, null);
             fail();
@@ -182,7 +184,7 @@ public class DataStoreTest {
             assertTrue(ex.getMessage().contains("Unable to initialize public keys"));
         }
 
-        System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF, "src/test/resources/athenz_no_zts_publickeys.conf");
+        System.setProperty(PROP_ATHENZ_CONF, "src/test/resources/athenz_no_zts_publickeys.conf");
         try {
             new DataStore(clogStore, null);
             fail();
@@ -190,7 +192,7 @@ public class DataStoreTest {
             assertTrue(ex.getMessage().contains("Unable to initialize public keys"));
         }
 
-        System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF, "src/test/resources/athenz_zms_invalid_publickeys.conf");
+        System.setProperty(PROP_ATHENZ_CONF, "src/test/resources/athenz_zms_invalid_publickeys.conf");
         try {
             new DataStore(clogStore, null);
             fail();
@@ -198,7 +200,7 @@ public class DataStoreTest {
             assertTrue(ex.getMessage().contains("Unable to initialize public keys"));
         }
 
-        System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF, "src/test/resources/athenz_zts_invalid_publickeys.conf");
+        System.setProperty(PROP_ATHENZ_CONF, "src/test/resources/athenz_zts_invalid_publickeys.conf");
         try {
             new DataStore(clogStore, null);
             fail();
@@ -206,7 +208,7 @@ public class DataStoreTest {
             assertTrue(ex.getMessage().contains("Unable to initialize public keys"));
         }
 
-        System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF, "src/test/resources/athenz_invalid.conf");
+        System.setProperty(PROP_ATHENZ_CONF, "src/test/resources/athenz_invalid.conf");
         try {
             new DataStore(clogStore, null);
             fail();
@@ -214,7 +216,7 @@ public class DataStoreTest {
             assertTrue(ex.getMessage().contains("Unable to initialize public keys"));
         }
 
-        System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF, "src/test/resources/athenz_invalid_zts_pem_publickey.conf");
+        System.setProperty(PROP_ATHENZ_CONF, "src/test/resources/athenz_invalid_zts_pem_publickey.conf");
         try {
             new DataStore(clogStore, null);
             fail();
@@ -222,7 +224,7 @@ public class DataStoreTest {
             assertTrue(ex.getMessage().contains("Unable to initialize public keys"));
         }
 
-        System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
+        System.setProperty(PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
     }
 
     @Test
@@ -274,7 +276,7 @@ public class DataStoreTest {
     @Test
     public void testLoadZMSPublicKeys() {
         
-        System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
+        System.setProperty(PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
         ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 pkey, "0");
         DataStore store = new DataStore(clogStore, null);

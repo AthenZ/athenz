@@ -1,20 +1,22 @@
 /*
- * Copyright 2019 Oath Holdings, Inc.
+ *  Copyright 2020 Verizon Media
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
-package com.yahoo.athenz.zts.store.impl;
+package com.yahoo.athenz.common.server.store.impl;
 
+import static com.yahoo.athenz.common.ServerCommonConsts.ZTS_PROP_AWS_BUCKET_NAME;
+import static com.yahoo.athenz.common.ServerCommonConsts.ZTS_PROP_AWS_REGION_NAME;
 import static org.mockito.Mockito.*;
 import static org.testng.Assert.*;
 
@@ -23,8 +25,6 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import com.amazonaws.services.s3.AmazonS3;
-import com.yahoo.athenz.zts.ZTSConsts;
-import com.yahoo.athenz.zts.store.CloudStore;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.mockito.Mockito;
 import org.testng.annotations.BeforeMethod;
@@ -49,47 +49,48 @@ public class S3ChangeLogStoreTest {
 
     @BeforeMethod
     public void setup() {
-        System.setProperty(ZTSConsts.ZTS_PROP_AWS_BUCKET_NAME, "s3-unit-test-bucket-name");
+        System.setProperty(ZTS_PROP_AWS_BUCKET_NAME, "s3-unit-test-bucket-name");
+        System.setProperty(ZTS_PROP_AWS_REGION_NAME, "test-region");
     }
 
     @Test
     public void testInvalidBucketName() {
-        System.clearProperty(ZTSConsts.ZTS_PROP_AWS_BUCKET_NAME);
+        System.clearProperty(ZTS_PROP_AWS_BUCKET_NAME);
         try {
-            new S3ChangeLogStore(null);
+            new S3ChangeLogStore();
             fail();
         } catch (RuntimeException ex) {
             assertTrue(ex.getMessage().contains("S3 Bucket name cannot be null"));
         }
 
-        System.setProperty(ZTSConsts.ZTS_PROP_AWS_BUCKET_NAME, "");
+        System.setProperty(ZTS_PROP_AWS_BUCKET_NAME, "");
         try {
-            new S3ChangeLogStore(null);
+            new S3ChangeLogStore();
             fail();
         } catch (RuntimeException ex) {
             assertTrue(ex.getMessage().contains("S3 Bucket name cannot be null"));
         }
 
-        System.setProperty(ZTSConsts.ZTS_PROP_AWS_BUCKET_NAME, "s3-unit-test-bucket-name");
-        assertNotNull(new S3ChangeLogStore(null));
+        System.setProperty(ZTS_PROP_AWS_BUCKET_NAME, "s3-unit-test-bucket-name");
+        assertNotNull(new S3ChangeLogStore());
     }
 
     @Test
     public void testFullRefreshSupport() {
-        S3ChangeLogStore store = new S3ChangeLogStore(null);
+        S3ChangeLogStore store = new S3ChangeLogStore();
         assertFalse(store.supportsFullRefresh());
     }
     
     @Test
     public void testNoOpMethods() {
-        S3ChangeLogStore store = new S3ChangeLogStore(null);
+        S3ChangeLogStore store = new S3ChangeLogStore();
         store.removeLocalDomain("iaas.athenz");
         store.saveLocalDomain("iaas.athenz", null);
     }
     
     @Test
     public void testSetLastModificationTimestamp() {
-        S3ChangeLogStore store = new S3ChangeLogStore(null);
+        S3ChangeLogStore store = new S3ChangeLogStore();
         assertEquals(store.lastModTime, 0);
         
         store.setLastModificationTimestamp("12345");
@@ -102,7 +103,7 @@ public class S3ChangeLogStoreTest {
     @Test
     public void testGetLocalDomainList() throws FileNotFoundException {
 
-        MockS3ChangeLogStore store = new MockS3ChangeLogStore(null, 0);
+        MockS3ChangeLogStore store = new MockS3ChangeLogStore(0);
 
         InputStream is1 = new FileInputStream("src/test/resources/iaas.json");
         MockS3ObjectInputStream s3Is1 = new MockS3ObjectInputStream(is1, null);
@@ -129,7 +130,7 @@ public class S3ChangeLogStoreTest {
 
     @Test
     public void testGetAllSignedDomainsException() throws FileNotFoundException {
-        MockS3ChangeLogStore store = new MockS3ChangeLogStore(null, 1);
+        MockS3ChangeLogStore store = new MockS3ChangeLogStore(1);
 
         InputStream is1 = new FileInputStream("src/test/resources/iaas.json");
         MockS3ObjectInputStream s3Is1 = new MockS3ObjectInputStream(is1, null);
@@ -165,7 +166,7 @@ public class S3ChangeLogStoreTest {
     @Test
     public void testListObjectsAllObjectsNoPage() {
         
-        MockS3ChangeLogStore store = new MockS3ChangeLogStore(null);
+        MockS3ChangeLogStore store = new MockS3ChangeLogStore();
         
         ArrayList<S3ObjectSummary> objectList = new ArrayList<>();
         S3ObjectSummary objectSummary = new S3ObjectSummary();
@@ -194,7 +195,7 @@ public class S3ChangeLogStoreTest {
     @Test
     public void testListObjectsAllObjectsNoPageModTime() {
         
-        MockS3ChangeLogStore store = new MockS3ChangeLogStore(null);
+        MockS3ChangeLogStore store = new MockS3ChangeLogStore();
         
         ArrayList<S3ObjectSummary> objectList = new ArrayList<>();
         S3ObjectSummary objectSummary = new S3ObjectSummary();
@@ -221,7 +222,7 @@ public class S3ChangeLogStoreTest {
     @Test
     public void testListObjectsAllObjectsMultiplePages() {
         
-        MockS3ChangeLogStore store = new MockS3ChangeLogStore(null);
+        MockS3ChangeLogStore store = new MockS3ChangeLogStore();
         
         ArrayList<S3ObjectSummary> objectList1 = new ArrayList<>();
         S3ObjectSummary objectSummary = new S3ObjectSummary();
@@ -274,7 +275,7 @@ public class S3ChangeLogStoreTest {
     @Test
     public void testListObjectsAllObjectsErrorCondition() {
 
-        MockS3ChangeLogStore store = new MockS3ChangeLogStore(null);
+        MockS3ChangeLogStore store = new MockS3ChangeLogStore();
 
         ArrayList<S3ObjectSummary> objectList1 = new ArrayList<>();
         S3ObjectSummary objectSummary = new S3ObjectSummary();
@@ -316,7 +317,7 @@ public class S3ChangeLogStoreTest {
     @Test
     public void testListObjectsAllObjectsMultiplePagesModTime() {
         
-        MockS3ChangeLogStore store = new MockS3ChangeLogStore(null);
+        MockS3ChangeLogStore store = new MockS3ChangeLogStore();
         
         ArrayList<S3ObjectSummary> objectList1 = new ArrayList<>();
         S3ObjectSummary objectSummary = new S3ObjectSummary();
@@ -372,7 +373,7 @@ public class S3ChangeLogStoreTest {
     @Test
     public void testGetLocalDomains() {
         
-        MockS3ChangeLogStore store = new MockS3ChangeLogStore(null);
+        MockS3ChangeLogStore store = new MockS3ChangeLogStore();
         ArrayList<S3ObjectSummary> objectList = new ArrayList<>();
         S3ObjectSummary objectSummary = new S3ObjectSummary();
         objectSummary.setKey("iaas");
@@ -414,7 +415,7 @@ public class S3ChangeLogStoreTest {
     @Test
     public void testGetServerDomains() {
         
-        MockS3ChangeLogStore store = new MockS3ChangeLogStore(null);
+        MockS3ChangeLogStore store = new MockS3ChangeLogStore();
         ArrayList<S3ObjectSummary> objectList = new ArrayList<>();
         S3ObjectSummary objectSummary = new S3ObjectSummary();
         objectSummary.setKey("iaas");
@@ -447,7 +448,7 @@ public class S3ChangeLogStoreTest {
     
     @Test
     public void testGetSignedDomainNotFound() {
-        MockS3ChangeLogStore store = new MockS3ChangeLogStore(null);
+        MockS3ChangeLogStore store = new MockS3ChangeLogStore();
         when(store.awsS3Client.getObject(any(GetObjectRequest.class))).thenReturn(null);
         
         assertNull(store.getSignedDomain(store.awsS3Client, "iaas"));
@@ -455,7 +456,7 @@ public class S3ChangeLogStoreTest {
     
     @Test
     public void testGetSignedDomainClientException() {
-        MockS3ChangeLogStore store = new MockS3ChangeLogStore(null);
+        MockS3ChangeLogStore store = new MockS3ChangeLogStore();
         
         when(store.awsS3Client.getObject(any(GetObjectRequest.class))).thenThrow(new AmazonClientException("failed client operation"));
         assertNull(store.getSignedDomain(store.awsS3Client, "iaas"));
@@ -463,7 +464,7 @@ public class S3ChangeLogStoreTest {
     
     @Test
     public void testGetSignedDomainServiceException() {
-        MockS3ChangeLogStore store = new MockS3ChangeLogStore(null);
+        MockS3ChangeLogStore store = new MockS3ChangeLogStore();
         
         when(store.awsS3Client.getObject(any(GetObjectRequest.class))).thenThrow(new AmazonServiceException("failed server operation"));
         assertNull(store.getSignedDomain(store.awsS3Client, "iaas"));
@@ -477,7 +478,7 @@ public class S3ChangeLogStoreTest {
     
     @Test
     public void testGetSignedDomainInternal() throws IOException {
-        MockS3ChangeLogStore store = new MockS3ChangeLogStore(null);
+        MockS3ChangeLogStore store = new MockS3ChangeLogStore();
 
         InputStream is = new FileInputStream("src/test/resources/iaas.json");
         MockS3ObjectInputStream s3Is = new MockS3ObjectInputStream(is, null);
@@ -497,7 +498,7 @@ public class S3ChangeLogStoreTest {
     
     @Test
     public void testGetSignedDomain() throws IOException {
-        MockS3ChangeLogStore store = new MockS3ChangeLogStore(null);
+        MockS3ChangeLogStore store = new MockS3ChangeLogStore();
 
         InputStream is1 = new FileInputStream("src/test/resources/iaas.json");
         MockS3ObjectInputStream s3Is1 = new MockS3ObjectInputStream(is1, null);
@@ -533,19 +534,19 @@ public class S3ChangeLogStoreTest {
 
     @Test
     public void testGetServerSignedDomain() {
-        MockS3ChangeLogStore store = new MockS3ChangeLogStore(null);
+        MockS3ChangeLogStore store = new MockS3ChangeLogStore();
         assertNull(store.getServerSignedDomain("iaas"));
     }
 
     @Test
     public void testGetServerDomainModifiedList() {
-        MockS3ChangeLogStore store = new MockS3ChangeLogStore(null);
+        MockS3ChangeLogStore store = new MockS3ChangeLogStore();
         assertNull(store.getServerDomainModifiedList());
     }
 
     @Test
     public void testGetSignedDomainException() throws IOException {
-        MockS3ChangeLogStore store = new MockS3ChangeLogStore(null);
+        MockS3ChangeLogStore store = new MockS3ChangeLogStore();
 
         InputStream is = new FileInputStream("src/test/resources/iaas.json");
         MockS3ObjectInputStream s3Is = new MockS3ObjectInputStream(is, null);
@@ -569,7 +570,7 @@ public class S3ChangeLogStoreTest {
     @Test
     public void testGetUpdatedSignedDomainsNoChanges() {
         
-        MockS3ChangeLogStore store = new MockS3ChangeLogStore(null);
+        MockS3ChangeLogStore store = new MockS3ChangeLogStore();
         
         ArrayList<S3ObjectSummary> objectList = new ArrayList<>();
         S3ObjectSummary objectSummary = new S3ObjectSummary();
@@ -598,7 +599,7 @@ public class S3ChangeLogStoreTest {
     @Test
     public void testGetUpdatedSignedDomainsWithChange() throws FileNotFoundException {
         
-        MockS3ChangeLogStore store = new MockS3ChangeLogStore(null);
+        MockS3ChangeLogStore store = new MockS3ChangeLogStore();
         
         ArrayList<S3ObjectSummary> objectList = new ArrayList<>();
         S3ObjectSummary objectSummary = new S3ObjectSummary();
@@ -648,13 +649,20 @@ public class S3ChangeLogStoreTest {
 
     @Test
     public void testGetS3Client() {
-
-        CloudStore cloudStore = Mockito.mock(CloudStore.class);
-        AmazonS3 s3 = Mockito.mock(AmazonS3.class);
-
-        Mockito.when(cloudStore.getS3Client()).thenReturn(s3);
-        S3ChangeLogStore store = new S3ChangeLogStore(cloudStore);
+        S3ChangeLogStore store = new S3ChangeLogStore();
         AmazonS3 s3Client = store.getS3Client();
         assertNotNull(s3Client);
+    }
+
+    @Test
+    public void initNoRegionException() {
+        System.clearProperty(ZTS_PROP_AWS_REGION_NAME);
+        S3ChangeLogStore store = new S3ChangeLogStore(null);
+        try {
+            store.getS3Client();
+            fail();
+        } catch (RuntimeException ex) {
+            assertEquals(ex.getMessage(), "S3ChangeLogStore: Couldn't detect AWS region");
+        }
     }
 }

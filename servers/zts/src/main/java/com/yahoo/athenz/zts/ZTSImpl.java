@@ -40,9 +40,12 @@ import com.yahoo.athenz.common.server.ssh.SSHCertRecord;
 import com.yahoo.athenz.common.server.status.StatusCheckException;
 import com.yahoo.athenz.common.server.status.StatusChecker;
 import com.yahoo.athenz.common.server.status.StatusCheckerFactory;
+import com.yahoo.athenz.common.server.store.ChangeLogStore;
+import com.yahoo.athenz.common.server.store.ChangeLogStoreFactory;
 import com.yahoo.athenz.zms.RoleMeta;
 import com.yahoo.athenz.zts.cert.*;
 import com.yahoo.athenz.zts.notification.ZTSNotificationTaskFactory;
+import com.yahoo.athenz.zts.store.CloudStore;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,15 +78,14 @@ import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
 import com.yahoo.athenz.zms.DomainData;
 import com.yahoo.athenz.zts.cache.DataCache;
-import com.yahoo.athenz.zts.store.ChangeLogStore;
-import com.yahoo.athenz.zts.store.ChangeLogStoreFactory;
-import com.yahoo.athenz.zts.store.CloudStore;
 import com.yahoo.athenz.zts.store.DataStore;
 import com.yahoo.athenz.zts.utils.ZTSUtils;
 import com.yahoo.rdl.Schema;
 import com.yahoo.rdl.Timestamp;
 import com.yahoo.rdl.Validator;
 import com.yahoo.rdl.Validator.Result;
+
+import static com.yahoo.athenz.common.ServerCommonConsts.*;
 
 /**
  * An implementation of ZTS.
@@ -340,7 +342,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
 
     void loadSystemProperties() {
-        String propFile = System.getProperty(ZTSConsts.ZTS_PROP_FILE_NAME,
+        String propFile = System.getProperty(ZTS_PROP_FILE_NAME,
                 getRootDir() + "/conf/zts_server/zts.properties");
         ConfigProperties.loadProperties(propFile);
     }
@@ -416,7 +418,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             authorizedProxyUsers = new HashSet<>(Arrays.asList(authorizedProxyUserList.split(",")));
         }
         
-        userDomain = System.getProperty(ZTSConsts.ZTS_PROP_USER_DOMAIN, ZTSConsts.ATHENZ_USER_DOMAIN);
+        userDomain = System.getProperty(PROP_USER_DOMAIN, ZTSConsts.ATHENZ_USER_DOMAIN);
         userDomainPrefix = userDomain + ".";
         
         userDomainAlias = System.getProperty(ZTSConsts.ZTS_PROP_USER_DOMAIN_ALIAS);
@@ -552,7 +554,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // create our struct store
         
-        return clogFactory.create(homeDir, privateKey.getKey(), privateKey.getId(), cloudStore);
+        return clogFactory.create(homeDir, privateKey.getKey(), privateKey.getId());
     }
     
     void loadMetricObject() {
@@ -2674,7 +2676,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
 
         final String serviceDnsSuffix = dataStore.getDomainData(domain).getCertDnsDomain();
-        final DataCache athenzSysDomainCache = dataStore.getDataCache(ZTSConsts.ATHENZ_SYS_DOMAIN);
+        final DataCache athenzSysDomainCache = dataStore.getDataCache(ATHENZ_SYS_DOMAIN);
 
         if (!certReq.validate(domain, service, provider, validCertSubjectOrgValues, athenzSysDomainCache,
                 serviceDnsSuffix, info.getHostname(), info.getHostCnames(), hostnameResolver, errorMsg)) {
@@ -3042,7 +3044,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
 
         final String serviceDnsSuffix = dataStore.getDomainData(domain).getCertDnsDomain();
-        final DataCache athenzSysDomainCache = dataStore.getDataCache(ZTSConsts.ATHENZ_SYS_DOMAIN);
+        final DataCache athenzSysDomainCache = dataStore.getDataCache(ATHENZ_SYS_DOMAIN);
 
         StringBuilder errorMsg = new StringBuilder(256);
         if (!certReq.validate(domain, service, provider, validCertSubjectOrgValues, athenzSysDomainCache,

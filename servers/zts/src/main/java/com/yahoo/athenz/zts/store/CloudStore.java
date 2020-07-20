@@ -1,18 +1,19 @@
 /*
- * Copyright 2016 Yahoo Inc.
+ *  Copyright 2020 Verizon Media
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
+
 package com.yahoo.athenz.zts.store;
 
 import java.util.HashMap;
@@ -26,6 +27,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.amazonaws.AmazonServiceException;
+import com.yahoo.athenz.common.server.util.ConfigProperties;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.slf4j.Logger;
@@ -44,13 +46,13 @@ import com.amazonaws.services.securitytoken.model.Credentials;
 import com.yahoo.athenz.zts.AWSTemporaryCredentials;
 import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.ZTSConsts;
-import com.yahoo.athenz.zts.utils.ZTSUtils;
 import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
 
-public class CloudStore {
+import static com.yahoo.athenz.common.ServerCommonConsts.ZTS_PROP_AWS_REGION_NAME;
 
+public class CloudStore {
     private static final Logger LOGGER = LoggerFactory.getLogger(CloudStore.class);
     private static final String AWS_ROLE_SESSION_NAME = "athenz-zts-service";
 
@@ -82,7 +84,7 @@ public class CloudStore {
 
         // check to see if we are given region name
 
-        awsRegion = System.getProperty(ZTSConsts.ZTS_PROP_AWS_REGION_NAME);
+        awsRegion = System.getProperty(ZTS_PROP_AWS_REGION_NAME);
 
         // get the default cache timeout in seconds
 
@@ -163,7 +165,7 @@ public class CloudStore {
 
         // Start our thread to get/update aws temporary credentials
 
-        int credsUpdateTime = ZTSUtils.retrieveConfigSetting(
+        int credsUpdateTime = ConfigProperties.retrieveConfigSetting(
                 ZTSConsts.ZTS_PROP_AWS_CREDS_UPDATE_TIMEOUT, 900);
 
         scheduledThreadPool = Executors.newScheduledThreadPool(1);
@@ -371,7 +373,7 @@ public class CloudStore {
     }
 
     AssumeRoleRequest getAssumeRoleRequest(String account, String roleName, String principal,
-            Integer durationSeconds, String externalId) {
+                                           Integer durationSeconds, String externalId) {
 
         // assume the target role to get the credentials for the client
         // aws format is arn:aws:iam::<account-id>:role/<role-name>
@@ -403,7 +405,7 @@ public class CloudStore {
     }
 
     String getCacheKey(final String account, final String roleName, final String principal,
-            Integer durationSeconds, final String externalId) {
+                       Integer durationSeconds, final String externalId) {
 
         // if our cache is disabled there is no need to generate
         // a cache key since all other operations are no-ops
@@ -519,7 +521,7 @@ public class CloudStore {
     }
 
     public AWSTemporaryCredentials assumeAWSRole(String account, String roleName, String principal,
-            Integer durationSeconds, String externalId) {
+                                                 Integer durationSeconds, String externalId) {
 
         if (!awsEnabled) {
             throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR,

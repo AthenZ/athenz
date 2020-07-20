@@ -172,6 +172,11 @@
       <artifactId>athenz-zms-core</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
+      <dependency>
+          <groupId>com.yahoo.athenz</groupId>
+          <artifactId>athenz-zms-java-client</artifactId>
+          <version>${project.parent.version}</version>
+      </dependency>
   </dependencies>
 
   <distributionManagement>
