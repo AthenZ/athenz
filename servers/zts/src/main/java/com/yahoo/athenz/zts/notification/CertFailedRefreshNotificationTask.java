@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Timestamp;
+import java.text.MessageFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -52,14 +53,15 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
                                              DataStore dataStore,
                                              HostnameResolver hostnameResolver,
                                              String userDomainPrefix,
-                                             String serverName) {
+                                             String serverName,
+                                             int httpsPort) {
         this.serverName = serverName;
         this.providers = getProvidersList();
         this.instanceCertManager = instanceCertManager;
         DomainRoleMembersFetcher domainRoleMembersFetcher = new DomainRoleMembersFetcher(dataStore, USER_DOMAIN_PREFIX);
         this.notificationCommon = new NotificationCommon(domainRoleMembersFetcher, userDomainPrefix);
         this.hostnameResolver = hostnameResolver;
-        this.certFailedRefreshNotificationToEmailConverter = new CertFailedRefreshNotificationToEmailConverter();
+        this.certFailedRefreshNotificationToEmailConverter = new CertFailedRefreshNotificationToEmailConverter(serverName, httpsPort);
         globStringsMatcher = new GlobStringsMatcher(ZTSConsts.ZTS_PROP_NOTIFICATION_CERT_FAIL_IGNORED_SERVICES_LIST);
     }
 
@@ -193,10 +195,14 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
 
         private final NotificationToEmailConverterCommon notificationToEmailConverterCommon;
         private String emailUnrefreshedCertsBody;
+        private final String serverName;
+        private final int httpsPort;
 
-        public CertFailedRefreshNotificationToEmailConverter() {
+        public CertFailedRefreshNotificationToEmailConverter(String serverName, int httpsPort) {
             notificationToEmailConverterCommon = new NotificationToEmailConverterCommon();
             emailUnrefreshedCertsBody = notificationToEmailConverterCommon.readContentFromFile(getClass().getClassLoader(), EMAIL_TEMPLATE_UNREFRESHED_CERTS);
+            this.serverName = serverName;
+            this.httpsPort = httpsPort;
         }
 
         private String getUnrefreshedCertsBody(Map<String, String> metaDetails) {
@@ -204,12 +210,42 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
                 return null;
             }
 
+            String bodyWithDeleteEndpoint = addInstanceDeleteEndpointDetails(metaDetails, emailUnrefreshedCertsBody);
             return notificationToEmailConverterCommon.generateBodyFromTemplate(
                     metaDetails,
-                    emailUnrefreshedCertsBody,
+                    bodyWithDeleteEndpoint,
                     NOTIFICATION_DETAILS_DOMAIN,
                     NOTIFICATION_DETAILS_UNREFRESHED_CERTS,
                     6);
+        }
+
+        private String addInstanceDeleteEndpointDetails(Map<String, String> metaDetails, String messageWithoutZtsDeleteEndpoint) {
+            String ztsApiAddress = serverName + ":" + httpsPort;
+            String domainPlaceHolder = metaDetails.get(NOTIFICATION_DETAILS_DOMAIN);
+            String providerPlaceHolder = "PROVIDER";
+            String servicePlaceHolder = "SERVICE";
+            String instanceIdHolder = "INSTANCE-ID";
+
+            long numberOfRecords = metaDetails.get(NOTIFICATION_DETAILS_UNREFRESHED_CERTS)
+                    .chars()
+                    .filter(ch -> ch == '|')
+                    .count() + 1;
+
+            // If there is only one record, fill the real values to make it easier for him
+            if (numberOfRecords == 1) {
+                String[] recordDetails = metaDetails.get(NOTIFICATION_DETAILS_UNREFRESHED_CERTS).split(";");
+                servicePlaceHolder = recordDetails[0];
+                providerPlaceHolder = recordDetails[1];
+                instanceIdHolder = recordDetails[2];
+            }
+
+            return MessageFormat.format(messageWithoutZtsDeleteEndpoint,
+                    "{0}", "{1}", "{2}", "{3}", // Skip template arguments that will be filled later
+                    ztsApiAddress,
+                    providerPlaceHolder,
+                    domainPlaceHolder,
+                    servicePlaceHolder,
+                    instanceIdHolder);
         }
 
         @Override

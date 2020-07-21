@@ -31,12 +31,15 @@ public class ZTSNotificationTaskFactory implements NotificationTaskFactory {
     private final HostnameResolver hostnameResolver;
     private final String userDomainPrefix;
     private final String serverName;
+    private final int httpsPort;
 
     public ZTSNotificationTaskFactory(InstanceCertManager instanceCertManager,
                                       DataStore dataStore,
                                       HostnameResolver hostnameResolver,
                                       String userDomainPrefix,
-                                      String serverName) {
+                                      String serverName,
+                                      int httpsPort) {
+        this.httpsPort = httpsPort;
         this.instanceCertManager = instanceCertManager;
         this.dataStore = dataStore;
         this.hostnameResolver = hostnameResolver;
@@ -51,6 +54,7 @@ public class ZTSNotificationTaskFactory implements NotificationTaskFactory {
                 dataStore,
                 hostnameResolver,
                 userDomainPrefix,
-                serverName));
+                serverName,
+                httpsPort));
     }
 }
