@@ -15,7 +15,7 @@ $ zts-accesstoken -domain <domain> [-roles <roles>] [-service <service>] -svc-ke
 2) using ntoken from a file
 
 ```shell
-$ zts-accesstoken -domain <domain> [-roles <roles>] [-service <service>] -ntoken-file <ntoken-file> -hdr Yahoo-Principal-Auth -zts <ZTS url> [-expire-time <expire-time-in-mins>]
+$ zts-accesstoken -domain <domain> [-roles <roles>] [-service <service>] -ntoken-file <ntoken-file> -hdr Athenz-Principal-Auth -zts <ZTS url> [-expire-time <expire-time-in-mins>]
 ```
 
 The service identity ntoken can be obtained by using the zms-svctoken
