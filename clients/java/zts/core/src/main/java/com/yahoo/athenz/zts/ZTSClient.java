@@ -535,7 +535,7 @@ public class ZTSClient implements Closeable {
 
     /**
      * Sets a notificationSender that will listen to notifications and send them (usually to domain admins)
-     * @param notificationSender
+     * @param notificationSender notification sender
      */
     public void setNotificationSender(ZTSClientNotificationSender notificationSender) {
         this.notificationSender = notificationSender;

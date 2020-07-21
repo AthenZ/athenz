@@ -35,6 +35,7 @@ clients/java/zpe/src/test/resources/pol_dir/sports.pol
 clients/java/zms/bin/
 clients/java/zpe/bin/
 clients/java/zts/bin/
+clients/java/zts/core/src/test/resources/test.domain/admin
 clients/nodejs/zts/node_modules/
 clients/nodejs/zts/artifacts/
 clients/nodejs/zts/.eslintcodecache
@@ -138,4 +139,3 @@ pids
 
 # Optional REPL history
 .node_repl_history
-
