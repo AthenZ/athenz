@@ -222,9 +222,9 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
         private String addInstanceDeleteEndpointDetails(Map<String, String> metaDetails, String messageWithoutZtsDeleteEndpoint) {
             String ztsApiAddress = serverName + ":" + httpsPort;
             String domainPlaceHolder = metaDetails.get(NOTIFICATION_DETAILS_DOMAIN);
-            String providerPlaceHolder = "PROVIDER";
-            String servicePlaceHolder = "SERVICE";
-            String instanceIdHolder = "INSTANCE-ID";
+            String providerPlaceHolder = "&lt;PROVIDER&gt;";
+            String servicePlaceHolder = "&lt;SERVICE&gt;";
+            String instanceIdHolder = "&lt;INSTANCE-ID&gt;";
 
             long numberOfRecords = metaDetails.get(NOTIFICATION_DETAILS_UNREFRESHED_CERTS)
                     .chars()

@@ -78,7 +78,7 @@ public class CertFailedRefreshNotificationTaskTest {
                     "            <br>\n" +
                     "            <br> 2. For entries belonging to hosts that were re-bootstrapped or changed identity, please delete the\n" +
                     "            <br> record by running the following command:\n" +
-                    "            <br><b>curl --key <KEY> --cert <CERT> -X DELETE https://testServer:4443/zts/v1/instance/PROVIDER/dom1/SERVICE/INSTANCE-ID </b>\n" +
+                    "            <br><b>curl --key &lt;KEY&gt; --cert &lt;CERT&gt; -X DELETE https://testServer:4443/zts/v1/instance/&lt;PROVIDER&gt;/dom1/&lt;SERVICE&gt;/&lt;INSTANCE-ID&gt; </b>\n" +
                     "            <br>\n" +
                     "            <br>For additional support, please contact <a href=\"https://link.to.athenz.channel.com\">#Athenz slack channel</a>\n" +
                     "        </div>\n" +
@@ -120,7 +120,7 @@ public class CertFailedRefreshNotificationTaskTest {
                     "            <br>\n" +
                     "            <br> 2. For entries belonging to hosts that were re-bootstrapped or changed identity, please delete the\n" +
                     "            <br> record by running the following command:\n" +
-                    "            <br><b>curl --key <KEY> --cert <CERT> -X DELETE https://testServer:4443/zts/v1/instance/provider1/dom1/dom1.service1/instanceid1 </b>\n" +
+                    "            <br><b>curl --key &lt;KEY&gt; --cert &lt;CERT&gt; -X DELETE https://testServer:4443/zts/v1/instance/provider1/dom1/dom1.service1/instanceid1 </b>\n" +
                     "            <br>\n" +
                     "            <br>For additional support, please contact <a href=\"https://link.to.athenz.channel.com\">#Athenz slack channel</a>\n" +
                     "        </div>\n" +
@@ -130,7 +130,7 @@ public class CertFailedRefreshNotificationTaskTest {
                     "    </div>\n" +
                     "</div>\n" +
                     "</body>\n" +
-                    "</html>";
+                    "</html>\n";
 
     @BeforeClass
     public void setup() {
