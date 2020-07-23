@@ -37,12 +37,14 @@ public class MetricsTest {
         metric.increment("metric1", "athenz", 3);
         metric.increment("metric1", "athenz", "sports");
         metric.increment("metric1", "athenz", "sports", 3);
+        metric.increment("apiRquestsMetric", "athenz", "sports", "POST", 200, "caller");
 
         assertNull(metric.startTiming("metric1", "athenz"));
         assertNull(metric.startTiming("metric1", "athenz", "sports"));
 
         metric.stopTiming("metric1");
         metric.stopTiming("metric1", "athenz", "sports");
+        metric.stopTiming("apiRquestsMetric", "athenz", "sports", "POST", "caller");
 
         metric.flush();
         metric.quit();
@@ -66,12 +68,20 @@ public class MetricsTest {
             }
 
             @Override
+            public void increment(String metric, String requestDomainName, String principalDomainName, String httpMethod, int httpStatus, String apiName) {
+            }
+
+            @Override
             public Object startTiming(String metric, String requestDomainName) {
                 return null;
             }
 
             @Override
             public void stopTiming(Object timerMetric) {
+            }
+
+            @Override
+            public void stopTiming(Object timerMetric, String requestDomainName, String principalDomainName, String httpMethod, String apiName) {
             }
 
             @Override
@@ -88,12 +98,14 @@ public class MetricsTest {
         metric.increment("metric1", "athenz", 3);
         metric.increment("metric1", "athenz", "sports");
         metric.increment("metric1", "athenz", "sports", 3);
+        metric.increment("apiRquestsMetric", "athenz", "sports", "POST", 200, "caller");
 
         //assertNull(metric.startTiming("metric1", "athenz"));
         assertNull(metric.startTiming("metric1", "athenz", "sports"));
 
         //metric.stopTiming("metric1");
         metric.stopTiming("metric1", "athenz", "sports");
+        metric.stopTiming("apiRquestsMetric", "athenz", "sports", "POST", "caller");
         metric.flush();
         metric.quit();
     }
