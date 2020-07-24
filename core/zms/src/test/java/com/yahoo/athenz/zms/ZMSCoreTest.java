@@ -2125,6 +2125,50 @@ public class ZMSCoreTest {
         Template temp1 = new Template()
                 .setMetadata(meta1);
         assertFalse(temp.equals(temp1));
+
+        Template temp0 = new Template().setMetadata(null);
+        assertFalse(temp.equals(temp0));
+
+        meta1.setTemplateName(null);
+        Template temp2 = new Template().setMetadata(meta1);
+        assertFalse(temp.equals(temp2));
+
+        meta1.setTemplateName("test");
+        meta1.setCurrentVersion(null);
+        temp2.setMetadata(meta1);
+        assertFalse(temp.equals(temp2));
+
+        meta1.setCurrentVersion(1);
+        meta1.setTimestamp(null);
+        temp2.setMetadata(meta1);
+        assertFalse(temp.equals(temp2));
+
+        meta1.setTimestamp(timestamp);
+        meta1.setDescription(null);
+        temp2.setMetadata(meta1);
+        assertFalse(temp.equals(temp2));
+
+        meta1.setDescription("test template");
+        meta1.setKeywordsToReplace(null);
+        temp2.setMetadata(meta1);
+        assertFalse(temp.equals(temp2));
+
+        meta1.setKeywordsToReplace("none");
+        meta1.setLatestVersion(null);
+        temp2.setMetadata(meta1);
+        assertFalse(temp.equals(temp2));
+
+        meta1.setLatestVersion(2);
+        meta1.setAutoUpdate(null);
+        temp2.setMetadata(meta1);
+        assertFalse(temp.equals(temp2));
+
+
+        assertFalse(temp.equals(null));
+
+        meta1.setAutoUpdate(false);
+        assertEquals(temp2.getMetadata(),temp1.getMetadata());
+
     }
 
     @Test
@@ -3183,5 +3227,40 @@ public class ZMSCoreTest {
         assertFalse(jws2.equals(jws1));
         jws2.setHeader(headers);
         assertTrue(jws2.equals(jws1));
+    }
+
+    @Test
+    public void testDomainTemplateDetailsList() {
+        ZMSSchema schema1 = new ZMSSchema();
+        assertNotNull(schema1);
+        Schema schema = ZMSSchema.instance();
+        Validator validator = new Validator(schema);
+
+        TemplateMetaData meta = new TemplateMetaData();
+        List<TemplateMetaData> templateList = new ArrayList<>();
+        meta.setCurrentVersion(1);
+        templateList.add(meta);
+
+        DomainTemplateDetailsList tl = new DomainTemplateDetailsList().setMetaData(templateList);
+
+
+        Result result = validator.validate(tl, "DomainTemplateDetailsList");
+        assertTrue(result.valid);
+        assertEquals(tl.getMetaData(), templateList);
+
+
+        DomainTemplateDetailsList tl2 = new DomainTemplateDetailsList().setMetaData(templateList);
+        assertTrue(tl2.equals(tl));
+        assertTrue(tl.equals(tl));
+
+        DomainTemplateDetailsList tl3 = new DomainTemplateDetailsList();
+        assertFalse(tl2.equals(tl3));
+
+        DomainTemplateDetailsList tl4 = null;
+        assertFalse(tl2.equals(tl4));
+
+        tl2.setMetaData(null);
+        assertFalse(tl2.equals(tl));
+        assertFalse(tl.equals(null));
     }
 }
