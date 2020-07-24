@@ -74,12 +74,14 @@ public class CertFailedRefreshNotificationTaskTest {
                     "        <div class=\"bt unrefreshedcerts\">\n" +
                     "            <br>Please review this list and take one of the following actions:\n" +
                     "            <br>\n" +
-                    "            <br> 1. Login to the hosts and verify sia runs on schedule\n" +
-                    "            <br>\n" +
-                    "            <br> 2. For entries belonging to hosts that were re-bootstrapped or changed identity, please delete the\n" +
-                    "            <br> record by running the following command:\n" +
-                    "            <br><b>curl --key &lt;KEY&gt; --cert &lt;CERT&gt; -X DELETE https://testServer:4443/zts/v1/instance/&lt;PROVIDER&gt;/dom1/&lt;SERVICE&gt;/&lt;INSTANCE-ID&gt; </b>\n" +
-                    "            <br>\n" +
+                    "            <p> 1. Login to the host and verify that sia is able to successfully refresh identity certificates.\n" +
+                    "            Address any issues that are reported during the certificate refresh request.</p>\n" +
+                    "            <p> 2. After verifying that if the host certificate record is no longer valid due to this\n" +
+                    "            instance being re-bootstrapped or changed identity, please delete the\n" +
+                    "            certificate record by running the following command (using your domain administrator credentials):</p>\n" +
+                    "            <b>curl --key &lt;KEY&gt; --cert &lt;CERT&gt; -X DELETE https://testServer:4443/zts/v1/instance/&lt;PROVIDER&gt;/dom1/&lt;SERVICE&gt;/&lt;INSTANCE-ID&gt; </b>\n" +
+                    "            <p>Important: Once the certificate record is deleted, the instance will not be able to\n" +
+                    "            refresh its certificates so make sure the record is no longer needed.</p>\n" +
                     "            <br>For additional support, please contact <a href=\"https://link.to.athenz.channel.com\">#Athenz slack channel</a>\n" +
                     "        </div>\n" +
                     "    </div>\n" +
@@ -116,12 +118,14 @@ public class CertFailedRefreshNotificationTaskTest {
                     "        <div class=\"bt unrefreshedcerts\">\n" +
                     "            <br>Please review this list and take one of the following actions:\n" +
                     "            <br>\n" +
-                    "            <br> 1. Login to the hosts and verify sia runs on schedule\n" +
-                    "            <br>\n" +
-                    "            <br> 2. For entries belonging to hosts that were re-bootstrapped or changed identity, please delete the\n" +
-                    "            <br> record by running the following command:\n" +
-                    "            <br><b>curl --key &lt;KEY&gt; --cert &lt;CERT&gt; -X DELETE https://testServer:4443/zts/v1/instance/provider1/dom1/dom1.service1/instanceid1 </b>\n" +
-                    "            <br>\n" +
+                    "            <p> 1. Login to the host and verify that sia is able to successfully refresh identity certificates.\n" +
+                    "            Address any issues that are reported during the certificate refresh request.</p>\n" +
+                    "            <p> 2. After verifying that if the host certificate record is no longer valid due to this\n" +
+                    "            instance being re-bootstrapped or changed identity, please delete the\n" +
+                    "            certificate record by running the following command (using your domain administrator credentials):</p>\n" +
+                    "            <b>curl --key &lt;KEY&gt; --cert &lt;CERT&gt; -X DELETE https://testServer:4443/zts/v1/instance/provider1/dom1/dom1.service1/instanceid1 </b>\n" +
+                    "            <p>Important: Once the certificate record is deleted, the instance will not be able to\n" +
+                    "            refresh its certificates so make sure the record is no longer needed.</p>\n" +
                     "            <br>For additional support, please contact <a href=\"https://link.to.athenz.channel.com\">#Athenz slack channel</a>\n" +
                     "        </div>\n" +
                     "    </div>\n" +
