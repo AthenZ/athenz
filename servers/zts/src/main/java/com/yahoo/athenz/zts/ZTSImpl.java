@@ -3316,8 +3316,17 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         } else if (!x509CertRecord.getPrevSerial().equals(serialNumber)) {
 
-            revokeCertificateRefresh(principalName, serialNumber, x509CertRecord);
-            throw forbiddenError("Certificate revoked", caller, requestDomain, principalDomain);
+            // check to see if we're in recovery/migration mode in which
+            // case the instance refreshed multiple times in a short period
+            // and hit both old and new systems thus the sequence is no longer
+            // valid - in this case we're going to not revoke since when
+            // refreshed again next time, if this is truly invalid, we'll
+            // revoke it at that time
+
+            if (cert.getNotBefore().getTime() > x509CertRefreshResetTime) {
+                revokeCertificateRefresh(principalName, serialNumber, x509CertRecord);
+                throw forbiddenError("Certificate revoked", caller, requestDomain, principalDomain);
+            }
         }
 
         return x509CertRecord;
