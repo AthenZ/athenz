@@ -3231,6 +3231,8 @@ public class ZMSCoreTest {
 
     @Test
     public void testDomainTemplateDetailsList() {
+        ZMSSchema schema1 = new ZMSSchema();
+        assertNotNull(schema1);
         Schema schema = ZMSSchema.instance();
         Validator validator = new Validator(schema);
 
