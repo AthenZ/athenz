@@ -33,7 +33,9 @@ public class X509ServiceCertRequest extends X509CertRequest {
             HostnameResolver hostnameResolver, StringBuilder errorMsg) {
 
         // instanceId must be non empty
+
         if (instanceId == null || instanceId.isEmpty()) {
+            errorMsg.append("InstanceId cannot be empty");
             return false;
         }
 
@@ -47,7 +49,10 @@ public class X509ServiceCertRequest extends X509CertRequest {
         }
 
         // ensure the uri Hostname is same as instance Hostname that gets further verified later
+
         if (!validateUriHostname(instanceHostname)) {
+            errorMsg.append("Instance/Uri hostname mismatch: ").append(instanceHostname)
+                .append(" vs. ").append(uriHostname);
             return false;
         }
 

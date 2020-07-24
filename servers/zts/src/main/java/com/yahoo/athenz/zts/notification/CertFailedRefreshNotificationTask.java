@@ -61,7 +61,8 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
         DomainRoleMembersFetcher domainRoleMembersFetcher = new DomainRoleMembersFetcher(dataStore, USER_DOMAIN_PREFIX);
         this.notificationCommon = new NotificationCommon(domainRoleMembersFetcher, userDomainPrefix);
         this.hostnameResolver = hostnameResolver;
-        this.certFailedRefreshNotificationToEmailConverter = new CertFailedRefreshNotificationToEmailConverter(serverName, httpsPort);
+        final String apiHostName = System.getProperty(ZTSConsts.ZTS_PROP_NOTIFICATION_API_HOSTNAME, serverName);
+        this.certFailedRefreshNotificationToEmailConverter = new CertFailedRefreshNotificationToEmailConverter(apiHostName, httpsPort);
         globStringsMatcher = new GlobStringsMatcher(ZTSConsts.ZTS_PROP_NOTIFICATION_CERT_FAIL_IGNORED_SERVICES_LIST);
     }
 
@@ -168,7 +169,6 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
         return details;
     }
 
-
     private Map<String, List<X509CertRecord>> getDomainToCertRecordsMap(List<X509CertRecord> unrefreshedRecords) {
         Map<String, List<X509CertRecord>> domainToCertRecords = new HashMap<>();
         for (X509CertRecord x509CertRecord: unrefreshedRecords) {
@@ -198,7 +198,7 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
         private final String serverName;
         private final int httpsPort;
 
-        public CertFailedRefreshNotificationToEmailConverter(String serverName, int httpsPort) {
+        public CertFailedRefreshNotificationToEmailConverter(final String serverName, int httpsPort) {
             notificationToEmailConverterCommon = new NotificationToEmailConverterCommon();
             emailUnrefreshedCertsBody = notificationToEmailConverterCommon.readContentFromFile(getClass().getClassLoader(), EMAIL_TEMPLATE_UNREFRESHED_CERTS);
             this.serverName = serverName;
