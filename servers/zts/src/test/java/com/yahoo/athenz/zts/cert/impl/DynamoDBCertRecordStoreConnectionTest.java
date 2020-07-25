@@ -432,13 +432,23 @@ public class DynamoDBCertRecordStoreConnectionTest {
                 null,
                 "testHost1");
 
+        Map<String, AttributeValue> willBeUpdatedByOtherZts = generateAttributeValues(
+                "home.test.service4",
+                "testInstance4",
+                Long.toString(fiveDaysAgo),
+                Long.toString(fiveDaysAgo),
+                "testServer",
+                null,
+                "testHost1");
+
         Item item1 = ItemUtils.toItem(unNotified);
         Item item2 = ItemUtils.toItem(reNotified);
+        Item item3 = ItemUtils.toItem(willBeUpdatedByOtherZts);
 
         IteratorSupport<Item, QueryOutcome> iteratorSupport = Mockito.mock(IteratorSupport.class);
         when(itemCollection.iterator()).thenReturn(iteratorSupport);
-        when(iteratorSupport.hasNext()).thenReturn(true, true, false);
-        when(iteratorSupport.next()).thenReturn(item1).thenReturn(item2);
+        when(iteratorSupport.hasNext()).thenReturn(true, true, true, false);
+        when(iteratorSupport.next()).thenReturn(item1).thenReturn(item2).thenReturn(item3);
 
         Mockito.doReturn(itemCollection).when(index).query(any(QuerySpec.class));
 
@@ -446,14 +456,21 @@ public class DynamoDBCertRecordStoreConnectionTest {
         lastNotifiedTimeAttrValue.setN(Long.toString(nowL));
         AttributeValue lastNotifiedServerAttrValue = new AttributeValue();
         lastNotifiedServerAttrValue.setS("localhost");
+        AttributeValue lastNotifiedOtherServerAttrValue = new AttributeValue();
+        lastNotifiedOtherServerAttrValue.setS("SomeOtherZTS");
+
         unNotified.put("lastNotifiedTime", lastNotifiedTimeAttrValue);
         unNotified.put("lastNotifiedServer", lastNotifiedServerAttrValue);
 
         reNotified.put("lastNotifiedTime", lastNotifiedTimeAttrValue);
         reNotified.put("lastNotifiedServer", lastNotifiedServerAttrValue);
 
+        willBeUpdatedByOtherZts.put("lastNotifiedTime", lastNotifiedTimeAttrValue);
+        willBeUpdatedByOtherZts.put("lastNotifiedServer", lastNotifiedOtherServerAttrValue);
+
         Item updatedItem1 = ItemUtils.toItem(unNotified);
         Item updatedItem2 = ItemUtils.toItem(reNotified);
+        Item updatedItem3 = ItemUtils.toItem(willBeUpdatedByOtherZts);
 
         UpdateItemOutcome updateItemOutcome1 = Mockito.mock(UpdateItemOutcome.class);
         when(updateItemOutcome1.getItem()).thenReturn(updatedItem1);
@@ -461,7 +478,10 @@ public class DynamoDBCertRecordStoreConnectionTest {
         UpdateItemOutcome updateItemOutcome2 = Mockito.mock(UpdateItemOutcome.class);
         when(updateItemOutcome2.getItem()).thenReturn(updatedItem2);
 
-        when(table.updateItem(any(UpdateItemSpec.class))).thenReturn(updateItemOutcome1).thenReturn(updateItemOutcome2);
+        UpdateItemOutcome updateItemOutcome3 = Mockito.mock(UpdateItemOutcome.class);
+        when(updateItemOutcome3.getItem()).thenReturn(updatedItem3);
+
+        when(table.updateItem(any(UpdateItemSpec.class))).thenReturn(updateItemOutcome1).thenReturn(updateItemOutcome2).thenReturn(updateItemOutcome3);
         List<X509CertRecord> records = dbConn.updateUnrefreshedCertificatesNotificationTimestamp(
                 "localhost",
                 nowL,

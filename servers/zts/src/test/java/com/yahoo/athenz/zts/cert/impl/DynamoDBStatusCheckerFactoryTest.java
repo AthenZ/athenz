@@ -46,4 +46,18 @@ public class DynamoDBStatusCheckerFactoryTest {
             assertEquals(503, ex.getCode());
         }
     }
+
+    @Test
+    public void testBadKeyStoreClass() {
+        System.setProperty(ZTSConsts.ZTS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS, "unknownClassName");
+        try {
+            new DynamoDBStatusCheckerFactory();
+            fail();
+        } catch (IllegalArgumentException ex) {
+            assertEquals(ex.getMessage(), "Invalid private key store");
+        }
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS);
+
+    }
 }
