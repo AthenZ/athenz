@@ -60,6 +60,10 @@ public class DynamoDBClientSettingsTest {
         assertEquals("decryptedPassword", dynamoDBClientSettings.getTrustStorePassword());
         assertEquals("test.ztsurl", dynamoDBClientSettings.getZtsURL());
 
+        // Now verify that when keyStore isn't provided, trustStorePassword will be null
+        dynamoDBClientSettings = new DynamoDBClientSettings(null);
+        assertNull(dynamoDBClientSettings.getTrustStorePassword());
+
         System.clearProperty(ZTS_PROP_DYNAMODB_KEY_PATH);
         System.clearProperty(ZTS_PROP_DYNAMODB_CERT_PATH);
         System.clearProperty(ZTS_PROP_DYNAMODB_DOMAIN);
@@ -69,6 +73,5 @@ public class DynamoDBClientSettingsTest {
         System.clearProperty(ZTS_PROP_DYNAMODB_TRUSTSTORE_PASSWORD);
         System.clearProperty(ZTS_PROP_DYNAMODB_ZTS_URL);
         System.clearProperty(ZTS_PROP_DYNAMODB_TRUSTSTORE_APPNAME);
-
     }
 }

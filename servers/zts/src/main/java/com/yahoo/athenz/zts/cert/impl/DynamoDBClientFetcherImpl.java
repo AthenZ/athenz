@@ -18,6 +18,7 @@ package com.yahoo.athenz.zts.cert.impl;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
+import com.amazonaws.util.EC2MetadataUtils;
 import com.oath.auth.KeyRefresher;
 import com.oath.auth.Utils;
 import com.yahoo.athenz.auth.PrivateKeyStore;
@@ -32,6 +33,15 @@ import static com.yahoo.athenz.zts.ZTSConsts.*;
 
 public class DynamoDBClientFetcherImpl implements DynamoDBClientFetcher {
     private static final Logger LOGGER = LoggerFactory.getLogger(DynamoDBClientFetcherImpl.class);
+    private final String defaultAwsRegion;
+
+    public DynamoDBClientFetcherImpl() {
+        this.defaultAwsRegion = EC2MetadataUtils.getEC2InstanceRegion();
+    }
+
+    public DynamoDBClientFetcherImpl(String defaultAwsRegion) {
+        this.defaultAwsRegion = defaultAwsRegion;
+    }
 
     @Override
     public DynamoDBClientAndCredentials getDynamoDBClient(ZTSClientNotificationSender ztsClientNotificationSender, PrivateKeyStore keyStore) {
@@ -48,7 +58,10 @@ public class DynamoDBClientFetcherImpl implements DynamoDBClientFetcher {
             LOGGER.info("DynamoDB client will use existing AWS authentication");
             if (dynamoDBClientSettings.getRegion().isEmpty()) {
                 // Use default region
-                AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().build();
+                AmazonDynamoDB client = AmazonDynamoDBClientBuilder
+                        .standard()
+                        .withRegion(defaultAwsRegion)
+                        .build();
                 return new DynamoDBClientAndCredentials(client, null);
             } else {
                 AmazonDynamoDB client = AmazonDynamoDBClientBuilder

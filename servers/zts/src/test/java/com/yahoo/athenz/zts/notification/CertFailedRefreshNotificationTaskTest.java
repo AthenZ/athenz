@@ -283,6 +283,36 @@ public class CertFailedRefreshNotificationTaskTest {
     }
 
     @Test
+    public void testNoValidHosts() {
+        Date currentDate = new Date();
+        List<X509CertRecord> records = new ArrayList<>();
+        System.setProperty(ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST, "provider");
+
+        // Create 6 mock records. None of them valid
+        boolean isValidHost = true;
+        for (int i = 0; i < 6; ++i) {
+            X509CertRecord record = getMockX509CertRecord(currentDate, i);
+            records.add(record);
+            NotificationTestsCommon.mockDomainData(i, dataStore);
+            Mockito.when(hostnameResolver.isValidHostname(eq("hostName" + i))).thenReturn(false);
+        }
+
+        Mockito.when(instanceCertManager.getUnrefreshedCertsNotifications(eq(serverName), anyString())).thenReturn(records);
+        CertFailedRefreshNotificationTask certFailedRefreshNotificationTask = new CertFailedRefreshNotificationTask(
+                instanceCertManager,
+                dataStore,
+                hostnameResolver,
+                userDomainPrefix,
+                serverName,
+                httpsPort);
+
+        List<Notification> notifications = certFailedRefreshNotificationTask.getNotifications();
+        assertEquals(new ArrayList<>(), notifications);
+
+        System.clearProperty(ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST);
+    }
+
+    @Test
     public void testNoValidRecipient() {
         Date currentDate = new Date();
         List<X509CertRecord> records = new ArrayList<>();
@@ -347,11 +377,46 @@ public class CertFailedRefreshNotificationTaskTest {
 
         System.clearProperty(ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST);
         System.clearProperty(ZTS_PROP_NOTIFICATION_CERT_FAIL_IGNORED_SERVICES_LIST);
-
     }
 
     @Test
-    public void testNoUnrefreshedCerts() {
+    public void testNoValidServices() {
+        String globStrings = "*";
+
+        System.setProperty(ZTS_PROP_NOTIFICATION_CERT_FAIL_IGNORED_SERVICES_LIST, globStrings);
+
+        Date currentDate = new Date();
+        List<X509CertRecord> records = new ArrayList<>();
+        System.setProperty(ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST, "provider");
+
+        for (int i = 0; i < 6; ++i) {
+            X509CertRecord record = getMockX509CertRecord(currentDate, i);
+            records.add(record);
+            NotificationTestsCommon.mockDomainData(i, dataStore);
+            Mockito.when(hostnameResolver.isValidHostname(eq("hostName" + i))).thenReturn(true);
+        }
+
+        Mockito.when(instanceCertManager.getUnrefreshedCertsNotifications(eq(serverName), anyString())).thenReturn(records);
+        CertFailedRefreshNotificationTask certFailedRefreshNotificationTask = new CertFailedRefreshNotificationTask(
+                instanceCertManager,
+                dataStore,
+                hostnameResolver,
+                userDomainPrefix,
+                serverName,
+                httpsPort);
+
+        List<Notification> notifications = certFailedRefreshNotificationTask.getNotifications();
+        assertEquals(new ArrayList<>(), notifications);
+
+
+        System.clearProperty(ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST);
+        System.clearProperty(ZTS_PROP_NOTIFICATION_CERT_FAIL_IGNORED_SERVICES_LIST);
+    }
+
+    @Test
+    public void testValidProvidersNoUnrefreshedCerts() {
+        // Configure 3 providers in property
+        System.setProperty(ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST, "provider1, provider2, provider3");
         Mockito.when(instanceCertManager.getUnrefreshedCertsNotifications(eq(serverName), anyString())).thenReturn(new ArrayList<>());
         CertFailedRefreshNotificationTask certFailedRefreshNotificationTask = new CertFailedRefreshNotificationTask(
                 instanceCertManager,
