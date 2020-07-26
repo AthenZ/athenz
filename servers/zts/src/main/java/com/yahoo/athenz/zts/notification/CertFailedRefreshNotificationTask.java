@@ -156,8 +156,7 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
 
             String expiryTime =  getTimestampAsString(certRecord.getExpiryTime());
             String hostName = (certRecord.getHostName() != null) ? certRecord.getHostName() : "";
-            certDetails.append(
-                    certRecord.getService()).append(';')
+            certDetails.append(AthenzUtils.extractPrincipalServiceName(certRecord.getService())).append(';')
                     .append(certRecord.getProvider()).append(';')
                     .append(certRecord.getInstanceId()).append(';')
                     .append(getTimestampAsString(certRecord.getCurrentTime())).append(';')

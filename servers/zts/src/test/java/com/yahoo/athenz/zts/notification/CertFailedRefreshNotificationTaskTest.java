@@ -66,8 +66,8 @@ public class CertFailedRefreshNotificationTaskTest {
                     "                    <th class=\"ch\">HOSTNAME</th>\n" +
                     "                </tr>\n" +
                     "            </thead>\n" +
-                    "            <tbody><tr><td class=\"cv\">domain0.service0</td><td class=\"cv\">provider</td><td class=\"cv\">instanceID0</td><td class=\"cv\">Sun Mar 15 15:08:07 IST 2020</td><td class=\"cv\"></td><td class=\"cv\">hostName0</td></tr>\n" +
-                    "<tr><td class=\"cv\">domain0.service0</td><td class=\"cv\">provider</td><td class=\"cv\">instanceID0</td><td class=\"cv\">Sun Mar 15 15:08:07 IST 2020</td><td class=\"cv\"></td><td class=\"cv\">secondHostName0</td></tr>\n" +
+                    "            <tbody><tr><td class=\"cv\">service0</td><td class=\"cv\">provider</td><td class=\"cv\">instanceID0</td><td class=\"cv\">Sun Mar 15 15:08:07 IST 2020</td><td class=\"cv\"></td><td class=\"cv\">hostName0</td></tr>\n" +
+                    "<tr><td class=\"cv\">service0</td><td class=\"cv\">provider</td><td class=\"cv\">instanceID0</td><td class=\"cv\">Sun Mar 15 15:08:07 IST 2020</td><td class=\"cv\"></td><td class=\"cv\">secondHostName0</td></tr>\n" +
                     "</tbody>\n" +
                     "        </table>\n" +
                     "        <hr>\n" +
@@ -111,7 +111,7 @@ public class CertFailedRefreshNotificationTaskTest {
                     "                    <th class=\"ch\">HOSTNAME</th>\n" +
                     "                </tr>\n" +
                     "            </thead>\n" +
-                    "            <tbody><tr><td class=\"cv\">dom1.service1</td><td class=\"cv\">provider1</td><td class=\"cv\">instanceid1</td><td class=\"cv\">Sun Mar 15 15:08:07 IST 2020</td><td class=\"cv\"></td><td class=\"cv\">hostName1</td></tr>\n" +
+                    "            <tbody><tr><td class=\"cv\">service1</td><td class=\"cv\">provider1</td><td class=\"cv\">instanceid1</td><td class=\"cv\">Sun Mar 15 15:08:07 IST 2020</td><td class=\"cv\"></td><td class=\"cv\">hostName1</td></tr>\n" +
                     "</tbody>\n" +
                     "        </table>\n" +
                     "        <hr>\n" +
@@ -123,7 +123,7 @@ public class CertFailedRefreshNotificationTaskTest {
                     "            <p> 2. After verifying that if the host certificate record is no longer valid due to this\n" +
                     "            instance being re-bootstrapped or changed identity, please delete the\n" +
                     "            certificate record by running the following command (using your domain administrator credentials):</p>\n" +
-                    "            <b>curl --key &lt;KEY&gt; --cert &lt;CERT&gt; -X DELETE https://testServer:4443/zts/v1/instance/provider1/dom1/dom1.service1/instanceid1 </b>\n" +
+                    "            <b>curl --key &lt;KEY&gt; --cert &lt;CERT&gt; -X DELETE https://testServer:4443/zts/v1/instance/provider1/dom1/service1/instanceid1 </b>\n" +
                     "            <p>Important: Once the certificate record is deleted, the instance will not be able to\n" +
                     "            refresh its certificates so make sure the record is no longer needed.</p>\n" +
                     "            <br>For additional support, please contact <a href=\"https://link.to.athenz.channel.com\">#Athenz slack channel</a>\n" +
@@ -217,24 +217,24 @@ public class CertFailedRefreshNotificationTaskTest {
         assertEquals(6, notifications.size());
         notifications.sort(Comparator.comparing(notif -> notif.getDetails().get(NOTIFICATION_DETAILS_UNREFRESHED_CERTS)));
         // Assert one records for provider1:
-        String expectedDetail = "domain0.service0;provider1;instanceID0;" + new Timestamp(currentDate.getTime()) + ";;hostName0";
+        String expectedDetail = "service0;provider1;instanceID0;" + new Timestamp(currentDate.getTime()) + ";;hostName0";
         assertEquals(expectedDetail, notifications.get(0).getDetails().get(NOTIFICATION_DETAILS_UNREFRESHED_CERTS));
 
         // Assert two records for provider2:
-        expectedDetail = "domain1.service1;provider2;instanceID1;" + new Timestamp(currentDate.getTime()) + ";;hostName1";
+        expectedDetail = "service1;provider2;instanceID1;" + new Timestamp(currentDate.getTime()) + ";;hostName1";
         assertEquals(expectedDetail, notifications.get(1).getDetails().get(NOTIFICATION_DETAILS_UNREFRESHED_CERTS));
 
-        expectedDetail = "domain2.service2;provider2;instanceID2;" + new Timestamp(currentDate.getTime()) + ";;hostName2";
+        expectedDetail = "service2;provider2;instanceID2;" + new Timestamp(currentDate.getTime()) + ";;hostName2";
         assertEquals(expectedDetail, notifications.get(2).getDetails().get(NOTIFICATION_DETAILS_UNREFRESHED_CERTS));
 
         // Assert three records for provider3:
-        expectedDetail = "domain3.service3;provider3;instanceID3;" + new Timestamp(currentDate.getTime()) + ";;hostName3";
+        expectedDetail = "service3;provider3;instanceID3;" + new Timestamp(currentDate.getTime()) + ";;hostName3";
         assertEquals(expectedDetail, notifications.get(3).getDetails().get(NOTIFICATION_DETAILS_UNREFRESHED_CERTS));
 
-        expectedDetail = "domain4.service4;provider3;instanceID4;" + new Timestamp(currentDate.getTime()) + ";;hostName4";
+        expectedDetail = "service4;provider3;instanceID4;" + new Timestamp(currentDate.getTime()) + ";;hostName4";
         assertEquals(expectedDetail, notifications.get(4).getDetails().get(NOTIFICATION_DETAILS_UNREFRESHED_CERTS));
 
-        expectedDetail = "domain5.service5;provider3;instanceID5;" + new Timestamp(currentDate.getTime()) + ";;hostName5";
+        expectedDetail = "service5;provider3;instanceID5;" + new Timestamp(currentDate.getTime()) + ";;hostName5";
         assertEquals(expectedDetail, notifications.get(5).getDetails().get(NOTIFICATION_DETAILS_UNREFRESHED_CERTS));
 
         System.clearProperty(ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST);
@@ -463,15 +463,15 @@ public class CertFailedRefreshNotificationTaskTest {
         List<Notification> notifications = certFailedRefreshNotificationTask.getNotifications();
         assertEquals(6, notifications.size());
         // Assert 2 records for domain5 and domain0:
-        String twoRecordsDomain5 = "domain5.service5;provider;instanceID5;" + new Timestamp(currentDate.getTime()) + ";;hostName5|" +
-                "domain5.service5;provider;instanceID5;" + new Timestamp(currentDate.getTime()) + ";;secondHostName5";
+        String twoRecordsDomain5 = "service5;provider;instanceID5;" + new Timestamp(currentDate.getTime()) + ";;hostName5|" +
+                "service5;provider;instanceID5;" + new Timestamp(currentDate.getTime()) + ";;secondHostName5";
         assertEquals(twoRecordsDomain5, notifications.get(1).getDetails().get(NOTIFICATION_DETAILS_UNREFRESHED_CERTS));
-        String twoRecordsDomain0 = "domain0.service0;provider;instanceID0;" + new Timestamp(currentDate.getTime()) + ";;hostName0|" +
-                "domain0.service0;provider;instanceID0;" + new Timestamp(currentDate.getTime()) + ";;secondHostName0";
+        String twoRecordsDomain0 = "service0;provider;instanceID0;" + new Timestamp(currentDate.getTime()) + ";;hostName0|" +
+                "service0;provider;instanceID0;" + new Timestamp(currentDate.getTime()) + ";;secondHostName0";
         assertEquals(twoRecordsDomain0, notifications.get(4).getDetails().get(NOTIFICATION_DETAILS_UNREFRESHED_CERTS));
 
         // Assert other domains only have 1 record:
-        String oneRecordDomain1 = "domain1.service1;provider;instanceID1;" + new Timestamp(currentDate.getTime()) + ";;hostName1";
+        String oneRecordDomain1 = "service1;provider;instanceID1;" + new Timestamp(currentDate.getTime()) + ";;hostName1";
         assertEquals(oneRecordDomain1, notifications.get(5).getDetails().get(NOTIFICATION_DETAILS_UNREFRESHED_CERTS));
 
         System.clearProperty(ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST);
@@ -512,13 +512,14 @@ public class CertFailedRefreshNotificationTaskTest {
         Map<String, String> details = new HashMap<>();
         details.put("domain", "dom1");
         details.put(NOTIFICATION_DETAILS_UNREFRESHED_CERTS,
-                "domain0.service0;provider;instanceID0;Sun Mar 15 15:08:07 IST 2020;;hostName0|" +
-                        "domain.bad;instanceID0;Sun Mar 15 15:08:07 IST 2020;;hostBad|" + // bad entry with missing provider
-                        "domain0.service0;provider;instanceID0;Sun Mar 15 15:08:07 IST 2020;;secondHostName0");
+                "service0;provider;instanceID0;Sun Mar 15 15:08:07 IST 2020;;hostName0|" +
+                        "bad;instanceID0;Sun Mar 15 15:08:07 IST 2020;;hostBad|" + // bad entry with missing provider
+                        "service0;provider;instanceID0;Sun Mar 15 15:08:07 IST 2020;;secondHostName0");
 
         Notification notification = new Notification();
         notification.setDetails(details);
-        CertFailedRefreshNotificationTask.CertFailedRefreshNotificationToEmailConverter converter = new CertFailedRefreshNotificationTask.CertFailedRefreshNotificationToEmailConverter(serverName, httpsPort);
+        CertFailedRefreshNotificationTask.CertFailedRefreshNotificationToEmailConverter converter =
+                new CertFailedRefreshNotificationTask.CertFailedRefreshNotificationToEmailConverter(serverName, httpsPort);
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
 
         String body = notificationAsEmail.getBody();
@@ -526,7 +527,7 @@ public class CertFailedRefreshNotificationTaskTest {
         assertTrue(body.contains(htmlSeveralRecords));
 
         // make sure the bad entries are not included
-        assertFalse(body.contains("domain.bad"));
+        assertFalse(body.contains("bad"));
         assertFalse(body.contains("hostBad"));
 
         System.clearProperty("athenz.notification_workflow_url");
@@ -545,7 +546,7 @@ public class CertFailedRefreshNotificationTaskTest {
         Map<String, String> details = new HashMap<>();
         details.put("domain", "dom1");
         details.put(NOTIFICATION_DETAILS_UNREFRESHED_CERTS,
-                "dom1.service1;provider1;instanceid1;Sun Mar 15 15:08:07 IST 2020;;hostName1");
+                "service1;provider1;instanceid1;Sun Mar 15 15:08:07 IST 2020;;hostName1");
 
         Notification notification = new Notification();
         notification.setDetails(details);
