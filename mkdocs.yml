@@ -32,12 +32,14 @@ nav:
     - Role Member Auto Expiry and Notification Support: member_expiration.md
     - Role Member Review Reminder Support: member_soft_expiration.md
     - Self-Served Roles: self_serve_roles.md
+    - Athenz Templates: athenz_templates.md
 - Authentication:
     - Athenz Service Identity X.509 Certificate for AWS EC2 instances: service_x509_credentials_aws.md
     - Athenz Service Identity X.509 Certificate for AWS ECS containers: service_x509_credentials_aws_ecs.md
     - Athenz Service Identity X.509 Certificate for AWS Fargate tasks: service_x509_credentials_aws_fargate.md
     - Athenz Service Identity X.509 Certificate for AWS EKS pods: service_x509_credentials_aws_eks.md
     - Athenz Service Identity X.509 Certificate for AWS Lambda functions: service_x509_credentials_aws_lambda.md
+    - Obtaining OAuth2 Access Tokens from ZTS: zts_access_token_guide.md
 - AWS Setup:
     - AWS Temp Credentials: aws_temp_creds.md
     - Introduction: aws_athenz_setup.md
@@ -50,6 +52,7 @@ nav:
     - Authorization Flow: auth_flow.md
 - Features:
     - Service Identity X.509 Certificates - Copper Argos: copper_argos.md
+    - Athenz Capabilities: capabilities.md
 - Developer Guide:
     - Centralized Authorization Flow: cent_authz_flow.md
     - Decentralized Authorization Flow: decent_authz_flow.md

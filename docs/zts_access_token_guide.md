@@ -1,0 +1,382 @@
+Access Tokens are used to authorize access to service provider resources.
+The Access Token contains the set of roles (identified in the token as
+scopes) a client belongs to for a specified domain. So, when a client wants
+to access a resource, this client
+must obtain the appropriate Access Token from ZTS and use the token in the
+header of the subsequent HTTP client request. If enabled, the service will
+also return an ID Token if requested. ID Token identifies the authenticated
+principal for a given Athenz Service Identity.
+
+Support for accessing OAuth2 access/id tokens is based on Client Credentials
+authentication workflow as defined in [RFC6749: The OAuth 2.0 Authorization Framework](https://tools.ietf.org/html/rfc6749#section-4.4).
+
+## Access/ID Token Request
+
+### Request
+
+To request an access token from ZTS Server, the client will send a POST
+request with `application/x-www-form-urlencoded` content-type to `/oauth2/token`
+endpoint. The request body must contain the following parameters:
+
+```
+grant_type : Value MUST be set to "client_credentials"
+scope : list of scopes/roles requested in the access token. The caller
+        can either specify to include all roles the principal has access
+        to in a specific domain (e.g. <domain-name>:domain) or ask for
+        specific roles only (e.g. <domain-name>:role.<role1>). Scopes
+        are separated by spaces.
+        To request an ID token, the scope must include 'openid' and audience
+        service name (e.g. <domain-name>:service.<service-name>). The domain
+        name in id token request match the domain name in the access token
+        scope.
+expires_in : requested expiry time for access token in seconds
+```
+
+For example, when a principal requests an access token only for accessing
+`demo` domain and wants to include all roles it has access to in that
+domain, the request would be:
+
+```
+POST /zts/v1/oauth2/token HTTP/1.1
+Host: <zts-address>
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=client_credentials&scope=demo%3Adomain
+```
+
+If the principal requests an access token only for accessing
+`demo` domain and wants to include `readers` and `writers` roles it has access
+to in that domain, the request would be:
+
+```
+POST /zts/v1/oauth2/token HTTP/1.1
+Host: <zts-address>
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=client_credentials&scope=demo%3Arole.readers+sherpa%3Arole.writers
+```
+
+If the principal requests an access token along with an id token for accessing
+`demo` domain for `backend` service and wants to include `readers` and `writers`
+roles it has access to in that domain, the request would be:
+
+```
+POST /zts/v1/oauth2/token HTTP/1.1
+Host: <zts-address>
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=client_credentials&scope=openid+demo%3Aservice.backend+demo%3Arole.readers+demo%3Arole.writers
+```
+
+### Response
+
+If the access token request is valid and authorized, the ZTS server issues
+an access token (and id token if requested). The response contains the following
+json document:
+
+```
+{
+  "access_token":"<generated-token>",
+  "id_token":"<generated-token>",
+  "token_type":"Bearer",
+  "expires_in":3600
+}
+```
+
+## Access Token format
+
+An access token is a [JSON web token (JWT)](https://tools.ietf.org/html/rfc7519)
+encoded in Base64 URL-encoded format that contains a header, payload, and signature.
+An application server can authorize the principal to access specific resources based
+on the scopes (roles) defined in the access token.
+
+### Access Token Header
+
+The Access token header contains the Athenz ZTS Server Private key id and the
+algorithm used to sign the payload.
+
+```
+{
+  "alg": "ES256",
+  "kid": "<zts server private key id>"
+}
+```
+
+### Access Token Payload
+
+The Access Token Payload contains the following claims:
+
+```
+ver : version of the access token
+iss : token issuer
+aud : the audience (the Athenz Domain name) that the access token is intended for
+uid : unique identifier for the principal (same as client Id)
+sub : subject of the access token (same as client Id)
+iat : token issue time in seconds (Unix time)
+exp : token expiry time in seconds (Unix time)
+scp : array of scopes are granted to this access token. This is the list of roles that principal can assume in the audience domain
+client_id : client ID (Athenz Principal) of the client that requested the access token
+```
+
+Here is an example of an access token that `alpha.api` retrieved to access
+some resource in `beta` domain. The principal `alpha.api` is authorized
+to assume `readers` and `writers` roles in the `beta` domain.
+
+```
+{
+  "ver": 1,
+  "iss": "athenz",
+  "aud": "beta",
+  "client_id": "alpha.api",
+  "uid": "alpha.api",
+  "sub": "alpha.api",
+  "iat": 1554491974,
+  "exp": 1554495574,
+  "scp": [
+    "readers",
+    "writers"
+  ]
+}
+```
+
+### Access Token Validation
+
+You can use any standards based JWT library to validate the access token
+generated by ZTS Server. You can also implement your own verifier by
+following the [RFC7519: Section 7.2:  Validating a JWT](https://tools.ietf.org/html/rfc7519).
+
+## ID Token format
+
+An ID token is a [JSON web token (JWT)](https://tools.ietf.org/html/rfc7519)
+encoded in Base64 URL-encoded format that contains a header, payload, and
+signature. The ID token, if enabled, can be issued for clients to authenticate
+themselves along with their access token to the requested Athenz service.
+ZTS Server never issues ID Tokens on its own. They're always returned along
+with access tokens.
+
+### ID Token Header
+
+The ID token header contains the Athenz ZTS Server Private key id and the
+algorithm used to sign the payload.
+
+```
+{
+  "alg": "ES256",
+  "kid": "<zts server private key id>"
+}
+```
+
+### ID Token Payload
+
+The ID Token Payload contains the following claims:
+
+```
+ver : version of the id token
+iss : token issuer
+aud : the audience (the Athenz Service name) that the id token is intended for
+sub : subject of the id token - athenz pricnipal name requesting the token
+iat : token issue time in seconds (Unix time)
+exp : token expiry time in seconds (Unix time)
+auth_time: authentication time in seconds (Unix time)
+```
+
+Here is an example of an id token that `alpha.api` retrieved for its
+authorization request to `beta.backend` service.
+
+```
+{
+  "ver": 1,
+  "iss": "athenz",
+  "aud": "beta.backend",
+  "sub": "alpha.api",
+  "iat": 1554491974,
+  "auth_time": 1554491974,
+  "exp": 1554495574
+}
+```
+
+### ID Token Validation
+
+You can use any standards based JWT library to validate the id token
+generated by ZTS Server. You can also implement your own verifier by
+following the [RFC7519: Section 7.2:  Validating a JWT](https://tools.ietf.org/html/rfc7519).
+
+## Fetching Access Tokens with Java Client Library
+
+First you need to update your Java project `pom.xml` file to indicate
+the dependency on the Athenz zts java client library. Checkout the
+[Bintray ZTS Java Client Package](https://bintray.com/yahoo/maven/athenz-zts-java-client/)
+page to make sure you're using the latest release version (You must use
+1.8.37 or newer version of the client library). 
+
+### ZTS Client Object
+
+ZTS Client Library provides several constructors. The recommended
+approach is to use an SSL context that includes service's Athenz
+issued CA certificate.
+
+ZTSClient object must be closed to release any allocated resources.
+ZTSClient class implements Closeable interface. However, to correctly
+handle auto-refresh of access tokens, the client used to fetch
+the token cannot be closed since the background tasks need to use
+the same client to refresh the access token. Our general recommendation
+is that you create a single ZTSClient object and use that for all
+requests (it is thread safe) and then close the client when your
+application is shutting down.
+
+** Important **
+
+During the shutdown of the application, `ZTSClient.cancelPrefetch()`
+must be called to stop the timer thread that automatically fetches
+and refreshes any cached tokens in the ZTS Client.
+
+#### Athenz Issued CA certificate
+
+You will need to provide the ZTSClient with the ZTS Server's URL and an SSLContext.
+The following examples will show how to generate an SSLContext
+
+```java
+/**
+ * Constructs a new ZTSClient object with the given SSLContext object
+ * and ZTS Server Url. Default read and connect timeout values are
+ * 30000ms (30sec). The application can change these values by using the
+ * athenz.zts.client.read_timeout and athenz.zts.client.connect_timeout
+ * system properties. The values specified for timeouts must be in milliseconds.
+ * @param ztsUrl ZTS Server's URL
+ * @param sslContext SSLContext that includes service's private key and x.509 certificate
+ * for authenticating requests
+ */
+public ZTSClient(String ztsUrl, SSLContext sslContext);
+```
+
+First update your `pom.xml` to include dependency on `athenz-cert-refresher` package
+which provides support to create a SSLContext object based on our private key
+and certificate:
+
+```java
+<dependency>
+  <groupId>com.yahoo.athenz</groupId>
+  <artifactId>athenz-cert-refresher</artifactId>
+  <version>VERSION-NUMBER</version>
+</dependency>
+```
+
+The SSLContext contains a KeyRefresher with the following arguments:
+   - The service private key
+   - The service public key
+   - The path of the truststore containing the CA certificate
+   - The password for the truststore containing the CA certificate
+
+For example:
+```java
+// Create our SSL Context object based on our private key and
+// certificate and jdk truststore
+
+KeyRefresher keyRefresher = Utils.generateKeyRefresher(trustStorePath, trustStorePassword,
+    certPath, keyPath);
+SSLContext sslContext = Utils.buildSSLContext(keyRefresher.getKeyManagerProxy(),
+    keyRefresher.getTrustManagerProxy());
+keyRefresher.startup();
+
+ZTSClient ztsClient = new ZTSClient(ztsUrl, sslContext);
+```
+
+### Obtaining an Access Token
+
+To obtain an Access Token, the application would use the following method
+from the `ZTSClient` class:
+
+```java
+/**
+ * For the specified requester(user/service) return the corresponding Access Token that
+ * includes the list of roles that the principal has access to in the specified domain
+ * @param domainName name of the domain
+ * @param roleNames (optional) only interested in roles with these names
+ * @param expiryTime (optional) specifies that the returned Access must be
+ *          at least valid for specified number of seconds. Pass 0 to use
+ *          server default timeout.
+ * @return ZTS generated Access Token Response object. ZTSClientException will be thrown in case of failure
+ */
+public AccessTokenResponse getAccessToken(String domainName, List<String> roleNames, long expiryTime);
+```
+
+In the simplest case, the method only requires the caller to specify the
+domain that the application will be accessing. Thus, it needs an Access
+Token for that domain. For example, if the `alpha.storage` service
+identifier is trying to access a resource from a domain `beta`, then
+the API call to retrieve the access token valid for 4 hours would be the following:
+
+```java
+AccessTokenResponse tokenResponse = null;
+try {
+   tokenResponse = ztsClient.getAccessToken("beta", null, 14400);
+} catch (ZTSClientException ex) {
+   // log error using ex.getCode() and ex.getMessage()
+}
+final String accessToken = tokenResponse.getAccess_token();
+```
+
+Then the client will include the retrieved Access Token value as one of
+its headers when submitting its request to the provider service.
+
+### Token Caching
+
+The ZTS Client Library automatically caches any tokens returned by the
+ZTS Server, so any subsequent requests for an Access Token for the same
+domain are fulfilled from the local cache as opposed to connecting to
+the ZTS Server every time. This provides better performance by reusing
+the same Access Token because they’re valid for two hours by default. The
+client library will only return cached Access Tokens if they’re valid for
+at least 1/4 of the requested timeout in minutes (default 30 minutes).
+
+### Least Privilege Access
+
+By default, the method `getAccess` returns all the roles that the
+given service identity can access within a domain. The method, however,
+has the `roleNames` parameter that allow applications to request access tokens
+for specific roles within a domain. Thus, the server need only check and
+return an access token for the specified roles. For example, the service
+has access to several roles within the `alpha` domain but is only interested
+in two roles `readers` and `searchers`. With this use case, the api call
+would be:
+
+```java
+AccessTokenResponse tokenResponse = null;
+
+List<String> roles = new ArrayList<>();
+roles.add("readers);
+roles.add("searchers");
+
+try {
+   tokenResponse = ztsClient.getAccessToken("alpha", roles, 14400);
+} catch (ZTSClientException ex) {
+   // log error using ex.getCode() and ex.getMessage()
+}
+final String accessToken = tokenResponse.getAccess_token();
+```
+
+## Command Line Utility to Fetch Access Tokens
+
+Athenz team also provides a command line utility called `zts-accesstoken`
+that can be used to fetch access/id tokens from the ZTS Server for a given domain
+and/or specific roles.
+
+```bash
+$ zts-accesstoken -domain alpha.prod -service api -svc-key-file beta.api.key.pem -svc-cert-file beta.api.cert.pem -zts https://<zts-address>/zts/v1
+```
+
+Check out the [zts-accesstoken](zts_accesstoken.md) user guide for full details.
+
+## Troubleshooting
+
+When communicating with ZTS Server to obtain an Access Token, the ZTS Server
+will return the following 4xx error codes if it's unable to successfully
+process the request:
+
+-   **400** The domain name specified in the request to issue an access token
+    is inconsistent with other scopes.
+-   **401** The request could not be successfully authenticated.
+-   **403** The service identity does not have access to any resources
+    in the specified domain.
+-   **404** The domain specified in the request to issue an Access Token for
+    does not exist.
