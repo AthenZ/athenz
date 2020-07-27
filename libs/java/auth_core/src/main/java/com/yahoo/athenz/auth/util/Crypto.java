@@ -36,27 +36,17 @@ import java.util.List;
 
 import javax.security.auth.x500.X500Principal;
 
+import org.bouncycastle.asn1.*;
+import org.bouncycastle.asn1.x509.*;
+import org.bouncycastle.asn1.x509.Extension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.bouncycastle.asn1.ASN1Encodable;
-import org.bouncycastle.asn1.ASN1ObjectIdentifier;
-import org.bouncycastle.asn1.DERIA5String;
-import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.asn1.x500.RDN;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.asn1.x500.style.IETFUtils;
-import org.bouncycastle.asn1.x509.BasicConstraints;
-import org.bouncycastle.asn1.x509.ExtendedKeyUsage;
-import org.bouncycastle.asn1.x509.Extension;
-import org.bouncycastle.asn1.x509.Extensions;
-import org.bouncycastle.asn1.x509.ExtensionsGenerator;
-import org.bouncycastle.asn1.x509.GeneralName;
-import org.bouncycastle.asn1.x509.GeneralNames;
-import org.bouncycastle.asn1.x509.KeyPurposeId;
-import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.asn1.pkcs.Attribute;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x9.ECNamedCurveTable;
@@ -1245,6 +1235,14 @@ public class Crypto {
                 if (!altNames.isEmpty()) {
                     caBuilder.addExtension(Extension.subjectAlternativeName, false,
                             new GeneralNames(altNames.toArray(new GeneralName[0])));
+                }
+            }
+
+            // See if we have policy specified in the CSR
+            Attribute[] certExtensions = jcaPKCS10CertificationRequest.getAttributes(Extension.certificatePolicies);
+            if (certExtensions != null && certExtensions.length > 0) {
+                for (Attribute attribute : certExtensions) {
+                    caBuilder.addExtension(Extension.certificatePolicies, false, attribute.getAttributeValues()[0]);
                 }
             }
 

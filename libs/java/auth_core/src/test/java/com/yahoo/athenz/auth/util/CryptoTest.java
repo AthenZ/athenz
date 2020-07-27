@@ -32,14 +32,24 @@ import java.util.List;
 import static org.mockito.Mockito.*;
 import static org.testng.Assert.*;
 
+import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.DERIA5String;
+import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.x500.RDN;
 import org.bouncycastle.asn1.x500.X500Name;
-import org.bouncycastle.asn1.x509.GeneralName;
+import org.bouncycastle.asn1.x509.*;
+import org.bouncycastle.cert.jcajce.JcaX509ExtensionUtils;
+import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import org.bouncycastle.pkcs.PKCS10CertificationRequestBuilder;
+import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder;
 import org.mockito.Mockito;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
+import javax.security.auth.x500.X500Principal;
 
 public class CryptoTest {
 
@@ -481,6 +491,46 @@ public class CryptoTest {
         } catch (CryptoException ex) {
             assertTrue(true, "Caught expected crypto exception");
         }
+    }
+
+    @Test
+    public void testGenerateX509CertificateWithPolicy() throws OperatorCreationException, IOException {
+        X509Certificate caCertificate = Crypto.loadX509Certificate(ecPublicX509Cert);
+        PrivateKey caPrivateKey = Crypto.loadPrivateKey(privateEncryptedKey, encryptedKeyPassword);
+
+        // Generate xample CSR
+        PKCS10CertificationRequestBuilder p10Builder = new JcaPKCS10CertificationRequestBuilder(
+                new X500Principal("C=US,ST=CA,L=Sunnyvale,O=My Test Company,CN=athenz.syncer"), caCertificate.getPublicKey());
+        JcaContentSignerBuilder csBuilder = new JcaContentSignerBuilder("SHA256withRSA");
+        ContentSigner signer = csBuilder.build(caPrivateKey);
+
+        // Add to the CSR a policy with free text
+        PolicyQualifierInfo pqInfo = new PolicyQualifierInfo("mTLSOnly");
+        PolicyInformation policyInfo = new PolicyInformation(PolicyQualifierId.id_qt_cps, new DERSequence(pqInfo));
+        CertificatePolicies policies = new CertificatePolicies(policyInfo);
+        p10Builder.addAttribute(Extension.certificatePolicies, policies);
+        PKCS10CertificationRequest csr = p10Builder.build(signer);
+
+        // Generate certificate
+        X509Certificate cert = Crypto.generateX509Certificate(csr, caPrivateKey,
+                caCertificate, 600, false);
+
+        assertNotNull(cert);
+        assertEquals(cert.getIssuerX500Principal().getName(),
+                "CN=athenz.syncer,O=My Test Company,L=Sunnyvale,ST=CA,C=US");
+
+        Date notAfter = cert.getNotAfter();
+        long diff = notAfter.getTime() - System.currentTimeMillis();
+        assertTrue(diff <= 600 * 60 * 1000); // convert minutes to milliseconds
+
+        // Assert policy
+        byte[] policyBytes = cert.getExtensionValue(Extension.certificatePolicies.toString());
+        CertificatePolicies policiesResult = CertificatePolicies.getInstance(JcaX509ExtensionUtils.parseExtensionValue(policyBytes));
+        PolicyInformation policyInfoResult = policiesResult.getPolicyInformation()[0];
+        ASN1Sequence policyQualifiers = policyInfoResult.getPolicyQualifiers();
+        ASN1Sequence policyQualifiersObject = (ASN1Sequence) policyQualifiers.getObjectAt(0);
+        assertEquals(policyQualifiersObject.getObjectAt(1).toString(), "mTLSOnly");
+        assertEquals(policyQualifiersObject.getObjectAt(0).toString(), "1.3.6.1.5.5.7.2.1"); // (CPS)
     }
 
     @Test
