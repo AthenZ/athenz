@@ -41,7 +41,7 @@ Once approved, the Athenz System admin will add the provider service identity to
 There will be policy granting access to the specified Provider SAN dnsName attribute suffix to the list service provider.
 
 Requirements for Provider Service:
-* It must retrieve a TLS certificate for its service (e.g. convert NToken into TLS Certificate) from Athenz and use that as its Service Certificate.
+* It must retrieve a TLS certificate for its service from Athenz and use that as its Service Certificate.
 * When ZTS Contacts Provider Service to validate an instance document, it will require TLS authentication and verify that the certificate the service used for authentication was issued for the expected provider service by ZTS itself.
 * ZTS issues TLS certificates valid for 30 days only, so the Provider Service Admin must have the capability to periodically refresh its certificate by requesting a new one from ZTS Server (e.g. daily) and dynamically update its service to use the refreshed certificates.
 
@@ -97,7 +97,6 @@ The steps of the bootstrap process pertaining Athenz integration would include:
    - Validating IP addresses (if available) included in the CSR
 1. Once ZTS service receives a successful response from the Provider Service, it will submit the CSR to Certsignd to generate a X.509 Certificate
 1. ZTS Server will retrieve the Serial number from the Certificate and register the certificate along with instanceid and provider service name in its certificate database. This will be used to monitor refresh certificate operations and, in case of a compromise, revoke specific instances from the capability to refresh their own certificates.
-   - If the instance has requested a NToken in addition to a TLS Certificate, one will be generated and returned to the instance. By default, the token will be valid for 24 hours. The client library should parse the token, extract the expiry time and set the next refresh time ⅓ of that value. So with default value of 24 hours, the expectation is that the instance will refresh the token in 8 hours. If the initial and the subsequent refresh operations fail, the client can dynamically increase its frequency of refresh requests to make sure it has multiple chances of renewing the ntoken before it expires.
 
 ## Instance Refresh Request
 ---------------------------

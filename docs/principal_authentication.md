@@ -106,8 +106,8 @@ to the `/etc/shadow` file. There are two options available:
   group.
 
 User Authority is typically not allowed to carry out any authorized
-operation. It is required that the user first must obtain an NToken
-for his/her identity and use that NToken to carry out the authorized
+operation. It is required that the user first must obtain an X509 certificate
+for his/her identity and use that certificate to carry out the authorized
 request.
 
 ### Principal Authority
@@ -166,17 +166,6 @@ Certificate Subject DN: c=US;o=Some Athenz Company;cn=sports.fantasy
 
 The authenticated principal in this case is service `fantasy` in domain
 `sports`.
-
-### Role Authority
-------------------
-
-Class: com.yahoo.athenz.auth.impl.RoleAuthority
-
-This authority is used only if the system administrator wants to
-support RoleTokens as a method for centralized authorization
-checks. It allows a client that retrieved its Role Token from
-ZTS Server to submit to ZMS Server for centralized authorization
-check.
 
 ### LDAP Authority
 ------------------

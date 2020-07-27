@@ -19,14 +19,6 @@ All ZMS API commands require that the client use a TLS certificate issued by Ath
 Services can use their Athenz Issued Service Identity certificates when communicating
 with ZMS.
 
-### Service/User NToken Support
-
-All ZMS API commands require that the principal executing the operation to be authenticated
-by providing its ServiceToken as part of the request. The NToken must be passed as the
-value of the **Athenz-Principal-Auth** header in the request. If the Authority used to
-authenticate the user credentials does not support authorization, then the user first
-must obtain a NToken from ZMS server and then use that NToken in its request.
-
 ## Authorization
 
 Limited number of ZTS API endpoints are authorized against the configured
@@ -176,8 +168,7 @@ An entity name is a short form of a resource name, including only the domain and
 
 ### Identity
 
-A signed identity object that could be either a client certificate or just a regular
-NToken (depending if the request contained a csr or not).
+A signed identity object that is a client certificate.
 
 `Identity` is a `Struct` type with the following fields:
 
@@ -187,7 +178,6 @@ NToken (depending if the request contained a csr or not).
 | certificate | String | optional | TLS Certificate | |
 | caCertBundle | String | optional | CA certificate chain | |
 | sshServerCert | String | optional | SSH server certificate | |
-| serviceToken | SignedToken | optional | Service NToken | |
 | attributes | Map&lt;String, String&gt; | optional | config like attributes | |
 
 ### InstanceIdentity
@@ -205,7 +195,6 @@ A signed instance identity object that includes client certificate
 | x509CertificateSigner | String | optional | CA certificate chain | |
 | sshCertificate | String | optional | SSH server certificate | |
 | sshCertificateSigner | String | optional | SSH server certificate signer pubilc key | |
-| serviceToken | SignedToken | optional | Service NToken | |
 | attributes | Map&lt;String, String&gt; | optional | config like attributes | |
 
 ### InstanceRefreshRequest
@@ -235,7 +224,6 @@ for the service.
 | attestationData | String | | identity attestation data | |
 | csr | String | | cert CSR if requesting TLS certificate | |
 | ssh | String | optional | ssh CSR if requesting SSH certificate | |
-| token | Bool | optional | boolean flag indicating ntoken with cert | |
 
 ### JWK
 
@@ -306,17 +294,6 @@ A role certificate request.
 | csr | String | optional | cert CSR if requesting TLS certificate | |
 | expiryTime | Int32 | optional | In seconds how long certificate should be valid for | |
 
-### RoleToken
-
-A signed role token returned by ZTS.
-
-`RoleToken` is a `Struct` type with the following fields:
-
-| Name | Type | Options | Description | Notes |
-| --- | --- | --- | --- | --- |
-| token | SignedToken | | Role Token | |
-| expiryTime | Integer | | Expiry Time | |
-
 ### ServiceName
 
 A service name will generally be a unique subdomain
@@ -382,7 +359,7 @@ A full Resource name (YRN)
 
 #### GET /access/{action}
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): None
 
 Check access for the specified operation/action on the specified resource for the currently authenticated user
@@ -419,7 +396,7 @@ Exception:
 
 #### POST "/oauth2/token"
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): None
 
 Return an oauth2 access token for the specific set of roles in the namespace that the user can assume.
@@ -508,7 +485,7 @@ Exception:
 
 #### POST "/instance/{domain}/{service}/refresh"
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): None
 
 Refresh self identity if the original identity was issued by ZTS. The token must
@@ -644,7 +621,7 @@ Exception:
 
 #### GET "/oauth2/keys"
 
--   [Authentication](#authentication): Certificate,NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): None
 
 Returns list of Json Web Keys (JWKs) that can be used by the ZTS Server
@@ -677,7 +654,7 @@ Exception:
 
 #### GET "/access/domain/{domainName}/principal/{principal}"
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): None
 
 List the roles that the given principal has in the domain.
@@ -747,7 +724,7 @@ Exception:
 
 #### GET "/access/domain/{domainName}/role/{roleName}/principal/{principal}"
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): None
 
 Check whether or not the given principal is included in the given role in the specified domain.
@@ -767,51 +744,6 @@ Expected:
 | Code | Type |
 | --- | --- |
 | 200 OK | Access |
-
-Exception:
-
-| Code | Type |
-| --- | --- |
-| 400 Bad Request | ResourceError |
-| 401 Unauthorized | ResourceError |
-| 403 Forbidden | ResourceError |
-| 404 Not Found | ResourceError |
-
-### RoleToken
-
-#### GET "/domain/{domainName}/token"
-
--   [Authentication](#authentication): Certificate, NToken
--   [Authorization](#authorization): None
-
-Return a security token for the specific set of roles in the namespace that the user can assume.
-If the role query element is omitted, then all roles in the namespace that the authenticated
-user can assume are returned. The caller can specify how long the RoleToken should be
-valid for by specifying the minExpiryTime and maxExpiryTime parameters. The minExpiryTime
-specifies that the returned RoleToken must be at least valid (min/lower bound) for specified
-number of seconds, while maxExpiryTime specifies that the RoleToken must be at most valid
-(max/upper bound) for specified number of seconds. If both values are the same, the server
-must return a RoleToken for that many seconds. If no values are specified, the server's
-default RoleToken Timeout value is used.
-
-##### Request Parameters
-
-| Name | Type | Source | Options | Description |
-| --- | --- | --- | --- | --- |
-| domainName | DomainName | path | | |
-| role | EntityList | query: role | optional | comma separated list of roles |
-| minExpiryTime | Integer | query: minExpiryTime | optional | |
-| maxExpiryTime | Integer | query: maxExpiryTime | optional | |
-| proxyForPrincipal | EntityName | query: proxyForPrincipal | optional | request is proxy for this principal |
-
-##### Responses
-
-Expected:
-
-| Code | Type |
-| --- | --- |
-| 200 OK | RoleToken |
-| 403 FORBIDDEN | Principal does not have access to any roles in this domain |
 
 Exception:
 

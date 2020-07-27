@@ -1,4 +1,4 @@
-By default, Athenz ZTS server allows principals to request access and role tokens
+By default, Athenz ZTS server allows principals to request access tokens
 with a maximum expiry of 30 days. However, the domain administrator has the capability
 to specify a maximum expiry limit for a given role or the full domain. This allows
 the domain administrators to control access to specific roles (or domains) such that
@@ -15,7 +15,7 @@ zms-cli -d <domain-name> set-role-token-expiry-mins <role-name> <max-expiry-mins
 ```
 
 If the domain administrator has specified a max token expiry mins of 30 to `db.writers` role,
-then ZTS will only issue access and role tokens with a maximum expiry of 30 mins even if
+then ZTS will only issue access tokens with a maximum expiry of 30 mins even if
 the principal is requesting a longer one. If the principal is requesting a token with a
 smaller expiry that 30 mins, for example 15 mins, then it will be honored and the token
 will be issued for 15 mins.
@@ -50,7 +50,7 @@ zms-cli -d <domain-name> set-domain-token-expiry-mins <max-expiry-mins>
 ```
 
 If the domain administrator has specified a max token expiry mins of 90 to `sales` domain,
-then ZTS will only issue access and role tokens with a maximum expiry of 90 mins even if
+then ZTS will only issue access tokens with a maximum expiry of 90 mins even if
 the principal is requesting a longer one. 
 
 The exception to this rule is if the domain administrator has also specified a value for
