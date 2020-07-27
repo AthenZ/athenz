@@ -47,6 +47,7 @@ import com.yahoo.athenz.zts.cert.*;
 import com.yahoo.athenz.zts.notification.ZTSNotificationTaskFactory;
 import com.yahoo.athenz.zts.store.CloudStore;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -2861,7 +2862,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         certRecord.setService(service);
         certRecord.setInstanceId(instanceId);
         certRecord.setClientIP(ServletRequestUtil.getRemoteAddress(ctx.request()));
-        certRecord.setPrivateIP(privateIp);
+        if (StringUtil.isEmpty(privateIp)) {
+            certRecord.setPrivateIP(certRecord.getClientIP());
+        } else {
+            certRecord.setPrivateIP(privateIp);
+        }
         return certRecord;
     }
 

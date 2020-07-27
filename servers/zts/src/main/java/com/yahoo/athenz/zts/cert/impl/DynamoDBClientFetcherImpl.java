@@ -24,6 +24,7 @@ import com.oath.auth.Utils;
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.zts.AWSCredentialsProviderImpl;
 import com.yahoo.athenz.zts.ZTSClientNotificationSender;
+import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,10 +34,9 @@ import static com.yahoo.athenz.zts.ZTSConsts.*;
 
 public class DynamoDBClientFetcherImpl implements DynamoDBClientFetcher {
     private static final Logger LOGGER = LoggerFactory.getLogger(DynamoDBClientFetcherImpl.class);
-    private final String defaultAwsRegion;
+    private String defaultAwsRegion;
 
     public DynamoDBClientFetcherImpl() {
-        this.defaultAwsRegion = EC2MetadataUtils.getEC2InstanceRegion();
     }
 
     public DynamoDBClientFetcherImpl(String defaultAwsRegion) {
@@ -56,20 +56,22 @@ public class DynamoDBClientFetcherImpl implements DynamoDBClientFetcher {
             return getAuthenticatedDynamoDBClient(dynamoDBClientSettings, ztsClientNotificationSender);
         } else {
             LOGGER.info("DynamoDB client will use existing AWS authentication");
-            if (dynamoDBClientSettings.getRegion().isEmpty()) {
-                // Use default region
-                AmazonDynamoDB client = AmazonDynamoDBClientBuilder
-                        .standard()
-                        .withRegion(defaultAwsRegion)
-                        .build();
-                return new DynamoDBClientAndCredentials(client, null);
-            } else {
-                AmazonDynamoDB client = AmazonDynamoDBClientBuilder
-                        .standard()
-                        .withRegion(dynamoDBClientSettings.getRegion())
-                        .build();
-                return new DynamoDBClientAndCredentials(client, null);
+            AmazonDynamoDB client = AmazonDynamoDBClientBuilder
+                    .standard()
+                    .withRegion(getAWSRegion(dynamoDBClientSettings.getRegion()))
+                    .build();
+            return new DynamoDBClientAndCredentials(client, null);
+        }
+    }
+
+    String getAWSRegion(final String settingRegion) {
+        if (StringUtil.isEmpty(settingRegion)) {
+            if (defaultAwsRegion == null) {
+                defaultAwsRegion = EC2MetadataUtils.getEC2InstanceRegion();
             }
+            return defaultAwsRegion;
+        } else {
+            return settingRegion;
         }
     }
 

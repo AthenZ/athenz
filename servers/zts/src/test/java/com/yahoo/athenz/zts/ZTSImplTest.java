@@ -40,6 +40,7 @@ import com.yahoo.athenz.common.server.cert.CertRecordStoreConnection;
 import com.yahoo.athenz.common.server.cert.X509CertRecord;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
+import com.yahoo.athenz.common.server.ssh.SSHCertRecord;
 import com.yahoo.athenz.common.server.store.ChangeLogStore;
 import com.yahoo.athenz.common.server.store.impl.ZMSFileChangeLogStore;
 import com.yahoo.athenz.zms.*;
@@ -11173,5 +11174,27 @@ public class ZTSImplTest {
         request = longRequest.toString();
 
         assertEquals(zts.getQueryLogData(request + "abcd"), request);
+    }
+
+    @Test
+    public void testGenerateSSHCertRecord() {
+
+        Principal principal = SimplePrincipal.create("user_domain", "user1",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        SSHCertRecord sshRecord = zts.generateSSHCertRecord(context, "api", "id001", "127.0.0.1");
+        assertEquals(sshRecord.getPrivateIP(), "127.0.0.1");
+        assertEquals(sshRecord.getClientIP(), MOCKCLIENTADDR);
+        assertEquals(sshRecord.getService(), "api");
+        assertEquals(sshRecord.getInstanceId(), "id001");
+
+        sshRecord = zts.generateSSHCertRecord(context, "api", "id001", "");
+        assertEquals(sshRecord.getPrivateIP(), MOCKCLIENTADDR);
+        assertEquals(sshRecord.getClientIP(), MOCKCLIENTADDR);
+
+        sshRecord = zts.generateSSHCertRecord(context, "api", "id001", null);
+        assertEquals(sshRecord.getPrivateIP(), MOCKCLIENTADDR);
+        assertEquals(sshRecord.getClientIP(), MOCKCLIENTADDR);
     }
 }
