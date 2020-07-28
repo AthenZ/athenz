@@ -44,6 +44,7 @@
         "functional": "wdio run src/__tests__/spec/wdio.conf.js"
     },
     "dependencies": {
+        "@ampproject/toolbox-optimizer": "2.4.0",
         "@athenz/auth-core": "^1.0.0",
         "@emotion/core": "^10.0.28",
         "@emotion/styled": "^10.0.27",
@@ -85,7 +86,6 @@
         "xml-crypto": "^0.10.1"
     },
     "devDependencies": {
-	"@ampproject/toolbox-optimizer": "2.4.0",
         "@babel/core": "7.6.4",
         "@sinonjs/referee": "^5.1.0",
         "@testing-library/jest-dom": "^4.2.4",
