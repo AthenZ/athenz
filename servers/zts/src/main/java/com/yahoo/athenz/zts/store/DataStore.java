@@ -308,11 +308,13 @@ public class DataStore implements DataCacheProvider, RolesProvider {
         int startSrc = 0;
         int len = bigBytes.length;
 
+        ///CLOVER:OFF
         // if bigInt is exactly byte-aligned, just skip signbit in copy
         if ((bigInt.bitLength() % 8) == 0) {
             startSrc = 1;
             len--;
         }
+        ///CLOVER:ON
         final int startDst = bitlen / 8 - len; // to pad w/ nulls as per spec
         final byte[] resizedBytes = new byte[bitlen / 8];
         System.arraycopy(bigBytes, startSrc, resizedBytes, startDst, len);
