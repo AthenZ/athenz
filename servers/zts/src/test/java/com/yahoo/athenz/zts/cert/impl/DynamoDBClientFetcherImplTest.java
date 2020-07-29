@@ -20,13 +20,15 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.google.common.io.Resources;
 import com.yahoo.athenz.zts.ZTSClientNotificationSender;
-import org.mockito.Mock;
+import org.eclipse.jetty.util.StringUtil;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
 import static com.yahoo.athenz.zts.ZTSConsts.*;
 import static com.yahoo.athenz.zts.ZTSConsts.ZTS_PROP_DYNAMODB_ZTS_URL;
 import static org.mockito.Mockito.when;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
 
 public class DynamoDBClientFetcherImplTest {
@@ -88,4 +90,22 @@ public class DynamoDBClientFetcherImplTest {
         System.clearProperty(ZTS_PROP_DYNAMODB_ZTS_URL);
     }
 
+    @Test
+    public void testGetAWSRegion() {
+
+        DynamoDBClientFetcherImpl dynamoDBClientFetcher = new DynamoDBClientFetcherImpl();
+        assertEquals(dynamoDBClientFetcher.getAWSRegion("us-west-2"), "us-west-2");
+
+        dynamoDBClientFetcher = new DynamoDBClientFetcherImpl("us-east-1");
+        assertEquals(dynamoDBClientFetcher.getAWSRegion("us-west-2"), "us-west-2");
+        assertEquals(dynamoDBClientFetcher.getAWSRegion(""), "us-east-1");
+        assertEquals(dynamoDBClientFetcher.getAWSRegion(null), "us-east-1");
+
+        // if this test is running in aws, then we'll get a valid region
+        // value. if running on-prem, then we'll get an exception when ec2 meta
+        // api is called. so we'll get a null value back
+
+        dynamoDBClientFetcher = new DynamoDBClientFetcherImpl();
+        dynamoDBClientFetcher.getAWSRegion(null);
+    }
 }
