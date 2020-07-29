@@ -51,10 +51,10 @@ nav:
 - Features:
     - Service Identity X.509 Certificates - Copper Argos: copper_argos.md
 - Developer Guide:
-    - Centralized Access Control: dev_centralized_access.md
+    - Centralized Authorization Flow: cent_authz_flow.md
+    - Decentralized Authorization Flow: decent_authz_flow.md
     - Java Client/Servlet Example: example_java_centralized_access.md
     - Go Client/Server Example: example_go_centralized_access.md
-    - Decentralized Access Control: dev_decentralized_access.md
     - Java Client/Servlet Example: example_java_decentralized_access.md
 - Customizing Athenz:
     - Principal Authentication: principal_authentication.md
