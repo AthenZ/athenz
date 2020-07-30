@@ -52,6 +52,7 @@ import com.yahoo.rdl.Timestamp;
 import com.yahoo.rdl.UUID;
 import com.yahoo.rdl.Validator;
 import com.yahoo.rdl.Validator.Result;
+import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -129,6 +130,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     private static final String TYPE_RESOURCE_NAMES = "ResourceNames";
     private static final String TYPE_AUTHORITY_KEYWORD = "AuthorityKeyword";
     private static final String TYPE_AUTHORITY_KEYWORDS = "AuthorityKeywords";
+
+    // Metric constants
+    private static final String METRIC_HTTP_REQUEST_NAME = "zms_api";
+    private static final String METRIC_HTTP_REQUEST_LATENCY_NAME = "zms_api_latency";
 
     private static final String SERVER_READ_ONLY_MESSAGE = "Server in Maintenance Read-Only mode. Please try your request later";
 
@@ -1054,242 +1059,262 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             String modifiedSince) {
 
         final String caller = "getdomainlist";
-        metric.increment(ZMSConsts.HTTP_GET);
-        metric.increment(ZMSConsts.HTTP_REQUEST);
-        metric.increment(caller);
-
         final String principalDomain = getPrincipalDomain(ctx);
-        Object timerMetric = metric.startTiming("getdomainlist_timing", null, principalDomain);
-        logPrincipal(ctx);
+        int httpStatus = HttpStatus.OK_200;
+        try {
+            Object timerMetric = metric.startTiming(METRIC_HTTP_REQUEST_LATENCY_NAME, null, principalDomain);
+            logPrincipal(ctx);
 
-        validateRequest(ctx.request(), caller);
+            validateRequest(ctx.request(), caller);
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("getDomainList: limit: " + limit + " skip: " + skip
-                    + " prefix: " + prefix + " depth: " + depth + " modifiedSince: " + modifiedSince);
-        }
-
-        // for consistent handling of all requests, we're going to convert
-        // all incoming object values into lower case (e.g. domain, role,
-        // policy, service, etc name)
-
-        if (skip != null) {
-            skip = skip.toLowerCase();
-        }
-        if (prefix != null) {
-            prefix = prefix.toLowerCase();
-        }
-        if (roleMember != null) {
-            roleMember = roleMember.toLowerCase();
-            validate(roleMember, TYPE_ENTITY_NAME, caller);
-        }
-        if (roleName != null) {
-            roleName = roleName.toLowerCase();
-            validate(roleName, TYPE_ENTITY_NAME, caller);
-        }
-        if (limit != null && limit <= 0) {
-            throw ZMSUtils.requestError("getDomainList: limit must be positive: " + limit, caller);
-        }
-
-        long modTime = 0;
-        if (modifiedSince != null && !modifiedSince.isEmpty()) {
-            // we only support RFC1123 format for if-modified-since format
-
-            SimpleDateFormat dateFmt = new SimpleDateFormat(ZMSConsts.HTTP_RFC1123_DATE_FORMAT);
-            dateFmt.setTimeZone(TimeZone.getTimeZone(ZMSConsts.HTTP_DATE_GMT_ZONE));
-            try {
-                Date date = dateFmt.parse(modifiedSince);
-                modTime = date.getTime();
-            } catch (ParseException ex) {
-                throw ZMSUtils.requestError("getDomainList: If-Modified-Since header value must be valid RFC1123 date"
-                        + ex.getMessage(), caller);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("getDomainList: limit: " + limit + " skip: " + skip
+                        + " prefix: " + prefix + " depth: " + depth + " modifiedSince: " + modifiedSince);
             }
+
+            // for consistent handling of all requests, we're going to convert
+            // all incoming object values into lower case (e.g. domain, role,
+            // policy, service, etc name)
+
+            if (skip != null) {
+                skip = skip.toLowerCase();
+            }
+            if (prefix != null) {
+                prefix = prefix.toLowerCase();
+            }
+            if (roleMember != null) {
+                roleMember = roleMember.toLowerCase();
+                validate(roleMember, TYPE_ENTITY_NAME, caller);
+            }
+            if (roleName != null) {
+                roleName = roleName.toLowerCase();
+                validate(roleName, TYPE_ENTITY_NAME, caller);
+            }
+            if (limit != null && limit <= 0) {
+                throw ZMSUtils.requestError("getDomainList: limit must be positive: " + limit, caller);
+            }
+
+            long modTime = 0;
+            if (modifiedSince != null && !modifiedSince.isEmpty()) {
+                // we only support RFC1123 format for if-modified-since format
+
+                SimpleDateFormat dateFmt = new SimpleDateFormat(ZMSConsts.HTTP_RFC1123_DATE_FORMAT);
+                dateFmt.setTimeZone(TimeZone.getTimeZone(ZMSConsts.HTTP_DATE_GMT_ZONE));
+                try {
+                    Date date = dateFmt.parse(modifiedSince);
+                    modTime = date.getTime();
+                } catch (ParseException ex) {
+                    throw ZMSUtils.requestError("getDomainList: If-Modified-Since header value must be valid RFC1123 date"
+                            + ex.getMessage(), caller);
+                }
+            }
+
+            // if we have account specified then we're going to ignore all
+            // other fields since there should only be one domain that
+            // matches the specified account. Otherwise, we're going to do
+            // the same thing for product id since there should also be one
+            // domain with that id. If neither one is present, then we'll
+            // do our regular domain list
+
+            DomainList dlist;
+            if (account != null && !account.isEmpty()) {
+                dlist = dbService.lookupDomainByAccount(account);
+            } else if (productId != null && productId != 0) {
+                dlist = dbService.lookupDomainByProductId(productId);
+            } else if (roleMember != null || roleName != null) {
+                dlist = dbService.lookupDomainByRole(normalizeDomainAliasUser(roleMember), roleName);
+            } else {
+                dlist = listDomains(limit, skip, prefix, depth, modTime, false);
+            }
+
+            metric.stopTiming(timerMetric, null, principalDomain, ZMSConsts.HTTP_GET, caller);
+            return dlist;
+        } catch (ResourceException e) {
+            httpStatus = e.getCode();
+            throw e;
+        } finally {
+            metric.increment(METRIC_HTTP_REQUEST_NAME, null, principalDomain, ZMSConsts.HTTP_GET, httpStatus, caller);
         }
-
-        // if we have account specified then we're going to ignore all
-        // other fields since there should only be one domain that
-        // matches the specified account. Otherwise, we're going to do
-        // the same thing for product id since there should also be one
-        // domain with that id. If neither one is present, then we'll
-        // do our regular domain list
-
-        DomainList dlist;
-        if (account != null && !account.isEmpty()) {
-            dlist = dbService.lookupDomainByAccount(account);
-        } else if (productId != null && productId != 0) {
-            dlist = dbService.lookupDomainByProductId(productId);
-        } else if (roleMember != null || roleName != null) {
-            dlist = dbService.lookupDomainByRole(normalizeDomainAliasUser(roleMember), roleName);
-        } else {
-            dlist = listDomains(limit, skip, prefix, depth, modTime, false);
-        }
-
-        metric.stopTiming(timerMetric, null, principalDomain);
-        return dlist;
     }
 
     public Domain getDomain(ResourceContext ctx, String domainName) {
 
         final String caller = "getdomain";
-        metric.increment(ZMSConsts.HTTP_GET);
-        logPrincipal(ctx);
-
-        validateRequest(ctx.request(), caller);
-        validate(domainName, TYPE_DOMAIN_NAME, caller);
-
-        // for consistent handling of all requests, we're going to convert
-        // all incoming object values into lower case (e.g. domain, role,
-        // policy, service, etc name)
-
-        domainName = domainName.toLowerCase();
         final String principalDomain = getPrincipalDomain(ctx);
-        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
-        metric.increment(caller, domainName, principalDomain);
+        int httpStatus = HttpStatus.OK_200;
+        try {
+            logPrincipal(ctx);
 
-        Object timerMetric = metric.startTiming("getdomain_timing", domainName, principalDomain);
+            validateRequest(ctx.request(), caller);
+            validate(domainName, TYPE_DOMAIN_NAME, caller);
 
-        Domain domain = dbService.getDomain(domainName, false);
-        if (domain == null) {
-            throw ZMSUtils.notFoundError("getDomain: Domain not found: " + domainName, caller);
+            // for consistent handling of all requests, we're going to convert
+            // all incoming object values into lower case (e.g. domain, role,
+            // policy, service, etc name)
+
+            domainName = domainName.toLowerCase();
+
+            Object timerMetric = metric.startTiming(METRIC_HTTP_REQUEST_LATENCY_NAME, domainName, principalDomain);
+
+            Domain domain = dbService.getDomain(domainName, false);
+            if (domain == null) {
+                throw ZMSUtils.notFoundError("getDomain: Domain not found: " + domainName, caller);
+            }
+
+            metric.stopTiming(timerMetric, domainName, principalDomain, ZMSConsts.HTTP_GET, caller);
+            return domain;
+        } catch (ResourceException e) {
+            httpStatus = e.getCode();
+            throw e;
+        } finally {
+            metric.increment(METRIC_HTTP_REQUEST_NAME, domainName, principalDomain, ZMSConsts.HTTP_GET, httpStatus, caller);
         }
-
-        metric.stopTiming(timerMetric, domainName, principalDomain);
-        return domain;
     }
 
     public Domain postTopLevelDomain(ResourceContext ctx, String auditRef, TopLevelDomain detail) {
 
         final String caller = "posttopleveldomain";
-        metric.increment(ZMSConsts.HTTP_POST);
-        logPrincipal(ctx);
-
-        if (readOnlyMode) {
-            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
-        }
-
-        validateRequest(ctx.request(), caller);
-
-        validate(detail, TYPE_TOP_LEVEL_DOMAIN, caller);
-
-        String domainName = detail.getName();
-        validate(domainName, TYPE_DOMAIN_NAME, caller);
-
-        domainName = domainName.toLowerCase();
-
         final String principalDomain = getPrincipalDomain(ctx);
-        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
-        metric.increment(caller, domainName, principalDomain);
-        Object timerMetric = metric.startTiming("posttopleveldomain_timing", domainName, principalDomain);
+        int httpStatus = HttpStatus.OK_200;
+        try {
+            logPrincipal(ctx);
 
-        if (domainName.indexOf('_') != -1 && !isSysAdminUser(((RsrcCtxWrapper) ctx).principal())) {
-            throw ZMSUtils.requestError("Domain name cannot contain underscores", caller);
-        }
-
-        // verify length of domain name
-
-        if (domainName.length() > domainNameMaxLen) {
-            throw ZMSUtils.requestError("Invalid Domain name: " + domainName
-                    + " : name length cannot exceed: " + domainNameMaxLen, caller);
-        }
-
-        // verify that request is properly authenticated for this request
-
-        Principal principal = ((RsrcCtxWrapper) ctx).principal();
-        verifyAuthorizedServiceOperation(principal.getAuthorizedService(), caller);
-
-        // for consistent handling of all requests, we're going to convert
-        // all incoming object values into lower case (e.g. domain, role,
-        // policy, service, etc name)
-
-        AthenzObject.TOP_LEVEL_DOMAIN.convertToLowerCase(detail);
-
-        List<String> solutionTemplates = null;
-        DomainTemplateList templates = detail.getTemplates();
-        if (templates != null) {
-            solutionTemplates = templates.getTemplateNames();
-            validateSolutionTemplates(solutionTemplates, caller);
-        }
-
-        // check to see if we need to validate our product id for the top
-        // level domains. The server code assumes that product id with
-        // 0 indicates no enforcement
-
-        int productId = 0;
-        if (productIdSupport) {
-            if (detail.getYpmId() != null) {
-                if ((productId = detail.getYpmId()) <= 0) {
-                    throw ZMSUtils.requestError("Product Id must be a positive integer", caller);
-                }
-            } else {
-                throw ZMSUtils.requestError("Product Id is required when creating top level domain", caller);
+            if (readOnlyMode) {
+                throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
             }
+
+            validateRequest(ctx.request(), caller);
+
+            validate(detail, TYPE_TOP_LEVEL_DOMAIN, caller);
+
+            String domainName = detail.getName();
+            validate(domainName, TYPE_DOMAIN_NAME, caller);
+
+            domainName = domainName.toLowerCase();
+
+            Object timerMetric = metric.startTiming(METRIC_HTTP_REQUEST_LATENCY_NAME, domainName, principalDomain);
+
+            if (domainName.indexOf('_') != -1 && !isSysAdminUser(((RsrcCtxWrapper) ctx).principal())) {
+                throw ZMSUtils.requestError("Domain name cannot contain underscores", caller);
+            }
+
+            // verify length of domain name
+
+            if (domainName.length() > domainNameMaxLen) {
+                throw ZMSUtils.requestError("Invalid Domain name: " + domainName
+                        + " : name length cannot exceed: " + domainNameMaxLen, caller);
+            }
+
+            // verify that request is properly authenticated for this request
+
+            Principal principal = ((RsrcCtxWrapper) ctx).principal();
+            verifyAuthorizedServiceOperation(principal.getAuthorizedService(), caller);
+
+            // for consistent handling of all requests, we're going to convert
+            // all incoming object values into lower case (e.g. domain, role,
+            // policy, service, etc name)
+
+            AthenzObject.TOP_LEVEL_DOMAIN.convertToLowerCase(detail);
+
+            List<String> solutionTemplates = null;
+            DomainTemplateList templates = detail.getTemplates();
+            if (templates != null) {
+                solutionTemplates = templates.getTemplateNames();
+                validateSolutionTemplates(solutionTemplates, caller);
+            }
+
+            // check to see if we need to validate our product id for the top
+            // level domains. The server code assumes that product id with
+            // 0 indicates no enforcement
+
+            int productId = 0;
+            if (productIdSupport) {
+                if (detail.getYpmId() != null) {
+                    if ((productId = detail.getYpmId()) <= 0) {
+                        throw ZMSUtils.requestError("Product Id must be a positive integer", caller);
+                    }
+                } else {
+                    throw ZMSUtils.requestError("Product Id is required when creating top level domain", caller);
+                }
+            }
+
+            // if we're provided a user authority filter then we need to
+            // make sure it's valid
+
+            validateUserAuthorityFilterAttribute(detail.getUserAuthorityFilter(), caller);
+
+            // process our top level domain request
+
+            Domain topLevelDomain = new Domain()
+                    .setName(domainName)
+                    .setAuditEnabled(detail.getAuditEnabled())
+                    .setDescription(detail.getDescription())
+                    .setOrg(detail.getOrg())
+                    .setId(UUID.fromCurrentTime())
+                    .setAccount(detail.getAccount())
+                    .setYpmId(productId)
+                    .setModified(Timestamp.fromCurrentTime())
+                    .setApplicationId(detail.getApplicationId())
+                    .setMemberExpiryDays(detail.getMemberExpiryDays())
+                    .setServiceExpiryDays(detail.getServiceExpiryDays())
+                    .setTokenExpiryMins(detail.getTokenExpiryMins())
+                    .setServiceCertExpiryMins(detail.getServiceCertExpiryMins())
+                    .setRoleCertExpiryMins(detail.getRoleCertExpiryMins())
+                    .setSignAlgorithm(detail.getSignAlgorithm())
+                    .setUserAuthorityFilter(detail.getUserAuthorityFilter());
+
+            // before processing validate the fields
+
+            validateDomainValues(topLevelDomain);
+
+            List<String> adminUsers = normalizedAdminUsers(detail.getAdminUsers(), detail.getUserAuthorityFilter(), caller);
+            Domain domain = createTopLevelDomain(ctx, topLevelDomain, adminUsers, solutionTemplates, auditRef);
+            metric.stopTiming(timerMetric, domainName, principalDomain, ZMSConsts.HTTP_POST, caller);
+            return domain;
+        } catch (ResourceException e) {
+            httpStatus = e.getCode();
+            throw e;
+        } finally {
+            String domainName = (detail != null) ? detail.getName() : null;
+            metric.increment(METRIC_HTTP_REQUEST_NAME, domainName, principalDomain, ZMSConsts.HTTP_POST, httpStatus, caller);
         }
-
-        // if we're provided a user authority filter then we need to
-        // make sure it's valid
-
-        validateUserAuthorityFilterAttribute(detail.getUserAuthorityFilter(), caller);
-
-        // process our top level domain request
-
-        Domain topLevelDomain = new Domain()
-                .setName(domainName)
-                .setAuditEnabled(detail.getAuditEnabled())
-                .setDescription(detail.getDescription())
-                .setOrg(detail.getOrg())
-                .setId(UUID.fromCurrentTime())
-                .setAccount(detail.getAccount())
-                .setYpmId(productId)
-                .setModified(Timestamp.fromCurrentTime())
-                .setApplicationId(detail.getApplicationId())
-                .setMemberExpiryDays(detail.getMemberExpiryDays())
-                .setServiceExpiryDays(detail.getServiceExpiryDays())
-                .setTokenExpiryMins(detail.getTokenExpiryMins())
-                .setServiceCertExpiryMins(detail.getServiceCertExpiryMins())
-                .setRoleCertExpiryMins(detail.getRoleCertExpiryMins())
-                .setSignAlgorithm(detail.getSignAlgorithm())
-                .setUserAuthorityFilter(detail.getUserAuthorityFilter());
-
-        // before processing validate the fields
-
-        validateDomainValues(topLevelDomain);
-
-        List<String> adminUsers = normalizedAdminUsers(detail.getAdminUsers(), detail.getUserAuthorityFilter(), caller);
-        Domain domain = createTopLevelDomain(ctx, topLevelDomain, adminUsers, solutionTemplates, auditRef);
-        metric.stopTiming(timerMetric, domainName, principalDomain);
-        return domain;
     }
 
     public void deleteTopLevelDomain(ResourceContext ctx, String domainName, String auditRef) {
 
         final String caller = "deletetopleveldomain";
-        metric.increment(ZMSConsts.HTTP_DELETE);
-        logPrincipal(ctx);
-
-        if (readOnlyMode) {
-            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
-        }
-
-        validateRequest(ctx.request(), caller);
-        validate(domainName, TYPE_DOMAIN_NAME, caller);
-
-        domainName = domainName.toLowerCase();
-
         final String principalDomain = getPrincipalDomain(ctx);
-        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
-        metric.increment(caller, domainName, principalDomain);
-        Object timerMetric = metric.startTiming("deletetopleveldomain_timing", domainName, principalDomain);
+        int httpStatus = HttpStatus.OK_200;
+        try {
+            logPrincipal(ctx);
 
-        // verify that request is properly authenticated for this request
+            if (readOnlyMode) {
+                throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
+            }
 
-        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+            validateRequest(ctx.request(), caller);
+            validate(domainName, TYPE_DOMAIN_NAME, caller);
 
-        // for consistent handling of all requests, we're going to convert
-        // all incoming object values into lower case (e.g. domain, role,
-        // policy, service, etc name)
+            domainName = domainName.toLowerCase();
 
-        deleteDomain(ctx, auditRef, domainName, caller);
-        metric.stopTiming(timerMetric, domainName, principalDomain);
+            Object timerMetric = metric.startTiming(METRIC_HTTP_REQUEST_LATENCY_NAME, domainName, principalDomain);
+
+            // verify that request is properly authenticated for this request
+
+            verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+
+            // for consistent handling of all requests, we're going to convert
+            // all incoming object values into lower case (e.g. domain, role,
+            // policy, service, etc name)
+
+            deleteDomain(ctx, auditRef, domainName, caller);
+            metric.stopTiming(timerMetric, domainName, principalDomain, ZMSConsts.HTTP_DELETE, caller);
+        } catch (ResourceException e) {
+            httpStatus = e.getCode();
+            throw e;
+        } finally {
+            metric.increment(METRIC_HTTP_REQUEST_NAME, domainName, principalDomain, ZMSConsts.HTTP_DELETE, httpStatus, caller);
+        }
     }
 
     void deleteDomain(ResourceContext ctx, String auditRef, String domainName, String caller) {
@@ -1350,195 +1375,205 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     public Domain postUserDomain(ResourceContext ctx, String name, String auditRef, UserDomain detail) {
 
         final String caller = "postuserdomain";
-        metric.increment(ZMSConsts.HTTP_POST);
-        logPrincipal(ctx);
-
-        if (readOnlyMode) {
-            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
-        }
-
-        validateRequest(ctx.request(), caller);
-        validate(detail, TYPE_USER_DOMAIN, caller);
-        validate(name, TYPE_SIMPLE_NAME, caller);
-
-        // for consistent handling of all requests, we're going to convert
-        // all incoming object values into lower case (e.g. domain, role,
-        // policy, service, etc name)
-
-        name = name.toLowerCase();
-        AthenzObject.USER_DOMAIN.convertToLowerCase(detail);
-
         final String principalDomain = getPrincipalDomain(ctx);
-        metric.increment(ZMSConsts.HTTP_REQUEST, name, principalDomain);
-        metric.increment(caller, name, principalDomain);
-        Object timerMetric = metric.startTiming("postuserdomain_timing", name, principalDomain);
+        int httpStatus = HttpStatus.OK_200;
+        try {
+            logPrincipal(ctx);
 
-        if (detail.getName().indexOf('_') != -1 && !isSysAdminUser(((RsrcCtxWrapper) ctx).principal())) {
-            throw ZMSUtils.requestError("Domain name cannot contain underscores", caller);
+            if (readOnlyMode) {
+                throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
+            }
+
+            validateRequest(ctx.request(), caller);
+            validate(detail, TYPE_USER_DOMAIN, caller);
+            validate(name, TYPE_SIMPLE_NAME, caller);
+
+            // for consistent handling of all requests, we're going to convert
+            // all incoming object values into lower case (e.g. domain, role,
+            // policy, service, etc name)
+
+            name = name.toLowerCase();
+            AthenzObject.USER_DOMAIN.convertToLowerCase(detail);
+
+            Object timerMetric = metric.startTiming(METRIC_HTTP_REQUEST_LATENCY_NAME, name, principalDomain);
+
+            if (detail.getName().indexOf('_') != -1 && !isSysAdminUser(((RsrcCtxWrapper) ctx).principal())) {
+                throw ZMSUtils.requestError("Domain name cannot contain underscores", caller);
+            }
+
+            // verify that request is properly authenticated for this request
+
+            Principal principal = ((RsrcCtxWrapper) ctx).principal();
+            verifyAuthorizedServiceOperation(principal.getAuthorizedService(), caller);
+
+            if (!name.equals(detail.getName())) {
+                throw ZMSUtils.forbiddenError("postUserDomain: Request and detail domain names do not match", caller);
+            }
+
+            // we're dealing with user's top level domain so the parent is going
+            // to be the home domain and the admin of the domain is the user
+
+            final String userDomainAdmin = userDomainPrefix + principal.getName();
+            validateRoleMemberPrincipal(userDomainAdmin, null, caller);
+
+            List<String> adminUsers = new ArrayList<>();
+            adminUsers.add(userDomainAdmin);
+
+            List<String> solutionTemplates = null;
+            DomainTemplateList templates = detail.getTemplates();
+            if (templates != null) {
+                solutionTemplates = templates.getTemplateNames();
+                validateSolutionTemplates(solutionTemplates, caller);
+            }
+
+            Domain subDomain = new Domain()
+                    .setName(homeDomain + "." + getUserDomainName(detail.getName()))
+                    .setAuditEnabled(detail.getAuditEnabled())
+                    .setDescription(detail.getDescription())
+                    .setOrg(detail.getOrg())
+                    .setId(UUID.fromCurrentTime())
+                    .setAccount(detail.getAccount())
+                    .setModified(Timestamp.fromCurrentTime())
+                    .setApplicationId(detail.getApplicationId())
+                    .setMemberExpiryDays(detail.getMemberExpiryDays())
+                    .setServiceExpiryDays(detail.getServiceExpiryDays())
+                    .setTokenExpiryMins(detail.getTokenExpiryMins())
+                    .setServiceCertExpiryMins(detail.getServiceCertExpiryMins())
+                    .setRoleCertExpiryMins(detail.getRoleCertExpiryMins())
+                    .setSignAlgorithm(detail.getSignAlgorithm());
+
+            // before processing validate the fields
+
+            validateDomainValues(subDomain);
+
+            Domain domain = createSubDomain(ctx, subDomain, adminUsers, solutionTemplates, auditRef, caller);
+            metric.stopTiming(timerMetric, name, principalDomain, ZMSConsts.HTTP_POST, caller);
+            return domain;
+        } catch (ResourceException e) {
+            httpStatus = e.getCode();
+            throw e;
+        } finally {
+            metric.increment(METRIC_HTTP_REQUEST_NAME, name, principalDomain, ZMSConsts.HTTP_POST, httpStatus, caller);
         }
-
-        // verify that request is properly authenticated for this request
-
-        Principal principal = ((RsrcCtxWrapper) ctx).principal();
-        verifyAuthorizedServiceOperation(principal.getAuthorizedService(), caller);
-
-        if (!name.equals(detail.getName())) {
-            throw ZMSUtils.forbiddenError("postUserDomain: Request and detail domain names do not match", caller);
-        }
-
-        // we're dealing with user's top level domain so the parent is going
-        // to be the home domain and the admin of the domain is the user
-
-        final String userDomainAdmin = userDomainPrefix + principal.getName();
-        validateRoleMemberPrincipal(userDomainAdmin, null, caller);
-
-        List<String> adminUsers = new ArrayList<>();
-        adminUsers.add(userDomainAdmin);
-
-        List<String> solutionTemplates = null;
-        DomainTemplateList templates = detail.getTemplates();
-        if (templates != null) {
-            solutionTemplates = templates.getTemplateNames();
-            validateSolutionTemplates(solutionTemplates, caller);
-        }
-
-        Domain subDomain = new Domain()
-                .setName(homeDomain + "." + getUserDomainName(detail.getName()))
-                .setAuditEnabled(detail.getAuditEnabled())
-                .setDescription(detail.getDescription())
-                .setOrg(detail.getOrg())
-                .setId(UUID.fromCurrentTime())
-                .setAccount(detail.getAccount())
-                .setModified(Timestamp.fromCurrentTime())
-                .setApplicationId(detail.getApplicationId())
-                .setMemberExpiryDays(detail.getMemberExpiryDays())
-                .setServiceExpiryDays(detail.getServiceExpiryDays())
-                .setTokenExpiryMins(detail.getTokenExpiryMins())
-                .setServiceCertExpiryMins(detail.getServiceCertExpiryMins())
-                .setRoleCertExpiryMins(detail.getRoleCertExpiryMins())
-                .setSignAlgorithm(detail.getSignAlgorithm());
-
-        // before processing validate the fields
-
-        validateDomainValues(subDomain);
-
-        Domain domain = createSubDomain(ctx, subDomain, adminUsers, solutionTemplates, auditRef, caller);
-        metric.stopTiming(timerMetric, name, principalDomain);
-        return domain;
     }
 
     public Domain postSubDomain(ResourceContext ctx, String parent, String auditRef, SubDomain detail) {
 
         final String caller = "postsubdomain";
-        metric.increment(ZMSConsts.HTTP_POST);
-        logPrincipal(ctx);
-
-        if (readOnlyMode) {
-            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
-        }
-
-        validateRequest(ctx.request(), caller);
-        validate(detail, TYPE_SUB_DOMAIN, caller);
-        validate(parent, TYPE_DOMAIN_NAME, caller);
-        validate(detail.getName(), TYPE_SIMPLE_NAME, caller);
-
-        // for consistent handling of all requests, we're going to convert
-        // all incoming object values into lower case (e.g. domain, role,
-        // policy, service, etc name)
-
-        parent = parent.toLowerCase();
-        AthenzObject.SUB_DOMAIN.convertToLowerCase(detail);
-
         final String principalDomain = getPrincipalDomain(ctx);
-        metric.increment(ZMSConsts.HTTP_REQUEST, parent, principalDomain);
-        metric.increment(caller, parent, principalDomain);
-        Object timerMetric = metric.startTiming("postsubdomain_timing", parent, principalDomain);
+        int httpStatus = HttpStatus.OK_200;
+        try {
+            logPrincipal(ctx);
 
-        if (detail.getName().indexOf('_') != -1 && !isSysAdminUser(((RsrcCtxWrapper) ctx).principal())) {
-            throw ZMSUtils.requestError("Domain name cannot contain underscores", caller);
-        }
+            if (readOnlyMode) {
+                throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
+            }
 
-        // verify that request is properly authenticated for this request
+            validateRequest(ctx.request(), caller);
+            validate(detail, TYPE_SUB_DOMAIN, caller);
+            validate(parent, TYPE_DOMAIN_NAME, caller);
+            validate(detail.getName(), TYPE_SIMPLE_NAME, caller);
 
-        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+            // for consistent handling of all requests, we're going to convert
+            // all incoming object values into lower case (e.g. domain, role,
+            // policy, service, etc name)
 
-        if (!parent.equals(detail.getParent())) {
-            throw ZMSUtils.forbiddenError("postSubDomain: Request and detail parent domains do not match", caller);
-        }
+            parent = parent.toLowerCase();
+            AthenzObject.SUB_DOMAIN.convertToLowerCase(detail);
 
-        // if we're dealing with virtual/home domains (in the user's own namespace)
-        // and we don't have unlimited support for virtual domains then we need to
-        // make sure we don't exceed our configured number of virtual subdomains 
-        // allowed per user
+            Object timerMetric = metric.startTiming(METRIC_HTTP_REQUEST_LATENCY_NAME, parent, principalDomain);
 
-        if (virtualDomainLimit != 0 && isVirtualDomain(parent) && hasExceededVirtualSubDomainLimit(parent)) {
-            throw ZMSUtils.forbiddenError("postSubDomain: Exceeding the configured number of virtual subdomains", caller);
-        }
+            if (detail.getName().indexOf('_') != -1 && !isSysAdminUser(((RsrcCtxWrapper) ctx).principal())) {
+                throw ZMSUtils.requestError("Domain name cannot contain underscores", caller);
+            }
 
-        List<String> solutionTemplates = null;
-        DomainTemplateList templates = detail.getTemplates();
-        if (templates != null) {
-            solutionTemplates = templates.getTemplateNames();
-            validateSolutionTemplates(solutionTemplates, caller);
-        }
+            // verify that request is properly authenticated for this request
 
-        // while it's not required for sub domains to have product ids
-        // we're going to store it in case there is a requirement to
-        // generate reports based on product ids even for subdomains
-        // unlike top level domains, passing 0 is ok here as it indicates
-        // that there is no product id
+            verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
 
-        int productId = 0;
-        if (productIdSupport) {
-            if (detail.getYpmId() != null) {
-                if ((productId = detail.getYpmId()) < 0) {
-                    throw ZMSUtils.requestError("Product Id must be a positive integer", caller);
+            if (!parent.equals(detail.getParent())) {
+                throw ZMSUtils.forbiddenError("postSubDomain: Request and detail parent domains do not match", caller);
+            }
+
+            // if we're dealing with virtual/home domains (in the user's own namespace)
+            // and we don't have unlimited support for virtual domains then we need to
+            // make sure we don't exceed our configured number of virtual subdomains
+            // allowed per user
+
+            if (virtualDomainLimit != 0 && isVirtualDomain(parent) && hasExceededVirtualSubDomainLimit(parent)) {
+                throw ZMSUtils.forbiddenError("postSubDomain: Exceeding the configured number of virtual subdomains", caller);
+            }
+
+            List<String> solutionTemplates = null;
+            DomainTemplateList templates = detail.getTemplates();
+            if (templates != null) {
+                solutionTemplates = templates.getTemplateNames();
+                validateSolutionTemplates(solutionTemplates, caller);
+            }
+
+            // while it's not required for sub domains to have product ids
+            // we're going to store it in case there is a requirement to
+            // generate reports based on product ids even for subdomains
+            // unlike top level domains, passing 0 is ok here as it indicates
+            // that there is no product id
+
+            int productId = 0;
+            if (productIdSupport) {
+                if (detail.getYpmId() != null) {
+                    if ((productId = detail.getYpmId()) < 0) {
+                        throw ZMSUtils.requestError("Product Id must be a positive integer", caller);
+                    }
                 }
             }
+
+            // verify that the parent domain exists
+
+            AthenzDomain parentDomain = getAthenzDomain(parent, false);
+            if (parentDomain == null || parentDomain.getDomain() == null) {
+                throw ZMSUtils.notFoundError("Invalid parent domain: " + parent, caller);
+            }
+
+            // inherit audit_enabled flag, organization and user authority settings
+            // from the parent domain
+
+            detail.setAuditEnabled(parentDomain.getDomain().getAuditEnabled());
+            detail.setOrg(parentDomain.getDomain().getOrg());
+            detail.setUserAuthorityFilter(parentDomain.getDomain().getUserAuthorityFilter());
+
+            // generate and verify admin users
+
+            List<String> adminUsers = normalizedAdminUsers(detail.getAdminUsers(), detail.getUserAuthorityFilter(), caller);
+
+            Domain subDomain = new Domain()
+                    .setName(detail.getParent() + "." + detail.getName())
+                    .setAuditEnabled(detail.getAuditEnabled())
+                    .setDescription(detail.getDescription())
+                    .setOrg(detail.getOrg())
+                    .setId(UUID.fromCurrentTime())
+                    .setYpmId(productId)
+                    .setAccount(detail.getAccount())
+                    .setModified(Timestamp.fromCurrentTime())
+                    .setApplicationId(detail.getApplicationId())
+                    .setMemberExpiryDays(detail.getMemberExpiryDays())
+                    .setServiceExpiryDays(detail.getServiceExpiryDays())
+                    .setTokenExpiryMins(detail.getTokenExpiryMins())
+                    .setServiceCertExpiryMins(detail.getServiceCertExpiryMins())
+                    .setRoleCertExpiryMins(detail.getRoleCertExpiryMins())
+                    .setSignAlgorithm(detail.getSignAlgorithm());
+
+            // before processing validate the fields
+
+            validateDomainValues(subDomain);
+
+            Domain domain = createSubDomain(ctx, subDomain, adminUsers, solutionTemplates, auditRef, caller);
+            metric.stopTiming(timerMetric, parent, principalDomain, ZMSConsts.HTTP_POST, caller);
+            return domain;
+        } catch (ResourceException e) {
+            httpStatus = e.getCode();
+            throw e;
+        } finally {
+            metric.increment(METRIC_HTTP_REQUEST_NAME, parent, principalDomain, ZMSConsts.HTTP_POST, httpStatus, caller);
         }
-
-        // verify that the parent domain exists
-
-        AthenzDomain parentDomain = getAthenzDomain(parent, false);
-        if (parentDomain == null || parentDomain.getDomain() == null) {
-            throw ZMSUtils.notFoundError("Invalid parent domain: " + parent, caller);
-        }
-
-        // inherit audit_enabled flag, organization and user authority settings
-        // from the parent domain
-
-        detail.setAuditEnabled(parentDomain.getDomain().getAuditEnabled());
-        detail.setOrg(parentDomain.getDomain().getOrg());
-        detail.setUserAuthorityFilter(parentDomain.getDomain().getUserAuthorityFilter());
-
-        // generate and verify admin users
-
-        List<String> adminUsers = normalizedAdminUsers(detail.getAdminUsers(), detail.getUserAuthorityFilter(), caller);
-
-        Domain subDomain = new Domain()
-                .setName(detail.getParent() + "." + detail.getName())
-                .setAuditEnabled(detail.getAuditEnabled())
-                .setDescription(detail.getDescription())
-                .setOrg(detail.getOrg())
-                .setId(UUID.fromCurrentTime())
-                .setYpmId(productId)
-                .setAccount(detail.getAccount())
-                .setModified(Timestamp.fromCurrentTime())
-                .setApplicationId(detail.getApplicationId())
-                .setMemberExpiryDays(detail.getMemberExpiryDays())
-                .setServiceExpiryDays(detail.getServiceExpiryDays())
-                .setTokenExpiryMins(detail.getTokenExpiryMins())
-                .setServiceCertExpiryMins(detail.getServiceCertExpiryMins())
-                .setRoleCertExpiryMins(detail.getRoleCertExpiryMins())
-                .setSignAlgorithm(detail.getSignAlgorithm());
-
-        // before processing validate the fields
-
-        validateDomainValues(subDomain);
-
-        Domain domain = createSubDomain(ctx, subDomain, adminUsers, solutionTemplates, auditRef, caller);
-        metric.stopTiming(timerMetric, parent, principalDomain);
-        return domain;
     }
 
     boolean isSysAdminUser(Principal principal) {
