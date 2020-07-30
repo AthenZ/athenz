@@ -1131,7 +1131,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     public Domain getDomain(ResourceContext ctx, String domainName) {
 
         final String caller = "getdomain";
-        metric.increment(ZMSConsts.HTTP_GET);
         logPrincipal(ctx);
 
         validateRequest(ctx.request(), caller);
@@ -1142,18 +1141,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // policy, service, etc name)
 
         domainName = domainName.toLowerCase();
+        setRequestDomain(ctx, domainName);
         final String principalDomain = getPrincipalDomain(ctx);
-        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
-        metric.increment(caller, domainName, principalDomain);
-
-        Object timerMetric = metric.startTiming("getdomain_timing", domainName, principalDomain);
 
         Domain domain = dbService.getDomain(domainName, false);
         if (domain == null) {
             throw ZMSUtils.notFoundError("getDomain: Domain not found: " + domainName, caller);
         }
 
-        metric.stopTiming(timerMetric, domainName, principalDomain);
         return domain;
     }
 
@@ -7672,6 +7667,18 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return ctxPrincipal == null ? null : ctxPrincipal.getDomain();
     }
 
+    void setRequestDomain(ResourceContext ctx, String requestDomainName) {
+        ((RsrcCtxWrapper) ctx).setRequestDomain(requestDomainName);
+    }
+
+    String getRequestDomainName(ResourceContext ctx) {
+        return ((RsrcCtxWrapper) ctx).getRequestDomain();
+    }
+
+    Object getTimerMetric(ResourceContext ctx) {
+        return ((RsrcCtxWrapper) ctx).getTimerMetric();
+    }
+
     void logPrincipal(ResourceContext ctx) {
         
         // we are going to log our principal and validate that it
@@ -7686,13 +7693,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     public ResourceContext newResourceContext(HttpServletRequest request,
             HttpServletResponse response) {
-        
+        Object timerMetric = startMetricTiming();
         // check to see if we want to allow this URI to be available
         // with optional authentication support
         
         boolean optionalAuth = StringUtils.requestUriMatch(request.getRequestURI(),
                 authFreeUriSet, authFreeUriList);
-        return new RsrcCtxWrapper(request, response, authorities, optionalAuth, this);
+        return new RsrcCtxWrapper(request, response, authorities, optionalAuth, this, timerMetric);
     }
     
     @Override
@@ -8279,4 +8286,15 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
 
+    public void recordMetrics(String httpMethod, int httpStatus, String apiName, ResourceContext ctx) {
+        final String principalDomainName = getPrincipalDomain(ctx);
+        final String domainName = getRequestDomainName(ctx);
+        final Object timerMetric = getTimerMetric(ctx);
+        metric.increment("zms_api", domainName, principalDomainName, httpMethod, httpStatus, apiName);
+        metric.stopTiming(timerMetric, domainName, principalDomainName, httpMethod, httpStatus, apiName);
+    }
+
+    public Object startMetricTiming() {
+        return metric.startTiming("zms_api_latency", null);
+    }
 }

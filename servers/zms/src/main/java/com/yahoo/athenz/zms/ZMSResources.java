@@ -17,12 +17,13 @@ public class ZMSResources {
     @Path("/domain/{domain}")
     @Produces(MediaType.APPLICATION_JSON)
     public Domain getDomain(@PathParam("domain") String domain) {
+        int code = ResourceException.OK;
+        ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getDomain(context, domain);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -38,6 +39,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getDomain");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics("GET", code, "getDomain", context);
         }
     }
 
