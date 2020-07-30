@@ -158,12 +158,13 @@ public interface Metric {
      * @param principalDomainName Name of the principal domain. principalDomainName is
      *      optional and can be passed as null in case the request has no principal
      * @param httpMethod - HTTP Method type (GET / POST / PUT / DELETE)
+     * @param httpStatus - Request HTTP Status (200 - OK, 404 - Not Found etc)
      * @param apiName - Name of the API method
      * @return timer object. The server will use this as the argument to
      *      the stopTiming method to indicate that the operation has completed
      *      and the time must be recorded for the metric.
      */
-    default void stopTiming(Object timerMetric, String requestDomainName, String principalDomainName, String httpMethod, String apiName) {
+    default void stopTiming(Object timerMetric, String requestDomainName, String principalDomainName, String httpMethod, int httpStatus, String apiName) {
         stopTiming(timerMetric);
     }
 

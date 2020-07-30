@@ -44,7 +44,7 @@ public class MetricsTest {
 
         metric.stopTiming("metric1");
         metric.stopTiming("metric1", "athenz", "sports");
-        metric.stopTiming("apiRquestsMetric", "athenz", "sports", "POST", "caller");
+        metric.stopTiming("apiRquestsMetric", "athenz", "sports", "POST", 200, "caller");
 
         metric.flush();
         metric.quit();
@@ -81,7 +81,7 @@ public class MetricsTest {
             }
 
             @Override
-            public void stopTiming(Object timerMetric, String requestDomainName, String principalDomainName, String httpMethod, String apiName) {
+            public void stopTiming(Object timerMetric, String requestDomainName, String principalDomainName, String httpMethod, int httpStatus, String apiName) {
             }
 
             @Override
@@ -105,7 +105,7 @@ public class MetricsTest {
 
         //metric.stopTiming("metric1");
         metric.stopTiming("metric1", "athenz", "sports");
-        metric.stopTiming("apiRquestsMetric", "athenz", "sports", "POST", "caller");
+        metric.stopTiming("apiRquestsMetric", "athenz", "sports", "POST", 200, "caller");
         metric.flush();
         metric.quit();
     }
