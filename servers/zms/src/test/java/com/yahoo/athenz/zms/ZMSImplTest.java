@@ -32,6 +32,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.base.Strings;
 import com.yahoo.athenz.auth.ServerPrivateKey;
 import com.yahoo.athenz.auth.impl.*;
+import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
 import com.yahoo.athenz.zms.notification.PutMembershipNotificationTask;
@@ -182,6 +183,7 @@ public class ZMSImplTest {
         Mockito.when(rsrcCtxWrapper.principal()).thenReturn(prince);
         Mockito.when(rsrcCtxWrapper.request()).thenReturn(mockServletRequest);
         Mockito.when(rsrcCtxWrapper.response()).thenReturn(mockServletResponse);
+
         return rsrcCtxWrapper;
     }
     
@@ -6803,8 +6805,9 @@ public class ZMSImplTest {
             assertEquals(ex.getCode(), 404);
         }
 
+        RsrcCtxWrapper ctx = Mockito.mock(RsrcCtxWrapper.class);
         try {
-            zms.getAccessCheck(principal2, "update", "resource1", null, null);
+            zms.getAccessCheck(principal2, "update", "resource1", null, null, ctx);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 404);
@@ -6826,7 +6829,7 @@ public class ZMSImplTest {
         }
 
         try {
-            zms.getAccessCheck(principal2, "update", domainName + ":resource1", null, null);
+            zms.getAccessCheck(principal2, "update", domainName + ":resource1", null, null, ctx);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 403);
@@ -11947,7 +11950,8 @@ public class ZMSImplTest {
     public void testOptionsUserToken() {
         HttpServletRequest servletRequest = new MockHttpServletRequest();
         HttpServletResponse servletResponse = new MockHttpServletResponse();
-        ResourceContext ctx = new RsrcCtxWrapper(servletRequest, servletResponse, null, false, null);
+        Object timerMetric = new Object();
+        ResourceContext ctx = new RsrcCtxWrapper(servletRequest, servletResponse, null, false, null, timerMetric);
         
         zms.optionsUserToken(ctx, "user", "coretech.storage");
         assertEquals("GET", servletResponse.getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_METHODS));
@@ -11964,7 +11968,8 @@ public class ZMSImplTest {
     public void testOptionsUserTokenRequestHeaders() {
         MockHttpServletRequest servletRequest = new MockHttpServletRequest();
         MockHttpServletResponse servletResponse = new MockHttpServletResponse();
-        ResourceContext ctx = new RsrcCtxWrapper(servletRequest, servletResponse, null, false, null);
+        Object timerMetric = new Object();
+        ResourceContext ctx = new RsrcCtxWrapper(servletRequest, servletResponse, null, false, null, timerMetric);
         
         String origin = "https://zms.origin.athenzcompany.com";
         String requestHeaders = "X-Forwarded-For,Content-Type";
@@ -11986,7 +11991,8 @@ public class ZMSImplTest {
     public void testSetStandardCORSHeaders() {
         HttpServletRequest servletRequest = new MockHttpServletRequest();
         HttpServletResponse servletResponse = new MockHttpServletResponse();
-        ResourceContext ctx = new RsrcCtxWrapper(servletRequest, servletResponse, null, false, null);
+        Object timerMetric = new Object();
+        ResourceContext ctx = new RsrcCtxWrapper(servletRequest, servletResponse, null, false, null, timerMetric);
         
         zms.setStandardCORSHeaders(ctx);
         assertEquals("true", servletResponse.getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_CREDENTIALS));
@@ -12001,7 +12007,8 @@ public class ZMSImplTest {
     public void testSetStandardCORSHeadersRequestHeaders() {
         MockHttpServletRequest servletRequest = new MockHttpServletRequest();
         MockHttpServletResponse servletResponse = new MockHttpServletResponse();
-        ResourceContext ctx = new RsrcCtxWrapper(servletRequest, servletResponse, null, false, null);
+        Object timerMetric = new Object();
+        ResourceContext ctx = new RsrcCtxWrapper(servletRequest, servletResponse, null, false, null, timerMetric);
         
         String origin = "https://zms.origin.athenzcompany.com";
         String requestHeaders = "X-Forwarded-For,Content-Type";
@@ -13449,14 +13456,13 @@ public class ZMSImplTest {
     
     @Test
     public void testResourceContext() {
-        
         RsrcCtxWrapper ctx = (RsrcCtxWrapper) zms.newResourceContext(mockServletRequest, mockServletResponse);
         assertNotNull(ctx);
         assertNotNull(ctx.context());
         assertNull(ctx.principal());
         assertEquals(ctx.request(), mockServletRequest);
         assertEquals(ctx.response(), mockServletResponse);
-        
+
         try {
             com.yahoo.athenz.common.server.rest.ResourceException restExc = new com.yahoo.athenz.common.server.rest.ResourceException(401, "failed struct");
             ctx.throwZmsException(restExc);
@@ -19750,5 +19756,85 @@ public class ZMSImplTest {
         }
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, trustDomainName, auditRef);
+    }
+
+    @Test
+    public void testRecordMetricsUnauthenticated() {
+        zms.metric = Mockito.mock(Metric.class);
+        String apiName = "someApiMethod";
+        RsrcCtxWrapper ctx = (RsrcCtxWrapper) zms.newResourceContext(mockServletRequest, mockServletResponse);
+        String testDomain = "testDomain";
+        int httpStatus = 200;
+        String httpMethod = "GET";
+        ctx.setRequestDomain(testDomain);
+        zms.recordMetrics(ctx, httpMethod, httpStatus, apiName);
+        Mockito.verify(zms.metric,
+                times(1)).increment (
+                        eq("zms_api"),
+                eq(testDomain),
+                eq(null),
+                eq(httpMethod),
+                eq(httpStatus),
+                eq(apiName));
+        Mockito.verify(zms.metric,
+                times(1)).stopTiming (
+                        eq(ctx.getTimerMetric()),
+                eq(testDomain),
+                eq(null),
+                eq(httpMethod), eq(httpStatus), eq(apiName + "_timing"));
+        Mockito.verify(zms.metric,
+                times(1)).startTiming (
+                eq("zms_api_latency"),
+                eq(null));
+    }
+
+    @Test
+    public void testRecordMetricsAuthenticated() {
+        zms.metric = Mockito.mock(Metric.class);
+        RsrcCtxWrapper ctx = mockDomRsrcCtx;
+        String testDomain = "testDomain";
+        int httpStatus = 200;
+        String httpMethod = "GET";
+        String apiName = "someApiMethod";
+        Mockito.when(ctx.getRequestDomain()).thenReturn(testDomain);
+        zms.recordMetrics(ctx, httpMethod, httpStatus, apiName);
+        Mockito.verify(zms.metric,
+                times(1)).increment (
+                eq("zms_api"),
+                eq(testDomain),
+                eq("user"),
+                eq(httpMethod),
+                eq(httpStatus),
+                eq(apiName));
+        Mockito.verify(zms.metric,
+                times(1)).stopTiming (
+                eq(ctx.getTimerMetric()),
+                eq(testDomain),
+                eq("user"),
+                eq(httpMethod), eq(httpStatus), eq(apiName + "_timing"));
+    }
+
+    @Test
+    public void testRecordMetricsNoCtx() {
+        String apiName = "someApiMethod";
+        RsrcCtxWrapper ctx = null;
+        int httpStatus = 200;
+        String httpMethod = "GET";
+        zms.metric = Mockito.mock(Metric.class);
+        zms.recordMetrics(ctx, httpMethod, httpStatus, apiName);
+        Mockito.verify(zms.metric,
+                times(1)).increment (
+                eq("zms_api"),
+                eq(null),
+                eq(null),
+                eq(httpMethod),
+                eq(httpStatus),
+                eq(apiName));
+        Mockito.verify(zms.metric,
+                times(1)).stopTiming (
+                eq(null),
+                eq(null),
+                eq(null),
+                eq(httpMethod), eq(httpStatus), eq(apiName + "_timing"));
     }
 }

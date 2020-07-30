@@ -43,6 +43,8 @@ public class RsrcCtxWrapperTest {
         Authorizer authorizerMock = Mockito.mock(Authorizer.class);
         Authority authMock = Mockito.mock(Authority.class);
         Metric metricMock = Mockito.mock(Metric.class);
+        Object timerMetricMock = Mockito.mock(Object.class);
+
         Principal prin = Mockito.mock(Principal.class);
 
         Mockito.when(authMock.getHeader()).thenReturn("testheader");
@@ -55,7 +57,7 @@ public class RsrcCtxWrapperTest {
         authListMock.add(authMock);
 
         RsrcCtxWrapper wrapper = new RsrcCtxWrapper(reqMock, resMock, authListMock, false,
-                authorizerMock, metricMock);
+                authorizerMock, metricMock, timerMetricMock);
 
         assertNotNull(wrapper.context());
 
@@ -80,7 +82,7 @@ public class RsrcCtxWrapperTest {
         Authorizer authorizerMock = Mockito.mock(Authorizer.class);
         Authority authMock = Mockito.mock(Authority.class);
         Metric metricMock = Mockito.mock(Metric.class);
-        Principal prin = Mockito.mock(Principal.class);
+        Object timerMetricMock = Mockito.mock(Object.class);
 
         Mockito.when(authMock.getHeader()).thenReturn("testheader");
         Mockito.when(reqMock.getHeader("testheader")).thenReturn("testcred");
@@ -92,7 +94,7 @@ public class RsrcCtxWrapperTest {
         authListMock.add(authMock);
 
         RsrcCtxWrapper wrapper = new RsrcCtxWrapper(reqMock, resMock, authListMock, false,
-                authorizerMock, metricMock);
+                authorizerMock, metricMock, timerMetricMock);
 
         try {
             wrapper.authenticate();
@@ -110,6 +112,7 @@ public class RsrcCtxWrapperTest {
         Authorizer authorizerMock = Mockito.mock(Authorizer.class);
         Authority authMock = Mockito.mock(Authority.class);
         Metric metricMock = Mockito.mock(Metric.class);
+        Object timerMetricMock = Mockito.mock(Object.class);
         Principal prin = Mockito.mock(Principal.class);
 
         Mockito.when(authMock.getHeader()).thenReturn("testheader");
@@ -125,7 +128,14 @@ public class RsrcCtxWrapperTest {
         Mockito.when(authorizerMock.access(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
                 .thenReturn(true);
 
-        RsrcCtxWrapper wrapper = new RsrcCtxWrapper(reqMock, resMock, authListMock, false, authorizerMock, metricMock);
+        RsrcCtxWrapper wrapper = new RsrcCtxWrapper(
+                reqMock,
+                resMock,
+                authListMock,
+                false,
+                authorizerMock,
+                metricMock,
+                timerMetricMock);
 
         wrapper.authorize("add-domain", "test", "test");
 
@@ -141,6 +151,7 @@ public class RsrcCtxWrapperTest {
         AuthorityList authListMock = new AuthorityList();
         Authorizer authorizerMock = Mockito.mock(Authorizer.class);
         Metric metricMock = Mockito.mock(Metric.class);
+        Object timerMetricMock = Mockito.mock(Object.class);
 
         Mockito.when(reqMock.getHeader("testheader")).thenReturn("testcred");
         Mockito.when(reqMock.getRemoteAddr()).thenReturn("1.1.1.1");
@@ -150,7 +161,14 @@ public class RsrcCtxWrapperTest {
         Mockito.when(authorizerMock.access(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
                 .thenReturn(true);
 
-        RsrcCtxWrapper wrapper = new RsrcCtxWrapper(reqMock, resMock, authListMock, false, authorizerMock, metricMock);
+        RsrcCtxWrapper wrapper = new RsrcCtxWrapper(
+                reqMock,
+                resMock,
+                authListMock,
+                false,
+                authorizerMock,
+                metricMock,
+                timerMetricMock);
 
         // when not set authority
         wrapper.authorize("add-domain", "test", "test");
@@ -165,9 +183,10 @@ public class RsrcCtxWrapperTest {
         AuthorityList authListMock = new AuthorityList();
         Authorizer authorizerMock = Mockito.mock(Authorizer.class);
         Metric metricMock = Mockito.mock(Metric.class);
+        Object timerMetricMock = Mockito.mock(Object.class);
 
         RsrcCtxWrapper wrapper = new RsrcCtxWrapper(servletRequest, servletResponse,
-                authListMock, false, authorizerMock, metricMock);
+                authListMock, false, authorizerMock, metricMock, timerMetricMock);
 
         wrapper.logPrincipal((Principal) null);
         assertNull(servletRequest.getAttribute("com.yahoo.athenz.auth.principal"));
@@ -191,9 +210,10 @@ public class RsrcCtxWrapperTest {
         AuthorityList authListMock = new AuthorityList();
         Authorizer authorizerMock = Mockito.mock(Authorizer.class);
         Metric metricMock = Mockito.mock(Metric.class);
+        Object timerMetricMock = Mockito.mock(Object.class);
 
         RsrcCtxWrapper wrapper = new RsrcCtxWrapper(servletRequest, servletResponse,
-                authListMock, false, authorizerMock, metricMock);
+                authListMock, false, authorizerMock, metricMock, timerMetricMock);
 
         com.yahoo.athenz.common.server.rest.ResourceException restExc =
                 new com.yahoo.athenz.common.server.rest.ResourceException(503, null);

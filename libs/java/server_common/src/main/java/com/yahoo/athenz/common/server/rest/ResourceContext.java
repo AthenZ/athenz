@@ -35,6 +35,7 @@ public class ResourceContext  {
 
     protected Principal principal;
     protected boolean checked;
+    private String requestDomain;
 
     public ResourceContext(HttpServletRequest request, HttpServletResponse response,
             Http.AuthorityList authorities, Authorizer authorizer) {
@@ -136,5 +137,13 @@ public class ResourceContext  {
         } else {
             response.addHeader(Http.WWW_AUTHENTICATE, String.join(", ", authChallenges));
         }
+    }
+
+    public String getRequestDomain() {
+        return requestDomain;
+    }
+
+    public void setRequestDomain(String requestDomain) {
+        this.requestDomain = requestDomain;
     }
 }

@@ -257,6 +257,7 @@ import javax.servlet.http.HttpServletResponse;
 public interface {{cName}}Handler {{openBrace}} {{range .Resources}}
     {{methodSig .}};{{end}}
     ResourceContext newResourceContext(HttpServletRequest request, HttpServletResponse response);
+    void recordMetrics(ResourceContext ctx, String httpMethod, int httpStatus, String apiName);
 }
 `
 
@@ -407,8 +408,10 @@ func (gen *javaServerGenerator) resourcePath(r *rdl.Resource) string {
 
 func (gen *javaServerGenerator) handlerBody(r *rdl.Resource) string {
 	noContent := r.Expected == "NO_CONTENT" && r.Alternatives == nil
-	s := "        try {\n"
-	s += "            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);\n"
+	s := "        int code = ResourceException.OK;\n"
+	s += "        ResourceContext context = null;\n"
+	s += "        try {\n"
+	s += "            context = this.delegate.newResourceContext(this.request, this.response);\n"
 	var fargs []string
 	bodyName := ""
 	if r.Auth != nil {
@@ -457,7 +460,7 @@ func (gen *javaServerGenerator) handlerBody(r *rdl.Resource) string {
 		s += "            return this.delegate." + methName + "(context" + sargs + ");\n"
 	}
 	s += "        } catch (ResourceException e) {\n"
-	s += "            int code = e.getCode();\n"
+	s += "            code = e.getCode();\n"
 	s += "            switch (code) {\n"
 	if r.Exceptions != nil && len(r.Exceptions) > 0 {
 		keys := sortedExceptionKeys(r.Exceptions)
@@ -471,6 +474,8 @@ func (gen *javaServerGenerator) handlerBody(r *rdl.Resource) string {
 	s += "                System.err.println(\"*** Warning: undeclared exception (\" + code + \") for resource " + methName + "\");\n"
 	s += "                throw typedException(code, e, ResourceError.class);\n" //? really
 	s += "            }\n"
+	s += "        } finally {\n"
+	s += "            this.delegate.recordMetrics(context, \"" + r.Method + "\", code, \"" + methName + "\");\n"
 	s += "        }\n"
 	return s
 }

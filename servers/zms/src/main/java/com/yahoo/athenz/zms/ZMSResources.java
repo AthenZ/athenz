@@ -17,12 +17,14 @@ public class ZMSResources {
     @Path("/domain/{domain}")
     @Produces(MediaType.APPLICATION_JSON)
     public Domain getDomain(@PathParam("domain") String domain) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getDomain(context, domain);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -38,6 +40,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getDomain");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getDomain");
         }
     }
 
@@ -45,12 +49,14 @@ public class ZMSResources {
     @Path("/domain")
     @Produces(MediaType.APPLICATION_JSON)
     public DomainList getDomainList(@QueryParam("limit") Integer limit, @QueryParam("skip") String skip, @QueryParam("prefix") String prefix, @QueryParam("depth") Integer depth, @QueryParam("account") String account, @QueryParam("ypmid") Integer productId, @QueryParam("member") String roleMember, @QueryParam("role") String roleName, @HeaderParam("If-Modified-Since") String modifiedSince) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getDomainList(context, limit, skip, prefix, depth, account, productId, roleMember, roleName, modifiedSince);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.TOO_MANY_REQUESTS:
                 throw typedException(code, e, ResourceError.class);
@@ -60,6 +66,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getDomainList");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getDomainList");
         }
     }
 
@@ -68,12 +76,14 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Domain postTopLevelDomain(@HeaderParam("Y-Audit-Ref") String auditRef, TopLevelDomain detail) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("create", "sys.auth:domain", null);
             return this.delegate.postTopLevelDomain(context, auditRef, detail);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -87,6 +97,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource postTopLevelDomain");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "POST", code, "postTopLevelDomain");
         }
     }
 
@@ -95,12 +107,14 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Domain postSubDomain(@PathParam("parent") String parent, @HeaderParam("Y-Audit-Ref") String auditRef, SubDomain detail) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("create", "" + parent + ":domain", null);
             return this.delegate.postSubDomain(context, parent, auditRef, detail);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -116,6 +130,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource postSubDomain");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "POST", code, "postSubDomain");
         }
     }
 
@@ -124,12 +140,14 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Domain postUserDomain(@PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef, UserDomain detail) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("create", "user." + name + ":domain", null);
             return this.delegate.postUserDomain(context, name, auditRef, detail);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -145,6 +163,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource postUserDomain");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "POST", code, "postUserDomain");
         }
     }
 
@@ -152,12 +172,14 @@ public class ZMSResources {
     @Path("/domain/{name}")
     @Produces(MediaType.APPLICATION_JSON)
     public void deleteTopLevelDomain(@PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("delete", "sys.auth:domain", null);
             this.delegate.deleteTopLevelDomain(context, name, auditRef);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -173,6 +195,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource deleteTopLevelDomain");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "DELETE", code, "deleteTopLevelDomain");
         }
     }
 
@@ -180,12 +204,14 @@ public class ZMSResources {
     @Path("/subdomain/{parent}/{name}")
     @Produces(MediaType.APPLICATION_JSON)
     public void deleteSubDomain(@PathParam("parent") String parent, @PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("delete", "" + parent + ":domain", null);
             this.delegate.deleteSubDomain(context, parent, name, auditRef);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -201,6 +227,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource deleteSubDomain");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "DELETE", code, "deleteSubDomain");
         }
     }
 
@@ -208,12 +236,14 @@ public class ZMSResources {
     @Path("/userdomain/{name}")
     @Produces(MediaType.APPLICATION_JSON)
     public void deleteUserDomain(@PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("delete", "user." + name + ":domain", null);
             this.delegate.deleteUserDomain(context, name, auditRef);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -229,6 +259,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource deleteUserDomain");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "DELETE", code, "deleteUserDomain");
         }
     }
 
@@ -237,12 +269,14 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public void putDomainMeta(@PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef, DomainMeta detail) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "" + name + ":", null);
             this.delegate.putDomainMeta(context, name, auditRef, detail);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -260,6 +294,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource putDomainMeta");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "PUT", code, "putDomainMeta");
         }
     }
 
@@ -268,12 +304,14 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public void putDomainSystemMeta(@PathParam("name") String name, @PathParam("attribute") String attribute, @HeaderParam("Y-Audit-Ref") String auditRef, DomainMeta detail) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "sys.auth:meta.domain." + attribute + "." + name + "", null);
             this.delegate.putDomainSystemMeta(context, name, attribute, auditRef, detail);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -291,6 +329,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource putDomainSystemMeta");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "PUT", code, "putDomainSystemMeta");
         }
     }
 
@@ -299,12 +339,14 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public void putDomainTemplate(@PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef, DomainTemplate domainTemplate) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "" + name + ":template", null);
             this.delegate.putDomainTemplate(context, name, auditRef, domainTemplate);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -322,6 +364,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource putDomainTemplate");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "PUT", code, "putDomainTemplate");
         }
     }
 
@@ -330,12 +374,14 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public void putDomainTemplateExt(@PathParam("name") String name, @PathParam("template") String template, @HeaderParam("Y-Audit-Ref") String auditRef, DomainTemplate domainTemplate) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "" + name + ":template." + template + "", null);
             this.delegate.putDomainTemplateExt(context, name, template, auditRef, domainTemplate);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -353,6 +399,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource putDomainTemplateExt");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "PUT", code, "putDomainTemplateExt");
         }
     }
 
@@ -360,12 +408,14 @@ public class ZMSResources {
     @Path("/domain/{name}/template")
     @Produces(MediaType.APPLICATION_JSON)
     public DomainTemplateList getDomainTemplateList(@PathParam("name") String name) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getDomainTemplateList(context, name);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -379,6 +429,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getDomainTemplateList");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getDomainTemplateList");
         }
     }
 
@@ -386,12 +438,14 @@ public class ZMSResources {
     @Path("/domain/{name}/template/{template}")
     @Produces(MediaType.APPLICATION_JSON)
     public void deleteDomainTemplate(@PathParam("name") String name, @PathParam("template") String template, @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("delete", "" + name + ":template." + template + "", null);
             this.delegate.deleteDomainTemplate(context, name, template, auditRef);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -409,6 +463,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource deleteDomainTemplate");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "DELETE", code, "deleteDomainTemplate");
         }
     }
 
@@ -416,12 +472,14 @@ public class ZMSResources {
     @Path("/domain/{domainName}/check")
     @Produces(MediaType.APPLICATION_JSON)
     public DomainDataCheck getDomainDataCheck(@PathParam("domainName") String domainName) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getDomainDataCheck(context, domainName);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.FORBIDDEN:
                 throw typedException(code, e, ResourceError.class);
@@ -435,6 +493,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getDomainDataCheck");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getDomainDataCheck");
         }
     }
 
@@ -443,12 +503,14 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public void putEntity(@PathParam("domainName") String domainName, @PathParam("entityName") String entityName, @HeaderParam("Y-Audit-Ref") String auditRef, Entity entity) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "" + domainName + ":entity." + entityName + "", null);
             this.delegate.putEntity(context, domainName, entityName, auditRef, entity);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -466,6 +528,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource putEntity");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "PUT", code, "putEntity");
         }
     }
 
@@ -473,12 +537,14 @@ public class ZMSResources {
     @Path("/domain/{domainName}/entity/{entityName}")
     @Produces(MediaType.APPLICATION_JSON)
     public Entity getEntity(@PathParam("domainName") String domainName, @PathParam("entityName") String entityName) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getEntity(context, domainName, entityName);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -494,6 +560,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getEntity");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getEntity");
         }
     }
 
@@ -501,12 +569,14 @@ public class ZMSResources {
     @Path("/domain/{domainName}/entity/{entityName}")
     @Produces(MediaType.APPLICATION_JSON)
     public void deleteEntity(@PathParam("domainName") String domainName, @PathParam("entityName") String entityName, @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("delete", "" + domainName + ":entity." + entityName + "", null);
             this.delegate.deleteEntity(context, domainName, entityName, auditRef);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -524,6 +594,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource deleteEntity");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "DELETE", code, "deleteEntity");
         }
     }
 
@@ -531,12 +603,14 @@ public class ZMSResources {
     @Path("/domain/{domainName}/entity")
     @Produces(MediaType.APPLICATION_JSON)
     public EntityList getEntityList(@PathParam("domainName") String domainName) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getEntityList(context, domainName);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -550,6 +624,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getEntityList");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getEntityList");
         }
     }
 
@@ -557,12 +633,14 @@ public class ZMSResources {
     @Path("/domain/{domainName}/role")
     @Produces(MediaType.APPLICATION_JSON)
     public RoleList getRoleList(@PathParam("domainName") String domainName, @QueryParam("limit") Integer limit, @QueryParam("skip") String skip) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getRoleList(context, domainName, limit, skip);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -578,6 +656,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getRoleList");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getRoleList");
         }
     }
 
@@ -585,12 +665,14 @@ public class ZMSResources {
     @Path("/domain/{domainName}/roles")
     @Produces(MediaType.APPLICATION_JSON)
     public Roles getRoles(@PathParam("domainName") String domainName, @QueryParam("members") @DefaultValue("false") Boolean members) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getRoles(context, domainName, members);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -604,6 +686,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getRoles");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getRoles");
         }
     }
 
@@ -611,12 +695,14 @@ public class ZMSResources {
     @Path("/domain/{domainName}/role/{roleName}")
     @Produces(MediaType.APPLICATION_JSON)
     public Role getRole(@PathParam("domainName") String domainName, @PathParam("roleName") String roleName, @QueryParam("auditLog") @DefaultValue("false") Boolean auditLog, @QueryParam("expand") @DefaultValue("false") Boolean expand, @QueryParam("pending") @DefaultValue("false") Boolean pending) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getRole(context, domainName, roleName, auditLog, expand, pending);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -632,6 +718,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getRole");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getRole");
         }
     }
 
@@ -640,12 +728,14 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public void putRole(@PathParam("domainName") String domainName, @PathParam("roleName") String roleName, @HeaderParam("Y-Audit-Ref") String auditRef, Role role) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "" + domainName + ":role." + roleName + "", null);
             this.delegate.putRole(context, domainName, roleName, auditRef, role);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -663,6 +753,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource putRole");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "PUT", code, "putRole");
         }
     }
 
@@ -670,12 +762,14 @@ public class ZMSResources {
     @Path("/domain/{domainName}/role/{roleName}")
     @Produces(MediaType.APPLICATION_JSON)
     public void deleteRole(@PathParam("domainName") String domainName, @PathParam("roleName") String roleName, @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("delete", "" + domainName + ":role." + roleName + "", null);
             this.delegate.deleteRole(context, domainName, roleName, auditRef);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -693,6 +787,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource deleteRole");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "DELETE", code, "deleteRole");
         }
     }
 
@@ -700,12 +796,14 @@ public class ZMSResources {
     @Path("/domain/{domainName}/role/{roleName}/member/{memberName}")
     @Produces(MediaType.APPLICATION_JSON)
     public Membership getMembership(@PathParam("domainName") String domainName, @PathParam("roleName") String roleName, @PathParam("memberName") String memberName, @QueryParam("expiration") String expiration) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getMembership(context, domainName, roleName, memberName, expiration);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -721,6 +819,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getMembership");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getMembership");
         }
     }
 
@@ -728,12 +828,14 @@ public class ZMSResources {
     @Path("/domain/{domainName}/overdue")
     @Produces(MediaType.APPLICATION_JSON)
     public DomainRoleMembers getOverdueReview(@PathParam("domainName") String domainName) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getOverdueReview(context, domainName);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -749,6 +851,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getOverdueReview");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getOverdueReview");
         }
     }
 
@@ -756,12 +860,14 @@ public class ZMSResources {
     @Path("/domain/{domainName}/member")
     @Produces(MediaType.APPLICATION_JSON)
     public DomainRoleMembers getDomainRoleMembers(@PathParam("domainName") String domainName) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getDomainRoleMembers(context, domainName);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -777,6 +883,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getDomainRoleMembers");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getDomainRoleMembers");
         }
     }
 
@@ -784,12 +892,14 @@ public class ZMSResources {
     @Path("/role")
     @Produces(MediaType.APPLICATION_JSON)
     public DomainRoleMember getPrincipalRoles(@QueryParam("principal") String principal, @QueryParam("domain") String domainName) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getPrincipalRoles(context, principal, domainName);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -805,6 +915,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getPrincipalRoles");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getPrincipalRoles");
         }
     }
 
@@ -813,12 +925,14 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public void putMembership(@PathParam("domainName") String domainName, @PathParam("roleName") String roleName, @PathParam("memberName") String memberName, @HeaderParam("Y-Audit-Ref") String auditRef, Membership membership) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             this.delegate.putMembership(context, domainName, roleName, memberName, auditRef, membership);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -836,6 +950,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource putMembership");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "PUT", code, "putMembership");
         }
     }
 
@@ -843,12 +959,14 @@ public class ZMSResources {
     @Path("/domain/{domainName}/role/{roleName}/member/{memberName}")
     @Produces(MediaType.APPLICATION_JSON)
     public void deleteMembership(@PathParam("domainName") String domainName, @PathParam("roleName") String roleName, @PathParam("memberName") String memberName, @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "" + domainName + ":role." + roleName + "", null);
             this.delegate.deleteMembership(context, domainName, roleName, memberName, auditRef);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -866,6 +984,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource deleteMembership");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "DELETE", code, "deleteMembership");
         }
     }
 
@@ -873,12 +993,14 @@ public class ZMSResources {
     @Path("/domain/{domainName}/role/{roleName}/pendingmember/{memberName}")
     @Produces(MediaType.APPLICATION_JSON)
     public void deletePendingMembership(@PathParam("domainName") String domainName, @PathParam("roleName") String roleName, @PathParam("memberName") String memberName, @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             this.delegate.deletePendingMembership(context, domainName, roleName, memberName, auditRef);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -896,6 +1018,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource deletePendingMembership");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "DELETE", code, "deletePendingMembership");
         }
     }
 
@@ -904,12 +1028,14 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public void putDefaultAdmins(@PathParam("domainName") String domainName, @HeaderParam("Y-Audit-Ref") String auditRef, DefaultAdmins defaultAdmins) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "sys.auth:domain", null);
             this.delegate.putDefaultAdmins(context, domainName, auditRef, defaultAdmins);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -925,6 +1051,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource putDefaultAdmins");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "PUT", code, "putDefaultAdmins");
         }
     }
 
@@ -933,12 +1061,14 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public void putRoleSystemMeta(@PathParam("domainName") String domainName, @PathParam("roleName") String roleName, @PathParam("attribute") String attribute, @HeaderParam("Y-Audit-Ref") String auditRef, RoleSystemMeta detail) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "sys.auth:meta.role." + attribute + "." + domainName + "", null);
             this.delegate.putRoleSystemMeta(context, domainName, roleName, attribute, auditRef, detail);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -956,6 +1086,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource putRoleSystemMeta");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "PUT", code, "putRoleSystemMeta");
         }
     }
 
@@ -964,12 +1096,14 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public void putRoleMeta(@PathParam("domainName") String domainName, @PathParam("roleName") String roleName, @HeaderParam("Y-Audit-Ref") String auditRef, RoleMeta detail) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "" + domainName + ":role." + roleName + "", null);
             this.delegate.putRoleMeta(context, domainName, roleName, auditRef, detail);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -987,6 +1121,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource putRoleMeta");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "PUT", code, "putRoleMeta");
         }
     }
 
@@ -995,12 +1131,14 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public void putMembershipDecision(@PathParam("domainName") String domainName, @PathParam("roleName") String roleName, @PathParam("memberName") String memberName, @HeaderParam("Y-Audit-Ref") String auditRef, Membership membership) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             this.delegate.putMembershipDecision(context, domainName, roleName, memberName, auditRef, membership);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1018,6 +1156,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource putMembershipDecision");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "PUT", code, "putMembershipDecision");
         }
     }
 
@@ -1026,12 +1166,14 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public void putRoleReview(@PathParam("domainName") String domainName, @PathParam("roleName") String roleName, @HeaderParam("Y-Audit-Ref") String auditRef, Role role) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "" + domainName + ":role." + roleName + "", null);
             this.delegate.putRoleReview(context, domainName, roleName, auditRef, role);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1049,6 +1191,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource putRoleReview");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "PUT", code, "putRoleReview");
         }
     }
 
@@ -1056,12 +1200,14 @@ public class ZMSResources {
     @Path("/domain/{domainName}/policy")
     @Produces(MediaType.APPLICATION_JSON)
     public PolicyList getPolicyList(@PathParam("domainName") String domainName, @QueryParam("limit") Integer limit, @QueryParam("skip") String skip) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getPolicyList(context, domainName, limit, skip);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1077,6 +1223,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getPolicyList");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getPolicyList");
         }
     }
 
@@ -1084,12 +1232,14 @@ public class ZMSResources {
     @Path("/domain/{domainName}/policies")
     @Produces(MediaType.APPLICATION_JSON)
     public Policies getPolicies(@PathParam("domainName") String domainName, @QueryParam("assertions") @DefaultValue("false") Boolean assertions) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getPolicies(context, domainName, assertions);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1103,6 +1253,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getPolicies");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getPolicies");
         }
     }
 
@@ -1110,12 +1262,14 @@ public class ZMSResources {
     @Path("/domain/{domainName}/policy/{policyName}")
     @Produces(MediaType.APPLICATION_JSON)
     public Policy getPolicy(@PathParam("domainName") String domainName, @PathParam("policyName") String policyName) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getPolicy(context, domainName, policyName);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1131,6 +1285,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getPolicy");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getPolicy");
         }
     }
 
@@ -1139,12 +1295,14 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public void putPolicy(@PathParam("domainName") String domainName, @PathParam("policyName") String policyName, @HeaderParam("Y-Audit-Ref") String auditRef, Policy policy) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "" + domainName + ":policy." + policyName + "", null);
             this.delegate.putPolicy(context, domainName, policyName, auditRef, policy);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1162,6 +1320,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource putPolicy");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "PUT", code, "putPolicy");
         }
     }
 
@@ -1169,12 +1329,14 @@ public class ZMSResources {
     @Path("/domain/{domainName}/policy/{policyName}")
     @Produces(MediaType.APPLICATION_JSON)
     public void deletePolicy(@PathParam("domainName") String domainName, @PathParam("policyName") String policyName, @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("delete", "" + domainName + ":policy." + policyName + "", null);
             this.delegate.deletePolicy(context, domainName, policyName, auditRef);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1192,6 +1354,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource deletePolicy");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "DELETE", code, "deletePolicy");
         }
     }
 
@@ -1199,12 +1363,14 @@ public class ZMSResources {
     @Path("/domain/{domainName}/policy/{policyName}/assertion/{assertionId}")
     @Produces(MediaType.APPLICATION_JSON)
     public Assertion getAssertion(@PathParam("domainName") String domainName, @PathParam("policyName") String policyName, @PathParam("assertionId") Long assertionId) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getAssertion(context, domainName, policyName, assertionId);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1220,6 +1386,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getAssertion");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getAssertion");
         }
     }
 
@@ -1228,12 +1396,14 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Assertion putAssertion(@PathParam("domainName") String domainName, @PathParam("policyName") String policyName, @HeaderParam("Y-Audit-Ref") String auditRef, Assertion assertion) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "" + domainName + ":policy." + policyName + "", null);
             return this.delegate.putAssertion(context, domainName, policyName, auditRef, assertion);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1251,6 +1421,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource putAssertion");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "PUT", code, "putAssertion");
         }
     }
 
@@ -1258,12 +1430,14 @@ public class ZMSResources {
     @Path("/domain/{domainName}/policy/{policyName}/assertion/{assertionId}")
     @Produces(MediaType.APPLICATION_JSON)
     public void deleteAssertion(@PathParam("domainName") String domainName, @PathParam("policyName") String policyName, @PathParam("assertionId") Long assertionId, @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "" + domainName + ":policy." + policyName + "", null);
             this.delegate.deleteAssertion(context, domainName, policyName, assertionId, auditRef);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1281,6 +1455,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource deleteAssertion");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "DELETE", code, "deleteAssertion");
         }
     }
 
@@ -1289,12 +1465,14 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public void putServiceIdentity(@PathParam("domain") String domain, @PathParam("service") String service, @HeaderParam("Y-Audit-Ref") String auditRef, ServiceIdentity detail) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "" + domain + ":service." + service + "", null);
             this.delegate.putServiceIdentity(context, domain, service, auditRef, detail);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1312,6 +1490,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource putServiceIdentity");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "PUT", code, "putServiceIdentity");
         }
     }
 
@@ -1319,12 +1499,14 @@ public class ZMSResources {
     @Path("/domain/{domain}/service/{service}")
     @Produces(MediaType.APPLICATION_JSON)
     public ServiceIdentity getServiceIdentity(@PathParam("domain") String domain, @PathParam("service") String service) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getServiceIdentity(context, domain, service);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1340,6 +1522,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getServiceIdentity");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getServiceIdentity");
         }
     }
 
@@ -1347,12 +1531,14 @@ public class ZMSResources {
     @Path("/domain/{domain}/service/{service}")
     @Produces(MediaType.APPLICATION_JSON)
     public void deleteServiceIdentity(@PathParam("domain") String domain, @PathParam("service") String service, @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("delete", "" + domain + ":service." + service + "", null);
             this.delegate.deleteServiceIdentity(context, domain, service, auditRef);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1370,6 +1556,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource deleteServiceIdentity");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "DELETE", code, "deleteServiceIdentity");
         }
     }
 
@@ -1377,12 +1565,14 @@ public class ZMSResources {
     @Path("/domain/{domainName}/services")
     @Produces(MediaType.APPLICATION_JSON)
     public ServiceIdentities getServiceIdentities(@PathParam("domainName") String domainName, @QueryParam("publickeys") @DefaultValue("false") Boolean publickeys, @QueryParam("hosts") @DefaultValue("false") Boolean hosts) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getServiceIdentities(context, domainName, publickeys, hosts);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1396,6 +1586,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getServiceIdentities");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getServiceIdentities");
         }
     }
 
@@ -1403,12 +1595,14 @@ public class ZMSResources {
     @Path("/domain/{domainName}/service")
     @Produces(MediaType.APPLICATION_JSON)
     public ServiceIdentityList getServiceIdentityList(@PathParam("domainName") String domainName, @QueryParam("limit") Integer limit, @QueryParam("skip") String skip) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getServiceIdentityList(context, domainName, limit, skip);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1424,6 +1618,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getServiceIdentityList");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getServiceIdentityList");
         }
     }
 
@@ -1431,12 +1627,14 @@ public class ZMSResources {
     @Path("/domain/{domain}/service/{service}/publickey/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public PublicKeyEntry getPublicKeyEntry(@PathParam("domain") String domain, @PathParam("service") String service, @PathParam("id") String id) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getPublicKeyEntry(context, domain, service, id);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1452,6 +1650,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getPublicKeyEntry");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getPublicKeyEntry");
         }
     }
 
@@ -1460,12 +1660,14 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public void putPublicKeyEntry(@PathParam("domain") String domain, @PathParam("service") String service, @PathParam("id") String id, @HeaderParam("Y-Audit-Ref") String auditRef, PublicKeyEntry publicKeyEntry) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "" + domain + ":service." + service + "", null);
             this.delegate.putPublicKeyEntry(context, domain, service, id, auditRef, publicKeyEntry);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1483,6 +1685,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource putPublicKeyEntry");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "PUT", code, "putPublicKeyEntry");
         }
     }
 
@@ -1490,12 +1694,14 @@ public class ZMSResources {
     @Path("/domain/{domain}/service/{service}/publickey/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public void deletePublicKeyEntry(@PathParam("domain") String domain, @PathParam("service") String service, @PathParam("id") String id, @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "" + domain + ":service." + service + "", null);
             this.delegate.deletePublicKeyEntry(context, domain, service, id, auditRef);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1513,6 +1719,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource deletePublicKeyEntry");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "DELETE", code, "deletePublicKeyEntry");
         }
     }
 
@@ -1521,12 +1729,14 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public void putServiceIdentitySystemMeta(@PathParam("domain") String domain, @PathParam("service") String service, @PathParam("attribute") String attribute, @HeaderParam("Y-Audit-Ref") String auditRef, ServiceIdentitySystemMeta detail) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "sys.auth:meta.service." + attribute + "." + domain + "", null);
             this.delegate.putServiceIdentitySystemMeta(context, domain, service, attribute, auditRef, detail);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1544,6 +1754,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource putServiceIdentitySystemMeta");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "PUT", code, "putServiceIdentitySystemMeta");
         }
     }
 
@@ -1552,12 +1764,14 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public void putTenancy(@PathParam("domain") String domain, @PathParam("service") String service, @HeaderParam("Y-Audit-Ref") String auditRef, Tenancy detail) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "" + domain + ":tenancy", null);
             this.delegate.putTenancy(context, domain, service, auditRef, detail);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1575,6 +1789,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource putTenancy");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "PUT", code, "putTenancy");
         }
     }
 
@@ -1582,12 +1798,14 @@ public class ZMSResources {
     @Path("/domain/{domain}/tenancy/{service}")
     @Produces(MediaType.APPLICATION_JSON)
     public void deleteTenancy(@PathParam("domain") String domain, @PathParam("service") String service, @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("delete", "" + domain + ":tenancy", null);
             this.delegate.deleteTenancy(context, domain, service, auditRef);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1605,6 +1823,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource deleteTenancy");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "DELETE", code, "deleteTenancy");
         }
     }
 
@@ -1613,12 +1833,14 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public void putTenant(@PathParam("domain") String domain, @PathParam("service") String service, @PathParam("tenantDomain") String tenantDomain, @HeaderParam("Y-Audit-Ref") String auditRef, Tenancy detail) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "" + domain + ":tenant." + service + "", null);
             this.delegate.putTenant(context, domain, service, tenantDomain, auditRef, detail);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1636,6 +1858,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource putTenant");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "PUT", code, "putTenant");
         }
     }
 
@@ -1643,12 +1867,14 @@ public class ZMSResources {
     @Path("/domain/{domain}/service/{service}/tenant/{tenantDomain}")
     @Produces(MediaType.APPLICATION_JSON)
     public void deleteTenant(@PathParam("domain") String domain, @PathParam("service") String service, @PathParam("tenantDomain") String tenantDomain, @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("delete", "" + domain + ":tenant." + service + "", null);
             this.delegate.deleteTenant(context, domain, service, tenantDomain, auditRef);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1666,6 +1892,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource deleteTenant");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "DELETE", code, "deleteTenant");
         }
     }
 
@@ -1674,12 +1902,14 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public TenantResourceGroupRoles putTenantResourceGroupRoles(@PathParam("domain") String domain, @PathParam("service") String service, @PathParam("tenantDomain") String tenantDomain, @PathParam("resourceGroup") String resourceGroup, @HeaderParam("Y-Audit-Ref") String auditRef, TenantResourceGroupRoles detail) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "" + domain + ":tenant." + service + "", null);
             return this.delegate.putTenantResourceGroupRoles(context, domain, service, tenantDomain, resourceGroup, auditRef, detail);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1697,6 +1927,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource putTenantResourceGroupRoles");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "PUT", code, "putTenantResourceGroupRoles");
         }
     }
 
@@ -1704,12 +1936,14 @@ public class ZMSResources {
     @Path("/domain/{domain}/service/{service}/tenant/{tenantDomain}/resourceGroup/{resourceGroup}")
     @Produces(MediaType.APPLICATION_JSON)
     public TenantResourceGroupRoles getTenantResourceGroupRoles(@PathParam("domain") String domain, @PathParam("service") String service, @PathParam("tenantDomain") String tenantDomain, @PathParam("resourceGroup") String resourceGroup) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getTenantResourceGroupRoles(context, domain, service, tenantDomain, resourceGroup);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1725,6 +1959,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getTenantResourceGroupRoles");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getTenantResourceGroupRoles");
         }
     }
 
@@ -1732,12 +1968,14 @@ public class ZMSResources {
     @Path("/domain/{domain}/service/{service}/tenant/{tenantDomain}/resourceGroup/{resourceGroup}")
     @Produces(MediaType.APPLICATION_JSON)
     public void deleteTenantResourceGroupRoles(@PathParam("domain") String domain, @PathParam("service") String service, @PathParam("tenantDomain") String tenantDomain, @PathParam("resourceGroup") String resourceGroup, @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "" + domain + ":tenant." + service + "", null);
             this.delegate.deleteTenantResourceGroupRoles(context, domain, service, tenantDomain, resourceGroup, auditRef);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1755,6 +1993,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource deleteTenantResourceGroupRoles");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "DELETE", code, "deleteTenantResourceGroupRoles");
         }
     }
 
@@ -1763,12 +2003,14 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public ProviderResourceGroupRoles putProviderResourceGroupRoles(@PathParam("tenantDomain") String tenantDomain, @PathParam("provDomain") String provDomain, @PathParam("provService") String provService, @PathParam("resourceGroup") String resourceGroup, @HeaderParam("Y-Audit-Ref") String auditRef, ProviderResourceGroupRoles detail) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "" + tenantDomain + ":tenancy." + provDomain + "." + provService + "", null);
             return this.delegate.putProviderResourceGroupRoles(context, tenantDomain, provDomain, provService, resourceGroup, auditRef, detail);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1786,6 +2028,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource putProviderResourceGroupRoles");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "PUT", code, "putProviderResourceGroupRoles");
         }
     }
 
@@ -1793,12 +2037,14 @@ public class ZMSResources {
     @Path("/domain/{tenantDomain}/provDomain/{provDomain}/provService/{provService}/resourceGroup/{resourceGroup}")
     @Produces(MediaType.APPLICATION_JSON)
     public ProviderResourceGroupRoles getProviderResourceGroupRoles(@PathParam("tenantDomain") String tenantDomain, @PathParam("provDomain") String provDomain, @PathParam("provService") String provService, @PathParam("resourceGroup") String resourceGroup) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getProviderResourceGroupRoles(context, tenantDomain, provDomain, provService, resourceGroup);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1814,6 +2060,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getProviderResourceGroupRoles");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getProviderResourceGroupRoles");
         }
     }
 
@@ -1821,12 +2069,14 @@ public class ZMSResources {
     @Path("/domain/{tenantDomain}/provDomain/{provDomain}/provService/{provService}/resourceGroup/{resourceGroup}")
     @Produces(MediaType.APPLICATION_JSON)
     public void deleteProviderResourceGroupRoles(@PathParam("tenantDomain") String tenantDomain, @PathParam("provDomain") String provDomain, @PathParam("provService") String provService, @PathParam("resourceGroup") String resourceGroup, @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "" + tenantDomain + ":tenancy." + provDomain + "." + provService + "", null);
             this.delegate.deleteProviderResourceGroupRoles(context, tenantDomain, provDomain, provService, resourceGroup, auditRef);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1844,6 +2094,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource deleteProviderResourceGroupRoles");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "DELETE", code, "deleteProviderResourceGroupRoles");
         }
     }
 
@@ -1851,12 +2103,14 @@ public class ZMSResources {
     @Path("/access/{action}/{resource}")
     @Produces(MediaType.APPLICATION_JSON)
     public Access getAccess(@PathParam("action") String action, @PathParam("resource") String resource, @QueryParam("domain") String domain, @QueryParam("principal") String checkPrincipal) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getAccess(context, action, resource, domain, checkPrincipal);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1872,6 +2126,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getAccess");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getAccess");
         }
     }
 
@@ -1879,12 +2135,14 @@ public class ZMSResources {
     @Path("/access/{action}")
     @Produces(MediaType.APPLICATION_JSON)
     public Access getAccessExt(@PathParam("action") String action, @QueryParam("resource") String resource, @QueryParam("domain") String domain, @QueryParam("principal") String checkPrincipal) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getAccessExt(context, action, resource, domain, checkPrincipal);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1900,6 +2158,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getAccessExt");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getAccessExt");
         }
     }
 
@@ -1907,12 +2167,14 @@ public class ZMSResources {
     @Path("/resource")
     @Produces(MediaType.APPLICATION_JSON)
     public ResourceAccessList getResourceAccessList(@QueryParam("principal") String principal, @QueryParam("action") String action) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getResourceAccessList(context, principal, action);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1928,6 +2190,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getResourceAccessList");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getResourceAccessList");
         }
     }
 
@@ -1935,12 +2199,14 @@ public class ZMSResources {
     @Path("/sys/modified_domains")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getSignedDomains(@QueryParam("domain") String domain, @QueryParam("metaonly") String metaOnly, @QueryParam("metaattr") String metaAttr, @QueryParam("master") Boolean master, @HeaderParam("If-None-Match") String matchingTag) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getSignedDomains(context, domain, metaOnly, metaAttr, master, matchingTag);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.FORBIDDEN:
                 throw typedException(code, e, ResourceError.class);
@@ -1954,6 +2220,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getSignedDomains");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getSignedDomains");
         }
     }
 
@@ -1961,12 +2229,14 @@ public class ZMSResources {
     @Path("/domain/{name}/signed")
     @Produces(MediaType.APPLICATION_JSON)
     public JWSDomain getJWSDomain(@PathParam("name") String name) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getJWSDomain(context, name);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
@@ -1978,6 +2248,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getJWSDomain");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getJWSDomain");
         }
     }
 
@@ -1985,12 +2257,14 @@ public class ZMSResources {
     @Path("/user/{userName}/token")
     @Produces(MediaType.APPLICATION_JSON)
     public UserToken getUserToken(@PathParam("userName") String userName, @QueryParam("services") String serviceNames, @QueryParam("header") @DefaultValue("false") Boolean header) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getUserToken(context, userName, serviceNames, header);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.FORBIDDEN:
                 throw typedException(code, e, ResourceError.class);
@@ -2002,17 +2276,21 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getUserToken");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getUserToken");
         }
     }
 
     @OPTIONS
     @Path("/user/{userName}/token")
     public UserToken optionsUserToken(@PathParam("userName") String userName, @QueryParam("services") String serviceNames) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             return this.delegate.optionsUserToken(context, userName, serviceNames);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -2022,6 +2300,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource optionsUserToken");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "OPTIONS", code, "optionsUserToken");
         }
     }
 
@@ -2029,12 +2309,14 @@ public class ZMSResources {
     @Path("/principal")
     @Produces(MediaType.APPLICATION_JSON)
     public ServicePrincipal getServicePrincipal() {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getServicePrincipal(context);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -2048,6 +2330,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getServicePrincipal");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getServicePrincipal");
         }
     }
 
@@ -2055,12 +2339,14 @@ public class ZMSResources {
     @Path("/template")
     @Produces(MediaType.APPLICATION_JSON)
     public ServerTemplateList getServerTemplateList() {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getServerTemplateList(context);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.TOO_MANY_REQUESTS:
                 throw typedException(code, e, ResourceError.class);
@@ -2070,6 +2356,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getServerTemplateList");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getServerTemplateList");
         }
     }
 
@@ -2077,12 +2365,14 @@ public class ZMSResources {
     @Path("/template/{template}")
     @Produces(MediaType.APPLICATION_JSON)
     public Template getTemplate(@PathParam("template") String template) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getTemplate(context, template);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -2096,6 +2386,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getTemplate");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getTemplate");
         }
     }
 
@@ -2103,12 +2395,14 @@ public class ZMSResources {
     @Path("/domain/{name}/templatedetails")
     @Produces(MediaType.APPLICATION_JSON)
     public DomainTemplateDetailsList getDomainTemplateDetailsList(@PathParam("name") String name) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getDomainTemplateDetailsList(context, name);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -2122,6 +2416,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getDomainTemplateDetailsList");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getDomainTemplateDetailsList");
         }
     }
 
@@ -2129,12 +2425,14 @@ public class ZMSResources {
     @Path("/user")
     @Produces(MediaType.APPLICATION_JSON)
     public UserList getUserList() {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getUserList(context);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.TOO_MANY_REQUESTS:
                 throw typedException(code, e, ResourceError.class);
@@ -2144,6 +2442,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getUserList");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getUserList");
         }
     }
 
@@ -2151,12 +2451,14 @@ public class ZMSResources {
     @Path("/user/{name}")
     @Produces(MediaType.APPLICATION_JSON)
     public void deleteUser(@PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("delete", "sys.auth:user", null);
             this.delegate.deleteUser(context, name, auditRef);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -2174,6 +2476,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource deleteUser");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "DELETE", code, "deleteUser");
         }
     }
 
@@ -2181,12 +2485,14 @@ public class ZMSResources {
     @Path("/domain/{domainName}/member/{memberName}")
     @Produces(MediaType.APPLICATION_JSON)
     public void deleteDomainRoleMember(@PathParam("domainName") String domainName, @PathParam("memberName") String memberName, @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "" + domainName + ":", null);
             this.delegate.deleteDomainRoleMember(context, domainName, memberName, auditRef);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -2204,6 +2510,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource deleteDomainRoleMember");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "DELETE", code, "deleteDomainRoleMember");
         }
     }
 
@@ -2211,12 +2519,14 @@ public class ZMSResources {
     @Path("/domain/{name}/quota")
     @Produces(MediaType.APPLICATION_JSON)
     public Quota getQuota(@PathParam("name") String name) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getQuota(context, name);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -2226,6 +2536,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getQuota");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getQuota");
         }
     }
 
@@ -2234,12 +2546,14 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public void putQuota(@PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef, Quota quota) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "sys.auth:quota", null);
             this.delegate.putQuota(context, name, auditRef, quota);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -2255,6 +2569,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource putQuota");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "PUT", code, "putQuota");
         }
     }
 
@@ -2262,12 +2578,14 @@ public class ZMSResources {
     @Path("/domain/{name}/quota")
     @Produces(MediaType.APPLICATION_JSON)
     public void deleteQuota(@PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "sys.auth:quota", null);
             this.delegate.deleteQuota(context, name, auditRef);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -2283,6 +2601,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource deleteQuota");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "DELETE", code, "deleteQuota");
         }
     }
 
@@ -2290,12 +2610,14 @@ public class ZMSResources {
     @Path("/status")
     @Produces(MediaType.APPLICATION_JSON)
     public Status getStatus() {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getStatus(context);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -2307,6 +2629,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getStatus");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getStatus");
         }
     }
 
@@ -2314,12 +2638,14 @@ public class ZMSResources {
     @Path("/pending_members")
     @Produces(MediaType.APPLICATION_JSON)
     public DomainRoleMembership getPendingDomainRoleMembersList(@QueryParam("principal") String principal) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getPendingDomainRoleMembersList(context, principal);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -2335,6 +2661,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getPendingDomainRoleMembersList");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getPendingDomainRoleMembersList");
         }
     }
 
@@ -2342,17 +2670,21 @@ public class ZMSResources {
     @Path("/schema")
     @Produces(MediaType.APPLICATION_JSON)
     public Schema getRdlSchema() {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getRdlSchema(context);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             default:
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getRdlSchema");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getRdlSchema");
         }
     }
 
