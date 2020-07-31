@@ -69,7 +69,7 @@ public class NoOpMetric implements Metric {
     }
 
     @Override
-    public void stopTiming(Object timerMetric, String requestDomainName, String principalDomainName, String httpMethod, String apiName) {
+    public void stopTiming(Object timerMetric, String requestDomainName, String principalDomainName, String httpMethod, int httpStatus, String apiName) {
     }
 
     @Override
