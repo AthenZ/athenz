@@ -69,24 +69,24 @@
   </ciManagement>
 
   <properties>
-    <jetty.version>9.4.30.v20200611</jetty.version>
+    <jetty.version>9.4.31.v20200723</jetty.version>
     <jersey.version>2.31</jersey.version>
-    <jackson.core.version>2.11.0</jackson.core.version>
-    <jackson.databind.version>2.11.0</jackson.databind.version>
-    <jackson.annotations.version>2.11.0</jackson.annotations.version>
-    <jackson.jaxrs.version>2.11.0</jackson.jaxrs.version>
+    <jackson.core.version>2.11.1</jackson.core.version>
+    <jackson.databind.version>2.11.1</jackson.databind.version>
+    <jackson.annotations.version>2.11.1</jackson.annotations.version>
+    <jackson.jaxrs.version>2.11.1</jackson.jaxrs.version>
     <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
     <rdl.version>1.5.3</rdl.version>
-    <bouncycastle.version>1.65</bouncycastle.version>
-    <aws.version>1.11.802</aws.version>
+    <bouncycastle.version>1.66</bouncycastle.version>
+    <aws.version>1.11.832</aws.version>
     <guava.version>29.0-jre</guava.version>
     <logback.version>1.2.3</logback.version>
     <javax.version>3.1.0</javax.version>
     <javax.ws.version>2.1.1</javax.ws.version>
-    <mockito.version>3.3.3</mockito.version>
+    <mockito.version>3.4.6</mockito.version>
     <jmockit.version>1.49</jmockit.version>
     <jjwt.version>0.11.2</jjwt.version>
-    <mysql.connector.version>8.0.20</mysql.connector.version>
+    <mysql.connector.version>8.0.21</mysql.connector.version>
     <commons.daemon.version>1.2.2</commons.daemon.version>
     <apache.httpclient.version>4.5.12</apache.httpclient.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
