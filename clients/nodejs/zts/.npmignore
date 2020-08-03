@@ -1,0 +1,8 @@
+/.eslintcodecache
+/.nyc_output
+/artifacts
+/eslint.json
+/Gruntfile.js
+/Makefile
+/pom.xml
+/test
