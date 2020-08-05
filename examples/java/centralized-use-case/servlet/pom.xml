@@ -18,7 +18,7 @@
 
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.yahoo.athenz</groupId>
-  <artifactId>example-java-servlet-ntoken</artifactId>
+  <artifactId>example-java-servlet-certificate</artifactId>
   <packaging>war</packaging>
   <version>1.0</version>
   <name>athenz_example_java_centralized_authz</name>
@@ -27,13 +27,18 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <athenz.version>1.8.31</athenz.version>
+    <athenz.version>1.9.10</athenz.version>
   </properties>
 
   <dependencies>
     <dependency>
       <groupId>com.yahoo.athenz</groupId>
       <artifactId>athenz-zms-java-client</artifactId>
+      <version>${athenz.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.yahoo.athenz</groupId>
+      <artifactId>athenz-cert-refresher</artifactId>
       <version>${athenz.version}</version>
     </dependency>
     <dependency>
