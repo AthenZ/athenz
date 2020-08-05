@@ -15,10 +15,12 @@
  */
 package com.yahoo.athenz.zms;
 
+import com.wix.mysql.EmbeddedMysql;
 import com.yahoo.athenz.zms.audit.MockAuditReferenceValidatorImpl;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
 import com.yahoo.athenz.zms.store.ObjectStoreConnection;
 import com.yahoo.athenz.common.server.audit.AuditReferenceValidator;
+import com.yahoo.athenz.zms.store.jdbc.JDBCConnection;
 import com.yahoo.rdl.Timestamp;
 import org.mockito.Mockito;
 import org.mockito.Mock;
@@ -33,12 +35,9 @@ import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.zms.DBService.DataCache;
 import com.yahoo.athenz.zms.store.AthenzDomain;
 import com.yahoo.athenz.zms.store.ObjectStore;
-import com.yahoo.athenz.zms.store.file.FileConnection;
-import com.yahoo.athenz.zms.store.file.FileObjectStore;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
 import com.yahoo.rdl.Struct;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -58,7 +57,7 @@ import static org.testng.Assert.assertEquals;
 @SuppressWarnings("SameParameterValue")
 public class DBServiceTest {
     
-    @Mock private FileConnection mockFileConn;
+    @Mock private JDBCConnection mockJdbcConn;
     @Mock private ObjectStore mockObjStore;
     
     private ZMSImpl zms             = null;
@@ -66,6 +65,7 @@ public class DBServiceTest {
     private String pubKeyK1         = null;
     private String pubKeyK2         = null;
     private final String auditRef   = "audittest";
+    private EmbeddedMysql mysqld;
 
     // typically used when creating and deleting domains with all the tests
     //
@@ -75,8 +75,8 @@ public class DBServiceTest {
     private static final String MOCKCLIENTADDR = "10.11.12.13";
     @Mock private HttpServletRequest mockServletRequest;
 
-    private static final String ZMS_DATA_STORE_PATH = "/tmp/zms_core_unit_tests/zms_root";
-    private static final String ZMS_DATA_QUOTA_PATH = "/tmp/zms_core_unit_tests/zms_quota";
+    private static final String DB_USER = "admin";
+    private static final String DB_PASS = "unit-test";
 
     private static final Struct TABLE_PROVIDER_ROLE_ACTIONS = new Struct()
             .with("admin", "*").with("writer", "WRITE").with("reader", "READ");
@@ -91,10 +91,17 @@ public class DBServiceTest {
 
     @BeforeClass
     public void setUp() throws Exception {
-        MockitoAnnotations.initMocks(this);
+
+        mysqld = ZMSTestUtils.startMemoryMySQL(DB_USER, DB_PASS);
+        MockitoAnnotations.openMocks(this);
         System.setProperty(ZMSImplTest.ZMS_PROP_PUBLIC_KEY, "src/test/resources/zms_public.pem");
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zms_private.pem");
         System.setProperty(ZMSConsts.ZMS_PROP_DOMAIN_ADMIN, "user.testadminuser");
+
+        System.setProperty(ZMSConsts.ZMS_PROP_OBJECT_STORE_FACTORY_CLASS, "com.yahoo.athenz.zms.store.impl.JDBCObjectStoreFactory");
+        System.setProperty(ZMSConsts.ZMS_PROP_JDBC_RW_STORE, "jdbc:mysql://localhost:3310/zms_server");
+        System.setProperty(ZMSConsts.ZMS_PROP_JDBC_RW_USER, DB_USER);
+        System.setProperty(ZMSConsts.ZMS_PROP_JDBC_RW_PASSWORD, DB_PASS);
 
         Mockito.when(mockServletRequest.getRemoteAddr()).thenReturn(MOCKCLIENTADDR);
         Mockito.when(mockServletRequest.isSecure()).thenReturn(true);
@@ -108,33 +115,25 @@ public class DBServiceTest {
     }
 
     private ZMSImpl zmsInit() {
-        
-        // we want to make sure we start we clean dir structure
-        
-        FileConnection.deleteDirectory(new File(ZMS_DATA_STORE_PATH));
-        FileConnection.deleteDirectory(new File(ZMS_DATA_QUOTA_PATH));
 
         Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
 
-        final Principal rsrcPrince = SimplePrincipal.create("user", "user1", "v=U1;d=user;n=user1;s=signature",
+        final Principal rsrcPrincipal = SimplePrincipal.create("user", "user1", "v=U1;d=user;n=user1;s=signature",
                 0, principalAuthority);
-        ((SimplePrincipal) rsrcPrince).setUnsignedCreds("v=U1;d=user;n=user1");
+        assertNotNull(rsrcPrincipal);
+        ((SimplePrincipal) rsrcPrincipal).setUnsignedCreds("v=U1;d=user;n=user1");
         
         Mockito.when(mockDomRestRsrcCtx.request()).thenReturn(mockServletRequest);
-        Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcPrince);
+        Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcPrincipal);
         Mockito.when(mockDomRsrcCtx.context()).thenReturn(mockDomRestRsrcCtx);
         Mockito.when(mockDomRsrcCtx.request()).thenReturn(mockServletRequest);
-        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcPrince);
+        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcPrincipal);
 
         adminUser = System.getProperty(ZMSConsts.ZMS_PROP_DOMAIN_ADMIN);
 
         // enable product id support
         System.setProperty(ZMSConsts.ZMS_PROP_PRODUCT_ID_SUPPORT, "true");
         System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME, "src/test/resources/solution_templates.json");
-
-        System.setProperty(ZMSConsts.ZMS_PROP_FILE_STORE_PATH, "/tmp/zms_core_unit_tests/");
-        System.clearProperty(ZMSConsts.ZMS_PROP_JDBC_RW_STORE);
-        System.clearProperty(ZMSConsts.ZMS_PROP_JDBC_RO_STORE);
 
         return new ZMSImpl();
     }
@@ -253,7 +252,7 @@ public class DBServiceTest {
 
     @AfterClass
     public void shutdown() {
-        FileConnection.deleteDirectory(new File(ZMS_DATA_STORE_PATH));
+        ZMSTestUtils.stopMemoryMySQL(mysqld);
         System.clearProperty(ZMSConsts.ZMS_PROP_PRODUCT_ID_SUPPORT);
     }
     
@@ -285,12 +284,12 @@ public class DBServiceTest {
         
         String domainName = "audit-test-domain-name";
         Domain domain = new Domain().setAuditEnabled(true).setEnabled(true);
-        Mockito.doReturn(domain).when(mockFileConn).getDomain(domainName);
+        Mockito.doReturn(domain).when(mockJdbcConn).getDomain(domainName);
         
         String auditCheck = "testaudit";
         String caller = "testCheckDomainAuditEnabledFlagTrueRefValid";
         String principal = "testprincipal";
-        zms.dbService.checkDomainAuditEnabled(mockFileConn, domainName, auditCheck, caller, principal, DBService.AUDIT_TYPE_DOMAIN);
+        zms.dbService.checkDomainAuditEnabled(mockJdbcConn, domainName, auditCheck, caller, principal, DBService.AUDIT_TYPE_DOMAIN);
     }
 
     @Test
@@ -326,12 +325,12 @@ public class DBServiceTest {
         
         String domainName = "audit-test-domain-name";
         Domain domain = new Domain().setAuditEnabled(true).setEnabled(true);
-        Mockito.doReturn(domain).when(mockFileConn).getDomain(domainName);
+        Mockito.doReturn(domain).when(mockJdbcConn).getDomain(domainName);
         
         String caller = "testCheckDomainAuditEnabledFlagTrueRefNull";
         String principal = "testprincipal";
         try {
-            zms.dbService.checkDomainAuditEnabled(mockFileConn, domainName, null, caller, principal, DBService.AUDIT_TYPE_DOMAIN);
+            zms.dbService.checkDomainAuditEnabled(mockJdbcConn, domainName, null, caller, principal, DBService.AUDIT_TYPE_DOMAIN);
             fail();
         } catch (ResourceException ex) {
             assertEquals(400, ex.getCode());
@@ -344,13 +343,13 @@ public class DBServiceTest {
 
         String domainName = "audit-test-domain-name";
         Domain domain = new Domain().setAuditEnabled(true).setEnabled(true);
-        Mockito.doReturn(domain).when(mockFileConn).getDomain(domainName);
+        Mockito.doReturn(domain).when(mockJdbcConn).getDomain(domainName);
         
         String auditCheck = "";
         String caller = "testCheckDomainAuditEnabledFlagTrueRefEmpty";
         String principal = "testprincipal";
         try {
-            zms.dbService.checkDomainAuditEnabled(mockFileConn, domainName, auditCheck, caller, principal, DBService.AUDIT_TYPE_DOMAIN);
+            zms.dbService.checkDomainAuditEnabled(mockJdbcConn, domainName, auditCheck, caller, principal, DBService.AUDIT_TYPE_DOMAIN);
             fail();
         } catch (ResourceException ex) {
             assertEquals(400, ex.getCode());
@@ -363,12 +362,12 @@ public class DBServiceTest {
 
         String domainName = "audit-test-domain-name";
         Domain domain = new Domain().setAuditEnabled(false).setEnabled(true);
-        Mockito.doReturn(domain).when(mockFileConn).getDomain(domainName);
+        Mockito.doReturn(domain).when(mockJdbcConn).getDomain(domainName);
         
         String auditCheck = "testaudit";
         String caller = "testCheckDomainAuditEnabledFlagFalseRefValid";
         String principal = "testprincipal";
-        zms.dbService.checkDomainAuditEnabled(mockFileConn, domainName, auditCheck, caller, principal, DBService.AUDIT_TYPE_DOMAIN);
+        zms.dbService.checkDomainAuditEnabled(mockJdbcConn, domainName, auditCheck, caller, principal, DBService.AUDIT_TYPE_DOMAIN);
     }
 
     @Test
@@ -376,11 +375,11 @@ public class DBServiceTest {
 
         String domainName = "audit-test-domain-name";
         Domain domain = new Domain().setAuditEnabled(false).setEnabled(true);
-        Mockito.doReturn(domain).when(mockFileConn).getDomain(domainName);
+        Mockito.doReturn(domain).when(mockJdbcConn).getDomain(domainName);
         
         String caller = "testCheckDomainAuditEnabledFlagFalseRefNull";
         String principal = "testprincipal";
-        zms.dbService.checkDomainAuditEnabled(mockFileConn, domainName, null, caller, principal, DBService.AUDIT_TYPE_DOMAIN);
+        zms.dbService.checkDomainAuditEnabled(mockJdbcConn, domainName, null, caller, principal, DBService.AUDIT_TYPE_DOMAIN);
     }
 
     private void checkRoleMember(final List<String> checkList, List<RoleMember> members) {
@@ -389,6 +388,7 @@ public class DBServiceTest {
             for (RoleMember roleMember: members) {
                 if (roleMember.getMemberName().equals(roleMemberName)){
                     found = true;
+                    break;
                 }
             }
             if (!found) {
@@ -402,12 +402,12 @@ public class DBServiceTest {
 
         String domainName = "audit-test-domain-name";
         Domain domain = new Domain().setAuditEnabled(false).setEnabled(true);
-        Mockito.doReturn(domain).when(mockFileConn).getDomain(domainName);
+        Mockito.doReturn(domain).when(mockJdbcConn).getDomain(domainName);
         
         String auditCheck = "";
         String caller = "testCheckDomainAuditEnabledFlagFalseRefEmpty";
         String principal = "testprincipal";
-        zms.dbService.checkDomainAuditEnabled(mockFileConn, domainName, auditCheck, caller, principal, DBService.AUDIT_TYPE_DOMAIN);
+        zms.dbService.checkDomainAuditEnabled(mockJdbcConn, domainName, auditCheck, caller, principal, DBService.AUDIT_TYPE_DOMAIN);
     }
     
     @Test
@@ -415,13 +415,13 @@ public class DBServiceTest {
 
         String domainName = "audit-test-domain-name";
         Domain domain = new Domain().setAuditEnabled(false).setEnabled(true);
-        Mockito.doReturn(domain).when(mockFileConn).getDomain(domainName);
+        Mockito.doReturn(domain).when(mockJdbcConn).getDomain(domainName);
         
         String auditCheck = "testaudit";
         String caller = "testCheckDomainAuditEnabledDefault";
         String principal = "testprincipal";
         try {
-            zms.dbService.checkDomainAuditEnabled(mockFileConn, "unknown_domain", auditCheck, caller, principal, DBService.AUDIT_TYPE_DOMAIN);
+            zms.dbService.checkDomainAuditEnabled(mockJdbcConn, "unknown_domain", auditCheck, caller, principal, DBService.AUDIT_TYPE_DOMAIN);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 404);
@@ -433,7 +433,7 @@ public class DBServiceTest {
 
         String domainName = "audit-test-domain-name";
         Domain domain = new Domain().setAuditEnabled(true).setEnabled(true);
-        Mockito.doReturn(domain).when(mockFileConn).getDomain(domainName);
+        Mockito.doReturn(domain).when(mockJdbcConn).getDomain(domainName);
 
         String auditCheck = "testaudit";
         String caller = "testCheckDomainAuditEnabledFlagTrueRefValid";
@@ -442,7 +442,7 @@ public class DBServiceTest {
         zms.dbService.auditReferenceValidator = Mockito.mock(AuditReferenceValidator.class);
         Mockito.when(zms.dbService.auditReferenceValidator.validateReference(auditCheck, principal, caller)).thenReturn(true);
 
-        zms.dbService.checkDomainAuditEnabled(mockFileConn, domainName, auditCheck, caller, principal, DBService.AUDIT_TYPE_DOMAIN);
+        zms.dbService.checkDomainAuditEnabled(mockJdbcConn, domainName, auditCheck, caller, principal, DBService.AUDIT_TYPE_DOMAIN);
 
         zms.dbService.auditReferenceValidator = null;
     }
@@ -452,7 +452,7 @@ public class DBServiceTest {
 
         String domainName = "audit-test-domain-name";
         Domain domain = new Domain().setAuditEnabled(true).setEnabled(true);
-        Mockito.doReturn(domain).when(mockFileConn).getDomain(domainName);
+        Mockito.doReturn(domain).when(mockJdbcConn).getDomain(domainName);
 
         String auditCheck = "testaudit";
         String caller = "testCheckDomainAuditEnabledFlagTrueRefValid";
@@ -462,7 +462,7 @@ public class DBServiceTest {
         Mockito.when(zms.dbService.auditReferenceValidator.validateReference(auditCheck, principal, caller)).thenReturn(false);
 
         try {
-            zms.dbService.checkDomainAuditEnabled(mockFileConn, domainName, auditCheck, caller, principal, DBService.AUDIT_TYPE_DOMAIN);
+            zms.dbService.checkDomainAuditEnabled(mockJdbcConn, domainName, auditCheck, caller, principal, DBService.AUDIT_TYPE_DOMAIN);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -622,31 +622,31 @@ public class DBServiceTest {
 
     @Test
     public void testIsTenantRolePrefixMatchNoPrefixMatch() {
-        assertFalse(zms.dbService.isTenantRolePrefixMatch(mockFileConn, "coretech.storage.role1",
+        assertFalse(zms.dbService.isTenantRolePrefixMatch(mockJdbcConn, "coretech.storage.role1",
                 "coretech2.role.", null, "tenant"));
     }
     
     @Test
     public void testIsTenantRolePrefixMatchResGroupNullTenant() {
-        assertFalse(zms.dbService.isTenantRolePrefixMatch(mockFileConn, "coretech.storage.res_group.reader",
+        assertFalse(zms.dbService.isTenantRolePrefixMatch(mockJdbcConn, "coretech.storage.res_group.reader",
                 "coretech.storage.", "reader", "tenant"));
     }
     
     @Test
     public void testIsTenantRolePrefixMatchResGroupMultipleComponents() {
-        assertFalse(zms.dbService.isTenantRolePrefixMatch(mockFileConn, "coretech.storage.res_group.group1.group2.group3.reader",
+        assertFalse(zms.dbService.isTenantRolePrefixMatch(mockJdbcConn, "coretech.storage.res_group.group1.group2.group3.reader",
                 "coretech.storage.", "group1.group2.group3", "tenant"));
     }
     
     @Test
     public void testIsTenantRolePrefixMatchResGroupSingleComponent() {
-        assertTrue(zms.dbService.isTenantRolePrefixMatch(mockFileConn, "coretech.storage.res_group.group1.access",
+        assertTrue(zms.dbService.isTenantRolePrefixMatch(mockJdbcConn, "coretech.storage.res_group.group1.access",
                 "coretech.storage.res_group.group1.", "group1", "tenant"));
     }
     
     @Test
     public void testIsTenantRolePrefixMatchResGroupSubstring() {
-        assertFalse(zms.dbService.isTenantRolePrefixMatch(mockFileConn, "coretech.storage.res_group.group1.group2.access",
+        assertFalse(zms.dbService.isTenantRolePrefixMatch(mockJdbcConn, "coretech.storage.res_group.group1.group2.access",
                 "coretech.storage.res_group1.group1.", "group1", "tenant"));
     }
     
@@ -654,38 +654,38 @@ public class DBServiceTest {
     public void testIsTenantRolePrefixMatchSubdomainCheckExists() {
         
         Domain domain = new Domain().setAuditEnabled(false).setEnabled(true);
-        Mockito.doReturn(domain).when(mockFileConn).getDomain("tenant.sub");
+        Mockito.doReturn(domain).when(mockJdbcConn).getDomain("tenant.sub");
         
         // since subdomain exists - we're assuming is not a tenant role
         
-        assertFalse(zms.dbService.isTenantRolePrefixMatch(mockFileConn, "coretech.storage.sub.reader",
+        assertFalse(zms.dbService.isTenantRolePrefixMatch(mockJdbcConn, "coretech.storage.sub.reader",
                 "coretech.storage.", null, "tenant"));
     }
     
     @Test
     public void testIsTenantRolePrefixMatchSubdomainCheckDoesNotExist() {
         
-        Mockito.doReturn(null).when(mockFileConn).getDomain("tenant.sub");
+        Mockito.doReturn(null).when(mockJdbcConn).getDomain("tenant.sub");
         
         // subdomain does not exist thus this is a tenant role
         
-        assertTrue(zms.dbService.isTenantRolePrefixMatch(mockFileConn, "coretech.storage.sub.reader",
+        assertTrue(zms.dbService.isTenantRolePrefixMatch(mockJdbcConn, "coretech.storage.sub.reader",
                 "coretech.storage.", null, "tenant"));
     }
 
     @Test
     public void testIsTrustRoleForTenantPrefixNoMatch() {
         
-        assertFalse(zms.dbService.isTrustRoleForTenant(mockFileConn, "sports", "coretech.storage.tenant.admin",
+        assertFalse(zms.dbService.isTrustRoleForTenant(mockJdbcConn, "sports", "coretech.storage.tenant.admin",
                 "coretech2.storage.tenant.", null, "athenz"));
     }
     
     @Test
     public void testIsTrustRoleForTenantNoRole() {
         
-        Mockito.doReturn(null).when(mockFileConn).getRole("sports", "coretech.storage.tenant.admin");
+        Mockito.doReturn(null).when(mockJdbcConn).getRole("sports", "coretech.storage.tenant.admin");
 
-        assertFalse(zms.dbService.isTrustRoleForTenant(mockFileConn, "sports", "coretech.storage.tenant.admin",
+        assertFalse(zms.dbService.isTrustRoleForTenant(mockJdbcConn, "sports", "coretech.storage.tenant.admin",
                 "coretech.storage.tenant.", null, "athenz"));
     }
     
@@ -693,9 +693,9 @@ public class DBServiceTest {
     public void testIsTrustRoleForTenantNoRoleTrust() {
         
         Role role = new Role().setName(ZMSUtils.roleResourceName("sports",  "coretech.storage.tenant.admin"));
-        Mockito.doReturn(role).when(mockFileConn).getRole("sports", "coretech.storage.tenant.admin");
+        Mockito.doReturn(role).when(mockJdbcConn).getRole("sports", "coretech.storage.tenant.admin");
         
-        assertFalse(zms.dbService.isTrustRoleForTenant(mockFileConn, "sports", "coretech.storage.tenant.admin",
+        assertFalse(zms.dbService.isTrustRoleForTenant(mockJdbcConn, "sports", "coretech.storage.tenant.admin",
                 "coretech.storage.tenant.", null, "athenz"));
     }
     
@@ -704,9 +704,9 @@ public class DBServiceTest {
         
         Role role = new Role().setName(ZMSUtils.roleResourceName("sports",  "coretech.storage.tenant.admin"))
                 .setTrust("athenz");
-        Mockito.doReturn(role).when(mockFileConn).getRole("sports", "coretech.storage.tenant.admin");
+        Mockito.doReturn(role).when(mockJdbcConn).getRole("sports", "coretech.storage.tenant.admin");
         
-        assertTrue(zms.dbService.isTrustRoleForTenant(mockFileConn, "sports", "coretech.storage.tenant.admin",
+        assertTrue(zms.dbService.isTrustRoleForTenant(mockJdbcConn, "sports", "coretech.storage.tenant.admin",
                 "coretech.storage.tenant.", null, "athenz"));
     }
     
@@ -715,9 +715,9 @@ public class DBServiceTest {
         
         Role role = new Role().setName(ZMSUtils.roleResourceName("sports",  "coretech.storage.tenant.admin"))
                 .setTrust("athenz2");
-        Mockito.doReturn(role).when(mockFileConn).getRole("sports", "coretech.storage.tenant.admin");
+        Mockito.doReturn(role).when(mockJdbcConn).getRole("sports", "coretech.storage.tenant.admin");
         
-        assertFalse(zms.dbService.isTrustRoleForTenant(mockFileConn, "sports", "coretech.storage.tenant.admin",
+        assertFalse(zms.dbService.isTrustRoleForTenant(mockJdbcConn, "sports", "coretech.storage.tenant.admin",
                 "coretech.storage.tenant.", null, "athenz"));
     }
     
@@ -765,7 +765,9 @@ public class DBServiceTest {
         // replace the existing policy with a modified version
         
         Assertion assertion = new Assertion();
-        assertion.setAction("test").setEffect(AssertionEffect.ALLOW).setResource("tests");
+        assertion.setAction("test").setEffect(AssertionEffect.ALLOW)
+                .setResource("testreplacepolicycreatedomain:tests")
+                .setRole("testreplacepolicycreatedomain:role.readers");
         asserts = policy.getAssertions();
         asserts.add(assertion);
         policy = policy.setAssertions(asserts);
@@ -923,6 +925,7 @@ public class DBServiceTest {
         for (PublicKeyEntry entry : keyList) {
             if (entry.getId().equals("1")) {
                 found = true;
+                break;
             }
         }
         assertFalse(found);
@@ -1195,9 +1198,9 @@ public class DBServiceTest {
                 .setEnabled(true).setAuditEnabled(false).setAccount("12345").setYpmId(1001);
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockFileConn);
-        Mockito.when(mockFileConn.getDomain(domainName)).thenReturn(domain);
-        Mockito.when(mockFileConn.updateDomain(any()))
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
+        Mockito.when(mockJdbcConn.updateDomain(any()))
                 .thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
 
         ObjectStore saveStore = zms.dbService.store;
@@ -1271,12 +1274,12 @@ public class DBServiceTest {
         String domainName = "mgradddom1";
         String roleName = "role1";
 
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockFileConn);
-        Mockito.when(mockFileConn.insertRoleMember(anyString(), anyString(), any(RoleMember.class),
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.insertRoleMember(anyString(), anyString(), any(RoleMember.class),
                 anyString(), anyString())).thenReturn(false);
         Domain domain = new Domain().setName(domainName);
-        Mockito.when(mockFileConn.getDomain(domainName)).thenReturn(domain);
-        Mockito.when(mockFileConn.getRole(domainName, roleName)).thenReturn(null);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
+        Mockito.when(mockJdbcConn.getRole(domainName, roleName)).thenReturn(null);
         ObjectStore saveStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
 
@@ -1297,14 +1300,14 @@ public class DBServiceTest {
         String domainName = "mgradddom1";
         String roleName = "role1";
 
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockFileConn);
-        Mockito.when(mockFileConn.insertRoleMember(anyString(), anyString(), any(RoleMember.class),
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.insertRoleMember(anyString(), anyString(), any(RoleMember.class),
                 anyString(), anyString())).thenReturn(false);
         Domain domain = new Domain().setName(domainName);
-        Mockito.when(mockFileConn.getDomain(domainName)).thenReturn(domain);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
         Role role = createRoleObject(domainName, roleName, null,
                 "user.joe", "user.jane");
-        Mockito.when(mockFileConn.getRole(domainName, roleName)).thenReturn(role);
+        Mockito.when(mockJdbcConn.getRole(domainName, roleName)).thenReturn(role);
         ObjectStore saveStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
 
@@ -1325,14 +1328,14 @@ public class DBServiceTest {
         String domainName = "mgradddom1";
         String roleName = "role1";
 
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockFileConn);
-        Mockito.when(mockFileConn.insertRoleMember(anyString(), anyString(), any(RoleMember.class),
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.insertRoleMember(anyString(), anyString(), any(RoleMember.class),
                 anyString(), anyString())).thenThrow(new ResourceException(ResourceException.CONFLICT));
         Domain domain = new Domain().setName(domainName);
-        Mockito.when(mockFileConn.getDomain(domainName)).thenReturn(domain);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
         Role role = createRoleObject(domainName, roleName, null,
                 "user.joe", "user.jane");
-        Mockito.when(mockFileConn.getRole(domainName, roleName)).thenReturn(role);
+        Mockito.when(mockJdbcConn.getRole(domainName, roleName)).thenReturn(role);
         ObjectStore saveStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
         int saveRetryCount = zms.dbService.defaultRetryCount;
@@ -1476,9 +1479,9 @@ public class DBServiceTest {
         String serviceName = "service1";
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockFileConn);
-        Mockito.when(mockFileConn.getDomain(domainName)).thenReturn(domain);
-        Mockito.when(mockFileConn.deleteServiceIdentity(domainName, serviceName)).thenReturn(false);
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
+        Mockito.when(mockJdbcConn.deleteServiceIdentity(domainName, serviceName)).thenReturn(false);
 
         ObjectStore saveStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
@@ -1501,9 +1504,9 @@ public class DBServiceTest {
         String serviceName = "service1";
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockFileConn);
-        Mockito.when(mockFileConn.getDomain(domainName)).thenReturn(domain);
-        Mockito.when(mockFileConn.deleteServiceIdentity(domainName, serviceName))
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
+        Mockito.when(mockJdbcConn.deleteServiceIdentity(domainName, serviceName))
                 .thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
 
         ObjectStore saveStore = zms.dbService.store;
@@ -1530,9 +1533,9 @@ public class DBServiceTest {
         String entityName = "entity1";
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockFileConn);
-        Mockito.when(mockFileConn.getDomain(domainName)).thenReturn(domain);
-        Mockito.when(mockFileConn.deleteEntity(domainName, entityName)).thenReturn(false);
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
+        Mockito.when(mockJdbcConn.deleteEntity(domainName, entityName)).thenReturn(false);
 
         ObjectStore saveStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
@@ -1555,9 +1558,9 @@ public class DBServiceTest {
         String entityName = "entity1";
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockFileConn);
-        Mockito.when(mockFileConn.getDomain(domainName)).thenReturn(domain);
-        Mockito.when(mockFileConn.deleteEntity(domainName, entityName))
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
+        Mockito.when(mockJdbcConn.deleteEntity(domainName, entityName))
                 .thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
 
         ObjectStore saveStore = zms.dbService.store;
@@ -1584,9 +1587,9 @@ public class DBServiceTest {
         String roleName = "role1";
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockFileConn);
-        Mockito.when(mockFileConn.getDomain(domainName)).thenReturn(domain);
-        Mockito.when(mockFileConn.deleteRole(domainName, roleName)).thenReturn(false);
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
+        Mockito.when(mockJdbcConn.deleteRole(domainName, roleName)).thenReturn(false);
 
         ObjectStore saveStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
@@ -1609,9 +1612,9 @@ public class DBServiceTest {
         String roleName = "role1";
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockFileConn);
-        Mockito.when(mockFileConn.getDomain(domainName)).thenReturn(domain);
-        Mockito.when(mockFileConn.deleteRole(domainName, roleName))
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
+        Mockito.when(mockJdbcConn.deleteRole(domainName, roleName))
                 .thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
 
         ObjectStore saveStore = zms.dbService.store;
@@ -1638,9 +1641,9 @@ public class DBServiceTest {
         String policyName = "policy1";
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockFileConn);
-        Mockito.when(mockFileConn.getDomain(domainName)).thenReturn(domain);
-        Mockito.when(mockFileConn.deletePolicy(domainName, policyName)).thenReturn(false);
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
+        Mockito.when(mockJdbcConn.deletePolicy(domainName, policyName)).thenReturn(false);
 
         ObjectStore saveStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
@@ -1663,9 +1666,9 @@ public class DBServiceTest {
         String policyName = "policy1";
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockFileConn);
-        Mockito.when(mockFileConn.getDomain(domainName)).thenReturn(domain);
-        Mockito.when(mockFileConn.deletePolicy(domainName, policyName))
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
+        Mockito.when(mockJdbcConn.deletePolicy(domainName, policyName))
                 .thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
 
         ObjectStore saveStore = zms.dbService.store;
@@ -1692,11 +1695,11 @@ public class DBServiceTest {
         String serviceName = "service1";
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockFileConn);
-        Mockito.when(mockFileConn.getDomain(domainName)).thenReturn(domain);
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
         PublicKeyEntry keyEntry = new PublicKeyEntry().setId("0").setKey("key");
-        Mockito.when(mockFileConn.getPublicKeyEntry(domainName, serviceName, "0", false)).thenReturn(keyEntry);
-        Mockito.when(mockFileConn.updatePublicKeyEntry(domainName, serviceName, keyEntry))
+        Mockito.when(mockJdbcConn.getPublicKeyEntry(domainName, serviceName, "0", false)).thenReturn(keyEntry);
+        Mockito.when(mockJdbcConn.updatePublicKeyEntry(domainName, serviceName, keyEntry))
                 .thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
 
         ObjectStore saveStore = zms.dbService.store;
@@ -1723,9 +1726,9 @@ public class DBServiceTest {
         String serviceName = "service1";
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockFileConn);
-        Mockito.when(mockFileConn.getDomain(domainName)).thenReturn(domain);
-        Mockito.when(mockFileConn.deletePublicKeyEntry(domainName, serviceName, "0"))
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
+        Mockito.when(mockJdbcConn.deletePublicKeyEntry(domainName, serviceName, "0"))
                 .thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
 
         ObjectStore saveStore = zms.dbService.store;
@@ -1752,11 +1755,11 @@ public class DBServiceTest {
         String serviceName = "service1";
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockFileConn);
-        Mockito.when(mockFileConn.getDomain(domainName)).thenReturn(domain);
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
         PublicKeyEntry keyEntry = new PublicKeyEntry().setId("0").setKey("key");
-        Mockito.when(mockFileConn.getPublicKeyEntry(domainName, serviceName, "0", false)).thenReturn(keyEntry);
-        Mockito.when(mockFileConn.updatePublicKeyEntry(domainName, serviceName, keyEntry)).thenReturn(false);
+        Mockito.when(mockJdbcConn.getPublicKeyEntry(domainName, serviceName, "0", false)).thenReturn(keyEntry);
+        Mockito.when(mockJdbcConn.updatePublicKeyEntry(domainName, serviceName, keyEntry)).thenReturn(false);
 
         ObjectStore saveStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
@@ -1803,11 +1806,11 @@ public class DBServiceTest {
         Role role1 = createRoleObject(domainName, roleName, null,
                 "user.joe", "user.jane");
 
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockFileConn);
-        Mockito.when(mockFileConn.insertRole(anyString(), any(Role.class)))
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.insertRole(anyString(), any(Role.class)))
                 .thenReturn(false);
         Domain domain = new Domain().setName(domainName);
-        Mockito.when(mockFileConn.getDomain(domainName)).thenReturn(domain);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
 
         ObjectStore saveStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
@@ -1831,11 +1834,11 @@ public class DBServiceTest {
         Role role1 = createRoleObject(domainName, roleName, null,
                 "user.joe", "user.jane");
 
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockFileConn);
-        Mockito.when(mockFileConn.insertRole(anyString(), any(Role.class)))
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.insertRole(anyString(), any(Role.class)))
                 .thenThrow(new ResourceException(ResourceException.CONFLICT));
         Domain domain = new Domain().setName(domainName);
-        Mockito.when(mockFileConn.getDomain(domainName)).thenReturn(domain);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
 
         ObjectStore saveStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
@@ -1909,11 +1912,11 @@ public class DBServiceTest {
                 serviceName, "http://localhost", "/usr/bin/java", "root",
                 "users", "host1");
 
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockFileConn);
-        Mockito.when(mockFileConn.insertServiceIdentity(anyString(), any(ServiceIdentity.class)))
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.insertServiceIdentity(anyString(), any(ServiceIdentity.class)))
                 .thenReturn(false);
         Domain domain = new Domain().setName(domainName);
-        Mockito.when(mockFileConn.getDomain(domainName)).thenReturn(domain);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
 
         ObjectStore saveStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
@@ -1940,9 +1943,9 @@ public class DBServiceTest {
                 "users", "host1");
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockFileConn);
-        Mockito.when(mockFileConn.getDomain(domainName)).thenReturn(domain);
-        Mockito.when(mockFileConn.insertServiceIdentity(domainName, service))
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
+        Mockito.when(mockJdbcConn.insertServiceIdentity(domainName, service))
             .thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
         
         ObjectStore saveStore = zms.dbService.store;
@@ -1968,8 +1971,8 @@ public class DBServiceTest {
         String domainName = "serviceadddom1";
         String serviceName = "service1";
 
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockFileConn);
-        Mockito.when(mockFileConn.getDomain(domainName)).thenReturn(null);
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(null);
 
         ObjectStore saveStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
@@ -1994,11 +1997,11 @@ public class DBServiceTest {
         String serviceName = "service1";
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockFileConn);
-        Mockito.when(mockFileConn.getDomain(domainName)).thenReturn(domain);
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
         ServiceIdentity service = new ServiceIdentity().setProviderEndpoint("https://localhost");
-        Mockito.when(mockFileConn.getServiceIdentity(domainName, serviceName)).thenReturn(service);
-        Mockito.when(mockFileConn.updateServiceIdentity(domainName, service))
+        Mockito.when(mockJdbcConn.getServiceIdentity(domainName, serviceName)).thenReturn(service);
+        Mockito.when(mockJdbcConn.updateServiceIdentity(domainName, service))
                 .thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
 
         ObjectStore saveStore = zms.dbService.store;
@@ -2188,7 +2191,7 @@ public class DBServiceTest {
         Role role = zms.dbService.getRole(domainName, "vip_admin", false, false, false);
         assertEquals(domainName + ":role.vip_admin", role.getName());
         assertNull(role.getTrust());
-        assertNull(role.getRoleMembers());
+        assertTrue(role.getRoleMembers().isEmpty());
         
         role = zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false, false);
         assertEquals(domainName + ":role.sys_network_super_vip_admin", role.getName());
@@ -2275,7 +2278,7 @@ public class DBServiceTest {
         Role role = zms.dbService.getRole(domainName, "vip_admin", false, false, false);
         assertEquals(domainName + ":role.vip_admin", role.getName());
         assertNull(role.getTrust());
-        assertNull(role.getRoleMembers());
+        assertTrue(role.getRoleMembers().isEmpty());
         
         role = zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false, false);
         assertEquals(domainName + ":role.sys_network_super_vip_admin", role.getName());
@@ -2395,7 +2398,7 @@ public class DBServiceTest {
         Role role = zms.dbService.getRole(domainName, "vip_admin", false, false, false);
         assertEquals(domainName + ":role.vip_admin", role.getName());
         assertNull(role.getTrust());
-        assertNull(role.getRoleMembers());
+        assertTrue(role.getRoleMembers().isEmpty());
         
         // verify that our policy collections includes the policies defined in the template
         
@@ -2470,7 +2473,7 @@ public class DBServiceTest {
         Role role = zms.dbService.getRole(domainName, "vip_admin", false, false, false);
         assertEquals(domainName + ":role.vip_admin", role.getName());
         assertNull(role.getTrust());
-        assertNull(role.getRoleMembers());
+        assertTrue(role.getRoleMembers().isEmpty());
         
         // verify that our policy collections includes the policies defined in the template
         
@@ -2547,7 +2550,7 @@ public class DBServiceTest {
         Role role = zms.dbService.getRole(domainName, "vip_admin", false, false, false);
         assertEquals(domainName + ":role.vip_admin", role.getName());
         assertNull(role.getTrust());
-        assertNull(role.getRoleMembers());
+        assertTrue(role.getRoleMembers().isEmpty());
         
         // verify that our policy collections includes the policies defined in the template
         
@@ -2628,7 +2631,7 @@ public class DBServiceTest {
         Role role = zms.dbService.getRole(domainName, "vip_admin", false, false, false);
         assertEquals(domainName + ":role.vip_admin", role.getName());
         assertNull(role.getTrust());
-        assertNull(role.getRoleMembers());
+        assertTrue(role.getRoleMembers().isEmpty());
         
         role = zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false, false);
         assertEquals(domainName + ":role.sys_network_super_vip_admin", role.getName());
@@ -2727,7 +2730,7 @@ public class DBServiceTest {
         Role role = zms.dbService.getRole(domainName, "vip_admin", false, false, false);
         assertEquals(domainName + ":role.vip_admin", role.getName());
         assertNull(role.getTrust());
-        assertNull(role.getRoleMembers());
+        assertTrue(role.getRoleMembers().isEmpty());
         
         role = zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false, false);
         assertEquals(domainName + ":role.sys_network_super_vip_admin", role.getName());
@@ -2985,10 +2988,9 @@ public class DBServiceTest {
     @Test
     public void testShouldRetryOperation() {
         
-        FileObjectStore store = new FileObjectStore(new File("."), new File("."));
         ZMSConfig zmsConfig = new ZMSConfig();
         zmsConfig.setUserDomain("user");
-        DBService dbService = new DBService(store, null, zmsConfig, null);
+        DBService dbService = new DBService(mockObjStore, null, zmsConfig, null);
         
         // regardless of exception, count of 0 or 1 returns false
         
@@ -3074,12 +3076,14 @@ public class DBServiceTest {
 
         list = zms.dbService.lookupDomainById(null, 102);
         assertNull(list.getNames());
-        
+
+        // by default we're assiging id 0 to all domains without valid value
+
         list = zms.dbService.lookupDomainByProductId(0);
-        assertNull(list.getNames());
+        assertNotNull(list.getNames());
         
         list = zms.dbService.lookupDomainById(null, 0);
-        assertNull(list.getNames());
+        assertNotNull(list.getNames());
         
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
@@ -3466,7 +3470,9 @@ public class DBServiceTest {
     public void testListPrincipalsAll() {
         
         String domainName = "listusers1";
-        
+
+        ZMSTestUtils.cleanupNotAdminUsers(zms, adminUser, mockDomRsrcCtx);
+
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
@@ -3500,7 +3506,6 @@ public class DBServiceTest {
         zms.putRole(mockDomRsrcCtx, "listusersports", "role5", auditRef, role5);
         
         List<String> users = zms.dbService.listPrincipals(null, false);
-        assertEquals(users.size(), 7);
         assertTrue(users.contains("user.testadminuser"));
         assertTrue(users.contains("user.janie"));
         assertTrue(users.contains("user.ana"));
@@ -3544,7 +3549,6 @@ public class DBServiceTest {
         zms.putRole(mockDomRsrcCtx, "listusersports", "role3", auditRef, role3);
         
         List<String> users = zms.dbService.listPrincipals(null, false);
-        assertEquals(users.size(), 6);
         assertTrue(users.contains("user.testadminuser"));
         assertTrue(users.contains("user.janie"));
         assertTrue(users.contains("user.ana"));
@@ -3553,20 +3557,18 @@ public class DBServiceTest {
         assertTrue(users.contains("listusersports.api.service"));
         
         users = zms.dbService.listPrincipals(null, true);
-        assertEquals(users.size(), 5);
         assertTrue(users.contains("user.testadminuser"));
         assertTrue(users.contains("user.janie"));
         assertTrue(users.contains("user.ana"));
         assertTrue(users.contains("user.joe"));
         assertTrue(users.contains("listusersports.jane"));
-        
+        assertFalse(users.contains("listusersports.api.service"));
+
         users = zms.dbService.listPrincipals("listusersports", false);
         assertEquals(users.size(), 2);
         assertTrue(users.contains("listusersports.jane"));
         assertTrue(users.contains("listusersports.api.service"));
-        
-        assertTrue(users.contains("listusersports.jane"));
-        
+
         users = zms.dbService.listPrincipals("listusersports", true);
         assertEquals(users.size(), 1);
         assertTrue(users.contains("listusersports.jane"));
@@ -3580,7 +3582,9 @@ public class DBServiceTest {
     public void testExecuteDeleteUser() {
         
         String domainName = "deleteuser1";
-        
+
+        ZMSTestUtils.cleanupNotAdminUsers(zms, adminUser, mockDomRsrcCtx);
+
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
@@ -3661,7 +3665,9 @@ public class DBServiceTest {
     public void testExecuteDeleteUserSubdomains() {
         
         String domainName = "deleteuser1";
-        
+
+        ZMSTestUtils.cleanupNotAdminUsers(zms, adminUser, mockDomRsrcCtx);
+
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
@@ -3691,20 +3697,20 @@ public class DBServiceTest {
         zms.putRole(mockDomRsrcCtx, domainName, "role3", auditRef, role3);
         
         List<String> users = zms.dbService.listPrincipals("user", false);
-        assertEquals(users.size(), 5);
+        int userLen = users.size();
         assertTrue(users.contains("user.testadminuser"));
         assertTrue(users.contains("user.jack"));
         assertTrue(users.contains("user.jack.sub1.service"));
         assertTrue(users.contains("user.jack.sub1.api"));
         assertTrue(users.contains("user.joe"));
-        
+
         zms.dbService.executeDeleteUser(mockDomRsrcCtx, "user.jack", "user.jack", auditRef, "testExecuteDeleteUser");
         
         users = zms.dbService.listPrincipals("user", false);
-        assertEquals(users.size(), 2);
+        assertEquals(users.size(), userLen - 3);
         assertTrue(users.contains("user.testadminuser"));
         assertTrue(users.contains("user.joe"));
-        
+
         try {
             zms.getDomain(mockDomRsrcCtx, "user.jack");
             fail();
@@ -3764,10 +3770,15 @@ public class DBServiceTest {
         ZMSTestUtils.verifyDomainRoleMember(members, "user.jack-service", "role5");
         ZMSTestUtils.verifyDomainRoleMember(members, adminUser, "admin");
 
-        // this should be no-op with unknown user
+        // this should exception with not-found user
 
-        zms.dbService.executeDeleteDomainRoleMember(mockDomRsrcCtx, domainName, "user.unknown", auditRef,
-                "testExecuteDeleteDomainRoleMember");
+        try {
+            zms.dbService.executeDeleteDomainRoleMember(mockDomRsrcCtx, domainName, "user.unknown", auditRef,
+                    "testExecuteDeleteDomainRoleMember");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
 
         domainRoleMembers = zms.getDomainRoleMembers(mockDomRsrcCtx, domainName);
         members = domainRoleMembers.getMembers();
@@ -3801,8 +3812,8 @@ public class DBServiceTest {
     @Test
     public void testExecuteDeleteDomainRoleMemberRetryException() {
 
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockFileConn);
-        Mockito.when(mockFileConn.listPrincipalRoles("dom1", "user.joe"))
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.listPrincipalRoles("dom1", "user.joe"))
                 .thenThrow(new ResourceException(410));
 
         ObjectStore saveStore = zms.dbService.store;
@@ -3896,8 +3907,8 @@ public class DBServiceTest {
     @Test
     public void testExecuteDeleteUserRetryException() {
 
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockFileConn);
-        Mockito.when(mockFileConn.listDomains("home.joe.", 0))
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.listDomains("home.joe.", 0))
                 .thenThrow(new ResourceException(409));
 
         ObjectStore saveStore = zms.dbService.store;
@@ -3946,9 +3957,9 @@ public class DBServiceTest {
 
         String domainName = "putquota";
 
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockFileConn);
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
         Quota quota = new Quota();
-        Mockito.when(mockFileConn.insertQuota(domainName, quota))
+        Mockito.when(mockJdbcConn.insertQuota(domainName, quota))
                 .thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
 
         ObjectStore saveStore = zms.dbService.store;
@@ -3973,8 +3984,8 @@ public class DBServiceTest {
 
         String domainName = "putquota";
 
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockFileConn);
-        Mockito.when(mockFileConn.deleteQuota(domainName))
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.deleteQuota(domainName))
                 .thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
 
         ObjectStore saveStore = zms.dbService.store;
@@ -4218,7 +4229,8 @@ public class DBServiceTest {
     @Test
     public void testDeleteSystemMetaAllowed() {
 
-        assertTrue(zms.dbService.isDeleteSystemMetaAllowed(true, null, null));
+        assertTrue(zms.dbService.isDeleteSystemMetaAllowed(true, null, (String) null));
+        assertTrue(zms.dbService.isDeleteSystemMetaAllowed(true, null, (Integer) null));
         assertTrue(zms.dbService.isDeleteSystemMetaAllowed(true, null, "new"));
         assertTrue(zms.dbService.isDeleteSystemMetaAllowed(true, null, ""));
 
@@ -4230,7 +4242,8 @@ public class DBServiceTest {
         assertTrue(zms.dbService.isDeleteSystemMetaAllowed(true, "", "new"));
         assertTrue(zms.dbService.isDeleteSystemMetaAllowed(true, "", ""));
 
-        assertTrue(zms.dbService.isDeleteSystemMetaAllowed(false, null, null));
+        assertTrue(zms.dbService.isDeleteSystemMetaAllowed(false, null, (String) null));
+        assertTrue(zms.dbService.isDeleteSystemMetaAllowed(false, null, (Integer) null));
         assertTrue(zms.dbService.isDeleteSystemMetaAllowed(false, null, "new"));
         assertTrue(zms.dbService.isDeleteSystemMetaAllowed(false, null, ""));
 
@@ -4238,11 +4251,17 @@ public class DBServiceTest {
         assertFalse(zms.dbService.isDeleteSystemMetaAllowed(false, "old", "new"));
         assertFalse(zms.dbService.isDeleteSystemMetaAllowed(false, "old", ""));
 
-        assertFalse(zms.dbService.isDeleteSystemMetaAllowed(false, "", null));
-        assertFalse(zms.dbService.isDeleteSystemMetaAllowed(false, "", "new"));
+        assertTrue(zms.dbService.isDeleteSystemMetaAllowed(false, "", null));
+        assertTrue(zms.dbService.isDeleteSystemMetaAllowed(false, "", "new"));
         assertTrue(zms.dbService.isDeleteSystemMetaAllowed(false, "", ""));
 
         assertTrue(zms.dbService.isDeleteSystemMetaAllowed(false, "test", "test"));
+
+        assertTrue(zms.dbService.isDeleteSystemMetaAllowed(false, 0, 0));
+        assertTrue(zms.dbService.isDeleteSystemMetaAllowed(false, 5, 5));
+        assertTrue(zms.dbService.isDeleteSystemMetaAllowed(false, 0, 5));
+        assertTrue(zms.dbService.isDeleteSystemMetaAllowed(true, 5, 5));
+        assertTrue(zms.dbService.isDeleteSystemMetaAllowed(true, 5, 0));
     }
 
     @Test
@@ -4353,12 +4372,12 @@ public class DBServiceTest {
         ObjectStore saveStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
         zms.dbService.defaultRetryCount = 2;
-        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(mockFileConn);
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(mockJdbcConn);
         ResourceException rex = new ResourceException(409);
         Domain d = new Domain().setName("MetaDom1").setAuditEnabled(true);
-        Mockito.when(mockFileConn.getDomain(anyString())).thenReturn(d);
-        Mockito.when(mockFileConn.getRole(anyString(), anyString())).thenReturn(role);
-        Mockito.when(mockFileConn.updateRole(anyString(), any(Role.class))).thenThrow(rex);
+        Mockito.when(mockJdbcConn.getDomain(anyString())).thenReturn(d);
+        Mockito.when(mockJdbcConn.getRole(anyString(), anyString())).thenReturn(role);
+        Mockito.when(mockJdbcConn.updateRole(anyString(), any(Role.class))).thenThrow(rex);
 
         try {
             zms.dbService.executePutRoleSystemMeta(mockDomRsrcCtx, "MetaDom1", "MetaRole1", rsm,
@@ -4523,7 +4542,7 @@ public class DBServiceTest {
         zms.dbService.executePutRoleMeta(mockDomRsrcCtx, "MetaDom1", "MetaRole1",
                 rm, auditRef, "putrolemeta");
         resRole1 = zms.dbService.getRole("MetaDom1", "MetaRole1", false, true, false);
-        assertFalse(resRole1.getSelfServe());
+        assertNull(resRole1.getSelfServe());
         assertEquals(resRole1.getCertExpiryMins(), Integer.valueOf(10));
         assertEquals(resRole1.getMemberExpiryDays(), Integer.valueOf(10));
         assertEquals(resRole1.getServiceExpiryDays(), Integer.valueOf(15));
@@ -4531,7 +4550,7 @@ public class DBServiceTest {
         assertEquals(resRole1.getMemberReviewDays(), Integer.valueOf(30));
         assertEquals(resRole1.getServiceReviewDays(), Integer.valueOf(35));
         assertEquals(resRole1.getSignAlgorithm(), "rsa");
-        assertFalse(resRole1.getReviewEnabled());
+        assertNull(resRole1.getReviewEnabled());
         assertEquals(resRole1.getNotifyRoles(), "role1,role2");
         assertEquals(resRole1.getUserAuthorityFilter(), "contractor");
         assertEquals(resRole1.getUserAuthorityExpiration(), "elevated-clearance");
@@ -4557,10 +4576,10 @@ public class DBServiceTest {
         ObjectStore saveStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
         zms.dbService.defaultRetryCount = 2;
-        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(mockFileConn);
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(mockJdbcConn);
         ResourceException rex = new ResourceException(409);
-        Mockito.when(mockFileConn.getRole(anyString(), anyString())).thenReturn(role);
-        Mockito.when(mockFileConn.updateRole(anyString(), any(Role.class))).thenThrow(rex);
+        Mockito.when(mockJdbcConn.getRole(anyString(), anyString())).thenReturn(role);
+        Mockito.when(mockJdbcConn.updateRole(anyString(), any(Role.class))).thenThrow(rex);
 
         try {
             zms.dbService.executePutRoleMeta(mockDomRsrcCtx, "MetaDom1", "MetaRole1", rm, auditRef, "putrolemeta");
@@ -4600,12 +4619,12 @@ public class DBServiceTest {
         String domainName = "audit-test-domain-name";
         String roleName = "testrole";
         Role role = new Role().setAuditEnabled(true);
-        Mockito.doReturn(role).when(mockFileConn).getRole(domainName, roleName);
+        Mockito.doReturn(role).when(mockJdbcConn).getRole(domainName, roleName);
 
         String caller = "testCheckRoleAuditEnabledFlagTrueRefNull";
         String principal = "testprincipal";
         try {
-            zms.dbService.checkRoleAuditEnabled(mockFileConn, role, null, caller, principal);
+            zms.dbService.checkRoleAuditEnabled(mockJdbcConn, role, null, caller, principal);
             fail();
         } catch (ResourceException ex) {
             assertEquals(400, ex.getCode());
@@ -4619,13 +4638,13 @@ public class DBServiceTest {
         String domainName = "audit-test-domain-name";
         String roleName = "testrole";
         Role role = new Role().setAuditEnabled(true);
-        Mockito.doReturn(role).when(mockFileConn).getRole(domainName, roleName);
+        Mockito.doReturn(role).when(mockJdbcConn).getRole(domainName, roleName);
 
         String auditCheck = "";  // empty string
         String caller = "testCheckRoleAuditEnabledFlagTrueRefEmpty";
         String principal = "testprincipal";
         try {
-            zms.dbService.checkRoleAuditEnabled(mockFileConn, role, auditCheck, caller, principal);
+            zms.dbService.checkRoleAuditEnabled(mockJdbcConn, role, auditCheck, caller, principal);
             fail();
         } catch (ResourceException ex) {
             assertEquals(400, ex.getCode());
@@ -4639,12 +4658,12 @@ public class DBServiceTest {
         String domainName = "audit-test-domain-name";
         String roleName = "testrole";
         Role role = new Role().setAuditEnabled(false);
-        Mockito.doReturn(role).when(mockFileConn).getRole(domainName, roleName);
+        Mockito.doReturn(role).when(mockJdbcConn).getRole(domainName, roleName);
 
         String auditCheck = "testaudit";
         String caller = "testCheckRoleAuditEnabledFlagFalseRefValid";
         String principal = "testprincipal";
-        zms.dbService.checkRoleAuditEnabled(mockFileConn, role, auditCheck, caller, principal);
+        zms.dbService.checkRoleAuditEnabled(mockJdbcConn, role, auditCheck, caller, principal);
     }
 
     @Test
@@ -4653,11 +4672,11 @@ public class DBServiceTest {
         String domainName = "audit-test-domain-name";
         String roleName = "testrole";
         Role role = new Role().setAuditEnabled(false);
-        Mockito.doReturn(role).when(mockFileConn).getRole(domainName, roleName);
+        Mockito.doReturn(role).when(mockJdbcConn).getRole(domainName, roleName);
 
         String caller = "testCheckRoleAuditEnabledFlagFalseRefNull";
         String principal = "testprincipal";
-        zms.dbService.checkRoleAuditEnabled(mockFileConn, role, null, caller, principal);
+        zms.dbService.checkRoleAuditEnabled(mockJdbcConn, role, null, caller, principal);
     }
 
     @Test
@@ -4666,14 +4685,14 @@ public class DBServiceTest {
         String domainName = "audit-test-domain-name";
         String roleName = "testrole";
         Role role = new Role().setAuditEnabled(true);
-        Mockito.doReturn(role).when(mockFileConn).getRole(domainName, roleName);
+        Mockito.doReturn(role).when(mockJdbcConn).getRole(domainName, roleName);
 
         zms.dbService.auditReferenceValidator = new MockAuditReferenceValidatorImpl();
 
         String caller = "testCheckRoleAuditEnabledFlagTrueRefValidationFail";
         String principal = "testprincipal";
         try {
-            zms.dbService.checkRoleAuditEnabled(mockFileConn, role, "auditref", caller, principal);
+            zms.dbService.checkRoleAuditEnabled(mockJdbcConn, role, "auditref", caller, principal);
             fail();
         } catch (ResourceException ex) {
             assertEquals(400, ex.getCode());
@@ -4688,13 +4707,13 @@ public class DBServiceTest {
         String domainName = "audit-test-domain-name";
         String roleName = "testrole";
         Role role = new Role().setAuditEnabled(true);
-        Mockito.doReturn(role).when(mockFileConn).getRole(domainName, roleName);
+        Mockito.doReturn(role).when(mockJdbcConn).getRole(domainName, roleName);
 
         zms.dbService.auditReferenceValidator = null;
 
         String caller = "testCheckRoleAuditEnabledFlagTrueValidatorNull";
         String principal = "testprincipal";
-        zms.dbService.checkRoleAuditEnabled(mockFileConn, role, "auditref", caller, principal);
+        zms.dbService.checkRoleAuditEnabled(mockJdbcConn, role, "auditref", caller, principal);
     }
 
     @Test
@@ -4841,9 +4860,9 @@ public class DBServiceTest {
         RoleMember roleMem = new RoleMember().setMemberName("user.doe").setActive(true).setApproved(true);
         ObjectStore saveStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockFileConn);
-        Mockito.when(mockFileConn.getRole(domainName, roleName)).thenReturn(role1);
-        Mockito.when(mockFileConn.confirmRoleMember(anyString(), anyString(), any(), anyString(),
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.getRole(domainName, roleName)).thenReturn(role1);
+        Mockito.when(mockJdbcConn.confirmRoleMember(anyString(), anyString(), any(), anyString(),
                 anyString())).thenReturn(false);
         try {
             zms.dbService.executePutMembershipDecision(mockDomRsrcCtx, domainName, roleName,
@@ -4922,9 +4941,9 @@ public class DBServiceTest {
         ObjectStore saveStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
         zms.dbService.defaultRetryCount = 2;
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockFileConn);
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
         ResourceException rex = new ResourceException(409);
-        Mockito.when(mockFileConn.confirmRoleMember(anyString(), anyString(), any(), anyString(),
+        Mockito.when(mockJdbcConn.confirmRoleMember(anyString(), anyString(), any(), anyString(),
                 anyString())).thenThrow(rex);
         try {
             zms.dbService.executePutMembershipDecision(mockDomRsrcCtx, domainName, roleName,
@@ -5054,7 +5073,8 @@ public class DBServiceTest {
         zms.dbService.executePutRole(mockDomRsrcCtx, "sys.auth.audit.org", "testorg",
                 auditApproverRole, "test", "putrole");
 
-        Set<String> recipientRoles = zms.dbService.getPendingMembershipApproverRoles();
+        ZMSTestUtils.sleep(1000);
+        Set<String> recipientRoles = zms.dbService.getPendingMembershipApproverRoles(0);
 
         assertNotNull(recipientRoles);
         assertTrue(recipientRoles.contains("dom1:role.admin"));
@@ -5071,14 +5091,14 @@ public class DBServiceTest {
         Set<String> recipients = new HashSet<>();
         recipients.add("user.joe");
         recipients.add("unix.moe");
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockFileConn);
-        Mockito.when(mockFileConn.updatePendingRoleMembersNotificationTimestamp(anyString(), anyLong())).thenReturn(true);
-        Mockito.when(mockFileConn.getPendingMembershipApproverRoles(anyString(), anyLong())).thenReturn(recipients);
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.updatePendingRoleMembersNotificationTimestamp(anyString(), anyLong(), anyInt())).thenReturn(true);
+        Mockito.when(mockJdbcConn.getPendingMembershipApproverRoles(anyString(), anyLong())).thenReturn(recipients);
 
         ObjectStore saveStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
 
-        Set<String> recipientsRes = zms.dbService.getPendingMembershipApproverRoles();
+        Set<String> recipientsRes = zms.dbService.getPendingMembershipApproverRoles(0);
 
         assertNotNull(recipientsRes);
         assertTrue(recipientsRes.contains("user.joe"));
@@ -5089,12 +5109,12 @@ public class DBServiceTest {
     @Test
     public void testGetPendingMembershipNotificationsTimestampUpdateFailed() {
 
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockFileConn);
-        Mockito.when(mockFileConn.updatePendingRoleMembersNotificationTimestamp(anyString(), anyLong())).thenReturn(false);
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.updatePendingRoleMembersNotificationTimestamp(anyString(), anyLong(), anyInt())).thenReturn(false);
 
         ObjectStore saveStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
-        Set<String> recipientsRes = zms.dbService.getPendingMembershipApproverRoles();
+        Set<String> recipientsRes = zms.dbService.getPendingMembershipApproverRoles(0);
         assertNull(recipientsRes);
         zms.dbService.store = saveStore;
     }
@@ -5124,11 +5144,11 @@ public class DBServiceTest {
         ObjectStore saveStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
 
-        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(mockFileConn);
-        Mockito.when(mockFileConn.getExpiredPendingDomainRoleMembers(30)).thenReturn(memberList);
-        Mockito.when(mockFileConn.deletePendingRoleMember("dom1", "role1", "user.user1", "sys.auth.monitor",
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.getExpiredPendingDomainRoleMembers(30)).thenReturn(memberList);
+        Mockito.when(mockJdbcConn.deletePendingRoleMember("dom1", "role1", "user.user1", "sys.auth.monitor",
                 "Expired - auto reject")).thenReturn(true);
-        Mockito.when(mockFileConn.deletePendingRoleMember("dom1", "role1", "user.user2", "sys.auth.monitor",
+        Mockito.when(mockJdbcConn.deletePendingRoleMember("dom1", "role1", "user.user2", "sys.auth.monitor",
                 "Expired - auto reject")).thenReturn(false);
 
         zms.dbService.processExpiredPendingMembers(30, "sys.auth.monitor");
@@ -5169,15 +5189,6 @@ public class DBServiceTest {
 
         Role role = zms.dbService.getRole(domainName, roleName, false, false, true);
         assertEquals(role.getRoleMembers().size(), 4);
-
-        // now let's expire our entries
-
-        zms.dbService.processExpiredPendingMembers(30, "sys.auth.monitor");
-
-        // we should get back only three members since one is expired
-
-        role = zms.dbService.getRole(domainName, roleName, false, false, true);
-        assertEquals(role.getRoleMembers().size(), 3);
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
@@ -5636,7 +5647,7 @@ public class DBServiceTest {
         // has an expiration
 
         Role resRole2 = zms.dbService.getRole(domainName, "role2", false, true, false);
-        assertNull(resRole2.getRoleMembers());
+        assertTrue(resRole2.getRoleMembers().isEmpty());
 
         // verify our trust role
 
@@ -5995,7 +6006,6 @@ public class DBServiceTest {
         zms.dbService.executeDeleteDomain(mockDomRsrcCtx, domainName2, auditRef, "deletedomain");
     }
 
-
     @Test
     public void testGetRoleExpiryMembersFailure() {
 
@@ -6082,32 +6092,30 @@ public class DBServiceTest {
 
         DomainRoleMember domainRoleMember = zms.dbService.getPrincipalRoles(principal, null);
         MemberRole memberRole0 = new MemberRole();
-        memberRole0.setMemberName(principal);
         memberRole0.setDomainName("domain1");
-        memberRole0.setRoleName("domain1:role.role1");
+        memberRole0.setRoleName("role1");
 
         MemberRole memberRole1 = new MemberRole();
-        memberRole1.setMemberName(principal);
         memberRole1.setDomainName("domain1");
-        memberRole1.setRoleName("domain1:role.role2");
+        memberRole1.setRoleName("role2");
 
         MemberRole memberRole2 = new MemberRole();
-        memberRole2.setMemberName(principal);
         memberRole2.setDomainName("domain3");
-        memberRole2.setRoleName("domain3:role.role1");
+        memberRole2.setRoleName("role1");
 
         assertEquals(domainRoleMember.getMemberName(), principal);
         assertEquals(domainRoleMember.getMemberRoles().size(), 3);
-        assertEquals(domainRoleMember.getMemberRoles().get(0), memberRole0);
-        assertEquals(domainRoleMember.getMemberRoles().get(1), memberRole1);
-        assertEquals(domainRoleMember.getMemberRoles().get(2), memberRole2);
+
+        assertTrue(ZMSTestUtils.verifyDomainRoleMember(domainRoleMember, memberRole0));
+        assertTrue(ZMSTestUtils.verifyDomainRoleMember(domainRoleMember, memberRole1));
+        assertTrue(ZMSTestUtils.verifyDomainRoleMember(domainRoleMember, memberRole2));
 
         // Get all roles for a specific domain
         domainRoleMember = zms.dbService.getPrincipalRoles(principal, "domain1");
         assertEquals(domainRoleMember.getMemberName(), principal);
         assertEquals(domainRoleMember.getMemberRoles().size(), 2);
-        assertEquals(domainRoleMember.getMemberRoles().get(0), memberRole0);
-        assertEquals(domainRoleMember.getMemberRoles().get(1), memberRole1);
+        assertTrue(ZMSTestUtils.verifyDomainRoleMember(domainRoleMember, memberRole0));
+        assertTrue(ZMSTestUtils.verifyDomainRoleMember(domainRoleMember, memberRole1));
 
         zms.dbService.executeDeleteDomain(mockDomRsrcCtx, "domain1", auditRef, "deletedomain");
         zms.dbService.executeDeleteDomain(mockDomRsrcCtx, "domain2", auditRef, "deletedomain");
@@ -6115,9 +6123,6 @@ public class DBServiceTest {
     }
 
     private void createMockDomain(String domainName) {
-        List<String> admins = new ArrayList<>();
-        admins.add(adminUser);
-
         TopLevelDomain domain = createTopLevelDomainObject(domainName, "Test " + domainName, "testorg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, domain);
     }
@@ -6193,8 +6198,6 @@ public class DBServiceTest {
         for (RoleMember roleMember : noactionMembers) {
             switch (roleMember.getMemberName()) {
                 case "user.user3":
-                    noActChecked += 1;
-                    break;
                 case "user.user5":
                     noActChecked += 1;
                     break;
@@ -6298,9 +6301,6 @@ public class DBServiceTest {
         List<String> admins = new ArrayList<>();
         admins.add(adminUser);
 
-        Timestamp thirtyDayExpiry = Timestamp.fromMillis(System.currentTimeMillis()
-                + TimeUnit.MILLISECONDS.convert(30, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS));
-
         zms.dbService.makeDomain(mockDomRsrcCtx, ZMSTestUtils.makeDomainObject(domainName, "test desc", "org", false,
                 "", 1234, "", 0), admins, null, auditRef);
 
@@ -6324,10 +6324,6 @@ public class DBServiceTest {
         for (RoleMember roleMember : resRole.getRoleMembers()) {
             switch (roleMember.getMemberName()) {
                 case "user.john":
-                    assertNull(roleMember.getExpiration());
-                    assertTrue(roleMember.getApproved());
-                    membersChecked += 1;
-                    break;
                 case "user.jane":
                     assertNull(roleMember.getExpiration());
                     assertTrue(roleMember.getApproved());
@@ -6397,10 +6393,6 @@ public class DBServiceTest {
         for (RoleMember roleMember : resRole.getRoleMembers()) {
             switch (roleMember.getMemberName()) {
                 case "user.john":
-                    assertNull(roleMember.getExpiration());
-                    assertTrue(roleMember.getApproved());
-                    membersChecked += 1;
-                    break;
                 case "user.jane":
                     assertNull(roleMember.getExpiration());
                     assertTrue(roleMember.getApproved());
@@ -6472,10 +6464,6 @@ public class DBServiceTest {
         for (RoleMember roleMember : resRole.getRoleMembers()) {
             switch (roleMember.getMemberName()) {
                 case "user.john":
-                    assertNull(roleMember.getExpiration());
-                    assertTrue(roleMember.getApproved());
-                    membersChecked += 1;
-                    break;
                 case "user.jane":
                     assertNull(roleMember.getExpiration());
                     assertTrue(roleMember.getApproved());
@@ -6546,10 +6534,6 @@ public class DBServiceTest {
         for (RoleMember roleMember : resRole.getRoleMembers()) {
             switch (roleMember.getMemberName()) {
                 case "user.john":
-                    assertNull(roleMember.getExpiration());
-                    assertTrue(roleMember.getApproved());
-                    membersChecked += 1;
-                    break;
                 case "user.jane":
                     assertNull(roleMember.getExpiration());
                     assertTrue(roleMember.getApproved());
@@ -6575,8 +6559,8 @@ public class DBServiceTest {
         AthenzDomain athenzDomain = new AthenzDomain(domainName);
         athenzDomain.setDomain(domain);
         athenzDomain.setRoles(null);
-        Mockito.when(mockObjStore.getConnection(true, false)).thenReturn(mockFileConn);
-        Mockito.when(mockFileConn.getAthenzDomain(domainName)).thenReturn(athenzDomain);
+        Mockito.when(mockObjStore.getConnection(true, false)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.getAthenzDomain(domainName)).thenReturn(athenzDomain);
 
         ObjectStore saveStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
@@ -6601,8 +6585,8 @@ public class DBServiceTest {
         AthenzDomain athenzDomain = new AthenzDomain(domainName);
         athenzDomain.setDomain(domain);
         athenzDomain.setRoles(roles);
-        Mockito.when(mockObjStore.getConnection(true, false)).thenReturn(mockFileConn);
-        Mockito.when(mockFileConn.getAthenzDomain(domainName)).thenReturn(athenzDomain);
+        Mockito.when(mockObjStore.getConnection(true, false)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.getAthenzDomain(domainName)).thenReturn(athenzDomain);
 
         ObjectStore saveStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
@@ -6625,9 +6609,9 @@ public class DBServiceTest {
         final String adminName = "user.user1";
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockFileConn);
-        Mockito.when(mockFileConn.getDomain(domainName)).thenReturn(domain);
-        Mockito.when(mockFileConn.deletePendingRoleMember(domainName, roleName, memberName, adminName, auditRef))
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
+        Mockito.when(mockJdbcConn.deletePendingRoleMember(domainName, roleName, memberName, adminName, auditRef))
                 .thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
 
         ObjectStore saveStore = zms.dbService.store;
@@ -6656,9 +6640,9 @@ public class DBServiceTest {
         final String adminName = "user.user1";
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockFileConn);
-        Mockito.when(mockFileConn.getDomain(domainName)).thenReturn(domain);
-        Mockito.when(mockFileConn.deleteRoleMember(domainName, roleName, memberName, adminName, auditRef))
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
+        Mockito.when(mockJdbcConn.deleteRoleMember(domainName, roleName, memberName, adminName, auditRef))
                 .thenReturn(false);
 
         ObjectStore saveStore = zms.dbService.store;
@@ -6684,9 +6668,9 @@ public class DBServiceTest {
         final String adminName = "user.user1";
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockFileConn);
-        Mockito.when(mockFileConn.getDomain(domainName)).thenReturn(domain);
-        Mockito.when(mockFileConn.deleteRoleMember(domainName, roleName, memberName, adminName, auditRef))
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
+        Mockito.when(mockJdbcConn.deleteRoleMember(domainName, roleName, memberName, adminName, auditRef))
                 .thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
 
         ObjectStore saveStore = zms.dbService.store;
@@ -7429,9 +7413,9 @@ public class DBServiceTest {
         Role role = zms.dbService.getRole(domainName, "vip_admin", false, false, false);
         assertEquals(domainName + ":role.vip_admin", role.getName());
         assertNull(role.getTrust());
-        assertNull(role.getRoleMembers());
+        assertTrue(role.getRoleMembers().isEmpty());
         assertNotNull(role.getNotifyRoles());
-        assertFalse(role.getSelfServe());
+        assertNull(role.getSelfServe());
         assertEquals(role.getMemberExpiryDays().intValue(), 90);
         assertEquals(role.getTokenExpiryMins().intValue(), 30);
         assertEquals(role.getCertExpiryMins().intValue(), 10);
@@ -7641,9 +7625,9 @@ public class DBServiceTest {
         roles.add(testRole);
         athenzDomain.setRoles(roles);
 
-        Mockito.when(mockObjStore.getConnection(true, false)).thenReturn(mockFileConn);
-        Mockito.when(mockFileConn.getDomain(eq("test1"))).thenReturn(domain);
-        Mockito.when(mockFileConn.getAthenzDomain(eq("test1"))).thenReturn(athenzDomain);
+        Mockito.when(mockObjStore.getConnection(true, false)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.getDomain(eq("test1"))).thenReturn(domain);
+        Mockito.when(mockJdbcConn.getAthenzDomain(eq("test1"))).thenReturn(athenzDomain);
 
         zms.dbService.store = mockObjStore;
 
@@ -7656,7 +7640,7 @@ public class DBServiceTest {
     @Test
     public void testGetRolesByDomainUnknown() {
 
-        Mockito.when(mockObjStore.getConnection(true, false)).thenReturn(mockFileConn);
+        Mockito.when(mockObjStore.getConnection(true, false)).thenReturn(mockJdbcConn);
         try {
             zms.dbService.getRolesByDomain("unknownDomain");
             fail();

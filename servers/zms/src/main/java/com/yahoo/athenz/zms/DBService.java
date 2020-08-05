@@ -164,7 +164,7 @@ public class DBService implements RolesProvider {
     @Override
     public List<Role> getRolesByDomain(String domain) {
         AthenzDomain athenzDomain = getAthenzDomain(domain, false);
-        if (domain == null) {
+        if (athenzDomain == null) {
             return new ArrayList<>();
         }
 
@@ -2547,12 +2547,12 @@ public class DBService implements RolesProvider {
         }
     }
 
-    boolean isDeleteSystemMetaAllowed(boolean deleteAllowed, Object oldValue, Object newValue) {
+    boolean isDeleteSystemMetaAllowed(boolean deleteAllowed, final String oldValue, final String newValue) {
 
         // if authorized or old value is not set, then there is
         // no need to check any value
 
-        if (deleteAllowed || oldValue == null) {
+        if (deleteAllowed || oldValue == null || oldValue.isEmpty()) {
             return true;
         }
 
@@ -2560,6 +2560,21 @@ public class DBService implements RolesProvider {
         // allow if the new value is identical
 
         return (newValue != null) ? oldValue.equals(newValue) : false;
+    }
+
+    boolean isDeleteSystemMetaAllowed(boolean deleteAllowed, Integer oldValue, Integer newValue) {
+
+        // if authorized or old value is not set, then there is
+        // no need to check any value
+
+        if (deleteAllowed || oldValue == null || oldValue == 0) {
+            return true;
+        }
+
+        // since our old value is not null then we will only
+        // allow if the new value is identical
+
+        return (newValue != null) ? newValue.intValue() == oldValue.intValue() : false;
     }
 
     void updateSystemMetaFields(Domain domain, final String attribute, boolean deleteAllowed,
@@ -4721,10 +4736,10 @@ public class DBService implements RolesProvider {
         return domainRoleMembership;
     }
 
-    public Set<String> getPendingMembershipApproverRoles() {
+    public Set<String> getPendingMembershipApproverRoles(int delayDays) {
         try (ObjectStoreConnection con = store.getConnection(true, true)) {
             long updateTs = System.currentTimeMillis();
-            if (con.updatePendingRoleMembersNotificationTimestamp(zmsConfig.getServerHostName(), updateTs)) {
+            if (con.updatePendingRoleMembersNotificationTimestamp(zmsConfig.getServerHostName(), updateTs, delayDays)) {
                 return con.getPendingMembershipApproverRoles(zmsConfig.getServerHostName(), updateTs);
             }
         }

@@ -333,7 +333,7 @@ public class PutMembershipNotificationTaskTest {
     public void testGenerateAndSendPostPutMembershipNotificationInvalidType() {
 
         DBService dbsvc = Mockito.mock(DBService.class);
-        Mockito.when(dbsvc.getPendingMembershipApproverRoles()).thenReturn(Collections.emptySet());
+        Mockito.when(dbsvc.getPendingMembershipApproverRoles(1)).thenReturn(Collections.emptySet());
 
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
         NotificationServiceFactory testfact = () -> mockNotificationService;
@@ -349,7 +349,7 @@ public class PutMembershipNotificationTaskTest {
     public void testGenerateAndSendPostPutMembershipNotificationNullNotificationSvc() {
 
         DBService dbsvc = Mockito.mock(DBService.class);
-        Mockito.when(dbsvc.getPendingMembershipApproverRoles()).thenReturn(Collections.emptySet());
+        Mockito.when(dbsvc.getPendingMembershipApproverRoles(1)).thenReturn(Collections.emptySet());
 
         NotificationServiceFactory testfact = () -> null;
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);

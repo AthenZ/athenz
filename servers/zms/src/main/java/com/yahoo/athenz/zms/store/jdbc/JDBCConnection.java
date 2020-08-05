@@ -329,7 +329,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             "WHERE prm.req_time < (CURRENT_DATE - INTERVAL ? DAY);";
 
     private static final String SQL_UPDATE_PENDING_ROLE_MEMBERS_NOTIFICATION_TIMESTAMP = "UPDATE pending_role_member SET last_notified_time=?, server=? " +
-            "WHERE DAYOFWEEK(req_time)=DAYOFWEEK(?) AND (last_notified_time IS NULL || last_notified_time < (CURRENT_DATE - INTERVAL 1 DAY));";
+            "WHERE DAYOFWEEK(req_time)=DAYOFWEEK(?) AND (last_notified_time IS NULL || last_notified_time < (CURRENT_TIME - INTERVAL ? DAY));";
 
     private static final String SQL_UPDATE_ROLE_MEMBERS_EXPIRY_NOTIFICATION_TIMESTAMP = "UPDATE role_member SET last_notified_time=?, server=? " +
             "WHERE expiration > CURRENT_TIME AND DATEDIFF(expiration, CURRENT_TIME) IN (1,7,14,21,28) AND (last_notified_time IS NULL || last_notified_time < (CURRENT_DATE - INTERVAL 1 DAY));";
@@ -881,6 +881,10 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         final String caller = "listDomainTemplates";
 
+        int domainId = getDomainId(domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
+        }
         List<String> templates = new ArrayList<>();
         try (PreparedStatement ps = con.prepareStatement(SQL_LIST_DOMAIN_TEMPLATE)) {
             ps.setString(1, domainName);
@@ -4134,7 +4138,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
 
     @Override
-    public boolean updatePendingRoleMembersNotificationTimestamp(String server, long timestamp) {
+    public boolean updatePendingRoleMembersNotificationTimestamp(String server, long timestamp, int delayDays) {
         final String caller = "updatePendingRoleMembersNotificationTimestamp";
         int affectedRows;
         java.sql.Timestamp ts = new java.sql.Timestamp(timestamp);
@@ -4142,6 +4146,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setTimestamp(1, ts);
             ps.setString(2, server);
             ps.setTimestamp(3, ts);
+            ps.setInt(4, delayDays);
 
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
@@ -4235,7 +4240,9 @@ public class JDBCConnection implements ObjectStoreConnection {
                     memberRole.setMemberName(memberName);
                     memberRole.setRoleName(rs.getString(ZMSConsts.DB_COLUMN_ROLE_NAME));
                     memberRole.setDomainName(rs.getString(ZMSConsts.DB_COLUMN_DOMAIN_NAME));
-                    memberRole.setExpiration(Timestamp.fromMillis(expiration.getTime()));
+                    if (expiration != null) {
+                        memberRole.setExpiration(Timestamp.fromMillis(expiration.getTime()));
+                    }
                     if (reviewReminder != null) {
                         memberRole.setReviewReminder(Timestamp.fromMillis(reviewReminder.getTime()));
                     }
