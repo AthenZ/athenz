@@ -234,7 +234,9 @@
                 <exclude>*Test</exclude>
                 <exclude>**/*ZMSRDLGeneratedClient.class</exclude>
                 <exclude>**/ZMSResources.class</exclude>
+                <exclude>**/ZTSResources.class</exclude>
                 <exclude>**/ZMSHandler.class</exclude>
+                <exclude>**/ZTSHandler.class</exclude>
                 <exclude>**/ZMSConsts.class</exclude>
                 <exclude>**/FileConnection.class</exclude>
                 <exclude>**/FileObjectStore.class</exclude>

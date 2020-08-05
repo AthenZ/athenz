@@ -30,12 +30,14 @@ public class RsrcCtxWrapper implements ResourceContext {
     com.yahoo.athenz.common.server.rest.ResourceContext ctx;
     boolean optionalAuth;
     Metric metric;
+    private Object timerMetric;
 
     public RsrcCtxWrapper(HttpServletRequest request, HttpServletResponse response,
             Http.AuthorityList authList,  boolean optionalAuth, Authorizer authorizer,
-            Metric metric) {
+            Metric metric, Object timerMetric) {
         this.optionalAuth = optionalAuth;
         this.metric = metric;
+        this.timerMetric = timerMetric;
         ctx = new com.yahoo.athenz.common.server.rest.ResourceContext(request, response,
                 authList, authorizer);
     }
@@ -46,6 +48,18 @@ public class RsrcCtxWrapper implements ResourceContext {
 
     public Principal principal() {
         return ctx.principal();
+    }
+
+    public String getRequestDomain() {
+        return ctx.getRequestDomain();
+    }
+
+    public Object getTimerMetric() {
+        return timerMetric;
+    }
+
+    public void setRequestDomain(String requestDomain) {
+        ctx.setRequestDomain(requestDomain);
     }
 
     @Override

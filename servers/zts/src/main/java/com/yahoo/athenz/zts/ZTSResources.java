@@ -17,12 +17,14 @@ public class ZTSResources {
     @Path("/access/{action}/{resource}")
     @Produces(MediaType.APPLICATION_JSON)
     public ResourceAccess getResourceAccess(@PathParam("action") String action, @PathParam("resource") String resource, @QueryParam("domain") String domain, @QueryParam("principal") String checkPrincipal) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getResourceAccess(context, action, resource, domain, checkPrincipal);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -36,6 +38,8 @@ public class ZTSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getResourceAccess");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getResourceAccess");
         }
     }
 
@@ -43,12 +47,14 @@ public class ZTSResources {
     @Path("/access/{action}")
     @Produces(MediaType.APPLICATION_JSON)
     public ResourceAccess getResourceAccessExt(@PathParam("action") String action, @QueryParam("resource") String resource, @QueryParam("domain") String domain, @QueryParam("principal") String checkPrincipal) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getResourceAccessExt(context, action, resource, domain, checkPrincipal);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -62,6 +68,8 @@ public class ZTSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getResourceAccessExt");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getResourceAccessExt");
         }
     }
 
@@ -69,12 +77,14 @@ public class ZTSResources {
     @Path("/domain/{domainName}/service/{serviceName}")
     @Produces(MediaType.APPLICATION_JSON)
     public ServiceIdentity getServiceIdentity(@PathParam("domainName") String domainName, @PathParam("serviceName") String serviceName) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getServiceIdentity(context, domainName, serviceName);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -86,6 +96,8 @@ public class ZTSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getServiceIdentity");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getServiceIdentity");
         }
     }
 
@@ -93,12 +105,14 @@ public class ZTSResources {
     @Path("/domain/{domainName}/service")
     @Produces(MediaType.APPLICATION_JSON)
     public ServiceIdentityList getServiceIdentityList(@PathParam("domainName") String domainName) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getServiceIdentityList(context, domainName);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -110,6 +124,8 @@ public class ZTSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getServiceIdentityList");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getServiceIdentityList");
         }
     }
 
@@ -117,12 +133,14 @@ public class ZTSResources {
     @Path("/domain/{domainName}/service/{serviceName}/publickey/{keyId}")
     @Produces(MediaType.APPLICATION_JSON)
     public PublicKeyEntry getPublicKeyEntry(@PathParam("domainName") String domainName, @PathParam("serviceName") String serviceName, @PathParam("keyId") String keyId) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getPublicKeyEntry(context, domainName, serviceName, keyId);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -132,6 +150,8 @@ public class ZTSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getPublicKeyEntry");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getPublicKeyEntry");
         }
     }
 
@@ -139,12 +159,14 @@ public class ZTSResources {
     @Path("/host/{host}/services")
     @Produces(MediaType.APPLICATION_JSON)
     public HostServices getHostServices(@PathParam("host") String host) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getHostServices(context, host);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -152,6 +174,8 @@ public class ZTSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getHostServices");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getHostServices");
         }
     }
 
@@ -159,12 +183,14 @@ public class ZTSResources {
     @Path("/domain/{domainName}/signed_policy_data")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getDomainSignedPolicyData(@PathParam("domainName") String domainName, @HeaderParam("If-None-Match") String matchingTag) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getDomainSignedPolicyData(context, domainName, matchingTag);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -174,6 +200,8 @@ public class ZTSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getDomainSignedPolicyData");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getDomainSignedPolicyData");
         }
     }
 
@@ -181,12 +209,14 @@ public class ZTSResources {
     @Path("/domain/{domainName}/token")
     @Produces(MediaType.APPLICATION_JSON)
     public RoleToken getRoleToken(@PathParam("domainName") String domainName, @QueryParam("role") String role, @QueryParam("minExpiryTime") Integer minExpiryTime, @QueryParam("maxExpiryTime") Integer maxExpiryTime, @QueryParam("proxyForPrincipal") String proxyForPrincipal) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getRoleToken(context, domainName, role, minExpiryTime, maxExpiryTime, proxyForPrincipal);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -200,6 +230,8 @@ public class ZTSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getRoleToken");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getRoleToken");
         }
     }
 
@@ -208,12 +240,14 @@ public class ZTSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public RoleToken postRoleCertificateRequest(@PathParam("domainName") String domainName, @PathParam("roleName") String roleName, RoleCertificateRequest req) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.postRoleCertificateRequest(context, domainName, roleName, req);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -227,6 +261,8 @@ public class ZTSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource postRoleCertificateRequest");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "POST", code, "postRoleCertificateRequest");
         }
     }
 
@@ -234,12 +270,14 @@ public class ZTSResources {
     @Path("/access/domain/{domainName}/role/{roleName}/principal/{principal}")
     @Produces(MediaType.APPLICATION_JSON)
     public Access getAccess(@PathParam("domainName") String domainName, @PathParam("roleName") String roleName, @PathParam("principal") String principal) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getAccess(context, domainName, roleName, principal);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -253,6 +291,8 @@ public class ZTSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getAccess");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getAccess");
         }
     }
 
@@ -260,12 +300,14 @@ public class ZTSResources {
     @Path("/access/domain/{domainName}/principal/{principal}")
     @Produces(MediaType.APPLICATION_JSON)
     public RoleAccess getRoleAccess(@PathParam("domainName") String domainName, @PathParam("principal") String principal) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getRoleAccess(context, domainName, principal);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -277,6 +319,8 @@ public class ZTSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getRoleAccess");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getRoleAccess");
         }
     }
 
@@ -284,12 +328,14 @@ public class ZTSResources {
     @Path("/providerdomain/{providerDomainName}/user/{userName}")
     @Produces(MediaType.APPLICATION_JSON)
     public TenantDomains getTenantDomains(@PathParam("providerDomainName") String providerDomainName, @PathParam("userName") String userName, @QueryParam("roleName") String roleName, @QueryParam("serviceName") String serviceName) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getTenantDomains(context, providerDomainName, userName, roleName, serviceName);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -301,6 +347,8 @@ public class ZTSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getTenantDomains");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getTenantDomains");
         }
     }
 
@@ -309,12 +357,14 @@ public class ZTSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Identity postInstanceRefreshRequest(@PathParam("domain") String domain, @PathParam("service") String service, InstanceRefreshRequest req) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.postInstanceRefreshRequest(context, domain, service, req);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -330,6 +380,8 @@ public class ZTSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource postInstanceRefreshRequest");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "POST", code, "postInstanceRefreshRequest");
         }
     }
 
@@ -337,12 +389,14 @@ public class ZTSResources {
     @Path("/domain/{domainName}/role/{role}/creds")
     @Produces(MediaType.APPLICATION_JSON)
     public AWSTemporaryCredentials getAWSTemporaryCredentials(@PathParam("domainName") String domainName, @PathParam("role") String role, @QueryParam("durationSeconds") Integer durationSeconds, @QueryParam("externalId") String externalId) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getAWSTemporaryCredentials(context, domainName, role, durationSeconds, externalId);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -356,6 +410,8 @@ public class ZTSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getAWSTemporaryCredentials");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getAWSTemporaryCredentials");
         }
     }
 
@@ -364,12 +420,14 @@ public class ZTSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Identity postOSTKInstanceRefreshRequest(@PathParam("domain") String domain, @PathParam("service") String service, OSTKInstanceRefreshRequest req) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.postOSTKInstanceRefreshRequest(context, domain, service, req);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -385,6 +443,8 @@ public class ZTSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource postOSTKInstanceRefreshRequest");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "POST", code, "postOSTKInstanceRefreshRequest");
         }
     }
 
@@ -393,12 +453,14 @@ public class ZTSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response postInstanceRegisterInformation(InstanceRegisterInformation info) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.postInstanceRegisterInformation(context, info);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -414,6 +476,8 @@ public class ZTSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource postInstanceRegisterInformation");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "POST", code, "postInstanceRegisterInformation");
         }
     }
 
@@ -422,12 +486,14 @@ public class ZTSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public InstanceIdentity postInstanceRefreshInformation(@PathParam("provider") String provider, @PathParam("domain") String domain, @PathParam("service") String service, @PathParam("instanceId") String instanceId, InstanceRefreshInformation info) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.postInstanceRefreshInformation(context, provider, domain, service, instanceId, info);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -443,6 +509,8 @@ public class ZTSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource postInstanceRefreshInformation");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "POST", code, "postInstanceRefreshInformation");
         }
     }
 
@@ -450,12 +518,14 @@ public class ZTSResources {
     @Path("/instance/{provider}/{domain}/{service}/{instanceId}")
     @Produces(MediaType.APPLICATION_JSON)
     public void deleteInstanceIdentity(@PathParam("provider") String provider, @PathParam("domain") String domain, @PathParam("service") String service, @PathParam("instanceId") String instanceId) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("delete", "" + domain + ":instance." + instanceId + "", null);
             this.delegate.deleteInstanceIdentity(context, provider, domain, service, instanceId);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -471,6 +541,8 @@ public class ZTSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource deleteInstanceIdentity");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "DELETE", code, "deleteInstanceIdentity");
         }
     }
 
@@ -478,12 +550,14 @@ public class ZTSResources {
     @Path("/cacerts/{name}")
     @Produces(MediaType.APPLICATION_JSON)
     public CertificateAuthorityBundle getCertificateAuthorityBundle(@PathParam("name") String name) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getCertificateAuthorityBundle(context, name);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -495,6 +569,8 @@ public class ZTSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getCertificateAuthorityBundle");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getCertificateAuthorityBundle");
         }
     }
 
@@ -503,12 +579,14 @@ public class ZTSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public DomainMetrics postDomainMetrics(@PathParam("domainName") String domainName, DomainMetrics req) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.postDomainMetrics(context, domainName, req);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -522,6 +600,8 @@ public class ZTSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource postDomainMetrics");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "POST", code, "postDomainMetrics");
         }
     }
 
@@ -529,12 +609,14 @@ public class ZTSResources {
     @Path("/status")
     @Produces(MediaType.APPLICATION_JSON)
     public Status getStatus() {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getStatus(context);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -546,6 +628,8 @@ public class ZTSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getStatus");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getStatus");
         }
     }
 
@@ -554,12 +638,14 @@ public class ZTSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response postSSHCertRequest(SSHCertRequest certRequest) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.postSSHCertRequest(context, certRequest);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -573,6 +659,8 @@ public class ZTSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource postSSHCertRequest");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "POST", code, "postSSHCertRequest");
         }
     }
 
@@ -580,12 +668,14 @@ public class ZTSResources {
     @Path("/oauth2/keys")
     @Produces(MediaType.APPLICATION_JSON)
     public JWKList getJWKList(@QueryParam("rfc") @DefaultValue("false") Boolean rfc) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getJWKList(context, rfc);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -597,6 +687,8 @@ public class ZTSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getJWKList");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getJWKList");
         }
     }
 
@@ -605,12 +697,14 @@ public class ZTSResources {
     @Consumes("application/x-www-form-urlencoded")
     @Produces(MediaType.APPLICATION_JSON)
     public AccessTokenResponse postAccessTokenRequest(String request) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.postAccessTokenRequest(context, request);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -624,6 +718,8 @@ public class ZTSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource postAccessTokenRequest");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "POST", code, "postAccessTokenRequest");
         }
     }
 
@@ -632,12 +728,14 @@ public class ZTSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public RoleCertificate postRoleCertificateRequestExt(RoleCertificateRequest req) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.postRoleCertificateRequestExt(context, req);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -651,6 +749,8 @@ public class ZTSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource postRoleCertificateRequestExt");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "POST", code, "postRoleCertificateRequestExt");
         }
     }
 
@@ -658,17 +758,21 @@ public class ZTSResources {
     @Path("/schema")
     @Produces(MediaType.APPLICATION_JSON)
     public Schema getRdlSchema() {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
             return this.delegate.getRdlSchema(context);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             default:
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getRdlSchema");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, "GET", code, "getRdlSchema");
         }
     }
 

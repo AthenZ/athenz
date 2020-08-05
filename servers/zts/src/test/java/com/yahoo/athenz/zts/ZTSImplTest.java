@@ -95,6 +95,7 @@ import static com.yahoo.athenz.common.ServerCommonConsts.PROP_ATHENZ_CONF;
 import static com.yahoo.athenz.common.ServerCommonConsts.ZTS_PROP_FILE_NAME;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.times;
 import static org.testng.Assert.*;
 
 public class ZTSImplTest {
@@ -2648,14 +2649,13 @@ public class ZTSImplTest {
     
     @Test
     public void testResourceContext() {
-        
         RsrcCtxWrapper ctx = (RsrcCtxWrapper) zts.newResourceContext(mockServletRequest, mockServletResponse);
         assertNotNull(ctx);
         assertNotNull(ctx.context());
         assertNull(ctx.principal());
         assertEquals(ctx.request(), mockServletRequest);
         assertEquals(ctx.response(), mockServletResponse);
-        
+
         // throw exception without struct
         try {
             com.yahoo.athenz.common.server.rest.ResourceException restExc
@@ -11196,5 +11196,89 @@ public class ZTSImplTest {
         sshRecord = zts.generateSSHCertRecord(context, "api", "id001", null);
         assertEquals(sshRecord.getPrivateIP(), MOCKCLIENTADDR);
         assertEquals(sshRecord.getClientIP(), MOCKCLIENTADDR);
+    }
+
+    @Test
+    public void testRecordMetricsUnauthenticated() {
+        zts.metric = Mockito.mock(Metric.class);
+        Principal principal = SimplePrincipal.create("user_domain", "user1",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        RsrcCtxWrapper ctx = (RsrcCtxWrapper) zts.newResourceContext(mockServletRequest, mockServletResponse);
+        String apiName = "someApiMethod";
+        String testDomain = "testDomain";
+        int httpStatus = 200;
+        String httpMethod = "GET";
+        ctx.setRequestDomain(testDomain);
+        zts.recordMetrics(ctx, httpMethod, httpStatus, apiName);
+        Mockito.verify(zts.metric,
+                times(1)).increment (
+                eq("zts_api"),
+                eq(testDomain),
+                eq(null),
+                eq(httpMethod),
+                eq(httpStatus),
+                eq(apiName));
+        Mockito.verify(zts.metric,
+                times(1)).stopTiming (
+                eq(ctx.getTimerMetric()),
+                eq(testDomain),
+                eq(null),
+                eq(httpMethod), eq(httpStatus), eq(apiName + "_timing"));
+        Mockito.verify(zts.metric,
+                times(1)).startTiming (
+                eq("zts_api_latency"),
+                eq(null));
+    }
+
+    @Test
+    public void testRecordMetricsAuthenticated() {
+        zts.metric = Mockito.mock(Metric.class);
+        Principal principal = SimplePrincipal.create("user_domain", "user1",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        RsrcCtxWrapper ctx = (RsrcCtxWrapper) createResourceContext(principal);
+        String testDomain = "testDomain";
+        int httpStatus = 200;
+        String httpMethod = "GET";
+        String apiName = "someApiMethod";
+        Mockito.when(ctx.getRequestDomain()).thenReturn(testDomain);
+        zts.recordMetrics(ctx, httpMethod, httpStatus, apiName);
+        Mockito.verify(zts.metric,
+                times(1)).increment (
+                eq("zts_api"),
+                eq(testDomain),
+                eq("user_domain"),
+                eq(httpMethod),
+                eq(httpStatus),
+                eq(apiName));
+        Mockito.verify(zts.metric,
+                times(1)).stopTiming (
+                eq(ctx.getTimerMetric()),
+                eq(testDomain),
+                eq("user_domain"),
+                eq(httpMethod), eq(httpStatus), eq(apiName + "_timing"));
+    }
+
+    @Test
+    public void testRecordMetricsNoCtx() {
+        String apiName = "someApiMethod";
+        RsrcCtxWrapper ctx = null;
+        int httpStatus = 200;
+        String httpMethod = "GET";
+        zts.metric = Mockito.mock(Metric.class);
+        zts.recordMetrics(ctx, httpMethod, httpStatus, apiName);
+        Mockito.verify(zts.metric,
+                times(1)).increment (
+                eq("zts_api"),
+                eq(null),
+                eq(null),
+                eq(httpMethod),
+                eq(httpStatus),
+                eq(apiName));
+        Mockito.verify(zts.metric,
+                times(1)).stopTiming (
+                eq(null),
+                eq(null),
+                eq(null),
+                eq(httpMethod), eq(httpStatus), eq(apiName + "_timing"));
     }
 }

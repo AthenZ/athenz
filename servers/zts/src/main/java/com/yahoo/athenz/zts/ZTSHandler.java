@@ -39,4 +39,5 @@ public interface ZTSHandler {
     RoleCertificate postRoleCertificateRequestExt(ResourceContext context, RoleCertificateRequest req);
     Schema getRdlSchema(ResourceContext context);
     ResourceContext newResourceContext(HttpServletRequest request, HttpServletResponse response);
+    void recordMetrics(ResourceContext ctx, String httpMethod, int httpStatus, String apiName);
 }
