@@ -17,4 +17,23 @@
         <servlet-name>zts-server</servlet-name>
         <url-pattern>/*</url-pattern>
     </servlet-mapping>
+    <!-- ==================================================================== -->
+    <!-- Disable OPTIONS and TRACE methods with security constraint           -->
+    <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  -->
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>Disable TRACE</web-resource-name>
+            <url-pattern>/*</url-pattern>
+            <http-method>TRACE</http-method>
+        </web-resource-collection>
+        <auth-constraint/>
+    </security-constraint>
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>Disable OPTIONS</web-resource-name>
+            <url-pattern>/*</url-pattern>
+            <http-method>OPTIONS</http-method>
+        </web-resource-collection>
+        <auth-constraint/>
+    </security-constraint>
 </web-app>
