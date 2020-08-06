@@ -642,7 +642,7 @@ public class FileConnectionTest {
         File fileDir = new File("/home/athenz/zms_store");
         File quotaDir = new File("/home/athenz/zms_quota");
         try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
-            assertFalse(fileconnection.updatePendingRoleMembersNotificationTimestamp("localhost", 0L));
+            assertFalse(fileconnection.updatePendingRoleMembersNotificationTimestamp("localhost", 0L, 0));
         }
     }
 

@@ -1919,7 +1919,7 @@ public class FileConnection implements ObjectStoreConnection {
     }
 
     @Override
-    public boolean updatePendingRoleMembersNotificationTimestamp(String server, long timestamp) {
+    public boolean updatePendingRoleMembersNotificationTimestamp(String server, long timestamp, int delayDays) {
         String[] fnames = getDomainList();
         boolean updated = false;
         for (String name : fnames) {

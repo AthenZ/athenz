@@ -47,7 +47,7 @@ public class PendingMembershipApprovalNotificationTask implements NotificationTa
     @Override
     public List<Notification> getNotifications() {
         dbService.processExpiredPendingMembers(pendingRoleMemberLifespan, monitorIdentity);
-        Set<String> recipients = dbService.getPendingMembershipApproverRoles();
+        Set<String> recipients = dbService.getPendingMembershipApproverRoles(1);
         return Collections.singletonList(notificationCommon.createNotification(
                 recipients,
                 null,

@@ -5023,6 +5023,7 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         
         Mockito.when(mockResultSet.next())
+            .thenReturn(true) // domain id
             .thenReturn(true)
             .thenReturn(true)
             .thenReturn(true)
@@ -5031,7 +5032,8 @@ public class JDBCConnectionTest {
             .thenReturn("vipng")
             .thenReturn("platforms")
             .thenReturn("user_understanding");
-        
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(1); // domain id
+
         List<String> templates = jdbcConn.listDomainTemplates("my-domain");
         
         // data back is sorted
@@ -5048,7 +5050,13 @@ public class JDBCConnectionTest {
         
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
-        Mockito.when(mockPrepStmt.executeQuery()).thenThrow(new SQLException("failed operation", "state", 1001));
+        Mockito.when(mockPrepStmt.executeQuery())
+                .thenReturn(mockResultSet)
+                .thenThrow(new SQLException("failed operation", "state", 1001));
+
+        // return domain id for my-domain
+        Mockito.doReturn(5).when(mockResultSet).getInt(1);
+        Mockito.when(mockResultSet.next()).thenReturn(true);
 
         try {
             jdbcConn.listDomainTemplates("my-domain");
@@ -9148,7 +9156,7 @@ public class JDBCConnectionTest {
         Mockito.when(mockPrepStmt.executeUpdate())
                 .thenReturn(3); // 3 members updated
         long timestamp = new Date().getTime();
-        boolean result = jdbcConn.updatePendingRoleMembersNotificationTimestamp("localhost", timestamp);
+        boolean result = jdbcConn.updatePendingRoleMembersNotificationTimestamp("localhost", timestamp, 0);
         java.sql.Timestamp ts = new java.sql.Timestamp(timestamp);
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(1, ts);
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "localhost");
@@ -9163,7 +9171,7 @@ public class JDBCConnectionTest {
         Mockito.when(mockPrepStmt.executeUpdate())
                 .thenThrow(new SQLException("sql error"));
         try {
-            jdbcConn.updatePendingRoleMembersNotificationTimestamp("localhost", 0L);
+            jdbcConn.updatePendingRoleMembersNotificationTimestamp("localhost", 0L, 0);
             fail();
         } catch (RuntimeException rx) {
             assertTrue(rx.getMessage().contains("sql error"));

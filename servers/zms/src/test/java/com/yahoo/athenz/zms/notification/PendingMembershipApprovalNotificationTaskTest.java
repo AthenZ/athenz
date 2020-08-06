@@ -44,7 +44,7 @@ public class PendingMembershipApprovalNotificationTaskTest {
         // run during init call and then the real data for the second
         // call
 
-        Mockito.when(dbsvc.getPendingMembershipApproverRoles())
+        Mockito.when(dbsvc.getPendingMembershipApproverRoles(1))
                 .thenReturn(null)
                 .thenReturn(Collections.singleton("user.joe"));
 

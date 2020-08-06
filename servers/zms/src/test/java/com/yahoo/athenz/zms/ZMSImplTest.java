@@ -30,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.base.Strings;
+import com.wix.mysql.EmbeddedMysql;
 import com.yahoo.athenz.auth.ServerPrivateKey;
 import com.yahoo.athenz.auth.impl.*;
 import com.yahoo.athenz.common.metrics.Metric;
@@ -44,7 +45,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.*;
 
-import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.testng.Assert.assertTrue;
@@ -72,7 +72,6 @@ import com.yahoo.athenz.common.utils.SignUtils;
 import com.yahoo.athenz.zms.ZMSImpl.AccessStatus;
 import com.yahoo.athenz.zms.ZMSImpl.AthenzObject;
 import com.yahoo.athenz.zms.store.AthenzDomain;
-import com.yahoo.athenz.zms.store.file.FileConnection;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
 import com.yahoo.rdl.Schema;
 import com.yahoo.rdl.Struct;
@@ -99,13 +98,12 @@ public class ZMSImplTest {
     private AuditLogger auditLogger = null; // default audit logger
 
     private static final String MOCKCLIENTADDR = "10.11.12.13";
-    private static final String ZMS_DATA_STORE_FILE = "zms_root";
+    private static final String DB_USER = "admin";
+    private static final String DB_PASS = "unit-test";
     
     @Mock private HttpServletRequest mockServletRequest;
     @Mock private HttpServletResponse mockServletResponse;
     @Mock private NotificationManager mockNotificationManager;
-
-    private static final String ZMS_DATA_STORE_PATH = "/tmp/zms_core_unit_tests/zms_root";
 
     private static final Struct TABLE_PROVIDER_ROLE_ACTIONS = new Struct()
             .with("admin", "*").with("writer", "WRITE").with("reader", "READ");
@@ -118,6 +116,7 @@ public class ZMSImplTest {
     private static synchronized int getRandomProductId() {
         return BASE_PRODUCT_ID + domainProductId.nextInt(99999999);
     }
+    private EmbeddedMysql mysqld;
 
     static class TestAuditLogger implements AuditLogger {
 
@@ -140,9 +139,24 @@ public class ZMSImplTest {
         }
     }
 
+    @BeforeClass
+    public void startMemoryMySQL() {
+        mysqld = ZMSTestUtils.startMemoryMySQL(DB_USER, DB_PASS);
+    }
+
+    @AfterClass
+    public void stopMemoryMySQL() {
+        ZMSTestUtils.stopMemoryMySQL(mysqld);
+    }
+
     @BeforeMethod
     public void setUp() throws Exception {
-        MockitoAnnotations.initMocks(this);
+        MockitoAnnotations.openMocks(this);
+
+        System.setProperty(ZMSConsts.ZMS_PROP_OBJECT_STORE_FACTORY_CLASS, "com.yahoo.athenz.zms.store.impl.JDBCObjectStoreFactory");
+        System.setProperty(ZMSConsts.ZMS_PROP_JDBC_RW_STORE, "jdbc:mysql://localhost:3310/zms_server");
+        System.setProperty(ZMSConsts.ZMS_PROP_JDBC_RW_USER, DB_USER);
+        System.setProperty(ZMSConsts.ZMS_PROP_JDBC_RW_PASSWORD, DB_PASS);
 
         Mockito.when(mockServletRequest.getRemoteAddr()).thenReturn(MOCKCLIENTADDR);
         Mockito.when(mockServletRequest.isSecure()).thenReturn(true);
@@ -171,6 +185,13 @@ public class ZMSImplTest {
         initializeZms();
     }
 
+    @AfterMethod
+    public void clearConnections() {
+        if (zms != null && zms.objectStore != null) {
+            zms.objectStore.clearConnections();
+        }
+    }
+
     private com.yahoo.athenz.zms.ResourceContext createResourceContext(Principal prince) {
         com.yahoo.athenz.common.server.rest.ResourceContext rsrcCtx =
                 Mockito.mock(com.yahoo.athenz.common.server.rest.ResourceContext.class);
@@ -183,7 +204,6 @@ public class ZMSImplTest {
         Mockito.when(rsrcCtxWrapper.principal()).thenReturn(prince);
         Mockito.when(rsrcCtxWrapper.request()).thenReturn(mockServletRequest);
         Mockito.when(rsrcCtxWrapper.response()).thenReturn(mockServletResponse);
-
         return rsrcCtxWrapper;
     }
     
@@ -208,14 +228,13 @@ public class ZMSImplTest {
     }
 
     private ZMSImpl zmsInit() {
-        // we want to make sure we start we clean dir structure
-        FileConnection.deleteDirectory(new File(ZMS_DATA_STORE_PATH));
 
         Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
         String unsignedCreds = "v=U1;d=user;n=user1";
         // used with the mockDomRestRsrcCtx
         final Principal rsrcPrince = SimplePrincipal.create("user", "user1", unsignedCreds + ";s=signature",
                 0, principalAuthority);
+        assertNotNull(rsrcPrince);
         ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
         
         Mockito.when(mockDomRestRsrcCtx.request()).thenReturn(mockServletRequest);
@@ -233,11 +252,7 @@ public class ZMSImplTest {
         privKey = Crypto.encodedFile(privKeyFile);
 
         adminUser = System.getProperty(ZMSConsts.ZMS_PROP_DOMAIN_ADMIN);
-        
-        System.setProperty(ZMSConsts.ZMS_PROP_FILE_STORE_PATH, "/tmp/zms_core_unit_tests/");
-        System.clearProperty(ZMSConsts.ZMS_PROP_JDBC_RW_STORE);
-        System.clearProperty(ZMSConsts.ZMS_PROP_JDBC_RO_STORE);
-        
+
         ZMSImpl zmsObj = new ZMSImpl();
         zmsObj.serverPublicKeyMap.put("1", pubKeyK1);
         zmsObj.serverPublicKeyMap.put("2", pubKeyK2);
@@ -246,15 +261,14 @@ public class ZMSImplTest {
 
         return zmsObj;
     }
-    
-    private ZMSImpl getZmsImpl(String storeFile, AuditLogger alogger) {
-        
-        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
-        
-        System.clearProperty(ZMSConsts.ZMS_PROP_JDBC_RW_STORE);
-        System.clearProperty(ZMSConsts.ZMS_PROP_JDBC_RO_STORE);
-        System.setProperty(ZMSConsts.ZMS_PROP_FILE_STORE_NAME, storeFile);
-        System.setProperty(ZMSConsts.ZMS_PROP_FILE_STORE_PATH, "/tmp/zms_core_unit_tests/");
+
+    private void loadServerPublicKeys(ZMSImpl zmsImpl) {
+        zmsImpl.serverPublicKeyMap.put("0", pubKey);
+        zmsImpl.serverPublicKeyMap.put("1", pubKeyK1);
+        zmsImpl.serverPublicKeyMap.put("2", pubKeyK2);
+    }
+
+    private ZMSImpl getZmsImpl(AuditLogger alogger) {
 
         ZMSImpl zmsObj = new ZMSImpl();
         zmsObj.auditLogger = alogger;
@@ -285,11 +299,6 @@ public class ZMSImplTest {
         privKeyK2 = Crypto.ybase64(new String(Files.readAllBytes(path)).getBytes());
 
         zms = zmsInit();
-    }
-
-    @AfterClass(alwaysRun=true)
-    public void shutdown() {
-        FileConnection.deleteDirectory(new File(ZMS_DATA_STORE_PATH));
     }
 
     private Membership generateMembership(String roleName, String memberName) {
@@ -374,6 +383,7 @@ public class ZMSImplTest {
             for (RoleMember roleMember: members) {
                 if (roleMember.getMemberName().equals(roleMemberName)){
                     found = true;
+                    break;
                 }
             }
             if (!found) {
@@ -567,6 +577,15 @@ public class ZMSImplTest {
         return tenant;
     }
 
+    private boolean verifyRoleMember(Role role, final String memberName) {
+        for (RoleMember roleMember : role.getRoleMembers()) {
+            if (roleMember.getMemberName().equals(memberName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Test
     public void testSchema() {
         Schema schema = zms.schema();
@@ -603,6 +622,7 @@ public class ZMSImplTest {
         String unsignedCreds = "v=U1;d=user;n=user1";
         Principal principal = SimplePrincipal.create("user", userId, unsignedCreds + ";s=" + signature,
                 0, principalAuthority);
+        assertNotNull(principal);
         ((SimplePrincipal) principal).setUnsignedCreds(unsignedCreds); // set unsigned creds
         ResourceContext ctx = createResourceContext(principal);
         AuditLogMsgBuilder msgBldr = ZMSUtils.getAuditLogMsgBuilder(ctx, auditLogger,
@@ -611,7 +631,7 @@ public class ZMSImplTest {
         String who = msgBldr.who();
         assertNotNull(who);
         assertTrue(who.contains(userId));
-        assertTrue(!who.contains(signature), "Should not contain the signature: " + who);
+        assertFalse(who.contains(signature), "Should not contain the signature: " + who);
     }
 
     @Test
@@ -741,8 +761,9 @@ public class ZMSImplTest {
             assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Product Id is required when creating top level domain"));
         }
-        
+
         System.clearProperty(ZMSConsts.ZMS_PROP_PRODUCT_ID_SUPPORT);
+        zmsImpl.objectStore.clearConnections();
     }
 
     @Test
@@ -820,6 +841,7 @@ public class ZMSImplTest {
 
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, domName, auditRef);
         System.clearProperty(ZMSConsts.ZMS_PROP_DOMAIN_NAME_MAX_SIZE);
+        zmsImpl.objectStore.clearConnections();
     }
 
     @Test
@@ -849,6 +871,7 @@ public class ZMSImplTest {
         zmsImpl.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom);
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, domName, auditRef);
         System.clearProperty(ZMSConsts.ZMS_PROP_DOMAIN_NAME_MAX_SIZE);
+        zmsImpl.objectStore.clearConnections();
     }
 
     @Test
@@ -923,6 +946,7 @@ public class ZMSImplTest {
         
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
         System.clearProperty(ZMSConsts.ZMS_PROP_PRODUCT_ID_SUPPORT);
+        zmsImpl.objectStore.clearConnections();
     }
     
     @Test
@@ -1117,8 +1141,7 @@ public class ZMSImplTest {
     public void testCreateTopLevelDomainOnceOnly() {
 
         TestAuditLogger alogger = new TestAuditLogger();
-        String storeFile = ZMS_DATA_STORE_FILE + "_posttopdomonceonly";
-        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
+        ZMSImpl zmsImpl = getZmsImpl(alogger);
 
         TopLevelDomain dom1 = createTopLevelDomainObject("AddOnceTopDom1",
                 "Test Domain1", "testOrg", adminUser);
@@ -1529,8 +1552,7 @@ public class ZMSImplTest {
     public void testDeleteTopLevelDomainChildExist() {
 
         TestAuditLogger alogger = new TestAuditLogger();
-        String storeFile = ZMS_DATA_STORE_FILE + "_deltopdomhrowexc";
-        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
+        ZMSImpl zmsImpl = getZmsImpl(alogger);
 
         TopLevelDomain dom1 = createTopLevelDomainObject("DelTopChildDom1",
                 "Test Domain1", "testOrg", adminUser);
@@ -1551,7 +1573,6 @@ public class ZMSImplTest {
         
         zmsImpl.deleteSubDomain(mockDomRsrcCtx, "DelTopChildDom1", "DelSubDom2", auditRef);
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, "DelTopChildDom1", auditRef);
-        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
     }
 
     @Test
@@ -1627,8 +1648,7 @@ public class ZMSImplTest {
     public void testDeleteSubDomainChildExist() {
 
         TestAuditLogger alogger = new TestAuditLogger();
-        String storeFile = ZMS_DATA_STORE_FILE + "_delsubdomchildexist";
-        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
+        ZMSImpl zmsImpl = getZmsImpl(alogger);
 
         TopLevelDomain dom1 = createTopLevelDomainObject("DelSubChildDom1",
                 "Test Domain1", "testOrg", adminUser);
@@ -1653,7 +1673,6 @@ public class ZMSImplTest {
         zmsImpl.deleteSubDomain(mockDomRsrcCtx, "DelSubChildDom1.DelSubDom2", "DelSubDom3", auditRef);
         zmsImpl.deleteSubDomain(mockDomRsrcCtx, "DelSubChildDom1", "DelSubDom2", auditRef);
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, "DelSubChildDom1", auditRef);
-        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
     }
     
     @Test
@@ -1709,8 +1728,7 @@ public class ZMSImplTest {
     public void testPutDomainMetaThrowException() {
 
         TestAuditLogger alogger = new TestAuditLogger();
-        String storeFile = ZMS_DATA_STORE_FILE + "_putdommetathrowexc";
-        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
+        ZMSImpl zmsImpl = getZmsImpl(alogger);
 
         String domName = "wrongDomainName";
         DomainMeta meta = new DomainMeta();
@@ -1825,7 +1843,7 @@ public class ZMSImplTest {
         assertEquals(resDom3.getAccount(), "12345");
         assertEquals(newProductId, resDom3.getYpmId());
         assertEquals(resDom3.getServiceCertExpiryMins(), Integer.valueOf(5));
-        assertEquals(resDom3.getRoleCertExpiryMins(), Integer.valueOf(0));
+        assertNull(resDom3.getRoleCertExpiryMins());
         assertEquals(resDom3.getMemberExpiryDays(), Integer.valueOf(15));
         assertEquals(resDom3.getServiceExpiryDays(), Integer.valueOf(17));
         assertEquals(resDom3.getTokenExpiryMins(), Integer.valueOf(20));
@@ -1957,6 +1975,7 @@ public class ZMSImplTest {
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, "MetaDomProductid", auditRef);
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, "MetaDomProductid2", auditRef);
         System.clearProperty(ZMSConsts.ZMS_PROP_PRODUCT_ID_SUPPORT);
+        zmsImpl.objectStore.clearConnections();
     }
 
     @Test
@@ -2068,8 +2087,8 @@ public class ZMSImplTest {
         meta.setDescription("test2");
         zms.putDomainMeta(mockDomRsrcCtx, "MetaDomProductid.metaSubDom", auditRef, meta);
         domain = zms.getDomain(mockDomRsrcCtx, "MetaDomProductid.metaSubDom");
-        assertEquals(domain.getMemberExpiryDays(), Integer.valueOf(0));
-        assertEquals(domain.getServiceExpiryDays(), Integer.valueOf(0));
+        assertNull(domain.getMemberExpiryDays());
+        assertNull(domain.getServiceExpiryDays());
         assertEquals(domain.getDescription(), "test2");
 
         zms.deleteSubDomain(mockDomRsrcCtx, "MetaDomProductid", "metaSubDom", auditRef);
@@ -2247,8 +2266,7 @@ public class ZMSImplTest {
     public void testPutRoleThrowException() {
 
         TestAuditLogger alogger = new TestAuditLogger();
-        String storeFile = ZMS_DATA_STORE_FILE + "_putrolethrowexc";
-        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
+        ZMSImpl zmsImpl = getZmsImpl(alogger);
 
         String domainName = "DomainName1";
         String roleName = "RoleName1";
@@ -2277,8 +2295,6 @@ public class ZMSImplTest {
         } catch (ResourceException e) {
             assertEquals(e.getCode(), 404);
         }
-
-        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
     }
 
     @Test
@@ -2286,8 +2302,7 @@ public class ZMSImplTest {
 
         TestAuditLogger alogger = new TestAuditLogger();
         List<String> aLogMsgs = alogger.getLogMsgList();
-        String storeFile = ZMS_DATA_STORE_FILE + "_createrole";
-        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
+        ZMSImpl zmsImpl = getZmsImpl(alogger);
 
         TopLevelDomain dom1 = createTopLevelDomainObject("CreateRoleDom1",
                 "Test Domain1", "testOrg", adminUser);
@@ -2349,8 +2364,6 @@ public class ZMSImplTest {
         assertTrue(foundError);
 
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, "CreateRoleDom1", auditRef);
-
-        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
     }
 
     @Test
@@ -2762,8 +2775,7 @@ public class ZMSImplTest {
     public void testDeleteRoleThrowException() {
 
         TestAuditLogger alogger = new TestAuditLogger();
-        String storeFile = ZMS_DATA_STORE_FILE + "_delrolethrowexc";
-        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
+        ZMSImpl zmsImpl = getZmsImpl(alogger);
 
         String domainName = "DomainName1";
         String roleName = "RoleName1";
@@ -2773,8 +2785,6 @@ public class ZMSImplTest {
         } catch (ResourceException e) {
             assertEquals(e.getCode(), 404);
         }
-
-        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
     }
         
     @Test
@@ -2823,12 +2833,12 @@ public class ZMSImplTest {
         assertEquals(responseRoleMemberList.get(1).getMemberName(), "user.overduereview2");
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx,"test-domain1", auditRef);
-
     }
 
     @Test
     public void testGetOverdueReviewThrowException() {
-        String domainName = "test-domain1";
+
+        final String domainName = "test-domain1";
 
         // Tests the getOverdueReview() condition : if (domain == null)...
         try {
@@ -2871,6 +2881,7 @@ public class ZMSImplTest {
         String unsignedCreds = "v=U1;d=user;n=johndoe";
         Principal principal = SimplePrincipal.create("user", "johndoe", unsignedCreds + ";s=signature",
                 0, principalAuthority);
+        assertNotNull(principal);
         ((SimplePrincipal) principal).setUnsignedCreds(unsignedCreds);
 
         ResourceContext rsrcCtx1 = createResourceContext(principal);
@@ -2888,26 +2899,23 @@ public class ZMSImplTest {
 
     private void verifyGetPrincipalRoles(String principal, DomainRoleMember domainRoleMember, boolean isAllDomains) {
         MemberRole memberRole0 = new MemberRole();
-        memberRole0.setMemberName(principal);
         memberRole0.setDomainName("domain1");
-        memberRole0.setRoleName("domain1:role.role1");
+        memberRole0.setRoleName("role1");
 
         MemberRole memberRole1 = new MemberRole();
-        memberRole1.setMemberName(principal);
         memberRole1.setDomainName("domain1");
-        memberRole1.setRoleName("domain1:role.role2");
+        memberRole1.setRoleName("role2");
 
         MemberRole memberRole2 = new MemberRole();
-        memberRole2.setMemberName(principal);
         memberRole2.setDomainName("domain3");
-        memberRole2.setRoleName("domain3:role.role1");
+        memberRole2.setRoleName("role1");
 
         assertEquals(domainRoleMember.getMemberName(), principal);
-        assertEquals(domainRoleMember.getMemberRoles().get(0), memberRole0);
-        assertEquals(domainRoleMember.getMemberRoles().get(1), memberRole1);
+        assertTrue(ZMSTestUtils.verifyDomainRoleMember(domainRoleMember, memberRole0));
+        assertTrue(ZMSTestUtils.verifyDomainRoleMember(domainRoleMember, memberRole1));
         if (isAllDomains) {
             assertEquals(domainRoleMember.getMemberRoles().size(), 3);
-            assertEquals(domainRoleMember.getMemberRoles().get(2), memberRole2);
+            assertTrue(ZMSTestUtils.verifyDomainRoleMember(domainRoleMember, memberRole2));
         } else {
             assertEquals(domainRoleMember.getMemberRoles().size(), 2);
         }
@@ -3028,8 +3036,7 @@ public class ZMSImplTest {
     public void testPutMembership() {
 
         TestAuditLogger alogger = new TestAuditLogger();
-        String storeFile = ZMS_DATA_STORE_FILE + "_putmembership";
-        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
+        ZMSImpl zmsImpl = getZmsImpl(alogger);
 
         TopLevelDomain dom1 = createTopLevelDomainObject("MbrAddDom1",
                 "Test Domain1", "testOrg", "user.user1");
@@ -3228,8 +3235,7 @@ public class ZMSImplTest {
     public void testPutMembershipMissingAuditRef() {
 
         TestAuditLogger alogger = new TestAuditLogger();
-        String storeFile = ZMS_DATA_STORE_FILE + "_putmembershipmissauditref";
-        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
+        ZMSImpl zmsImpl = getZmsImpl(alogger);
 
         String domain = "testPutMembershipMissingAuditRef";
         TopLevelDomain dom = createTopLevelDomainObject(
@@ -3696,8 +3702,7 @@ public class ZMSImplTest {
     public void testDeleteMembershipAdminRoleSingleMember() {
 
         TestAuditLogger alogger = new TestAuditLogger();
-        String storeFile = ZMS_DATA_STORE_FILE + "_delmembershipadminrsm";
-        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
+        ZMSImpl zmsImpl = getZmsImpl(alogger);
 
         String domainName = "MbrGetRoleDom1";
         String memberName1 = "user.john";
@@ -3867,8 +3872,7 @@ public class ZMSImplTest {
 
         TestAuditLogger alogger = new TestAuditLogger();
         List<String> aLogMsgs = alogger.getLogMsgList();
-        String storeFile = ZMS_DATA_STORE_FILE + "_getpol";
-        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
+        ZMSImpl zmsImpl = getZmsImpl(alogger);
 
         TopLevelDomain dom1 = createTopLevelDomainObject("PolicyGetDom1",
                 "Test Domain1", "testOrg", adminUser);
@@ -3945,7 +3949,6 @@ public class ZMSImplTest {
         }
 
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, "PolicyGetDom1", auditRef);
-        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
     }
     
     @Test
@@ -4104,6 +4107,7 @@ public class ZMSImplTest {
         String unsignedCreds = "v=U1;d=user;n=" + userId;
         Principal principal = SimplePrincipal.create("user", userId, unsignedCreds + ";s=signature",
                 0, principalAuthority);
+        assertNotNull(principal);
         ((SimplePrincipal) principal).setUnsignedCreds(unsignedCreds);
         
         ResourceContext rsrcCtx1 = createResourceContext(principal);
@@ -4362,8 +4366,7 @@ public class ZMSImplTest {
     public void testDeletePolicyThrowException() {
 
         TestAuditLogger alogger = new TestAuditLogger();
-        String storeFile = ZMS_DATA_STORE_FILE + "_delpolhrowexc";
-        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
+        ZMSImpl zmsImpl = getZmsImpl(alogger);
 
         String domainName = "WrongDomainName";
         String policyName = "WrongPolicyName";
@@ -4373,8 +4376,6 @@ public class ZMSImplTest {
         } catch (ResourceException e) {
             assertEquals(e.getCode(), 404);
         }
-
-        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
     }
 
     @Test
@@ -4439,8 +4440,7 @@ public class ZMSImplTest {
     public void testCreateServiceIdentityNotSimpleName() {
 
         TestAuditLogger alogger = new TestAuditLogger();
-        String storeFile = ZMS_DATA_STORE_FILE + "_createsvcidnosimplename";
-        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
+        ZMSImpl zmsImpl = getZmsImpl(alogger);
 
         TopLevelDomain dom1 = createTopLevelDomainObject("ServiceAddDom1NotSimpleName",
                 "Test Domain1", "testOrg", adminUser);
@@ -4458,7 +4458,6 @@ public class ZMSImplTest {
         }
 
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, "ServiceAddDom1NotSimpleName", auditRef);
-        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
     }
     
     @Test
@@ -4913,8 +4912,7 @@ public class ZMSImplTest {
     public void testDeleteServiceIdentityThrowException() {
 
         TestAuditLogger alogger = new TestAuditLogger();
-        String storeFile = ZMS_DATA_STORE_FILE + "_delsvcidthrowexc";
-        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
+        ZMSImpl zmsImpl = getZmsImpl(alogger);
 
         String domainName = "WrongDomainName";
         String serviceName = "WrongServiceName";
@@ -5164,8 +5162,7 @@ public class ZMSImplTest {
     public void testDeleteEntityMissingAuditRef() {
 
         TestAuditLogger alogger = new TestAuditLogger();
-        String storeFile = ZMS_DATA_STORE_FILE + "_delentitymissauditref";
-        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
+        ZMSImpl zmsImpl = getZmsImpl(alogger);
 
         String domain = "testDeleteEntityMissingAuditRef";
         TopLevelDomain dom = createTopLevelDomainObject(
@@ -5184,7 +5181,6 @@ public class ZMSImplTest {
             assertTrue(ex.getMessage().contains("Audit reference required"));
         } finally {
             zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, domain, auditRef);
-            FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
         }
     }
 
@@ -5200,10 +5196,12 @@ public class ZMSImplTest {
         String userId = "george";
         Principal principal = SimplePrincipal.create("user", userId, userId + ":password",
                 0, userAuthority);
+        assertNotNull(principal);
         ((SimplePrincipal) principal).setUnsignedCreds(userId);
         ResourceContext rsrcCtx1 = createResourceContext(principal);
 
         zms.privateKey = new ServerPrivateKey(Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey)), "0");
+        loadServerPublicKeys(zms);
 
         UserToken token = zms.getUserToken(rsrcCtx1, userId, null, null);
         assertNotNull(token);
@@ -5242,6 +5240,7 @@ public class ZMSImplTest {
         String userId = "george";
         Principal principal = SimplePrincipal.create("user", userId, userId + ":password",
                 0, userAuthority);
+        assertNotNull(principal);
         ((SimplePrincipal) principal).setUnsignedCreds(userId);
         ResourceContext rsrcCtx1 = createResourceContext(principal);
         
@@ -5264,6 +5263,7 @@ public class ZMSImplTest {
         String userId = "george";
         Principal principal = SimplePrincipal.create("user", userId, userId + ":password",
                 0, userAuthority);
+        assertNotNull(principal);
         ((SimplePrincipal) principal).setUnsignedCreds(userId);
         ResourceContext rsrcCtx1 = createResourceContext(principal);
         
@@ -5305,10 +5305,12 @@ public class ZMSImplTest {
         String userId = "george";
         Principal principal = SimplePrincipal.create("user", userId, userId + ":password",
                 0, userAuthority);
+        assertNotNull(principal);
         ((SimplePrincipal) principal).setUnsignedCreds(userId);
         ResourceContext rsrcCtx1 = createResourceContext(principal);
 
         zms.privateKey = new ServerPrivateKey(Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey)), "0");
+        loadServerPublicKeys(zms);
 
         UserToken token = zms.getUserToken(rsrcCtx1, userId, null, null);
         assertNotNull(token);
@@ -5335,6 +5337,7 @@ public class ZMSImplTest {
         String userId = "user1";
         Principal principal = SimplePrincipal.create("user", userId, userId + ":password",
                 0, userAuthority);
+        assertNotNull(principal);
         ((SimplePrincipal) principal).setUnsignedCreds(userId);
         ResourceContext rsrcCtx1 = createResourceContext(principal);
         
@@ -5372,10 +5375,12 @@ public class ZMSImplTest {
         String userId = "user10";
         Principal principal = SimplePrincipal.create("user", userId, userId + ":password",
                 0, userAuthority);
+        assertNotNull(principal);
         ((SimplePrincipal) principal).setUnsignedCreds(userId);
         ResourceContext rsrcCtx1 = createResourceContext(principal);
 
         zms.privateKey = new ServerPrivateKey(Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey)), "0");
+        loadServerPublicKeys(zms);
 
         UserToken token = zms.getUserToken(rsrcCtx1, "_self_", null, false);
         assertNotNull(token);
@@ -5595,8 +5600,7 @@ public class ZMSImplTest {
     public void testPutDefaultAdminsMissingAuditRef() {
 
         TestAuditLogger alogger = new TestAuditLogger();
-        String storeFile = ZMS_DATA_STORE_FILE + "_putdefaminsmissauditref";
-        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
+        ZMSImpl zmsImpl = getZmsImpl(alogger);
 
         String domain = "testPutDefaultAdminsMissingAuditRef";
         TopLevelDomain dom = createTopLevelDomainObject(
@@ -5617,7 +5621,6 @@ public class ZMSImplTest {
             assertTrue(ex.getMessage().contains("Audit reference required"));
         } finally {
             zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, domain, auditRef);
-            FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
         }
     }
     
@@ -5714,6 +5717,7 @@ public class ZMSImplTest {
                     && "*".equals(assertion.getAction())
                     && "sports:role.admin".equals(assertion.getRole())) {
                 foundAssertion = true;
+                break;
             }
         }
         assertTrue(foundAssertion);
@@ -5893,6 +5897,8 @@ public class ZMSImplTest {
     @Test
     public void testGetSignedDomains() {
 
+        loadServerPublicKeys(zms);
+
         // create multiple top level domains
         TopLevelDomain dom1 = createTopLevelDomainObject("SignedDom1",
                 "Test Domain1", "testOrg", adminUser);
@@ -5936,7 +5942,7 @@ public class ZMSImplTest {
 
         boolean dom1Found = false;
         boolean dom2Found = false;
-        for(SignedDomain sDomain : list) {
+        for (SignedDomain sDomain : list) {
             String signature = sDomain.getSignature();
             String keyId = sDomain.getKeyId();
             String publicKey = zms.getPublicKey("sys.auth", "zms", keyId);
@@ -6098,6 +6104,8 @@ public class ZMSImplTest {
     
     @Test
     public void testGetSignedDomainsFiltered() {
+
+        loadServerPublicKeys(zms);
 
         // create multiple top level domains
         TopLevelDomain dom1 = createTopLevelDomainObject("signeddom1filtered",
@@ -7443,12 +7451,13 @@ public class ZMSImplTest {
     
     @Test
     public void testGetPublicKeyZMS() {
-        
+
+        loadServerPublicKeys(zms);
+
         String publicKey = zms.getPublicKey("sys.auth", "zms", "0");
         assertNotNull(publicKey);
         assertEquals(pubKey, Crypto.ybase64(publicKey.getBytes(StandardCharsets.UTF_8)));
 
-        
         publicKey = zms.getPublicKey("sys.auth", "zms", "1");
         assertNotNull(publicKey);
         assertEquals(pubKeyK1, Crypto.ybase64(publicKey.getBytes(StandardCharsets.UTF_8)));
@@ -7613,6 +7622,7 @@ public class ZMSImplTest {
         String userId = "user1";
         String unsignedCreds = "v=U1;d=user;u=" + userId;
         Principal principal = SimplePrincipal.create("user", userId, unsignedCreds + ";s=signature", 0, principalAuthority);
+        assertNotNull(principal);
         ((SimplePrincipal) principal).setUnsignedCreds(unsignedCreds);
         ((SimplePrincipal) principal).setAuthorizedService(provider);
         ResourceContext ctx = createResourceContext(principal);
@@ -7683,8 +7693,7 @@ public class ZMSImplTest {
     public void testPutTenancyWithAuthorizedServiceMismatch() {
 
         TestAuditLogger alogger = new TestAuditLogger();
-        String storeFile = ZMS_DATA_STORE_FILE + "_puttenancywithauthsvcmism";
-        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
+        ZMSImpl zmsImpl = getZmsImpl(alogger);
 
         String tenantDomain = "puttenancyauthorizedservicemismatch";
         String providerService  = "storage";
@@ -7712,6 +7721,7 @@ public class ZMSImplTest {
         String userId = "user1";
         String unsignedCreds = "v=U1;d=user;u=" + userId;
         Principal principal = SimplePrincipal.create("user", userId, unsignedCreds + ";s=signature", 0, principalAuthority);
+        assertNotNull(principal);
         ((SimplePrincipal) principal).setUnsignedCreds(unsignedCreds);
         ((SimplePrincipal) principal).setAuthorizedService("coretech.storage"); // make provider mismatch
         ResourceContext ctx = createResourceContext(principal);
@@ -7731,7 +7741,6 @@ public class ZMSImplTest {
         
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, tenantDomain, auditRef);
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, providerDomain, auditRef);
-        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
     }
     
     @Test
@@ -8559,6 +8568,7 @@ public class ZMSImplTest {
         Authority authority = new com.yahoo.athenz.auth.impl.KerberosAuthority();
         Principal principal = SimplePrincipal.create("krb", "user1", "v=U1;d=user;n=user1;s=signature",
                 0, authority);
+        assertNotNull(principal);
         assertTrue(zms.authorityAuthorizationAllowed(principal));
     }
     
@@ -8566,6 +8576,7 @@ public class ZMSImplTest {
     public void testCheckNullAuthorityAuthorization() {
         Principal principal = SimplePrincipal.create("user", "joe", "v=U1;d=user;n=user1;s=signature",
                 0, null);
+        assertNotNull(principal);
         assertTrue(zms.authorityAuthorizationAllowed(principal));
     }
     
@@ -8786,6 +8797,8 @@ public class ZMSImplTest {
         assertEquals(zmsImpl.normalizeDomainAliasUser("user-alias.user1.svc"), "user-alias.user1.svc");
         assertEquals(zmsImpl.normalizeDomainAliasUser("user.user1"), "user.user1");
         assertEquals(zmsImpl.normalizeDomainAliasUser("user.user1.svc"), "user.user1.svc");
+
+        zmsImpl.objectStore.clearConnections();
     }
     
     @Test
@@ -9431,6 +9444,7 @@ public class ZMSImplTest {
         List<String> authRoles = new ArrayList<>();
         authRoles.add("role1");
         Principal principal = SimplePrincipal.create(domainName, "v=U1;d=user;n=user1;s=signature", authRoles, null);
+        assertNotNull(principal);
         AthenzDomain domain = zms.retrieveAccessDomain(domainName, principal);
         assertEquals(zms.hasAccess(domain, "read", domainName + ":entity", principal, "trustdomain"),
                 AccessStatus.DENIED_INVALID_ROLE_TOKEN);
@@ -10078,6 +10092,7 @@ public class ZMSImplTest {
         for (PublicKeyEntry entry : keyList) {
             if (entry.getId().equals("1")) {
                 found = true;
+                break;
             }
         }
         assertFalse(found);
@@ -10142,8 +10157,7 @@ public class ZMSImplTest {
     public void testDeletePublicKeyEntryInvalidService() {
 
         TestAuditLogger alogger = new TestAuditLogger();
-        String storeFile = ZMS_DATA_STORE_FILE + "_delpubkeyinvalidsvc";
-        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
+        ZMSImpl zmsImpl = getZmsImpl(alogger);
 
         TopLevelDomain dom1 = createTopLevelDomainObject("ServiceDelPubKeyDom2InvalidService",
                 "Test Domain1", "testOrg", adminUser);
@@ -10166,7 +10180,6 @@ public class ZMSImplTest {
         }
 
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, "ServiceDelPubKeyDom2InvalidService", auditRef);
-        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
     }
     
     @Test
@@ -10431,8 +10444,7 @@ public class ZMSImplTest {
     public void testPutPublicKeyEntryMissingAuditRef() {
 
         TestAuditLogger alogger = new TestAuditLogger();
-        String storeFile = ZMS_DATA_STORE_FILE + "_putpubkeyentrymissauditref";
-        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
+        ZMSImpl zmsImpl = getZmsImpl(alogger);
 
         String domain = "testPutPublicKeyEntryMissingAuditRef";
         TopLevelDomain dom = createTopLevelDomainObject(
@@ -10458,7 +10470,6 @@ public class ZMSImplTest {
             assertTrue(ex.getMessage().contains("Audit reference required"));
         } finally {
             zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, domain, auditRef);
-            FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
         }
     }
 
@@ -11441,12 +11452,13 @@ public class ZMSImplTest {
 
         roleW = zms.getRole(mockDomRsrcCtx, tenantDomain, roleWriter, false, false, false);
         assertEquals(roleW.getRoleMembers().size(), 2);
-        assertEquals(roleW.getRoleMembers().get(0).getMemberName(), mockDomRestRsrcCtx.principal().getFullName());
-        assertEquals(roleW.getRoleMembers().get(1).getMemberName(), newMember);
+
+        assertTrue(verifyRoleMember(roleW, mockDomRestRsrcCtx.principal().getFullName()));
+        assertTrue(verifyRoleMember(roleW, newMember));
 
         roleR = zms.getRole(mockDomRsrcCtx, tenantDomain, roleReader, false, false, false);
         assertEquals(roleR.getRoleMembers().size(), 1);
-        assertEquals(roleR.getRoleMembers().get(0).getMemberName(), mockDomRestRsrcCtx.principal().getFullName());
+        assertTrue(verifyRoleMember(roleW, mockDomRestRsrcCtx.principal().getFullName()));
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, tenantDomain, auditRef);
     }
@@ -11712,6 +11724,7 @@ public class ZMSImplTest {
         String unsignedCreds = "v=U1;d=user;n=" + userId;
         Principal principal = SimplePrincipal.create("user", userId, unsignedCreds + ";s=signature",
                 0, principalAuthority);
+        assertNotNull(principal);
         ((SimplePrincipal) principal).setUnsignedCreds(unsignedCreds);
         ((SimplePrincipal) principal).setUnsignedCreds(unsignedCreds);
         ((SimplePrincipal) principal).setAuthorizedService("coretech.storage");
@@ -11811,8 +11824,7 @@ public class ZMSImplTest {
     public void testProviderResourceGroupRolesWithAuthorizedServiceNoAccess() {
 
         TestAuditLogger alogger = new TestAuditLogger();
-        String storeFile = ZMS_DATA_STORE_FILE + "_putprovrsrcdomnoaccess";
-        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
+        ZMSImpl zmsImpl = getZmsImpl(alogger);
 
         String tenantDomain = "provrscgrprolesauthorizedservicenoaccess";
         String providerService  = "index";
@@ -11855,6 +11867,7 @@ public class ZMSImplTest {
         String unsignedCreds = "v=U1;d=user;n=" + userId;
         Principal principal = SimplePrincipal.create("user", userId, unsignedCreds + ";s=signature",
                 0, principalAuthority);
+        assertNotNull(principal);
         ((SimplePrincipal) principal).setUnsignedCreds(unsignedCreds);
         ((SimplePrincipal) principal).setUnsignedCreds(unsignedCreds);
         ((SimplePrincipal) principal).setAuthorizedService("coretech.index");
@@ -11875,7 +11888,6 @@ public class ZMSImplTest {
         
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, tenantDomain, auditRef);
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, providerDomain, auditRef);
-        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
     }
 
     @Test
@@ -11950,8 +11962,7 @@ public class ZMSImplTest {
     public void testOptionsUserToken() {
         HttpServletRequest servletRequest = new MockHttpServletRequest();
         HttpServletResponse servletResponse = new MockHttpServletResponse();
-        Object timerMetric = new Object();
-        ResourceContext ctx = new RsrcCtxWrapper(servletRequest, servletResponse, null, false, null, timerMetric);
+        ResourceContext ctx = new RsrcCtxWrapper(servletRequest, servletResponse, null, false, null, new Object());
         
         zms.optionsUserToken(ctx, "user", "coretech.storage");
         assertEquals("GET", servletResponse.getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_METHODS));
@@ -11968,8 +11979,7 @@ public class ZMSImplTest {
     public void testOptionsUserTokenRequestHeaders() {
         MockHttpServletRequest servletRequest = new MockHttpServletRequest();
         MockHttpServletResponse servletResponse = new MockHttpServletResponse();
-        Object timerMetric = new Object();
-        ResourceContext ctx = new RsrcCtxWrapper(servletRequest, servletResponse, null, false, null, timerMetric);
+        ResourceContext ctx = new RsrcCtxWrapper(servletRequest, servletResponse, null, false, null, new Object());
         
         String origin = "https://zms.origin.athenzcompany.com";
         String requestHeaders = "X-Forwarded-For,Content-Type";
@@ -11991,8 +12001,7 @@ public class ZMSImplTest {
     public void testSetStandardCORSHeaders() {
         HttpServletRequest servletRequest = new MockHttpServletRequest();
         HttpServletResponse servletResponse = new MockHttpServletResponse();
-        Object timerMetric = new Object();
-        ResourceContext ctx = new RsrcCtxWrapper(servletRequest, servletResponse, null, false, null, timerMetric);
+        ResourceContext ctx = new RsrcCtxWrapper(servletRequest, servletResponse, null, false, null, new Object());
         
         zms.setStandardCORSHeaders(ctx);
         assertEquals("true", servletResponse.getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_CREDENTIALS));
@@ -12007,8 +12016,7 @@ public class ZMSImplTest {
     public void testSetStandardCORSHeadersRequestHeaders() {
         MockHttpServletRequest servletRequest = new MockHttpServletRequest();
         MockHttpServletResponse servletResponse = new MockHttpServletResponse();
-        Object timerMetric = new Object();
-        ResourceContext ctx = new RsrcCtxWrapper(servletRequest, servletResponse, null, false, null, timerMetric);
+        ResourceContext ctx = new RsrcCtxWrapper(servletRequest, servletResponse, null, false, null, new Object());
         
         String origin = "https://zms.origin.athenzcompany.com";
         String requestHeaders = "X-Forwarded-For,Content-Type";
@@ -12204,8 +12212,7 @@ public class ZMSImplTest {
     public void testPutDomainTemplateInvalidTemplate() {
 
         TestAuditLogger alogger = new TestAuditLogger();
-        String storeFile = ZMS_DATA_STORE_FILE + "_putdomtempllistinvalid";
-        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
+        ZMSImpl zmsImpl = getZmsImpl(alogger);
         
         String domainName = "templatelist-invalid";
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
@@ -12224,7 +12231,6 @@ public class ZMSImplTest {
         }
         
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
-        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
     }
     
     @Test
@@ -12275,7 +12281,7 @@ public class ZMSImplTest {
         Role role = zms.dbService.getRole(domainName, "vip_admin", false, false, false);
         assertEquals(domainName + ":role.vip_admin", role.getName());
         assertNull(role.getTrust());
-        assertNull(role.getRoleMembers());
+        assertTrue(role.getRoleMembers().isEmpty());
         
         role = zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false, false);
         assertEquals(domainName + ":role.sys_network_super_vip_admin", role.getName());
@@ -12460,8 +12466,7 @@ public class ZMSImplTest {
     public void testPutDomainTemplateExtInvalidTemplate() {
 
         TestAuditLogger alogger = new TestAuditLogger();
-        String storeFile = ZMS_DATA_STORE_FILE + "_putdomtempllistinvalid";
-        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
+        ZMSImpl zmsImpl = getZmsImpl(alogger);
         
         String domainName = "templatelist-invalid";
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
@@ -12482,7 +12487,6 @@ public class ZMSImplTest {
         }
         
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
-        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
     }
     
     @Test
@@ -12562,7 +12566,7 @@ public class ZMSImplTest {
         Role role = zms.dbService.getRole(domainName, "vip_admin", false, false, false);
         assertEquals(domainName + ":role.vip_admin", role.getName());
         assertNull(role.getTrust());
-        assertNull(role.getRoleMembers());
+        assertTrue(role.getRoleMembers().isEmpty());
         
         role = zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false, false);
         assertEquals(domainName + ":role.sys_network_super_vip_admin", role.getName());
@@ -12869,8 +12873,7 @@ public class ZMSImplTest {
         Mockito.when(servletRequest.isSecure()).thenReturn(true);
 
         TestAuditLogger alogger = new TestAuditLogger();
-        String storeFile = ZMS_DATA_STORE_FILE + "_al_noloop";
-        ZMSImpl zmsObj = getZmsImpl(storeFile, alogger);
+        ZMSImpl zmsObj = getZmsImpl(alogger);
 
         String userId = "user";
         Principal principal = SimplePrincipal.create("user", userId, "v=U1;d=user;n=user;s=signature", 0, null);
@@ -12888,8 +12891,6 @@ public class ZMSImplTest {
         } catch (ResourceException e) {
             assertEquals(e.getCode(), 404);
         }
-        
-        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
     }
     
     @Test
@@ -12899,8 +12900,7 @@ public class ZMSImplTest {
         Mockito.when(servletRequest.isSecure()).thenReturn(true);
 
         TestAuditLogger alogger = new TestAuditLogger();
-        String storeFile = ZMS_DATA_STORE_FILE + "_al_loopback";
-        ZMSImpl zmsObj = getZmsImpl(storeFile, alogger);
+        ZMSImpl zmsObj = getZmsImpl(alogger);
 
         String userId = "user";
         Principal principal = SimplePrincipal.create("user", userId, "v=U1;d=user;n=user;s=signature", 0, null);
@@ -12917,8 +12917,6 @@ public class ZMSImplTest {
         } catch (ResourceException e) {
             assertEquals(e.getCode(), 400);
         }
-        
-        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
     }
     
     @Test
@@ -12929,8 +12927,7 @@ public class ZMSImplTest {
         Mockito.when(servletRequest.isSecure()).thenReturn(true);
 
         TestAuditLogger alogger = new TestAuditLogger();
-        String storeFile = ZMS_DATA_STORE_FILE + "_al_loopbackXff";
-        ZMSImpl zmsObj = getZmsImpl(storeFile, alogger);
+        ZMSImpl zmsObj = getZmsImpl(alogger);
 
         String userId = "user";
         Principal principal = SimplePrincipal.create("user", userId, "v=U1;d=user;n=user;s=signature", 0, null);
@@ -12947,8 +12944,6 @@ public class ZMSImplTest {
         } catch (ResourceException e) {
             assertEquals(e.getCode(), 400);
         }
-        
-        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
     }
     
     @Test
@@ -12959,8 +12954,7 @@ public class ZMSImplTest {
         Mockito.when(servletRequest.isSecure()).thenReturn(true);
 
         TestAuditLogger alogger = new TestAuditLogger();
-        String storeFile = ZMS_DATA_STORE_FILE + "_al_loopbackXffMulti";
-        ZMSImpl zmsObj = getZmsImpl(storeFile, alogger);
+        ZMSImpl zmsObj = getZmsImpl(alogger);
 
         String userId = "user";
         Principal principal = SimplePrincipal.create("user", userId, "v=U1;d=user;n=user;s=signature", 0, null);
@@ -12977,8 +12971,6 @@ public class ZMSImplTest {
         } catch (ResourceException e) {
             assertEquals(e.getCode(), 400);
         }
-        
-        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
     }
     
     @Test
@@ -13002,14 +12994,6 @@ public class ZMSImplTest {
     @Test
     public void testRetrieveResourceDomainInvalidResource() {
         assertNull(zms.retrieveResourceDomain("domain1-invalid", "read", null));
-    }
-
-    @Test
-    public void testLoadPublicKeys() {
-        // verify that the public keys were loaded during server startup
-        assertFalse(zms.serverPublicKeyMap.isEmpty());
-        String privKeyId = System.getProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY_ID, "0");
-        assertEquals(pubKey, zms.serverPublicKeyMap.get(privKeyId));
     }
 
     @Test
@@ -13456,6 +13440,7 @@ public class ZMSImplTest {
     
     @Test
     public void testResourceContext() {
+
         RsrcCtxWrapper ctx = (RsrcCtxWrapper) zms.newResourceContext(mockServletRequest, mockServletResponse);
         assertNotNull(ctx);
         assertNotNull(ctx.context());
@@ -13973,7 +13958,7 @@ public class ZMSImplTest {
                     assertNotNull(role.getSignAlgorithm());
                     assertTrue(role.getReviewEnabled());
                     assertTrue(role.getSelfServe());
-                    assertFalse(role.getAuditEnabled());
+                    assertNull(role.getAuditEnabled());
                     role4Check = true;
                     break;
             }
@@ -14990,6 +14975,7 @@ public class ZMSImplTest {
         Authority userAuthority = new com.yahoo.athenz.common.server.debug.DebugUserAuthority();
         String userId = "user1";
         Principal principal = SimplePrincipal.create("user", userId, userId + ":password", 0, userAuthority);
+        assertNotNull(principal);
         ((SimplePrincipal) principal).setUnsignedCreds(userId);
         ResourceContext rsrcCtx1 = createResourceContext(principal);
         zms.getDomainList(rsrcCtx1, 100, null, null, 100, "account", 224, "roleMem1", "role1", null);
@@ -15000,6 +14986,7 @@ public class ZMSImplTest {
         Authority userAuthority = new com.yahoo.athenz.common.server.debug.DebugUserAuthority();
         String userId = "user1";
         Principal principal = SimplePrincipal.create("user", userId, userId + ":password", 0, userAuthority);
+        assertNotNull(principal);
         ((SimplePrincipal) principal).setUnsignedCreds(userId);
         ResourceContext rsrcCtx1 = createResourceContext(principal);
         try {
@@ -15015,6 +15002,7 @@ public class ZMSImplTest {
         Authority userAuthority = new com.yahoo.athenz.common.server.debug.DebugUserAuthority();
         String userId = "user1";
         Principal principal = SimplePrincipal.create("user", userId, userId + ":password", 0, userAuthority);
+        assertNotNull(principal);
         ((SimplePrincipal) principal).setUnsignedCreds(userId);
         ResourceContext rsrcCtx1 = createResourceContext(principal);
         try {
@@ -15106,6 +15094,8 @@ public class ZMSImplTest {
         ResourceContext rsrcCtx = createResourceContext(sysPrincipal);
         ResourceAccessList accessList = zmsImpl.getResourceAccessList(rsrcCtx, "sys.zts", "UPDATE");
         assertNotNull(accessList);
+
+        zmsImpl.objectStore.clearConnections();
     }
 
     @Test
@@ -15136,6 +15126,8 @@ public class ZMSImplTest {
         ResourceContext rsrcCtx = createResourceContext(sysPrincipal);
         ResourceAccessList accessList = zmsImpl.getResourceAccessList(rsrcCtx, null, null);
         assertNotNull(accessList);
+
+        zmsImpl.objectStore.clearConnections();
     }
 
     @Test
@@ -15173,6 +15165,8 @@ public class ZMSImplTest {
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
         }
+
+        zmsImpl.objectStore.clearConnections();
     }
 
     @Test
@@ -15243,6 +15237,7 @@ public class ZMSImplTest {
         Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
         Principal principal = SimplePrincipal.create("sports", "nhl", "v=S1;d=sports;n=nhl;s=signature",
                 0, principalAuthority);
+        assertNotNull(principal);
         assertFalse(zms.isSysAdminUser(principal));
     }
     
@@ -15266,7 +15261,9 @@ public class ZMSImplTest {
     
     @Test
     public void testGetUserList() {
-        
+
+        ZMSTestUtils.cleanupNotAdminUsers(zms, adminUser, mockDomRsrcCtx);
+
         String domainName = "listusers1";
         
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
@@ -15299,23 +15296,24 @@ public class ZMSImplTest {
         
         UserList userList = zms.getUserList(mockDomRsrcCtx);
         List<String> users = userList.getNames();
-        assertEquals(users.size(), 5);
         assertTrue(users.contains("user.testadminuser"));
         assertTrue(users.contains("user.janie"));
         assertTrue(users.contains("user.ana"));
         assertTrue(users.contains("user.jack"));
         assertTrue(users.contains("user.joe"));
-        
+
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "listusersports", auditRef);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "listuserweather", auditRef);
     }
-    
+
     @Test
     public void testDeleteUser() {
-        
+
         String domainName = "deleteuser1";
-        
+
+        ZMSTestUtils.cleanupNotAdminUsers(zms, adminUser, mockDomRsrcCtx);
+
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
@@ -15346,7 +15344,7 @@ public class ZMSImplTest {
         
         UserList userList = zms.getUserList(mockDomRsrcCtx);
         List<String> users = userList.getNames();
-        assertEquals(users.size(), 3);
+        int userSize = users.size();
         assertTrue(users.contains("user.testadminuser"));
         assertTrue(users.contains("user.jack"));
         assertTrue(users.contains("user.joe"));
@@ -15355,10 +15353,11 @@ public class ZMSImplTest {
         
         userList = zms.getUserList(mockDomRsrcCtx);
         users = userList.getNames();
-        assertEquals(users.size(), 2);
+        assertEquals(users.size(), userSize - 1);
         assertTrue(users.contains("user.testadminuser"));
         assertTrue(users.contains("user.joe"));
-        
+        assertFalse(users.contains("user.jack"));
+
         try {
             zms.getDomain(mockDomRsrcCtx, "user.jack");
             fail();
@@ -15440,9 +15439,14 @@ public class ZMSImplTest {
         ZMSTestUtils.verifyDomainRoleMember(members, "user.jack-service", "role5");
         ZMSTestUtils.verifyDomainRoleMember(members, adminUser, "admin");
 
-        // this should be no-op with unknown user
+        // with unknown user we get back 404
 
-        zms.deleteDomainRoleMember(mockDomRsrcCtx, domainName, "user.unknown", auditRef);
+        try {
+            zms.deleteDomainRoleMember(mockDomRsrcCtx, domainName, "user.unknown", auditRef);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
 
         members = domainRoleMembers.getMembers();
         assertNotNull(members);
@@ -15672,6 +15676,8 @@ public class ZMSImplTest {
         assertEquals(zmsImpl.userHomeDomainResource("user.john.smith:domain"), "home.john-smith:domain");
         assertEquals(zmsImpl.userHomeDomainResource("testuser.john.smith:domain"), "testuser.john.smith:domain");
         assertEquals(zmsImpl.userHomeDomainResource("product.john.smith:domain"), "product.john.smith:domain");
+
+        zmsImpl.objectStore.clearConnections();
     }
 
     @Test
@@ -15718,6 +15724,8 @@ public class ZMSImplTest {
         
         principal = zmsImpl.createPrincipalForName("alias.joe.storage");
         assertEquals(principal.getFullName(), "alias.joe.storage");
+
+        zmsImpl.objectStore.clearConnections();
     }
     
     @Test
@@ -15750,6 +15758,8 @@ public class ZMSImplTest {
         assertTrue(normList.contains("user-alias.user1.svc"));
         assertTrue(normList.contains("user.user2"));
         assertTrue(normList.contains("user.user2.svc"));
+
+        zmsImpl.objectStore.clearConnections();
     }
     
     @Test
@@ -15774,6 +15784,8 @@ public class ZMSImplTest {
         assertEquals(zmsImpl.normalizeDomainAliasUser("user-alias.user1.svc"), "user-alias.user1.svc");
         assertEquals(zmsImpl.normalizeDomainAliasUser("user.user2"), "user.user2");
         assertEquals(zmsImpl.normalizeDomainAliasUser("user.user2.svc"), "user.user2.svc");
+
+        zmsImpl.objectStore.clearConnections();
     }
     
     @Test
@@ -15797,6 +15809,8 @@ public class ZMSImplTest {
         zmsImpl.validateRequest(request, "test");
         zmsImpl.validateRequest(request, "test", false);
         zmsImpl.validateRequest(request, "test", true);
+
+        zmsImpl.objectStore.clearConnections();
     }
     
     @Test
@@ -15825,6 +15839,8 @@ public class ZMSImplTest {
             fail();
         } catch (ResourceException ignored) {
         }
+
+        zmsImpl.objectStore.clearConnections();
     }
     
     @Test
@@ -15850,6 +15866,8 @@ public class ZMSImplTest {
             fail();
         } catch (ResourceException ignored) {
         }
+
+        zmsImpl.objectStore.clearConnections();
     }
     
     @Test
@@ -15880,6 +15898,8 @@ public class ZMSImplTest {
             fail();
         } catch (ResourceException ignored) {
         }
+
+        zmsImpl.objectStore.clearConnections();
     }
     
     @Test
@@ -15889,6 +15909,8 @@ public class ZMSImplTest {
         zmsImpl.statusPort = 0;
         Status status = zmsImpl.getStatus(mockDomRsrcCtx);
         assertEquals(status.getCode(), ResourceException.OK);
+
+        zmsImpl.objectStore.clearConnections();
     }
 
     @Test
@@ -15928,6 +15950,7 @@ public class ZMSImplTest {
         }
 
         System.clearProperty(ZMSConsts.ZMS_PROP_HEALTH_CHECK_PATH);
+        zmsImpl.objectStore.clearConnections();
     }
 
     @Test
@@ -16004,6 +16027,7 @@ public class ZMSImplTest {
         }
 
         System.clearProperty(ZMSConsts.ZMS_PROP_STATUS_CHECKER_FACTORY_CLASS);
+        zmsImpl.objectStore.clearConnections();
     }
 
     @Test
@@ -16019,6 +16043,7 @@ public class ZMSImplTest {
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
         }
+        zmsImpl.objectStore.clearConnections();
     }
 
     @Test
@@ -16027,6 +16052,7 @@ public class ZMSImplTest {
         assertEquals(zmsImpl.getModTimestamp(null), 0);
         assertEquals(zmsImpl.getModTimestamp("\"\""), 0);
         assertEquals(zmsImpl.getModTimestamp(""), 0);
+        zmsImpl.objectStore.clearConnections();
     }
 
     @Test
@@ -16054,6 +16080,8 @@ public class ZMSImplTest {
         zmsImpl.corsOriginList.add("http://cors.origin1");
         assertTrue(zmsImpl.isValidCORSOrigin("http://cors.origin1"));
         assertFalse(zmsImpl.isValidCORSOrigin("http://cors.origin2"));
+
+        zmsImpl.objectStore.clearConnections();
     }
 
     @Test
@@ -16113,6 +16141,8 @@ public class ZMSImplTest {
         assertTrue(zmsImpl2.isValidServiceName("r"));
         System.clearProperty(ZMSConsts.ZMS_PROP_RESERVED_SERVICE_NAMES);
         System.clearProperty(ZMSConsts.ZMS_PROP_SERVICE_NAME_MIN_LENGTH);
+
+        zmsImpl.objectStore.clearConnections();
     }
 
     @Test
@@ -16157,6 +16187,8 @@ public class ZMSImplTest {
         domainMeta.setYpmId(null);
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "ypmid");
         assertNull(domain);
+
+        zmsImpl.objectStore.clearConnections();
     }
 
     @Test
@@ -16179,6 +16211,8 @@ public class ZMSImplTest {
         assertNotNull(sdoms);
         List<SignedDomain> list = sdoms.getDomains();
         assertEquals(0, list.size());
+
+        zmsImpl.objectStore.clearConnections();
     }
 
     @Test
@@ -16193,8 +16227,9 @@ public class ZMSImplTest {
 
         DomainMeta meta = createDomainMetaObject("Tenant Domain1", null, true, false, "12345", 0);
         zms.putDomainMeta(mockDomRsrcCtx, "signeddom1", auditRef, meta);
-        meta = createDomainMetaObject("Tenant Domain1", null, true, false, "12345", 0);
+        meta = createDomainMetaObject("Tenant Domain1", null, true, false, "12345", 987654103);
         zms.putDomainSystemMeta(mockDomRsrcCtx, "signeddom1", "account", auditRef, meta);
+        zms.putDomainSystemMeta(mockDomRsrcCtx, "signeddom1", "productid", auditRef, meta);
 
         TopLevelDomain dom2 = createTopLevelDomainObject("SignedDom2",
                 "Test Domain2", "testOrg", adminUser);
@@ -16234,10 +16269,13 @@ public class ZMSImplTest {
         boolean dom2Found = false;
         for (SignedDomain sDomain : list) {
             DomainData domainData = sDomain.getDomain();
-            if (domainData.getName().equals("signeddom1")) {
-                dom1Found = true;
-            } else if (domainData.getName().equals("signeddom2")) {
-                dom2Found = true;
+            switch (domainData.getName()) {
+                case "signeddom1":
+                    dom1Found = true;
+                    break;
+                case "signeddom2":
+                    dom2Found = true;
+                    break;
             }
         }
         assertTrue(dom1Found);
@@ -16317,6 +16355,8 @@ public class ZMSImplTest {
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 503);
         }
+
+        zmsImpl.objectStore.clearConnections();
     }
 
     @Test
@@ -16341,6 +16381,8 @@ public class ZMSImplTest {
         assertNotNull(sdoms);
         List<SignedDomain> list = sdoms.getDomains();
         assertEquals(0, list.size());
+
+        zmsImpl.objectStore.clearConnections();
     }
 
     @Test
@@ -16665,8 +16707,7 @@ public class ZMSImplTest {
     public void testDefaultValuesOnCreation() {
 
         TestAuditLogger alogger = new TestAuditLogger();
-        String storeFile = ZMS_DATA_STORE_FILE + "_defaultcheck";
-        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
+        ZMSImpl zmsImpl = getZmsImpl(alogger);
         assertEquals(zmsImpl.virtualDomainLimit, 5);
         assertNull(zmsImpl.userDomainAliasPrefix);
         assertEquals(zmsImpl.signedPolicyTimeout, 1000 * 604800);
@@ -16676,14 +16717,13 @@ public class ZMSImplTest {
     public void testConfigOverridesOnCreation() {
 
         TestAuditLogger alogger = new TestAuditLogger();
-        String storeFile = ZMS_DATA_STORE_FILE + "_overridecheck";
 
         System.setProperty(ZMSConsts.ZMS_PROP_USER_DOMAIN_ALIAS, "xyz");
         System.setProperty(ZMSConsts.ZMS_PROP_SIGNED_POLICY_TIMEOUT, "86400");
         System.setProperty(ZMSConsts.ZMS_PROP_VIRTUAL_DOMAIN_LIMIT, "10");
         System.setProperty(ZMSConsts.ZMS_PROP_CORS_ORIGIN_LIST, "a.com,b.com");
 
-        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
+        ZMSImpl zmsImpl = getZmsImpl(alogger);
         assertEquals(zmsImpl.virtualDomainLimit, 10);
         assertEquals(zmsImpl.userDomainAliasPrefix, "xyz.");
         assertEquals(zmsImpl.signedPolicyTimeout, 1000 * 86400);
@@ -16700,10 +16740,9 @@ public class ZMSImplTest {
     public void testPostSubDomainWithInvalidProductId() {
 
         TestAuditLogger alogger = new TestAuditLogger();
-        String storeFile = ZMS_DATA_STORE_FILE + "_overridecheck";
         System.setProperty(ZMSConsts.ZMS_PROP_PRODUCT_ID_SUPPORT, "true");
 
-        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
+        ZMSImpl zmsImpl = getZmsImpl(alogger);
 
         TopLevelDomain dom1 = createTopLevelDomainObject("AddSubDom1",
                 "Test Domain1", "testOrg", adminUser);
@@ -16792,8 +16831,6 @@ public class ZMSImplTest {
                 "Role System Meta Test Domain1", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
-        Domain resDom1 = zms.getDomain(mockDomRsrcCtx, "rolesystemmetadom1");
-
         DomainMeta meta = createDomainMetaObject("Domain Meta for Role System Meta test", "NewOrg",
                 true, true, "12345", 1001);
         zms.putDomainMeta(mockDomRsrcCtx, "rolesystemmetadom1", auditRef, meta);
@@ -16847,8 +16884,7 @@ public class ZMSImplTest {
     public void testPutRoleSystemMetaThrowException() {
 
         TestAuditLogger alogger = new TestAuditLogger();
-        String storeFile = ZMS_DATA_STORE_FILE + "_putrolesysmetathrowexc";
-        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
+        ZMSImpl zmsImpl = getZmsImpl(alogger);
         RoleSystemMeta rsm = new RoleSystemMeta();
         rsm.setAuditEnabled(false);
 
@@ -16858,16 +16894,14 @@ public class ZMSImplTest {
         } catch (ResourceException e) {
             assertEquals(404, e.getCode());
         }
-        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
     }
 
     @Test
     public void testIsAllowedSystemMetaDelete(){
 
         TestAuditLogger alogger = new TestAuditLogger();
-        String storeFile = ZMS_DATA_STORE_FILE + "_allowsRoleSystemMeta";
         System.setProperty(ZMSConsts.ZMS_PROP_PRODUCT_ID_SUPPORT, "true");
-        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
+        ZMSImpl zmsImpl = getZmsImpl(alogger);
 
         assertFalse(zmsImpl.isAllowedSystemMetaDelete(mockDomRsrcCtx.principal(), "mockdom1", "auditenabled", "role"));
         setupPrincipalRoleSystemMetaDelete(zmsImpl, mockDomRsrcCtx.principal().getFullName(), "mockdom1", "auditenabled");
@@ -16875,7 +16909,6 @@ public class ZMSImplTest {
         cleanupPrincipalRoleSystemMetaDelete(zmsImpl);
 
         System.clearProperty(ZMSConsts.ZMS_PROP_PRODUCT_ID_SUPPORT);
-        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
     }
 
     private RoleMeta createRoleMetaObject(Boolean selfServe) {
@@ -16930,7 +16963,7 @@ public class ZMSImplTest {
         resRole1 = zms.getRole(mockDomRsrcCtx, "rolemetadom1", "role1", true, false, false);
 
         assertNotNull(resRole1);
-        assertFalse(resRole1.getSelfServe());
+        assertNull(resRole1.getSelfServe());
         assertEquals(resRole1.getMemberExpiryDays(), Integer.valueOf(45));
         assertEquals(resRole1.getServiceExpiryDays(), Integer.valueOf(45));
         assertEquals(resRole1.getCertExpiryMins(), Integer.valueOf(55));
@@ -16952,13 +16985,13 @@ public class ZMSImplTest {
         resRole1 = zms.getRole(mockDomRsrcCtx, "rolemetadom1", "role1", true, false, false);
 
         assertNotNull(resRole1);
-        assertFalse(resRole1.getSelfServe());
-        assertEquals(resRole1.getMemberExpiryDays(), Integer.valueOf(0));
-        assertEquals(resRole1.getServiceExpiryDays(), Integer.valueOf(0));
-        assertEquals(resRole1.getCertExpiryMins(), Integer.valueOf(0));
+        assertNull(resRole1.getSelfServe());
+        assertNull(resRole1.getMemberExpiryDays());
+        assertNull(resRole1.getServiceExpiryDays());
+        assertNull(resRole1.getCertExpiryMins());
         assertEquals(resRole1.getTokenExpiryMins(), Integer.valueOf(85));
-        assertEquals(resRole1.getMemberReviewDays(), Integer.valueOf(0));
-        assertEquals(resRole1.getServiceReviewDays(), Integer.valueOf(0));
+        assertNull(resRole1.getMemberReviewDays());
+        assertNull(resRole1.getServiceReviewDays());
 
         // invalid negative values
 
@@ -17035,8 +17068,6 @@ public class ZMSImplTest {
         TopLevelDomain dom1 = createTopLevelDomainObject("rolemetadom1", "Role Meta Test Domain1", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
-        Domain resDom1 = zms.getDomain(mockDomRsrcCtx, "rolemetadom1");
-
         DomainMeta meta = createDomainMetaObject("Domain Meta for Role Meta test", "NewOrg",
                 true, true, "12345", 1001);
         zms.putDomainMeta(mockDomRsrcCtx, "rolemetadom1", auditRef, meta);
@@ -17065,8 +17096,7 @@ public class ZMSImplTest {
     public void testPutRoleMetaThrowException() {
 
         TestAuditLogger alogger = new TestAuditLogger();
-        String storeFile = ZMS_DATA_STORE_FILE + "_putrolemetathrowexc";
-        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
+        ZMSImpl zmsImpl = getZmsImpl(alogger);
         RoleMeta rm = new RoleMeta();
         rm.setSelfServe(false);
 
@@ -17076,7 +17106,6 @@ public class ZMSImplTest {
         } catch (ResourceException e) {
             assertEquals(404, e.getCode());
         }
-        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
     }
 
     @Test
@@ -17096,6 +17125,7 @@ public class ZMSImplTest {
         Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
         String unsignedCreds = "v=U1;d=user;n=john";
         final Principal rsrcPrince = SimplePrincipal.create("user", "john", unsignedCreds + ";s=signature",0, principalAuthority);
+        assertNotNull(rsrcPrince);
         ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
 
         assertFalse(zms.isAllowedPutMembershipAccess(rsrcPrince, domain, role.getName()));// some random user does not have access
@@ -17120,6 +17150,7 @@ public class ZMSImplTest {
         Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
         String unsignedCreds = "v=U1;d=user;n=john";
         final Principal rsrcPrince = SimplePrincipal.create("user", "john", unsignedCreds + ";s=signature",0, principalAuthority);
+        assertNotNull(rsrcPrince);
         ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
 
         assertFalse(zms.isAllowedPutMembershipWithoutApproval(rsrcPrince, domain, role));//other user not allowed
@@ -17138,6 +17169,7 @@ public class ZMSImplTest {
         Authority principalAuthority1 = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
         String unsignedCreds1 = "v=U1;d=user;n=user1";
         final Principal adminPrinc = SimplePrincipal.create("user", "user1", unsignedCreds + ";s=signature",0, principalAuthority1);
+        assertNotNull(adminPrinc);
         ((SimplePrincipal) adminPrinc).setUnsignedCreds(unsignedCreds1);
 
         domain = zms.getAthenzDomain("testdomain1", false);
@@ -17167,6 +17199,7 @@ public class ZMSImplTest {
         Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
         String unsignedCreds = "v=U1;d=user;n=bob";
         final Principal rsrcPrince = SimplePrincipal.create("user", "bob", unsignedCreds + ";s=signature",0, principalAuthority);
+        assertNotNull(rsrcPrince);
         ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
 
         roleMember = new RoleMember().setMemberName("user.bob");
@@ -17250,6 +17283,7 @@ public class ZMSImplTest {
         Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
         String unsignedCreds = "v=U1;d=user;n=bob";
         final Principal rsrcPrince = SimplePrincipal.create("user", "bob", unsignedCreds + ";s=signature", 0, principalAuthority);
+        assertNotNull(rsrcPrince);
         ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
         Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcPrince);
         Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcPrince);
@@ -17267,6 +17301,7 @@ public class ZMSImplTest {
         // used with the mockDomRestRsrcCtx
         final Principal rsrcAdminPrince = SimplePrincipal.create("user", "user1", adminUnsignedCreds + ";s=signature",
                 0, adminPrincipalAuthority);
+        assertNotNull(rsrcAdminPrince);
         ((SimplePrincipal) rsrcAdminPrince).setUnsignedCreds(adminUnsignedCreds);
 
         Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
@@ -17390,6 +17425,7 @@ public class ZMSImplTest {
         String unsignedCreds = "v=U1;d=user;n=user2";
         final Principal rsrcPrince = SimplePrincipal.create("user", "user2",
                 unsignedCreds + ";s=signature", 0, principalAuthority);
+        assertNotNull(rsrcPrince);
         ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
         Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcPrince);
         Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcPrince);
@@ -17429,6 +17465,7 @@ public class ZMSImplTest {
         String adminUnsignedCreds = "v=U1;d=user;n=user1";
         final Principal rsrcAdminPrince = SimplePrincipal.create("user", "user1",
                 adminUnsignedCreds + ";s=signature", 0, adminPrincipalAuthority);
+        assertNotNull(rsrcAdminPrince);
         ((SimplePrincipal) rsrcAdminPrince).setUnsignedCreds(adminUnsignedCreds);
 
         Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
@@ -17529,6 +17566,7 @@ public class ZMSImplTest {
         // used with the mockDomRestRsrcCtx
         final Principal rsrcAuditAdminPrince = SimplePrincipal.create("user", "fury",
                 auditAdminUnsignedCreds + ";s=signature", 0, auditAdminPrincipalAuthority);
+        assertNotNull(rsrcAuditAdminPrince);
         ((SimplePrincipal) rsrcAuditAdminPrince).setUnsignedCreds(auditAdminUnsignedCreds);
 
         Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAuditAdminPrince);
@@ -17542,6 +17580,7 @@ public class ZMSImplTest {
         // used with the mockDomRestRsrcCtx
         final Principal rsrcAdminPrince = SimplePrincipal.create("user", "user1",
                 adminUnsignedCreds + ";s=signature", 0, adminPrincipalAuthority);
+        assertNotNull(rsrcAdminPrince);
         ((SimplePrincipal) rsrcAdminPrince).setUnsignedCreds(adminUnsignedCreds);
 
         Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
@@ -17611,6 +17650,7 @@ public class ZMSImplTest {
         // used with the mockDomRestRsrcCtx
         final Principal rsrcAuditAdminPrince = SimplePrincipal.create("user", "fury",
                 auditAdminUnsignedCreds + ";s=signature", 0, auditAdminPrincipalAuthority);
+        assertNotNull(rsrcAuditAdminPrince);
         ((SimplePrincipal) rsrcAuditAdminPrince).setUnsignedCreds(auditAdminUnsignedCreds);
 
         Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAuditAdminPrince);
@@ -17624,6 +17664,7 @@ public class ZMSImplTest {
         // used with the mockDomRestRsrcCtx
         final Principal rsrcAdminPrince = SimplePrincipal.create("user", "user1",
                 adminUnsignedCreds + ";s=signature", 0, adminPrincipalAuthority);
+        assertNotNull(rsrcAdminPrince);
         ((SimplePrincipal) rsrcAdminPrince).setUnsignedCreds(adminUnsignedCreds);
 
         Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
@@ -17676,6 +17717,7 @@ public class ZMSImplTest {
 
         final Principal rsrcAuditAdminPrince = SimplePrincipal.create("user", "fury",
                 auditAdminUnsignedCreds + ";s=signature", 0, auditAdminPrincipalAuthority);
+        assertNotNull(rsrcAuditAdminPrince);
         ((SimplePrincipal) rsrcAuditAdminPrince).setUnsignedCreds(auditAdminUnsignedCreds);
 
         Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcAuditAdminPrince);
@@ -17764,6 +17806,7 @@ public class ZMSImplTest {
         String unsignedCreds = "v=U1;d=user;n=user2";
         final Principal rsrcPrince = SimplePrincipal.create("user", "user2",
                 unsignedCreds + ";s=signature", 0, principalAuthority);
+        assertNotNull(rsrcPrince);
         ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
         Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcPrince);
         Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcPrince);
@@ -17781,6 +17824,7 @@ public class ZMSImplTest {
         String adminUnsignedCreds = "v=U1;d=user;n=user1";
         final Principal rsrcAdminPrince = SimplePrincipal.create("user", "user1",
                 adminUnsignedCreds + ";s=signature", 0, adminPrincipalAuthority);
+        assertNotNull(rsrcAdminPrince);
         ((SimplePrincipal) rsrcAdminPrince).setUnsignedCreds(adminUnsignedCreds);
 
         Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
@@ -18077,14 +18121,13 @@ public class ZMSImplTest {
         zms.validateRoleMemberPrincipal("athenz.api*", null, "unittest");
         zms.validateRoleMemberPrincipal("coretech.*", null, "unittest");
 
-        // should get back domain not found response since we'll ignore
-        // the authority filter for services
+        // should get back invalid request since service does not exist
 
         try {
             zms.validateRoleMemberPrincipal("coretech.api", "employee", "unittest");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
         }
 
         // invalid service request error
@@ -18172,6 +18215,7 @@ public class ZMSImplTest {
         // used with the mockDomRestRsrcCtx
         final Principal rsrcAuditAdminPrince = SimplePrincipal.create("user", "fury",
                 auditAdminUnsignedCreds + ";s=signature", 0, auditAdminPrincipalAuthority);
+        assertNotNull(rsrcAuditAdminPrince);
         ((SimplePrincipal) rsrcAuditAdminPrince).setUnsignedCreds(auditAdminUnsignedCreds);
 
         Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAuditAdminPrince);
@@ -18179,10 +18223,6 @@ public class ZMSImplTest {
 
         Membership membership = new Membership().setActive(false).setApproved(false)
                 .setMemberName("user.fury").setRoleName("testrole2");
-
-        Set<String> mockRecipients = new HashSet<>();
-        mockRecipients.add("user.dummy");
-        Notification notification = new Notification(mockRecipients, null, null);
 
         zms.putMembership(mockDomRsrcCtx, "testdomain1", "testrole2", "user.fury", "adding fury", membership);
 
@@ -18192,20 +18232,11 @@ public class ZMSImplTest {
         // used with the mockDomRestRsrcCtx
         final Principal rsrcAdminPrince = SimplePrincipal.create("user", "user1",
                 adminUnsignedCreds + ";s=signature", 0, adminPrincipalAuthority);
+        assertNotNull(rsrcAdminPrince);
         ((SimplePrincipal) rsrcAdminPrince).setUnsignedCreds(adminUnsignedCreds);
 
         Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
         Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
-
-        Set<String> recipientsExp = new HashSet<>();
-        recipientsExp.add("testdomain1:role.admin");
-
-        Map<String, String> detailsExp = new HashMap<>();
-        detailsExp.put(NOTIFICATION_DETAILS_DOMAIN, "testdomain1");
-        detailsExp.put(NOTIFICATION_DETAILS_ROLE, "testrole2");
-        detailsExp.put(NOTIFICATION_DETAILS_MEMBER, "user.fury");
-        detailsExp.put(NOTIFICATION_DETAILS_REASON, "adding fury");
-        detailsExp.put(NOTIFICATION_DETAILS_REQUESTER, "user.fury");
 
         List<Notification> expextedNotifications = Collections.singletonList(new Notification());
         expextedNotifications.get(0).addRecipient("user.user1");
@@ -18319,7 +18350,6 @@ public class ZMSImplTest {
     public void testUpdateRoleMemberReviewNoUser() {
 
         long ext100Millis = TimeUnit.MILLISECONDS.convert(100, TimeUnit.DAYS);
-        long ext125Millis = TimeUnit.MILLISECONDS.convert(125, TimeUnit.DAYS);
         long ext150Millis = TimeUnit.MILLISECONDS.convert(150, TimeUnit.DAYS);
 
         List<RoleMember> members = new ArrayList<>();
@@ -18352,7 +18382,6 @@ public class ZMSImplTest {
 
         long ext100Millis = TimeUnit.MILLISECONDS.convert(100, TimeUnit.DAYS);
         long ext125Millis = TimeUnit.MILLISECONDS.convert(125, TimeUnit.DAYS);
-        long ext150Millis = TimeUnit.MILLISECONDS.convert(150, TimeUnit.DAYS);
 
         List<RoleMember> members = new ArrayList<>();
         members.add(new RoleMember().setMemberName("user.joe").setReviewReminder(null));
@@ -18416,7 +18445,6 @@ public class ZMSImplTest {
     public void testUpdateRoleMemberExpirationNoUser() {
 
         long ext100Millis = TimeUnit.MILLISECONDS.convert(100, TimeUnit.DAYS);
-        long ext125Millis = TimeUnit.MILLISECONDS.convert(125, TimeUnit.DAYS);
         long ext150Millis = TimeUnit.MILLISECONDS.convert(150, TimeUnit.DAYS);
 
         List<RoleMember> members = new ArrayList<>();
@@ -18453,7 +18481,6 @@ public class ZMSImplTest {
 
         long ext100Millis = TimeUnit.MILLISECONDS.convert(100, TimeUnit.DAYS);
         long ext125Millis = TimeUnit.MILLISECONDS.convert(125, TimeUnit.DAYS);
-        long ext150Millis = TimeUnit.MILLISECONDS.convert(150, TimeUnit.DAYS);
 
         List<RoleMember> members = new ArrayList<>();
         members.add(new RoleMember().setMemberName("user.joe").setExpiration(null));
@@ -18551,6 +18578,7 @@ public class ZMSImplTest {
         assertFalse(ZMSUtils.isUserDomainPrincipal("x509.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
 
         System.clearProperty(ZMSConsts.ZMS_PROP_ADDL_USER_CHECK_DOMAINS);
+        zmsImpl.objectStore.clearConnections();
     }
 
     @Test
@@ -18652,7 +18680,6 @@ public class ZMSImplTest {
 
         Timestamp tenDaysExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(10, TimeUnit.DAYS));
         Timestamp sixtyDaysExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(60, TimeUnit.DAYS));
-        Timestamp fortyFiveDaysLowerBoundExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(45, TimeUnit.DAYS));
 
         Membership mbr = generateMembership("role1", "user.doe", tenDaysExpiry);
         zms.putMembership(mockDomRsrcCtx, "role-review-dom", "role1", "user.doe", auditRef, mbr);
@@ -18860,6 +18887,7 @@ public class ZMSImplTest {
             assertTrue(ex.getMessage().contains("Invalid status checker"));
         }
         System.clearProperty(ZMSConsts.ZMS_PROP_STATUS_CHECKER_FACTORY_CLASS);
+        zmsImpl.objectStore.clearConnections();
     }
 
     @Test
@@ -18877,6 +18905,8 @@ public class ZMSImplTest {
 
         System.clearProperty(ZMSConsts.ZMS_PROP_VIRTUAL_DOMAIN_LIMIT);
         System.clearProperty(ZMSConsts.ZMS_PROP_SIGNED_POLICY_TIMEOUT);
+
+        zmsImpl.objectStore.clearConnections();
     }
 
     @Test
@@ -18901,6 +18931,7 @@ public class ZMSImplTest {
         System.clearProperty(ZMSConsts.ZMS_PROP_AUTHORITY_CLASSES);
         System.clearProperty(ZMSConsts.ZMS_PROP_PRINCIPAL_AUTHORITY_CLASS);
         System.clearProperty(ZMSConsts.ZMS_PROP_USER_AUTHORITY_CLASS);
+        zmsImpl.objectStore.clearConnections();
     }
 
     @Test
@@ -18915,6 +18946,7 @@ public class ZMSImplTest {
             fail();
         }
         System.clearProperty(ZMSConsts.ZMS_AUTO_UPDATE_TEMPLATE_FEATURE_FLAG);
+        zmsImpl.objectStore.clearConnections();
     }
 
     @Test
@@ -18933,7 +18965,7 @@ public class ZMSImplTest {
         // delete all public keys and load again
 
         zmsImpl.serverPublicKeyMap.clear();
-        zmsImpl.loadServerPublicKeys();
+        loadServerPublicKeys(zmsImpl);
 
         assertFalse(zmsImpl.serverPublicKeyMap.isEmpty());
 
@@ -18944,9 +18976,10 @@ public class ZMSImplTest {
         // delete all public keys and load again
 
         zmsImpl.serverPublicKeyMap.clear();
-        zmsImpl.loadServerPublicKeys();
+        loadServerPublicKeys(zmsImpl);
 
         assertFalse(zmsImpl.serverPublicKeyMap.isEmpty());
+        zmsImpl.objectStore.clearConnections();
     }
 
     @Test
@@ -18974,6 +19007,7 @@ public class ZMSImplTest {
         for (RoleMember roleMember : adminRole.getRoleMembers()) {
             if (roleMember.getMemberName().equals("user.default")) {
                 newAdminFound = true;
+                break;
             }
         }
         assertTrue(newAdminFound);
@@ -19098,6 +19132,7 @@ public class ZMSImplTest {
         Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
         String unsignedCreds = "v=U1;d=user;n=jane";
         Principal rsrcPrince = SimplePrincipal.create("user", "jane", unsignedCreds + ";s=signature",0, principalAuthority);
+        assertNotNull(rsrcPrince);
         ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
 
         assertTrue(zms.isAllowedDeletePendingMembership(rsrcPrince, domainName,
@@ -19105,6 +19140,7 @@ public class ZMSImplTest {
 
         unsignedCreds = "v=U1;d=user;n=john";
         rsrcPrince = SimplePrincipal.create("user", "john", unsignedCreds + ";s=signature",0, principalAuthority);
+        assertNotNull(rsrcPrince);
         ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
 
         // this time false since john is not authorized
@@ -19166,6 +19202,7 @@ public class ZMSImplTest {
         Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
         String unsignedCreds = "v=U1;d=user;n=jane";
         Principal rsrcPrince = SimplePrincipal.create("user", "jane", unsignedCreds + ";s=signature",0, principalAuthority);
+        assertNotNull(rsrcPrince);
         ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
         ResourceContext ctx = createResourceContext(rsrcPrince);
 
@@ -19241,6 +19278,7 @@ public class ZMSImplTest {
         Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
         String unsignedCreds = "v=U1;d=user;n=joe";
         Principal rsrcPrince = SimplePrincipal.create("user", "joe", unsignedCreds + ";s=signature",0, principalAuthority);
+        assertNotNull(rsrcPrince);
         ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
         ResourceContext ctxJoe = createResourceContext(rsrcPrince);
 
@@ -19274,6 +19312,7 @@ public class ZMSImplTest {
 
         unsignedCreds = "v=U1;d=user;n=jane";
         rsrcPrince = SimplePrincipal.create("user", "jane", unsignedCreds + ";s=signature",0, principalAuthority);
+        assertNotNull(rsrcPrince);
         ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
         ResourceContext ctxJane = createResourceContext(rsrcPrince);
 
@@ -19302,7 +19341,8 @@ public class ZMSImplTest {
 
     @Test
     public void testGetDomainTemplateDetailsList() {
-        String domainName = "test-domain";
+
+        final String domainName = "test-domain";
         List<String> adminUsers = new ArrayList<>();
         adminUsers.add("user.test");
         List<String> solutionTemplate = new ArrayList<>();
@@ -19312,6 +19352,7 @@ public class ZMSImplTest {
                 true, null, 0, null, 0), adminUsers, solutionTemplate, auditRef);
 
         assertNotNull(zms.getDomainTemplateDetailsList(mockDomRsrcCtx, domainName));
+        zms.dbService.executeDeleteDomain(mockDomRsrcCtx, domainName, auditRef, "unit-test");
     }
 
     @Test
@@ -19319,7 +19360,7 @@ public class ZMSImplTest {
 
         Authority savedAuthority = zms.userAuthority;
 
-        // null authorty, filter or empty filter
+        // null authority, filter or empty filter
 
         zms.userAuthority = null;
         assertNull(zms.enforcedUserAuthorityFilter("validFilter", null));
@@ -19327,8 +19368,7 @@ public class ZMSImplTest {
         assertNull(zms.enforcedUserAuthorityFilter("validFilter", "validFilter"));
         assertNull(zms.enforcedUserAuthorityFilter(null, null));
 
-        Authority mockAuthority = Mockito.mock(Authority.class);
-        zms.userAuthority = mockAuthority;
+        zms.userAuthority = Mockito.mock(Authority.class);
 
         assertNull(zms.enforcedUserAuthorityFilter(null, null));
         assertNull(zms.enforcedUserAuthorityFilter("", null));
@@ -19358,8 +19398,7 @@ public class ZMSImplTest {
 
         assertNull(zms.getUserAuthorityExpiryAttr(role));
 
-        Authority authority = Mockito.mock(Authority.class);
-        zms.userAuthority = authority;
+        zms.userAuthority = Mockito.mock(Authority.class);
 
         assertEquals("elevated-clearance", zms.getUserAuthorityExpiryAttr(role));
 
@@ -19770,7 +19809,7 @@ public class ZMSImplTest {
         zms.recordMetrics(ctx, httpMethod, httpStatus, apiName);
         Mockito.verify(zms.metric,
                 times(1)).increment (
-                        eq("zms_api"),
+                eq("zms_api"),
                 eq(testDomain),
                 eq(null),
                 eq(httpMethod),
@@ -19778,7 +19817,7 @@ public class ZMSImplTest {
                 eq(apiName));
         Mockito.verify(zms.metric,
                 times(1)).stopTiming (
-                        eq(ctx.getTimerMetric()),
+                eq(ctx.getTimerMetric()),
                 eq(testDomain),
                 eq(null),
                 eq(httpMethod), eq(httpStatus), eq(apiName + "_timing"));
@@ -19817,11 +19856,10 @@ public class ZMSImplTest {
     @Test
     public void testRecordMetricsNoCtx() {
         String apiName = "someApiMethod";
-        RsrcCtxWrapper ctx = null;
         int httpStatus = 200;
         String httpMethod = "GET";
         zms.metric = Mockito.mock(Metric.class);
-        zms.recordMetrics(ctx, httpMethod, httpStatus, apiName);
+        zms.recordMetrics(null, httpMethod, httpStatus, apiName);
         Mockito.verify(zms.metric,
                 times(1)).increment (
                 eq("zms_api"),

@@ -173,7 +173,7 @@ public class RoleMemberNotificationCommon {
     public interface RoleMemberDetailStringer {
         /**
          *
-         * @param memberRole
+         * @param memberRole member role
          * @return Details extracted from the memberRole with a semi-colon (;) between them
          * These details should fit in the notification template (for example, the html of an email body)
          */

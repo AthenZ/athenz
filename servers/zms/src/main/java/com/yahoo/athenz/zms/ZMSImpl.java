@@ -187,6 +187,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected NotificationManager notificationManager = null;
     protected ObjectMapper jsonMapper;
     protected StatusChecker statusChecker = null;
+    protected ObjectStore objectStore = null;
 
     // enum to represent our access response since in some cases we want to
     // handle domain not founds differently instead of just returning failure
@@ -726,8 +727,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         zmsConfig.setServerSolutionTemplates(serverSolutionTemplates);
         zmsConfig.setUserAuthority(userAuthority);
 
-        ObjectStore store = objFactory.create(keyStore);
-        dbService = new DBService(store, auditLogger, zmsConfig, auditReferenceValidator);
+        objectStore = objFactory.create(keyStore);
+        dbService = new DBService(objectStore, auditLogger, zmsConfig, auditReferenceValidator);
     }
 
     void loadMetricObject() {
@@ -1136,7 +1137,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         domainName = domainName.toLowerCase();
         setRequestDomain(ctx, domainName);
-        final String principalDomain = getPrincipalDomain(ctx);
 
         Domain domain = dbService.getDomain(domainName, false);
         if (domain == null) {
@@ -1239,8 +1239,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateDomainValues(topLevelDomain);
 
         List<String> adminUsers = normalizedAdminUsers(detail.getAdminUsers(), detail.getUserAuthorityFilter(), caller);
-        Domain domain = createTopLevelDomain(ctx, topLevelDomain, adminUsers, solutionTemplates, auditRef);
-        return domain;
+        return createTopLevelDomain(ctx, topLevelDomain, adminUsers, solutionTemplates, auditRef);
     }
 
     public void deleteTopLevelDomain(ResourceContext ctx, String domainName, String auditRef) {
@@ -1394,8 +1393,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateDomainValues(subDomain);
 
-        Domain domain = createSubDomain(ctx, subDomain, adminUsers, solutionTemplates, auditRef, caller);
-        return domain;
+        return createSubDomain(ctx, subDomain, adminUsers, solutionTemplates, auditRef, caller);
     }
 
     public Domain postSubDomain(ResourceContext ctx, String parent, String auditRef, SubDomain detail) {
@@ -1502,8 +1500,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateDomainValues(subDomain);
 
-        Domain domain = createSubDomain(ctx, subDomain, adminUsers, solutionTemplates, auditRef, caller);
-        return domain;
+        return createSubDomain(ctx, subDomain, adminUsers, solutionTemplates, auditRef, caller);
     }
 
     boolean isSysAdminUser(Principal principal) {
@@ -3254,9 +3251,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         memberName = normalizeDomainAliasUser(memberName.toLowerCase());
         long expiryTimestamp = getModTimestamp(expiration);
 
-        Membership result = dbService.getMembership(domainName, roleName, memberName, expiryTimestamp, false);
-
-        return result;
+        return dbService.getMembership(domainName, roleName, memberName, expiryTimestamp, false);
     }
 
     @Override
@@ -3274,8 +3269,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainName = domainName.toLowerCase();
         setRequestDomain(ctx, domainName);
 
-        DomainRoleMembers roleMembers = dbService.listOverdueReviewRoleMembers(domainName);
-        return roleMembers;
+        return dbService.listOverdueReviewRoleMembers(domainName);
     }
 
     long configuredDueDateMillis(Integer domainDueDateDays, Integer roleDueDateDays) {
@@ -4896,7 +4890,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     break;
                 case META_ATTR_YPM_ID:
                     final Integer ypmId = domain.getYpmId();
-                    if (ypmId == null) {
+                    if (ypmId == null || ypmId == 0) {
                         return null;
                     }
                     signedDomain.getDomain().setYpmId(ypmId);
