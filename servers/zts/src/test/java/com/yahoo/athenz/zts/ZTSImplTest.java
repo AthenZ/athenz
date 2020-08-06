@@ -2649,7 +2649,7 @@ public class ZTSImplTest {
     
     @Test
     public void testResourceContext() {
-        RsrcCtxWrapper ctx = (RsrcCtxWrapper) zts.newResourceContext(mockServletRequest, mockServletResponse);
+        RsrcCtxWrapper ctx = (RsrcCtxWrapper) zts.newResourceContext(mockServletRequest, mockServletResponse, "apiName");
         assertNotNull(ctx);
         assertNotNull(ctx.context());
         assertNull(ctx.principal());
@@ -4714,7 +4714,7 @@ public class ZTSImplTest {
     @Test
     public void testLogPrincipalEmpty() {
         MockHttpServletRequest request = new MockHttpServletRequest();
-        ResourceContext ctx = zts.newResourceContext(request, null);
+        ResourceContext ctx = zts.newResourceContext(request, null, "apiName");
         zts.logPrincipalAndGetDomain(ctx);
         assertTrue(request.attributes.isEmpty());
     }
@@ -11203,31 +11203,33 @@ public class ZTSImplTest {
         zts.metric = Mockito.mock(Metric.class);
         Principal principal = SimplePrincipal.create("user_domain", "user1",
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
-        RsrcCtxWrapper ctx = (RsrcCtxWrapper) zts.newResourceContext(mockServletRequest, mockServletResponse);
-        String apiName = "someApiMethod";
+        Mockito.when(mockServletRequest.getMethod()).thenReturn("GET");
+        RsrcCtxWrapper ctx = (RsrcCtxWrapper) zts.newResourceContext(mockServletRequest, mockServletResponse, "someApiMethod");
         String testDomain = "testDomain";
         int httpStatus = 200;
-        String httpMethod = "GET";
         ctx.setRequestDomain(testDomain);
-        zts.recordMetrics(ctx, httpMethod, httpStatus, apiName);
+        zts.recordMetrics(ctx, httpStatus);
         Mockito.verify(zts.metric,
                 times(1)).increment (
                 eq("zts_api"),
                 eq(testDomain),
                 eq(null),
-                eq(httpMethod),
+                eq("GET"),
                 eq(httpStatus),
-                eq(apiName));
+                eq("someapimethod"));
         Mockito.verify(zts.metric,
                 times(1)).stopTiming (
                 eq(ctx.getTimerMetric()),
                 eq(testDomain),
                 eq(null),
-                eq(httpMethod), eq(httpStatus), eq(apiName + "_timing"));
+                eq("GET"), eq(httpStatus), eq("someapimethod_timing"));
         Mockito.verify(zts.metric,
                 times(1)).startTiming (
                 eq("zts_api_latency"),
-                eq(null));
+                eq(null),
+                eq(null),
+                eq("GET"),
+                eq("someapimethod"));
     }
 
     @Test
@@ -11239,9 +11241,10 @@ public class ZTSImplTest {
         String testDomain = "testDomain";
         int httpStatus = 200;
         String httpMethod = "GET";
-        String apiName = "someApiMethod";
         Mockito.when(ctx.getRequestDomain()).thenReturn(testDomain);
-        zts.recordMetrics(ctx, httpMethod, httpStatus, apiName);
+        Mockito.when(ctx.getApiName()).thenReturn("someapimethod");
+        Mockito.when(ctx.getHttpMethod()).thenReturn(httpMethod);
+        zts.recordMetrics(ctx, httpStatus);
         Mockito.verify(zts.metric,
                 times(1)).increment (
                 eq("zts_api"),
@@ -11249,36 +11252,34 @@ public class ZTSImplTest {
                 eq("user_domain"),
                 eq(httpMethod),
                 eq(httpStatus),
-                eq(apiName));
+                eq("someapimethod"));
         Mockito.verify(zts.metric,
                 times(1)).stopTiming (
                 eq(ctx.getTimerMetric()),
                 eq(testDomain),
                 eq("user_domain"),
-                eq(httpMethod), eq(httpStatus), eq(apiName + "_timing"));
+                eq(httpMethod), eq(httpStatus), eq("someapimethod_timing"));
     }
 
     @Test
     public void testRecordMetricsNoCtx() {
-        String apiName = "someApiMethod";
         RsrcCtxWrapper ctx = null;
         int httpStatus = 200;
-        String httpMethod = "GET";
         zts.metric = Mockito.mock(Metric.class);
-        zts.recordMetrics(ctx, httpMethod, httpStatus, apiName);
+        zts.recordMetrics(ctx, httpStatus);
         Mockito.verify(zts.metric,
                 times(1)).increment (
                 eq("zts_api"),
                 eq(null),
                 eq(null),
-                eq(httpMethod),
+                eq(null),
                 eq(httpStatus),
-                eq(apiName));
+                eq(null));
         Mockito.verify(zts.metric,
                 times(1)).stopTiming (
                 eq(null),
                 eq(null),
                 eq(null),
-                eq(httpMethod), eq(httpStatus), eq(apiName + "_timing"));
+                eq(null), eq(httpStatus), eq(null));
     }
 }

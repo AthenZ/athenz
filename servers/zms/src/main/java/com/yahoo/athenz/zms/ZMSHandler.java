@@ -95,6 +95,6 @@ public interface ZMSHandler {
     Status getStatus(ResourceContext context);
     DomainRoleMembership getPendingDomainRoleMembersList(ResourceContext context, String principal);
     Schema getRdlSchema(ResourceContext context);
-    ResourceContext newResourceContext(HttpServletRequest request, HttpServletResponse response);
-    void recordMetrics(ResourceContext ctx, String httpMethod, int httpStatus, String apiName);
+    ResourceContext newResourceContext(HttpServletRequest request, HttpServletResponse response, String apiName);
+    void recordMetrics(ResourceContext ctx, int httpStatus);
 }

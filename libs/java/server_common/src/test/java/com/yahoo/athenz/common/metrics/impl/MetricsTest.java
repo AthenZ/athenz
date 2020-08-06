@@ -41,6 +41,7 @@ public class MetricsTest {
 
         assertNull(metric.startTiming("metric1", "athenz"));
         assertNull(metric.startTiming("metric1", "athenz", "sports"));
+        assertNull(metric.startTiming("apiRquestsMetric", "athenz", "sports", "POST", "caller"));
 
         metric.stopTiming("metric1");
         metric.stopTiming("metric1", "athenz", "sports");
@@ -102,6 +103,7 @@ public class MetricsTest {
 
         //assertNull(metric.startTiming("metric1", "athenz"));
         assertNull(metric.startTiming("metric1", "athenz", "sports"));
+        assertNull(metric.startTiming("apiRquestsMetric", "athenz", "sports", "POST", "caller"));
 
         //metric.stopTiming("metric1");
         metric.stopTiming("metric1", "athenz", "sports");

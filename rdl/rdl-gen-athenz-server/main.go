@@ -256,8 +256,8 @@ import javax.servlet.http.HttpServletResponse;
 //
 public interface {{cName}}Handler {{openBrace}} {{range .Resources}}
     {{methodSig .}};{{end}}
-    ResourceContext newResourceContext(HttpServletRequest request, HttpServletResponse response);
-    void recordMetrics(ResourceContext ctx, String httpMethod, int httpStatus, String apiName);
+    ResourceContext newResourceContext(HttpServletRequest request, HttpServletResponse response, String apiName);
+    void recordMetrics(ResourceContext ctx, int httpStatus);
 }
 `
 
@@ -272,6 +272,8 @@ import javax.servlet.http.HttpServletResponse;
 public interface ResourceContext {
     HttpServletRequest request();
     HttpServletResponse response();
+    String getApiName();
+    String getHttpMethod();
     void authenticate();
     void authorize(String action, String resource, String trustedDomain);
 }
@@ -407,11 +409,12 @@ func (gen *javaServerGenerator) resourcePath(r *rdl.Resource) string {
 }
 
 func (gen *javaServerGenerator) handlerBody(r *rdl.Resource) string {
+	methName, _ := javaMethodName(gen.registry, r)
 	noContent := r.Expected == "NO_CONTENT" && r.Alternatives == nil
 	s := "        int code = ResourceException.OK;\n"
 	s += "        ResourceContext context = null;\n"
 	s += "        try {\n"
-	s += "            context = this.delegate.newResourceContext(this.request, this.response);\n"
+	s += "            context = this.delegate.newResourceContext(this.request, this.response, \"" + methName + "\");\n"
 	var fargs []string
 	bodyName := ""
 	if r.Auth != nil {
@@ -449,7 +452,6 @@ func (gen *javaServerGenerator) handlerBody(r *rdl.Resource) string {
 			fargs = append(fargs, bodyName)
 		}
 	}
-	methName, _ := javaMethodName(gen.registry, r)
 	sargs := ""
 	if len(fargs) > 0 {
 		sargs = ", " + strings.Join(fargs, ", ")
@@ -475,7 +477,7 @@ func (gen *javaServerGenerator) handlerBody(r *rdl.Resource) string {
 	s += "                throw typedException(code, e, ResourceError.class);\n" //? really
 	s += "            }\n"
 	s += "        } finally {\n"
-	s += "            this.delegate.recordMetrics(context, \"" + r.Method + "\", code, \"" + methName + "\");\n"
+	s += "            this.delegate.recordMetrics(context, code);\n"
 	s += "        }\n"
 	return s
 }

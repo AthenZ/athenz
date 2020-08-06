@@ -161,6 +161,7 @@ public class ZMSImplTest {
         Mockito.when(mockServletRequest.getRemoteAddr()).thenReturn(MOCKCLIENTADDR);
         Mockito.when(mockServletRequest.isSecure()).thenReturn(true);
         Mockito.when(mockServletRequest.getRequestURI()).thenReturn("/zms/v1/request");
+        Mockito.when(mockServletRequest.getMethod()).thenReturn("GET");
         
         System.setProperty(ZMSConsts.ZMS_PROP_FILE_NAME, "src/test/resources/zms.properties");
         System.setProperty(ZMSConsts.ZMS_PROP_METRIC_FACTORY_CLASS, ZMSConsts.ZMS_METRIC_FACTORY_CLASS);
@@ -193,6 +194,10 @@ public class ZMSImplTest {
     }
 
     private com.yahoo.athenz.zms.ResourceContext createResourceContext(Principal prince) {
+        return createResourceContext(prince, "someApi");
+    }
+
+    private com.yahoo.athenz.zms.ResourceContext createResourceContext(Principal prince, String apiName) {
         com.yahoo.athenz.common.server.rest.ResourceContext rsrcCtx =
                 Mockito.mock(com.yahoo.athenz.common.server.rest.ResourceContext.class);
         Mockito.when(rsrcCtx.principal()).thenReturn(prince);
@@ -204,12 +209,18 @@ public class ZMSImplTest {
         Mockito.when(rsrcCtxWrapper.principal()).thenReturn(prince);
         Mockito.when(rsrcCtxWrapper.request()).thenReturn(mockServletRequest);
         Mockito.when(rsrcCtxWrapper.response()).thenReturn(mockServletResponse);
+        Mockito.when(rsrcCtxWrapper.getApiName()).thenReturn(apiName);
+
         return rsrcCtxWrapper;
     }
-    
+
     private ResourceContext createResourceContext(Principal principal, HttpServletRequest request) {
+        return createResourceContext(principal, request, "someApi");
+    }
+
+    private ResourceContext createResourceContext(Principal principal, HttpServletRequest request, String apiName) {
         if (request == null) {
-            return createResourceContext(principal);
+            return createResourceContext(principal, apiName);
         }
 
         com.yahoo.athenz.common.server.rest.ResourceContext rsrcCtx =
@@ -223,7 +234,8 @@ public class ZMSImplTest {
         Mockito.when(rsrcCtxWrapper.request()).thenReturn(request);
         Mockito.when(rsrcCtxWrapper.principal()).thenReturn(principal);
         Mockito.when(rsrcCtxWrapper.response()).thenReturn(mockServletResponse);
-        
+        Mockito.when(rsrcCtxWrapper.getApiName()).thenReturn(apiName);
+
         return rsrcCtxWrapper;
     }
 
@@ -242,6 +254,8 @@ public class ZMSImplTest {
         Mockito.when(mockDomRsrcCtx.context()).thenReturn(mockDomRestRsrcCtx);
         Mockito.when(mockDomRsrcCtx.request()).thenReturn(mockServletRequest);
         Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcPrince);
+        Mockito.when(mockDomRsrcCtx.getApiName()).thenReturn("someApiMethod");
+        Mockito.when(mockDomRsrcCtx.getHttpMethod()).thenReturn("GET");
 
         String pubKeyName = System.getProperty(ZMS_PROP_PUBLIC_KEY);
         File pubKeyFile = new File(pubKeyName);
@@ -2306,6 +2320,7 @@ public class ZMSImplTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject("CreateRoleDom1",
                 "Test Domain1", "testOrg", adminUser);
+        Mockito.when(mockDomRsrcCtx.getApiName()).thenReturn("posttopleveldomain").thenReturn("putrole");
         zmsImpl.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
         Role role1 = createRoleObject("CreateRoleDom1", "Role1", null,
@@ -3038,6 +3053,12 @@ public class ZMSImplTest {
         TestAuditLogger alogger = new TestAuditLogger();
         ZMSImpl zmsImpl = getZmsImpl(alogger);
 
+        Mockito.when(mockDomRsrcCtx.getApiName())
+                .thenReturn("posttopleveldomain")
+                .thenReturn("posttopleveldomain")
+                .thenReturn("postsubdomain")
+                .thenReturn("putrole")
+                .thenReturn("putmembership");
         TopLevelDomain dom1 = createTopLevelDomainObject("MbrAddDom1",
                 "Test Domain1", "testOrg", "user.user1");
         zmsImpl.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
@@ -3134,6 +3155,16 @@ public class ZMSImplTest {
 
     @Test
     public void testPutMembershipExpiration() {
+
+        Mockito.when(mockDomRsrcCtx.getApiName())
+                .thenReturn("posttopleveldomain")
+                .thenReturn("posttopleveldomain")
+                .thenReturn("postsubdomain")
+                .thenReturn("putrole")
+                .thenReturn("putmembership")
+                .thenReturn("deleteSubDomain")
+                .thenReturn("deleteTopLevelDomain")
+                .thenReturn("deleteTopLevelDomain");
 
         String domainName = "testPutMembershipExpiration";
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
@@ -3876,6 +3907,7 @@ public class ZMSImplTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject("PolicyGetDom1",
                 "Test Domain1", "testOrg", adminUser);
+        Mockito.when(mockDomRsrcCtx.getApiName()).thenReturn("posttopleveldomain").thenReturn("putpolicy");
         zmsImpl.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
         Policy policy1 = createPolicyObject("PolicyGetDom1", "Policy1");
@@ -3955,7 +3987,6 @@ public class ZMSImplTest {
     public void testGetPolicyThrowException() {
         String domainName = "PolicyGetDom1";
         String policyName = "Policy1";
-        
         // Tests the getPolicy() condition : if (domain == null)...
         try {
             zms.getPolicy(mockDomRsrcCtx, domainName, policyName);
@@ -3963,7 +3994,8 @@ public class ZMSImplTest {
         } catch (ResourceException e) {
             assertEquals(e.getCode(), 404);
         }
-        
+
+        Mockito.when(mockDomRsrcCtx.getApiName()).thenReturn("posttopleveldomain").thenReturn("putpolicy");
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
@@ -7625,7 +7657,7 @@ public class ZMSImplTest {
         assertNotNull(principal);
         ((SimplePrincipal) principal).setUnsignedCreds(unsignedCreds);
         ((SimplePrincipal) principal).setAuthorizedService(provider);
-        ResourceContext ctx = createResourceContext(principal);
+        ResourceContext ctx = createResourceContext(principal, "puttenancy");
         
         // after this call we should have admin roles set for both provider and tenant
         
@@ -7724,7 +7756,7 @@ public class ZMSImplTest {
         assertNotNull(principal);
         ((SimplePrincipal) principal).setUnsignedCreds(unsignedCreds);
         ((SimplePrincipal) principal).setAuthorizedService("coretech.storage"); // make provider mismatch
-        ResourceContext ctx = createResourceContext(principal);
+        ResourceContext ctx = createResourceContext(principal, "puttenancy");
         
         // this should fail since the authorized service name does not
         // match to the provider
@@ -11728,7 +11760,7 @@ public class ZMSImplTest {
         ((SimplePrincipal) principal).setUnsignedCreds(unsignedCreds);
         ((SimplePrincipal) principal).setUnsignedCreds(unsignedCreds);
         ((SimplePrincipal) principal).setAuthorizedService("coretech.storage");
-        ResourceContext ctx = createResourceContext(principal);
+        ResourceContext ctx = createResourceContext(principal, "putproviderresourcegrouproles");
         
         // after this call we should have roles set for both provider and tenant
         
@@ -11962,8 +11994,8 @@ public class ZMSImplTest {
     public void testOptionsUserToken() {
         HttpServletRequest servletRequest = new MockHttpServletRequest();
         HttpServletResponse servletResponse = new MockHttpServletResponse();
-        ResourceContext ctx = new RsrcCtxWrapper(servletRequest, servletResponse, null, false, null, new Object());
-        
+        ResourceContext ctx = new RsrcCtxWrapper(servletRequest, servletResponse, null, false, null, new Object(), "apiName");
+
         zms.optionsUserToken(ctx, "user", "coretech.storage");
         assertEquals("GET", servletResponse.getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_METHODS));
         assertEquals("2592000", servletResponse.getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_MAX_AGE));
@@ -11979,8 +12011,8 @@ public class ZMSImplTest {
     public void testOptionsUserTokenRequestHeaders() {
         MockHttpServletRequest servletRequest = new MockHttpServletRequest();
         MockHttpServletResponse servletResponse = new MockHttpServletResponse();
-        ResourceContext ctx = new RsrcCtxWrapper(servletRequest, servletResponse, null, false, null, new Object());
-        
+        ResourceContext ctx = new RsrcCtxWrapper(servletRequest, servletResponse, null, false, null, new Object(), "apiName");
+
         String origin = "https://zms.origin.athenzcompany.com";
         String requestHeaders = "X-Forwarded-For,Content-Type";
         servletRequest.addHeader(ZMSConsts.HTTP_ORIGIN, origin);
@@ -12001,8 +12033,8 @@ public class ZMSImplTest {
     public void testSetStandardCORSHeaders() {
         HttpServletRequest servletRequest = new MockHttpServletRequest();
         HttpServletResponse servletResponse = new MockHttpServletResponse();
-        ResourceContext ctx = new RsrcCtxWrapper(servletRequest, servletResponse, null, false, null, new Object());
-        
+        ResourceContext ctx = new RsrcCtxWrapper(servletRequest, servletResponse, null, false, null, new Object(), "apiName");
+
         zms.setStandardCORSHeaders(ctx);
         assertEquals("true", servletResponse.getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_CREDENTIALS));
         
@@ -12016,8 +12048,8 @@ public class ZMSImplTest {
     public void testSetStandardCORSHeadersRequestHeaders() {
         MockHttpServletRequest servletRequest = new MockHttpServletRequest();
         MockHttpServletResponse servletResponse = new MockHttpServletResponse();
-        ResourceContext ctx = new RsrcCtxWrapper(servletRequest, servletResponse, null, false, null, new Object());
-        
+        ResourceContext ctx = new RsrcCtxWrapper(servletRequest, servletResponse, null, false, null, new Object(), "apiName");
+
         String origin = "https://zms.origin.athenzcompany.com";
         String requestHeaders = "X-Forwarded-For,Content-Type";
         servletRequest.addHeader(ZMSConsts.HTTP_ORIGIN, origin);
@@ -13440,8 +13472,7 @@ public class ZMSImplTest {
     
     @Test
     public void testResourceContext() {
-
-        RsrcCtxWrapper ctx = (RsrcCtxWrapper) zms.newResourceContext(mockServletRequest, mockServletResponse);
+        RsrcCtxWrapper ctx = (RsrcCtxWrapper) zms.newResourceContext(mockServletRequest, mockServletResponse, "apiName");
         assertNotNull(ctx);
         assertNotNull(ctx.context());
         assertNull(ctx.principal());
@@ -15227,7 +15258,7 @@ public class ZMSImplTest {
         
         MockHttpServletRequest request = new MockHttpServletRequest();
         MockHttpServletResponse response = new MockHttpServletResponse();
-        ResourceContext ctx = zms.newResourceContext(request, response);
+        ResourceContext ctx = zms.newResourceContext(request, response, "apiName");
         zms.logPrincipal(ctx);
         assertTrue(request.getAttributes().isEmpty());
     }
@@ -19796,31 +19827,34 @@ public class ZMSImplTest {
     @Test
     public void testRecordMetricsUnauthenticated() {
         zms.metric = Mockito.mock(Metric.class);
-        String apiName = "someApiMethod";
-        RsrcCtxWrapper ctx = (RsrcCtxWrapper) zms.newResourceContext(mockServletRequest, mockServletResponse);
+        RsrcCtxWrapper ctx = (RsrcCtxWrapper) zms.newResourceContext(mockServletRequest, mockServletResponse, "someApiMethod");
         String testDomain = "testDomain";
         int httpStatus = 200;
-        String httpMethod = "GET";
         ctx.setRequestDomain(testDomain);
-        zms.recordMetrics(ctx, httpMethod, httpStatus, apiName);
+        zms.recordMetrics(ctx, httpStatus);
         Mockito.verify(zms.metric,
                 times(1)).increment (
                 eq("zms_api"),
                 eq(testDomain),
                 eq(null),
-                eq(httpMethod),
+                eq("GET"),
                 eq(httpStatus),
-                eq(apiName));
+                eq("someapimethod"));
         Mockito.verify(zms.metric,
                 times(1)).stopTiming (
                 eq(ctx.getTimerMetric()),
                 eq(testDomain),
                 eq(null),
-                eq(httpMethod), eq(httpStatus), eq(apiName + "_timing"));
+                eq("GET"),
+                eq(httpStatus),
+                eq("someapimethod_timing"));
         Mockito.verify(zms.metric,
                 times(1)).startTiming (
                 eq("zms_api_latency"),
-                eq(null));
+                eq(null),
+                eq(null),
+                eq("GET"),
+                eq("someapimethod"));
     }
 
     @Test
@@ -19829,46 +19863,45 @@ public class ZMSImplTest {
         RsrcCtxWrapper ctx = mockDomRsrcCtx;
         String testDomain = "testDomain";
         int httpStatus = 200;
-        String httpMethod = "GET";
-        String apiName = "someApiMethod";
         Mockito.when(ctx.getRequestDomain()).thenReturn(testDomain);
-        zms.recordMetrics(ctx, httpMethod, httpStatus, apiName);
+        zms.recordMetrics(ctx, httpStatus);
         Mockito.verify(zms.metric,
                 times(1)).increment (
                 eq("zms_api"),
                 eq(testDomain),
                 eq("user"),
-                eq(httpMethod),
+                eq("GET"),
                 eq(httpStatus),
-                eq(apiName));
+                eq("someApiMethod"));
         Mockito.verify(zms.metric,
                 times(1)).stopTiming (
                 eq(ctx.getTimerMetric()),
                 eq(testDomain),
                 eq("user"),
-                eq(httpMethod), eq(httpStatus), eq(apiName + "_timing"));
+                eq("GET"), eq(httpStatus), eq("someApiMethod_timing"));
     }
 
     @Test
     public void testRecordMetricsNoCtx() {
-        String apiName = "someApiMethod";
+        RsrcCtxWrapper ctx = null;
         int httpStatus = 200;
-        String httpMethod = "GET";
         zms.metric = Mockito.mock(Metric.class);
-        zms.recordMetrics(null, httpMethod, httpStatus, apiName);
+        zms.recordMetrics(ctx, httpStatus);
         Mockito.verify(zms.metric,
                 times(1)).increment (
                 eq("zms_api"),
                 eq(null),
                 eq(null),
-                eq(httpMethod),
+                eq(null),
                 eq(httpStatus),
-                eq(apiName));
+                eq(null));
         Mockito.verify(zms.metric,
                 times(1)).stopTiming (
                 eq(null),
                 eq(null),
                 eq(null),
-                eq(httpMethod), eq(httpStatus), eq(apiName + "_timing"));
+                eq(null),
+                eq(httpStatus),
+                eq(null));
     }
 }

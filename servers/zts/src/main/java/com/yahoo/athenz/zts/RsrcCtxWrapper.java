@@ -31,13 +31,15 @@ public class RsrcCtxWrapper implements ResourceContext {
     boolean optionalAuth;
     Metric metric;
     private Object timerMetric;
+    private String apiName;
 
     public RsrcCtxWrapper(HttpServletRequest request, HttpServletResponse response,
             Http.AuthorityList authList,  boolean optionalAuth, Authorizer authorizer,
-            Metric metric, Object timerMetric) {
+            Metric metric, Object timerMetric, String apiName) {
         this.optionalAuth = optionalAuth;
         this.metric = metric;
         this.timerMetric = timerMetric;
+        this.apiName = apiName.toLowerCase();
         ctx = new com.yahoo.athenz.common.server.rest.ResourceContext(request, response,
                 authList, authorizer);
     }
@@ -70,6 +72,16 @@ public class RsrcCtxWrapper implements ResourceContext {
     @Override
     public HttpServletResponse response() {
         return ctx.response();
+    }
+
+    @Override
+    public String getApiName() {
+        return apiName;
+    }
+
+    @Override
+    public String getHttpMethod() {
+        return ctx.request().getMethod();
     }
 
     @Override

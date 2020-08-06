@@ -51,7 +51,7 @@ public class RsrcCtxWrapperTest {
         authListMock.add(authMock);
         Object timerMetric = new Object();
         RsrcCtxWrapper wrapper = new RsrcCtxWrapper(reqMock, resMock, authListMock, false,
-                authorizerMock, timerMetric);
+                authorizerMock, timerMetric, "apiName");
 
         assertNotNull(wrapper.context());
 
@@ -60,6 +60,8 @@ public class RsrcCtxWrapperTest {
 
         assertEquals(wrapper.request(), reqMock);
         assertEquals(wrapper.response(), resMock);
+        assertEquals(wrapper.getApiName(), "apiname");
+        assertEquals(wrapper.getHttpMethod(), "POST");
         assertEquals(wrapper.getTimerMetric(), timerMetric);
 
         wrapper.authenticate();
@@ -88,7 +90,7 @@ public class RsrcCtxWrapperTest {
 
         Object timerMetric = new Object();
         RsrcCtxWrapper wrapper = new RsrcCtxWrapper(reqMock, resMock, authListMock, false,
-                authorizerMock, timerMetric);
+                authorizerMock, timerMetric, "apiName");
 
         try {
             wrapper.authenticate();
@@ -121,7 +123,7 @@ public class RsrcCtxWrapperTest {
                 .thenReturn(true);
 
         Object timerMetric = new Object();
-        RsrcCtxWrapper wrapper = new RsrcCtxWrapper(reqMock, resMock, authListMock, false, authorizerMock, timerMetric);
+        RsrcCtxWrapper wrapper = new RsrcCtxWrapper(reqMock, resMock, authListMock, false, authorizerMock, timerMetric, "apiName");
 
         wrapper.authorize("add-domain", "test", "test");
 
@@ -146,7 +148,7 @@ public class RsrcCtxWrapperTest {
                 .thenReturn(true);
 
         Object timerMetric = new Object();
-        RsrcCtxWrapper wrapper = new RsrcCtxWrapper(reqMock, resMock, authListMock, false, authorizerMock, timerMetric);
+        RsrcCtxWrapper wrapper = new RsrcCtxWrapper(reqMock, resMock, authListMock, false, authorizerMock, timerMetric, "apiName");
 
         // when not set authority
         wrapper.authorize("add-domain", "test", "test");
@@ -163,7 +165,7 @@ public class RsrcCtxWrapperTest {
 
         Object timerMetric = new Object();
         RsrcCtxWrapper wrapper = new RsrcCtxWrapper(servletRequest, servletResponse,
-                authListMock, false, authorizerMock, timerMetric);
+                authListMock, false, authorizerMock, timerMetric, "apiName");
 
         wrapper.logPrincipal(null);
         assertNull(servletRequest.getAttribute("com.yahoo.athenz.auth.principal"));
@@ -186,7 +188,7 @@ public class RsrcCtxWrapperTest {
 
         Object timerMetric = new Object();
         RsrcCtxWrapper wrapper = new RsrcCtxWrapper(servletRequest, servletResponse,
-                authListMock, false, authorizerMock, timerMetric);
+                authListMock, false, authorizerMock, timerMetric, "apiName");
 
         com.yahoo.athenz.common.server.rest.ResourceException restExc =
                 new com.yahoo.athenz.common.server.rest.ResourceException(503, null);

@@ -20,7 +20,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getResourceAccess");
             context.authenticate();
             return this.delegate.getResourceAccess(context, action, resource, domain, checkPrincipal);
         } catch (ResourceException e) {
@@ -39,7 +39,7 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getResourceAccess");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -50,7 +50,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getResourceAccessExt");
             context.authenticate();
             return this.delegate.getResourceAccessExt(context, action, resource, domain, checkPrincipal);
         } catch (ResourceException e) {
@@ -69,7 +69,7 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getResourceAccessExt");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -80,7 +80,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getServiceIdentity");
             context.authenticate();
             return this.delegate.getServiceIdentity(context, domainName, serviceName);
         } catch (ResourceException e) {
@@ -97,7 +97,7 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getServiceIdentity");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -108,7 +108,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getServiceIdentityList");
             context.authenticate();
             return this.delegate.getServiceIdentityList(context, domainName);
         } catch (ResourceException e) {
@@ -125,7 +125,7 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getServiceIdentityList");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -136,7 +136,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getPublicKeyEntry");
             context.authenticate();
             return this.delegate.getPublicKeyEntry(context, domainName, serviceName, keyId);
         } catch (ResourceException e) {
@@ -151,7 +151,7 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getPublicKeyEntry");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -162,7 +162,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getHostServices");
             context.authenticate();
             return this.delegate.getHostServices(context, host);
         } catch (ResourceException e) {
@@ -175,7 +175,7 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getHostServices");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -186,7 +186,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getDomainSignedPolicyData");
             context.authenticate();
             return this.delegate.getDomainSignedPolicyData(context, domainName, matchingTag);
         } catch (ResourceException e) {
@@ -201,7 +201,7 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getDomainSignedPolicyData");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -212,7 +212,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getRoleToken");
             context.authenticate();
             return this.delegate.getRoleToken(context, domainName, role, minExpiryTime, maxExpiryTime, proxyForPrincipal);
         } catch (ResourceException e) {
@@ -231,7 +231,7 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getRoleToken");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -243,7 +243,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "postRoleCertificateRequest");
             context.authenticate();
             return this.delegate.postRoleCertificateRequest(context, domainName, roleName, req);
         } catch (ResourceException e) {
@@ -262,7 +262,7 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "POST", code, "postRoleCertificateRequest");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -273,7 +273,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getAccess");
             context.authenticate();
             return this.delegate.getAccess(context, domainName, roleName, principal);
         } catch (ResourceException e) {
@@ -292,7 +292,7 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getAccess");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -303,7 +303,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getRoleAccess");
             context.authenticate();
             return this.delegate.getRoleAccess(context, domainName, principal);
         } catch (ResourceException e) {
@@ -320,7 +320,7 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getRoleAccess");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -331,7 +331,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getTenantDomains");
             context.authenticate();
             return this.delegate.getTenantDomains(context, providerDomainName, userName, roleName, serviceName);
         } catch (ResourceException e) {
@@ -348,7 +348,7 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getTenantDomains");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -360,7 +360,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "postInstanceRefreshRequest");
             context.authenticate();
             return this.delegate.postInstanceRefreshRequest(context, domain, service, req);
         } catch (ResourceException e) {
@@ -381,7 +381,7 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "POST", code, "postInstanceRefreshRequest");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -392,7 +392,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getAWSTemporaryCredentials");
             context.authenticate();
             return this.delegate.getAWSTemporaryCredentials(context, domainName, role, durationSeconds, externalId);
         } catch (ResourceException e) {
@@ -411,7 +411,7 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getAWSTemporaryCredentials");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -423,7 +423,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "postOSTKInstanceRefreshRequest");
             context.authenticate();
             return this.delegate.postOSTKInstanceRefreshRequest(context, domain, service, req);
         } catch (ResourceException e) {
@@ -444,7 +444,7 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "POST", code, "postOSTKInstanceRefreshRequest");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -456,7 +456,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "postInstanceRegisterInformation");
             context.authenticate();
             return this.delegate.postInstanceRegisterInformation(context, info);
         } catch (ResourceException e) {
@@ -477,7 +477,7 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "POST", code, "postInstanceRegisterInformation");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -489,7 +489,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "postInstanceRefreshInformation");
             context.authenticate();
             return this.delegate.postInstanceRefreshInformation(context, provider, domain, service, instanceId, info);
         } catch (ResourceException e) {
@@ -510,7 +510,7 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "POST", code, "postInstanceRefreshInformation");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -521,7 +521,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "deleteInstanceIdentity");
             context.authorize("delete", "" + domain + ":instance." + instanceId + "", null);
             this.delegate.deleteInstanceIdentity(context, provider, domain, service, instanceId);
         } catch (ResourceException e) {
@@ -542,7 +542,7 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "DELETE", code, "deleteInstanceIdentity");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -553,7 +553,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getCertificateAuthorityBundle");
             context.authenticate();
             return this.delegate.getCertificateAuthorityBundle(context, name);
         } catch (ResourceException e) {
@@ -570,7 +570,7 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getCertificateAuthorityBundle");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -582,7 +582,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "postDomainMetrics");
             context.authenticate();
             return this.delegate.postDomainMetrics(context, domainName, req);
         } catch (ResourceException e) {
@@ -601,7 +601,7 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "POST", code, "postDomainMetrics");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -612,7 +612,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getStatus");
             context.authenticate();
             return this.delegate.getStatus(context);
         } catch (ResourceException e) {
@@ -629,7 +629,7 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getStatus");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -641,7 +641,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "postSSHCertRequest");
             context.authenticate();
             return this.delegate.postSSHCertRequest(context, certRequest);
         } catch (ResourceException e) {
@@ -660,7 +660,7 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "POST", code, "postSSHCertRequest");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -671,7 +671,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getJWKList");
             context.authenticate();
             return this.delegate.getJWKList(context, rfc);
         } catch (ResourceException e) {
@@ -688,7 +688,7 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getJWKList");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -700,7 +700,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "postAccessTokenRequest");
             context.authenticate();
             return this.delegate.postAccessTokenRequest(context, request);
         } catch (ResourceException e) {
@@ -719,7 +719,7 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "POST", code, "postAccessTokenRequest");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -731,7 +731,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "postRoleCertificateRequestExt");
             context.authenticate();
             return this.delegate.postRoleCertificateRequestExt(context, req);
         } catch (ResourceException e) {
@@ -750,7 +750,7 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "POST", code, "postRoleCertificateRequestExt");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -761,7 +761,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getRdlSchema");
             context.authenticate();
             return this.delegate.getRdlSchema(context);
         } catch (ResourceException e) {
@@ -772,7 +772,7 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getRdlSchema");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
