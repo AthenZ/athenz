@@ -130,6 +130,10 @@ func extractServiceDetailsFromCert(certFile string) (string, string, error) {
 		return "", "", err
 	}
 	block, _ := pem.Decode(data)
+	if block == nil {
+		return "", "", fmt.Errorf("cannot decode pem from certificate file: %s", certFile)
+	}
+
 	cert, err := x509.ParseCertificate(block.Bytes)
 	if err != nil {
 		return "", "", err
