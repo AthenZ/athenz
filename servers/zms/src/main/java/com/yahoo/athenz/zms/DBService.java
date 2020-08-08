@@ -4245,6 +4245,14 @@ public class DBService implements RolesProvider {
 
     boolean updateUserAuthorityExpiry(RoleMember roleMember, final String userAuthorityExpiry) {
 
+        // if we have a service then there is no processing taking place
+        // as the service is not managed by the user authority
+
+        if (!ZMSUtils.isUserDomainPrincipal(roleMember.getMemberName(), zmsConfig.getUserDomainPrefix(),
+                zmsConfig.getAddlUserCheckDomainPrefixList())) {
+            return false;
+        }
+
         Date authorityExpiry = zmsConfig.getUserAuthority().getDateAttribute(roleMember.getMemberName(), userAuthorityExpiry);
 
         // if we don't have a date then we'll expiry the user right away
@@ -4353,19 +4361,6 @@ public class DBService implements RolesProvider {
                 if (isEarlierDueDate(serviceReviewMillis, reviewDate)) {
                     roleMember.setReviewReminder(serviceReview);
                     dueDateUpdated = true;
-                }
-
-                // as a final check if we're dealing with a service and we have
-                // either one of the user authority attributes set then we're
-                // going to expiry the service immediately since the role cannot
-                // contain any non-users
-
-                if (userAuthorityExpiry != null) {
-                    Timestamp serviceExpiry = roleMember.getExpiration();
-                    if (serviceExpiry == null || (serviceExpiry != null && serviceExpiry.millis() > System.currentTimeMillis())) {
-                        roleMember.setExpiration(Timestamp.fromCurrentTime());
-                        dueDateUpdated = true;
-                    }
                 }
             }
 
