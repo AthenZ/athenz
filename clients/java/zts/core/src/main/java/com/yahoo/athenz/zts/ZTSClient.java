@@ -50,6 +50,7 @@ import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.bouncycastle.asn1.DERIA5String;
@@ -787,6 +788,7 @@ public class ZTSClient implements Closeable {
         Registry<ConnectionSocketFactory> registry = RegistryBuilder
                 .<ConnectionSocketFactory>create()
                 .register("https", sslSocketFactory)
+                .register("http", new PlainConnectionSocketFactory())
                 .build();
         PoolingHttpClientConnectionManager poolingHttpClientConnectionManager = new PoolingHttpClientConnectionManager(registry);
 
