@@ -6989,10 +6989,10 @@ public class DBServiceTest {
         RoleMember member = getRoleMember(updatedRole, "user.john");
         assertEquals(member.getExpiration(), currentStamp);
 
-        // sports api should also have an expiry since it's not a user
+        // sports api should not have an expiry since it's not a user
 
         member = getRoleMember(updatedRole, "sports.api");
-        assertNotNull(member.getExpiration());
+        assertNull(member.getExpiration());
 
         // weather api should not change since it's already expired
 

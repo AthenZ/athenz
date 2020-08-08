@@ -3063,10 +3063,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         for (RoleMember roleMember : role.getRoleMembers()) {
 
-            boolean bUser = ZMSUtils.isUserDomainPrincipal(roleMember.getMemberName(), userDomainPrefix,
-                    addlUserCheckDomainPrefixList);
+            // we only process users and automatically ignore services which
+            // are not handled by user authority
 
-            if (bUser) {
+            if (ZMSUtils.isUserDomainPrincipal(roleMember.getMemberName(), userDomainPrefix,
+                    addlUserCheckDomainPrefixList)) {
 
                 // if we don't have an expiry specified for the user
                 // then we're not going to allow this member
@@ -3077,13 +3078,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                             ". No expiry date attribute specified in user authority", caller);
                 }
                 roleMember.setExpiration(Timestamp.fromDate(expiry));
-
-            } else {
-
-                // if we have a user authority expiry attribute date then then
-                // role cannot have service members
-
-                throw ZMSUtils.requestError("Role cannot have non-user member due to user authority expiry setup", caller);
             }
         }
     }
@@ -3528,13 +3522,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                         role.getMemberExpiryDays(), membership.getExpiration()));
             }
         } else {
-            // if we have a user authority expiry attribute date then then
-            // role cannot have service members
-
-            final String userAuthorityExpiry = getUserAuthorityExpiryAttr(role);
-            if (userAuthorityExpiry != null) {
-                throw ZMSUtils.requestError("Role cannot have non-user member due to user authority expiry setup", caller);
-            }
             roleMember.setExpiration(memberDueDateTimestamp(domain.getDomain().getServiceExpiryDays(),
                     role.getServiceExpiryDays(), membership.getExpiration()));
         }

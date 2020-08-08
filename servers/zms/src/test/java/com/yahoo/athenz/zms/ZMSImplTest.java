@@ -19486,14 +19486,13 @@ public class ZMSImplTest {
         members.add(new RoleMember().setMemberName("sports.api"));
         role.setRoleMembers(members);
 
-        try {
-            zms.updateRoleMemberUserAuthorityExpiry(role, "unit-test");
-            fail();
-        } catch (ResourceException ex) {
-            assertTrue(ex.getMessage().contains("cannot have non-user member"));
-        }
+        // the user will have an expiration while service is skipped
 
-        // now let's have only valid members
+        zms.updateRoleMemberUserAuthorityExpiry(role, "unit-test");
+        assertNotNull(role.getRoleMembers().get(0).getExpiration());
+        assertNull(role.getRoleMembers().get(1).getExpiration());
+
+        // now let's have only user members
 
         members = new ArrayList<>();
         members.add(new RoleMember().setMemberName("user.john"));
@@ -19617,8 +19616,7 @@ public class ZMSImplTest {
         Membership mbr = new Membership().setMemberName("user.john");
         zms.putMembership(mockDomRsrcCtx, domainName, roleName, "user.john", auditRef, mbr);
 
-        Membership mbrResult = zms.getMembership(mockDomRsrcCtx, domainName, roleName,
-                "user.john", null);
+        Membership mbrResult = zms.getMembership(mockDomRsrcCtx, domainName, roleName, "user.john", null);
         assertNotNull(mbrResult);
         assertEquals(mbrResult.getMemberName(), "user.john");
         assertNotNull(mbrResult.getExpiration());
@@ -19634,15 +19632,13 @@ public class ZMSImplTest {
             assertTrue(ex.getMessage().contains("User does not have required user authority expiry configured"));
         }
 
-        // service user
+        // service user should be added ok since service user is not processed
+        // by user authority
 
-        mbr = new Membership().setMemberName("sports.api");
-        try {
-            zms.putMembership(mockDomRsrcCtx, domainName, roleName, "sports.api", auditRef, mbr);
-            fail();
-        } catch (ResourceException ex) {
-            assertTrue(ex.getMessage().contains("Role cannot have non-user member due to user authority expiry setup"));
-        }
+        mbr = new Membership().setMemberName("userexpirydomain.api");
+        zms.putMembership(mockDomRsrcCtx, domainName, roleName, "userexpirydomain.api", auditRef, mbr);
+        mbrResult = zms.getMembership(mockDomRsrcCtx, domainName, roleName, "userexpirydomain.api", null);
+        assertNotNull(mbrResult);
 
         zms.userAuthority = savedAuthority;
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
