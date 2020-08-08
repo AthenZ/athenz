@@ -32,3 +32,12 @@ func TestExtractServiceDetailsFromCertInvalidFile(test *testing.T) {
 		return
 	}
 }
+
+func TestExtractServiceDetailsFromEmptyFile(test *testing.T) {
+
+	_, _, err := extractServiceDetailsFromCert("data/empty.pem")
+	if err == nil {
+		test.Errorf("incorrectly processed unknown file")
+		return
+	}
+}
