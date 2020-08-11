@@ -214,12 +214,12 @@ pages to make sure you're using the latest release version:
     <dependency>
       <groupId>com.yahoo.athenz</groupId>
       <artifactId>athenz-zts-java-client</artifactId>
-      <version>1.8.37</version>
+      <version>VERSION-NUMBER</version>
     </dependency>
     <dependency>
       <groupId>com.yahoo.athenz</groupId>
       <artifactId>athenz-cert-refresher</artifactId>
-      <version>1.8.37</version>
+      <version>VERSION-NUMBER</version>
     </dependency>
   </dependencies>
 ```
