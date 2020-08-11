@@ -20,7 +20,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getDomain");
             context.authenticate();
             return this.delegate.getDomain(context, domain);
         } catch (ResourceException e) {
@@ -41,7 +41,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getDomain");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -52,7 +52,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getDomainList");
             context.authenticate();
             return this.delegate.getDomainList(context, limit, skip, prefix, depth, account, productId, roleMember, roleName, modifiedSince);
         } catch (ResourceException e) {
@@ -67,7 +67,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getDomainList");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -79,7 +79,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "postTopLevelDomain");
             context.authorize("create", "sys.auth:domain", null);
             return this.delegate.postTopLevelDomain(context, auditRef, detail);
         } catch (ResourceException e) {
@@ -98,7 +98,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "POST", code, "postTopLevelDomain");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -110,7 +110,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "postSubDomain");
             context.authorize("create", "" + parent + ":domain", null);
             return this.delegate.postSubDomain(context, parent, auditRef, detail);
         } catch (ResourceException e) {
@@ -131,7 +131,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "POST", code, "postSubDomain");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -143,7 +143,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "postUserDomain");
             context.authorize("create", "user." + name + ":domain", null);
             return this.delegate.postUserDomain(context, name, auditRef, detail);
         } catch (ResourceException e) {
@@ -164,7 +164,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "POST", code, "postUserDomain");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -175,7 +175,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "deleteTopLevelDomain");
             context.authorize("delete", "sys.auth:domain", null);
             this.delegate.deleteTopLevelDomain(context, name, auditRef);
         } catch (ResourceException e) {
@@ -196,7 +196,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "DELETE", code, "deleteTopLevelDomain");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -207,7 +207,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "deleteSubDomain");
             context.authorize("delete", "" + parent + ":domain", null);
             this.delegate.deleteSubDomain(context, parent, name, auditRef);
         } catch (ResourceException e) {
@@ -228,7 +228,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "DELETE", code, "deleteSubDomain");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -239,7 +239,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "deleteUserDomain");
             context.authorize("delete", "user." + name + ":domain", null);
             this.delegate.deleteUserDomain(context, name, auditRef);
         } catch (ResourceException e) {
@@ -260,7 +260,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "DELETE", code, "deleteUserDomain");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -272,7 +272,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "putDomainMeta");
             context.authorize("update", "" + name + ":", null);
             this.delegate.putDomainMeta(context, name, auditRef, detail);
         } catch (ResourceException e) {
@@ -295,7 +295,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "PUT", code, "putDomainMeta");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -307,7 +307,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "putDomainSystemMeta");
             context.authorize("update", "sys.auth:meta.domain." + attribute + "." + name + "", null);
             this.delegate.putDomainSystemMeta(context, name, attribute, auditRef, detail);
         } catch (ResourceException e) {
@@ -330,7 +330,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "PUT", code, "putDomainSystemMeta");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -342,7 +342,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "putDomainTemplate");
             context.authorize("update", "" + name + ":template", null);
             this.delegate.putDomainTemplate(context, name, auditRef, domainTemplate);
         } catch (ResourceException e) {
@@ -365,7 +365,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "PUT", code, "putDomainTemplate");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -377,7 +377,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "putDomainTemplateExt");
             context.authorize("update", "" + name + ":template." + template + "", null);
             this.delegate.putDomainTemplateExt(context, name, template, auditRef, domainTemplate);
         } catch (ResourceException e) {
@@ -400,7 +400,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "PUT", code, "putDomainTemplateExt");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -411,7 +411,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getDomainTemplateList");
             context.authenticate();
             return this.delegate.getDomainTemplateList(context, name);
         } catch (ResourceException e) {
@@ -430,7 +430,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getDomainTemplateList");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -441,7 +441,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "deleteDomainTemplate");
             context.authorize("delete", "" + name + ":template." + template + "", null);
             this.delegate.deleteDomainTemplate(context, name, template, auditRef);
         } catch (ResourceException e) {
@@ -464,7 +464,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "DELETE", code, "deleteDomainTemplate");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -475,7 +475,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getDomainDataCheck");
             context.authenticate();
             return this.delegate.getDomainDataCheck(context, domainName);
         } catch (ResourceException e) {
@@ -494,7 +494,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getDomainDataCheck");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -506,7 +506,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "putEntity");
             context.authorize("update", "" + domainName + ":entity." + entityName + "", null);
             this.delegate.putEntity(context, domainName, entityName, auditRef, entity);
         } catch (ResourceException e) {
@@ -529,7 +529,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "PUT", code, "putEntity");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -540,7 +540,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getEntity");
             context.authenticate();
             return this.delegate.getEntity(context, domainName, entityName);
         } catch (ResourceException e) {
@@ -561,7 +561,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getEntity");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -572,7 +572,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "deleteEntity");
             context.authorize("delete", "" + domainName + ":entity." + entityName + "", null);
             this.delegate.deleteEntity(context, domainName, entityName, auditRef);
         } catch (ResourceException e) {
@@ -595,7 +595,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "DELETE", code, "deleteEntity");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -606,7 +606,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getEntityList");
             context.authenticate();
             return this.delegate.getEntityList(context, domainName);
         } catch (ResourceException e) {
@@ -625,7 +625,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getEntityList");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -636,7 +636,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getRoleList");
             context.authenticate();
             return this.delegate.getRoleList(context, domainName, limit, skip);
         } catch (ResourceException e) {
@@ -657,7 +657,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getRoleList");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -668,7 +668,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getRoles");
             context.authenticate();
             return this.delegate.getRoles(context, domainName, members);
         } catch (ResourceException e) {
@@ -687,7 +687,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getRoles");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -698,7 +698,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getRole");
             context.authenticate();
             return this.delegate.getRole(context, domainName, roleName, auditLog, expand, pending);
         } catch (ResourceException e) {
@@ -719,7 +719,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getRole");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -731,7 +731,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "putRole");
             context.authorize("update", "" + domainName + ":role." + roleName + "", null);
             this.delegate.putRole(context, domainName, roleName, auditRef, role);
         } catch (ResourceException e) {
@@ -754,7 +754,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "PUT", code, "putRole");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -765,7 +765,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "deleteRole");
             context.authorize("delete", "" + domainName + ":role." + roleName + "", null);
             this.delegate.deleteRole(context, domainName, roleName, auditRef);
         } catch (ResourceException e) {
@@ -788,7 +788,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "DELETE", code, "deleteRole");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -799,7 +799,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getMembership");
             context.authenticate();
             return this.delegate.getMembership(context, domainName, roleName, memberName, expiration);
         } catch (ResourceException e) {
@@ -820,7 +820,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getMembership");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -831,7 +831,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getOverdueReview");
             context.authenticate();
             return this.delegate.getOverdueReview(context, domainName);
         } catch (ResourceException e) {
@@ -852,7 +852,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getOverdueReview");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -863,7 +863,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getDomainRoleMembers");
             context.authenticate();
             return this.delegate.getDomainRoleMembers(context, domainName);
         } catch (ResourceException e) {
@@ -884,7 +884,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getDomainRoleMembers");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -895,7 +895,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getPrincipalRoles");
             context.authenticate();
             return this.delegate.getPrincipalRoles(context, principal, domainName);
         } catch (ResourceException e) {
@@ -916,7 +916,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getPrincipalRoles");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -928,7 +928,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "putMembership");
             context.authenticate();
             this.delegate.putMembership(context, domainName, roleName, memberName, auditRef, membership);
         } catch (ResourceException e) {
@@ -951,7 +951,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "PUT", code, "putMembership");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -962,7 +962,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "deleteMembership");
             context.authorize("update", "" + domainName + ":role." + roleName + "", null);
             this.delegate.deleteMembership(context, domainName, roleName, memberName, auditRef);
         } catch (ResourceException e) {
@@ -985,7 +985,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "DELETE", code, "deleteMembership");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -996,7 +996,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "deletePendingMembership");
             context.authenticate();
             this.delegate.deletePendingMembership(context, domainName, roleName, memberName, auditRef);
         } catch (ResourceException e) {
@@ -1019,7 +1019,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "DELETE", code, "deletePendingMembership");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -1031,7 +1031,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "putDefaultAdmins");
             context.authorize("update", "sys.auth:domain", null);
             this.delegate.putDefaultAdmins(context, domainName, auditRef, defaultAdmins);
         } catch (ResourceException e) {
@@ -1052,7 +1052,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "PUT", code, "putDefaultAdmins");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -1064,7 +1064,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "putRoleSystemMeta");
             context.authorize("update", "sys.auth:meta.role." + attribute + "." + domainName + "", null);
             this.delegate.putRoleSystemMeta(context, domainName, roleName, attribute, auditRef, detail);
         } catch (ResourceException e) {
@@ -1087,7 +1087,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "PUT", code, "putRoleSystemMeta");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -1099,7 +1099,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "putRoleMeta");
             context.authorize("update", "" + domainName + ":role." + roleName + "", null);
             this.delegate.putRoleMeta(context, domainName, roleName, auditRef, detail);
         } catch (ResourceException e) {
@@ -1122,7 +1122,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "PUT", code, "putRoleMeta");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -1134,7 +1134,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "putMembershipDecision");
             context.authenticate();
             this.delegate.putMembershipDecision(context, domainName, roleName, memberName, auditRef, membership);
         } catch (ResourceException e) {
@@ -1157,7 +1157,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "PUT", code, "putMembershipDecision");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -1169,7 +1169,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "putRoleReview");
             context.authorize("update", "" + domainName + ":role." + roleName + "", null);
             this.delegate.putRoleReview(context, domainName, roleName, auditRef, role);
         } catch (ResourceException e) {
@@ -1192,7 +1192,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "PUT", code, "putRoleReview");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -1203,7 +1203,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getPolicyList");
             context.authenticate();
             return this.delegate.getPolicyList(context, domainName, limit, skip);
         } catch (ResourceException e) {
@@ -1224,7 +1224,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getPolicyList");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -1235,7 +1235,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getPolicies");
             context.authenticate();
             return this.delegate.getPolicies(context, domainName, assertions);
         } catch (ResourceException e) {
@@ -1254,7 +1254,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getPolicies");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -1265,7 +1265,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getPolicy");
             context.authenticate();
             return this.delegate.getPolicy(context, domainName, policyName);
         } catch (ResourceException e) {
@@ -1286,7 +1286,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getPolicy");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -1298,7 +1298,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "putPolicy");
             context.authorize("update", "" + domainName + ":policy." + policyName + "", null);
             this.delegate.putPolicy(context, domainName, policyName, auditRef, policy);
         } catch (ResourceException e) {
@@ -1321,7 +1321,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "PUT", code, "putPolicy");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -1332,7 +1332,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "deletePolicy");
             context.authorize("delete", "" + domainName + ":policy." + policyName + "", null);
             this.delegate.deletePolicy(context, domainName, policyName, auditRef);
         } catch (ResourceException e) {
@@ -1355,7 +1355,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "DELETE", code, "deletePolicy");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -1366,7 +1366,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getAssertion");
             context.authenticate();
             return this.delegate.getAssertion(context, domainName, policyName, assertionId);
         } catch (ResourceException e) {
@@ -1387,7 +1387,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getAssertion");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -1399,7 +1399,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "putAssertion");
             context.authorize("update", "" + domainName + ":policy." + policyName + "", null);
             return this.delegate.putAssertion(context, domainName, policyName, auditRef, assertion);
         } catch (ResourceException e) {
@@ -1422,7 +1422,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "PUT", code, "putAssertion");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -1433,7 +1433,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "deleteAssertion");
             context.authorize("update", "" + domainName + ":policy." + policyName + "", null);
             this.delegate.deleteAssertion(context, domainName, policyName, assertionId, auditRef);
         } catch (ResourceException e) {
@@ -1456,7 +1456,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "DELETE", code, "deleteAssertion");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -1468,7 +1468,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "putServiceIdentity");
             context.authorize("update", "" + domain + ":service." + service + "", null);
             this.delegate.putServiceIdentity(context, domain, service, auditRef, detail);
         } catch (ResourceException e) {
@@ -1491,7 +1491,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "PUT", code, "putServiceIdentity");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -1502,7 +1502,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getServiceIdentity");
             context.authenticate();
             return this.delegate.getServiceIdentity(context, domain, service);
         } catch (ResourceException e) {
@@ -1523,7 +1523,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getServiceIdentity");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -1534,7 +1534,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "deleteServiceIdentity");
             context.authorize("delete", "" + domain + ":service." + service + "", null);
             this.delegate.deleteServiceIdentity(context, domain, service, auditRef);
         } catch (ResourceException e) {
@@ -1557,7 +1557,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "DELETE", code, "deleteServiceIdentity");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -1568,7 +1568,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getServiceIdentities");
             context.authenticate();
             return this.delegate.getServiceIdentities(context, domainName, publickeys, hosts);
         } catch (ResourceException e) {
@@ -1587,7 +1587,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getServiceIdentities");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -1598,7 +1598,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getServiceIdentityList");
             context.authenticate();
             return this.delegate.getServiceIdentityList(context, domainName, limit, skip);
         } catch (ResourceException e) {
@@ -1619,7 +1619,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getServiceIdentityList");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -1630,7 +1630,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getPublicKeyEntry");
             context.authenticate();
             return this.delegate.getPublicKeyEntry(context, domain, service, id);
         } catch (ResourceException e) {
@@ -1651,7 +1651,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getPublicKeyEntry");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -1663,7 +1663,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "putPublicKeyEntry");
             context.authorize("update", "" + domain + ":service." + service + "", null);
             this.delegate.putPublicKeyEntry(context, domain, service, id, auditRef, publicKeyEntry);
         } catch (ResourceException e) {
@@ -1686,7 +1686,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "PUT", code, "putPublicKeyEntry");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -1697,7 +1697,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "deletePublicKeyEntry");
             context.authorize("update", "" + domain + ":service." + service + "", null);
             this.delegate.deletePublicKeyEntry(context, domain, service, id, auditRef);
         } catch (ResourceException e) {
@@ -1720,7 +1720,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "DELETE", code, "deletePublicKeyEntry");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -1732,7 +1732,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "putServiceIdentitySystemMeta");
             context.authorize("update", "sys.auth:meta.service." + attribute + "." + domain + "", null);
             this.delegate.putServiceIdentitySystemMeta(context, domain, service, attribute, auditRef, detail);
         } catch (ResourceException e) {
@@ -1755,7 +1755,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "PUT", code, "putServiceIdentitySystemMeta");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -1767,7 +1767,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "putTenancy");
             context.authorize("update", "" + domain + ":tenancy", null);
             this.delegate.putTenancy(context, domain, service, auditRef, detail);
         } catch (ResourceException e) {
@@ -1790,7 +1790,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "PUT", code, "putTenancy");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -1801,7 +1801,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "deleteTenancy");
             context.authorize("delete", "" + domain + ":tenancy", null);
             this.delegate.deleteTenancy(context, domain, service, auditRef);
         } catch (ResourceException e) {
@@ -1824,7 +1824,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "DELETE", code, "deleteTenancy");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -1836,7 +1836,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "putTenant");
             context.authorize("update", "" + domain + ":tenant." + service + "", null);
             this.delegate.putTenant(context, domain, service, tenantDomain, auditRef, detail);
         } catch (ResourceException e) {
@@ -1859,7 +1859,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "PUT", code, "putTenant");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -1870,7 +1870,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "deleteTenant");
             context.authorize("delete", "" + domain + ":tenant." + service + "", null);
             this.delegate.deleteTenant(context, domain, service, tenantDomain, auditRef);
         } catch (ResourceException e) {
@@ -1893,7 +1893,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "DELETE", code, "deleteTenant");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -1905,7 +1905,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "putTenantResourceGroupRoles");
             context.authorize("update", "" + domain + ":tenant." + service + "", null);
             return this.delegate.putTenantResourceGroupRoles(context, domain, service, tenantDomain, resourceGroup, auditRef, detail);
         } catch (ResourceException e) {
@@ -1928,7 +1928,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "PUT", code, "putTenantResourceGroupRoles");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -1939,7 +1939,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getTenantResourceGroupRoles");
             context.authenticate();
             return this.delegate.getTenantResourceGroupRoles(context, domain, service, tenantDomain, resourceGroup);
         } catch (ResourceException e) {
@@ -1960,7 +1960,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getTenantResourceGroupRoles");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -1971,7 +1971,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "deleteTenantResourceGroupRoles");
             context.authorize("update", "" + domain + ":tenant." + service + "", null);
             this.delegate.deleteTenantResourceGroupRoles(context, domain, service, tenantDomain, resourceGroup, auditRef);
         } catch (ResourceException e) {
@@ -1994,7 +1994,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "DELETE", code, "deleteTenantResourceGroupRoles");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -2006,7 +2006,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "putProviderResourceGroupRoles");
             context.authorize("update", "" + tenantDomain + ":tenancy." + provDomain + "." + provService + "", null);
             return this.delegate.putProviderResourceGroupRoles(context, tenantDomain, provDomain, provService, resourceGroup, auditRef, detail);
         } catch (ResourceException e) {
@@ -2029,7 +2029,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "PUT", code, "putProviderResourceGroupRoles");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -2040,7 +2040,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getProviderResourceGroupRoles");
             context.authenticate();
             return this.delegate.getProviderResourceGroupRoles(context, tenantDomain, provDomain, provService, resourceGroup);
         } catch (ResourceException e) {
@@ -2061,7 +2061,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getProviderResourceGroupRoles");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -2072,7 +2072,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "deleteProviderResourceGroupRoles");
             context.authorize("update", "" + tenantDomain + ":tenancy." + provDomain + "." + provService + "", null);
             this.delegate.deleteProviderResourceGroupRoles(context, tenantDomain, provDomain, provService, resourceGroup, auditRef);
         } catch (ResourceException e) {
@@ -2095,7 +2095,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "DELETE", code, "deleteProviderResourceGroupRoles");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -2106,7 +2106,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getAccess");
             context.authenticate();
             return this.delegate.getAccess(context, action, resource, domain, checkPrincipal);
         } catch (ResourceException e) {
@@ -2127,7 +2127,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getAccess");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -2138,7 +2138,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getAccessExt");
             context.authenticate();
             return this.delegate.getAccessExt(context, action, resource, domain, checkPrincipal);
         } catch (ResourceException e) {
@@ -2159,7 +2159,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getAccessExt");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -2170,7 +2170,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getResourceAccessList");
             context.authenticate();
             return this.delegate.getResourceAccessList(context, principal, action);
         } catch (ResourceException e) {
@@ -2191,7 +2191,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getResourceAccessList");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -2202,7 +2202,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getSignedDomains");
             context.authenticate();
             return this.delegate.getSignedDomains(context, domain, metaOnly, metaAttr, master, matchingTag);
         } catch (ResourceException e) {
@@ -2221,7 +2221,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getSignedDomains");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -2232,7 +2232,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getJWSDomain");
             context.authenticate();
             return this.delegate.getJWSDomain(context, name);
         } catch (ResourceException e) {
@@ -2249,7 +2249,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getJWSDomain");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -2260,7 +2260,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getUserToken");
             context.authenticate();
             return this.delegate.getUserToken(context, userName, serviceNames, header);
         } catch (ResourceException e) {
@@ -2277,7 +2277,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getUserToken");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -2287,7 +2287,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "optionsUserToken");
             return this.delegate.optionsUserToken(context, userName, serviceNames);
         } catch (ResourceException e) {
             code = e.getCode();
@@ -2301,7 +2301,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "OPTIONS", code, "optionsUserToken");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -2312,7 +2312,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getServicePrincipal");
             context.authenticate();
             return this.delegate.getServicePrincipal(context);
         } catch (ResourceException e) {
@@ -2331,7 +2331,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getServicePrincipal");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -2342,7 +2342,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getServerTemplateList");
             context.authenticate();
             return this.delegate.getServerTemplateList(context);
         } catch (ResourceException e) {
@@ -2357,7 +2357,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getServerTemplateList");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -2368,7 +2368,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getTemplate");
             context.authenticate();
             return this.delegate.getTemplate(context, template);
         } catch (ResourceException e) {
@@ -2387,7 +2387,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getTemplate");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -2398,7 +2398,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getDomainTemplateDetailsList");
             context.authenticate();
             return this.delegate.getDomainTemplateDetailsList(context, name);
         } catch (ResourceException e) {
@@ -2417,7 +2417,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getDomainTemplateDetailsList");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -2428,7 +2428,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getUserList");
             context.authenticate();
             return this.delegate.getUserList(context);
         } catch (ResourceException e) {
@@ -2443,7 +2443,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getUserList");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -2454,7 +2454,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "deleteUser");
             context.authorize("delete", "sys.auth:user", null);
             this.delegate.deleteUser(context, name, auditRef);
         } catch (ResourceException e) {
@@ -2477,7 +2477,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "DELETE", code, "deleteUser");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -2488,7 +2488,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "deleteDomainRoleMember");
             context.authorize("update", "" + domainName + ":", null);
             this.delegate.deleteDomainRoleMember(context, domainName, memberName, auditRef);
         } catch (ResourceException e) {
@@ -2511,7 +2511,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "DELETE", code, "deleteDomainRoleMember");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -2522,7 +2522,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getQuota");
             context.authenticate();
             return this.delegate.getQuota(context, name);
         } catch (ResourceException e) {
@@ -2537,7 +2537,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getQuota");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -2549,7 +2549,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "putQuota");
             context.authorize("update", "sys.auth:quota", null);
             this.delegate.putQuota(context, name, auditRef, quota);
         } catch (ResourceException e) {
@@ -2570,7 +2570,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "PUT", code, "putQuota");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -2581,7 +2581,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "deleteQuota");
             context.authorize("update", "sys.auth:quota", null);
             this.delegate.deleteQuota(context, name, auditRef);
         } catch (ResourceException e) {
@@ -2602,7 +2602,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "DELETE", code, "deleteQuota");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -2613,7 +2613,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getStatus");
             context.authenticate();
             return this.delegate.getStatus(context);
         } catch (ResourceException e) {
@@ -2630,7 +2630,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getStatus");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -2641,7 +2641,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getPendingDomainRoleMembersList");
             context.authenticate();
             return this.delegate.getPendingDomainRoleMembersList(context, principal);
         } catch (ResourceException e) {
@@ -2662,7 +2662,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getPendingDomainRoleMembersList");
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -2673,7 +2673,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getRdlSchema");
             context.authenticate();
             return this.delegate.getRdlSchema(context);
         } catch (ResourceException e) {
@@ -2684,7 +2684,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.recordMetrics(context, "GET", code, "getRdlSchema");
+            this.delegate.recordMetrics(context, code);
         }
     }
 

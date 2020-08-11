@@ -12,6 +12,8 @@ import javax.servlet.http.HttpServletResponse;
 public interface ResourceContext {
     HttpServletRequest request();
     HttpServletResponse response();
+    String getApiName();
+    String getHttpMethod();
     void authenticate();
     void authorize(String action, String resource, String trustedDomain);
 }

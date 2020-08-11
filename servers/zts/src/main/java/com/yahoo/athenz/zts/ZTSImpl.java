@@ -797,8 +797,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     // ----------------- the ServiceIdentity interface
 
     public ServiceIdentity getServiceIdentity(ResourceContext ctx, String domainName, String serviceName) {
-        
-        final String caller = "getserviceidentity";
+
+        final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
         validateRequest(ctx.request(), principalDomain, caller);
@@ -837,8 +837,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
     public PublicKeyEntry getPublicKeyEntry(ResourceContext ctx, String domainName,
             String serviceName, String keyId) {
-        
-        final String caller = "getpublickeyentry";
+
+        final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
         validateRequest(ctx.request(), principalDomain, caller);
@@ -868,8 +868,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
     
     public ServiceIdentityList getServiceIdentityList(ResourceContext ctx, String domainName) {
-        
-        final String caller = "getserviceidentitylist";
+
+        final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
         validateRequest(ctx.request(), principalDomain, caller);
@@ -913,8 +913,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
 
     public HostServices getHostServices(ResourceContext ctx, String host) {
-        
-        final String caller = "gethostservices";
+
+        final String caller = ctx.getApiName();
 
         final String principalDomain = logPrincipalAndGetDomain(ctx);
         validateRequest(ctx.request(), principalDomain, caller);
@@ -979,8 +979,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
 
     public Response getDomainSignedPolicyData(ResourceContext ctx, String domainName, String matchingTag) {
-        
-        final String caller = "getdomainsignedpolicydata";
+
+        final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
         validateRequest(ctx.request(), principalDomain, caller);
@@ -1133,8 +1133,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
     public TenantDomains getTenantDomains(ResourceContext ctx, String providerDomainName,
             String userName, String roleName, String serviceName) {
-        
-        final String caller = "gettenantdomains";
+
+        final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
         validateRequest(ctx.request(), principalDomain, caller);
@@ -1316,8 +1316,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     @Override
     public RoleToken getRoleToken(ResourceContext ctx, String domainName, String roleNames,
             Integer minExpiryTime, Integer maxExpiryTime, String proxyForPrincipal) {
-        
-        final String caller = "getroletoken";
+
+        final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
         validateRequest(ctx.request(), principalDomain, caller);
@@ -1500,7 +1500,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     @Override
     public AccessTokenResponse postAccessTokenRequest(ResourceContext ctx, String request) {
 
-        final String caller = "postaccesstokenrequest";
+        final String caller = ctx.getApiName();
 
         final String principalDomain = logPrincipalAndGetDomain(ctx);
         validateRequest(ctx.request(), principalDomain, caller);
@@ -1762,8 +1762,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
 
     public RoleAccess getRoleAccess(ResourceContext ctx, String domainName, String principal) {
-        
-        final String caller = "getroleaccess";
+
+        final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
         validateRequest(ctx.request(), principalDomain, caller);
@@ -1803,8 +1803,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     @Override
     public RoleToken postRoleCertificateRequest(ResourceContext ctx, String domainName,
             String roleName, RoleCertificateRequest req) {
-        
-        final String caller = "postrolecertificaterequest";
+
+        final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
         if (readOnlyMode) {
@@ -2125,7 +2125,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     @Override
     public RoleCertificate postRoleCertificateRequestExt(ResourceContext ctx, RoleCertificateRequest req) {
 
-        final String caller = "postrolecertificaterequestext";
+        final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
         if (readOnlyMode) {
@@ -2309,7 +2309,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     public AWSTemporaryCredentials getAWSTemporaryCredentials(ResourceContext ctx, String domainName,
             String roleName, Integer durationSeconds, String externalId) {
 
-        final String caller = "getawstemporarycredentials";
+        final String caller = ctx.getApiName();
 
         // we need to make sure we don't log the external id in
         // our access log files so we're going to set the attribute
@@ -2469,8 +2469,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
     @Override
     public Response postInstanceRegisterInformation(ResourceContext ctx, InstanceRegisterInformation info) {
-        
-        final String caller = "postinstanceregisterinformation";
+
+        final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
         if (readOnlyMode) {
@@ -2783,7 +2783,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     public InstanceIdentity postInstanceRefreshInformation(ResourceContext ctx, String provider,
             String domain, String service, String instanceId, InstanceRefreshInformation info) {
 
-        final String caller = "postinstancerefreshinformation";
+        final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
         if (readOnlyMode) {
@@ -3195,8 +3195,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     @Override
     public void deleteInstanceIdentity(ResourceContext ctx, String provider,
             String domain, String service, String instanceId) {
-        
-        final String caller = "deleteinstanceidentity";
+
+        final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
         if (readOnlyMode) {
@@ -3236,7 +3236,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     public Identity postInstanceRefreshRequest(ResourceContext ctx, String domain,
             String service, InstanceRefreshRequest req) {
 
-        final String caller = "postinstancerefreshrequest";
+        final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
         if (readOnlyMode) {
@@ -3423,7 +3423,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     @Override
     public Response postSSHCertRequest(ResourceContext ctx, SSHCertRequest certRequest) {
 
-        final String caller = "postsshcertrequest";
+        final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
         if (readOnlyMode) {
@@ -3462,7 +3462,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     @Override
     public JWKList getJWKList(ResourceContext ctx, Boolean rfc) {
 
-        final String caller = "getjwklist";
+        final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
         validateRequest(ctx.request(), principalDomain, caller);
@@ -3477,7 +3477,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     public Identity postOSTKInstanceRefreshRequest(ResourceContext ctx, String domain,
             String service, OSTKInstanceRefreshRequest req) {
 
-        final String caller = "postostkinstancerefreshrequest";
+        final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
         if (readOnlyMode) {
@@ -3643,8 +3643,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     @Override
     public ResourceAccess getResourceAccessExt(ResourceContext ctx, String action, String resource,
             String trustDomain, String checkPrincipal) {
-        
-        final String caller = "getaccessext";
+
+        final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
         validateRequest(ctx.request(), principalDomain, caller);
@@ -3658,7 +3658,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     public ResourceAccess getResourceAccess(ResourceContext ctx, String action, String resource,
             String trustDomain, String checkPrincipal) {
 
-        final String caller = "getresourceaccess";
+        final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
         validateRequest(ctx.request(), principalDomain, caller);
@@ -3694,8 +3694,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     @Override
     public Access getAccess(ResourceContext ctx, String domainName, String roleName,
             String principal) {
-        
-        final String caller = "getaccess";
+
+        final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
         
         validateRequest(ctx.request(), principalDomain, caller);
@@ -3743,7 +3743,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
     public CertificateAuthorityBundle getCertificateAuthorityBundle(ResourceContext ctx, String name) {
 
-        final String caller = "getcertificateauthoritybundle";
+        final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
         validateRequest(ctx.request(), name, caller);
@@ -3778,7 +3778,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     public DomainMetrics postDomainMetrics(ResourceContext ctx, String domainName,
             DomainMetrics domainMetrics) {
 
-        final String caller = "postdomainmetrics";
+        final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
         if (readOnlyMode) {
@@ -3842,8 +3842,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     
     @Override
     public Status getStatus(ResourceContext ctx) {
-        
-        final String caller = "getstatus";
+
+        final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
         // validate our request as status request
@@ -4018,14 +4018,15 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
 
     public ResourceContext newResourceContext(HttpServletRequest request,
-                                              HttpServletResponse response) {
-        Object timerMetric = metric.startTiming("zts_api_latency", null);
+                                              HttpServletResponse response,
+                                              String apiName) {
+        Object timerMetric = metric.startTiming("zts_api_latency", null, null, request.getMethod(), apiName.toLowerCase());
         // check to see if we want to allow this URI to be available
         // with optional authentication support
 
         boolean optionalAuth = StringUtils.requestUriMatch(request.getRequestURI(),
                 authFreeUriSet, authFreeUriList);
-        return new RsrcCtxWrapper(request, response, authorities, optionalAuth, authorizer, metric, timerMetric);
+        return new RsrcCtxWrapper(request, response, authorities, optionalAuth, authorizer, metric, timerMetric, apiName);
     }
 
     String getExceptionMsg(String prefix, ResourceContext ctx, Exception ex, String hostname) {
@@ -4092,11 +4093,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return true;
     }
 
-    public void recordMetrics(ResourceContext ctx, String httpMethod, int httpStatus, String apiName) {
+    public void recordMetrics(ResourceContext ctx, int httpStatus) {
         final String principalDomainName = getPrincipalDomain(ctx);
         final String domainName = getRequestDomainName(ctx);
         final Object timerMetric = getTimerMetric(ctx);
+        final String httpMethod = (ctx != null) ? ctx.getHttpMethod() : null;
+        final String apiName = (ctx != null) ? ctx.getApiName() : null;
+        final String timerName = (apiName != null) ? apiName + "_timing" : null;
         metric.increment("zts_api", domainName, principalDomainName, httpMethod, httpStatus, apiName);
-        metric.stopTiming(timerMetric, domainName, principalDomainName, httpMethod, httpStatus, apiName + "_timing");
+        metric.stopTiming(timerMetric, domainName, principalDomainName, httpMethod, httpStatus, timerName);
     }
 }
