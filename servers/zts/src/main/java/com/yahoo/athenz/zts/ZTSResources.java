@@ -16,13 +16,13 @@ public class ZTSResources {
     @GET
     @Path("/access/{action}/{resource}")
     @Produces(MediaType.APPLICATION_JSON)
-    public ResourceAccess getResourceAccess(@PathParam("action") String action, @PathParam("resource") String resource, @QueryParam("domain") String domain, @QueryParam("principal") String checkPrincipal) {
+    public ResourceAccess getResourceAccess(@PathParam("action") String action, @PathParam("resource") String resource, @QueryParam("domain") String domain, @QueryParam("principal") String checkPrincipal, @QueryParam("casesensitive") Boolean isCaseSensitive) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.request, this.response, "getResourceAccess");
             context.authenticate();
-            return this.delegate.getResourceAccess(context, action, resource, domain, checkPrincipal);
+            return this.delegate.getResourceAccess(context, action, resource, domain, checkPrincipal, isCaseSensitive);
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
@@ -46,13 +46,13 @@ public class ZTSResources {
     @GET
     @Path("/access/{action}")
     @Produces(MediaType.APPLICATION_JSON)
-    public ResourceAccess getResourceAccessExt(@PathParam("action") String action, @QueryParam("resource") String resource, @QueryParam("domain") String domain, @QueryParam("principal") String checkPrincipal) {
+    public ResourceAccess getResourceAccessExt(@PathParam("action") String action, @QueryParam("resource") String resource, @QueryParam("domain") String domain, @QueryParam("principal") String checkPrincipal, @QueryParam("casesensitive") Boolean isCaseSensitive) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.request, this.response, "getResourceAccessExt");
             context.authenticate();
-            return this.delegate.getResourceAccessExt(context, action, resource, domain, checkPrincipal);
+            return this.delegate.getResourceAccessExt(context, action, resource, domain, checkPrincipal, isCaseSensitive);
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {

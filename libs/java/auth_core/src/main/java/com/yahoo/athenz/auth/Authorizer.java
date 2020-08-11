@@ -31,4 +31,17 @@ public interface Authorizer {
      * @return true if access is granted for the action/resource/principal
      */
     boolean access(String action, String resource, Principal principal, String crossDomain);
+
+    /**
+     * Check access, return true if access is granted, false otherwise.
+     * @param resource - (ResourceName) the resource to check access against. Must include the domain.
+     * @param action - (CompoundName) the action to check access for
+     * @param principal - (ResourceName) the principal who will access the resource.
+     * @param crossDomain - (DomainName) an alternate domain responsible for the policy involved. This is usually null.
+     * @param isCaseSensitive - If true, do a case sensitive check for resource and action
+     * @return true if access is granted for the action/resource/principal
+     */
+    default boolean access(String action, String resource, Principal principal, String crossDomain, boolean isCaseSensitive) {
+        return access(action, resource, principal, crossDomain);
+    }
 }

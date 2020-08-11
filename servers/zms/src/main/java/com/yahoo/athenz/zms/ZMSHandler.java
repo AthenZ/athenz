@@ -75,9 +75,9 @@ public interface ZMSHandler {
     ProviderResourceGroupRoles putProviderResourceGroupRoles(ResourceContext context, String tenantDomain, String provDomain, String provService, String resourceGroup, String auditRef, ProviderResourceGroupRoles detail);
     ProviderResourceGroupRoles getProviderResourceGroupRoles(ResourceContext context, String tenantDomain, String provDomain, String provService, String resourceGroup);
     void deleteProviderResourceGroupRoles(ResourceContext context, String tenantDomain, String provDomain, String provService, String resourceGroup, String auditRef);
-    Access getAccess(ResourceContext context, String action, String resource, String domain, String checkPrincipal);
-    Access getAccessExt(ResourceContext context, String action, String resource, String domain, String checkPrincipal);
-    ResourceAccessList getResourceAccessList(ResourceContext context, String principal, String action);
+    Access getAccess(ResourceContext context, String action, String resource, String domain, String checkPrincipal, Boolean isCaseSensitive);
+    Access getAccessExt(ResourceContext context, String action, String resource, String domain, String checkPrincipal, Boolean isCaseSensitive);
+    ResourceAccessList getResourceAccessList(ResourceContext context, String principal, String action, Boolean isCaseSensitive);
     Response getSignedDomains(ResourceContext context, String domain, String metaOnly, String metaAttr, Boolean master, String matchingTag);
     JWSDomain getJWSDomain(ResourceContext context, String name);
     UserToken getUserToken(ResourceContext context, String userName, String serviceNames, Boolean header);

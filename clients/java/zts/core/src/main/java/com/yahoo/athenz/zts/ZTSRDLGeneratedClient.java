@@ -48,7 +48,7 @@ public class ZTSRDLGeneratedClient {
         return this;
     }
 
-    public ResourceAccess getResourceAccess(String action, String resource, String domain, String checkPrincipal) {
+    public ResourceAccess getResourceAccess(String action, String resource, String domain, String checkPrincipal, Boolean isCaseSensitive) {
         WebTarget target = base.path("/access/{action}/{resource}")
             .resolveTemplate("action", action)
             .resolveTemplate("resource", resource);
@@ -57,6 +57,9 @@ public class ZTSRDLGeneratedClient {
         }
         if (checkPrincipal != null) {
             target = target.queryParam("principal", checkPrincipal);
+        }
+        if (isCaseSensitive != null) {
+            target = target.queryParam("casesensitive", isCaseSensitive);
         }
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {
@@ -74,7 +77,7 @@ public class ZTSRDLGeneratedClient {
 
     }
 
-    public ResourceAccess getResourceAccessExt(String action, String resource, String domain, String checkPrincipal) {
+    public ResourceAccess getResourceAccessExt(String action, String resource, String domain, String checkPrincipal, Boolean isCaseSensitive) {
         WebTarget target = base.path("/access/{action}")
             .resolveTemplate("action", action);
         if (resource != null) {
@@ -85,6 +88,9 @@ public class ZTSRDLGeneratedClient {
         }
         if (checkPrincipal != null) {
             target = target.queryParam("principal", checkPrincipal);
+        }
+        if (isCaseSensitive != null) {
+            target = target.queryParam("casesensitive", isCaseSensitive);
         }
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {

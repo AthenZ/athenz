@@ -3642,7 +3642,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     
     @Override
     public ResourceAccess getResourceAccessExt(ResourceContext ctx, String action, String resource,
-            String trustDomain, String checkPrincipal) {
+            String trustDomain, String checkPrincipal, Boolean isCaseSensitive) {
 
         final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
@@ -3651,12 +3651,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         validate(action, TYPE_COMPOUND_NAME, principalDomain, caller);
         
         return getResourceAccessCheck(ctx, ((RsrcCtxWrapper) ctx).principal(), action, resource,
-                trustDomain, checkPrincipal);
+                trustDomain, checkPrincipal, isCaseSensitive);
     }
     
     @Override
     public ResourceAccess getResourceAccess(ResourceContext ctx, String action, String resource,
-            String trustDomain, String checkPrincipal) {
+            String trustDomain, String checkPrincipal, Boolean isCaseSensitive) {
 
         final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
@@ -3666,11 +3666,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         validate(resource, TYPE_RESOURCE_NAME, principalDomain, caller);
 
         return getResourceAccessCheck(ctx, ((RsrcCtxWrapper) ctx).principal(), action, resource,
-                trustDomain, checkPrincipal);
+                trustDomain, checkPrincipal, isCaseSensitive);
     }
     
     ResourceAccess getResourceAccessCheck(ResourceContext ctx, Principal principal, String action, String resource,
-            String trustDomain, String checkPrincipal) {
+            String trustDomain, String checkPrincipal, Boolean isCaseSensitive) {
 
         final String domainName = principal.getDomain();
         setRequestDomain(ctx, domainName);
@@ -3686,7 +3686,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // or not the principal has access to the resource
         
         ResourceAccess access = new ResourceAccess();
-        access.setGranted(authorizer.access(action, resource, principal, trustDomain));
+        isCaseSensitive = (isCaseSensitive != null && isCaseSensitive);
+        access.setGranted(authorizer.access(action, resource, principal, trustDomain, isCaseSensitive));
         
         return access;
     }

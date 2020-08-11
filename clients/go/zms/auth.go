@@ -82,6 +82,10 @@ type zmsAuthorizer struct {
 }
 
 func (auth zmsAuthorizer) Authorize(action string, resource string, principal rdl.Principal) (bool, error) {
+	return auth.AuthorizeExt(action, resource, principal, nil)
+}
+
+func (auth zmsAuthorizer) AuthorizeExt(action string, resource string, principal rdl.Principal, isCaseSensitive *bool) (bool, error) {
 	// this should be done before getting here!
 	if !strings.Contains(resource, ":") {
 		// the resource is relative to the service's domain
@@ -96,7 +100,7 @@ func (auth zmsAuthorizer) Authorize(action string, resource string, principal rd
 	}
 	zmsClient := NewClient(auth.url, nil)
 	zmsClient.AddCredentials(principal.GetHTTPHeaderName(), principal.GetCredentials())
-	check, err := zmsClient.GetAccess(ActionName(action), ResourceName(resource), "", "")
+	check, err := zmsClient.GetAccess(ActionName(action), ResourceName(resource), "", "", isCaseSensitive)
 	if err != nil {
 		return false, err
 	}

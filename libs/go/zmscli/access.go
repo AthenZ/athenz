@@ -44,12 +44,12 @@ func (cli Zms) getAccessParameters(dn string, action string, resource string, al
 
 // ShowAccess returns access indicator as string:
 // 'access: granted' or 'access: denied'.
-func (cli Zms) ShowAccess(dn string, action string, resource string, altIdent *string, altDomain *string) (*string, error) {
+func (cli Zms) ShowAccess(dn string, action string, resource string, altIdent *string, altDomain *string, isCaseSensitive *bool) (*string, error) {
 	fullResourceName, trustDomain, altPrincipal, err := cli.getAccessParameters(dn, action, resource, altIdent, altDomain)
 	if err != nil {
 		return nil, err
 	}
-	access, err := cli.Zms.GetAccess(zms.ActionName(action), zms.ResourceName(fullResourceName), zms.DomainName(trustDomain), zms.EntityName(altPrincipal))
+	access, err := cli.Zms.GetAccess(zms.ActionName(action), zms.ResourceName(fullResourceName), zms.DomainName(trustDomain), zms.EntityName(altPrincipal), isCaseSensitive)
 	if err != nil {
 		return nil, err
 	}
@@ -62,12 +62,12 @@ func (cli Zms) ShowAccess(dn string, action string, resource string, altIdent *s
 
 // ShowAccessExt returns access indicator as string:
 // 'access: granted' or 'access: denied'.
-func (cli Zms) ShowAccessExt(dn string, action string, resource string, altIdent *string, altDomain *string) (*string, error) {
+func (cli Zms) ShowAccessExt(dn string, action string, resource string, altIdent *string, altDomain *string, isCaseSensitive *bool) (*string, error) {
 	fullResourceName, trustDomain, altPrincipal, err := cli.getAccessParameters(dn, action, resource, altIdent, altDomain)
 	if err != nil {
 		return nil, err
 	}
-	access, err := cli.Zms.GetAccessExt(zms.ActionName(action), fullResourceName, zms.DomainName(trustDomain), zms.EntityName(altPrincipal))
+	access, err := cli.Zms.GetAccessExt(zms.ActionName(action), fullResourceName, zms.DomainName(trustDomain), zms.EntityName(altPrincipal), isCaseSensitive)
 	if err != nil {
 		return nil, err
 	}
@@ -78,8 +78,8 @@ func (cli Zms) ShowAccessExt(dn string, action string, resource string, altIdent
 	return &s, nil
 }
 
-func (cli Zms) ShowResourceAccess(principal string, action string) (*string, error) {
-	rsrcAccessList, err := cli.Zms.GetResourceAccessList(zms.EntityName(principal), zms.ActionName(action))
+func (cli Zms) ShowResourceAccess(principal string, action string, isCaseSensitive *bool) (*string, error) {
+	rsrcAccessList, err := cli.Zms.GetResourceAccessList(zms.EntityName(principal), zms.ActionName(action), isCaseSensitive)
 	if err != nil {
 		return nil, err
 	}

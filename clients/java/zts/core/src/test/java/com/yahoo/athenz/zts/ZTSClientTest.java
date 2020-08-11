@@ -2453,6 +2453,31 @@ public class ZTSClientTest {
     }
 
     @Test
+    public void testGetResourceAccessCaseSensitive() {
+
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=S1;d=user_domain;n=user;s=sig", PRINCIPAL_AUTHORITY);
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+        client.setZTSRDLGeneratedClient(ztsClientMock);
+
+        ResourceAccess access = client.getResourceAccess("AccesS", "ResourcE", null, null, true);
+        assertTrue(access.getGranted());
+
+        access = client.getResourceAccess("AccesS", "ResourcE1", null, null, true);
+        assertFalse(access.getGranted());
+
+        try {
+            client.getResourceAccess("ExC", "ResourcE", null, null, true);
+            fail();
+        } catch (ZTSClientException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        client.close();
+    }
+
+    @Test
     public void testGetResourceAccessExt() {
 
         ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
@@ -2469,6 +2494,31 @@ public class ZTSClientTest {
 
         try {
             client.getResourceAccessExt("exc", "resource", null, "principal");
+            fail();
+        } catch (ZTSClientException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        client.close();
+    }
+
+    @Test
+    public void testGetResourceAccessExtCaseSensitive() {
+
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=S1;d=user_domain;n=user;s=sig", PRINCIPAL_AUTHORITY);
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+        client.setZTSRDLGeneratedClient(ztsClientMock);
+
+        ResourceAccess access = client.getResourceAccessExt("AccesS", "ResourcE", null, "principal", true);
+        assertTrue(access.getGranted());
+
+        access = client.getResourceAccessExt("AccesS", "ResourcE", null, "principal1", true);
+        assertFalse(access.getGranted());
+
+        try {
+            client.getResourceAccessExt("ExC", "ResourcE", null, "principal", true);
             fail();
         } catch (ZTSClientException ex) {
             assertEquals(ex.getCode(), 400);

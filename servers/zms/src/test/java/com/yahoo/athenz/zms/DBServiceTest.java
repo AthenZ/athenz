@@ -22,6 +22,7 @@ import com.yahoo.athenz.zms.store.ObjectStoreConnection;
 import com.yahoo.athenz.common.server.audit.AuditReferenceValidator;
 import com.yahoo.athenz.zms.store.jdbc.JDBCConnection;
 import com.yahoo.rdl.Timestamp;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -7669,6 +7670,53 @@ public class DBServiceTest {
         assertEquals("employee", zms.dbService.getDomainUserAuthorityFilter(conn, domainName));
 
         zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testExecutePutAssertionActionResourceCaseInsensitive() {
+        // Create domain
+        final String domainName = "test-domain";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        // Create policy
+        final String policyName = "test-policy";
+        Policy policy = createPolicyObject(domainName, policyName);
+
+        zms.dbService.executePutPolicy(mockDomRsrcCtx, domainName, policyName, policy,
+                auditRef, "testExecutePutAssertion");
+
+        // Create new assertion and add to policy
+        Assertion assertion = new Assertion();
+        assertion.setAction("TestACTION").setEffect(AssertionEffect.ALLOW)
+                .setResource("SomeREsource:Tests")
+                .setRole("test-domain:role.readers");
+        Assertion spiedAssertion = spy(assertion);
+
+        zms.dbService.executePutAssertion(mockDomRsrcCtx, domainName, policyName, spiedAssertion, auditRef, "testExecutePutAssertion");
+
+        // Verify the new assertion was inserted with the correct values (and case)
+        ArgumentCaptor<Long> assertionIdCaptur = ArgumentCaptor.forClass(Long.class);
+        verify(spiedAssertion, times(1)).setId(assertionIdCaptur.capture());
+        Long capturedId = assertionIdCaptur.getAllValues().get(0);
+        Assertion assertionResult = zms.dbService.getAssertion(domainName, policyName, capturedId);
+        assertion.setId(capturedId);
+        assertEquals(assertion, assertionResult);
+
+        // Try and insert assertion with the same values but in a different case
+        assertion = new Assertion();
+        assertion.setAction("TESTACTION").setEffect(AssertionEffect.ALLOW)
+                .setResource("SOMERESOURCE:TESTS")
+                .setRole("test-domain:role.readers");
+        spiedAssertion = spy(assertion);
+
+        zms.dbService.executePutAssertion(mockDomRsrcCtx, domainName, policyName, spiedAssertion, auditRef, "testExecutePutAssertion");
+
+        // Verify the assertion will not be inserted as case-sensitivity is ignored
+        verify(spiedAssertion, times(0)).setId(assertionIdCaptur.capture());
+
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 }

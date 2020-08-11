@@ -433,23 +433,40 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
 
     @Override
     public ResourceAccess getResourceAccess(String action, String resource,
-            String trustDomain, String principal) {
-        if (action.equals("exc")) {
+            String trustDomain, String principal, Boolean isCaseSensitive) {
+        boolean caseSensitive = isCaseSensitive != null &&  isCaseSensitive;
+        if (action.equals("exc") && !caseSensitive) {
             throw new ResourceException(400, "Invalid request");
         }
+        if (action.equals("ExC") && caseSensitive) {
+            throw new ResourceException(400, "Invalid request");
+        }
+
         ResourceAccess access = new ResourceAccess();
-        access.setGranted(action.equals("access") && resource.equals("resource"));
+        if (caseSensitive) {
+            access.setGranted(action.equals("AccesS") && resource.equals("ResourcE"));
+        } else {
+            access.setGranted(action.equals("access") && resource.equals("resource"));
+        }
         return access;
     }
 
     @Override
     public ResourceAccess getResourceAccessExt(String action, String resource,
-                                            String trustDomain, String principal) {
-        if (action.equals("exc")) {
+                                            String trustDomain, String principal, Boolean isCaseSensitive) {
+        boolean caseSensitive = isCaseSensitive != null &&  isCaseSensitive;
+        if (action.equals("exc") && !caseSensitive) {
+            throw new ResourceException(400, "Invalid request");
+        }
+        if (action.equals("ExC") && caseSensitive) {
             throw new ResourceException(400, "Invalid request");
         }
         ResourceAccess access = new ResourceAccess();
-        access.setGranted(action.equals("access") && resource.equals("resource") && principal.equals("principal"));
+        if (caseSensitive) {
+            access.setGranted(action.equals("AccesS") && resource.equals("ResourcE") && principal.equals("principal"));
+        } else {
+            access.setGranted(action.equals("access") && resource.equals("resource") && principal.equals("principal"));
+        }
         return access;
     }
 

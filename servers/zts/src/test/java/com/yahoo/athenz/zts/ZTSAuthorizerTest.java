@@ -40,6 +40,7 @@ public class ZTSAuthorizerTest {
         Mockito.when(principal.getAuthority()).thenReturn(authority);
 
         assertFalse(authz.access("op", "resource", principal, null));
+        assertFalse(authz.access("Op", "ResourcE", principal, null, true));
     }
 
     @Test
@@ -54,6 +55,13 @@ public class ZTSAuthorizerTest {
 
         try {
             authz.access("op", "invalid-resource", principal, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+        }
+
+        try {
+            authz.access("Op", "invalid-ResourcE", principal, null, true);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 404);

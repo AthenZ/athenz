@@ -2350,9 +2350,9 @@ func (client ZMSClient) DeleteProviderResourceGroupRoles(tenantDomain DomainName
 	}
 }
 
-func (client ZMSClient) GetAccess(action ActionName, resource ResourceName, domain DomainName, checkPrincipal EntityName) (*Access, error) {
+func (client ZMSClient) GetAccess(action ActionName, resource ResourceName, domain DomainName, checkPrincipal EntityName, isCaseSensitive *bool) (*Access, error) {
 	var data *Access
-	url := client.URL + "/access/" + fmt.Sprint(action) + "/" + fmt.Sprint(resource) + encodeParams(encodeStringParam("domain", string(domain), ""), encodeStringParam("principal", string(checkPrincipal), ""))
+	url := client.URL + "/access/" + fmt.Sprint(action) + "/" + fmt.Sprint(resource) + encodeParams(encodeStringParam("domain", string(domain), ""), encodeStringParam("principal", string(checkPrincipal), ""), encodeOptionalBoolParam("casesensitive", isCaseSensitive))
 	resp, err := client.httpGet(url, nil)
 	if err != nil {
 		return data, err
@@ -2382,9 +2382,9 @@ func (client ZMSClient) GetAccess(action ActionName, resource ResourceName, doma
 	}
 }
 
-func (client ZMSClient) GetAccessExt(action ActionName, resource string, domain DomainName, checkPrincipal EntityName) (*Access, error) {
+func (client ZMSClient) GetAccessExt(action ActionName, resource string, domain DomainName, checkPrincipal EntityName, isCaseSensitive *bool) (*Access, error) {
 	var data *Access
-	url := client.URL + "/access/" + fmt.Sprint(action) + encodeParams(encodeStringParam("resource", string(resource), ""), encodeStringParam("domain", string(domain), ""), encodeStringParam("principal", string(checkPrincipal), ""))
+	url := client.URL + "/access/" + fmt.Sprint(action) + encodeParams(encodeStringParam("resource", string(resource), ""), encodeStringParam("domain", string(domain), ""), encodeStringParam("principal", string(checkPrincipal), ""), encodeOptionalBoolParam("casesensitive", isCaseSensitive))
 	resp, err := client.httpGet(url, nil)
 	if err != nil {
 		return data, err
@@ -2414,9 +2414,9 @@ func (client ZMSClient) GetAccessExt(action ActionName, resource string, domain 
 	}
 }
 
-func (client ZMSClient) GetResourceAccessList(principal EntityName, action ActionName) (*ResourceAccessList, error) {
+func (client ZMSClient) GetResourceAccessList(principal EntityName, action ActionName, isCaseSensitive *bool) (*ResourceAccessList, error) {
 	var data *ResourceAccessList
-	url := client.URL + "/resource" + encodeParams(encodeStringParam("principal", string(principal), ""), encodeStringParam("action", string(action), ""))
+	url := client.URL + "/resource" + encodeParams(encodeStringParam("principal", string(principal), ""), encodeStringParam("action", string(action), ""), encodeOptionalBoolParam("casesensitive", isCaseSensitive))
 	resp, err := client.httpGet(url, nil)
 	if err != nil {
 		return data, err

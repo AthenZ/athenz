@@ -745,8 +745,8 @@ public class ZMSClientMockTest {
         
         rsrcList.setResources(resources);
         
-        Mockito.doReturn(rsrcList).when(mockZMS).getResourceAccessList("user.user", "update");
-        Mockito.doReturn(rsrcEmptyList).when(mockZMS).getResourceAccessList("user.user1", "create");
+        Mockito.doReturn(rsrcList).when(mockZMS).getResourceAccessList("user.user", "update", null);
+        Mockito.doReturn(rsrcEmptyList).when(mockZMS).getResourceAccessList("user.user1", "create", null);
 
         ResourceAccessList rsrcAccessList = zclt.getResourceAccessList("user.user", "update");
         assertNotNull(rsrcAccessList);
@@ -759,7 +759,45 @@ public class ZMSClientMockTest {
         assertNotNull(rsrcAccessList);
         assertNull(rsrcAccessList.getResources());
     }
-    
+
+    @Test
+    public void testGetResourceAccessListCaseSensitive() throws Exception {
+
+        ResourceAccessList rsrcEmptyList = new ResourceAccessList();
+
+        ResourceAccessList rsrcList = new ResourceAccessList();
+
+        ResourceAccess rsrcAccess = new ResourceAccess();
+        rsrcAccess.setPrincipal("user.user");
+        Assertion assertion = new Assertion().setAction("UpdatE").setRole("athenz:role.role1").setResource("athenz:ResourcE1");
+        List<Assertion> assertions = new ArrayList<>();
+        assertions.add(assertion);
+        rsrcAccess.setAssertions(assertions);
+
+        List<ResourceAccess> resources = new ArrayList<>();
+        resources.add(rsrcAccess);
+
+        rsrcList.setResources(resources);
+
+        Mockito.doReturn(rsrcList).when(mockZMS).getResourceAccessList("user.user", "UpdatE", true);
+        Mockito.doReturn(rsrcEmptyList).when(mockZMS).getResourceAccessList("user.user1", "CreatE", true);
+
+        ResourceAccessList rsrcAccessList = zclt.getResourceAccessList("user.user", "UpdatE", true);
+        assertNotNull(rsrcAccessList);
+        assertEquals(rsrcAccessList.getResources().size(), 1);
+
+        rsrcAccess = rsrcAccessList.getResources().get(0);
+        assertEquals(rsrcAccess.getPrincipal(), "user.user");
+        assertEquals(rsrcAccess.getAssertions().size(), 1);
+        assertEquals(rsrcAccess.getAssertions().get(0).getResource(), "athenz:ResourcE1");
+        assertEquals(rsrcAccess.getAssertions().get(0).getAction(), "UpdatE");
+
+
+        rsrcAccessList = zclt.getResourceAccessList("user.user1", "CreatE", true);
+        assertNotNull(rsrcAccessList);
+        assertNull(rsrcAccessList.getResources());
+    }
+
     @Test
     public void testGetPolicies() throws Exception {
 

@@ -202,8 +202,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         ASSERTION {
             void convertToLowerCase(Object obj) {
                 Assertion assertion = (Assertion) obj;
-                assertion.setAction(assertion.getAction().toLowerCase());
-                assertion.setResource(assertion.getResource().toLowerCase());
+                boolean isCaseSensitive = (assertion.getCaseSensitive() != null) ? assertion.getCaseSensitive() : false;
+                if (!isCaseSensitive) {
+                    // Unless explicitly requested, do a case insensitive check for resource and action
+                    assertion.setAction(assertion.getAction().toLowerCase());
+                    assertion.setResource(assertion.getResource().toLowerCase());
+                }
                 assertion.setRole(assertion.getRole().toLowerCase());
             }
         },
@@ -268,7 +272,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 Policy policy = (Policy) obj;
                 policy.setName(policy.getName().toLowerCase());
                 if (policy.getAssertions() != null) {
+                    boolean isCaseSensitive = (policy.getCaseSensitive() != null && policy.getCaseSensitive());
                     for (Assertion assertion : policy.getAssertions()) {
+                        assertion.setCaseSensitive(isCaseSensitive);
                         ASSERTION.convertToLowerCase(assertion);
                     }
                 }
@@ -2266,17 +2272,27 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return homeResource == null ? resource : homeResource;
     }
 
+    @Override
     public boolean access(String action, String resource, Principal principal, String trustDomain) {
+        return access(action, resource, principal, trustDomain, false);
+    }
+
+    @Override
+    public boolean access(String action, String resource, Principal principal, String trustDomain, boolean isCaseSensitive) {
 
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case (e.g. domain, role,
         // policy, service, etc name)
 
-        resource = resource.toLowerCase();
         if (trustDomain != null) {
             trustDomain = trustDomain.toLowerCase();
         }
-        action = action.toLowerCase();
+
+        if (!isCaseSensitive) {
+            // If explicitly requested, do a case sensitive check for resource and action
+            resource = resource.toLowerCase();
+            action = action.toLowerCase();
+        }
 
         // if the resource starts with the user domain and the environment is using
         // a different domain name we'll dynamically update the resource value
@@ -2377,8 +2393,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return evaluateAccess(domain, identity, action, resource, authenticatedRoles, trustDomain);
     }
 
+    @Override
     public Access getAccessExt(ResourceContext ctx, String action, String resource,
-            String trustDomain, String checkPrincipal) {
+            String trustDomain, String checkPrincipal, Boolean isCaseSensitive) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -2387,11 +2404,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validate(action, TYPE_COMPOUND_NAME, caller);
 
         return getAccessCheck(((RsrcCtxWrapper) ctx).principal(), action, resource,
-                trustDomain, checkPrincipal, ctx);
+                trustDomain, checkPrincipal, ctx, isCaseSensitive);
     }
 
+    @Override
     public Access getAccess(ResourceContext ctx, String action, String resource,
-            String trustDomain, String checkPrincipal) {
+            String trustDomain, String checkPrincipal, Boolean isCaseSensitive) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -2401,30 +2419,35 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validate(resource, TYPE_RESOURCE_NAME, caller);
 
         return getAccessCheck(((RsrcCtxWrapper) ctx).principal(), action, resource,
-                trustDomain, checkPrincipal, ctx);
+                trustDomain, checkPrincipal, ctx, isCaseSensitive);
     }
 
     Access getAccessCheck(Principal principal, String action, String resource,
-            String trustDomain, String checkPrincipal, ResourceContext ctx) {
+            String trustDomain, String checkPrincipal, ResourceContext ctx, Boolean isCaseSensitive) {
 
         final String caller = "getaccess";
 
+        boolean caseSensitive = (isCaseSensitive != null && isCaseSensitive);
         if (LOG.isDebugEnabled()) {
             LOG.debug("getAccessCheck:(" + action + ", " + resource + ", " + principal +
-                    ", " + trustDomain + ", " + checkPrincipal + ")");
+                    ", " + trustDomain + ", " + checkPrincipal + ", " + isCaseSensitive + ")");
         }
 
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case (e.g. domain, role,
         // policy, service, etc name)
 
-        action = action.toLowerCase();
-        resource = resource.toLowerCase();
         if (checkPrincipal != null) {
             checkPrincipal = checkPrincipal.toLowerCase();
         }
         if (trustDomain != null) {
             trustDomain = trustDomain.toLowerCase();
+        }
+
+        if (!caseSensitive) {
+            // If explicitly requested, do a case sensitive check for resource and action
+            action = action.toLowerCase();
+            resource = resource.toLowerCase();
         }
 
         // retrieve the domain based on our resource and action/trustDomain pair
@@ -7099,7 +7122,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     @Override
     public ResourceAccessList getResourceAccessList(ResourceContext ctx, String principal,
-            String action) {
+            String action, Boolean isCaseSensitive) {
 
         final String caller = ctx.getApiName();
 
@@ -7107,10 +7130,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateRequest(ctx.request(), caller);
 
+        boolean caseSensitive = (isCaseSensitive != null && isCaseSensitive);
         Principal ctxPrincipal = ((RsrcCtxWrapper) ctx).principal();
         if (LOG.isDebugEnabled()) {
             LOG.debug("getResourceAccessList:(" + ctxPrincipal + ", " + principal
-                    + ", " + action + ")");
+                    + ", " + action + ", " + caseSensitive + ")");
         }
         
         if (principal != null) {
@@ -7119,7 +7143,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
         if (action != null) {
             validate(action, TYPE_COMPOUND_NAME, caller);
-            action = action.toLowerCase();
+            if (!caseSensitive) {
+                action = action.toLowerCase();
+            }
         }
         
         // if principal is null then we it's a special case

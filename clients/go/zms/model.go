@@ -1884,6 +1884,11 @@ type Assertion struct {
 	// operations.
 	//
 	Id *int64 `json:"id,omitempty" rdl:"optional"`
+
+	//
+	// If true, we should store action and resource in their original case
+	//
+	CaseSensitive *bool `json:"caseSensitive,omitempty" rdl:"optional"`
 }
 
 //
@@ -1965,6 +1970,12 @@ type Policy struct {
 	// list of defined assertions for this policy
 	//
 	Assertions []*Assertion `json:"assertions"`
+
+	//
+	// If true, we should store assertion action and resource in their original
+	// case
+	//
+	CaseSensitive *bool `json:"caseSensitive,omitempty" rdl:"optional"`
 }
 
 //

@@ -1046,7 +1046,12 @@ public class ZMSClientTest {
             client.getAccess("UPDATE", "AccessDom1:resource1", "AccessDom1");
             fail();
         } catch (ZMSClientException ex) {
-            assertTrue(true);
+        }
+
+        try {
+            client.getAccess("UPDATE", "AccessDom1:resource1", "AccessDom1", true);
+            fail();
+        } catch (ZMSClientException ex) {
         }
     }
     
@@ -1436,14 +1441,14 @@ public class ZMSClientTest {
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
         try {
-            Mockito.when(c.getResourceAccessList("principal1", "action1")).thenThrow(new NullPointerException());
+            Mockito.when(c.getResourceAccessList("principal1", "action1", null)).thenThrow(new NullPointerException());
             client.getResourceAccessList("principal1", "action1");
             fail();
         } catch (ResourceException ex) {
             assertTrue(true);
         }
         try {
-            Mockito.when(c.getResourceAccessList("principal2", "action2")).thenThrow(new ResourceException(400));
+            Mockito.when(c.getResourceAccessList("principal2", "action2", null)).thenThrow(new ResourceException(400));
             client.getResourceAccessList("principal2", "action2");
             fail();
         } catch (ResourceException ex) {
@@ -2894,7 +2899,7 @@ public class ZMSClientTest {
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
         Access access = new Access().setGranted(true);
-        Mockito.when(c.getAccess("update", "service1", "athenz", "user.johndoe"))
+        Mockito.when(c.getAccess("update", "service1", "athenz", "user.johndoe", null))
                 .thenReturn(access)
                 .thenThrow(new ZMSClientException(401, "fail"))
                 .thenThrow(new IllegalArgumentException("other-error"));
@@ -2923,12 +2928,46 @@ public class ZMSClientTest {
     }
 
     @Test
+    public void testGetAccessCaseSensitive() {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        Access access = new Access().setGranted(true);
+        Mockito.when(c.getAccess("UpdatE", "ServicE1", "athenz", "user.johndoe", true))
+                .thenReturn(access)
+                .thenThrow(new ZMSClientException(401, "fail"))
+                .thenThrow(new IllegalArgumentException("other-error"));
+
+        Access accessCheck = client.getAccess("UpdatE", "ServicE1", "athenz", "user.johndoe", true);
+        assertNotNull(accessCheck);
+        assertTrue(accessCheck.getGranted());
+
+        // second time it fails
+
+        try {
+            client.getAccess("UpdatE", "ServicE1", "athenz", "user.johndoe", true);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(401, ex.getCode());
+        }
+
+        // last time with std exception
+
+        try {
+            client.getAccess("UpdatE", "ServicE1", "athenz", "user.johndoe", true);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(400, ex.getCode());
+        }
+    }
+
+    @Test
     public void testGetAccessExt() {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
         Access access = new Access().setGranted(true);
-        Mockito.when(c.getAccessExt("update", "service1", "athenz", "user.johndoe"))
+        Mockito.when(c.getAccessExt("update", "service1", "athenz", "user.johndoe", false))
                 .thenReturn(access)
                 .thenThrow(new ZMSClientException(401, "fail"))
                 .thenThrow(new IllegalArgumentException("other-error"));
@@ -2950,6 +2989,40 @@ public class ZMSClientTest {
 
         try {
             client.getAccessExt("update", "service1", "athenz", "user.johndoe");
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(400, ex.getCode());
+        }
+    }
+
+    @Test
+    public void testGetAccessExtCaseSensitive() {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        Access access = new Access().setGranted(true);
+        Mockito.when(c.getAccessExt("UpdatE", "ServicE1", "athenz", "user.johndoe", true))
+                .thenReturn(access)
+                .thenThrow(new ZMSClientException(401, "fail"))
+                .thenThrow(new IllegalArgumentException("other-error"));
+
+        Access accessCheck = client.getAccessExt("UpdatE", "ServicE1", "athenz", "user.johndoe", true);
+        assertNotNull(accessCheck);
+        assertTrue(accessCheck.getGranted());
+
+        // second time it fails
+
+        try {
+            client.getAccessExt("UpdatE", "ServicE1", "athenz", "user.johndoe", true);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(401, ex.getCode());
+        }
+
+        // last time with std exception
+
+        try {
+            client.getAccessExt("UpdatE", "ServicE1", "athenz", "user.johndoe", true);
             fail();
         } catch (ZMSClientException ex) {
             assertEquals(400, ex.getCode());

@@ -12,8 +12,8 @@ import javax.servlet.http.HttpServletResponse;
 // ZTSHandler is the interface that the service implementation must implement
 //
 public interface ZTSHandler { 
-    ResourceAccess getResourceAccess(ResourceContext context, String action, String resource, String domain, String checkPrincipal);
-    ResourceAccess getResourceAccessExt(ResourceContext context, String action, String resource, String domain, String checkPrincipal);
+    ResourceAccess getResourceAccess(ResourceContext context, String action, String resource, String domain, String checkPrincipal, Boolean isCaseSensitive);
+    ResourceAccess getResourceAccessExt(ResourceContext context, String action, String resource, String domain, String checkPrincipal, Boolean isCaseSensitive);
     ServiceIdentity getServiceIdentity(ResourceContext context, String domainName, String serviceName);
     ServiceIdentityList getServiceIdentityList(ResourceContext context, String domainName);
     PublicKeyEntry getPublicKeyEntry(ResourceContext context, String domainName, String serviceName, String keyId);

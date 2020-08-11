@@ -236,8 +236,16 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 				return cli.ShowServerTemplate(args[0])
 			}
 		case "show-resource":
-			if argc == 2 {
-				return cli.ShowResourceAccess(args[0], args[1])
+			if argc >= 2 {
+				var isCaseSensitive bool
+				if argc == 3 {
+					var err error
+					isCaseSensitive, err = strconv.ParseBool(args[2])
+					if err != nil {
+						return nil, err
+					}
+				}
+				return cli.ShowResourceAccess(args[0], args[1], &isCaseSensitive)
 			}
 		case "list-user":
 			return cli.ListUsers()
@@ -301,25 +309,41 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 			if argc >= 2 {
 				var trustDomain *string
 				var altPrincipal *string
+				var isCaseSensitive bool
 				if argc > 2 {
 					altPrincipal = &args[2]
 					if argc > 3 {
 						trustDomain = &args[3]
 					}
+					if argc > 4 {
+						var err error
+						isCaseSensitive, err = strconv.ParseBool(args[4])
+						if err != nil {
+							return nil, err
+						}
+					}
 				}
-				return cli.ShowAccess(dn, args[0], args[1], altPrincipal, trustDomain)
+				return cli.ShowAccess(dn, args[0], args[1], altPrincipal, trustDomain, &isCaseSensitive)
 			}
 		case "show-access-ext":
 			if argc >= 2 {
 				var trustDomain *string
 				var altPrincipal *string
+				var isCaseSensitive bool
 				if argc > 2 {
 					altPrincipal = &args[2]
 					if argc > 3 {
 						trustDomain = &args[3]
 					}
+					if argc > 4 {
+						var err error
+						isCaseSensitive, err = strconv.ParseBool(args[4])
+						if err != nil {
+							return nil, err
+						}
+					}
 				}
-				return cli.ShowAccessExt(dn, args[0], args[1], altPrincipal, trustDomain)
+				return cli.ShowAccessExt(dn, args[0], args[1], altPrincipal, trustDomain, &isCaseSensitive)
 			}
 		case "list-role", "list-roles":
 			return cli.ListRoles(dn)
@@ -1058,25 +1082,26 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domain_example + " show-policy admin\n")
 	case "add-policy", "set-policy":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   " + domain_param + " add-policy policy [assertion]\n")
+		buf.WriteString("   " + domain_param + " add-policy policy [assertion] [is_case_sensitive]\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain    : name of the domain to add policy to\n")
 		}
-		buf.WriteString("   policy    : name of the policy\n")
-		buf.WriteString("   assertion : <effect> <action> to <role> on <resource>\n")
-		buf.WriteString("             : effect - grant or deny\n")
-		buf.WriteString("             : action - domain admin defined action available for the resource (e.g. read, write, delete)\n")
-		buf.WriteString("             : role - which role this assertion applies to\n")
-		buf.WriteString("             :        client will prepend 'domain:role.' to role name if not specified\n")
-		buf.WriteString("             : resource - which resource this assertion applies to\n")
-		buf.WriteString("             :            client will prepend 'domain:' to resource if not specified\n")
+		buf.WriteString("   policy    			: name of the policy\n")
+		buf.WriteString("   assertion 			: <effect> <action> to <role> on <resource>\n")
+		buf.WriteString("             			: effect - grant or deny\n")
+		buf.WriteString("           			  	: action - domain admin defined action available for the resource (e.g. read, write, delete)\n")
+		buf.WriteString("            			: role - which role this assertion applies to\n")
+		buf.WriteString("             			:        client will prepend 'domain:role.' to role name if not specified\n")
+		buf.WriteString("             			: resource - which resource this assertion applies to\n")
+		buf.WriteString("             			:            client will prepend 'domain:' to resource if not specified\n")
+		buf.WriteString("   is_case_sensitive 	: optional parameter if true, action and resource will be case-sensitive\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domain_example + " add-policy writers_policy grant write to writers_role on articles.sports\n")
 		buf.WriteString("   " + domain_example + " add-policy readers_policy grant read to readers_role on " + cli.interactiveSingleQuoteString(interactive, "articles.*") + "\n")
 	case "add-assertion":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   " + domain_param + " add-assertion policy assertion\n")
+		buf.WriteString("   " + domain_param + " add-assertion policy assertion [is_case_sensitive]\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain    : name of the domain that policy belongs to\n")
@@ -1089,8 +1114,10 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("             :        client will prepend 'domain:role.' to role name if not specified\n")
 		buf.WriteString("             : resource - which resource this assertion applies to\n")
 		buf.WriteString("             :            client will prepend 'domain:' to resource if not specified\n")
+		buf.WriteString("   is_case_sensitive 	: optional parameter if true, action and resource will be case-sensitive\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domain_example + " add-assertion writers_policy grant write to writers_role on articles.sports\n")
+		buf.WriteString("   " + domain_example + " add-assertion writers_policy grant WRITE to writers_role on articles.SPORTS true\n")
 		buf.WriteString("   " + domain_example + " add-assertion readers_policy grant read to readers_role on " + cli.interactiveSingleQuoteString(interactive, "articles.*") + "\n")
 	case "delete-assertion":
 		buf.WriteString(" syntax:\n")
@@ -1117,7 +1144,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domain_example + " delete-policy readers\n")
 	case "show-access":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   " + domain_param + " show-access action resource [alt_identity [trust_domain]]\n")
+		buf.WriteString("   " + domain_param + " show-access action resource [alt_identity [trust_domain]] [is_case_sensitive]\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain       : name of the domain that resource belongs to\n")
@@ -1128,35 +1155,40 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   alt_identity : run the access check for this identity instead of the caller\n")
 		buf.WriteString("   trust_domain : when checking for cross-domain trust relationship\n")
 		buf.WriteString("                : only check this trusted domain\n")
+		buf.WriteString("   is_case_sensitive 	: optional parameter if true, action and resource will be case-sensitive\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domain_example + " show-access node_sudo node.host1\n")
 		buf.WriteString("   " + domain_example + " show-access node_sudo coretech:node.host1\n")
 		buf.WriteString("   " + domain_example + " show-access node_sudo coretech:node.host1 " + cli.UserDomain + ".john\n")
 	case "show-access-ext":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   " + domain_param + " show-access-ext action resource [alt_identity [trust_domain]]\n")
+		buf.WriteString("   " + domain_param + " show-access-ext action resource [alt_identity [trust_domain]] [is_case_sensitive]\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain       : name of the domain that resource belongs to\n")
 		}
-		buf.WriteString("   action       : access check action value\n")
-		buf.WriteString("   resource     : access check resource (resource name)\n")
-		buf.WriteString("                : client will prepend 'domain:' to resource if not specified\n")
-		buf.WriteString("   alt_identity : run the access check for this identity instead of the caller\n")
-		buf.WriteString("   trust_domain : when checking for cross-domain trust relationship\n")
-		buf.WriteString("                : only check this trusted domain\n")
+		buf.WriteString("   action       		: access check action value\n")
+		buf.WriteString("   resource     		: access check resource (resource name)\n")
+		buf.WriteString("                		: client will prepend 'domain:' to resource if not specified\n")
+		buf.WriteString("   alt_identity 		: run the access check for this identity instead of the caller\n")
+		buf.WriteString("   trust_domain      	: when checking for cross-domain trust relationship\n")
+		buf.WriteString("                		: only check this trusted domain\n")
+		buf.WriteString("   is_case_sensitive 	: optional parameter if true, action and resource will be case-sensitive\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domain_example + " show-access-ext node_sudo node.host1\n")
 		buf.WriteString("   " + domain_example + " show-access-ext node_sudo coretech:node.host1\n")
+		buf.WriteString("   " + domain_example + " show-access-ext NODE_SUDO coretech:node.HOST1 true\n")
 		buf.WriteString("   " + domain_example + " show-access-ext node_sudo coretech:node.host1 " + cli.UserDomain + ".john\n")
 	case "show-resource":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   show-resource principal action\n")
+		buf.WriteString("   show-resource principal action [is_case_sensitive]\n")
 		buf.WriteString(" parameters:\n")
 		buf.WriteString("   principal    : show resources for this principal only\n")
 		buf.WriteString("   action       : assertion action value to filter on\n")
+		buf.WriteString("   is_case_sensitive 	: optional parameter if true, action and resource will be case-sensitive\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   show-resource " + cli.UserDomain + ".user1 update\n")
+		buf.WriteString("   show-resource " + cli.UserDomain + ".user1 UPDATE true\n")
 		buf.WriteString("   show-resource " + cli.UserDomain + ".user1 \"\"\n")
 		buf.WriteString("   show-resource \"\" assume_aws_role\n")
 	case "list-role":
@@ -2026,13 +2058,13 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString(" Policy commands:\n")
 	buf.WriteString("   list-policy\n")
 	buf.WriteString("   show-policy policy\n")
-	buf.WriteString("   add-policy policy [assertion]\n")
-	buf.WriteString("   add-assertion policy assertion\n")
+	buf.WriteString("   add-policy policy [assertion] [is_case_sensitive]\n")
+	buf.WriteString("   add-assertion policy assertion [is_case_sensitive]\n")
 	buf.WriteString("   delete-assertion policy assertion\n")
 	buf.WriteString("   delete-policy policy\n")
-	buf.WriteString("   show-access action resource [alt_identity [trust_domain]]\n")
-	buf.WriteString("   show-access-ext action resource [alt_identity [trust_domain]]\n")
-	buf.WriteString("   show-resource principal action\n")
+	buf.WriteString("   show-access action resource [alt_identity [trust_domain]] [is_case_sensitive]\n")
+	buf.WriteString("   show-access-ext action resource [alt_identity [trust_domain]] [is_case_sensitive]\n")
+	buf.WriteString("   show-resource principal action [is_case_sensitive]\n")
 	buf.WriteString("\n")
 	buf.WriteString(" Role commands:\n")
 	buf.WriteString("   list-role\n")

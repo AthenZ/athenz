@@ -3762,31 +3762,31 @@ public class ZTSImplTest {
         ResourceContext ctx = createResourceContext(principal, null);
 
         // process 
-        ResourceAccess access = zts.getResourceAccess(ctx, "update", domainName + ":table1", null, null);
+        ResourceAccess access = zts.getResourceAccess(ctx, "update", domainName + ":table1", null, null, null);
         assertTrue(access.getGranted());
         
-        access = zts.getResourceAccessExt(ctx, "update", domainName + ":table1", null, null);
+        access = zts.getResourceAccessExt(ctx, "update", domainName + ":table1", null, null, null);
         assertTrue(access.getGranted());
         
-        access = zts.getResourceAccess(ctx, "update", domainName + ":table2", null, null);
+        access = zts.getResourceAccess(ctx, "update", domainName + ":table2", null, null, null);
         assertFalse(access.getGranted());
 
-        access = zts.getResourceAccessExt(ctx, "update", domainName + ":table2", null, null);
+        access = zts.getResourceAccessExt(ctx, "update", domainName + ":table2", null, null, null);
         assertFalse(access.getGranted());
         
-        access = zts.getResourceAccess(ctx, "delete", domainName + ":table1", null, null);
+        access = zts.getResourceAccess(ctx, "delete", domainName + ":table1", null, null, null);
         assertFalse(access.getGranted());
         
-        access = zts.getResourceAccessExt(ctx, "delete", domainName + ":table1", null, null);
+        access = zts.getResourceAccessExt(ctx, "delete", domainName + ":table1", null, null, null);
         assertFalse(access.getGranted());
         
-        access = zts.getResourceAccess(ctx, "update", domainName + ":table1", null, "user.user2");
+        access = zts.getResourceAccess(ctx, "update", domainName + ":table1", null, "user.user2", null);
         assertFalse(access.getGranted());
 
-        access = zts.getResourceAccess(ctx, "update", domainName + ":table1", null, "user.user3");
+        access = zts.getResourceAccess(ctx, "update", domainName + ":table1", null, "user.user3", null);
         assertTrue(access.getGranted());
         
-        access = zts.getResourceAccess(ctx, "update", domainName + ":table2", null, "user.user3");
+        access = zts.getResourceAccess(ctx, "update", domainName + ":table2", null, "user.user3", null);
         assertFalse(access.getGranted());
 
         store.getCacheStore().invalidate(domainName);

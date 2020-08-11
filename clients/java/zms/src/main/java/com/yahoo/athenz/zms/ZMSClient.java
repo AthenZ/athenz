@@ -1742,20 +1742,52 @@ public class ZMSClient implements Closeable {
      * @param resource    resource name. Resource is defined as {DomainName}:{Entity}"
      * @param trustDomain (optional) if the access checks involves cross domain check only
      *                    check the specified trusted domain and ignore all others
+     * @param isCaseSensitive - If true, do a case sensitive check for resource and action
+     * @return Access object indicating whether or not the request will be granted or not
+     * @throws ZMSClientException in case of failure
+     */
+    public Access getAccess(String action, String resource, String trustDomain, boolean isCaseSensitive) {
+        return getAccess(action, resource, trustDomain, null, isCaseSensitive);
+    }
+
+    /**
+     * Requests the ZMS to indicate whether or not the specific request for the
+     * specified resource with authentication details will be granted or not.
+     *
+     * @param action      value of the action to be carried out (e.g. "UPDATE", "DELETE")
+     * @param resource    resource name. Resource is defined as {DomainName}:{Entity}"
+     * @param trustDomain (optional) if the access checks involves cross domain check only
+     *                    check the specified trusted domain and ignore all others
      * @param principal   (optional) carry out the access check for specified principal
      * @return Access object indicating whether or not the request will be granted or not
      * @throws ZMSClientException in case of failure
      */
     public Access getAccess(String action, String resource, String trustDomain, String principal) {
+        return getAccess(action, resource, trustDomain, principal, null);
+    }
+
+    /**
+     * Requests the ZMS to indicate whether or not the specific request for the
+     * specified resource with authentication details will be granted or not.
+     *
+     * @param action      value of the action to be carried out (e.g. "UPDATE", "DELETE")
+     * @param resource    resource name. Resource is defined as {DomainName}:{Entity}"
+     * @param trustDomain (optional) if the access checks involves cross domain check only
+     *                    check the specified trusted domain and ignore all others
+     * @param principal   (optional) carry out the access check for specified principal
+     * @param isCaseSensitive - If true, do a case sensitive check for resource and action
+     * @return Access object indicating whether or not the request will be granted or not
+     * @throws ZMSClientException in case of failure
+     */
+    public Access getAccess(String action, String resource, String trustDomain, String principal, Boolean isCaseSensitive) {
         try {
-            return client.getAccess(action, resource, trustDomain, principal);
+            return client.getAccess(action, resource, trustDomain, principal, isCaseSensitive);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
             throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
         }
     }
-
 
     /**
      * Requests the ZMS to indicate whether or not the specific request for the
@@ -1770,8 +1802,25 @@ public class ZMSClient implements Closeable {
      * @throws ZMSClientException in case of failure
      */
     public Access getAccessExt(String action, String resource, String trustDomain, String principal) {
+        return getAccessExt(action, resource, trustDomain, principal, false);
+    }
+
+    /**
+     * Requests the ZMS to indicate whether or not the specific request for the
+     * specified resource with authentication details will be granted or not.
+     *
+     * @param action      value of the action to be carried out (e.g. "UPDATE", "DELETE")
+     * @param resource    resource string.
+     * @param trustDomain (optional) if the access checks involves cross domain check only
+     *                    check the specified trusted domain and ignore all others
+     * @param principal   (optional) carry out the access check for specified principal
+     * @param isCaseSensitive - If true, do a case sensitive check for resource and action
+     * @return Access object indicating whether or not the request will be granted or not
+     * @throws ZMSClientException in case of failure
+     */
+    public Access getAccessExt(String action, String resource, String trustDomain, String principal, Boolean isCaseSensitive) {
         try {
-            return client.getAccessExt(action, resource, trustDomain, principal);
+            return client.getAccessExt(action, resource, trustDomain, principal, isCaseSensitive);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
@@ -2248,9 +2297,26 @@ public class ZMSClient implements Closeable {
      * @throws ZMSClientException in case of failure
      */
     public ResourceAccessList getResourceAccessList(String principal, String action) {
+        return getResourceAccessList(principal, action, null);
+    }
+
+    /**
+     * Retrieve the list of resources as defined in their respective assertions
+     * that the given principal has access to through their role membership
+     *
+     * @param principal the principal name (e.g. user.joe). Must have special
+     *                  privileges to execute this query without specifying the principal.
+     *                  Check with Athenz Service Administrators if you have a use case to
+     *                  request all principals from Athenz Service
+     * @param action    optional field specifying what action to filter assertions on
+     * @param isCaseSensitive - If true, do a case sensitive check for resource and action
+     * @return ResourceAccessList object that lists the set of assertions per principal
+     * @throws ZMSClientException in case of failure
+     */
+    public ResourceAccessList getResourceAccessList(String principal, String action, Boolean isCaseSensitive) {
         updatePrincipal();
         try {
-            return client.getResourceAccessList(principal, action);
+            return client.getResourceAccessList(principal, action, isCaseSensitive);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {

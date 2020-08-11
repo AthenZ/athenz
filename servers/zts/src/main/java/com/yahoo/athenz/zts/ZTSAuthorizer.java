@@ -51,31 +51,40 @@ public class ZTSAuthorizer implements Authorizer {
 
     @Override
     public boolean access(String op, String resource, Principal principal, String trustDomain) {
-        
+        return access(op, resource, principal, trustDomain, false);
+    }
+
+    @Override
+    public boolean access(String op, String resource, Principal principal, String trustDomain, boolean isCaseSensitive) {
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case (e.g. domain, role,
         // policy, service, etc name)
-        
-        resource = resource.toLowerCase();
+
         if (trustDomain != null) {
             trustDomain = trustDomain.toLowerCase();
         }
-        op = op.toLowerCase();
-        
+
+
+        if (!isCaseSensitive) {
+            // If explicitly requested, do a case sensitive check for resource and action
+            resource = resource.toLowerCase();
+            op = op.toLowerCase();
+        }
+
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("access:(" + op + ", " + resource + ", " + principal + ", " + trustDomain + ")");
         }
-        
+
         // check to see if the authority is allowed to be processed in
         // authorization checks. If this value is false then the principal
         // must get a usertoken from ZMS first and the submit the request
         // with that token
-        
+
         if (!authorityAuthorizationAllowed(principal)) {
             LOGGER.error("Authority is not allowed to support authorization checks");
             return false;
         }
-        
+
         // retrieve our domain based on resource and action/trustDomain pair
         // we want to provider better error reporting to the users so if we get a
         // request where the domain is not found instead of just returning 403
@@ -84,7 +93,7 @@ public class ZTSAuthorizer implements Authorizer {
         // we want to return 404 not found. The rest_core has special handling
         // for rest.ResourceExceptions so we'll throw that exception in this
         // special case of not found domains.
-        
+
         String domainName = retrieveResourceDomain(resource, op, trustDomain);
         if (domainName == null) {
             throw new ResourceException(ResourceException.NOT_FOUND,
@@ -95,7 +104,7 @@ public class ZTSAuthorizer implements Authorizer {
             throw new ResourceException(ResourceException.NOT_FOUND,
                     new ResourceError().code(ResourceException.NOT_FOUND).message("Domain not found"));
         }
-        
+
         AccessStatus accessStatus = evaluateAccess(domain, principal.getFullName(), op, resource, trustDomain);
         return accessStatus == AccessStatus.ALLOWED;
     }

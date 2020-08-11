@@ -195,6 +195,8 @@ public class Http {
                     "Missing 'action' and/or 'resource' parameters");
         }
         if (authorizer != null) {
+            // Always case-insensitive check. This method is only used by ZMS, ZTS and UMS
+            // whose action and resource are always lower-case
             if (!authorizer.access(action, resource, principal, otherDomain)) {
                 throw new ResourceException(ResourceException.FORBIDDEN, "Forbidden");
             }

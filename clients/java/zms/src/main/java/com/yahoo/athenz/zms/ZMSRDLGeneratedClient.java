@@ -1504,7 +1504,7 @@ public class ZMSRDLGeneratedClient {
 
     }
 
-    public Access getAccess(String action, String resource, String domain, String checkPrincipal) {
+    public Access getAccess(String action, String resource, String domain, String checkPrincipal, Boolean isCaseSensitive) {
         WebTarget target = base.path("/access/{action}/{resource}")
             .resolveTemplate("action", action)
             .resolveTemplate("resource", resource);
@@ -1513,6 +1513,9 @@ public class ZMSRDLGeneratedClient {
         }
         if (checkPrincipal != null) {
             target = target.queryParam("principal", checkPrincipal);
+        }
+        if (isCaseSensitive != null) {
+            target = target.queryParam("casesensitive", isCaseSensitive);
         }
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {
@@ -1530,7 +1533,7 @@ public class ZMSRDLGeneratedClient {
 
     }
 
-    public Access getAccessExt(String action, String resource, String domain, String checkPrincipal) {
+    public Access getAccessExt(String action, String resource, String domain, String checkPrincipal, Boolean isCaseSensitive) {
         WebTarget target = base.path("/access/{action}")
             .resolveTemplate("action", action);
         if (resource != null) {
@@ -1542,6 +1545,9 @@ public class ZMSRDLGeneratedClient {
         if (checkPrincipal != null) {
             target = target.queryParam("principal", checkPrincipal);
         }
+        if (isCaseSensitive != null) {
+            target = target.queryParam("casesensitive", isCaseSensitive);
+        }
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {
             invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
@@ -1558,13 +1564,16 @@ public class ZMSRDLGeneratedClient {
 
     }
 
-    public ResourceAccessList getResourceAccessList(String principal, String action) {
+    public ResourceAccessList getResourceAccessList(String principal, String action, Boolean isCaseSensitive) {
         WebTarget target = base.path("/resource");
         if (principal != null) {
             target = target.queryParam("principal", principal);
         }
         if (action != null) {
             target = target.queryParam("action", action);
+        }
+        if (isCaseSensitive != null) {
+            target = target.queryParam("casesensitive", isCaseSensitive);
         }
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {

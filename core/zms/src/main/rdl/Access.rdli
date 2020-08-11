@@ -17,11 +17,12 @@ type Access Struct {
 //the uri and restricted to its strict definition of resource name.
 //If needed, you can use the GetAccessExt api that allows resource
 //name to be less restrictive.
-resource Access GET "/access/{action}/{resource}?domain={domain}&principal={checkPrincipal}" {
+resource Access GET "/access/{action}/{resource}?domain={domain}&principal={checkPrincipal}&casesensitive={isCaseSensitive}" {
     ActionName action; //action as specified in the policy assertion, i.e. update or read
     ResourceName resource; //the resource to check access against, i.e. "media.news:articles"
     DomainName domain (optional); //usually null. If present, it specifies an alternate domain for cross-domain trust relation
     EntityName checkPrincipal (optional); //usually null. If present, carry out the access check for this principal
+    BOOL isCaseSensitive (optional); //usually false. If true, keep action and resource case-sensitive
     authenticate;
     expected OK;
     exceptions {
@@ -36,11 +37,12 @@ resource Access GET "/access/{action}/{resource}?domain={domain}&principal={chec
 //Check access for the specified operation on the specified resource
 //for the currently authenticated user. This is the slow centralized
 //access for control-plane purposes.
-resource Access GET "/access/{action}?resource={resource}&domain={domain}&principal={checkPrincipal}" (name=GetAccessExt) {
+resource Access GET "/access/{action}?resource={resource}&domain={domain}&principal={checkPrincipal}&casesensitive={isCaseSensitive}" (name=GetAccessExt) {
     ActionName action; //action as specified in the policy assertion, i.e. update or read
     String resource; //the resource to check access against, i.e. "media.news:articles"
     DomainName domain (optional); //usually null. If present, it specifies an alternate domain for cross-domain trust relation
     EntityName checkPrincipal (optional); //usually null. If present, carry out the access check for this principal
+    BOOL isCaseSensitive (optional); //usually false. If true, keep action and resource case-sensitive
     authenticate;
     expected OK;
     exceptions {
@@ -64,9 +66,10 @@ type ResourceAccessList Struct {
 //Return list of resources that the given principal has access to. Even though the principal
 //is marked as optional, it must be specified unless the caller has authorization from sys.auth
 //domain to check access for all user principals. (action: access, resource: resource-lookup-all)
-resource ResourceAccessList GET "/resource?principal={principal}&action={action}" {
+resource ResourceAccessList GET "/resource?principal={principal}&action={action}&casesensitive={isCaseSensitive}" {
     EntityName principal (optional); //specifies principal to query the resource list for
     ActionName action (optional); //action as specified in the policy assertion
+    BOOL isCaseSensitive (optional); //usually false. If true, keep action and resource case-sensitive
     authenticate;
     expected OK;
     exceptions {

@@ -92,13 +92,30 @@ public class ZMSAuthorizer implements Authorizer, Closeable {
      * @return boolean indicating whether or not the request will be granted or not
      */
     public boolean access(String action, String resource, String token, String trustDomain) {
-        
+        return access(action, resource, token, trustDomain, false);
+    }
+
+    /**
+     * Requests the ZMS to indicate whether or not the specific request for the
+     * specified resource with authentication details will be granted or not.
+     * @param action value of the action to be carried out (e.g. "UPDATE", "DELETE")
+     * @param resource resource value
+     * @param token either principal token (NToken) or role token (ZToken) that will
+     *        be authenticated and checked for requested access
+     * @param trustDomain (optional - usually null) if the access checks involves cross
+     *        domain check only check the specified trusted domain and ignore all others
+     *        If the token is a role token, this argument must be null.
+     * @param isCaseSensitive - If true, do a case sensitive check for resource and action
+     * @return boolean indicating whether or not the request will be granted or not
+     */
+    public boolean access(String action, String resource, String token, String trustDomain, boolean isCaseSensitive) {
+
         // first let's find out what type of token we're given
         // either Role Token with version Z1 or principal token
         // our token classes will always validate the given
         // token and throw exceptions so we'll always get a valid
         // principal object
-        
+
         Principal principal;
         if (isRoleToken(token)) {
             RoleToken roleToken = new RoleToken(token);
@@ -110,9 +127,9 @@ public class ZMSAuthorizer implements Authorizer, Closeable {
                     principalToken.getName(), principalToken.getSignedToken(),
                     0, PRINCIPAL_AUTHORITY);
         }
-        return access(action, resource, principal, trustDomain);
+        return access(action, resource, principal, trustDomain, isCaseSensitive);
     }
-    
+
     /**
      * Requests the ZMS to indicate whether or not the specific request for the
      * specified resource with authentication details will be granted or not.
@@ -124,31 +141,48 @@ public class ZMSAuthorizer implements Authorizer, Closeable {
      *        domain check only check the specified trusted domain and ignore all others
      * @return boolean indicating whether or not the request will be granted or not
      */
+    @Override
     public boolean access(String action, String resource, Principal principal, String trustDomain) {
-        
+        return access(action, resource, principal, trustDomain, false);
+    }
+
+    /**
+     * Requests the ZMS to indicate whether or not the specific request for the
+     * specified resource with authentication details will be granted or not.
+     * @param action value of the action to be carried out (e.g. "UPDATE", "DELETE")
+     * @param resource resource value
+     * @param principal principal object that will be authenticated and checked for
+     *        requested access
+     * @param trustDomain (optional - usually null) if the access checks involves cross
+     *        domain check only check the specified trusted domain and ignore all others
+     * @param isCaseSensitive - If true, do a case sensitive check for resource and action
+     * @return boolean indicating whether or not the request will be granted or not
+     */
+    @Override
+    public boolean access(String action, String resource, Principal principal, String trustDomain, boolean isCaseSensitive) {
         //the "resource" may be an entity name here, we need a full resource name
-        
+
         String rn = (resource.contains(":")) ? resource : serviceDomain + ":" + resource;
-        
+
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("ZMSAuthorizer.access({}, {}, {}, {})", action, rn,
                     principal != null ? principal.getFullName() : "null", trustDomain);
         }
-        
+
         try {
             client.addCredentials(principal);
-            return client.getAccess(action, rn, trustDomain).getGranted();
+            return client.getAccess(action, rn, trustDomain, isCaseSensitive).getGranted();
         } catch (ZMSClientException e) {
-            
+
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("ZMSAuthorizer.access: " + e);
             }
-            
+
             switch (e.getCode()) {
-            case ZMSClientException.NOT_FOUND:
-                throw new ZMSClientException(ZMSClientException.FORBIDDEN, "Not found: " + rn);
-            default:
-                throw e;
+                case ZMSClientException.NOT_FOUND:
+                    throw new ZMSClientException(ZMSClientException.FORBIDDEN, "Not found: " + rn);
+                default:
+                    throw e;
             }
         } catch (Throwable th) {
             throw new ZMSClientException(ZMSClientException.FORBIDDEN, "Cannot contact ZMS");

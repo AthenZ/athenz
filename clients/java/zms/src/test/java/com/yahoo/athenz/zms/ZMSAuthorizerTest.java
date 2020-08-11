@@ -23,6 +23,8 @@ import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.zms.ZMSAuthorizer;
 
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
 import static org.testng.Assert.*;
 
 import java.util.ArrayList;
@@ -72,12 +74,12 @@ public class ZMSAuthorizerTest {
         ZMSClient mockZMSClient = Mockito.mock(ZMSClient.class);
         authorizer.setZMSClient(mockZMSClient);
         Access accessMock = Mockito.mock(Access.class);
-        Mockito.when(mockZMSClient.getAccess("UPDATE", "authorizerdom1:resource1", "authorizerdom1"))
+        Mockito.when(mockZMSClient.getAccess("UPDATE", "authorizerdom1:resource1", "authorizerdom1", false))
             .thenReturn(accessMock);
-        Mockito.when(mockZMSClient.getAccess("UPDATE", "authorizerdom1:resource1", null))
+        Mockito.when(mockZMSClient.getAccess("UPDATE", "authorizerdom1:resource1", null, false))
             .thenReturn(accessMock);
         Mockito.when(accessMock.getGranted()).thenReturn(true, true, true, false, false, false, true, true);
-        Mockito.when(zmsRdlClient.getAccess("UPDATE", "authorizerdom1:resource1", "authorizerdom1", null))
+        Mockito.when(zmsRdlClient.getAccess("UPDATE", "authorizerdom1:resource1", "authorizerdom1", null, null))
                 .thenReturn(accessMock);
 
         boolean access = authorizer.access("UPDATE", "resource1", p1, domain);
@@ -138,6 +140,64 @@ public class ZMSAuthorizerTest {
     }
 
     @Test
+    public void testAuthorizerCaseSensitive() {
+        ZMSClient client = getClient(systemAdminUser);
+        String domain = "authorizerdom1";
+        ZMSAuthorizer authorizer = new ZMSAuthorizer(zmsUrl, domain);
+        assertNotNull(authorizer);
+
+        ZMSClient mockZMSClient = Mockito.mock(ZMSClient.class);
+        authorizer.setZMSClient(mockZMSClient);
+
+        ZMSRDLGeneratedClient zmsRdlClient = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(zmsRdlClient);
+
+        Principal p1 = createPrincipal("user1");
+
+        Access accessMock = Mockito.mock(Access.class);
+        Mockito.when(mockZMSClient.getAccess("UPDATE", "authorizerdom1:resource1", "authorizerdom1", false))
+                .thenReturn(accessMock);
+
+        Mockito.when(mockZMSClient.getAccess("Update", "authorizerdom1:Resource1", "authorizerdom1", true))
+                .thenReturn(accessMock);
+
+        Mockito.when(mockZMSClient.getAccess("UPDATE_TOKEN", "authorizerdom1:resource1", "authorizerdom1", false))
+                .thenReturn(accessMock);
+
+        Mockito.when(mockZMSClient.getAccess("Update_Token", "authorizerdom1:Resource1", "authorizerdom1", true))
+                .thenReturn(accessMock);
+
+        authorizer.access("UPDATE", "resource1", p1, domain, false);
+        Mockito.verify(mockZMSClient, times(1)).getAccess(
+                eq("UPDATE"),
+                eq("authorizerdom1:resource1"),
+                eq("authorizerdom1"),
+                eq(false));
+
+        authorizer.access("Update", "Resource1", p1, domain, true);
+        Mockito.verify(mockZMSClient, times(1)).getAccess(
+                eq("Update"),
+                eq("authorizerdom1:Resource1"),
+                eq("authorizerdom1"),
+                eq(true));
+
+        String principalToken1 = "v=U1;d=user;n=user1;s=signature";
+        authorizer.access("UPDATE_TOKEN", "resource1", principalToken1, domain, false);
+        Mockito.verify(mockZMSClient, times(1)).getAccess(
+                eq("UPDATE_TOKEN"),
+                eq("authorizerdom1:resource1"),
+                eq("authorizerdom1"),
+                eq(false));
+
+        authorizer.access("Update_Token", "Resource1", principalToken1, domain, true);
+        Mockito.verify(mockZMSClient, times(1)).getAccess(
+                eq("Update_Token"),
+                eq("authorizerdom1:Resource1"),
+                eq("authorizerdom1"),
+                eq(true));
+    }
+
+    @Test
     public void testAuthorizerNoEndpoint() {
         String domain = "AuthorizerDom2";
         ZMSAuthorizer authorizer = new ZMSAuthorizer(domain);
@@ -172,7 +232,7 @@ public class ZMSAuthorizerTest {
         Mockito.when(mockZMSClient.getAccess("UPDATE", "AuthorizerDom3:resource1", "AuthorizerDom3"))
                 .thenReturn(accessMock);
         Mockito.when(accessMock.getGranted()).thenReturn(true, false, true);
-        Mockito.when(c.getAccess("UPDATE", "AuthorizerDom3:resource1", "AuthorizerDom3", null)).thenReturn(accessMock);
+        Mockito.when(c.getAccess("UPDATE", "AuthorizerDom3:resource1", "AuthorizerDom3", null, null)).thenReturn(accessMock);
         try {
             Mockito.when(mockZMSClient.addCredentials(p1)).thenThrow(new ResourceException(204));
             authorizer.access("UPDATE", domain + ":resource1", p1, domain);
@@ -224,10 +284,10 @@ public class ZMSAuthorizerTest {
 
         // only user1 and user3 have access to UPDATE/resource1
         Access accessMock = Mockito.mock(Access.class);
-        Mockito.when(mockZMSClient.getAccess("UPDATE", "AuthorizerDom3:resource1", "AuthorizerDom3"))
+        Mockito.when(mockZMSClient.getAccess("UPDATE", "AuthorizerDom3:resource1", "AuthorizerDom3", false))
                 .thenReturn(accessMock);
         Mockito.when(accessMock.getGranted()).thenReturn(true, false, true);
-        Mockito.when(c.getAccess("UPDATE", "AuthorizerDom3:resource1", "AuthorizerDom3", null)).thenReturn(accessMock);
+        Mockito.when(c.getAccess("UPDATE", "AuthorizerDom3:resource1", "AuthorizerDom3", null, null)).thenReturn(accessMock);
         boolean access = authorizer.access("UPDATE", domain + ":resource1", p1, domain);
         assertTrue(access);
 
@@ -266,10 +326,10 @@ public class ZMSAuthorizerTest {
         ZMSClient mockZMSClient = Mockito.mock(ZMSClient.class);
         authorizer.setZMSClient(mockZMSClient);
         Access accessMock = Mockito.mock(Access.class);
-        Mockito.when(mockZMSClient.getAccess("UPDATE", "AuthorizerDom4:resource1", "AuthorizerDom4"))
+        Mockito.when(mockZMSClient.getAccess("UPDATE", "AuthorizerDom4:resource1", "AuthorizerDom4", false))
                 .thenReturn(accessMock);
         Mockito.when(accessMock.getGranted()).thenReturn(true, false, true);
-        Mockito.when(c.getAccess("UPDATE", "AuthorizerDom4:resource1", "AuthorizerDom4", null)).thenReturn(accessMock);
+        Mockito.when(c.getAccess("UPDATE", "AuthorizerDom4:resource1", "AuthorizerDom4", null, null)).thenReturn(accessMock);
         boolean access = authorizer.access("UPDATE", domain + ":resource1", p1, domain);
         assertTrue(access);
 

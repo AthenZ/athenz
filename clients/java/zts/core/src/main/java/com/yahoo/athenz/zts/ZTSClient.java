@@ -2608,9 +2608,24 @@ public class ZTSClient implements Closeable {
      * @return ResourceAccess object indicating whether or not the request will be granted or not
      */
     public ResourceAccess getResourceAccess(String action, String resource, String trustDomain, String principal) {
+        return getResourceAccess(action, resource, trustDomain, principal, false);
+    }
+
+    /**
+     * Requests the ZTS to indicate whether or not the specific request for the
+     * specified resource with authentication details will be granted or not.
+     * @param action value of the action to be carried out (e.g. "UPDATE", "DELETE")
+     * @param resource resource YRN. YRN is defined as {ServiceName})?:({LocationName})?:)?{ResourceName}"
+     * @param trustDomain (optional) if the access checks involves cross domain check only
+     *        check the specified trusted domain and ignore all others
+     * @param principal (optional) carry out the access check for specified principal
+     * @param isCaseSensitive - If true, do a case sensitive check for resource and action
+     * @return ResourceAccess object indicating whether or not the request will be granted or not
+     */
+    public ResourceAccess getResourceAccess(String action, String resource, String trustDomain, String principal, boolean isCaseSensitive) {
         updateServicePrincipal();
         try {
-            return ztsClient.getResourceAccess(action, resource, trustDomain, principal);
+            return ztsClient.getResourceAccess(action, resource, trustDomain, principal, isCaseSensitive);
         } catch (ResourceException ex) {
             throw new ZTSClientException(ex.getCode(), ex.getMessage());
         } catch (Exception ex) {
@@ -2629,16 +2644,31 @@ public class ZTSClient implements Closeable {
      * @return ResourceAccess object indicating whether or not the request will be granted or not
      */
     public ResourceAccess getResourceAccessExt(String action, String resource, String trustDomain, String principal) {
+        return getResourceAccessExt(action, resource, trustDomain, principal, false);
+    }
+
+    /**
+     * Requests the ZTS to indicate whether or not the specific request for the
+     * specified resource with authentication details will be granted or not.
+     * @param action value of the action to be carried out (e.g. "UPDATE", "DELETE")
+     * @param resource resource YRN. YRN is defined as {ServiceName})?:({LocationName})?:)?{ResourceName}"
+     * @param trustDomain (optional) if the access checks involves cross domain check only
+     *        check the specified trusted domain and ignore all others
+     * @param principal (optional) carry out the access check for specified principal
+     * @param isCaseSensitive - If true, do a case sensitive check for resource and action
+     * @return ResourceAccess object indicating whether or not the request will be granted or not
+     */
+    public ResourceAccess getResourceAccessExt(String action, String resource, String trustDomain, String principal, boolean isCaseSensitive) {
         updateServicePrincipal();
         try {
-            return ztsClient.getResourceAccessExt(action, resource, trustDomain, principal);
+            return ztsClient.getResourceAccessExt(action, resource, trustDomain, principal, isCaseSensitive);
         } catch (ResourceException ex) {
             throw new ZTSClientException(ex.getCode(), ex.getMessage());
         } catch (Exception ex) {
             throw new ZTSClientException(ZTSClientException.BAD_REQUEST, ex.getMessage());
         }
     }
-    
+
     /**
      * Caller may post set of domain metric attributes for monitoring and logging.
      * ZTSClientException will be thrown in case of failure

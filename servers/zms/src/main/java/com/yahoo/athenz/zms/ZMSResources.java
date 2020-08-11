@@ -2102,13 +2102,13 @@ public class ZMSResources {
     @GET
     @Path("/access/{action}/{resource}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Access getAccess(@PathParam("action") String action, @PathParam("resource") String resource, @QueryParam("domain") String domain, @QueryParam("principal") String checkPrincipal) {
+    public Access getAccess(@PathParam("action") String action, @PathParam("resource") String resource, @QueryParam("domain") String domain, @QueryParam("principal") String checkPrincipal, @QueryParam("casesensitive") Boolean isCaseSensitive) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.request, this.response, "getAccess");
             context.authenticate();
-            return this.delegate.getAccess(context, action, resource, domain, checkPrincipal);
+            return this.delegate.getAccess(context, action, resource, domain, checkPrincipal, isCaseSensitive);
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
@@ -2134,13 +2134,13 @@ public class ZMSResources {
     @GET
     @Path("/access/{action}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Access getAccessExt(@PathParam("action") String action, @QueryParam("resource") String resource, @QueryParam("domain") String domain, @QueryParam("principal") String checkPrincipal) {
+    public Access getAccessExt(@PathParam("action") String action, @QueryParam("resource") String resource, @QueryParam("domain") String domain, @QueryParam("principal") String checkPrincipal, @QueryParam("casesensitive") Boolean isCaseSensitive) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.request, this.response, "getAccessExt");
             context.authenticate();
-            return this.delegate.getAccessExt(context, action, resource, domain, checkPrincipal);
+            return this.delegate.getAccessExt(context, action, resource, domain, checkPrincipal, isCaseSensitive);
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
@@ -2166,13 +2166,13 @@ public class ZMSResources {
     @GET
     @Path("/resource")
     @Produces(MediaType.APPLICATION_JSON)
-    public ResourceAccessList getResourceAccessList(@QueryParam("principal") String principal, @QueryParam("action") String action) {
+    public ResourceAccessList getResourceAccessList(@QueryParam("principal") String principal, @QueryParam("action") String action, @QueryParam("casesensitive") Boolean isCaseSensitive) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.request, this.response, "getResourceAccessList");
             context.authenticate();
-            return this.delegate.getResourceAccessList(context, principal, action);
+            return this.delegate.getResourceAccessList(context, principal, action, isCaseSensitive);
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
