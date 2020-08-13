@@ -13,6 +13,7 @@ include "Domain.rdli";
 include "DomainDataCheck.rdli";
 include "Entity.rdli";
 include "Role.rdli";
+include "Group.rdli";
 include "Policy.rdli";
 include "ServiceIdentity.rdli";
 include "Tenancy.rdli";

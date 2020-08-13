@@ -7719,6 +7719,84 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         dbService.executePutRoleReview(ctx, domainName, roleName, role, auditRef, caller);
     }
 
+    @Override
+    public Groups getGroups(ResourceContext ctx, String domainName, Boolean members) {
+        final String caller = ctx.getApiName();
+        throw ZMSUtils.requestError("Not yet implemented", caller);
+    }
+
+    @Override
+    public Group getGroup(ResourceContext ctx, String domainName, String groupName, Boolean auditLog, Boolean pending) {
+        final String caller = ctx.getApiName();
+        throw ZMSUtils.requestError("Not yet implemented", caller);
+    }
+
+    @Override
+    public void putGroup(ResourceContext ctx, String domainName, String groupName, String auditRef, Group group) {
+        final String caller = ctx.getApiName();
+        throw ZMSUtils.requestError("Not yet implemented", caller);
+    }
+
+    @Override
+    public void deleteGroup(ResourceContext ctx, String domainName, String groupName, String auditRef) {
+        final String caller = ctx.getApiName();
+        throw ZMSUtils.requestError("Not yet implemented", caller);
+    }
+
+    @Override
+    public GroupMembership getGroupMembership(ResourceContext ctx, String domainName, String groupName, String memberName, String expiration) {
+        final String caller = ctx.getApiName();
+        throw ZMSUtils.requestError("Not yet implemented", caller);
+    }
+
+    @Override
+    public DomainGroupMember getPrincipalGroups(ResourceContext ctx, String principal, String domainName) {
+        final String caller = ctx.getApiName();
+        throw ZMSUtils.requestError("Not yet implemented", caller);
+    }
+
+    @Override
+    public void putGroupMembership(ResourceContext ctx, String domainName, String groupName, String memberName, String auditRef, GroupMembership membership) {
+        final String caller = ctx.getApiName();
+        throw ZMSUtils.requestError("Not yet implemented", caller);
+    }
+
+    @Override
+    public void deleteGroupMembership(ResourceContext ctx, String domainName, String groupName, String memberName, String auditRef) {
+        final String caller = ctx.getApiName();
+        throw ZMSUtils.requestError("Not yet implemented", caller);
+    }
+
+    @Override
+    public void deletePendingGroupMembership(ResourceContext ctx, String domainName, String groupName, String memberName, String auditRef) {
+        final String caller = ctx.getApiName();
+        throw ZMSUtils.requestError("Not yet implemented", caller);
+    }
+
+    @Override
+    public void putGroupSystemMeta(ResourceContext ctx, String domainName, String groupName, String attribute, String auditRef, GroupSystemMeta detail) {
+        final String caller = ctx.getApiName();
+        throw ZMSUtils.requestError("Not yet implemented", caller);
+    }
+
+    @Override
+    public void putGroupMeta(ResourceContext ctx, String domainName, String groupName, String auditRef, GroupMeta detail) {
+        final String caller = ctx.getApiName();
+        throw ZMSUtils.requestError("Not yet implemented", caller);
+    }
+
+    @Override
+    public void putGroupMembershipDecision(ResourceContext ctx, String domainName, String groupName, String memberName, String auditRef, GroupMembership membership) {
+        final String caller = ctx.getApiName();
+        throw ZMSUtils.requestError("Not yet implemented", caller);
+    }
+
+    @Override
+    public void putGroupReview(ResourceContext ctx, String domainName, String groupName, String auditRef, Group group) {
+        final String caller = ctx.getApiName();
+        throw ZMSUtils.requestError("Not yet implemented", caller);
+    }
+
     void validateUserAuthorityFilterAttribute(final String authorityFilter, final String caller)  {
 
         if (authorityFilter != null && !authorityFilter.isEmpty()) {

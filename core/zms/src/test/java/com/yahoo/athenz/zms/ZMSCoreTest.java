@@ -2086,6 +2086,7 @@ public class ZMSCoreTest {
 
     @Test
     public void testTemplateMetaData() {
+
         Schema schema = ZMSSchema.instance();
         Validator validator = new Validator(schema);
         Timestamp timestamp = Timestamp.fromMillis(System.currentTimeMillis());
@@ -2099,10 +2100,7 @@ public class ZMSCoreTest {
                 .setKeywordsToReplace("none")
                 .setTimestamp(timestamp);
 
-        Template temp = new Template()
-                .setMetadata(meta);
-
-        assertTrue(temp.equals(temp));
+        assertTrue(meta.equals(meta));
 
         Result result = validator.validate(meta, "TemplateMetaData");
         assertTrue(result.valid);
@@ -2115,60 +2113,66 @@ public class ZMSCoreTest {
         assertEquals(meta.getTimestamp(), timestamp);
 
         TemplateMetaData meta1 = new TemplateMetaData();
-        meta1.setAutoUpdate(false)
+        meta1.setAutoUpdate(true)
+                .setTemplateName("test")
                 .setCurrentVersion(1)
                 .setDescription("test template")
                 .setLatestVersion(2)
                 .setKeywordsToReplace("none")
-                .setTimestamp(timestamp)
-                .setTemplateName("test");
-        Template temp1 = new Template()
-                .setMetadata(meta1);
-        assertFalse(temp.equals(temp1));
+                .setTimestamp(timestamp);
 
-        Template temp0 = new Template().setMetadata(null);
-        assertFalse(temp.equals(temp0));
-
-        meta1.setTemplateName(null);
-        Template temp2 = new Template().setMetadata(meta1);
-        assertFalse(temp.equals(temp2));
-
-        meta1.setTemplateName("test");
-        meta1.setCurrentVersion(null);
-        temp2.setMetadata(meta1);
-        assertFalse(temp.equals(temp2));
-
-        meta1.setCurrentVersion(1);
-        meta1.setTimestamp(null);
-        temp2.setMetadata(meta1);
-        assertFalse(temp.equals(temp2));
-
-        meta1.setTimestamp(timestamp);
-        meta1.setDescription(null);
-        temp2.setMetadata(meta1);
-        assertFalse(temp.equals(temp2));
-
-        meta1.setDescription("test template");
-        meta1.setKeywordsToReplace(null);
-        temp2.setMetadata(meta1);
-        assertFalse(temp.equals(temp2));
-
-        meta1.setKeywordsToReplace("none");
-        meta1.setLatestVersion(null);
-        temp2.setMetadata(meta1);
-        assertFalse(temp.equals(temp2));
-
-        meta1.setLatestVersion(2);
-        meta1.setAutoUpdate(null);
-        temp2.setMetadata(meta1);
-        assertFalse(temp.equals(temp2));
-
-
-        assertFalse(temp.equals(null));
+        assertTrue(meta.equals(meta1));
+        assertFalse(meta.equals(null));
+        assertFalse(meta.equals(new Integer(3)));
 
         meta1.setAutoUpdate(false);
-        assertEquals(temp2.getMetadata(),temp1.getMetadata());
+        assertFalse(meta1.equals(meta));
+        meta1.setAutoUpdate(null);
+        assertFalse(meta1.equals(meta));
+        meta1.setAutoUpdate(true);
+        assertTrue(meta1.equals(meta));
 
+        meta1.setCurrentVersion(2);
+        assertFalse(meta1.equals(meta));
+        meta1.setCurrentVersion(null);
+        assertFalse(meta1.equals(meta));
+        meta1.setCurrentVersion(1);
+        assertTrue(meta1.equals(meta));
+
+        meta1.setDescription("test test");
+        assertFalse(meta1.equals(meta));
+        meta1.setDescription(null);
+        assertFalse(meta1.equals(meta));
+        meta1.setDescription("test template");
+        assertTrue(meta1.equals(meta));
+
+        meta1.setLatestVersion(3);
+        assertFalse(meta1.equals(meta));
+        meta1.setLatestVersion(null);
+        assertFalse(meta1.equals(meta));
+        meta1.setLatestVersion(2);
+        assertTrue(meta1.equals(meta));
+
+        meta1.setKeywordsToReplace("service");
+        assertFalse(meta1.equals(meta));
+        meta1.setKeywordsToReplace(null);
+        assertFalse(meta1.equals(meta));
+        meta1.setKeywordsToReplace("none");
+        assertTrue(meta1.equals(meta));
+
+        meta1.setTimestamp(Timestamp.fromMillis(100));
+        assertFalse(meta1.equals(meta));
+        meta1.setTimestamp(null);
+        assertFalse(meta1.equals(meta));
+        meta1.setTimestamp(timestamp);
+        assertTrue(meta1.equals(meta));
+
+        meta1.setTemplateName("test2");
+        assertFalse(meta1.equals(meta));
+        meta1.setTemplateName(null);
+        assertFalse(meta1.equals(meta));
+        meta1.setTemplateName("test");
+        assertTrue(meta1.equals(meta));
     }
 
     @Test
@@ -2375,8 +2379,11 @@ public class ZMSCoreTest {
         List<Policy> pl = Arrays.asList(new Policy().setName("sys.auth:policy.test-policy")
                 .setAssertions(assertions).setModified(Timestamp.fromMillis(123456789123L)));
 
+        TemplateMetaData meta = new TemplateMetaData();
+
         List<ServiceIdentity> sl = new ArrayList<>();
-        Template t = new Template().setRoles(rl).setPolicies(pl).setServices(sl);
+        Template t = new Template().setRoles(rl).setPolicies(pl).setServices(sl)
+                .setMetadata(meta);
 
         Result result = validator.validate(t, "Template");
         assertTrue(result.valid, result.error);
@@ -2384,17 +2391,24 @@ public class ZMSCoreTest {
         assertEquals(t.getPolicies(), pl);
         assertEquals(t.getRoles(), rl);
         assertEquals(t.getServices(), sl);
+        assertEquals(t.getMetadata(), meta);
 
-        Template t2 = new Template().setRoles(rl).setPolicies(pl).setServices(sl);
+        Template t2 = new Template().setRoles(rl).setPolicies(pl).setServices(sl).setMetadata(meta);
         assertTrue(t2.equals(t));
         assertTrue(t.equals(t));
 
         t2.setServices(null);
         assertFalse(t2.equals(t));
+        t2.setServices(sl);
         t2.setPolicies(null);
         assertFalse(t2.equals(t));
+        t2.setPolicies(pl);
         t2.setRoles(null);
         assertFalse(t2.equals(t));
+        t2.setRoles(rl);
+        t2.setMetadata(null);
+        assertFalse(t2.equals(t));
+        t2.setMetadata(meta);
 
         assertFalse(t2.equals(null));
         assertFalse(t.equals(new String()));
