@@ -1197,6 +1197,444 @@ public class ZMSResources {
     }
 
     @GET
+    @Path("/domain/{domainName}/groups")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Groups getGroups(@PathParam("domainName") String domainName, @QueryParam("members") @DefaultValue("false") Boolean members) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.request, this.response, "getGroups");
+            context.authenticate();
+            return this.delegate.getGroups(context, domainName, members);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource getGroups");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @GET
+    @Path("/domain/{domainName}/group/{groupName}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Group getGroup(@PathParam("domainName") String domainName, @PathParam("groupName") String groupName, @QueryParam("auditLog") @DefaultValue("false") Boolean auditLog, @QueryParam("pending") @DefaultValue("false") Boolean pending) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.request, this.response, "getGroup");
+            context.authenticate();
+            return this.delegate.getGroup(context, domainName, groupName, auditLog, pending);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource getGroup");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @PUT
+    @Path("/domain/{domainName}/group/{groupName}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public void putGroup(@PathParam("domainName") String domainName, @PathParam("groupName") String groupName, @HeaderParam("Y-Audit-Ref") String auditRef, Group group) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.request, this.response, "putGroup");
+            context.authorize("update", "" + domainName + ":group." + groupName + "", null);
+            this.delegate.putGroup(context, domainName, groupName, auditRef, group);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.CONFLICT:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource putGroup");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @DELETE
+    @Path("/domain/{domainName}/group/{groupName}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public void deleteGroup(@PathParam("domainName") String domainName, @PathParam("groupName") String groupName, @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.request, this.response, "deleteGroup");
+            context.authorize("delete", "" + domainName + ":group." + groupName + "", null);
+            this.delegate.deleteGroup(context, domainName, groupName, auditRef);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.CONFLICT:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource deleteGroup");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @GET
+    @Path("/domain/{domainName}/group/{groupName}/member/{memberName}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public GroupMembership getGroupMembership(@PathParam("domainName") String domainName, @PathParam("groupName") String groupName, @PathParam("memberName") String memberName, @QueryParam("expiration") String expiration) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.request, this.response, "getGroupMembership");
+            context.authenticate();
+            return this.delegate.getGroupMembership(context, domainName, groupName, memberName, expiration);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource getGroupMembership");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @GET
+    @Path("/group")
+    @Produces(MediaType.APPLICATION_JSON)
+    public DomainGroupMember getPrincipalGroups(@QueryParam("principal") String principal, @QueryParam("domain") String domainName) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.request, this.response, "getPrincipalGroups");
+            context.authenticate();
+            return this.delegate.getPrincipalGroups(context, principal, domainName);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource getPrincipalGroups");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @PUT
+    @Path("/domain/{domainName}/group/{groupName}/member/{memberName}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public void putGroupMembership(@PathParam("domainName") String domainName, @PathParam("groupName") String groupName, @PathParam("memberName") String memberName, @HeaderParam("Y-Audit-Ref") String auditRef, GroupMembership membership) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.request, this.response, "putGroupMembership");
+            context.authenticate();
+            this.delegate.putGroupMembership(context, domainName, groupName, memberName, auditRef, membership);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.CONFLICT:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource putGroupMembership");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @DELETE
+    @Path("/domain/{domainName}/group/{groupName}/member/{memberName}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public void deleteGroupMembership(@PathParam("domainName") String domainName, @PathParam("groupName") String groupName, @PathParam("memberName") String memberName, @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.request, this.response, "deleteGroupMembership");
+            context.authorize("update", "" + domainName + ":group." + groupName + "", null);
+            this.delegate.deleteGroupMembership(context, domainName, groupName, memberName, auditRef);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.CONFLICT:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource deleteGroupMembership");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @DELETE
+    @Path("/domain/{domainName}/group/{groupName}/pendingmember/{memberName}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public void deletePendingGroupMembership(@PathParam("domainName") String domainName, @PathParam("groupName") String groupName, @PathParam("memberName") String memberName, @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.request, this.response, "deletePendingGroupMembership");
+            context.authenticate();
+            this.delegate.deletePendingGroupMembership(context, domainName, groupName, memberName, auditRef);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.CONFLICT:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource deletePendingGroupMembership");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @PUT
+    @Path("/domain/{domainName}/group/{groupName}/meta/system/{attribute}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public void putGroupSystemMeta(@PathParam("domainName") String domainName, @PathParam("groupName") String groupName, @PathParam("attribute") String attribute, @HeaderParam("Y-Audit-Ref") String auditRef, GroupSystemMeta detail) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.request, this.response, "putGroupSystemMeta");
+            context.authorize("update", "sys.auth:meta.group." + attribute + "." + domainName + "", null);
+            this.delegate.putGroupSystemMeta(context, domainName, groupName, attribute, auditRef, detail);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.CONFLICT:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource putGroupSystemMeta");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @PUT
+    @Path("/domain/{domainName}/group/{groupName}/meta")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public void putGroupMeta(@PathParam("domainName") String domainName, @PathParam("groupName") String groupName, @HeaderParam("Y-Audit-Ref") String auditRef, GroupMeta detail) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.request, this.response, "putGroupMeta");
+            context.authorize("update", "" + domainName + ":group." + groupName + "", null);
+            this.delegate.putGroupMeta(context, domainName, groupName, auditRef, detail);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.CONFLICT:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource putGroupMeta");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @PUT
+    @Path("/domain/{domainName}/group/{groupName}/member/{memberName}/decision")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public void putGroupMembershipDecision(@PathParam("domainName") String domainName, @PathParam("groupName") String groupName, @PathParam("memberName") String memberName, @HeaderParam("Y-Audit-Ref") String auditRef, GroupMembership membership) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.request, this.response, "putGroupMembershipDecision");
+            context.authenticate();
+            this.delegate.putGroupMembershipDecision(context, domainName, groupName, memberName, auditRef, membership);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.CONFLICT:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource putGroupMembershipDecision");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @PUT
+    @Path("/domain/{domainName}/group/{groupName}/review")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public void putGroupReview(@PathParam("domainName") String domainName, @PathParam("groupName") String groupName, @HeaderParam("Y-Audit-Ref") String auditRef, Group group) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.request, this.response, "putGroupReview");
+            context.authorize("update", "" + domainName + ":group." + groupName + "", null);
+            this.delegate.putGroupReview(context, domainName, groupName, auditRef, group);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.CONFLICT:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource putGroupReview");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @GET
     @Path("/domain/{domainName}/policy")
     @Produces(MediaType.APPLICATION_JSON)
     public PolicyList getPolicyList(@PathParam("domainName") String domainName, @QueryParam("limit") Integer limit, @QueryParam("skip") String skip) {

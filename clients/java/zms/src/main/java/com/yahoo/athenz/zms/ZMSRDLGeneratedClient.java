@@ -876,6 +876,314 @@ public class ZMSRDLGeneratedClient {
 
     }
 
+    public Groups getGroups(String domainName, Boolean members) {
+        WebTarget target = base.path("/domain/{domainName}/groups")
+            .resolveTemplate("domainName", domainName);
+        if (members != null) {
+            target = target.queryParam("members", members);
+        }
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+        }
+        Response response = invocationBuilder.get();
+        int code = response.getStatus();
+        switch (code) {
+        case 200:
+            return response.readEntity(Groups.class);
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
+    public Group getGroup(String domainName, String groupName, Boolean auditLog, Boolean pending) {
+        WebTarget target = base.path("/domain/{domainName}/group/{groupName}")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("groupName", groupName);
+        if (auditLog != null) {
+            target = target.queryParam("auditLog", auditLog);
+        }
+        if (pending != null) {
+            target = target.queryParam("pending", pending);
+        }
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+        }
+        Response response = invocationBuilder.get();
+        int code = response.getStatus();
+        switch (code) {
+        case 200:
+            return response.readEntity(Group.class);
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
+    public Group putGroup(String domainName, String groupName, String auditRef, Group group) {
+        WebTarget target = base.path("/domain/{domainName}/group/{groupName}")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("groupName", groupName);
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+        }
+        if (auditRef != null) {
+            invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
+        }
+        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(group, "application/json"));
+        int code = response.getStatus();
+        switch (code) {
+        case 204:
+            return null;
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
+    public Group deleteGroup(String domainName, String groupName, String auditRef) {
+        WebTarget target = base.path("/domain/{domainName}/group/{groupName}")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("groupName", groupName);
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+        }
+        if (auditRef != null) {
+            invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
+        }
+        Response response = invocationBuilder.delete();
+        int code = response.getStatus();
+        switch (code) {
+        case 204:
+            return null;
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
+    public GroupMembership getGroupMembership(String domainName, String groupName, String memberName, String expiration) {
+        WebTarget target = base.path("/domain/{domainName}/group/{groupName}/member/{memberName}")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("groupName", groupName)
+            .resolveTemplate("memberName", memberName);
+        if (expiration != null) {
+            target = target.queryParam("expiration", expiration);
+        }
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+        }
+        Response response = invocationBuilder.get();
+        int code = response.getStatus();
+        switch (code) {
+        case 200:
+            return response.readEntity(GroupMembership.class);
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
+    public DomainGroupMember getPrincipalGroups(String principal, String domainName) {
+        WebTarget target = base.path("/group");
+        if (principal != null) {
+            target = target.queryParam("principal", principal);
+        }
+        if (domainName != null) {
+            target = target.queryParam("domain", domainName);
+        }
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+        }
+        Response response = invocationBuilder.get();
+        int code = response.getStatus();
+        switch (code) {
+        case 200:
+            return response.readEntity(DomainGroupMember.class);
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
+    public GroupMembership putGroupMembership(String domainName, String groupName, String memberName, String auditRef, GroupMembership membership) {
+        WebTarget target = base.path("/domain/{domainName}/group/{groupName}/member/{memberName}")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("groupName", groupName)
+            .resolveTemplate("memberName", memberName);
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+        }
+        if (auditRef != null) {
+            invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
+        }
+        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(membership, "application/json"));
+        int code = response.getStatus();
+        switch (code) {
+        case 204:
+            return null;
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
+    public GroupMembership deleteGroupMembership(String domainName, String groupName, String memberName, String auditRef) {
+        WebTarget target = base.path("/domain/{domainName}/group/{groupName}/member/{memberName}")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("groupName", groupName)
+            .resolveTemplate("memberName", memberName);
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+        }
+        if (auditRef != null) {
+            invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
+        }
+        Response response = invocationBuilder.delete();
+        int code = response.getStatus();
+        switch (code) {
+        case 204:
+            return null;
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
+    public GroupMembership deletePendingGroupMembership(String domainName, String groupName, String memberName, String auditRef) {
+        WebTarget target = base.path("/domain/{domainName}/group/{groupName}/pendingmember/{memberName}")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("groupName", groupName)
+            .resolveTemplate("memberName", memberName);
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+        }
+        if (auditRef != null) {
+            invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
+        }
+        Response response = invocationBuilder.delete();
+        int code = response.getStatus();
+        switch (code) {
+        case 204:
+            return null;
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
+    public Group putGroupSystemMeta(String domainName, String groupName, String attribute, String auditRef, GroupSystemMeta detail) {
+        WebTarget target = base.path("/domain/{domainName}/group/{groupName}/meta/system/{attribute}")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("groupName", groupName)
+            .resolveTemplate("attribute", attribute);
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+        }
+        if (auditRef != null) {
+            invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
+        }
+        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(detail, "application/json"));
+        int code = response.getStatus();
+        switch (code) {
+        case 204:
+            return null;
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
+    public Group putGroupMeta(String domainName, String groupName, String auditRef, GroupMeta detail) {
+        WebTarget target = base.path("/domain/{domainName}/group/{groupName}/meta")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("groupName", groupName);
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+        }
+        if (auditRef != null) {
+            invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
+        }
+        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(detail, "application/json"));
+        int code = response.getStatus();
+        switch (code) {
+        case 204:
+            return null;
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
+    public GroupMembership putGroupMembershipDecision(String domainName, String groupName, String memberName, String auditRef, GroupMembership membership) {
+        WebTarget target = base.path("/domain/{domainName}/group/{groupName}/member/{memberName}/decision")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("groupName", groupName)
+            .resolveTemplate("memberName", memberName);
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+        }
+        if (auditRef != null) {
+            invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
+        }
+        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(membership, "application/json"));
+        int code = response.getStatus();
+        switch (code) {
+        case 204:
+            return null;
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
+    public Group putGroupReview(String domainName, String groupName, String auditRef, Group group) {
+        WebTarget target = base.path("/domain/{domainName}/group/{groupName}/review")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("groupName", groupName);
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+        }
+        if (auditRef != null) {
+            invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
+        }
+        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(group, "application/json"));
+        int code = response.getStatus();
+        switch (code) {
+        case 204:
+            return null;
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
     public PolicyList getPolicyList(String domainName, Integer limit, String skip) {
         WebTarget target = base.path("/domain/{domainName}/policy")
             .resolveTemplate("domainName", domainName);
