@@ -2593,6 +2593,7 @@ public class ZMSCoreTest {
         Quota quota = new Quota().setName("athenz").setAssertion(10).setEntity(11)
                 .setPolicy(12).setPublicKey(13).setRole(14).setRoleMember(15)
                 .setService(16).setServiceHost(17).setSubdomain(18)
+                .setGroup(19).setGroupMember(20)
                 .setModified(Timestamp.fromMillis(100));
 
         Result result = validator.validate(quota, "Quota");
@@ -2608,11 +2609,14 @@ public class ZMSCoreTest {
         assertEquals(quota.getService(), 16);
         assertEquals(quota.getServiceHost(), 17);
         assertEquals(quota.getSubdomain(), 18);
+        assertEquals(quota.getGroup(), 19);
+        assertEquals(quota.getGroupMember(), 20);
         assertEquals(Timestamp.fromMillis(100), quota.getModified());
 
         Quota quota2 = new Quota().setName("athenz").setAssertion(10).setEntity(11)
                 .setPolicy(12).setPublicKey(13).setRole(14).setRoleMember(15)
                 .setService(16).setServiceHost(17).setSubdomain(18)
+                .setGroup(19).setGroupMember(20)
                 .setModified(Timestamp.fromMillis(100));
 
         assertTrue(quota2.equals(quota));
@@ -2666,6 +2670,16 @@ public class ZMSCoreTest {
         quota2.setSubdomain(102);
         assertFalse(quota2.equals(quota));
         quota2.setSubdomain(18);
+        assertTrue(quota2.equals(quota));
+
+        quota2.setGroup(102);
+        assertFalse(quota2.equals(quota));
+        quota2.setGroup(19);
+        assertTrue(quota2.equals(quota));
+
+        quota2.setGroupMember(102);
+        assertFalse(quota2.equals(quota));
+        quota2.setGroupMember(20);
         assertTrue(quota2.equals(quota));
 
         quota2.setName(null);

@@ -6412,6 +6412,16 @@ type Quota struct {
 	PublicKey int32 `json:"publicKey"`
 
 	//
+	// number of groups per domain
+	//
+	Group int32 `json:"group"`
+
+	//
+	// number of members a group may have
+	//
+	GroupMember int32 `json:"groupMember"`
+
+	//
 	// the last modification timestamp of the quota object
 	//
 	Modified *rdl.Timestamp `json:"modified,omitempty" rdl:"optional"`

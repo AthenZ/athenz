@@ -16,6 +16,8 @@ type Quota Struct {
     Int32 service; //number of services allowed
     Int32 serviceHost; //number of hosts allowed per service
     Int32 publicKey; //number of public keys per service
+    Int32 group; //number of groups per domain
+    Int32 groupMember; //number of members a group may have
     Timestamp modified (optional); //the last modification timestamp of the quota object
 }
 
