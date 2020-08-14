@@ -519,6 +519,8 @@ public class ZMSSchema {
             .field("service", "Int32", false, "number of services allowed")
             .field("serviceHost", "Int32", false, "number of hosts allowed per service")
             .field("publicKey", "Int32", false, "number of public keys per service")
+            .field("group", "Int32", false, "number of groups per domain")
+            .field("groupMember", "Int32", false, "number of members a group may have")
             .field("modified", "Timestamp", true, "the last modification timestamp of the quota object");
 
         sb.structType("Status")

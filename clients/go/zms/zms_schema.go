@@ -602,6 +602,8 @@ func init() {
 	tQuota.Field("service", "Int32", false, nil, "number of services allowed")
 	tQuota.Field("serviceHost", "Int32", false, nil, "number of hosts allowed per service")
 	tQuota.Field("publicKey", "Int32", false, nil, "number of public keys per service")
+	tQuota.Field("group", "Int32", false, nil, "number of groups per domain")
+	tQuota.Field("groupMember", "Int32", false, nil, "number of members a group may have")
 	tQuota.Field("modified", "Timestamp", true, nil, "the last modification timestamp of the quota object")
 	sb.AddType(tQuota.Build())
 
