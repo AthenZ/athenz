@@ -16,6 +16,9 @@ public class Policy {
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Timestamp modified;
     public List<Assertion> assertions;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Boolean caseSensitive;
 
     public Policy setName(String name) {
         this.name = name;
@@ -38,6 +41,13 @@ public class Policy {
     public List<Assertion> getAssertions() {
         return assertions;
     }
+    public Policy setCaseSensitive(Boolean caseSensitive) {
+        this.caseSensitive = caseSensitive;
+        return this;
+    }
+    public Boolean getCaseSensitive() {
+        return caseSensitive;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -53,6 +63,9 @@ public class Policy {
                 return false;
             }
             if (assertions == null ? a.assertions != null : !assertions.equals(a.assertions)) {
+                return false;
+            }
+            if (caseSensitive == null ? a.caseSensitive != null : !caseSensitive.equals(a.caseSensitive)) {
                 return false;
             }
         }

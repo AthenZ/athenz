@@ -202,8 +202,15 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         ASSERTION {
             void convertToLowerCase(Object obj) {
                 Assertion assertion = (Assertion) obj;
-                assertion.setAction(assertion.getAction().toLowerCase());
-                assertion.setResource(assertion.getResource().toLowerCase());
+                boolean isCaseSensitive = (assertion.getCaseSensitive() != null) ? assertion.getCaseSensitive() : false;
+                if (isCaseSensitive) {
+                    // If flag is set, resource and action should be kept as is. We should still lower the domain part in resource
+                    String resourceWithLoweredDomain = ZMSUtils.lowerDomainInResource(assertion.getResource());
+                    assertion.setResource(resourceWithLoweredDomain);
+                } else {
+                    assertion.setAction(assertion.getAction().toLowerCase());
+                    assertion.setResource(assertion.getResource().toLowerCase());
+                }
                 assertion.setRole(assertion.getRole().toLowerCase());
             }
         },
@@ -268,7 +275,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 Policy policy = (Policy) obj;
                 policy.setName(policy.getName().toLowerCase());
                 if (policy.getAssertions() != null) {
+                    boolean isCaseSensitive = (policy.getCaseSensitive() != null && policy.getCaseSensitive());
                     for (Assertion assertion : policy.getAssertions()) {
+                        if (isCaseSensitive) {
+                            // Only overrride assertion case-sensitivity if it is true (possible for a policy to have
+                            // case-sensitive assertions along with case-insensitive assertions)
+                            assertion.setCaseSensitive(true);
+                        }
                         ASSERTION.convertToLowerCase(assertion);
                     }
                 }
@@ -4319,6 +4332,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     boolean assertionMatch(Assertion assertion, String identity, String action, String resource,
             String domain, List<Role> roles, List<String> authenticatedRoles, String trustDomain) {
+
+        // Lowercase action and resource in assertion as it is possible to store them case-sensitive
+        assertion.setResource(assertion.getResource().toLowerCase());
+        assertion.setAction(assertion.getAction().toLowerCase());
 
         String actionPattern = StringUtils.patternFromGlob(assertion.getAction());
         if (LOG.isDebugEnabled()) {
