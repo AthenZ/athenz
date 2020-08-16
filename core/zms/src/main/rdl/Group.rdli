@@ -243,3 +243,17 @@ resource Group PUT "/domain/{domainName}/group/{groupName}/review" (name=PutGrou
         ResourceError TOO_MANY_REQUESTS;
     }
 }
+
+//List of domains containing groups and corresponding members to be approved by either
+//calling or specified principal
+resource DomainGroupMembership GET "/pending_group_members?principal={principal}" (name=getPendingDomainGroupMembersList) {
+    EntityName principal (optional); //If present, return pending list for this principal
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}

@@ -2456,6 +2456,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         x509CertRecord.setClientCert(certUsage);
         x509CertRecord.setExpiryTime(expirationDate);
         x509CertRecord.setHostName(hostName);
+        x509CertRecord.setSvcDataUpdateTime(new Date());
 
         // we must be able to update our database otherwise we will not be
         // able to validate the certificate during refresh operations
@@ -3035,6 +3036,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         final String reqIp = ServletRequestUtil.getRemoteAddress(ctx.request());
 
         if (x509CertRecord != null) {
+
+            // if our current IP or hostname has changed, we'll mark
+            // the record as svc data updated
+
+            processCertRecordChange(x509CertRecord, reqIp, info.getHostname());
+
+            // now let's update our record
+
             x509CertRecord.setCurrentSerial(certSerialNumber);
             x509CertRecord.setCurrentIP(reqIp);
             x509CertRecord.setCurrentTime(new Date());
@@ -3066,6 +3075,16 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
         
         return identity;
+    }
+
+    void processCertRecordChange(X509CertRecord x509CertRecord, final String reqIp, final String hostname) {
+        if (certRecordChanged(x509CertRecord.getCurrentIP(), reqIp) || certRecordChanged(x509CertRecord.getHostName(), hostname)) {
+            x509CertRecord.setSvcDataUpdateTime(new Date());
+        }
+    }
+
+    boolean certRecordChanged(final String value1, final String value2) {
+        return ((value1 == null && value2 != null) || (value1 != null && !value1.equals(value2)));
     }
 
     InstanceIdentity processProviderSSHRefreshRequest(ResourceContext ctx, final Principal principal,

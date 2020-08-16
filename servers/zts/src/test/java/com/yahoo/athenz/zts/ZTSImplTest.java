@@ -1081,7 +1081,43 @@ public class ZTSImplTest {
         
         assertEquals(authorizer.evaluateAccess(domain, "user_domain.user1", "read", "coretech:resource1", null), AccessStatus.DENIED);
     }
-    
+
+    @Test
+    public void testEvaluateAccessAssertionDenyCaseSensitive() {
+
+        DataCache domain = new DataCache();
+        DomainData domainData = new DomainData();
+        domainData.setName("coretech");
+        domain.setDomainData(domainData);
+        domainData.setRoles(new ArrayList<>());
+        Role role = createRoleObject("coretech", "role1", null, "user_domain.user1", null);
+        domainData.getRoles().add(role);
+
+        Policy policy = new Policy().setName("coretech:policy.policy1");
+        Assertion assertion = new Assertion();
+        assertion.setAction("ReaD");
+        assertion.setEffect(AssertionEffect.DENY);
+        assertion.setResource("coretech:*");
+        assertion.setRole("coretech:role.role1");
+        policy.setAssertions(new ArrayList<>());
+        policy.getAssertions().add(assertion);
+        domainData.setPolicies(new com.yahoo.athenz.zms.SignedPolicies());
+        domainData.getPolicies().setContents(new com.yahoo.athenz.zms.DomainPolicies());
+        domainData.getPolicies().getContents().setPolicies(new ArrayList<>());
+        domainData.getPolicies().getContents().getPolicies().add(policy);
+
+        ZTSAuthorizer spiedZtsAuthorizer = Mockito.spy(authorizer);
+        AccessStatus result = spiedZtsAuthorizer.evaluateAccess(domain, "user_domain.user1", "read", "coretech:resource1", null);
+        assertEquals(result, AccessStatus.DENIED);
+
+        // Verify that it was denied by explicit "Deny" assertion and not because no match was found
+        Mockito.verify(spiedZtsAuthorizer, times(1)).matchPrincipal(
+                eq(domainData.getRoles()),
+                eq("^coretech:role\\.role1$"),
+                eq("user_domain.user1"),
+                eq(null));
+    }
+
     @Test
     public void testEvaluateAccessAssertionAllow() {
         
@@ -1114,7 +1150,40 @@ public class ZTSImplTest {
         
         assertEquals(authorizer.evaluateAccess(domain, "user_domain.user1", "read", "coretech:resource1", null), AccessStatus.ALLOWED);
     }
-    
+
+    @Test
+    public void testEvaluateAccessAssertionAllowCaseSensitive() {
+
+        DataCache domain = new DataCache();
+        DomainData domainData = new DomainData();
+        domainData.setName("coretech");
+        domain.setDomainData(domainData);
+        domainData.setRoles(new ArrayList<>());
+        Role role = createRoleObject("coretech", "role1", null, "user_domain.user1", null);
+        domainData.getRoles().add(role);
+
+        Policy policy = new Policy().setName("coretech:policy.policy1");
+        Assertion assertion1 = new Assertion();
+        assertion1.setAction("ReaD");
+        assertion1.setEffect(AssertionEffect.ALLOW);
+        assertion1.setResource("coretech:*");
+        assertion1.setRole("coretech:role.role1");
+        Assertion assertion2 = new Assertion();
+        assertion2.setAction("ReaD");
+        assertion2.setEffect(AssertionEffect.ALLOW);
+        assertion2.setResource("coretech:ResourcE1");
+        assertion2.setRole("coretech:role.role1");
+        policy.setAssertions(new ArrayList<>());
+        policy.getAssertions().add(assertion1);
+        policy.getAssertions().add(assertion2);
+        domainData.setPolicies(new com.yahoo.athenz.zms.SignedPolicies());
+        domainData.getPolicies().setContents(new com.yahoo.athenz.zms.DomainPolicies());
+        domainData.getPolicies().getContents().setPolicies(new ArrayList<>());
+        domainData.getPolicies().getContents().getPolicies().add(policy);
+
+        assertEquals(authorizer.evaluateAccess(domain, "user_domain.user1", "read", "coretech:resource1", null), AccessStatus.ALLOWED);
+    }
+
     @Test
     public void testGetHostServices() {
         
@@ -5099,8 +5168,10 @@ public class ZTSImplTest {
         cnames.add("cname1.athenz.info");
         cnames.add("cname2.athenz.info");
 
+        String service = "athenz.production";
+
         HostnameResolver resolver = Mockito.mock(HostnameResolver.class);
-        Mockito.when(resolver.isValidHostCnameList("host1.athenz.cloud", cnames, CertType.X509)).thenReturn(true);
+        Mockito.when(resolver.isValidHostCnameList(service, "host1.athenz.cloud", cnames, CertType.X509)).thenReturn(true);
         Mockito.when(resolver.isValidHostname("host1.athenz.cloud")).thenReturn(true);
 
         InstanceConfirmation confirmation = new InstanceConfirmation()
@@ -5331,8 +5402,10 @@ public class ZTSImplTest {
         cnames.add("cname.athenz.info");
         cnames.add("vip.athenz.info");
 
+        String service = "athenz.production";
+
         HostnameResolver resolver = Mockito.mock(HostnameResolver.class);
-        Mockito.when(resolver.isValidHostCnameList("host1.athenz.cloud", cnames, CertType.SSH_HOST)).thenReturn(true);
+        Mockito.when(resolver.isValidHostCnameList(service, "host1.athenz.cloud", cnames, CertType.SSH_HOST)).thenReturn(true);
         Mockito.when(resolver.isValidHostname("host1.athenz.cloud")).thenReturn(true);
         ztsImpl.hostnameResolver = resolver;
 
@@ -6212,7 +6285,7 @@ public class ZTSImplTest {
         cnames.add("vip.athenz.info");
 
         HostnameResolver resolver = Mockito.mock(HostnameResolver.class);
-        Mockito.when(resolver.isValidHostCnameList("host1.athenz.cloud", cnames, CertType.SSH_HOST)).thenReturn(true);
+        Mockito.when(resolver.isValidHostCnameList(principal.getFullName(), "host1.athenz.cloud", cnames, CertType.SSH_HOST)).thenReturn(true);
         Mockito.when(resolver.isValidHostname("host1.athenz.cloud")).thenReturn(true);
         ztsImpl.hostnameResolver = resolver;
 
@@ -6245,8 +6318,10 @@ public class ZTSImplTest {
         cnames.add("cname1.athenz.info");
         cnames.add("cname2.athenz.info");
 
+        String service = "athenz.production";
+
         HostnameResolver resolver = Mockito.mock(HostnameResolver.class);
-        Mockito.when(resolver.isValidHostCnameList("host1.athenz.cloud", cnames, CertType.X509)).thenReturn(true);
+        Mockito.when(resolver.isValidHostCnameList(service, "host1.athenz.cloud", cnames, CertType.X509)).thenReturn(true);
         Mockito.when(resolver.isValidHostname("host1.athenz.cloud")).thenReturn(true);
 
         InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
@@ -11281,5 +11356,35 @@ public class ZTSImplTest {
                 eq(null),
                 eq(null),
                 eq(null), eq(httpStatus), eq(null));
+    }
+
+    @Test
+    public void testProcessCertRecordChange() {
+        X509CertRecord certRecord = new X509CertRecord();
+        certRecord.setCurrentIP("10.10.11.12");
+        certRecord.setHostName("host1.localhost");
+        certRecord.setSvcDataUpdateTime(null);
+
+        zts.processCertRecordChange(certRecord, "10.10.11.12", "host1.localhost");
+        assertNull(certRecord.getSvcDataUpdateTime());
+
+        zts.processCertRecordChange(certRecord, "10.10.11.13", "host1.localhost");
+        assertNotNull(certRecord.getSvcDataUpdateTime());
+
+        certRecord.setSvcDataUpdateTime(null);
+        zts.processCertRecordChange(certRecord, "10.10.11.12", "host2.localhost");
+        assertNotNull(certRecord.getSvcDataUpdateTime());
+    }
+
+    @Test
+    public void testCertRecordChanged() {
+        assertFalse(zts.certRecordChanged(null, null));
+        assertTrue(zts.certRecordChanged(null, ""));
+        assertTrue(zts.certRecordChanged("", null));
+        assertFalse(zts.certRecordChanged("", ""));
+        assertFalse(zts.certRecordChanged("test1", "test1"));
+        assertTrue(zts.certRecordChanged("test1", "test2"));
+        assertTrue(zts.certRecordChanged("test1", ""));
+        assertTrue(zts.certRecordChanged("", "test2"));
     }
 }

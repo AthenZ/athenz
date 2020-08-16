@@ -1635,6 +1635,38 @@ public class ZMSResources {
     }
 
     @GET
+    @Path("/pending_group_members")
+    @Produces(MediaType.APPLICATION_JSON)
+    public DomainGroupMembership getPendingDomainGroupMembersList(@QueryParam("principal") String principal) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.request, this.response, "getPendingDomainGroupMembersList");
+            context.authenticate();
+            return this.delegate.getPendingDomainGroupMembersList(context, principal);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource getPendingDomainGroupMembersList");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @GET
     @Path("/domain/{domainName}/policy")
     @Produces(MediaType.APPLICATION_JSON)
     public PolicyList getPolicyList(@PathParam("domainName") String domainName, @QueryParam("limit") Integer limit, @QueryParam("skip") String skip) {

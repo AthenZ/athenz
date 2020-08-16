@@ -33,6 +33,7 @@ public class X509CertRecord {
     private String lastNotifiedServer;
     private Date expiryTime;
     private String hostName;
+    private Date svcDataUpdateTime;
 
     public X509CertRecord() {
     }
@@ -147,5 +148,13 @@ public class X509CertRecord {
 
     public void setHostName(String hostName) {
         this.hostName = hostName;
+    }
+
+    public Date getSvcDataUpdateTime() {
+        return svcDataUpdateTime;
+    }
+
+    public void setSvcDataUpdateTime(Date svcDataUpdateTime) {
+        this.svcDataUpdateTime = svcDataUpdateTime;
     }
 }

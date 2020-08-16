@@ -45,7 +45,7 @@ public class RoleMemberExpiryNotificationTask implements NotificationTask {
 
     @Override
     public List<Notification> getNotifications() {
-        Map<String, DomainRoleMember> expiryMembers = dbService.getRoleExpiryMembers();
+        Map<String, DomainRoleMember> expiryMembers = dbService.getRoleExpiryMembers(1);
         if (expiryMembers == null || expiryMembers.isEmpty()) {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("No expiry members available to send notifications");
@@ -77,8 +77,8 @@ public class RoleMemberExpiryNotificationTask implements NotificationTask {
     }
 
     public static class RoleExpiryPrincipalNotificationToEmailConverter implements NotificationToEmailConverter {
-        private static final String EMAIL_TEMPLATE_PRINCIPAL_EXPIRY = "messages/principal-expiry.html";
-        private static final String PRINCIPAL_EXPIRY_SUBJECT = "athenz.notification.email.principal.expiry.subject";
+        private static final String EMAIL_TEMPLATE_PRINCIPAL_EXPIRY = "messages/role-member-expiry.html";
+        private static final String PRINCIPAL_EXPIRY_SUBJECT = "athenz.notification.email.role_member.expiry.subject";
 
         private final NotificationToEmailConverterCommon notificationToEmailConverterCommon;
         private String emailPrincipalExpiryBody;
@@ -111,8 +111,8 @@ public class RoleMemberExpiryNotificationTask implements NotificationTask {
     }
 
     public static class RoleExpiryDomainNotificationToEmailConverter implements NotificationToEmailConverter {
-        private static final String EMAIL_TEMPLATE_DOMAIN_MEMBER_EXPIRY = "messages/domain-member-expiry.html";
-        private static final String DOMAIN_MEMBER_EXPIRY_SUBJECT = "athenz.notification.email.domain.member.expiry.subject";
+        private static final String EMAIL_TEMPLATE_DOMAIN_MEMBER_EXPIRY = "messages/domain-role-member-expiry.html";
+        private static final String DOMAIN_MEMBER_EXPIRY_SUBJECT = "athenz.notification.email.domain.role_member.expiry.subject";
 
         private final NotificationToEmailConverterCommon notificationToEmailConverterCommon;
         private String emailDomainMemberExpiryBody;

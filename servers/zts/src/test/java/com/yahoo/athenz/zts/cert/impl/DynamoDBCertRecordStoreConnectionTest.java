@@ -237,6 +237,7 @@ public class DynamoDBCertRecordStoreConnectionTest {
         certRecord.setLastNotifiedServer("last-notified-server");
         certRecord.setExpiryTime(now);
         certRecord.setHostName("hostname");
+        certRecord.setSvcDataUpdateTime(now);
 
         UpdateItemSpec item = new UpdateItemSpec()
                 .withPrimaryKey("primaryKey", "athenz.provider:cn:1234")
@@ -255,7 +256,8 @@ public class DynamoDBCertRecordStoreConnectionTest {
                         new AttributeUpdate("lastNotifiedTime").put(certRecord.getLastNotifiedTime().getTime()),
                         new AttributeUpdate("lastNotifiedServer").put(certRecord.getLastNotifiedServer()),
                         new AttributeUpdate("expiryTime").put(certRecord.getExpiryTime().getTime()),
-                        new AttributeUpdate("hostName").put(certRecord.getHostName()));
+                        new AttributeUpdate("hostName").put(certRecord.getHostName()),
+                        new AttributeUpdate("svcDataUpdateTime").put(certRecord.getSvcDataUpdateTime().getTime()));
 
         Mockito.doReturn(updateOutcome).when(table).updateItem(item);
         boolean requestSuccess = dbConn.updateX509CertRecord(certRecord);

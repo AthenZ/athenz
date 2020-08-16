@@ -29,7 +29,7 @@ import java.util.*;
 
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
 
-public class PutMembershipNotificationTask implements NotificationTask {
+public class PutRoleMembershipNotificationTask implements NotificationTask {
     final String domain;
     final String org;
     final Role role;
@@ -38,7 +38,7 @@ public class PutMembershipNotificationTask implements NotificationTask {
     private final static String DESCRIPTION = "Membership Approval Notification";
     private final PutMembershipNotificationToEmailConverter putMembershipNotificationToEmailConverter;
 
-    public PutMembershipNotificationTask(String domain, String org, Role role, Map<String, String> details, DBService dbService, String userDomainPrefix) {
+    public PutRoleMembershipNotificationTask(String domain, String org, Role role, Map<String, String> details, DBService dbService, String userDomainPrefix) {
         this.domain = domain;
         this.org = org;
         this.role = role;

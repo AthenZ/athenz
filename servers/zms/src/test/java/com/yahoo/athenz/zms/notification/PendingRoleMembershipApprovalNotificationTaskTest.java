@@ -32,7 +32,7 @@ import static com.yahoo.athenz.zms.notification.NotificationManagerTest.getNotif
 import static org.testng.Assert.*;
 import static org.testng.Assert.assertFalse;
 
-public class PendingMembershipApprovalNotificationTaskTest {
+public class PendingRoleMembershipApprovalNotificationTaskTest {
     @Test
     public void testSendPendingMembershipApprovalReminders() {
 
@@ -52,13 +52,13 @@ public class PendingMembershipApprovalNotificationTaskTest {
 
         ZMSTestUtils.sleep(1000);
 
-        PendingMembershipApprovalNotificationTask reminder = new PendingMembershipApprovalNotificationTask(dbsvc, 0, "", USER_DOMAIN_PREFIX);
+        PendingRoleMembershipApprovalNotificationTask reminder = new PendingRoleMembershipApprovalNotificationTask(dbsvc, 0, "", USER_DOMAIN_PREFIX);
         List<Notification> notifications = reminder.getNotifications();
 
         // Verify contents of notification is as expected
         assertEquals(notifications.size(), 1);
         Notification expectedNotification = new Notification();
-        expectedNotification.setNotificationToEmailConverter(new PendingMembershipApprovalNotificationTask.PendingMembershipApprovalNotificationToEmailConverter());
+        expectedNotification.setNotificationToEmailConverter(new PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToEmailConverter());
         expectedNotification.addRecipient("user.joe");
         assertEquals(notifications.get(0), expectedNotification);
         notificationManager.shutdown();
@@ -79,7 +79,7 @@ public class PendingMembershipApprovalNotificationTaskTest {
 
         Notification notification = new Notification();
         notification.setDetails(details);
-        PendingMembershipApprovalNotificationTask.PendingMembershipApprovalNotificationToEmailConverter converter = new PendingMembershipApprovalNotificationTask.PendingMembershipApprovalNotificationToEmailConverter();
+        PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToEmailConverter converter = new PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToEmailConverter();
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
 
         String body = notificationAsEmail.getBody();
@@ -99,7 +99,7 @@ public class PendingMembershipApprovalNotificationTaskTest {
     @Test
     public void getEmailSubject() {
         Notification notification = new Notification();
-        PendingMembershipApprovalNotificationTask.PendingMembershipApprovalNotificationToEmailConverter converter = new PendingMembershipApprovalNotificationTask.PendingMembershipApprovalNotificationToEmailConverter();
+        PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToEmailConverter converter = new PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToEmailConverter();
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
         String subject = notificationAsEmail.getSubject();
         assertEquals(subject, "Membership Approval Reminder Notification");

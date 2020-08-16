@@ -11,9 +11,9 @@
     * [Principals](#principals)
         * [Users](#users)
         * [Services](#services)
-* [Tokens](#tokens)
-    * [Principal Token - NToken](#principal-token-ntoken)
-    * [Role Token - ZToken](#role-token-ztoken)
+    * [Tokens](#tokens)
+        * [Principal Token - NToken](#principal-token-ntoken)
+        * [Access Tokens](#access-tokens)
 
 Having a firm grasp on some fundamental concepts will help you
 understand the Athenz architecture, the flow for both centralized and
@@ -167,7 +167,7 @@ their Unix or Kerberos credentials). Principals can also be services that
 are authenticated by a service management system. Athenz currently provides
 service identity and authentication support. In either case, the identity
 is expressed as a resource name, and the proof of that identity is provided
-as a token, typically called an NToken (aka PrincipalToken).
+as an X509 certificate.
 
 #### Users
 ----------
@@ -179,7 +179,7 @@ the name of that domain is **user**, so some example users are:
 * user.john
 * user.doe
 
-The credentials that the external system requires are exchanged for a NToken
+The credentials that the external system requires are exchanged for X509 certificates 
 before operating on any data.
 
 #### Services
@@ -202,10 +202,11 @@ along with its public key that can be used to later verify an NToken that is
 presented by the service.
 
 ## Tokens
---------
+---------
+
 
 Athenz authorization system utilizes 2 types of tokens: Principal Tokens
-(NTokens) and RoleTokens (ZTokens).
+(NTokens) and Access Tokens.
 
 ### Principal Token (NToken)
 ----------------------------
@@ -249,42 +250,14 @@ keep the token from being intercepted and reused (for the lifetime of
 the token). It is strongly recommended to always use HTTPS for such
 requests.
 
-### Role Token (ZToken)
------------------------
+## Access Tokens
+-----------------
 
-Role tokens represent an authoritative statement that a given principal
-may assume some number of roles in a domain for a limited period of
-time. Like NTokens, they are signed to prevent tampering. In a sense,
-the ZTS is an authority except that it is an authority
-over Roles instead of Users.
+Athenz supports the OAuth2 standard by enabling the generation of Access Tokens.
+Access tokens represent an authoritative statement that a given principal may assume 
+some number of roles in a domain for a limited period. They are signed to prevent tampering.
 
-A role token is serialized as a string with following attributes:
-
--   version (v) - the version of the token - Z1
--   domain (d) - the domain of role token
--   roles (r) - a list of comma-separated role names
--   principal (p) - the name of the principal (user/service) who
-    requested this role token
--   host (h) - the FQDN of the ZTS host that issued this token
--   salt (a) - a salt
--   time (t) - the time the token was issued
--   expires (e) - the time the token expires
--   keyId (k) - the key identifier of the ZTS private key that was
-    used to sign this token
--   ip (i) - the IP address where the request to get this token was
-    initiated from
--   signature (s) - the signature of the other items
-
-The single letter in parentheses is the key in the serialized string,
-where semicolons separate key value pairs, and the key and value are
-separated by an equals sign.
-
-For example:
-
-    v=Z1;d=media.news;r=editor;p=user.joe;h=host.athenz.com;a=bb4e;t=1442255237;e=1442258837;k=0;i=10.72.42.32;s=P43Vp_LQh1"
-
-Note that requests that include a ZToken should be encrypted to keep the
-ZToken from being intercepted and reused (for the lifetime of the
-token). It is strongly recommended to always use HTTPS for such
-requests.
-
+Using Access Tokens instead of directly asking for an access check with a principal identity, reduces
+the chance of providing identity details to a compromised service.
+This mechanism also allows a service to make a completely local access check against the cached 
+policies used by the policy engine.

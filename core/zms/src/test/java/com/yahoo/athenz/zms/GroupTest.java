@@ -624,4 +624,39 @@ public class GroupTest {
         assertFalse(ral2.equals(ral));
         assertFalse(ral2.equals(new String()));
     }
+
+    @Test
+    public void testDomainGroupMembership() {
+
+        Schema schema = ZMSSchema.instance();
+        Validator validator = new Validator(schema);
+
+        List<DomainGroupMember> list1 = new ArrayList<>();
+        list1.add(new DomainGroupMember().setMemberName("mbr1").setMemberGroups(Collections.emptyList()));
+        DomainGroupMembers mbr1 = new DomainGroupMembers().setDomainName("dom1").setMembers(list1);
+
+        List<DomainGroupMembers> list2 = new ArrayList<>();
+        list2.add(mbr1);
+
+        DomainGroupMembership groupMembership1 = new DomainGroupMembership().setDomainGroupMembersList(list2);
+        Result result = validator.validate(groupMembership1, "DomainGroupMembership");
+        assertTrue(result.valid);
+
+        assertEquals(groupMembership1.getDomainGroupMembersList(), list2);
+
+        DomainGroupMembership groupMembership2 = new DomainGroupMembership().setDomainGroupMembersList(list2);
+
+        assertTrue(groupMembership2.equals(groupMembership1));
+        assertTrue(groupMembership1.equals(groupMembership1));
+        assertFalse(groupMembership1.equals(null));
+        assertFalse(groupMembership1.equals(new String()));
+
+        List<DomainGroupMembers> list3 = Collections.emptyList();
+
+        groupMembership2.setDomainGroupMembersList(list3);
+        assertFalse(groupMembership2.equals(groupMembership1));
+        groupMembership2.setDomainGroupMembersList(null);
+        assertFalse(groupMembership2.equals(groupMembership1));
+        groupMembership2.setDomainGroupMembersList(list2);
+    }
 }

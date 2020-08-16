@@ -16,6 +16,7 @@
 package com.yahoo.athenz.zms.utils;
 
 import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,7 +31,6 @@ import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.log.AuditLoggerFactory;
 import com.yahoo.athenz.common.server.log.impl.DefaultAuditLoggerFactory;
 import com.yahoo.athenz.zms.*;
-import com.yahoo.athenz.zms.store.jdbc.JDBCConnection;
 import org.mockito.Mockito;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -172,13 +172,13 @@ public class ZMSUtilsTest {
     }
 
     @Test(dataProvider = "members")
-    public void testRemoveMembers(List<String> originalRoleMembersList,
+    public void testRemoveRoleMembers(List<String> originalRoleMembersList,
                                   List<String> removeRoleMembersList, int expectedSize) {
 
         List<RoleMember> originalRoleMembers = ZMSUtils.convertMembersToRoleMembers(originalRoleMembersList);
         List<RoleMember> removeRoleMembers = ZMSUtils.convertMembersToRoleMembers(removeRoleMembersList);
 
-        ZMSUtils.removeMembers(originalRoleMembers, removeRoleMembers);
+        ZMSUtils.removeRoleMembers(originalRoleMembers, removeRoleMembers);
 
         //remove case
         for (RoleMember orgMember : originalRoleMembers) {
@@ -193,26 +193,26 @@ public class ZMSUtilsTest {
     }
 
     @Test
-    public void testRemoveMembersInvalidInput() {
+    public void testRemoveRoleMembersInvalidInput() {
         List<RoleMember> list = Collections.singletonList(new RoleMember().setMemberName("member1"));
-        ZMSUtils.removeMembers(list, null);
+        ZMSUtils.removeRoleMembers(list, null);
         assertEquals(list.size(), 1);
         assertEquals(list.get(0).getMemberName(), "member1");
 
-        ZMSUtils.removeMembers(null, list);
+        ZMSUtils.removeRoleMembers(null, list);
         assertEquals(list.size(), 1);
         assertEquals(list.get(0).getMemberName(), "member1");
     }
 
     @Test
     public void testParseBoolean() {
-        assertEquals(true, ZMSUtils.parseBoolean(null, true));
-        assertEquals(false, ZMSUtils.parseBoolean(null, false));
-        assertEquals(true, ZMSUtils.parseBoolean("", true));
-        assertEquals(false, ZMSUtils.parseBoolean("", false));
-        assertEquals(true, ZMSUtils.parseBoolean("true", false));
-        assertEquals(false, ZMSUtils.parseBoolean("false", true));
-        assertEquals(false, ZMSUtils.parseBoolean("unknown", false));
+        assertTrue(ZMSUtils.parseBoolean(null, true));
+        assertFalse(ZMSUtils.parseBoolean(null, false));
+        assertTrue(ZMSUtils.parseBoolean("", true));
+        assertFalse(ZMSUtils.parseBoolean("", false));
+        assertTrue(ZMSUtils.parseBoolean("true", false));
+        assertFalse(ZMSUtils.parseBoolean("false", true));
+        assertFalse(ZMSUtils.parseBoolean("unknown", false));
     }
 
     @Test
@@ -278,7 +278,7 @@ public class ZMSUtilsTest {
     }
 
     @Test
-    public void testExtractRoleName() throws Exception {
+    public void testExtractRoleName() {
 
         assertEquals("role1", ZMSUtils.extractRoleName("my-domain1", "my-domain1:role.role1"));
         assertEquals("role1.role2", ZMSUtils.extractRoleName("my-domain1", "my-domain1:role.role1.role2"));
@@ -293,7 +293,7 @@ public class ZMSUtilsTest {
     }
 
     @Test
-    public void testExtractServiceName() throws Exception {
+    public void testExtractServiceName() {
 
         assertEquals("service1", ZMSUtils.extractServiceName("my-domain1", "my-domain1.service1"));
         assertEquals("service1", ZMSUtils.extractServiceName("my-domain1.domain2", "my-domain1.domain2.service1"));
@@ -308,7 +308,7 @@ public class ZMSUtilsTest {
     }
 
     @Test
-    public void testExtractPolicyName() throws Exception {
+    public void testExtractPolicyName() {
 
         assertEquals("policy1", ZMSUtils.extractPolicyName("my-domain1", "my-domain1:policy.policy1"));
         assertEquals("policy1.policy2", ZMSUtils.extractPolicyName("my-domain1", "my-domain1:policy.policy1.policy2"));
@@ -361,5 +361,76 @@ public class ZMSUtilsTest {
 
         assertEquals("role,domain", ZMSUtils.combineUserAuthorityFilters("role", "domain"));
         assertEquals("same,same", ZMSUtils.combineUserAuthorityFilters("same", "same"));
+    }
+
+    @DataProvider(name = "group-members")
+    public static Object[][] getGroupMembers() {
+        return new Object[][]{
+                {Collections.singletonList("member1"), null, 1},
+                {Collections.singletonList("member1"), Collections.singletonList("member1"), 0},
+                {Collections.singletonList("member1"), Collections.singletonList("member2"), 1},
+                {Collections.singletonList("member1"), Arrays.asList("member2", "member1"), 0},
+                {Arrays.asList("member1", "member2"), Arrays.asList("member2", "member1"), 0},
+                {Arrays.asList("member1", "member2"), Collections.singletonList("member3"), 2}
+        };
+    }
+
+    private List<GroupMember> convertListToGroupMembers(List<String> members) {
+        List<GroupMember> groupMembers = new ArrayList<>();
+        if (members == null) {
+            return groupMembers;
+        }
+        for (String member : members) {
+            groupMembers.add(new GroupMember().setMemberName(member));
+        }
+        return groupMembers;
+    }
+
+    @Test(dataProvider = "group-members")
+    public void testRemoveGroupMembers(List<String> originalGroupMembersList,
+                                      List<String> removeGroupMembersList, int expectedSize) {
+
+        List<GroupMember> originalGroupMembers = convertListToGroupMembers(originalGroupMembersList);
+        List<GroupMember> removeGroupMembers = convertListToGroupMembers(removeGroupMembersList);
+
+        ZMSUtils.removeGroupMembers(originalGroupMembers, removeGroupMembers);
+
+        //remove case
+        for (GroupMember orgMember : originalGroupMembers) {
+            for (GroupMember removeMember : removeGroupMembers) {
+                if (orgMember.getMemberName().equalsIgnoreCase(removeMember.getMemberName())) {
+                    fail("Should have removed " + removeMember.getMemberName());
+                }
+            }
+        }
+
+        assertEquals(originalGroupMembers.size(), expectedSize);
+    }
+
+    @Test
+    public void testRemoveGroupMembersInvalidInput() {
+        List<GroupMember> list = Collections.singletonList(new GroupMember().setMemberName("member1"));
+        ZMSUtils.removeGroupMembers(list, null);
+        assertEquals(list.size(), 1);
+        assertEquals(list.get(0).getMemberName(), "member1");
+
+        ZMSUtils.removeGroupMembers(null, list);
+        assertEquals(list.size(), 1);
+        assertEquals(list.get(0).getMemberName(), "member1");
+    }
+
+    @Test
+    public void testLowerDomainInResource() {
+        assertEquals(ZMSUtils.lowerDomainInResource("DOMAIN:ResourcE1"), "domain:ResourcE1");
+        assertEquals(ZMSUtils.lowerDomainInResource("domain:ResOurcE1"), "domain:ResOurcE1");
+        assertEquals(ZMSUtils.lowerDomainInResource("domain:resource1"), "domain:resource1");
+        assertEquals(ZMSUtils.lowerDomainInResource("DOMAIN:ResourcE2(ResourcE3)"), "domain:ResourcE2(ResourcE3)");
+        assertEquals(ZMSUtils.lowerDomainInResource("DOMAIN:ResourcE1/ResourcE2"), "domain:ResourcE1/ResourcE2");
+        assertEquals(ZMSUtils.lowerDomainInResource("DOMAIN:resource4[*]/data1"), "domain:resource4[*]/data1");
+        assertEquals(ZMSUtils.lowerDomainInResource("justResource"), "justResource");
+        assertEquals(ZMSUtils.lowerDomainInResource("WrongDelimiter.NoOp"), "WrongDelimiter.NoOp");
+        assertEquals(ZMSUtils.lowerDomainInResource("DOMAIN:Many:Delimiters:THIS:TIME"), "domain:Many:Delimiters:THIS:TIME");
+        assertEquals(ZMSUtils.lowerDomainInResource(""), "");
+        assertNull(ZMSUtils.lowerDomainInResource(null));
     }
 }

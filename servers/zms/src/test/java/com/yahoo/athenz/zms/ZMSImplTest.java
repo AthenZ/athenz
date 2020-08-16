@@ -36,7 +36,7 @@ import com.yahoo.athenz.auth.impl.*;
 import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
-import com.yahoo.athenz.zms.notification.PutMembershipNotificationTask;
+import com.yahoo.athenz.zms.notification.PutRoleMembershipNotificationTask;
 import com.yahoo.athenz.zms.status.MockStatusCheckerThrowException;
 import com.yahoo.athenz.zms.status.MockStatusCheckerNoException;
 import com.yahoo.athenz.zms.store.ObjectStoreConnection;
@@ -149,6 +149,11 @@ public class ZMSImplTest {
         ZMSTestUtils.stopMemoryMySQL(mysqld);
     }
 
+    void setDatabaseReadOnlyMode(boolean readOnlyMode) {
+        zms.dbService.defaultRetryCount = 3;
+        ZMSTestUtils.setDatabaseReadOnlyMode(mysqld, readOnlyMode);
+    }
+
     @BeforeMethod
     public void setUp() throws Exception {
         MockitoAnnotations.openMocks(this);
@@ -180,7 +185,7 @@ public class ZMSImplTest {
         System.setProperty(ZMSConsts.ZMS_PROP_NOAUTH_URI_LIST,
                 "uri1,uri2,uri3+uri4");
         System.setProperty(ZMSConsts.ZMS_PROP_AUDIT_REF_CHECK_OBJECTS,
-                "role,policy,service,domain,entity,tenancy,template");
+                "role,group,policy,service,domain,entity,tenancy,template");
         auditLogger = new DefaultAuditLogger();
 
         initializeZms();
@@ -328,7 +333,21 @@ public class ZMSImplTest {
         mbr.setExpiration(expiration);
         return mbr;
     }
-    
+
+    private GroupMembership generateGroupMembership(final String groupName, final String memberName) {
+        return generateGroupMembership(groupName, memberName, null);
+    }
+
+    private GroupMembership generateGroupMembership(final String groupName, final String memberName,
+                                                    Timestamp expiration) {
+        GroupMembership mbr = new GroupMembership();
+        mbr.setGroupName(groupName);
+        mbr.setMemberName(memberName);
+        mbr.setIsMember(true);
+        mbr.setExpiration(expiration);
+        return mbr;
+    }
+
     private TopLevelDomain createTopLevelDomainObject(String name,
             String description, String org, String admin) {
 
@@ -405,7 +424,42 @@ public class ZMSImplTest {
             }
         }
     }
-    
+
+    private void checkGroupMember(final List<String> checkList, List<GroupMember> members) {
+        boolean found = false;
+        for (String groupMemberName: checkList) {
+            for (GroupMember groupMember: members) {
+                if (groupMember.getMemberName().equals(groupMemberName)){
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                fail("Member " + groupMemberName + " not found");
+            }
+        }
+    }
+
+    private Group createGroupObject(String domainName, String groupName, String member1, String member2) {
+
+        List<GroupMember> members = new ArrayList<>();
+        if (member1 != null) {
+            members.add(new GroupMember().setMemberName(member1));
+        }
+        if (member2 != null) {
+            members.add(new GroupMember().setMemberName(member2));
+        }
+        return createGroupObject(domainName, groupName, members);
+    }
+
+    private Group createGroupObject(String domainName, String groupName, List<GroupMember> members) {
+
+        Group group = new Group();
+        group.setName(ZMSUtils.groupResourceName(domainName, groupName));
+        group.setGroupMembers(members);
+        return group;
+    }
+
     private Role createRoleObject(String domainName, String roleName,
             String trust) {
         Role role = new Role();
@@ -2378,6 +2432,15 @@ public class ZMSImplTest {
         }
         assertTrue(foundError);
 
+        // create a role with no members
+
+        Role role4 = createRoleObject("CreateRoleDom1", "Role4", null);
+        zmsImpl.putRole(mockDomRsrcCtx, "CreateRoleDom1", "Role4", auditRef, role4);
+
+        Role role4Res = zmsImpl.getRole(mockDomRsrcCtx, "CreateRoleDom1", "Role4", false, false, false);
+        assertNotNull(role4Res);
+        assertTrue(role4Res.getRoleMembers().isEmpty());
+
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, "CreateRoleDom1", auditRef);
     }
 
@@ -3853,15 +3916,20 @@ public class ZMSImplTest {
         Policy policy2 = createPolicyObject("PolicyListDom1", "Policy2");
         zms.putPolicy(mockDomRsrcCtx, "PolicyListDom1", "Policy2", auditRef, policy2);
 
+        Policy policy3 = createPolicyObject("PolicyListDom1", "Policy3");
+        policy3.setCaseSensitive(true);
+        zms.putPolicy(mockDomRsrcCtx, "PolicyListDom1", "Policy3", auditRef, policy3);
+
         PolicyList policyList = zms.getPolicyList(mockDomRsrcCtx, "PolicyListDom1", null, null);
         assertNotNull(policyList);
 
         // policy count +1 due to admin policy
-        assertEquals(policyList.getNames().size(), 3);
+        assertEquals(policyList.getNames().size(), 4);
 
         assertTrue(policyList.getNames().contains("Policy1".toLowerCase()));
         assertTrue(policyList.getNames().contains("Policy2".toLowerCase()));
-        
+        assertTrue(policyList.getNames().contains("Policy3".toLowerCase()));
+
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "PolicyListDom1", auditRef);
     }
 
@@ -3982,7 +4050,95 @@ public class ZMSImplTest {
 
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, "PolicyGetDom1", auditRef);
     }
-    
+
+    @Test
+    public void testGetPolicyCaseSensitive() {
+
+        TestAuditLogger alogger = new TestAuditLogger();
+        List<String> aLogMsgs = alogger.getLogMsgList();
+        ZMSImpl zmsImpl = getZmsImpl(alogger);
+
+        TopLevelDomain dom1 = createTopLevelDomainObject("PolicyGetDom1",
+                "Test Domain1", "testOrg", adminUser);
+        Mockito.when(mockDomRsrcCtx.getApiName()).thenReturn("posttopleveldomain").thenReturn("putpolicy");
+        zmsImpl.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Policy policy1 = createPolicyObject("PolicyGetDom1", "Policy1", "Role1", "ActioN1", "PolicyGetDom1:SomeResourcE", AssertionEffect.ALLOW);
+        policy1.setCaseSensitive(true);
+        zmsImpl.putPolicy(mockDomRsrcCtx, "PolicyGetDom1", "Policy1", auditRef, policy1);
+
+        Policy policy = zmsImpl.getPolicy(mockDomRsrcCtx, "PolicyGetDom1", "Policy1");
+        assertNotNull(policy);
+        assertEquals(policy.getName(), "PolicyGetDom1:policy.Policy1".toLowerCase());
+
+        List<Assertion> assertList = policy.getAssertions();
+        assertNotNull(assertList);
+        assertEquals(assertList.size(), 1);
+        Assertion obj = assertList.get(0);
+        assertEquals(obj.getAction(), "ActioN1");
+        assertEquals(obj.getEffect(), AssertionEffect.ALLOW);
+        assertEquals(obj.getResource(), "policygetdom1:SomeResourcE");
+        assertEquals(obj.getRole(), "PolicyGetDom1:role.Role1".toLowerCase());
+
+        boolean foundError = false;
+        System.err.println("testGetPolicy: Number of lines: " + aLogMsgs.size());
+        for (String msg: aLogMsgs) {
+            if (!msg.contains("WHAT-api=(putpolicy)")) {
+                continue;
+            }
+            assertTrue(msg.contains("CLIENT-IP=(" + MOCKCLIENTADDR + ")"), msg);
+            int index = msg.indexOf("WHAT-details=(");
+            assertTrue(index != -1, msg);
+            int index2 = msg.indexOf("\"added-assertions\": [{\"role\": \"policygetdom1:role.role1\", \"action\": \"ActioN1\", \"effect\": \"ALLOW\", \"resource\": \"policygetdom1:SomeResourcE\"}]");
+            assertTrue(index < index2, msg);
+            index2 = msg.indexOf("ERROR");
+            assertEquals(index2, -1, msg);
+            foundError = true;
+            break;
+        }
+        assertTrue(foundError);
+
+        // modify the assertion: result is add of new assertion, delete of old
+        //
+        obj.setAction("layup");
+        // We'll set the policy to not be case-sensitive. So even though we didn't override the resource name, it will be lower-cased
+        policy1.setCaseSensitive(false);
+        obj.setEffect(AssertionEffect.DENY);
+        List<Assertion> assertions = new ArrayList<>();
+        assertions.add(obj);
+        policy1.setAssertions(assertions);
+        aLogMsgs.clear();
+        zmsImpl.putPolicy(mockDomRsrcCtx, "PolicyGetDom1", "Policy1", auditRef, policy1);
+
+        foundError = false;
+        System.err.println("testGetPolicy: Number of lines: " + aLogMsgs.size());
+        for (String msg: aLogMsgs) {
+            if (!msg.contains("WHAT-api=(putpolicy)")) {
+                continue;
+            }
+            assertTrue(msg.contains("CLIENT-IP=(" + MOCKCLIENTADDR + ")"), msg);
+            int index = msg.indexOf("WHAT-details=(");
+            assertTrue(index != -1, msg);
+            int index2 = msg.indexOf("\"added-assertions\": [{\"role\": \"policygetdom1:role.role1\", \"action\": \"layup\", \"effect\": \"DENY\", \"resource\": \"policygetdom1:someresource\"}]");
+            assertTrue(index < index2, msg);
+            index2 = msg.indexOf("ERROR");
+            assertEquals(index2, -1, msg);
+            foundError = true;
+            break;
+        }
+        assertTrue(foundError);
+
+        // this should throw an exception
+        try {
+            zmsImpl.getPolicy(mockDomRsrcCtx, "PolicyGetDom1", "Policy2");
+            fail();
+        } catch (Exception ex) {
+            assertTrue(true);
+        }
+
+        zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, "PolicyGetDom1", auditRef);
+    }
+
     @Test
     public void testGetPolicyThrowException() {
         String domainName = "PolicyGetDom1";
@@ -4068,6 +4224,60 @@ public class ZMSImplTest {
         Policy policyRes2 = zms.getPolicy(mockDomRsrcCtx, "PolicyAddDom1", "Policy1");
         assertNotNull(policyRes2);
         assertEquals(policyRes2.getName(), "PolicyAddDom1:policy.Policy1".toLowerCase());
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "PolicyAddDom1", auditRef);
+    }
+
+    @Test
+    public void testCreatePolicyCaseSensitive() {
+
+        TopLevelDomain dom1 = createTopLevelDomainObject("PolicyAddDom1",
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        // Create policy with an "allow all" assertion
+        Policy policy1 = createPolicyObject("PolicyAddDom1", "Policy1");
+        // Make the assertions in the policy case sensitive with regards to action and resource
+        policy1.setCaseSensitive(true);
+
+        // Create assertion2
+        Assertion assertion2 = new Assertion();
+        assertion2.setAction("ReaD");
+        assertion2.setEffect(AssertionEffect.ALLOW);
+        assertion2.setResource("coretech:RESOURCE");
+        assertion2.setRole("PolicyAddDom1:role.provider");
+
+        // Create assertion3 which is identical to assertion2 but with a different case in action and resource
+        Assertion assertion3 = new Assertion();
+        assertion3.setAction("READ");
+        assertion3.setEffect(AssertionEffect.ALLOW);
+        assertion3.setResource("coretech:Resource");
+        assertion3.setRole("PolicyAddDom1:role.provider");
+
+        // Create assertion4 which is different than assertion 3 and 2
+        Assertion assertion4 = new Assertion();
+        assertion4.setAction("WritE");
+        assertion4.setEffect(AssertionEffect.ALLOW);
+        assertion4.setResource("coretech:OtherResource");
+        assertion4.setRole("PolicyAddDom1:role.provider");
+
+        policy1.getAssertions().add(assertion2);
+        policy1.getAssertions().add(assertion3);
+        policy1.getAssertions().add(assertion4);
+
+        zms.putPolicy(mockDomRsrcCtx, "PolicyAddDom1", "Policy1", auditRef, policy1);
+
+        Policy policyRes2 = zms.getPolicy(mockDomRsrcCtx, "PolicyAddDom1", "Policy1");
+        assertNotNull(policyRes2);
+        assertEquals(policyRes2.getName(), "PolicyAddDom1:policy.Policy1".toLowerCase());
+        List<Assertion> assertions = policyRes2.getAssertions();
+        assertEquals(assertions.size(), 3); // assertion 2 and 3 are considered identical so only one remained
+
+        assertEquals(assertions.get(1).getAction(), "ReaD");
+        assertEquals(assertions.get(1).getResource(), "coretech:RESOURCE");
+
+        assertEquals(assertions.get(2).getAction(), "WritE");
+        assertEquals(assertions.get(2).getResource(), "coretech:OtherResource");
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "PolicyAddDom1", auditRef);
     }
@@ -6426,6 +6636,212 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testGetAccessCaseSensitive() {
+
+        TopLevelDomain dom1 = createTopLevelDomainObject("AccessDom1",
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Role role1 = createRoleObject("AccessDom1", "Role1", null, "user.user1",
+                "user.user3");
+        zms.putRole(mockDomRsrcCtx, "AccessDom1", "Role1", auditRef, role1);
+
+        Role role2 = createRoleObject("AccessDom1", "Role2", null, "user.user2",
+                "user.user3");
+        zms.putRole(mockDomRsrcCtx, "AccessDom1", "Role2", auditRef, role2);
+
+        Policy policy1 = createPolicyObject("AccessDom1", "Policy1", "Role1",
+                "UpdatE", "AccessDom1:ResourcE1", AssertionEffect.ALLOW);
+        policy1.setCaseSensitive(true);
+        zms.putPolicy(mockDomRsrcCtx, "AccessDom1", "Policy1", auditRef, policy1);
+
+        Policy policy2 = createPolicyObject("AccessDom1", "Policy2", "Role2",
+                "CreatE", "AccessDom1:ResourcE2", AssertionEffect.DENY);
+        policy2.setCaseSensitive(true);
+        zms.putPolicy(mockDomRsrcCtx, "AccessDom1", "Policy2", auditRef, policy2);
+
+        Policy policy3 = createPolicyObject("AccessDom1", "Policy3", "Role2",
+                "*", "AccessDom1:ResourcE3", AssertionEffect.ALLOW);
+        policy3.setCaseSensitive(true);
+        zms.putPolicy(mockDomRsrcCtx, "AccessDom1", "Policy3", auditRef, policy3);
+
+        Policy policy4 = createPolicyObject("AccessDom1", "Policy4", "Role2",
+                "DeletE", "AccessdoM1:*", AssertionEffect.ALLOW);
+        policy4.setCaseSensitive(true);
+        zms.putPolicy(mockDomRsrcCtx, "AccessDom1", "Policy4", auditRef, policy4);
+
+        Policy policy5 = createPolicyObject("AccessDom1", "Policy5", "Role1",
+                "ReaD", "AccessdoM1:*", AssertionEffect.ALLOW);
+        policy5.setCaseSensitive(true);
+        zms.putPolicy(mockDomRsrcCtx, "AccessDom1", "Policy5", auditRef, policy5);
+
+        Policy policy6 = createPolicyObject("AccessDom1", "Policy6", "Role1",
+                "ReaD", "AccessDom1:ResourcE6", AssertionEffect.DENY);
+        policy6.setCaseSensitive(true);
+        zms.putPolicy(mockDomRsrcCtx, "AccessDom1", "Policy6", auditRef, policy6);
+
+        // user1 and user3 have access to UPDATE/resource1
+
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        Principal principal1 = principalAuthority.authenticate("v=U1;d=user;n=user1;s=signature",
+                "10.11.12.13", "GET", null);
+        ResourceContext rsrcCtx1 = createResourceContext(principal1);
+        Principal principal2 = principalAuthority.authenticate("v=U1;d=user;n=user2;s=signature",
+                "10.11.12.13", "GET", null);
+        ResourceContext rsrcCtx2 = createResourceContext(principal2);
+        Principal principal3 = principalAuthority.authenticate("v=U1;d=user;n=user3;s=signature",
+                "10.11.12.13", "GET", null);
+        ResourceContext rsrcCtx3 = createResourceContext(principal3);
+
+        Access access = zms.getAccess(rsrcCtx1, "uPDATe", "AcceSSDom1:rESOURCe1",
+                "AccessDom1", null);
+        assertTrue(access.getGranted());
+
+        access = zms.getAccess(rsrcCtx2, "UpDaTe", "AccEssDom1:reSouRce1",
+                "AccessDom1", null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccess(rsrcCtx3, "uPdate", "AccEssDom1:resOurce1",
+                "AccessDom1", null);
+        assertTrue(access.getGranted());
+
+        // same set as before with no trust domain field
+
+        access = zms.getAccess(rsrcCtx1, "UPDaTE", "ACcessDom1:reSource1",
+                null, null);
+        assertTrue(access.getGranted());
+
+        access = zms.getAccess(rsrcCtx2, "UPDAtE", "AccEssDom1:resOUrce1",
+                null, null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccess(rsrcCtx3, "uPDATE", "ACcessDom1:resourcE1",
+                null, null);
+        assertTrue(access.getGranted());
+
+        // all three have no access to CREATE action on resource1
+
+        access = zms.getAccess(rsrcCtx1, "CREATE", "AccessDom1:resource1",
+                "AccessDom1", null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccess(rsrcCtx2, "CREATE", "AccessDom1:resource1",
+                "AccessDom1", null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccess(rsrcCtx3, "CREATE", "AccessDom1:resource1",
+                "AccessDom1", null);
+        assertFalse(access.getGranted());
+
+        // all three have no access to invalid domain name on resource 1
+
+        access = zms.getAccess(rsrcCtx1, "CREATE", "AccessDom1:resource1",
+                "AccessDom2", null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccess(rsrcCtx2, "CREATE", "AccessDom1:resource1",
+                "AccessDom2", null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccess(rsrcCtx3, "CREATE", "AccessDom1:resource1",
+                "AccessDom2", null);
+        assertFalse(access.getGranted());
+
+        // same as before with no trust domain field
+
+        access = zms.getAccess(rsrcCtx1, "CREATE", "AccessDom1:resource1",
+                null, null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccess(rsrcCtx2, "CREATE", "AccessDom1:resource1",
+                null, null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccess(rsrcCtx3, "CREATE", "AccessDom1:resource1",
+                null, null);
+        assertFalse(access.getGranted());
+
+        // all three should have deny access to resource 2
+
+        access = zms.getAccess(rsrcCtx1, "CREATE", "AccessDom1:resource2",
+                "AccessDom1", null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccess(rsrcCtx2, "CREATE", "AccessDom1:resource2",
+                "AccessDom1", null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccess(rsrcCtx3, "CREATE", "AccessDom1:resource2",
+                "AccessDom1", null);
+        assertFalse(access.getGranted());
+
+        // user2 and user3 have access to CREATE(*)/resource 3
+
+        access = zms.getAccess(rsrcCtx1, "CREATE", "AccessDom1:resource3",
+                "AccessDom1", null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccess(rsrcCtx2, "CReATE", "AccessDOm1:resouRce3",
+                "AccessDom1", null);
+        assertTrue(access.getGranted());
+
+        access = zms.getAccess(rsrcCtx3, "CREATe", "accessDom1:rEsource3",
+                "AccessDom1", null);
+        assertTrue(access.getGranted());
+
+        // user2 and user3 have access to UPDATE(*)/resource 3
+
+        access = zms.getAccess(rsrcCtx1, "UpDATE", "AcCessDom1:reSource3",
+                "AccessDom1", null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccess(rsrcCtx2, "UPDaTE", "AccEssDom1:resourCe3",
+                "AccessDom1", null);
+        assertTrue(access.getGranted());
+
+        access = zms.getAccess(rsrcCtx3, "UPDATe", "AccEssDom1:resouRce3",
+                "AccessDom1", null);
+        assertTrue(access.getGranted());
+
+        // user2 and user3 have access to DELETE/resource 4 (*)
+
+        access = zms.getAccess(rsrcCtx1, "DeLETE", "AccEssDOm1:resouRce4",
+                "AccessDom1", null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccess(rsrcCtx2, "DELETe", "AccEssDom1:resouRce4",
+                "AccessDom1", null);
+        assertTrue(access.getGranted());
+
+        access = zms.getAccess(rsrcCtx3, "DELEtE", "AccesSDom1:resouRce4",
+                "AccessDom1", null);
+        assertTrue(access.getGranted());
+
+        // user1 should be able to read resource 5(*) but not resource 6
+        // (explicit DENY)
+
+        access = zms.getAccess(rsrcCtx1, "reaD", "ACCessDom1:reSource5",
+                "AccessDom1", null);
+        assertTrue(access.getGranted());
+
+        access = zms.getAccess(rsrcCtx1, "READ", "AccessDom1:resource6",
+                "AccessDom1", null);
+        assertFalse(access.getGranted());
+
+        // we should get an exception since access is not allowed to be called
+        // with user cookie - this api is only for functions that require a
+        // service or user tokens
+
+        try {
+            zms.access("READ", "AccessDom1:resource5", principal1, "AccessDom1");
+        } catch (ResourceException ex) {
+            assertEquals(400, ex.getCode());
+        }
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "AccessDom1", auditRef);
+    }
+
+    @Test
     public void testGetAccessWildcard() {
 
         final String domainName = "WildcardAccessDomain1";
@@ -7380,7 +7796,171 @@ public class ZMSImplTest {
         
         zms.deleteTopLevelDomain(mockDomRsrcCtx, testDomainName, auditRef);
     }
-    
+
+    @Test
+    public void testGetAccessExtCaseSensitive() {
+
+        final String testDomainName = "AccessDomExt1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(testDomainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Role role1 = createRoleObject(testDomainName, "Role1", null, "user.user1",
+                "user.user3");
+        zms.putRole(mockDomRsrcCtx, testDomainName, "Role1", auditRef, role1);
+
+        Role role2 = createRoleObject(testDomainName, "Role2", null, "user.user2",
+                "user.user3");
+        zms.putRole(mockDomRsrcCtx, testDomainName, "Role2", auditRef, role2);
+
+        Policy policy1 = createPolicyObject(testDomainName, "Policy1", "Role1",
+                "UpdatE", testDomainName + ":ResourcE1/ResourcE2", AssertionEffect.ALLOW);
+        policy1.setCaseSensitive(true);
+        zms.putPolicy(mockDomRsrcCtx, testDomainName, "Policy1", auditRef, policy1);
+
+        Policy policy2 = createPolicyObject(testDomainName, "Policy2", "Role2",
+                "CreatE", testDomainName + ":ResourcE2(ResourcE3)", AssertionEffect.ALLOW);
+        policy2.setCaseSensitive(true);
+        zms.putPolicy(mockDomRsrcCtx, testDomainName, "Policy2", auditRef, policy2);
+
+        Policy policy3 = createPolicyObject(testDomainName, "Policy3", "Role2",
+                "*", testDomainName + ":ResourcE3/*", AssertionEffect.ALLOW);
+        policy3.setCaseSensitive(true);
+        zms.putPolicy(mockDomRsrcCtx, testDomainName, "Policy3", auditRef, policy3);
+
+        Policy policy4 = createPolicyObject(testDomainName, "Policy4", "Role1",
+                "ReaD", testDomainName + ":ResourcE4[*]/DatA1", AssertionEffect.ALLOW);
+        policy4.setCaseSensitive(true);
+        zms.putPolicy(mockDomRsrcCtx, testDomainName, "Policy4", auditRef, policy4);
+
+        Policy policy5 = createPolicyObject(testDomainName, "Policy5", "Role2",
+                "AccesS", testDomainName + ":https://*.ATHENZ.com/*", AssertionEffect.ALLOW);
+        policy5.setCaseSensitive(true);
+        zms.putPolicy(mockDomRsrcCtx, testDomainName, "Policy5", auditRef, policy5);
+
+        // user1 and user3 have access to UPDATE/resource1
+
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        Principal principal1 = principalAuthority.authenticate("v=U1;d=user;n=user1;s=signature",
+                "10.11.12.13", "GET", null);
+        ResourceContext rsrcCtx1 = createResourceContext(principal1);
+        Principal principal2 = principalAuthority.authenticate("v=U1;d=user;n=user2;s=signature",
+                "10.11.12.13", "GET", null);
+        ResourceContext rsrcCtx2 = createResourceContext(principal2);
+        Principal principal3 = principalAuthority.authenticate("v=U1;d=user;n=user3;s=signature",
+                "10.11.12.13", "GET", null);
+        ResourceContext rsrcCtx3 = createResourceContext(principal3);
+
+        // user1 and user3 have update access to resource1/resource2
+
+        Access access = zms.getAccessExt(rsrcCtx1, "uPDATe", testDomainName + ":resouRce1/reSource2",
+                testDomainName, null);
+        assertTrue(access.getGranted());
+
+        access = zms.getAccessExt(rsrcCtx1, "UPDATE", testDomainName + ":resource1/resource3",
+                testDomainName, null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccessExt(rsrcCtx2, "UPDATE", testDomainName + ":resource1/resource2",
+                testDomainName, null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccessExt(rsrcCtx3, "UPdATE", testDomainName + ":resoUrce1/resourCe2",
+                testDomainName, null);
+        assertTrue(access.getGranted());
+
+        // all three have no access to CREATE action on resource1/resource2
+
+        access = zms.getAccessExt(rsrcCtx1, "CReATE", testDomainName + ":resOurce1/resourcE2",
+                testDomainName, null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccessExt(rsrcCtx2, "CREAtE", testDomainName + ":resOurce1/resource2",
+                testDomainName, null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccessExt(rsrcCtx3, "cREATE", testDomainName + ":resource1/resoUrce2",
+                testDomainName, null);
+        assertFalse(access.getGranted());
+
+        // user2 and user3 have create access to resource2(resource3)
+
+        access = zms.getAccessExt(rsrcCtx1, "CreatE", testDomainName + ":resource2(resource3)",
+                testDomainName, null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccessExt(rsrcCtx2, "CreATE", testDomainName + ":resOUrce2(resOUrce3)",
+                testDomainName, null);
+        assertTrue(access.getGranted());
+
+        access = zms.getAccessExt(rsrcCtx3, "CrEATE", testDomainName + ":resourCe2(reSource3)",
+                testDomainName, null);
+        assertTrue(access.getGranted());
+
+        // user2 and user3 have access to CREATE(*)/resource3/*
+
+        access = zms.getAccessExt(rsrcCtx1, "CreatE", testDomainName + ":resource3",
+                testDomainName, null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccessExt(rsrcCtx2, "CReATE", testDomainName + ":RESource3/TesT1",
+                testDomainName, null);
+        assertTrue(access.getGranted());
+
+        access = zms.getAccessExt(rsrcCtx3, "CReATE", testDomainName + ":resourCE3/AnotherTest",
+                testDomainName, null);
+        assertTrue(access.getGranted());
+
+        // user2 and user3 have access to UPDATE(*)/resource3/*
+
+        access = zms.getAccessExt(rsrcCtx1, "UPDaTE", testDomainName + ":ResourcE3",
+                testDomainName, null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccessExt(rsrcCtx2, "UPDATE", testDomainName + ":RESOURCE3/(anotheR Value)",
+                testDomainName, null);
+        assertTrue(access.getGranted());
+
+        access = zms.getAccessExt(rsrcCtx3, "UPDaTE", testDomainName + ":resOurce3/a",
+                testDomainName, null);
+        assertTrue(access.getGranted());
+
+        // user1 and user3 have access to READ/resource6[*]/data1
+
+        access = zms.getAccessExt(rsrcCtx1, "REad", testDomainName + ":ResourCE4[TeSt1]/dAtA1",
+                testDomainName, null);
+        assertTrue(access.getGranted());
+
+        access = zms.getAccessExt(rsrcCtx2, "reaD", testDomainName + ":Resource4[test1]/dAta1",
+                testDomainName, null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccessExt(rsrcCtx3, "reaD", testDomainName + ":resouRce4[tesT another]/daTa1",
+                testDomainName, null);
+        assertTrue(access.getGranted());
+
+        // user2 and user3 have access to access/https://*.athenz.com/*
+
+        access = zms.getAccessExt(rsrcCtx1, "ACCess", testDomainName + ":https://Web.athenz.COM/datA",
+                testDomainName, null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccessExt(rsrcCtx2, "acCess", testDomainName + ":https://web.ATHENZ.com/data",
+                testDomainName, null);
+        assertTrue(access.getGranted());
+
+        access = zms.getAccessExt(rsrcCtx2, "acCess", testDomainName + ":https://web.ATHENZ.org/data",
+                testDomainName, null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccessExt(rsrcCtx3, "acCess", testDomainName + ":https://web-store.ATHENZ.com/data/path",
+                testDomainName, null);
+        assertTrue(access.getGranted());
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, testDomainName, auditRef);
+    }
+
     @Test
     public void testValidateEntity() {
         int code = 400;
@@ -9584,7 +10164,36 @@ public class ZMSImplTest {
         assertEquals(zms.evaluateAccess(domain, "user.user1", "read", "coretech:resource1",
                 null, null), AccessStatus.DENIED);
     }
-    
+
+    @Test
+    public void testEvaluateAccessAssertionDenyCaseSensitive() {
+
+        AthenzDomain domain = new AthenzDomain("coretech");
+        Role role = createRoleObject("coretech", "role1", null, "user.user1", null);
+        domain.getRoles().add(role);
+
+        Policy policy = new Policy().setName("coretech:policy.policy1");
+        Assertion assertion = new Assertion();
+        assertion.setAction("ReaD");
+        assertion.setEffect(AssertionEffect.DENY);
+        assertion.setResource("coretech:*");
+        assertion.setRole("coretech:role.role1");
+        policy.setAssertions(new ArrayList<>());
+        policy.getAssertions().add(assertion);
+        domain.getPolicies().add(policy);
+
+        ZMSImpl spiedZms = Mockito.spy(zms);
+        assertEquals(spiedZms.evaluateAccess(domain, "user.user1", "read", "coretech:resource1",
+                null, null), AccessStatus.DENIED);
+
+        // Verify that it was denied by explicit "Deny" assertion and not because no match was found
+        Mockito.verify(spiedZms, times(1)).matchPrincipal(
+                eq(domain.getRoles()),
+                eq("^coretech:role\\.role1$"),
+                eq("user.user1"),
+                eq(null));
+    }
+
     @Test
     public void testEvaluateAccessAssertionAllow() {
         
@@ -9604,7 +10213,27 @@ public class ZMSImplTest {
         
         assertEquals(zms.evaluateAccess(domain, "user.user1", "read", "coretech:resource1", null, null), AccessStatus.ALLOWED);
     }
-    
+
+    @Test
+    public void testEvaluateAccessAssertionAllowCaseSensitive() {
+
+        AthenzDomain domain = new AthenzDomain("coretech");
+        Role role = createRoleObject("coretech", "role1", null, "user.user1", null);
+        domain.getRoles().add(role);
+
+        Policy policy = new Policy().setName("coretech:policy.policy1");
+        Assertion assertion = new Assertion();
+        assertion.setAction("ReaD");
+        assertion.setEffect(AssertionEffect.ALLOW);
+        assertion.setResource("coretech:*");
+        assertion.setRole("coretech:role.role1");
+        policy.setAssertions(new ArrayList<>());
+        policy.getAssertions().add(assertion);
+        domain.getPolicies().add(policy);
+
+        assertEquals(zms.evaluateAccess(domain, "user.user1", "read", "coretech:resource1", null, null), AccessStatus.ALLOWED);
+    }
+
     @Test
     public void testHasExceededDepthLimitNullLimit() {
         assertFalse(zms.hasExceededDepthLimit(null, "domain"));
@@ -10675,6 +11304,19 @@ public class ZMSImplTest {
         assertEquals(assertion.getRole(), "coretech:role.role1");
         assertEquals(assertion.getAction(), "read");
         assertEquals(assertion.getResource(), "coretech:vip.*");
+
+        // Check with case-sensitive flag
+        new Assertion();
+        assertion.setAction("Read");
+        assertion.setEffect(AssertionEffect.ALLOW);
+        assertion.setResource("coreTech:VIP.*");
+        assertion.setRole("coretech:role.Role1");
+        assertion.setCaseSensitive(true);
+
+        AthenzObject.ASSERTION.convertToLowerCase(assertion);
+        assertEquals(assertion.getRole(), "coretech:role.role1");
+        assertEquals(assertion.getAction(), "Read");
+        assertEquals(assertion.getResource(), "coretech:VIP.*");
     }
         
     @Test
@@ -11090,6 +11732,40 @@ public class ZMSImplTest {
         assertEquals(assertion.getRole(), "coretech:role.roleab");
         assertEquals(assertion.getAction(), "update");
         assertEquals(assertion.getResource(), "coretech:vip.*");
+
+        // Now check case-sensitive
+        policy = new Policy();
+        policy.setName(ZMSUtils.policyResourceName("CoreTech", "policy"));
+        policy.setCaseSensitive(true);
+        assertion1 = new Assertion();
+        assertion1.setAction("Read");
+        assertion1.setEffect(AssertionEffect.ALLOW);
+        assertion1.setResource("coreTech:VIP.*");
+        assertion1.setRole("coretech:role.Role1");
+
+        assertion2 = new Assertion();
+        assertion2.setAction("UPDATE");
+        assertion2.setEffect(AssertionEffect.ALLOW);
+        assertion2.setResource("CoreTech:VIP.*");
+        assertion2.setRole("coretech:role.RoleAB");
+
+        assertList = new ArrayList<>();
+        assertList.add(assertion1);
+        assertList.add(assertion2);
+
+        policy.setAssertions(assertList);
+
+        AthenzObject.POLICY.convertToLowerCase(policy);
+        assertEquals(policy.getName(), "coretech:policy.policy");
+        assertion = policy.getAssertions().get(0);
+        assertEquals(assertion.getRole(), "coretech:role.role1");
+        assertEquals(assertion.getAction(), "Read");
+        assertEquals(assertion.getResource(), "coretech:VIP.*");
+
+        assertion = policy.getAssertions().get(1);
+        assertEquals(assertion.getRole(), "coretech:role.roleab");
+        assertEquals(assertion.getAction(), "UPDATE");
+        assertEquals(assertion.getResource(), "coretech:VIP.*");
     }
     
     @Test
@@ -13461,6 +14137,78 @@ public class ZMSImplTest {
             assertTrue(ex.getMessage().contains("Read-Only"));
         }
 
+        try {
+            zmsTest.putGroup(mockDomRsrcCtx, "readonlydom1", "group1", auditRef, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only"));
+        }
+
+        try {
+            zmsTest.deleteGroup(mockDomRsrcCtx, "readonlydom1", "group1", auditRef);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only"));
+        }
+
+        try {
+            zmsTest.putGroupMembership(mockDomRsrcCtx, "readonlydom1", "group1", "user.joe", auditRef, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only"));
+        }
+
+        try {
+            zmsTest.putGroupMembershipDecision(mockDomRsrcCtx, "readonlydom1", "group1", "user.joe", auditRef, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only"));
+        }
+
+        try {
+            zmsTest.putGroupReview(mockDomRsrcCtx, "readonlydom1", "group1", auditRef, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only"));
+        }
+
+        try {
+            zmsTest.putGroupMeta(mockDomRsrcCtx, "readonlydom1", "group1", auditRef, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only"));
+        }
+
+        try {
+            zmsTest.putGroupSystemMeta(mockDomRsrcCtx, "readonlydom1", "group1", "attr", auditRef, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only"));
+        }
+
+        try {
+            zmsTest.deleteGroupMembership(mockDomRsrcCtx, "readonlydom1", "group1", "user.joe", auditRef);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only"));
+        }
+
+        try {
+            zmsTest.deletePendingGroupMembership(mockDomRsrcCtx, "readonlydom1", "group1", "user.joe", auditRef);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only"));
+        }
+
         // now make sure we can read our sys.auth zms service
         
         ServiceIdentity serviceRes = zmsTest.getServiceIdentity(mockDomRsrcCtx, "sys.auth", "zms");
@@ -13501,6 +14249,24 @@ public class ZMSImplTest {
         Assertion assertion = new Assertion();
         assertion.setAction("write");
         assertion.setResource("domain:db.write");
+        assertion.setRole("domain:role.role1");
+
+        assertTrue(zms.assertionMatch(assertion, "user.john", "write", "domain:db.write", "domain",
+                roles, authRoles, null));
+
+        // check case sensitive action and resource
+        assertion = new Assertion();
+        assertion.setAction("write");
+        assertion.setResource("domain:db.write");
+        assertion.setRole("domain:role.role1");
+
+        assertTrue(zms.assertionMatch(assertion, "user.john", "write", "domain:db.write", "domain",
+                roles, authRoles, null));
+
+        // check case sensitive assertion
+        assertion = new Assertion();
+        assertion.setAction("WRITE");
+        assertion.setResource("domain:db.WRITE");
         assertion.setRole("domain:role.role1");
 
         assertTrue(zms.assertionMatch(assertion, "user.john", "write", "domain:db.write", "domain",
@@ -14571,7 +15337,44 @@ public class ZMSImplTest {
        
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
-    
+
+    @Test
+    public void testGetAssertionCaseSensitive() {
+
+        final String domainName = "get-assertion";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        // Create case-sensitive policy
+        Policy policy = createPolicyObject(domainName, "policy1", "Role1", "ActioN1", "GeT-AssertioN:SomeResource", AssertionEffect.ALLOW);
+        policy.setCaseSensitive(true);
+
+        // Create case-insensitive policy
+        Policy policy2 = createPolicyObject(domainName, "policy2", "Role1", "ActioN2", "GeT-AssertioN:SomeResource2", AssertionEffect.ALLOW);
+
+        zms.putPolicy(mockDomRsrcCtx, domainName, "policy1", auditRef, policy);
+        zms.putPolicy(mockDomRsrcCtx, domainName, "policy2", auditRef, policy2);
+
+        Policy policyRes = zms.getPolicy(mockDomRsrcCtx, domainName, "policy1");
+        Long assertionId = policyRes.getAssertions().get(0).getId();
+
+        Assertion assertion = zms.getAssertion(mockDomRsrcCtx, domainName, "policy1", assertionId);
+        assertNotNull(assertion);
+        assertEquals(assertion.getAction(), "ActioN1");
+        assertEquals(assertion.getResource(), domainName + ":SomeResource");
+
+        policyRes = zms.getPolicy(mockDomRsrcCtx, domainName, "policy2");
+        assertionId = policyRes.getAssertions().get(0).getId();
+
+        assertion = zms.getAssertion(mockDomRsrcCtx, domainName, "policy2", assertionId);
+        assertNotNull(assertion);
+        assertEquals(assertion.getAction(), "action2");
+        assertEquals(assertion.getResource(), domainName + ":someresource2");
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
     @Test
     public void testGetAssertionMultiple() {
 
@@ -14586,7 +15389,19 @@ public class ZMSImplTest {
         assertion.setEffect(AssertionEffect.ALLOW);
         assertion.setResource(domainName + ":resource");
         assertion.setRole(ZMSUtils.roleResourceName(domainName, "admin"));
+
+        // Create case-sensitive assertion
+        Assertion assertion2 = new Assertion();
+        assertion2.setAction("UpdatE2");
+        assertion2.setEffect(AssertionEffect.ALLOW);
+        assertion2.setResource(domainName + ":ResourcE2");
+        assertion2.setRole(ZMSUtils.roleResourceName(domainName, "admin"));
+        assertion2.setCaseSensitive(true);
+
+        // Put both assertions
         policy.getAssertions().add(assertion);
+        policy.getAssertions().add(assertion2);
+
         zms.putPolicy(mockDomRsrcCtx, domainName, "policy1", auditRef, policy);
 
         Policy policyRes = zms.getPolicy(mockDomRsrcCtx, domainName, "policy1");
@@ -14601,9 +15416,15 @@ public class ZMSImplTest {
         testAssertion = zms.getAssertion(mockDomRsrcCtx, domainName, "policy1", assertionId);
         assertNotNull(testAssertion);
         testAssertions.add(testAssertion);
-        
+
+        assertionId = policyRes.getAssertions().get(2).getId();
+        testAssertion = zms.getAssertion(mockDomRsrcCtx, domainName, "policy1", assertionId);
+        assertNotNull(testAssertion);
+        testAssertions.add(testAssertion);
+
         boolean assert1Check = false;
         boolean assert2Check = false;
+        boolean assert3Check = false;
         for (Assertion testAssert : testAssertions) {
             switch (testAssert.getAction()) {
                 case "*":
@@ -14614,11 +15435,16 @@ public class ZMSImplTest {
                     assertEquals(testAssert.getResource(), domainName + ":resource");
                     assert2Check = true;
                     break;
+                case "UpdatE2":
+                    assertEquals(testAssert.getResource(), domainName + ":ResourcE2");
+                    assert3Check = true;
+                    break;
             }
         }
         assertTrue(assert1Check);
         assertTrue(assert2Check);
-        
+        assertTrue(assert3Check);
+
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
     
@@ -14693,6 +15519,56 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testPutAssertionCaseSensitive() {
+
+        final String domainName = "put-assertion";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Policy policy = createPolicyObject(domainName, "policy1");
+        zms.putPolicy(mockDomRsrcCtx, domainName, "policy1", auditRef, policy);
+
+        Assertion assertion = new Assertion();
+        assertion.setAction("Update");
+        assertion.setEffect(AssertionEffect.ALLOW);
+        assertion.setResource(domainName + ":Resource");
+        assertion.setRole(ZMSUtils.roleResourceName(domainName, "admin"));
+        assertion.setCaseSensitive(true);
+
+        // add the assertion
+
+        assertion = zms.putAssertion(mockDomRsrcCtx, domainName, "policy1", auditRef, assertion);
+
+        // verity that the return assertion object has the id set
+
+        assertNotNull(assertion.getId());
+
+        // validate that both assertions exist
+
+        Policy policyRes = zms.getPolicy(mockDomRsrcCtx, domainName, "policy1");
+
+        boolean assert1Check = false;
+        boolean assert2Check = false;
+        for (Assertion testAssert : policyRes.getAssertions()) {
+            switch (testAssert.getAction()) {
+                case "*":
+                    assertEquals(testAssert.getResource(), domainName + ":*");
+                    assert1Check = true;
+                    break;
+                case "Update":
+                    assertEquals(testAssert.getResource(), domainName + ":Resource");
+                    assert2Check = true;
+                    break;
+            }
+        }
+        assertTrue(assert1Check);
+        assertTrue(assert2Check);
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
     public void testAddDefaultAdminAssertion() {
 
         final String domainName = "put-default-assertion";
@@ -14750,11 +15626,10 @@ public class ZMSImplTest {
 
         boolean assert1Check = false;
         for (Assertion testAssert : policyRes.getAssertions()) {
-            switch (testAssert.getAction()) {
-                case "*":
-                    assertEquals(testAssert.getResource(), domainName + ":*");
-                    assert1Check = true;
-                    break;
+            if ("*".equals(testAssert.getAction())) {
+                assertEquals(testAssert.getResource(), domainName + ":*");
+                assert1Check = true;
+                break;
             }
         }
         assertTrue(assert1Check);
@@ -14934,12 +15809,14 @@ public class ZMSImplTest {
         
         final String domainName = "assertion-test";
         Policy policy = createPolicyObject(domainName, "policy1");
+        policy.setCaseSensitive(true);
         Assertion assertion = new Assertion();
         assertion.setAction("update");
         assertion.setEffect(AssertionEffect.ALLOW);
         assertion.setResource(domainName + ":resource");
         assertion.setRole(ZMSUtils.roleResourceName(domainName, "admin"));
         assertion.setId(101L);
+        assertion.setCaseSensitive(true);
         policy.getAssertions().add(assertion);
         
         List<Policy> policyList = new ArrayList<>();
@@ -14953,6 +15830,10 @@ public class ZMSImplTest {
         assertEquals(assertion.getEffect(), AssertionEffect.ALLOW);
         assertEquals(assertion.getResource(), domainName + ":resource");
         assertEquals(assertion.getRole(), ZMSUtils.roleResourceName(domainName, "admin"));
+
+        // Verify case-sensitivity isn't returned
+        assertNull(result.get(0).getCaseSensitive());
+        assertNull(testAssertion.getCaseSensitive());
     }
     
     @Test
@@ -15520,7 +16401,7 @@ public class ZMSImplTest {
                 .setPolicy(12).setPublicKey(13)
                 .setRole(14).setRoleMember(15)
                 .setService(16).setServiceHost(17)
-                .setSubdomain(18);
+                .setSubdomain(18).setGroupMember(19).setGroup(20);
         
         zms.putQuota(mockDomRsrcCtx, domainName, auditRef, quota);
 
@@ -15574,7 +16455,7 @@ public class ZMSImplTest {
                 .setPolicy(12).setPublicKey(13)
                 .setRole(14).setRoleMember(15)
                 .setService(16).setServiceHost(17)
-                .setSubdomain(18);
+                .setSubdomain(18).setGroupMember(19).setGroup(20);
         
         zms.putQuota(mockDomRsrcCtx, domainName, auditRef, quota);
 
@@ -16826,6 +17707,16 @@ public class ZMSImplTest {
         return meta;
     }
 
+    private GroupSystemMeta createGroupSystemMetaObject(Boolean auditEnabled) {
+
+        GroupSystemMeta meta = new GroupSystemMeta();
+
+        if (auditEnabled != null) {
+            meta.setAuditEnabled(auditEnabled);
+        }
+        return meta;
+    }
+
     private void setupPrincipalRoleSystemMetaDelete(ZMSImpl zms, final String principal,
             final String domainName, final String attributeName) {
 
@@ -17325,6 +18216,46 @@ public class ZMSImplTest {
         mbr.setApproved(false);
 
         zms.putMembership(mockDomRsrcCtx, "testdomain1", "testrole1", "user.bob", auditRef, mbr);
+
+        //revert back to admin principal
+        Authority adminPrincipalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String adminUnsignedCreds = "v=U1;d=user;n=user1";
+        // used with the mockDomRestRsrcCtx
+        final Principal rsrcAdminPrince = SimplePrincipal.create("user", "user1", adminUnsignedCreds + ";s=signature",
+                0, adminPrincipalAuthority);
+        assertNotNull(rsrcAdminPrince);
+        ((SimplePrincipal) rsrcAdminPrince).setUnsignedCreds(adminUnsignedCreds);
+
+        Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
+        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
+    }
+
+    private void addMemberToSelfServeGroupWithUserIdentity(final String domainName, final String groupName) {
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Approval test Domain1", "testOrg", "user.user1");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Group group1 = createGroupObject(domainName, groupName, "user.john", "user.jane");
+        zms.putGroup(mockDomRsrcCtx, domainName, groupName, auditRef, group1);
+
+        GroupMeta rm = new GroupMeta().setSelfServe(true);
+        zms.putGroupMeta(mockDomRsrcCtx, domainName, groupName, auditRef, rm);
+
+        //switch to user.bob principal to test selfserve role membership
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String unsignedCreds = "v=U1;d=user;n=bob";
+        final Principal rsrcPrince = SimplePrincipal.create("user", "bob", unsignedCreds + ";s=signature", 0, principalAuthority);
+        assertNotNull(rsrcPrince);
+        ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
+        Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcPrince);
+        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcPrince);
+
+        GroupMembership mbr = new GroupMembership();
+        mbr.setMemberName("user.bob");
+        mbr.setActive(false);
+        mbr.setApproved(false);
+
+        zms.putGroupMembership(mockDomRsrcCtx, domainName, groupName, "user.bob", auditRef, mbr);
 
         //revert back to admin principal
         Authority adminPrincipalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
@@ -18276,7 +19207,7 @@ public class ZMSImplTest {
         expextedNotifications.get(0).addDetails("role", "testrole2");
         expextedNotifications.get(0).addDetails("domain", "testdomain1");
         expextedNotifications.get(0).addDetails("member", "user.fury");
-        expextedNotifications.get(0).setNotificationToEmailConverter(new PutMembershipNotificationTask.PutMembershipNotificationToEmailConverter());
+        expextedNotifications.get(0).setNotificationToEmailConverter(new PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter());
 
         Mockito.verify(mockNotificationManager,
                 times(1)).sendNotifications(eq(expextedNotifications));
@@ -19418,7 +20349,7 @@ public class ZMSImplTest {
     }
 
     @Test
-    public void testGetUserAuthroityExpiryAttr() {
+    public void testGetUserAuthorityExpiryAttr() {
 
         Role role = new Role().setUserAuthorityExpiration("elevated-clearance");
 
@@ -19427,17 +20358,17 @@ public class ZMSImplTest {
 
         // with authority null we always get null
 
-        assertNull(zms.getUserAuthorityExpiryAttr(role));
+        assertNull(zms.getUserAuthorityExpiryAttr(role.getUserAuthorityExpiration()));
 
         zms.userAuthority = Mockito.mock(Authority.class);
 
-        assertEquals("elevated-clearance", zms.getUserAuthorityExpiryAttr(role));
+        assertEquals("elevated-clearance", zms.getUserAuthorityExpiryAttr(role.getUserAuthorityExpiration()));
 
         role.setUserAuthorityExpiration("");
-        assertNull(zms.getUserAuthorityExpiryAttr(role));
+        assertNull(zms.getUserAuthorityExpiryAttr(role.getUserAuthorityExpiration()));
 
         role.setUserAuthorityExpiration(null);
-        assertNull(zms.getUserAuthorityExpiryAttr(role));
+        assertNull(zms.getUserAuthorityExpiryAttr(role.getUserAuthorityExpiration()));
 
         zms.userAuthority = savedAuthority;
     }
@@ -19452,7 +20383,7 @@ public class ZMSImplTest {
 
         // with authority null we always get null
 
-        assertNull(zms.getUserAuthorityExpiry("user.john", role, "unit-test"));
+        assertNull(zms.getUserAuthorityExpiry("user.john", role.getUserAuthorityExpiration(), "unit-test"));
 
         Authority authority = Mockito.mock(Authority.class);
         Mockito.when(authority.getDateAttribute("user.john", "elevated-clearance"))
@@ -19461,10 +20392,10 @@ public class ZMSImplTest {
                 .thenReturn(null);
         zms.userAuthority = authority;
 
-        assertNotNull(zms.getUserAuthorityExpiry("user.john", role, "unit-test"));
+        assertNotNull(zms.getUserAuthorityExpiry("user.john", role.getUserAuthorityExpiration(), "unit-test"));
 
         try {
-            zms.getUserAuthorityExpiry("user.joe", role, "unit-test");
+            zms.getUserAuthorityExpiry("user.joe", role.getUserAuthorityExpiration(), "unit-test");
             fail();
         } catch (ResourceException ex) {
             assertTrue(ex.getMessage().contains("User does not have required user authority expiry configured"));
@@ -19546,20 +20477,20 @@ public class ZMSImplTest {
         // with authority null we always get exceptions if we have
         // not empty values specified
 
-        zms.validateRoleUserAuthorityAttributes(null, null, "unit-test");
-        zms.validateRoleUserAuthorityAttributes(null, "", "unit-test");
-        zms.validateRoleUserAuthorityAttributes("", null, "unit-test");
-        zms.validateRoleUserAuthorityAttributes("", "", "unit-test");
+        zms.validateUserAuthorityAttributes(null, null, "unit-test");
+        zms.validateUserAuthorityAttributes(null, "", "unit-test");
+        zms.validateUserAuthorityAttributes("", null, "unit-test");
+        zms.validateUserAuthorityAttributes("", "", "unit-test");
 
         try {
-            zms.validateRoleUserAuthorityAttributes("attr1", null, "unit-test");
+            zms.validateUserAuthorityAttributes("attr1", null, "unit-test");
             fail();
         } catch (ResourceException ex) {
             assertTrue(ex.getMessage().contains("User Authority filter specified without a valid user authority"));
         }
 
         try {
-            zms.validateRoleUserAuthorityAttributes(null, "attr1", "unit-test");
+            zms.validateUserAuthorityAttributes(null, "attr1", "unit-test");
             fail();
         } catch (ResourceException ex) {
             assertTrue(ex.getMessage().contains("User Authority expiry specified without a valid user authority"));
@@ -19577,29 +20508,29 @@ public class ZMSImplTest {
 
         // valid values
 
-        zms.validateRoleUserAuthorityAttributes("elevated-clearance", null, "unit-test");
-        zms.validateRoleUserAuthorityAttributes("elevated-clearance", "", "unit-test");
-        zms.validateRoleUserAuthorityAttributes("elevated-clearance,full-time-employee", null, "unit-test");
-        zms.validateRoleUserAuthorityAttributes("full-time-employee,elevated-clearance", "term-date", "unit-test");
-        zms.validateRoleUserAuthorityAttributes("", "term-date", "unit-test");
-        zms.validateRoleUserAuthorityAttributes(null, "term-date", "unit-test");
+        zms.validateUserAuthorityAttributes("elevated-clearance", null, "unit-test");
+        zms.validateUserAuthorityAttributes("elevated-clearance", "", "unit-test");
+        zms.validateUserAuthorityAttributes("elevated-clearance,full-time-employee", null, "unit-test");
+        zms.validateUserAuthorityAttributes("full-time-employee,elevated-clearance", "term-date", "unit-test");
+        zms.validateUserAuthorityAttributes("", "term-date", "unit-test");
+        zms.validateUserAuthorityAttributes(null, "term-date", "unit-test");
 
-        zms.validateRoleUserAuthorityAttributes(null, null, "unit-test");
-        zms.validateRoleUserAuthorityAttributes(null, "", "unit-test");
-        zms.validateRoleUserAuthorityAttributes("", null, "unit-test");
-        zms.validateRoleUserAuthorityAttributes("", "", "unit-test");
+        zms.validateUserAuthorityAttributes(null, null, "unit-test");
+        zms.validateUserAuthorityAttributes(null, "", "unit-test");
+        zms.validateUserAuthorityAttributes("", null, "unit-test");
+        zms.validateUserAuthorityAttributes("", "", "unit-test");
 
         // invalid values
 
         try {
-            zms.validateRoleUserAuthorityAttributes("elevated-clearance,contractor", null, "unit-test");
+            zms.validateUserAuthorityAttributes("elevated-clearance,contractor", null, "unit-test");
             fail();
         } catch (ResourceException ex) {
             assertTrue(ex.getMessage().contains("contractor is not a valid user authority attribute"));
         }
 
         try {
-            zms.validateRoleUserAuthorityAttributes("elevated-clearance", "hire-date", "unit-test");
+            zms.validateUserAuthorityAttributes("elevated-clearance", "hire-date", "unit-test");
             fail();
         } catch (ResourceException ex) {
             assertTrue(ex.getMessage().contains("hire-date is not a valid user authority date attribute"));
@@ -19883,10 +20814,9 @@ public class ZMSImplTest {
 
     @Test
     public void testRecordMetricsNoCtx() {
-        RsrcCtxWrapper ctx = null;
         int httpStatus = 200;
         zms.metric = Mockito.mock(Metric.class);
-        zms.recordMetrics(ctx, httpStatus);
+        zms.recordMetrics(null, httpStatus);
         Mockito.verify(zms.metric,
                 times(1)).increment (
                 eq("zms_api"),
@@ -19903,5 +20833,2513 @@ public class ZMSImplTest {
                 eq(null),
                 eq(httpStatus),
                 eq(null));
+    }
+
+    @Test
+    public void testGetGroupWithAttributes() {
+
+        final String domainName = "put-domain-group1";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Group group1 = createGroupObject(domainName, "group1", "user.joe", "user.jane");
+        group1.setSelfServe(true);
+        zms.putGroup(mockDomRsrcCtx, domainName, "group1", auditRef, group1);
+
+        Group group1a = zms.getGroup(mockDomRsrcCtx, domainName, "group1", false, false);
+        assertNotNull(group1a);
+
+        assertEquals(group1a.getName(), domainName + ":group.group1");
+        List<GroupMember> members = group1a.getGroupMembers();
+        assertNotNull(members);
+        assertEquals(members.size(), 2);
+
+        List<String> checkList = new ArrayList<>();
+        checkList.add("user.joe");
+        checkList.add("user.jane");
+        checkGroupMember(checkList, members);
+        assertTrue(group1a.getSelfServe());
+
+        // get unknown group
+
+        try {
+            zms.getGroup(mockDomRsrcCtx, domainName, "uknown-group", false, false);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testCreateGroup() {
+
+        final String domainName = "create-group";
+        final String groupName = "group1";
+
+        TestAuditLogger alogger = new TestAuditLogger();
+        List<String> aLogMsgs = alogger.getLogMsgList();
+        ZMSImpl zmsImpl = getZmsImpl(alogger);
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", adminUser);
+        Mockito.when(mockDomRsrcCtx.getApiName()).thenReturn("posttopleveldomain").thenReturn("putgroup");
+        zmsImpl.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Group group1 = createGroupObject(domainName, groupName, "user.joe", "user.jane");
+        zmsImpl.putGroup(mockDomRsrcCtx, domainName, groupName, auditRef, group1);
+
+        Group group1a = zmsImpl.getGroup(mockDomRsrcCtx, domainName, groupName, true, false);
+        assertNotNull(group1a);
+        assertNotNull(group1a.getAuditLog());
+        assertEquals(group1a.getAuditLog().size(), 2);
+        assertEquals(group1a.getName(), domainName + ":group." + groupName);
+        assertNull(group1a.getAuditEnabled());
+        assertNull(group1a.getReviewEnabled());
+
+        // check audit log msg for putRole
+        boolean foundError = false;
+        System.err.println("testCreateGroup: Number of lines: " + aLogMsgs.size());
+        for (String msg: aLogMsgs) {
+            if (!msg.contains("WHAT-api=(putgroup)")) {
+                continue;
+            }
+            assertTrue(msg.contains("CLIENT-IP=(" + MOCKCLIENTADDR + ")"), msg);
+            int index = msg.indexOf("WHAT-details=(");
+            assertTrue(index != -1, msg);
+            int index2 = msg.indexOf("\"name\": \"" + groupName + "\", \"added-members\": [");
+            assertTrue(index2 > index, msg);
+            foundError = true;
+            break;
+        }
+        assertTrue(foundError);
+
+        // delete member of the role
+        //
+        List<GroupMember> listrm = group1.getGroupMembers();
+        for (GroupMember rmemb: listrm) {
+            if (rmemb.getMemberName().equals("user.jane")) {
+                listrm.remove(rmemb);
+                break;
+            }
+        }
+
+        aLogMsgs.clear();
+        zmsImpl.putGroup(mockDomRsrcCtx, domainName, groupName, auditRef, group1);
+
+        foundError = false;
+        System.err.println("testCreateGroup: Now Number of lines: " + aLogMsgs.size());
+        for (String msg: aLogMsgs) {
+            if (!msg.contains("WHAT-api=(putgroup)")) {
+                continue;
+            }
+            assertTrue(msg.contains("CLIENT-IP=(" + MOCKCLIENTADDR + ")"), msg);
+            int index = msg.indexOf("WHAT-details=(");
+            assertTrue(index != -1, msg);
+            int index2 = msg.indexOf("\"name\": \"" + groupName + "\", \"deleted-members\": [{\"member\": \"user.jane\", \"approved\": true, \"system-disabled\": 0}], \"added-members\": []");
+            assertTrue(index2 > index, msg);
+            foundError = true;
+            break;
+        }
+        assertTrue(foundError);
+
+        zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testCreateGroupDBFailure() {
+
+        final String domainName = "create-group-db-failure";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        // put the db in read-only mode
+
+        setDatabaseReadOnlyMode(true);
+
+        Group group1 = createGroupObject(domainName, "group1", "user.joe", "user.jane");
+        try {
+            zms.putGroup(mockDomRsrcCtx, domainName, "group1", auditRef, group1);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.GONE);
+        }
+
+        // remove read-only mode
+
+        setDatabaseReadOnlyMode(false);
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testCreateDuplicateMemberGroup() {
+
+        final String domainName = "dup-member-group";
+        final String groupName = "group1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Group group1 = createGroupObject(domainName, groupName, "user.joe", "user.joe");
+        zms.putGroup(mockDomRsrcCtx, domainName, groupName, auditRef, group1);
+
+        Group group = zms.getGroup(mockDomRsrcCtx, domainName, groupName, false, false);
+        assertNotNull(group);
+
+        assertEquals(group.getName(), domainName + ":group.group1".toLowerCase());
+        List<GroupMember> members = group.getGroupMembers();
+        assertNotNull(members);
+        assertEquals(members.size(), 1);
+        assertEquals("user.joe", members.get(0).getMemberName());
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx,domainName, auditRef);
+    }
+
+    @Test
+    public void testPutGroupUpdate() {
+
+        final String domainName = "update-group";
+        final String groupName = "group1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Group group1 = createGroupObject(domainName, groupName, "user.joe", "user.jane");
+        zms.putGroup(mockDomRsrcCtx, domainName, groupName, auditRef, group1);
+
+        group1 = createGroupObject(domainName, groupName, "user.john", "user.joe");
+        zms.putGroup(mockDomRsrcCtx, domainName, groupName, auditRef, group1);
+
+        Group group = zms.getGroup(mockDomRsrcCtx, domainName, groupName, false, false);
+        assertNotNull(group);
+
+        assertEquals(group.getName(), domainName + ":group.group1".toLowerCase());
+        List<GroupMember> members = group.getGroupMembers();
+        assertNotNull(members);
+        assertEquals(members.size(), 2);
+        List<String> checkList = new ArrayList<>();
+        checkList.add("user.joe");
+        checkList.add("user.john");
+        checkGroupMember(checkList, members);
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx,domainName, auditRef);
+    }
+
+    @Test
+    public void testPutGroupExceptions() {
+
+        final String domainName = "put-group-exc";
+        final String groupName = "group1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        // inconsistent group name
+
+        Group group1 = createGroupObject(domainName, groupName, "user.joe", "user.jane");
+        try {
+            zms.putGroup(mockDomRsrcCtx, domainName, "different-group", auditRef, group1);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        // unknown domain
+
+        try {
+            group1 = createGroupObject("unknown-domain", groupName, "user.joe", "user.jane");
+            zms.putGroup(mockDomRsrcCtx, "unknown-domain", groupName, auditRef, group1);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+
+        // review enabled with members
+
+        group1 = createGroupObject(domainName, groupName, "user.joe", "user.jane");
+        group1.setReviewEnabled(true);
+        try {
+            zms.putGroup(mockDomRsrcCtx, domainName, groupName, auditRef, group1);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx,domainName, auditRef);
+    }
+
+    @Test
+    public void testCreateNormalizedUserMemberGroup() {
+
+        final  String domainName = "norm-user-member-group";
+        final String groupName = "group1";
+        final String groupName2 = "group2";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        ArrayList<GroupMember> groupMembers = new ArrayList<>();
+        groupMembers.add(new GroupMember().setMemberName("user.joe"));
+        groupMembers.add(new GroupMember().setMemberName("user.joe"));
+        groupMembers.add(new GroupMember().setMemberName("user.joe"));
+        groupMembers.add(new GroupMember().setMemberName("user.jane"));
+
+        Group group1 = createGroupObject(domainName, groupName, groupMembers);
+        zms.putGroup(mockDomRsrcCtx, domainName, groupName, auditRef, group1);
+
+        Group group = zms.getGroup(mockDomRsrcCtx, domainName, groupName, false, false);
+        assertNotNull(group);
+
+        assertEquals(group.getName(), domainName + ":group.group1".toLowerCase());
+        List<GroupMember> members = group.getGroupMembers();
+        assertNotNull(members);
+        assertEquals(members.size(), 2);
+        List<String> checkList = new ArrayList<>();
+        checkList.add("user.joe");
+        checkList.add("user.jane");
+        checkGroupMember(checkList, members);
+
+        // create a group with no members
+
+        Group group2 = createGroupObject(domainName, groupName2, null);
+        zms.putGroup(mockDomRsrcCtx, domainName, groupName2, auditRef, group2);
+
+        group = zms.getGroup(mockDomRsrcCtx, domainName, groupName2, false, false);
+        assertNotNull(group);
+        assertTrue(group.getGroupMembers().isEmpty());
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx,domainName, auditRef);
+    }
+
+    @Test
+    public void testCreateNormalizedServiceMemberGroup() {
+
+        final String domainName = "norm-svc-member-group";
+        final String groupName = "group1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        TopLevelDomain dom2 = createTopLevelDomainObject("coretech",
+                "Test Domain2", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
+
+        SubDomain subDom2 = createSubDomainObject("storage", "coretech",
+                "Test Domain2", "testOrg", adminUser);
+        zms.postSubDomain(mockDomRsrcCtx, "coretech", auditRef, subDom2);
+
+        SubDomain subDom3 = createSubDomainObject("user1", "user",
+                "Test Domain2", "testOrg", adminUser);
+        zms.postSubDomain(mockDomRsrcCtx, "user", auditRef, subDom3);
+
+        SubDomain subDom4 = createSubDomainObject("dom1", "user.user1",
+                "Test Domain2", "testOrg", adminUser);
+        zms.postSubDomain(mockDomRsrcCtx, "user.user1", auditRef, subDom4);
+
+        ArrayList<GroupMember> groupMembers = new ArrayList<>();
+        groupMembers.add(new GroupMember().setMemberName("coretech.storage"));
+        groupMembers.add(new GroupMember().setMemberName("coretech.storage"));
+        groupMembers.add(new GroupMember().setMemberName("user.user1.dom1.api"));
+
+        Group group1 = createGroupObject(domainName, groupName, groupMembers);
+        zms.putGroup(mockDomRsrcCtx, domainName, groupName, auditRef, group1);
+
+        Group group = zms.getGroup(mockDomRsrcCtx, domainName, groupName, false, false);
+        assertNotNull(group);
+
+        assertEquals(group.getName(), domainName + ":group.Group1".toLowerCase());
+        List<GroupMember> members = group.getGroupMembers();
+        assertNotNull(members);
+        assertEquals(members.size(), 2);
+        List<String> checkList = new ArrayList<>();
+        checkList.add("coretech.storage");
+        checkList.add("user.user1.dom1.api");
+        checkGroupMember(checkList, members);
+
+        zms.deleteSubDomain(mockDomRsrcCtx, "user.user1", "dom1", auditRef);
+        zms.deleteSubDomain(mockDomRsrcCtx, "user", "user1", auditRef);
+        zms.deleteSubDomain(mockDomRsrcCtx, "coretech", "storage", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "coretech", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx,domainName, auditRef);
+    }
+
+    @Test
+    public void testUpdateGroup() {
+
+        final String domainName = "update-group";
+        final String groupName = "group1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        ArrayList<GroupMember> groupMembers = new ArrayList<>();
+        groupMembers.add(new GroupMember().setMemberName("user.user1"));
+        groupMembers.add(new GroupMember().setMemberName("user.user2"));
+        groupMembers.add(new GroupMember().setMemberName("user.user3"));
+
+        Group group1 = createGroupObject(domainName, groupName, groupMembers);
+        zms.putGroup(mockDomRsrcCtx, domainName, groupName, auditRef, group1);
+
+        // now let's update our group with new members
+
+        groupMembers = new ArrayList<>();
+        groupMembers.add(new GroupMember().setMemberName("user.user3"));
+        groupMembers.add(new GroupMember().setMemberName("user.user4"));
+        groupMembers.add(new GroupMember().setMemberName("user.user5"));
+
+        zms.putGroup(mockDomRsrcCtx, domainName, groupName, auditRef, group1);
+
+        // now let's get the group and verify our update
+
+        Group group = zms.getGroup(mockDomRsrcCtx, domainName, groupName, false, false);
+        assertNotNull(group);
+
+        assertEquals(group.getName(), domainName + ":group.Group1".toLowerCase());
+        List<GroupMember> members = group.getGroupMembers();
+        assertNotNull(members);
+        assertEquals(members.size(), 3);
+        List<String> checkList = new ArrayList<>();
+        checkList.add("user.user3");
+        checkList.add("user.user4");
+        checkList.add("user.user5");
+        checkGroupMember(checkList, members);
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx,domainName, auditRef);
+    }
+
+    @Test
+    public void testUpdateReviewEnabledRole() {
+
+        final String domainName = "update-review-group";
+        final String groupName = "group1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Group group1 = createGroupObject(domainName, groupName, null);
+        group1.setReviewEnabled(true);
+        zms.putGroup(mockDomRsrcCtx, domainName, groupName, auditRef, group1);
+
+        // now let's update our group with new members
+
+        group1 = createGroupObject(domainName, groupName, "user.user1", "user.user2");
+        try {
+            zms.putGroup(mockDomRsrcCtx, domainName, groupName, auditRef, group1);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("reviewEnabled groups"));
+        }
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx,domainName, auditRef);
+    }
+
+    @Test
+    public void testCreateNormalizedCombinedMemberGroup() {
+
+        final String domainName = "norm-combined-member-group";
+        final String groupName = "group1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        TopLevelDomain dom2 = createTopLevelDomainObject("coretech",
+                "Test Domain2", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
+
+        SubDomain subDom2 = createSubDomainObject("storage", "coretech",
+                "Test Domain2", "testOrg", adminUser);
+        zms.postSubDomain(mockDomRsrcCtx, "coretech", auditRef, subDom2);
+
+        SubDomain subDom3 = createSubDomainObject("user1", "user",
+                "Test Domain2", "testOrg", adminUser);
+        zms.postSubDomain(mockDomRsrcCtx, "user", auditRef, subDom3);
+
+        SubDomain subDom4 = createSubDomainObject("dom1", "user.user1",
+                "Test Domain2", "testOrg", adminUser);
+        zms.postSubDomain(mockDomRsrcCtx, "user.user1", auditRef, subDom4);
+
+        ArrayList<GroupMember> groupMembers = new ArrayList<>();
+        groupMembers.add(new GroupMember().setMemberName("user.joe"));
+        groupMembers.add(new GroupMember().setMemberName("user.joe"));
+        groupMembers.add(new GroupMember().setMemberName("user.joe"));
+        groupMembers.add(new GroupMember().setMemberName("user.jane"));
+        groupMembers.add(new GroupMember().setMemberName("coretech.storage"));
+        groupMembers.add(new GroupMember().setMemberName("coretech.storage"));
+        groupMembers.add(new GroupMember().setMemberName("user.user1.dom1.api"));
+
+        Group group1 = createGroupObject(domainName, groupName, groupMembers);
+        zms.putGroup(mockDomRsrcCtx, domainName, groupName, auditRef, group1);
+
+        Group group = zms.getGroup(mockDomRsrcCtx, domainName, groupName, false, false);
+        assertNotNull(group);
+
+        assertEquals(group.getName(), domainName + ":group.group1".toLowerCase());
+        List<GroupMember> members = group.getGroupMembers();
+        assertNotNull(members);
+        assertEquals(members.size(), 4);
+        List<String> checkList = new ArrayList<>();
+        checkList.add("user.joe");
+        checkList.add("user.jane");
+        checkList.add("coretech.storage");
+        checkList.add("user.user1.dom1.api");
+        checkGroupMember(checkList, members);
+
+        zms.deleteSubDomain(mockDomRsrcCtx, "user.user1", "dom1", auditRef);
+        zms.deleteSubDomain(mockDomRsrcCtx, "user", "user1", auditRef);
+        zms.deleteSubDomain(mockDomRsrcCtx, "coretech", "storage", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "coretech", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx,domainName, auditRef);
+    }
+
+    @Test
+    public void testDeleteGroup() {
+
+        final String domainName = "delete-group";
+        final String groupName1 = "group1";
+        final String groupName2 = "group2";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Group group1 = createGroupObject(domainName, groupName1, "user.joe", "user.jane");
+        zms.putGroup(mockDomRsrcCtx, domainName, groupName1, auditRef, group1);
+
+        Group group2 = createGroupObject(domainName, groupName2, "user.joe", "user.jane");
+        zms.putGroup(mockDomRsrcCtx, domainName, groupName2, auditRef, group2);
+
+        Groups groupList = zms.getGroups(mockDomRsrcCtx, domainName, false);
+        assertNotNull(groupList);
+
+        assertEquals(groupList.getList().size(), 2);
+
+        zms.deleteGroup(mockDomRsrcCtx, domainName, groupName1, auditRef);
+
+        groupList = zms.getGroups(mockDomRsrcCtx, domainName, false);
+        assertNotNull(groupList);
+
+        assertEquals(groupList.getList().size(), 1);
+
+        assertEquals(groupList.getList().get(0).getName(), domainName + ":group.group2");
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testGetGroups() {
+
+        final String domainName = "get-groups";
+        final String groupName1 = "group1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Group group1 = createGroupObject(domainName, groupName1, "user.joe", "user.jane");
+        zms.putGroup(mockDomRsrcCtx, domainName, groupName1, auditRef, group1);
+
+        Groups groupList = zms.getGroups(mockDomRsrcCtx, domainName, true);
+        assertNotNull(groupList);
+
+        assertEquals(groupList.getList().size(), 1);
+
+        Group group = groupList.list.get(0);
+        assertEquals(group.getName(), domainName + ":group.group1");
+        assertEquals(group.getGroupMembers().size(), 2);
+        List<String> checkList = new ArrayList<>();
+        checkList.add("user.joe");
+        checkList.add("user.jane");
+        checkGroupMember(checkList, group.getGroupMembers());
+
+        // get groups on unknown domain
+
+        try {
+            zms.getGroups(mockDomRsrcCtx, "unknown-domain", true);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testDeleteGroupMissingAuditRef() {
+
+        final String domainName = "delete-group-missing-ref";
+        final String groupName = "group1";
+
+        TopLevelDomain dom = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", adminUser);
+        dom.setAuditEnabled(true);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom);
+
+        Group group = createGroupObject(domainName, groupName, "user.joe", "user.jane");
+        zms.putGroup(mockDomRsrcCtx, domainName, groupName, auditRef, group);
+
+        try {
+            zms.deleteGroup(mockDomRsrcCtx, domainName, groupName, null);
+            fail("requesterror not thrown by deleteGroup.");
+        } catch (ResourceException ex) {
+            assertEquals(400, ex.getCode());
+            assertTrue(ex.getMessage().contains("Audit reference required"));
+        } finally {
+            zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        }
+    }
+
+    @Test
+    public void testDeleteGroupThrowException() {
+
+        TestAuditLogger alogger = new TestAuditLogger();
+        ZMSImpl zmsImpl = getZmsImpl(alogger);
+
+        final String domainName = "DomainName1";
+        final String groupName = "GroupName1";
+        try {
+            zmsImpl.deleteGroup(mockDomRsrcCtx,domainName, groupName, auditRef);
+            fail("notfounderror not thrown.");
+        } catch (ResourceException e) {
+            assertEquals(e.getCode(), 404);
+        }
+    }
+
+    @Test
+    public void testConvertToLowerGroupMember() {
+
+        AthenzObject.GROUP_MEMBER.convertToLowerCase(null);
+
+        List<GroupMember> list = new ArrayList<>();
+        list.add(new GroupMember().setGroupName("GroupA").setMemberName("MemberA").setDomainName("Domain"));
+        AthenzObject.GROUP_MEMBER.convertToLowerCase(list);
+
+        GroupMember member = list.get(0);
+        assertEquals(member.getMemberName(), "membera");
+        assertEquals(member.getGroupName(), "groupa");
+        assertEquals(member.getDomainName(), "domain");
+
+        list = new ArrayList<>();
+        list.add(new GroupMember().setGroupName("GroupA").setDomainName("Domain"));
+        AthenzObject.GROUP_MEMBER.convertToLowerCase(list);
+
+        member = list.get(0);
+        assertNull(member.getMemberName());
+        assertEquals(member.getGroupName(), "groupa");
+        assertEquals(member.getDomainName(), "domain");
+    }
+
+    @Test
+    public void testConvertToLowerGroupMembership() {
+
+        GroupMembership member = new GroupMembership().setGroupName("GroupA").setMemberName("MemberA");
+        AthenzObject.GROUP_MEMBERSHIP.convertToLowerCase(member);
+
+        assertEquals(member.getMemberName(), "membera");
+        assertEquals(member.getGroupName(), "groupa");
+
+        member = new GroupMembership().setMemberName("MemberA");
+        AthenzObject.GROUP_MEMBERSHIP.convertToLowerCase(member);
+
+        assertEquals(member.getMemberName(), "membera");
+        assertNull(member.getGroupName());
+    }
+
+    @Test
+    public void testConvertToLowerGroupMeta() {
+
+        GroupMeta meta = new GroupMeta().setNotifyRoles("rolesA,rolesB");
+        AthenzObject.GROUP_META.convertToLowerCase(meta);
+
+        assertEquals(meta.getNotifyRoles(), "rolesa,rolesb");
+
+        meta = new GroupMeta();
+        AthenzObject.GROUP_META.convertToLowerCase(meta);
+
+        assertNull(meta.getNotifyRoles());
+    }
+
+    @Test
+    public void testIsConsistentGroupName() {
+
+        Group group = new Group();
+
+        group.setName("domain1:group.group1");
+        assertTrue(zms.isConsistentGroupName("domain1", "group1", group));
+
+        // local name behavior
+
+        group.setName("group1");
+        assertTrue(zms.isConsistentGroupName("domain1", "group1", group));
+        assertEquals(group.getName(), "domain1:group.group1");
+
+        // inconsistent behavior
+
+        group.setName("domain1:group.group1");
+        assertFalse(zms.isConsistentGroupName("domain1", "group2", group));
+
+        group.setName("role1");
+        assertFalse(zms.isConsistentGroupName("domain1", "group2", group));
+    }
+
+    @Test
+    public void testNormalizeGroupMembersNull() {
+        Group group = new Group();
+        zms.normalizeGroupMembers(group);
+        assertTrue(group.getGroupMembers().isEmpty());
+    }
+
+    @Test
+    public void testValidateGroupMemberPrincipals() {
+
+        zms.validateUserRoleMembers = false;
+        zms.validateServiceRoleMembers = false;
+
+        // if both are false then any invalid users are ok
+
+        List<GroupMember> groupMembers = new ArrayList<>();
+        groupMembers.add(new GroupMember().setMemberName("user"));
+        groupMembers.add(new GroupMember().setMemberName("user.john"));
+        groupMembers.add(new GroupMember().setMemberName("user.jane"));
+        groupMembers.add(new GroupMember().setMemberName("coretech.api"));
+        groupMembers.add(new GroupMember().setMemberName("coretech.backend"));
+
+        Group group = new Group().setGroupMembers(groupMembers);
+        zms.validateGroupMemberPrincipals(group, null, "unittest");
+
+        // enable user authority check
+
+        zms.userAuthority = new TestUserPrincipalAuthority();
+        zms.validateUserRoleMembers = true;
+
+        // include all valid principals
+
+        groupMembers = new ArrayList<>();
+        groupMembers.add(new GroupMember().setMemberName("user.joe"));
+        groupMembers.add(new GroupMember().setMemberName("user.jane"));
+        group.setGroupMembers(groupMembers);
+
+        zms.validateGroupMemberPrincipals(group, null, "unittest");
+
+        // add one more invalid user
+
+        groupMembers.add(new GroupMember().setMemberName("user.john"));
+        try {
+            zms.validateGroupMemberPrincipals(group, null, "unittest");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+    }
+
+    @Test
+    public void testUpdateGroupMemberUserAuthorityExpiry() {
+
+        Group group = new Group().setUserAuthorityExpiration("elevated-clearance");
+
+        List<GroupMember> members = new ArrayList<>();
+        members.add(new GroupMember().setMemberName("user.john"));
+        members.add(new GroupMember().setMemberName("user.joe"));
+        group.setGroupMembers(members);
+
+        Authority savedAuthority = zms.userAuthority;
+        zms.userAuthority = null;
+
+        // with authority null we always get no changes
+
+        zms.updateGroupMemberUserAuthorityExpiry(group, "unit-test");
+        assertNull(group.getGroupMembers().get(0).getExpiration());
+        assertNull(group.getGroupMembers().get(1).getExpiration());
+
+        Authority authority = Mockito.mock(Authority.class);
+        Mockito.when(authority.getDateAttribute("user.john", "elevated-clearance"))
+                .thenReturn(new Date());
+        Mockito.when(authority.getDateAttribute("user.jane", "elevated-clearance"))
+                .thenReturn(new Date());
+        Mockito.when(authority.getDateAttribute("user.joe", "elevated-clearance"))
+                .thenReturn(null);
+        zms.userAuthority = authority;
+
+        // with one valid and one invalid we should get an exception
+
+        try {
+            zms.updateGroupMemberUserAuthorityExpiry(group, "unit-test");
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Invalid member: user.joe"));
+        }
+
+        // let's have one valid user and one service
+
+        members = new ArrayList<>();
+        members.add(new GroupMember().setMemberName("user.john"));
+        members.add(new GroupMember().setMemberName("sports.api"));
+        group.setGroupMembers(members);
+
+        // the user will have an expiration while service is skipped
+
+        zms.updateGroupMemberUserAuthorityExpiry(group, "unit-test");
+        assertNotNull(group.getGroupMembers().get(0).getExpiration());
+        assertNull(group.getGroupMembers().get(1).getExpiration());
+
+        // now let's have only user members
+
+        members = new ArrayList<>();
+        members.add(new GroupMember().setMemberName("user.john"));
+        members.add(new GroupMember().setMemberName("user.jane"));
+        group.setGroupMembers(members);
+
+        zms.updateGroupMemberUserAuthorityExpiry(group, "unit-test");
+        assertNotNull(group.getGroupMembers().get(0).getExpiration());
+        assertNotNull(group.getGroupMembers().get(1).getExpiration());
+
+        zms.userAuthority = savedAuthority;
+    }
+
+    @Test
+    public void testGetGroupMembership() {
+
+        final String domainName = "get-group-mbr";
+        final String groupName = "group1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        // inconsistent group name
+
+        Group group1 = createGroupObject(domainName, groupName, "user.joe", "user.jane");
+        zms.putGroup(mockDomRsrcCtx, domainName, groupName, auditRef, group1);
+
+        GroupMembership mbr = zms.getGroupMembership(mockDomRsrcCtx, domainName, groupName, "user.joe", null);
+        assertNotNull(mbr);
+        assertTrue(mbr.getIsMember());
+        assertTrue(mbr.getApproved());
+        assertEquals(mbr.getGroupName(), domainName + ":group." + groupName);
+        assertEquals(mbr.getMemberName(), "user.joe");
+
+        mbr = zms.getGroupMembership(mockDomRsrcCtx, domainName, groupName, "user.jane", null);
+        assertNotNull(mbr);
+        assertTrue(mbr.getIsMember());
+        assertTrue(mbr.getApproved());
+        assertEquals(mbr.getGroupName(), domainName + ":group." + groupName);
+        assertEquals(mbr.getMemberName(), "user.jane");
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx,domainName, auditRef);
+    }
+
+    @Test
+    public void testPutGroupMembership() {
+
+        final String domainName = "put-group-mbr";
+        final String groupName = "group1";
+
+        Mockito.when(mockDomRsrcCtx.getApiName())
+                .thenReturn("putserviceidentity")
+                .thenReturn("posttopleveldomain")
+                .thenReturn("posttopleveldomain")
+                .thenReturn("postsubdomain")
+                .thenReturn("putgroup").thenReturn("putgroup").thenReturn("putgroup").thenReturn("putgroup") // called 4 times in group api
+                .thenReturn("putgroupmembership");
+
+        TestAuditLogger alogger = new TestAuditLogger();
+        ZMSImpl zmsImpl = getZmsImpl(alogger);
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", "user.user1");
+        zmsImpl.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        TopLevelDomain dom2 = createTopLevelDomainObject("coretech", "Test Domain2", "testOrg", adminUser);
+        zmsImpl.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
+
+        SubDomain subDom2 = createSubDomainObject("storage", "coretech", "Test Domain2", "testOrg", adminUser);
+        zmsImpl.postSubDomain(mockDomRsrcCtx, "coretech", auditRef, subDom2);
+
+        Group group1 = createGroupObject(domainName, groupName, "user.joe", "user.jane");
+        zmsImpl.putGroup(mockDomRsrcCtx, domainName, groupName, auditRef, group1);
+
+        GroupMembership mbr = generateGroupMembership(groupName, "user.doe");
+        zmsImpl.putGroupMembership(mockDomRsrcCtx, domainName, groupName, "user.doe", auditRef, mbr);
+
+        // check audit log msg for putGroup
+        boolean foundError = false;
+        List<String> aLogMsgs = alogger.getLogMsgList();
+        System.err.println("testPutGroupMembership: Number of lines: " + aLogMsgs.size());
+        for (String msg: aLogMsgs) {
+            if (!msg.contains("WHAT-api=(putgroupmembership)")) {
+                continue;
+            }
+            int index = msg.indexOf("WHAT-details=(");
+            assertTrue(index != -1, msg);
+            int index2 = msg.indexOf("{\"member\": \"user.doe\", \"approved\": true, \"system-disabled\": 0}");
+            assertTrue(index2 > index, msg);
+            foundError = true;
+            break;
+        }
+        assertTrue(foundError);
+
+        aLogMsgs.clear();
+        mbr = generateGroupMembership(groupName, "coretech.storage");
+        zmsImpl.putGroupMembership(mockDomRsrcCtx, domainName, groupName, "coretech.storage", auditRef, mbr);
+
+        Group group = zmsImpl.getGroup(mockDomRsrcCtx, domainName, groupName, false, false);
+        assertNotNull(group);
+
+        List<GroupMember> members = group.getGroupMembers();
+        assertNotNull(members);
+        assertEquals(members.size(), 4);
+
+        List<String> checkList = new ArrayList<>();
+        checkList.add("user.joe");
+        checkList.add("user.jane");
+        checkList.add("user.doe");
+        checkList.add("coretech.storage");
+        checkGroupMember(checkList, members);
+
+        foundError = false;
+        System.err.println("testGroupPutMembership: now Number of lines: " + aLogMsgs.size());
+        for (String msg: aLogMsgs) {
+            if (!msg.contains("WHAT-api=(putgroupmembership)")) {
+                continue;
+            }
+            int index = msg.indexOf("WHAT-details=(");
+            assertTrue(index != -1, msg);
+            int index2 = msg.indexOf("{\"member\": \"coretech.storage\", \"approved\": true, \"system-disabled\": 0}");
+            assertTrue(index2 > index, msg);
+            foundError = true;
+            break;
+        }
+        assertTrue(foundError);
+
+        // enable user validation for the test
+
+        zmsImpl.userAuthority = new TestUserPrincipalAuthority();
+        zmsImpl.validateUserRoleMembers = true;
+
+        // valid users no exception
+
+        mbr = generateGroupMembership(groupName, "user.joe");
+        zmsImpl.putGroupMembership(mockDomRsrcCtx, domainName, groupName, "user.joe", auditRef, mbr);
+
+        // invalid user with exception
+
+        mbr = generateGroupMembership("group1", "user.john");
+        try {
+            zmsImpl.putGroupMembership(mockDomRsrcCtx, domainName, groupName, "user.john", auditRef, mbr);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        zmsImpl.deleteSubDomain(mockDomRsrcCtx, "coretech", "storage", auditRef);
+        zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, "coretech", auditRef);
+        zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testPutGroupMembershipWithElevatedClearance() {
+
+        final String domainName = "put-group-mbr-expiry";
+        final String groupName = "group1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", "user.user1");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Date joeDate = new Date();
+        Date janeDate = new Date();
+        Date bobDate = new Date();
+
+        Set<String> attrSet = new HashSet<>();
+        attrSet.add("ElevatedClearance");
+
+        Authority mockAuthority = Mockito.mock(Authority.class);
+        Mockito.when(mockAuthority.getDateAttribute("user.joe", "ElevatedClearance")).thenReturn(joeDate);
+        Mockito.when(mockAuthority.getDateAttribute("user.jane", "ElevatedClearance")).thenReturn(janeDate);
+        Mockito.when(mockAuthority.getDateAttribute("user.bob", "ElevatedClearance")).thenReturn(bobDate);
+        Mockito.when(mockAuthority.getDateAttribute("user.dave", "ElevatedClearance")).thenReturn(null);
+        Mockito.when(mockAuthority.dateAttributesSupported()).thenReturn(attrSet);
+
+        Authority savedAuthority = zms.userAuthority;
+        zms.userAuthority = mockAuthority;
+
+        Group group1 = createGroupObject(domainName, groupName, "user.joe", "user.jane");
+        group1.setUserAuthorityExpiration("ElevatedClearance");
+        zms.putGroup(mockDomRsrcCtx, domainName, groupName, auditRef, group1);
+
+        GroupMembership mbr = zms.getGroupMembership(mockDomRsrcCtx, domainName, groupName, "user.joe", null);
+        assertNotNull(mbr);
+        assertEquals(mbr.getExpiration().millis(), joeDate.getTime());
+
+        mbr = zms.getGroupMembership(mockDomRsrcCtx, domainName, groupName, "user.jane", null);
+        assertNotNull(mbr);
+        assertEquals(mbr.getExpiration().millis(), janeDate.getTime());
+
+        mbr = generateGroupMembership(groupName, "user.bob");
+        zms.putGroupMembership(mockDomRsrcCtx, domainName, groupName, "user.bob", auditRef, mbr);
+        mbr = zms.getGroupMembership(mockDomRsrcCtx, domainName, groupName, "user.bob", null);
+        assertNotNull(mbr);
+        assertEquals(mbr.getExpiration().millis(), bobDate.getTime());
+
+        mbr = generateGroupMembership(groupName, "user.dave");
+        try {
+            zms.putGroupMembership(mockDomRsrcCtx, domainName, groupName, "user.dave", auditRef, mbr);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("does not have required user authority expiry configured"));
+        }
+
+        mbr = generateGroupMembership(groupName, "sys.auth.zts");
+        zms.putGroupMembership(mockDomRsrcCtx, domainName, groupName, "sys.auth.zts", auditRef, mbr);
+        mbr = zms.getGroupMembership(mockDomRsrcCtx, domainName, groupName, "sys.auth.zts", null);
+        assertNotNull(mbr);
+
+        zms.userAuthority = savedAuthority;
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testPutGroupMembershipForbidden() {
+
+        final String domainName = "put-group-mbr-403";
+        final String groupName = "group1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Group group1 = createGroupObject(domainName, groupName, "user.joe", "user.jane");
+        zms.putGroup(mockDomRsrcCtx, domainName, groupName, auditRef, group1);
+
+        GroupMembership mbr = generateGroupMembership(groupName, "user.doe");
+        // this should be rejected since user.user1 is not domain admin
+        try {
+            zms.putGroupMembership(mockDomRsrcCtx, domainName, groupName, "user.doe", auditRef, mbr);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+        }
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testPutGroupMembershipSelfServe() {
+
+        final String domainName = "put-group-mbr-self-serve";
+        final String groupName = "group1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Group group1 = createGroupObject(domainName, groupName, "user.joe", "user.jane");
+        group1.setSelfServe(true);
+        zms.putGroup(mockDomRsrcCtx, domainName, groupName, auditRef, group1);
+
+        GroupMembership mbr = generateGroupMembership(groupName, "user.doe");
+
+        // since we have admin mismatch it should be added as pending
+        // since self-serve flag is on
+
+        zms.putGroupMembership(mockDomRsrcCtx, domainName, groupName, "user.doe", auditRef, mbr);
+
+        GroupMembership mbr1 = zms.getGroupMembership(mockDomRsrcCtx, domainName, groupName, "user.doe", null);
+        assertNotNull(mbr1);
+        assertFalse(mbr1.getApproved());
+
+        // now we're going to delete our pending group membership
+        // this should be allowed since the user itself is the requestor
+
+        zms.deletePendingGroupMembership(mockDomRsrcCtx, domainName, groupName, "user.doe", null);
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testDeleteGroupMembershipForbidden() {
+
+        final String domainName = "del-group-mbr-403";
+        final String groupName = "group1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Group group1 = createGroupObject(domainName, groupName, "user.joe", "user.jane");
+        group1.setSelfServe(true);
+        zms.putGroup(mockDomRsrcCtx, domainName, groupName, auditRef, group1);
+
+        GroupMembership mbr = generateGroupMembership(groupName, "user.doe");
+
+        // since we have admin mismatch it should be added as pending
+        // since self-serve flag is on
+
+        zms.putGroupMembership(mockDomRsrcCtx, domainName, groupName, "user.doe", auditRef, mbr);
+
+        // first deleting an invalid domain should return 404
+
+        try {
+            zms.deletePendingGroupMembership(mockDomRsrcCtx, "unknown-domain", groupName, "user.doe", null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+
+        // now we're going to add with a different user as admin
+        // which should be rejected
+
+        Authority auditAdminPrincipalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String auditAdminUnsignedCreds = "v=U1;d=user;n=fury";
+        // used with the mockDomRestRsrcCtx
+        final Principal rsrcAuditAdminPrince = SimplePrincipal.create("user", "fury",
+                auditAdminUnsignedCreds + ";s=signature", 0, auditAdminPrincipalAuthority);
+        assertNotNull(rsrcAuditAdminPrince);
+        ((SimplePrincipal) rsrcAuditAdminPrince).setUnsignedCreds(auditAdminUnsignedCreds);
+
+        Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAuditAdminPrince);
+        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcAuditAdminPrince);
+
+        try {
+            zms.deletePendingGroupMembership(mockDomRsrcCtx, domainName, groupName, "user.doe", null);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+        }
+
+        //revert back to admin principal
+        Authority adminPrincipalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String adminUnsignedCreds = "v=U1;d=user;n=user1";
+        // used with the mockDomRestRsrcCtx
+        final Principal rsrcAdminPrince = SimplePrincipal.create("user", "user1",
+                adminUnsignedCreds + ";s=signature", 0, adminPrincipalAuthority);
+        assertNotNull(rsrcAdminPrince);
+        ((SimplePrincipal) rsrcAdminPrince).setUnsignedCreds(adminUnsignedCreds);
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testPutGroupMembershipExceptions() {
+
+        final String domainName = "put-group-mbr-ex";
+        final String groupName = "group1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", "user.user1");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Group group1 = createGroupObject(domainName, groupName, "user.joe", "user.jane");
+        zms.putGroup(mockDomRsrcCtx, domainName, groupName, auditRef, group1);
+
+        // member mismatch
+
+        GroupMembership mbr = generateGroupMembership(groupName, "user.doe");
+        try {
+            zms.putGroupMembership(mockDomRsrcCtx, domainName, groupName, "user.joe", auditRef, mbr);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        // groupname mismatch
+
+        try {
+            zms.putGroupMembership(mockDomRsrcCtx, domainName, "invalid-group", "user.doe", auditRef, mbr);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        // invalid group
+
+        mbr = generateGroupMembership("invalid-group", "user.doe");
+        try {
+            zms.putGroupMembership(mockDomRsrcCtx, domainName, "invalid-group", "user.doe", auditRef, mbr);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testPutGroupMembershipDecisionAuditEnabledGroupByDomain() {
+
+        final String domainName = "group-dec-by-domain";
+        final String groupName = "group1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Approval Test Domain1",
+                "testOrg", "user.user1");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        DomainMeta meta = createDomainMetaObject("Domain Meta for approval test", "testOrg",
+                true, true, "12345", 1001);
+        zms.putDomainMeta(mockDomRsrcCtx, domainName, auditRef, meta);
+        zms.putDomainSystemMeta(mockDomRsrcCtx, domainName, "auditenabled", auditRef, meta);
+
+        Group auditedGroup = createGroupObject(domainName, groupName, "user.john", "user.jane");
+        zms.putGroup(mockDomRsrcCtx, domainName, groupName, auditRef, auditedGroup);
+        GroupSystemMeta rsm = createGroupSystemMetaObject(true);
+        zms.putGroupSystemMeta(mockDomRsrcCtx, domainName, groupName, "auditenabled", auditRef, rsm);
+
+        GroupMembership mbr = new GroupMembership();
+        mbr.setMemberName("user.bob");
+        mbr.setActive(false);
+        mbr.setApproved(false);
+        zms.putGroupMembership(mockDomRsrcCtx, domainName, groupName, "user.bob", auditRef, mbr);
+
+        Group resgroup = zms.getGroup(mockDomRsrcCtx, domainName, groupName, false, true);
+        assertEquals(resgroup.getGroupMembers().size(), 3);
+        for (GroupMember rmem : resgroup.getGroupMembers()) {
+            if ("user.bob".equals(rmem.getMemberName())) {
+                assertFalse(rmem.getApproved());
+            }
+        }
+
+        setupPrincipalAuditedRoleApprovalByDomain(zms, "user.fury", domainName);
+
+        mbr = new GroupMembership();
+        mbr.setMemberName("user.bob");
+        mbr.setActive(true);
+        mbr.setApproved(true);
+
+        try {
+            zms.putGroupMembershipDecision(mockDomRsrcCtx, domainName, groupName, "user.bob", auditRef, mbr);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+        }
+
+        Authority auditAdminPrincipalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String auditAdminUnsignedCreds = "v=U1;d=user;n=fury";
+        // used with the mockDomRestRsrcCtx
+        final Principal rsrcAuditAdminPrince = SimplePrincipal.create("user", "fury",
+                auditAdminUnsignedCreds + ";s=signature", 0, auditAdminPrincipalAuthority);
+        assertNotNull(rsrcAuditAdminPrince);
+        ((SimplePrincipal) rsrcAuditAdminPrince).setUnsignedCreds(auditAdminUnsignedCreds);
+
+        Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAuditAdminPrince);
+        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcAuditAdminPrince);
+
+        zms.putGroupMembershipDecision(mockDomRsrcCtx, domainName, groupName, "user.bob", auditRef, mbr);
+
+        //revert back to admin principal
+        Authority adminPrincipalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String adminUnsignedCreds = "v=U1;d=user;n=user1";
+        // used with the mockDomRestRsrcCtx
+        final Principal rsrcAdminPrince = SimplePrincipal.create("user", "user1",
+                adminUnsignedCreds + ";s=signature", 0, adminPrincipalAuthority);
+        assertNotNull(rsrcAdminPrince);
+        ((SimplePrincipal) rsrcAdminPrince).setUnsignedCreds(adminUnsignedCreds);
+
+        Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
+        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
+
+        resgroup = zms.getGroup(mockDomRsrcCtx, domainName, groupName, false, false);
+        assertEquals(resgroup.getGroupMembers().size(), 3);
+        for (GroupMember rmem : resgroup.getGroupMembers()) {
+            if ("user.bob".equals(rmem.getMemberName())) {
+                assertTrue(rmem.getApproved());
+            }
+        }
+
+        clenaupPrincipalAuditedRoleApprovalByDomain(zms, domainName);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testPutGroupMembershipDecisionAuditEnabledGroupInvalidUser() {
+
+        final String domainName = "group-mbr-dec-invalid";
+        final String groupName = "testgroup1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Approval Test Domain1",
+                "testOrg", "user.user1");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        DomainMeta meta = createDomainMetaObject("Domain Meta for approval test", "testOrg",
+                true, true, "12345", 1001);
+        zms.putDomainMeta(mockDomRsrcCtx, domainName, auditRef, meta);
+        zms.putDomainSystemMeta(mockDomRsrcCtx, domainName, "auditenabled", auditRef, meta);
+
+        Group auditedGroup = createGroupObject(domainName, groupName, "user.john", "user.jane");
+        zms.putGroup(mockDomRsrcCtx, domainName, groupName, auditRef, auditedGroup);
+        GroupSystemMeta rsm = createGroupSystemMetaObject(true);
+        zms.putGroupSystemMeta(mockDomRsrcCtx, domainName, groupName, "auditenabled", auditRef, rsm);
+
+        GroupMembership mbr = new GroupMembership();
+        mbr.setMemberName("user.joe");
+        mbr.setActive(false);
+        mbr.setApproved(false);
+        zms.putGroupMembership(mockDomRsrcCtx, domainName, groupName, "user.joe", auditRef, mbr);
+
+        mbr = new GroupMembership();
+        mbr.setMemberName("user.bob");
+        mbr.setActive(false);
+        mbr.setApproved(false);
+        zms.putGroupMembership(mockDomRsrcCtx, domainName, groupName, "user.bob", auditRef, mbr);
+
+        setupPrincipalAuditedRoleApprovalByOrg(zms, "user.fury", "testOrg");
+
+        Authority auditAdminPrincipalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String auditAdminUnsignedCreds = "v=U1;d=user;n=fury";
+
+        final Principal rsrcAuditAdminPrince = SimplePrincipal.create("user", "fury",
+                auditAdminUnsignedCreds + ";s=signature", 0, auditAdminPrincipalAuthority);
+        assertNotNull(rsrcAuditAdminPrince);
+        ((SimplePrincipal) rsrcAuditAdminPrince).setUnsignedCreds(auditAdminUnsignedCreds);
+
+        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcAuditAdminPrince);
+
+        // enable user authority check - joe and jane are the only
+        // valid users in the system
+
+        zms.userAuthority = new TestUserPrincipalAuthority();
+        zms.validateUserRoleMembers = true;
+
+        // first let's approve user.joe which should be ok since user joe
+        // is a valid user based on our test authority
+
+        mbr = new GroupMembership();
+        mbr.setMemberName("user.joe");
+        mbr.setActive(true);
+        mbr.setApproved(true);
+        zms.putGroupMembershipDecision(mockDomRsrcCtx, domainName, groupName, "user.joe", auditRef, mbr);
+
+        // now let's approve our bob user which is going to be rejected
+        // since bob is not a valid user based on our test authority
+
+        mbr.setMemberName("user.bob");
+
+        try {
+            zms.putGroupMembershipDecision(mockDomRsrcCtx, domainName, groupName, "user.bob", auditRef, mbr);
+            fail();
+        }catch (ResourceException ex) {
+            assertEquals(ex.code, 400);
+        }
+
+        // now let's just reject user bob which should work
+        // ok because we no longer validate users when we
+        // are rejecting thus deleting group members
+
+        mbr.setActive(false);
+        mbr.setApproved(false);
+        zms.putGroupMembershipDecision(mockDomRsrcCtx, domainName, groupName, "user.bob", auditRef, mbr);
+
+        clenaupPrincipalAuditedRoleApprovalByOrg(zms, "testOrg");
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testPutGroupMembershipDecisionReviewEnabledUnauthorized() {
+
+        final String domainName = "group-review-enabled-domain-forbidden";
+        final String groupName = "review-group";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Approval test Domain1",
+                "testOrg", "user.user1");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Group group1 = createGroupObject(domainName, groupName, null, null);
+        zms.putGroup(mockDomRsrcCtx, domainName, groupName, auditRef, group1);
+
+        GroupMeta rm = new GroupMeta().setReviewEnabled(true);
+        zms.putGroupMeta(mockDomRsrcCtx, domainName, groupName, auditRef, rm);
+
+        // add a user to the group
+
+        GroupMembership mbr = new GroupMembership();
+        mbr.setMemberName("user.bob");
+        mbr.setActive(false);
+        mbr.setApproved(false);
+
+        zms.putGroupMembership(mockDomRsrcCtx, domainName, groupName, "user.bob", auditRef, mbr);
+
+        // verify the user is added with pending state
+
+        Group resgroup = zms.getGroup(mockDomRsrcCtx, domainName, groupName, false, true);
+        assertEquals(resgroup.getGroupMembers().size(), 1);
+        assertEquals(resgroup.getGroupMembers().get(0).getMemberName(), "user.bob");
+        assertFalse(resgroup.getGroupMembers().get(0).getApproved());
+
+        // now try as the second admin himself to approve this user and it must
+        // be rejected since second admin is not authorized
+
+        mbr = new GroupMembership();
+        mbr.setMemberName("user.bob");
+        mbr.setActive(true);
+        mbr.setApproved(true);
+
+        // switch to user.user2 principal to add a member to a group
+
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String unsignedCreds = "v=U1;d=user;n=user2";
+        final Principal rsrcPrince = SimplePrincipal.create("user", "user2",
+                unsignedCreds + ";s=signature", 0, principalAuthority);
+        assertNotNull(rsrcPrince);
+        ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
+        Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcPrince);
+        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcPrince);
+
+        try {
+            zms.putGroupMembershipDecision(mockDomRsrcCtx, domainName, groupName, "user.bob", auditRef, mbr);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("not authorized to approve / reject members"));
+        }
+
+        // revert back to admin principal
+
+        Authority adminPrincipalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String adminUnsignedCreds = "v=U1;d=user;n=user1";
+        final Principal rsrcAdminPrince = SimplePrincipal.create("user", "user1",
+                adminUnsignedCreds + ";s=signature", 0, adminPrincipalAuthority);
+        assertNotNull(rsrcAdminPrince);
+        ((SimplePrincipal) rsrcAdminPrince).setUnsignedCreds(adminUnsignedCreds);
+
+        Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
+        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testPutGroupMembershipDecisionErrors() {
+
+        final String domainName = "put-group-dec-errors";
+        final String groupName = "testgroup1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,"Approval Test Domain1", "testOrg", "user.user1");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        DomainMeta meta = createDomainMetaObject("Domain Meta for approval test", "testOrg",true, true, "12345", 1001);
+        zms.putDomainMeta(mockDomRsrcCtx, domainName, auditRef, meta);
+        zms.putDomainSystemMeta(mockDomRsrcCtx, domainName, "auditenabled", auditRef, meta);
+
+        Group auditedGroup = createGroupObject(domainName, groupName,"user.john", "user.jane");
+        zms.putGroup(mockDomRsrcCtx, domainName, groupName, auditRef, auditedGroup);
+        GroupSystemMeta rsm = createGroupSystemMetaObject(true);
+        zms.putGroupSystemMeta(mockDomRsrcCtx, domainName, groupName, "auditenabled", auditRef, rsm);
+
+        GroupMembership mbr = new GroupMembership();
+        mbr.setMemberName("user.bob");
+        mbr.setActive(false);
+        mbr.setApproved(false);
+        zms.putGroupMembership(mockDomRsrcCtx, domainName, groupName, "user.bob", auditRef, mbr);
+
+        mbr = new GroupMembership();
+        mbr.setMemberName("user.bob");
+        mbr.setActive(true);
+        mbr.setApproved(true);
+
+        try {
+            zms.putGroupMembershipDecision(mockDomRsrcCtx, domainName, groupName, "user.chris", auditRef, mbr);//invalid member
+            fail();
+        } catch (ResourceException r) {
+            assertEquals(r.code, 400);
+            assertTrue(r.getMessage().contains("putGroupMembershipDecision: Member name in URI and GroupMembership object do not match"));
+        }
+
+        mbr.setGroupName("invalidgroup");
+        try {
+            zms.putGroupMembershipDecision(mockDomRsrcCtx, domainName, groupName, "user.bob", auditRef, mbr);//invalid group
+            fail();
+        } catch (ResourceException r) {
+            assertEquals(r.code, 400);
+            assertTrue(r.getMessage().contains("putGroupMembershipDecision: Group name in URI and GroupMembership object do not match"));
+        }
+
+        mbr.setGroupName(null);
+        try {
+            zms.putGroupMembershipDecision(mockDomRsrcCtx, "testdomain2", groupName, "user.bob", auditRef, mbr);//invalid domain name
+            fail();
+        } catch (ResourceException r) {
+            assertEquals(r.code, 400);
+            assertTrue(r.getMessage().contains("Invalid groupname"));
+        }
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testPutGroupSystemMetaErrors() {
+
+        final String domainName1 = "put-group-sys-meta-errors1";
+        final String domainName2 = "put-group-sys-meta-errors2";
+        final String groupName = "testgroup1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName1, "Approval Test Domain1", "testOrg", "user.user1");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        DomainMeta meta = createDomainMetaObject("Domain Meta for approval test", "testOrg",true, true, "12345", 1001);
+        zms.putDomainMeta(mockDomRsrcCtx, domainName1, auditRef, meta);
+        zms.putDomainSystemMeta(mockDomRsrcCtx, domainName1, "auditenabled", auditRef, meta);
+
+        Group auditedGroup = createGroupObject(domainName1, groupName,"user.john", "user.jane");
+        zms.putGroup(mockDomRsrcCtx, domainName1, groupName, auditRef, auditedGroup);
+
+        // invalid field name
+
+        GroupSystemMeta rsm = createGroupSystemMetaObject(true);
+        try {
+            zms.putGroupSystemMeta(mockDomRsrcCtx, domainName1, groupName, "unknown-field", auditRef, rsm);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("unknown group system meta attribute"));
+        }
+
+        // invalid domain name
+
+        try {
+            zms.putGroupSystemMeta(mockDomRsrcCtx, "invalid-domain", groupName, "auditenabled", auditRef, rsm);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+
+        // domain without audit enabled flag
+
+        TopLevelDomain dom2 = createTopLevelDomainObject(domainName2, "Approval Test Domain1", "testOrg", "user.user1");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
+
+        try {
+            zms.putGroupSystemMeta(mockDomRsrcCtx, domainName2, groupName, "auditenabled", auditRef, rsm);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("auditEnabled flag not set for domain"));
+        }
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName1, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName2, auditRef);
+    }
+
+    @Test
+    public void testDeleteGroupMembership() {
+
+        final String domainName = "del-group-mbr";
+        final String groupName = "group1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Group group1 = createGroupObject(domainName, groupName, "user.joe", "user.jane");
+        zms.putGroup(mockDomRsrcCtx, domainName, groupName, auditRef, group1);
+        zms.deleteGroupMembership(mockDomRsrcCtx, domainName, groupName, "user.joe", auditRef);
+
+        Group group = zms.getGroup(mockDomRsrcCtx, domainName, groupName, false, false);
+        assertNotNull(group);
+
+        List<GroupMember> members = group.getGroupMembers();
+        assertNotNull(members);
+        assertEquals(members.size(), 1);
+
+        boolean found = false;
+        for (GroupMember member: members) {
+            if (member.getMemberName().equalsIgnoreCase("user.joe")) {
+                fail("delete user.joe failed");
+            }
+            if (member.getMemberName().equalsIgnoreCase("user.jane")) {
+                found = true;
+            }
+        }
+        if (!found) {
+            fail("user.jane not found");
+        }
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testIsAllowedDeletePendingGroupMembership() {
+
+        final String domainName = "allowed-del-pending-mbr";
+        final String groupName = "group1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Group Test Domain1", "testOrg", "user.user1");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Group group1 = createGroupObject(domainName, groupName, "user.user1", "user.jane");
+        zms.putGroup(mockDomRsrcCtx, domainName, groupName, auditRef, group1);
+
+        Role role1 = createRoleObject(domainName, "testrole1", null, "user.user1", "user.jane");
+        zms.putRole(mockDomRsrcCtx, domainName, "testrole1", auditRef, role1);
+
+        Policy policy1 = createPolicyObject(domainName, "Policy1", "testrole1",
+                "UPDATE", domainName + ":group.*", AssertionEffect.ALLOW);
+        zms.putPolicy(mockDomRsrcCtx, domainName, "Policy1", auditRef, policy1);
+
+        assertTrue(zms.isAllowedDeletePendingGroupMembership(mockDomRsrcCtx.principal(), domainName,
+                groupName, "user.pending"));
+
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String unsignedCreds = "v=U1;d=user;n=jane";
+        Principal rsrcPrince = SimplePrincipal.create("user", "jane", unsignedCreds + ";s=signature",0, principalAuthority);
+        assertNotNull(rsrcPrince);
+        ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
+
+        assertTrue(zms.isAllowedDeletePendingGroupMembership(rsrcPrince, domainName, groupName, "user.pending"));
+
+        unsignedCreds = "v=U1;d=user;n=john";
+        rsrcPrince = SimplePrincipal.create("user", "john", unsignedCreds + ";s=signature",0, principalAuthority);
+        assertNotNull(rsrcPrince);
+        ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
+
+        // this time false since john is not authorized
+
+        assertFalse(zms.isAllowedDeletePendingGroupMembership(rsrcPrince, domainName,
+                groupName, "user.pending"));
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testGPendingDomainGroupMembersListInvalidPrincipal() {
+
+        try {
+            zms.getPendingDomainGroupMembersList(mockDomRsrcCtx, "user.unknwon");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+    }
+
+    @Test
+    public void testDeletePendingGroupMembershipAdminRequest() {
+
+        final String domainName = "delete-pending-admin";
+        final String groupName = "testgroup1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "delete pending membership",
+                "testOrg", "user.user1");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        setupPrincipalAuditedRoleApprovalByOrg(zms, "user.fury", "testorg");
+
+        DomainMeta meta = createDomainMetaObject("Domain Meta for approval test", "testorg",
+                true, true, "12345", 1001);
+        zms.putDomainMeta(mockDomRsrcCtx, domainName, auditRef, meta);
+        zms.putDomainSystemMeta(mockDomRsrcCtx, domainName, "auditenabled", auditRef, meta);
+        setupPrincipalSystemMetaDelete(zms, mockDomRsrcCtx.principal().getFullName(), domainName, "org");
+        zms.putDomainSystemMeta(mockDomRsrcCtx, domainName, "org", auditRef, meta);
+
+        Group auditedGroup = createGroupObject(domainName, groupName, "user.john", "user.jane");
+        zms.putGroup(mockDomRsrcCtx, domainName, groupName, auditRef, auditedGroup);
+        GroupSystemMeta rsm = createGroupSystemMetaObject(true);
+        zms.putGroupSystemMeta(mockDomRsrcCtx, domainName, groupName, "auditenabled", auditRef, rsm);
+
+        GroupMembership mbr = new GroupMembership();
+        mbr.setMemberName("user.bob");
+        mbr.setActive(false);
+        mbr.setApproved(false);
+        zms.putGroupMembership(mockDomRsrcCtx, domainName, groupName, "user.bob", auditRef, mbr);
+
+        // first request using admin principal
+
+        DomainGroupMembership domainGroupMembership = zms.getPendingDomainGroupMembersList(mockDomRsrcCtx, "user.fury");
+
+        assertNotNull(domainGroupMembership);
+        assertNotNull(domainGroupMembership.getDomainGroupMembersList());
+        assertEquals(domainGroupMembership.getDomainGroupMembersList().size(), 1);
+        for (DomainGroupMembers drm : domainGroupMembership.getDomainGroupMembersList()) {
+            assertEquals(drm.getDomainName(), domainName);
+            assertNotNull(drm.getMembers());
+            for (DomainGroupMember mem : drm.getMembers()) {
+                assertNotNull(mem);
+                assertEquals(mem.getMemberName(), "user.bob");
+                for (GroupMember mr : mem.getMemberGroups()) {
+                    assertNotNull(mr);
+                    assertEquals(mr.getGroupName(), groupName);
+                }
+            }
+        }
+
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String unsignedCreds = "v=U1;d=user;n=jane";
+        Principal rsrcPrince = SimplePrincipal.create("user", "jane", unsignedCreds + ";s=signature",0, principalAuthority);
+        assertNotNull(rsrcPrince);
+        ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
+        ResourceContext ctx = createResourceContext(rsrcPrince);
+
+        // first try to delete the pending request without proper authorization
+
+        try {
+            zms.deletePendingGroupMembership(ctx, domainName, groupName, "user.bob", auditRef);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+
+        // repeat the request using context principal
+
+        zms.deletePendingGroupMembership(mockDomRsrcCtx, domainName, groupName, "user.bob", auditRef);
+
+        // check the list to see there are no pending requests
+
+        domainGroupMembership = zms.getPendingDomainGroupMembersList(mockDomRsrcCtx, "user.fury");
+        assertNotNull(domainGroupMembership);
+        assertTrue(domainGroupMembership.getDomainGroupMembersList().isEmpty());
+
+        // delete some unknown member in the same group as admin
+
+        try {
+            zms.deletePendingGroupMembership(mockDomRsrcCtx, domainName, groupName, "user.bob2", auditRef);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+        }
+
+        // delete some member in an unknown domain
+
+        try {
+            zms.deletePendingGroupMembership(mockDomRsrcCtx, "unkwown-domain", groupName, "user.bob2", auditRef);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+        }
+
+        cleanupPrincipalSystemMetaDelete(zms);
+        clenaupPrincipalAuditedRoleApprovalByOrg(zms, "testOrg");
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testDeletePendingGroupMembershipSelfServeRequest() {
+
+        final String domainName = "delete-pending-self-serve";
+        final String groupName = "group1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "delete pending membership",
+                "testOrg", "user.user1");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        DomainMeta meta = createDomainMetaObject("Domain Meta for approval test", "testorg",
+                true, false, "12345", 1001);
+        zms.putDomainMeta(mockDomRsrcCtx, domainName, auditRef, meta);
+
+        Group auditedGroup = createGroupObject(domainName, groupName, "user.john", "user.jane");
+        zms.putGroup(mockDomRsrcCtx, domainName, groupName, auditRef, auditedGroup);
+        GroupMeta rm = new GroupMeta().setSelfServe(true);
+        zms.putGroupMeta(mockDomRsrcCtx, domainName, groupName, auditRef, rm);
+
+        // user.joe is going to add user.bob in the self serve group
+
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String unsignedCreds = "v=U1;d=user;n=joe";
+        Principal rsrcPrince = SimplePrincipal.create("user", "joe", unsignedCreds + ";s=signature",0, principalAuthority);
+        assertNotNull(rsrcPrince);
+        ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
+        ResourceContext ctxJoe = createResourceContext(rsrcPrince);
+
+        GroupMembership mbr = new GroupMembership();
+        mbr.setMemberName("user.bob");
+        mbr.setActive(false);
+        mbr.setApproved(false);
+        zms.putGroupMembership(ctxJoe, domainName, groupName, "user.bob", auditRef, mbr);
+
+        // first request using admin principal
+
+        DomainGroupMembership domainGroupMembership = zms.getPendingDomainGroupMembersList(mockDomRsrcCtx, "user.user1");
+
+        assertNotNull(domainGroupMembership);
+        assertNotNull(domainGroupMembership.getDomainGroupMembersList());
+        assertEquals(domainGroupMembership.getDomainGroupMembersList().size(), 1);
+        for (DomainGroupMembers drm : domainGroupMembership.getDomainGroupMembersList()) {
+            assertEquals(drm.getDomainName(), domainName);
+            assertNotNull(drm.getMembers());
+            for (DomainGroupMember mem : drm.getMembers()) {
+                assertNotNull(mem);
+                assertEquals(mem.getMemberName(), "user.bob");
+                for (GroupMember mr : mem.getMemberGroups()) {
+                    assertNotNull(mr);
+                    assertEquals(mr.getGroupName(), groupName);
+                }
+            }
+        }
+
+        // first try to delete the pending request without proper authorization
+
+        unsignedCreds = "v=U1;d=user;n=jane";
+        rsrcPrince = SimplePrincipal.create("user", "jane", unsignedCreds + ";s=signature",0, principalAuthority);
+        assertNotNull(rsrcPrince);
+        ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
+        ResourceContext ctxJane = createResourceContext(rsrcPrince);
+
+        try {
+            zms.deletePendingGroupMembership(ctxJane, domainName, groupName, "user.bob", auditRef);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+
+        // repeat the request using joe principal
+
+        zms.deletePendingGroupMembership(ctxJoe, domainName, groupName, "user.bob", auditRef);
+
+        // check the list to see there are no pending requests
+
+        domainGroupMembership = zms.getPendingDomainGroupMembersList(mockDomRsrcCtx, "user.user1");
+        assertNotNull(domainGroupMembership);
+        assertTrue(domainGroupMembership.getDomainGroupMembersList().isEmpty());
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testGetPendingDomainGroupMembersList() {
+
+        final String domainName = "pend-dom-grp-mbr-list";
+        final String groupName = "group1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Approval Test Domain1", "testOrg", "user.user1");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        setupPrincipalAuditedRoleApprovalByOrg(zms, "user.fury", "testorg");
+
+        DomainMeta meta = createDomainMetaObject("Domain Meta for approval test", "testorg",
+                true, true, "12345", 1001);
+        zms.putDomainMeta(mockDomRsrcCtx, domainName, auditRef, meta);
+        zms.putDomainSystemMeta(mockDomRsrcCtx, domainName, "auditenabled", auditRef, meta);
+        setupPrincipalSystemMetaDelete(zms, mockDomRsrcCtx.principal().getFullName(), domainName, "org");
+        zms.putDomainSystemMeta(mockDomRsrcCtx, domainName, "org", auditRef, meta);
+
+        Group auditedGroup = createGroupObject(domainName, groupName, "user.john", "user.jane");
+        zms.putGroup(mockDomRsrcCtx, domainName, groupName, auditRef, auditedGroup);
+        GroupSystemMeta rsm = createGroupSystemMetaObject(true);
+        zms.putGroupSystemMeta(mockDomRsrcCtx, domainName, groupName, "auditenabled", auditRef, rsm);
+        GroupMeta rm = new GroupMeta().setSelfServe(true);
+        zms.putGroupMeta(mockDomRsrcCtx, domainName, groupName, auditRef, rm);
+
+        GroupMembership mbr = new GroupMembership();
+        mbr.setMemberName("user.bob");
+        mbr.setActive(false);
+        mbr.setApproved(false);
+        zms.putGroupMembership(mockDomRsrcCtx, domainName, groupName, "user.bob", auditRef, mbr);
+
+        mbr = new GroupMembership();
+        mbr.setMemberName("user.bob");
+        mbr.setActive(true);
+        mbr.setApproved(true);
+
+        try {
+            zms.putGroupMembershipDecision(mockDomRsrcCtx, domainName, groupName, "user.bob", auditRef, mbr);
+            fail();
+        } catch (ResourceException r) {
+            assertEquals(r.code, 403);
+        }
+
+        // first request using specific principal
+
+        DomainGroupMembership domainGroupMembership = zms.getPendingDomainGroupMembersList(mockDomRsrcCtx, "user.fury");
+
+        assertNotNull(domainGroupMembership);
+        assertNotNull(domainGroupMembership.getDomainGroupMembersList());
+        assertEquals(domainGroupMembership.getDomainGroupMembersList().size(), 1);
+        for (DomainGroupMembers drm : domainGroupMembership.getDomainGroupMembersList()) {
+            assertEquals(drm.getDomainName(), domainName);
+            assertNotNull(drm.getMembers());
+            for (DomainGroupMember mem : drm.getMembers()) {
+                assertNotNull(mem);
+                assertEquals(mem.getMemberName(), "user.bob");
+                for (GroupMember mr : mem.getMemberGroups()) {
+                    assertNotNull(mr);
+                    assertEquals(mr.getGroupName(), groupName);
+                }
+            }
+        }
+
+        // repeat the request using context principal
+
+        Principal mockPrincipal = Mockito.mock(Principal.class);
+        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(mockPrincipal);
+        Mockito.when(mockPrincipal.getDomain()).thenReturn("user");
+        Mockito.when(mockPrincipal.getFullName()).thenReturn("user.fury");
+        domainGroupMembership = zms.getPendingDomainGroupMembersList(mockDomRsrcCtx, null);
+
+        assertNotNull(domainGroupMembership);
+        assertNotNull(domainGroupMembership.getDomainGroupMembersList());
+        assertEquals(domainGroupMembership.getDomainGroupMembersList().size(), 1);
+        for (DomainGroupMembers drm : domainGroupMembership.getDomainGroupMembersList()) {
+            assertEquals(drm.getDomainName(), domainName);
+            assertNotNull(drm.getMembers());
+            for (DomainGroupMember mem : drm.getMembers()) {
+                assertNotNull(mem);
+                assertEquals(mem.getMemberName(), "user.bob");
+                for (GroupMember mr : mem.getMemberGroups()) {
+                    assertNotNull(mr);
+                    assertEquals(mr.getGroupName(), groupName);
+                }
+            }
+        }
+
+        cleanupPrincipalSystemMetaDelete(zms);
+        clenaupPrincipalAuditedRoleApprovalByOrg(zms, "testOrg");
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testPutGroupReview() {
+
+        final String domainName = "group-review-dom";
+        final String groupName = "group1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Role review Test Domain1", "testOrg", "user.user1");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Group group = createGroupObject(domainName, groupName, "user.john", "user.jane");
+        zms.putGroup(mockDomRsrcCtx, domainName, groupName, auditRef, group);
+
+        Group inputGroup = new Group().setName(groupName);
+        List<GroupMember> inputMembers = new ArrayList<>();
+        inputGroup.setGroupMembers(inputMembers);
+        inputMembers.add(new GroupMember().setMemberName("user.john").setActive(false));
+        inputMembers.add(new GroupMember().setMemberName("user.jane").setActive(true));
+        zms.putGroupReview(mockDomRsrcCtx, domainName, groupName, auditRef, inputGroup);
+
+        Group resGroup = zms.getGroup(mockDomRsrcCtx, domainName, groupName, false, false);
+        assertEquals(resGroup.getGroupMembers().size(), 1);
+        assertEquals(resGroup.getGroupMembers().get(0).getMemberName(), "user.jane");
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testPutGroupReviewError() {
+
+        final String domainName = "group-review-dom-err";
+        final String groupName = "group1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Role review Test Domain1", "testOrg", "user.user1");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Group group = createGroupObject(domainName, groupName, "user.john", "user.jane");
+        zms.putGroup(mockDomRsrcCtx, domainName, groupName, auditRef, group);
+
+        Group inputGroup = new Group().setName(groupName);
+        List<GroupMember> inputMembers = new ArrayList<>();
+        inputGroup.setGroupMembers(inputMembers);
+        inputMembers.add(new GroupMember().setMemberName("user.john").setActive(false));
+        inputMembers.add(new GroupMember().setMemberName("user.joe").setActive(true));
+        zms.putGroupReview(mockDomRsrcCtx, domainName, groupName, auditRef, inputGroup);
+
+        try {
+            zms.putGroupReview(mockDomRsrcCtx, domainName, groupName, auditRef, inputGroup);
+            fail();
+        } catch (ResourceException re) {
+            assertEquals(re.getCode(), ResourceException.NOT_FOUND);
+        }
+
+        inputGroup.setName("group2");
+        try {
+            zms.putGroupReview(mockDomRsrcCtx, domainName, groupName, auditRef, inputGroup);
+            fail();
+        } catch (ResourceException re) {
+            assertEquals(re.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        inputGroup.setName(groupName);
+        try {
+            zms.putGroupReview(mockDomRsrcCtx, "invalid-domain", groupName, auditRef, inputGroup);
+            fail();
+        } catch (ResourceException re) {
+            assertEquals(re.getCode(), ResourceException.NOT_FOUND);
+        }
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testGetPrincipalGroups() {
+
+        final String domainName1 = "principal-groups-dom1";
+        final String groupName1 = "group1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName1, "Test Domain1", "testOrg", "user.user1");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Group group1 = createGroupObject(domainName1, groupName1, "user.john", "user.joe");
+        zms.putGroup(mockDomRsrcCtx, domainName1, groupName1, auditRef, group1);
+
+        final String domainName2 = "principal-groups-dom2";
+        final String groupName2 = "group2";
+
+        TopLevelDomain dom2 = createTopLevelDomainObject(domainName2, "Test Domain1", "testOrg", "user.user1");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
+
+        Group group2 = createGroupObject(domainName2, groupName2, "user.john", "user.user1");
+        zms.putGroup(mockDomRsrcCtx, domainName2, groupName2, auditRef, group2);
+
+        DomainGroupMember dgm = zms.getPrincipalGroups(mockDomRsrcCtx, "user.john", domainName1);
+        assertNotNull(dgm);
+        List<GroupMember> memberGroups = dgm.getMemberGroups();
+        assertEquals(memberGroups.size(), 1);
+        assertEquals(memberGroups.get(0).getGroupName(), groupName1);
+        assertEquals(memberGroups.get(0).getDomainName(), domainName1);
+
+        dgm = zms.getPrincipalGroups(mockDomRsrcCtx, "user.john", null);
+        assertNotNull(dgm);
+        memberGroups = dgm.getMemberGroups();
+        assertEquals(memberGroups.size(), 2);
+
+        dgm = zms.getPrincipalGroups(mockDomRsrcCtx, null, domainName1);
+        assertNotNull(dgm);
+        assertTrue(dgm.getMemberGroups().isEmpty());
+
+        dgm = zms.getPrincipalGroups(mockDomRsrcCtx, null, domainName2);
+        assertNotNull(dgm);
+        memberGroups = dgm.getMemberGroups();
+        assertEquals(memberGroups.size(), 1);
+        assertEquals(memberGroups.get(0).getGroupName(), groupName2);
+        assertEquals(memberGroups.get(0).getDomainName(), domainName2);
+    }
+
+    @Test
+    public void testVerifyAuthorizedServiceGroupPrefixOperation() {
+
+        // our test resource json includes the following
+        // group-prefix use case
+        //        "coretech.updater": {
+        //            "allowedOperations": [
+        //               {
+        //                 "name":"putgroupmembership",
+        //                  "items": {
+        //                      "group-prefix" : [
+        //                          "reader.org.",
+        //                          "writer.domain."
+        //                      ]
+        //                  }
+        //              }
+        //            ]
+
+        zms.verifyAuthorizedServiceGroupOperation(null, "putgroupmembership", "group1");
+
+        // Try passing along operationItem key + value to see if verification works
+
+        zms.verifyAuthorizedServiceGroupOperation("coretech.updater", "putgroupmembership", "reader.org.group1");
+        zms.verifyAuthorizedServiceGroupOperation("coretech.updater", "putgroupmembership", "writer.domain.group1");
+
+        // try with restricted operation. Currently, putmembership only allow single operation item.
+        zms.verifyAuthorizedServiceGroupOperation("coretech.newsvc", "putgroupmembership", "platforms_deployer");
+        zms.verifyAuthorizedServiceGroupOperation("coretech.newsvc", "putgroupmembership", "platforms_different_deployer");
+
+        // Third, try with restriction operation, with not-specified operation item.
+
+        try {
+            zms.verifyAuthorizedServiceGroupOperation("coretech.updater", "putgroupmembership", "platforms_deployer_new");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+
+        try {
+            zms.verifyAuthorizedServiceGroupOperation("coretech.updater", "putgroupmembership", "reader.org1.group1");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+
+        try {
+            zms.verifyAuthorizedServiceGroupOperation("coretech.newsvc", "putgroupmembership", "platforms_deployer_new");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+    }
+
+    @Test
+    public void testPutGroupMembershipDecisionSelfserveGroupApprove() {
+
+        final String domainName = "self-service-group-approve";
+        final String groupName = "group1";
+
+        addMemberToSelfServeGroupWithUserIdentity(domainName, groupName);
+
+        Group resGroup = zms.getGroup(mockDomRsrcCtx, domainName, groupName, false, true);
+        assertEquals(resGroup.getGroupMembers().size(), 3);
+        for (GroupMember rmem : resGroup.getGroupMembers()) {
+            if ("user.bob".equals(rmem.getMemberName())) {
+                assertFalse(rmem.getApproved());
+            }
+        }
+        GroupMembership mbr = new GroupMembership();
+        mbr.setMemberName("user.bob");
+        mbr.setActive(true);
+        mbr.setApproved(true);
+        zms.putGroupMembershipDecision(mockDomRsrcCtx, domainName, groupName, "user.bob", auditRef, mbr);
+
+        resGroup = zms.getGroup(mockDomRsrcCtx, domainName, groupName, false, false);
+        assertEquals(resGroup.getGroupMembers().size(), 3);
+        for (GroupMember rmem : resGroup.getGroupMembers()) {
+            if ("user.bob".equals(rmem.getMemberName())) {
+                assertTrue(rmem.getApproved());
+            }
+        }
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testPutGroupMembershipDecisionSelfserveRoleReject() {
+
+        final String domainName = "self-service-group-reject";
+        final String groupName = "group1";
+
+        addMemberToSelfServeGroupWithUserIdentity(domainName, groupName);
+
+        Group resGroup = zms.getGroup(mockDomRsrcCtx, domainName, groupName, false, true);
+        assertEquals(resGroup.getGroupMembers().size(), 3);
+        for (GroupMember rmem : resGroup.getGroupMembers()) {
+            if ("user.bob".equals(rmem.getMemberName())) {
+                assertFalse(rmem.getApproved());
+            }
+        }
+        GroupMembership mbr = new GroupMembership();
+        mbr.setMemberName("user.bob");
+        mbr.setActive(false);
+        mbr.setApproved(false);
+        zms.putGroupMembershipDecision(mockDomRsrcCtx, domainName, groupName, "user.bob", auditRef, mbr);
+
+        resGroup = zms.getGroup(mockDomRsrcCtx, domainName, groupName, false, false);
+        assertEquals(resGroup.getGroupMembers().size(), 2);
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testPutGroupMembershipDecisionReviewEnabledGroupApprove() {
+
+        final String domainName = "review-enabled-domain";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Approval test Domain1",
+                "testOrg", "user.user1");
+        dom1.getAdminUsers().add("user.user2");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        final String groupName = "review-group";
+        Group group1 = createGroupObject(domainName, groupName, null, null);
+        zms.putGroup(mockDomRsrcCtx, domainName, groupName, auditRef, group1);
+
+        GroupMeta rm = new GroupMeta().setReviewEnabled(true);
+        zms.putGroupMeta(mockDomRsrcCtx, domainName, groupName, auditRef, rm);
+
+        // switch to user.user2 principal to add a member to a group
+
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String unsignedCreds = "v=U1;d=user;n=user2";
+        final Principal rsrcPrince = SimplePrincipal.create("user", "user2",
+                unsignedCreds + ";s=signature", 0, principalAuthority);
+        assertNotNull(rsrcPrince);
+        ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
+        Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcPrince);
+        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcPrince);
+
+        GroupMembership mbr = new GroupMembership();
+        mbr.setMemberName("user.bob");
+        mbr.setActive(false);
+        mbr.setApproved(false);
+
+        zms.putGroupMembership(mockDomRsrcCtx, domainName, groupName, "user.bob", auditRef, mbr);
+
+        // verify the user is added with pending state
+
+        Group resgroup = zms.getGroup(mockDomRsrcCtx, domainName, groupName, false, true);
+        assertEquals(resgroup.getGroupMembers().size(), 1);
+        assertEquals(resgroup.getGroupMembers().get(0).getMemberName(), "user.bob");
+        assertFalse(resgroup.getGroupMembers().get(0).getApproved());
+
+        // now try as the admin himself to approve this user and it must
+        // be rejected since it has to be done by some other admin
+
+        mbr = new GroupMembership();
+        mbr.setMemberName("user.bob");
+        mbr.setActive(true);
+        mbr.setApproved(true);
+
+        try {
+            zms.putGroupMembershipDecision(mockDomRsrcCtx, domainName, groupName, "user.bob", auditRef, mbr);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("cannot approve his/her own request"));
+        }
+
+        // revert back to admin principal
+
+        Authority adminPrincipalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String adminUnsignedCreds = "v=U1;d=user;n=user1";
+        final Principal rsrcAdminPrince = SimplePrincipal.create("user", "user1",
+                adminUnsignedCreds + ";s=signature", 0, adminPrincipalAuthority);
+        assertNotNull(rsrcAdminPrince);
+        ((SimplePrincipal) rsrcAdminPrince).setUnsignedCreds(adminUnsignedCreds);
+
+        Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
+        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
+
+        // approve the message which should be successful
+
+        zms.putGroupMembershipDecision(mockDomRsrcCtx, domainName, groupName, "user.bob", auditRef, mbr);
+
+        // verify the user is now active
+
+        resgroup = zms.getGroup(mockDomRsrcCtx, domainName, groupName, false, true);
+        assertEquals(resgroup.getGroupMembers().size(), 1);
+        assertEquals(resgroup.getGroupMembers().get(0).getMemberName(), "user.bob");
+        assertTrue(resgroup.getGroupMembers().get(0).getApproved());
+
+        // trying to approve the same user should return 404
+
+        try {
+            zms.putGroupMembershipDecision(mockDomRsrcCtx, domainName, groupName, "user.bob", auditRef, mbr);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+
+        // now try to approve another use which should also return 404
+
+        mbr.setMemberName("user.joe");
+        try {
+            zms.putGroupMembershipDecision(mockDomRsrcCtx, domainName, groupName, "user.joe", auditRef, mbr);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testPutGroupMeta() {
+
+        final String domainName = "put-group-meta";
+        final String groupName = "group1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Group Meta Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Group group1 = createGroupObject(domainName, groupName, "user.john", "user.jane");
+        zms.putGroup(mockDomRsrcCtx, domainName, groupName, auditRef, group1);
+
+        Authority savedAuthority = zms.userAuthority;
+
+        Authority authority = Mockito.mock(Authority.class);
+        Mockito.when(authority.getDateAttribute("user.john", "elevated-clearance")).thenReturn(new Date());
+        Mockito.when(authority.isAttributeSet("user.john", "OnShore-US")).thenReturn(true);
+        Mockito.when(authority.getDateAttribute("user.jane", "elevated-clearance")).thenReturn(new Date());
+        Mockito.when(authority.isAttributeSet("user.jane", "OnShore-US")).thenReturn(true);
+        Set<String> attrs = new HashSet<>();
+        attrs.add("OnShore-US");
+        attrs.add("elevated-clearance");
+        Mockito.when(authority.booleanAttributesSupported()).thenReturn(attrs);
+        Mockito.when(authority.dateAttributesSupported()).thenReturn(attrs);
+        zms.userAuthority = authority;
+
+        GroupMeta groupMeta = new GroupMeta();
+        zms.putGroupMeta(mockDomRsrcCtx, domainName, groupName, auditRef, groupMeta);
+
+        Group resGroup1 = zms.getGroup(mockDomRsrcCtx, domainName, groupName, true, false);
+        assertNotNull(resGroup1);
+        assertNull(resGroup1.getSelfServe());
+        assertNull(resGroup1.getReviewEnabled());
+        assertNull(resGroup1.getNotifyRoles());
+        assertNull(resGroup1.getUserAuthorityExpiration());
+        assertNull(resGroup1.getUserAuthorityFilter());
+
+        groupMeta = new GroupMeta()
+                .setSelfServe(true)
+                .setNotifyRoles("role1")
+                .setReviewEnabled(false)
+                .setUserAuthorityExpiration("elevated-clearance")
+                .setUserAuthorityFilter("OnShore-US");
+        zms.putGroupMeta(mockDomRsrcCtx, domainName, groupName, auditRef, groupMeta);
+
+        resGroup1 = zms.getGroup(mockDomRsrcCtx, domainName, groupName, true, false);
+        assertNotNull(resGroup1);
+        assertTrue(resGroup1.getSelfServe());
+        assertNull(resGroup1.getReviewEnabled());
+        assertEquals(resGroup1.getNotifyRoles(), "role1");
+        assertEquals(resGroup1.getUserAuthorityExpiration(), "elevated-clearance");
+        assertEquals(resGroup1.getUserAuthorityFilter(), "OnShore-US");
+
+        groupMeta = new GroupMeta().setNotifyRoles("role2,role3");
+        zms.putGroupMeta(mockDomRsrcCtx, domainName, groupName, auditRef, groupMeta);
+
+        resGroup1 = zms.getGroup(mockDomRsrcCtx, domainName, groupName, true, false);
+        assertNotNull(resGroup1);
+        assertNull(resGroup1.getSelfServe()); // default value is false is not specified
+        assertNull(resGroup1.getReviewEnabled());
+        assertEquals(resGroup1.getNotifyRoles(), "role2,role3");
+        assertEquals(resGroup1.getUserAuthorityExpiration(), "elevated-clearance");
+        assertEquals(resGroup1.getUserAuthorityFilter(), "OnShore-US");
+
+        zms.userAuthority = savedAuthority;
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testPutGroupMetaMissingAuditRef() {
+
+        final String domainName = "put-group-meta-missing-auditref";
+        final String groupName = "group1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Group Meta Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        DomainMeta meta = createDomainMetaObject("Domain Meta for Group Meta test", "NewOrg",
+                true, true, "12345", 1001);
+        zms.putDomainMeta(mockDomRsrcCtx, domainName, auditRef, meta);
+        zms.putDomainSystemMeta(mockDomRsrcCtx, domainName, "auditenabled", auditRef, meta);
+
+        Group group1 = createGroupObject(domainName, groupName, "user.john", "user.jane");
+        zms.putGroup(mockDomRsrcCtx, domainName, groupName, auditRef, group1);
+
+        GroupSystemMeta rsm = createGroupSystemMetaObject(true);
+        zms.putGroupSystemMeta(mockDomRsrcCtx, domainName, groupName, "auditenabled", auditRef, rsm);
+
+        GroupMeta rm = new GroupMeta().setSelfServe(true);
+        try {
+            zms.putGroupMeta(mockDomRsrcCtx, domainName, groupName, null, rm);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Audit reference required"));
+        }
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testPutGroupMetaThrowException() {
+
+        final String domainName = "put-group-meta-exc";
+        final String groupName = "group1";
+
+        TestAuditLogger alogger = new TestAuditLogger();
+        ZMSImpl zmsImpl = getZmsImpl(alogger);
+        GroupMeta rm = new GroupMeta();
+        rm.setSelfServe(false);
+
+        try {
+            zmsImpl.putGroupMeta(mockDomRsrcCtx, domainName, groupName, auditRef, rm);
+            fail("notfounderror not thrown.");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+    }
+
+    @Test
+    public void testPutGroupMetaUserAuthorityFilterSet() {
+
+        final String domainName = "put-group-meta-on-shore";
+        final String groupName = "group1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Group Meta Test Domain1", "testOrg", "user.user1");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Group group1 = createGroupObject(domainName, groupName, "user.john", "user.jane");
+        zms.putGroup(mockDomRsrcCtx, domainName, groupName, auditRef, group1);
+
+        Authority savedAuthority = zms.userAuthority;
+
+        Authority authority = Mockito.mock(Authority.class);
+        Mockito.when(authority.isAttributeSet("user.john", "OnShore-US")).thenReturn(true);
+        Mockito.when(authority.isAttributeSet("user.jane", "OnShore-US")).thenReturn(false);
+        Mockito.when(authority.isAttributeSet("user.joe", "OnShore-US")).thenReturn(true);
+        Mockito.when(authority.isAttributeSet("user.doe", "OnShore-US")).thenReturn(false);
+        Set<String> attrs = new HashSet<>();
+        attrs.add("OnShore-US");
+        Mockito.when(authority.booleanAttributesSupported()).thenReturn(attrs);
+        zms.userAuthority = authority;
+        zms.dbService.zmsConfig.setUserAuthority(authority);
+
+        GroupMeta groupMeta = new GroupMeta().setUserAuthorityFilter("OnShore-US");
+        zms.putGroupMeta(mockDomRsrcCtx, domainName, groupName, auditRef, groupMeta);
+
+        // john should be active but jane should be disabled
+
+        GroupMembership groupMembership = zms.getGroupMembership(mockDomRsrcCtx, domainName, groupName, "user.john", null);
+        assertNotNull(groupMembership);
+        assertTrue(groupMembership.getIsMember());
+        assertNull(groupMembership.getSystemDisabled());
+
+        groupMembership = zms.getGroupMembership(mockDomRsrcCtx, domainName, groupName, "user.jane", null);
+        assertNotNull(groupMembership);
+        assertTrue(groupMembership.getIsMember());
+        assertEquals(groupMembership.getSystemDisabled().intValue(), 1);
+
+        // we should be able to add joe but not doe
+
+        groupMembership = new GroupMembership().setGroupName(groupName).setMemberName("user.joe");
+        zms.putGroupMembership(mockDomRsrcCtx, domainName, groupName, "user.joe", auditRef, groupMembership);
+
+        groupMembership = new GroupMembership().setGroupName(groupName).setMemberName("user.doe");
+        try {
+            zms.putGroupMembership(mockDomRsrcCtx, domainName, groupName, "user.doe", auditRef, groupMembership);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        // now let's remove our flag
+
+        groupMeta = new GroupMeta().setUserAuthorityFilter("");
+        zms.putGroupMeta(mockDomRsrcCtx, domainName, groupName, auditRef, groupMeta);
+
+        // jane should be back to 0 for system disabled flag
+
+        groupMembership = zms.getGroupMembership(mockDomRsrcCtx, domainName, groupName, "user.jane", null);
+        assertNotNull(groupMembership);
+        assertTrue(groupMembership.getIsMember());
+        assertNull(groupMembership.getSystemDisabled());
+
+        // and we're able to add doe now
+
+        groupMembership = new GroupMembership().setGroupName(groupName).setMemberName("user.doe");
+        zms.putGroupMembership(mockDomRsrcCtx, domainName, groupName, "user.doe", auditRef, groupMembership);
+
+        zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
+        zms.userAuthority = savedAuthority;
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testPutGroupMetaUserAuthorityFilterExpirtySet() {
+
+        final String domainName = "put-group-meta-elevated-clearance";
+        final String groupName = "group1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Group Meta Test Domain1", "testOrg", "user.user1");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Group group1 = createGroupObject(domainName, groupName, "user.john", "user.jane");
+        zms.putGroup(mockDomRsrcCtx, domainName, groupName, auditRef, group1);
+
+        Authority savedAuthority = zms.userAuthority;
+
+        Timestamp timestmp = Timestamp.fromMillis(System.currentTimeMillis() + 100000);
+        Date date = timestmp.toDate();
+        Authority authority = Mockito.mock(Authority.class);
+        Mockito.when(authority.getDateAttribute("user.john", "elevated-clearance")).thenReturn(date);
+        Mockito.when(authority.getDateAttribute("user.jane", "elevated-clearance")).thenReturn(null);
+        Mockito.when(authority.getDateAttribute("user.joe", "elevated-clearance")).thenReturn(date);
+        Mockito.when(authority.getDateAttribute("user.doe", "elevated-clearance")).thenReturn(null);
+        Set<String> attrs = new HashSet<>();
+        attrs.add("elevated-clearance");
+        Mockito.when(authority.dateAttributesSupported()).thenReturn(attrs);
+        zms.userAuthority = authority;
+        zms.dbService.zmsConfig.setUserAuthority(authority);
+
+        GroupMeta groupMeta = new GroupMeta().setUserAuthorityExpiration("elevated-clearance");
+        zms.putGroupMeta(mockDomRsrcCtx, domainName, groupName, auditRef, groupMeta);
+
+        // john should be active but jane should be expired
+
+        GroupMembership groupMembership = zms.getGroupMembership(mockDomRsrcCtx, domainName, groupName, "user.john", null);
+        assertNotNull(groupMembership);
+        assertTrue(groupMembership.getIsMember());
+        assertEquals(groupMembership.getExpiration(), timestmp);
+
+        groupMembership = zms.getGroupMembership(mockDomRsrcCtx, domainName, groupName, "user.jane", null);
+        assertNotNull(groupMembership);
+        assertFalse(groupMembership.getIsMember());
+        assertTrue(groupMembership.getExpiration().millis() <= System.currentTimeMillis());
+
+        // we should be able to add joe but not doe
+
+        groupMembership = new GroupMembership().setGroupName(groupName).setMemberName("user.joe");
+        zms.putGroupMembership(mockDomRsrcCtx, domainName, groupName, "user.joe", auditRef, groupMembership);
+
+        groupMembership = new GroupMembership().setGroupName(groupName).setMemberName("user.doe");
+        try {
+            zms.putGroupMembership(mockDomRsrcCtx, domainName, groupName, "user.doe", auditRef, groupMembership);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        // now let's remove our flag
+
+        groupMeta = new GroupMeta().setUserAuthorityExpiration("");
+        zms.putGroupMeta(mockDomRsrcCtx, domainName, groupName, auditRef, groupMeta);
+
+        // jane should be still be inactive since we don't remove
+        // expiration flags from users
+
+        groupMembership = zms.getGroupMembership(mockDomRsrcCtx, domainName, groupName, "user.jane", null);
+        assertNotNull(groupMembership);
+        assertFalse(groupMembership.getIsMember());
+        assertTrue(groupMembership.getExpiration().millis() <= System.currentTimeMillis());
+
+        // and we're able to add doe now
+
+        groupMembership = new GroupMembership().setGroupName(groupName).setMemberName("user.doe");
+        zms.putGroupMembership(mockDomRsrcCtx, domainName, groupName, "user.doe", auditRef, groupMembership);
+
+        zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
+        zms.userAuthority = savedAuthority;
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testPutGroupMembershipDBFailure() {
+
+        final String domainName = "create-group-mbr-db-failure";
+        final String groupName = "group1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", "user.user1");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Group group1 = createGroupObject(domainName, groupName, "user.joe", "user.jane");
+        zms.putGroup(mockDomRsrcCtx, domainName, groupName, auditRef, group1);
+
+        // put the db in read-only mode
+
+        setDatabaseReadOnlyMode(true);
+
+        // add a new member
+
+        try {
+            GroupMembership mbr = generateGroupMembership(groupName, "user.doe");
+            zms.putGroupMembership(mockDomRsrcCtx, domainName, groupName, "user.doe", auditRef, mbr);
+            fail();
+        } catch (ResourceException ex)  {
+            assertEquals(ex.getCode(), ResourceException.GONE);
+        }
+
+        // delete an existing member
+
+        try {
+            zms.deleteGroupMembership(mockDomRsrcCtx, domainName, groupName, "user.joe", auditRef);
+            fail();
+        } catch (ResourceException ex)  {
+            assertEquals(ex.getCode(), ResourceException.GONE);
+        }
+
+        // remove read-only mode
+
+        setDatabaseReadOnlyMode(false);
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testDeleteGroupDBFailure() {
+
+        final String domainName = "del-group-db-failure";
+        final String groupName = "group1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", "user.user1");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Group group1 = createGroupObject(domainName, groupName, "user.joe", "user.jane");
+        zms.putGroup(mockDomRsrcCtx, domainName, groupName, auditRef, group1);
+
+        // put the db in read-only mode
+
+        setDatabaseReadOnlyMode(true);
+
+        // add a new member
+
+        try {
+            zms.deleteGroup(mockDomRsrcCtx, domainName, groupName, auditRef);
+            fail();
+        } catch (ResourceException ex)  {
+            assertEquals(ex.getCode(), ResourceException.GONE);
+        }
+
+        // remove read-only mode
+
+        setDatabaseReadOnlyMode(false);
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 }

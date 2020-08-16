@@ -21,6 +21,7 @@ public final class NotificationServiceConstants {
 
     public static final String NOTIFICATION_DETAILS_DOMAIN              = "domain";
     public static final String NOTIFICATION_DETAILS_ROLE                = "role";
+    public static final String NOTIFICATION_DETAILS_GROUP               = "group";
     public static final String NOTIFICATION_DETAILS_MEMBER              = "member";
     public static final String NOTIFICATION_DETAILS_REASON              = "reason";
     public static final String NOTIFICATION_DETAILS_REQUESTER           = "requester";

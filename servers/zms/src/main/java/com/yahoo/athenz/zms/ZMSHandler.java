@@ -61,6 +61,7 @@ public interface ZMSHandler {
     void putGroupMeta(ResourceContext context, String domainName, String groupName, String auditRef, GroupMeta detail);
     void putGroupMembershipDecision(ResourceContext context, String domainName, String groupName, String memberName, String auditRef, GroupMembership membership);
     void putGroupReview(ResourceContext context, String domainName, String groupName, String auditRef, Group group);
+    DomainGroupMembership getPendingDomainGroupMembersList(ResourceContext context, String principal);
     PolicyList getPolicyList(ResourceContext context, String domainName, Integer limit, String skip);
     Policies getPolicies(ResourceContext context, String domainName, Boolean assertions);
     Policy getPolicy(ResourceContext context, String domainName, String policyName);

@@ -84,6 +84,29 @@ public interface ObjectStoreConnection extends Closeable {
     DomainRoleMember getPrincipalRoles(String principal, String domainName);
     List<PrincipalRole> listRolesWithUserAuthorityRestrictions();
 
+    // Group commands
+
+    Group getGroup(String domainName, String groupName);
+    boolean insertGroup(String domainName, Group group);
+    boolean updateGroup(String domainName, Group group);
+    boolean deleteGroup(String domainName, String groupName);
+    boolean updateGroupModTimestamp(String domainName, String groupName);
+    int countGroups(String domainName);
+    List<GroupAuditLog> listGroupAuditLogs(String domainName, String groupName);
+    boolean updateGroupReviewTimestamp(String domainName, String groupName);
+
+    List<GroupMember> listGroupMembers(String domainName, String groupName, Boolean pending);
+    int countGroupMembers(String domainName, String groupName);
+    GroupMembership getGroupMember(String domainName, String groupName, String member, long expiration, boolean pending);
+    boolean insertGroupMember(String domainName, String groupName, GroupMember groupMember, String principal, String auditRef);
+    boolean deleteGroupMember(String domainName, String groupName, String member, String principal, String auditRef);
+    boolean updateGroupMemberDisabledState(String domainName, String groupName, String member, String principal, int disabledState, String auditRef);
+    boolean deletePendingGroupMember(String domainName, String groupName, String member, String principal, String auditRef);
+    boolean confirmGroupMember(String domainName, String groupName, GroupMember groupMember, String principal, String auditRef);
+
+    DomainGroupMember getPrincipalGroups(String principal, String domainName);
+    List<PrincipalGroup> listGroupsWithUserAuthorityRestrictions();
+
     // Policy commands
     
     Policy getPolicy(String domainName, String policyName);
@@ -144,12 +167,20 @@ public interface ObjectStoreConnection extends Closeable {
     boolean updatePendingRoleMembersNotificationTimestamp(String server, long timestamp, int delayDays);
 
     Map<String, DomainRoleMember> getNotifyTemporaryRoleMembers(String server, long timestamp);
-    boolean updateRoleMemberExpirationNotificationTimestamp(String server, long timestamp);
+    boolean updateRoleMemberExpirationNotificationTimestamp(String server, long timestamp, int delayDays);
 
     Map<String, DomainRoleMember> getNotifyReviewRoleMembers(String server, long timestamp);
-    boolean updateRoleMemberReviewNotificationTimestamp(String server, long timestamp);
+    boolean updateRoleMemberReviewNotificationTimestamp(String server, long timestamp, int delayDays);
 
     DomainRoleMembers listOverdueReviewRoleMembers(String domainName);
+
+    Map<String, List<DomainGroupMember>> getPendingDomainGroupMembers(String principal);
+    Map<String, List<DomainGroupMember>> getExpiredPendingDomainGroupMembers(int pendingGroupMemberLifespan);
+    Set<String> getPendingGroupMembershipApproverRoles(String server, long timestamp);
+    boolean updatePendingGroupMembersNotificationTimestamp(String server, long timestamp, int delayDays);
+
+    Map<String, DomainGroupMember> getNotifyTemporaryGroupMembers(String server, long timestamp);
+    boolean updateGroupMemberExpirationNotificationTimestamp(String server, long timestamp, int delayDays);
 
     List<TemplateMetaData> getDomainTemplates(String domainName);
     boolean updateDomainTemplate(String domainName, String templateName, TemplateMetaData templateMetaData);

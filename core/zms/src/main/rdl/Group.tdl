@@ -64,8 +64,6 @@ type Groups Struct {
     Array<Group> list; // list of group objects
 }
 
-
-
 type DomainGroupMember Struct {
     MemberName memberName; //name of the member
     Array<GroupMember> memberGroups; // groups for this member
@@ -74,6 +72,10 @@ type DomainGroupMember Struct {
 type DomainGroupMembers Struct {
     DomainName domainName; //name of the domain
     Array<DomainGroupMember> members; //group members
+}
+
+type DomainGroupMembership Struct {
+    Array<DomainGroupMembers> domainGroupMembersList;
 }
 
 //Set of system metadata attributes that all groups may have and can be changed by system admins.

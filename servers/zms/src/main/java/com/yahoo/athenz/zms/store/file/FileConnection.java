@@ -1698,6 +1698,36 @@ public class FileConnection implements ObjectStoreConnection {
         }), "listOverdueReviewRoleMembers");
     }
 
+    @Override
+    public Map<String, List<DomainGroupMember>> getPendingDomainGroupMembers(String principal) {
+        return null;
+    }
+
+    @Override
+    public Map<String, List<DomainGroupMember>> getExpiredPendingDomainGroupMembers(int pendingRoleMemberLifespan) {
+        return null;
+    }
+
+    @Override
+    public Set<String> getPendingGroupMembershipApproverRoles(String server, long timestamp) {
+        return null;
+    }
+
+    @Override
+    public boolean updatePendingGroupMembersNotificationTimestamp(String server, long timestamp, int delayDays) {
+        return false;
+    }
+
+    @Override
+    public Map<String, DomainGroupMember> getNotifyTemporaryGroupMembers(String server, long timestamp) {
+        return null;
+    }
+
+    @Override
+    public boolean updateGroupMemberExpirationNotificationTimestamp(String server, long timestamp, int delayDays) {
+        return false;
+    }
+
     private DomainRoleMembers listReviewRoleMembersWithFilter(String domainName, Function<RoleMember, Boolean> filterFunc, String caller) {
         DomainStruct domainStruct = getDomainStruct(domainName);
         if (domainStruct == null) {
@@ -2038,12 +2068,12 @@ public class FileConnection implements ObjectStoreConnection {
     }
 
     @Override
-    public boolean updateRoleMemberExpirationNotificationTimestamp(String server, long timestamp) {
+    public boolean updateRoleMemberExpirationNotificationTimestamp(String server, long timestamp, int delayDays) {
         return updateRoleMemberNotificationTimestamp(timestamp, true);
     }
 
     @Override
-    public boolean updateRoleMemberReviewNotificationTimestamp(String server, long timestamp) {
+    public boolean updateRoleMemberReviewNotificationTimestamp(String server, long timestamp, int delayDays) {
         return updateRoleMemberNotificationTimestamp(timestamp, false);
     }
 
@@ -2143,6 +2173,96 @@ public class FileConnection implements ObjectStoreConnection {
             }
         }
         return roles;
+    }
+
+    @Override
+    public Group getGroup(String domainName, String groupName) {
+        return null;
+    }
+
+    @Override
+    public boolean insertGroup(String domainName, Group group) {
+        return false;
+    }
+
+    @Override
+    public boolean updateGroup(String domainName, Group group) {
+        return false;
+    }
+
+    @Override
+    public boolean deleteGroup(String domainName, String groupName) {
+        return false;
+    }
+
+    @Override
+    public boolean updateGroupModTimestamp(String domainName, String groupName) {
+        return false;
+    }
+
+    @Override
+    public int countGroups(String domainName) {
+        return 0;
+    }
+
+    @Override
+    public List<GroupAuditLog> listGroupAuditLogs(String domainName, String groupName) {
+        return null;
+    }
+
+    @Override
+    public boolean updateGroupReviewTimestamp(String domainName, String groupName) {
+        return false;
+    }
+
+    @Override
+    public List<GroupMember> listGroupMembers(String domainName, String groupName, Boolean pending) {
+        return null;
+    }
+
+    @Override
+    public int countGroupMembers(String domainName, String groupName) {
+        return 0;
+    }
+
+    @Override
+    public GroupMembership getGroupMember(String domainName, String groupName, String member, long expiration, boolean pending) {
+        return null;
+    }
+
+    @Override
+    public boolean insertGroupMember(String domainName, String groupName, GroupMember groupMember, String principal, String auditRef) {
+        return false;
+    }
+
+    @Override
+    public boolean deleteGroupMember(String domainName, String groupName, String member, String principal, String auditRef) {
+        return false;
+    }
+
+    @Override
+    public boolean updateGroupMemberDisabledState(String domainName, String groupName, String member, String principal, int disabledState, String auditRef) {
+        return false;
+    }
+
+    @Override
+    public boolean deletePendingGroupMember(String domainName, String groupName, String member, String principal, String auditRef) {
+        return false;
+    }
+
+    @Override
+    public boolean confirmGroupMember(String domainName, String groupName, GroupMember groupMember, String principal, String auditRef) {
+        return false;
+    }
+
+    @Override
+    public DomainGroupMember getPrincipalGroups(String principal, String domainName) {
+        return null;
+    }
+
+    @Override
+    public List<PrincipalGroup> listGroupsWithUserAuthorityRestrictions() {
+        return null;
     }
 }
 ///CLOVER:ON

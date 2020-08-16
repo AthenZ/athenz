@@ -605,4 +605,128 @@ public class QuotaCheckerTest {
         quotaCheck.setQuotaCheckEnabled(false);
         quotaCheck.checkEntityQuota(con, "athenz", entity, "caller");
     }
+
+    @Test
+    public void testCheckGroupQuota() {
+
+        QuotaChecker quotaCheck = new QuotaChecker();
+        Quota mockQuota = new Quota().setName("athenz")
+                .setGroup(2).setGroupMember(2);
+        ObjectStoreConnection con = Mockito.mock(ObjectStoreConnection.class);
+        Mockito.when(con.getQuota("athenz")).thenReturn(mockQuota);
+        Mockito.when(con.countGroups("athenz")).thenReturn(1);
+
+        ArrayList<GroupMember> groupMembers = new ArrayList<>();
+        groupMembers.add(new GroupMember().setMemberName("user.joe"));
+        Group group = new Group().setGroupMembers(groupMembers);
+
+        // this should be successful - no exceptions
+
+        quotaCheck.checkGroupQuota(con, "athenz", group, "caller");
+    }
+
+    @Test
+    public void testCheckGroupQuotaGroupMemberExceeded() {
+
+        QuotaChecker quotaCheck = new QuotaChecker();
+        Quota mockQuota = new Quota().setName("athenz")
+                .setGroup(2).setGroupMember(2);
+        ObjectStoreConnection con = Mockito.mock(ObjectStoreConnection.class);
+        Mockito.when(con.getQuota("athenz")).thenReturn(mockQuota);
+        Mockito.when(con.countGroups("athenz")).thenReturn(1);
+
+        ArrayList<GroupMember> groupMembers = new ArrayList<>();
+        groupMembers.add(new GroupMember().setMemberName("user.joe"));
+        groupMembers.add(new GroupMember().setMemberName("user.jane"));
+        groupMembers.add(new GroupMember().setMemberName("user.doe"));
+        Group group = new Group().setGroupMembers(groupMembers);
+
+        try {
+            quotaCheck.checkGroupQuota(con, "athenz", group, "caller");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.TOO_MANY_REQUESTS);
+            assertTrue(ex.getMessage().contains("group member quota exceeded"));
+        }
+
+        // with quota check disabled - no exceptions
+
+        quotaCheck.setQuotaCheckEnabled(false);
+        quotaCheck.checkGroupQuota(con, "athenz", group, "caller");
+    }
+
+    @Test
+    public void testCheckGroupQuotaGroupCountExceeded() {
+
+        QuotaChecker quotaCheck = new QuotaChecker();
+        Quota mockQuota = new Quota().setName("athenz")
+                .setGroup(2).setGroupMember(2);
+        ObjectStoreConnection con = Mockito.mock(ObjectStoreConnection.class);
+        Mockito.when(con.getQuota("athenz")).thenReturn(mockQuota);
+        Mockito.when(con.countGroups("athenz")).thenReturn(2);
+
+        ArrayList<GroupMember> groupMembers = new ArrayList<>();
+        groupMembers.add(new GroupMember().setMemberName("user.joe"));
+        Group group = new Group().setGroupMembers(groupMembers);
+
+        try {
+            quotaCheck.checkGroupQuota(con, "athenz", group, "caller");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.TOO_MANY_REQUESTS);
+            assertTrue(ex.getMessage().contains("group quota exceeded"));
+        }
+
+        // with quota check disabled - no exceptions
+
+        quotaCheck.setQuotaCheckEnabled(false);
+        quotaCheck.checkGroupQuota(con, "athenz", group, "caller");
+    }
+
+    @Test
+    public void testCheckGroupMembershipQuota() {
+
+        QuotaChecker quotaCheck = new QuotaChecker();
+        Quota mockQuota = new Quota().setName("athenz")
+                .setGroup(2).setGroupMember(2);
+        ObjectStoreConnection con = Mockito.mock(ObjectStoreConnection.class);
+        Mockito.when(con.getQuota("athenz")).thenReturn(mockQuota);
+        Mockito.when(con.countGroupMembers("athenz", "readers")).thenReturn(1);
+
+        // this should complete successfully
+
+        quotaCheck.checkGroupMembershipQuota(con, "athenz", "readers", "caller");
+    }
+
+    @Test
+    public void testCheckGroupMembershipQuotaGroupCountExceeded() {
+
+        QuotaChecker quotaCheck = new QuotaChecker();
+        Quota mockQuota = new Quota().setName("athenz")
+                .setGroup(2).setGroupMember(2);
+        ObjectStoreConnection con = Mockito.mock(ObjectStoreConnection.class);
+        Mockito.when(con.getQuota("athenz")).thenReturn(mockQuota);
+        Mockito.when(con.countGroupMembers("athenz", "readers")).thenReturn(2);
+
+        try {
+            quotaCheck.checkGroupMembershipQuota(con, "athenz", "readers", "caller");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.TOO_MANY_REQUESTS);
+            assertTrue(ex.getMessage().contains("group member quota exceeded"));
+        }
+
+        // with quota check disabled - no exceptions
+
+        quotaCheck.setQuotaCheckEnabled(false);
+        quotaCheck.checkGroupMembershipQuota(con, "athenz", "readers", "caller");
+    }
+
+    @Test
+    public void testCheckGroupQuotaNull() {
+
+        // null objects have no check
+        QuotaChecker quotaCheck = new QuotaChecker();
+        quotaCheck.checkGroupQuota(null, "athenz", null, "caller");
+    }
 }

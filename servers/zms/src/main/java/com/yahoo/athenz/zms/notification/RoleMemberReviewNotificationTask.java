@@ -47,7 +47,7 @@ public class RoleMemberReviewNotificationTask implements NotificationTask {
 
     @Override
     public List<Notification> getNotifications() {
-        Map<String, DomainRoleMember> reviewMembers = dbService.getRoleReviewMembers();
+        Map<String, DomainRoleMember> reviewMembers = dbService.getRoleReviewMembers(1);
         if (reviewMembers == null || reviewMembers.isEmpty()) {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("No members require review reminders");
@@ -79,8 +79,8 @@ public class RoleMemberReviewNotificationTask implements NotificationTask {
     }
 
     public static class RoleReviewPrincipalNotificationToEmailConverter implements NotificationToEmailConverter {
-        private static final String EMAIL_TEMPLATE_PRINCIPAL_REVIEW = "messages/principal-review.html";
-        private static final String PRINCIPAL_REVIEW_SUBJECT = "athenz.notification.email.principal.review.subject";
+        private static final String EMAIL_TEMPLATE_PRINCIPAL_REVIEW = "messages/role-member-review.html";
+        private static final String PRINCIPAL_REVIEW_SUBJECT = "athenz.notification.email.role_member.review.subject";
 
         private final NotificationToEmailConverterCommon notificationToEmailConverterCommon;
         private String emailPrincipalReviewBody;
@@ -115,8 +115,8 @@ public class RoleMemberReviewNotificationTask implements NotificationTask {
     }
 
     public static class RoleReviewDomainNotificationToEmailConverter implements NotificationToEmailConverter {
-        private static final String EMAIL_TEMPLATE_DOMAIN_MEMBER_REVIEW = "messages/domain-member-review.html";
-        private static final String DOMAIN_MEMBER_REVIEW_SUBJECT = "athenz.notification.email.domain.member.review.subject";
+        private static final String EMAIL_TEMPLATE_DOMAIN_MEMBER_REVIEW = "messages/domain-role-member-review.html";
+        private static final String DOMAIN_MEMBER_REVIEW_SUBJECT = "athenz.notification.email.domain.role_member.review.subject";
 
         private final NotificationToEmailConverterCommon notificationToEmailConverterCommon;
         private String emailDomainMemberReviewBody;

@@ -2352,6 +2352,22 @@ public class ZMSClient implements Closeable {
     }
 
     /**
+     * Fetch all the roles across domains by either calling or specified principal
+     * @param principal - Requested principal. If null will return roles for the user making the call
+     * @param domainName - Requested domain. If null will return roles from all domains
+     * @return Member with roles in all requested domains
+     */
+    public DomainRoleMember getPrincipalRoles(String principal, String domainName) {
+        updatePrincipal();
+        try {
+            return client.getPrincipalRoles(principal, domainName);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+    /**
      * Set the role system meta parameters
      *
      * @param domainName domain name containing the role to be modified

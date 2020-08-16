@@ -31,6 +31,18 @@
                          "platforms_role_deployer"
                      ]
                   }
+                },
+                {"name":"putgroup"},
+                {"name":"putgroupmembership",
+                    "items": {
+                        "group" : [
+                            "platforms_deployer",
+                            "platforms_different_deployer"
+                        ],
+                        "not_group" : [
+                            "platforms_group_deployer"
+                        ]
+                    }
                 }
             ]
         },
@@ -39,6 +51,14 @@
                 {"name":"putmembership",
                     "items": {
                         "role-prefix" : [
+                            "reader.org.",
+                            "writer.domain."
+                        ]
+                    }
+                },
+                {"name":"putgroupmembership",
+                    "items": {
+                        "group-prefix" : [
                             "reader.org.",
                             "writer.domain."
                         ]

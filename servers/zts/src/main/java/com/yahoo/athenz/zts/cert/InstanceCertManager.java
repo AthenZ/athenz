@@ -565,7 +565,7 @@ public class InstanceCertManager {
         if (certStore == null) {
             return false;
         }
-        
+
         boolean result;
         try (CertRecordStoreConnection storeConnection = certStore.getConnection()) {
             result = storeConnection.updateX509CertRecord(certRecord);
@@ -734,7 +734,7 @@ public class InstanceCertManager {
 
             SshHostCsr sshHostCsr = parseSshHostCsr(csr);
             if (hostname != null && !hostname.isEmpty() && hostnameResolver != null) {
-                if (!validPrincipals(hostname, sshHostCsr)) {
+                if (!validPrincipals(hostname, sshCertRecord, sshHostCsr)) {
                     LOGGER.error("SSH Host CSR validation failed, principal: {}, hostname: {}, csr: {}", principal, hostname, csr);
                     return false;
                 }
@@ -871,7 +871,7 @@ public class InstanceCertManager {
      * @param sshHostCsr ssh host csr from the sia
      * @return boolean true or false
      */
-    public boolean validPrincipals(final String hostname, SshHostCsr sshHostCsr) {
+    public boolean validPrincipals(final String hostname, SSHCertRecord sshCertRecord, SshHostCsr sshHostCsr) {
 
         if (sshHostCsr == null) {
             return false;
@@ -913,7 +913,7 @@ public class InstanceCertManager {
         }
 
         LOGGER.debug("validating xPrincipals in the csr: {}", cnames);
-        if (hostnameResolver.isValidHostCnameList(hostname, cnames, CertType.SSH_HOST)) {
+        if (hostnameResolver.isValidHostCnameList(sshCertRecord.getService(), hostname, cnames, CertType.SSH_HOST)) {
             return true;
         }
 

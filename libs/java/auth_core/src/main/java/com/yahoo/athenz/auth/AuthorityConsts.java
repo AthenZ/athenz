@@ -24,6 +24,7 @@ public final class AuthorityConsts {
     public static final char ATHENZ_PRINCIPAL_DELIMITER_CHAR = '.';
     public static final String ATHENZ_PRINCIPAL_DELIMITER = String.valueOf(ATHENZ_PRINCIPAL_DELIMITER_CHAR);
     public static final String ROLE_SEP = ":role.";
+    public static final String GROUP_SEP = ":group.";
 
     // system properties
     public static final String ATHENZ_PROP_USER_DOMAIN = "athenz.user_domain";

@@ -26,28 +26,28 @@ import java.util.Set;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.USER_DOMAIN_PREFIX;
 
-public class PendingMembershipApprovalNotificationTask implements NotificationTask {
+public class PendingGroupMembershipApprovalNotificationTask implements NotificationTask {
 
     private final DBService dbService;
-    private final int pendingRoleMemberLifespan;
+    private final int pendingGroupMemberLifespan;
     private final String monitorIdentity;
-    private NotificationCommon notificationCommon;
-    private final static String DESCRIPTION = "pending membership approvals reminders";
-    private final PendingMembershipApprovalNotificationToEmailConverter pendingMembershipApprovalNotificationToEmailConverter;
+    private final NotificationCommon notificationCommon;
+    private final static String DESCRIPTION = "pending group membership approvals reminders";
+    private final PendingGroupMembershipApprovalNotificationToEmailConverter pendingMembershipApprovalNotificationToEmailConverter;
 
-    public PendingMembershipApprovalNotificationTask(DBService dbService, int pendingRoleMemberLifespan, String monitorIdentity, String userDomainPrefix) {
+    public PendingGroupMembershipApprovalNotificationTask(DBService dbService, int pendingGroupMemberLifespan, String monitorIdentity, String userDomainPrefix) {
         this.dbService = dbService;
-        this.pendingRoleMemberLifespan = pendingRoleMemberLifespan;
+        this.pendingGroupMemberLifespan = pendingGroupMemberLifespan;
         this.monitorIdentity = monitorIdentity;
         DomainRoleMembersFetcher domainRoleMembersFetcher = new DomainRoleMembersFetcher(dbService, USER_DOMAIN_PREFIX);
         this.notificationCommon = new NotificationCommon(domainRoleMembersFetcher, userDomainPrefix);
-        this.pendingMembershipApprovalNotificationToEmailConverter = new PendingMembershipApprovalNotificationToEmailConverter();
+        this.pendingMembershipApprovalNotificationToEmailConverter = new PendingGroupMembershipApprovalNotificationToEmailConverter();
     }
 
     @Override
     public List<Notification> getNotifications() {
-        dbService.processExpiredPendingMembers(pendingRoleMemberLifespan, monitorIdentity);
-        Set<String> recipients = dbService.getPendingMembershipApproverRoles(1);
+        dbService.processExpiredPendingGroupMembers(pendingGroupMemberLifespan, monitorIdentity);
+        Set<String> recipients = dbService.getPendingGroupMembershipApproverRoles(1);
         return Collections.singletonList(notificationCommon.createNotification(
                 recipients,
                 null,
@@ -59,14 +59,14 @@ public class PendingMembershipApprovalNotificationTask implements NotificationTa
         return DESCRIPTION;
     }
 
-    public static class PendingMembershipApprovalNotificationToEmailConverter implements NotificationToEmailConverter {
-        private static final String EMAIL_TEMPLATE_NOTIFICATION_APPROVAL_REMINDER = "messages/membership-approval-reminder.html";
-        private static final String MEMBERSHIP_APPROVAL_REMINDER_SUBJECT = "athenz.notification.email.membership.reminder.subject";
+    public static class PendingGroupMembershipApprovalNotificationToEmailConverter implements NotificationToEmailConverter {
+        private static final String EMAIL_TEMPLATE_NOTIFICATION_APPROVAL_REMINDER = "messages/group-membership-approval-reminder.html";
+        private static final String MEMBERSHIP_APPROVAL_REMINDER_SUBJECT = "athenz.notification.email.group_membership.reminder.subject";
 
         private final NotificationToEmailConverterCommon notificationToEmailConverterCommon;
-        private String emailMembershipApprovalReminderBody;
+        private final String emailMembershipApprovalReminderBody;
 
-        public PendingMembershipApprovalNotificationToEmailConverter() {
+        public PendingGroupMembershipApprovalNotificationToEmailConverter() {
             notificationToEmailConverterCommon = new NotificationToEmailConverterCommon();
             emailMembershipApprovalReminderBody = notificationToEmailConverterCommon.readContentFromFile(getClass().getClassLoader(), EMAIL_TEMPLATE_NOTIFICATION_APPROVAL_REMINDER);
         }

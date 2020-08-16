@@ -1884,6 +1884,11 @@ type Assertion struct {
 	// operations.
 	//
 	Id *int64 `json:"id,omitempty" rdl:"optional"`
+
+	//
+	// If true, we should store action and resource in their original case
+	//
+	CaseSensitive *bool `json:"caseSensitive,omitempty" rdl:"optional"`
 }
 
 //
@@ -1965,6 +1970,11 @@ type Policy struct {
 	// list of defined assertions for this policy
 	//
 	Assertions []*Assertion `json:"assertions"`
+
+	//
+	// If true, we should store action and resource in their original case
+	//
+	CaseSensitive *bool `json:"caseSensitive,omitempty" rdl:"optional"`
 }
 
 //
@@ -4801,6 +4811,62 @@ func (self *DomainGroupMembers) Validate() error {
 	}
 	if self.Members == nil {
 		return fmt.Errorf("DomainGroupMembers: Missing required field: members")
+	}
+	return nil
+}
+
+//
+// DomainGroupMembership -
+//
+type DomainGroupMembership struct {
+	DomainGroupMembersList []*DomainGroupMembers `json:"domainGroupMembersList"`
+}
+
+//
+// NewDomainGroupMembership - creates an initialized DomainGroupMembership instance, returns a pointer to it
+//
+func NewDomainGroupMembership(init ...*DomainGroupMembership) *DomainGroupMembership {
+	var o *DomainGroupMembership
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(DomainGroupMembership)
+	}
+	return o.Init()
+}
+
+//
+// Init - sets up the instance according to its default field values, if any
+//
+func (self *DomainGroupMembership) Init() *DomainGroupMembership {
+	if self.DomainGroupMembersList == nil {
+		self.DomainGroupMembersList = make([]*DomainGroupMembers, 0)
+	}
+	return self
+}
+
+type rawDomainGroupMembership DomainGroupMembership
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a DomainGroupMembership
+//
+func (self *DomainGroupMembership) UnmarshalJSON(b []byte) error {
+	var m rawDomainGroupMembership
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := DomainGroupMembership(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *DomainGroupMembership) Validate() error {
+	if self.DomainGroupMembersList == nil {
+		return fmt.Errorf("DomainGroupMembership: Missing required field: domainGroupMembersList")
 	}
 	return nil
 }

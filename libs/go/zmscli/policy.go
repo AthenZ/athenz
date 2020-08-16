@@ -6,6 +6,7 @@ package zmscli
 import (
 	"bytes"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -53,7 +54,7 @@ func parseAssertion(dn string, lst []string) (*zms.Assertion, error) {
 	err := fmt.Errorf("Bad assertion syntax. Should be '<effect> <action> to <role> on <resource>'")
 	n := len(lst)
 	var assertion zms.Assertion
-	if n != 6 {
+	if n != 6 && n != 7 {
 		return nil, err
 	}
 	if strings.ToLower(lst[2]) != "to" {
@@ -85,6 +86,13 @@ func parseAssertion(dn string, lst []string) (*zms.Assertion, error) {
 		resource = dn + ":" + resource
 	}
 	assertion.Resource = resource
+
+	if n == 7 {
+		isCaseSensitive, err := strconv.ParseBool(lst[6])
+		if err == nil {
+			assertion.CaseSensitive = &isCaseSensitive
+		}
+	}
 	return &assertion, nil
 }
 
@@ -137,6 +145,7 @@ func (cli Zms) AddPolicy(dn string, pn string, assertion []string) (*string, err
 		}
 		tmp := [1]*zms.Assertion{newAssertion}
 		policy.Assertions = tmp[:]
+		policy.CaseSensitive = newAssertion.CaseSensitive
 	}
 	err = cli.Zms.PutPolicy(zms.DomainName(dn), zms.EntityName(pn), cli.AuditRef, &policy)
 	if err != nil {

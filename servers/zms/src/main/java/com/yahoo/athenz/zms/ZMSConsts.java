@@ -111,6 +111,7 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_AUDIT_REF_CHECK_OBJECTS           = "athenz.zms.audit_ref_check_objects";
 
     public static final String ZMS_AUDIT_TYPE_ROLE     = "role";
+    public static final String ZMS_AUDIT_TYPE_GROUP    = "group";
     public static final String ZMS_AUDIT_TYPE_POLICY   = "policy";
     public static final String ZMS_AUDIT_TYPE_SERVICE  = "service";
     public static final String ZMS_AUDIT_TYPE_DOMAIN   = "domain";
@@ -136,6 +137,8 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_QUOTA_PUBLIC_KEY   = "athenz.zms.quota_public_key";
     public static final String ZMS_PROP_QUOTA_ENTITY       = "athenz.zms.quota_entity";
     public static final String ZMS_PROP_QUOTA_SUBDOMAIN    = "athenz.zms.quota_subdomain";
+    public static final String ZMS_PROP_QUOTA_GROUP        = "athenz.zms.quota_group";
+    public static final String ZMS_PROP_QUOTA_GROUP_MEMBER = "athenz.zms.quota_group_member";
 
     public static final String ZMS_PROP_MYSQL_SERVER_TIMEZONE = "athenz.zms.mysql_server_timezone";
 
@@ -230,12 +233,15 @@ public final class ZMSConsts {
     public static final String DB_COLUMN_TEMPLATE_VERSION   = "current_version";
     public static final String DB_COLUMN_AS_DOMAIN_NAME     = "domain_name";
     public static final String DB_COLUMN_AS_ROLE_NAME       = "role_name";
+    public static final String DB_COLUMN_AS_GROUP_NAME      = "group_name";
     public static final String DB_COLUMN_SYSTEM_DISABLED    = "system_disabled";
 
     public static final String DB_COLUMN_SERVICE_REVIEW_DAYS      = "service_review_days";
     public static final String DB_COLUMN_SERVICE_EXPIRY_DAYS      = "service_expiry_days";
     public static final String DB_COLUMN_ROLE_CERT_EXPIRY_MINS    = "role_cert_expiry_mins";
     public static final String DB_COLUMN_SERVICE_CERT_EXPIRY_MINS = "service_cert_expiry_mins";
+    public static final String DB_COLUMN_PRINCIPAL_GROUP          = "principal_group";
+    public static final String DB_COLUMN_PRINCIPAL_GROUP_MEMBER   = "principal_group_member";
 
     public static final String DB_COLUMN_USER_AUTHORITY_FILTER           = "user_authority_filter";
     public static final String DB_COLUMN_USER_AUTHORITY_EXPIRATION       = "user_authority_expiration";
@@ -255,6 +261,7 @@ public final class ZMSConsts {
     public static final String OBJECT_SERVICE   = "service";
     public static final String OBJECT_PRINCIPAL = "principal";
     public static final String OBJECT_HOST      = "host";
+    public static final String OBJECT_GROUP     = "group";
 
     public static final String SYSTEM_META_PRODUCT_ID        = "productid";
     public static final String SYSTEM_META_ACCOUNT           = "account";

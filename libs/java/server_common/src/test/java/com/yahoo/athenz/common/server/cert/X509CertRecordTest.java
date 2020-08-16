@@ -44,6 +44,7 @@ public class X509CertRecordTest {
         certRecord.setLastNotifiedServer("server");
         certRecord.setLastNotifiedTime(now);
         certRecord.setExpiryTime(now);
+        certRecord.setSvcDataUpdateTime(now);
 
         assertEquals(certRecord.getService(), "cn");
         assertEquals(certRecord.getProvider(), "ostk");
@@ -59,5 +60,6 @@ public class X509CertRecordTest {
         assertEquals(certRecord.getLastNotifiedTime(), now);
         assertEquals(certRecord.getLastNotifiedServer(), "server");
         assertEquals(certRecord.getHostName(), "host");
+        assertEquals(certRecord.getSvcDataUpdateTime(), now);
     }
 }
