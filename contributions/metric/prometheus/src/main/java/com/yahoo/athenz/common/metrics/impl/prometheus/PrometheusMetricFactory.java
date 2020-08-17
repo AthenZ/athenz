@@ -40,6 +40,11 @@ public class PrometheusMetricFactory implements MetricFactory {
     public static final String LABEL_REQUEST_DOMAIN_NAME_ENABLE_PROP = "label.request_domain_name.enable";
     public static final String LABEL_PRINCIPAL_DOMAIN_NAME_ENABLE_PROP = "label.principal_domain_name.enable";
 
+    public static final String LABEL_HTTP_METHOD_NAME_ENABLE_PROP = "label.http_method_name.enable";
+    public static final String LABEL_HTTP_STATUS_NAME_ENABLE_PROP = "label.http_status_name.enable";
+    public static final String LABEL_API_NAME_ENABLE_PROP = "label.api_name.enable";
+
+
     @Override
     public Metric create() {
         boolean isEnable = Boolean.valueOf(getProperty(ENABLE_PROP, "true"));
@@ -83,7 +88,19 @@ public class PrometheusMetricFactory implements MetricFactory {
         String namespace = getProperty(NAMESPACE_PROP, "athenz_server");
         boolean isLabelRequestDomainNameEnable = Boolean.valueOf(getProperty(LABEL_REQUEST_DOMAIN_NAME_ENABLE_PROP, "false"));
         boolean isLabelPrincipalDomainNameEnable = Boolean.valueOf(getProperty(LABEL_PRINCIPAL_DOMAIN_NAME_ENABLE_PROP, "false"));
-        return new PrometheusMetric(registry, namesToCollectors, exporter, namespace, isLabelRequestDomainNameEnable, isLabelPrincipalDomainNameEnable);
+        boolean isLabelHttpMethodNameEnable = Boolean.valueOf(getProperty(LABEL_HTTP_METHOD_NAME_ENABLE_PROP, "false"));
+        boolean isLabelHttpStatusNameEnable = Boolean.valueOf(getProperty(LABEL_HTTP_STATUS_NAME_ENABLE_PROP, "false"));
+        boolean isLabelApiNameEnable = Boolean.valueOf(getProperty(LABEL_API_NAME_ENABLE_PROP, "false"));
+        return new PrometheusMetric(
+                registry,
+                namesToCollectors,
+                exporter,
+                namespace,
+                isLabelRequestDomainNameEnable,
+                isLabelPrincipalDomainNameEnable,
+                isLabelHttpMethodNameEnable,
+                isLabelHttpStatusNameEnable,
+                isLabelApiNameEnable);
 
     }
 
