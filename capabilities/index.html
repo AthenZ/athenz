@@ -13,15 +13,15 @@
       
       
       <link rel="shortcut icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-5.4.0">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-5.5.7">
     
     
       
-        <title>ZTS Role Token Client Utility - Athenz</title>
+        <title>Athenz Capabilities - Athenz</title>
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.fe0cca5b.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.b8ac9624.min.css">
       
       
     
@@ -53,7 +53,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#overview" class="md-skip">
+        <a href="#athenz-capabilities" class="md-skip">
           Skip to content
         </a>
       
@@ -81,7 +81,7 @@
           </span>
           <span class="md-header-nav__topic md-ellipsis">
             
-              ZTS Role Token Client Utility
+              Athenz Capabilities
             
           </span>
         </div>
@@ -458,8 +458,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../token_expiration/" title="Access/Role Token Limit Expiry Support" class="md-nav__link">
-      Access/Role Token Limit Expiry Support
+    <a href="../token_expiration/" title="Access token Limit Expiry Support" class="md-nav__link">
+      Access token Limit Expiry Support
     </a>
   </li>
 
@@ -532,6 +532,18 @@
   <li class="md-nav__item">
     <a href="../self_serve_roles/" title="Self-Served Roles" class="md-nav__link">
       Self-Served Roles
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../athenz_templates/" title="Athenz Templates" class="md-nav__link">
+      Athenz Templates
     </a>
   </li>
 
@@ -622,6 +634,18 @@
   <li class="md-nav__item">
     <a href="../service_x509_credentials_aws_lambda/" title="Athenz Service Identity X.509 Certificate for AWS Lambda functions" class="md-nav__link">
       Athenz Service Identity X.509 Certificate for AWS Lambda functions
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../zts_access_token_guide/" title="Obtaining OAuth2 Access Tokens from ZTS" class="md-nav__link">
+      Obtaining OAuth2 Access Tokens from ZTS
     </a>
   </li>
 
@@ -791,10 +815,12 @@
       
       
 
+  
 
-  <li class="md-nav__item md-nav__item--nested">
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
     
-      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-6" type="checkbox" id="nav-6">
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-6" type="checkbox" id="nav-6" checked>
     
     <label class="md-nav__link" for="nav-6">
       Features
@@ -821,6 +847,95 @@
     <a href="../copper_argos/" title="Service Identity X.509 Certificates - Copper Argos" class="md-nav__link">
       Service Identity X.509 Certificates - Copper Argos
     </a>
+  </li>
+
+        
+          
+          
+          
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+    
+      
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        Athenz Capabilities
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 9h14V7H3v2m0 4h14v-2H3v2m0 4h14v-2H3v2m16 0h2v-2h-2v2m0-10v2h2V7h-2m0 6h2v-2h-2v2z"/></svg>
+        </span>
+      </label>
+    
+    <a href="./" title="Athenz Capabilities" class="md-nav__link md-nav__link--active">
+      Athenz Capabilities
+    </a>
+    
+      
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#oauth2-access-token-support" class="md-nav__link">
+    OAuth2 Access Token Support
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notifications" class="md-nav__link">
+    Notifications
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#templates" class="md-nav__link">
+    Templates
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#audit-features" class="md-nav__link">
+    Audit features
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aws-service-identity-certificate-support" class="md-nav__link">
+    AWS service identity certificate support
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aws-temp-credentials-support" class="md-nav__link">
+    AWS temp credentials support
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+    
   </li>
 
         
@@ -860,8 +975,44 @@
 
 
   <li class="md-nav__item">
-    <a href="../dev_centralized_access/" title="Centralized Access Control" class="md-nav__link">
-      Centralized Access Control
+    <a href="../cent_authz_flow/" title="Centralized Authorization Flow" class="md-nav__link">
+      Centralized Authorization Flow
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../decent_authz_flow/" title="Decentralized Authorization Flow" class="md-nav__link">
+      Decentralized Authorization Flow
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../client_side_x509_credentials/" title="Client Side Service Identity Authentication" class="md-nav__link">
+      Client Side Service Identity Authentication
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../server_side_x509_credentials/" title="Server Side Service Identity Authentication" class="md-nav__link">
+      Server Side Service Identity Authentication
     </a>
   </li>
 
@@ -886,18 +1037,6 @@
   <li class="md-nav__item">
     <a href="../example_go_centralized_access/" title="Go Client/Server Example" class="md-nav__link">
       Go Client/Server Example
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../dev_decentralized_access/" title="Decentralized Access Control" class="md-nav__link">
-      Decentralized Access Control
     </a>
   </li>
 
@@ -1001,12 +1140,10 @@
       
       
 
-  
 
-
-  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+  <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-9" type="checkbox" id="nav-9" checked>
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-9" type="checkbox" id="nav-9">
     
     <label class="md-nav__link" for="nav-9">
       User Guide
@@ -1054,131 +1191,9 @@
 
 
   <li class="md-nav__item">
-    <a href="../zms_svctoken/" title="ZMS Service Token Client Utility" class="md-nav__link">
-      ZMS Service Token Client Utility
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../zts_svccert/" title="ZTS TLS Certificate Utility" class="md-nav__link">
-      ZTS TLS Certificate Utility
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
     <a href="../zts_rolecert/" title="ZTS Role Certificate Client Utility" class="md-nav__link">
       ZTS Role Certificate Client Utility
     </a>
-  </li>
-
-        
-          
-          
-          
-
-  
-
-
-  <li class="md-nav__item md-nav__item--active">
-    
-    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-    
-    
-      <label class="md-nav__link md-nav__link--active" for="__toc">
-        ZTS Role Token Client Utility
-        <span class="md-nav__icon md-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 9h14V7H3v2m0 4h14v-2H3v2m0 4h14v-2H3v2m16 0h2v-2h-2v2m0-10v2h2V7h-2m0 6h2v-2h-2v2z"/></svg>
-        </span>
-      </label>
-    
-    <a href="./" title="ZTS Role Token Client Utility" class="md-nav__link md-nav__link--active">
-      ZTS Role Token Client Utility
-    </a>
-    
-      
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
-      </span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#overview" class="md-nav__link">
-    Overview
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#getting-software" class="md-nav__link">
-    Getting Software
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#prerequisites" class="md-nav__link">
-    Prerequisites
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#usage" class="md-nav__link">
-    Usage
-  </a>
-  
-    <nav class="md-nav" aria-label="Usage">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#using-athenz-identity-x509-certificates" class="md-nav__link">
-    Using Athenz Identity X.509 Certificates
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#using-ntoken-from-command-line" class="md-nav__link">
-    Using NToken from command line
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#using-ntoken-from-a-given-file" class="md-nav__link">
-    Using NToken from a given file
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-    
   </li>
 
         
@@ -1279,6 +1294,8 @@
 <nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
+    
+  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon">
@@ -1289,57 +1306,44 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#overview" class="md-nav__link">
-    Overview
+  <a href="#oauth2-access-token-support" class="md-nav__link">
+    OAuth2 Access Token Support
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#getting-software" class="md-nav__link">
-    Getting Software
+  <a href="#notifications" class="md-nav__link">
+    Notifications
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#prerequisites" class="md-nav__link">
-    Prerequisites
+  <a href="#templates" class="md-nav__link">
+    Templates
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#usage" class="md-nav__link">
-    Usage
-  </a>
-  
-    <nav class="md-nav" aria-label="Usage">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#using-athenz-identity-x509-certificates" class="md-nav__link">
-    Using Athenz Identity X.509 Certificates
+  <a href="#audit-features" class="md-nav__link">
+    Audit features
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
-  <a href="#using-ntoken-from-command-line" class="md-nav__link">
-    Using NToken from command line
+      
+        <li class="md-nav__item">
+  <a href="#aws-service-identity-certificate-support" class="md-nav__link">
+    AWS service identity certificate support
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
-  <a href="#using-ntoken-from-a-given-file" class="md-nav__link">
-    Using NToken from a given file
+      
+        <li class="md-nav__item">
+  <a href="#aws-temp-credentials-support" class="md-nav__link">
+    AWS temp credentials support
   </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -1355,7 +1359,7 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/yahoo/athenz/edit/master/docs/zts_roletoken.md" title="Edit this page" class="md-content__button md-icon">
+                  <a href="https://github.com/yahoo/athenz/edit/master/docs/capabilities.md" title="Edit this page" class="md-content__button md-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
                   </a>
                 
@@ -1363,58 +1367,26 @@
                   
                 
                 
-                  <h1>ZTS Role Token Client Utility</h1>
-                
-                <ul>
-<li><a href="#overview">Overview</a></li>
-<li><a href="#getting-software">Getting Software</a></li>
-<li><a href="#prerequisites">Prerequisites</a></li>
-<li><a href="#usage">Usage</a></li>
-</ul>
-<h2 id="overview">Overview</h2>
-<hr />
-<p>ZTS Role Token Client utility requests a role token from
-ZTS Server for the given identity to process a request against a provider domain.</p>
-<h2 id="getting-software">Getting Software</h2>
-<hr />
-<p>Download latest ZTS Role Token Client utility binary release from Bintray - click
-on the <code>Files</code> tab, choose the latest version directory and then
-download the <code>athenz-utils-&lt;latest-version&gt;-bin.tar.gz</code> file::</p>
-<p><a href="https://bintray.com/yahoo/maven/athenz-utils/_latestVersion"> <img alt="Download" src="https://api.bintray.com/packages/yahoo/maven/athenz-utils/images/download.svg" /> </a></p>
-<div class="codehilite"><pre><span></span><code>$ tar xvfz athenz-utils-X.Y-bin.tar.gz
-</code></pre></div>
-
-
-<h2 id="prerequisites">Prerequisites</h2>
-<hr />
-<p>Before you can use the ZTS RoleToken utility, you need to have
-asked the Athenz administrators to create your top level domain.</p>
-<h2 id="usage">Usage</h2>
-<hr />
-<p>A role token from ZTS service can be fetched using either Service Identity x.509 certificates
-or service ntokens.</p>
-<p>The optional <code>expire-time</code> argument specifies how long the role
-token should be valid for. The value must be specified in minutes. The
-default if no value is specified is 120 minutes.</p>
-<p>The optional <code>role</code> argument requests a role token for the given role
-only as opposed to all the roles the service identity has access to
-in the requested domain.</p>
-<p>The role token returned must be cached and re-used by the client before
-it expires.</p>
-<h3 id="using-athenz-identity-x509-certificates">Using Athenz Identity X.509 Certificates</h3>
-<div class="codehilite"><pre><span></span><code>$ zts-roletoken -domain &lt;domain&gt; <span class="o">[</span>-role &lt;role&gt;<span class="o">]</span> -svc-key-file &lt;private-key-file&gt; -svc-cert-file &lt;service-cert-file&gt; -zts https://zts-server.athenzcompany.com:4443/zts/v1 <span class="o">[</span>-expire-time &lt;expire-time-in-mins&gt;<span class="o">]</span>
-</code></pre></div>
-
-
-<h3 id="using-ntoken-from-command-line">Using NToken from command line</h3>
-<div class="codehilite"><pre><span></span><code>$ zts-roletoken -domain &lt;domain&gt; <span class="o">[</span>-role &lt;role&gt;<span class="o">]</span> -ntoken &lt;ntoken&gt; -hdr Athenz-Principal-Auth -zts https://zts-server.athenzcompany.com:4443/zts/v1 <span class="o">[</span>-expire-time &lt;expire-time-in-mins&gt;<span class="o">]</span>
-</code></pre></div>
-
-
-<p>The service identity ntoken can be obtained by using the <a href="../zms_svctoken/">zms-svctoken</a> utility.</p>
-<h3 id="using-ntoken-from-a-given-file">Using NToken from a given file</h3>
-<div class="codehilite"><pre><span></span><code>$ zts-roletoken -domain &lt;domain&gt; <span class="o">[</span>-role &lt;role&gt;<span class="o">]</span> -ntoken-file &lt;ntoken-file&gt; -hdr Athenz-Principal-Auth -zts https://zts-server.athenzcompany.com:4443/zts/v1 <span class="o">[</span>-expire-time &lt;expire-time-in-mins&gt;<span class="o">]</span>
-</code></pre></div>
+                <h1 id="athenz-capabilities">Athenz Capabilities</h1>
+<h2 id="oauth2-access-token-support">OAuth2 Access Token Support</h2>
+<p>Athenz supports the OAuth2 standard by enabling the generation of Access Tokens.
+Access tokens represent an authoritative statement that a given principal may assume some number of roles in a domain for a limited period. They are signed to prevent tampering.
+For more information, please refer to <a href="../zts_access_token_guide/">Obtaining OAuth2 Access Tokens</a></p>
+<h2 id="notifications">Notifications</h2>
+<p>Athenz can be configured to send Email Notifications. These notifications can remind users that there are tasks that require their attention such as approving a member's request to join a role, warn them on a certificate that is close to expiration, and even alert them on Athenz health when needed.
+To enable notifications, refer to <a href="../email_notifications/">Email Notifications</a></p>
+<h2 id="templates">Templates</h2>
+<p>Templates are a collection of predefined roles, policies, and services that can be applied to a domain.
+For more information, please refer to <a href="../athenz_templates/">Athenz Templates</a></p>
+<h2 id="audit-features">Audit features</h2>
+<p>Athenz maintains a history of all the changes that were executed in a domain by their respective administrators. The audit log can be used whenever the administrator wants to find out who made a specific change. The query can be filtered for a specific role in a given period.</p>
+<h2 id="aws-service-identity-certificate-support">AWS service identity certificate support</h2>
+<p>The term service within Athenz is more generic than a traditional service. A service identity could represent a command, job, daemon, workflow, as well as both a client and a server.
+EC2 instances in AWS are no exception. They too can be bootstrapped to Athenz which allows them to access other Athenz enabled services while providing services for identities with valid authorization.
+For more information, please refer to <a href="../service_x509_credentials_aws/">Athenz Service Identity X.509 Certificate for AWS EC2 instances</a></p>
+<h2 id="aws-temp-credentials-support">AWS temp credentials support</h2>
+<p>This feature allows any service to obtain temporary session credentials for a role defined in AWS IAM to carry out operations against AWS Services.
+For more information, please refer to <a href="../aws_temp_creds/">AWS Temp Credentials</a></p>
                 
               
               
@@ -1433,7 +1405,7 @@ it expires.</p>
     <div class="md-footer-nav">
       <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
         
-          <a href="../zts_rolecert/" title="ZTS Role Certificate Client Utility" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+          <a href="../copper_argos/" title="Service Identity X.509 Certificates - Copper Argos" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
             <div class="md-footer-nav__button md-icon">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
             </div>
@@ -1442,19 +1414,19 @@ it expires.</p>
                 <span class="md-footer-nav__direction">
                   Previous
                 </span>
-                ZTS Role Certificate Client Utility
+                Service Identity X.509 Certificates - Copper Argos
               </div>
             </div>
           </a>
         
         
-          <a href="../zts_accesstoken/" title="ZTS OAuth2 Access Token Client" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+          <a href="../cent_authz_flow/" title="Centralized Authorization Flow" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-footer-nav__title">
               <div class="md-ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                ZTS OAuth2 Access Token Client
+                Centralized Authorization Flow
               </div>
             </div>
             <div class="md-footer-nav__button md-icon">
@@ -1481,15 +1453,15 @@ it expires.</p>
       
     </div>
     
-      <script src="../assets/javascripts/vendor.d710d30a.min.js"></script>
-      <script src="../assets/javascripts/bundle.b39636ac.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents"}</script>
+      <script src="../assets/javascripts/vendor.d1f5a259.min.js"></script>
+      <script src="../assets/javascripts/bundle.d5fec882.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents"}</script>
       
       <script>
         app = initialize({
           base: "..",
           features: [],
           search: Object.assign({
-            worker: "../assets/javascripts/worker/search.a68abb33.min.js"
+            worker: "../assets/javascripts/worker/search.fae956e7.min.js"
           }, typeof search !== "undefined" && search)
         })
       </script>

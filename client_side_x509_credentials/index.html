@@ -1,0 +1,1771 @@
+
+
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Athenz User Guide">
+      
+      
+      
+      <link rel="shortcut icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-5.5.7">
+    
+    
+      
+        <title>Client Side Service Identity Authentication - Athenz</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.b8ac9624.min.css">
+      
+      
+    
+    
+    
+      
+        <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>body,input{font-family:"Roboto",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono",SFMono-Regular,Consolas,Menlo,monospace}</style>
+      
+    
+    
+    
+      <link rel="stylesheet" href="../extra.css">
+    
+    
+      
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#table-of-contents" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header-nav md-grid" aria-label="Header">
+    <a href=".." title="Athenz" class="md-header-nav__button md-logo" aria-label="Athenz">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 003-3 3 3 0 00-3-3 3 3 0 00-3 3 3 3 0 003 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    <label class="md-header-nav__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header-nav__title" data-md-component="header-title">
+      
+        <div class="md-header-nav__ellipsis">
+          <span class="md-header-nav__topic md-ellipsis">
+            Athenz
+          </span>
+          <span class="md-header-nav__topic md-ellipsis">
+            
+              Client Side Service Identity Authentication
+            
+          </span>
+        </div>
+      
+    </div>
+    
+      <label class="md-header-nav__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" data-md-state="active">
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <button type="reset" class="md-search__icon md-icon" aria-label="Clear" data-md-component="search-reset" tabindex="-1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header-nav__source">
+        
+<a href="https://github.com/yahoo/athenz/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 00-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 01-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 000 40.81l195.61 195.6a28.86 28.86 0 0040.8 0l194.69-194.69a28.86 28.86 0 000-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+        
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Athenz" class="md-nav__button md-logo" aria-label="Athenz">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 003-3 3 3 0 00-3-3 3 3 0 00-3 3 3 3 0 003 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    Athenz
+  </label>
+  
+    <div class="md-nav__source">
+      
+<a href="https://github.com/yahoo/athenz/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 00-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 01-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 000 40.81l195.61 195.6a28.86 28.86 0 0040.8 0l194.69-194.69a28.86 28.86 0 000-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1" type="checkbox" id="nav-1">
+    
+    <label class="md-nav__link" for="nav-1">
+      Getting Started
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Getting Started" data-md-level="1">
+      <label class="md-nav__title" for="nav-1">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Getting Started
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href=".." title="About" class="md-nav__link">
+      About
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../dev_environment/" title="Development Environment" class="md-nav__link">
+      Development Environment
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1-3" type="checkbox" id="nav-1-3">
+    
+    <label class="md-nav__link" for="nav-1-3">
+      Local/Development Environment Setup
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Local/Development Environment Setup" data-md-level="2">
+      <label class="md-nav__title" for="nav-1-3">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Local/Development Environment Setup
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../setup_zms/" title="ZMS Server" class="md-nav__link">
+      ZMS Server
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../setup_zts/" title="ZTS Server" class="md-nav__link">
+      ZTS Server
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../setup_ui/" title="UI Server" class="md-nav__link">
+      UI Server
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1-4" type="checkbox" id="nav-1-4">
+    
+    <label class="md-nav__link" for="nav-1-4">
+      Production Environment Setup
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Production Environment Setup" data-md-level="2">
+      <label class="md-nav__title" for="nav-1-4">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Production Environment Setup
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../setup_zms_prod/" title="ZMS Server" class="md-nav__link">
+      ZMS Server
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../setup_zts_prod/" title="ZTS Server" class="md-nav__link">
+      ZTS Server
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../setup_ui_prod/" title="UI Server" class="md-nav__link">
+      UI Server
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1-5" type="checkbox" id="nav-1-5">
+    
+    <label class="md-nav__link" for="nav-1-5">
+      Service Identity Registration
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Service Identity Registration" data-md-level="2">
+      <label class="md-nav__title" for="nav-1-5">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Service Identity Registration
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../service_x509_credentials/" title="Using X.509 Certificates" class="md-nav__link">
+      Using X.509 Certificates
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../reg_service_guide/" title="Using Public/Private Key Pairs" class="md-nav__link">
+      Using Public/Private Key Pairs
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-2" type="checkbox" id="nav-2">
+    
+    <label class="md-nav__link" for="nav-2">
+      Management
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Management" data-md-level="1">
+      <label class="md-nav__title" for="nav-2">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Management
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../role_delegation/" title="Role Delegation" class="md-nav__link">
+      Role Delegation
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../token_expiration/" title="Access token Limit Expiry Support" class="md-nav__link">
+      Access token Limit Expiry Support
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../role_cert_expiration/" title="Role Certificate Limit Expiry Support" class="md-nav__link">
+      Role Certificate Limit Expiry Support
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../review_enabled_roles/" title="Review Enabled Roles" class="md-nav__link">
+      Review Enabled Roles
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../email_notifications/" title="Email Notifications" class="md-nav__link">
+      Email Notifications
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../member_expiration/" title="Role Member Auto Expiry and Notification Support" class="md-nav__link">
+      Role Member Auto Expiry and Notification Support
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../member_soft_expiration/" title="Role Member Review Reminder Support" class="md-nav__link">
+      Role Member Review Reminder Support
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../self_serve_roles/" title="Self-Served Roles" class="md-nav__link">
+      Self-Served Roles
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../athenz_templates/" title="Athenz Templates" class="md-nav__link">
+      Athenz Templates
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3">
+    
+    <label class="md-nav__link" for="nav-3">
+      Authentication
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Authentication" data-md-level="1">
+      <label class="md-nav__title" for="nav-3">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Authentication
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../service_x509_credentials_aws/" title="Athenz Service Identity X.509 Certificate for AWS EC2 instances" class="md-nav__link">
+      Athenz Service Identity X.509 Certificate for AWS EC2 instances
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../service_x509_credentials_aws_ecs/" title="Athenz Service Identity X.509 Certificate for AWS ECS containers" class="md-nav__link">
+      Athenz Service Identity X.509 Certificate for AWS ECS containers
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../service_x509_credentials_aws_fargate/" title="Athenz Service Identity X.509 Certificate for AWS Fargate tasks" class="md-nav__link">
+      Athenz Service Identity X.509 Certificate for AWS Fargate tasks
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../service_x509_credentials_aws_eks/" title="Athenz Service Identity X.509 Certificate for AWS EKS pods" class="md-nav__link">
+      Athenz Service Identity X.509 Certificate for AWS EKS pods
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../service_x509_credentials_aws_lambda/" title="Athenz Service Identity X.509 Certificate for AWS Lambda functions" class="md-nav__link">
+      Athenz Service Identity X.509 Certificate for AWS Lambda functions
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../zts_access_token_guide/" title="Obtaining OAuth2 Access Tokens from ZTS" class="md-nav__link">
+      Obtaining OAuth2 Access Tokens from ZTS
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-4" type="checkbox" id="nav-4">
+    
+    <label class="md-nav__link" for="nav-4">
+      AWS Setup
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="AWS Setup" data-md-level="1">
+      <label class="md-nav__title" for="nav-4">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        AWS Setup
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../aws_temp_creds/" title="AWS Temp Credentials" class="md-nav__link">
+      AWS Temp Credentials
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../aws_athenz_setup/" title="Introduction" class="md-nav__link">
+      Introduction
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../aws_zms_setup/" title="ZMS Server" class="md-nav__link">
+      ZMS Server
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../aws_zts_setup/" title="ZTS Server" class="md-nav__link">
+      ZTS Server
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../aws_ui_setup/" title="UI Server" class="md-nav__link">
+      UI Server
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-5" type="checkbox" id="nav-5">
+    
+    <label class="md-nav__link" for="nav-5">
+      Architecture
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Architecture" data-md-level="1">
+      <label class="md-nav__title" for="nav-5">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Architecture
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../data_model/" title="Data Model" class="md-nav__link">
+      Data Model
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../system_view/" title="System View" class="md-nav__link">
+      System View
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../auth_flow/" title="Authorization Flow" class="md-nav__link">
+      Authorization Flow
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-6" type="checkbox" id="nav-6">
+    
+    <label class="md-nav__link" for="nav-6">
+      Features
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Features" data-md-level="1">
+      <label class="md-nav__title" for="nav-6">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Features
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../copper_argos/" title="Service Identity X.509 Certificates - Copper Argos" class="md-nav__link">
+      Service Identity X.509 Certificates - Copper Argos
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../capabilities/" title="Athenz Capabilities" class="md-nav__link">
+      Athenz Capabilities
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-7" type="checkbox" id="nav-7" checked>
+    
+    <label class="md-nav__link" for="nav-7">
+      Developer Guide
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Developer Guide" data-md-level="1">
+      <label class="md-nav__title" for="nav-7">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Developer Guide
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../cent_authz_flow/" title="Centralized Authorization Flow" class="md-nav__link">
+      Centralized Authorization Flow
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../decent_authz_flow/" title="Decentralized Authorization Flow" class="md-nav__link">
+      Decentralized Authorization Flow
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        Client Side Service Identity Authentication
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 9h14V7H3v2m0 4h14v-2H3v2m0 4h14v-2H3v2m16 0h2v-2h-2v2m0-10v2h2V7h-2m0 6h2v-2h-2v2z"/></svg>
+        </span>
+      </label>
+    
+    <a href="./" title="Client Side Service Identity Authentication" class="md-nav__link md-nav__link--active">
+      Client Side Service Identity Authentication
+    </a>
+    
+      
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    Table of Contents
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#java" class="md-nav__link">
+    Java
+  </a>
+  
+    <nav class="md-nav" aria-label="Java">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#zms-client" class="md-nav__link">
+    ZMS Client
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#zts-client" class="md-nav__link">
+    ZTS Client
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#apache-httpclient" class="md-nav__link">
+    Apache HTTPClient
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#httpsurlconnection-client" class="md-nav__link">
+    HTTPSUrlConnection Client
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+    
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../server_side_x509_credentials/" title="Server Side Service Identity Authentication" class="md-nav__link">
+      Server Side Service Identity Authentication
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../example_java_centralized_access/" title="Java Client/Servlet Example" class="md-nav__link">
+      Java Client/Servlet Example
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../example_go_centralized_access/" title="Go Client/Server Example" class="md-nav__link">
+      Go Client/Server Example
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../example_java_decentralized_access/" title="Java Client/Servlet Example" class="md-nav__link">
+      Java Client/Servlet Example
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-8" type="checkbox" id="nav-8">
+    
+    <label class="md-nav__link" for="nav-8">
+      Customizing Athenz
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Customizing Athenz" data-md-level="1">
+      <label class="md-nav__title" for="nav-8">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Customizing Athenz
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../principal_authentication/" title="Principal Authentication" class="md-nav__link">
+      Principal Authentication
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../private_key_store/" title="Private Key Store" class="md-nav__link">
+      Private Key Store
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../cert_signer/" title="Certificate Signer" class="md-nav__link">
+      Certificate Signer
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../copper_argos_dev/" title="Service Identity X.509 Certificate Support Requirements - Copper Argos" class="md-nav__link">
+      Service Identity X.509 Certificate Support Requirements - Copper Argos
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-9" type="checkbox" id="nav-9">
+    
+    <label class="md-nav__link" for="nav-9">
+      User Guide
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="User Guide" data-md-level="1">
+      <label class="md-nav__title" for="nav-9">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        User Guide
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../zms_client/" title="ZMS Client Utility" class="md-nav__link">
+      ZMS Client Utility
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../setup_zpu/" title="ZPU Utility" class="md-nav__link">
+      ZPU Utility
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../zts_rolecert/" title="ZTS Role Certificate Client Utility" class="md-nav__link">
+      ZTS Role Certificate Client Utility
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../zts_accesstoken/" title="ZTS OAuth2 Access Token Client" class="md-nav__link">
+      ZTS OAuth2 Access Token Client
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../reg_service_guide/" title="Registering ZMS Service Identity" class="md-nav__link">
+      Registering ZMS Service Identity
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-10" type="checkbox" id="nav-10">
+    
+    <label class="md-nav__link" for="nav-10">
+      References
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="References" data-md-level="1">
+      <label class="md-nav__title" for="nav-10">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        References
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../zms_api/" title="ZMS REST API" class="md-nav__link">
+      ZMS REST API
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../zts_api/" title="ZTS REST API" class="md-nav__link">
+      ZTS REST API
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    Table of Contents
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#java" class="md-nav__link">
+    Java
+  </a>
+  
+    <nav class="md-nav" aria-label="Java">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#zms-client" class="md-nav__link">
+    ZMS Client
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#zts-client" class="md-nav__link">
+    ZTS Client
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#apache-httpclient" class="md-nav__link">
+    Apache HTTPClient
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#httpsurlconnection-client" class="md-nav__link">
+    HTTPSUrlConnection Client
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                  <a href="https://github.com/yahoo/athenz/edit/master/docs/client_side_x509_credentials.md" title="Edit this page" class="md-content__button md-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+                  </a>
+                
+                
+                  
+                
+                
+                  <h1>Client Side Service Identity Authentication</h1>
+                
+                <p>In order to contact Athenz Services (ZMS/ZTS) or other Athenz Enabled services,
+your client needs to establish a HTTPS connection using its Athenz issued
+x.509 certificate. This section contains some examples how to utilize
+Athenz x.509 certificates for service authentication</p>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li>Java<ul>
+<li><a href="#zms-client">ZMS Client</a></li>
+<li><a href="#zts-client">ZTS Client</a></li>
+<li><a href="#httpsurlconnection-client">HTTPSUrlConnection Client</a></li>
+</ul>
+</li>
+</ul>
+<h2 id="java">Java</h2>
+<p>In the following set of examples we're going to assume that the service
+has already obtained its x.509 certificate from Athenz.</p>
+<h3 id="zms-client">ZMS Client</h3>
+<p>We're going to use our ZMS Java client to communicate with ZMS
+running in AWS to carry out a centralized access check to see if
+principal <code>user.john</code> has <code>read</code> access to <code>sports:nhl-scores</code>
+resource.</p>
+<p>First we need to update our Java project <code>pom.xml</code> file to indicate
+our dependency on the ZMS Java Client and Certificate Refresh Helper
+libraries</p>
+<div class="codehilite"><pre><span></span><code>  <span class="nt">&lt;dependencies&gt;</span>
+    <span class="nt">&lt;dependency&gt;</span>
+      <span class="nt">&lt;groupId&gt;</span>com.yahoo.athenz<span class="nt">&lt;/groupId&gt;</span>
+      <span class="nt">&lt;artifactId&gt;</span>athenz-zms-java-client<span class="nt">&lt;/artifactId&gt;</span>
+      <span class="nt">&lt;version&gt;</span>VERSION-NUMBER<span class="nt">&lt;/version&gt;</span>
+    <span class="nt">&lt;/dependency&gt;</span>
+    <span class="nt">&lt;dependency&gt;</span>
+      <span class="nt">&lt;groupId&gt;</span>com.yahoo.athenz<span class="nt">&lt;/groupId&gt;</span>
+      <span class="nt">&lt;artifactId&gt;</span>athenz-cert-refresher<span class="nt">&lt;/artifactId&gt;</span>
+      <span class="nt">&lt;version&gt;</span>VERSION-NUMBER<span class="nt">&lt;/version&gt;</span>
+    <span class="nt">&lt;/dependency&gt;</span>
+  <span class="nt">&lt;/dependencies&gt;</span>
+</code></pre></div>
+
+
+<p>Next, let's assume the Athenz identity for the service is
+<code>sports.api</code> and SIA running on this host has already generated
+the private key for the service and retrieved the X.509 certificate
+from ZTS Server:</p>
+<div class="codehilite"><pre><span></span><code><span class="err">/var/lib/sia/keys/sports.api.key.pem</span>
+<span class="err">/var/lib/sia/certs/sports.api.cert.pem</span>
+</code></pre></div>
+
+
+<p>The ZMS server is running with a public X.509 certificate so
+we're going to use the standard jdk truststore for our connection
+which has a default password of <code>changeit</code>.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">import</span> <span class="nn">javax.net.ssl.SSLContext</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">com.oath.auth.KeyRefresher</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">com.oath.auth.Utils</span><span class="p">;</span>
+
+<span class="kd">final</span> <span class="n">String</span> <span class="n">zmsUrl</span> <span class="o">=</span> <span class="s">&quot;https://zms-address/zms/v1&quot;</span><span class="p">;</span>
+<span class="kd">final</span> <span class="n">String</span> <span class="n">keyPath</span> <span class="o">=</span> <span class="s">&quot;/var/lib/sia/keys/sports.api.key.pem&quot;</span><span class="p">;</span>
+<span class="kd">final</span> <span class="n">String</span> <span class="n">certPath</span> <span class="o">=</span> <span class="s">&quot;/var/lib/sia/certs/sports.api.cert.pem&quot;</span><span class="p">;</span>
+<span class="kd">final</span> <span class="n">String</span> <span class="n">trustStorePath</span> <span class="o">=</span> <span class="n">javaHome</span> <span class="o">+</span> <span class="s">&quot;/jre/lib/security/cacerts&quot;</span><span class="p">;</span>
+<span class="kd">final</span> <span class="n">String</span> <span class="n">trustStorePassword</span> <span class="o">=</span> <span class="s">&quot;changeit&quot;</span><span class="p">;</span>
+
+<span class="k">try</span> <span class="p">{</span>
+    <span class="c1">// Create our SSL Context object based on our private key and</span>
+    <span class="c1">// certificate and jdk truststore</span>
+
+    <span class="n">KeyRefresher</span> <span class="n">keyRefresher</span> <span class="o">=</span> <span class="n">Utils</span><span class="p">.</span><span class="na">generateKeyRefresher</span><span class="p">(</span><span class="n">trustStorePath</span><span class="p">,</span> <span class="n">trustStorePassword</span><span class="p">,</span>
+        <span class="n">certPath</span><span class="p">,</span> <span class="n">keyPath</span><span class="p">);</span>
+    <span class="c1">// Default refresh period is every hour.</span>
+    <span class="n">keyRefresher</span><span class="p">.</span><span class="na">startup</span><span class="p">();</span>
+    <span class="c1">// Can be adjusted to use other values in milliseconds. However,</span>
+    <span class="c1">// only one keyRefresher.startup call must be present.</span>
+    <span class="c1">// keyRefresher.startup(900000);</span>
+    <span class="n">SSLContext</span> <span class="n">sslContext</span> <span class="o">=</span> <span class="n">Utils</span><span class="p">.</span><span class="na">buildSSLContext</span><span class="p">(</span><span class="n">keyRefresher</span><span class="p">.</span><span class="na">getKeyManagerProxy</span><span class="p">(),</span>
+        <span class="n">keyRefresher</span><span class="p">.</span><span class="na">getTrustManagerProxy</span><span class="p">());</span>
+
+    <span class="c1">// create our zms client and execute request</span>
+
+    <span class="k">try</span> <span class="p">(</span><span class="n">ZMSClient</span> <span class="n">zmsClient</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ZMSClient</span><span class="p">(</span><span class="n">zmsUrl</span><span class="p">,</span> <span class="n">sslContext</span><span class="p">))</span> <span class="p">{</span>
+        <span class="k">try</span> <span class="p">{</span>
+            <span class="n">Access</span> <span class="n">access</span> <span class="o">=</span> <span class="n">zmsClient</span><span class="p">.</span><span class="na">getAccess</span><span class="p">(</span><span class="s">&quot;read&quot;</span><span class="p">,</span> <span class="s">&quot;sports:nhl-scores&quot;</span><span class="p">,</span> <span class="kc">null</span><span class="p">,</span> <span class="s">&quot;user.john&quot;</span><span class="p">);</span>
+            <span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;Access: &quot;</span> <span class="o">+</span> <span class="n">access</span><span class="p">.</span><span class="na">getGranted</span><span class="p">());</span>
+        <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="n">ZMSClientException</span> <span class="n">ex</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">LOGGER</span><span class="p">.</span><span class="na">error</span><span class="p">(</span><span class="s">&quot;Unable to carry out access check: {}&quot;</span><span class="p">,</span> <span class="n">ex</span><span class="p">.</span><span class="na">getMessage</span><span class="p">());</span>
+            <span class="k">return</span><span class="p">;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="n">Exception</span> <span class="n">ex</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">LOGGER</span><span class="p">.</span><span class="na">error</span><span class="p">(</span><span class="s">&quot;Unable to process request&quot;</span><span class="p">,</span> <span class="n">ex</span><span class="p">);</span>
+    <span class="k">return</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+
+
+<h3 id="zts-client">ZTS Client</h3>
+<p>We're going to use our ZTS Java client to communicate with
+ZTS Server running in AWS to retrieve the public key for
+the <code>weather.api</code> service with key id <code>weather.api.key</code>.</p>
+<p>First we need to update our Java project <code>pom.xml</code> file to indicate
+our dependency on the ZTS Java Client and Certificate Refresh Helper
+libraries</p>
+<div class="codehilite"><pre><span></span><code>  <span class="nt">&lt;dependencies&gt;</span>
+    <span class="nt">&lt;dependency&gt;</span>
+      <span class="nt">&lt;groupId&gt;</span>com.yahoo.athenz<span class="nt">&lt;/groupId&gt;</span>
+      <span class="nt">&lt;artifactId&gt;</span>athenz-zts-java-client<span class="nt">&lt;/artifactId&gt;</span>
+      <span class="nt">&lt;version&gt;</span>VERSION-NUMBER<span class="nt">&lt;/version&gt;</span>
+    <span class="nt">&lt;/dependency&gt;</span>
+    <span class="nt">&lt;dependency&gt;</span>
+      <span class="nt">&lt;groupId&gt;</span>com.yahoo.athenz<span class="nt">&lt;/groupId&gt;</span>
+      <span class="nt">&lt;artifactId&gt;</span>athenz-cert-refresher<span class="nt">&lt;/artifactId&gt;</span>
+      <span class="nt">&lt;version&gt;</span>VERSION-NUMBER<span class="nt">&lt;/version&gt;</span>
+    <span class="nt">&lt;/dependency&gt;</span>
+  <span class="nt">&lt;/dependencies&gt;</span>
+</code></pre></div>
+
+
+<p>Next, let's assume the Athenz identity for the service is
+<code>sports.api</code> and SIA running on this host has already generated
+the private key for the service and retrieved the X.509 certificate
+from ZTS Server:</p>
+<div class="codehilite"><pre><span></span><code><span class="err">/var/lib/sia/keys/sports.api.key.pem</span>
+<span class="err">/var/lib/sia/certs/sports.api.cert.pem</span>
+</code></pre></div>
+
+
+<p>The ZTS server is running with a public X.509 certificate so
+we're going to use the standard jdk truststore for our connection
+which has a default password of <code>changeit</code>.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">import</span> <span class="nn">javax.net.ssl.SSLContext</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">com.oath.auth.KeyRefresher</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">com.oath.auth.Utils</span><span class="p">;</span>
+
+<span class="kd">final</span> <span class="n">String</span> <span class="n">ztsUrl</span> <span class="o">=</span> <span class="s">&quot;https://zts-address/zts/v1&quot;</span><span class="p">;</span>
+<span class="kd">final</span> <span class="n">String</span> <span class="n">keyPath</span> <span class="o">=</span> <span class="s">&quot;/var/lib/sia/keys/sports.api.key.pem&quot;</span><span class="p">;</span>
+<span class="kd">final</span> <span class="n">String</span> <span class="n">certPath</span> <span class="o">=</span> <span class="s">&quot;/var/lib/sia/certs/sports.api.cert.pem&quot;</span><span class="p">;</span>
+<span class="kd">final</span> <span class="n">String</span> <span class="n">trustStorePath</span> <span class="o">=</span> <span class="n">javaHome</span> <span class="o">+</span> <span class="s">&quot;/jre/lib/security/cacerts&quot;</span><span class="p">;</span>
+<span class="kd">final</span> <span class="n">String</span> <span class="n">trustStorePassword</span> <span class="o">=</span> <span class="s">&quot;changeit&quot;</span><span class="p">;</span>
+
+<span class="k">try</span> <span class="p">{</span>
+    <span class="c1">// Create our SSL Context object based on our private key and</span>
+    <span class="c1">// certificate and jdk truststore</span>
+
+    <span class="n">KeyRefresher</span> <span class="n">keyRefresher</span> <span class="o">=</span> <span class="n">Utils</span><span class="p">.</span><span class="na">generateKeyRefresher</span><span class="p">(</span><span class="n">trustStorePath</span><span class="p">,</span> <span class="n">trustStorePassword</span><span class="p">,</span>
+        <span class="n">certPath</span><span class="p">,</span> <span class="n">keyPath</span><span class="p">);</span>
+    <span class="c1">// Default refresh period is every hour.</span>
+    <span class="n">keyRefresher</span><span class="p">.</span><span class="na">startup</span><span class="p">();</span>
+    <span class="c1">// Can be adjusted to use other values in milliseconds.</span>
+    <span class="c1">//keyRefresher.startup(900000);</span>
+    <span class="n">SSLContext</span> <span class="n">sslContext</span> <span class="o">=</span> <span class="n">Utils</span><span class="p">.</span><span class="na">buildSSLContext</span><span class="p">(</span><span class="n">keyRefresher</span><span class="p">.</span><span class="na">getKeyManagerProxy</span><span class="p">(),</span>
+        <span class="n">keyRefresher</span><span class="p">.</span><span class="na">getTrustManagerProxy</span><span class="p">());</span>
+
+    <span class="c1">// create our zts client and execute request</span>
+
+    <span class="k">try</span> <span class="p">(</span><span class="n">ZTSClient</span> <span class="n">ztsClient</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ZTSClient</span><span class="p">(</span><span class="n">ztsUrl</span><span class="p">,</span> <span class="n">sslContext</span><span class="p">))</span> <span class="p">{</span>
+        <span class="k">try</span> <span class="p">{</span>
+            <span class="n">PublicKeyEntry</span> <span class="n">publicKey</span> <span class="o">=</span> <span class="n">ztsClient</span><span class="p">.</span><span class="na">getPublicKeyEntry</span><span class="p">(</span><span class="s">&quot;weather&quot;</span><span class="p">,</span> <span class="s">&quot;api&quot;</span><span class="p">,</span> <span class="s">&quot;weather.api.key&quot;</span><span class="p">);</span>
+            <span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;PublicKey: &quot;</span> <span class="o">+</span> <span class="n">publicKey</span><span class="p">.</span><span class="na">getKey</span><span class="p">());</span>
+        <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="n">ZTSClientException</span> <span class="n">ex</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">LOGGER</span><span class="p">.</span><span class="na">error</span><span class="p">(</span><span class="s">&quot;Unable to retrieve public key: {}&quot;</span><span class="p">,</span> <span class="n">ex</span><span class="p">.</span><span class="na">getMessage</span><span class="p">());</span>
+            <span class="k">return</span><span class="p">;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="n">Exception</span> <span class="n">ex</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">LOGGER</span><span class="p">.</span><span class="na">error</span><span class="p">(</span><span class="s">&quot;Unable to process request&quot;</span><span class="p">,</span> <span class="n">ex</span><span class="p">);</span>
+    <span class="k">return</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+
+
+<p><strong> Important </strong></p>
+<p>During the shutdown of the application, <code>ZTSClient.cancelPrefetch()</code>
+must be called to stop the timer thread that automatically fetches
+and refreshes any cached tokens in the ZTS Client.</p>
+<h3 id="apache-httpclient">Apache HTTPClient</h3>
+<p>This example demonstrates how to correctly set up Apache HTTPClient
+for mutual TLS with persistent connections and connection pooling, with
+automatic certificate refreshing.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">import</span> <span class="nn">com.oath.auth.KeyRefresher</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">com.oath.auth.Utils</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">org.apache.http.HttpResponse</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">org.apache.http.client.methods.HttpGet</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">org.apache.http.impl.client.CloseableHttpClient</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">org.apache.http.impl.client.HttpClients</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">org.apache.http.impl.client.NoopUserTokenHandler</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">org.apache.http.util.EntityUtils</span><span class="p">;</span>
+
+<span class="kn">import</span> <span class="nn">java.io.IOException</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">java.net.URI</span><span class="p">;</span>
+
+<span class="kn">import</span> <span class="nn">javax.net.ssl.SSLContext</span><span class="p">;</span>
+
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">Example</span> <span class="p">{</span>
+
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">KeyRefresher</span> <span class="n">keyRefresher</span><span class="p">;</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">CloseableHttpClient</span> <span class="n">httpClient</span><span class="p">;</span>
+
+    <span class="c1">// These parameters normally point to files generated by SIA on managed hosts</span>
+    <span class="kd">public</span> <span class="nf">Example</span><span class="p">(</span><span class="n">String</span> <span class="n">trustStorePath</span><span class="p">,</span> <span class="n">String</span> <span class="n">trustStorePassword</span><span class="p">,</span> <span class="n">String</span> <span class="n">certPath</span><span class="p">,</span>
+        <span class="n">String</span> <span class="n">keyPath</span><span class="p">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="p">{</span>
+        <span class="c1">// Create a key refresher to automatically reload key/cert when updated by SIA</span>
+        <span class="k">this</span><span class="p">.</span><span class="na">keyRefresher</span> <span class="o">=</span> <span class="n">Utils</span><span class="p">.</span><span class="na">generateKeyRefresher</span><span class="p">(</span><span class="n">trustStorePath</span><span class="p">,</span> <span class="n">trustStorePassword</span><span class="p">,</span> <span class="n">certPath</span><span class="p">,</span>
+            <span class="n">keyPath</span><span class="p">);</span>
+        <span class="n">keyRefresher</span><span class="p">.</span><span class="na">startup</span><span class="p">();</span>
+
+        <span class="c1">// Create TLS context</span>
+        <span class="c1">// Note that this may create a TLS 1.3 context when supported</span>
+        <span class="n">SSLContext</span> <span class="n">sslContext</span> <span class="o">=</span> <span class="n">Utils</span><span class="p">.</span><span class="na">buildSSLContext</span><span class="p">(</span><span class="n">keyRefresher</span><span class="p">.</span><span class="na">getKeyManagerProxy</span><span class="p">(),</span>
+            <span class="n">keyRefresher</span><span class="p">.</span><span class="na">getTrustManagerProxy</span><span class="p">());</span>
+
+        <span class="c1">// Create the actual HTTP client</span>
+        <span class="k">this</span><span class="p">.</span><span class="na">httpClient</span> <span class="o">=</span> <span class="n">HttpClients</span><span class="p">.</span><span class="na">custom</span><span class="p">()</span>
+            <span class="c1">// Use the context that has our keys and trusted CAs</span>
+            <span class="p">.</span><span class="na">setSSLContext</span><span class="p">(</span><span class="n">sslContext</span><span class="p">)</span>
+            <span class="c1">// Enable connection pooling - when mutual TLS used this gets disabled by default!</span>
+            <span class="p">.</span><span class="na">setUserTokenHandler</span><span class="p">(</span><span class="n">NoopUserTokenHandler</span><span class="p">.</span><span class="na">INSTANCE</span><span class="p">)</span>
+            <span class="c1">// You can set more options here as desired, for example number of connections to use</span>
+            <span class="p">.</span><span class="na">build</span><span class="p">();</span>
+    <span class="p">}</span>
+
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">callSomeService</span><span class="p">(</span><span class="n">URI</span> <span class="n">uri</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">HttpResponse</span> <span class="n">response</span> <span class="o">=</span> <span class="kc">null</span><span class="p">;</span>
+        <span class="k">try</span> <span class="p">{</span>
+            <span class="n">HttpGet</span> <span class="n">request</span> <span class="o">=</span> <span class="k">new</span> <span class="n">HttpGet</span><span class="p">(</span><span class="n">uri</span><span class="p">);</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">httpClient</span><span class="p">.</span><span class="na">execute</span><span class="p">(</span><span class="n">request</span><span class="p">);</span>
+            <span class="c1">// Do something with the response</span>
+            <span class="n">System</span><span class="p">.</span><span class="na">err</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;Got response: &quot;</span> <span class="o">+</span> <span class="n">response</span><span class="p">.</span><span class="na">getStatusLine</span><span class="p">().</span><span class="na">getStatusCode</span><span class="p">());</span>
+        <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="n">IOException</span> <span class="n">e</span><span class="p">)</span> <span class="p">{</span>
+            <span class="c1">// Handle connection level errors here</span>
+            <span class="n">e</span><span class="p">.</span><span class="na">printStackTrace</span><span class="p">();</span>
+        <span class="p">}</span> <span class="k">finally</span> <span class="p">{</span>
+            <span class="c1">// Ensure the entire request entity is consumed to release the connection for reuse</span>
+            <span class="c1">// Note that calling CloseableHttpResponse.close() will make the connection ineligible</span>
+            <span class="c1">// for reuse so it must be avoided</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">response</span> <span class="o">!=</span> <span class="kc">null</span><span class="p">)</span> <span class="p">{</span>
+                <span class="n">EntityUtils</span><span class="p">.</span><span class="na">consumeQuietly</span><span class="p">(</span><span class="n">response</span><span class="p">.</span><span class="na">getEntity</span><span class="p">());</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+
+
+<h3 id="httpsurlconnection-client">HTTPSUrlConnection Client</h3>
+<p><em>Note: This method does not support connection pooling and is only
+included as a demonstration, production code should use fully featured
+HTTP client.</em></p>
+<p>We're going to use a HTTPSUrlConnection client to communicate with
+an HTTPS Server running to retrieve some data for a given url.</p>
+<p>First we need to update our Java project <code>pom.xml</code> file to indicate
+our dependency on the Certificate Refresh Helper library.</p>
+<div class="codehilite"><pre><span></span><code>  <span class="nt">&lt;dependencies&gt;</span>
+    <span class="nt">&lt;dependency&gt;</span>
+      <span class="nt">&lt;groupId&gt;</span>com.yahoo.athenz<span class="nt">&lt;/groupId&gt;</span>
+      <span class="nt">&lt;artifactId&gt;</span>athenz-cert-refresher<span class="nt">&lt;/artifactId&gt;</span>
+      <span class="nt">&lt;version&gt;</span>VERSION-NUMBER<span class="nt">&lt;/version&gt;</span>
+    <span class="nt">&lt;/dependency&gt;</span>
+  <span class="nt">&lt;/dependencies&gt;</span>
+</code></pre></div>
+
+
+<p>Next, let's assume the Athenz identity for the service is
+<code>sports.api</code> and SIA running on this host has already generated
+the private key for the service and retrieved the X.509 certificate
+from ZTS Server:</p>
+<div class="codehilite"><pre><span></span><code><span class="err">/var/lib/sia/keys/sports.api.key.pem</span>
+<span class="err">/var/lib/sia/certs/sports.api.cert.pem</span>
+</code></pre></div>
+
+
+<p>The HTTPS server is running with an Athenz issued certificate so our
+truststore must include the Athenz CA certificates. For the following
+example, the truststore containing the Athenz CA certificates will be located
+at <code>/home/example/athenz_certificate_bundle.jks</code> with a default password
+of <code>changeit</code>.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">import</span> <span class="nn">javax.net.ssl.SSLContext</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">com.oath.auth.KeyRefresher</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">com.oath.auth.Utils</span><span class="p">;</span>
+
+<span class="kd">final</span> <span class="n">String</span> <span class="n">keyPath</span> <span class="o">=</span> <span class="s">&quot;/var/lib/sia/keys/sports.api.key.pem&quot;</span><span class="p">;</span>
+<span class="kd">final</span> <span class="n">String</span> <span class="n">certPath</span> <span class="o">=</span> <span class="s">&quot;/var/lib/sia/certs/sports.api.cert.pem&quot;</span><span class="p">;</span>
+<span class="kd">final</span> <span class="n">String</span> <span class="n">trustStorePath</span> <span class="o">=</span> <span class="s">&quot;/home/example/athenz_certificate_bundle.jks&quot;</span><span class="p">;</span>
+<span class="kd">final</span> <span class="n">String</span> <span class="n">trustStorePassword</span> <span class="o">=</span> <span class="s">&quot;changeit&quot;</span><span class="p">;</span>
+
+<span class="k">try</span> <span class="p">{</span>
+    <span class="n">KeyRefresher</span> <span class="n">keyRefresher</span> <span class="o">=</span> <span class="n">Utils</span><span class="p">.</span><span class="na">generateKeyRefresher</span><span class="p">(</span><span class="n">trustStorePath</span><span class="p">,</span> <span class="n">trustStorePassword</span><span class="p">,</span>
+            <span class="n">certPath</span><span class="p">,</span> <span class="n">keyPath</span><span class="p">);</span>
+    <span class="c1">// Default refresh period is every hour.</span>
+    <span class="n">keyRefresher</span><span class="p">.</span><span class="na">startup</span><span class="p">();</span>
+    <span class="c1">// Can be adjusted to use other values in milliseconds.</span>
+    <span class="c1">//keyRefresher.startup(900000);</span>
+    <span class="n">SSLContext</span> <span class="n">sslContext</span> <span class="o">=</span> <span class="n">Utils</span><span class="p">.</span><span class="na">buildSSLContext</span><span class="p">(</span><span class="n">keyRefresher</span><span class="p">.</span><span class="na">getKeyManagerProxy</span><span class="p">(),</span>
+            <span class="n">keyRefresher</span><span class="p">.</span><span class="na">getTrustManagerProxy</span><span class="p">());</span>
+
+    <span class="n">HttpsURLConnection</span><span class="p">.</span><span class="na">setDefaultSSLSocketFactory</span><span class="p">(</span><span class="n">sslContext</span><span class="p">.</span><span class="na">getSocketFactory</span><span class="p">());</span>
+    <span class="n">HttpsURLConnection</span> <span class="n">con</span> <span class="o">=</span> <span class="p">(</span><span class="n">HttpsURLConnection</span><span class="p">)</span> <span class="k">new</span> <span class="n">URL</span><span class="p">(</span><span class="n">url</span><span class="p">).</span><span class="na">openConnection</span><span class="p">();</span>
+    <span class="n">con</span><span class="p">.</span><span class="na">setReadTimeout</span><span class="p">(</span><span class="mi">15000</span><span class="p">);</span>
+    <span class="n">con</span><span class="p">.</span><span class="na">setDoOutput</span><span class="p">(</span><span class="kc">true</span><span class="p">);</span>
+    <span class="n">con</span><span class="p">.</span><span class="na">connect</span><span class="p">();</span>
+
+    <span class="k">try</span> <span class="p">(</span><span class="n">BufferedReader</span> <span class="n">br</span> <span class="o">=</span> <span class="k">new</span> <span class="n">BufferedReader</span><span class="p">(</span><span class="k">new</span> <span class="n">InputStreamReader</span><span class="p">(</span><span class="n">con</span><span class="p">.</span><span class="na">getInputStream</span><span class="p">())))</span> <span class="p">{</span>
+        <span class="n">StringBuilder</span> <span class="n">sb</span> <span class="o">=</span> <span class="k">new</span> <span class="n">StringBuilder</span><span class="p">();</span>
+        <span class="n">String</span> <span class="n">line</span><span class="p">;</span>
+        <span class="k">while</span> <span class="p">((</span><span class="n">line</span> <span class="o">=</span> <span class="n">br</span><span class="p">.</span><span class="na">readLine</span><span class="p">())</span> <span class="o">!=</span> <span class="kc">null</span><span class="p">)</span> <span class="p">{</span>
+          <span class="n">sb</span><span class="p">.</span><span class="na">append</span><span class="p">(</span><span class="n">line</span><span class="p">);</span>
+        <span class="p">}</span>
+        <span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;Data output: &quot;</span> <span class="o">+</span> <span class="n">sb</span><span class="p">.</span><span class="na">toString</span><span class="p">());</span>
+    <span class="p">}</span>
+
+<span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="n">Exception</span> <span class="n">ex</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">LOGGER</span><span class="p">.</span><span class="na">error</span><span class="p">(</span><span class="s">&quot;Unable to process request&quot;</span><span class="p">,</span> <span class="n">ex</span><span class="p">);</span>
+    <span class="k">return</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
+        
+          <a href="../decent_authz_flow/" title="Decentralized Authorization Flow" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+            </div>
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                Decentralized Authorization Flow
+              </div>
+            </div>
+          </a>
+        
+        
+          <a href="../server_side_x509_credentials/" title="Server Side Service Identity Authentication" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Next
+                </span>
+                Server Side Service Identity Authentication
+              </div>
+            </div>
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    </div>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
+      </div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    
+      <script src="../assets/javascripts/vendor.d1f5a259.min.js"></script>
+      <script src="../assets/javascripts/bundle.d5fec882.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents"}</script>
+      
+      <script>
+        app = initialize({
+          base: "..",
+          features: [],
+          search: Object.assign({
+            worker: "../assets/javascripts/worker/search.fae956e7.min.js"
+          }, typeof search !== "undefined" && search)
+        })
+      </script>
+      
+    
+  </body>
+</html>

@@ -13,7 +13,7 @@
       
       
       <link rel="shortcut icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-5.4.0">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-5.5.7">
     
     
       
@@ -21,7 +21,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.fe0cca5b.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.b8ac9624.min.css">
       
       
     
@@ -458,8 +458,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../token_expiration/" title="Access/Role Token Limit Expiry Support" class="md-nav__link">
-      Access/Role Token Limit Expiry Support
+    <a href="../token_expiration/" title="Access token Limit Expiry Support" class="md-nav__link">
+      Access token Limit Expiry Support
     </a>
   </li>
 
@@ -532,6 +532,18 @@
   <li class="md-nav__item">
     <a href="../self_serve_roles/" title="Self-Served Roles" class="md-nav__link">
       Self-Served Roles
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../athenz_templates/" title="Athenz Templates" class="md-nav__link">
+      Athenz Templates
     </a>
   </li>
 
@@ -622,6 +634,18 @@
   <li class="md-nav__item">
     <a href="../service_x509_credentials_aws_lambda/" title="Athenz Service Identity X.509 Certificate for AWS Lambda functions" class="md-nav__link">
       Athenz Service Identity X.509 Certificate for AWS Lambda functions
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../zts_access_token_guide/" title="Obtaining OAuth2 Access Tokens from ZTS" class="md-nav__link">
+      Obtaining OAuth2 Access Tokens from ZTS
     </a>
   </li>
 
@@ -824,6 +848,18 @@
   </li>
 
         
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../capabilities/" title="Athenz Capabilities" class="md-nav__link">
+      Athenz Capabilities
+    </a>
+  </li>
+
+        
       </ul>
     </nav>
   </li>
@@ -860,8 +896,44 @@
 
 
   <li class="md-nav__item">
-    <a href="../dev_centralized_access/" title="Centralized Access Control" class="md-nav__link">
-      Centralized Access Control
+    <a href="../cent_authz_flow/" title="Centralized Authorization Flow" class="md-nav__link">
+      Centralized Authorization Flow
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../decent_authz_flow/" title="Decentralized Authorization Flow" class="md-nav__link">
+      Decentralized Authorization Flow
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../client_side_x509_credentials/" title="Client Side Service Identity Authentication" class="md-nav__link">
+      Client Side Service Identity Authentication
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../server_side_x509_credentials/" title="Server Side Service Identity Authentication" class="md-nav__link">
+      Server Side Service Identity Authentication
     </a>
   </li>
 
@@ -886,18 +958,6 @@
   <li class="md-nav__item">
     <a href="../example_go_centralized_access/" title="Go Client/Server Example" class="md-nav__link">
       Go Client/Server Example
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../dev_decentralized_access/" title="Decentralized Access Control" class="md-nav__link">
-      Decentralized Access Control
     </a>
   </li>
 
@@ -1052,44 +1112,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../zms_svctoken/" title="ZMS Service Token Client Utility" class="md-nav__link">
-      ZMS Service Token Client Utility
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../zts_svccert/" title="ZTS TLS Certificate Utility" class="md-nav__link">
-      ZTS TLS Certificate Utility
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
     <a href="../zts_rolecert/" title="ZTS Role Certificate Client Utility" class="md-nav__link">
       ZTS Role Certificate Client Utility
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../zts_roletoken/" title="ZTS Role Token Client Utility" class="md-nav__link">
-      ZTS Role Token Client Utility
     </a>
   </li>
 
@@ -1208,13 +1232,6 @@
           <li class="md-nav__item">
   <a href="#x509-certificate-support" class="md-nav__link">
     X.509 Certificate Support
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#serviceuser-ntoken-support" class="md-nav__link">
-    Service/User NToken Support
   </a>
   
 </li>
@@ -3252,13 +3269,6 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#serviceuser-ntoken-support" class="md-nav__link">
-    Service/User NToken Support
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -5268,12 +5278,6 @@
 <p>All ZMS API commands require that the client use a TLS certificate issued by Athenz.
 Services can use their Athenz Issued Service Identity certificates when communicating
 with ZMS.</p>
-<h3 id="serviceuser-ntoken-support">Service/User NToken Support</h3>
-<p>All ZMS API commands require that the principal executing the operation to be authenticated
-by providing its ServiceToken as part of the request. The NToken must be passed as the
-value of the <strong>Athenz-Principal-Auth</strong> header in the request. If the Authority used to
-authenticate the user credentials does not support authorization, then the user first
-must obtain a NToken from ZMS server and then use that NToken in its request.</p>
 <h2 id="authorization">Authorization</h2>
 <p>Every write request against ZMS server is authorized against the configured
 policy data to verify that the principal has been given the rights to make
@@ -6785,7 +6789,7 @@ in the value that is cheaply recognized to quickly reject if it belongs to anoth
 <h3 id="access_1">Access</h3>
 <h4 id="get-accessaction">GET /access/{action}</h4>
 <ul>
-<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
 <li><a href="#authorization">Authorization</a>: None</li>
 </ul>
 <p>Check access for the specified operation/action on the specified resource for the currently authenticated user
@@ -6876,7 +6880,7 @@ This is the slow centralized access for control-plane purposes.</p>
 <h3 id="assertion_1">Assertion</h3>
 <h4 id="get-domaindomainnamepolicypolicynameassertionassertionid">GET /domain/{domainName}/policy/{policyName}/assertion/{assertionId}</h4>
 <ul>
-<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
 <li><a href="#authorization">Authorization</a>: None</li>
 </ul>
 <p>Read the specified assertion from the policy.</p>
@@ -6956,7 +6960,7 @@ This is the slow centralized access for control-plane purposes.</p>
 </table>
 <h4 id="put-domaindomainnamepolicypolicynameassertion">PUT /domain/{domainName}/policy/{policyName}/assertion</h4>
 <ul>
-<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
 <li><a href="#authorization">Authorization</a>: authorize("update", "{domainName}:policy.{policyName}")</li>
 </ul>
 <p>Add the provided assertion to the specified policy.</p>
@@ -7040,7 +7044,7 @@ This is the slow centralized access for control-plane purposes.</p>
 </table>
 <h4 id="delete-domaindomainnamepolicypolicynameassertionassertionid">DELETE /domain/{domainName}/policy/{policyName}/assertion/{assertionId}</h4>
 <ul>
-<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
 <li><a href="#authorization">Authorization</a>: authorize("update", "{domainName}:policy.{policyName}")</li>
 </ul>
 <p>Delete the assertion with the given id from the specified policy.</p>
@@ -7125,7 +7129,7 @@ This is the slow centralized access for control-plane purposes.</p>
 <h3 id="defaultadmins_1">DefaultAdmins</h3>
 <h4 id="put-domaindomainnameadmins">PUT /domain/{domainName}/admins</h4>
 <ul>
-<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
 <li><a href="#authorization">Authorization</a>: authorize ("update", "sys.auth:domain");</li>
 </ul>
 <p>Verify and, if necessary, fix domain roles and policies to make sure the given set
@@ -7206,7 +7210,7 @@ incorrectly have blocked their own access to their domains.</p>
 <h3 id="domain_1">Domain</h3>
 <h4 id="get-domaindomain">GET /domain/{domain}</h4>
 <ul>
-<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
 <li><a href="#authorization">Authorization</a>: None</li>
 </ul>
 <p>Get info for the specified domain, by name.</p>
@@ -7268,7 +7272,7 @@ incorrectly have blocked their own access to their domains.</p>
 </table>
 <h4 id="post-domain">POST /domain</h4>
 <ul>
-<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
 <li><a href="#authorization">Authorization</a>: authorize ("create", "sys.auth:domain")</li>
 </ul>
 <p>Create a new top level domain. This is a privileged action for the ^sys.auth^ administrators</p>
@@ -7334,7 +7338,7 @@ incorrectly have blocked their own access to their domains.</p>
 </table>
 <h4 id="delete-domainname">DELETE /domain/{name}</h4>
 <ul>
-<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
 <li><a href="#authorization">Authorization</a>: authorize ("delete", "sys.auth:domain")</li>
 </ul>
 <p>Delete the specified domain. This is a privileged action for the <code>sys.auth</code> administrators.</p>
@@ -7400,7 +7404,7 @@ incorrectly have blocked their own access to their domains.</p>
 </table>
 <h4 id="put-domainnamemeta">PUT /domain/{name}/meta</h4>
 <ul>
-<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
 <li><a href="#authorization">Authorization</a>: authorize ("update", "{name}:")</li>
 </ul>
 <p>Update the specified domain metadata. Note that entities in the domain are not
@@ -7594,7 +7598,7 @@ list operation constrained by the other query parameters (limit, skip, prefix an
 <h3 id="entity_1">Entity</h3>
 <h4 id="put-domaindomainnameentityentityname">PUT /domain/{domainName}/entity/{entityName}</h4>
 <ul>
-<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
 <li><a href="#authorization">Authorization</a>: authorize ("update", "{domainName}:{entityName}")</li>
 </ul>
 <p>Put an entity into the domain.</p>
@@ -7678,7 +7682,7 @@ list operation constrained by the other query parameters (limit, skip, prefix an
 </table>
 <h4 id="get-domaindomainnameentityentityname">GET /domain/{domainName}/entity/{entityName}</h4>
 <ul>
-<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
 <li><a href="#authorization">Authorization</a>: None</li>
 </ul>
 <p>Get a entity from a domain open for all authenticated users to read</p>
@@ -7751,7 +7755,7 @@ list operation constrained by the other query parameters (limit, skip, prefix an
 </table>
 <h4 id="delete-domaindomainnameentityentityname">DELETE /domain/{domainName}/entity/{entityName}</h4>
 <ul>
-<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
 <li><a href="#authorization">Authorization</a>: authorize ("delete", "{domainName}:{entityName}")</li>
 </ul>
 <p>Delete the entity from the domain.</p>
@@ -7829,7 +7833,7 @@ list operation constrained by the other query parameters (limit, skip, prefix an
 <h3 id="membership_1">Membership</h3>
 <h4 id="get-domaindomainnamerolerolenamemembermembername">GET /domain/{domainName}/role/{roleName}/member/{memberName}</h4>
 <ul>
-<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
 <li><a href="#authorization">Authorization</a>: None</li>
 </ul>
 <p>Get the specified role in the domain.</p>
@@ -7909,7 +7913,7 @@ list operation constrained by the other query parameters (limit, skip, prefix an
 </table>
 <h4 id="put-domaindomainnamerolerolenamemembermembername">PUT /domain/{domainName}/role/{roleName}/member/{memberName}</h4>
 <ul>
-<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
 <li><a href="#authorization">Authorization</a>: authorize ("update", "{domainName}:role.{roleName}"</li>
 </ul>
 <p>Create/update the specified role membership.</p>
@@ -8000,7 +8004,7 @@ list operation constrained by the other query parameters (limit, skip, prefix an
 </table>
 <h4 id="delete-domaindomainnamerolerolenamemembermembername">DELETE /domain/{domainName}/role/{roleName}/member/{memberName}</h4>
 <ul>
-<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
 <li><a href="#authorization">Authorization</a>: authorize ("update", "{domainName}:role.{roleName}"</li>
 </ul>
 <p>Delete the specified role membership.</p>
@@ -8085,7 +8089,7 @@ list operation constrained by the other query parameters (limit, skip, prefix an
 <h3 id="policy_1">Policy</h3>
 <h4 id="get-domaindomainnamepolicypolicyname">GET /domain/{domainName}/policy/{policyName}</h4>
 <ul>
-<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
 <li><a href="#authorization">Authorization</a>: None</li>
 </ul>
 <p>Read the specified policy.</p>
@@ -8158,7 +8162,7 @@ list operation constrained by the other query parameters (limit, skip, prefix an
 </table>
 <h4 id="put-domaindomainnamepolicypolicyname">PUT /domain/{domainName}/policy/{policyName}</h4>
 <ul>
-<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
 <li><a href="#authorization">Authorization</a>: authorize("update", "{domainName}:policy.{policyName}")</li>
 </ul>
 <p>Create or update the specified policy.</p>
@@ -8242,7 +8246,7 @@ list operation constrained by the other query parameters (limit, skip, prefix an
 </table>
 <h4 id="delete-domaindomainnamepolicypolicyname">DELETE /domain/{domainName}/policy/{policyName}</h4>
 <ul>
-<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
 <li><a href="#authorization">Authorization</a>: authorize("delete", "{domainName}:policy.{policyName}")</li>
 </ul>
 <p>Delete the specified policy.</p>
@@ -8320,7 +8324,7 @@ list operation constrained by the other query parameters (limit, skip, prefix an
 <h3 id="policies_1">Policies</h3>
 <h4 id="get-domaindomainnamepolicies">GET /domain/{domainName}/policies</h4>
 <ul>
-<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
 <li><a href="#authorization">Authorization</a>: None</li>
 </ul>
 <p>Enumerate policies provisioned in this domain and returns the list including
@@ -8397,7 +8401,7 @@ list of assertions for all policies in the result set.</p>
 <h3 id="policylist_1">PolicyList</h3>
 <h4 id="get-domaindomainnamepolicy">GET /domain/{domainName}/policy</h4>
 <ul>
-<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
 <li><a href="#authorization">Authorization</a>: None</li>
 </ul>
 <p>List policies provisioned in this namespace.</p>
@@ -8478,7 +8482,7 @@ list of assertions for all policies in the result set.</p>
 <h3 id="publickeyentry_1">PublicKeyEntry</h3>
 <h4 id="put-domaindomainserviceservicepublickeyid">PUT /domain/{domain}/service/{service}/publickey/{id}</h4>
 <ul>
-<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
 <li><a href="#authorization">Authorization</a>: authorize ("update", "{domain}:service.{service}")</li>
 </ul>
 <p>Register the specified ServiceIdentity in the specified domain.</p>
@@ -8573,7 +8577,7 @@ list of assertions for all policies in the result set.</p>
 </table>
 <h4 id="get-domaindomainserviceservicepublickeyid">GET /domain/{domain}/service/{service}/publickey/{id}</h4>
 <ul>
-<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
 <li><a href="#authorization">Authorization</a>: None</li>
 </ul>
 <p>Get public key info for the specified service and key id.</p>
@@ -8653,7 +8657,7 @@ list of assertions for all policies in the result set.</p>
 </table>
 <h4 id="delete-domaindomainserviceservicepublickeyid">DELETE /domain/{domain}/service/{service}/publickey/{id}</h4>
 <ul>
-<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
 <li><a href="#authorization">Authorization</a>: authorize ("update", "{domain}:service.{service}")</li>
 </ul>
 <p>Delete the specified PublicKey for a service.</p>
@@ -8742,7 +8746,7 @@ list of assertions for all policies in the result set.</p>
 <h3 id="resource">Resource</h3>
 <h4 id="get-resource">GET /resource</h4>
 <ul>
-<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
 <li><a href="#authorization">Authorization</a>: None</li>
 </ul>
 <p>Return list of resources through the defined assertions that the given principal
@@ -8822,7 +8826,7 @@ the aws account id registered for the domain.</p>
 <h3 id="role_1">Role</h3>
 <h4 id="get-domaindomainnamerolerolename">GET /domain/{domainName}/role/{roleName}</h4>
 <ul>
-<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
 <li><a href="#authorization">Authorization</a>: None</li>
 </ul>
 <p>Get the specified role in the domain.</p>
@@ -8917,7 +8921,7 @@ part of the result set.</p>
 </table>
 <h4 id="put-domaindomainnamerolerolename">PUT /domain/{domainName}/role/{roleName}</h4>
 <ul>
-<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
 <li><a href="#authorization">Authorization</a>: authorize ("update", "{domainName}:role.{roleName}")</li>
 </ul>
 <p>Create/update the specified role.</p>
@@ -9001,7 +9005,7 @@ part of the result set.</p>
 </table>
 <h4 id="delete-domaindomainnamerolerolename">DELETE /domain/{domainName}/role/{roleName}</h4>
 <ul>
-<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
 <li><a href="#authorization">Authorization</a>: authorize ("delete", "{domainName}:role.{roleName}")</li>
 </ul>
 <p>Delete the specified role</p>
@@ -9079,7 +9083,7 @@ part of the result set.</p>
 <h3 id="rolelist_1">RoleList</h3>
 <h4 id="get-domaindomainnamerole">GET /domain/{domainName}/role</h4>
 <ul>
-<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
 <li><a href="#authorization">Authorization</a>: None</li>
 </ul>
 <p>Enumerate roles provisioned in this domain.</p>
@@ -9160,7 +9164,7 @@ part of the result set.</p>
 <h3 id="roles_1">Roles</h3>
 <h4 id="get-domaindomainnameroles">GET /domain/{domainName}/roles</h4>
 <ul>
-<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
 <li><a href="#authorization">Authorization</a>: None</li>
 </ul>
 <p>Enumerate roles provisioned in this domain and returns the list including role
@@ -9237,7 +9241,7 @@ members for all roles in the result set.</p>
 <h3 id="serviceidentities_1">ServiceIdentities</h3>
 <h4 id="get-domaindomainnameservices">GET /domain/{domainName}/services</h4>
 <ul>
-<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
 <li><a href="#authorization">Authorization</a>: None</li>
 </ul>
 <p>Enumerate services provisioned in this domain and returns the list including service
@@ -9323,7 +9327,7 @@ is set to true, the list of hosts configured per service will be returned in the
 <h3 id="serviceidentity_1">ServiceIdentity</h3>
 <h4 id="put-domaindomainserviceservice">PUT /domain/{domain}/service/{service}</h4>
 <ul>
-<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
 <li><a href="#authorization">Authorization</a>: authorize ("update", "{domain}:service")</li>
 </ul>
 <p>Register the specified ServiceIdentity in the specified domain.</p>
@@ -9407,7 +9411,7 @@ is set to true, the list of hosts configured per service will be returned in the
 </table>
 <h4 id="get-domaindomainserviceservice">GET /domain/{domain}/service/{service}</h4>
 <ul>
-<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
 <li><a href="#authorization">Authorization</a>: None</li>
 </ul>
 <p>Get info for the specified ServiceIdentity.</p>
@@ -9480,7 +9484,7 @@ is set to true, the list of hosts configured per service will be returned in the
 </table>
 <h4 id="delete-domaindomainserviceservice">DELETE /domain/{domain}/service/{service}</h4>
 <ul>
-<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
 <li><a href="#authorization">Authorization</a>: authorize ("delete", "{domain}:service")</li>
 </ul>
 <p>Delete the specified ServiceIdentity.</p>
@@ -9558,7 +9562,7 @@ is set to true, the list of hosts configured per service will be returned in the
 <h3 id="serviceidentitylist_1">ServiceIdentityList</h3>
 <h4 id="get-domaindomainnameservice">GET /domain/{domainName}/service</h4>
 <ul>
-<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
 <li><a href="#authorization">Authorization</a>: None</li>
 </ul>
 <p>Enumerate services provisioned in this domain.</p>
@@ -9639,7 +9643,7 @@ is set to true, the list of hosts configured per service will be returned in the
 <h3 id="serviceprincipal_1">ServicePrincipal</h3>
 <h4 id="get-principal">GET /principal</h4>
 <ul>
-<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
 <li><a href="#authorization">Authorization</a>: None</li>
 </ul>
 <p>Return a principal object if the serviceToken passed as part of the authentication header is valid.</p>
@@ -9685,7 +9689,7 @@ is set to true, the list of hosts configured per service will be returned in the
 <h3 id="signeddomains_1">SignedDomains</h3>
 <h4 id="get-sysmodified_domains">GET /sys/modified_domains</h4>
 <ul>
-<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
 <li><a href="#authorization">Authorization</a>: None</li>
 </ul>
 <p>Retrieve the list of modified domains since the specified timestamp. The server will
@@ -9796,7 +9800,7 @@ true, don't add roles, policies or services, don't sign</p>
 <h3 id="subdomain_1">SubDomain</h3>
 <h4 id="post-subdomainparent">POST /subdomain/{parent}</h4>
 <ul>
-<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
 <li><a href="#authorization">Authorization</a>: authorize ("create", "{parent}:domain")</li>
 </ul>
 <p>Create a new subdomain, The authorization is based on the parent domain.</p>
@@ -9868,7 +9872,7 @@ true, don't add roles, policies or services, don't sign</p>
 </table>
 <h4 id="delete-subdomainparentname">DELETE /subdomain/{parent}/{name}</h4>
 <ul>
-<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
 <li><a href="#authorization">Authorization</a>: authorize ("delete", "{parent}:domain")</li>
 </ul>
 <p>Delete the specified subdomain. The {name} component in the URI must not include
@@ -9943,7 +9947,7 @@ then the URI for this request would be /subdomain/athens/ci.</p>
 <h3 id="templates">Templates</h3>
 <h4 id="put-domainnametemplate">PUT /domain/{name}/template</h4>
 <ul>
-<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
 <li><a href="#authorization">Authorization</a>: authorize ("update", "{name}:"</li>
 </ul>
 <p>Update the given domain by applying the roles and policies defined in the specified
@@ -10021,7 +10025,7 @@ solution templates. Caller must have update privileges on the domain itself.</p>
 </table>
 <h4 id="get-domainnametemplate">GET /domain/{name}/template</h4>
 <ul>
-<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
 <li><a href="#authorization">Authorization</a>: None</li>
 </ul>
 <p>Get the list of solution templates applied to a domain</p>
@@ -10087,7 +10091,7 @@ solution templates. Caller must have update privileges on the domain itself.</p>
 </table>
 <h4 id="get-template">GET /template</h4>
 <ul>
-<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
 <li><a href="#authorization">Authorization</a>: None</li>
 </ul>
 <p>Get the list of solution templates defined in the server</p>
@@ -10132,7 +10136,7 @@ solution templates. Caller must have update privileges on the domain itself.</p>
 </table>
 <h4 id="get-templatetemplate">GET /template/{template}</h4>
 <ul>
-<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
 <li><a href="#authorization">Authorization</a>: None</li>
 </ul>
 <p>Get solution template details. Includes the roles and policies that will be automatically
@@ -10200,7 +10204,7 @@ provisioned when the template is applied to a domain</p>
 <h3 id="tenancy_1">Tenancy</h3>
 <h4 id="put-domaindomaintenancyservice">PUT /domain/{domain}/tenancy/{service}</h4>
 <ul>
-<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
 <li><a href="#authorization">Authorization</a>: authorize ("update", "{domain}:tenancy")</li>
 </ul>
 <p>Add a tenant for the specified service.</p>
@@ -10288,7 +10292,7 @@ provisioned when the template is applied to a domain</p>
 </table>
 <h4 id="delete-domaindomaintenancyservice">DELETE /domain/{domain}/tenancy/{service}</h4>
 <ul>
-<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
 <li><a href="#authorization">Authorization</a>: authorize ("delete", "{domain}:tenancy")</li>
 </ul>
 <p>Delete the tenant from the specified service. Upon successful completion of this
@@ -10367,7 +10371,7 @@ delete request, the server will return NO_CONTENT status code without any data
 </table>
 <h4 id="put-domaindomaintenancyserviceresourcegroupresourcegroup">PUT /domain/{domain}/tenancy/{service}/resourceGroup/{resourceGroup}</h4>
 <ul>
-<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
 <li><a href="#authorization">Authorization</a>: authorize ("update", "{domain}:tenancy.{service}")</li>
 </ul>
 <p>Add a new resource group for the tenant for the specified service</p>
@@ -10458,7 +10462,7 @@ delete request, the server will return NO_CONTENT status code without any data
 </table>
 <h4 id="delete-domaindomaintenancyserviceresourcegroupresourcegroup">DELETE /domain/{domain}/tenancy/{service}/resourceGroup/{resourceGroup}</h4>
 <ul>
-<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
 <li><a href="#authorization">Authorization</a>: authorize ("update", "{domain}:tenancy.{service}")</li>
 </ul>
 <p>Delete the specified resource group for tenant from the specified service.</p>
@@ -10542,7 +10546,7 @@ delete request, the server will return NO_CONTENT status code without any data
 </table>
 <h4 id="get-providerdomainproviderdomainnameuserusernamerolenamerolename">GET /providerdomain/{providerDomainName}/user/{userName}?roleName={roleName}</h4>
 <ul>
-<li><a href="#authentication">Authentication</a>: Certificate, NToken</li>
+<li><a href="#authentication">Authentication</a>: Certificate</li>
 <li><a href="#authorization">Authorization</a>: None</li>
 </ul>
 <h5 id="request-parameters_45">Request Parameters</h5>
@@ -10685,15 +10689,15 @@ delete request, the server will return NO_CONTENT status code without any data
       
     </div>
     
-      <script src="../assets/javascripts/vendor.d710d30a.min.js"></script>
-      <script src="../assets/javascripts/bundle.b39636ac.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents"}</script>
+      <script src="../assets/javascripts/vendor.d1f5a259.min.js"></script>
+      <script src="../assets/javascripts/bundle.d5fec882.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents"}</script>
       
       <script>
         app = initialize({
           base: "..",
           features: [],
           search: Object.assign({
-            worker: "../assets/javascripts/worker/search.a68abb33.min.js"
+            worker: "../assets/javascripts/worker/search.fae956e7.min.js"
           }, typeof search !== "undefined" && search)
         })
       </script>

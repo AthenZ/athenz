@@ -13,7 +13,7 @@
       
       
       <link rel="shortcut icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-5.4.0">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-5.5.7">
     
     
       
@@ -21,7 +21,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.fe0cca5b.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.b8ac9624.min.css">
       
       
     
@@ -458,8 +458,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../token_expiration/" title="Access/Role Token Limit Expiry Support" class="md-nav__link">
-      Access/Role Token Limit Expiry Support
+    <a href="../token_expiration/" title="Access token Limit Expiry Support" class="md-nav__link">
+      Access token Limit Expiry Support
     </a>
   </li>
 
@@ -532,6 +532,18 @@
   <li class="md-nav__item">
     <a href="../self_serve_roles/" title="Self-Served Roles" class="md-nav__link">
       Self-Served Roles
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../athenz_templates/" title="Athenz Templates" class="md-nav__link">
+      Athenz Templates
     </a>
   </li>
 
@@ -622,6 +634,18 @@
   <li class="md-nav__item">
     <a href="../service_x509_credentials_aws_lambda/" title="Athenz Service Identity X.509 Certificate for AWS Lambda functions" class="md-nav__link">
       Athenz Service Identity X.509 Certificate for AWS Lambda functions
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../zts_access_token_guide/" title="Obtaining OAuth2 Access Tokens from ZTS" class="md-nav__link">
+      Obtaining OAuth2 Access Tokens from ZTS
     </a>
   </li>
 
@@ -909,6 +933,18 @@
   </li>
 
         
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../capabilities/" title="Athenz Capabilities" class="md-nav__link">
+      Athenz Capabilities
+    </a>
+  </li>
+
+        
       </ul>
     </nav>
   </li>
@@ -945,8 +981,44 @@
 
 
   <li class="md-nav__item">
-    <a href="../dev_centralized_access/" title="Centralized Access Control" class="md-nav__link">
-      Centralized Access Control
+    <a href="../cent_authz_flow/" title="Centralized Authorization Flow" class="md-nav__link">
+      Centralized Authorization Flow
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../decent_authz_flow/" title="Decentralized Authorization Flow" class="md-nav__link">
+      Decentralized Authorization Flow
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../client_side_x509_credentials/" title="Client Side Service Identity Authentication" class="md-nav__link">
+      Client Side Service Identity Authentication
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../server_side_x509_credentials/" title="Server Side Service Identity Authentication" class="md-nav__link">
+      Server Side Service Identity Authentication
     </a>
   </li>
 
@@ -971,18 +1043,6 @@
   <li class="md-nav__item">
     <a href="../example_go_centralized_access/" title="Go Client/Server Example" class="md-nav__link">
       Go Client/Server Example
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../dev_decentralized_access/" title="Decentralized Access Control" class="md-nav__link">
-      Decentralized Access Control
     </a>
   </li>
 
@@ -1137,44 +1197,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../zms_svctoken/" title="ZMS Service Token Client Utility" class="md-nav__link">
-      ZMS Service Token Client Utility
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../zts_svccert/" title="ZTS TLS Certificate Utility" class="md-nav__link">
-      ZTS TLS Certificate Utility
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
     <a href="../zts_rolecert/" title="ZTS Role Certificate Client Utility" class="md-nav__link">
       ZTS Role Certificate Client Utility
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../zts_roletoken/" title="ZTS Role Token Client Utility" class="md-nav__link">
-      ZTS Role Token Client Utility
     </a>
   </li>
 
@@ -1369,13 +1393,11 @@
 </ul>
 <h2 id="introduction">Introduction</h2>
 <hr />
-<p>Although the focus of Athenz is authorization it had to address service authentication since it depends on it heavily since there was no generic solution to register and authenticate services within an organization. Athenz introduced the concept of service identities where the service administrator would generate a public/private RSA or EC key pair, register the public key in Athenz, and then it could issue authentication tokens (NTokens) signed by its private key that could be presented to Athenz to authenticate the service. While this works well when services talk to Athenz services, it is not secure for server-to-server communication. A tenant service must not present its NToken to a provider service since, if compromised, the provider service may act as the tenant service while communicating with other services. Athenz solution was to use authorization role tokens (ZTokens) that were scoped for a specific role in the requested domain.</p>
 <p>Rather than having a service administrator generate a key pair and register in Athenz, a new solution called Copper Argos was designed and implemented that would allow the service to be identified by its X.509 certificate issued by Athenz:
 * Athenz would integrate with a Certificate Signer Daemon that would store its private key in HSM (e.g. AWS CloudHSM)
 * A Service Identity Agent (SIA) running on an instance would generate a key pair on the instance itself, generate a CSR and send along with its authentication details to ZTS Server to request a certificate for the service.
 * Once the request is authorized and validated, ZTS would contact Certificate Signer Daemon to mint a certificate for the instance. It would be valid for 30 days and the SIA running on the instance will be responsible to refresh the certificate daily.
 * The service running on host can use the generated private key and the X.509 certificate it received from ZTS to identify itself to other services running within the organization.</p>
-<p>This model provides a significant improvement over the use of NTokens since the services now have a secure way of identifying themselves without the use of role tokens. </p>
 <h2 id="copper-argos">Copper Argos</h2>
 <hr />
 <p>Copper Argos is Athenz generalized model for service providers to launch other service identities in an authorized way through a callback-based verification model. The high level requirements for Copper Argos are as follows:
@@ -1413,7 +1435,7 @@
 * So if both the instance and the attacker start using the same instance id for refreshing certificates, Athenz ZTS will detect a mismatch between serial numbers assigned and used in those refresh requests, thus will revoke the instance from refreshing its certificates.</p>
 <h2 id="conclusion">Conclusion</h2>
 <hr />
-<p>Copper Argos provides a secure and generic way for service providers to launch other authorized services with Athenz issued service identity X.509 certificates. These certificates provide a more secure solution than private key generated NTokens since they can be used to communicate with other Athenz enabled services without exposing their identity tokens. </p>
+<p>Copper Argos provides a secure and generic way for service providers to launch other authorized services with Athenz issued service identity X.509 certificates.</p>
                 
               
               
@@ -1447,13 +1469,13 @@
           </a>
         
         
-          <a href="../dev_centralized_access/" title="Centralized Access Control" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+          <a href="../capabilities/" title="Athenz Capabilities" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-footer-nav__title">
               <div class="md-ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                Centralized Access Control
+                Athenz Capabilities
               </div>
             </div>
             <div class="md-footer-nav__button md-icon">
@@ -1480,15 +1502,15 @@
       
     </div>
     
-      <script src="../assets/javascripts/vendor.d710d30a.min.js"></script>
-      <script src="../assets/javascripts/bundle.b39636ac.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents"}</script>
+      <script src="../assets/javascripts/vendor.d1f5a259.min.js"></script>
+      <script src="../assets/javascripts/bundle.d5fec882.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents"}</script>
       
       <script>
         app = initialize({
           base: "..",
           features: [],
           search: Object.assign({
-            worker: "../assets/javascripts/worker/search.a68abb33.min.js"
+            worker: "../assets/javascripts/worker/search.fae956e7.min.js"
           }, typeof search !== "undefined" && search)
         })
       </script>
