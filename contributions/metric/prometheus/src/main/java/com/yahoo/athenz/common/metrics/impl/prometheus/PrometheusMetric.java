@@ -30,6 +30,10 @@ public class PrometheusMetric implements Metric {
 
     public static final String REQUEST_DOMAIN_LABEL_NAME = "domain";
     public static final String PRINCIPAL_DOMAIN_LABEL_NAME = "principal";
+    public static final String REQUEST_HTTP_METHOD_LABEL_NAME = "httpmethod";
+    public static final String REQUEST_HTTP_STATUS_LABEL_NAME = "httpstatus";
+    public static final String REQUEST_API_LABEL_NAME = "apimethod";
+
 
     public static final String METRIC_NAME_DELIMITER = "_";
     public static final String COUNTER_SUFFIX = "total";
@@ -41,6 +45,9 @@ public class PrometheusMetric implements Metric {
     private String namespace;
     private boolean isLabelRequestDomainNameEnable;
     private boolean isLabelPrincipalDomainNameEnable;
+    private boolean isLabelHttpMethodNameEnable;
+    private boolean isLabelHttpStatusNameEnable;
+    private boolean isLabelApiNameEnable;
 
     /**
      * @param registry CollectorRegistry of all metrics
@@ -48,7 +55,7 @@ public class PrometheusMetric implements Metric {
      * @param namespace prefix of all metrics
      */
     public PrometheusMetric(CollectorRegistry registry, ConcurrentMap<String, Collector> namesToCollectors, PrometheusExporter exporter, String namespace) {
-        this(registry, namesToCollectors, exporter, namespace, false, false);
+        this(registry, namesToCollectors, exporter, namespace, false, false, false, false, false);
     }
 
     /**
@@ -57,8 +64,19 @@ public class PrometheusMetric implements Metric {
      * @param namespace prefix of all metrics
      * @param isLabelRequestDomainNameEnable enable requestDomainName label
      * @param isLabelPrincipalDomainNameEnable enable principalDomainName label
+     * @param isLabelHttpMethodNameEnable enable httpMethod label
+     * @param isLabelHttpStatusNameEnable enable httpStatus label
+     * @param isLabelApiNameEnable enable httpApi label
      */
-    public PrometheusMetric(CollectorRegistry registry, ConcurrentMap<String, Collector> namesToCollectors, PrometheusExporter exporter, String namespace, boolean isLabelRequestDomainNameEnable, boolean isLabelPrincipalDomainNameEnable) {
+    public PrometheusMetric(CollectorRegistry registry,
+                            ConcurrentMap<String, Collector> namesToCollectors,
+                            PrometheusExporter exporter,
+                            String namespace,
+                            boolean isLabelRequestDomainNameEnable,
+                            boolean isLabelPrincipalDomainNameEnable,
+                            boolean isLabelHttpMethodNameEnable,
+                            boolean isLabelHttpStatusNameEnable,
+                            boolean isLabelApiNameEnable) {
         this.registry = registry;
         this.namesToCollectors = namesToCollectors;
         this.exporter = exporter;
@@ -66,6 +84,9 @@ public class PrometheusMetric implements Metric {
 
         this.isLabelRequestDomainNameEnable = isLabelRequestDomainNameEnable;
         this.isLabelPrincipalDomainNameEnable = isLabelPrincipalDomainNameEnable;
+        this.isLabelHttpMethodNameEnable = isLabelHttpMethodNameEnable;
+        this.isLabelHttpStatusNameEnable = isLabelHttpStatusNameEnable;
+        this.isLabelApiNameEnable = isLabelApiNameEnable;
     }
 
     @Override
@@ -96,7 +117,22 @@ public class PrometheusMetric implements Metric {
 
         metricName = this.normalizeCounterMetricName(metricName);
         Counter counter = (Counter) createOrGetCollector(metricName, Counter.build());
-        counter.labels(requestDomainName, principalDomainName).inc(count);
+        counter.labels(requestDomainName, principalDomainName, "", "", "").inc(count);
+    }
+
+    @Override
+    public void increment(String metricName, String requestDomainName, String principalDomainName, String httpMethod, int httpStatus, String apiName) {
+        // prometheus does not allow null labels
+        requestDomainName = (this.isLabelRequestDomainNameEnable) ? Objects.toString(requestDomainName, "") : "";
+        principalDomainName = (this.isLabelPrincipalDomainNameEnable) ? Objects.toString(principalDomainName, "") : "";
+        httpMethod = (this.isLabelHttpMethodNameEnable) ? Objects.toString(httpMethod, "") : "";
+        String httpStatusStr = Integer.toString(httpStatus);
+        httpStatusStr = (this.isLabelHttpStatusNameEnable) ? httpStatusStr : "";
+        apiName = (this.isLabelApiNameEnable) ? Objects.toString(apiName, "") : "";
+
+        metricName = this.normalizeCounterMetricName(metricName);
+        Counter counter = (Counter) createOrGetCollector(metricName, Counter.build());
+        counter.labels(requestDomainName, principalDomainName, httpMethod, httpStatusStr, apiName).inc(1);
     }
 
     @Override
@@ -115,7 +151,21 @@ public class PrometheusMetric implements Metric {
         // .quantile(0.5, 0.05)
         // .quantile(0.9, 0.01)
         );
-        return summary.labels(requestDomainName, principalDomainName).startTimer();
+        return summary.labels(requestDomainName, principalDomainName, "", "", "").startTimer();
+    }
+
+    @Override
+    public Object startTiming(String metricName, String requestDomainName, String principalDomainName, String httpMethod, String apiName) {
+        // prometheus does not allow null labels
+        requestDomainName = (this.isLabelRequestDomainNameEnable) ? Objects.toString(requestDomainName, "") : "";
+        principalDomainName = (this.isLabelPrincipalDomainNameEnable) ? Objects.toString(principalDomainName, "") : "";
+        httpMethod = (this.isLabelHttpMethodNameEnable) ? Objects.toString(httpMethod, "") : "";
+        apiName = (this.isLabelApiNameEnable) ? Objects.toString(apiName, "") : "";
+
+        metricName = this.normalizeTimerMetricName(metricName);
+        Summary summary = (Summary) createOrGetCollector(metricName, Summary.build());
+
+        return summary.labels(requestDomainName, principalDomainName, httpMethod, "", apiName).startTimer();
     }
 
     @Override
@@ -167,7 +217,7 @@ public class PrometheusMetric implements Metric {
                         .namespace(this.namespace)
                         .name(metricName)
                         .help(metricName)
-                        .labelNames(REQUEST_DOMAIN_LABEL_NAME, PRINCIPAL_DOMAIN_LABEL_NAME);
+                        .labelNames(REQUEST_DOMAIN_LABEL_NAME, PRINCIPAL_DOMAIN_LABEL_NAME, REQUEST_HTTP_METHOD_LABEL_NAME, REQUEST_HTTP_STATUS_LABEL_NAME, REQUEST_API_LABEL_NAME);
                     collector = builder.register(this.registry);
                     // put
                     map.put(key, collector);

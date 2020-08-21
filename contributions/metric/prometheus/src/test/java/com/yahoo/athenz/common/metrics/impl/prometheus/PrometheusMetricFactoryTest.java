@@ -101,6 +101,9 @@ public class PrometheusMetricFactoryTest {
         String expectedNamespace = "expected_athenz_server";
         boolean expectedIsLabelRequestDomainNameEnable = true;
         boolean expectedIsLabelPrincipalDomainNameEnable = true;
+        boolean expectedIsLabelHttpMethodNameEnable = true;
+        boolean expectedIsLabelHttpStatusNameEnable = true;
+        boolean expectedIsLabelApiNameEnable = true;
 
         PrometheusMetric metric = null;
         try {
@@ -108,11 +111,19 @@ public class PrometheusMetricFactoryTest {
             setProperty(PrometheusMetricFactory.NAMESPACE_PROP, expectedNamespace);
             setProperty(PrometheusMetricFactory.LABEL_REQUEST_DOMAIN_NAME_ENABLE_PROP, String.valueOf(expectedIsLabelRequestDomainNameEnable));
             setProperty(PrometheusMetricFactory.LABEL_PRINCIPAL_DOMAIN_NAME_ENABLE_PROP, String.valueOf(expectedIsLabelPrincipalDomainNameEnable));
+
+            setProperty(PrometheusMetricFactory.LABEL_HTTP_METHOD_NAME_ENABLE_PROP, String.valueOf(expectedIsLabelHttpMethodNameEnable));
+            setProperty(PrometheusMetricFactory.LABEL_HTTP_STATUS_NAME_ENABLE_PROP, String.valueOf(expectedIsLabelHttpStatusNameEnable));
+            setProperty(PrometheusMetricFactory.LABEL_API_NAME_ENABLE_PROP, String.valueOf(expectedIsLabelApiNameEnable));
+
             metric = (PrometheusMetric) new PrometheusMetricFactory().create();
             clearProperty(PrometheusMetricFactory.HTTP_SERVER_ENABLE_PROP);
             clearProperty(PrometheusMetricFactory.NAMESPACE_PROP);
             clearProperty(PrometheusMetricFactory.LABEL_REQUEST_DOMAIN_NAME_ENABLE_PROP);
             clearProperty(PrometheusMetricFactory.LABEL_PRINCIPAL_DOMAIN_NAME_ENABLE_PROP);
+            clearProperty(PrometheusMetricFactory.LABEL_HTTP_METHOD_NAME_ENABLE_PROP);
+            clearProperty(PrometheusMetricFactory.LABEL_HTTP_STATUS_NAME_ENABLE_PROP);
+            clearProperty(PrometheusMetricFactory.LABEL_API_NAME_ENABLE_PROP);
 
             // assertions
             Field exporterField = metric.getClass().getDeclaredField("exporter");
@@ -134,6 +145,22 @@ public class PrometheusMetricFactoryTest {
             isLabelPrincipalDomainNameEnableField.setAccessible(true);
             boolean isLabelPrincipalDomainNameEnable = (Boolean) isLabelPrincipalDomainNameEnableField.get(metric);
             Assert.assertEquals(isLabelPrincipalDomainNameEnable, expectedIsLabelPrincipalDomainNameEnable);
+
+            Field isLabelHttpMethodNameEnableField = metric.getClass().getDeclaredField("isLabelHttpMethodNameEnable");
+            isLabelHttpMethodNameEnableField.setAccessible(true);
+            boolean isLabelHttpMethodNameEnable = (Boolean) isLabelHttpMethodNameEnableField.get(metric);
+            Assert.assertEquals(isLabelHttpMethodNameEnable, expectedIsLabelHttpMethodNameEnable);
+
+            Field isLabelHttpStatusNameEnableField = metric.getClass().getDeclaredField("isLabelHttpStatusNameEnable");
+            isLabelHttpStatusNameEnableField.setAccessible(true);
+            boolean isLabelHttpStatusNameEnable = (Boolean) isLabelHttpStatusNameEnableField.get(metric);
+            Assert.assertEquals(isLabelHttpStatusNameEnable, expectedIsLabelHttpStatusNameEnable);
+
+            Field isLabelApiNameEnableField = metric.getClass().getDeclaredField("isLabelApiNameEnable");
+            isLabelApiNameEnableField.setAccessible(true);
+            boolean isLabelApiNameEnable = (Boolean) isLabelApiNameEnableField.get(metric);
+            Assert.assertEquals(isLabelApiNameEnable, expectedIsLabelApiNameEnable);
+
         } finally {
             // cleanup
             if (metric != null) {
