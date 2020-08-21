@@ -142,7 +142,7 @@ Also enable `Default Encryption` for your bucket.
 
 ### Generate and Upload Service Private Key and Id
 
-Generate a unique private key that ZMS Server will use to sign any NTokens it issues:
+Generate a unique private key that ZMS Server will use to sign any X509 certificates it issues:
 
 ```
 openssl genrsa -out service_private_key 2048

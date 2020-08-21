@@ -50,8 +50,8 @@ for issuing tokens.
 SIA (Service Identity Agent) Provider is part of the container,
 although likely built with Athenz libraries. As services are
 authenticated by their private keys, the job of the SIA Provider
-is to generate a NToken and sign it with the given private key so
-that the service can present that NToken to ZMS/ZTS as its identity
+is to generate a X509 certificate and sign it with the given private key so
+that the service can present that certificate to ZMS/ZTS as its identity
 credentials. The corresponding public key must be registered in
 ZMS so Athenz services can validate the signature.
 

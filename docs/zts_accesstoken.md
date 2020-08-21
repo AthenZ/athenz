@@ -31,8 +31,7 @@ asked the Athenz administrators to create your top level domain.
 ## Usage
 --------
 
-An access token from ZTS service can be fetched using either Service Identity x.509 certificates
-or service ntokens.
+An access token from ZTS service can be fetched using Service Identity x.509 certificates.
 
 The optional `expire-time` argument specifies how long the access
 token should be valid for. The value must be specified in minutes. The
@@ -50,11 +49,3 @@ The full `domain.service` value will be set as the audience for the id token.
 ```
 $ zts-accesstoken -domain <domain> [-roles <roles>] [-service <service>] -svc-key-file <private-key-file> -svc-cert-file <service-cert-file> -zts <ZTS url> [-expire-time <expire-time-in-mins>]
 ```
-
-### Using NToken from a given file
-
-```
-$ zts-accesstoken -domain <domain> [-roles <roles>] [-service <service>] -ntoken-file <ntoken-file> -hdr Athenz-Principal-Auth -zts <ZTS url> [-expire-time <expire-time-in-mins>]
-```
-
-The service identity ntoken can be obtained by using the [zms-svctoken](zms_svctoken.md) utility.

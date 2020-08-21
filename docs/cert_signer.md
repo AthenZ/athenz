@@ -8,11 +8,11 @@
     * [HTTP Cert Signer](#http-cert-signer)
 
 
-Athenz supports service authentication with X.509 certificates which is
-preferred approach over NTokens. The services receive X509 certificates
-from ZTS which requires a cert signer implementation to sign and issue
-X509 certificates for Athenz Services. This feature, commonly referred
-as Copper Argos, is described in the following [section](copper_argos.md).
+Athenz supports service authentication with X.509 certificates. 
+The services receive X509 certificates from ZTS which requires a cert 
+signer implementation to sign and issue X509 certificates for Athenz Services.
+This feature, commonly referred as Copper Argos, is described in the 
+following [section](copper_argos.md).
 
 ## Cert Signer Interfaces
 -------------------------

@@ -25,7 +25,7 @@ nav:
         - Using Public/Private Key Pairs: reg_service_guide.md
 - Management:
     - Role Delegation: role_delegation.md
-    - Access/Role Token Limit Expiry Support: token_expiration.md
+    - Access token Limit Expiry Support: token_expiration.md
     - Role Certificate Limit Expiry Support: role_cert_expiration.md
     - Review Enabled Roles: review_enabled_roles.md
     - Email Notifications: email_notifications.md
@@ -69,10 +69,7 @@ nav:
 - User Guide:
     - ZMS Client Utility: zms_client.md
     - ZPU Utility: setup_zpu.md
-    - ZMS Service Token Client Utility: zms_svctoken.md
-    - ZTS TLS Certificate Utility: zts_svccert.md
     - ZTS Role Certificate Client Utility: zts_rolecert.md
-    - ZTS Role Token Client Utility: zts_roletoken.md
     - ZTS OAuth2 Access Token Client: zts_accesstoken.md
     - Registering ZMS Service Identity: reg_service_guide.md
 - References:

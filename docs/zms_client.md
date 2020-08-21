@@ -81,19 +81,11 @@ Use the `-z` option to point to the required environment for executing commands.
 ## How the ZMS Client Authenticates
 -----------------------------------
 
-The Athenz ZMS server requires the user to provide its `UserToken` to
-authorize the requests. The `UserToken` is obtained from the ZMS Server
-with the user’s credentials and is valid for one hour.
+The Athenz ZMS server requires the user to provide its `UserToken` or use a User 
+certificate and private key for MTLS to authenticate with ZMS 
+(depending on the Principal Authority used).
 
-Before communicating with the ZMS Server, the `zms-cli` utility:
-
-1.  prompts for the user's password
-2.  generates an Authorization header and passes it to ZMS to retrieve a `UserToken`
-
-After communicating with the ZMS Server, the `zms-cli` utility caches
-the user's NToken in the user's home directory in the file `.ntoken`.
-It will continue to use the token until it expires, and then will prompt
-for the user's password.
+ZMS will then authorize the request based on the configured authority.
 
 ## Listing registered domains in Athenz
 ---------------------------------------
