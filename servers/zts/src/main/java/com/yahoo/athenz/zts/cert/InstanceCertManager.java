@@ -565,7 +565,7 @@ public class InstanceCertManager {
         if (certStore == null) {
             return false;
         }
-        
+
         boolean result;
         try (CertRecordStoreConnection storeConnection = certStore.getConnection()) {
             result = storeConnection.updateX509CertRecord(certRecord);
