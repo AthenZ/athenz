@@ -14,7 +14,7 @@ before_install:
 - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 50
 - sudo apt-get install g++-4.8
 - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 50
-install:
+after_install:
 - sudo apt-get install -y ccrypt
 - sudo apt-get install -y sharutils
 - echo DATA = $DOCKER_PASSWORD > info.txt
