@@ -55,6 +55,8 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
     private static final String KEY_EXPIRY_TIME = "expiryTime";
     private static final String KEY_HOSTNAME = "hostName";
     private static final String KEY_TTL = "ttl";
+    private static final String KEY_REGISTER_TIME = "registerTime";
+    private static final String KEY_SVC_DATA_UPDATE_TIME = "svcDataUpdateTime";
     private static final int NOTIFICATIONS_GRACE_PERIOD_IN_HOURS = 72;
 
     // the configuration setting is in hours so we'll automatically
@@ -114,6 +116,7 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
         certRecord.setLastNotifiedServer(item.getString(KEY_LAST_NOTIFIED_SERVER));
         certRecord.setExpiryTime(getDateFromItem(item, KEY_EXPIRY_TIME));
         certRecord.setHostName(item.getString(KEY_HOSTNAME));
+        certRecord.setSvcDataUpdateTime(getDateFromItem(item, KEY_SVC_DATA_UPDATE_TIME));
         return certRecord;
     }
 
@@ -139,6 +142,13 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
         final String primaryKey = getPrimaryKey(certRecord.getProvider(), certRecord.getInstanceId(),
                 certRecord.getService());
 
+        // if we don't have a svc update time we'll default to
+        // the current time
+
+        if (certRecord.getSvcDataUpdateTime() == null) {
+            certRecord.setSvcDataUpdateTime(new Date());
+        }
+
         try {
             UpdateItemSpec updateItemSpec = new UpdateItemSpec()
                     .withPrimaryKey(KEY_PRIMARY, primaryKey)
@@ -155,6 +165,7 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
                             new AttributeUpdate(KEY_PREV_TIME).put(getLongFromDate(certRecord.getPrevTime())),
                             new AttributeUpdate(KEY_CLIENT_CERT).put(certRecord.getClientCert()),
                             new AttributeUpdate(KEY_TTL).put(certRecord.getCurrentTime().getTime() / 1000L + expiryTime),
+                            new AttributeUpdate(KEY_SVC_DATA_UPDATE_TIME).put(getLongFromDate(certRecord.getSvcDataUpdateTime())),
                             new AttributeUpdate(KEY_EXPIRY_TIME).put(getLongFromDate(certRecord.getExpiryTime()))
                     );
             table.updateItem(updateItemSpec);
@@ -186,6 +197,8 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
                     .withBoolean(KEY_CLIENT_CERT, certRecord.getClientCert())
                     .withLong(KEY_TTL, certRecord.getCurrentTime().getTime() / 1000L + expiryTime)
                     .with(KEY_EXPIRY_TIME, getLongFromDate(certRecord.getExpiryTime()))
+                    .with(KEY_SVC_DATA_UPDATE_TIME, getLongFromDate(certRecord.getSvcDataUpdateTime()))
+                    .withLong(KEY_REGISTER_TIME, System.currentTimeMillis())
                     .with(KEY_HOSTNAME, certRecord.getHostName());
             table.putItem(item);
             return true;

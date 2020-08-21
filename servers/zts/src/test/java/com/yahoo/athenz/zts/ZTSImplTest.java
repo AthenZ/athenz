@@ -11282,4 +11282,34 @@ public class ZTSImplTest {
                 eq(null),
                 eq(null), eq(httpStatus), eq(null));
     }
+
+    @Test
+    public void testProcessCertRecordChange() {
+        X509CertRecord certRecord = new X509CertRecord();
+        certRecord.setCurrentIP("10.10.11.12");
+        certRecord.setHostName("host1.localhost");
+        certRecord.setSvcDataUpdateTime(null);
+
+        zts.processCertRecordChange(certRecord, "10.10.11.12", "host1.localhost");
+        assertNull(certRecord.getSvcDataUpdateTime());
+
+        zts.processCertRecordChange(certRecord, "10.10.11.13", "host1.localhost");
+        assertNotNull(certRecord.getSvcDataUpdateTime());
+
+        certRecord.setSvcDataUpdateTime(null);
+        zts.processCertRecordChange(certRecord, "10.10.11.12", "host2.localhost");
+        assertNotNull(certRecord.getSvcDataUpdateTime());
+    }
+
+    @Test
+    public void testCertRecordChanged() {
+        assertFalse(zts.certRecordChanged(null, null));
+        assertTrue(zts.certRecordChanged(null, ""));
+        assertTrue(zts.certRecordChanged("", null));
+        assertFalse(zts.certRecordChanged("", ""));
+        assertFalse(zts.certRecordChanged("test1", "test1"));
+        assertTrue(zts.certRecordChanged("test1", "test2"));
+        assertTrue(zts.certRecordChanged("test1", ""));
+        assertTrue(zts.certRecordChanged("", "test2"));
+    }
 }
