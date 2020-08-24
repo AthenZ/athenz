@@ -18,7 +18,7 @@
 * [Code Changes](#code-changes)
     * [Client Changes](#client-changes)
         * [Client Project Dependency Update](#client-project-dependency-update)
-        * [Obtaining ZTokens from ZTS Server](#obtaining-ztokens-from-zts-server)
+        * [Obtaining Access Tokens from ZTS Server](#obtaining-access-tokens-from-zts-server)
         * [Build Http Client Utility](#build-http-client-utility)
     * [Servlet Changes](#servlet-changes)
         * [Servlet Project Dependency Update](#servlet-project-dependency-update)
@@ -32,10 +32,10 @@
     * [Site Editor Access](#site-editor-access)
     * [Other Test Cases](#other-test-cases)
 
-In the decentralized access control model, the client service/user
-presents an authentication token (NToken) from SIA Provider to get an
-authorization token (ZToken) from ZTS, and then presents the ZToken
-to a target service to access its resources.
+In the decentralized access control model, the client service/user uses its 
+identity x.509 certificate along with its private key that it got from 
+local SIA (1) to get an authorization token (Access Token) from ZTS (2), 
+and then presents the access token to a target service to access its resources (3).
 
 ![Decentralized Authorization for Services](images/decentralized_authz_for_services.png)
 
@@ -141,10 +141,10 @@ guide to setup the required access control:
 
 Both the client and servlet implementors need to make changes
 in their respective code bases to support decentralized authorization
-checks. The client needs to make sure to retrieve its role token
+checks. The client needs to make sure to retrieve its Access Token
 from ZTS Service and submit that as part of its request, while
 the servlet needs to carry out the authorization check based on
-that role token to determine if it request should be processed or not.
+that Access Token to determine if it request should be processed or not.
 
 ### Client Changes
 ------------------
@@ -158,20 +158,20 @@ https://github.com/yahoo/athenz/tree/master/examples/java/decentralized-use-case
 
 First you need to update your Java project `pom.xml` file to indicate
 the dependency on the Athenz auth_core and zts java client libraries. Checkout the
-[Bintray Auth-Core Package](https://bintray.com/yahoo/maven/athenz-auth-core/)
+[Bintray Athenz Cert Refresher Package](https://bintray.com/yahoo/maven/athenz-cert-refresher/)
 and [Bintray ZTS Java Client Package](https://bintray.com/yahoo/maven/athenz-zts-java-client/)
 pages to make sure you're using the latest release version:
 
 ```
 <dependency>
   <groupId>com.yahoo.athenz</groupId>
-  <artifactId>athenz-auth-core</artifactId>
-  <version>1.7.13</version>
+  <artifactId>athenz-cert-refresher</artifactId>
+  <version>VERSION-NUMBER</version>
 </dependency>
 <dependency>
   <groupId>com.yahoo.athenz</groupId>
   <artifactId>athenz-zts-java-client</artifactId>
-  <version>1.7.13</version>
+  <version>VERSION-NUMBER</version>
 </dependency>
 
 <repositories>
@@ -183,57 +183,54 @@ pages to make sure you're using the latest release version:
 </repositories>
 ```
 
-#### Obtaining ZTokens from ZTS Server
+#### Obtaining Access Tokens from ZTS Server
 --------------------------------------
 
-The domain administrator must have already generated a public/private key pair
-for the service and registered public key in Athenz. The private key must be
-available on the host where the client will be running. First, we need
-generate our service identity provider:
+The service should obtain an X509 certificate that will be used for authentication
+with Athenz.
+Follow the steps in the Authentication section to receive a certificate depending on the environment:
+[Athenz Service Identity X.509 Certificate for AWS EC2 instances](service_x509_credentials_aws.md)
+[Athenz Service Identity X.509 Certificate for AWS ECS containers](service_x509_credentials_aws_ecs.md)
+[Athenz Service Identity X.509 Certificate for AWS Fargate tasks](service_x509_credentials_aws_fargate.md)
+[Athenz Service Identity X.509 Certificate for AWS EKS pods](service_x509_credentials_aws_eks.md)
+[Athenz Service Identity X.509 Certificate for AWS Lambda functions](service_x509_credentials_aws_lambda.md)
 
-```java
-    // the fields used in the following snippet of code
-    // privateKeyPath -> includes the path to the service's private key file
-    //     the corresponding public key is already registered in Athenz
-    // domainName -> 'editors'
-    // serviceName -> 'movie', 'tvshow' or 'site'
-    // keyId -> 'v0'
-    
-    PrivateKey privateKey = Crypto.loadPrivateKey(new File(privateKeyPath));
-    ServiceIdentityProvider identityProvider = new SimpleServiceIdentityProvider(domainName,
-            serviceName, privateKey, keyId);
-```
 
-Then, we need to contact ZTS Server to retrieve a role token for
+Then, we need to contact ZTS Server to retrieve an access token for
 the given service identity (provided by the ServiceIdentityProvider)
 accessing a target service domain:
 
 ```java
     // the fields used in the following snippet of code
     // ztsUrl -> ZTS Server Url
-    // domainName -> 'editors'
+    // domainName -> 'recommend'
     // serviceName -> 'movie', 'tvshow' or 'site'
-    // identityProvider -> service identity provider created above
-    // providerDomain -> 'recommend'
     // providerRole -> 'movie_editors, tvshow_editors, full_access'
     
-    RoleToken roleToken = null;
-    try (ZTSClient ztsClient = new ZTSClient(ztsUrl, domainName, serviceName,
-            identityProvider)) {
-        roleToken = ztsClient.getRoleToken(providerDomain, providerRole);
-    }
+    KeyRefresher keyRefresher = Utils.generateKeyRefresher(trustStorePath, trustStorePassword,
+            certPath, keyPath);
+    keyRefresher.startup();
+    SSLContext sslContext = Utils.buildSSLContext(keyRefresher.getKeyManagerProxy(),
+            keyRefresher.getTrustManagerProxy());
+
+    HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
+
+    ZTSClient ztsClient = new ZTSClient(ztsUrl, sslContext);
+
+    List<String> roles = new ArrayList<>();
+    roles.add(providerRole); // Can be several of roles. Our example only use one
+    AccessTokenResponse accessTokenResponse = ztsClient.getAccessToken(domainName, roles, serviceName, 0, true);
+    String accessToken = accessTokenResponse == null ? null : accessTokenResponse.getToken_type() + " " + accessTokenResponse.getAccess_token();
 ```
 
-Once we have our RoleToken object, then the client before contacting the
-provider service needs to include the retrieved token in the request as the
-value of Athenz-Role-Auth header.
+Once we have our Access Token, we can use it in the Authorization header.
 
 ```java
     // set our Athenz credentials. The ZTSClient provides the header
-    // name that we must use for authorization token while the role
-    // token itself provides the token string (ztoken).
+    // name that we must use for authorization token while the access
+    // token itself provides the token string.
         
-    con.setRequestProperty(ZTSClient.getHeader(), roleToken.getToken());
+    con.setRequestProperty(ZTSClient.getHeader(), accessToken);
 ```
 
 #### Build Http Client Utility
@@ -250,13 +247,14 @@ $ mvn clean package
 Verify that the client is built successfully:
 
 ```shell
-$ java -cp target/example-java-client-ztoken-1.0.jar com.yahoo.athenz.example.ztoken.HttpExampleClient
-Missing required options: d, s, p, k, u, z, pd, pr
+$ java -cp target/example-java-client-access-token-1.0.jar com.yahoo.athenz.example.accesstoken.HttpExampleClient
+Missing required options: k, c, t, p, d, pr, s, u, z
 usage: http-example-client
+ -k,--keyid <arg>               key identifier
+ -c,--cert <arg>                certficate path
+ -t,--trustStorePath <arg>      CA TrustStore path
+ -p,--trustStorePassword <arg>  CA TrustStore password
  -d,--domain <arg>             domain name
- -k,--keyid <arg>              key identifier
- -p,--pkey <arg>               private key path
- -pd,--provider-domain <arg>   Provider domain name
  -pr,--provider-role <arg>     Provider role name
  -s,--service <arg>            service name
  -u,--url <arg>                request url
@@ -282,7 +280,7 @@ to make sure you're using the latest release version:
 <dependency>
   <groupId>com.yahoo.athenz</groupId>
   <artifactId>athenz-zpe-java-client</artifactId>
-  <version>1.7.13</version>
+  <version>VERSION-NUMBER</version>
 </dependency>
 
 <repositories>
@@ -321,11 +319,11 @@ our request contains the Athenz role token:
             HttpServletResponse response) throws ServletException, IOException {
 
         // retrieve and verify that our request contains an Athenz
-        // role authorization token
+        // access token
         
-        String athenzRoleToken = request.getHeader(ATHENZ_HEADER);
-        if (athenzRoleToken == null) {
-            response.sendError(403, "Forbidden - No Athenz RoleToken provided in request");
+        String accessToken = request.getHeader(ATHENZ_HEADER);
+        if (accessToken == null) {
+            response.sendError(403, "Forbidden - No Athenz accessToken provided in request");
             return;
         }
         
@@ -374,7 +372,7 @@ is to use ZPE client library for the authorization check.
         // carry out the authorization check with the expected resource
         // and action values
 
-        AccessCheckStatus status = AuthZpeClient.allowAccess(athenzRoleToken,
+        AccessCheckStatus status = AuthZpeClient.allowAccess(accessToken,
                 athenzResource, athenzAction);
         if (status != AccessCheckStatus.ALLOW) {
             response.sendError(403, "Forbidden - Athenz Authorization Rejected");
@@ -430,7 +428,7 @@ Run the following test cases to verify authorization access
 for specific services. We're running jetty server on the local
 box so we're using localhost as the hostname.
 
-* Copy the `example-java-client-ztoken-1.0.jar` file from the client/target
+* Copy the `example-java-client-access-token-1.0.jar` file from the client/target
 directory to the directory that includes the private keys for the test
 services we created in the section [Athenz Management Setup](#athenz-management-setup)
 above.
@@ -438,13 +436,13 @@ above.
 we need to generate a truststore for the java http client to use
 when communicating with the ZTS Server. From your ZTS Server installation,
 copy the `zts_cert.pem` file from the `athenz-zts-X.Y/var/zts_server/certs`
-directory into the same directory where the client ztoken utility is
+directory into the same directory where the client access token utility is
 saved (previous step) and execute the following commands:
 ```shell
 $ keytool -importcert -noprompt -alias zts -keystore zts_truststore.jks -file zts_cert.pem -storepass athenz
 ```
 
-### Invalid Access Without RoleToken
+### Invalid Access Without accessToken
 ---------------------------------------
 
 For this test case we'll just use the curl client directly:
@@ -453,7 +451,7 @@ For this test case we'll just use the curl client directly:
 $ curl http://localhost:8080/athenz-data/rec/v1/movie
 <html>
 ...
-<title>Error 403 Forbidden - No Athenz RoleToken provided in request</title>
+<title>Error 403 Forbidden - No Athenz accessToken provided in request</title>
 ...
 </html>
 ```
@@ -464,7 +462,7 @@ $ curl http://localhost:8080/athenz-data/rec/v1/movie
 Movie service can successfully access /rec/v1/movie endpoint:
 
 ```shell
-$ java -Djavax.net.ssl.trustStore=./zts_truststore.jks -cp ./example-java-client-ztoken-1.0.jar com.yahoo.athenz.example.ztoken.HttpExampleClient -d editors -s movie -p ./movie_private.pem -k v0 -pd recommend -pr movie_editors -z https://<zts-server>:8443/zts/v1 -u http://localhost:8080/athenz-data/rec/v1/movie
+$ java -Djavax.net.ssl.trustStore=./zts_truststore.jks -cp ./example-java-client-access-token-1.0.jar com.yahoo.athenz.example.accesstoken.HttpExampleClient -t ./zts_truststore.jks -p athenz -s movie -p ./movie_private.pem -d recommend -pr movie_editors -z https://<zts-server>:8443/zts/v1 -u http://localhost:8080/athenz-data/rec/v1/movie
 
 Successful response:
 Name: Slap Shot; Director: George Roy Hill
@@ -473,7 +471,7 @@ Name: Slap Shot; Director: George Roy Hill
 Movie service does not have access to /rec/v1/tvshow endpoint:
 
 ```shell
-$ java -Djavax.net.ssl.trustStore=./zts_truststore.jks -cp ./example-java-client-ztoken-1.0.jar com.yahoo.athenz.example.ztoken.HttpExampleClient -d editors -s movie -p ./movie_private.pem -k v0 -pd recommend -pr movie_editors -z https://<zts-server>:8443/zts/v1 -u http://localhost:8080/athenz-data/rec/v1/tvshow
+$ java -Djavax.net.ssl.trustStore=./zts_truststore.jks -cp ./example-java-client-access-token-1.0.jar com.yahoo.athenz.example.accesstoken.HttpExampleClient -t ./zts_truststore.jks -p athenz -s movie -p ./movie_private.pem -d recommend -pr movie_editors -z https://<zts-server>:8443/zts/v1 -u http://localhost:8080/athenz-data/rec/v1/tvshow
 
 Request was forbidden - not authorized
 ```
@@ -484,7 +482,7 @@ Request was forbidden - not authorized
 TvShow service can successfully access /rec/v1/tvshow endpoint:
 
 ```shell
-$ java -Djavax.net.ssl.trustStore=./zts_truststore.jks -cp ./example-java-client-ztoken-1.0.jar com.yahoo.athenz.example.ztoken.HttpExampleClient -d editors -s tvshow -p ./tvshow_private.pem -k v0 -pd recommend -pr tvshow_editors -z https://<zts-server>:8443/zts/v1 -u http://localhost:8080/athenz-data/rec/v1/tvshow
+$ java -Djavax.net.ssl.trustStore=./zts_truststore.jks -cp ./example-java-client-access-token-1.0.jar com.yahoo.athenz.example.accesstoken.HttpExampleClient -t ./zts_truststore.jks -p athenz -s tvshow -p ./tvshow_private.pem -d recommend -pr tvshow_editors -z https://<zts-server>:8443/zts/v1 -u http://localhost:8080/athenz-data/rec/v1/tvshow
 
 Successful response:
 Name: Middle; Channel: ABC
@@ -493,7 +491,7 @@ Name: Middle; Channel: ABC
 TvShow service does not have access to /rec/v1/movie endpoint:
 
 ```shell
-$ java -Djavax.net.ssl.trustStore=./zts_truststore.jks -cp ./example-java-client-ztoken-1.0.jar com.yahoo.athenz.example.ztoken.HttpExampleClient -d editors -s tvshow -p ./tvshow_private.pem -k v0 -pd recommend -pr tvshow_editors -z https://<zts-server>:8443/zts/v1 -u http://localhost:8080/athenz-data/rec/v1/movie
+$ java -Djavax.net.ssl.trustStore=./zts_truststore.jks -cp ./example-java-client-access-token-1.0.jar com.yahoo.athenz.example.accesstoken.HttpExampleClient -t ./zts_truststore.jks -p athenz -s tvshow -p ./tvshow_private.pem -d recommend -pr tvshow_editors -z https://<zts-server>:8443/zts/v1 -u http://localhost:8080/athenz-data/rec/v1/movie
 
 Request was forbidden - not authorized
 ```
@@ -504,12 +502,12 @@ Request was forbidden - not authorized
 Site service has access to both /rec/v1/tvshow and /rec/v1/movie endpoints:
 
 ```shell
-$ java -Djavax.net.ssl.trustStore=./zts_truststore.jks -cp ./example-java-client-ztoken-1.0.jar com.yahoo.athenz.example.ztoken.HttpExampleClient -d editors -s site -p ./site_private.pem -k v0 -pd recommend -pr full_access -z https://<zts-server>:8443/zts/v1 -u http://localhost:8080/athenz-data/rec/v1/movie
+$ java -Djavax.net.ssl.trustStore=./zts_truststore.jks -cp ./example-java-client-access-token-1.0.jar com.yahoo.athenz.example.accesstoken.HttpExampleClient -t ./zts_truststore.jks -p athenz -s site -p ./site_private.pem -d recommend -pr full_access -z https://<zts-server>:8443/zts/v1 -u http://localhost:8080/athenz-data/rec/v1/movie
 
 Successful response:
 Name: Slap Shot; Director: George Roy Hill
 
-$ java -Djavax.net.ssl.trustStore=./zts_truststore.jks -cp ./example-java-client-ztoken-1.0.jar com.yahoo.athenz.example.ztoken.HttpExampleClient -d editors -s site -p ./site_private.pem -k v0 -pd recommend -pr full_access -z https://<zts-server>:8443/zts/v1 -u http://localhost:8080/athenz-data/rec/v1/tvshow
+$ java -Djavax.net.ssl.trustStore=./zts_truststore.jks -cp ./example-java-client-access-token-1.0.jar com.yahoo.athenz.example.accesstoken.HttpExampleClient -t ./zts_truststore.jks -p athenz -s site -p ./site_private.pem -k v0 -d recommend -pr full_access -z https://<zts-server>:8443/zts/v1 -u http://localhost:8080/athenz-data/rec/v1/tvshow
 
 Successful response:
 Name: Middle; Channel: ABC

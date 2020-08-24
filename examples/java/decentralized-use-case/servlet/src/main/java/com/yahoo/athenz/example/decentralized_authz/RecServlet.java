@@ -34,7 +34,7 @@ public class RecServlet extends HttpServlet {
     private static final long serialVersionUID = 2846506476975366921L;
 
     static final String URI_PREFIX = "/athenz-data/rec/v1";
-    static final String ATHENZ_HEADER = "Athenz-Role-Auth";
+    static final String ATHENZ_HEADER = "Authorization";
     
     public void init() throws ServletException {
         
@@ -50,9 +50,9 @@ public class RecServlet extends HttpServlet {
         // retrieve and verify that our request contains an Athenz
         // role authorization token
         
-        String athenzRoleToken = request.getHeader(ATHENZ_HEADER);
-        if (athenzRoleToken == null) {
-            response.sendError(403, "Forbidden - No Athenz RoleToken provided in request");
+        String accessToken = request.getHeader(ATHENZ_HEADER);
+        if (accessToken == null) {
+            response.sendError(403, "Forbidden - No Athenz accessToken provided in request");
             return;
         }
 
@@ -82,7 +82,7 @@ public class RecServlet extends HttpServlet {
         // carry out the authorization check with the expected resource
         // and action values
 
-        AccessCheckStatus status = AuthZpeClient.allowAccess(athenzRoleToken,
+        AccessCheckStatus status = AuthZpeClient.allowAccess(accessToken,
                 athenzResource, athenzAction);
         if (status != AccessCheckStatus.ALLOW) {
             response.sendError(403, "Forbidden - Athenz Authorization Rejected: " + status.toString());
