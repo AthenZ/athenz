@@ -58,9 +58,9 @@ nav:
     - Decentralized Authorization Flow: decent_authz_flow.md
     - Client Side Service Identity Authentication: client_side_x509_credentials.md
     - Server Side Service Identity Authentication: server_side_x509_credentials.md
-    - Java Client/Servlet Example: example_java_centralized_access.md
+    - Java Client/Servlet Centralized Example: example_java_centralized_access.md
     - Go Client/Server Example: example_go_centralized_access.md
-    - Java Client/Servlet Example: example_java_decentralized_access.md
+    - Java Client/Servlet Decentralized Example: example_java_decentralized_access.md
 - Customizing Athenz:
     - Principal Authentication: principal_authentication.md
     - Private Key Store: private_key_store.md
