@@ -2784,6 +2784,68 @@ public class ZMSClientTest {
     }
 
     @Test
+    public void testGetPrincipalRoles() {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+
+        MemberRole memberRole1 = new MemberRole();
+        memberRole1.setRoleName("role1");
+        memberRole1.setDomainName("domain1");
+
+        MemberRole memberRole2 = new MemberRole();
+        memberRole2.setRoleName("role2");
+        memberRole2.setDomainName("domain1");
+
+        MemberRole memberRole3 = new MemberRole();
+        memberRole3.setRoleName("role3");
+        memberRole3.setDomainName("domain2");
+
+        List<MemberRole> memberRoles = new ArrayList<>();
+        memberRoles.add(memberRole1);
+        memberRoles.add(memberRole2);
+        memberRoles.add(memberRole3);
+
+        DomainRoleMember domainRoleMember = new DomainRoleMember();
+        domainRoleMember.setMemberName("currentPrincipalName");
+        domainRoleMember.setMemberRoles(memberRoles);
+        Mockito.when(c.getPrincipalRoles(null, null))
+                .thenReturn(domainRoleMember)
+                .thenThrow(new ZMSClientException(401, "fail"))
+                .thenThrow(new IllegalArgumentException("other-error"));
+
+        DomainRoleMember retMember = client.getPrincipalRoles(null, null);
+        assertNotNull(retMember);
+        assertEquals(retMember.getMemberName(), "currentPrincipalName");
+        assertEquals(retMember.getMemberRoles().get(0).getDomainName(), "domain1");
+        assertEquals(retMember.getMemberRoles().get(0).getRoleName(), "role1");
+
+        assertEquals(retMember.getMemberRoles().get(1).getDomainName(), "domain1");
+        assertEquals(retMember.getMemberRoles().get(1).getRoleName(), "role2");
+
+        assertEquals(retMember.getMemberRoles().get(2).getDomainName(), "domain2");
+        assertEquals(retMember.getMemberRoles().get(2).getRoleName(), "role3");
+
+        // second time it fails with zms client exception
+
+        try {
+            client.getPrincipalRoles(null, null);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(401, ex.getCode());
+        }
+
+        // last time with std exception - resulting in 400
+
+        try {
+            client.getPrincipalRoles(null, null);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(400, ex.getCode());
+        }
+    }
+
+    @Test
     public void testPutTenant() {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
