@@ -51,7 +51,7 @@ public class HostnameResolverTest {
 
         assertNotNull(resolver.getAllByName("host1.athenz.cloud"));
 
-        assertFalse(resolver.isValidHostCnameList("host1.athenz.cloud",
+        assertFalse(resolver.isValidHostCnameList("athenz.examples.httpd", "host1.athenz.cloud",
                 Collections.singletonList("cname.athenz.cloud"), CertType.X509));
     }
 }

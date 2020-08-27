@@ -146,8 +146,8 @@ public class X509CertRequest {
             return false;
         }
 
-        if (!validateInstanceCnames(provider, athenzSysDomainCache, instanceHostname,
-                instanceHostCnames, hostnameResolver)) {
+        if (!validateInstanceCnames(provider, athenzSysDomainCache, domainName + "." + serviceName,
+                instanceHostname, instanceHostCnames, hostnameResolver)) {
             return false;
         }
 
@@ -260,7 +260,7 @@ public class X509CertRequest {
     }
 
     boolean validateInstanceCnames(final String provider, final DataCache athenzSysDomainCache,
-            final String instanceHostname, List<String> instanceHostCnames, HostnameResolver hostnameResolver) {
+            final String serviceFqn, final String instanceHostname, List<String> instanceHostCnames, HostnameResolver hostnameResolver) {
 
         // if we have no cname list provided then nothing to check
 
@@ -287,7 +287,7 @@ public class X509CertRequest {
         // we must also have a resolver present and configured
 
         if (hostnameResolver != null) {
-            if (!hostnameResolver.isValidHostCnameList(instanceHostname, instanceHostCnames, CertType.X509)) {
+            if (!hostnameResolver.isValidHostCnameList(serviceFqn, instanceHostname, instanceHostCnames, CertType.X509)) {
                 LOGGER.error("{} does not have all hosts in {} as configured CNAMEs", instanceHostname,
                         String.join(",", instanceHostCnames));
                 return false;

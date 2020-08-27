@@ -5168,8 +5168,10 @@ public class ZTSImplTest {
         cnames.add("cname1.athenz.info");
         cnames.add("cname2.athenz.info");
 
+        String service = "athenz.production";
+
         HostnameResolver resolver = Mockito.mock(HostnameResolver.class);
-        Mockito.when(resolver.isValidHostCnameList("host1.athenz.cloud", cnames, CertType.X509)).thenReturn(true);
+        Mockito.when(resolver.isValidHostCnameList(service, "host1.athenz.cloud", cnames, CertType.X509)).thenReturn(true);
         Mockito.when(resolver.isValidHostname("host1.athenz.cloud")).thenReturn(true);
 
         InstanceConfirmation confirmation = new InstanceConfirmation()
@@ -5400,8 +5402,10 @@ public class ZTSImplTest {
         cnames.add("cname.athenz.info");
         cnames.add("vip.athenz.info");
 
+        String service = "athenz.production";
+
         HostnameResolver resolver = Mockito.mock(HostnameResolver.class);
-        Mockito.when(resolver.isValidHostCnameList("host1.athenz.cloud", cnames, CertType.SSH_HOST)).thenReturn(true);
+        Mockito.when(resolver.isValidHostCnameList(service, "host1.athenz.cloud", cnames, CertType.SSH_HOST)).thenReturn(true);
         Mockito.when(resolver.isValidHostname("host1.athenz.cloud")).thenReturn(true);
         ztsImpl.hostnameResolver = resolver;
 
@@ -6281,7 +6285,7 @@ public class ZTSImplTest {
         cnames.add("vip.athenz.info");
 
         HostnameResolver resolver = Mockito.mock(HostnameResolver.class);
-        Mockito.when(resolver.isValidHostCnameList("host1.athenz.cloud", cnames, CertType.SSH_HOST)).thenReturn(true);
+        Mockito.when(resolver.isValidHostCnameList(principal.getFullName(), "host1.athenz.cloud", cnames, CertType.SSH_HOST)).thenReturn(true);
         Mockito.when(resolver.isValidHostname("host1.athenz.cloud")).thenReturn(true);
         ztsImpl.hostnameResolver = resolver;
 
@@ -6314,8 +6318,10 @@ public class ZTSImplTest {
         cnames.add("cname1.athenz.info");
         cnames.add("cname2.athenz.info");
 
+        String service = "athenz.production";
+
         HostnameResolver resolver = Mockito.mock(HostnameResolver.class);
-        Mockito.when(resolver.isValidHostCnameList("host1.athenz.cloud", cnames, CertType.X509)).thenReturn(true);
+        Mockito.when(resolver.isValidHostCnameList(service, "host1.athenz.cloud", cnames, CertType.X509)).thenReturn(true);
         Mockito.when(resolver.isValidHostname("host1.athenz.cloud")).thenReturn(true);
 
         InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);

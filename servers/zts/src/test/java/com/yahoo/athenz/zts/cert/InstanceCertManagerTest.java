@@ -566,6 +566,7 @@ public class InstanceCertManagerTest {
         cert.setCertificate("ssh-cert");
         SSHCertRecord sshCertRecord = new SSHCertRecord();
         sshCertRecord.setPrincipals("127.0.0.1");
+        sshCertRecord.setService("athenz.service");
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.service");
         final SSHCertificates sshCertificates = certs.setCertificates(Collections.singletonList(cert));
         when(sshSigner.generateCertificate(null, sshRequest, sshCertRecord, "host")).thenReturn(sshCertificates);
@@ -578,7 +579,7 @@ public class InstanceCertManagerTest {
         cnames.add("vip.athenz.info");
 
         HostnameResolver hostnameResolver = Mockito.mock(HostnameResolver.class);
-        when(hostnameResolver.isValidHostCnameList(hostname, cnames, CertType.SSH_HOST)).thenReturn(true);
+        when(hostnameResolver.isValidHostCnameList(sshCertRecord.getService(), hostname, cnames, CertType.SSH_HOST)).thenReturn(true);
         when(hostnameResolver.isValidHostname(hostname)).thenReturn(true);
 
         InstanceCertManager instanceManager = new InstanceCertManager(null, null, hostnameResolver, true);
@@ -614,8 +615,11 @@ public class InstanceCertManagerTest {
         cnames.add("cname.athenz.info");
         cnames.add("vip.athenz.info");
 
+        SSHCertRecord sshCertRecord = new SSHCertRecord();
+        sshCertRecord.setService("athenz.examples.httpd");
+
         HostnameResolver hostnameResolver = Mockito.mock(HostnameResolver.class);
-        when(hostnameResolver.isValidHostCnameList(hostname, cnames, CertType.SSH_HOST)).thenReturn(false);
+        when(hostnameResolver.isValidHostCnameList(sshCertRecord.getService(), hostname, cnames, CertType.SSH_HOST)).thenReturn(false);
         when(hostnameResolver.isValidHostname(hostname)).thenReturn(true);
 
         InstanceCertManager instanceManager = new InstanceCertManager(null, null, hostnameResolver, true);
@@ -649,13 +653,17 @@ public class InstanceCertManagerTest {
     public void testValidPrincipalsNoXPrincipals() throws IOException {
         InstanceCertManager instanceManager = new InstanceCertManager(null, null, null, true);
 
+        SSHCertRecord sshCertRecord = new SSHCertRecord();
+        sshCertRecord.setService("athenz.examples.httpd");
+
         String sshCsr = "{\"pubkey\":\"key\",\"certtype\":\"host\"}";
         ObjectMapper objectMapper = new ObjectMapper();
-        boolean result = instanceManager.validPrincipals("host1.athenz.cloud",
+
+        boolean result = instanceManager.validPrincipals("host1.athenz.cloud", sshCertRecord,
                 objectMapper.readValue(sshCsr, SshHostCsr.class));
         assertTrue(result);
 
-        result = instanceManager.validPrincipals("host1.athenz.cloud",
+        result = instanceManager.validPrincipals("host1.athenz.cloud", sshCertRecord,
                 objectMapper.readValue("{}", SshHostCsr.class));
         assertTrue(result);
         instanceManager.shutdown();
@@ -665,6 +673,8 @@ public class InstanceCertManagerTest {
     public void testValidPrincipalsInvalidHostname() throws IOException {
         Path path = Paths.get("src/test/resources/sshhost_valid_sample.csr");
         String sshCsr = new String(Files.readAllBytes(path));
+        SSHCertRecord sshCertRecord = new SSHCertRecord();
+        sshCertRecord.setService("athenz.examples.httpd");
 
         // setup the hostname resolver for our request
         String hostname = "host1.athenz.cloud";
@@ -674,7 +684,7 @@ public class InstanceCertManagerTest {
         InstanceCertManager instanceManager = new InstanceCertManager(null, null, hostnameResolver, true);
 
         ObjectMapper objectMapper = new ObjectMapper();
-        boolean result = instanceManager.validPrincipals("host1.athenz.cloud",
+        boolean result = instanceManager.validPrincipals("host1.athenz.cloud", sshCertRecord,
                 objectMapper.readValue(sshCsr, SshHostCsr.class));
         assertFalse(result);
         instanceManager.shutdown();
@@ -684,6 +694,9 @@ public class InstanceCertManagerTest {
     public void testValidPrincipalsNoCnames() throws IOException {
         Path path = Paths.get("src/test/resources/sshhost_nocnames.csr");
         String sshCsr = new String(Files.readAllBytes(path));
+        SSHCertRecord sshCertRecord = new SSHCertRecord();
+        sshCertRecord.setService("athenz.examples.httpd");
+
 
         // setup the hostname resolver for our request
         String hostname = "host1.athenz.cloud";
@@ -693,7 +706,7 @@ public class InstanceCertManagerTest {
         InstanceCertManager instanceManager = new InstanceCertManager(null, null, hostnameResolver, true);
 
         ObjectMapper objectMapper = new ObjectMapper();
-        boolean result = instanceManager.validPrincipals("host1.athenz.cloud",
+        boolean result = instanceManager.validPrincipals("host1.athenz.cloud", sshCertRecord,
                 objectMapper.readValue(sshCsr, SshHostCsr.class));
 
         assertTrue(result);
@@ -707,12 +720,15 @@ public class InstanceCertManagerTest {
         sshHostCsr.setXPrincipals(new String[]{hostname});
         sshHostCsr.setPrincipals(new String[]{"service.domain.athenz.cloud", hostname});
 
+        SSHCertRecord sshCertRecord = new SSHCertRecord();
+        sshCertRecord.setService("athenz.examples.httpd");
+
         HostnameResolver hostnameResolver = Mockito.mock(HostnameResolver.class);
         when(hostnameResolver.isValidHostname(hostname)).thenReturn(true);
 
         InstanceCertManager instanceManager = new InstanceCertManager(null, null, hostnameResolver, true);
 
-        boolean result = instanceManager.validPrincipals(hostname, sshHostCsr);
+        boolean result = instanceManager.validPrincipals(hostname, sshCertRecord, sshHostCsr);
         assertTrue(result);
         instanceManager.shutdown();
     }
@@ -724,11 +740,14 @@ public class InstanceCertManagerTest {
         sshHostCsr.setXPrincipals(new String[]{"10.1.2.3"});
         sshHostCsr.setPrincipals(new String[]{"service.domain.athenz.cloud", "10.1.2.3"});
 
+        SSHCertRecord sshCertRecord = new SSHCertRecord();
+        sshCertRecord.setService("athenz.examples.httpd");
+
         HostnameResolver hostnameResolver = Mockito.mock(HostnameResolver.class);
 
         InstanceCertManager instanceManager = new InstanceCertManager(null, null, hostnameResolver, true);
 
-        boolean result = instanceManager.validPrincipals(hostname, sshHostCsr);
+        boolean result = instanceManager.validPrincipals(hostname, sshCertRecord, sshHostCsr);
         assertTrue(result);
         instanceManager.shutdown();
     }
