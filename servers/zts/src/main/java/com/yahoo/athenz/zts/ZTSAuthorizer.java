@@ -197,7 +197,11 @@ public class ZTSAuthorizer implements Authorizer {
     
     boolean assertionMatch(com.yahoo.athenz.zms.Assertion assertion, String identity, String op,
             String resource, List<Role> roles, String trustDomain) {
-        
+
+        // Lowercase action and resource as it is possible to store them case-sensitive
+        assertion.setResource(assertion.getResource().toLowerCase());
+        assertion.setAction(assertion.getAction().toLowerCase());
+
         String opPattern = StringUtils.patternFromGlob(assertion.getAction());
         if (!op.matches(opPattern)) {
             return false;

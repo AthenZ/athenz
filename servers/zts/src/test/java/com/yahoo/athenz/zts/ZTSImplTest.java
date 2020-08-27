@@ -1081,7 +1081,43 @@ public class ZTSImplTest {
         
         assertEquals(authorizer.evaluateAccess(domain, "user_domain.user1", "read", "coretech:resource1", null), AccessStatus.DENIED);
     }
-    
+
+    @Test
+    public void testEvaluateAccessAssertionDenyCaseSensitive() {
+
+        DataCache domain = new DataCache();
+        DomainData domainData = new DomainData();
+        domainData.setName("coretech");
+        domain.setDomainData(domainData);
+        domainData.setRoles(new ArrayList<>());
+        Role role = createRoleObject("coretech", "role1", null, "user_domain.user1", null);
+        domainData.getRoles().add(role);
+
+        Policy policy = new Policy().setName("coretech:policy.policy1");
+        Assertion assertion = new Assertion();
+        assertion.setAction("ReaD");
+        assertion.setEffect(AssertionEffect.DENY);
+        assertion.setResource("coretech:*");
+        assertion.setRole("coretech:role.role1");
+        policy.setAssertions(new ArrayList<>());
+        policy.getAssertions().add(assertion);
+        domainData.setPolicies(new com.yahoo.athenz.zms.SignedPolicies());
+        domainData.getPolicies().setContents(new com.yahoo.athenz.zms.DomainPolicies());
+        domainData.getPolicies().getContents().setPolicies(new ArrayList<>());
+        domainData.getPolicies().getContents().getPolicies().add(policy);
+
+        ZTSAuthorizer spiedZtsAuthorizer = Mockito.spy(authorizer);
+        AccessStatus result = spiedZtsAuthorizer.evaluateAccess(domain, "user_domain.user1", "read", "coretech:resource1", null);
+        assertEquals(result, AccessStatus.DENIED);
+
+        // Verify that it was denied by explicit "Deny" assertion and not because no match was found
+        Mockito.verify(spiedZtsAuthorizer, times(1)).matchPrincipal(
+                eq(domainData.getRoles()),
+                eq("^coretech:role\\.role1$"),
+                eq("user_domain.user1"),
+                eq(null));
+    }
+
     @Test
     public void testEvaluateAccessAssertionAllow() {
         
@@ -1114,7 +1150,40 @@ public class ZTSImplTest {
         
         assertEquals(authorizer.evaluateAccess(domain, "user_domain.user1", "read", "coretech:resource1", null), AccessStatus.ALLOWED);
     }
-    
+
+    @Test
+    public void testEvaluateAccessAssertionAllowCaseSensitive() {
+
+        DataCache domain = new DataCache();
+        DomainData domainData = new DomainData();
+        domainData.setName("coretech");
+        domain.setDomainData(domainData);
+        domainData.setRoles(new ArrayList<>());
+        Role role = createRoleObject("coretech", "role1", null, "user_domain.user1", null);
+        domainData.getRoles().add(role);
+
+        Policy policy = new Policy().setName("coretech:policy.policy1");
+        Assertion assertion1 = new Assertion();
+        assertion1.setAction("ReaD");
+        assertion1.setEffect(AssertionEffect.ALLOW);
+        assertion1.setResource("coretech:*");
+        assertion1.setRole("coretech:role.role1");
+        Assertion assertion2 = new Assertion();
+        assertion2.setAction("ReaD");
+        assertion2.setEffect(AssertionEffect.ALLOW);
+        assertion2.setResource("coretech:ResourcE1");
+        assertion2.setRole("coretech:role.role1");
+        policy.setAssertions(new ArrayList<>());
+        policy.getAssertions().add(assertion1);
+        policy.getAssertions().add(assertion2);
+        domainData.setPolicies(new com.yahoo.athenz.zms.SignedPolicies());
+        domainData.getPolicies().setContents(new com.yahoo.athenz.zms.DomainPolicies());
+        domainData.getPolicies().getContents().setPolicies(new ArrayList<>());
+        domainData.getPolicies().getContents().getPolicies().add(policy);
+
+        assertEquals(authorizer.evaluateAccess(domain, "user_domain.user1", "read", "coretech:resource1", null), AccessStatus.ALLOWED);
+    }
+
     @Test
     public void testGetHostServices() {
         

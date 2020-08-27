@@ -435,12 +435,14 @@ public class ZpeUpdPolLoader implements Closeable {
             for (Assertion assertion : assertions) {
                 com.yahoo.rdl.Struct strAssert = new Struct();
                 strAssert.put(ZpeConsts.ZPE_FIELD_POLICY_NAME, pname);
-                
-                String passertAction = assertion.getAction();
+
+                // Is is possible for action and resource to retain case. Need to lower them both.
+                String passertAction = assertion.getAction().toLowerCase();
+
                 ZpeMatch matchStruct = getMatchObject(passertAction);
                 strAssert.put(ZpeConsts.ZPE_ACTION_MATCH_STRUCT, matchStruct);
                 
-                String passertResource = assertion.getResource();
+                String passertResource = assertion.getResource().toLowerCase();
                 String rsrc = AuthZpeClient.stripDomainPrefix(passertResource, domainName, passertResource);
                 strAssert.put(ZpeConsts.ZPE_FIELD_RESOURCE, rsrc);
                 matchStruct = getMatchObject(rsrc);

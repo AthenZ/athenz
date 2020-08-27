@@ -558,7 +558,17 @@ public class TestAuthZpe {
         AccessCheckStatus status = AuthZpeClient.allowAccess(rToken0AnglerPublic, angResource, action, roleName);
         Assert.assertEquals(status, AccessCheckStatus.DENY);
     }
-    
+
+    @Test
+    public void testPublicThrowDeniedCaseSensitive() {
+        String action      = "THrow2";
+        String angResource = "angler:StufF2";
+        StringBuilder roleName = new StringBuilder();
+
+        AccessCheckStatus status = AuthZpeClient.allowAccess(rToken0AnglerPublic, angResource, action, roleName);
+        Assert.assertEquals(status, AccessCheckStatus.DENY);
+    }
+
     @Test
     public void testAdminThrowAllowed() {
         String action      = "THrow";
@@ -572,6 +582,17 @@ public class TestAuthZpe {
     public void testValidAccessResource() {
         String action      = "ACCESS";
         String angResource = "angler:tables.blah";
+        StringBuilder roleName = new StringBuilder();
+
+        AccessCheckStatus status = AuthZpeClient.allowAccess(rToken0AnglerPachinko, angResource, action, roleName);
+        Assert.assertEquals(status, AccessCheckStatus.ALLOW);
+        Assert.assertEquals(roleName.toString(), "pachinko");
+    }
+
+    @Test
+    public void testValidAccessResourceCaseSensitive() {
+        String action      = "AccesS2";
+        String angResource = "angler:TableS.BlaH2";
         StringBuilder roleName = new StringBuilder();
 
         AccessCheckStatus status = AuthZpeClient.allowAccess(rToken0AnglerPachinko, angResource, action, roleName);

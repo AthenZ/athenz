@@ -16,6 +16,7 @@
 package com.yahoo.athenz.zms.utils;
 
 import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -361,5 +362,20 @@ public class ZMSUtilsTest {
 
         assertEquals("role,domain", ZMSUtils.combineUserAuthorityFilters("role", "domain"));
         assertEquals("same,same", ZMSUtils.combineUserAuthorityFilters("same", "same"));
+    }
+
+    @Test
+    public void testLowerDomainInResource() {
+        assertEquals(ZMSUtils.lowerDomainInResource("DOMAIN:ResourcE1"), "domain:ResourcE1");
+        assertEquals(ZMSUtils.lowerDomainInResource("domain:ResOurcE1"), "domain:ResOurcE1");
+        assertEquals(ZMSUtils.lowerDomainInResource("domain:resource1"), "domain:resource1");
+        assertEquals(ZMSUtils.lowerDomainInResource("DOMAIN:ResourcE2(ResourcE3)"), "domain:ResourcE2(ResourcE3)");
+        assertEquals(ZMSUtils.lowerDomainInResource("DOMAIN:ResourcE1/ResourcE2"), "domain:ResourcE1/ResourcE2");
+        assertEquals(ZMSUtils.lowerDomainInResource("DOMAIN:resource4[*]/data1"), "domain:resource4[*]/data1");
+        assertEquals(ZMSUtils.lowerDomainInResource("justResource"), "justResource");
+        assertEquals(ZMSUtils.lowerDomainInResource("WrongDelimiter.NoOp"), "WrongDelimiter.NoOp");
+        assertEquals(ZMSUtils.lowerDomainInResource("DOMAIN:Many:Delimiters:THIS:TIME"), "domain:Many:Delimiters:THIS:TIME");
+        assertEquals(ZMSUtils.lowerDomainInResource(""), "");
+        assertEquals(ZMSUtils.lowerDomainInResource(null), null);
     }
 }

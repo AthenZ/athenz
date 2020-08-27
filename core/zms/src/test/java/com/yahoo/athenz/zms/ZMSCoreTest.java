@@ -434,6 +434,47 @@ public class ZMSCoreTest {
     }
 
     @Test
+    public void testAssertionMethodCaseSensitive() {
+        Schema schema = ZMSSchema.instance();
+        Validator validator = new Validator(schema);
+
+        // assertion test
+        Assertion a = new Assertion().setRole("test.role").setResource("test.ResourcE.*").setAction("Test-ACTION")
+                .setEffect(AssertionEffect.ALLOW).setId(0L).setCaseSensitive(true);
+        Result result = validator.validate(a, "Assertion");
+        assertTrue(result.valid);
+
+        assertEquals(a.getRole(), "test.role");
+        assertEquals(a.getResource(), "test.ResourcE.*");
+        assertEquals(a.getAction(), "Test-ACTION");
+        assertEquals(a.getEffect(), AssertionEffect.fromString("ALLOW"));
+        assertEquals((long) a.getId(), 0L);
+        assertEquals(a.getCaseSensitive().booleanValue(), true);
+
+        Assertion a2 = new Assertion().setRole("test.role").setResource("test.ResourcE.*").setAction("Test-ACTION")
+                .setEffect(AssertionEffect.ALLOW).setId(0L).setCaseSensitive(true);
+
+        assertTrue(a2.equals(a));
+        assertTrue(a.equals(a));
+
+        a2.setCaseSensitive(null);
+        assertFalse(a2.equals(a));
+        a2.setCaseSensitive(false);
+        assertFalse(a2.equals(a));
+        a2.setId(null);
+        assertFalse(a2.equals(a));
+        a2.setEffect(null);
+        assertFalse(a2.equals(a));
+        a2.setAction(null);
+        assertFalse(a2.equals(a));
+        a2.setResource(null);
+        assertFalse(a2.equals(a));
+        a2.setRole(null);
+        assertFalse(a2.equals(a));
+        assertFalse(a.equals(new String()));
+    }
+
+    @Test
     public void testSignedDomainsMethod() {
 
         Schema schema = ZMSSchema.instance();
@@ -2253,6 +2294,42 @@ public class ZMSCoreTest {
 
         assertFalse(ps1.equals(null));
         assertFalse(ps1.equals(new String()));
+    }
+
+    @Test
+    public void testPoliciesMethodCaseSensitive() {
+        Schema schema = ZMSSchema.instance();
+        Validator validator = new Validator(schema);
+
+        Assertion a = new Assertion().setRole("test.role.*").setResource("test.ResourcE.*").setAction("Test-Action")
+                .setEffect(AssertionEffect.ALLOW).setId(0L);
+
+        List<Policy> plist = Arrays.asList(new Policy().setName("test").setAssertions(Arrays.asList(a)).setCaseSensitive(true));
+
+        Policies ps1 = new Policies().setList(plist);
+
+        Result result = validator.validate(ps1, "Policies");
+        assertTrue(result.valid);
+
+        assertEquals(ps1.getList(), plist);
+
+        Policies ps2 = new Policies().setList(plist);
+        assertTrue(ps2.equals(ps1));
+        assertTrue(ps1.equals(ps1));
+        assertTrue(ps2.getList().get(0).getCaseSensitive());
+
+        ps2.setList(null);
+        assertFalse(ps2.equals(ps1));
+
+        assertFalse(ps1.equals(null));
+        assertFalse(ps1.equals(new String()));
+
+        Policy policyCaseSensitiveCheck = new Policy().setName("test").setAssertions(Arrays.asList(a)).setCaseSensitive(null);
+        assertFalse(ps1.getList().get(0).equals(policyCaseSensitiveCheck));
+        policyCaseSensitiveCheck.setCaseSensitive(false);
+        assertFalse(ps1.getList().get(0).equals(policyCaseSensitiveCheck));
+        policyCaseSensitiveCheck.setCaseSensitive(true);
+        assertTrue(ps1.getList().get(0).equals(policyCaseSensitiveCheck));
     }
 
     @Test

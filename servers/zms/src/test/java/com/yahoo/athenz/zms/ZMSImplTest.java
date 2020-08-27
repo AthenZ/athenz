@@ -3853,15 +3853,20 @@ public class ZMSImplTest {
         Policy policy2 = createPolicyObject("PolicyListDom1", "Policy2");
         zms.putPolicy(mockDomRsrcCtx, "PolicyListDom1", "Policy2", auditRef, policy2);
 
+        Policy policy3 = createPolicyObject("PolicyListDom1", "Policy3");
+        policy3.setCaseSensitive(true);
+        zms.putPolicy(mockDomRsrcCtx, "PolicyListDom1", "Policy3", auditRef, policy3);
+
         PolicyList policyList = zms.getPolicyList(mockDomRsrcCtx, "PolicyListDom1", null, null);
         assertNotNull(policyList);
 
         // policy count +1 due to admin policy
-        assertEquals(policyList.getNames().size(), 3);
+        assertEquals(policyList.getNames().size(), 4);
 
         assertTrue(policyList.getNames().contains("Policy1".toLowerCase()));
         assertTrue(policyList.getNames().contains("Policy2".toLowerCase()));
-        
+        assertTrue(policyList.getNames().contains("Policy3".toLowerCase()));
+
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "PolicyListDom1", auditRef);
     }
 
@@ -3982,7 +3987,95 @@ public class ZMSImplTest {
 
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, "PolicyGetDom1", auditRef);
     }
-    
+
+    @Test
+    public void testGetPolicyCaseSensitive() {
+
+        TestAuditLogger alogger = new TestAuditLogger();
+        List<String> aLogMsgs = alogger.getLogMsgList();
+        ZMSImpl zmsImpl = getZmsImpl(alogger);
+
+        TopLevelDomain dom1 = createTopLevelDomainObject("PolicyGetDom1",
+                "Test Domain1", "testOrg", adminUser);
+        Mockito.when(mockDomRsrcCtx.getApiName()).thenReturn("posttopleveldomain").thenReturn("putpolicy");
+        zmsImpl.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Policy policy1 = createPolicyObject("PolicyGetDom1", "Policy1", "Role1", "ActioN1", "PolicyGetDom1:SomeResourcE", AssertionEffect.ALLOW);
+        policy1.setCaseSensitive(true);
+        zmsImpl.putPolicy(mockDomRsrcCtx, "PolicyGetDom1", "Policy1", auditRef, policy1);
+
+        Policy policy = zmsImpl.getPolicy(mockDomRsrcCtx, "PolicyGetDom1", "Policy1");
+        assertNotNull(policy);
+        assertEquals(policy.getName(), "PolicyGetDom1:policy.Policy1".toLowerCase());
+
+        List<Assertion> assertList = policy.getAssertions();
+        assertNotNull(assertList);
+        assertEquals(assertList.size(), 1);
+        Assertion obj = assertList.get(0);
+        assertEquals(obj.getAction(), "ActioN1");
+        assertEquals(obj.getEffect(), AssertionEffect.ALLOW);
+        assertEquals(obj.getResource(), "policygetdom1:SomeResourcE");
+        assertEquals(obj.getRole(), "PolicyGetDom1:role.Role1".toLowerCase());
+
+        boolean foundError = false;
+        System.err.println("testGetPolicy: Number of lines: " + aLogMsgs.size());
+        for (String msg: aLogMsgs) {
+            if (!msg.contains("WHAT-api=(putpolicy)")) {
+                continue;
+            }
+            assertTrue(msg.contains("CLIENT-IP=(" + MOCKCLIENTADDR + ")"), msg);
+            int index = msg.indexOf("WHAT-details=(");
+            assertTrue(index != -1, msg);
+            int index2 = msg.indexOf("\"added-assertions\": [{\"role\": \"policygetdom1:role.role1\", \"action\": \"ActioN1\", \"effect\": \"ALLOW\", \"resource\": \"policygetdom1:SomeResourcE\"}]");
+            assertTrue(index < index2, msg);
+            index2 = msg.indexOf("ERROR");
+            assertEquals(index2, -1, msg);
+            foundError = true;
+            break;
+        }
+        assertTrue(foundError);
+
+        // modify the assertion: result is add of new assertion, delete of old
+        //
+        obj.setAction("layup");
+        // We'll set the policy to not be case-sensitive. So even though we didn't override the resource name, it will be lower-cased
+        policy1.setCaseSensitive(false);
+        obj.setEffect(AssertionEffect.DENY);
+        List<Assertion> assertions = new ArrayList<>();
+        assertions.add(obj);
+        policy1.setAssertions(assertions);
+        aLogMsgs.clear();
+        zmsImpl.putPolicy(mockDomRsrcCtx, "PolicyGetDom1", "Policy1", auditRef, policy1);
+
+        foundError = false;
+        System.err.println("testGetPolicy: Number of lines: " + aLogMsgs.size());
+        for (String msg: aLogMsgs) {
+            if (!msg.contains("WHAT-api=(putpolicy)")) {
+                continue;
+            }
+            assertTrue(msg.contains("CLIENT-IP=(" + MOCKCLIENTADDR + ")"), msg);
+            int index = msg.indexOf("WHAT-details=(");
+            assertTrue(index != -1, msg);
+            int index2 = msg.indexOf("\"added-assertions\": [{\"role\": \"policygetdom1:role.role1\", \"action\": \"layup\", \"effect\": \"DENY\", \"resource\": \"policygetdom1:someresource\"}]");
+            assertTrue(index < index2, msg);
+            index2 = msg.indexOf("ERROR");
+            assertEquals(index2, -1, msg);
+            foundError = true;
+            break;
+        }
+        assertTrue(foundError);
+
+        // this should throw an exception
+        try {
+            zmsImpl.getPolicy(mockDomRsrcCtx, "PolicyGetDom1", "Policy2");
+            fail();
+        } catch (Exception ex) {
+            assertTrue(true);
+        }
+
+        zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, "PolicyGetDom1", auditRef);
+    }
+
     @Test
     public void testGetPolicyThrowException() {
         String domainName = "PolicyGetDom1";
@@ -4068,6 +4161,60 @@ public class ZMSImplTest {
         Policy policyRes2 = zms.getPolicy(mockDomRsrcCtx, "PolicyAddDom1", "Policy1");
         assertNotNull(policyRes2);
         assertEquals(policyRes2.getName(), "PolicyAddDom1:policy.Policy1".toLowerCase());
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "PolicyAddDom1", auditRef);
+    }
+
+    @Test
+    public void testCreatePolicyCaseSensitive() {
+
+        TopLevelDomain dom1 = createTopLevelDomainObject("PolicyAddDom1",
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        // Create policy with an "allow all" assertion
+        Policy policy1 = createPolicyObject("PolicyAddDom1", "Policy1");
+        // Make the assertions in the policy case sensitive with regards to action and resource
+        policy1.setCaseSensitive(true);
+
+        // Create assertion2
+        Assertion assertion2 = new Assertion();
+        assertion2.setAction("ReaD");
+        assertion2.setEffect(AssertionEffect.ALLOW);
+        assertion2.setResource("coretech:RESOURCE");
+        assertion2.setRole("PolicyAddDom1:role.provider");
+
+        // Create assertion3 which is identical to assertion2 but with a different case in action and resource
+        Assertion assertion3 = new Assertion();
+        assertion3.setAction("READ");
+        assertion3.setEffect(AssertionEffect.ALLOW);
+        assertion3.setResource("coretech:Resource");
+        assertion3.setRole("PolicyAddDom1:role.provider");
+
+        // Create assertion4 which is different than assertion 3 and 2
+        Assertion assertion4 = new Assertion();
+        assertion4.setAction("WritE");
+        assertion4.setEffect(AssertionEffect.ALLOW);
+        assertion4.setResource("coretech:OtherResource");
+        assertion4.setRole("PolicyAddDom1:role.provider");
+
+        policy1.getAssertions().add(assertion2);
+        policy1.getAssertions().add(assertion3);
+        policy1.getAssertions().add(assertion4);
+
+        zms.putPolicy(mockDomRsrcCtx, "PolicyAddDom1", "Policy1", auditRef, policy1);
+
+        Policy policyRes2 = zms.getPolicy(mockDomRsrcCtx, "PolicyAddDom1", "Policy1");
+        assertNotNull(policyRes2);
+        assertEquals(policyRes2.getName(), "PolicyAddDom1:policy.Policy1".toLowerCase());
+        List<Assertion> assertions = policyRes2.getAssertions();
+        assertEquals(assertions.size(), 3); // assertion 2 and 3 are considered identical so only one remained
+
+        assertEquals(assertions.get(1).getAction(), "ReaD");
+        assertEquals(assertions.get(1).getResource(), "coretech:RESOURCE");
+
+        assertEquals(assertions.get(2).getAction(), "WritE");
+        assertEquals(assertions.get(2).getResource(), "coretech:OtherResource");
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "PolicyAddDom1", auditRef);
     }
@@ -6426,6 +6573,212 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testGetAccessCaseSensitive() {
+
+        TopLevelDomain dom1 = createTopLevelDomainObject("AccessDom1",
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Role role1 = createRoleObject("AccessDom1", "Role1", null, "user.user1",
+                "user.user3");
+        zms.putRole(mockDomRsrcCtx, "AccessDom1", "Role1", auditRef, role1);
+
+        Role role2 = createRoleObject("AccessDom1", "Role2", null, "user.user2",
+                "user.user3");
+        zms.putRole(mockDomRsrcCtx, "AccessDom1", "Role2", auditRef, role2);
+
+        Policy policy1 = createPolicyObject("AccessDom1", "Policy1", "Role1",
+                "UpdatE", "AccessDom1:ResourcE1", AssertionEffect.ALLOW);
+        policy1.setCaseSensitive(true);
+        zms.putPolicy(mockDomRsrcCtx, "AccessDom1", "Policy1", auditRef, policy1);
+
+        Policy policy2 = createPolicyObject("AccessDom1", "Policy2", "Role2",
+                "CreatE", "AccessDom1:ResourcE2", AssertionEffect.DENY);
+        policy2.setCaseSensitive(true);
+        zms.putPolicy(mockDomRsrcCtx, "AccessDom1", "Policy2", auditRef, policy2);
+
+        Policy policy3 = createPolicyObject("AccessDom1", "Policy3", "Role2",
+                "*", "AccessDom1:ResourcE3", AssertionEffect.ALLOW);
+        policy3.setCaseSensitive(true);
+        zms.putPolicy(mockDomRsrcCtx, "AccessDom1", "Policy3", auditRef, policy3);
+
+        Policy policy4 = createPolicyObject("AccessDom1", "Policy4", "Role2",
+                "DeletE", "AccessdoM1:*", AssertionEffect.ALLOW);
+        policy4.setCaseSensitive(true);
+        zms.putPolicy(mockDomRsrcCtx, "AccessDom1", "Policy4", auditRef, policy4);
+
+        Policy policy5 = createPolicyObject("AccessDom1", "Policy5", "Role1",
+                "ReaD", "AccessdoM1:*", AssertionEffect.ALLOW);
+        policy5.setCaseSensitive(true);
+        zms.putPolicy(mockDomRsrcCtx, "AccessDom1", "Policy5", auditRef, policy5);
+
+        Policy policy6 = createPolicyObject("AccessDom1", "Policy6", "Role1",
+                "ReaD", "AccessDom1:ResourcE6", AssertionEffect.DENY);
+        policy6.setCaseSensitive(true);
+        zms.putPolicy(mockDomRsrcCtx, "AccessDom1", "Policy6", auditRef, policy6);
+
+        // user1 and user3 have access to UPDATE/resource1
+
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        Principal principal1 = principalAuthority.authenticate("v=U1;d=user;n=user1;s=signature",
+                "10.11.12.13", "GET", null);
+        ResourceContext rsrcCtx1 = createResourceContext(principal1);
+        Principal principal2 = principalAuthority.authenticate("v=U1;d=user;n=user2;s=signature",
+                "10.11.12.13", "GET", null);
+        ResourceContext rsrcCtx2 = createResourceContext(principal2);
+        Principal principal3 = principalAuthority.authenticate("v=U1;d=user;n=user3;s=signature",
+                "10.11.12.13", "GET", null);
+        ResourceContext rsrcCtx3 = createResourceContext(principal3);
+
+        Access access = zms.getAccess(rsrcCtx1, "uPDATe", "AcceSSDom1:rESOURCe1",
+                "AccessDom1", null);
+        assertTrue(access.getGranted());
+
+        access = zms.getAccess(rsrcCtx2, "UpDaTe", "AccEssDom1:reSouRce1",
+                "AccessDom1", null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccess(rsrcCtx3, "uPdate", "AccEssDom1:resOurce1",
+                "AccessDom1", null);
+        assertTrue(access.getGranted());
+
+        // same set as before with no trust domain field
+
+        access = zms.getAccess(rsrcCtx1, "UPDaTE", "ACcessDom1:reSource1",
+                null, null);
+        assertTrue(access.getGranted());
+
+        access = zms.getAccess(rsrcCtx2, "UPDAtE", "AccEssDom1:resOUrce1",
+                null, null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccess(rsrcCtx3, "uPDATE", "ACcessDom1:resourcE1",
+                null, null);
+        assertTrue(access.getGranted());
+
+        // all three have no access to CREATE action on resource1
+
+        access = zms.getAccess(rsrcCtx1, "CREATE", "AccessDom1:resource1",
+                "AccessDom1", null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccess(rsrcCtx2, "CREATE", "AccessDom1:resource1",
+                "AccessDom1", null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccess(rsrcCtx3, "CREATE", "AccessDom1:resource1",
+                "AccessDom1", null);
+        assertFalse(access.getGranted());
+
+        // all three have no access to invalid domain name on resource 1
+
+        access = zms.getAccess(rsrcCtx1, "CREATE", "AccessDom1:resource1",
+                "AccessDom2", null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccess(rsrcCtx2, "CREATE", "AccessDom1:resource1",
+                "AccessDom2", null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccess(rsrcCtx3, "CREATE", "AccessDom1:resource1",
+                "AccessDom2", null);
+        assertFalse(access.getGranted());
+
+        // same as before with no trust domain field
+
+        access = zms.getAccess(rsrcCtx1, "CREATE", "AccessDom1:resource1",
+                null, null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccess(rsrcCtx2, "CREATE", "AccessDom1:resource1",
+                null, null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccess(rsrcCtx3, "CREATE", "AccessDom1:resource1",
+                null, null);
+        assertFalse(access.getGranted());
+
+        // all three should have deny access to resource 2
+
+        access = zms.getAccess(rsrcCtx1, "CREATE", "AccessDom1:resource2",
+                "AccessDom1", null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccess(rsrcCtx2, "CREATE", "AccessDom1:resource2",
+                "AccessDom1", null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccess(rsrcCtx3, "CREATE", "AccessDom1:resource2",
+                "AccessDom1", null);
+        assertFalse(access.getGranted());
+
+        // user2 and user3 have access to CREATE(*)/resource 3
+
+        access = zms.getAccess(rsrcCtx1, "CREATE", "AccessDom1:resource3",
+                "AccessDom1", null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccess(rsrcCtx2, "CReATE", "AccessDOm1:resouRce3",
+                "AccessDom1", null);
+        assertTrue(access.getGranted());
+
+        access = zms.getAccess(rsrcCtx3, "CREATe", "accessDom1:rEsource3",
+                "AccessDom1", null);
+        assertTrue(access.getGranted());
+
+        // user2 and user3 have access to UPDATE(*)/resource 3
+
+        access = zms.getAccess(rsrcCtx1, "UpDATE", "AcCessDom1:reSource3",
+                "AccessDom1", null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccess(rsrcCtx2, "UPDaTE", "AccEssDom1:resourCe3",
+                "AccessDom1", null);
+        assertTrue(access.getGranted());
+
+        access = zms.getAccess(rsrcCtx3, "UPDATe", "AccEssDom1:resouRce3",
+                "AccessDom1", null);
+        assertTrue(access.getGranted());
+
+        // user2 and user3 have access to DELETE/resource 4 (*)
+
+        access = zms.getAccess(rsrcCtx1, "DeLETE", "AccEssDOm1:resouRce4",
+                "AccessDom1", null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccess(rsrcCtx2, "DELETe", "AccEssDom1:resouRce4",
+                "AccessDom1", null);
+        assertTrue(access.getGranted());
+
+        access = zms.getAccess(rsrcCtx3, "DELEtE", "AccesSDom1:resouRce4",
+                "AccessDom1", null);
+        assertTrue(access.getGranted());
+
+        // user1 should be able to read resource 5(*) but not resource 6
+        // (explicit DENY)
+
+        access = zms.getAccess(rsrcCtx1, "reaD", "ACCessDom1:reSource5",
+                "AccessDom1", null);
+        assertTrue(access.getGranted());
+
+        access = zms.getAccess(rsrcCtx1, "READ", "AccessDom1:resource6",
+                "AccessDom1", null);
+        assertFalse(access.getGranted());
+
+        // we should get an exception since access is not allowed to be called
+        // with user cookie - this api is only for functions that require a
+        // service or user tokens
+
+        try {
+            zms.access("READ", "AccessDom1:resource5", principal1, "AccessDom1");
+        } catch (ResourceException ex) {
+            assertEquals(400, ex.getCode());
+        }
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "AccessDom1", auditRef);
+    }
+
+    @Test
     public void testGetAccessWildcard() {
 
         final String domainName = "WildcardAccessDomain1";
@@ -7380,7 +7733,171 @@ public class ZMSImplTest {
         
         zms.deleteTopLevelDomain(mockDomRsrcCtx, testDomainName, auditRef);
     }
-    
+
+    @Test
+    public void testGetAccessExtCaseSensitive() {
+
+        final String testDomainName = "AccessDomExt1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(testDomainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Role role1 = createRoleObject(testDomainName, "Role1", null, "user.user1",
+                "user.user3");
+        zms.putRole(mockDomRsrcCtx, testDomainName, "Role1", auditRef, role1);
+
+        Role role2 = createRoleObject(testDomainName, "Role2", null, "user.user2",
+                "user.user3");
+        zms.putRole(mockDomRsrcCtx, testDomainName, "Role2", auditRef, role2);
+
+        Policy policy1 = createPolicyObject(testDomainName, "Policy1", "Role1",
+                "UpdatE", testDomainName + ":ResourcE1/ResourcE2", AssertionEffect.ALLOW);
+        policy1.setCaseSensitive(true);
+        zms.putPolicy(mockDomRsrcCtx, testDomainName, "Policy1", auditRef, policy1);
+
+        Policy policy2 = createPolicyObject(testDomainName, "Policy2", "Role2",
+                "CreatE", testDomainName + ":ResourcE2(ResourcE3)", AssertionEffect.ALLOW);
+        policy2.setCaseSensitive(true);
+        zms.putPolicy(mockDomRsrcCtx, testDomainName, "Policy2", auditRef, policy2);
+
+        Policy policy3 = createPolicyObject(testDomainName, "Policy3", "Role2",
+                "*", testDomainName + ":ResourcE3/*", AssertionEffect.ALLOW);
+        policy3.setCaseSensitive(true);
+        zms.putPolicy(mockDomRsrcCtx, testDomainName, "Policy3", auditRef, policy3);
+
+        Policy policy4 = createPolicyObject(testDomainName, "Policy4", "Role1",
+                "ReaD", testDomainName + ":ResourcE4[*]/DatA1", AssertionEffect.ALLOW);
+        policy4.setCaseSensitive(true);
+        zms.putPolicy(mockDomRsrcCtx, testDomainName, "Policy4", auditRef, policy4);
+
+        Policy policy5 = createPolicyObject(testDomainName, "Policy5", "Role2",
+                "AccesS", testDomainName + ":https://*.ATHENZ.com/*", AssertionEffect.ALLOW);
+        policy5.setCaseSensitive(true);
+        zms.putPolicy(mockDomRsrcCtx, testDomainName, "Policy5", auditRef, policy5);
+
+        // user1 and user3 have access to UPDATE/resource1
+
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        Principal principal1 = principalAuthority.authenticate("v=U1;d=user;n=user1;s=signature",
+                "10.11.12.13", "GET", null);
+        ResourceContext rsrcCtx1 = createResourceContext(principal1);
+        Principal principal2 = principalAuthority.authenticate("v=U1;d=user;n=user2;s=signature",
+                "10.11.12.13", "GET", null);
+        ResourceContext rsrcCtx2 = createResourceContext(principal2);
+        Principal principal3 = principalAuthority.authenticate("v=U1;d=user;n=user3;s=signature",
+                "10.11.12.13", "GET", null);
+        ResourceContext rsrcCtx3 = createResourceContext(principal3);
+
+        // user1 and user3 have update access to resource1/resource2
+
+        Access access = zms.getAccessExt(rsrcCtx1, "uPDATe", testDomainName + ":resouRce1/reSource2",
+                testDomainName, null);
+        assertTrue(access.getGranted());
+
+        access = zms.getAccessExt(rsrcCtx1, "UPDATE", testDomainName + ":resource1/resource3",
+                testDomainName, null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccessExt(rsrcCtx2, "UPDATE", testDomainName + ":resource1/resource2",
+                testDomainName, null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccessExt(rsrcCtx3, "UPdATE", testDomainName + ":resoUrce1/resourCe2",
+                testDomainName, null);
+        assertTrue(access.getGranted());
+
+        // all three have no access to CREATE action on resource1/resource2
+
+        access = zms.getAccessExt(rsrcCtx1, "CReATE", testDomainName + ":resOurce1/resourcE2",
+                testDomainName, null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccessExt(rsrcCtx2, "CREAtE", testDomainName + ":resOurce1/resource2",
+                testDomainName, null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccessExt(rsrcCtx3, "cREATE", testDomainName + ":resource1/resoUrce2",
+                testDomainName, null);
+        assertFalse(access.getGranted());
+
+        // user2 and user3 have create access to resource2(resource3)
+
+        access = zms.getAccessExt(rsrcCtx1, "CreatE", testDomainName + ":resource2(resource3)",
+                testDomainName, null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccessExt(rsrcCtx2, "CreATE", testDomainName + ":resOUrce2(resOUrce3)",
+                testDomainName, null);
+        assertTrue(access.getGranted());
+
+        access = zms.getAccessExt(rsrcCtx3, "CrEATE", testDomainName + ":resourCe2(reSource3)",
+                testDomainName, null);
+        assertTrue(access.getGranted());
+
+        // user2 and user3 have access to CREATE(*)/resource3/*
+
+        access = zms.getAccessExt(rsrcCtx1, "CreatE", testDomainName + ":resource3",
+                testDomainName, null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccessExt(rsrcCtx2, "CReATE", testDomainName + ":RESource3/TesT1",
+                testDomainName, null);
+        assertTrue(access.getGranted());
+
+        access = zms.getAccessExt(rsrcCtx3, "CReATE", testDomainName + ":resourCE3/AnotherTest",
+                testDomainName, null);
+        assertTrue(access.getGranted());
+
+        // user2 and user3 have access to UPDATE(*)/resource3/*
+
+        access = zms.getAccessExt(rsrcCtx1, "UPDaTE", testDomainName + ":ResourcE3",
+                testDomainName, null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccessExt(rsrcCtx2, "UPDATE", testDomainName + ":RESOURCE3/(anotheR Value)",
+                testDomainName, null);
+        assertTrue(access.getGranted());
+
+        access = zms.getAccessExt(rsrcCtx3, "UPDaTE", testDomainName + ":resOurce3/a",
+                testDomainName, null);
+        assertTrue(access.getGranted());
+
+        // user1 and user3 have access to READ/resource6[*]/data1
+
+        access = zms.getAccessExt(rsrcCtx1, "REad", testDomainName + ":ResourCE4[TeSt1]/dAtA1",
+                testDomainName, null);
+        assertTrue(access.getGranted());
+
+        access = zms.getAccessExt(rsrcCtx2, "reaD", testDomainName + ":Resource4[test1]/dAta1",
+                testDomainName, null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccessExt(rsrcCtx3, "reaD", testDomainName + ":resouRce4[tesT another]/daTa1",
+                testDomainName, null);
+        assertTrue(access.getGranted());
+
+        // user2 and user3 have access to access/https://*.athenz.com/*
+
+        access = zms.getAccessExt(rsrcCtx1, "ACCess", testDomainName + ":https://Web.athenz.COM/datA",
+                testDomainName, null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccessExt(rsrcCtx2, "acCess", testDomainName + ":https://web.ATHENZ.com/data",
+                testDomainName, null);
+        assertTrue(access.getGranted());
+
+        access = zms.getAccessExt(rsrcCtx2, "acCess", testDomainName + ":https://web.ATHENZ.org/data",
+                testDomainName, null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccessExt(rsrcCtx3, "acCess", testDomainName + ":https://web-store.ATHENZ.com/data/path",
+                testDomainName, null);
+        assertTrue(access.getGranted());
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, testDomainName, auditRef);
+    }
+
     @Test
     public void testValidateEntity() {
         int code = 400;
@@ -9584,7 +10101,36 @@ public class ZMSImplTest {
         assertEquals(zms.evaluateAccess(domain, "user.user1", "read", "coretech:resource1",
                 null, null), AccessStatus.DENIED);
     }
-    
+
+    @Test
+    public void testEvaluateAccessAssertionDenyCaseSensitive() {
+
+        AthenzDomain domain = new AthenzDomain("coretech");
+        Role role = createRoleObject("coretech", "role1", null, "user.user1", null);
+        domain.getRoles().add(role);
+
+        Policy policy = new Policy().setName("coretech:policy.policy1");
+        Assertion assertion = new Assertion();
+        assertion.setAction("ReaD");
+        assertion.setEffect(AssertionEffect.DENY);
+        assertion.setResource("coretech:*");
+        assertion.setRole("coretech:role.role1");
+        policy.setAssertions(new ArrayList<>());
+        policy.getAssertions().add(assertion);
+        domain.getPolicies().add(policy);
+
+        ZMSImpl spiedZms = Mockito.spy(zms);
+        assertEquals(spiedZms.evaluateAccess(domain, "user.user1", "read", "coretech:resource1",
+                null, null), AccessStatus.DENIED);
+
+        // Verify that it was denied by explicit "Deny" assertion and not because no match was found
+        Mockito.verify(spiedZms, times(1)).matchPrincipal(
+                eq(domain.getRoles()),
+                eq("^coretech:role\\.role1$"),
+                eq("user.user1"),
+                eq(null));
+    }
+
     @Test
     public void testEvaluateAccessAssertionAllow() {
         
@@ -9604,7 +10150,27 @@ public class ZMSImplTest {
         
         assertEquals(zms.evaluateAccess(domain, "user.user1", "read", "coretech:resource1", null, null), AccessStatus.ALLOWED);
     }
-    
+
+    @Test
+    public void testEvaluateAccessAssertionAllowCaseSensitive() {
+
+        AthenzDomain domain = new AthenzDomain("coretech");
+        Role role = createRoleObject("coretech", "role1", null, "user.user1", null);
+        domain.getRoles().add(role);
+
+        Policy policy = new Policy().setName("coretech:policy.policy1");
+        Assertion assertion = new Assertion();
+        assertion.setAction("ReaD");
+        assertion.setEffect(AssertionEffect.ALLOW);
+        assertion.setResource("coretech:*");
+        assertion.setRole("coretech:role.role1");
+        policy.setAssertions(new ArrayList<>());
+        policy.getAssertions().add(assertion);
+        domain.getPolicies().add(policy);
+
+        assertEquals(zms.evaluateAccess(domain, "user.user1", "read", "coretech:resource1", null, null), AccessStatus.ALLOWED);
+    }
+
     @Test
     public void testHasExceededDepthLimitNullLimit() {
         assertFalse(zms.hasExceededDepthLimit(null, "domain"));
@@ -10675,6 +11241,19 @@ public class ZMSImplTest {
         assertEquals(assertion.getRole(), "coretech:role.role1");
         assertEquals(assertion.getAction(), "read");
         assertEquals(assertion.getResource(), "coretech:vip.*");
+
+        // Check with case-sensitive flag
+        new Assertion();
+        assertion.setAction("Read");
+        assertion.setEffect(AssertionEffect.ALLOW);
+        assertion.setResource("coreTech:VIP.*");
+        assertion.setRole("coretech:role.Role1");
+        assertion.setCaseSensitive(true);
+
+        AthenzObject.ASSERTION.convertToLowerCase(assertion);
+        assertEquals(assertion.getRole(), "coretech:role.role1");
+        assertEquals(assertion.getAction(), "Read");
+        assertEquals(assertion.getResource(), "coretech:VIP.*");
     }
         
     @Test
@@ -11090,6 +11669,40 @@ public class ZMSImplTest {
         assertEquals(assertion.getRole(), "coretech:role.roleab");
         assertEquals(assertion.getAction(), "update");
         assertEquals(assertion.getResource(), "coretech:vip.*");
+
+        // Now check case-sensitive
+        policy = new Policy();
+        policy.setName(ZMSUtils.policyResourceName("CoreTech", "policy"));
+        policy.setCaseSensitive(true);
+        assertion1 = new Assertion();
+        assertion1.setAction("Read");
+        assertion1.setEffect(AssertionEffect.ALLOW);
+        assertion1.setResource("coreTech:VIP.*");
+        assertion1.setRole("coretech:role.Role1");
+
+        assertion2 = new Assertion();
+        assertion2.setAction("UPDATE");
+        assertion2.setEffect(AssertionEffect.ALLOW);
+        assertion2.setResource("CoreTech:VIP.*");
+        assertion2.setRole("coretech:role.RoleAB");
+
+        assertList = new ArrayList<>();
+        assertList.add(assertion1);
+        assertList.add(assertion2);
+
+        policy.setAssertions(assertList);
+
+        AthenzObject.POLICY.convertToLowerCase(policy);
+        assertEquals(policy.getName(), "coretech:policy.policy");
+        assertion = policy.getAssertions().get(0);
+        assertEquals(assertion.getRole(), "coretech:role.role1");
+        assertEquals(assertion.getAction(), "Read");
+        assertEquals(assertion.getResource(), "coretech:VIP.*");
+
+        assertion = policy.getAssertions().get(1);
+        assertEquals(assertion.getRole(), "coretech:role.roleab");
+        assertEquals(assertion.getAction(), "UPDATE");
+        assertEquals(assertion.getResource(), "coretech:VIP.*");
     }
     
     @Test
@@ -13505,6 +14118,24 @@ public class ZMSImplTest {
 
         assertTrue(zms.assertionMatch(assertion, "user.john", "write", "domain:db.write", "domain",
                 roles, authRoles, null));
+
+        // check case sensitive action and resource
+        assertion = new Assertion();
+        assertion.setAction("write");
+        assertion.setResource("domain:db.write");
+        assertion.setRole("domain:role.role1");
+
+        assertTrue(zms.assertionMatch(assertion, "user.john", "write", "domain:db.write", "domain",
+                roles, authRoles, null));
+
+        // check case sensitive assertion
+        assertion = new Assertion();
+        assertion.setAction("WRITE");
+        assertion.setResource("domain:db.WRITE");
+        assertion.setRole("domain:role.role1");
+
+        assertTrue(zms.assertionMatch(assertion, "user.john", "write", "domain:db.write", "domain",
+                roles, authRoles, null));
     }
 
     @Test
@@ -14571,7 +15202,44 @@ public class ZMSImplTest {
        
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
-    
+
+    @Test
+    public void testGetAssertionCaseSensitive() {
+
+        final String domainName = "get-assertion";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        // Create case-sensitive policy
+        Policy policy = createPolicyObject(domainName, "policy1", "Role1", "ActioN1", "GeT-AssertioN:SomeResource", AssertionEffect.ALLOW);
+        policy.setCaseSensitive(true);
+
+        // Create case-insensitive policy
+        Policy policy2 = createPolicyObject(domainName, "policy2", "Role1", "ActioN2", "GeT-AssertioN:SomeResource2", AssertionEffect.ALLOW);
+
+        zms.putPolicy(mockDomRsrcCtx, domainName, "policy1", auditRef, policy);
+        zms.putPolicy(mockDomRsrcCtx, domainName, "policy2", auditRef, policy2);
+
+        Policy policyRes = zms.getPolicy(mockDomRsrcCtx, domainName, "policy1");
+        Long assertionId = policyRes.getAssertions().get(0).getId();
+
+        Assertion assertion = zms.getAssertion(mockDomRsrcCtx, domainName, "policy1", assertionId);
+        assertNotNull(assertion);
+        assertEquals(assertion.getAction(), "ActioN1");
+        assertEquals(assertion.getResource(), domainName + ":SomeResource");
+
+        policyRes = zms.getPolicy(mockDomRsrcCtx, domainName, "policy2");
+        assertionId = policyRes.getAssertions().get(0).getId();
+
+        assertion = zms.getAssertion(mockDomRsrcCtx, domainName, "policy2", assertionId);
+        assertNotNull(assertion);
+        assertEquals(assertion.getAction(), "action2");
+        assertEquals(assertion.getResource(), domainName + ":someresource2");
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
     @Test
     public void testGetAssertionMultiple() {
 
@@ -14586,7 +15254,19 @@ public class ZMSImplTest {
         assertion.setEffect(AssertionEffect.ALLOW);
         assertion.setResource(domainName + ":resource");
         assertion.setRole(ZMSUtils.roleResourceName(domainName, "admin"));
+
+        // Create case-sensitive assertion
+        Assertion assertion2 = new Assertion();
+        assertion2.setAction("UpdatE2");
+        assertion2.setEffect(AssertionEffect.ALLOW);
+        assertion2.setResource(domainName + ":ResourcE2");
+        assertion2.setRole(ZMSUtils.roleResourceName(domainName, "admin"));
+        assertion2.setCaseSensitive(true);
+
+        // Put both assertions
         policy.getAssertions().add(assertion);
+        policy.getAssertions().add(assertion2);
+
         zms.putPolicy(mockDomRsrcCtx, domainName, "policy1", auditRef, policy);
 
         Policy policyRes = zms.getPolicy(mockDomRsrcCtx, domainName, "policy1");
@@ -14601,9 +15281,15 @@ public class ZMSImplTest {
         testAssertion = zms.getAssertion(mockDomRsrcCtx, domainName, "policy1", assertionId);
         assertNotNull(testAssertion);
         testAssertions.add(testAssertion);
-        
+
+        assertionId = policyRes.getAssertions().get(2).getId();
+        testAssertion = zms.getAssertion(mockDomRsrcCtx, domainName, "policy1", assertionId);
+        assertNotNull(testAssertion);
+        testAssertions.add(testAssertion);
+
         boolean assert1Check = false;
         boolean assert2Check = false;
+        boolean assert3Check = false;
         for (Assertion testAssert : testAssertions) {
             switch (testAssert.getAction()) {
                 case "*":
@@ -14614,11 +15300,16 @@ public class ZMSImplTest {
                     assertEquals(testAssert.getResource(), domainName + ":resource");
                     assert2Check = true;
                     break;
+                case "UpdatE2":
+                    assertEquals(testAssert.getResource(), domainName + ":ResourcE2");
+                    assert3Check = true;
+                    break;
             }
         }
         assertTrue(assert1Check);
         assertTrue(assert2Check);
-        
+        assertTrue(assert3Check);
+
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
     
@@ -14689,6 +15380,56 @@ public class ZMSImplTest {
         assertTrue(assert1Check);
         assertTrue(assert2Check);
         
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testPutAssertionCaseSensitive() {
+
+        final String domainName = "put-assertion";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Policy policy = createPolicyObject(domainName, "policy1");
+        zms.putPolicy(mockDomRsrcCtx, domainName, "policy1", auditRef, policy);
+
+        Assertion assertion = new Assertion();
+        assertion.setAction("Update");
+        assertion.setEffect(AssertionEffect.ALLOW);
+        assertion.setResource(domainName + ":Resource");
+        assertion.setRole(ZMSUtils.roleResourceName(domainName, "admin"));
+        assertion.setCaseSensitive(true);
+
+        // add the assertion
+
+        assertion = zms.putAssertion(mockDomRsrcCtx, domainName, "policy1", auditRef, assertion);
+
+        // verity that the return assertion object has the id set
+
+        assertNotNull(assertion.getId());
+
+        // validate that both assertions exist
+
+        Policy policyRes = zms.getPolicy(mockDomRsrcCtx, domainName, "policy1");
+
+        boolean assert1Check = false;
+        boolean assert2Check = false;
+        for (Assertion testAssert : policyRes.getAssertions()) {
+            switch (testAssert.getAction()) {
+                case "*":
+                    assertEquals(testAssert.getResource(), domainName + ":*");
+                    assert1Check = true;
+                    break;
+                case "Update":
+                    assertEquals(testAssert.getResource(), domainName + ":Resource");
+                    assert2Check = true;
+                    break;
+            }
+        }
+        assertTrue(assert1Check);
+        assertTrue(assert2Check);
+
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 
@@ -14934,12 +15675,14 @@ public class ZMSImplTest {
         
         final String domainName = "assertion-test";
         Policy policy = createPolicyObject(domainName, "policy1");
+        policy.setCaseSensitive(true);
         Assertion assertion = new Assertion();
         assertion.setAction("update");
         assertion.setEffect(AssertionEffect.ALLOW);
         assertion.setResource(domainName + ":resource");
         assertion.setRole(ZMSUtils.roleResourceName(domainName, "admin"));
         assertion.setId(101L);
+        assertion.setCaseSensitive(true);
         policy.getAssertions().add(assertion);
         
         List<Policy> policyList = new ArrayList<>();
@@ -14953,6 +15696,10 @@ public class ZMSImplTest {
         assertEquals(assertion.getEffect(), AssertionEffect.ALLOW);
         assertEquals(assertion.getResource(), domainName + ":resource");
         assertEquals(assertion.getRole(), ZMSUtils.roleResourceName(domainName, "admin"));
+
+        // Verify case-sensitivity isn't returned
+        assertNull(result.get(0).getCaseSensitive());
+        assertNull(testAssertion.getCaseSensitive());
     }
     
     @Test
