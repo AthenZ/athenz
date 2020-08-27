@@ -49,12 +49,13 @@ public interface HostnameResolver {
      * a standard dns resolution or if the setup has a separate
      * source of truth for dns data, the implementation will query
      * that source if the hostname CNAME is valid or not.
+     * @param serviceFqn fully qualified service name of the request Principal
      * @param hostname Instance hostname to check for CNAME validity
      * @param cnameList list of host CNAMEs to check for validity
      * @param certType one of X509, SSHHOST, SSHUSER
      * @return true if the hostname CNAME is valid, false otherwise
      */
-    default boolean isValidHostCnameList(final String hostname, final List<String> cnameList, CertType certType) {
+    default boolean isValidHostCnameList(final String serviceFqn, final String hostname, final List<String> cnameList, CertType certType) {
         return false;
     }
 }
