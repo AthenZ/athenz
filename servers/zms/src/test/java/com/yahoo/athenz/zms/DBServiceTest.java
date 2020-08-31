@@ -4290,10 +4290,10 @@ public class DBServiceTest {
         Role role = new Role();
         RoleSystemMeta meta = new RoleSystemMeta()
                 .setAuditEnabled(true);
-        zms.dbService.updateRoleSystemMetaFields(role, "auditenabled", meta);
+        zms.dbService.updateRoleSystemMetaFields(role, "auditenabled", meta, "unit-test");
         assertTrue(role.getAuditEnabled());
         try {
-            zms.dbService.updateRoleSystemMetaFields(role, "unknown", meta);
+            zms.dbService.updateRoleSystemMetaFields(role, "unknown", meta, "unit-test");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -4305,10 +4305,25 @@ public class DBServiceTest {
         ServiceIdentity service = new ServiceIdentity();
         ServiceIdentitySystemMeta meta = new ServiceIdentitySystemMeta()
                 .setProviderEndpoint("https://localhost");
-        zms.dbService.updateServiceIdentitySystemMetaFields(service, "providerendpoint", meta);
+        zms.dbService.updateServiceIdentitySystemMetaFields(service, "providerendpoint", meta, "unit-test");
         assertEquals(service.getProviderEndpoint(), "https://localhost");
         try {
-            zms.dbService.updateServiceIdentitySystemMetaFields(service, "unknown", meta);
+            zms.dbService.updateServiceIdentitySystemMetaFields(service, "unknown", meta, "unit-test");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+    }
+
+    @Test
+    public void testUpdateGroupSystemMetaFields() {
+        Group group = new Group();
+        GroupSystemMeta meta = new GroupSystemMeta()
+                .setAuditEnabled(true);
+        zms.dbService.updateGroupSystemMetaFields(group, "auditenabled", meta, "unit-test");
+        assertTrue(group.getAuditEnabled());
+        try {
+            zms.dbService.updateGroupSystemMetaFields(group, "unknown", meta, "unit-test");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -4837,7 +4852,7 @@ public class DBServiceTest {
         zms.dbService.executePutRole(mockDomRsrcCtx, domainName, roleName, role1, auditRef, "putRole");
 
         RoleSystemMeta meta = new RoleSystemMeta().setAuditEnabled(true);
-        zms.dbService.updateRoleSystemMetaFields(role1, "auditenabled", meta);
+        zms.dbService.updateRoleSystemMetaFields(role1, "auditenabled", meta, "unit-test");
 
         zms.dbService.executePutRoleSystemMeta(mockDomRsrcCtx, domainName, roleName, meta, "auditenabled", auditRef, "");
 
@@ -8555,5 +8570,25 @@ public class DBServiceTest {
 
         zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
         zms.dbService.store = savedStore;
+    }
+
+    @Test
+    public void testAuditLogBooleanDefault() {
+
+        // our default value is false so if we have null or false
+        // we have to output value of false otherwise true
+        // so we're going to check for explicit value of true
+
+        assertEquals(zms.dbService.auditLogBooleanDefault(null, Boolean.TRUE), "false");
+        assertEquals(zms.dbService.auditLogBooleanDefault(Boolean.FALSE, Boolean.TRUE), "false");
+        assertEquals(zms.dbService.auditLogBooleanDefault(Boolean.TRUE, Boolean.TRUE), "true");
+
+        // our default value is true so if we have null or true
+        // we have to output value of true otherwise false
+        // so we're going to check for explicit value of false
+
+        assertEquals(zms.dbService.auditLogBooleanDefault(null, Boolean.FALSE), "true");
+        assertEquals(zms.dbService.auditLogBooleanDefault(Boolean.TRUE, Boolean.FALSE), "true");
+        assertEquals(zms.dbService.auditLogBooleanDefault(Boolean.FALSE, Boolean.FALSE), "false");
     }
 }

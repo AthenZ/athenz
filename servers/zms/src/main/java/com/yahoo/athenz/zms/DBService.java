@@ -122,9 +122,9 @@ public class DBService implements RolesProvider {
 
         auditRefSet = new BitSet();
 
-        // by default we're only going to handle audit enabled roles
+        // by default we're only going to handle audit enabled roles and groups
         // the value is a comma separated list of supported objects:
-        // role, policy, service, domain, entity
+        // role, group, policy, service, domain, entity, tenancy, and template
 
         final String auditCheck = System.getProperty(ZMSConsts.ZMS_PROP_AUDIT_REF_CHECK_OBJECTS, "role,group");
 
@@ -574,7 +574,7 @@ public class DBService implements RolesProvider {
                         final String groupName, Group group, final String admin, final String auditRef,
                         StringBuilder auditDetails) {
 
-        // check to see if we need to insert the role or update it
+        // check to see if we need to insert the group or update it
 
         boolean requestSuccess;
         if (originalGroup == null) {
@@ -1046,7 +1046,7 @@ public class DBService implements RolesProvider {
 
                 quotaCheck.checkGroupQuota(con, domainName, group, ctx.getApiName());
 
-                // retrieve our original role
+                // retrieve our original group
 
                 Group originalGroup = getGroup(con, domainName, groupName, false, false);
 
@@ -1631,7 +1631,7 @@ public class DBService implements RolesProvider {
                             normalizedMember + " from group: " + groupName, ctx.getApiName());
                 }
 
-                // update our role and domain time-stamps, and invalidate local cache entry
+                // update our group and domain time-stamps, and invalidate local cache entry
 
                 con.updateGroupModTimestamp(domainName, groupName);
                 con.updateDomainModTimestamp(domainName);
@@ -3017,9 +3017,7 @@ public class DBService implements RolesProvider {
         }
     }
 
-    void updateRoleSystemMetaFields(Role role, final String attribute, RoleSystemMeta meta) {
-
-        final String caller = "putrolesystemmeta";
+    void updateRoleSystemMetaFields(Role role, final String attribute, RoleSystemMeta meta, final String caller) {
 
         // system attributes we'll only set if they're available
         // in the given object
@@ -3031,9 +3029,7 @@ public class DBService implements RolesProvider {
         }
     }
 
-    void updateGroupSystemMetaFields(Group group, final String attribute, GroupSystemMeta meta) {
-
-        final String caller = "putgroupsystemmeta";
+    void updateGroupSystemMetaFields(Group group, final String attribute, GroupSystemMeta meta, final String caller) {
 
         // system attributes we'll only set if they're available
         // in the given object
@@ -3046,9 +3042,7 @@ public class DBService implements RolesProvider {
     }
 
     void updateServiceIdentitySystemMetaFields(ServiceIdentity service, final String attribute,
-            ServiceIdentitySystemMeta meta) {
-
-        final String caller = "putserviceidentitysystemmeta";
+            ServiceIdentitySystemMeta meta, final String caller) {
 
         // system attributes we'll only set if they're available
         // in the given object
@@ -4026,7 +4020,7 @@ public class DBService implements RolesProvider {
         
         if (LOG.isDebugEnabled()) {
             LOG.debug("isTenantRolePrefixMatch: role-name=" + roleName + ", role-prefix=" +
-                    rolePrefix + ", reosurce-group=" + resourceGroup + ", tenant-domain=" + tenantDomain);
+                    rolePrefix + ", resource-group=" + resourceGroup + ", tenant-domain=" + tenantDomain);
         }
         
         // first make sure the role name starts with the given prefix
@@ -4206,8 +4200,8 @@ public class DBService implements RolesProvider {
         return firstEntry;
     }
 
-    String auditLogBooleanDefault(Boolean value, Boolean defaultValue) {
-        if (defaultValue == Boolean.TRUE) {
+    String auditLogBooleanDefault(Boolean value, Boolean checkValue) {
+        if (checkValue == Boolean.TRUE) {
             return value == Boolean.TRUE ? "true" : "false";
         } else {
             return value == Boolean.FALSE ? "false" : "true";
@@ -4465,7 +4459,7 @@ public class DBService implements RolesProvider {
                 // then we're going to apply the updated fields
                 // from the given object
 
-                updateRoleSystemMetaFields(updatedRole, attribute, meta);
+                updateRoleSystemMetaFields(updatedRole, attribute, meta, ctx.getApiName());
 
                 con.updateRole(domainName, updatedRole);
                 saveChanges(con, domainName);
@@ -4529,7 +4523,7 @@ public class DBService implements RolesProvider {
                 // then we're going to apply the updated fields
                 // from the given object
 
-                updateGroupSystemMetaFields(updatedGroup, attribute, meta);
+                updateGroupSystemMetaFields(updatedGroup, attribute, meta, ctx.getApiName());
 
                 con.updateGroup(domainName, updatedGroup);
                 saveChanges(con, domainName);
@@ -4580,7 +4574,7 @@ public class DBService implements RolesProvider {
                 // then we're going to apply the updated fields
                 // from the given object
 
-                updateServiceIdentitySystemMetaFields(serviceIdentity, attribute, meta);
+                updateServiceIdentitySystemMetaFields(serviceIdentity, attribute, meta, ctx.getApiName());
 
                 con.updateServiceIdentity(domainName, serviceIdentity);
                 saveChanges(con, domainName);
@@ -4762,7 +4756,7 @@ public class DBService implements RolesProvider {
                         auditRef, ctx.getApiName(), getPrincipalName(ctx));
 
                 // now process the request. first we're going to make a
-                // copy of our role
+                // copy of our group
 
                 Group updatedGroup = new Group()
                         .setName(originalGroup.getName())
@@ -4789,9 +4783,8 @@ public class DBService implements RolesProvider {
                 auditLogRequest(ctx, domainName, auditRef, ctx.getApiName(), ZMSConsts.HTTP_PUT,
                         domainName, auditDetails.toString());
 
-                // if the role member expiry date or review date has changed then we're going
-                // process all the members in the role and update the expiration and review
-                // date accordingly
+                // if the group user authority expiration attribute has changed, we're going
+                // process all the members in the group and update the expiration date accordingly
 
                 updateGroupMembersDueDates(ctx, con, domainName, groupName, originalGroup,
                         updatedGroup, auditRef);
@@ -5333,15 +5326,15 @@ public class DBService implements RolesProvider {
 
         final String principal = getPrincipalName(ctx);
 
-        // process our role members and if there were any changes processed then update
-        // our role and domain time-stamps, and invalidate local cache entry
+        // process our group members and if there were any changes processed then update
+        // our group and domain time-stamps, and invalidate local cache entry
 
         List<GroupMember> groupMembersWithUpdatedDisabledState = getGroupMembersWithUpdatedDisabledState(groupMembers,
                 updatedGroup.getUserAuthorityFilter(), getDomainUserAuthorityFilter(con, domainName));
         if (updateGroupMemberDisabledState(ctx, con, groupMembersWithUpdatedDisabledState, domainName,
                 groupName, principal, auditRef, ctx.getApiName())) {
 
-            // update our role and domain time-stamps, and invalidate local cache entry
+            // update our group and domain time-stamps, and invalidate local cache entry
 
             con.updateGroupModTimestamp(domainName, groupName);
             con.updateDomainModTimestamp(domainName);
@@ -5377,7 +5370,7 @@ public class DBService implements RolesProvider {
 
         final String principal = getPrincipalName(ctx);
 
-        // process our grouip members and if there were any changes processed then update
+        // process our group members and if there were any changes processed then update
         // our role and domain time-stamps, and invalidate local cache entry
 
         final String userAuthorityExpiry = updatedGroup.getUserAuthorityExpiration();
@@ -6068,8 +6061,8 @@ public class DBService implements RolesProvider {
             return;
         }
 
-        // for each role catch any exception and ignore since we
-        // want to process all roles and not allow a single one
+        // for each group catch any exception and ignore since we
+        // want to process all group and not allow a single one
         // prevent updating others
 
         for (PrincipalGroup group : groups) {

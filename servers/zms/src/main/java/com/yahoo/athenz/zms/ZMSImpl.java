@@ -327,7 +327,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     boolean isCaseSensitive = (policy.getCaseSensitive() != null && policy.getCaseSensitive());
                     for (Assertion assertion : policy.getAssertions()) {
                         if (isCaseSensitive) {
-                            // Only overrride assertion case-sensitivity if it is true (possible for a policy to have
+                            // Only override assertion case-sensitivity if it is true (possible for a policy to have
                             // case-sensitive assertions along with case-insensitive assertions)
                             assertion.setCaseSensitive(true);
                         }
@@ -7656,7 +7656,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         // otherwise we're going to do a standard check if the principal
-        // is authorized to update the domain grojp membership
+        // is authorized to update the domain group membership
 
         if (!isAllowedPutMembershipAccess(principal, domain, group.getName())) {
             throw ZMSUtils.forbiddenError("principal " + principal.getFullName()
