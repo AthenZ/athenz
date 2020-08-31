@@ -407,6 +407,9 @@ public class ZMSSchema {
             .field("domainName", "DomainName", false, "name of the domain")
             .arrayField("members", "DomainGroupMember", false, "group members");
 
+        sb.structType("DomainGroupMembership")
+            .arrayField("domainGroupMembersList", "DomainGroupMembers", false, "");
+
         sb.structType("GroupSystemMeta")
             .comment("Set of system metadata attributes that all groups may have and can be changed by system admins.")
             .field("auditEnabled", "Bool", true, "Flag indicates whether or not group updates should be approved by GRC. If true, the auditRef parameter must be supplied(not empty) for any API defining it.", false);
@@ -1465,6 +1468,23 @@ public class ZMSSchema {
             .exception("BAD_REQUEST", "ResourceError", "")
 
             .exception("CONFLICT", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("DomainGroupMembership", "GET", "/pending_group_members")
+            .comment("List of domains containing groups and corresponding members to be approved by either calling or specified principal")
+            .name("getPendingDomainGroupMembersList")
+            .queryParam("principal", "principal", "EntityName", null, "If present, return pending list for this principal")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
 
             .exception("FORBIDDEN", "ResourceError", "")
 

@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.yahoo.athenz.auth.Authority;
+import com.yahoo.athenz.zms.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,17 +29,6 @@ import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.util.ServletRequestUtil;
 import com.yahoo.athenz.common.server.util.StringUtils;
-import com.yahoo.athenz.zms.Assertion;
-import com.yahoo.athenz.zms.AssertionEffect;
-import com.yahoo.athenz.zms.Policy;
-import com.yahoo.athenz.zms.ResourceContext;
-import com.yahoo.athenz.zms.ResourceError;
-import com.yahoo.athenz.zms.ResourceException;
-import com.yahoo.athenz.zms.Role;
-import com.yahoo.athenz.zms.RoleMember;
-import com.yahoo.athenz.zms.RsrcCtxWrapper;
-import com.yahoo.athenz.zms.ZMSConsts;
-import com.yahoo.athenz.zms.ZMSImpl;
 
 public class ZMSUtils {
 
@@ -95,6 +85,10 @@ public class ZMSUtils {
     
     public static String roleResourceName(String domainName, String roleName) {
         return generateResourceName(domainName, roleName, ZMSConsts.OBJECT_ROLE);
+    }
+
+    public static String groupResourceName(String domainName, String groupName) {
+        return generateResourceName(domainName, groupName, ZMSConsts.OBJECT_GROUP);
     }
 
     public static String policyResourceName(String domainName, String policyName) {
@@ -167,7 +161,7 @@ public class ZMSUtils {
         return roleName.matches(rezPattern);
     }
     
-    public static void removeMembers(List<RoleMember> originalRoleMembers, List<RoleMember> removeRoleMembers) {
+    public static void removeRoleMembers(List<RoleMember> originalRoleMembers, List<RoleMember> removeRoleMembers) {
         if (removeRoleMembers == null || originalRoleMembers == null) {
             return;
         }
@@ -181,7 +175,22 @@ public class ZMSUtils {
             }
         }
     }
-    
+
+    public static void removeGroupMembers(List<GroupMember> originalGroupMembers, List<GroupMember> removeGroupMembers) {
+        if (removeGroupMembers == null || originalGroupMembers == null) {
+            return;
+        }
+        for (GroupMember removeMember : removeGroupMembers) {
+            String removeName = removeMember.getMemberName();
+            for (int j = 0; j < originalGroupMembers.size(); j++) {
+                if (removeName.equalsIgnoreCase(originalGroupMembers.get(j).getMemberName())) {
+                    originalGroupMembers.remove(j);
+                    break;
+                }
+            }
+        }
+    }
+
     public static List<String> convertRoleMembersToMembers(List<RoleMember> members) {
         List<String> memberList = new ArrayList<>();
         if (members == null) {
@@ -355,6 +364,10 @@ public class ZMSUtils {
 
     public static String extractRoleName(String domainName, String fullRoleName) {
         return extractObjectName(domainName, fullRoleName, AuthorityConsts.ROLE_SEP);
+    }
+
+    public static String extractGroupName(String domainName, String fullGroupName) {
+        return extractObjectName(domainName, fullGroupName, AuthorityConsts.GROUP_SEP);
     }
 
     public static String extractPolicyName(String domainName, String fullPolicyName) {

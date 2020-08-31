@@ -61,6 +61,7 @@ public class DBService implements RolesProvider {
     public static int AUDIT_TYPE_ENTITY   = 4;
     public static int AUDIT_TYPE_TENANCY  = 5;
     public static int AUDIT_TYPE_TEMPLATE = 6;
+    public static int AUDIT_TYPE_GROUP    = 7;
 
     private static final String ROLE_PREFIX = "role.";
     private static final String POLICY_PREFIX = "policy.";
@@ -121,17 +122,20 @@ public class DBService implements RolesProvider {
 
         auditRefSet = new BitSet();
 
-        // by default we're only going to handle audit enabled roles
+        // by default we're only going to handle audit enabled roles and groups
         // the value is a comma separated list of supported objects:
-        // role, policy, service, domain, entity
+        // role, group, policy, service, domain, entity, tenancy, and template
 
-        final String auditCheck = System.getProperty(ZMSConsts.ZMS_PROP_AUDIT_REF_CHECK_OBJECTS, "role");
+        final String auditCheck = System.getProperty(ZMSConsts.ZMS_PROP_AUDIT_REF_CHECK_OBJECTS, "role,group");
 
         String[] objects = auditCheck.split(",");
         for (String object : objects) {
             switch (object) {
                 case ZMSConsts.ZMS_AUDIT_TYPE_ROLE:
                     auditRefSet.set(AUDIT_TYPE_ROLE);
+                    break;
+                case ZMSConsts.ZMS_AUDIT_TYPE_GROUP:
+                    auditRefSet.set(AUDIT_TYPE_GROUP);
                     break;
                 case ZMSConsts.ZMS_AUDIT_TYPE_POLICY:
                     auditRefSet.set(AUDIT_TYPE_POLICY);
@@ -164,10 +168,6 @@ public class DBService implements RolesProvider {
     @Override
     public List<Role> getRolesByDomain(String domain) {
         AthenzDomain athenzDomain = getAthenzDomain(domain, false);
-        if (athenzDomain == null) {
-            return new ArrayList<>();
-        }
-
         return athenzDomain.getRoles();
     }
 
@@ -551,9 +551,9 @@ public class DBService implements RolesProvider {
         if (originalRole == null) {
             
             // we are just going to process all members as new inserts
-            
+
             if (roleMembers != null) {
-                
+
                 for (RoleMember member : roleMembers) {
                     if (!con.insertRoleMember(domainName, roleName, member, admin, auditRef)) {
                         return false;
@@ -566,6 +566,61 @@ public class DBService implements RolesProvider {
                     domainName, roleName, admin, auditRef, auditDetails);
         }
         
+        auditDetails.append('}');
+        return true;
+    }
+
+    boolean processGroup(ObjectStoreConnection con, Group originalGroup, final String domainName,
+                        final String groupName, Group group, final String admin, final String auditRef,
+                        StringBuilder auditDetails) {
+
+        // check to see if we need to insert the group or update it
+
+        boolean requestSuccess;
+        if (originalGroup == null) {
+            // auditEnabled can only be set with system admin privileges
+            group.setAuditEnabled(false);
+            requestSuccess = con.insertGroup(domainName, group);
+        } else {
+            // carrying over auditEnabled from original group
+            group.setAuditEnabled(originalGroup.getAuditEnabled());
+            requestSuccess = con.updateGroup(domainName, group);
+        }
+
+        // if we didn't update any groups then we need to return failure
+
+        if (!requestSuccess) {
+            return false;
+        }
+
+        // open our audit record and log our trust field if one is available
+
+        auditDetails.append("{\"name\": \"").append(groupName).append('\"');
+
+        // now we need process our groups members depending this is
+        // a new insert operation or an update
+
+        List<GroupMember> groupMembers = group.getGroupMembers();
+
+        if (originalGroup == null) {
+
+            // we are just going to process all members as new inserts
+
+            for (GroupMember member : groupMembers) {
+                if (!con.insertGroupMember(domainName, groupName, member, admin, auditRef)) {
+                    return false;
+                }
+            }
+            auditLogGroupMembers(auditDetails, "added-members", groupMembers);
+
+        } else {
+
+            if (!processUpdateGroupMembers(con, originalGroup, groupMembers, domainName, groupName,
+                    admin, auditRef, auditDetails)) {
+                return false;
+            }
+        }
+
         auditDetails.append('}');
         return true;
     }
@@ -624,12 +679,12 @@ public class DBService implements RolesProvider {
         
         // remove current members from new members
         
-        ZMSUtils.removeMembers(newMembers, curMembers);
+        ZMSUtils.removeRoleMembers(newMembers, curMembers);
         
         // remove new members from current members
         // which leaves the deleted members.
         
-        ZMSUtils.removeMembers(delMembers, roleMembers);
+        ZMSUtils.removeRoleMembers(delMembers, roleMembers);
         
         if (!ignoreDeletes) {
             for (RoleMember member : delMembers) {
@@ -648,7 +703,44 @@ public class DBService implements RolesProvider {
         auditLogRoleMembers(auditDetails, "added-members", newMembers);
         return true;
     }
-    
+
+    private boolean processUpdateGroupMembers(ObjectStoreConnection con, Group originalGroup,
+                                              List<GroupMember> groupMembers, final String domainName,
+                                              final String groupName, final String admin, final String auditRef,
+                                              StringBuilder auditDetails) {
+
+        // first we need to retrieve the current set of members
+
+        List<GroupMember> originalMembers = originalGroup.getGroupMembers();
+        List<GroupMember> curMembers = new ArrayList<>(originalMembers);
+        List<GroupMember> delMembers = new ArrayList<>(curMembers);
+        ArrayList<GroupMember> newMembers = new ArrayList<>(groupMembers);
+
+        // remove current members from new members
+
+        ZMSUtils.removeGroupMembers(newMembers, curMembers);
+
+        // remove new members from current members
+        // which leaves the deleted members.
+
+        ZMSUtils.removeGroupMembers(delMembers, groupMembers);
+
+        for (GroupMember member : delMembers) {
+            if (!con.deleteGroupMember(domainName, groupName, member.getMemberName(), admin, auditRef)) {
+                return false;
+            }
+        }
+        auditLogGroupMembers(auditDetails, "deleted-members", delMembers);
+
+        for (GroupMember member : newMembers) {
+            if (!con.insertGroupMember(domainName, groupName, member, admin, auditRef)) {
+                return false;
+            }
+        }
+        auditLogGroupMembers(auditDetails, "added-members", newMembers);
+        return true;
+    }
+
     boolean processServiceIdentity(ObjectStoreConnection con, ServiceIdentity originalService,
             String domainName, String serviceName, ServiceIdentity service,
             boolean ignoreDeletes, StringBuilder auditDetails) {
@@ -934,6 +1026,63 @@ public class DBService implements RolesProvider {
         }
     }
 
+    void executePutGroup(ResourceContext ctx, final String domainName, final String groupName, Group group, final String auditRef) {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
+
+                String principal = getPrincipalName(ctx);
+
+                // first verify that auditing requirements are met
+
+                checkDomainAuditEnabled(con, domainName, auditRef, ctx.getApiName(), principal, AUDIT_TYPE_GROUP);
+
+                // check that quota is not exceeded
+
+                quotaCheck.checkGroupQuota(con, domainName, group, ctx.getApiName());
+
+                // retrieve our original group
+
+                Group originalGroup = getGroup(con, domainName, groupName, false, false);
+
+                if (originalGroup != null &&
+                        (originalGroup.getAuditEnabled() == Boolean.TRUE || originalGroup.getReviewEnabled() == Boolean.TRUE)) {
+                    throw ZMSUtils.requestError("Can not update auditEnabled and/or reviewEnabled groups", ctx.getApiName());
+                }
+
+                // now process the request
+
+                StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
+                if (!processGroup(con, originalGroup, domainName, groupName, group,
+                        principal, auditRef, auditDetails)) {
+                    con.rollbackChanges();
+                    throw ZMSUtils.internalServerError("unable to put group: " + group.getName(), ctx.getApiName());
+                }
+
+                // update our domain time-stamp and save changes
+
+                saveChanges(con, domainName);
+
+                // audit log the request
+
+                auditLogRequest(ctx, domainName, auditRef, ctx.getApiName(), ZMSConsts.HTTP_PUT,
+                        groupName, auditDetails.toString());
+
+                return;
+
+            } catch (ResourceException ex) {
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ex;
+                }
+            }
+        }
+    }
+
     void executePutServiceIdentity(ResourceContext ctx, String domainName, String serviceName,
             ServiceIdentity service, String auditRef, String caller) {
 
@@ -1134,7 +1283,8 @@ public class DBService implements RolesProvider {
                     throw ZMSUtils.notFoundError(caller + ": Unknown role: " + roleName, caller);
                 }
 
-                checkRoleAuditEnabled(con, originalRole, auditRef, caller, principal);
+                checkObjectAuditEnabled(con, originalRole.getAuditEnabled(), originalRole.getName(),
+                        auditRef, caller, principal);
 
                 // before inserting a member we need to verify that
                 // this is a group role and not a delegated one.
@@ -1184,7 +1334,69 @@ public class DBService implements RolesProvider {
             }
         }
     }
-    
+
+    void executePutGroupMembership(ResourceContext ctx, final String domainName, Group group,
+                                   GroupMember groupMember, final String auditRef) {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
+            try (ObjectStoreConnection con = store.getConnection(true, true)) {
+
+                String principal = getPrincipalName(ctx);
+
+                // first verify that auditing requirements are met
+
+                checkDomainAuditEnabled(con, domainName, auditRef, ctx.getApiName(), principal, AUDIT_TYPE_GROUP);
+
+                // make sure the group auditing requires are bet
+
+                checkObjectAuditEnabled(con, group.getAuditEnabled(), group.getName(),
+                        auditRef, ctx.getApiName(), principal);
+
+                // now we need verify our quota check
+
+                final String groupName = ZMSUtils.extractGroupName(domainName, group.getName());
+                quotaCheck.checkGroupMembershipQuota(con, domainName, groupName, ctx.getApiName());
+
+                // process our insert group member support. since this is a "single"
+                // operation, we are not using any transactions.
+
+                if (!con.insertGroupMember(domainName, groupName, groupMember, principal, auditRef)) {
+                    con.rollbackChanges();
+                    throw ZMSUtils.requestError("unable to insert group member: " +
+                            groupMember.getMemberName() + " to group: " + groupName, ctx.getApiName());
+                }
+
+                // update our group and domain time-stamps, and invalidate local cache entry
+
+                con.updateGroupModTimestamp(domainName, groupName);
+                con.updateDomainModTimestamp(domainName);
+                cacheStore.invalidate(domainName);
+
+                // audit log the request
+
+                StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
+                auditLogGroupMember(auditDetails, groupMember, true);
+                auditLogRequest(ctx, domainName, auditRef, ctx.getApiName(), ZMSConsts.HTTP_PUT, groupName,
+                        auditDetails.toString());
+
+                return;
+
+            } catch (ResourceException ex) {
+
+                // otherwise check if we need to retry or return failure
+
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ex;
+                }
+            }
+        }
+    }
+
     void executePutEntity(ResourceContext ctx, String domainName, String entityName,
             Entity entity, String auditRef, String caller) {
 
@@ -1348,6 +1560,98 @@ public class DBService implements RolesProvider {
         }
     }
 
+    void executeDeleteGroupMembership(ResourceContext ctx, final String domainName, final String groupName,
+                                      final String normalizedMember, final String auditRef) {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
+            try (ObjectStoreConnection con = store.getConnection(true, true)) {
+
+                String principal = getPrincipalName(ctx);
+
+                // first verify that auditing requirements are met
+
+                checkDomainAuditEnabled(con, domainName, auditRef, ctx.getApiName(), principal, AUDIT_TYPE_GROUP);
+
+                // process our delete group member operation
+
+                if (!con.deleteGroupMember(domainName, groupName, normalizedMember, principal, auditRef)) {
+                    con.rollbackChanges();
+                    throw ZMSUtils.notFoundError("unable to delete group member: " +
+                            normalizedMember + " from group: " + groupName, ctx.getApiName());
+                }
+
+                // update our group and domain time-stamps, and invalidate local cache entry
+
+                con.updateGroupModTimestamp(domainName, groupName);
+                con.updateDomainModTimestamp(domainName);
+                cacheStore.invalidate(domainName);
+
+                // audit log the request
+
+                auditLogRequest(ctx, domainName, auditRef, ctx.getApiName(), ZMSConsts.HTTP_DELETE,
+                        groupName, "{\"member\": \"" + normalizedMember + "\"}");
+
+                return;
+
+            } catch (ResourceException ex) {
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ex;
+                }
+            }
+        }
+    }
+
+    void executeDeletePendingGroupMembership(ResourceContext ctx, final String domainName, final String groupName,
+                                             final String normalizedMember, final String auditRef) {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
+            try (ObjectStoreConnection con = store.getConnection(true, true)) {
+
+                String principal = getPrincipalName(ctx);
+
+                // first verify that auditing requirements are met
+
+                checkDomainAuditEnabled(con, domainName, auditRef, ctx.getApiName(), principal, AUDIT_TYPE_GROUP);
+
+                // process our delete pending group member operation
+
+                if (!con.deletePendingGroupMember(domainName, groupName, normalizedMember, principal, auditRef)) {
+                    con.rollbackChanges();
+                    throw ZMSUtils.notFoundError("unable to delete pending group member: " +
+                            normalizedMember + " from group: " + groupName, ctx.getApiName());
+                }
+
+                // update our group and domain time-stamps, and invalidate local cache entry
+
+                con.updateGroupModTimestamp(domainName, groupName);
+                con.updateDomainModTimestamp(domainName);
+                cacheStore.invalidate(domainName);
+
+                // audit log the request
+
+                auditLogRequest(ctx, domainName, auditRef, ctx.getApiName(), ZMSConsts.HTTP_DELETE,
+                        groupName, "{\"pending-member\": \"" + normalizedMember + "\"}");
+
+                return;
+
+            } catch (ResourceException ex) {
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ex;
+                }
+            }
+        }
+    }
+
     void executeDeleteServiceIdentity(ResourceContext ctx, String domainName, String serviceName,
             String auditRef, String caller) {
 
@@ -1470,7 +1774,47 @@ public class DBService implements RolesProvider {
             }
         }
     }
-    
+
+    void executeDeleteGroup(ResourceContext ctx, final String domainName, final String groupName, final String auditRef) {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
+
+                // first verify that auditing requirements are met
+
+                checkDomainAuditEnabled(con, domainName, auditRef, ctx.getApiName(), getPrincipalName(ctx), AUDIT_TYPE_GROUP);
+
+                // process our delete group request
+
+                if (!con.deleteGroup(domainName, groupName)) {
+                    con.rollbackChanges();
+                    throw ZMSUtils.notFoundError("unable to delete group: " + groupName, ctx.getApiName());
+                }
+
+                // update our domain time-stamp and save changes
+
+                saveChanges(con, domainName);
+
+                // audit log the request
+
+                auditLogRequest(ctx, domainName, auditRef, ctx.getApiName(), ZMSConsts.HTTP_DELETE,
+                        groupName, null);
+
+                return;
+
+            } catch (ResourceException ex) {
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ex;
+                }
+            }
+        }
+    }
+
     void executeDeletePolicy(ResourceContext ctx, String domainName, String policyName,
             String auditRef, String caller) {
 
@@ -2028,6 +2372,23 @@ public class DBService implements RolesProvider {
         }
     }
 
+    GroupMembership getGroupMembership(final String domainName, final String groupName, final String principal,
+                                       long expiryTimestamp, boolean pending) {
+
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+            GroupMembership membership = con.getGroupMember(domainName, groupName, principal, expiryTimestamp, pending);
+            Timestamp expiration = membership.getExpiration();
+
+            //need to check expiration and set isMember if expired
+
+            if (expiration != null && expiration.millis() < System.currentTimeMillis()) {
+                membership.setIsMember(false);
+            }
+
+            return membership;
+        }
+    }
+
     DomainRoleMembers listDomainRoleMembers(String domainName) {
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return con.listDomainRoleMembers(domainName);
@@ -2040,13 +2401,45 @@ public class DBService implements RolesProvider {
         }
     }
 
+    DomainGroupMember getPrincipalGroups(String principal, String domainName) {
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+            return con.getPrincipalGroups(principal, domainName);
+        }
+    }
+
+    Group getGroup(final String domainName, final String groupName, Boolean auditLog, Boolean pending) {
+
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+            return getGroup(con, domainName, groupName, auditLog, pending);
+        }
+    }
+
+    Group getGroup(ObjectStoreConnection con, final String domainName, final String groupName,
+                 Boolean auditLog, Boolean pending) {
+
+        Group group = con.getGroup(domainName, groupName);
+        if (group == null) {
+            return null;
+        }
+
+        // let's retrieve our standard group members
+
+        group.setGroupMembers(con.listGroupMembers(domainName, groupName, pending));
+
+        if (auditLog == Boolean.TRUE) {
+            group.setAuditLog(con.listGroupAuditLogs(domainName, groupName));
+        }
+
+        return group;
+    }
+
     Role getRole(String domainName, String roleName, Boolean auditLog, Boolean expand, Boolean pending) {
 
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return getRole(con, domainName, roleName, auditLog, expand, pending);
         }
     }
-    
+
     Role getRole(ObjectStoreConnection con, String domainName, String roleName,
             Boolean auditLog, Boolean expand, Boolean pending) {
 
@@ -2624,36 +3017,40 @@ public class DBService implements RolesProvider {
         }
     }
 
-    void updateRoleSystemMetaFields(Role role, final String attribute, boolean deleteAllowed, RoleSystemMeta meta) {
-
-        final String caller = "putrolesystemmeta";
+    void updateRoleSystemMetaFields(Role role, final String attribute, RoleSystemMeta meta, final String caller) {
 
         // system attributes we'll only set if they're available
         // in the given object
 
-        switch (attribute) {
-            case ZMSConsts.SYSTEM_META_AUDIT_ENABLED:
-                role.setAuditEnabled(meta.getAuditEnabled());
-                break;
-            default:
-                throw ZMSUtils.requestError("unknown role system meta attribute: " + attribute, caller);
+        if (ZMSConsts.SYSTEM_META_AUDIT_ENABLED.equals(attribute)) {
+            role.setAuditEnabled(meta.getAuditEnabled());
+        } else {
+            throw ZMSUtils.requestError("unknown role system meta attribute: " + attribute, caller);
+        }
+    }
+
+    void updateGroupSystemMetaFields(Group group, final String attribute, GroupSystemMeta meta, final String caller) {
+
+        // system attributes we'll only set if they're available
+        // in the given object
+
+        if (ZMSConsts.SYSTEM_META_AUDIT_ENABLED.equals(attribute)) {
+            group.setAuditEnabled(meta.getAuditEnabled());
+        } else {
+            throw ZMSUtils.requestError("unknown group system meta attribute: " + attribute, caller);
         }
     }
 
     void updateServiceIdentitySystemMetaFields(ServiceIdentity service, final String attribute,
-            boolean deleteAllowed, ServiceIdentitySystemMeta meta) {
-
-        final String caller = "putserviceidentitysystemmeta";
+            ServiceIdentitySystemMeta meta, final String caller) {
 
         // system attributes we'll only set if they're available
         // in the given object
 
-        switch (attribute) {
-            case ZMSConsts.SYSTEM_META_PROVIDER_ENDPOINT:
-                service.setProviderEndpoint(meta.getProviderEndpoint());
-                break;
-            default:
-                throw ZMSUtils.requestError("unknown service system meta attribute: " + attribute, caller);
+        if (ZMSConsts.SYSTEM_META_PROVIDER_ENDPOINT.equals(attribute)) {
+            service.setProviderEndpoint(meta.getProviderEndpoint());
+        } else {
+            throw ZMSUtils.requestError("unknown service system meta attribute: " + attribute, caller);
         }
     }
 
@@ -3623,7 +4020,7 @@ public class DBService implements RolesProvider {
         
         if (LOG.isDebugEnabled()) {
             LOG.debug("isTenantRolePrefixMatch: role-name=" + roleName + ", role-prefix=" +
-                    rolePrefix + ", reosurce-group=" + resourceGroup + ", tenant-domain=" + tenantDomain);
+                    rolePrefix + ", resource-group=" + resourceGroup + ", tenant-domain=" + tenantDomain);
         }
         
         // first make sure the role name starts with the given prefix
@@ -3779,6 +4176,38 @@ public class DBService implements RolesProvider {
         return firstEntry;
     }
 
+    void auditLogGroupMembers(StringBuilder auditDetails, String label,
+                             Collection<GroupMember> values) {
+        auditDetails.append(", \"").append(label).append("\": [");
+        boolean firstEntry = true;
+        for (GroupMember value : values) {
+            firstEntry = auditLogGroupMember(auditDetails, value, firstEntry);
+        }
+        auditDetails.append(']');
+    }
+
+    boolean auditLogGroupMember(StringBuilder auditDetails, GroupMember groupMember, boolean firstEntry) {
+        firstEntry = auditLogSeparator(auditDetails, firstEntry);
+        auditDetails.append("{\"member\": \"").append(groupMember.getMemberName()).append('"');
+        if (groupMember.getExpiration() != null) {
+            auditDetails.append(", \"expiration\": \"").append(groupMember.getExpiration().toString()).append('"');
+        }
+        auditDetails.append(", \"approved\": ");
+        auditDetails.append(auditLogBooleanDefault(groupMember.getApproved(), Boolean.FALSE));
+        auditDetails.append(", \"system-disabled\": ");
+        auditDetails.append(groupMember.getSystemDisabled() == null ? 0 : groupMember.getSystemDisabled());
+        auditDetails.append("}");
+        return firstEntry;
+    }
+
+    String auditLogBooleanDefault(Boolean value, Boolean checkValue) {
+        if (checkValue == Boolean.TRUE) {
+            return value == Boolean.TRUE ? "true" : "false";
+        } else {
+            return value == Boolean.FALSE ? "false" : "true";
+        }
+    }
+
     void auditLogPublicKeyEntries(StringBuilder auditDetails, String label,
             List<PublicKeyEntry> values) {
         auditDetails.append(", \"").append(label).append("\": [");
@@ -3869,6 +4298,12 @@ public class DBService implements RolesProvider {
                 .append("\"}");
     }
 
+    void auditLogGroupSystemMeta(StringBuilder auditDetails, Group group, final String groupName) {
+        auditDetails.append("{\"name\": \"").append(groupName)
+                .append("\", \"auditEnabled\": \"").append(group.getAuditEnabled())
+                .append("\"}");
+    }
+
     void auditLogServiceIdentitySystemMeta(StringBuilder auditDetails, ServiceIdentity service, String serviceName) {
         auditDetails.append("{\"name\": \"").append(serviceName)
                 .append("\", \"providerEndpoint\": \"").append(service.getProviderEndpoint())
@@ -3889,6 +4324,16 @@ public class DBService implements RolesProvider {
                 .append("\", \"signAlgorithm\": \"").append(role.getSignAlgorithm())
                 .append("\", \"userAuthorityFilter\": \"").append(role.getUserAuthorityFilter())
                 .append("\", \"userAuthorityExpiration\": \"").append(role.getUserAuthorityExpiration())
+                .append("\"}");
+    }
+
+    void auditLogGroupMeta(StringBuilder auditDetails, Group group, final String groupName) {
+        auditDetails.append("{\"name\": \"").append(groupName)
+                .append("\", \"selfServe\": \"").append(group.getSelfServe())
+                .append("\", \"reviewEnabled\": \"").append(group.getReviewEnabled())
+                .append("\", \"notifyRoles\": \"").append(group.getNotifyRoles())
+                .append("\", \"userAuthorityFilter\": \"").append(group.getUserAuthorityFilter())
+                .append("\", \"userAuthorityExpiration\": \"").append(group.getUserAuthorityExpiration())
                 .append("\"}");
     }
 
@@ -3966,8 +4411,8 @@ public class DBService implements RolesProvider {
         }
     }
 
-    public void executePutRoleSystemMeta(ResourceContext ctx, String domainName, String roleName,
-           RoleSystemMeta meta, String attribute, boolean deleteAllowed, String auditRef, String caller) {
+    public void executePutRoleSystemMeta(ResourceContext ctx, final String domainName, final String roleName,
+           RoleSystemMeta meta, final String attribute, final String auditRef, final String caller) {
 
         // our exception handling code does the check for retry count
         // and throws the exception it had received when the retry
@@ -4014,7 +4459,7 @@ public class DBService implements RolesProvider {
                 // then we're going to apply the updated fields
                 // from the given object
 
-                updateRoleSystemMetaFields(updatedRole, attribute, deleteAllowed, meta);
+                updateRoleSystemMetaFields(updatedRole, attribute, meta, ctx.getApiName());
 
                 con.updateRole(domainName, updatedRole);
                 saveChanges(con, domainName);
@@ -4037,8 +4482,72 @@ public class DBService implements RolesProvider {
         }
     }
 
+    public void executePutGroupSystemMeta(ResourceContext ctx, final String domainName, final String groupName,
+                                          GroupSystemMeta meta, final String attribute, final String auditRef) {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
+
+                Domain domain = con.getDomain(domainName);
+                if (domain == null) {
+                    con.rollbackChanges();
+                    throw ZMSUtils.notFoundError(": Unknown domain: " + domainName, ctx.getApiName());
+                }
+
+                // first verify that auditing requirements are met
+
+                checkDomainAuditEnabled(con, domain, auditRef, ctx.getApiName(), getPrincipalName(ctx), AUDIT_TYPE_GROUP);
+
+                if (domain.getAuditEnabled() != Boolean.TRUE) {
+                    throw ZMSUtils.requestError("auditEnabled flag not set for domain: " + domainName +
+                            " to add it on the group: " + groupName, ctx.getApiName());
+                }
+
+                Group originalGroup = getGroup(con, domainName, groupName, false, false);
+
+                // now process the request. first we're going to make a
+                // copy of our group
+
+                Group updatedGroup = new Group()
+                        .setName(originalGroup.getName())
+                        .setAuditEnabled(originalGroup.getAuditEnabled())
+                        .setSelfServe(originalGroup.getSelfServe())
+                        .setReviewEnabled(originalGroup.getReviewEnabled())
+                        .setNotifyRoles(originalGroup.getNotifyRoles());
+
+                // then we're going to apply the updated fields
+                // from the given object
+
+                updateGroupSystemMetaFields(updatedGroup, attribute, meta, ctx.getApiName());
+
+                con.updateGroup(domainName, updatedGroup);
+                saveChanges(con, domainName);
+
+                // audit log the request
+
+                StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
+                auditLogGroupSystemMeta(auditDetails, updatedGroup, groupName);
+
+                auditLogRequest(ctx, domainName, auditRef, ctx.getApiName(), ZMSConsts.HTTP_PUT,
+                        domainName, auditDetails.toString());
+
+                return;
+
+            } catch (ResourceException ex) {
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ex;
+                }
+            }
+        }
+    }
+
     public void executePutServiceIdentitySystemMeta(ResourceContext ctx, String domainName, String serviceName,
-            ServiceIdentitySystemMeta meta, String attribute, boolean deleteAllowed, String auditRef, String caller) {
+            ServiceIdentitySystemMeta meta, String attribute, String auditRef, String caller) {
 
         // our exception handling code does the check for retry count
         // and throws the exception it had received when the retry
@@ -4065,7 +4574,7 @@ public class DBService implements RolesProvider {
                 // then we're going to apply the updated fields
                 // from the given object
 
-                updateServiceIdentitySystemMetaFields(serviceIdentity, attribute, deleteAllowed, meta);
+                updateServiceIdentitySystemMetaFields(serviceIdentity, attribute, meta, ctx.getApiName());
 
                 con.updateServiceIdentity(domainName, serviceIdentity);
                 saveChanges(con, domainName);
@@ -4145,7 +4654,8 @@ public class DBService implements RolesProvider {
                     throw ZMSUtils.notFoundError(caller + ": Unknown role: " + roleName, caller);
                 }
 
-                checkRoleAuditEnabled(con, originalRole, auditRef, caller, getPrincipalName(ctx));
+                checkObjectAuditEnabled(con, originalRole.getAuditEnabled(), originalRole.getName(),
+                        auditRef, caller, getPrincipalName(ctx));
 
                 // now process the request. first we're going to make a
                 // copy of our role
@@ -4206,6 +4716,95 @@ public class DBService implements RolesProvider {
         }
     }
 
+    void updateGroupMetaFields(Group group, GroupMeta meta) {
+
+        // these two fields have default values so after validation
+        // we'll never have nulls
+
+        group.setSelfServe(meta.getSelfServe());
+        group.setReviewEnabled(meta.getReviewEnabled());
+
+        if (meta.getNotifyRoles() != null) {
+            group.setNotifyRoles(meta.getNotifyRoles());
+        }
+        if (meta.getUserAuthorityFilter() != null) {
+            group.setUserAuthorityFilter(meta.getUserAuthorityFilter());
+        }
+        if (meta.getUserAuthorityExpiration() != null) {
+            group.setUserAuthorityExpiration(meta.getUserAuthorityExpiration());
+        }
+    }
+
+    public void executePutGroupMeta(ResourceContext ctx, final String domainName, final String groupName,
+                                    GroupMeta meta, final String auditRef) {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
+
+                Group originalGroup = getGroup(con, domainName, groupName, false, false);
+                if (originalGroup == null) {
+                    con.rollbackChanges();
+                    throw ZMSUtils.notFoundError("Unknown group: " + groupName, ctx.getApiName());
+                }
+
+                checkObjectAuditEnabled(con, originalGroup.getAuditEnabled(), originalGroup.getName(),
+                        auditRef, ctx.getApiName(), getPrincipalName(ctx));
+
+                // now process the request. first we're going to make a
+                // copy of our group
+
+                Group updatedGroup = new Group()
+                        .setName(originalGroup.getName())
+                        .setAuditEnabled(originalGroup.getAuditEnabled())
+                        .setSelfServe(originalGroup.getSelfServe())
+                        .setReviewEnabled(originalGroup.getReviewEnabled())
+                        .setNotifyRoles(originalGroup.getNotifyRoles())
+                        .setUserAuthorityFilter(originalGroup.getUserAuthorityFilter())
+                        .setUserAuthorityExpiration(originalGroup.getUserAuthorityExpiration());
+
+                // then we're going to apply the updated fields
+                // from the given object
+
+                updateGroupMetaFields(updatedGroup, meta);
+
+                con.updateGroup(domainName, updatedGroup);
+                saveChanges(con, domainName);
+
+                // audit log the request
+
+                StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
+                auditLogGroupMeta(auditDetails, updatedGroup, groupName);
+
+                auditLogRequest(ctx, domainName, auditRef, ctx.getApiName(), ZMSConsts.HTTP_PUT,
+                        domainName, auditDetails.toString());
+
+                // if the group user authority expiration attribute has changed, we're going
+                // process all the members in the group and update the expiration date accordingly
+
+                updateGroupMembersDueDates(ctx, con, domainName, groupName, originalGroup,
+                        updatedGroup, auditRef);
+
+                // if there was a change in the role user attribute filter then we need
+                // to make the necessary changes as well.
+
+                updateGroupMembersSystemDisabledState(ctx, con, domainName, groupName, originalGroup,
+                        updatedGroup, auditRef);
+
+                return;
+
+            } catch (ResourceException ex) {
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ex;
+                }
+            }
+        }
+    }
+
     private boolean isEarlierDueDate(long newDueDateMillis, Timestamp currentDueDate) {
         return newDueDateMillis != 0 && (currentDueDate == null || currentDueDate.millis() > newDueDateMillis);
     }
@@ -4243,6 +4842,18 @@ public class DBService implements RolesProvider {
         return false;
     }
 
+    boolean updateUserAuthorityFilter(GroupMember groupMember, final String userAuthorityFilter) {
+
+        int currentState = groupMember.getSystemDisabled() == null ? 0 : groupMember.getSystemDisabled();
+        int newState = getMemberUserAuthorityState(groupMember.getMemberName(), userAuthorityFilter, currentState);
+
+        if (newState != currentState) {
+            groupMember.setSystemDisabled(newState);
+            return true;
+        }
+        return false;
+    }
+
     boolean updateUserAuthorityExpiry(RoleMember roleMember, final String userAuthorityExpiry) {
 
         // if we have a service then there is no processing taking place
@@ -4267,7 +4878,7 @@ public class DBService implements RolesProvider {
             // if the user doesn't have one or it's expires sometime
             // in the future
 
-            if (memberExpiry == null || (memberExpiry != null && memberExpiry.millis() > System.currentTimeMillis())) {
+            if (memberExpiry == null || memberExpiry.millis() > System.currentTimeMillis()) {
                 roleMember.setExpiration(Timestamp.fromCurrentTime());
                 expiryDateUpdated = true;
             }
@@ -4276,8 +4887,49 @@ public class DBService implements RolesProvider {
             // update the expiration date if it does not match to the
             // value specified by the user authority value
 
-            if (memberExpiry == null || (memberExpiry != null && memberExpiry.millis() != authorityExpiry.getTime())) {
+            if (memberExpiry == null || memberExpiry.millis() != authorityExpiry.getTime()) {
                 roleMember.setExpiration(Timestamp.fromDate(authorityExpiry));
+                expiryDateUpdated = true;
+            }
+        }
+        return expiryDateUpdated;
+    }
+
+    boolean updateUserAuthorityExpiry(GroupMember groupMember, final String userAuthorityExpiry) {
+
+        // if we have a service then there is no processing taking place
+        // as the service is not managed by the user authority
+
+        if (!ZMSUtils.isUserDomainPrincipal(groupMember.getMemberName(), zmsConfig.getUserDomainPrefix(),
+                zmsConfig.getAddlUserCheckDomainPrefixList())) {
+            return false;
+        }
+
+        Date authorityExpiry = zmsConfig.getUserAuthority().getDateAttribute(groupMember.getMemberName(), userAuthorityExpiry);
+
+        // if we don't have a date then we'll expiry the user right away
+        // otherwise we'll set the date as imposed by the user authority
+
+        boolean expiryDateUpdated = false;
+        Timestamp memberExpiry = groupMember.getExpiration();
+
+        if (authorityExpiry == null) {
+
+            // we'll update the expiration date to be the current time
+            // if the user doesn't have one or it's expires sometime
+            // in the future
+
+            if (memberExpiry == null || memberExpiry.millis() > System.currentTimeMillis()) {
+                groupMember.setExpiration(Timestamp.fromCurrentTime());
+                expiryDateUpdated = true;
+            }
+        } else {
+
+            // update the expiration date if it does not match to the
+            // value specified by the user authority value
+
+            if (memberExpiry == null || memberExpiry.millis() != authorityExpiry.getTime()) {
+                groupMember.setExpiration(Timestamp.fromDate(authorityExpiry));
                 expiryDateUpdated = true;
             }
         }
@@ -4319,6 +4971,70 @@ public class DBService implements RolesProvider {
         }
 
         return roleMembersWithUpdatedDisabledStates;
+    }
+
+    List<GroupMember> getGroupMembersWithUpdatedDisabledState(List<GroupMember> groupMembers,
+                                                              final String groupUserAuthorityFilter,
+                                                              final String domainUserAuthorityFilter) {
+
+        List<GroupMember> groupMembersWithUpdatedDisabledStates = new ArrayList<>();
+
+        // combine the user and domain authority lists to have a single value
+
+        final String userAuthorityFilter = ZMSUtils.combineUserAuthorityFilters(groupUserAuthorityFilter,
+                domainUserAuthorityFilter);
+
+        // if the authority filter is null or empty then we're going to go
+        // through all of the members and remove the system disabled bit
+        // set for user authority
+
+        for (GroupMember groupMember : groupMembers) {
+
+            int currentState = groupMember.getSystemDisabled() == null ? 0 : groupMember.getSystemDisabled();
+
+            // if the filter is disabled then we're going through the list and
+            // make sure the disabled bit for the filter is unset
+
+            int newState;
+            if (userAuthorityFilter == null) {
+                newState = currentState & ~ZMSConsts.ZMS_DISABLED_AUTHORITY_FILTER;
+            } else {
+                newState = getMemberUserAuthorityState(groupMember.getMemberName(), userAuthorityFilter, currentState);
+            }
+
+            if (newState != currentState) {
+                groupMember.setSystemDisabled(newState);
+                groupMembersWithUpdatedDisabledStates.add(groupMember);
+            }
+        }
+
+        return groupMembersWithUpdatedDisabledStates;
+    }
+
+    List<GroupMember> getGroupMembersWithUpdatedDueDates(List<GroupMember> groupMembers, final String userAuthorityExpiry) {
+
+        List<GroupMember> groupMembersWithUpdatedDueDates = new ArrayList<>();
+        for (GroupMember groupMember : groupMembers) {
+
+            boolean dueDateUpdated = false;
+
+            if (ZMSUtils.isUserDomainPrincipal(groupMember.getMemberName(), zmsConfig.getUserDomainPrefix(),
+                    zmsConfig.getAddlUserCheckDomainPrefixList())) {
+
+                if (groupMember.getExpiration() != null && userAuthorityExpiry == null) {
+                    groupMember.setExpiration(null);
+                    dueDateUpdated = true;
+                } else if (userAuthorityExpiry != null && updateUserAuthorityExpiry(groupMember, userAuthorityExpiry)) {
+                    dueDateUpdated = true;
+                }
+            }
+
+            if (dueDateUpdated) {
+                groupMembersWithUpdatedDueDates.add(groupMember);
+            }
+        }
+
+        return groupMembersWithUpdatedDueDates;
     }
 
     List<RoleMember> getRoleMembersWithUpdatedDueDates(List<RoleMember> roleMembers, Timestamp userExpiration,
@@ -4373,8 +5089,8 @@ public class DBService implements RolesProvider {
     }
 
     private boolean insertRoleMembers(ResourceContext ctx, ObjectStoreConnection con, List<RoleMember> roleMembers,
-            final String domainName, final String roleName, final String principal, final String auditRef,
-            final String caller) {
+                                      final String domainName, final String roleName, final String principal,
+                                      final String auditRef, final String caller) {
 
         boolean bDataChanged = false;
         for (RoleMember roleMember : roleMembers) {
@@ -4401,9 +5117,38 @@ public class DBService implements RolesProvider {
         return bDataChanged;
     }
 
+    boolean insertGroupMembers(ResourceContext ctx, ObjectStoreConnection con, List<GroupMember> groupMembers,
+                               final String domainName, final String groupName, final String principal,
+                               final String auditRef, final String caller) {
+
+        boolean bDataChanged = false;
+        for (GroupMember groupMember : groupMembers) {
+            try {
+                if (!con.insertGroupMember(domainName, groupName, groupMember, principal, auditRef)) {
+                    LOG.error("unable to update group member {}", groupMember.getMemberName());
+                    continue;
+                }
+            } catch (Exception ex) {
+                LOG.error("unable to update member {} error: {}", groupMember.getMemberName(), ex.getMessage());
+                continue;
+            }
+
+            // audit log the request
+
+            StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
+            auditLogGroupMember(auditDetails, groupMember, true);
+            auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT, groupName,
+                    auditDetails.toString());
+
+            bDataChanged = true;
+        }
+
+        return bDataChanged;
+    }
+
     boolean updateRoleMemberDisabledState(ResourceContext ctx, ObjectStoreConnection con, List<RoleMember> roleMembers,
-            final String domainName, final String roleName, final String principal, final String auditRef,
-            final String caller) {
+                                          final String domainName, final String roleName, final String principal,
+                                          final String auditRef, final String caller) {
 
         boolean bDataChanged = false;
         for (RoleMember roleMember : roleMembers) {
@@ -4423,6 +5168,36 @@ public class DBService implements RolesProvider {
             StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
             auditLogRoleMember(auditDetails, roleMember, true);
             auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT, roleName,
+                    auditDetails.toString());
+
+            bDataChanged = true;
+        }
+
+        return bDataChanged;
+    }
+
+    boolean updateGroupMemberDisabledState(ResourceContext ctx, ObjectStoreConnection con, List<GroupMember> groupMembers,
+                                           final String domainName, final String groupName, final String principal,
+                                           final String auditRef, final String caller) {
+
+        boolean bDataChanged = false;
+        for (GroupMember groupMember : groupMembers) {
+            try {
+                if (!con.updateGroupMemberDisabledState(domainName, groupName, groupMember.getMemberName(), principal,
+                        groupMember.getSystemDisabled(), auditRef)) {
+                    LOG.error("unable to update group member {}", groupMember.getMemberName());
+                    continue;
+                }
+            } catch (Exception ex) {
+                LOG.error("unable to update group member {} error: {}", groupMember.getMemberName(), ex.getMessage());
+                continue;
+            }
+
+            // audit log the request
+
+            StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
+            auditLogGroupMember(auditDetails, groupMember, true);
+            auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT, groupName,
                     auditDetails.toString());
 
             bDataChanged = true;
@@ -4491,7 +5266,8 @@ public class DBService implements RolesProvider {
     }
 
     void updateRoleMembersSystemDisabledState(ResourceContext ctx, ObjectStoreConnection con, final String domainName,
-            final String roleName, Role originalRole, Role updatedRole, final String auditRef, final String caller) {
+                                              final String roleName, Role originalRole, Role updatedRole,
+                                              final String auditRef, final String caller) {
 
         // if it's a delegated role then we have nothing to do
 
@@ -4531,6 +5307,41 @@ public class DBService implements RolesProvider {
         }
     }
 
+    void updateGroupMembersSystemDisabledState(ResourceContext ctx, ObjectStoreConnection con, final String domainName,
+                                               final String groupName, Group originalGroup, Group updatedGroup, final String auditRef) {
+
+        // if no group members, then there is nothing to do
+
+        final List<GroupMember> groupMembers = originalGroup.getGroupMembers();
+        if (groupMembers == null || groupMembers.isEmpty()) {
+            return;
+        }
+
+        // check if the authority filter has changed otherwise we have
+        // nothing to do
+
+        if (!isUserAuthorityFilterChanged(originalGroup.getUserAuthorityFilter(), updatedGroup.getUserAuthorityFilter())) {
+            return;
+        }
+
+        final String principal = getPrincipalName(ctx);
+
+        // process our group members and if there were any changes processed then update
+        // our group and domain time-stamps, and invalidate local cache entry
+
+        List<GroupMember> groupMembersWithUpdatedDisabledState = getGroupMembersWithUpdatedDisabledState(groupMembers,
+                updatedGroup.getUserAuthorityFilter(), getDomainUserAuthorityFilter(con, domainName));
+        if (updateGroupMemberDisabledState(ctx, con, groupMembersWithUpdatedDisabledState, domainName,
+                groupName, principal, auditRef, ctx.getApiName())) {
+
+            // update our group and domain time-stamps, and invalidate local cache entry
+
+            con.updateGroupModTimestamp(domainName, groupName);
+            con.updateDomainModTimestamp(domainName);
+            cacheStore.invalidate(domainName);
+        }
+    }
+
     String getDomainUserAuthorityFilter(ObjectStoreConnection con, final String domainName) {
         Domain domain = con.getDomain(domainName);
         if (domain == null) {
@@ -4539,9 +5350,44 @@ public class DBService implements RolesProvider {
         return domain.getUserAuthorityFilter();
     }
 
+    void updateGroupMembersDueDates(ResourceContext ctx, ObjectStoreConnection con, final String domainName,
+                                    final String groupName, Group originalGroup, Group updatedGroup, final String auditRef) {
+
+        // if no group members, then there is nothing to do
+
+        final List<GroupMember> groupMembers = originalGroup.getGroupMembers();
+        if (groupMembers == null || groupMembers.isEmpty()) {
+            return;
+        }
+
+        // check if the user authority expiration attribute has been
+        // changed in which case we need to verify and update members
+        // accordingly
+
+        if (!isUserAuthorityExpiryChanged(originalGroup.getUserAuthorityExpiration(), updatedGroup.getUserAuthorityExpiration())) {
+            return;
+        }
+
+        final String principal = getPrincipalName(ctx);
+
+        // process our group members and if there were any changes processed then update
+        // our role and domain time-stamps, and invalidate local cache entry
+
+        final String userAuthorityExpiry = updatedGroup.getUserAuthorityExpiration();
+        List<GroupMember> groupMembersWithUpdatedDueDates = getGroupMembersWithUpdatedDueDates(groupMembers, userAuthorityExpiry);
+        if (insertGroupMembers(ctx, con, groupMembersWithUpdatedDueDates, domainName,
+                groupName, principal, auditRef, ctx.getApiName())) {
+
+            // update our group and domain time-stamps, and invalidate local cache entry
+
+            con.updateGroupModTimestamp(domainName, groupName);
+            con.updateDomainModTimestamp(domainName);
+            cacheStore.invalidate(domainName);
+        }
+    }
+
     void updateRoleMembersDueDates(ResourceContext ctx, ObjectStoreConnection con, final String domainName,
-            final String roleName, Role originalRole, Role updatedRole, final String auditRef,
-            final String caller) {
+            final String roleName, Role originalRole, Role updatedRole, final String auditRef, final String caller) {
 
         // if it's a delegated role then we have nothing to do
 
@@ -4635,18 +5481,18 @@ public class DBService implements RolesProvider {
      * If the role has audit enabled, and user did not provide the auditRef,
      * an exception will be thrown.
      **/
-    void checkRoleAuditEnabled(ObjectStoreConnection con, Role role, final String auditRef,
-            final String caller, final String principal) {
+    void checkObjectAuditEnabled(ObjectStoreConnection con, Boolean auditEnabled, final String objectName,
+                                 final String auditRef, final String caller, final String principal) {
 
-        if (role.getAuditEnabled() == Boolean.TRUE) {
+        if (auditEnabled == Boolean.TRUE) {
             if (auditRef == null || auditRef.length() == 0) {
                 con.rollbackChanges();
-                throw ZMSUtils.requestError(caller + ": Audit reference required for role: " + role.getName(), caller);
+                throw ZMSUtils.requestError(caller + ": Audit reference required for object: " + objectName, caller);
             }
 
             if (auditReferenceValidator != null && !auditReferenceValidator.validateReference(auditRef, principal, caller)) {
                 con.rollbackChanges();
-                throw ZMSUtils.requestError(caller + ": Audit reference validation failed for role: " + role.getName() +
+                throw ZMSUtils.requestError(caller + ": Audit reference validation failed for object: " + objectName +
                         ", auditRef: " + auditRef, caller);
             }
         }
@@ -4673,7 +5519,8 @@ public class DBService implements RolesProvider {
                     throw ZMSUtils.notFoundError(caller + ": Unknown role: " + roleName, caller);
                 }
 
-                checkRoleAuditEnabled(con, originalRole, auditRef, caller, principal);
+                checkObjectAuditEnabled(con, originalRole.getAuditEnabled(), originalRole.getName(),
+                        auditRef, caller, principal);
 
                 // process our confirm role member support
 
@@ -4710,6 +5557,59 @@ public class DBService implements RolesProvider {
         }
     }
 
+    void executePutGroupMembershipDecision(ResourceContext ctx, final String domainName, Group group,
+                                           GroupMember groupMember, final String auditRef) {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
+
+                String principal = getPrincipalName(ctx);
+
+                // make sure the role auditing requires are bet
+
+                checkObjectAuditEnabled(con, group.getAuditEnabled(), group.getName(),
+                        auditRef, ctx.getApiName(), principal);
+
+                // process our confirm group member support
+
+                final String groupName = ZMSUtils.extractGroupName(domainName, group.getName());
+                if (!con.confirmGroupMember(domainName, groupName, groupMember, principal, auditRef)) {
+                    con.rollbackChanges();
+                    throw ZMSUtils.requestError("unable to apply group membership decision for member: " +
+                            groupMember.getMemberName() + " and group: " + groupName, ctx.getApiName());
+                }
+
+                // update our domain time-stamp and save changes
+
+                con.updateGroupModTimestamp(domainName, groupName);
+                saveChanges(con, domainName);
+
+                // audit log the request
+
+                StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
+                auditLogGroupMember(auditDetails, groupMember, true);
+
+                auditLogRequest(ctx, domainName, auditRef, ctx.getApiName(), ZMSConsts.HTTP_PUT,
+                        groupName, auditDetails.toString());
+
+                return;
+
+            } catch (ResourceException ex) {
+
+                // otherwise check if we need to retry or return failure
+
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ex;
+                }
+            }
+        }
+    }
+
     DomainRoleMembership getPendingDomainRoleMembers(final String principal) {
 
         DomainRoleMembership domainRoleMembership = new DomainRoleMembership();
@@ -4731,6 +5631,27 @@ public class DBService implements RolesProvider {
         return domainRoleMembership;
     }
 
+    DomainGroupMembership getPendingDomainGroupMembers(final String principal) {
+
+        DomainGroupMembership domainGroupMembership = new DomainGroupMembership();
+        List<DomainGroupMembers> domainGroupMembersList = new ArrayList<>();
+        DomainGroupMembers domainGroupMembers;
+
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+            Map<String, List<DomainGroupMember>> domainGroupMembersMap = con.getPendingDomainGroupMembers(principal);
+            if (domainGroupMembersMap != null) {
+                for (String domain : domainGroupMembersMap.keySet()) {
+                    domainGroupMembers = new DomainGroupMembers();
+                    domainGroupMembers.setDomainName(domain);
+                    domainGroupMembers.setMembers(domainGroupMembersMap.get(domain));
+                    domainGroupMembersList.add(domainGroupMembers);
+                }
+                domainGroupMembership.setDomainGroupMembersList(domainGroupMembersList);
+            }
+        }
+        return domainGroupMembership;
+    }
+
     public Set<String> getPendingMembershipApproverRoles(int delayDays) {
         try (ObjectStoreConnection con = store.getConnection(true, true)) {
             long updateTs = System.currentTimeMillis();
@@ -4741,21 +5662,41 @@ public class DBService implements RolesProvider {
         return null;
     }
 
-    public Map<String, DomainRoleMember> getRoleExpiryMembers() {
+    public Set<String> getPendingGroupMembershipApproverRoles(int delayDays) {
         try (ObjectStoreConnection con = store.getConnection(true, true)) {
             long updateTs = System.currentTimeMillis();
-            if (con.updateRoleMemberExpirationNotificationTimestamp(zmsConfig.getServerHostName(), updateTs)) {
+            if (con.updatePendingGroupMembersNotificationTimestamp(zmsConfig.getServerHostName(), updateTs, delayDays)) {
+                return con.getPendingGroupMembershipApproverRoles(zmsConfig.getServerHostName(), updateTs);
+            }
+        }
+        return null;
+    }
+
+    public Map<String, DomainRoleMember> getRoleExpiryMembers(int delayDays) {
+        try (ObjectStoreConnection con = store.getConnection(true, true)) {
+            long updateTs = System.currentTimeMillis();
+            if (con.updateRoleMemberExpirationNotificationTimestamp(zmsConfig.getServerHostName(), updateTs, delayDays)) {
                 return con.getNotifyTemporaryRoleMembers(zmsConfig.getServerHostName(), updateTs);
             }
         }
         return null;
     }
 
-    public Map<String, DomainRoleMember> getRoleReviewMembers() {
+    public Map<String, DomainRoleMember> getRoleReviewMembers(int delayDays) {
         try (ObjectStoreConnection con = store.getConnection(true, true)) {
             long updateTs = System.currentTimeMillis();
-            if (con.updateRoleMemberReviewNotificationTimestamp(zmsConfig.getServerHostName(), updateTs)) {
+            if (con.updateRoleMemberReviewNotificationTimestamp(zmsConfig.getServerHostName(), updateTs, delayDays)) {
                 return con.getNotifyReviewRoleMembers(zmsConfig.getServerHostName(), updateTs);
+            }
+        }
+        return null;
+    }
+
+    public Map<String, DomainGroupMember> getGroupExpiryMembers(int delayDays) {
+        try (ObjectStoreConnection con = store.getConnection(true, true)) {
+            long updateTs = System.currentTimeMillis();
+            if (con.updateGroupMemberExpirationNotificationTimestamp(zmsConfig.getServerHostName(), updateTs, delayDays)) {
+                return con.getNotifyTemporaryGroupMembers(zmsConfig.getServerHostName(), updateTs);
             }
         }
         return null;
@@ -4785,6 +5726,104 @@ public class DBService implements RolesProvider {
                                     "{\"member\": \"" + principalName + "\"}");
                         }
                     }
+                }
+            }
+        }
+    }
+
+    public void processExpiredPendingGroupMembers(int pendingGroupMemberLifespan, final String monitorIdentity) {
+
+        final String auditRef = "Expired - auto reject";
+        final String caller = "processExpiredPendingGroupMembers";
+
+        Map<String, List<DomainGroupMember>> memberList;
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+            memberList = con.getExpiredPendingDomainGroupMembers(pendingGroupMemberLifespan);
+        }
+
+        // delete each member and record each expired member in audit log in a transaction
+
+        for (String domainName : memberList.keySet()) {
+            for (DomainGroupMember domainGroupMember : memberList.get(domainName)) {
+                final String principalName = domainGroupMember.getMemberName();
+                for (GroupMember groupMember : domainGroupMember.getMemberGroups()) {
+                    try (ObjectStoreConnection con = store.getConnection(true, true)) {
+                        if (con.deletePendingGroupMember(domainName, groupMember.getGroupName(),
+                                principalName, monitorIdentity, auditRef)) {
+                            auditLogRequest(monitorIdentity, domainName, auditRef, caller,
+                                    "REJECT", groupMember.getGroupName(),
+                                    "{\"member\": \"" + principalName + "\"}");
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    void executePutGroupReview(ResourceContext ctx, final String domainName, final String groupName, Group group, final String auditRef) {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
+
+                final String principal = getPrincipalName(ctx);
+
+                // first verify that auditing requirements are met
+
+                checkDomainAuditEnabled(con, domainName, auditRef, ctx.getApiName(), principal, AUDIT_TYPE_GROUP);
+
+                StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
+
+                List<GroupMember> deletedMembers = new ArrayList<>();
+                List<GroupMember> noActionMembers = new ArrayList<>();
+
+                auditDetails.append("{\"name\": \"").append(groupName).append('\"')
+                        .append(", \"selfServe\": ").append(auditLogBooleanDefault(group.getSelfServe(), Boolean.TRUE))
+                        .append(", \"auditEnabled\": ").append(auditLogBooleanDefault(group.getAuditEnabled(), Boolean.TRUE));
+
+                for (GroupMember member : group.getGroupMembers()) {
+
+                    // if active flag is coming as false for the member, that means it's flagged for deletion
+
+                    if (member.getActive() == Boolean.FALSE) {
+                        if (!con.deleteGroupMember(domainName, groupName, member.getMemberName(), principal, auditRef)) {
+                            con.rollbackChanges();
+                            throw ZMSUtils.notFoundError("unable to delete group member: " +
+                                    member.getMemberName() + " from group: " + groupName, ctx.getApiName());
+                        }
+                        deletedMembers.add(member);
+                    } else {
+                        noActionMembers.add(member);
+                    }
+                }
+
+                // construct audit log details
+
+                auditLogGroupMembers(auditDetails, "deleted-members", deletedMembers);
+                auditLogGroupMembers(auditDetails, "no-action-members", noActionMembers);
+
+                auditDetails.append("}");
+
+                if (!deletedMembers.isEmpty()) {
+                    con.updateGroupModTimestamp(domainName, groupName);
+                }
+
+                con.updateGroupReviewTimestamp(domainName, groupName);
+                saveChanges(con, domainName);
+
+                // audit log the request
+
+                auditLogRequest(ctx, domainName, auditRef, ctx.getApiName(), "REVIEW", groupName, auditDetails.toString());
+
+                return;
+
+            } catch (ResourceException ex) {
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ex;
                 }
             }
         }
@@ -4830,8 +5869,8 @@ public class DBService implements RolesProvider {
                 List<RoleMember> extendedMembers = new ArrayList<>();
 
                 auditDetails.append("{\"name\": \"").append(roleName).append('\"')
-                        .append(", \"selfServe\": ").append(originalRole.getSelfServe() == Boolean.TRUE ? "true" : "false")
-                        .append(", \"auditEnabled\": ").append(originalRole.getAuditEnabled() == Boolean.TRUE ? "true" : "false");
+                        .append(", \"selfServe\": ").append(auditLogBooleanDefault(originalRole.getSelfServe(), Boolean.TRUE))
+                        .append(", \"auditEnabled\": ").append(auditLogBooleanDefault(originalRole.getAuditEnabled(), Boolean.TRUE));
 
                 for (RoleMember member : updatedRole.getRoleMembers()) {
 
@@ -4858,6 +5897,7 @@ public class DBService implements RolesProvider {
                 }
 
                 // construct audit log details
+
                 auditLogRoleMembers(auditDetails, "deleted-members", deletedMembers);
                 auditLogRoleMembers(auditDetails, "extended-members", extendedMembers);
                 auditLogRoleMembers(auditDetails, "no-action-members", noactionMembers);
@@ -4865,17 +5905,16 @@ public class DBService implements RolesProvider {
                 auditDetails.append("}");
 
                 if (!deletedMembers.isEmpty() || !extendedMembers.isEmpty()) {
-                    // we have one or more changes to the role. We should update both lastReviewed as well as modified timestamps
+                    // we have one or more changes to the role. We should update
+                    // both lastReviewed as well as modified timestamps
                     con.updateRoleModTimestamp(domainName, roleName);
-                    con.updateRoleReviewTimestamp(domainName, roleName);
-                } else {
-                    // since "no-action" is still a review, we are updating lastReviewed timestamp
-                    con.updateRoleReviewTimestamp(domainName, roleName);
                 }
 
+                con.updateRoleReviewTimestamp(domainName, roleName);
                 saveChanges(con, domainName);
 
                 // audit log the request
+
                 auditLogRequest(ctx, domainName, auditRef, caller, "REVIEW", roleName, auditDetails.toString());
 
                 return;
@@ -4965,7 +6004,7 @@ public class DBService implements RolesProvider {
         }
     }
 
-    void processUserAuthorityRestrictions() {
+    void processRoleUserAuthorityRestrictions() {
 
         // if we don't have a user authority defined then there
         // is no work to be done
@@ -5001,6 +6040,42 @@ public class DBService implements RolesProvider {
         }
     }
 
+    void processGroupUserAuthorityRestrictions() {
+
+        // if we don't have a user authority defined then there
+        // is no work to be done
+
+        if (zmsConfig.getUserAuthority() == null) {
+            return;
+        }
+
+        // first we need to get all the groups that have the authority
+        // filter or date expiry attributes set
+
+        List<PrincipalGroup> groups;
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+            groups = con.listGroupsWithUserAuthorityRestrictions();
+        }
+
+        if (groups == null) {
+            return;
+        }
+
+        // for each group catch any exception and ignore since we
+        // want to process all group and not allow a single one
+        // prevent updating others
+
+        for (PrincipalGroup group : groups) {
+            try {
+                enforceGroupUserAuthorityRestrictions(group.getDomainName(), group.getGroupName(),
+                        group.getDomainUserAuthorityFilter());
+            } catch (Exception ex) {
+                LOG.error("Unable to process user authority restrictions for {}:group.{} - {}",
+                        group.getDomainName(), group.getGroupName(), ex.getMessage());
+            }
+        }
+    }
+
     Map<String, List<String>> applyTemplatesForListOfDomains(Map<String, Integer> templateDetails) {
         final String caller = "applyTemplatesForListOfDomains";
         final String auditRef = "AutoApplyTemplate";
@@ -5019,7 +6094,6 @@ public class DBService implements RolesProvider {
             } catch (Exception ex) {
                 LOG.error("unable to apply template for domain {} and template {} error: {}",
                         domainName, domainTemplate, ex.getMessage());
-                continue;
             }
         }
         return domainTemplateListMap;
@@ -5050,7 +6124,7 @@ public class DBService implements RolesProvider {
             boolean expiryDBUpdated = false;
             final String userAuthorityExpiry = role.getUserAuthorityExpiration();
             if (userAuthorityExpiry != null) {
-                List<RoleMember> updatedMembers = new ArrayList();
+                List<RoleMember> updatedMembers = new ArrayList<>();
                 for (RoleMember roleMember : roleMembers) {
                     if (updateUserAuthorityExpiry(roleMember, userAuthorityExpiry)) {
                         updatedMembers.add(roleMember);
@@ -5067,7 +6141,7 @@ public class DBService implements RolesProvider {
             final String userAuthorityFilter = ZMSUtils.combineUserAuthorityFilters(role.getUserAuthorityFilter(),
                     domainUserAuthorityFilter);
             if (userAuthorityFilter != null) {
-                List<RoleMember> updatedMembers = new ArrayList();
+                List<RoleMember> updatedMembers = new ArrayList<>();
 
                 for (RoleMember roleMember : roleMembers) {
                     if (updateUserAuthorityFilter(roleMember, userAuthorityFilter)) {
@@ -5090,6 +6164,71 @@ public class DBService implements RolesProvider {
         }
     }
 
+    void enforceGroupUserAuthorityRestrictions(final String domainName, final String groupName,
+                                               final String domainUserAuthorityFilter) {
+
+        final String caller = "enforceGroupUserAuthorityRestrictions";
+        try (ObjectStoreConnection con = store.getConnection(true, true)) {
+
+            // get the role from the storage system
+
+            Group group = getGroup(con, domainName, groupName, false, false);
+            if (group == null) {
+                return;
+            }
+
+            // update the group membership
+
+            List<GroupMember> groupMembers = group.getGroupMembers();
+            if (groupMembers == null) {
+                return;
+            }
+
+            // first process the authority expiration restriction
+
+            boolean expiryDBUpdated = false;
+            final String userAuthorityExpiry = group.getUserAuthorityExpiration();
+            if (userAuthorityExpiry != null) {
+                List<GroupMember> updatedMembers = new ArrayList<>();
+                for (GroupMember groupMember : groupMembers) {
+                    if (updateUserAuthorityExpiry(groupMember, userAuthorityExpiry)) {
+                        updatedMembers.add(groupMember);
+                    }
+                }
+
+                expiryDBUpdated = insertGroupMembers(null, con, updatedMembers, domainName, groupName,
+                        ZMSConsts.SYS_AUTH_MONITOR, AUDIT_REF, caller);
+            }
+
+            // now process authority filter restriction
+
+            boolean filterDBUpdated = false;
+            final String userAuthorityFilter = ZMSUtils.combineUserAuthorityFilters(group.getUserAuthorityFilter(),
+                    domainUserAuthorityFilter);
+            if (userAuthorityFilter != null) {
+                List<GroupMember> updatedMembers = new ArrayList<>();
+
+                for (GroupMember groupMember : groupMembers) {
+                    if (updateUserAuthorityFilter(groupMember, userAuthorityFilter)) {
+                        updatedMembers.add(groupMember);
+                    }
+                }
+
+                filterDBUpdated = updateGroupMemberDisabledState(null, con, updatedMembers, domainName,
+                        groupName, ZMSConsts.SYS_AUTH_MONITOR, AUDIT_REF, caller);
+            }
+
+            if (expiryDBUpdated || filterDBUpdated) {
+
+                // update our group and domain time-stamps, and invalidate local cache entry
+
+                con.updateGroupModTimestamp(domainName, groupName);
+                con.updateDomainModTimestamp(domainName);
+                cacheStore.invalidate(domainName);
+            }
+        }
+    }
+
     class UserAuthorityFilterEnforcer implements Runnable {
 
         public UserAuthorityFilterEnforcer() {
@@ -5101,9 +6240,16 @@ public class DBService implements RolesProvider {
             LOG.info("UserAuthorityFilterEnforcer: Starting user authority filter enforcer thread...");
 
             try {
-                processUserAuthorityRestrictions();
+                processRoleUserAuthorityRestrictions();
             } catch (Throwable t) {
-                LOG.error("UserAuthorityFilterEnforcer: unable to enforce user authority restrictions: {}",
+                LOG.error("UserAuthorityFilterEnforcer: unable to enforce role user authority restrictions: {}",
+                        t.getMessage());
+            }
+
+            try {
+                processGroupUserAuthorityRestrictions();
+            } catch (Throwable t) {
+                LOG.error("UserAuthorityFilterEnforcer: unable to enforce group user authority restrictions: {}",
                         t.getMessage());
             }
 

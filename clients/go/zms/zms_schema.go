@@ -471,6 +471,10 @@ func init() {
 	tDomainGroupMembers.ArrayField("members", "DomainGroupMember", false, "group members")
 	sb.AddType(tDomainGroupMembers.Build())
 
+	tDomainGroupMembership := rdl.NewStructTypeBuilder("Struct", "DomainGroupMembership")
+	tDomainGroupMembership.ArrayField("domainGroupMembersList", "DomainGroupMembers", false, "")
+	sb.AddType(tDomainGroupMembership.Build())
+
 	tGroupSystemMeta := rdl.NewStructTypeBuilder("Struct", "GroupSystemMeta")
 	tGroupSystemMeta.Comment("Set of system metadata attributes that all groups may have and can be changed by system admins.")
 	tGroupSystemMeta.Field("auditEnabled", "Bool", true, false, "Flag indicates whether or not group updates should be approved by GRC. If true, the auditRef parameter must be supplied(not empty) for any API defining it.")
@@ -1327,6 +1331,18 @@ func init() {
 	mPutGroupReview.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mPutGroupReview.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mPutGroupReview.Build())
+
+	mGetPendingDomainGroupMembersList := rdl.NewResourceBuilder("DomainGroupMembership", "GET", "/pending_group_members")
+	mGetPendingDomainGroupMembersList.Comment("List of domains containing groups and corresponding members to be approved by either calling or specified principal")
+	mGetPendingDomainGroupMembersList.Name("getPendingDomainGroupMembersList")
+	mGetPendingDomainGroupMembersList.Input("principal", "EntityName", false, "principal", "", true, nil, "If present, return pending list for this principal")
+	mGetPendingDomainGroupMembersList.Auth("", "", true, "")
+	mGetPendingDomainGroupMembersList.Exception("BAD_REQUEST", "ResourceError", "")
+	mGetPendingDomainGroupMembersList.Exception("FORBIDDEN", "ResourceError", "")
+	mGetPendingDomainGroupMembersList.Exception("NOT_FOUND", "ResourceError", "")
+	mGetPendingDomainGroupMembersList.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
+	mGetPendingDomainGroupMembersList.Exception("UNAUTHORIZED", "ResourceError", "")
+	sb.AddResource(mGetPendingDomainGroupMembersList.Build())
 
 	mGetPolicyList := rdl.NewResourceBuilder("PolicyList", "GET", "/domain/{domainName}/policy")
 	mGetPolicyList.Comment("List policies provisioned in this namespace.")

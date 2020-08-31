@@ -192,7 +192,35 @@ public class JDBCConnectionTest {
         assertEquals(jdbcConn.getRoleId(3, "role1"), 0);
         jdbcConn.close();
     }
-    
+
+    @Test
+    public void testGetGroupId() throws Exception {
+
+        // first time success from mysql, second time failure so
+        // we can verify we get the value from our cache
+
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
+        Mockito.doReturn(9).when(mockResultSet).getInt(1);
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        assertEquals(9, jdbcConn.getGroupId(7, "group1"));
+        assertEquals(9, jdbcConn.getGroupId(7, "group1"));
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetGroupIdException() throws Exception {
+
+        Mockito.when(mockResultSet.next()).thenReturn(false);
+        Mockito.when(mockPrepStmt.executeQuery()).thenThrow(new SQLException("failed operation", "state", 1001));
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        assertEquals(jdbcConn.getGroupId(3, "group1"), 0);
+        jdbcConn.close();
+    }
+
     @Test
     public void testGetPrincipalId() throws Exception {
 
@@ -808,8 +836,8 @@ public class JDBCConnectionTest {
         assertNull(role.getServiceExpiryDays());
         assertNull(role.getMemberReviewDays());
         assertNull(role.getServiceReviewDays());
-        assertEquals(role.getUserAuthorityExpiration(), null);
-        assertEquals(role.getUserAuthorityFilter(), null);
+        assertNull(role.getUserAuthorityExpiration());
+        assertNull(role.getUserAuthorityFilter());
         assertEquals(role.getSignAlgorithm(), "ec");
         assertEquals(role.getNotifyRoles(), "role1,role2");
         assertTrue(role.getReviewEnabled());
@@ -887,8 +915,8 @@ public class JDBCConnectionTest {
         assertEquals("my-domain:role.role1", role.getName());
         assertTrue(role.getAuditEnabled());
         assertNull(role.getSelfServe());
-        assertEquals(role.getUserAuthorityExpiration(), null);
-        assertEquals(role.getUserAuthorityFilter(), null);
+        assertNull(role.getUserAuthorityExpiration());
+        assertNull(role.getUserAuthorityFilter());
 
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "role1");
@@ -927,8 +955,8 @@ public class JDBCConnectionTest {
         assertNotNull(role);
         assertEquals("my-domain:role.role1", role.getName());
         assertEquals("trust.domain", role.getTrust());
-        assertEquals(role.getUserAuthorityExpiration(), null);
-        assertEquals(role.getUserAuthorityFilter(), null);
+        assertNull(role.getUserAuthorityExpiration());
+        assertNull(role.getUserAuthorityFilter());
 
         jdbcConn.close();
     }
@@ -1370,7 +1398,7 @@ public class JDBCConnectionTest {
     }
     
     @Test
-    public void testDeleteRoleinvalidDomain() throws Exception {
+    public void testDeleteRoleInvalidDomain() throws Exception {
         
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
@@ -5687,11 +5715,14 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         // one-domain, 2 roles, 2 members altogether
+        // 1 group with 1 member
         // 2 policies, 2 assertions
         // 1 service, 1 public key
         Mockito.when(mockResultSet.next()).thenReturn(true) // domain
             .thenReturn(true).thenReturn(true).thenReturn(false) // 2 roles
             .thenReturn(true).thenReturn(true).thenReturn(false) // 1 member each
+            .thenReturn(true).thenReturn(false) // 1 group
+            .thenReturn(true).thenReturn(false) // 1 member
             .thenReturn(true).thenReturn(true).thenReturn(false) // 2 policies
             .thenReturn(true).thenReturn(true).thenReturn(false) // 1 assertion each
             .thenReturn(true).thenReturn(false) // 1 service
@@ -5700,18 +5731,23 @@ public class JDBCConnectionTest {
         
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_NAME))
             .thenReturn("role1").thenReturn("role2") // role names
+            .thenReturn("group1") // group name
             .thenReturn("policy1").thenReturn("policy2") // policy names
             .thenReturn("service1"); // service name
         
         Mockito.when(mockResultSet.getString(1))
             .thenReturn("role1").thenReturn("role2") // role names
+            .thenReturn("group1") // group name
             .thenReturn("policy1").thenReturn("policy2") // policy names
             .thenReturn("service1"); // service names 
             
         Mockito.when(mockResultSet.getString(2))
-            .thenReturn("user").thenReturn("user") // member domain names
+            .thenReturn("user").thenReturn("user") // role member domain names
+            .thenReturn("user") // group member domain names
             .thenReturn("host1"); // service host name
-        Mockito.when(mockResultSet.getString(3)).thenReturn("user1").thenReturn("user2"); // member local names
+        Mockito.when(mockResultSet.getString(3))
+            .thenReturn("user1").thenReturn("user2") // role member local names
+            .thenReturn("user3"); // group member local names
 
         Mockito.doReturn(new java.sql.Timestamp(1454358916)).when(mockResultSet).getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED);
         Mockito.doReturn(true).when(mockResultSet).getBoolean(ZMSConsts.DB_COLUMN_ENABLED);
@@ -5752,6 +5788,8 @@ public class JDBCConnectionTest {
         assertEquals(2, athenzDomain.getRoles().size());
         assertEquals(1, athenzDomain.getRoles().get(0).getRoleMembers().size());
         assertEquals(1, athenzDomain.getRoles().get(1).getRoleMembers().size());
+        assertEquals(1, athenzDomain.getGroups().size());
+        assertEquals(1, athenzDomain.getGroups().get(0).getGroupMembers().size());
         assertEquals(2, athenzDomain.getPolicies().size());
         assertEquals(1, athenzDomain.getPolicies().get(0).getAssertions().size());
         assertEquals(1, athenzDomain.getPolicies().get(1).getAssertions().size());
@@ -7443,7 +7481,7 @@ public class JDBCConnectionTest {
                 .setPolicy(12).setPublicKey(13)
                 .setRole(14).setRoleMember(15)
                 .setService(16).setServiceHost(17)
-                .setSubdomain(18);
+                .setSubdomain(18).setGroup(19).setGroupMember(20);
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         Mockito.when(mockResultSet.next()).thenReturn(true);
@@ -7463,6 +7501,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setInt(8, 13);
         Mockito.verify(mockPrepStmt, times(1)).setInt(9, 11);
         Mockito.verify(mockPrepStmt, times(1)).setInt(10, 18);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(11, 19);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(12, 20);
         jdbcConn.close();
     }
     
@@ -7524,7 +7564,7 @@ public class JDBCConnectionTest {
                 .setPolicy(12).setPublicKey(13)
                 .setRole(14).setRoleMember(15)
                 .setService(16).setServiceHost(17)
-                .setSubdomain(18);
+                .setSubdomain(18).setGroup(19).setGroupMember(20);
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         Mockito.when(mockResultSet.next()).thenReturn(true);
@@ -7543,7 +7583,9 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setInt(7, 13);
         Mockito.verify(mockPrepStmt, times(1)).setInt(8, 11);
         Mockito.verify(mockPrepStmt, times(1)).setInt(9, 18);
-        Mockito.verify(mockPrepStmt, times(1)).setInt(10, 5); // domain id
+        Mockito.verify(mockPrepStmt, times(1)).setInt(10, 19);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(11, 20);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(12, 5); // domain id
         jdbcConn.close();
     }
     
@@ -9303,8 +9345,8 @@ public class JDBCConnectionTest {
                 .thenReturn(3); // 3 members updated
         long timestamp = System.currentTimeMillis();
         boolean result = isRoleExpire ?
-                jdbcConn.updateRoleMemberExpirationNotificationTimestamp("localhost", timestamp) :
-                jdbcConn.updateRoleMemberReviewNotificationTimestamp("localhost", timestamp);
+                jdbcConn.updateRoleMemberExpirationNotificationTimestamp("localhost", timestamp, 1) :
+                jdbcConn.updateRoleMemberReviewNotificationTimestamp("localhost", timestamp, 1);
         java.sql.Timestamp ts = new java.sql.Timestamp(timestamp);
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(1, ts);
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "localhost");
@@ -9328,9 +9370,9 @@ public class JDBCConnectionTest {
                 .thenThrow(new SQLException("sql error"));
         try {
             if (isRoleExpire) {
-                jdbcConn.updateRoleMemberExpirationNotificationTimestamp("localhost", System.currentTimeMillis());
+                jdbcConn.updateRoleMemberExpirationNotificationTimestamp("localhost", System.currentTimeMillis(), 1);
             } else {
-                jdbcConn.updateRoleMemberReviewNotificationTimestamp("localhost", System.currentTimeMillis());
+                jdbcConn.updateRoleMemberReviewNotificationTimestamp("localhost", System.currentTimeMillis(), 1);
             }
             fail();
         } catch (RuntimeException ex) {
@@ -9382,8 +9424,8 @@ public class JDBCConnectionTest {
                 jdbcConn.getNotifyReviewRoleMembers("localhost", timestamp);
         assertNotNull(memberMap);
         assertEquals(memberMap.size(), 2);
-        assertTrue(memberMap.keySet().contains("user.joe"));
-        assertTrue(memberMap.keySet().contains("user.jane"));
+        assertTrue(memberMap.containsKey("user.joe"));
+        assertTrue(memberMap.containsKey("user.jane"));
         jdbcConn.close();
     }
 
@@ -9672,7 +9714,7 @@ public class JDBCConnectionTest {
     }
 
     @Test
-    public void testUpdateRoleMemberDisabledStateEanble()  throws Exception {
+    public void testUpdateRoleMemberDisabledStateEnable()  throws Exception {
         testUpdateRoleMemberDisableState(0, "ENABLE");
     }
 
@@ -9900,6 +9942,2032 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(0)).setString(4, "DISABLE");
         Mockito.verify(mockPrepStmt, times(0)).setString(5, "audit-ref");
 
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetExpiredPendingGroupMembers() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // first pending member found
+                .thenReturn(true) // second pending member found
+                .thenReturn(false);
+        Mockito.when(mockResultSet.getString(1))
+                .thenReturn("dom1") //first pending member domain
+                .thenReturn("dom2"); // second pending member domain
+        Mockito.when(mockResultSet.getString(2))
+                .thenReturn("group1") //first pending member group
+                .thenReturn("group2"); // second pending member group
+        Mockito.when(mockResultSet.getString(3))
+                .thenReturn("user.user1") //first pending
+                .thenReturn("user.user2"); // second pending
+        Mockito.when(mockResultSet.getTimestamp(4))
+                .thenReturn(null);
+        Mockito.when(mockResultSet.getString(5))
+                .thenReturn("ref1") //first pending member audit-reference
+                .thenReturn("ref2"); // second pending member audit-reference
+
+        Map<String, List<DomainGroupMember>> memberList = jdbcConn.getExpiredPendingDomainGroupMembers(40);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 40);
+
+        assertNotNull(memberList);
+        assertEquals(memberList.size(), 2);
+
+        List<DomainGroupMember> domainGroupMembers = memberList.get("dom1");
+        assertNotNull(domainGroupMembers);
+        assertEquals(domainGroupMembers.size(), 1);
+        DomainGroupMember domainGroupMember = domainGroupMembers.get(0);
+        assertEquals(domainGroupMember.getMemberName(), "user.user1");
+        List<GroupMember> memberGroups = domainGroupMember.getMemberGroups();
+        assertEquals(memberGroups.size(), 1);
+        GroupMember groupMember = memberGroups.get(0);
+        assertEquals(groupMember.getGroupName(), "group1");
+
+        domainGroupMembers = memberList.get("dom2");
+        assertNotNull(domainGroupMembers);
+        assertEquals(domainGroupMembers.size(), 1);
+        domainGroupMember = domainGroupMembers.get(0);
+        assertEquals(domainGroupMember.getMemberName(), "user.user2");
+        memberGroups = domainGroupMember.getMemberGroups();
+        assertEquals(memberGroups.size(), 1);
+        groupMember = memberGroups.get(0);
+        assertEquals(groupMember.getGroupName(), "group2");
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testProcessExpiredPendingGroupMembersError() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // first pending member found
+                .thenReturn(true) // second pending member found
+                .thenThrow(new SQLException("sql error"));
+        try {
+            jdbcConn.getExpiredPendingDomainGroupMembers(30);
+            fail();
+        } catch (RuntimeException rx) {
+            assertTrue(rx.getMessage().contains("sql error"));
+        }
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testProcessDeletePendingGroupMembersDeleteError() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // first pending member found
+                .thenThrow(new SQLException("sql error"));
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(4)//first group id
+                .thenReturn(6);//second group id
+        Mockito.when(mockResultSet.getString(2))
+                .thenReturn("user.user1") // first pending
+                .thenReturn("user.user2"); // second pending
+
+        try {
+            jdbcConn.getExpiredPendingDomainGroupMembers(40);
+            fail();
+        } catch (RuntimeException rx) {
+            assertTrue(rx.getMessage().contains("sql error"));
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testExecuteDeletePendingGroupMemberDeleteFail() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockPrepStmt.executeUpdate())
+                .thenReturn(1) // delete with audit
+                .thenReturn(0) // audit insert
+                .thenReturn(1) // delete without audit successful
+                .thenReturn(0); // delete fail
+
+        assertFalse(jdbcConn.executeDeletePendingGroupMember(5, 7, "", "", "", true, ""));
+        assertTrue(jdbcConn.executeDeletePendingGroupMember(5, 7, "", "", "", false, ""));
+        assertFalse(jdbcConn.executeDeletePendingGroupMember(5, 7, "", "", "", false, ""));
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testDeletePendingGroupMemberDeleteSqlError() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockPrepStmt.executeUpdate())
+                .thenThrow(new SQLException("sql error"));
+
+        try {
+            jdbcConn.executeDeletePendingGroupMember(5, 7, "", "", "", true, "");
+            fail();
+        } catch (RuntimeException rx) {
+            assertTrue(rx.getMessage().contains("sql error"));
+        }
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testUpdatePendingGroupMembersNotificationTimestamp() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockPrepStmt.executeUpdate())
+                .thenReturn(3); // 3 members updated
+        long timestamp = new Date().getTime();
+        boolean result = jdbcConn.updatePendingGroupMembersNotificationTimestamp("localhost", timestamp, 0);
+        java.sql.Timestamp ts = new java.sql.Timestamp(timestamp);
+        Mockito.verify(mockPrepStmt, times(1)).setTimestamp(1, ts);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "localhost");
+        Mockito.verify(mockPrepStmt, times(1)).setTimestamp(3, ts);
+        assertTrue(result);
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testUpdatePendingGroupMembersNotificationTimestampError() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockPrepStmt.executeUpdate())
+                .thenThrow(new SQLException("sql error"));
+        try {
+            jdbcConn.updatePendingGroupMembersNotificationTimestamp("localhost", 0L, 0);
+            fail();
+        } catch (RuntimeException rx) {
+            assertTrue(rx.getMessage().contains("sql error"));
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testDeletePendingGroupMember()  throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7) // group id
+                .thenReturn(9); // principal id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for group id
+                .thenReturn(true); // principal id
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        boolean requestSuccess = jdbcConn.deletePendingGroupMember("my-domain", "group1", "user.user1",
+                "user.admin", "audit-ref");
+        assertTrue(requestSuccess);
+
+        // this is combined for all operations above
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
+
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "group1");
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "user.user1");
+
+        // we need additional operation for the audit log
+        Mockito.verify(mockPrepStmt, times(2)).setInt(1, 7);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(2, 9);
+
+        // the rest of the audit log details
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "user.admin");
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "user.user1");
+        Mockito.verify(mockPrepStmt, times(1)).setString(4, "REJECT");
+        Mockito.verify(mockPrepStmt, times(1)).setString(5, "audit-ref");
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testDeletePendingGroupMemberInvalidDomain()  throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(false); // this one is for domain id
+
+        try {
+            jdbcConn.deletePendingGroupMember("my-domain", "group1", "user.user1",
+                    "user.admin", "audit-ref");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+            assertTrue(ex.getMessage().contains("my-domain"));
+        }
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testDeletePendingGroupMemberInvalidGroup()  throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5); // domain id
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(false); // this one is for group id
+
+        try {
+            jdbcConn.deletePendingGroupMember("my-domain", "group1", "user.user1",
+                    "user.admin", "audit-ref");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+            assertTrue(ex.getMessage().contains("group1"));
+        }
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testDeletePendingGroupMemberInvalidPrincipal()  throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7); // group id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for group id
+                .thenReturn(false); // principal id
+
+        try {
+            jdbcConn.deletePendingGroupMember("my-domain", "group1", "user.user1",
+                    "user.admin", "audit-ref");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+            assertTrue(ex.getMessage().contains("user.user1"));
+        }
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testInsertGroupMember() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7) // group id
+                .thenReturn(9); // principal id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for group id
+                .thenReturn(true) // validate principle domain
+                .thenReturn(true) // principal id
+                .thenReturn(false); // member exists
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        boolean requestSuccess = jdbcConn.insertGroupMember("my-domain", "group1",
+                new GroupMember().setMemberName("user.user1"), "user.admin", "audit-ref");
+
+        // this is combined for all operations above
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
+
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "group1");
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "user.user1");
+
+        // we need additional operation for the audit log
+        // additional operation to check for groupMember exist using groupID and principal ID.
+        Mockito.verify(mockPrepStmt, times(3)).setInt(1, 7);
+        Mockito.verify(mockPrepStmt, times(2)).setInt(2, 9);
+
+        // the rest of the audit log details
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "user.admin");
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "user.user1");
+        Mockito.verify(mockPrepStmt, times(1)).setString(4, "ADD");
+        Mockito.verify(mockPrepStmt, times(2)).setString(5, "audit-ref");
+
+        assertTrue(requestSuccess);
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testInsertGroupMemberInvalidDomain() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(false); // this one is for domain id
+
+        try {
+            jdbcConn.insertGroupMember("my-domain", "group1",
+                    new GroupMember().setMemberName("user.user1"), "user.admin", "audit-ref");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+            assertTrue(ex.getMessage().contains("my-domain"));
+        }
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testInsertGroupMemberInvalidGroup() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5); // domain id
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(false);// this one is for group id
+
+        try {
+            jdbcConn.insertGroupMember("my-domain", "group1",
+                    new GroupMember().setMemberName("user.user1"), "user.admin", "audit-ref");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+            assertTrue(ex.getMessage().contains("group1"));
+        }
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testInsertGroupMemberInvalidPrincipal() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7); // group id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for group id
+                .thenReturn(false); // validate principle domain
+
+        try {
+            jdbcConn.insertGroupMember("my-domain", "group1",
+                    new GroupMember().setMemberName("user.user1"), "user.admin", "audit-ref");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+            assertTrue(ex.getMessage().contains("user.user1"));
+        }
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testInsertGroupMemberUpdate() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7) // group id
+                .thenReturn(9); // principal id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for group id
+                .thenReturn(true) // validate principle domain
+                .thenReturn(true) // principal id
+                .thenReturn(true); // member exists
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+        GroupMember groupMember = new GroupMember().setMemberName("user.user1");
+        Timestamp expiration = Timestamp.fromCurrentTime();
+        groupMember.setExpiration(expiration);
+        java.sql.Timestamp javaExpiration = new java.sql.Timestamp(expiration.toDate().getTime());
+        boolean requestSuccess = jdbcConn.insertGroupMember("my-domain", "group1",
+                groupMember, "user.admin", "audit-ref");
+
+        // this is combined for all operations above
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
+
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "group1");
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "user.user1");
+
+        // we need additional operation for the audit log
+        Mockito.verify(mockPrepStmt, times(2)).setInt(1, 7);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(2, 9);
+
+        // update operation
+        Mockito.verify(mockPrepStmt, times(1)).setTimestamp(1, javaExpiration);
+        Mockito.verify(mockPrepStmt, times(1)).setBoolean(2, true);
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "audit-ref");
+        Mockito.verify(mockPrepStmt, times(1)).setString(4, "user.admin");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(5, 7);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(6, 9);
+
+        // the rest of the audit log details
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "user.admin");
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "user.user1");
+        Mockito.verify(mockPrepStmt, times(1)).setString(4, "UPDATE");
+        Mockito.verify(mockPrepStmt, times(1)).setString(5, "audit-ref");
+
+        assertTrue(requestSuccess);
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testInsertGroupMemberNewPrincipal() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7) // group id
+                .thenReturn(8) // principal domain id
+                .thenReturn(9); // principal id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for group id
+                .thenReturn(true) // this one is for valid principal domain
+                .thenReturn(false) // principal does not exist
+                .thenReturn(true) // get last id (for new principal)
+                .thenReturn(false); // group member exists
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        boolean requestSuccess = jdbcConn.insertGroupMember("my-domain", "group1",
+                new GroupMember().setMemberName("user.user1"),
+                "user.admin", "audit-ref");
+
+        // this is combined for all operations above
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
+
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "group1");
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "user");
+
+        // we're going to have 2 sets of operations for principal name
+
+        Mockito.verify(mockPrepStmt, times(2)).setString(1, "user.user1");
+
+        // we need additional operation for the audit log
+        // additional operation to check for groupMember exist using groupID and principal ID.
+        Mockito.verify(mockPrepStmt, times(3)).setInt(1, 7);
+        Mockito.verify(mockPrepStmt, times(2)).setInt(2, 9);
+
+        // the rest of the audit log details
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "user.admin");
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "user.user1");
+        Mockito.verify(mockPrepStmt, times(1)).setString(4, "ADD");
+        Mockito.verify(mockPrepStmt, times(2)).setString(5, "audit-ref");
+
+        assertTrue(requestSuccess);
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testInsertGroupMemberException() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7) // group id
+                .thenReturn(9) // member domain id
+                .thenReturn(11); // principal id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for group id
+                .thenReturn(true) // member domain id
+                .thenReturn(true) // principal id
+                .thenReturn(false); // group member exists
+
+        Mockito.when(mockPrepStmt.executeUpdate()).thenThrow(
+                new SQLException("failed operation", "state", 1001));
+
+        try {
+            jdbcConn.insertGroupMember("my-domain", "group1",
+                    new GroupMember().setMemberName("user.user1"),
+                    "user.admin", "audit-ref");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testInsertGroupMemberNewPrincipalFailure() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7) // group id
+                .thenReturn(8) // principal domain id
+                .thenReturn(9); // principal id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for group id
+                .thenReturn(true) // this one is for valid principal domain
+                .thenReturn(false); // principal does not exist
+
+        // principal add returns 0
+
+        Mockito.doReturn(0).when(mockPrepStmt).executeUpdate();
+
+        try {
+            jdbcConn.insertGroupMember("my-domain", "group1",
+                    new GroupMember().setMemberName("user.user1"),
+                    "user.admin", "audit-ref");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 500);
+        }
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testInsertPendingGroupMember() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7) // group id
+                .thenReturn(9); // principal id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for group id
+                .thenReturn(true) // validate principle domain
+                .thenReturn(true) // principal id
+                .thenReturn(false); // member exists
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        boolean requestSuccess = jdbcConn.insertGroupMember("my-domain", "group1",
+                new GroupMember().setApproved(false).setMemberName("user.user1"), "user.admin", "audit-ref");
+
+        // this is combined for all operations above
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
+
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "group1");
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "user.user1");
+
+        // additional operation to check for groupMember exist using groupID and principal ID.
+        Mockito.verify(mockPrepStmt, times(2)).setInt(1, 7);
+        Mockito.verify(mockPrepStmt, times(2)).setInt(2, 9);
+
+        assertTrue(requestSuccess);
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testInsertPendingGroupMemberUpdate() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7) // group id
+                .thenReturn(9); // principal id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for group id
+                .thenReturn(true) // validate principle domain
+                .thenReturn(true) // principal id
+                .thenReturn(true); // member exists
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        long now = System.currentTimeMillis();
+        boolean requestSuccess = jdbcConn.insertGroupMember("my-domain", "group1",
+                new GroupMember()
+                        .setApproved(false)
+                        .setMemberName("user.user1")
+                        .setExpiration(Timestamp.fromMillis(now)),
+                "user.admin", "audit-ref");
+
+        // this is combined for all operations above
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
+
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "group1");
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "user.user1");
+
+        Mockito.verify(mockPrepStmt, times(1)).setTimestamp(1, new java.sql.Timestamp(now));
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "audit-ref");
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "user.admin");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(4, 7);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(5, 9);
+
+        // operation to check for groupMember exist using groupID and principal ID.
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 7);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(2, 9);
+
+        assertTrue(requestSuccess);
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testDeleteGroupMember()  throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7) // group id
+                .thenReturn(9); // principal id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for group id
+                .thenReturn(true); // principal id
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        boolean requestSuccess = jdbcConn.deleteGroupMember("my-domain", "group1", "user.user1",
+                "user.admin", "audit-ref");
+        assertTrue(requestSuccess);
+
+        // this is combined for all operations above
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
+
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "group1");
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "user.user1");
+
+        // we need additional operation for the audit log
+        Mockito.verify(mockPrepStmt, times(2)).setInt(1, 7);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(2, 9);
+
+        // the rest of the audit log details
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "user.admin");
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "user.user1");
+        Mockito.verify(mockPrepStmt, times(1)).setString(4, "DELETE");
+        Mockito.verify(mockPrepStmt, times(1)).setString(5, "audit-ref");
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testDeleteGroupMemberInvalidDomain()  throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(false); // this one is for domain id
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        try {
+            jdbcConn.deleteGroupMember("my-domain", "group1", "user.user1",
+                    "user.admin", "audit-ref");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testDeleteGroupMemberInvalidGroup()  throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5); // domain id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(false); // this one is for group id
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        try {
+            jdbcConn.deleteGroupMember("my-domain", "group1", "user.user1",
+                    "user.admin", "audit-ref");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testDeleteGroupMemberInvalidPrincipalId()  throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7); // group id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for group id
+                .thenReturn(false); // principal id
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        try {
+            jdbcConn.deleteGroupMember("my-domain", "group1", "user.user1",
+                    "user.admin", "audit-ref");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testInsertGroupInvalidDomain() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Group group = new Group().setName("my-domain2:group.group1");
+
+        // domain mismatch - 400
+
+        try {
+            jdbcConn.insertGroup("my-domain", group);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        // domain not found - 404
+
+        try {
+            jdbcConn.insertGroup("my-domain2", group);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testUpdateGroupInvalidGroupDomain() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Group group = new Group().setName("my-domain2:group.group1");
+
+        try {
+            jdbcConn.updateGroup("my-domain", group);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testUpdateGroupInvalidDomain() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Group group = new Group().setName("my-domain:group.group1");
+        Mockito.when(mockResultSet.next()).thenReturn(false); // domain id failure
+
+        try {
+            jdbcConn.updateGroup("my-domain", group);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testUpdateGroupInvalidGroupId() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true)
+                .thenReturn(false);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(5); // return domain id
+
+        Group group = new Group().setName("my-domain:group.group1");
+
+        try {
+            jdbcConn.updateGroup("my-domain", group);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testUpdateGroupException() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Group group = new Group().setName("my-domain:group.group1");
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.doReturn(5).when(mockResultSet).getInt(1); // return domain id
+
+        Mockito.when(mockPrepStmt.executeUpdate()).thenThrow(new SQLException("failed operation", "state", 1001));
+        try {
+            jdbcConn.updateGroup("my-domain", group);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testUpdateGroupModTimestampSuccess() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7); // group id
+
+        boolean requestSuccess = jdbcConn.updateGroupModTimestamp("my-domain", "group1");
+        assertTrue(requestSuccess);
+
+        // get domain id
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
+        // get group id
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "group1");
+        // update group time-stamp
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 7);
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testUpdateGroupModTimestampFailure() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.doReturn(0).when(mockPrepStmt).executeUpdate();
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7); // group id
+
+        boolean requestSuccess = jdbcConn.updateGroupModTimestamp("my-domain", "group1");
+        assertFalse(requestSuccess);
+
+        // get domain id
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
+        // get group id
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "group1");
+        // update group time-stamp
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 7);
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testUpdateGroupModTimestampFailureInvalidGroup() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true)
+                .thenReturn(false);
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5); // domain id
+
+        try {
+            jdbcConn.updateGroupModTimestamp("my-domain", "group1");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testUpdateGroupModTimestampException() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockPrepStmt.executeUpdate()).thenThrow(new SQLException("failed operation", "state", 1001));
+        try {
+            jdbcConn.updateGroupModTimestamp("my-domain", "group1");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testDeleteGroupInvalidDomain() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+        Mockito.when(mockResultSet.next()).thenReturn(false);
+
+        try {
+            jdbcConn.deleteGroup("my-domain", "group1");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testDeleteGroupException() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.doReturn(5).when(mockResultSet).getInt(1); // return domain id
+
+        Mockito.when(mockPrepStmt.executeUpdate()).thenThrow(new SQLException("failed operation", "state", 1001));
+        try {
+            jdbcConn.deleteGroup("my-domain", "group1");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testCountGroups() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(5).thenReturn(7); // return domain/count
+
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+
+        assertEquals(jdbcConn.countGroups("my-domain"), 7);
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testCountGroupsNoResult() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(5); // return domain/count
+
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
+
+        assertEquals(jdbcConn.countGroups("my-domain"), 0);
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testCountGroupsInvalidDomain() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(false); // this one is for domain id
+
+        try {
+            jdbcConn.countGroups("my-domain");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testCountGroupsException() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.doReturn(5).when(mockResultSet).getInt(1); // return domain id
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true); // this one is for domain id
+
+        Mockito.when(mockPrepStmt.executeQuery())
+                .thenReturn(mockResultSet)
+                .thenThrow(new SQLException("failed operation", "state", 1001));
+
+        try {
+            jdbcConn.countGroups("my-domain");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testListGroupAuditLogsInvalidDomain() throws SQLException {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(false); // invalid domain
+
+        try {
+            jdbcConn.listGroupAuditLogs("my-domain", "group1");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testListGroupAuditLogsInvalidGroup() throws SQLException {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true)   // domain id success
+                .thenReturn(false); // group id failure
+        Mockito.doReturn(5).when(mockResultSet).getInt(1); // return domain id
+
+        try {
+            jdbcConn.listGroupAuditLogs("my-domain", "group1");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testListGroupAuditLogsException() throws SQLException {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true)   // domain id success
+                .thenReturn(true);  // group id success
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5)  // domain id
+                .thenReturn(7); // group id
+        Mockito.when(mockPrepStmt.executeQuery())
+                .thenReturn(mockResultSet)
+                .thenReturn(mockResultSet)
+                .thenThrow(new SQLException("failed operation", "state", 1001));
+
+        try {
+            jdbcConn.listGroupAuditLogs("my-domain", "group1");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testListGroupMembersInvalidDomain() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(false); // invalid domain
+
+        try {
+            jdbcConn.listGroupMembers("my-domain", "group1", false);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testListGroupMembersInvalidGroup() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(5); // return domain id
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(false); // this one is for group id
+
+        try {
+            jdbcConn.listGroupMembers("my-domain", "group1", false);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testListGroupMembersException() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(5).thenReturn(7); // return domain id
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true); // this one is for group id
+
+        Mockito.when(mockPrepStmt.executeQuery())
+                .thenReturn(mockResultSet)
+                .thenReturn(mockResultSet)
+                .thenThrow(new SQLException("failed operation", "state", 1001));
+
+        try {
+            jdbcConn.listGroupMembers("my-domain", "group1", false);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testCountGroupMembers() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(5).thenReturn(7)
+                .thenReturn(4); // return domain/group id/count
+
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+
+        assertEquals(jdbcConn.countGroupMembers("my-domain", "group1"), 4);
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testCountGroupMembersInvalidDomain() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(false); // invalid domain
+
+        try {
+            jdbcConn.countGroupMembers("my-domain", "group1");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testCountGroupMembersInvalidGroup() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(5); // return domain id
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(false); // this one is for group id
+
+        try {
+            jdbcConn.countGroupMembers("my-domain", "group1");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testCountGroupMembersException() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(5).thenReturn(7); // return domain id
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true); // this one is for group id
+
+        Mockito.when(mockPrepStmt.executeQuery())
+                .thenReturn(mockResultSet)
+                .thenReturn(mockResultSet)
+                .thenThrow(new SQLException("failed operation", "state", 1001));
+
+        try {
+            jdbcConn.countGroupMembers("my-domain", "group1");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testCountGroupMembersNoResult() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(5).thenReturn(7);
+
+        Mockito.when(mockResultSet.next()).thenReturn(true)
+                .thenReturn(true).thenReturn(false);
+
+        assertEquals(jdbcConn.countGroupMembers("my-domain", "group1"), 0);
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testUpdateGroupReviewTimestampFailure() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.doReturn(0).when(mockPrepStmt).executeUpdate();
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7); // group id
+
+        boolean requestSuccess = jdbcConn.updateGroupReviewTimestamp("my-domain", "group1");
+        assertFalse(requestSuccess);
+
+        // get domain id
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
+        // get group id
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "group1");
+        // update group time-stamp
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 7);
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testUpdateGroupReviewTimestampFailureInvalidDomain() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true)
+                .thenReturn(false);
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(0); // domain id
+
+        try {
+            jdbcConn.updateGroupReviewTimestamp("my-domain", "group1");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testUpdateGroupReviewTimestampFailureInvalidGroup() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true)
+                .thenReturn(false);
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5); // domain id
+
+        try {
+            jdbcConn.updateGroupReviewTimestamp("my-domain", "group1");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testUpdateGroupReviewTimestampException() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7); // group id
+        Mockito.when(mockPrepStmt.executeUpdate()).thenThrow(new SQLException("failed operation", "state", 1001));
+        try {
+            jdbcConn.updateGroupReviewTimestamp("my-domain", "group1");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testUpdateGroupMemberDisabledStateEnable()  throws Exception {
+        testUpdateGroupMemberDisableState(0, "ENABLE");
+    }
+
+    @Test
+    public void testUpdateGroupMemberDisabledStateDisable()  throws Exception {
+        testUpdateGroupMemberDisableState(1, "DISABLE");
+    }
+
+    private void testUpdateGroupMemberDisableState(int state, final String operation) throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7) // group id
+                .thenReturn(9); // principal id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for group id
+                .thenReturn(true); // principal id
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        boolean requestSuccess = jdbcConn.updateGroupMemberDisabledState("my-domain", "group1", "user.user1",
+                "user.admin", state, "audit-ref");
+        assertTrue(requestSuccess);
+
+        // this is combined for all operations above
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
+
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "group1");
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "user.user1");
+
+        // attributes set for disabling
+
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, state);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "audit-ref");
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "user.admin");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(4, 7);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(5, 9);
+
+        // the rest of the audit log details
+
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 7);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "user.admin");
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "user.user1");
+        Mockito.verify(mockPrepStmt, times(1)).setString(4, operation);
+        Mockito.verify(mockPrepStmt, times(1)).setString(5, "audit-ref");
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testUpdateGroupMemberDisableStateInvalidDomain() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(false); // this one is for domain id
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        try {
+            jdbcConn.updateGroupMemberDisabledState("my-domain", "group1", "user.user1",
+                    "user.admin", 0, "audit-ref");
+            fail();
+        } catch (ResourceException rx) {
+            assertEquals(rx.getCode(), 404);
+            assertTrue(rx.getMessage().contains("unknown domain"));
+        }
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testUpdateGroupMemberDisableStateInvalidGroup() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5); // domain id
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(false); // this one is for group id
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        try {
+            jdbcConn.updateGroupMemberDisabledState("my-domain", "group1", "user.user1",
+                    "user.admin", 0, "audit-ref");
+            fail();
+        } catch (ResourceException rx) {
+            assertEquals(rx.getCode(), 404);
+            assertTrue(rx.getMessage().contains("unknown group"));
+        }
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testUpdateGroupMemberDisableStateInvalidPrincipal() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7); // group id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for group id
+                .thenReturn(false); // principal id
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        try {
+            jdbcConn.updateGroupMemberDisabledState("my-domain", "group1", "user.user1",
+                    "user.admin", 0, "audit-ref");
+            fail();
+        } catch (ResourceException rx) {
+            assertEquals(rx.getCode(), 404);
+            assertTrue(rx.getMessage().contains("unknown principal"));
+        }
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testUpdateGroupMemberDisableStateFailedUpdate() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7) // group id
+                .thenReturn(9); // principal id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for group id
+                .thenReturn(true); // principal id
+
+        Mockito.doReturn(0).when(mockPrepStmt).executeUpdate();
+
+        boolean requestSuccess = jdbcConn.updateGroupMemberDisabledState("my-domain", "group1", "user.user1",
+                "user.admin", 1, "audit-ref");
+        assertFalse(requestSuccess);
+
+        // this is combined for all operations above
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
+
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "group1");
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "user.user1");
+
+        // attributes set for disabling
+
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 1);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "audit-ref");
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "user.admin");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(4, 7);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(5, 9);
+
+        // no audit logs since we didn't get a successful response
+
+        Mockito.verify(mockPrepStmt, times(0)).setInt(1, 7);
+        Mockito.verify(mockPrepStmt, times(0)).setString(2, "user.admin");
+        Mockito.verify(mockPrepStmt, times(0)).setString(3, "user.user1");
+        Mockito.verify(mockPrepStmt, times(0)).setString(4, "DISABLE");
+        Mockito.verify(mockPrepStmt, times(0)).setString(5, "audit-ref");
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testUpdateGroupMemberDisableStateFailedUpdateException() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7) // group id
+                .thenReturn(9); // principal id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for group id
+                .thenReturn(true); // principal id
+
+        Mockito.when(mockPrepStmt.executeUpdate()).thenThrow(new SQLException("failed operation", "state", 1001));
+
+        try {
+            jdbcConn.updateGroupMemberDisabledState("my-domain", "group1", "user.user1",
+                    "user.admin", 1, "audit-ref");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
+        }
+
+        // this is combined for all operations above
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
+
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "group1");
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "user.user1");
+
+        // attributes set for disabling
+
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 1);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "audit-ref");
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "user.admin");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(4, 7);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(5, 9);
+
+        // no audit logs since we didn't get a successful response
+
+        Mockito.verify(mockPrepStmt, times(0)).setInt(1, 7);
+        Mockito.verify(mockPrepStmt, times(0)).setString(2, "user.admin");
+        Mockito.verify(mockPrepStmt, times(0)).setString(3, "user.user1");
+        Mockito.verify(mockPrepStmt, times(0)).setString(4, "DISABLE");
+        Mockito.verify(mockPrepStmt, times(0)).setString(5, "audit-ref");
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testConfirmGroupMemberApprove() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7) // group id
+                .thenReturn(9); // principal id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for group id
+                .thenReturn(true) // principal id
+                .thenReturn(true) // member exists - in pending table
+                .thenReturn(false); // member does not exist in std table
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        boolean requestSuccess = jdbcConn.confirmGroupMember("my-domain", "group1",
+                new GroupMember().setMemberName("user.user1").setActive(true).setApproved(true),
+                "user.admin", "audit-ref");
+
+        // this is combined for all operations above
+
+        // get domain id
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
+
+        // get group id
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "group1");
+
+        //get principal
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "user.user1");
+
+        Mockito.verify(mockPrepStmt, times(5)).setInt(1, 7);
+        Mockito.verify(mockPrepStmt, times(4)).setInt(2, 9);
+
+        Mockito.verify(mockPrepStmt, times(1)).setTimestamp(3, null);
+        Mockito.verify(mockPrepStmt, times(1)).setBoolean(4, true);
+        Mockito.verify(mockPrepStmt, times(2)).setString(5, "audit-ref");
+
+        // the rest of the audit log details
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "user.admin");
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "user.user1");
+        Mockito.verify(mockPrepStmt, times(1)).setString(4, "APPROVE");
+
+        assertTrue(requestSuccess);
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testConfirmGroupMemberReject() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7) // group id
+                .thenReturn(9); // principal id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for group id
+                .thenReturn(true) // validate principle domain
+                .thenReturn(true) // principal id
+                .thenReturn(true); // member exists
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        boolean requestSuccess = jdbcConn.confirmGroupMember("my-domain", "group1",
+                new GroupMember().setMemberName("user.user1").setActive(false), "user.admin", "audit-ref");
+
+        // this is combined for all operations above
+
+        // get domain id
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
+
+        // get group id
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "group1");
+
+        //get principal
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "user.user1");
+
+        // we need additional operation for the audit log
+        // additional operation to check for groupMember exist using groupID and principal ID.
+        Mockito.verify(mockPrepStmt, times(3)).setInt(1, 7);
+        Mockito.verify(mockPrepStmt, times(2)).setInt(2, 9);
+
+        // the rest of the audit log details
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "user.admin");
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "user.user1");
+        Mockito.verify(mockPrepStmt, times(1)).setString(4, "REJECT");
+        Mockito.verify(mockPrepStmt, times(1)).setString(5, "audit-ref");
+
+        assertTrue(requestSuccess);
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testConfirmGroupMemberErrors() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(0); // domain id
+
+        try {
+
+            jdbcConn.confirmGroupMember("my-domain", "group1", new GroupMember().setMemberName("user.user1").setActive(false), "user.admin", "audit-ref");
+
+        } catch (ResourceException rx) {
+            assertEquals(rx.getCode(), 404);
+            assertTrue(rx.getMessage().contains("unknown domain"));
+        }
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(0); // group id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true);
+
+        try {
+
+            jdbcConn.confirmGroupMember("my-domain", "group1", new GroupMember()
+                    .setMemberName("user.user1").setActive(false), "user.admin", "audit-ref");
+
+        } catch (ResourceException rx) {
+            assertEquals(rx.getCode(), 404);
+            assertTrue(rx.getMessage().contains("unknown group"));
+        }
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7); // group id
+
+        try {
+
+            jdbcConn.confirmGroupMember("my-domain", "group1", new GroupMember()
+                    .setMemberName("user1").setActive(false), "user.admin", "audit-ref");
+
+        } catch (ResourceException rx) {
+            assertEquals(rx.getCode(), 404);
+            assertTrue(rx.getMessage().contains("unknown domain"));
+        }
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7) // group id
+                .thenReturn(0); // principal id
+
+        try {
+
+            jdbcConn.confirmGroupMember("my-domain", "group1", new GroupMember()
+                    .setMemberName("user.user1").setActive(false), "user.admin", "audit-ref");
+
+        } catch (ResourceException rx) {
+            assertEquals(rx.getCode(), 500);
+            assertTrue(rx.getMessage().contains("Unable to insert principal"));
+        }
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7) // group id
+                .thenReturn(9); // principal id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for group id
+                .thenReturn(true) // validate principle domain
+                .thenReturn(true) // principal id
+                .thenReturn(false); // member exists
+
+        try {
+
+            jdbcConn.confirmGroupMember("my-domain", "group1", new GroupMember()
+                    .setMemberName("user.user1").setActive(true), "user.admin", "audit-ref");
+
+        } catch (ResourceException rx) {
+            assertEquals(rx.getCode(), 500);
+            assertTrue(rx.getMessage().contains("Unable to confirm non-existing principal"));
+        }
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7) // group id
+                .thenReturn(9); // principal id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for group id
+                .thenReturn(true) // validate principle domain
+                .thenReturn(true) // principal id
+                .thenReturn(true); // member exists
+
+        Mockito.doThrow(new SQLException("conflict", "08S01", 409)).when(mockPrepStmt).executeUpdate();
+
+        try {
+
+            jdbcConn.confirmGroupMember("my-domain", "group1", new GroupMember()
+                    .setMemberName("user.user1").setActive(true), "user.admin", "audit-ref");
+
+        } catch (ResourceException rx) {
+            assertEquals(rx.getCode(), 409);
+        }
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7) // group id
+                .thenReturn(9); // principal id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for group id
+                .thenReturn(true) // validate principle domain
+                .thenReturn(true) // principal id
+                .thenReturn(true); // member exists
+
+        Mockito.doReturn(0).when(mockPrepStmt).executeUpdate();
+
+        boolean result = jdbcConn.confirmGroupMember("my-domain", "group1", new GroupMember()
+                .setMemberName("user.user1").setActive(true), "user.admin", "audit-ref");
+        assertFalse(result);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7) // group id
+                .thenReturn(9); // principal id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for group id
+                .thenReturn(true) // validate principle domain
+                .thenReturn(true) // principal id
+                .thenReturn(true); // member exists
+
+        Mockito.doThrow(new SQLException("conflict", "08S01", 409)).when(mockPrepStmt).executeUpdate();
+
+        try {
+
+            jdbcConn.confirmGroupMember("my-domain", "group1", new GroupMember()
+                    .setMemberName("user.user1").setActive(false), "user.admin", "audit-ref");
+
+        } catch (ResourceException rx) {
+            assertEquals(rx.getCode(), 409);
+        }
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7) // group id
+                .thenReturn(9); // principal id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for group id
+                .thenReturn(true) // validate principle domain
+                .thenReturn(true) // principal id
+                .thenReturn(true); // member exists
+
+        Mockito.doReturn(0).when(mockPrepStmt).executeUpdate();
+
+        result = jdbcConn.confirmGroupMember("my-domain", "group1", new GroupMember()
+                .setMemberName("user.user1").setActive(false), "user.admin", "audit-ref");
+        assertFalse(result);
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetPrincipalGroupsInvalidDomain() throws SQLException {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(1); // Principal id will be 1
+
+        // domain group members
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // True for getting principal_id
+                .thenThrow(new SQLException("error getting domain_id")); // Throw exception when trying to get domain_id
+
+        String principalName = "user.testUser";
+
+        try {
+            jdbcConn.getPrincipalGroups(principalName, "unknownDomain");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+            assertEquals(ex.getData().toString(), "{code: 404, message: \"unknown domain - unknownDomain\"}");
+        }
+    }
+
+    @Test
+    public void testGetPrincipalGroupsInvalidPrincipal() throws SQLException {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        try {
+            jdbcConn.getPrincipalGroups("johndoe", null);
+            fail();
+        } catch (ResourceException exception) {
+            assertEquals(exception.getCode(), ResourceException.NOT_FOUND);
+            assertEquals(exception.getData().toString(), "{code: 404, message: \"unknown principal - johndoe\"}");
+        }
+    }
+
+    @Test
+    public void testGetPrincipalGroupsException() throws SQLException {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(1);  // Principal id will be 1
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // True for getting principal_id
+                .thenThrow(new SQLTimeoutException("failed operation - timeout", "state", 1001));
+
+        try {
+            jdbcConn.getPrincipalGroups("johndoe", null);
+            fail();
+        } catch (ResourceException exception) {
+            assertEquals(exception.getCode(), 503);
+            assertEquals(exception.getData().toString(), "{code: 503, message: \"Statement cancelled due to timeout\"}");
+
+        }
+    }
+
+    @Test
+    public void testGetPrincipalGroupsNoRuleMembers() throws SQLException {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(1);  // Principal id will be 1
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // True for getting principal_id
+                .thenReturn(false); // Not member of any groups
+
+        DomainGroupMember domainGroupMember = jdbcConn.getPrincipalGroups("johndoe", null);
+        assertEquals(domainGroupMember.getMemberName(), "johndoe");
+        assertEquals(domainGroupMember.getMemberGroups().size(), 0);
+    }
+
+    @Test
+    public void testGetGroupMemberInvalidDomain() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(false); //lookup domain
+
+        try {
+            jdbcConn.getGroupMember("my-domain", "group1", "user.user1", 0, false);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+            assertTrue(ex.getMessage().contains("my-domain"));
+        }
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetGroupMemberInvalidGroup() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) //lookup domain
+                .thenReturn(false); //lookup group
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5); // domain id
+
+        try {
+            jdbcConn.getRoleMember("my-domain", "group1", "user.user1", 0, false);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+            assertTrue(ex.getMessage().contains("group1"));
+        }
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testListGroupsWithUserAuthorityRestrictions() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        // we have 3 entries being returned
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(false);
+        Mockito.when(mockResultSet.getString("domain_name"))
+                .thenReturn("athenz")
+                .thenReturn("athenz.subdomain")
+                .thenReturn("sports");
+        Mockito.when(mockResultSet.getString("group_name"))
+                .thenReturn("admin")
+                .thenReturn("readers")
+                .thenReturn("readers");
+        Mockito.when(mockResultSet.getString("domain_user_authority_filter"))
+                .thenReturn("OnShore-US")
+                .thenReturn("")
+                .thenReturn("");
+
+        List<PrincipalGroup> groups = jdbcConn.listGroupsWithUserAuthorityRestrictions();
+
+        // data back is sorted
+
+        assertEquals(3, groups.size());
+        assertEquals("athenz", groups.get(0).getDomainName());
+        assertEquals("admin", groups.get(0).getGroupName());
+        assertEquals("OnShore-US", groups.get(0).getDomainUserAuthorityFilter());
+
+        assertEquals("athenz.subdomain", groups.get(1).getDomainName());
+        assertEquals("readers", groups.get(1).getGroupName());
+        assertTrue(groups.get(1).getDomainUserAuthorityFilter().isEmpty());
+
+        assertEquals("sports", groups.get(2).getDomainName());
+        assertEquals("readers", groups.get(2).getGroupName());
+        assertTrue(groups.get(2).getDomainUserAuthorityFilter().isEmpty());
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testListGroupsWithUserAuthorityRestrictionsException() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockPrepStmt.executeQuery()).thenThrow(new SQLException("sql error"));
+        try {
+            jdbcConn.listGroupsWithUserAuthorityRestrictions();
+            fail();
+        } catch (RuntimeException ex) {
+            assertTrue(ex.getMessage().contains("sql error"));
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    private void testGetNotifyGroupMembers() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_PRINCIPAL_NAME))
+                .thenReturn("user.joe")
+                .thenReturn("user.joe")
+                .thenReturn("user.jane");
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_AS_GROUP_NAME))
+                .thenReturn("group1")
+                .thenReturn("group2")
+                .thenReturn("group3");
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_DOMAIN_NAME))
+                .thenReturn("athenz1")
+                .thenReturn("athenz1")
+                .thenReturn("athenz2");
+        java.sql.Timestamp ts = new java.sql.Timestamp(System.currentTimeMillis());
+        Mockito.when(mockResultSet.getTimestamp(ZMSConsts.DB_COLUMN_EXPIRATION))
+                .thenReturn(ts);
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for user.joe in athenz1
+                .thenReturn(true) // this one is for user.joe in athenz2
+                .thenReturn(true) // this one is for user.jane in athenz2
+                .thenReturn(false); // end
+
+        long timestamp = System.currentTimeMillis();
+        Map<String, DomainGroupMember> memberMap = jdbcConn.getNotifyTemporaryGroupMembers("localhost", timestamp);
+
+        assertNotNull(memberMap);
+        assertEquals(memberMap.size(), 2);
+        assertTrue(memberMap.containsKey("user.joe"));
+        assertTrue(memberMap.containsKey("user.jane"));
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetNotifyTemporaryGroupMembersError() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockPrepStmt.executeQuery())
+                .thenThrow(new SQLException("sql error"));
+        try {
+            jdbcConn.getNotifyTemporaryGroupMembers("localhost", System.currentTimeMillis());
+            fail();
+        } catch (RuntimeException ex) {
+            assertTrue(ex.getMessage().contains("sql error"));
+        }
         jdbcConn.close();
     }
 }

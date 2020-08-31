@@ -50,6 +50,7 @@ import java.util.concurrent.TimeUnit;
 import javax.servlet.http.HttpServletRequest;
 
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 import static org.testng.Assert.*;
 import static org.testng.Assert.assertEquals;
@@ -108,7 +109,7 @@ public class DBServiceTest {
         
         System.setProperty(ZMSConsts.ZMS_PROP_FILE_NAME, "src/test/resources/zms.properties");
         System.setProperty(ZMSConsts.ZMS_PROP_AUDIT_REF_CHECK_OBJECTS,
-                "role,policy,service,domain,entity,tenancy,template");
+                "role,group,policy,service,domain,entity,tenancy,template");
         System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME,
                 "src/test/resources/solution_templates.json");
         initializeZms();
@@ -149,7 +150,21 @@ public class DBServiceTest {
 
         return entity;
     }
-    
+
+    private Group createGroupObject(final String domainName, final String groupName, final String member1,
+                                    final String member2) {
+
+        List<GroupMember> members = new ArrayList<>();
+        if (member1 != null) {
+            members.add(new GroupMember().setMemberName(member1).setActive(true).setApproved(true));
+        }
+        if (member2 != null) {
+            members.add(new GroupMember().setMemberName(member2).setActive(true).setApproved(true));
+        }
+
+        return new Group().setName(ZMSUtils.groupResourceName(domainName, groupName)).setGroupMembers(members);
+    }
+
     private Role createRoleObject(String domainName, String roleName,
             String trust, String member1, String member2) {
 
@@ -1981,7 +1996,7 @@ public class DBServiceTest {
         meta.setProviderEndpoint("https://localhost");
         try {
             zms.dbService.executePutServiceIdentitySystemMeta(mockDomRsrcCtx, domainName, serviceName, meta,
-                    "providerendpoint", true, auditRef, "putServiceIdentitySystemMeta");
+                    "providerendpoint", auditRef, "putServiceIdentitySystemMeta");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
@@ -2013,7 +2028,7 @@ public class DBServiceTest {
         meta.setProviderEndpoint("https://localhost");
         try {
             zms.dbService.executePutServiceIdentitySystemMeta(mockDomRsrcCtx, domainName, serviceName, meta,
-                    "providerendpoint", true, auditRef, "putServiceIdentitySystemMeta");
+                    "providerendpoint", auditRef, "putServiceIdentitySystemMeta");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ResourceException.CONFLICT, ex.getCode());
@@ -4018,7 +4033,7 @@ public class DBServiceTest {
                 .setPolicy(12).setPublicKey(13)
                 .setRole(14).setRoleMember(15)
                 .setService(16).setServiceHost(17)
-                .setSubdomain(18);
+                .setSubdomain(18).setGroup(19).setGroupMember(20);
         
         zms.dbService.executePutQuota(mockDomRsrcCtx, domainName, quota,
                 auditRef, "testExecutePutQuotaInsert");
@@ -4030,7 +4045,9 @@ public class DBServiceTest {
         assertEquals(quotaCheck.getAssertion(), 10);
         assertEquals(quotaCheck.getRole(), 14);
         assertEquals(quotaCheck.getPolicy(), 12);
-        
+        assertEquals(quotaCheck.getGroupMember(), 20);
+        assertEquals(quotaCheck.getGroup(), 19);
+
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
     
@@ -4048,7 +4065,7 @@ public class DBServiceTest {
                 .setPolicy(12).setPublicKey(13)
                 .setRole(14).setRoleMember(15)
                 .setService(16).setServiceHost(17)
-                .setSubdomain(18);
+                .setSubdomain(18).setGroupMember(19).setGroup(20);
         
         zms.dbService.executePutQuota(mockDomRsrcCtx, domainName, quota,
                 auditRef, "testExecutePutQuotaUpdate");
@@ -4057,6 +4074,7 @@ public class DBServiceTest {
         
         quota.setAssertion(100);
         quota.setRole(104);
+        quota.setGroup(120);
         
         zms.dbService.executePutQuota(mockDomRsrcCtx, domainName, quota,
                 auditRef, "testExecutePutQuotaUpdate");
@@ -4068,6 +4086,8 @@ public class DBServiceTest {
         assertEquals(quotaCheck.getAssertion(), 100);
         assertEquals(quotaCheck.getRole(), 104);
         assertEquals(quotaCheck.getPolicy(), 12);
+        assertEquals(quotaCheck.getGroup(), 120);
+        assertEquals(quotaCheck.getGroupMember(), 19);
         
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
@@ -4086,7 +4106,7 @@ public class DBServiceTest {
                 .setPolicy(12).setPublicKey(13)
                 .setRole(14).setRoleMember(15)
                 .setService(16).setServiceHost(17)
-                .setSubdomain(18);
+                .setSubdomain(18).setGroupMember(19).setGroup(20);
         
         zms.dbService.executePutQuota(mockDomRsrcCtx, domainName, quota,
                 auditRef, "testExecuteDeleteQuota");
@@ -4259,6 +4279,7 @@ public class DBServiceTest {
 
         assertTrue(zms.dbService.isDeleteSystemMetaAllowed(false, 0, 0));
         assertTrue(zms.dbService.isDeleteSystemMetaAllowed(false, 5, 5));
+        assertFalse(zms.dbService.isDeleteSystemMetaAllowed(false, 5, null));
         assertTrue(zms.dbService.isDeleteSystemMetaAllowed(false, 0, 5));
         assertTrue(zms.dbService.isDeleteSystemMetaAllowed(true, 5, 5));
         assertTrue(zms.dbService.isDeleteSystemMetaAllowed(true, 5, 0));
@@ -4269,10 +4290,10 @@ public class DBServiceTest {
         Role role = new Role();
         RoleSystemMeta meta = new RoleSystemMeta()
                 .setAuditEnabled(true);
-        zms.dbService.updateRoleSystemMetaFields(role, "auditenabled", true, meta);
+        zms.dbService.updateRoleSystemMetaFields(role, "auditenabled", meta, "unit-test");
         assertTrue(role.getAuditEnabled());
         try {
-            zms.dbService.updateRoleSystemMetaFields(role, "unknown", true, meta);
+            zms.dbService.updateRoleSystemMetaFields(role, "unknown", meta, "unit-test");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -4284,10 +4305,25 @@ public class DBServiceTest {
         ServiceIdentity service = new ServiceIdentity();
         ServiceIdentitySystemMeta meta = new ServiceIdentitySystemMeta()
                 .setProviderEndpoint("https://localhost");
-        zms.dbService.updateServiceIdentitySystemMetaFields(service, "providerendpoint", true, meta);
+        zms.dbService.updateServiceIdentitySystemMetaFields(service, "providerendpoint", meta, "unit-test");
         assertEquals(service.getProviderEndpoint(), "https://localhost");
         try {
-            zms.dbService.updateServiceIdentitySystemMetaFields(service, "unknown", true, meta);
+            zms.dbService.updateServiceIdentitySystemMetaFields(service, "unknown", meta, "unit-test");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+    }
+
+    @Test
+    public void testUpdateGroupSystemMetaFields() {
+        Group group = new Group();
+        GroupSystemMeta meta = new GroupSystemMeta()
+                .setAuditEnabled(true);
+        zms.dbService.updateGroupSystemMetaFields(group, "auditenabled", meta, "unit-test");
+        assertTrue(group.getAuditEnabled());
+        try {
+            zms.dbService.updateGroupSystemMetaFields(group, "unknown", meta, "unit-test");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -4319,7 +4355,7 @@ public class DBServiceTest {
 
         try {
             zms.dbService.executePutRoleSystemMeta(mockDomRsrcCtx, "MetaDom1", "MetaRole1",
-                    rsm,"auditenabled", true, auditRef, "putrolesystemmeta");
+                    rsm,"auditenabled", auditRef, "putrolesystemmeta");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -4346,7 +4382,7 @@ public class DBServiceTest {
         RoleSystemMeta rsm2 = new RoleSystemMeta();
         rsm2.setAuditEnabled(true);
         zms.dbService.executePutRoleSystemMeta(mockDomRsrcCtx, "MetaDom2", "MetaRole2",
-                rsm2,"auditenabled", true, auditRef, "putrolesystemmeta");
+                rsm2,"auditenabled", auditRef, "putrolesystemmeta");
         Role resRole2 = zms.dbService.getRole("MetaDom2", "MetaRole2", false, true, false);
 
         assertTrue(resRole2.getAuditEnabled());
@@ -4381,7 +4417,7 @@ public class DBServiceTest {
 
         try {
             zms.dbService.executePutRoleSystemMeta(mockDomRsrcCtx, "MetaDom1", "MetaRole1", rsm,
-                    "auditenabled", true, auditRef, "putrolesystemmeta");
+                    "auditenabled", auditRef, "putrolesystemmeta");
             fail();
         }catch (ResourceException r) {
             assertEquals(r.getCode(), 409);
@@ -4624,7 +4660,7 @@ public class DBServiceTest {
         String caller = "testCheckRoleAuditEnabledFlagTrueRefNull";
         String principal = "testprincipal";
         try {
-            zms.dbService.checkRoleAuditEnabled(mockJdbcConn, role, null, caller, principal);
+            zms.dbService.checkObjectAuditEnabled(mockJdbcConn, role.getAuditEnabled(), role.getName(), null, caller, principal);
             fail();
         } catch (ResourceException ex) {
             assertEquals(400, ex.getCode());
@@ -4644,7 +4680,7 @@ public class DBServiceTest {
         String caller = "testCheckRoleAuditEnabledFlagTrueRefEmpty";
         String principal = "testprincipal";
         try {
-            zms.dbService.checkRoleAuditEnabled(mockJdbcConn, role, auditCheck, caller, principal);
+            zms.dbService.checkObjectAuditEnabled(mockJdbcConn, role.getAuditEnabled(), role.getName(), auditCheck, caller, principal);
             fail();
         } catch (ResourceException ex) {
             assertEquals(400, ex.getCode());
@@ -4663,7 +4699,7 @@ public class DBServiceTest {
         String auditCheck = "testaudit";
         String caller = "testCheckRoleAuditEnabledFlagFalseRefValid";
         String principal = "testprincipal";
-        zms.dbService.checkRoleAuditEnabled(mockJdbcConn, role, auditCheck, caller, principal);
+        zms.dbService.checkObjectAuditEnabled(mockJdbcConn, role.getAuditEnabled(), role.getName(), auditCheck, caller, principal);
     }
 
     @Test
@@ -4676,7 +4712,7 @@ public class DBServiceTest {
 
         String caller = "testCheckRoleAuditEnabledFlagFalseRefNull";
         String principal = "testprincipal";
-        zms.dbService.checkRoleAuditEnabled(mockJdbcConn, role, null, caller, principal);
+        zms.dbService.checkObjectAuditEnabled(mockJdbcConn, role.getAuditEnabled(), role.getName(), null, caller, principal);
     }
 
     @Test
@@ -4692,7 +4728,7 @@ public class DBServiceTest {
         String caller = "testCheckRoleAuditEnabledFlagTrueRefValidationFail";
         String principal = "testprincipal";
         try {
-            zms.dbService.checkRoleAuditEnabled(mockJdbcConn, role, "auditref", caller, principal);
+            zms.dbService.checkObjectAuditEnabled(mockJdbcConn, role.getAuditEnabled(), role.getName(), "auditref", caller, principal);
             fail();
         } catch (ResourceException ex) {
             assertEquals(400, ex.getCode());
@@ -4713,7 +4749,7 @@ public class DBServiceTest {
 
         String caller = "testCheckRoleAuditEnabledFlagTrueValidatorNull";
         String principal = "testprincipal";
-        zms.dbService.checkRoleAuditEnabled(mockJdbcConn, role, "auditref", caller, principal);
+        zms.dbService.checkObjectAuditEnabled(mockJdbcConn, role.getAuditEnabled(), role.getName(), "auditref", caller, principal);
     }
 
     @Test
@@ -4816,9 +4852,9 @@ public class DBServiceTest {
         zms.dbService.executePutRole(mockDomRsrcCtx, domainName, roleName, role1, auditRef, "putRole");
 
         RoleSystemMeta meta = new RoleSystemMeta().setAuditEnabled(true);
-        zms.dbService.updateRoleSystemMetaFields(role1, "auditenabled", true, meta);
+        zms.dbService.updateRoleSystemMetaFields(role1, "auditenabled", meta, "unit-test");
 
-        zms.dbService.executePutRoleSystemMeta(mockDomRsrcCtx, domainName, roleName, meta, "auditenabled", true, auditRef, "");
+        zms.dbService.executePutRoleSystemMeta(mockDomRsrcCtx, domainName, roleName, meta, "auditenabled", auditRef, "");
 
         Role role3 = zms.dbService.getRole(domainName, roleName, false, false, false);
         assertNotNull(role3);
@@ -5054,7 +5090,7 @@ public class DBServiceTest {
         RoleSystemMeta rsm2 = new RoleSystemMeta();
         rsm2.setAuditEnabled(true);
         zms.dbService.executePutRoleSystemMeta(mockDomRsrcCtx, "dom2", "role2",
-                rsm2,"auditenabled", true, auditRef, "putrolesystemmeta");
+                rsm2,"auditenabled", auditRef, "putrolesystemmeta");
 
         zms.dbService.executePutMembership(mockDomRsrcCtx, "dom2", "role2",
                 new RoleMember().setMemberName("user.poe").setActive(false).setApproved(false),
@@ -5989,7 +6025,7 @@ public class DBServiceTest {
         zms.dbService.executePutRole(mockDomRsrcCtx, domainName2, "role3", role3, "test", "putrole");
 
         Map<String, DomainRoleMember> domainRoleMembers = isRoleExpire ?
-                zms.dbService.getRoleExpiryMembers() : zms.dbService.getRoleReviewMembers();
+                zms.dbService.getRoleExpiryMembers(0) : zms.dbService.getRoleReviewMembers(0);
         assertNotNull(domainRoleMembers);
         assertEquals(domainRoleMembers.size(), 3);
 
@@ -6014,9 +6050,9 @@ public class DBServiceTest {
 
         ObjectStoreConnection mockConn = Mockito.mock(ObjectStoreConnection.class);
         Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockConn);
-        Mockito.when(mockConn.updateRoleMemberExpirationNotificationTimestamp(anyString(), anyLong())).thenReturn(false);
+        Mockito.when(mockConn.updateRoleMemberExpirationNotificationTimestamp(anyString(), anyLong(), anyInt())).thenReturn(false);
 
-        assertNull(zms.dbService.getRoleExpiryMembers());
+        assertNull(zms.dbService.getRoleExpiryMembers(1));
         zms.dbService.store = saveStore;
     }
 
@@ -6135,9 +6171,9 @@ public class DBServiceTest {
 
         ObjectStoreConnection mockConn = Mockito.mock(ObjectStoreConnection.class);
         Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockConn);
-        Mockito.when(mockConn.updateRoleMemberReviewNotificationTimestamp(anyString(), anyLong())).thenReturn(false);
+        Mockito.when(mockConn.updateRoleMemberReviewNotificationTimestamp(anyString(), anyLong(), anyInt())).thenReturn(false);
 
-        assertNull(zms.dbService.getRoleReviewMembers());
+        assertNull(zms.dbService.getRoleReviewMembers(1));
         zms.dbService.store = saveStore;
     }
 
@@ -6720,7 +6756,7 @@ public class DBServiceTest {
     }
 
     @Test
-    public void testUpdateUserAuthorityExpiry() {
+    public void testUpdateUserAuthorityExpiryRoleMember() {
 
         Authority savedAuthority = zms.dbService.zmsConfig.getUserAuthority();
 
@@ -7197,7 +7233,7 @@ public class DBServiceTest {
     }
 
     @Test
-    public void testProcessUserAuthorityRestrictions() {
+    public void testProcessRoleUserAuthorityRestrictions() {
 
         Authority savedAuthority = zms.dbService.zmsConfig.getUserAuthority();
 
@@ -7251,15 +7287,15 @@ public class DBServiceTest {
         // first time we'll get no roles so no work is done
         // second time we'll get a single role that we'll process
 
-        zms.dbService.processUserAuthorityRestrictions();
-        zms.dbService.processUserAuthorityRestrictions();
+        zms.dbService.processRoleUserAuthorityRestrictions();
+        zms.dbService.processRoleUserAuthorityRestrictions();
 
         zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
         zms.dbService.store = savedStore;
     }
 
     @Test
-    public void testProcessUserAuthorityRestrictionsExceptions() {
+    public void testProcessRoleUserAuthorityRestrictionsExceptions() {
 
         Authority savedAuthority = zms.dbService.zmsConfig.getUserAuthority();
 
@@ -7327,7 +7363,7 @@ public class DBServiceTest {
         // for the first role we'll get an exception but we'll just log
         // for the second role we'll get success
 
-        zms.dbService.processUserAuthorityRestrictions();
+        zms.dbService.processRoleUserAuthorityRestrictions();
 
         zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
         zms.dbService.store = savedStore;
@@ -7670,5 +7706,889 @@ public class DBServiceTest {
 
         zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testProcessGroupFailure() {
+
+        final String domainName = "failure-group-domain";
+
+        // group object without the domain part
+
+        Group group1 = new Group().setName("group1");
+        StringBuilder auditDetails = new StringBuilder("testAudit");
+        try {
+            zms.dbService.processGroup(zms.dbService.store.getConnection(true, true), null, domainName,
+                    "group1", group1, adminUser, auditRef, auditDetails);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        // mock returning failure
+
+        group1 = new Group().setName(domainName + ":group.group1");
+
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.insertGroup(anyString(), any(Group.class)))
+                .thenReturn(false);
+
+        assertFalse(zms.dbService.processGroup(mockJdbcConn, null, domainName,
+                "group1", group1, adminUser, auditRef, auditDetails));
+
+        Mockito.when(mockJdbcConn.insertGroup(anyString(), any(Group.class)))
+                .thenReturn(true);
+        Mockito.when(mockJdbcConn.insertGroupMember(anyString(), anyString(), any(GroupMember.class),
+                anyString(), anyString())).thenReturn(false);
+
+        List<GroupMember> groupMembers = new ArrayList<>();
+        groupMembers.add(new GroupMember().setMemberName("user.user1"));
+        group1.setGroupMembers(groupMembers);
+        assertFalse(zms.dbService.processGroup(mockJdbcConn, null, domainName,
+                "group1", group1, adminUser, auditRef, auditDetails));
+    }
+
+    @Test
+    public void testProcessGroupMemberFailure() {
+
+        final String domainName = "failure-group-mbr-domain";
+        final String groupName = "group1";
+
+        // mock returning failure
+
+        Group groupOriginal = createGroupObject(domainName, groupName, "user.user1", "user.user2");
+        Group groupUpdated = createGroupObject(domainName, groupName, "user.user2", "user.user3");
+
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.updateGroup(anyString(), any(Group.class)))
+                .thenReturn(true);
+
+        // first any update delete is marked as failure
+
+        StringBuilder auditDetails = new StringBuilder("testAudit");
+        Mockito.when(mockJdbcConn.deleteGroupMember(anyString(), anyString(), anyString(),
+                anyString(), anyString())).thenReturn(false);
+
+        assertFalse(zms.dbService.processGroup(mockJdbcConn, groupOriginal, domainName,
+                groupName, groupUpdated, adminUser, auditRef, auditDetails));
+
+        // now we're going to allow deletes to work but inserts fail
+
+        Mockito.when(mockJdbcConn.deleteGroupMember(anyString(), anyString(), anyString(),
+                anyString(), anyString())).thenReturn(true);
+        Mockito.when(mockJdbcConn.insertGroupMember(anyString(), anyString(), any(GroupMember.class),
+                anyString(), anyString())).thenReturn(false);
+
+        Mockito.when(mockJdbcConn.insertGroup(anyString(), any(Group.class)))
+                .thenReturn(true);
+
+        assertFalse(zms.dbService.processGroup(mockJdbcConn, groupOriginal, domainName,
+                groupName, groupUpdated, adminUser, auditRef, auditDetails));
+    }
+
+    @Test
+    public void testExecutePutGroupFailure() {
+
+        final String domainName = "put-group-failure";
+        final String groupName = "group1";
+
+        Group group = createGroupObject(domainName, groupName, "user.user2", "user.user3");
+
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.insertGroup(anyString(), any(Group.class)))
+                .thenReturn(false);
+        Domain domain = new Domain().setName(domainName);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        try {
+            zms.dbService.executePutGroup(mockDomRsrcCtx, domainName, groupName, group, auditRef);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
+        }
+
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testExecutePutGroupMemberFailure() {
+
+        final String domainName = "failure-put-group-mbr-domain";
+        final String groupName = "group1";
+        final String memberName = "user.member1";
+        final String adminName = "user.user1";
+
+        GroupMember groupMember = new GroupMember().setMemberName(memberName);
+        Group group = new Group().setName(ZMSUtils.groupResourceName(domainName, groupName));
+
+        Domain domain = new Domain().setAuditEnabled(false);
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
+        Mockito.when(mockJdbcConn.insertGroupMember(domainName, groupName, groupMember, adminName, auditRef))
+                .thenReturn(false);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        try {
+            zms.dbService.executePutGroupMembership(mockDomRsrcCtx, domainName, group, groupMember, auditRef);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ResourceException.BAD_REQUEST, ex.getCode());
+        }
+
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testExecuteDeleteGroupMemberFailureNotFound() {
+
+        final String domainName = "failure-del-group-mbr-domain";
+        final String groupName = "group1";
+        final String memberName = "user.member1";
+        final String adminName = "user.user1";
+
+        Domain domain = new Domain().setAuditEnabled(false);
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
+        Mockito.when(mockJdbcConn.deleteGroupMember(domainName, groupName, memberName, adminName, auditRef))
+                .thenReturn(false);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        try {
+            zms.dbService.executeDeleteGroupMembership(mockDomRsrcCtx, domainName, groupName,
+                    memberName, auditRef);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ResourceException.NOT_FOUND, ex.getCode());
+        }
+
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testExecuteDeletePendingGroupMemberFailureNotFound() {
+
+        final String domainName = "failure-del-pending-group-mbr-domain";
+        final String groupName = "group1";
+        final String memberName = "user.member1";
+        final String adminName = "user.user1";
+
+        Domain domain = new Domain().setAuditEnabled(false);
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
+        Mockito.when(mockJdbcConn.deletePendingGroupMember(domainName, groupName, memberName, adminName, auditRef))
+                .thenReturn(false);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        try {
+            zms.dbService.executeDeletePendingGroupMembership(mockDomRsrcCtx, domainName, groupName,
+                    memberName, auditRef);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ResourceException.NOT_FOUND, ex.getCode());
+        }
+
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testExecuteDeleteGroupFailure() {
+
+        final String domainName = "failure-del-groupdomain";
+        final String groupName = "group1";
+
+        Domain domain = new Domain().setAuditEnabled(false);
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
+        Mockito.when(mockJdbcConn.deleteGroup(domainName, groupName)).thenReturn(false);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        try {
+            zms.dbService.executeDeleteGroup(mockDomRsrcCtx, domainName, groupName, auditRef);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ResourceException.NOT_FOUND, ex.getCode());
+        }
+
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testUpdateUserAuthorityExpiryGroupMember() {
+
+        Authority savedAuthority = zms.dbService.zmsConfig.getUserAuthority();
+
+        Authority authority = Mockito.mock(Authority.class);
+
+        Date currentDate = new Date();
+        Timestamp authorityDate = Timestamp.fromDate(currentDate);
+
+        Mockito.when(authority.getDateAttribute("user.john", "elevated-clearance"))
+                .thenReturn(currentDate);
+        Mockito.when(authority.getDateAttribute("user.jane", "elevated-clearance"))
+                .thenReturn(currentDate);
+        Mockito.when(authority.getDateAttribute("user.joe", "elevated-clearance"))
+                .thenReturn(null);
+
+        zms.dbService.zmsConfig.setUserAuthority(authority);
+
+        // service users are not processed
+
+        GroupMember groupMember = new GroupMember().setMemberName("sports.api");
+        assertFalse(zms.dbService.updateUserAuthorityExpiry(groupMember, "elevated-clearance"));
+
+        // user.joe - no expiry setting
+
+        groupMember = new GroupMember().setMemberName("user.joe");
+        assertTrue(zms.dbService.updateUserAuthorityExpiry(groupMember, "elevated-clearance"));
+        assertNotNull(groupMember.getExpiration());
+
+        // we'll change if the expiry date is in the future
+
+        Timestamp expiryDate = Timestamp.fromMillis(System.currentTimeMillis() + 1000000);
+        groupMember.setExpiration(expiryDate);
+        assertTrue(zms.dbService.updateUserAuthorityExpiry(groupMember, "elevated-clearance"));
+        assertNotEquals(groupMember.getExpiration(), expiryDate);
+
+        // we will not change if the entry is already expired
+
+        expiryDate = Timestamp.fromMillis(System.currentTimeMillis() - 1000000);
+        groupMember.setExpiration(expiryDate);
+        assertFalse(zms.dbService.updateUserAuthorityExpiry(groupMember, "elevated-clearance"));
+        assertEquals(groupMember.getExpiration(), expiryDate);
+
+        // now let's test a user with valid authority expiry date
+        // if the user doesn't have an expiry, we'll default to the value
+        // returned by the user authority
+
+        groupMember = new GroupMember().setMemberName("user.jane");
+        assertTrue(zms.dbService.updateUserAuthorityExpiry(groupMember, "elevated-clearance"));
+        assertNotNull(groupMember.getExpiration());
+        assertEquals(groupMember.getExpiration(), authorityDate);
+
+        // if the value matches to our user authority value then no change
+
+        groupMember.setExpiration(authorityDate);
+        assertFalse(zms.dbService.updateUserAuthorityExpiry(groupMember, "elevated-clearance"));
+        assertNotNull(groupMember.getExpiration());
+        assertEquals(groupMember.getExpiration(), authorityDate);
+
+        // if no match then we change the value
+
+        groupMember.setExpiration(Timestamp.fromMillis(System.currentTimeMillis() - 2000000));
+        assertTrue(zms.dbService.updateUserAuthorityExpiry(groupMember, "elevated-clearance"));
+        assertNotNull(groupMember.getExpiration());
+        assertEquals(groupMember.getExpiration(), authorityDate);
+
+        zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
+    }
+
+    @Test
+    public void testGetGroupMembersWithUpdatedDueDates() {
+
+        Authority savedAuthority = zms.dbService.zmsConfig.getUserAuthority();
+
+        Authority authority = Mockito.mock(Authority.class);
+
+        Date currentDate = new Date();
+        Timestamp authorityDate = Timestamp.fromDate(currentDate);
+
+        Mockito.when(authority.getDateAttribute("user.john", "elevated-clearance"))
+                .thenReturn(currentDate);
+
+        zms.dbService.zmsConfig.setUserAuthority(authority);
+
+        // service users are not processed
+
+        List<GroupMember> groupMembers = new ArrayList<>();
+        groupMembers.add(new GroupMember().setMemberName("sports.api"));
+
+        List<GroupMember> members = zms.dbService.getGroupMembersWithUpdatedDueDates(groupMembers, "elevated-clearance");
+        assertTrue(members.isEmpty());
+
+        // no expiry and no user filter - no changes
+
+        groupMembers.clear();
+        groupMembers.add(new GroupMember().setMemberName("user.john"));
+        members = zms.dbService.getGroupMembersWithUpdatedDueDates(groupMembers, null);
+        assertTrue(members.isEmpty());
+
+        // if group member expiry was set and now we have no userAuthorityExpiry - we'll reset
+
+        groupMembers.clear();
+        groupMembers.add(new GroupMember().setMemberName("user.john").setExpiration(Timestamp.fromCurrentTime()));
+        members = zms.dbService.getGroupMembersWithUpdatedDueDates(groupMembers, null);
+        assertFalse(members.isEmpty());
+        assertNull(members.get(0).getExpiration());
+
+        // if no expiry and user authority expiry is set - we'll update
+
+        groupMembers.clear();
+        groupMembers.add(new GroupMember().setMemberName("user.john"));
+        members = zms.dbService.getGroupMembersWithUpdatedDueDates(groupMembers, "elevated-clearance");
+        assertFalse(members.isEmpty());
+        assertEquals(members.get(0).getExpiration(), authorityDate);
+
+        zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
+    }
+
+    @Test
+    public void testInsertGroupMembersFailure() {
+
+        final String domainName = "insert-group-members-errs";
+        final String groupName = "group1";
+
+        Mockito.when(mockJdbcConn.insertGroupMember(anyString(), anyString(), any(GroupMember.class), anyString(),
+                anyString())).thenReturn(false).thenThrow(new ResourceException(400));
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        List<GroupMember> groupMembers = new ArrayList<>();
+        groupMembers.add(new GroupMember().setMemberName("user.joe"));
+        groupMembers.add(new GroupMember().setMemberName("user.jane"));
+
+        assertFalse(zms.dbService.insertGroupMembers(mockDomRsrcCtx, mockJdbcConn, groupMembers,
+                domainName, groupName, adminUser, auditRef, "unit-test"));
+
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testUpdateGroupMemberDisabledStateFailure() {
+
+        final String domainName = "update-group-members-disabled-errs";
+        final String groupName = "group1";
+
+        Mockito.when(mockJdbcConn.updateGroupMemberDisabledState(anyString(), anyString(), anyString(), anyString(),
+                anyInt(), anyString())).thenReturn(false).thenThrow(new ResourceException(400));
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        List<GroupMember> groupMembers = new ArrayList<>();
+        groupMembers.add(new GroupMember().setMemberName("user.joe").setSystemDisabled(1));
+        groupMembers.add(new GroupMember().setMemberName("user.jane").setSystemDisabled(1));
+
+        assertFalse(zms.dbService.updateGroupMemberDisabledState(mockDomRsrcCtx, mockJdbcConn, groupMembers,
+                domainName, groupName, adminUser, auditRef, "unit-test"));
+
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testExecutePutGroupMembershipDecisionFailure() {
+
+        final String domainName = "put-group-mbr-dec-err";
+        final String groupName = "group1";
+
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.confirmGroupMember(anyString(), anyString(), any(GroupMember.class),
+                anyString(), anyString())).thenReturn(false).thenThrow(new ResourceException(409));
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        Group group = createGroupObject(domainName, groupName, "user.joe", "user.jane");
+        GroupMember groupMember = new GroupMember().setMemberName("user.john");
+
+        // first time we should get false and stand bad request
+
+        try {
+            zms.dbService.executePutGroupMembershipDecision(mockDomRsrcCtx, domainName, group, groupMember, auditRef);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ResourceException.BAD_REQUEST, ex.getCode());
+        }
+
+        // next we should get back our exception
+
+        try {
+            zms.dbService.executePutGroupMembershipDecision(mockDomRsrcCtx, domainName, group, groupMember, auditRef);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ResourceException.CONFLICT, ex.getCode());
+        }
+
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testGetPendingGroupMembershipNotifications() {
+
+        final String domainName1 = "pend-group-members";
+        final String domainName2 = "pend-group-members2";
+        final String groupName1 = "group1";
+        final String groupName2 = "group2";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName1, "Test Domain1", "testorg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        List<String> admins = new ArrayList<>();
+        admins.add(adminUser);
+        zms.dbService.makeDomain(mockDomRsrcCtx, ZMSTestUtils.makeDomainObject(domainName2, "test dom2",
+                "testorg", true, "acct", 1234, "", 0), admins, null, auditRef);
+
+        DomainMeta meta2 = new DomainMeta()
+                .setAccount("acct")
+                .setYpmId(1234)
+                .setOrg("testorg")
+                .setAuditEnabled(true)
+                .setCertDnsDomain("athenz.cloud");
+
+        Domain domres2 = new Domain()
+                .setName(domainName2)
+                .setAuditEnabled(true)
+                .setYpmId(1234)
+                .setCertDnsDomain("athenz.cloud");
+
+        zms.dbService.updateSystemMetaFields(domres2, "auditenabled", false, meta2);
+        Group group2 = createGroupObject(domainName2, groupName2, "user.john", "user.jane");
+        zms.dbService.executePutGroup(mockDomRsrcCtx, domainName2, groupName2, group2, "test");
+
+        GroupSystemMeta rsm2 = new GroupSystemMeta();
+        rsm2.setAuditEnabled(true);
+        zms.dbService.executePutGroupSystemMeta(mockDomRsrcCtx, domainName2, groupName2, rsm2, "auditenabled", auditRef);
+
+        group2.setAuditEnabled(true);
+        zms.dbService.executePutGroupMembership(mockDomRsrcCtx, domainName2, group2,
+                new GroupMember().setMemberName("user.poe").setActive(false).setApproved(false), auditRef);
+
+        Group group1 = createGroupObject(domainName1, groupName1, "user.john", "user.jane");
+        group1.setSelfServe(true);
+        zms.dbService.executePutGroup(mockDomRsrcCtx, domainName1, groupName1, group1, auditRef);
+        zms.dbService.executePutGroupMembership(mockDomRsrcCtx, domainName1, group1,
+                new GroupMember().setMemberName("user.doe").setActive(false).setApproved(false), auditRef);
+
+        Role auditApproverRole = createRoleObject("sys.auth.audit.org", "testorg",
+                null, "user.boe", adminUser);
+        zms.dbService.executePutRole(mockDomRsrcCtx, "sys.auth.audit.org", "testorg",
+                auditApproverRole, "test", "putrole");
+
+        ZMSTestUtils.sleep(1000);
+        Set<String> recipientRoles = zms.dbService.getPendingGroupMembershipApproverRoles(0);
+
+        assertNotNull(recipientRoles);
+        assertTrue(recipientRoles.contains(domainName1 + ":role.admin"));
+        assertTrue(recipientRoles.contains("sys.auth.audit.org:role.testorg"));
+
+        zms.dbService.executeDeleteRole(mockDomRsrcCtx, "sys.auth.audit.org", "testorg", "cleanup", "unitttest");
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName1, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName2, auditRef);
+    }
+
+    @Test
+    public void testGetPendingGroupMembershipNotificationsEdge() {
+
+        Set<String> recipients = new HashSet<>();
+        recipients.add("user.joe");
+        recipients.add("unix.moe");
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.updatePendingGroupMembersNotificationTimestamp(anyString(), anyLong(), anyInt())).thenReturn(true);
+        Mockito.when(mockJdbcConn.getPendingGroupMembershipApproverRoles(anyString(), anyLong())).thenReturn(recipients);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        Set<String> recipientsRes = zms.dbService.getPendingGroupMembershipApproverRoles(0);
+
+        assertNotNull(recipientsRes);
+        assertTrue(recipientsRes.contains("user.joe"));
+
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testGetPendingGroupMembershipNotificationsTimestampUpdateFailed() {
+
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.updatePendingGroupMembersNotificationTimestamp(anyString(), anyLong(), anyInt())).thenReturn(false);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+        Set<String> recipientsRes = zms.dbService.getPendingGroupMembershipApproverRoles(0);
+        assertNull(recipientsRes);
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testProcessExpiredPendingGroupMembers() {
+
+        Map<String, List<DomainGroupMember>> memberList = new LinkedHashMap<>();
+
+        DomainGroupMember domainGroupMember1 = new DomainGroupMember();
+        domainGroupMember1.setMemberName("user.user1");
+        List<GroupMember> memberGroups1 = new ArrayList<>();
+        memberGroups1.add(new GroupMember().setGroupName("group1"));
+        domainGroupMember1.setMemberGroups(memberGroups1);
+
+        DomainGroupMember domainGroupMember2 = new DomainGroupMember();
+        domainGroupMember2.setMemberName("user.user2");
+        List<GroupMember> memberGroups2 = new ArrayList<>();
+        memberGroups2.add(new GroupMember().setGroupName("group1"));
+        domainGroupMember2.setMemberGroups(memberGroups2);
+
+        List<DomainGroupMember> domainGroupMembers = new ArrayList<>();
+        domainGroupMembers.add(domainGroupMember1);
+        domainGroupMembers.add(domainGroupMember2);
+        memberList.put("dom1", domainGroupMembers);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.getExpiredPendingDomainGroupMembers(30)).thenReturn(memberList);
+        Mockito.when(mockJdbcConn.deletePendingRoleMember("dom1", "role1", "user.user1", "sys.auth.monitor",
+                "Expired - auto reject")).thenReturn(true);
+        Mockito.when(mockJdbcConn.deletePendingRoleMember("dom1", "role1", "user.user2", "sys.auth.monitor",
+                "Expired - auto reject")).thenReturn(false);
+
+        zms.dbService.processExpiredPendingMembers(30, "sys.auth.monitor");
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testEnforceGroupUserAuthorityRestrictionsEmptyGroups() {
+
+        // we're making sure we're going to return exception when there
+        // are changes thus insert records
+
+        ObjectStoreConnection mockConn = Mockito.mock(ObjectStoreConnection.class);
+        Mockito.when(mockConn.insertGroupMember(Mockito.anyString(), Mockito.anyString(), Mockito.any(),
+                Mockito.any(), Mockito.anyString()))
+                .thenThrow(new ResourceException(400, "invalid operation"));
+
+        final String domainName = "authority-test";
+        final String groupName = "auth-group";
+
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockConn);
+
+        // first we're going to return a null group and then a group
+        // with no members - in both cases we return without processing
+        // any code
+
+        Group group = new Group();
+        Mockito.when(mockConn.getGroup(domainName, groupName))
+                .thenReturn(null)
+                .thenReturn(group);
+
+        Mockito.when(mockConn.updateDomain(any()))
+                .thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
+
+        ObjectStore savedStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        // calling the enforce twice - first time we should get null group
+        // and second time group with no members
+
+        zms.dbService.enforceGroupUserAuthorityRestrictions(domainName, groupName, null);
+        zms.dbService.enforceGroupUserAuthorityRestrictions(domainName, groupName, null);
+
+        zms.dbService.store = savedStore;
+    }
+
+    @Test
+    public void testEnforceGroupUserAuthorityExpiryRestrictionsUpdate() {
+
+        Authority savedAuthority = zms.dbService.zmsConfig.getUserAuthority();
+
+        Authority authority = Mockito.mock(Authority.class);
+
+        Mockito.when(authority.getDateAttribute("user.joe", "elevated-clearance"))
+                .thenReturn(null);
+
+        zms.dbService.zmsConfig.setUserAuthority(authority);
+
+        final String domainName = "authority-test";
+        final String groupName = "auth-group";
+
+        ObjectStoreConnection mockConn = Mockito.mock(ObjectStoreConnection.class);
+        Mockito.when(mockConn.insertGroupMember(Mockito.anyString(), Mockito.anyString(), Mockito.any(),
+                Mockito.any(), Mockito.anyString())).thenReturn(true);
+        Mockito.when(mockConn.updateDomainModTimestamp(domainName)).thenReturn(true);
+
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockConn);
+
+        // first we're going to return a null group and then a group
+        // with no members - in both cases we return without processing
+        // any code
+
+        Group group = new Group().setUserAuthorityExpiration("elevated-clearance");
+        List<GroupMember> groupMembers = new ArrayList<>();
+        groupMembers.add(new GroupMember().setMemberName("user.joe"));
+
+        Mockito.when(mockConn.getGroup(domainName, groupName)).thenReturn(group);
+        Mockito.when(mockConn.listGroupMembers(domainName, groupName, false))
+                .thenReturn(groupMembers);
+
+        ObjectStore savedStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        // the request should complete successfully
+
+        zms.dbService.enforceGroupUserAuthorityRestrictions(domainName, groupName, null);
+
+        zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
+        zms.dbService.store = savedStore;
+    }
+
+    @Test
+    public void testEnforceGroupUserAuthorityFilterRestrictionsUpdate() {
+
+        Authority savedAuthority = zms.dbService.zmsConfig.getUserAuthority();
+
+        Authority authority = Mockito.mock(Authority.class);
+
+        Mockito.when(authority.isAttributeSet("user.joe", "employee"))
+                .thenReturn(false);
+        Mockito.when(authority.isAttributeSet("user.jane", "employee"))
+                .thenReturn(true);
+
+        zms.dbService.zmsConfig.setUserAuthority(authority);
+
+        final String domainName = "authority-test";
+        final String groupName = "auth-group";
+
+        ObjectStoreConnection mockConn = Mockito.mock(ObjectStoreConnection.class);
+        Mockito.when(mockConn.insertGroupMember(Mockito.anyString(), Mockito.anyString(), Mockito.any(),
+                Mockito.any(), Mockito.anyString())).thenReturn(true);
+        Mockito.when(mockConn.updateDomainModTimestamp(domainName)).thenReturn(true);
+
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockConn);
+
+        // first we're going to return a null group and then a group
+        // with no members - in both cases we return without processing
+        // any code
+
+        Group group = new Group().setUserAuthorityFilter("employee");
+        List<GroupMember> groupMembers = new ArrayList<>();
+        groupMembers.add(new GroupMember().setMemberName("user.joe"));
+        groupMembers.add(new GroupMember().setMemberName("user.jane"));
+
+        Mockito.when(mockConn.getGroup(domainName, groupName)).thenReturn(group);
+        Mockito.when(mockConn.listGroupMembers(domainName, groupName, false))
+                .thenReturn(groupMembers);
+
+        ObjectStore savedStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        // the request should complete successfully
+
+        zms.dbService.enforceGroupUserAuthorityRestrictions(domainName, groupName, null);
+
+        zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
+        zms.dbService.store = savedStore;
+    }
+
+    @Test
+    public void testEnforceGroupUserAuthorityRestrictionsNoUpdate() {
+
+        Authority savedAuthority = zms.dbService.zmsConfig.getUserAuthority();
+
+        Authority authority = Mockito.mock(Authority.class);
+
+        Mockito.when(authority.getDateAttribute("user.joe", "elevated-clearance"))
+                .thenReturn(null);
+
+        zms.dbService.zmsConfig.setUserAuthority(authority);
+
+        final String domainName = "authority-test";
+        final String groupName = "auth-group";
+
+        ObjectStoreConnection mockConn = Mockito.mock(ObjectStoreConnection.class);
+        Mockito.when(mockConn.insertGroupMember(Mockito.anyString(), Mockito.anyString(), Mockito.any(),
+                Mockito.any(), Mockito.anyString())).thenReturn(true);
+        Mockito.when(mockConn.updateDomainModTimestamp(domainName)).thenReturn(true);
+
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockConn);
+
+        // first we're going to return a null group and then a group
+        // with no members - in both cases we return without processing
+        // any code
+
+        Group group = new Group().setUserAuthorityExpiration("elevated-clearance");
+        List<GroupMember> groupMembers = new ArrayList<>();
+        groupMembers.add(new GroupMember().setMemberName("user.joe")
+                .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() - 10000)));
+
+        Mockito.when(mockConn.getGroup(domainName, groupName)).thenReturn(group);
+        Mockito.when(mockConn.listGroupMembers(domainName, groupName, false))
+                .thenReturn(groupMembers);
+
+        ObjectStore savedStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        // the request should complete successfully
+
+        zms.dbService.enforceGroupUserAuthorityRestrictions(domainName, groupName, null);
+
+        zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
+        zms.dbService.store = savedStore;
+    }
+
+    @Test
+    public void testProcessGroupUserAuthorityRestrictions() {
+
+        Authority savedAuthority = zms.dbService.zmsConfig.getUserAuthority();
+
+        Authority authority = Mockito.mock(Authority.class);
+
+        Mockito.when(authority.getDateAttribute("user.joe", "elevated-clearance"))
+                .thenReturn(null);
+
+        zms.dbService.zmsConfig.setUserAuthority(authority);
+
+        final String domainName = "authority-test";
+        final String groupName = "auth-group";
+
+        ObjectStoreConnection mockConn = Mockito.mock(ObjectStoreConnection.class);
+        Mockito.when(mockConn.insertGroupMember(Mockito.anyString(), Mockito.anyString(), Mockito.any(),
+                Mockito.any(), Mockito.anyString())).thenReturn(true);
+        Mockito.when(mockConn.updateDomainModTimestamp(domainName)).thenReturn(true);
+
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockConn);
+        Mockito.when(mockObjStore.getConnection(true, false)).thenReturn(mockConn);
+
+        // first we're going to return a null group and then a group
+        // with no members - in both cases we return without processing
+        // any code
+
+        Group group = new Group().setUserAuthorityExpiration("elevated-clearance");
+        List<GroupMember> groupMembers = new ArrayList<>();
+        groupMembers.add(new GroupMember().setMemberName("user.joe"));
+
+        Mockito.when(mockConn.getGroup(domainName, groupName)).thenReturn(group);
+        Mockito.when(mockConn.listGroupMembers(domainName, groupName, false))
+                .thenReturn(groupMembers);
+
+        // first we're going to return no groups and then list of groups
+        // in the second one
+
+        List<PrincipalGroup> groups = new ArrayList<>();
+        PrincipalGroup prGroup = new PrincipalGroup();
+        prGroup.setDomainName(domainName);
+        prGroup.setGroupName(groupName);
+        groups.add(prGroup);
+
+        Mockito.when(mockConn.listGroupsWithUserAuthorityRestrictions())
+                .thenReturn(null)
+                .thenReturn(groups);
+
+        ObjectStore savedStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        // the request should complete successfully
+        // first time we'll get no groups so no work is done
+        // second time we'll get a single group that we'll process
+
+        zms.dbService.processGroupUserAuthorityRestrictions();
+        zms.dbService.processGroupUserAuthorityRestrictions();
+
+        zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
+        zms.dbService.store = savedStore;
+    }
+
+    @Test
+    public void testProcessGroupUserAuthorityRestrictionsExceptions() {
+
+        Authority savedAuthority = zms.dbService.zmsConfig.getUserAuthority();
+
+        Authority authority = Mockito.mock(Authority.class);
+
+        Mockito.when(authority.getDateAttribute("user.joe", "elevated-clearance"))
+                .thenReturn(null);
+
+        zms.dbService.zmsConfig.setUserAuthority(authority);
+
+        final String domainName = "authority-test";
+        final String groupName1 = "auth-group1";
+        final String groupName2 = "auth-group2";
+
+        ObjectStoreConnection mockConn = Mockito.mock(ObjectStoreConnection.class);
+        Mockito.when(mockConn.insertGroupMember(Mockito.anyString(), Mockito.anyString(), Mockito.any(),
+                Mockito.any(), Mockito.anyString())).thenReturn(true);
+        Mockito.when(mockConn.updateDomainModTimestamp(domainName)).thenReturn(true);
+
+        // we're going to return an exception for the first insert group member
+        // and then success for the second one
+
+        Mockito.when(mockObjStore.getConnection(true, true))
+                .thenThrow(new ResourceException(500, "DB Error"))
+                .thenReturn(mockConn);
+        Mockito.when(mockObjStore.getConnection(true, false)).thenReturn(mockConn);
+
+        // first we're going to return a null group and then a group
+        // with no members - in both cases we return without processing
+        // any code
+
+        Group group1 = new Group().setUserAuthorityExpiration("elevated-clearance");
+        List<GroupMember> groupMembers1 = new ArrayList<>();
+        groupMembers1.add(new GroupMember().setMemberName("user.joe"));
+
+        Mockito.when(mockConn.getGroup(domainName, groupName1)).thenReturn(group1);
+        Mockito.when(mockConn.listGroupMembers(domainName, groupName1, false))
+                .thenReturn(groupMembers1);
+
+        Group group2 = new Group().setUserAuthorityExpiration("elevated-clearance");
+        List<GroupMember> groupMembers2 = new ArrayList<>();
+        groupMembers2.add(new GroupMember().setMemberName("user.joe"));
+
+        Mockito.when(mockConn.getGroup(domainName, groupName2)).thenReturn(group2);
+        Mockito.when(mockConn.listGroupMembers(domainName, groupName2, false))
+                .thenReturn(groupMembers2);
+
+        List<PrincipalGroup> groups = new ArrayList<>();
+        PrincipalGroup prGroup1 = new PrincipalGroup();
+        prGroup1.setDomainName(domainName);
+        prGroup1.setGroupName(groupName1);
+        groups.add(prGroup1);
+        PrincipalGroup prGroup2 = new PrincipalGroup();
+        prGroup2.setDomainName(domainName);
+        prGroup2.setGroupName(groupName2);
+        groups.add(prGroup2);
+
+        Mockito.when(mockConn.listGroupsWithUserAuthorityRestrictions())
+                .thenReturn(groups);
+
+        ObjectStore savedStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        // the request should complete successfully
+        // for the first group we'll get an exception but we'll just log
+        // for the second group we'll get success
+
+        zms.dbService.processGroupUserAuthorityRestrictions();
+
+        zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
+        zms.dbService.store = savedStore;
+    }
+
+    @Test
+    public void testAuditLogBooleanDefault() {
+
+        // our default value is false so if we have null or false
+        // we have to output value of false otherwise true
+        // so we're going to check for explicit value of true
+
+        assertEquals(zms.dbService.auditLogBooleanDefault(null, Boolean.TRUE), "false");
+        assertEquals(zms.dbService.auditLogBooleanDefault(Boolean.FALSE, Boolean.TRUE), "false");
+        assertEquals(zms.dbService.auditLogBooleanDefault(Boolean.TRUE, Boolean.TRUE), "true");
+
+        // our default value is true so if we have null or true
+        // we have to output value of true otherwise false
+        // so we're going to check for explicit value of false
+
+        assertEquals(zms.dbService.auditLogBooleanDefault(null, Boolean.FALSE), "true");
+        assertEquals(zms.dbService.auditLogBooleanDefault(Boolean.TRUE, Boolean.FALSE), "true");
+        assertEquals(zms.dbService.auditLogBooleanDefault(Boolean.FALSE, Boolean.FALSE), "false");
     }
 }

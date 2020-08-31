@@ -43,13 +43,16 @@ class QuotaChecker {
         int publicKeyQuota = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_QUOTA_PUBLIC_KEY, "100"));
         int entityQuota = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_QUOTA_ENTITY, "100"));
         int subDomainQuota = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_QUOTA_SUBDOMAIN, "100"));
-        
+        int groupQuota = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_QUOTA_GROUP, "100"));
+        int groupMemberQuota = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_QUOTA_GROUP_MEMBER, "100"));
+
         defaultQuota = new Quota().setName("server-default")
                 .setAssertion(assertionQuota).setEntity(entityQuota)
                 .setPolicy(policyQuota).setPublicKey(publicKeyQuota)
                 .setRole(roleQuota).setRoleMember(roleMemberQuota)
                 .setService(serviceQuota).setServiceHost(serviceHostQuota)
-                .setSubdomain(subDomainQuota).setModified(Timestamp.fromCurrentTime());
+                .setSubdomain(subDomainQuota).setGroup(groupQuota)
+                .setGroupMember(groupMemberQuota).setModified(Timestamp.fromCurrentTime());
     }
     
     public Quota getDomainQuota(ObjectStoreConnection con, String domainName) {
@@ -136,7 +139,44 @@ class QuotaChecker {
                     + quota.getRole() + " actual: " + objectCount, caller);
         }
     }
-    
+
+    void checkGroupQuota(ObjectStoreConnection con, String domainName, Group group, String caller) {
+
+        // if quota check is disabled we have nothing to do
+
+        if (!quotaCheckEnabled) {
+            return;
+        }
+
+        // if our group is null then there is no quota check
+
+        if (group == null) {
+            return;
+        }
+
+        // first retrieve the domain quota
+
+        final Quota quota = getDomainQuota(con, domainName);
+
+        // first we're going to verify the elements that do not
+        // require any further data from the object store
+
+        int objectCount = getListSize(group.getGroupMembers());
+        if (quota.getGroupMember() < objectCount) {
+            throw ZMSUtils.quotaLimitError("group member quota exceeded - limit: "
+                    + quota.getGroupMember() + " actual: " + objectCount, caller);
+        }
+
+        // now we're going to check if we'll be allowed
+        // to create this group in the domain
+
+        objectCount = con.countGroups(domainName) + 1;
+        if (quota.getGroup() < objectCount) {
+            throw ZMSUtils.quotaLimitError("group quota exceeded - limit: "
+                    + quota.getGroup() + " actual: " + objectCount, caller);
+        }
+    }
+
     void checkRoleMembershipQuota(ObjectStoreConnection con, String domainName,
             String roleName, String caller) {
         
@@ -159,7 +199,30 @@ class QuotaChecker {
                     + quota.getRoleMember() + " actual: " + objectCount, caller);
         }
     }
-    
+
+    void checkGroupMembershipQuota(ObjectStoreConnection con, String domainName,
+                                  String groupName, String caller) {
+
+        // if quota check is disabled we have nothing to do
+
+        if (!quotaCheckEnabled) {
+            return;
+        }
+
+        // first retrieve the domain quota
+
+        final Quota quota = getDomainQuota(con, domainName);
+
+        // now check to make sure we can add 1 more member
+        // to this group without exceeding the quota
+
+        int objectCount = con.countGroupMembers(domainName, groupName) + 1;
+        if (quota.getGroupMember() < objectCount) {
+            throw ZMSUtils.quotaLimitError("group member quota exceeded - limit: "
+                    + quota.getGroupMember() + " actual: " + objectCount, caller);
+        }
+    }
+
     void checkPolicyQuota(ObjectStoreConnection con, String domainName, Policy policy, String caller) {
         
         // if quota check is disabled we have nothing to do

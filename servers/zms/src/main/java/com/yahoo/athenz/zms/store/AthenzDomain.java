@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,15 +18,13 @@ package com.yahoo.athenz.zms.store;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.yahoo.athenz.zms.Domain;
-import com.yahoo.athenz.zms.Policy;
-import com.yahoo.athenz.zms.Role;
-import com.yahoo.athenz.zms.ServiceIdentity;
+import com.yahoo.athenz.zms.*;
 
 public class AthenzDomain {
 
     private String name;
     private List<Role> roles;
+    private List<Group> groups;
     private List<Policy> policies;
     private List<ServiceIdentity> services;
     private Domain domain = null;
@@ -34,6 +32,7 @@ public class AthenzDomain {
     public AthenzDomain(String name) {
         this.name = name;
         roles = new ArrayList<>();
+        groups = new ArrayList<>();
         policies = new ArrayList<>();
         services = new ArrayList<>();
     }
@@ -44,6 +43,10 @@ public class AthenzDomain {
 
     public void setRoles(List<Role> roles) {
         this.roles = roles;
+    }
+
+    public void setGroups(List<Group> groups) {
+        this.groups = groups;
     }
 
     public void setServices(List<ServiceIdentity> services) {
@@ -65,7 +68,11 @@ public class AthenzDomain {
     public List<Role> getRoles() {
         return roles;
     }
-    
+
+    public List<Group> getGroups() {
+        return groups;
+    }
+
     public List<Policy> getPolicies() {
         return policies;
     }
