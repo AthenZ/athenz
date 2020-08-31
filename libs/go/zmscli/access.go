@@ -86,9 +86,9 @@ func (cli Zms) ShowResourceAccess(principal string, action string) (*string, err
 	var buf bytes.Buffer
 	buf.WriteString("resource-access:\n")
 	for _, rsrc := range rsrcAccessList.Resources {
-		buf.WriteString(indent_level1_dash + "principal: " + string(rsrc.Principal) + "\n")
-		buf.WriteString(indent_level1 + "  assertions:\n")
-		indent2 := indent_level1 + "    - "
+		buf.WriteString(indentLevel1Dash + "principal: " + string(rsrc.Principal) + "\n")
+		buf.WriteString(indentLevel1 + "  assertions:\n")
+		indent2 := indentLevel1 + "    - "
 		for _, assertion := range rsrc.Assertions {
 			cli.dumpAssertion(&buf, assertion, "", indent2)
 		}

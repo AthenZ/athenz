@@ -19,7 +19,7 @@ func (cli Zms) ListServerTemplates() (*string, error) {
 	}
 	buf.WriteString("templates:\n")
 	for _, name := range templates.TemplateNames {
-		buf.WriteString(indent_level1_dash + string(name) + "\n")
+		buf.WriteString(indentLevel1Dash + string(name) + "\n")
 	}
 	s := buf.String()
 	return &s, nil
@@ -33,7 +33,7 @@ func (cli Zms) ListDomainTemplates(dn string) (*string, error) {
 	}
 	buf.WriteString("templates:\n")
 	for _, name := range templates.TemplateNames {
-		buf.WriteString(indent_level1_dash + string(name) + "\n")
+		buf.WriteString(indentLevel1Dash + string(name) + "\n")
 	}
 	s := buf.String()
 	return &s, nil
@@ -46,19 +46,19 @@ func (cli Zms) ShowServerTemplate(templateName string) (*string, error) {
 	}
 	var buf bytes.Buffer
 	buf.WriteString("template:\n")
-	cli.dumpMetadata(&buf, template.Metadata, indent_level2_dash, templateName)
-	buf.WriteString(indent_level1 + "roles:\n")
+	cli.dumpMetadata(&buf, template.Metadata, indentLevel2Dash, templateName)
+	buf.WriteString(indentLevel1 + "roles:\n")
 	for _, role := range template.Roles {
-		cli.dumpRole(&buf, *role, false, indent_level2_dash, indent_level2_dash_lvl)
+		cli.dumpRole(&buf, *role, false, indentLevel2Dash, indentLevel2DashLvl)
 	}
-	buf.WriteString(indent_level1 + "policies:\n")
+	buf.WriteString(indentLevel1 + "policies:\n")
 	for _, policy := range template.Policies {
-		cli.dumpPolicy(&buf, *policy, indent_level2_dash, indent_level2_dash_lvl)
+		cli.dumpPolicy(&buf, *policy, indentLevel2Dash, indentLevel2DashLvl)
 	}
 	if len(template.Services) > 0 {
-		buf.WriteString(indent_level1 + "services:\n")
+		buf.WriteString(indentLevel1 + "services:\n")
 		for _, service := range template.Services {
-			cli.dumpService(&buf, *service, indent_level2_dash, indent_level2_dash_lvl)
+			cli.dumpService(&buf, *service, indentLevel2Dash, indentLevel2DashLvl)
 		}
 	}
 	s := buf.String()
@@ -82,7 +82,7 @@ func (cli Zms) SetDomainTemplate(dn string, templateArgs []string) (*string, err
 	}
 	//make sure we have some templates specified
 	if len(templateNames) == 0 {
-		return nil, fmt.Errorf("No template names specified")
+		return nil, fmt.Errorf("no template names specified")
 	}
 	var domainTemplateList zms.DomainTemplate
 	domainTemplateList.TemplateNames = templateNames

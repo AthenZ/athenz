@@ -64,7 +64,7 @@ func (cli Zms) ShowTenantResourceGroupRoles(provDomain string, provService strin
 	}
 	var buf bytes.Buffer
 	buf.WriteString("resource-group:\n")
-	cli.dumpTenantResourceGroupRoles(&buf, tenantRoles, indent_level1_dash, indent_level1_dash_lvl)
+	cli.dumpTenantResourceGroupRoles(&buf, tenantRoles, indentLevel1Dash, indentLevel1DashLvl)
 	s := buf.String()
 	return &s, nil
 }
@@ -119,7 +119,7 @@ func (cli Zms) ShowProviderResourceGroupRoles(tenantDomain string, providerDomai
 	}
 	var buf bytes.Buffer
 	buf.WriteString("resource-group:\n")
-	cli.dumpProviderResourceGroupRoles(&buf, providerRoles, indent_level1_dash, indent_level1_dash_lvl)
+	cli.dumpProviderResourceGroupRoles(&buf, providerRoles, indentLevel1Dash, indentLevel1DashLvl)
 	s := buf.String()
 	return &s, nil
 }
