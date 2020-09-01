@@ -69,7 +69,7 @@ func (cli Zms) ShowRole(dn string, rn string, auditLog, expand bool, pending boo
 	}
 	var buf bytes.Buffer
 	buf.WriteString("role:\n")
-	cli.dumpRole(&buf, *role, auditLog, indent_level1_dash, indent_level1_dash_lvl)
+	cli.dumpRole(&buf, *role, auditLog, indentLevel1Dash, indentLevel1DashLvl)
 	s := buf.String()
 	return &s, nil
 }
@@ -78,7 +78,7 @@ func (cli Zms) AddDelegatedRole(dn string, rn string, trusted string) (*string, 
 	fullResourceName := dn + ":role." + rn
 	_, err := cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), nil, nil, nil)
 	if err == nil {
-		return nil, fmt.Errorf("Role already exists: %v", fullResourceName)
+		return nil, fmt.Errorf("role already exists: %v", fullResourceName)
 	}
 	switch v := err.(type) {
 	case rdl.ResourceError:
@@ -87,7 +87,7 @@ func (cli Zms) AddDelegatedRole(dn string, rn string, trusted string) (*string, 
 		}
 	}
 	if rn == "admin" {
-		return nil, fmt.Errorf("Cannot replace reserved 'admin' role")
+		return nil, fmt.Errorf("cannot replace reserved 'admin' role")
 	}
 	var role zms.Role
 	role.Name = zms.ResourceName(fullResourceName)
@@ -116,7 +116,7 @@ func (cli Zms) AddGroupRole(dn string, rn string, roleMembers []*zms.RoleMember)
 	var role zms.Role
 	_, err := cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), nil, nil, nil)
 	if err == nil {
-		return nil, fmt.Errorf("Role already exists: %v", fullResourceName)
+		return nil, fmt.Errorf("role already exists: %v", fullResourceName)
 	}
 	switch v := err.(type) {
 	case rdl.ResourceError:
@@ -125,7 +125,7 @@ func (cli Zms) AddGroupRole(dn string, rn string, roleMembers []*zms.RoleMember)
 		}
 	}
 	if rn == "admin" {
-		return nil, fmt.Errorf("Cannot replace reserved 'admin' role")
+		return nil, fmt.Errorf("cannot replace reserved 'admin' role")
 	}
 	role.Name = zms.ResourceName(fullResourceName)
 	role.RoleMembers = roleMembers
@@ -151,7 +151,7 @@ func (cli Zms) AddGroupRole(dn string, rn string, roleMembers []*zms.RoleMember)
 
 func (cli Zms) DeleteRole(dn string, rn string) (*string, error) {
 	if rn == "admin" {
-		return nil, fmt.Errorf("Cannot delete 'admin' role")
+		return nil, fmt.Errorf("cannot delete 'admin' role")
 	}
 	err := cli.Zms.DeleteRole(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef)
 	if err != nil {
@@ -182,10 +182,10 @@ func (cli Zms) AddRoleMembers(dn string, rn string, members []*zms.RoleMember) (
 	var outputLine string
 	for idx, mbr := range members {
 		var member zms.Membership
-		member.MemberName = zms.MemberName(mbr.MemberName)
+		member.MemberName = mbr.MemberName
 		member.RoleName = zms.ResourceName(rn)
 		member.Expiration = mbr.Expiration
-		err := cli.Zms.PutMembership(zms.DomainName(dn), zms.EntityName(rn), zms.MemberName(mbr.MemberName), cli.AuditRef, &member)
+		err := cli.Zms.PutMembership(zms.DomainName(dn), zms.EntityName(rn), mbr.MemberName, cli.AuditRef, &member)
 		if err != nil {
 			return nil, err
 		}
@@ -333,7 +333,7 @@ func (cli Zms) SetRoleAuditEnabled(dn string, rn string, auditEnabled bool) (*st
 	meta := zms.RoleSystemMeta{
 		AuditEnabled: &auditEnabled,
 	}
-	err := cli.Zms.PutRoleSystemMeta(zms.DomainName(dn), zms.EntityName(rn), zms.SimpleName("auditenabled"), cli.AuditRef, &meta)
+	err := cli.Zms.PutRoleSystemMeta(zms.DomainName(dn), zms.EntityName(rn), "auditenabled", cli.AuditRef, &meta)
 	if err != nil {
 		return nil, err
 	}

@@ -56,7 +56,7 @@ func (cli Zms) ShowService(dn string, sn string) (*string, error) {
 	}
 	var buf bytes.Buffer
 	buf.WriteString("service:\n")
-	cli.dumpService(&buf, *service, indent_level1_dash, indent_level1_dash_lvl)
+	cli.dumpService(&buf, *service, indentLevel1Dash, indentLevel1DashLvl)
 	s := buf.String()
 	return &s, nil
 }
@@ -140,7 +140,7 @@ func (cli Zms) AddProviderService(dn string, sn string, keyID string, pubKey *st
 	var role zms.Role
 	_, err = cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), nil, nil, nil)
 	if err == nil {
-		return nil, fmt.Errorf("Provider Service created but Self Serve Role already exists: %v", fullResourceName)
+		return nil, fmt.Errorf("provider service created but self serve role already exists: %v", fullResourceName)
 	}
 	switch v := err.(type) {
 	case rdl.ResourceError:
@@ -162,7 +162,7 @@ func (cli Zms) AddProviderService(dn string, sn string, keyID string, pubKey *st
 	fullResourceName = dn + ":policy." + pn
 	_, err = cli.Zms.GetPolicy(zms.DomainName(dn), zms.EntityName(pn))
 	if err == nil {
-		return nil, fmt.Errorf("Provider Service created but Self Serve Policy already exists: %v", fullResourceName)
+		return nil, fmt.Errorf("provider service created but self serve policy already exists: %v", fullResourceName)
 	}
 	switch v := err.(type) {
 	case rdl.ResourceError:
@@ -245,7 +245,7 @@ func (cli Zms) SetServiceEndpoint(dn string, sn string, endpoint string) (*strin
 	meta := zms.ServiceIdentitySystemMeta{
 		ProviderEndpoint: endpoint,
 	}
-	err := cli.Zms.PutServiceIdentitySystemMeta(zms.DomainName(dn), zms.SimpleName(shortName), zms.SimpleName("providerendpoint"), cli.AuditRef, &meta)
+	err := cli.Zms.PutServiceIdentitySystemMeta(zms.DomainName(dn), zms.SimpleName(shortName), "providerendpoint", cli.AuditRef, &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -344,8 +344,8 @@ func (cli Zms) ShowServicePublicKey(dn string, sn string, keyID string) (*string
 		return nil, err
 	}
 	buf.WriteString("public-key:\n")
-	buf.WriteString(indent_level1 + "keyID: " + pkey.Id + "\n")
-	buf.WriteString(indent_level1 + "value: " + pkey.Key + "\n")
+	buf.WriteString(indentLevel1 + "keyID: " + pkey.Id + "\n")
+	buf.WriteString(indentLevel1 + "value: " + pkey.Key + "\n")
 	s := buf.String()
 	return &s, nil
 }

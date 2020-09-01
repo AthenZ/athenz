@@ -11,7 +11,7 @@ import (
 
 func TestAssertionMatchTrue(t *testing.T) {
 
-	zms_cli := zms.ZMSClient{
+	zmsCli := zms.ZMSClient{
 		URL:         "dev.zms",
 		Transport:   nil,
 		CredsHeader: nil,
@@ -30,7 +30,7 @@ func TestAssertionMatchTrue(t *testing.T) {
 		UserDomain:       "user",
 		ProductIdSupport: false,
 		Debug:            false,
-		Zms:              zms_cli,
+		Zms:              zmsCli,
 	}
 
 	denyEffect := zms.NewAssertionEffect("DENY")
@@ -75,7 +75,7 @@ func TestAssertionMatchTrue(t *testing.T) {
 
 func TestAssertionMatchFalse(t *testing.T) {
 
-	zms_cli := zms.ZMSClient{
+	zmsCli := zms.ZMSClient{
 		URL:         "dev.zms",
 		Transport:   nil,
 		CredsHeader: nil,
@@ -94,7 +94,7 @@ func TestAssertionMatchFalse(t *testing.T) {
 		UserDomain:       "user",
 		ProductIdSupport: false,
 		Debug:            false,
-		Zms:              zms_cli,
+		Zms:              zmsCli,
 	}
 
 	denyEffect := zms.NewAssertionEffect("DENY")

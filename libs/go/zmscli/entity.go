@@ -19,7 +19,7 @@ func (cli Zms) ShowEntity(dn string, en string) (*string, error) {
 	}
 	var buf bytes.Buffer
 	buf.WriteString("entity:\n")
-	cli.dumpEntity(&buf, *entity, indent_level1_dash, indent_level1_dash_lvl)
+	cli.dumpEntity(&buf, *entity, indentLevel1Dash, indentLevel1DashLvl)
 	s := buf.String()
 	return &s, nil
 }

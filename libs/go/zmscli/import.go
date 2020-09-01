@@ -40,7 +40,7 @@ func (cli Zms) importRoles(dn string, lstRoles []interface{}, validatedAdmins []
 	for _, role := range lstRoles {
 		roleMap := role.(map[interface{}]interface{})
 		rn := roleMap["name"].(string)
-		fmt.Fprintf(os.Stdout, "Processing role "+rn+"...\n")
+		_, _ = fmt.Fprintf(os.Stdout, "Processing role "+rn+"...\n")
 		if val, ok := roleMap["members"]; ok {
 			mem := val.([]interface{})
 			roleMembers := make([]*zms.RoleMember, 0)
@@ -115,11 +115,11 @@ func (cli Zms) importPolicies(dn string, lstPolicies []interface{}, skipErrors b
 	for _, policy := range lstPolicies {
 		policyMap := policy.(map[interface{}]interface{})
 		name := policyMap["name"].(string)
-		fmt.Fprintf(os.Stdout, "Processing policy "+name+"...\n")
+		_, _ = fmt.Fprintf(os.Stdout, "Processing policy "+name+"...\n")
 		assertions := make([]*zms.Assertion, 0)
 		if val, ok := policyMap["assertions"]; ok {
 			if val == nil {
-				fmt.Fprintf(os.Stdout, "Skipping empty policy: "+name+"\n")
+				_, _ = fmt.Fprintf(os.Stdout, "Skipping empty policy: "+name+"\n")
 				continue
 			}
 			lst := val.([]interface{})
@@ -180,11 +180,11 @@ func (cli Zms) generatePublicKeys(lstPublicKeys []interface{}) []*zms.PublicKeyE
 	return publicKeys
 }
 
-func (cli Zms) importServices(dn string, lstServices []interface{}, skipErrors bool) error {
+func (cli Zms) importServices(dn string, lstServices []interface{}) error {
 	for _, service := range lstServices {
 		serviceMap := service.(map[interface{}]interface{})
 		name := serviceMap["name"].(string)
-		fmt.Fprintf(os.Stdout, "Processing service "+name+"...\n")
+		_, _ = fmt.Fprintf(os.Stdout, "Processing service "+name+"...\n")
 		var lstPublicKeys []interface{}
 		if val, ok := serviceMap["publicKeys"]; ok {
 			lstPublicKeys = val.([]interface{})
