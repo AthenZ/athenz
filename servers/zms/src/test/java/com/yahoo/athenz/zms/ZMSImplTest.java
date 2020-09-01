@@ -23445,4 +23445,28 @@ public class ZMSImplTest {
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
+
+    @Test
+    public void testValidateNotMtlsRestricted() {
+        ResourceContext context = createResourceContext(null);
+
+        // No exception will be thrown, no principal
+        zms.validateNotMtlsRestricted(context, "testValidateNotMtlsRestricted");
+
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
+                "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
+        context = createResourceContext(principal);
+
+        // No exception will be thrown, not restricted
+        zms.validateNotMtlsRestricted(context, "testValidateNotMtlsRestricted");
+
+        // Set restricted, verify exception thrown
+        principal.setMtlsRestricted(true);
+        try {
+            zms.validateNotMtlsRestricted(context, "testValidateNotMtlsRestricted");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals("ResourceException (403): {code: 403, message: \"testValidateNotMtlsRestricted: Principal: hockey.kings is mTLS restricted\"}", ex.getMessage());
+        }
+    }
 }

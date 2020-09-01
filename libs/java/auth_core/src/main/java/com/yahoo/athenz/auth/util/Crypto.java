@@ -120,6 +120,8 @@ public class Crypto {
     static final String ATHENZ_CRYPTO_BC_PROVIDER = "athenz.crypto.bc_provider";
     private static final String BC_PROVIDER = "BC";
 
+    private static final String ATHENZ_RESTRICTED_OU_PROP = "athenz.crypto.restricted_ou";
+
     static final SecureRandom RANDOM;
     static {
         Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
@@ -1113,6 +1115,12 @@ public class Crypto {
         // any certificate that has multiple values
 
         return extractX509CertSubjectField(x509Cert, BCStyle.O);
+    }
+
+    public static boolean isRestrictedCertificate(X509Certificate x509Cert) {
+        String x509Ou = extractX509CertSubjectOUField(x509Cert);
+        GlobStringsMatcher globStringsMatcher = new GlobStringsMatcher(ATHENZ_RESTRICTED_OU_PROP);
+        return globStringsMatcher.isMatch(x509Ou);
     }
 
     private static List<String> extractX509CertSANField(X509Certificate x509Cert, int tagNo) {

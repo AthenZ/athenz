@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.yahoo.athenz.auth.util.Crypto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -111,6 +112,9 @@ public class CertificateAuthority implements Authority {
         principal.setUnsignedCreds(x509Cert.getSubjectX500Principal().toString());
         principal.setX509Certificate(x509Cert);
         principal.setRoles(certId.getRoles());
+        boolean isRestrictedCert = Crypto.isRestrictedCertificate(x509Cert);
+        principal.setMtlsRestricted(isRestrictedCert);
+
         return principal;
     }
 

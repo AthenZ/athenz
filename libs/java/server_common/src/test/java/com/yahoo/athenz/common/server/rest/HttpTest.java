@@ -264,6 +264,20 @@ public class HttpTest {
             Http.authorize(authorizer, principal, "action", "resource", null);
         } catch (ResourceException expected) {
             assertEquals(expected.getCode(), 403);
+            assertEquals(expected.getMessage(), "ResourceException (403): Forbidden");
+        }
+    }
+
+    @Test
+    public void testAuthorizedForbiddenMtlsRestricted() {
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        Principal principal = Mockito.mock(Principal.class);
+        Mockito.when(principal.getMtlsRestricted()).thenReturn(true);
+        try {
+            Http.authorize(authorizer, principal, "action", "resource", null);
+        } catch (ResourceException expected) {
+            assertEquals(expected.getCode(), 403);
+            assertEquals(expected.getMessage(), "ResourceException (403): mTLS Restricted");
         }
     }
 

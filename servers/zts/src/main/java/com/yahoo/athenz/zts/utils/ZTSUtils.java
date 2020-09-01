@@ -15,7 +15,6 @@
  */
 package com.yahoo.athenz.zts.utils;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
@@ -42,8 +41,6 @@ import java.security.SecureRandom;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class ZTSUtils {
 
@@ -166,7 +163,7 @@ public class ZTSUtils {
 
         return true;
     }
-    
+
     public static boolean verifyCertificateRequest(PKCS10CertificationRequest certReq,
             final String domain, final String service, X509CertRecord certRecord) {
         
@@ -377,15 +374,5 @@ public class ZTSUtils {
             boolVal = Boolean.parseBoolean(value);
         }
         return boolVal;
-    }
-
-    public static List<String> splitCommaSeperatedSystemProperty(String property) {
-        String propertyListStr = System.getProperty(property, null);
-
-        if (propertyListStr == null) {
-            return new ArrayList<>();
-        }
-
-        return Stream.of(propertyListStr.trim().split("\\s*,\\s*")).collect(Collectors.toList());
     }
 }

@@ -20,6 +20,7 @@ import com.yahoo.athenz.auth.*;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.token.PrincipalToken;
 import com.yahoo.athenz.auth.util.Crypto;
+import com.yahoo.athenz.auth.util.StringUtils;
 import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.metrics.MetricFactory;
 import com.yahoo.athenz.common.server.audit.AuditReferenceValidator;
@@ -35,7 +36,6 @@ import com.yahoo.athenz.common.server.status.StatusChecker;
 import com.yahoo.athenz.common.server.status.StatusCheckerFactory;
 import com.yahoo.athenz.common.server.util.ConfigProperties;
 import com.yahoo.athenz.common.server.util.ServletRequestUtil;
-import com.yahoo.athenz.common.server.util.StringUtils;
 import com.yahoo.athenz.common.utils.SignUtils;
 import com.yahoo.athenz.zms.config.AllowedOperation;
 import com.yahoo.athenz.zms.config.AuthorizedService;
@@ -3482,6 +3482,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         verifyAuthorizedServiceRoleOperation(principal.getAuthorizedService(), caller, roleName);
 
+        validateNotMtlsRestricted(ctx, caller);
+
         // verify that the member name in the URI and object provided match
 
         if (!memberName.equals(membership.getMemberName())) {
@@ -3682,6 +3684,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         Principal principal = ((RsrcCtxWrapper) ctx).principal();
         verifyAuthorizedServiceRoleOperation(principal.getAuthorizedService(), caller, roleName);
+
+        validateNotMtlsRestricted(ctx, caller);
 
         // authorization check - there are two supported use cases
         // 1) the caller has authorization in the domain to update members in a role
@@ -6572,6 +6576,16 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return resource.substring(0, idx);
     }
 
+    void validateNotMtlsRestricted(ResourceContext ctx, final String caller) {
+        final Principal principal = ((RsrcCtxWrapper) ctx).principal();
+        if (principal != null && principal.getMtlsRestricted()) {
+            final String principalName = principal.getFullName();
+            LOG.error(caller + ": Principal {} is mTLS restricted", principalName);
+            throw ZMSUtils.forbiddenError(caller + ": Principal: " + principalName
+                            + " is mTLS restricted", caller);
+        }
+    }
+
     void validateRequest(HttpServletRequest request, String caller) {
         validateRequest(request, caller, false);
     }
@@ -7529,6 +7543,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         final Principal principal = ((RsrcCtxWrapper) ctx).principal();
 
+        validateNotMtlsRestricted(ctx, caller);
+
         // verify that request is properly authenticated for this request
 
         verifyAuthorizedServiceRoleOperation(principal.getAuthorizedService(), caller, roleName);
@@ -8270,6 +8286,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // verify that request is properly authenticated for this request
 
+        validateNotMtlsRestricted(ctx, caller);
         verifyAuthorizedServiceGroupOperation(principal.getAuthorizedService(), caller, groupName);
 
         // verify that the member name in the URI and object provided match
@@ -8405,6 +8422,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // verify that request is properly authenticated for this request
 
         Principal principal = ((RsrcCtxWrapper) ctx).principal();
+
+        validateNotMtlsRestricted(ctx, caller);
+
         verifyAuthorizedServiceGroupOperation(principal.getAuthorizedService(), caller, groupName);
 
         // authorization check - there are two supported use cases
@@ -8565,6 +8585,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final Principal principal = ((RsrcCtxWrapper) ctx).principal();
 
         // verify that request is properly authenticated for this request
+
+        validateNotMtlsRestricted(ctx, caller);
 
         verifyAuthorizedServiceGroupOperation(principal.getAuthorizedService(), caller, groupName);
 

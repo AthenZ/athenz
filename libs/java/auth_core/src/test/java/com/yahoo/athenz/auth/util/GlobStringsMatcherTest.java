@@ -14,9 +14,8 @@
  *  limitations under the License.
  */
 
-package com.yahoo.athenz.zts.utils;
+package com.yahoo.athenz.auth.util;
 
-import com.yahoo.athenz.zts.ZTSConsts;
 import org.testng.annotations.Test;
 
 import static org.testng.AssertJUnit.assertFalse;
@@ -32,7 +31,7 @@ public class GlobStringsMatcherTest {
                 + "*.bbb.*.ddd, "
                 + "aaa.??, ";
 
-        String systemProperty = ZTSConsts.ZTS_PROP_NOTIFICATION_CERT_FAIL_IGNORED_SERVICES_LIST;
+        String systemProperty = "athenz.zts.notification_cert_fail_ignored_services_list";
         System.setProperty(systemProperty, globStrings);
         GlobStringsMatcher globStringsMatcher = new GlobStringsMatcher(systemProperty);
 

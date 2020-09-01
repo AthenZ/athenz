@@ -194,6 +194,9 @@ public class Http {
             throw new ResourceException(ResourceException.BAD_REQUEST,
                     "Missing 'action' and/or 'resource' parameters");
         }
+        if (principal.getMtlsRestricted()) {
+            throw new ResourceException(ResourceException.FORBIDDEN, "mTLS Restricted");
+        }
         if (authorizer != null) {
             if (!authorizer.access(action, resource, principal, otherDomain)) {
                 throw new ResourceException(ResourceException.FORBIDDEN, "Forbidden");

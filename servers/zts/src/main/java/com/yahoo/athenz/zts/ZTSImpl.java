@@ -32,6 +32,7 @@ import javax.ws.rs.core.Response;
 
 import com.yahoo.athenz.auth.token.AccessToken;
 import com.yahoo.athenz.auth.token.IdToken;
+import com.yahoo.athenz.auth.util.StringUtils;
 import com.yahoo.athenz.common.server.cert.X509CertRecord;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.dns.HostnameResolverFactory;
@@ -73,7 +74,6 @@ import com.yahoo.athenz.common.server.rest.Http;
 import com.yahoo.athenz.common.server.rest.Http.AuthorityList;
 import com.yahoo.athenz.common.server.util.ConfigProperties;
 import com.yahoo.athenz.common.server.util.ServletRequestUtil;
-import com.yahoo.athenz.common.server.util.StringUtils;
 import com.yahoo.athenz.common.utils.SignUtils;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
@@ -1372,6 +1372,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
 
+        validateNotMtlsRestricted(ctx, caller, domainName);
+
         // first retrieve our domain data object from the cache
 
         DataCache data = dataStore.getDataCache(domainName);
@@ -1513,6 +1515,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         if (request == null || request.isEmpty()) {
             throw requestError("Empty request body", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
+
+        validateNotMtlsRestricted(ctx, caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
 
         // we want to log the request body in our access log so
         // we know what is the client asking for but we'll just
@@ -1870,6 +1874,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     caller, domainName, domainName);
         }
 
+        validateNotMtlsRestricted(ctx, caller, domainName);
+
         // first retrieve our domain data object from the cache
 
         DataCache data = dataStore.getDataCache(domainName);
@@ -2184,6 +2190,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     caller, domainName, domainName);
         }
 
+        validateNotMtlsRestricted(ctx, caller, domainName);
+
         X509RoleCertRequest certReq;
         try {
             certReq = new X509RoleCertRequest(req.getCsr());
@@ -2370,7 +2378,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         final String principalName = principal.getFullName();
         final String roleResource = domainName + ":" + roleName.toLowerCase();
-        
+
+        validateNotMtlsRestricted(ctx, caller, domainName);
+
         // we need to first verify that our principal is indeed configured
         // with aws assume role assertion for the specified role and domain
         
@@ -2503,7 +2513,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw forbiddenError("Unknown IP: " + ipAddress + " for Provider: " + provider,
                     caller, domain, principalDomain);
         }
-        
+
+        validateNotMtlsRestricted(ctx, caller, domain);
+
         // run the authorization checks to make sure the provider has been
         // authorized to launch instances in Athenz and the service has
         // authorized this provider to launch its instances
@@ -2838,6 +2850,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw requestError("Principal mismatch: " + principalName + " vs. " +
                     principal.getFullName(), caller, domain, principalDomain);
         }
+
+        validateNotMtlsRestricted(ctx, caller, domain);
 
         Authority authority = principal.getAuthority();
         
@@ -3288,7 +3302,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         String fullServiceName = domain + "." + service;
         final String principalName = principal.getFullName();
         boolean userRequest = false;
-        
+
+        validateNotMtlsRestricted(ctx, caller, domain);
+
         if (!fullServiceName.equals(principalName)) {
             
             // if this not a match then we're going to allow the operation
@@ -3465,6 +3481,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         final String domainName = principal.getDomain();
         setRequestDomain(ctx, domainName);
 
+        validateNotMtlsRestricted(ctx, caller, domainName);
+
         // generate our certificate. the ssh signer interface throws
         // rest ResourceExceptions so we'll catch and log those
 
@@ -3525,6 +3543,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw requestError("postOSTKInstanceRefreshRequest: Principal mismatch: "
                     + principalName + " vs. " + principal.getFullName(), caller, domain, principalDomain);
         }
+
+        validateNotMtlsRestricted(ctx, caller, domain);
 
         Authority authority = principal.getAuthority();
         
@@ -3817,6 +3837,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         AthenzObject.DOMAIN_METRICS.convertToLowerCase(domainMetrics);
 
+        validateNotMtlsRestricted(ctx, caller, domainName);
+
         // verify valid domain specified
         DataCache data = dataStore.getDataCache(domainName);
         if (data == null) {
@@ -3962,6 +3984,17 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
     }
 
+    void validateNotMtlsRestricted(ResourceContext ctx, final String caller, final String requestDomain) {
+        final Principal principal = ((RsrcCtxWrapper) ctx).principal();
+        if (principal != null && principal.getMtlsRestricted()) {
+            final String principalName = principal.getFullName();
+            LOGGER.error(caller + ": Principal {} is mTLS restricted", principalName);
+            throw forbiddenError(caller + ": Principal: " + principalName
+                            + " is mTLS restricted", caller,
+                    requestDomain, principal.getDomain());
+        }
+    }
+
     String logPrincipalAndGetDomain(ResourceContext ctx) {
         
         // we are going to log our principal and validate that it
@@ -4002,16 +4035,16 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
         return ((RsrcCtxWrapper) ctx).getTimerMetric();
     }
-    
+
     protected RuntimeException error(int code, final String msg, final String caller,
                                      final String requestDomain, final String principalDomain) {
-        
+
         LOGGER.error("Error: {} request-domain: {} principal-domain: {} code: {} message: {}",
                 caller, requestDomain, principalDomain, code, msg);
-        
+
         // emit our metrics if configured. the method will automatically
         // return from the caller if caller is null
-        
+
         ZTSUtils.emitMonmetricError(code, caller, requestDomain, principalDomain, this.metric);
         return new ResourceException(code, new ResourceError().code(code).message(msg));
     }
