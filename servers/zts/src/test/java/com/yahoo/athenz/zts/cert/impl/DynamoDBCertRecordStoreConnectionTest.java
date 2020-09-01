@@ -42,13 +42,14 @@ public class DynamoDBCertRecordStoreConnectionTest {
     private final String tableName = "cert-table";
     private final String indexName = "cert-table-index";
 
-    @Mock private DynamoDB dynamoDB;
-    @Mock private Table table;
-    @Mock private Index index;
-    @Mock private Item item;
-    @Mock private PutItemOutcome putOutcome;
-    @Mock private DeleteItemOutcome deleteOutcome;
-    @Mock private UpdateItemOutcome updateOutcome;
+    @Mock private DynamoDB dynamoDB = Mockito.mock(DynamoDB.class);
+    @Mock private Table table = Mockito.mock(Table.class);
+    @Mock private Index index = Mockito.mock(Index.class);
+    @Mock private Item item = Mockito.mock(Item.class);
+    @Mock private PutItemOutcome putOutcome = Mockito.mock(PutItemOutcome.class);
+    @Mock private DeleteItemOutcome deleteOutcome = Mockito.mock(DeleteItemOutcome.class);
+    @Mock private UpdateItemOutcome updateOutcome = Mockito.mock(UpdateItemOutcome.class);
+
 
     @BeforeMethod
     public void setUp() {
@@ -248,16 +249,15 @@ public class DynamoDBCertRecordStoreConnectionTest {
                         new AttributeUpdate("currentSerial").put(certRecord.getCurrentSerial()),
                         new AttributeUpdate("currentIP").put(certRecord.getCurrentIP()),
                         new AttributeUpdate("currentTime").put(certRecord.getCurrentTime().getTime()),
+                        new AttributeUpdate("currentDate").put(DynamoDBUtils.getIso8601FromDate(certRecord.getCurrentTime())),
                         new AttributeUpdate("prevSerial").put(certRecord.getPrevSerial()),
                         new AttributeUpdate("prevIP").put(certRecord.getPrevIP()),
                         new AttributeUpdate("prevTime").put(certRecord.getPrevTime().getTime()),
                         new AttributeUpdate("clientCert").put(certRecord.getClientCert()),
                         new AttributeUpdate("ttl").put(certRecord.getCurrentTime().getTime() / 1000L + 3660 * 720),
-                        new AttributeUpdate("lastNotifiedTime").put(certRecord.getLastNotifiedTime().getTime()),
-                        new AttributeUpdate("lastNotifiedServer").put(certRecord.getLastNotifiedServer()),
+                        new AttributeUpdate("svcDataUpdateTime").put(certRecord.getSvcDataUpdateTime().getTime()),
                         new AttributeUpdate("expiryTime").put(certRecord.getExpiryTime().getTime()),
-                        new AttributeUpdate("hostName").put(certRecord.getHostName()),
-                        new AttributeUpdate("svcDataUpdateTime").put(certRecord.getSvcDataUpdateTime().getTime()));
+                        new AttributeUpdate("hostName").put(certRecord.getHostName()));
 
         Mockito.doReturn(updateOutcome).when(table).updateItem(item);
         boolean requestSuccess = dbConn.updateX509CertRecord(certRecord);
@@ -275,8 +275,9 @@ public class DynamoDBCertRecordStoreConnectionTest {
         X509CertRecord certRecord = getRecordNonNullableColumns(now);
         certRecord.setLastNotifiedTime(null);
         certRecord.setLastNotifiedServer(null);
-        certRecord.setExpiryTime(null);
+        certRecord.setExpiryTime(now);
         certRecord.setHostName(null);
+        certRecord.setSvcDataUpdateTime(now);
 
         UpdateItemSpec item = new UpdateItemSpec()
                 .withPrimaryKey("primaryKey", "athenz.provider:cn:1234")
@@ -287,15 +288,14 @@ public class DynamoDBCertRecordStoreConnectionTest {
                         new AttributeUpdate("currentSerial").put(certRecord.getCurrentSerial()),
                         new AttributeUpdate("currentIP").put(certRecord.getCurrentIP()),
                         new AttributeUpdate("currentTime").put(certRecord.getCurrentTime().getTime()),
+                        new AttributeUpdate("currentDate").put(DynamoDBUtils.getIso8601FromDate(certRecord.getCurrentTime())),
                         new AttributeUpdate("prevSerial").put(certRecord.getPrevSerial()),
                         new AttributeUpdate("prevIP").put(certRecord.getPrevIP()),
                         new AttributeUpdate("prevTime").put(certRecord.getPrevTime().getTime()),
                         new AttributeUpdate("clientCert").put(certRecord.getClientCert()),
                         new AttributeUpdate("ttl").put(certRecord.getCurrentTime().getTime() / 1000L + 3660 * 720),
-                        new AttributeUpdate("lastNotifiedTime").put(null),
-                        new AttributeUpdate("lastNotifiedServer").put(null),
-                        new AttributeUpdate("expiryTime").put(null),
-                        new AttributeUpdate("hostName").put(null));
+                        new AttributeUpdate("svcDataUpdateTime").put(certRecord.getSvcDataUpdateTime().getTime()),
+                        new AttributeUpdate("expiryTime").put(null));
 
         Mockito.doReturn(updateOutcome).when(table).updateItem(item);
         boolean requestSuccess = dbConn.updateX509CertRecord(certRecord);
