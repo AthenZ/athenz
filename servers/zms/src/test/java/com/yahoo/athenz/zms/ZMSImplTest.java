@@ -1826,6 +1826,7 @@ public class ZMSImplTest {
         assertNull(resDom1.getRoleCertExpiryMins());
         assertNull(resDom1.getMemberExpiryDays());
         assertNull(resDom1.getServiceExpiryDays());
+        assertNull(resDom1.getGroupExpiryDays());
         assertNull(resDom1.getTokenExpiryMins());
 
         DomainMeta meta = createDomainMetaObject("Test2 Domain", "NewOrg",
@@ -1856,6 +1857,7 @@ public class ZMSImplTest {
         assertEquals(resDom3.getRoleCertExpiryMins(), Integer.valueOf(200));
         assertNull(resDom3.getMemberExpiryDays());
         assertNull(resDom3.getServiceExpiryDays());
+        assertNull(resDom3.getGroupExpiryDays());
         assertNull(resDom3.getTokenExpiryMins());
         assertEquals(resDom3.getSignAlgorithm(), "ec");
 
@@ -1865,6 +1867,7 @@ public class ZMSImplTest {
                 true, true, "12345", 1001);
         meta.setMemberExpiryDays(300);
         meta.setServiceExpiryDays(350);
+        meta.setGroupExpiryDays(375);
         meta.setTokenExpiryMins(400);
         zms.putDomainMeta(mockDomRsrcCtx, "MetaDom1", auditRef, meta);
 
@@ -1881,6 +1884,7 @@ public class ZMSImplTest {
         assertEquals(resDom3.getRoleCertExpiryMins(), Integer.valueOf(200));
         assertEquals(resDom3.getMemberExpiryDays(), Integer.valueOf(300));
         assertEquals(resDom3.getServiceExpiryDays(), Integer.valueOf(350));
+        assertEquals(resDom3.getGroupExpiryDays(), Integer.valueOf(375));
         assertEquals(resDom3.getTokenExpiryMins(), Integer.valueOf(400));
 
         zms.putDomainSystemMeta(mockDomRsrcCtx, "MetaDom1", "org", auditRef, meta);
@@ -1897,6 +1901,7 @@ public class ZMSImplTest {
         meta.setRoleCertExpiryMins(0);
         meta.setMemberExpiryDays(15);
         meta.setServiceExpiryDays(17);
+        meta.setGroupExpiryDays(18);
         meta.setTokenExpiryMins(20);
         meta.setSignAlgorithm("rsa");
         zms.putDomainMeta(mockDomRsrcCtx, "MetaDom1", auditRef, meta);
@@ -1914,6 +1919,7 @@ public class ZMSImplTest {
         assertNull(resDom3.getRoleCertExpiryMins());
         assertEquals(resDom3.getMemberExpiryDays(), Integer.valueOf(15));
         assertEquals(resDom3.getServiceExpiryDays(), Integer.valueOf(17));
+        assertEquals(resDom3.getGroupExpiryDays(), Integer.valueOf(18));
         assertEquals(resDom3.getTokenExpiryMins(), Integer.valueOf(20));
         assertEquals(resDom3.getSignAlgorithm(), "rsa");
 
@@ -2000,6 +2006,14 @@ public class ZMSImplTest {
         // test negative values
 
         meta = new DomainMeta().setServiceExpiryDays(-10);
+        try {
+            zmsImpl.putDomainMeta(mockDomRsrcCtx, domainName, auditRef, meta);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        meta = new DomainMeta().setGroupExpiryDays(-10);
         try {
             zmsImpl.putDomainMeta(mockDomRsrcCtx, domainName, auditRef, meta);
             fail();
@@ -2132,31 +2146,37 @@ public class ZMSImplTest {
 
         meta.setMemberExpiryDays(30);
         meta.setServiceExpiryDays(25);
+        meta.setGroupExpiryDays(35);
         zms.putDomainMeta(mockDomRsrcCtx, "MetaDomProductid.metaSubDom", auditRef, meta);
         Domain domain = zms.getDomain(mockDomRsrcCtx, "MetaDomProductid.metaSubDom");
         assertEquals(domain.getMemberExpiryDays(), Integer.valueOf(30));
         assertEquals(domain.getServiceExpiryDays(), Integer.valueOf(25));
+        assertEquals(domain.getGroupExpiryDays(), Integer.valueOf(35));
 
         // if value is null we're not going to change it
 
         meta.setMemberExpiryDays(null);
         meta.setServiceExpiryDays(null);
+        meta.setGroupExpiryDays(null);
         meta.setDescription("test1");
         zms.putDomainMeta(mockDomRsrcCtx, "MetaDomProductid.metaSubDom", auditRef, meta);
         domain = zms.getDomain(mockDomRsrcCtx, "MetaDomProductid.metaSubDom");
         assertEquals(domain.getMemberExpiryDays(), Integer.valueOf(30));
         assertEquals(domain.getServiceExpiryDays(), Integer.valueOf(25));
+        assertEquals(domain.getGroupExpiryDays(), Integer.valueOf(35));
         assertEquals(domain.getDescription(), "test1");
 
         // setting is to 0
 
         meta.setMemberExpiryDays(0);
         meta.setServiceExpiryDays(0);
+        meta.setGroupExpiryDays(0);
         meta.setDescription("test2");
         zms.putDomainMeta(mockDomRsrcCtx, "MetaDomProductid.metaSubDom", auditRef, meta);
         domain = zms.getDomain(mockDomRsrcCtx, "MetaDomProductid.metaSubDom");
         assertNull(domain.getMemberExpiryDays());
         assertNull(domain.getServiceExpiryDays());
+        assertNull(domain.getGroupExpiryDays());
         assertEquals(domain.getDescription(), "test2");
 
         zms.deleteSubDomain(mockDomRsrcCtx, "MetaDomProductid", "metaSubDom", auditRef);
@@ -2260,6 +2280,7 @@ public class ZMSImplTest {
                 "user.joe", "user.jane");
         role1.setMemberExpiryDays(30);
         role1.setServiceExpiryDays(35);
+        role1.setGroupExpiryDays(40);
         role1.setSelfServe(true);
         role1.setMemberReviewDays(70);
         role1.setServiceReviewDays(80);
@@ -2281,6 +2302,7 @@ public class ZMSImplTest {
 
         assertEquals(role.getMemberExpiryDays(), Integer.valueOf(30));
         assertEquals(role.getServiceExpiryDays(), Integer.valueOf(35));
+        assertEquals(role.getGroupExpiryDays(), Integer.valueOf(40));
         assertEquals(role.getMemberReviewDays(), Integer.valueOf(70));
         assertEquals(role.getServiceReviewDays(), Integer.valueOf(80));
         assertTrue(role.getSelfServe());
@@ -2455,6 +2477,7 @@ public class ZMSImplTest {
         role1.setName("role1");
         role1.setMemberExpiryDays(30);
         role1.setServiceExpiryDays(45);
+        role1.setGroupExpiryDays(50);
         role1.setMemberReviewDays(70);
         role1.setServiceReviewDays(80);
         
@@ -2465,9 +2488,9 @@ public class ZMSImplTest {
         assertEquals(role3.getName(), "CreateRoleLocalNameOnly:role.Role1".toLowerCase());
         assertEquals(role3.getMemberExpiryDays(), Integer.valueOf(30));
         assertEquals(role3.getServiceExpiryDays(), Integer.valueOf(45));
+        assertEquals(role3.getGroupExpiryDays(), Integer.valueOf(50));
         assertEquals(role3.getMemberReviewDays(), Integer.valueOf(70));
         assertEquals(role3.getServiceReviewDays(), Integer.valueOf(80));
-
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "CreateRoleLocalNameOnly", auditRef);
     }
@@ -14809,6 +14832,7 @@ public class ZMSImplTest {
         rm.setMemberExpiryDays(45);
         rm.setCertExpiryMins(55);
         rm.setServiceExpiryDays(45);
+        rm.setGroupExpiryDays(50);
         rm.setTokenExpiryMins(65);
         rm.setMemberReviewDays(70);
         rm.setServiceReviewDays(80);
@@ -14852,6 +14876,7 @@ public class ZMSImplTest {
                     assertEquals(role.getMemberExpiryDays().intValue(), 45);
                     assertEquals(role.getCertExpiryMins().intValue(), 55);
                     assertEquals(role.getServiceExpiryDays().intValue(), 45);
+                    assertEquals(role.getGroupExpiryDays().intValue(), 50);
                     assertEquals(role.getTokenExpiryMins().intValue(), 65);
                     assertEquals(role.getMemberReviewDays().intValue(), 70);
                     assertEquals(role.getServiceReviewDays().intValue(), 80);
@@ -14908,6 +14933,7 @@ public class ZMSImplTest {
                     assertEquals(role.getMemberExpiryDays().intValue(), 45);
                     assertEquals(role.getCertExpiryMins().intValue(), 55);
                     assertEquals(role.getServiceExpiryDays().intValue(), 45);
+                    assertEquals(role.getGroupExpiryDays().intValue(), 50);
                     assertEquals(role.getTokenExpiryMins().intValue(), 65);
                     assertEquals(role.getMemberReviewDays().intValue(), 70);
                     assertEquals(role.getServiceReviewDays().intValue(), 80);
@@ -17961,6 +17987,7 @@ public class ZMSImplTest {
         rm.setMemberExpiryDays(45);
         rm.setCertExpiryMins(55);
         rm.setServiceExpiryDays(45);
+        rm.setGroupExpiryDays(50);
         rm.setTokenExpiryMins(65);
         rm.setMemberReviewDays(70);
         rm.setServiceReviewDays(80);
@@ -17975,6 +18002,7 @@ public class ZMSImplTest {
         assertEquals(resRole1.getCertExpiryMins(), Integer.valueOf(55));
         assertEquals(resRole1.getTokenExpiryMins(), Integer.valueOf(65));
         assertEquals(resRole1.getServiceExpiryDays(), Integer.valueOf(45));
+        assertEquals(resRole1.getGroupExpiryDays(), Integer.valueOf(50));
         assertEquals(resRole1.getMemberReviewDays(), Integer.valueOf(70));
         assertEquals(resRole1.getServiceReviewDays(), Integer.valueOf(80));
         assertEquals(resRole1.getSignAlgorithm(), "ec");
@@ -17991,6 +18019,7 @@ public class ZMSImplTest {
         assertNull(resRole1.getSelfServe());
         assertEquals(resRole1.getMemberExpiryDays(), Integer.valueOf(45));
         assertEquals(resRole1.getServiceExpiryDays(), Integer.valueOf(45));
+        assertEquals(resRole1.getGroupExpiryDays(), Integer.valueOf(50));
         assertEquals(resRole1.getCertExpiryMins(), Integer.valueOf(55));
         assertEquals(resRole1.getTokenExpiryMins(), Integer.valueOf(65));
         assertEquals(resRole1.getMemberReviewDays(), Integer.valueOf(70));
@@ -18001,6 +18030,7 @@ public class ZMSImplTest {
         RoleMeta rm3 = createRoleMetaObject(false);
         rm3.setMemberExpiryDays(0);
         rm3.setServiceExpiryDays(0);
+        rm3.setGroupExpiryDays(0);
         rm3.setCertExpiryMins(0);
         rm3.setTokenExpiryMins(85);
         rm3.setMemberReviewDays(0);
@@ -18013,6 +18043,7 @@ public class ZMSImplTest {
         assertNull(resRole1.getSelfServe());
         assertNull(resRole1.getMemberExpiryDays());
         assertNull(resRole1.getServiceExpiryDays());
+        assertNull(resRole1.getGroupExpiryDays());
         assertNull(resRole1.getCertExpiryMins());
         assertEquals(resRole1.getTokenExpiryMins(), Integer.valueOf(85));
         assertNull(resRole1.getMemberReviewDays());
@@ -18040,6 +18071,17 @@ public class ZMSImplTest {
 
         rm4.setMemberExpiryDays(10);
         rm4.setServiceExpiryDays(10);
+        rm4.setGroupExpiryDays(-10);
+        try {
+            zms.putRoleMeta(mockDomRsrcCtx, "rolemetadom1", "role1", auditRef, rm4);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        rm4.setMemberExpiryDays(10);
+        rm4.setServiceExpiryDays(10);
+        rm4.setGroupExpiryDays(10);
         rm4.setCertExpiryMins(-10);
         try {
             zms.putRoleMeta(mockDomRsrcCtx, "rolemetadom1", "role1", auditRef, rm4);

@@ -1290,6 +1290,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setApplicationId(detail.getApplicationId())
                 .setMemberExpiryDays(detail.getMemberExpiryDays())
                 .setServiceExpiryDays(detail.getServiceExpiryDays())
+                .setGroupExpiryDays(detail.getGroupExpiryDays())
                 .setTokenExpiryMins(detail.getTokenExpiryMins())
                 .setServiceCertExpiryMins(detail.getServiceCertExpiryMins())
                 .setRoleCertExpiryMins(detail.getRoleCertExpiryMins())
@@ -1446,6 +1447,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setApplicationId(detail.getApplicationId())
                 .setMemberExpiryDays(detail.getMemberExpiryDays())
                 .setServiceExpiryDays(detail.getServiceExpiryDays())
+                .setGroupExpiryDays(detail.getGroupExpiryDays())
                 .setTokenExpiryMins(detail.getTokenExpiryMins())
                 .setServiceCertExpiryMins(detail.getServiceCertExpiryMins())
                 .setRoleCertExpiryMins(detail.getRoleCertExpiryMins())
@@ -1553,6 +1555,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setApplicationId(detail.getApplicationId())
                 .setMemberExpiryDays(detail.getMemberExpiryDays())
                 .setServiceExpiryDays(detail.getServiceExpiryDays())
+                .setGroupExpiryDays(detail.getGroupExpiryDays())
                 .setTokenExpiryMins(detail.getTokenExpiryMins())
                 .setServiceCertExpiryMins(detail.getServiceCertExpiryMins())
                 .setRoleCertExpiryMins(detail.getRoleCertExpiryMins())
@@ -1801,6 +1804,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateIntegerValue(domain.getMemberExpiryDays(), "memberExpiryDays");
         validateIntegerValue(domain.getRoleCertExpiryMins(), "roleCertExpiryMins");
         validateIntegerValue(domain.getServiceExpiryDays(), "serviceExpiryDays");
+        validateIntegerValue(domain.getGroupExpiryDays(), "serviceExpiryDays");
         validateIntegerValue(domain.getTokenExpiryMins(), "tokenExpiryMins");
 
         validateString(domain.getApplicationId(), TYPE_COMPOUND_NAME, caller);
@@ -1816,6 +1820,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateIntegerValue(meta.getMemberExpiryDays(), "memberExpiryDays");
         validateIntegerValue(meta.getRoleCertExpiryMins(), "roleCertExpiryMins");
         validateIntegerValue(meta.getServiceExpiryDays(), "serviceExpiryDays");
+        validateIntegerValue(meta.getGroupExpiryDays(), "groupExpiryDays");
         validateIntegerValue(meta.getTokenExpiryMins(), "tokenExpiryMins");
         validateIntegerValue(meta.getYpmId(), "ypmId");
 
@@ -1829,6 +1834,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateIntegerValue(meta.getMemberExpiryDays(), "memberExpiryDays");
         validateIntegerValue(meta.getServiceExpiryDays(), "serviceExpiryDays");
+        validateIntegerValue(meta.getGroupExpiryDays(), "groupExpiryDays");
         validateIntegerValue(meta.getTokenExpiryMins(), "tokenExpiryMins");
         validateIntegerValue(meta.getCertExpiryMins(), "certExpiryMins");
         validateIntegerValue(meta.getMemberReviewDays(), "memberReviewDays");
@@ -1845,6 +1851,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateIntegerValue(role.getMemberExpiryDays(), "memberExpiryDays");
         validateIntegerValue(role.getServiceExpiryDays(), "serviceExpiryDays");
+        validateIntegerValue(role.getGroupExpiryDays(), "groupExpiryDays");
         validateIntegerValue(role.getTokenExpiryMins(), "tokenExpiryMins");
         validateIntegerValue(role.getCertExpiryMins(), "certExpiryMins");
         validateIntegerValue(role.getMemberReviewDays(), "memberReviewDays");
@@ -2799,6 +2806,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                         .setSelfServe(role.getSelfServe())
                         .setMemberExpiryDays(role.getMemberExpiryDays())
                         .setServiceExpiryDays(role.getServiceExpiryDays())
+                        .setGroupExpiryDays(role.getGroupExpiryDays())
                         .setTokenExpiryMins(role.getTokenExpiryMins())
                         .setCertExpiryMins(role.getCertExpiryMins())
                         .setMemberReviewDays(role.getMemberReviewDays())
@@ -4984,6 +4992,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     domainData.setApplicationId(domain.getApplicationId());
                     domainData.setMemberExpiryDays(domain.getMemberExpiryDays());
                     domainData.setServiceExpiryDays(domain.getServiceExpiryDays());
+                    domainData.setGroupExpiryDays(domain.getGroupExpiryDays());
                     domainData.setRoleCertExpiryMins(domain.getRoleCertExpiryMins());
                     domainData.setServiceCertExpiryMins(domain.getServiceCertExpiryMins());
                     domainData.setTokenExpiryMins(domain.getTokenExpiryMins());
@@ -5284,6 +5293,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setRoleCertExpiryMins(domain.getRoleCertExpiryMins())
                 .setTokenExpiryMins(domain.getTokenExpiryMins())
                 .setServiceExpiryDays(domain.getServiceExpiryDays())
+                .setGroupExpiryDays(domain.getGroupExpiryDays())
                 .setDescription(domain.getDescription())
                 .setOrg(domain.getOrg())
                 .setCertDnsDomain(domain.getCertDnsDomain())

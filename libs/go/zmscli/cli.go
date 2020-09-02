@@ -597,6 +597,14 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 				}
 				return cli.SetDomainServiceExpiryDays(dn, days)
 			}
+		case "set-domain-group-expiry-days":
+			if argc == 1 {
+				days, err := cli.getInt32(args[0])
+				if err != nil {
+					return nil, err
+				}
+				return cli.SetDomainGroupExpiryDays(dn, days)
+			}
 		case "set-domain-service-cert-expiry-mins":
 			if argc == 1 {
 				mins, err := cli.getInt32(args[0])
@@ -716,6 +724,14 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 					return nil, err
 				}
 				return cli.SetRoleServiceExpiryDays(dn, args[0], days)
+			}
+		case "set-role-group-expiry-days":
+			if argc == 2 {
+				days, err := cli.getInt32(args[1])
+				if err != nil {
+					return nil, err
+				}
+				return cli.SetRoleGroupExpiryDays(dn, args[0], days)
 			}
 		case "set-role-member-review-days":
 			if argc == 2 {
@@ -1037,6 +1053,16 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   days          : all service members in this domain will have this max expiry days\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " set-domain-service-expiry-days 60\n")
+	case "set-domain-group-expiry-days":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " set-domain-group-expiry-days days\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain        : name of the domain being updated\n")
+		}
+		buf.WriteString("   days          : all groups members in this domain will have this max expiry days\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " set-domain-group-expiry-days 60\n")
 	case "set-domain-service-cert-expiry-mins":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " set-domain-service-cert-expiry-mins mins\n")
@@ -2051,6 +2077,17 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   days    : all service members in this role will have this max expiry days\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " set-role-service-expiry-days writers 60\n")
+	case "set-role-group-expiry-days":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " set-role-group-expiry-days role days\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain  : name of the domain being updated\n")
+		}
+		buf.WriteString("   role    : name of the role to be modified\n")
+		buf.WriteString("   days    : all groups members in this role will have this max expiry days\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " set-role-group-expiry-days writers 60\n")
 	case "set-role-member-review-days":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " set-role-member-review-days role days\n")
@@ -2278,6 +2315,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   set-cert-dns-domain cert-dns-domain\n")
 	buf.WriteString("   set-domain-member-expiry-days user-member-expiry-days\n")
 	buf.WriteString("   set-domain-service-expiry-days service-member-expiry-days\n")
+	buf.WriteString("   set-domain-group-expiry-days group-member-expiry-days\n")
 	buf.WriteString("   set-domain-token-expiry-mins token-expiry-mins\n")
 	buf.WriteString("   set-domain-service-cert-expiry-mins cert-expiry-mins\n")
 	buf.WriteString("   set-domain-role-cert-expiry-mins cert-expiry-mins\n")
@@ -2328,6 +2366,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   set-role-self-serve group_role self-serve\n")
 	buf.WriteString("   set-role-member-expiry-days group_role user-member-expiry-days\n")
 	buf.WriteString("   set-role-service-expiry-days group_role service-member-expiry-days\n")
+	buf.WriteString("   set-role-group-expiry-days group_role group-member-expiry-days\n")
 	buf.WriteString("   set-role-member-review-days group_role user-member-review-days\n")
 	buf.WriteString("   set-role-service-review-days group_role service-member-review-days\n")
 	buf.WriteString("   set-role-token-expiry-mins group_role token-expiry-mins\n")

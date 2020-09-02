@@ -117,7 +117,8 @@ func init() {
 	tDomainMeta.Field("serviceCertExpiryMins", "Int32", true, nil, "service identity certs issued for this domain will have specified max timeout in mins")
 	tDomainMeta.Field("roleCertExpiryMins", "Int32", true, nil, "role certs issued for this domain will have specified max timeout in mins")
 	tDomainMeta.Field("signAlgorithm", "SimpleName", true, nil, "rsa or ec signing algorithm to be used for tokens")
-	tDomainMeta.Field("serviceExpiryDays", "Int32", true, nil, "all services in the domain will have specified max expiry days")
+	tDomainMeta.Field("serviceExpiryDays", "Int32", true, nil, "all services in the domain roles will have specified max expiry days")
+	tDomainMeta.Field("groupExpiryDays", "Int32", true, nil, "all groups in the domain roles will have specified max expiry days")
 	tDomainMeta.Field("userAuthorityFilter", "String", true, nil, "membership filtered based on user authority configured attributes")
 	sb.AddType(tDomainMeta.Build())
 
@@ -176,6 +177,7 @@ func init() {
 	tRoleMeta.Field("notifyRoles", "String", true, nil, "list of roles whose members should be notified for member review/approval")
 	tRoleMeta.Field("userAuthorityFilter", "String", true, nil, "membership filtered based on user authority configured attributes")
 	tRoleMeta.Field("userAuthorityExpiration", "String", true, nil, "expiration enforced by a user authority configured attribute")
+	tRoleMeta.Field("groupExpiryDays", "Int32", true, nil, "all groups in the domain roles will have specified max expiry days")
 	sb.AddType(tRoleMeta.Build())
 
 	tRole := rdl.NewStructTypeBuilder("RoleMeta", "Role")

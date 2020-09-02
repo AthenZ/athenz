@@ -1128,7 +1128,7 @@ public class DBServiceTest {
         DomainMeta meta = new DomainMeta().setDescription("Test2 Domain").setOrg("NewOrg")
                 .setEnabled(true).setAuditEnabled(false).setAccount("12345").setYpmId(1001)
                 .setCertDnsDomain("athenz1.cloud").setMemberExpiryDays(10).setTokenExpiryMins(20)
-                .setServiceExpiryDays(45);
+                .setServiceExpiryDays(45).setGroupExpiryDays(50);
         zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "metadom1", meta, null, false, auditRef, "putDomainMeta");
         zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "metadom1", meta, "productid", true, auditRef, "putDomainMeta");
         zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "metadom1", meta, "account", true, auditRef, "putDomainMeta");
@@ -1147,6 +1147,7 @@ public class DBServiceTest {
         assertEquals(Integer.valueOf(20), resDom2.getTokenExpiryMins());
         assertEquals(Integer.valueOf(10), resDom2.getMemberExpiryDays());
         assertEquals(Integer.valueOf(45), resDom2.getServiceExpiryDays());
+        assertEquals(Integer.valueOf(50), resDom2.getGroupExpiryDays());
         assertNull(resDom2.getRoleCertExpiryMins());
         assertNull(resDom2.getServiceCertExpiryMins());
 
@@ -1155,7 +1156,7 @@ public class DBServiceTest {
         meta = new DomainMeta().setDescription("Test2 Domain-New").setOrg("NewOrg-New")
                 .setEnabled(true).setAuditEnabled(false).setRoleCertExpiryMins(30)
                 .setServiceCertExpiryMins(40).setSignAlgorithm("rsa")
-                .setServiceExpiryDays(45);
+                .setServiceExpiryDays(45).setGroupExpiryDays(50);
         zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "metadom1", meta, null, false, auditRef, "putDomainMeta");
         zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "metadom1", meta, "org", true, auditRef, "putDomainMeta");
 
@@ -1171,6 +1172,7 @@ public class DBServiceTest {
         assertEquals(Integer.valueOf(20), resDom3.getTokenExpiryMins());
         assertEquals(Integer.valueOf(10), resDom3.getMemberExpiryDays());
         assertEquals(Integer.valueOf(45), resDom3.getServiceExpiryDays());
+        assertEquals(Integer.valueOf(50), resDom3.getGroupExpiryDays());
         assertEquals(Integer.valueOf(30), resDom3.getRoleCertExpiryMins());
         assertEquals(Integer.valueOf(40), resDom3.getServiceCertExpiryMins());
         assertEquals(resDom3.getSignAlgorithm(), "rsa");
@@ -1178,7 +1180,7 @@ public class DBServiceTest {
         meta = new DomainMeta().setDescription("Test2 Domain-New").setOrg("NewOrg-New")
                 .setEnabled(true).setAuditEnabled(false).setRoleCertExpiryMins(300)
                 .setServiceCertExpiryMins(400).setTokenExpiryMins(500)
-                .setSignAlgorithm("ec").setServiceExpiryDays(20);
+                .setSignAlgorithm("ec").setServiceExpiryDays(20).setGroupExpiryDays(25);
         zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "metadom1", meta, null, false, auditRef, "putDomainMeta");
 
         Domain resDom4 = zms.getDomain(mockDomRsrcCtx, "MetaDom1");
@@ -1193,6 +1195,7 @@ public class DBServiceTest {
         assertEquals(Integer.valueOf(500), resDom4.getTokenExpiryMins());
         assertEquals(Integer.valueOf(10), resDom4.getMemberExpiryDays());
         assertEquals(Integer.valueOf(20), resDom4.getServiceExpiryDays());
+        assertEquals(Integer.valueOf(25), resDom4.getGroupExpiryDays());
         assertEquals(Integer.valueOf(300), resDom4.getRoleCertExpiryMins());
         assertEquals(Integer.valueOf(400), resDom4.getServiceCertExpiryMins());
         assertEquals(resDom4.getSignAlgorithm(), "ec");
@@ -4542,6 +4545,7 @@ public class DBServiceTest {
         rm.setSelfServe(true);
         rm.setMemberExpiryDays(10);
         rm.setServiceExpiryDays(15);
+        rm.setGroupExpiryDays(25);
         rm.setTokenExpiryMins(20);
         rm.setReviewEnabled(true);
         rm.setNotifyRoles("role1,role2");
@@ -4557,6 +4561,7 @@ public class DBServiceTest {
         assertNull(resRole1.getCertExpiryMins());
         assertEquals(resRole1.getMemberExpiryDays(), Integer.valueOf(10));
         assertEquals(resRole1.getServiceExpiryDays(), Integer.valueOf(15));
+        assertEquals(resRole1.getGroupExpiryDays(), Integer.valueOf(25));
         assertEquals(resRole1.getTokenExpiryMins(), Integer.valueOf(20));
         assertTrue(resRole1.getReviewEnabled());
         assertEquals(resRole1.getNotifyRoles(), "role1,role2");
@@ -4570,6 +4575,7 @@ public class DBServiceTest {
         rm.setCertExpiryMins(10);
         rm.setTokenExpiryMins(25);
         rm.setServiceExpiryDays(15);
+        rm.setGroupExpiryDays(20);
         rm.setSignAlgorithm("rsa");
         rm.setReviewEnabled(false);
         rm.setServiceReviewDays(35);
@@ -4582,6 +4588,7 @@ public class DBServiceTest {
         assertEquals(resRole1.getCertExpiryMins(), Integer.valueOf(10));
         assertEquals(resRole1.getMemberExpiryDays(), Integer.valueOf(10));
         assertEquals(resRole1.getServiceExpiryDays(), Integer.valueOf(15));
+        assertEquals(resRole1.getGroupExpiryDays(), Integer.valueOf(20));
         assertEquals(resRole1.getTokenExpiryMins(), Integer.valueOf(25));
         assertEquals(resRole1.getMemberReviewDays(), Integer.valueOf(30));
         assertEquals(resRole1.getServiceReviewDays(), Integer.valueOf(35));

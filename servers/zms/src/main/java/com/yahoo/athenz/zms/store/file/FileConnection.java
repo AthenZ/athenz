@@ -96,6 +96,7 @@ public class FileConnection implements ObjectStoreConnection {
                 .setCertDnsDomain(domainStruct.getMeta().getCertDnsDomain())
                 .setMemberExpiryDays(domainStruct.getMeta().getMemberExpiryDays())
                 .setServiceExpiryDays(domainStruct.getMeta().getServiceExpiryDays())
+                .setGroupExpiryDays(domainStruct.getMeta().getGroupExpiryDays())
                 .setTokenExpiryMins(domainStruct.getMeta().getTokenExpiryMins())
                 .setServiceCertExpiryMins(domainStruct.getMeta().getServiceCertExpiryMins())
                 .setRoleCertExpiryMins(domainStruct.getMeta().getRoleCertExpiryMins())
