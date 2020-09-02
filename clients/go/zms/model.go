@@ -94,8 +94,13 @@ type AuthorityName string
 type SignedToken string
 
 //
-// MemberName - Role Member name - could be one of three values: *,
-// DomainName.* or ServiceName[*]
+// GroupName - A group name
+//
+type GroupName string
+
+//
+// MemberName - Role Member name - could be one of four values: *, DomainName.*
+// or ServiceName[*], or GroupNames
 //
 type MemberName string
 

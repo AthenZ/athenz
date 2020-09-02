@@ -83,9 +83,14 @@ func init() {
 	tSignedToken.Pattern("[a-zA-Z0-9\\._%=:;,-]*")
 	sb.AddType(tSignedToken.Build())
 
+	tGroupName := rdl.NewStringTypeBuilder("GroupName")
+	tGroupName.Comment("A group name")
+	tGroupName.Pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*:group\\.([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*")
+	sb.AddType(tGroupName.Build())
+
 	tMemberName := rdl.NewStringTypeBuilder("MemberName")
-	tMemberName.Comment("Role Member name - could be one of three values: *, DomainName.* or ServiceName[*]")
-	tMemberName.Pattern("\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*\\.\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*(\\*)?")
+	tMemberName.Comment("Role Member name - could be one of four values: *, DomainName.* or ServiceName[*], or GroupNames")
+	tMemberName.Pattern("\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*\\.\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*(\\*)?|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*:group\\.([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*")
 	sb.AddType(tMemberName.Build())
 
 	tAuthorityKeyword := rdl.NewStringTypeBuilder("AuthorityKeyword")
