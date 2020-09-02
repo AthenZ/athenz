@@ -32,7 +32,7 @@ public class GlobStringsMatcher {
         List<String> globList = AthenzUtils.splitCommaSeperatedSystemProperty(systemProperty);
         patterns = globList.stream().map(glob -> StringUtils.patternFromGlob(glob)).collect(Collectors.toList());
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Ignored Services Regex List: " + Arrays.toString(patterns.toArray()));
+            LOGGER.debug(String.format("Property: %s, Regex List: %s", systemProperty, Arrays.toString(patterns.toArray())));
         }
     }
 

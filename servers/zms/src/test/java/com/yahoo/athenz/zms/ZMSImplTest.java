@@ -10244,7 +10244,7 @@ public class ZMSImplTest {
         domain.getRoles().add(role);
         Policy policy = new Policy().setName("coretech:policy.policy1");
         domain.getPolicies().add(policy);
-        assertEquals(zms.evaluateAccess(domain, null, null, null, null, null), AccessStatus.DENIED);
+        assertEquals(zms.evaluateAccess(domain, null, null, null, null, null, mockDomRestRsrcCtx.principal()), AccessStatus.DENIED);
     }
     
     @Test
@@ -10265,7 +10265,7 @@ public class ZMSImplTest {
         domain.getPolicies().add(policy);
         
         assertEquals(zms.evaluateAccess(domain, "user.user1", "read", "coretech:resource1",
-                null, null), AccessStatus.DENIED);
+                null, null, mockDomRestRsrcCtx.principal()), AccessStatus.DENIED);
     }
 
     @Test
@@ -10287,7 +10287,7 @@ public class ZMSImplTest {
 
         ZMSImpl spiedZms = Mockito.spy(zms);
         assertEquals(spiedZms.evaluateAccess(domain, "user.user1", "read", "coretech:resource1",
-                null, null), AccessStatus.DENIED);
+                null, null, mockDomRestRsrcCtx.principal()), AccessStatus.DENIED);
 
         // Verify that it was denied by explicit "Deny" assertion and not because no match was found
         Mockito.verify(spiedZms, times(1)).matchPrincipal(
@@ -10314,7 +10314,34 @@ public class ZMSImplTest {
         policy.getAssertions().add(assertion);
         domain.getPolicies().add(policy);
         
-        assertEquals(zms.evaluateAccess(domain, "user.user1", "read", "coretech:resource1", null, null), AccessStatus.ALLOWED);
+        assertEquals(zms.evaluateAccess(domain, "user.user1", "read", "coretech:resource1", null, null, mockDomRestRsrcCtx.principal()), AccessStatus.ALLOWED);
+    }
+
+    @Test
+    public void testEvaluateAccessMtlsRestricted() {
+
+        AthenzDomain domain = new AthenzDomain("coretech");
+        Role role = createRoleObject("coretech", "role1", null, "user.user1", null);
+        domain.getRoles().add(role);
+
+        Policy policy = new Policy().setName("coretech:policy.policy1");
+        Assertion assertion = new Assertion();
+        assertion.setAction("read");
+        assertion.setEffect(AssertionEffect.ALLOW);
+        assertion.setResource("coretech:*");
+        assertion.setRole("coretech:role.role1");
+        policy.setAssertions(new ArrayList<>());
+        policy.getAssertions().add(assertion);
+        domain.getPolicies().add(policy);
+
+        Authority certificateAuthority = new CertificateAuthority();
+        String unsignedCreds = "v=U1;d=user;n=user2";
+        final Principal rsrcPrince = SimplePrincipal.create("user", "user2",
+                unsignedCreds + ";s=signature", 0, certificateAuthority);
+
+        assertEquals(zms.evaluateAccess(domain, "user.user1", "read", "coretech:resource1", null, null, rsrcPrince), AccessStatus.ALLOWED);
+        ((SimplePrincipal)rsrcPrince).setMtlsRestricted(true);
+        assertEquals(zms.evaluateAccess(domain, "user.user1", "read", "coretech:resource1", null, null, rsrcPrince), AccessStatus.DENIED);
     }
 
     @Test
@@ -10334,7 +10361,7 @@ public class ZMSImplTest {
         policy.getAssertions().add(assertion);
         domain.getPolicies().add(policy);
 
-        assertEquals(zms.evaluateAccess(domain, "user.user1", "read", "coretech:resource1", null, null), AccessStatus.ALLOWED);
+        assertEquals(zms.evaluateAccess(domain, "user.user1", "read", "coretech:resource1", null, null, mockDomRestRsrcCtx.principal()), AccessStatus.ALLOWED);
     }
 
     @Test
@@ -11921,17 +11948,17 @@ public class ZMSImplTest {
         
         // null authorized service argument
         
-        assertFalse(zms.isAuthorizedProviderService(null, "coretech", "storage"));
+        assertFalse(zms.isAuthorizedProviderService(null, "coretech", "storage", mockDomRestRsrcCtx.principal()));
         
         // service does not match provider details
         
-        assertFalse(zms.isAuthorizedProviderService("coretech.storage", "coretech", "storage2"));
-        assertFalse(zms.isAuthorizedProviderService("coretech.storage", "coretech2", "storage"));
+        assertFalse(zms.isAuthorizedProviderService("coretech.storage", "coretech", "storage2", mockDomRestRsrcCtx.principal()));
+        assertFalse(zms.isAuthorizedProviderService("coretech.storage", "coretech2", "storage", mockDomRestRsrcCtx.principal()));
         
         // domain does not exist in zms
         
         assertFalse(zms.isAuthorizedProviderService("not_present_domain.storage", "not_present_domain",
-                "storage"));
+                "storage", mockDomRestRsrcCtx.principal()));
     }
     
     @Test
@@ -11952,7 +11979,7 @@ public class ZMSImplTest {
         zms.putPolicy(mockDomRsrcCtx, providerDomain, "self_serve", auditRef, policy);
         
         assertTrue(zms.isAuthorizedProviderService(providerDomain + ".storage", providerDomain,
-                "storage"));
+                "storage", mockDomRestRsrcCtx.principal()));
         
         zms.deleteTopLevelDomain(mockDomRsrcCtx, tenantDomain, auditRef);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, providerDomain, auditRef);
@@ -11969,7 +11996,7 @@ public class ZMSImplTest {
         // tenant is setup but no policy to authorize access to tenants
         
         assertFalse(zms.isAuthorizedProviderService(providerDomain + ".storage", providerDomain,
-                "storage"));
+                "storage", mockDomRestRsrcCtx.principal()));
         
         zms.deleteTopLevelDomain(mockDomRsrcCtx, tenantDomain, auditRef);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, providerDomain, auditRef);
@@ -23444,29 +23471,5 @@ public class ZMSImplTest {
         setDatabaseReadOnlyMode(false);
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
-    }
-
-    @Test
-    public void testValidateNotMtlsRestricted() {
-        ResourceContext context = createResourceContext(null);
-
-        // No exception will be thrown, no principal
-        zms.validateNotMtlsRestricted(context, "testValidateNotMtlsRestricted");
-
-        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
-                "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
-        context = createResourceContext(principal);
-
-        // No exception will be thrown, not restricted
-        zms.validateNotMtlsRestricted(context, "testValidateNotMtlsRestricted");
-
-        // Set restricted, verify exception thrown
-        principal.setMtlsRestricted(true);
-        try {
-            zms.validateNotMtlsRestricted(context, "testValidateNotMtlsRestricted");
-            fail();
-        } catch (ResourceException ex) {
-            assertEquals("ResourceException (403): {code: 403, message: \"testValidateNotMtlsRestricted: Principal: hockey.kings is mTLS restricted\"}", ex.getMessage());
-        }
     }
 }

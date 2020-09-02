@@ -1584,7 +1584,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         String resource = SYS_AUTH + ":domain";
         AccessStatus accessStatus = evaluateAccess(domain, principal.getFullName(), "create",
-                resource, null, null);
+                resource, null, null, principal);
 
         return accessStatus == AccessStatus.ALLOWED;
     }
@@ -1601,7 +1601,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         String resource = SYS_AUTH + ":resource-lookup-all";
         AccessStatus accessStatus = evaluateAccess(domain, principal.getFullName(), "access",
-                resource, null, null);
+                resource, null, null, principal);
 
         return accessStatus == AccessStatus.ALLOWED;
     }
@@ -2245,7 +2245,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     AccessStatus evaluateAccess(AthenzDomain domain, String identity, String action, String resource,
-            List<String> authenticatedRoles, String trustDomain) {
+            List<String> authenticatedRoles, String trustDomain, Principal principal) {
+
+        if (principal.getMtlsRestricted()) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("evaluateAccess: mTLS restricted, access denied");
+            }
+            return AccessStatus.DENIED;
+        }
 
         AccessStatus accessStatus = AccessStatus.DENIED;
 
@@ -2454,7 +2461,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // evaluate our domain's roles and policies to see if access
         // is allowed or not for the given operation and resource
 
-        return evaluateAccess(domain, identity, action, resource, authenticatedRoles, trustDomain);
+        return evaluateAccess(domain, identity, action, resource, authenticatedRoles, trustDomain, principal);
     }
 
     public Access getAccessExt(ResourceContext ctx, String action, String resource,
@@ -3482,8 +3489,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         verifyAuthorizedServiceRoleOperation(principal.getAuthorizedService(), caller, roleName);
 
-        validateNotMtlsRestricted(ctx, caller);
-
         // verify that the member name in the URI and object provided match
 
         if (!memberName.equals(membership.getMemberName())) {
@@ -3684,8 +3689,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         Principal principal = ((RsrcCtxWrapper) ctx).principal();
         verifyAuthorizedServiceRoleOperation(principal.getAuthorizedService(), caller, roleName);
-
-        validateNotMtlsRestricted(ctx, caller);
 
         // authorization check - there are two supported use cases
         // 1) the caller has authorization in the domain to update members in a role
@@ -5631,7 +5634,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // put tenancy on its own service
 
         boolean authzServiceTokenOperation = isAuthorizedProviderService(authorizedService,
-                provSvcDomain, provSvcName);
+                provSvcDomain, provSvcName, ((RsrcCtxWrapper) ctx).principal());
 
         if (authorizedService != null && !authzServiceTokenOperation) {
             throw ZMSUtils.requestError("Authorized service provider mismatch: "
@@ -5695,7 +5698,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // end point
 
         boolean authzServiceTokenOperation = isAuthorizedProviderService(authorizedService,
-            provSvcDomain, provSvcName);
+            provSvcDomain, provSvcName, ((RsrcCtxWrapper) ctx).principal());
 
         if (authzServiceTokenOperation) {
             dbService.executeDeleteTenantRoles(ctx, provSvcDomain, provSvcName, tenantDomain, null,
@@ -6238,7 +6241,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // provider side as well thus complete the tenancy delete process
         
         String authorizedService = ((RsrcCtxWrapper) ctx).principal().getAuthorizedService();
-        if (isAuthorizedProviderService(authorizedService, provSvcDomain, provSvcName)) {
+        if (isAuthorizedProviderService(authorizedService, provSvcDomain, provSvcName, ((RsrcCtxWrapper) ctx).principal())) {
          
             dbService.executeDeleteTenantRoles(ctx, provSvcDomain, provSvcName, tenantDomain,
                 resourceGroup, auditRef, caller);
@@ -6304,7 +6307,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
      
     boolean isAuthorizedProviderService(String authorizedService, String provSvcDomain,
-             String provSvcName) {
+             String provSvcName, Principal principal) {
         
          // make sure we have a service provided and it matches to our provider
          
@@ -6331,7 +6334,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
          
          String resource = provSvcDomain + ":tenant." + provSvcName;
          AccessStatus accessStatus = evaluateAccess(domain, authorizedService, "update",
-                 resource, null, null);
+                 resource, null, null, principal);
 
         return accessStatus == AccessStatus.ALLOWED;
     }
@@ -6419,7 +6422,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // provider side as well thus complete the tenancy on-boarding process
         
         String authorizedService = ((RsrcCtxWrapper) ctx).principal().getAuthorizedService();
-        if (isAuthorizedProviderService(authorizedService, provSvcDomain, provSvcName)) {
+        if (isAuthorizedProviderService(authorizedService, provSvcDomain, provSvcName, ((RsrcCtxWrapper) ctx).principal())) {
 
             // first we need to setup the admin roles in case this
             // happens to be the first resource group
@@ -6574,16 +6577,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             return null;
         }
         return resource.substring(0, idx);
-    }
-
-    void validateNotMtlsRestricted(ResourceContext ctx, final String caller) {
-        final Principal principal = ((RsrcCtxWrapper) ctx).principal();
-        if (principal != null && principal.getMtlsRestricted()) {
-            final String principalName = principal.getFullName();
-            LOG.error(caller + ": Principal {} is mTLS restricted", principalName);
-            throw ZMSUtils.forbiddenError(caller + ": Principal: " + principalName
-                            + " is mTLS restricted", caller);
-        }
     }
 
     void validateRequest(HttpServletRequest request, String caller) {
@@ -7422,7 +7415,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         String resource = SYS_AUTH + ":meta." + objectType + "." + attribute + "." + reqDomain;
         AccessStatus accessStatus = evaluateAccess(domain, principal.getFullName(), "delete",
-                resource, null, null);
+                resource, null, null, principal);
 
         return accessStatus == AccessStatus.ALLOWED;
     }
@@ -7542,8 +7535,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         AthenzObject.MEMBERSHIP.convertToLowerCase(membership);
 
         final Principal principal = ((RsrcCtxWrapper) ctx).principal();
-
-        validateNotMtlsRestricted(ctx, caller);
 
         // verify that request is properly authenticated for this request
 
@@ -7717,7 +7708,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         String resource = ZMSConsts.SYS_AUTH_AUDIT_BY_DOMAIN + ":audit." + reqDomain.getDomain().getName();
         AccessStatus accessStatus = evaluateAccess(authDomain, principal.getFullName(),
-                "update", resource, null, null);
+                "update", resource, null, null, principal);
         if (accessStatus == AccessStatus.ALLOWED) {
             return true;
         }
@@ -7728,7 +7719,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         authDomain = getAthenzDomain(ZMSConsts.SYS_AUTH_AUDIT_BY_ORG, true);
         resource = ZMSConsts.SYS_AUTH_AUDIT_BY_ORG + ":audit." + reqDomain.getDomain().getOrg();
         accessStatus = evaluateAccess(authDomain, principal.getFullName(),
-                "update", resource, null, null);
+                "update", resource, null, null, principal);
 
         return accessStatus == AccessStatus.ALLOWED;
     }
@@ -7761,7 +7752,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // is allowed or not for the given operation and resource
         // our action are always converted to lowercase
 
-        return evaluateAccess(domain, principal.getFullName(), "update", roleName, null, null) == AccessStatus.ALLOWED;
+        return evaluateAccess(domain, principal.getFullName(), "update", roleName, null, null, principal) == AccessStatus.ALLOWED;
     }
 
     boolean isAllowedPutMembershipWithoutApproval(Principal principal, final AthenzDomain reqDomain, final Role role) {
@@ -8286,7 +8277,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // verify that request is properly authenticated for this request
 
-        validateNotMtlsRestricted(ctx, caller);
         verifyAuthorizedServiceGroupOperation(principal.getAuthorizedService(), caller, groupName);
 
         // verify that the member name in the URI and object provided match
@@ -8422,8 +8412,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // verify that request is properly authenticated for this request
 
         Principal principal = ((RsrcCtxWrapper) ctx).principal();
-
-        validateNotMtlsRestricted(ctx, caller);
 
         verifyAuthorizedServiceGroupOperation(principal.getAuthorizedService(), caller, groupName);
 
@@ -8585,8 +8573,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final Principal principal = ((RsrcCtxWrapper) ctx).principal();
 
         // verify that request is properly authenticated for this request
-
-        validateNotMtlsRestricted(ctx, caller);
 
         verifyAuthorizedServiceGroupOperation(principal.getAuthorizedService(), caller, groupName);
 

@@ -29,6 +29,7 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
+import static com.yahoo.athenz.auth.AuthorityConsts.ATHENZ_PROP_RESTRICTED_OU;
 import static org.mockito.Mockito.*;
 import static org.testng.Assert.*;
 
@@ -662,22 +663,42 @@ public class CryptoTest {
 
     @Test
     public void testIsRestrictedCertificateNotSet() throws Exception {
+        GlobStringsMatcher globStringsMatcher = new GlobStringsMatcher(ATHENZ_PROP_RESTRICTED_OU);
 
         try (InputStream inStream = new FileInputStream("src/test/resources/ou_tests/restricted_ou_1.pem")) {
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
             X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
-            boolean restrictedCertificate = Crypto.isRestrictedCertificate(cert);
+            boolean restrictedCertificate = Crypto.isRestrictedCertificate(cert, globStringsMatcher);
             assertFalse(restrictedCertificate);
+        }
+    }
+
+    @Test
+    public void testIsRestrictedCertificateNullArguments() throws Exception {
+        System.setProperty("athenz.crypto.restricted_ou", "other.ou");
+        GlobStringsMatcher globStringsMatcher = new GlobStringsMatcher(ATHENZ_PROP_RESTRICTED_OU);
+
+        try (InputStream inStream = new FileInputStream("src/test/resources/ou_tests/restricted_ou_1.pem")) {
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
+            // If one of the arguments is null return true (assume restricted cert)
+            assertTrue(Crypto.isRestrictedCertificate(cert, null));
+            assertTrue(Crypto.isRestrictedCertificate(null, globStringsMatcher));
+            assertTrue(Crypto.isRestrictedCertificate(null, null));
+
+            // Both arguments set
+            assertFalse(Crypto.isRestrictedCertificate(cert, globStringsMatcher));
         }
     }
 
     @Test
     public void testIsRestrictedCertificate() throws Exception {
         System.setProperty("athenz.crypto.restricted_ou", "restricted.ou.1");
+        GlobStringsMatcher globStringsMatcher = new GlobStringsMatcher(ATHENZ_PROP_RESTRICTED_OU);
         try (InputStream inStream = new FileInputStream("src/test/resources/ou_tests/restricted_ou_1.pem")) {
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
             X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
-            boolean restrictedCertificate = Crypto.isRestrictedCertificate(cert);
+            boolean restrictedCertificate = Crypto.isRestrictedCertificate(cert, globStringsMatcher);
             assertTrue(restrictedCertificate);
         } finally {
             System.clearProperty("athenz.crypto.restricted_ou");
@@ -687,31 +708,32 @@ public class CryptoTest {
     @Test
     public void testIsRestrictedCertificatePartial() throws Exception {
         System.setProperty("athenz.crypto.restricted_ou", "restricted.ou*");
+        GlobStringsMatcher globStringsMatcher = new GlobStringsMatcher(ATHENZ_PROP_RESTRICTED_OU);
         try {
             // First three should match
             try (InputStream inStream = new FileInputStream("src/test/resources/ou_tests/restricted_ou_1.pem")) {
                 CertificateFactory cf = CertificateFactory.getInstance("X.509");
                 X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
-                boolean restrictedCertificate = Crypto.isRestrictedCertificate(cert);
+                boolean restrictedCertificate = Crypto.isRestrictedCertificate(cert, globStringsMatcher);
                 assertTrue(restrictedCertificate);
             }
             try (InputStream inStream = new FileInputStream("src/test/resources/ou_tests/restricted_ou_2.pem")) {
                 CertificateFactory cf = CertificateFactory.getInstance("X.509");
                 X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
-                boolean restrictedCertificate = Crypto.isRestrictedCertificate(cert);
+                boolean restrictedCertificate = Crypto.isRestrictedCertificate(cert, globStringsMatcher);
                 assertTrue(restrictedCertificate);
             }
             try (InputStream inStream = new FileInputStream("src/test/resources/ou_tests/restricted_ou_3.pem")) {
                 CertificateFactory cf = CertificateFactory.getInstance("X.509");
                 X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
-                boolean restrictedCertificate = Crypto.isRestrictedCertificate(cert);
+                boolean restrictedCertificate = Crypto.isRestrictedCertificate(cert, globStringsMatcher);
                 assertTrue(restrictedCertificate);
             }
             // This one's OU doesn't match the pattern (regular_ou)
             try (InputStream inStream = new FileInputStream("src/test/resources/ou_tests/regular_ou.pem")) {
                 CertificateFactory cf = CertificateFactory.getInstance("X.509");
                 X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
-                boolean restrictedCertificate = Crypto.isRestrictedCertificate(cert);
+                boolean restrictedCertificate = Crypto.isRestrictedCertificate(cert, globStringsMatcher);
                 assertFalse(restrictedCertificate);
             }
         } finally {
@@ -722,32 +744,34 @@ public class CryptoTest {
     @Test
     public void testIsRestrictedCertificateMultipleValues() throws Exception {
         System.setProperty("athenz.crypto.restricted_ou", "restricted.ou.1, regular.ou");
+        GlobStringsMatcher globStringsMatcher = new GlobStringsMatcher(ATHENZ_PROP_RESTRICTED_OU);
+
         try {
             // restricted_ou_1 should match
             try (InputStream inStream = new FileInputStream("src/test/resources/ou_tests/restricted_ou_1.pem")) {
                 CertificateFactory cf = CertificateFactory.getInstance("X.509");
                 X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
-                boolean restrictedCertificate = Crypto.isRestrictedCertificate(cert);
+                boolean restrictedCertificate = Crypto.isRestrictedCertificate(cert, globStringsMatcher);
                 assertTrue(restrictedCertificate);
             }
             // The others that begin with "restricted_ou" shouldn't
             try (InputStream inStream = new FileInputStream("src/test/resources/ou_tests/restricted_ou_2.pem")) {
                 CertificateFactory cf = CertificateFactory.getInstance("X.509");
                 X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
-                boolean restrictedCertificate = Crypto.isRestrictedCertificate(cert);
+                boolean restrictedCertificate = Crypto.isRestrictedCertificate(cert, globStringsMatcher);
                 assertFalse(restrictedCertificate);
             }
             try (InputStream inStream = new FileInputStream("src/test/resources/ou_tests/restricted_ou_3.pem")) {
                 CertificateFactory cf = CertificateFactory.getInstance("X.509");
                 X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
-                boolean restrictedCertificate = Crypto.isRestrictedCertificate(cert);
+                boolean restrictedCertificate = Crypto.isRestrictedCertificate(cert, globStringsMatcher);
                 assertFalse(restrictedCertificate);
             }
             // regular_ou should match
             try (InputStream inStream = new FileInputStream("src/test/resources/ou_tests/regular_ou.pem")) {
                 CertificateFactory cf = CertificateFactory.getInstance("X.509");
                 X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
-                boolean restrictedCertificate = Crypto.isRestrictedCertificate(cert);
+                boolean restrictedCertificate = Crypto.isRestrictedCertificate(cert, globStringsMatcher);
                 assertTrue(restrictedCertificate);
             }
         } finally {
@@ -758,10 +782,12 @@ public class CryptoTest {
     @Test
     public void testIsRestrictedCertificateNotMatched() throws Exception {
         System.setProperty("athenz.crypto.restricted_ou", "other.ou");
+        GlobStringsMatcher globStringsMatcher = new GlobStringsMatcher(ATHENZ_PROP_RESTRICTED_OU);
+
         try (InputStream inStream = new FileInputStream("src/test/resources/valid_email_x509.cert")) {
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
             X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
-            boolean restrictedCertificate = Crypto.isRestrictedCertificate(cert);
+            boolean restrictedCertificate = Crypto.isRestrictedCertificate(cert, globStringsMatcher);
             assertFalse(restrictedCertificate);
         } finally {
             System.clearProperty("athenz.crypto.restricted_ou");

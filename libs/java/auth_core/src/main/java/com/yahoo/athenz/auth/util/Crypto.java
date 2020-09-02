@@ -120,8 +120,6 @@ public class Crypto {
     static final String ATHENZ_CRYPTO_BC_PROVIDER = "athenz.crypto.bc_provider";
     private static final String BC_PROVIDER = "BC";
 
-    private static final String ATHENZ_RESTRICTED_OU_PROP = "athenz.crypto.restricted_ou";
-
     static final SecureRandom RANDOM;
     static {
         Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
@@ -1117,9 +1115,16 @@ public class Crypto {
         return extractX509CertSubjectField(x509Cert, BCStyle.O);
     }
 
-    public static boolean isRestrictedCertificate(X509Certificate x509Cert) {
+    public static boolean isRestrictedCertificate(X509Certificate x509Cert, GlobStringsMatcher globStringsMatcher) {
+        if (globStringsMatcher == null) {
+            LOG.error("isRestrictedCertificate: Required argument globStringsMatcher is null. Returning true.");
+            return true;
+        }
+        if (x509Cert == null) {
+            LOG.error("isRestrictedCertificate: Required argument x509Cert is null. Returning true.");
+            return true;
+        }
         String x509Ou = extractX509CertSubjectOUField(x509Cert);
-        GlobStringsMatcher globStringsMatcher = new GlobStringsMatcher(ATHENZ_RESTRICTED_OU_PROP);
         return globStringsMatcher.isMatch(x509Ou);
     }
 

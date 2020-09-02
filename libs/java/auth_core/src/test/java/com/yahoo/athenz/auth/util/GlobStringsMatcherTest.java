@@ -16,10 +16,14 @@
 
 package com.yahoo.athenz.auth.util;
 
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class GlobStringsMatcherTest {
 

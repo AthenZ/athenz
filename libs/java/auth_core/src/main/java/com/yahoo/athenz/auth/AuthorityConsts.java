@@ -28,6 +28,7 @@ public final class AuthorityConsts {
 
     // system properties
     public static final String ATHENZ_PROP_USER_DOMAIN = "athenz.user_domain";
+    public static final String ATHENZ_PROP_RESTRICTED_OU = "athenz.crypto.restricted_ou";
 
     // prevent object creation
     private AuthorityConsts() {
