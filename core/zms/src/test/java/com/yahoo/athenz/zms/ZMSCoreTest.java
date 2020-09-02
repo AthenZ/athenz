@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -56,7 +56,47 @@ public class ZMSCoreTest {
         r = new Role().setName("sys.auth:role.admin").setMembers(members);
         result = validator.validate(r, "Role");
         assertFalse(result.valid);
-        
+
+        members = Arrays.asList("sports:role.admin"); // new
+        r = new Role().setName("sys.auth:role.admin").setMembers(members);
+        result = validator.validate(r, "Role");
+        assertFalse(result.valid);
+
+        members = Arrays.asList("sports:group.admin"); // valid group member
+        r = new Role().setName("sys.auth:role.admin").setMembers(members);
+        result = validator.validate(r, "Role");
+        assertTrue(result.valid);
+
+        members = Arrays.asList("sports:group.admin.test"); // valid group member
+        r = new Role().setName("sys.auth:role.admin").setMembers(members);
+        result = validator.validate(r, "Role");
+        assertTrue(result.valid);
+
+        members = Arrays.asList("sports:group.admin-test"); // valid group member
+        r = new Role().setName("sys.auth:role.admin").setMembers(members);
+        result = validator.validate(r, "Role");
+        assertTrue(result.valid);
+
+        members = Arrays.asList("sports:group.admin*"); // invalid group member
+        r = new Role().setName("sys.auth:role.admin").setMembers(members);
+        result = validator.validate(r, "Role");
+        assertFalse(result.valid);
+
+        members = Arrays.asList("sports:groupadmin.test"); // invalid group member
+        r = new Role().setName("sys.auth:role.admin").setMembers(members);
+        result = validator.validate(r, "Role");
+        assertFalse(result.valid);
+
+        members = Arrays.asList("sports:group-admin"); // not valid
+        r = new Role().setName("sys.auth:role.admin").setMembers(members);
+        result = validator.validate(r, "Role");
+        assertFalse(result.valid);
+
+        members = Arrays.asList("sports::group.admin"); // not valid
+        r = new Role().setName("sys.auth:role.admin").setMembers(members);
+        result = validator.validate(r, "Role");
+        assertFalse(result.valid);
+
         members = Arrays.asList("someuser@somecompany.com"); // not a valid principal
         r = new Role().setName("sys.auth:role.admin").setMembers(members);
         result = validator.validate(r, "Role");

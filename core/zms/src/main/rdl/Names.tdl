@@ -56,9 +56,12 @@ type AuthorityName String (pattern="{CompoundName}"); //i.e. "user"
 //and , to separate roles and : for IPv6 addresses
 type SignedToken String (pattern="[a-zA-Z0-9\\._%=:;,-]*");
 
-//Role Member name - could be one of three values: *,
-//DomainName.* or ServiceName[*]
-type MemberName String (pattern="\\*|{DomainName}\\.\\*|{ServiceName}(\\*)?");
+//A group name
+type GroupName String (pattern="{DomainName}:group\\.{EntityName}");
+
+//Role Member name - could be one of four values: *,
+//DomainName.* or ServiceName[*], or GroupNames
+type MemberName String (pattern="\\*|{DomainName}\\.\\*|{ServiceName}(\\*)?|{GroupName}");
 
 //A comma separated list of authority keywords
 type AuthorityKeyword String (pattern="{SimpleName}");
