@@ -168,6 +168,9 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
                             new AttributeUpdate(KEY_SVC_DATA_UPDATE_TIME).put(getLongFromDate(certRecord.getSvcDataUpdateTime())),
                             new AttributeUpdate(KEY_EXPIRY_TIME).put(getLongFromDate(certRecord.getExpiryTime()))
                     );
+            if (certRecord.getHostName() != null) {
+                updateItemSpec.addAttributeUpdate(new AttributeUpdate(KEY_HOSTNAME).put(certRecord.getHostName()));
+            }
             table.updateItem(updateItemSpec);
             return true;
         } catch (Exception ex) {
