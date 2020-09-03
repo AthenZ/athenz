@@ -367,6 +367,7 @@ func getRoleMetaObject(role *zms.Role) zms.RoleMeta {
 		ReviewEnabled:           role.ReviewEnabled,
 		NotifyRoles:             role.NotifyRoles,
 		ServiceExpiryDays:       role.ServiceExpiryDays,
+		GroupExpiryDays:         role.GroupExpiryDays,
 		MemberReviewDays:        role.MemberReviewDays,
 		ServiceReviewDays:       role.ServiceReviewDays,
 		UserAuthorityExpiration: role.UserAuthorityExpiration,
@@ -451,6 +452,22 @@ func (cli Zms) SetRoleServiceExpiryDays(dn string, rn string, days int32) (*stri
 		return nil, err
 	}
 	s := "[domain " + dn + " role " + rn + " service-expiry-days attribute successfully updated]\n"
+	return &s, nil
+}
+
+func (cli Zms) SetRoleGroupExpiryDays(dn string, rn string, days int32) (*string, error) {
+	role, err := cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), nil, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	meta := getRoleMetaObject(role)
+	meta.GroupExpiryDays = &days
+
+	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " role " + rn + " group-expiry-days attribute successfully updated]\n"
 	return &s, nil
 }
 

@@ -47,6 +47,9 @@ public class Role {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String userAuthorityExpiration;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer groupExpiryDays;
     public String name;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -154,6 +157,13 @@ public class Role {
     public String getUserAuthorityExpiration() {
         return userAuthorityExpiration;
     }
+    public Role setGroupExpiryDays(Integer groupExpiryDays) {
+        this.groupExpiryDays = groupExpiryDays;
+        return this;
+    }
+    public Integer getGroupExpiryDays() {
+        return groupExpiryDays;
+    }
     public Role setName(String name) {
         this.name = name;
         return this;
@@ -252,6 +262,9 @@ public class Role {
                 return false;
             }
             if (userAuthorityExpiration == null ? a.userAuthorityExpiration != null : !userAuthorityExpiration.equals(a.userAuthorityExpiration)) {
+                return false;
+            }
+            if (groupExpiryDays == null ? a.groupExpiryDays != null : !groupExpiryDays.equals(a.groupExpiryDays)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

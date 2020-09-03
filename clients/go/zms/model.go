@@ -190,9 +190,14 @@ type DomainMeta struct {
 	SignAlgorithm SimpleName `json:"signAlgorithm,omitempty" rdl:"optional"`
 
 	//
-	// all services in the domain will have specified max expiry days
+	// all services in the domain roles will have specified max expiry days
 	//
 	ServiceExpiryDays *int32 `json:"serviceExpiryDays,omitempty" rdl:"optional"`
+
+	//
+	// all groups in the domain roles will have specified max expiry days
+	//
+	GroupExpiryDays *int32 `json:"groupExpiryDays,omitempty" rdl:"optional"`
 
 	//
 	// membership filtered based on user authority configured attributes
@@ -373,9 +378,14 @@ type Domain struct {
 	SignAlgorithm SimpleName `json:"signAlgorithm,omitempty" rdl:"optional"`
 
 	//
-	// all services in the domain will have specified max expiry days
+	// all services in the domain roles will have specified max expiry days
 	//
 	ServiceExpiryDays *int32 `json:"serviceExpiryDays,omitempty" rdl:"optional"`
+
+	//
+	// all groups in the domain roles will have specified max expiry days
+	//
+	GroupExpiryDays *int32 `json:"groupExpiryDays,omitempty" rdl:"optional"`
 
 	//
 	// membership filtered based on user authority configured attributes
@@ -936,6 +946,11 @@ type RoleMeta struct {
 	// expiration enforced by a user authority configured attribute
 	//
 	UserAuthorityExpiration string `json:"userAuthorityExpiration" rdl:"optional"`
+
+	//
+	// all groups in the domain roles will have specified max expiry days
+	//
+	GroupExpiryDays *int32 `json:"groupExpiryDays,omitempty" rdl:"optional"`
 }
 
 //
@@ -1065,6 +1080,11 @@ type Role struct {
 	// expiration enforced by a user authority configured attribute
 	//
 	UserAuthorityExpiration string `json:"userAuthorityExpiration" rdl:"optional"`
+
+	//
+	// all groups in the domain roles will have specified max expiry days
+	//
+	GroupExpiryDays *int32 `json:"groupExpiryDays,omitempty" rdl:"optional"`
 
 	//
 	// name of the role
@@ -3182,9 +3202,14 @@ type TopLevelDomain struct {
 	SignAlgorithm SimpleName `json:"signAlgorithm,omitempty" rdl:"optional"`
 
 	//
-	// all services in the domain will have specified max expiry days
+	// all services in the domain roles will have specified max expiry days
 	//
 	ServiceExpiryDays *int32 `json:"serviceExpiryDays,omitempty" rdl:"optional"`
+
+	//
+	// all groups in the domain roles will have specified max expiry days
+	//
+	GroupExpiryDays *int32 `json:"groupExpiryDays,omitempty" rdl:"optional"`
 
 	//
 	// membership filtered based on user authority configured attributes
@@ -3389,9 +3414,14 @@ type SubDomain struct {
 	SignAlgorithm SimpleName `json:"signAlgorithm,omitempty" rdl:"optional"`
 
 	//
-	// all services in the domain will have specified max expiry days
+	// all services in the domain roles will have specified max expiry days
 	//
 	ServiceExpiryDays *int32 `json:"serviceExpiryDays,omitempty" rdl:"optional"`
+
+	//
+	// all groups in the domain roles will have specified max expiry days
+	//
+	GroupExpiryDays *int32 `json:"groupExpiryDays,omitempty" rdl:"optional"`
 
 	//
 	// membership filtered based on user authority configured attributes
@@ -3610,9 +3640,14 @@ type UserDomain struct {
 	SignAlgorithm SimpleName `json:"signAlgorithm,omitempty" rdl:"optional"`
 
 	//
-	// all services in the domain will have specified max expiry days
+	// all services in the domain roles will have specified max expiry days
 	//
 	ServiceExpiryDays *int32 `json:"serviceExpiryDays,omitempty" rdl:"optional"`
+
+	//
+	// all groups in the domain roles will have specified max expiry days
+	//
+	GroupExpiryDays *int32 `json:"groupExpiryDays,omitempty" rdl:"optional"`
 
 	//
 	// membership filtered based on user authority configured attributes
@@ -5773,9 +5808,14 @@ type DomainData struct {
 	SignAlgorithm SimpleName `json:"signAlgorithm,omitempty" rdl:"optional"`
 
 	//
-	// all services in the domain will have specified max expiry days
+	// all services in the domain roles will have specified max expiry days
 	//
 	ServiceExpiryDays *int32 `json:"serviceExpiryDays,omitempty" rdl:"optional"`
+
+	//
+	// all groups in the domain roles will have specified max expiry days
+	//
+	GroupExpiryDays *int32 `json:"groupExpiryDays,omitempty" rdl:"optional"`
 
 	//
 	// membership filtered based on user authority configured attributes

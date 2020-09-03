@@ -100,7 +100,8 @@ public class ZMSSchema {
             .field("serviceCertExpiryMins", "Int32", true, "service identity certs issued for this domain will have specified max timeout in mins")
             .field("roleCertExpiryMins", "Int32", true, "role certs issued for this domain will have specified max timeout in mins")
             .field("signAlgorithm", "SimpleName", true, "rsa or ec signing algorithm to be used for tokens")
-            .field("serviceExpiryDays", "Int32", true, "all services in the domain will have specified max expiry days")
+            .field("serviceExpiryDays", "Int32", true, "all services in the domain roles will have specified max expiry days")
+            .field("groupExpiryDays", "Int32", true, "all groups in the domain roles will have specified max expiry days")
             .field("userAuthorityFilter", "String", true, "membership filtered based on user authority configured attributes");
 
         sb.structType("Domain", "DomainMeta")
@@ -152,7 +153,8 @@ public class ZMSSchema {
             .field("reviewEnabled", "Bool", true, "Flag indicates whether or not role updates require another review and approval", false)
             .field("notifyRoles", "String", true, "list of roles whose members should be notified for member review/approval")
             .field("userAuthorityFilter", "String", true, "membership filtered based on user authority configured attributes")
-            .field("userAuthorityExpiration", "String", true, "expiration enforced by a user authority configured attribute");
+            .field("userAuthorityExpiration", "String", true, "expiration enforced by a user authority configured attribute")
+            .field("groupExpiryDays", "Int32", true, "all groups in the domain roles will have specified max expiry days");
 
         sb.structType("Role", "RoleMeta")
             .comment("The representation for a Role with set of members.")

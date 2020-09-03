@@ -637,6 +637,9 @@ public class DBService implements RolesProvider {
         if (templateRole.getServiceExpiryDays() == null) {
             templateRole.setServiceExpiryDays(originalRole.getServiceExpiryDays());
         }
+        if (templateRole.getGroupExpiryDays() == null) {
+            templateRole.setGroupExpiryDays(originalRole.getGroupExpiryDays());
+        }
         if (templateRole.getTokenExpiryMins() == null) {
             templateRole.setTokenExpiryMins(originalRole.getTokenExpiryMins());
         }
@@ -2743,6 +2746,7 @@ public class DBService implements RolesProvider {
                         .setCertDnsDomain(domain.getCertDnsDomain())
                         .setMemberExpiryDays(domain.getMemberExpiryDays())
                         .setServiceExpiryDays(domain.getServiceExpiryDays())
+                        .setGroupExpiryDays(domain.getGroupExpiryDays())
                         .setTokenExpiryMins(domain.getTokenExpiryMins())
                         .setRoleCertExpiryMins(domain.getRoleCertExpiryMins())
                         .setServiceCertExpiryMins(domain.getServiceCertExpiryMins())
@@ -2925,6 +2929,9 @@ public class DBService implements RolesProvider {
         }
         if (meta.getServiceExpiryDays() != null) {
             domain.setServiceExpiryDays(meta.getServiceExpiryDays());
+        }
+        if (meta.getGroupExpiryDays() != null) {
+            domain.setGroupExpiryDays(meta.getGroupExpiryDays());
         }
         if (meta.getRoleCertExpiryMins() != null) {
             domain.setRoleCertExpiryMins(meta.getRoleCertExpiryMins());
@@ -3367,6 +3374,7 @@ public class DBService implements RolesProvider {
                 .setTokenExpiryMins(role.getTokenExpiryMins())
                 .setSignAlgorithm(role.getSignAlgorithm())
                 .setServiceExpiryDays(role.getServiceExpiryDays())
+                .setGroupExpiryDays(role.getGroupExpiryDays())
                 .setMemberReviewDays(role.getMemberReviewDays())
                 .setServiceReviewDays(role.getServiceReviewDays())
                 .setReviewEnabled(role.getReviewEnabled())
@@ -4448,6 +4456,7 @@ public class DBService implements RolesProvider {
                         .setSelfServe(originalRole.getSelfServe())
                         .setMemberExpiryDays(originalRole.getMemberExpiryDays())
                         .setServiceExpiryDays(originalRole.getServiceExpiryDays())
+                        .setGroupExpiryDays(originalRole.getGroupExpiryDays())
                         .setTokenExpiryMins(originalRole.getTokenExpiryMins())
                         .setCertExpiryMins(originalRole.getCertExpiryMins())
                         .setMemberReviewDays(originalRole.getMemberReviewDays())
@@ -4608,6 +4617,9 @@ public class DBService implements RolesProvider {
         if (meta.getServiceExpiryDays() != null) {
             role.setServiceExpiryDays(meta.getServiceExpiryDays());
         }
+        if (meta.getGroupExpiryDays() != null) {
+            role.setGroupExpiryDays(meta.getGroupExpiryDays());
+        }
         if (meta.getTokenExpiryMins() != null) {
             role.setTokenExpiryMins(meta.getTokenExpiryMins());
         }
@@ -4667,6 +4679,7 @@ public class DBService implements RolesProvider {
                         .setSelfServe(originalRole.getSelfServe())
                         .setMemberExpiryDays(originalRole.getMemberExpiryDays())
                         .setServiceExpiryDays(originalRole.getServiceExpiryDays())
+                        .setGroupExpiryDays(originalRole.getGroupExpiryDays())
                         .setTokenExpiryMins(originalRole.getTokenExpiryMins())
                         .setCertExpiryMins(originalRole.getCertExpiryMins())
                         .setMemberReviewDays(originalRole.getMemberReviewDays())

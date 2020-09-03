@@ -56,6 +56,9 @@ public class TopLevelDomain {
     public Integer serviceExpiryDays;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer groupExpiryDays;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String userAuthorityFilter;
     public String name;
     public List<String> adminUsers;
@@ -161,6 +164,13 @@ public class TopLevelDomain {
     public Integer getServiceExpiryDays() {
         return serviceExpiryDays;
     }
+    public TopLevelDomain setGroupExpiryDays(Integer groupExpiryDays) {
+        this.groupExpiryDays = groupExpiryDays;
+        return this;
+    }
+    public Integer getGroupExpiryDays() {
+        return groupExpiryDays;
+    }
     public TopLevelDomain setUserAuthorityFilter(String userAuthorityFilter) {
         this.userAuthorityFilter = userAuthorityFilter;
         return this;
@@ -237,6 +247,9 @@ public class TopLevelDomain {
                 return false;
             }
             if (serviceExpiryDays == null ? a.serviceExpiryDays != null : !serviceExpiryDays.equals(a.serviceExpiryDays)) {
+                return false;
+            }
+            if (groupExpiryDays == null ? a.groupExpiryDays != null : !groupExpiryDays.equals(a.groupExpiryDays)) {
                 return false;
             }
             if (userAuthorityFilter == null ? a.userAuthorityFilter != null : !userAuthorityFilter.equals(a.userAuthorityFilter)) {

@@ -575,6 +575,7 @@ public class JDBCConnectionTest {
                 .setCertDnsDomain("athenz.cloud")
                 .setMemberExpiryDays(45)
                 .setServiceExpiryDays(50)
+                .setGroupExpiryDays(55)
                 .setTokenExpiryMins(10)
                 .setServiceCertExpiryMins(20)
                 .setRoleCertExpiryMins(30)
@@ -601,7 +602,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(14, "ec");
         Mockito.verify(mockPrepStmt, times(1)).setInt(15, 50);
         Mockito.verify(mockPrepStmt, times(1)).setString(16, "OnShore");
-        Mockito.verify(mockPrepStmt, times(1)).setString(17, "my-domain");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(17, 55);
+        Mockito.verify(mockPrepStmt, times(1)).setString(18, "my-domain");
         jdbcConn.close();
     }
     
@@ -634,7 +636,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(14, "");
         Mockito.verify(mockPrepStmt, times(1)).setInt(15, 0);
         Mockito.verify(mockPrepStmt, times(1)).setString(16, "");
-        Mockito.verify(mockPrepStmt, times(1)).setString(17, "my-domain");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(17, 0);
+        Mockito.verify(mockPrepStmt, times(1)).setString(18, "my-domain");
         jdbcConn.close();
     }
     
@@ -1144,7 +1147,7 @@ public class JDBCConnectionTest {
         Role role = new Role().setName("my-domain:role.role1").setAuditEnabled(true)
                 .setSelfServe(true).setMemberExpiryDays(30).setTokenExpiryMins(10)
                 .setCertExpiryMins(20).setSignAlgorithm("ec").setServiceExpiryDays(45)
-                .setMemberReviewDays(70).setServiceReviewDays(80)
+                .setMemberReviewDays(70).setServiceReviewDays(80).setGroupExpiryDays(50)
                 .setReviewEnabled(true).setNotifyRoles("role1,role2")
                 .setUserAuthorityFilter("filter").setUserAuthorityExpiration("expiry");
 
@@ -1176,7 +1179,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(12, "role1,role2");
         Mockito.verify(mockPrepStmt, times(1)).setString(13, "filter");
         Mockito.verify(mockPrepStmt, times(1)).setString(14, "expiry");
-        Mockito.verify(mockPrepStmt, times(1)).setInt(15, 4);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(15, 50);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(16, 4);
         jdbcConn.close();
     }
     
@@ -1217,7 +1221,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(12, "");
         Mockito.verify(mockPrepStmt, times(1)).setString(13, "");
         Mockito.verify(mockPrepStmt, times(1)).setString(14, "");
-        Mockito.verify(mockPrepStmt, times(1)).setInt(15, 7);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(15, 0);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(16, 7);
         jdbcConn.close();
     }
     
