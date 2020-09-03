@@ -1804,7 +1804,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateIntegerValue(domain.getMemberExpiryDays(), "memberExpiryDays");
         validateIntegerValue(domain.getRoleCertExpiryMins(), "roleCertExpiryMins");
         validateIntegerValue(domain.getServiceExpiryDays(), "serviceExpiryDays");
-        validateIntegerValue(domain.getGroupExpiryDays(), "serviceExpiryDays");
+        validateIntegerValue(domain.getGroupExpiryDays(), "groupExpiryDays");
         validateIntegerValue(domain.getTokenExpiryMins(), "tokenExpiryMins");
 
         validateString(domain.getApplicationId(), TYPE_COMPOUND_NAME, caller);
