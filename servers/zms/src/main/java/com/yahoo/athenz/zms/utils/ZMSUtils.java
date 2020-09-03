@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.yahoo.athenz.auth.Authority;
+import com.yahoo.athenz.auth.util.StringUtils;
 import com.yahoo.athenz.zms.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +29,6 @@ import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.util.ServletRequestUtil;
-import com.yahoo.athenz.common.server.util.StringUtils;
 
 public class ZMSUtils {
 

@@ -43,7 +43,8 @@ public class SimplePrincipal implements Principal {
     String keyId = null;
     X509Certificate x509Certificate = null;
     String applicationId = null;
-    
+    private boolean mtlsRestricted = false;
+
     public static Principal create(String domain, String name, String creds) {
         return create(domain, name, creds, 0, null);
     }
@@ -161,7 +162,10 @@ public class SimplePrincipal implements Principal {
     public void setRoles(List<String> roles) {
         this.roles = roles;
     }
-    
+
+    public void setMtlsRestricted(boolean isMtlsRestricted) {
+        this.mtlsRestricted = isMtlsRestricted;
+    }
     @Override
     public String getIP() {
         return ip;
@@ -252,5 +256,10 @@ public class SimplePrincipal implements Principal {
     @Override
     public String getApplicationId() {
         return this.applicationId;
+    }
+
+    @Override
+    public boolean getMtlsRestricted() {
+        return this.mtlsRestricted;
     }
 }

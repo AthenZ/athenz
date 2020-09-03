@@ -17,6 +17,7 @@
 package com.yahoo.athenz.zts.notification;
 
 import com.yahoo.athenz.auth.util.AthenzUtils;
+import com.yahoo.athenz.auth.util.GlobStringsMatcher;
 import com.yahoo.athenz.common.server.cert.X509CertRecord;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.notification.*;
@@ -24,8 +25,6 @@ import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.cert.InstanceCertManager;
 import com.yahoo.athenz.zts.store.DataStore;
-import com.yahoo.athenz.zts.utils.GlobStringsMatcher;
-import com.yahoo.athenz.zts.utils.ZTSUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,7 +66,7 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
     }
 
     private List<String> getProvidersList() {
-        return ZTSUtils.splitCommaSeperatedSystemProperty(ZTSConsts.ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST);
+        return AthenzUtils.splitCommaSeperatedSystemProperty(ZTSConsts.ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST);
     }
 
     @Override

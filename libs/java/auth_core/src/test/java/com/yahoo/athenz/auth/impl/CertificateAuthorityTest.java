@@ -75,6 +75,29 @@ public class CertificateAuthorityTest {
             assertEquals("athenz", principal.getDomain());
             assertEquals("syncer", principal.getName());
             assertNull(principal.getRoles());
+            assertFalse(principal.getMtlsRestricted());
+        }
+    }
+
+    @Test
+    public void testAuthenticateCertificateRestrictedMtls() throws Exception {
+        System.setProperty("athenz.crypto.restricted_ou", "Testing Domain");
+        CertificateAuthority authority = new CertificateAuthority();
+        authority.initialize();
+
+        try (InputStream inStream = new FileInputStream("src/test/resources/valid_email_x509.cert")) {
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
+
+            X509Certificate[] certs = new X509Certificate[1];
+            certs[0] = cert;
+            Principal principal = authority.authenticate(certs, null);
+            assertNotNull(principal);
+            assertEquals("athens", principal.getDomain());
+            assertEquals("zts", principal.getName());
+            assertTrue(principal.getMtlsRestricted());
+        } finally {
+            System.clearProperty("athenz.crypto.restricted_ou");
         }
     }
 
@@ -94,6 +117,7 @@ public class CertificateAuthorityTest {
             assertEquals("athens", principal.getDomain());
             assertEquals("zts", principal.getName());
             assertEquals("sports:role.readers", principal.getRoles().get(0));
+            assertFalse(principal.getMtlsRestricted());
         }
     }
 

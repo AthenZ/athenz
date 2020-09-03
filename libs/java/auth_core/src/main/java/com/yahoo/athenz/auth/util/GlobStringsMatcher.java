@@ -14,9 +14,8 @@
  *  limitations under the License.
  */
 
-package com.yahoo.athenz.zts.utils;
+package com.yahoo.athenz.auth.util;
 
-import com.yahoo.athenz.common.server.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,11 +29,17 @@ public class GlobStringsMatcher {
     private final List<String> patterns;
 
     public GlobStringsMatcher(String systemProperty) {
-        List<String> globList = ZTSUtils.splitCommaSeperatedSystemProperty(systemProperty);
+        List<String> globList = AthenzUtils.splitCommaSeperatedSystemProperty(systemProperty);
         patterns = globList.stream().map(glob -> StringUtils.patternFromGlob(glob)).collect(Collectors.toList());
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Ignored Services Regex List: " + Arrays.toString(patterns.toArray()));
+            LOGGER.debug(String.format("Property: %s, Regex List: %s", systemProperty, Arrays.toString(patterns.toArray())));
         }
+    }
+
+    public boolean isEmptyPatternsList() {
+        return (patterns == null ||
+                patterns.size() == 0 ||
+                (patterns.size() == 1 && patterns.get(0).equals("^$")));
     }
 
     public boolean isMatch(String value) {

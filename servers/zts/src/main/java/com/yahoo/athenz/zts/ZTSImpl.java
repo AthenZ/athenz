@@ -32,6 +32,7 @@ import javax.ws.rs.core.Response;
 
 import com.yahoo.athenz.auth.token.AccessToken;
 import com.yahoo.athenz.auth.token.IdToken;
+import com.yahoo.athenz.auth.util.StringUtils;
 import com.yahoo.athenz.common.server.cert.X509CertRecord;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.dns.HostnameResolverFactory;
@@ -73,7 +74,6 @@ import com.yahoo.athenz.common.server.rest.Http;
 import com.yahoo.athenz.common.server.rest.Http.AuthorityList;
 import com.yahoo.athenz.common.server.util.ConfigProperties;
 import com.yahoo.athenz.common.server.util.ServletRequestUtil;
-import com.yahoo.athenz.common.server.util.StringUtils;
 import com.yahoo.athenz.common.utils.SignUtils;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
@@ -2370,7 +2370,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         final String principalName = principal.getFullName();
         final String roleResource = domainName + ":" + roleName.toLowerCase();
-        
+
         // we need to first verify that our principal is indeed configured
         // with aws assume role assertion for the specified role and domain
         
@@ -2503,7 +2503,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw forbiddenError("Unknown IP: " + ipAddress + " for Provider: " + provider,
                     caller, domain, principalDomain);
         }
-        
+
         // run the authorization checks to make sure the provider has been
         // authorized to launch instances in Athenz and the service has
         // authorized this provider to launch its instances
@@ -3288,7 +3288,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         String fullServiceName = domain + "." + service;
         final String principalName = principal.getFullName();
         boolean userRequest = false;
-        
+
         if (!fullServiceName.equals(principalName)) {
             
             // if this not a match then we're going to allow the operation
@@ -4002,16 +4002,16 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
         return ((RsrcCtxWrapper) ctx).getTimerMetric();
     }
-    
+
     protected RuntimeException error(int code, final String msg, final String caller,
                                      final String requestDomain, final String principalDomain) {
-        
+
         LOGGER.error("Error: {} request-domain: {} principal-domain: {} code: {} message: {}",
                 caller, requestDomain, principalDomain, code, msg);
-        
+
         // emit our metrics if configured. the method will automatically
         // return from the caller if caller is null
-        
+
         ZTSUtils.emitMonmetricError(code, caller, requestDomain, principalDomain, this.metric);
         return new ResourceException(code, new ResourceError().code(code).message(msg));
     }

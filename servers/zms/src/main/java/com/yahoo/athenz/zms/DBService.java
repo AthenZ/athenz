@@ -20,11 +20,11 @@ import com.google.common.cache.CacheBuilder;
 import com.yahoo.athenz.auth.AuthorityConsts;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.util.AthenzUtils;
+import com.yahoo.athenz.auth.util.StringUtils;
 import com.yahoo.athenz.common.server.audit.AuditReferenceValidator;
 import com.yahoo.athenz.common.server.db.RolesProvider;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.log.AuditLogger;
-import com.yahoo.athenz.common.server.util.StringUtils;
 import com.yahoo.athenz.zms.store.AthenzDomain;
 import com.yahoo.athenz.zms.store.ObjectStore;
 import com.yahoo.athenz.zms.store.ObjectStoreConnection;
@@ -238,7 +238,7 @@ public class DBService implements RolesProvider {
         }
         return principal.getFullName();
     }
-    
+
     void saveChanges(ObjectStoreConnection con, String domainName) {
         
         // we're first going to commit our changes which will

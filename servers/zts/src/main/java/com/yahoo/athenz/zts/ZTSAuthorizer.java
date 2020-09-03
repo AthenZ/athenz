@@ -18,7 +18,7 @@ package com.yahoo.athenz.zts;
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.Principal;
-import com.yahoo.athenz.common.server.util.StringUtils;
+import com.yahoo.athenz.auth.util.StringUtils;
 import com.yahoo.athenz.zms.Role;
 import com.yahoo.athenz.zms.RoleMember;
 import com.yahoo.athenz.zts.cache.DataCache;

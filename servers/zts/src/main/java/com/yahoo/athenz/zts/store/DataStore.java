@@ -17,6 +17,7 @@ package com.yahoo.athenz.zts.store;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.yahoo.athenz.auth.util.StringUtils;
 import com.yahoo.athenz.common.server.db.RolesProvider;
 import com.yahoo.athenz.common.server.store.ChangeLogStore;
 import com.yahoo.athenz.common.server.util.ConfigProperties;
@@ -25,7 +26,6 @@ import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.rdl.*;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.config.AthenzConfig;
-import com.yahoo.athenz.common.server.util.StringUtils;
 import com.yahoo.athenz.common.utils.SignUtils;
 import com.yahoo.athenz.zms.DomainData;
 import com.yahoo.athenz.zms.Role;

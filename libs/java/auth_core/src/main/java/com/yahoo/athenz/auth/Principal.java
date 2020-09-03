@@ -82,4 +82,11 @@ public interface Principal {
         return null;
     }
 
+    /**
+     *
+     * @return True if the user certificate usage is restricted to mTLS authentication.
+     */
+    default boolean getMtlsRestricted() {
+        return false;
+    }
 }
