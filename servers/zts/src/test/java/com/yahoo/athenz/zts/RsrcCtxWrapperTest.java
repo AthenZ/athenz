@@ -76,6 +76,51 @@ public class RsrcCtxWrapperTest {
     }
 
     @Test
+    public void testRsrcCtxWrapperSimpleAssertionMtlsRestricted() {
+        HttpServletRequest reqMock = Mockito.mock(HttpServletRequest.class);
+        HttpServletResponse resMock = Mockito.mock(HttpServletResponse.class);
+
+        AuthorityList authListMock = new AuthorityList();
+        Authorizer authorizerMock = Mockito.mock(Authorizer.class);
+        Authority authMock = Mockito.mock(Authority.class);
+        Metric metricMock = Mockito.mock(Metric.class);
+        Object timerMetricMock = Mockito.mock(Object.class);
+
+        Principal prin = Mockito.mock(Principal.class);
+        Mockito.when(prin.getMtlsRestricted()).thenReturn(true);
+
+        Mockito.when(authMock.getHeader()).thenReturn("testheader");
+        Mockito.when(reqMock.getHeader("testheader")).thenReturn("testcred");
+        Mockito.when(authMock.getCredSource()).thenReturn(com.yahoo.athenz.auth.Authority.CredSource.HEADER);
+        Mockito.when(authMock.authenticate(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
+                .thenReturn(prin);
+        Mockito.when(reqMock.getRemoteAddr()).thenReturn("1.1.1.1");
+        Mockito.when(reqMock.getMethod()).thenReturn("POST");
+        authListMock.add(authMock);
+
+        RsrcCtxWrapper wrapper = new RsrcCtxWrapper(reqMock, resMock, authListMock, false,
+                authorizerMock, metricMock, timerMetricMock, "apiName");
+
+        assertNotNull(wrapper.context());
+
+        // default principal should be null
+        assertNull(wrapper.principal());
+
+        assertEquals(wrapper.request(), reqMock);
+        assertEquals(wrapper.response(), resMock);
+        assertEquals(wrapper.getApiName(), "apiname");
+        assertEquals(wrapper.getHttpMethod(), "POST");
+
+        try {
+            wrapper.authenticate();
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getMessage(), "ResourceException (401): {code: 401, message: \"certificate is mTLS restricted\"}");
+            assertEquals(ex.getCode(), 401);
+        }
+    }
+
+    @Test
     public void testAuthenticateException() {
         HttpServletRequest reqMock = Mockito.mock(HttpServletRequest.class);
         HttpServletResponse resMock = Mockito.mock(HttpServletResponse.class);
@@ -144,6 +189,51 @@ public class RsrcCtxWrapperTest {
 
         // after authorize success, principal should be set
         assertEquals(wrapper.principal(), prin);
+    }
+
+    @Test
+    public void testAuthorizeMtlsRestricted() {
+        HttpServletRequest reqMock = Mockito.mock(HttpServletRequest.class);
+        HttpServletResponse resMock = Mockito.mock(HttpServletResponse.class);
+
+        AuthorityList authListMock = new AuthorityList();
+        Authorizer authorizerMock = Mockito.mock(Authorizer.class);
+        Authority authMock = Mockito.mock(Authority.class);
+        Metric metricMock = Mockito.mock(Metric.class);
+        Object timerMetricMock = Mockito.mock(Object.class);
+        Principal prin = Mockito.mock(Principal.class);
+        Mockito.when(prin.getMtlsRestricted()).thenReturn(true);
+
+        Mockito.when(authMock.getHeader()).thenReturn("testheader");
+        Mockito.when(reqMock.getHeader("testheader")).thenReturn("testcred");
+        Mockito.when(authMock.getCredSource()).thenReturn(com.yahoo.athenz.auth.Authority.CredSource.HEADER);
+        Mockito.when(authMock.authenticate(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
+                .thenReturn(prin);
+        Mockito.when(reqMock.getRemoteAddr()).thenReturn("1.1.1.1");
+        Mockito.when(reqMock.getMethod()).thenReturn("POST");
+        authListMock.add(authMock);
+
+        // force true access right
+        Mockito.when(authorizerMock.access(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
+                .thenReturn(true);
+
+        RsrcCtxWrapper wrapper = new RsrcCtxWrapper(
+                reqMock,
+                resMock,
+                authListMock,
+                false,
+                authorizerMock,
+                metricMock,
+                timerMetricMock,
+                "apiName");
+
+        try {
+            wrapper.authorize("add-domain", "test", "test");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getMessage(), "ResourceException (403): {code: 403, message: \"mTLS Restricted\"}");
+            assertEquals(ex.getCode(), 403);
+        }
     }
 
     @Test(expectedExceptions = { ResourceException.class })

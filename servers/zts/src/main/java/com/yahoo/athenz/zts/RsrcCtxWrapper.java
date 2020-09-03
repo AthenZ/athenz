@@ -19,6 +19,8 @@ import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.common.server.rest.Http;
 import com.yahoo.athenz.common.metrics.Metric;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -26,6 +28,7 @@ import javax.servlet.http.HttpServletResponse;
 public class RsrcCtxWrapper implements ResourceContext {
 
     private static final String ZTS_REQUEST_PRINCIPAL   = "com.yahoo.athenz.auth.principal";
+    private static final Logger LOG = LoggerFactory.getLogger(RsrcCtxWrapper.class);
 
     com.yahoo.athenz.common.server.rest.ResourceContext ctx;
     boolean optionalAuth;
@@ -88,6 +91,12 @@ public class RsrcCtxWrapper implements ResourceContext {
     public void authenticate() {
         try {
             ctx.authenticate(optionalAuth);
+            // For ZTS, prevent authentication with mTLS restricted certs
+            final Principal principal = principal();
+            if (principal != null && principal.getMtlsRestricted()) {
+                LOG.error("authenticate: certificate is mTLS restricted");
+                throw new com.yahoo.athenz.common.server.rest.ResourceException(com.yahoo.athenz.common.server.rest.ResourceException.UNAUTHORIZED, "certificate is mTLS restricted");
+            }
         } catch (com.yahoo.athenz.common.server.rest.ResourceException restExc) {
             throwZtsException(restExc);
         }

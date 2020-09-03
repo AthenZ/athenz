@@ -36,6 +36,12 @@ public class GlobStringsMatcher {
         }
     }
 
+    public boolean isEmptyPatternsList() {
+        return (patterns == null ||
+                patterns.size() == 0 ||
+                (patterns.size() == 1 && patterns.get(0).equals("^$")));
+    }
+
     public boolean isMatch(String value) {
         return patterns.stream().anyMatch(pattern -> value.matches(pattern));
     }

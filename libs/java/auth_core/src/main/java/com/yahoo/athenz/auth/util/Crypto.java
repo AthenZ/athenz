@@ -1124,6 +1124,11 @@ public class Crypto {
             LOG.error("isRestrictedCertificate: Required argument x509Cert is null. Returning true.");
             return true;
         }
+        if (globStringsMatcher.isEmptyPatternsList()) {
+            // No patterns provided, no need to check for mTLS restriction
+            return false;
+        }
+
         String x509Ou = extractX509CertSubjectOUField(x509Cert);
         return globStringsMatcher.isMatch(x509Ou);
     }

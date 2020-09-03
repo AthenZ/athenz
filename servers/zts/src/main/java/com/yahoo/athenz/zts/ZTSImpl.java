@@ -1372,8 +1372,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
 
-        validateNotMtlsRestricted(ctx, caller, domainName);
-
         // first retrieve our domain data object from the cache
 
         DataCache data = dataStore.getDataCache(domainName);
@@ -1515,8 +1513,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         if (request == null || request.isEmpty()) {
             throw requestError("Empty request body", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
-
-        validateNotMtlsRestricted(ctx, caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
 
         // we want to log the request body in our access log so
         // we know what is the client asking for but we'll just
@@ -1874,8 +1870,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     caller, domainName, domainName);
         }
 
-        validateNotMtlsRestricted(ctx, caller, domainName);
-
         // first retrieve our domain data object from the cache
 
         DataCache data = dataStore.getDataCache(domainName);
@@ -2190,8 +2184,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     caller, domainName, domainName);
         }
 
-        validateNotMtlsRestricted(ctx, caller, domainName);
-
         X509RoleCertRequest certReq;
         try {
             certReq = new X509RoleCertRequest(req.getCsr());
@@ -2379,8 +2371,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         final String principalName = principal.getFullName();
         final String roleResource = domainName + ":" + roleName.toLowerCase();
 
-        validateNotMtlsRestricted(ctx, caller, domainName);
-
         // we need to first verify that our principal is indeed configured
         // with aws assume role assertion for the specified role and domain
         
@@ -2513,8 +2503,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw forbiddenError("Unknown IP: " + ipAddress + " for Provider: " + provider,
                     caller, domain, principalDomain);
         }
-
-        validateNotMtlsRestricted(ctx, caller, domain);
 
         // run the authorization checks to make sure the provider has been
         // authorized to launch instances in Athenz and the service has
@@ -2850,8 +2838,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw requestError("Principal mismatch: " + principalName + " vs. " +
                     principal.getFullName(), caller, domain, principalDomain);
         }
-
-        validateNotMtlsRestricted(ctx, caller, domain);
 
         Authority authority = principal.getAuthority();
         
@@ -3303,8 +3289,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         final String principalName = principal.getFullName();
         boolean userRequest = false;
 
-        validateNotMtlsRestricted(ctx, caller, domain);
-
         if (!fullServiceName.equals(principalName)) {
             
             // if this not a match then we're going to allow the operation
@@ -3481,8 +3465,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         final String domainName = principal.getDomain();
         setRequestDomain(ctx, domainName);
 
-        validateNotMtlsRestricted(ctx, caller, domainName);
-
         // generate our certificate. the ssh signer interface throws
         // rest ResourceExceptions so we'll catch and log those
 
@@ -3543,8 +3525,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw requestError("postOSTKInstanceRefreshRequest: Principal mismatch: "
                     + principalName + " vs. " + principal.getFullName(), caller, domain, principalDomain);
         }
-
-        validateNotMtlsRestricted(ctx, caller, domain);
 
         Authority authority = principal.getAuthority();
         
@@ -3837,8 +3817,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         AthenzObject.DOMAIN_METRICS.convertToLowerCase(domainMetrics);
 
-        validateNotMtlsRestricted(ctx, caller, domainName);
-
         // verify valid domain specified
         DataCache data = dataStore.getDataCache(domainName);
         if (data == null) {
@@ -3981,17 +3959,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         if (principal != null && principal.getRoles() != null) {
             throw forbiddenError("Role Identity not authorized for request", caller,
                     ZTSConsts.ZTS_UNKNOWN_DOMAIN, principal.getDomain());
-        }
-    }
-
-    void validateNotMtlsRestricted(ResourceContext ctx, final String caller, final String requestDomain) {
-        final Principal principal = ((RsrcCtxWrapper) ctx).principal();
-        if (principal != null && principal.getMtlsRestricted()) {
-            final String principalName = principal.getFullName();
-            LOGGER.error(caller + ": Principal {} is mTLS restricted", principalName);
-            throw forbiddenError(caller + ": Principal: " + principalName
-                            + " is mTLS restricted", caller,
-                    requestDomain, principal.getDomain());
         }
     }
 

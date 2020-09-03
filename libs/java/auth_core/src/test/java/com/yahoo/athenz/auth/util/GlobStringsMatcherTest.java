@@ -16,14 +16,10 @@
 
 package com.yahoo.athenz.auth.util;
 
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class GlobStringsMatcherTest {
 
@@ -53,6 +49,28 @@ public class GlobStringsMatcherTest {
         assertFalse(globStringsMatcher.isMatch("something.else"));
 
         System.clearProperty(systemProperty);
+    }
 
+    @Test
+    public void testIsEmptyPatternsList() {
+        String globStrings =
+                "aaa.bbb.ccc.ddd, "
+                        + "???.ddd, "
+                        + "*.bbb.*.ddd, "
+                        + "aaa.??, ";
+
+        String systemProperty = "athenz.zts.notification_cert_fail_ignored_services_list";
+        System.setProperty(systemProperty, globStrings);
+        GlobStringsMatcher globStringsMatcher = new GlobStringsMatcher(systemProperty);
+        assertFalse(globStringsMatcher.isEmptyPatternsList());
+
+        System.setProperty(systemProperty, "");
+        globStringsMatcher = new GlobStringsMatcher(systemProperty);
+        assertTrue(globStringsMatcher.isEmptyPatternsList());
+
+        globStringsMatcher = new GlobStringsMatcher("some.other.property");
+        assertTrue(globStringsMatcher.isEmptyPatternsList());
+
+        System.clearProperty(systemProperty);
     }
 }

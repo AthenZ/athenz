@@ -2247,6 +2247,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     AccessStatus evaluateAccess(AthenzDomain domain, String identity, String action, String resource,
             List<String> authenticatedRoles, String trustDomain, Principal principal) {
 
+        // In ZMS, mTLS restricted certs cannot be used in APIs that require authorization
         if (principal.getMtlsRestricted()) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("evaluateAccess: mTLS restricted, access denied");
