@@ -812,7 +812,8 @@ type RoleMember struct {
 	SystemDisabled *int32 `json:"systemDisabled,omitempty" rdl:"optional"`
 
 	//
-	// server use only - principal type: user, group, or service
+	// server use only - principal type: unknown(0), user(1), service(2), or
+	// group(3)
 	//
 	PrincipalType *int32 `json:"principalType,omitempty" rdl:"optional"`
 }
@@ -4227,7 +4228,7 @@ type GroupMember struct {
 	SystemDisabled *int32 `json:"systemDisabled,omitempty" rdl:"optional"`
 
 	//
-	// server use only - principal type: user or service
+	// server use only - principal type: unknown(0), user(1) or service(2)
 	//
 	PrincipalType *int32 `json:"principalType,omitempty" rdl:"optional"`
 }

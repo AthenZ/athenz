@@ -143,7 +143,7 @@ public class ZMSSchema {
             .field("requestPrincipal", "ResourceName", true, "pending members only - name of the principal requesting the change")
             .field("reviewLastNotifiedTime", "Timestamp", true, "for pending membership requests, time when last notification was sent (for file store)")
             .field("systemDisabled", "Int32", true, "user disabled by system based on configured role setting")
-            .field("principalType", "Int32", true, "server use only - principal type: user, group, or service");
+            .field("principalType", "Int32", true, "server use only - principal type: unknown(0), user(1), service(2), or group(3)");
 
         sb.structType("RoleMeta")
             .comment("Set of metadata attributes that all roles may have and can be changed by domain admins.")
@@ -376,7 +376,7 @@ public class ZMSSchema {
             .field("requestPrincipal", "ResourceName", true, "pending members only - name of the principal requesting the change")
             .field("reviewLastNotifiedTime", "Timestamp", true, "for pending membership requests, time when last notification was sent (for file store)")
             .field("systemDisabled", "Int32", true, "user disabled by system based on configured group setting")
-            .field("principalType", "Int32", true, "server use only - principal type: user or service");
+            .field("principalType", "Int32", true, "server use only - principal type: unknown(0), user(1) or service(2)");
 
         sb.structType("GroupMembership")
             .comment("The representation for a group membership.")

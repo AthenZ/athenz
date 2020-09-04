@@ -158,7 +158,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected boolean readOnlyMode = false;
     protected boolean validateUserRoleMembers = false;
     protected boolean validateServiceRoleMembers = false;
-    protected boolean validateGroupRoleMembers = true;
     protected boolean useMasterCopyForSignedDomains = false;
     protected Set<String> validateServiceMemberSkipDomains;
     protected static Validator validator;
@@ -2961,7 +2960,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return user;
     }
 
-    private void addNormalizedRoleMember(Map<String, RoleMember> normalizedMembers,
+    private boolean addNormalizedRoleMember(Map<String, RoleMember> normalizedMembers,
             RoleMember member) {
 
         member.setMemberName(normalizeDomainAliasUser(member.getMemberName()));
@@ -2970,7 +2969,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         if (!normalizedMembers.containsKey(member.getMemberName())) {
             normalizedMembers.put(member.getMemberName(), member);
+            return true;
         }
+        return false;
     }
 
     void normalizeRoleMembers(Role role) {
@@ -2983,7 +2984,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         if (members != null) {
             for (String memberOld : members) {
                 RoleMember member = new RoleMember().setMemberName(memberOld);
-                addNormalizedRoleMember(normalizedMembers, member);
+                if (addNormalizedRoleMember(normalizedMembers, member)) {
+                    member.setPrincipalType(principalType(member.getMemberName()));
+                }
             }
         }
 
@@ -2992,14 +2995,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         List<RoleMember> roleMembers = role.getRoleMembers();
         if (roleMembers != null) {
             for (RoleMember member : roleMembers) {
-                addNormalizedRoleMember(normalizedMembers, member);
+                if (addNormalizedRoleMember(normalizedMembers, member)) {
+                    member.setPrincipalType(principalType(member.getMemberName()));
+                }
             }
-        }
-
-        // go through each member and set the principal type
-
-        for (RoleMember member : normalizedMembers.values()) {
-            member.setPrincipalType(principalType(member.getMemberName()));
         }
 
         role.setRoleMembers(new ArrayList<>(normalizedMembers.values()));
@@ -3614,10 +3613,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         return ZMSUtils.combineUserAuthorityFilters(roleUserAuthorityFilter, domainUserAuthorityFilter);
-    }
-
-    boolean shouldValidateRoleMembers(final String userAuthorityFilter) {
-        return validateGroupRoleMembers || validateUserRoleMembers || validateServiceRoleMembers || userAuthorityFilter != null;
     }
 
     String getUserAuthorityExpiryAttr(final String userAuthorityExpiry) {
@@ -8074,7 +8069,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return false;
     }
 
-    private void addNormalizedGroupMember(Map<String, GroupMember> normalizedMembers, GroupMember member) {
+    private boolean addNormalizedGroupMember(Map<String, GroupMember> normalizedMembers, GroupMember member) {
 
         member.setMemberName(normalizeDomainAliasUser(member.getMemberName()));
 
@@ -8082,7 +8077,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         if (!normalizedMembers.containsKey(member.getMemberName())) {
             normalizedMembers.put(member.getMemberName(), member);
+            return true;
         }
+        return false;
     }
 
     void normalizeGroupMembers(Group group) {
@@ -8092,14 +8089,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         List<GroupMember> groupMembers = group.getGroupMembers();
         if (groupMembers != null) {
             for (GroupMember member : groupMembers) {
-                addNormalizedGroupMember(normalizedMembers, member);
+
+                // if our member was added to the normalized map then we
+                // also need to set the principal type
+
+                if (addNormalizedGroupMember(normalizedMembers, member)) {
+                    member.setPrincipalType(principalType(member.getMemberName()));
+                }
             }
-        }
-
-        // go through each member and set the principal type
-
-        for (GroupMember member : normalizedMembers.values()) {
-            member.setPrincipalType(principalType(member.getMemberName()));
         }
 
         group.setGroupMembers(new ArrayList<>(normalizedMembers.values()));

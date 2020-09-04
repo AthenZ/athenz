@@ -24,12 +24,13 @@ import java.util.List;
 public interface Principal {
 
     /**
-     * Principal type - user, service or group
+     * Principal type - user, service, group or unknown
      */
     enum Type {
-        USER(0),
-        SERVICE(1),
-        GROUP(2);
+        UNKNOWN(0),
+        USER(1),
+        SERVICE(2),
+        GROUP(3);
 
         private final int principalType;
         Type(int type) {
@@ -44,7 +45,7 @@ public interface Principal {
                     return type;
                 }
             }
-            return null;
+            return UNKNOWN;
         }
     }
 
