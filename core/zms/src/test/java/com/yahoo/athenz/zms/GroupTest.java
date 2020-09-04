@@ -188,7 +188,8 @@ public class GroupTest {
                 .setLastNotifiedTime(Timestamp.fromMillis(123456789125L))
                 .setRequestPrincipal("user.admin")
                 .setReviewLastNotifiedTime(Timestamp.fromMillis(123456789127L))
-                .setSystemDisabled(1);
+                .setSystemDisabled(1)
+                .setPrincipalType(1);
 
         assertTrue(rm.equals(rm));
 
@@ -207,6 +208,7 @@ public class GroupTest {
         assertEquals(rm.getRequestPrincipal(), "user.admin");
         assertEquals(rm.getReviewLastNotifiedTime().millis(), 123456789127L);
         assertEquals(rm.getSystemDisabled(), Integer.valueOf(1));
+        assertEquals(rm.getPrincipalType(), Integer.valueOf(1));
 
         GroupMember rm2 = new GroupMember()
                 .setGroupName("group1")
@@ -220,7 +222,8 @@ public class GroupTest {
                 .setLastNotifiedTime(Timestamp.fromMillis(123456789125L))
                 .setRequestPrincipal("user.admin")
                 .setReviewLastNotifiedTime(Timestamp.fromMillis(123456789127L))
-                .setSystemDisabled(1);
+                .setSystemDisabled(1)
+                .setPrincipalType(1);
         assertTrue(rm2.equals(rm));
 
         rm2.setRequestPrincipal("user.test2");
@@ -305,6 +308,13 @@ public class GroupTest {
         rm2.setSystemDisabled(null);
         assertFalse(rm2.equals(rm));
         rm2.setSystemDisabled(1);
+        assertTrue(rm2.equals(rm));
+
+        rm2.setPrincipalType(2);
+        assertFalse(rm2.equals(rm));
+        rm2.setPrincipalType(null);
+        assertFalse(rm2.equals(rm));
+        rm2.setPrincipalType(1);
         assertTrue(rm2.equals(rm));
 
         assertFalse(rm2.equals(null));

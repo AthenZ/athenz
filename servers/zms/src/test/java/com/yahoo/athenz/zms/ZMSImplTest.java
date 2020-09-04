@@ -2581,31 +2581,41 @@ public class ZMSImplTest {
     @Test
     public void testCreateRoleInvalidMembers() {
 
-        TopLevelDomain dom1 = createTopLevelDomainObject(
-                "CreateInvalidMemberRoleDom1", "Test Domain1", "testOrg", adminUser);
+        final String domainName = "create-role-invalid-members";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
-        Role role1 = createRoleObject("CreateInvalidMemberRoleDom1", "Role1", null,
-                "user.joe", "jane");
+        Role role1 = createRoleObject(domainName, "Role1", null, "user.joe", "jane");
 
         try {
-            zms.putRole(mockDomRsrcCtx, "CreateInvalidMemberRoleDom1", "Role1", auditRef, role1);
+            zms.putRole(mockDomRsrcCtx, domainName, "Role1", auditRef, role1);
             fail();
         } catch (ResourceException ex) {
             assertEquals(404, ex.getCode());
         }
 
-        Role role2 = createRoleObject("CreateInvalidMemberRoleDom1", "Role2", null,
-                "joe", "user.jane");
+        Role role2 = createRoleObject(domainName, "Role2", null, "joe", "user.jane");
 
         try {
-            zms.putRole(mockDomRsrcCtx, "CreateInvalidMemberRoleDom1", "Role2", auditRef, role2);
+            zms.putRole(mockDomRsrcCtx, domainName, "Role2", auditRef, role2);
             fail();
         } catch (ResourceException ex) {
             assertEquals(404, ex.getCode());
         }
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx,"CreateInvalidMemberRoleDom1", auditRef);
+        // invalid group member
+
+        Role role3 = createRoleObject(domainName, "Role3", null, "user.jane", domainName + ":group.dev-team");
+
+        try {
+            zms.putRole(mockDomRsrcCtx, domainName, "Role3", auditRef, role3);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(400, ex.getCode());
+        }
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
     
     @Test
@@ -2756,7 +2766,46 @@ public class ZMSImplTest {
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "coretech", auditRef);
         zms.deleteTopLevelDomain(mockDomRsrcCtx,"CreateNormalizedServiceMemberRoleDom1", auditRef);
     }
-    
+
+    @Test
+    public void testCreateNormalizedGroupMemberRole() {
+
+        final String domainName = "group-member-role";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        TopLevelDomain dom2 = createTopLevelDomainObject("coretech", "Test Domain2", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
+
+        Group group1 = createGroupObject(domainName, "group1", "user.joe", "user.jane");
+        zms.putGroup(mockDomRsrcCtx, domainName, "group1", auditRef, group1);
+
+        Group group2 = createGroupObject("coretech", "dev-team", "user.joe", "user.jane");
+        zms.putGroup(mockDomRsrcCtx, "coretech", "dev-team", auditRef, group2);
+
+        ArrayList<RoleMember> roleMembers = new ArrayList<>();
+        roleMembers.add(new RoleMember().setMemberName(domainName + ":group.group1"));
+        roleMembers.add(new RoleMember().setMemberName("coretech:group.dev-team"));
+
+        Role role1 = createRoleObject(domainName, "Role1", null, roleMembers);
+        zms.putRole(mockDomRsrcCtx, domainName, "Role1", auditRef, role1);
+
+        Role role = zms.getRole(mockDomRsrcCtx, domainName, "Role1", false, false, false);
+        assertNotNull(role);
+
+        assertEquals(role.getName(), domainName + ":role.Role1".toLowerCase());
+        List<RoleMember> members = role.getRoleMembers();
+        assertNotNull(members);
+        assertEquals(members.size(), 2);
+        List<String> checkList = new ArrayList<>();
+        checkList.add(domainName + ":group.group1");
+        checkList.add("coretech:group.dev-team");
+        checkRoleMember(checkList, members);
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "coretech", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
     @Test
     public void testCreateNormalizedCombinedMemberRole() {
 
@@ -2779,7 +2828,10 @@ public class ZMSImplTest {
         SubDomain subDom4 = createSubDomainObject("dom1", "user.user1",
                 "Test Domain2", "testOrg", adminUser);
         zms.postSubDomain(mockDomRsrcCtx, "user.user1", auditRef, subDom4);
-        
+
+        Group group1 = createGroupObject("coretech.storage", "dev-team", "user.joe", "user.jane");
+        zms.putGroup(mockDomRsrcCtx, "coretech.storage", "dev-team", auditRef, group1);
+
         ArrayList<RoleMember> roleMembers = new ArrayList<>();
         roleMembers.add(new RoleMember().setMemberName("user.joe"));
         roleMembers.add(new RoleMember().setMemberName("user.joe"));
@@ -2788,7 +2840,8 @@ public class ZMSImplTest {
         roleMembers.add(new RoleMember().setMemberName("coretech.storage"));
         roleMembers.add(new RoleMember().setMemberName("coretech.storage"));
         roleMembers.add(new RoleMember().setMemberName("user.user1.dom1.api"));
-        
+        roleMembers.add(new RoleMember().setMemberName("coretech.storage:group.dev-team"));
+
         Role role1 = createRoleObject("CreateNormalizedCombinedMemberRoleDom1", "Role1", 
                 null, roleMembers);
         zms.putRole(mockDomRsrcCtx, "CreateNormalizedCombinedMemberRoleDom1", "Role1", auditRef, role1);
@@ -2799,12 +2852,13 @@ public class ZMSImplTest {
         assertEquals(role.getName(), "CreateNormalizedCombinedMemberRoleDom1:role.Role1".toLowerCase());
         List<RoleMember> members = role.getRoleMembers();
         assertNotNull(members);
-        assertEquals(members.size(), 4);
+        assertEquals(members.size(), 5);
         List<String> checkList = new ArrayList<>();
         checkList.add("user.joe");
         checkList.add("user.jane");
         checkList.add("coretech.storage");
         checkList.add("user.user1.dom1.api");
+        checkList.add("coretech.storage:group.dev-team");
         checkRoleMember(checkList, members);
 
         zms.deleteSubDomain(mockDomRsrcCtx, "user.user1", "dom1", auditRef);
@@ -19156,11 +19210,11 @@ public class ZMSImplTest {
         // if both are false then any invalid users are ok
 
         List<RoleMember> roleMembers = new ArrayList<>();
-        roleMembers.add(new RoleMember().setMemberName("user"));
-        roleMembers.add(new RoleMember().setMemberName("user.john"));
-        roleMembers.add(new RoleMember().setMemberName("user.jane"));
-        roleMembers.add(new RoleMember().setMemberName("coretech.api"));
-        roleMembers.add(new RoleMember().setMemberName("coretech.backend"));
+        roleMembers.add(new RoleMember().setMemberName("user").setPrincipalType(Principal.Type.SERVICE.getValue()));
+        roleMembers.add(new RoleMember().setMemberName("user.john").setPrincipalType(Principal.Type.USER.getValue()));
+        roleMembers.add(new RoleMember().setMemberName("user.jane").setPrincipalType(Principal.Type.USER.getValue()));
+        roleMembers.add(new RoleMember().setMemberName("coretech.api").setPrincipalType(Principal.Type.SERVICE.getValue()));
+        roleMembers.add(new RoleMember().setMemberName("coretech.backend").setPrincipalType(Principal.Type.SERVICE.getValue()));
 
         Role role = new Role().setRoleMembers(roleMembers);
         zms.validateRoleMemberPrincipals(role, null, "unittest");
@@ -19173,15 +19227,15 @@ public class ZMSImplTest {
         // include all valid principals
 
         roleMembers = new ArrayList<>();
-        roleMembers.add(new RoleMember().setMemberName("user.joe"));
-        roleMembers.add(new RoleMember().setMemberName("user.jane"));
+        roleMembers.add(new RoleMember().setMemberName("user.joe").setPrincipalType(Principal.Type.USER.getValue()));
+        roleMembers.add(new RoleMember().setMemberName("user.jane").setPrincipalType(Principal.Type.USER.getValue()));
         role.setRoleMembers(roleMembers);
 
         zms.validateRoleMemberPrincipals(role, null, "unittest");
 
         // add one more invalid user
 
-        roleMembers.add(new RoleMember().setMemberName("user.john"));
+        roleMembers.add(new RoleMember().setMemberName("user.john").setPrincipalType(Principal.Type.USER.getValue()));
         try {
             zms.validateRoleMemberPrincipals(role, null, "unittest");
             fail();
@@ -19198,13 +19252,13 @@ public class ZMSImplTest {
 
         // valid users no exception
 
-        zms.validateRoleMemberPrincipal("user.joe", null, "unittest");
-        zms.validateRoleMemberPrincipal("user.jane", null, "unittest");
+        zms.validateRoleMemberPrincipal("user.joe", Principal.Type.USER.getValue(), null, "unittest");
+        zms.validateRoleMemberPrincipal("user.jane", Principal.Type.USER.getValue(), null, "unittest");
 
         // invalid user request error
 
         try {
-            zms.validateRoleMemberPrincipal("user.john", null, "unittest");
+            zms.validateRoleMemberPrincipal("user.john", Principal.Type.USER.getValue(), null, "unittest");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -19212,24 +19266,24 @@ public class ZMSImplTest {
 
         // non - user principals by default are accepted
 
-        zms.validateRoleMemberPrincipal("coretech.api", null, "unittest");
+        zms.validateRoleMemberPrincipal("coretech.api", Principal.Type.SERVICE.getValue(), null, "unittest");
 
         // valid employee and contractor users
 
-        zms.validateRoleMemberPrincipal("user.joe", "employee", "unittest");
-        zms.validateRoleMemberPrincipal("user.jane", "employee", "unittest");
-        zms.validateRoleMemberPrincipal("user.jack", "contractor", "unittest");
+        zms.validateRoleMemberPrincipal("user.joe", Principal.Type.USER.getValue(), "employee", "unittest");
+        zms.validateRoleMemberPrincipal("user.jane", Principal.Type.USER.getValue(), "employee", "unittest");
+        zms.validateRoleMemberPrincipal("user.jack", Principal.Type.USER.getValue(), "contractor", "unittest");
 
         // valid multiple attribute users
 
-        zms.validateRoleMemberPrincipal("user.joe", "employee,local", "unittest");
-        zms.validateRoleMemberPrincipal("user.jane", "employee,local", "unittest");
-        zms.validateRoleMemberPrincipal("user.jack", "contractor,local", "unittest");
+        zms.validateRoleMemberPrincipal("user.joe", Principal.Type.USER.getValue(), "employee,local", "unittest");
+        zms.validateRoleMemberPrincipal("user.jane", Principal.Type.USER.getValue(), "employee,local", "unittest");
+        zms.validateRoleMemberPrincipal("user.jack", Principal.Type.USER.getValue(), "contractor,local", "unittest");
 
         // invalid employee type
 
         try {
-            zms.validateRoleMemberPrincipal("user.jack", "employee", "unittest");
+            zms.validateRoleMemberPrincipal("user.jack", Principal.Type.USER.getValue(), "employee", "unittest");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -19238,7 +19292,7 @@ public class ZMSImplTest {
         // invalid multiple types
 
         try {
-            zms.validateRoleMemberPrincipal("user.jack", "local,employee", "unittest");
+            zms.validateRoleMemberPrincipal("user.jack", Principal.Type.USER.getValue(), "local,employee", "unittest");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -19252,13 +19306,13 @@ public class ZMSImplTest {
 
         // wildcards are always valid with no exception
 
-        zms.validateRoleMemberPrincipal("athenz.api*", null, "unittest");
-        zms.validateRoleMemberPrincipal("coretech.*", null, "unittest");
+        zms.validateRoleMemberPrincipal("athenz.api*", Principal.Type.SERVICE.getValue(), null, "unittest");
+        zms.validateRoleMemberPrincipal("coretech.*", Principal.Type.SERVICE.getValue(), null, "unittest");
 
         // should get back invalid request since service does not exist
 
         try {
-            zms.validateRoleMemberPrincipal("coretech.api", "employee", "unittest");
+            zms.validateRoleMemberPrincipal("coretech.api", Principal.Type.SERVICE.getValue(), "employee", "unittest");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -19267,7 +19321,7 @@ public class ZMSImplTest {
         // invalid service request error
 
         try {
-            zms.validateRoleMemberPrincipal("coretech", null, "unittest");
+            zms.validateRoleMemberPrincipal("coretech", Principal.Type.SERVICE.getValue(), null, "unittest");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -19289,12 +19343,12 @@ public class ZMSImplTest {
 
         // known service - no exception
 
-        zms.validateRoleMemberPrincipal("coretech.api", null, "unittest");
+        zms.validateRoleMemberPrincipal("coretech.api", Principal.Type.SERVICE.getValue(), null, "unittest");
 
         // unknown service - exception
 
         try {
-            zms.validateRoleMemberPrincipal("coretech.backend", null, "unittest");
+            zms.validateRoleMemberPrincipal("coretech.backend", Principal.Type.SERVICE.getValue(), null, "unittest");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -19310,12 +19364,12 @@ public class ZMSImplTest {
 
         // coretech is now accepted
 
-        zms.validateRoleMemberPrincipal("coretech.backend", null, "unittest");
+        zms.validateRoleMemberPrincipal("coretech.backend", Principal.Type.SERVICE.getValue(), null, "unittest");
 
         // but coretech2 is rejected
 
         try {
-            zms.validateRoleMemberPrincipal("coretech2.backend", null, "unittest");
+            zms.validateRoleMemberPrincipal("coretech2.backend", Principal.Type.SERVICE.getValue(), null, "unittest");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -19323,7 +19377,7 @@ public class ZMSImplTest {
 
         // user principals by default are accepted
 
-        zms.validateRoleMemberPrincipal("user.john", null, "unittest");
+        zms.validateRoleMemberPrincipal("user.john", Principal.Type.USER.getValue(), null, "unittest");
 
         // reset our setting
 
@@ -19456,12 +19510,16 @@ public class ZMSImplTest {
         long ext150Millis = TimeUnit.MILLISECONDS.convert(150, TimeUnit.DAYS);
 
         List<RoleMember> members = new ArrayList<>();
-        members.add(new RoleMember().setMemberName("user.joe").setReviewReminder(null));
+        members.add(new RoleMember().setMemberName("user.joe").setReviewReminder(null)
+                .setPrincipalType(Principal.Type.USER.getValue()));
         members.add(new RoleMember().setMemberName("user.jane")
-                .setReviewReminder(Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis)));
-        members.add(new RoleMember().setMemberName("athenz.api").setReviewReminder(null));
+                .setReviewReminder(Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis))
+                .setPrincipalType(Principal.Type.USER.getValue()));
+        members.add(new RoleMember().setMemberName("athenz.api").setReviewReminder(null)
+                .setPrincipalType(Principal.Type.SERVICE.getValue()));
         members.add(new RoleMember().setMemberName("athenz.backend")
-                .setReviewReminder(Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis)));
+                .setReviewReminder(Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis))
+                .setPrincipalType(Principal.Type.SERVICE.getValue()));
 
         zms.updateRoleMemberReviewReminder(
                 125,
@@ -19487,12 +19545,16 @@ public class ZMSImplTest {
         long ext150Millis = TimeUnit.MILLISECONDS.convert(150, TimeUnit.DAYS);
 
         List<RoleMember> members = new ArrayList<>();
-        members.add(new RoleMember().setMemberName("user.joe").setReviewReminder(null));
+        members.add(new RoleMember().setMemberName("user.joe").setReviewReminder(null)
+                .setPrincipalType(Principal.Type.USER.getValue()));
         members.add(new RoleMember().setMemberName("user.jane")
-                .setReviewReminder(Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis)));
-        members.add(new RoleMember().setMemberName("athenz.api").setReviewReminder(null));
+                .setReviewReminder(Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis))
+                .setPrincipalType(Principal.Type.USER.getValue()));
+        members.add(new RoleMember().setMemberName("athenz.api").setReviewReminder(null)
+                .setPrincipalType(Principal.Type.SERVICE.getValue()));
         members.add(new RoleMember().setMemberName("athenz.backend")
-                .setReviewReminder(Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis)));
+                .setReviewReminder(Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis))
+                .setPrincipalType(Principal.Type.SERVICE.getValue()));
 
         zms.updateRoleMemberReviewReminder(
                 0,
@@ -19518,12 +19580,16 @@ public class ZMSImplTest {
         long ext125Millis = TimeUnit.MILLISECONDS.convert(125, TimeUnit.DAYS);
 
         List<RoleMember> members = new ArrayList<>();
-        members.add(new RoleMember().setMemberName("user.joe").setReviewReminder(null));
+        members.add(new RoleMember().setMemberName("user.joe").setReviewReminder(null)
+                .setPrincipalType(Principal.Type.USER.getValue()));
         members.add(new RoleMember().setMemberName("user.jane")
-                .setReviewReminder(Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis)));
-        members.add(new RoleMember().setMemberName("athenz.api").setReviewReminder(null));
+                .setReviewReminder(Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis))
+                .setPrincipalType(Principal.Type.USER.getValue()));
+        members.add(new RoleMember().setMemberName("athenz.api").setReviewReminder(null)
+                .setPrincipalType(Principal.Type.SERVICE.getValue()));
         members.add(new RoleMember().setMemberName("athenz.backend")
-                .setReviewReminder(Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis)));
+                .setReviewReminder(Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis))
+                .setPrincipalType(Principal.Type.SERVICE.getValue()));
 
         zms.updateRoleMemberReviewReminder(125, 0, members);
 
@@ -19547,12 +19613,21 @@ public class ZMSImplTest {
         long ext150Millis = TimeUnit.MILLISECONDS.convert(150, TimeUnit.DAYS);
 
         List<RoleMember> members = new ArrayList<>();
-        members.add(new RoleMember().setMemberName("user.joe").setExpiration(null));
+        members.add(new RoleMember().setMemberName("user.joe").setExpiration(null)
+                .setPrincipalType(Principal.Type.USER.getValue()));
         members.add(new RoleMember().setMemberName("user.jane")
-                .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis)));
-        members.add(new RoleMember().setMemberName("athenz.api").setExpiration(null));
+                .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis))
+                .setPrincipalType(Principal.Type.USER.getValue()));
+        members.add(new RoleMember().setMemberName("athenz.api").setExpiration(null)
+                .setPrincipalType(Principal.Type.SERVICE.getValue()));
         members.add(new RoleMember().setMemberName("athenz.backend")
-                .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis)));
+                .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis))
+                .setPrincipalType(Principal.Type.SERVICE.getValue()));
+        members.add(new RoleMember().setMemberName("athenz:group.dev-team").setExpiration(null)
+                .setPrincipalType(Principal.Type.GROUP.getValue()));
+        members.add(new RoleMember().setMemberName("athenz:group.ops-team")
+                .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis))
+                .setPrincipalType(Principal.Type.GROUP.getValue()));
 
         // for user members we have 50/125 setup while for service members 75/150
 
@@ -19560,7 +19635,10 @@ public class ZMSImplTest {
                 50,
                 125,
                 75,
-                150, members);
+                150,
+                100,
+                125,
+                members);
 
         Timestamp stamp = members.get(0).getExpiration();
         assertTrue(validateDueDate(stamp.millis(), ext125Millis));
@@ -19573,6 +19651,12 @@ public class ZMSImplTest {
 
         stamp = members.get(3).getExpiration();
         assertTrue(validateDueDate(stamp.millis(), ext100Millis));
+
+        stamp = members.get(4).getExpiration();
+        assertTrue(validateDueDate(stamp.millis(), ext125Millis));
+
+        stamp = members.get(5).getExpiration();
+        assertTrue(validateDueDate(stamp.millis(), ext100Millis));
     }
 
     @Test
@@ -19582,12 +19666,21 @@ public class ZMSImplTest {
         long ext150Millis = TimeUnit.MILLISECONDS.convert(150, TimeUnit.DAYS);
 
         List<RoleMember> members = new ArrayList<>();
-        members.add(new RoleMember().setMemberName("user.joe").setExpiration(null));
+        members.add(new RoleMember().setMemberName("user.joe").setExpiration(null)
+                .setPrincipalType(Principal.Type.USER.getValue()));
         members.add(new RoleMember().setMemberName("user.jane")
-                .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis)));
-        members.add(new RoleMember().setMemberName("athenz.api").setExpiration(null));
+                .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis))
+                .setPrincipalType(Principal.Type.USER.getValue()));
+        members.add(new RoleMember().setMemberName("athenz.api").setExpiration(null)
+                .setPrincipalType(Principal.Type.SERVICE.getValue()));
         members.add(new RoleMember().setMemberName("athenz.backend")
-                .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis)));
+                .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis))
+                .setPrincipalType(Principal.Type.SERVICE.getValue()));
+        members.add(new RoleMember().setMemberName("athenz:group.dev-team").setExpiration(null)
+                .setPrincipalType(Principal.Type.GROUP.getValue()));
+        members.add(new RoleMember().setMemberName("athenz:group.ops-team")
+                .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis))
+                .setPrincipalType(Principal.Type.GROUP.getValue()));
 
         // for user members we have 0 setup while for service members 75/150
 
@@ -19596,6 +19689,8 @@ public class ZMSImplTest {
                 0,
                 75,
                 150,
+                0,
+                0,
                 members);
 
         assertNull(members.get(0).getExpiration());
@@ -19608,6 +19703,11 @@ public class ZMSImplTest {
 
         stamp = members.get(3).getExpiration();
         assertTrue(validateDueDate(stamp.millis(), ext100Millis));
+
+        assertNull(members.get(4).getExpiration());
+
+        stamp = members.get(5).getExpiration();
+        assertTrue(validateDueDate(stamp.millis(), ext100Millis));
     }
 
     @Test
@@ -19617,18 +19717,24 @@ public class ZMSImplTest {
         long ext125Millis = TimeUnit.MILLISECONDS.convert(125, TimeUnit.DAYS);
 
         List<RoleMember> members = new ArrayList<>();
-        members.add(new RoleMember().setMemberName("user.joe").setExpiration(null));
+        members.add(new RoleMember().setMemberName("user.joe").setExpiration(null)
+                .setPrincipalType(Principal.Type.USER.getValue()));
         members.add(new RoleMember().setMemberName("user.jane")
-                .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis)));
-        members.add(new RoleMember().setMemberName("athenz.api").setExpiration(null));
+                .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis))
+                .setPrincipalType(Principal.Type.USER.getValue()));
+        members.add(new RoleMember().setMemberName("athenz.api").setExpiration(null)
+                .setPrincipalType(Principal.Type.SERVICE.getValue()));
         members.add(new RoleMember().setMemberName("athenz.backend")
-                .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis)));
+                .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis))
+                .setPrincipalType(Principal.Type.SERVICE.getValue()));
 
         // for user members we have 50/125 setup while for service members 0
 
         zms.updateRoleMemberExpiration(
                 50,
                 125,
+                0,
+                0,
                 0,
                 0,
                 members);
@@ -20582,8 +20688,8 @@ public class ZMSImplTest {
         Role role = new Role().setUserAuthorityExpiration("elevated-clearance");
 
         List<RoleMember> members = new ArrayList<>();
-        members.add(new RoleMember().setMemberName("user.john"));
-        members.add(new RoleMember().setMemberName("user.joe"));
+        members.add(new RoleMember().setMemberName("user.john").setPrincipalType(Principal.Type.USER.getValue()));
+        members.add(new RoleMember().setMemberName("user.joe").setPrincipalType(Principal.Type.USER.getValue()));
         role.setRoleMembers(members);
 
         Authority savedAuthority = zms.userAuthority;
@@ -20616,8 +20722,8 @@ public class ZMSImplTest {
         // let's have one valid user and one service
 
         members = new ArrayList<>();
-        members.add(new RoleMember().setMemberName("user.john"));
-        members.add(new RoleMember().setMemberName("sports.api"));
+        members.add(new RoleMember().setMemberName("user.john").setPrincipalType(Principal.Type.USER.getValue()));
+        members.add(new RoleMember().setMemberName("sports.api").setPrincipalType(Principal.Type.SERVICE.getValue()));
         role.setRoleMembers(members);
 
         // the user will have an expiration while service is skipped
@@ -20629,8 +20735,8 @@ public class ZMSImplTest {
         // now let's have only user members
 
         members = new ArrayList<>();
-        members.add(new RoleMember().setMemberName("user.john"));
-        members.add(new RoleMember().setMemberName("user.jane"));
+        members.add(new RoleMember().setMemberName("user.john").setPrincipalType(Principal.Type.USER.getValue()));
+        members.add(new RoleMember().setMemberName("user.jane").setPrincipalType(Principal.Type.USER.getValue()));
         role.setRoleMembers(members);
 
         zms.updateRoleMemberUserAuthorityExpiry(role, "unit-test");
@@ -21141,6 +21247,31 @@ public class ZMSImplTest {
         // remove read-only mode
 
         setDatabaseReadOnlyMode(false);
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testCreateGroupInvalidMembers() {
+
+        final String domainName = "create-group-invalid-member-failure";
+        final String groupName = "dev-team";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Group group1 = createGroupObject(domainName, groupName, "user.joe", "user.jane");
+        zms.putGroup(mockDomRsrcCtx, domainName, groupName, auditRef, group1);
+
+        // add group members with another group as member
+
+        Group group2 = createGroupObject(domainName, "group2", "user.joe", domainName  + ":group.dev-team");
+        try {
+            zms.putGroup(mockDomRsrcCtx, domainName, "group2", auditRef, group2);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
@@ -21667,11 +21798,11 @@ public class ZMSImplTest {
         // if both are false then any invalid users are ok
 
         List<GroupMember> groupMembers = new ArrayList<>();
-        groupMembers.add(new GroupMember().setMemberName("user"));
-        groupMembers.add(new GroupMember().setMemberName("user.john"));
-        groupMembers.add(new GroupMember().setMemberName("user.jane"));
-        groupMembers.add(new GroupMember().setMemberName("coretech.api"));
-        groupMembers.add(new GroupMember().setMemberName("coretech.backend"));
+        groupMembers.add(new GroupMember().setMemberName("user").setPrincipalType(Principal.Type.SERVICE.getValue()));
+        groupMembers.add(new GroupMember().setMemberName("user.john").setPrincipalType(Principal.Type.USER.getValue()));
+        groupMembers.add(new GroupMember().setMemberName("user.jane").setPrincipalType(Principal.Type.USER.getValue()));
+        groupMembers.add(new GroupMember().setMemberName("coretech.api").setPrincipalType(Principal.Type.SERVICE.getValue()));
+        groupMembers.add(new GroupMember().setMemberName("coretech.backend").setPrincipalType(Principal.Type.SERVICE.getValue()));
 
         Group group = new Group().setGroupMembers(groupMembers);
         zms.validateGroupMemberPrincipals(group, null, "unittest");
@@ -21684,15 +21815,15 @@ public class ZMSImplTest {
         // include all valid principals
 
         groupMembers = new ArrayList<>();
-        groupMembers.add(new GroupMember().setMemberName("user.joe"));
-        groupMembers.add(new GroupMember().setMemberName("user.jane"));
+        groupMembers.add(new GroupMember().setMemberName("user.joe").setPrincipalType(Principal.Type.USER.getValue()));
+        groupMembers.add(new GroupMember().setMemberName("user.jane").setPrincipalType(Principal.Type.USER.getValue()));
         group.setGroupMembers(groupMembers);
 
         zms.validateGroupMemberPrincipals(group, null, "unittest");
 
         // add one more invalid user
 
-        groupMembers.add(new GroupMember().setMemberName("user.john"));
+        groupMembers.add(new GroupMember().setMemberName("user.john").setPrincipalType(Principal.Type.USER.getValue()));
         try {
             zms.validateGroupMemberPrincipals(group, null, "unittest");
             fail();

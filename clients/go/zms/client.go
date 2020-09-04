@@ -1597,7 +1597,7 @@ func (client ZMSClient) DeleteGroup(domainName DomainName, groupName EntityName,
 	}
 }
 
-func (client ZMSClient) GetGroupMembership(domainName DomainName, groupName EntityName, memberName MemberName, expiration string) (*GroupMembership, error) {
+func (client ZMSClient) GetGroupMembership(domainName DomainName, groupName EntityName, memberName GroupMemberName, expiration string) (*GroupMembership, error) {
 	var data *GroupMembership
 	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/group/" + fmt.Sprint(groupName) + "/member/" + fmt.Sprint(memberName) + encodeParams(encodeStringParam("expiration", string(expiration), ""))
 	resp, err := client.httpGet(url, nil)
@@ -1661,7 +1661,7 @@ func (client ZMSClient) GetPrincipalGroups(principal EntityName, domainName Doma
 	}
 }
 
-func (client ZMSClient) PutGroupMembership(domainName DomainName, groupName EntityName, memberName MemberName, auditRef string, membership *GroupMembership) error {
+func (client ZMSClient) PutGroupMembership(domainName DomainName, groupName EntityName, memberName GroupMemberName, auditRef string, membership *GroupMembership) error {
 	headers := map[string]string{
 		"Y-Audit-Ref": auditRef,
 	}
@@ -1695,7 +1695,7 @@ func (client ZMSClient) PutGroupMembership(domainName DomainName, groupName Enti
 	}
 }
 
-func (client ZMSClient) DeleteGroupMembership(domainName DomainName, groupName EntityName, memberName MemberName, auditRef string) error {
+func (client ZMSClient) DeleteGroupMembership(domainName DomainName, groupName EntityName, memberName GroupMemberName, auditRef string) error {
 	headers := map[string]string{
 		"Y-Audit-Ref": auditRef,
 	}
@@ -1725,7 +1725,7 @@ func (client ZMSClient) DeleteGroupMembership(domainName DomainName, groupName E
 	}
 }
 
-func (client ZMSClient) DeletePendingGroupMembership(domainName DomainName, groupName EntityName, memberName MemberName, auditRef string) error {
+func (client ZMSClient) DeletePendingGroupMembership(domainName DomainName, groupName EntityName, memberName GroupMemberName, auditRef string) error {
 	headers := map[string]string{
 		"Y-Audit-Ref": auditRef,
 	}
@@ -1823,7 +1823,7 @@ func (client ZMSClient) PutGroupMeta(domainName DomainName, groupName EntityName
 	}
 }
 
-func (client ZMSClient) PutGroupMembershipDecision(domainName DomainName, groupName EntityName, memberName MemberName, auditRef string, membership *GroupMembership) error {
+func (client ZMSClient) PutGroupMembershipDecision(domainName DomainName, groupName EntityName, memberName GroupMemberName, auditRef string, membership *GroupMembership) error {
 	headers := map[string]string{
 		"Y-Audit-Ref": auditRef,
 	}

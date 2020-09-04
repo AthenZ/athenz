@@ -107,41 +107,14 @@ func (cli Zms) DeleteGroup(dn string, gn string) (*string, error) {
 	return &s, nil
 }
 
-func (cli Zms) AddGroupMemberList(dn string, gn string, members []*zms.GroupMember) (*string, error) {
-	fullResourceName := dn + ":group." + gn
-	cli.validateGroupMembers(members)
-	var outputLine string
-	for idx, mbr := range members {
-		var member zms.GroupMembership
-		member.MemberName = mbr.MemberName
-		member.GroupName = zms.ResourceName(gn)
-		member.Expiration = mbr.Expiration
-		err := cli.Zms.PutGroupMembership(zms.DomainName(dn), zms.EntityName(gn), mbr.MemberName, cli.AuditRef, &member)
-		if err != nil {
-			return nil, err
-		}
-		if idx != 0 {
-			outputLine = ","
-		}
-		outputLine = outputLine + string(member.MemberName)
-	}
-	var s string
-	if cli.Verbose {
-		s = "[Added to " + fullResourceName + ": " + outputLine + "]"
-	} else {
-		s = "[Added to " + gn + ": " + outputLine + "]"
-	}
-	return &s, nil
-}
-
 func (cli Zms) AddGroupMembers(dn string, group string, members []string) (*string, error) {
 	fullResourceName := dn + ":group." + group
 	ms := cli.validatedUsers(members, false)
 	for _, m := range ms {
 		var member zms.GroupMembership
-		member.MemberName = zms.MemberName(m)
+		member.MemberName = zms.GroupMemberName(m)
 		member.GroupName = zms.ResourceName(group)
-		err := cli.Zms.PutGroupMembership(zms.DomainName(dn), zms.EntityName(group), zms.MemberName(m), cli.AuditRef, &member)
+		err := cli.Zms.PutGroupMembership(zms.DomainName(dn), zms.EntityName(group), zms.GroupMemberName(m), cli.AuditRef, &member)
 		if err != nil {
 			return nil, err
 		}
@@ -159,7 +132,7 @@ func (cli Zms) DeleteGroupMembers(dn string, group string, members []string) (*s
 	fullResourceName := dn + ":group." + group
 	ms := cli.validatedUsers(members, false)
 	for _, m := range ms {
-		err := cli.Zms.DeleteGroupMembership(zms.DomainName(dn), zms.EntityName(group), zms.MemberName(m), cli.AuditRef)
+		err := cli.Zms.DeleteGroupMembership(zms.DomainName(dn), zms.EntityName(group), zms.GroupMemberName(m), cli.AuditRef)
 		if err != nil {
 			return nil, err
 		}
@@ -177,7 +150,7 @@ func (cli Zms) CheckGroupMembers(dn string, group string, members []string) (*st
 	var buf bytes.Buffer
 	ms := cli.validatedUsers(members, false)
 	for _, m := range ms {
-		member, err := cli.Zms.GetGroupMembership(zms.DomainName(dn), zms.EntityName(group), zms.MemberName(m), "")
+		member, err := cli.Zms.GetGroupMembership(zms.DomainName(dn), zms.EntityName(group), zms.GroupMemberName(m), "")
 		if err != nil {
 			return nil, err
 		}
@@ -189,7 +162,7 @@ func (cli Zms) CheckGroupMembers(dn string, group string, members []string) (*st
 
 func (cli Zms) CheckActiveGroupMember(dn string, group string, mbr string) (*string, error) {
 	var buf bytes.Buffer
-	member, err := cli.Zms.GetGroupMembership(zms.DomainName(dn), zms.EntityName(group), zms.MemberName(mbr), "")
+	member, err := cli.Zms.GetGroupMembership(zms.DomainName(dn), zms.EntityName(group), zms.GroupMemberName(mbr), "")
 	if err != nil {
 		return nil, err
 	}
@@ -318,10 +291,10 @@ func (cli Zms) SetGroupNotifyRoles(dn string, gn string, notifyRoles string) (*s
 func (cli Zms) PutGroupMembershipDecision(dn string, group string, mbr string, approval bool) (*string, error) {
 	validatedUser := cli.validatedUser(mbr)
 	var member zms.GroupMembership
-	member.MemberName = zms.MemberName(validatedUser)
+	member.MemberName = zms.GroupMemberName(validatedUser)
 	member.GroupName = zms.ResourceName(group)
 	member.Approved = &approval
-	err := cli.Zms.PutGroupMembershipDecision(zms.DomainName(dn), zms.EntityName(group), zms.MemberName(validatedUser), cli.AuditRef, &member)
+	err := cli.Zms.PutGroupMembershipDecision(zms.DomainName(dn), zms.EntityName(group), zms.GroupMemberName(validatedUser), cli.AuditRef, &member)
 	if err != nil {
 		return nil, err
 	}

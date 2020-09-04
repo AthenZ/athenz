@@ -1736,7 +1736,8 @@ public class ZMSCoreTest {
                 .setRequestPrincipal("user.admin")
                 .setReviewReminder(Timestamp.fromMillis(123456789126L))
                 .setReviewLastNotifiedTime(Timestamp.fromMillis(123456789127L))
-                .setSystemDisabled(1);
+                .setSystemDisabled(1)
+                .setPrincipalType(1);
 
         assertTrue(rm.equals(rm));
 
@@ -1754,6 +1755,7 @@ public class ZMSCoreTest {
         assertEquals(rm.getReviewReminder().millis(), 123456789126L);
         assertEquals(rm.getReviewLastNotifiedTime().millis(), 123456789127L);
         assertEquals(rm.getSystemDisabled(), Integer.valueOf(1));
+        assertEquals(rm.getPrincipalType(), Integer.valueOf(1));
 
         RoleMember rm2 = new RoleMember()
                 .setMemberName("user.test1")
@@ -1766,7 +1768,8 @@ public class ZMSCoreTest {
                 .setRequestPrincipal("user.admin")
                 .setReviewReminder(Timestamp.fromMillis(123456789126L))
                 .setReviewLastNotifiedTime(Timestamp.fromMillis(123456789127L))
-                .setSystemDisabled(1);
+                .setSystemDisabled(1)
+                .setPrincipalType(1);
         assertTrue(rm2.equals(rm));
 
         rm2.setRequestPrincipal("user.test2");
@@ -1844,6 +1847,13 @@ public class ZMSCoreTest {
         rm2.setSystemDisabled(null);
         assertFalse(rm2.equals(rm));
         rm2.setSystemDisabled(1);
+        assertTrue(rm2.equals(rm));
+
+        rm2.setPrincipalType(2);
+        assertFalse(rm2.equals(rm));
+        rm2.setPrincipalType(null);
+        assertFalse(rm2.equals(rm));
+        rm2.setPrincipalType(1);
         assertTrue(rm2.equals(rm));
 
         assertFalse(rm2.equals(null));

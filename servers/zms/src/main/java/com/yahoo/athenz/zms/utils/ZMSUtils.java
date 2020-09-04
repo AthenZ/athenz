@@ -19,12 +19,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.yahoo.athenz.auth.Authority;
-import com.yahoo.athenz.auth.util.StringUtils;
 import com.yahoo.athenz.zms.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.yahoo.athenz.auth.AuthorityConsts;
+import com.yahoo.athenz.auth.util.StringUtils;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.log.AuditLogger;
@@ -333,6 +333,18 @@ public class ZMSUtils {
         return boolVal;
     }
 
+    public static int principalType(final String memberName, final String userDomainPrefix,
+                                        final List<String> addlUserCheckDomainPrefixList) {
+
+        if (ZMSUtils.isUserDomainPrincipal(memberName, userDomainPrefix, addlUserCheckDomainPrefixList)) {
+            return Principal.Type.USER.getValue();
+        } else if (memberName.contains(AuthorityConsts.GROUP_SEP)) {
+            return Principal.Type.GROUP.getValue();
+        } else {
+            return Principal.Type.SERVICE.getValue();
+        }
+    }
+
     public static boolean isUserDomainPrincipal(final String memberName, final String userDomainPrefix,
             final List<String> addlUserCheckDomainPrefixList) {
 
@@ -388,7 +400,6 @@ public class ZMSUtils {
                 LOG.error("Principal {} does not satisfy user authority {} filter", memberName, filterList);
                 return false;
             }
-            return true;
         } else {
             final String[] filterItems = filterList.split(",");
             for (String filterItem : filterItems) {
@@ -397,8 +408,8 @@ public class ZMSUtils {
                     return false;
                 }
             }
-            return true;
         }
+        return true;
     }
 
     public static String combineUserAuthorityFilters(final String roleUserAuthorityFilter, final String domainUserAuthorityFilter) {

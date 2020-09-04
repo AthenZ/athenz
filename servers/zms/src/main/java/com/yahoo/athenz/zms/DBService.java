@@ -3195,6 +3195,7 @@ public class DBService implements RolesProvider {
 
                 // Merge original role with template role to handle role meta data
                 // if original role is null then it is an insert operation and no need of merging
+
                 if (originalRole != null) {
                     mergeOriginalRoleAndMetaRoleAttributes(originalRole, templateRole);
                 }
