@@ -59,6 +59,9 @@ type SignedToken String (pattern="[a-zA-Z0-9\\._%=:;,-]*");
 //A group name
 type GroupName String (pattern="{DomainName}:group\\.{EntityName}");
 
+//A group member name
+type GroupMemberName String (pattern="{CompoundName}");
+
 //Role Member name - could be one of four values: *,
 //DomainName.* or ServiceName[*], or GroupNames
 type MemberName String (pattern="\\*|{DomainName}\\.\\*|{ServiceName}(\\*)?|{GroupName}");

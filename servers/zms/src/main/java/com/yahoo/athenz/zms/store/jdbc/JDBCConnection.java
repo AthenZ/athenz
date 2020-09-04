@@ -18,6 +18,7 @@ package com.yahoo.athenz.zms.store.jdbc;
 import java.sql.*;
 import java.util.*;
 
+import com.yahoo.athenz.auth.AuthorityConsts;
 import com.yahoo.athenz.zms.*;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
@@ -3474,9 +3475,12 @@ public class JDBCConnection implements ObjectStoreConnection {
         if (ALL_PRINCIPALS.equals(principal)) {
             return true;
         }
-        int idx = principal.lastIndexOf('.');
-        if (idx == -1 || idx == 0 || idx == principal.length() - 1) {
-            return false;
+        int idx = principal.indexOf(AuthorityConsts.GROUP_SEP);
+        if (idx == -1) {
+            idx = principal.lastIndexOf('.');
+            if (idx == -1 || idx == 0 || idx == principal.length() - 1) {
+                return false;
+            }
         }
         return getDomainId(principal.substring(0, idx)) != 0;
     }

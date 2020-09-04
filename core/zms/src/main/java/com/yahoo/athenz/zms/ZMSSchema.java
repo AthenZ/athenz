@@ -74,6 +74,10 @@ public class ZMSSchema {
             .comment("A group name")
             .pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*:group\\.([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*");
 
+        sb.stringType("GroupMemberName")
+            .comment("A group member name")
+            .pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*");
+
         sb.stringType("MemberName")
             .comment("Role Member name - could be one of four values: *, DomainName.* or ServiceName[*], or GroupNames")
             .pattern("\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*\\.\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*(\\*)?|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*:group\\.([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*");
@@ -138,7 +142,8 @@ public class ZMSSchema {
             .field("lastNotifiedTime", "Timestamp", true, "for pending membership requests, time when last notification was sent")
             .field("requestPrincipal", "ResourceName", true, "pending members only - name of the principal requesting the change")
             .field("reviewLastNotifiedTime", "Timestamp", true, "for pending membership requests, time when last notification was sent (for file store)")
-            .field("systemDisabled", "Int32", true, "user disabled by system based on configured role setting");
+            .field("systemDisabled", "Int32", true, "user disabled by system based on configured role setting")
+            .field("principalType", "Int32", true, "server use only - principal type: user, group, or service");
 
         sb.structType("RoleMeta")
             .comment("Set of metadata attributes that all roles may have and can be changed by domain admins.")
@@ -352,14 +357,14 @@ public class ZMSSchema {
 
         sb.structType("GroupAuditLog")
             .comment("An audit log entry for group membership change.")
-            .field("member", "MemberName", false, "name of the group member")
+            .field("member", "GroupMemberName", false, "name of the group member")
             .field("admin", "ResourceName", false, "name of the principal executing the change")
             .field("created", "Timestamp", false, "timestamp of the entry")
             .field("action", "String", false, "log action - e.g. add, delete, approve, etc")
             .field("auditRef", "String", true, "audit reference string for the change as supplied by admin");
 
         sb.structType("GroupMember")
-            .field("memberName", "MemberName", true, "name of the member")
+            .field("memberName", "GroupMemberName", true, "name of the member")
             .field("groupName", "ResourceName", true, "name of the group")
             .field("domainName", "DomainName", true, "name of the domain")
             .field("expiration", "Timestamp", true, "the expiration timestamp")
@@ -370,11 +375,12 @@ public class ZMSSchema {
             .field("lastNotifiedTime", "Timestamp", true, "for pending membership requests, time when last notification was sent")
             .field("requestPrincipal", "ResourceName", true, "pending members only - name of the principal requesting the change")
             .field("reviewLastNotifiedTime", "Timestamp", true, "for pending membership requests, time when last notification was sent (for file store)")
-            .field("systemDisabled", "Int32", true, "user disabled by system based on configured group setting");
+            .field("systemDisabled", "Int32", true, "user disabled by system based on configured group setting")
+            .field("principalType", "Int32", true, "server use only - principal type: user or service");
 
         sb.structType("GroupMembership")
             .comment("The representation for a group membership.")
-            .field("memberName", "MemberName", false, "name of the member")
+            .field("memberName", "GroupMemberName", false, "name of the member")
             .field("isMember", "Bool", true, "flag to indicate whether or the user is a member or not", true)
             .field("groupName", "ResourceName", true, "name of the group")
             .field("expiration", "Timestamp", true, "the expiration timestamp")
@@ -406,7 +412,7 @@ public class ZMSSchema {
             .arrayField("list", "Group", false, "list of group objects");
 
         sb.structType("DomainGroupMember")
-            .field("memberName", "MemberName", false, "name of the member")
+            .field("memberName", "GroupMemberName", false, "name of the member")
             .arrayField("memberGroups", "GroupMember", false, "groups for this member");
 
         sb.structType("DomainGroupMembers")
@@ -1298,7 +1304,7 @@ public class ZMSSchema {
             .comment("Get the membership status for a specified user in a group.")
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("groupName", "EntityName", "name of the group")
-            .pathParam("memberName", "MemberName", "user name to be checked for membership")
+            .pathParam("memberName", "GroupMemberName", "user name to be checked for membership")
             .queryParam("expiration", "expiration", "String", null, "the expiration timestamp")
             .auth("", "", true)
             .expected("OK")
@@ -1335,7 +1341,7 @@ public class ZMSSchema {
             .comment("Add the specified user to the group's member list. If the group is neither auditEnabled nor selfserve, then it will use authorize (\"update\", \"{domainName}:group.{groupName}\") otherwise membership will be sent for approval to either designated delegates ( in case of auditEnabled groups ) or to domain admins ( in case of selfserve groups )")
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("groupName", "EntityName", "name of the group")
-            .pathParam("memberName", "MemberName", "name of the user to be added as a member")
+            .pathParam("memberName", "GroupMemberName", "name of the user to be added as a member")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .input("membership", "GroupMembership", "Membership object (must contain group/member names as specified in the URI)")
             .auth("", "", true)
@@ -1357,7 +1363,7 @@ public class ZMSSchema {
             .comment("Delete the specified group membership. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("groupName", "EntityName", "name of the group")
-            .pathParam("memberName", "MemberName", "name of the user to be removed as a member")
+            .pathParam("memberName", "GroupMemberName", "name of the user to be removed as a member")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .auth("update", "{domainName}:group.{groupName}")
             .expected("NO_CONTENT")
@@ -1379,7 +1385,7 @@ public class ZMSSchema {
             .name("DeletePendingGroupMembership")
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("groupName", "EntityName", "name of the group")
-            .pathParam("memberName", "MemberName", "name of the user to be removed as a pending member")
+            .pathParam("memberName", "GroupMemberName", "name of the user to be removed as a pending member")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .auth("", "", true)
             .expected("NO_CONTENT")
@@ -1444,7 +1450,7 @@ public class ZMSSchema {
             .name("PutGroupMembershipDecision")
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("groupName", "EntityName", "name of the group")
-            .pathParam("memberName", "MemberName", "name of the user to be added as a member")
+            .pathParam("memberName", "GroupMemberName", "name of the user to be added as a member")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .input("membership", "GroupMembership", "GroupMembership object (must contain group/member names as specified in the URI)")
             .auth("", "", true)

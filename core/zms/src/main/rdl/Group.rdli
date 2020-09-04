@@ -75,7 +75,7 @@ resource Group DELETE "/domain/{domainName}/group/{groupName}" {
 resource GroupMembership GET "/domain/{domainName}/group/{groupName}/member/{memberName}?expiration={expiration}" {
     DomainName domainName; //name of the domain
     EntityName groupName; //name of the group
-    MemberName memberName; //user name to be checked for membership
+    GroupMemberName memberName; //user name to be checked for membership
     String expiration (optional); //the expiration timestamp
     authenticate;
     exceptions {
@@ -108,7 +108,7 @@ resource DomainGroupMember GET "/group?principal={principal}&domain={domainName}
 resource GroupMembership PUT "/domain/{domainName}/group/{groupName}/member/{memberName}" {
     DomainName domainName; //name of the domain
     EntityName groupName; //name of the group
-    MemberName memberName; //name of the user to be added as a member
+    GroupMemberName memberName; //name of the user to be added as a member
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     GroupMembership membership; //Membership object (must contain group/member names as specified in the URI)
     authenticate;
@@ -129,7 +129,7 @@ resource GroupMembership PUT "/domain/{domainName}/group/{groupName}/member/{mem
 resource GroupMembership DELETE "/domain/{domainName}/group/{groupName}/member/{memberName}" {
     DomainName domainName; //name of the domain
     EntityName groupName; //name of the group
-    MemberName memberName; //name of the user to be removed as a member
+    GroupMemberName memberName; //name of the user to be removed as a member
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     authorize ("update", "{domainName}:group.{groupName}");
     expected NO_CONTENT;
@@ -151,7 +151,7 @@ resource GroupMembership DELETE "/domain/{domainName}/group/{groupName}/member/{
 resource GroupMembership DELETE "/domain/{domainName}/group/{groupName}/pendingmember/{memberName}" (name=DeletePendingGroupMembership) {
     DomainName domainName; //name of the domain
     EntityName groupName; //name of the group
-    MemberName memberName; //name of the user to be removed as a pending member
+    GroupMemberName memberName; //name of the user to be removed as a pending member
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     authenticate;
     expected NO_CONTENT;
@@ -211,7 +211,7 @@ resource Group PUT "/domain/{domainName}/group/{groupName}/meta" {
 resource GroupMembership PUT "/domain/{domainName}/group/{groupName}/member/{memberName}/decision" (name=PutGroupMembershipDecision) {
     DomainName domainName; //name of the domain
     EntityName groupName; //name of the group
-    MemberName memberName; //name of the user to be added as a member
+    GroupMemberName memberName; //name of the user to be added as a member
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     GroupMembership membership; //GroupMembership object (must contain group/member names as specified in the URI)
     authenticate;

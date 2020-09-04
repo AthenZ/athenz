@@ -123,7 +123,7 @@ func (cli Zms) validateRoleMembers(users []*zms.RoleMember) {
 
 func (cli Zms) validateGroupMembers(users []*zms.GroupMember) {
 	for _, v := range users {
-		v.MemberName = zms.MemberName(cli.validatedUser(string(v.MemberName)))
+		v.MemberName = zms.GroupMemberName(cli.validatedUser(string(v.MemberName)))
 	}
 }
 
@@ -146,9 +146,9 @@ func (cli Zms) convertGroupMembers(users []string) []*zms.GroupMember {
 	for _, v := range users {
 		groupMember := zms.NewGroupMember()
 		if !strings.Contains(v, ".") {
-			groupMember.MemberName = zms.MemberName(cli.UserDomain + "." + v)
+			groupMember.MemberName = zms.GroupMemberName(cli.UserDomain + "." + v)
 		} else {
-			groupMember.MemberName = zms.MemberName(v)
+			groupMember.MemberName = zms.GroupMemberName(v)
 		}
 		groupMembers = append(groupMembers, groupMember)
 	}

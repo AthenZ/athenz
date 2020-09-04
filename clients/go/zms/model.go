@@ -99,6 +99,11 @@ type SignedToken string
 type GroupName string
 
 //
+// GroupMemberName - A group member name
+//
+type GroupMemberName string
+
+//
 // MemberName - Role Member name - could be one of four values: *, DomainName.*
 // or ServiceName[*], or GroupNames
 //
@@ -805,6 +810,11 @@ type RoleMember struct {
 	// user disabled by system based on configured role setting
 	//
 	SystemDisabled *int32 `json:"systemDisabled,omitempty" rdl:"optional"`
+
+	//
+	// server use only - principal type: user, group, or service
+	//
+	PrincipalType *int32 `json:"principalType,omitempty" rdl:"optional"`
 }
 
 //
@@ -4056,7 +4066,7 @@ type GroupAuditLog struct {
 	//
 	// name of the group member
 	//
-	Member MemberName `json:"member"`
+	Member GroupMemberName `json:"member"`
 
 	//
 	// name of the principal executing the change
@@ -4115,9 +4125,9 @@ func (self *GroupAuditLog) Validate() error {
 	if self.Member == "" {
 		return fmt.Errorf("GroupAuditLog.member is missing but is a required field")
 	} else {
-		val := rdl.Validate(ZMSSchema(), "MemberName", self.Member)
+		val := rdl.Validate(ZMSSchema(), "GroupMemberName", self.Member)
 		if !val.Valid {
-			return fmt.Errorf("GroupAuditLog.member does not contain a valid MemberName (%v)", val.Error)
+			return fmt.Errorf("GroupAuditLog.member does not contain a valid GroupMemberName (%v)", val.Error)
 		}
 	}
 	if self.Admin == "" {
@@ -4156,7 +4166,7 @@ type GroupMember struct {
 	//
 	// name of the member
 	//
-	MemberName MemberName `json:"memberName,omitempty" rdl:"optional"`
+	MemberName GroupMemberName `json:"memberName,omitempty" rdl:"optional"`
 
 	//
 	// name of the group
@@ -4215,6 +4225,11 @@ type GroupMember struct {
 	// user disabled by system based on configured group setting
 	//
 	SystemDisabled *int32 `json:"systemDisabled,omitempty" rdl:"optional"`
+
+	//
+	// server use only - principal type: user or service
+	//
+	PrincipalType *int32 `json:"principalType,omitempty" rdl:"optional"`
 }
 
 //
@@ -4266,9 +4281,9 @@ func (self *GroupMember) UnmarshalJSON(b []byte) error {
 //
 func (self *GroupMember) Validate() error {
 	if self.MemberName != "" {
-		val := rdl.Validate(ZMSSchema(), "MemberName", self.MemberName)
+		val := rdl.Validate(ZMSSchema(), "GroupMemberName", self.MemberName)
 		if !val.Valid {
-			return fmt.Errorf("GroupMember.memberName does not contain a valid MemberName (%v)", val.Error)
+			return fmt.Errorf("GroupMember.memberName does not contain a valid GroupMemberName (%v)", val.Error)
 		}
 	}
 	if self.GroupName != "" {
@@ -4306,7 +4321,7 @@ type GroupMembership struct {
 	//
 	// name of the member
 	//
-	MemberName MemberName `json:"memberName"`
+	MemberName GroupMemberName `json:"memberName"`
 
 	//
 	// flag to indicate whether or the user is a member or not
@@ -4406,9 +4421,9 @@ func (self *GroupMembership) Validate() error {
 	if self.MemberName == "" {
 		return fmt.Errorf("GroupMembership.memberName is missing but is a required field")
 	} else {
-		val := rdl.Validate(ZMSSchema(), "MemberName", self.MemberName)
+		val := rdl.Validate(ZMSSchema(), "GroupMemberName", self.MemberName)
 		if !val.Valid {
-			return fmt.Errorf("GroupMembership.memberName does not contain a valid MemberName (%v)", val.Error)
+			return fmt.Errorf("GroupMembership.memberName does not contain a valid GroupMemberName (%v)", val.Error)
 		}
 	}
 	if self.GroupName != "" {
@@ -4717,7 +4732,7 @@ type DomainGroupMember struct {
 	//
 	// name of the member
 	//
-	MemberName MemberName `json:"memberName"`
+	MemberName GroupMemberName `json:"memberName"`
 
 	//
 	// groups for this member
@@ -4771,9 +4786,9 @@ func (self *DomainGroupMember) Validate() error {
 	if self.MemberName == "" {
 		return fmt.Errorf("DomainGroupMember.memberName is missing but is a required field")
 	} else {
-		val := rdl.Validate(ZMSSchema(), "MemberName", self.MemberName)
+		val := rdl.Validate(ZMSSchema(), "GroupMemberName", self.MemberName)
 		if !val.Valid {
-			return fmt.Errorf("DomainGroupMember.memberName does not contain a valid MemberName (%v)", val.Error)
+			return fmt.Errorf("DomainGroupMember.memberName does not contain a valid GroupMemberName (%v)", val.Error)
 		}
 	}
 	if self.MemberGroups == nil {

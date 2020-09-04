@@ -46,6 +46,9 @@ public class GroupMember {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Integer systemDisabled;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer principalType;
 
     public GroupMember setMemberName(String memberName) {
         this.memberName = memberName;
@@ -131,6 +134,13 @@ public class GroupMember {
     public Integer getSystemDisabled() {
         return systemDisabled;
     }
+    public GroupMember setPrincipalType(Integer principalType) {
+        this.principalType = principalType;
+        return this;
+    }
+    public Integer getPrincipalType() {
+        return principalType;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -173,6 +183,9 @@ public class GroupMember {
                 return false;
             }
             if (systemDisabled == null ? a.systemDisabled != null : !systemDisabled.equals(a.systemDisabled)) {
+                return false;
+            }
+            if (principalType == null ? a.principalType != null : !principalType.equals(a.principalType)) {
                 return false;
             }
         }

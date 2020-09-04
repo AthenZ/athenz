@@ -41,6 +41,9 @@ public class RoleMember {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Integer systemDisabled;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer principalType;
 
     public RoleMember setMemberName(String memberName) {
         this.memberName = memberName;
@@ -119,6 +122,13 @@ public class RoleMember {
     public Integer getSystemDisabled() {
         return systemDisabled;
     }
+    public RoleMember setPrincipalType(Integer principalType) {
+        this.principalType = principalType;
+        return this;
+    }
+    public Integer getPrincipalType() {
+        return principalType;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -158,6 +168,9 @@ public class RoleMember {
                 return false;
             }
             if (systemDisabled == null ? a.systemDisabled != null : !systemDisabled.equals(a.systemDisabled)) {
+                return false;
+            }
+            if (principalType == null ? a.principalType != null : !principalType.equals(a.principalType)) {
                 return false;
             }
         }

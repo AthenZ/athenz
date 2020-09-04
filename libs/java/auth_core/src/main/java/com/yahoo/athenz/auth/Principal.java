@@ -23,6 +23,31 @@ import java.util.List;
  */
 public interface Principal {
 
+    /**
+     * Principal type - user, service or group
+     */
+    enum Type {
+        USER(0),
+        SERVICE(1),
+        GROUP(2);
+
+        private final int principalType;
+        Type(int type) {
+            principalType = type;
+        }
+        public int getValue() {
+            return principalType;
+        }
+        public static Type getType(int value) {
+            for (Type type : values()) {
+                if (type.getValue() == value) {
+                    return type;
+                }
+            }
+            return null;
+        }
+    }
+
     /** @return the domain of the authority over this principal, i.e. "user" */
     String getDomain();
 
@@ -82,10 +107,7 @@ public interface Principal {
         return null;
     }
 
-    /**
-     *
-     * @return True if the user certificate usage is restricted to mTLS authentication.
-     */
+    /** @return True if the user certificate usage is restricted to mTLS authentication */
     default boolean getMtlsRestricted() {
         return false;
     }
