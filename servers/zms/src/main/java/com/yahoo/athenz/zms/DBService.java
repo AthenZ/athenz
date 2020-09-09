@@ -1278,7 +1278,7 @@ public class DBService implements RolesProvider {
 
                 checkDomainAuditEnabled(con, domainName, auditRef, caller, principal, AUDIT_TYPE_ROLE);
 
-                // make sure the role auditing requires are bet
+                // make sure the role auditing requirements are met
 
                 Role originalRole = con.getRole(domainName, roleName);
                 if (originalRole == null) {
@@ -1355,7 +1355,7 @@ public class DBService implements RolesProvider {
 
                 checkDomainAuditEnabled(con, domainName, auditRef, ctx.getApiName(), principal, AUDIT_TYPE_GROUP);
 
-                // make sure the group auditing requires are bet
+                // make sure the group auditing requirements are met
 
                 checkObjectAuditEnabled(con, group.getAuditEnabled(), group.getName(),
                         auditRef, ctx.getApiName(), principal);
@@ -5525,12 +5525,12 @@ public class DBService implements RolesProvider {
 
                 String principal = getPrincipalName(ctx);
 
-                // make sure the role auditing requires are bet
+                // make sure the role auditing requirements are met
 
                 Role originalRole = con.getRole(domainName, roleName);
                 if (originalRole == null) {
                     con.rollbackChanges();
-                    throw ZMSUtils.notFoundError(caller + ": Unknown role: " + roleName, caller);
+                    throw ZMSUtils.notFoundError("unknown role: " + roleName, caller);
                 }
 
                 checkObjectAuditEnabled(con, originalRole.getAuditEnabled(), originalRole.getName(),
@@ -5538,10 +5538,9 @@ public class DBService implements RolesProvider {
 
                 // process our confirm role member support
 
-                if (!con.confirmRoleMember(domainName, roleName, roleMember,
-                        principal, auditRef)) {
+                if (!con.confirmRoleMember(domainName, roleName, roleMember, principal, auditRef)) {
                     con.rollbackChanges();
-                    throw ZMSUtils.requestError(caller + ": unable to apply role membership decision for member: " +
+                    throw ZMSUtils.requestError("unable to apply role membership decision for member: " +
                             roleMember.getMemberName() + " and role: " + roleName, caller);
                 }
 
@@ -5584,7 +5583,7 @@ public class DBService implements RolesProvider {
 
                 String principal = getPrincipalName(ctx);
 
-                // make sure the role auditing requires are bet
+                // make sure the role auditing requirements are met
 
                 checkObjectAuditEnabled(con, group.getAuditEnabled(), group.getName(),
                         auditRef, ctx.getApiName(), principal);
