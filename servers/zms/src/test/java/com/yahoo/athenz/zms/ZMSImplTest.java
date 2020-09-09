@@ -45,6 +45,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.*;
 
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.testng.Assert.assertTrue;
@@ -3401,7 +3402,47 @@ public class ZMSImplTest {
         
         zms.deleteTopLevelDomain(mockDomRsrcCtx,"MbrAddDom1EmptyRole", auditRef);
     }
-    
+
+    @Test
+    public void testPutMembershipRoleGroupMembers() {
+
+        final String domainName = "role-group-members";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", "user.user1");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Role role1 = new Role();
+        role1.setName(ZMSUtils.roleResourceName(domainName, "Role1"));
+        zms.putRole(mockDomRsrcCtx, domainName, "Role1", auditRef, role1);
+
+        // should fail since we don't have a group
+
+        Membership mbr = generateMembership("Role1", domainName + ":group.dev-team");
+        try {
+            zms.putMembership(mockDomRsrcCtx, domainName, "Role1", domainName + ":group.dev-team", auditRef, mbr);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        Group group1 = createGroupObject(domainName, "dev-team", "user.joe", "user.jane");
+        zms.putGroup(mockDomRsrcCtx, domainName, "dev-team", auditRef, group1);
+
+        // now our put membership should work
+
+        zms.putMembership(mockDomRsrcCtx, domainName, "Role1", domainName + ":group.dev-team", auditRef, mbr);
+
+        Role role = zms.getRole(mockDomRsrcCtx, domainName, "Role1", false, false, false);
+        assertNotNull(role);
+
+        List<RoleMember> members = role.getRoleMembers();
+        assertNotNull(members);
+        assertEquals(members.size(), 1);
+
+        assertEquals(domainName + ":group.dev-team", members.get(0).getMemberName());
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
     @Test
     public void testPutMembershipMissingAuditRef() {
 
@@ -19242,11 +19283,24 @@ public class ZMSImplTest {
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
         }
+
+        // unknown types are always rejected
+
+        roleMembers = new ArrayList<>();
+        roleMembers.add(new RoleMember().setMemberName("unknown").setPrincipalType(Principal.Type.UNKNOWN.getValue()));
+        role.setRoleMembers(roleMembers);
+        try {
+            zms.validateRoleMemberPrincipals(role, null, "unittest");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
     }
 
     @Test
     public void testValidateRoleMemberPrincipalUser() {
 
+        Authority savedAuthority = zms.userAuthority;
         zms.userAuthority = new TestUserPrincipalAuthority();
         zms.validateUserRoleMembers = true;
 
@@ -19297,6 +19351,8 @@ public class ZMSImplTest {
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
         }
+
+        zms.userAuthority = savedAuthority;
     }
 
     @Test
@@ -19343,7 +19399,7 @@ public class ZMSImplTest {
 
         // known service - no exception
 
-        zms.validateRoleMemberPrincipal("coretech.api", Principal.Type.SERVICE.getValue(), null, "unittest");
+        zms.validateRoleMemberPrincipal("coretech.api", Principal.Type.SERVICE.getValue(), null,  "unittest");
 
         // unknown service - exception
 
@@ -19384,6 +19440,114 @@ public class ZMSImplTest {
         System.clearProperty(ZMSConsts.ZMS_PROP_VALIDATE_SERVICE_MEMBERS_SKIP_DOMAINS);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "coretech", auditRef);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "coretech2", auditRef);
+    }
+
+    @Test
+    public void testValidateGroupMemberPrincipal() {
+
+        Authority savedAuthority = zms.userAuthority;
+        zms.userAuthority = new TestUserPrincipalAuthority();
+
+        // wildcards are always rejected
+
+        try {
+            zms.validateGroupMemberPrincipal("athenz.api*", Principal.Type.SERVICE.getValue(), null, "unittest");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        try {
+            zms.validateGroupMemberPrincipal("athenz.api*", Principal.Type.SERVICE.getValue(), null, "unittest");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        try {
+            zms.validateGroupMemberPrincipal("*", Principal.Type.SERVICE.getValue(), null, "unittest");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        // should get back invalid request since service does not exist
+
+        try {
+            zms.validateGroupMemberPrincipal("coretech.api", Principal.Type.SERVICE.getValue(), "employee", "unittest");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        // invalid service request error
+
+        try {
+            zms.validateGroupMemberPrincipal("coretech", Principal.Type.SERVICE.getValue(), null, "unittest");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        TopLevelDomain dom1 = createTopLevelDomainObject("coretech", "Test Domain1", "testorg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        ServiceIdentity service1 = createServiceObject("coretech",
+                "api", "http://localhost", "/usr/bin/java", "root",
+                "users", "host1");
+
+        zms.putServiceIdentity(mockDomRsrcCtx, "coretech", "api", auditRef, service1);
+
+        // known service - no exception
+
+        zms.validateGroupMemberPrincipal("coretech.api", Principal.Type.SERVICE.getValue(), null,  "unittest");
+
+        // unknown service - exception
+
+        try {
+            zms.validateGroupMemberPrincipal("coretech.backend", Principal.Type.SERVICE.getValue(), null, "unittest");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        // known user principals are accepted
+
+        zms.validateGroupMemberPrincipal("user.joe", Principal.Type.USER.getValue(), null, "unittest");
+        zms.validateGroupMemberPrincipal("user.jane", Principal.Type.USER.getValue(), null, "unittest");
+
+        // unknown users are rejected
+
+        try {
+            zms.validateGroupMemberPrincipal("user.john", Principal.Type.USER.getValue(), null, "unittest");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        // groups and unknown types are rejected
+
+        try {
+            zms.validateGroupMemberPrincipal("user", Principal.Type.UNKNOWN.getValue(), null, "unittest");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        Group group = createGroupObject("coretech", "dev-team", "user.joe", "user.jane");
+        zms.putGroup(mockDomRsrcCtx, "coretech", "dev-team", auditRef, group);
+
+        try {
+            zms.validateGroupMemberPrincipal("coretech:group.dev-team", Principal.Type.GROUP.getValue(), null, "unittest");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        // reset our setting
+
+        zms.userAuthority = savedAuthority;
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "coretech", auditRef);
     }
 
     @Test
@@ -21273,6 +21437,44 @@ public class ZMSImplTest {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
         }
 
+        // add group with invalid service names
+
+        group2 = createGroupObject(domainName, "group2", "user.joe", domainName  + ".api");
+        try {
+            zms.putGroup(mockDomRsrcCtx, domainName, "group2", auditRef, group2);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        // now create the service and retry the operation again
+
+        ServiceIdentity service = createServiceObject(domainName, "api", "http://localhost", "/usr/bin/java",
+                "root", "users", "host1");
+        zms.putServiceIdentity(mockDomRsrcCtx, domainName, "api", auditRef, service);
+
+        zms.putGroup(mockDomRsrcCtx, domainName, "group2", auditRef, group2);
+
+        // now try to add a wildcard which should be rejected
+
+        Group group3 = createGroupObject(domainName, "group3", "user.joe", "*");
+        try {
+            zms.putGroup(mockDomRsrcCtx, domainName, "group3", auditRef, group3);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        // wildcard with service name
+
+        group3 = createGroupObject(domainName, "group3", "user.joe", domainName + ".api*");
+        try {
+            zms.putGroup(mockDomRsrcCtx, domainName, "group3", auditRef, group3);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 
@@ -21429,6 +21631,10 @@ public class ZMSImplTest {
                 "Test Domain2", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
 
+        ServiceIdentity service = createServiceObject("coretech", "storage",
+                "http://localhost", "/usr/bin/java", "root", "users", "host1");
+        zms.putServiceIdentity(mockDomRsrcCtx, "coretech", "storage", auditRef, service);
+
         SubDomain subDom2 = createSubDomainObject("storage", "coretech",
                 "Test Domain2", "testOrg", adminUser);
         zms.postSubDomain(mockDomRsrcCtx, "coretech", auditRef, subDom2);
@@ -21440,6 +21646,10 @@ public class ZMSImplTest {
         SubDomain subDom4 = createSubDomainObject("dom1", "user.user1",
                 "Test Domain2", "testOrg", adminUser);
         zms.postSubDomain(mockDomRsrcCtx, "user.user1", auditRef, subDom4);
+
+        service = createServiceObject("user.user1.dom1", "api",
+                "http://localhost", "/usr/bin/java", "root", "users", "host1");
+        zms.putServiceIdentity(mockDomRsrcCtx, "user.user1.dom1", "api", auditRef, service);
 
         ArrayList<GroupMember> groupMembers = new ArrayList<>();
         groupMembers.add(new GroupMember().setMemberName("coretech.storage"));
@@ -21551,6 +21761,10 @@ public class ZMSImplTest {
                 "Test Domain2", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
 
+        ServiceIdentity service = createServiceObject("coretech", "storage",
+                "http://localhost", "/usr/bin/java", "root", "users", "host1");
+        zms.putServiceIdentity(mockDomRsrcCtx, "coretech", "storage", auditRef, service);
+
         SubDomain subDom2 = createSubDomainObject("storage", "coretech",
                 "Test Domain2", "testOrg", adminUser);
         zms.postSubDomain(mockDomRsrcCtx, "coretech", auditRef, subDom2);
@@ -21562,6 +21776,10 @@ public class ZMSImplTest {
         SubDomain subDom4 = createSubDomainObject("dom1", "user.user1",
                 "Test Domain2", "testOrg", adminUser);
         zms.postSubDomain(mockDomRsrcCtx, "user.user1", auditRef, subDom4);
+
+        service = createServiceObject("user.user1.dom1", "api",
+                "http://localhost", "/usr/bin/java", "root", "users", "host1");
+        zms.putServiceIdentity(mockDomRsrcCtx, "user.user1.dom1", "api", auditRef, service);
 
         ArrayList<GroupMember> groupMembers = new ArrayList<>();
         groupMembers.add(new GroupMember().setMemberName("user.joe"));
@@ -21792,10 +22010,7 @@ public class ZMSImplTest {
     @Test
     public void testValidateGroupMemberPrincipals() {
 
-        zms.validateUserRoleMembers = false;
-        zms.validateServiceRoleMembers = false;
-
-        // if both are false then any invalid users are ok
+        // invalid users are always rejected
 
         List<GroupMember> groupMembers = new ArrayList<>();
         groupMembers.add(new GroupMember().setMemberName("user").setPrincipalType(Principal.Type.SERVICE.getValue()));
@@ -21805,18 +22020,24 @@ public class ZMSImplTest {
         groupMembers.add(new GroupMember().setMemberName("coretech.backend").setPrincipalType(Principal.Type.SERVICE.getValue()));
 
         Group group = new Group().setGroupMembers(groupMembers);
-        zms.validateGroupMemberPrincipals(group, null, "unittest");
+        try {
+            zms.validateGroupMemberPrincipals(group, null, "unittest");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
 
-        // enable user authority check
+        // set our user authority
 
+        Authority savedAuthority = zms.userAuthority;
         zms.userAuthority = new TestUserPrincipalAuthority();
-        zms.validateUserRoleMembers = true;
 
         // include all valid principals
 
         groupMembers = new ArrayList<>();
         groupMembers.add(new GroupMember().setMemberName("user.joe").setPrincipalType(Principal.Type.USER.getValue()));
         groupMembers.add(new GroupMember().setMemberName("user.jane").setPrincipalType(Principal.Type.USER.getValue()));
+        groupMembers.add(new GroupMember().setMemberName("sys.auth.zms").setPrincipalType(Principal.Type.SERVICE.getValue()));
         group.setGroupMembers(groupMembers);
 
         zms.validateGroupMemberPrincipals(group, null, "unittest");
@@ -21830,6 +22051,8 @@ public class ZMSImplTest {
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
         }
+
+        zms.userAuthority = savedAuthority;
     }
 
     @Test
@@ -21937,6 +22160,7 @@ public class ZMSImplTest {
                 .thenReturn("putserviceidentity")
                 .thenReturn("posttopleveldomain")
                 .thenReturn("posttopleveldomain")
+                .thenReturn("putserviceidentity")
                 .thenReturn("postsubdomain")
                 .thenReturn("putgroup").thenReturn("putgroup").thenReturn("putgroup").thenReturn("putgroup") // called 4 times in group api
                 .thenReturn("putgroupmembership");
@@ -21949,6 +22173,10 @@ public class ZMSImplTest {
 
         TopLevelDomain dom2 = createTopLevelDomainObject("coretech", "Test Domain2", "testOrg", adminUser);
         zmsImpl.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
+
+        ServiceIdentity service = createServiceObject("coretech", "storage",
+                "http://localhost", "/usr/bin/java", "root", "users", "host1");
+        zms.putServiceIdentity(mockDomRsrcCtx, "coretech", "storage", auditRef, service);
 
         SubDomain subDom2 = createSubDomainObject("storage", "coretech", "Test Domain2", "testOrg", adminUser);
         zmsImpl.postSubDomain(mockDomRsrcCtx, "coretech", auditRef, subDom2);
@@ -22051,6 +22279,8 @@ public class ZMSImplTest {
         attrSet.add("ElevatedClearance");
 
         Authority mockAuthority = Mockito.mock(Authority.class);
+
+        Mockito.when(mockAuthority.isValidUser(anyString())).thenReturn(true);
         Mockito.when(mockAuthority.getDateAttribute("user.joe", "ElevatedClearance")).thenReturn(joeDate);
         Mockito.when(mockAuthority.getDateAttribute("user.jane", "ElevatedClearance")).thenReturn(janeDate);
         Mockito.when(mockAuthority.getDateAttribute("user.bob", "ElevatedClearance")).thenReturn(bobDate);
@@ -22087,9 +22317,9 @@ public class ZMSImplTest {
             assertTrue(ex.getMessage().contains("does not have required user authority expiry configured"));
         }
 
-        mbr = generateGroupMembership(groupName, "sys.auth.zts");
-        zms.putGroupMembership(mockDomRsrcCtx, domainName, groupName, "sys.auth.zts", auditRef, mbr);
-        mbr = zms.getGroupMembership(mockDomRsrcCtx, domainName, groupName, "sys.auth.zts", null);
+        mbr = generateGroupMembership(groupName, "sys.auth.zms");
+        zms.putGroupMembership(mockDomRsrcCtx, domainName, groupName, "sys.auth.zms", auditRef, mbr);
+        mbr = zms.getGroupMembership(mockDomRsrcCtx, domainName, groupName, "sys.auth.zms", null);
         assertNotNull(mbr);
 
         zms.userAuthority = savedAuthority;
@@ -22115,6 +22345,45 @@ public class ZMSImplTest {
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+        }
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testPutGroupMembershipInvalidMembers() {
+
+        final String domainName = "put-group-mbr-400";
+        final String groupName1 = "group1";
+        final String groupName2 = "group2";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Group group1 = createGroupObject(domainName, groupName1, "user.joe", "user.jane");
+        zms.putGroup(mockDomRsrcCtx, domainName, groupName1, auditRef, group1);
+
+        Group group2 = createGroupObject(domainName, groupName2, "user.joe", "user.jane");
+        zms.putGroup(mockDomRsrcCtx, domainName, groupName2, auditRef, group2);
+
+        GroupMembership mbr = generateGroupMembership(groupName2, ZMSUtils.groupResourceName(domainName, "group2"));
+        // this should be rejected since groups are not allowed
+        try {
+            zms.putGroupMembership(mockDomRsrcCtx, domainName, groupName2,
+                    ZMSUtils.groupResourceName(domainName, "group2"), auditRef, mbr);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        // services with wildcard are not allowed either
+
+        mbr = generateGroupMembership(groupName2, domainName + ".*");
+        try {
+            zms.putGroupMembership(mockDomRsrcCtx, domainName, groupName2, domainName + ".*", auditRef, mbr);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
         }
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
@@ -23434,6 +23703,7 @@ public class ZMSImplTest {
         Authority savedAuthority = zms.userAuthority;
 
         Authority authority = Mockito.mock(Authority.class);
+        Mockito.when(authority.isValidUser(anyString())).thenReturn(true);
         Mockito.when(authority.isAttributeSet("user.john", "OnShore-US")).thenReturn(true);
         Mockito.when(authority.isAttributeSet("user.jane", "OnShore-US")).thenReturn(false);
         Mockito.when(authority.isAttributeSet("user.joe", "OnShore-US")).thenReturn(true);
@@ -23511,6 +23781,7 @@ public class ZMSImplTest {
         Timestamp timestmp = Timestamp.fromMillis(System.currentTimeMillis() + 100000);
         Date date = timestmp.toDate();
         Authority authority = Mockito.mock(Authority.class);
+        Mockito.when(authority.isValidUser(anyString())).thenReturn(true);
         Mockito.when(authority.getDateAttribute("user.john", "elevated-clearance")).thenReturn(date);
         Mockito.when(authority.getDateAttribute("user.jane", "elevated-clearance")).thenReturn(null);
         Mockito.when(authority.getDateAttribute("user.joe", "elevated-clearance")).thenReturn(date);
@@ -23642,6 +23913,60 @@ public class ZMSImplTest {
         // remove read-only mode
 
         setDatabaseReadOnlyMode(false);
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testUpdateRoleWithGroupMembers() {
+
+        final String domainName = "update-role";
+        final String roleName = "role1";
+        final String groupName = "group1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        ArrayList<GroupMember> groupMembers = new ArrayList<>();
+        groupMembers.add(new GroupMember().setMemberName("user.user1"));
+        groupMembers.add(new GroupMember().setMemberName("user.user2"));
+        groupMembers.add(new GroupMember().setMemberName("user.user3"));
+
+        Group group1 = createGroupObject(domainName, groupName, groupMembers);
+        zms.putGroup(mockDomRsrcCtx, domainName, groupName, auditRef, group1);
+
+        // now let's create a role with user members only
+
+        Role role1 = createRoleObject(domainName, roleName, null, "user.user1", "user.user2");
+        zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, role1);
+
+        // now let's update our role with group member - first with invalid
+
+        role1 = createRoleObject(domainName, roleName, null, "user.user1", ZMSUtils.groupResourceName(domainName, "dev-team"));
+        try {
+            zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, role1);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        // now let's update our role with correct group member
+
+        role1 = createRoleObject(domainName, roleName, null, "user.user1", ZMSUtils.groupResourceName(domainName, groupName));
+        zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, role1);
+
+        // now let's get our role object
+
+        Role role = zms.getRole(mockDomRsrcCtx, domainName, roleName, false, false, false);
+        assertNotNull(role);
+
+        List<RoleMember> members = role.getRoleMembers();
+        assertNotNull(members);
+        assertEquals(members.size(), 2);
+        List<String> checkList = new ArrayList<>();
+        checkList.add("user.user1");
+        checkList.add(ZMSUtils.groupResourceName(domainName, groupName));
+        checkRoleMember(checkList, members);
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }

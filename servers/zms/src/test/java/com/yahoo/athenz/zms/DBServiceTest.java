@@ -5713,7 +5713,7 @@ public class DBServiceTest {
         admins.add(adminUser);
 
         zms.dbService.makeDomain(mockDomRsrcCtx, ZMSTestUtils.makeDomainObject(domainName, "test desc", "org", false,
-                "", 1234, "", 0), admins, null, auditRef);
+                "", 1998, "", 0), admins, null, auditRef);
 
         Role role1 = createRoleObject(domainName, "role1", null, "user.john", "user.jane");
         Timestamp timExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(10, TimeUnit.DAYS));
@@ -5788,7 +5788,7 @@ public class DBServiceTest {
         admins.add(adminUser);
 
         zms.dbService.makeDomain(mockDomRsrcCtx, ZMSTestUtils.makeDomainObject(domainName, "test desc",
-                "org", false, "", 1234, "", 0), admins, null, auditRef);
+                "org", false, "", 1999, "", 0), admins, null, auditRef);
 
         Domain domain = new Domain().setName(domainName).setMemberExpiryDays(100)
                 .setModified(Timestamp.fromCurrentTime());
@@ -5850,7 +5850,7 @@ public class DBServiceTest {
         admins.add("user.john");
 
         zms.dbService.makeDomain(mockDomRsrcCtx, ZMSTestUtils.makeDomainObject(domainName, "test desc",
-                "org", false, "", 1234, "", 0), admins, null, auditRef);
+                "org", false, "", 1997, "", 0), admins, null, auditRef);
 
         AthenzDomain athenzDomain = zms.dbService.getAthenzDomain(domainName, false);
         Domain domain = new Domain().setName(domainName).setUserAuthorityFilter("contractor")
@@ -6071,7 +6071,7 @@ public class DBServiceTest {
 
         // Create domain
         zms.dbService.makeDomain(mockDomRsrcCtx, ZMSTestUtils.makeDomainObject(domainName1, "test desc", "org", false,
-                "", 1234, "", 0), admins, null, auditRef);
+                "", 1996, "", 0), admins, null, auditRef);
 
         long currentTimeMillis = System.currentTimeMillis();
         Timestamp oldTimestamp = Timestamp.fromMillis(currentTimeMillis - 60000);

@@ -3192,7 +3192,67 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
 
-    void validateRoleMemberPrincipal(final String memberName, int principalType, final String userAuthorityFilter, final String caller) {
+    void validateUserPrincipal(final String memberName, boolean validateUserMember, final String userAuthorityFilter,
+                               final String caller) {
+
+        if (userAuthority == null) {
+            return;
+        }
+
+        if (validateUserMember) {
+            if (!userAuthority.isValidUser(memberName)) {
+                throw ZMSUtils.requestError("Principal " + memberName + " is not valid", caller);
+            }
+        }
+
+        // once we know it's a valid principal and we have a user
+        // authority filter configured, we'll check that as well
+        // if we're already determined that the principal is not
+        // valid there is no point of running this check
+
+        if (!StringUtil.isEmpty(userAuthorityFilter)) {
+            if (!ZMSUtils.isUserAuthorityFilterValid(userAuthority, userAuthorityFilter, memberName)) {
+                throw ZMSUtils.requestError("Invalid member: " + memberName +
+                        ". Required user authority filter not valid for the member", caller);
+            }
+        }
+    }
+
+    void validateServicePrincipal(final String memberName, final String caller) {
+
+        int idx = memberName.lastIndexOf('.');
+        if (idx == -1) {
+            throw ZMSUtils.requestError("Principal " + memberName + " is not valid", caller);
+        }
+
+        final String domainName = memberName.substring(0, idx);
+        final String serviceName = memberName.substring(idx + 1);
+
+        // first we need to check if the domain is on the list of
+        // our skip domains for service member validation. these
+        // are typically domains (like for ci/cd) where services
+        // are dynamic and do not need to be registered in Athenz
+
+        if (!validateServiceMemberSkipDomains.contains(domainName)) {
+            if (dbService.getServiceIdentity(domainName, serviceName, true) == null) {
+                throw ZMSUtils.requestError("Principal " + memberName + " is not a valid service", caller);
+            }
+        }
+    }
+
+    void validateGroupPrincipal(final String memberName, final String caller) {
+
+        int idx = memberName.indexOf(AuthorityConsts.GROUP_SEP);
+        final String domainName = memberName.substring(0, idx);
+        final String groupName = memberName.substring(idx + AuthorityConsts.GROUP_SEP.length());
+
+        if (dbService.getGroup(domainName, groupName, false, false) == null) {
+            throw ZMSUtils.requestError("Principal " + memberName + " is not valid", caller);
+        }
+    }
+
+    void validateRoleMemberPrincipal(final String memberName, int principalType, final String userAuthorityFilter,
+                                     final String caller) {
 
         switch (Principal.Type.getType(principalType)) {
 
@@ -3201,23 +3261,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 // if the account contains a wildcard then we're going
                 // to let the user authority decide if it's valid or not
 
-                if (validateUserRoleMembers && userAuthority != null) {
-                    if (!userAuthority.isValidUser(memberName)) {
-                        throw ZMSUtils.requestError("Principal " + memberName + " is not valid", caller);
-                    }
-                }
-
-                // once we know it's a valid principal and we have a user
-                // authority filter configured, we'll check that as well
-                // if we're already determined that the principal is not
-                // valid there is no point of running this check
-
-                if (!StringUtil.isEmpty(userAuthorityFilter)) {
-                    if (!ZMSUtils.isUserAuthorityFilterValid(userAuthority, userAuthorityFilter, memberName)) {
-                        throw ZMSUtils.requestError("Invalid member: " + memberName +
-                                ". Required user authority filter not valid for the member", caller);
-                    }
-                }
+                validateUserPrincipal(memberName, validateUserRoleMembers, userAuthorityFilter, caller);
                 break;
 
             case SERVICE:
@@ -3227,26 +3271,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     // if the account contains a wildcard character then
                     // we're going to assume it's valid
 
-                    int idx = memberName.indexOf('*');
-                    if (idx == -1) {
-                        idx = memberName.lastIndexOf('.');
-                        if (idx != -1) {
-                            final String domainName = memberName.substring(0, idx);
-                            final String serviceName = memberName.substring(idx + 1);
-
-                            // first we need to check if the domain is on the list of
-                            // our skip domains for service member validation. these
-                            // are typically domains (like for ci/cd) where services
-                            // are dynamic and do not need to be registered in Athenz
-
-                            if (!validateServiceMemberSkipDomains.contains(domainName)) {
-                                if (dbService.getServiceIdentity(domainName, serviceName, true) == null) {
-                                    throw ZMSUtils.requestError("Principal " + memberName + " is not a valid service", caller);
-                                }
-                            }
-                        } else {
-                            throw ZMSUtils.requestError("Principal " + memberName + " is not valid", caller);
-                        }
+                    if (memberName.indexOf('*') == -1) {
+                        validateServicePrincipal(memberName, caller);
                     }
                 }
 
@@ -3254,15 +3280,41 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
             case GROUP:
 
-                int idx = memberName.indexOf(AuthorityConsts.GROUP_SEP);
-                final String domainName = memberName.substring(0, idx);
-                final String groupName = memberName.substring(idx + AuthorityConsts.GROUP_SEP.length());
-
-                if (dbService.getGroup(domainName, groupName, false, false) == null) {
-                    throw ZMSUtils.requestError("Principal " + memberName + " is not valid", caller);
-                }
-
+                validateGroupPrincipal(memberName, caller);
                 break;
+
+            default:
+
+                throw ZMSUtils.requestError("Principal " + memberName + " is not valid", caller);
+        }
+    }
+
+    void validateGroupMemberPrincipal(final String memberName, int principalType, final String userAuthorityFilter,
+                                      final String caller) {
+
+        // we do not support any type of wildcards in group members
+
+        if (memberName.indexOf('*') != -1) {
+            throw ZMSUtils.requestError("Principal " + memberName + " is not valid", caller);
+        }
+
+        switch (Principal.Type.getType(principalType)) {
+
+            case USER:
+
+                // for group members we always validate all members
+
+                validateUserPrincipal(memberName, true, userAuthorityFilter, caller);
+                break;
+
+            case SERVICE:
+
+                validateServicePrincipal(memberName, caller);
+                break;
+
+            default:
+
+                throw ZMSUtils.requestError("Principal " + memberName + " is not valid", caller);
         }
     }
 
@@ -7650,8 +7702,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             validateRoleMemberPrincipal(roleMember.getMemberName(), roleMember.getPrincipalType(), userAuthorityFilter, caller);
         }
 
-        dbService.executePutMembershipDecision(ctx, domainName, roleName,
-                roleMember, auditRef, caller);
+        dbService.executePutMembershipDecision(ctx, domainName, roleName, roleMember, auditRef, caller);
     }
 
     private void validatePutMembershipDecisionAuthorization(final Principal principal, final AthenzDomain domain,
@@ -8110,7 +8161,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 domainUserAuthorityFilter);
 
         for (GroupMember groupMember : group.getGroupMembers()) {
-            validateRoleMemberPrincipal(groupMember.getMemberName(), groupMember.getPrincipalType(), userAuthorityFilter, caller);
+            validateGroupMemberPrincipal(groupMember.getMemberName(), groupMember.getPrincipalType(),
+                    userAuthorityFilter, caller);
         }
     }
 
@@ -8374,7 +8426,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         final String userAuthorityFilter = enforcedUserAuthorityFilter(group.getUserAuthorityFilter(),
                 domain.getDomain().getUserAuthorityFilter());
-        validateRoleMemberPrincipal(groupMember.getMemberName(), groupMember.getPrincipalType(), userAuthorityFilter, caller);
+        validateGroupMemberPrincipal(groupMember.getMemberName(), groupMember.getPrincipalType(), userAuthorityFilter, caller);
 
         // authorization check which also automatically updates
         // the active and approved flags for the request
@@ -8687,7 +8739,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
             final String userAuthorityFilter = enforcedUserAuthorityFilter(group.getUserAuthorityFilter(),
                     domain.getDomain().getUserAuthorityFilter());
-             validateRoleMemberPrincipal(groupMember.getMemberName(), groupMember.getPrincipalType(), userAuthorityFilter, caller);
+             validateGroupMemberPrincipal(groupMember.getMemberName(), groupMember.getPrincipalType(),
+                     userAuthorityFilter, caller);
         }
 
         dbService.executePutGroupMembershipDecision(ctx, domainName, group, groupMember, auditRef);
