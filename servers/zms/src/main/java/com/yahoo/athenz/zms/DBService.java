@@ -4650,8 +4650,8 @@ public class DBService implements RolesProvider {
         }
     }
 
-    public void executePutRoleMeta(ResourceContext ctx, String domainName, String roleName, RoleMeta meta,
-            String auditRef, String caller) {
+    public void executePutRoleMeta(ResourceContext ctx, String domainName, String roleName, Role originalRole,
+                                   RoleMeta meta, String auditRef, String caller) {
 
         // our exception handling code does the check for retry count
         // and throws the exception it had received when the retry
@@ -4660,12 +4660,6 @@ public class DBService implements RolesProvider {
         for (int retryCount = defaultRetryCount; ; retryCount--) {
 
             try (ObjectStoreConnection con = store.getConnection(false, true)) {
-
-                Role originalRole = getRole(con, domainName, roleName, false, false, false);
-                if (originalRole == null) {
-                    con.rollbackChanges();
-                    throw ZMSUtils.notFoundError(caller + ": Unknown role: " + roleName, caller);
-                }
 
                 checkObjectAuditEnabled(con, originalRole.getAuditEnabled(), originalRole.getName(),
                         auditRef, caller, getPrincipalName(ctx));

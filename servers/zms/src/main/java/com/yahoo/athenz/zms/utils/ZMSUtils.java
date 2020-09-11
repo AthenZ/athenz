@@ -333,15 +333,15 @@ public class ZMSUtils {
         return boolVal;
     }
 
-    public static int principalType(final String memberName, final String userDomainPrefix,
-                                        final List<String> addlUserCheckDomainPrefixList) {
+    public static Principal.Type principalType(final String memberName, final String userDomainPrefix,
+                                               final List<String> addlUserCheckDomainPrefixList) {
 
         if (ZMSUtils.isUserDomainPrincipal(memberName, userDomainPrefix, addlUserCheckDomainPrefixList)) {
-            return Principal.Type.USER.getValue();
+            return Principal.Type.USER;
         } else if (memberName.contains(AuthorityConsts.GROUP_SEP)) {
-            return Principal.Type.GROUP.getValue();
+            return Principal.Type.GROUP;
         } else {
-            return Principal.Type.SERVICE.getValue();
+            return Principal.Type.SERVICE;
         }
     }
 
