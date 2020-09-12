@@ -3024,13 +3024,38 @@ public class DBService implements RolesProvider {
         }
     }
 
-    void updateRoleSystemMetaFields(Role role, final String attribute, RoleSystemMeta meta, final String caller) {
+    void updateRoleSystemMetaFields(ObjectStoreConnection con, Role updatedRole, Role originalRole,
+                                    final String attribute, RoleSystemMeta meta, final String caller) {
 
         // system attributes we'll only set if they're available
         // in the given object
 
         if (ZMSConsts.SYSTEM_META_AUDIT_ENABLED.equals(attribute)) {
-            role.setAuditEnabled(meta.getAuditEnabled());
+            updatedRole.setAuditEnabled(meta.getAuditEnabled());
+
+            // we also need to verify that if we have any group members
+            // then those groups have the audit enabled flag as well
+
+            if (updatedRole.getAuditEnabled() == Boolean.TRUE && originalRole.getRoleMembers() != null) {
+                for (RoleMember roleMember : originalRole.getRoleMembers()) {
+                    final String memberName = roleMember.getMemberName();
+                    if (ZMSUtils.principalType(memberName, zmsConfig.getUserDomainPrefix(),
+                            zmsConfig.getAddlUserCheckDomainPrefixList()) != Principal.Type.GROUP) {
+                        continue;
+                    }
+
+                    int idx = memberName.indexOf(AuthorityConsts.GROUP_SEP);
+                    final String domainName = memberName.substring(0, idx);
+                    final String groupName = memberName.substring(idx + AuthorityConsts.GROUP_SEP.length());
+                    Group group = con.getGroup(domainName, groupName);
+                    if (group == null) {
+                        throw ZMSUtils.requestError("role has invalid group member: " + memberName, caller);
+                    }
+                    if (group.getAuditEnabled() != Boolean.TRUE) {
+                        throw ZMSUtils.requestError("role member: " + memberName + " must have audit flag enabled", caller);
+                    }
+                }
+            }
         } else {
             throw ZMSUtils.requestError("unknown role system meta attribute: " + attribute, caller);
         }
@@ -4469,7 +4494,7 @@ public class DBService implements RolesProvider {
                 // then we're going to apply the updated fields
                 // from the given object
 
-                updateRoleSystemMetaFields(updatedRole, attribute, meta, ctx.getApiName());
+                updateRoleSystemMetaFields(con, updatedRole, originalRole, attribute, meta, ctx.getApiName());
 
                 con.updateRole(domainName, updatedRole);
                 saveChanges(con, domainName);

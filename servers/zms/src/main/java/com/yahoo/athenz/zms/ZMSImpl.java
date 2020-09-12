@@ -1424,7 +1424,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // to be the home domain and the admin of the domain is the user
 
         final String userDomainAdmin = userDomainPrefix + principal.getName();
-        validateRoleMemberPrincipal(userDomainAdmin, Principal.Type.USER.getValue(), null, null, caller);
+        validateRoleMemberPrincipal(userDomainAdmin, Principal.Type.USER.getValue(), null, null, null, caller);
 
         List<String> adminUsers = new ArrayList<>();
         adminUsers.add(userDomainAdmin);
@@ -2941,7 +2941,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // now go through the list and make sure they're all valid
 
         for (String admin : normalizedAdmins) {
-            validateRoleMemberPrincipal(admin, principalType(admin), domainUserAuthorityFilter, null, caller);
+            validateRoleMemberPrincipal(admin, principalType(admin), domainUserAuthorityFilter, null, null, caller);
         }
 
         return new ArrayList<>(normalizedAdmins);
@@ -3162,7 +3162,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         for (RoleMember roleMember : role.getRoleMembers()) {
             validateRoleMemberPrincipal(roleMember.getMemberName(), roleMember.getPrincipalType(),
-                    userAuthorityFilter, role.getUserAuthorityExpiration(), caller);
+                    userAuthorityFilter, role.getUserAuthorityExpiration(), role.getAuditEnabled(), caller);
         }
     }
 
@@ -3242,7 +3242,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     void validateGroupPrincipal(final String memberName, final String userAuthorityFilter,
-                                final String userAuthorityExpiration, final String caller) {
+                                final String userAuthorityExpiration, Boolean auditEnabled, final String caller) {
 
         Group group = getGroup(memberName);
         if (group == null) {
@@ -3258,10 +3258,17 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.requestError("Group " + memberName + " does not have same user authority expiration "
                     + userAuthorityExpiration + " configured", caller);
         }
+
+        // verify if role is audit enabled and we have a group member then
+        // group must also have audit enabled flag
+
+        if (auditEnabled == Boolean.TRUE && group.getAuditEnabled() != Boolean.TRUE) {
+            throw ZMSUtils.requestError("Group " + memberName + " must be audit enabled", caller);
+        }
     }
 
     void validateRoleMemberPrincipal(final String memberName, int principalType, final String userAuthorityFilter,
-                                     final String userAuthorityExpiration, final String caller) {
+                                     final String userAuthorityExpiration, Boolean roleAuditEnabled, final String caller) {
 
         switch (Principal.Type.getType(principalType)) {
 
@@ -3289,7 +3296,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
             case GROUP:
 
-                validateGroupPrincipal(memberName, userAuthorityFilter, userAuthorityExpiration, caller);
+                validateGroupPrincipal(memberName, userAuthorityFilter, userAuthorityExpiration, roleAuditEnabled, caller);
                 break;
 
             default:
@@ -3644,7 +3651,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String userAuthorityFilter = enforcedUserAuthorityFilter(role.getUserAuthorityFilter(),
                 domain.getDomain().getUserAuthorityFilter());
         validateRoleMemberPrincipal(roleMember.getMemberName(), roleMember.getPrincipalType(), userAuthorityFilter,
-                role.getUserAuthorityExpiration(), caller);
+                role.getUserAuthorityExpiration(), role.getAuditEnabled(), caller);
 
         // authorization check which also automatically updates
         // the active and approved flags for the request
@@ -7805,7 +7812,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             final String userAuthorityFilter = enforcedUserAuthorityFilter(role.getUserAuthorityFilter(),
                     domain.getDomain().getUserAuthorityFilter());
             validateRoleMemberPrincipal(roleMember.getMemberName(), roleMember.getPrincipalType(),
-                    userAuthorityFilter, role.getUserAuthorityExpiration(), caller);
+                    userAuthorityFilter, role.getUserAuthorityExpiration(), role.getAuditEnabled(), caller);
         }
 
         dbService.executePutMembershipDecision(ctx, domainName, roleName, roleMember, auditRef, caller);

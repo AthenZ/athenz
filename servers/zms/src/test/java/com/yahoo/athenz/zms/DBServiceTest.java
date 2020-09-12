@@ -4290,13 +4290,14 @@ public class DBServiceTest {
 
     @Test
     public void testUpdateRoleSystemMetaFields() {
-        Role role = new Role();
+        Role updatedRole = new Role();
+        Role originalRole = new Role();
         RoleSystemMeta meta = new RoleSystemMeta()
                 .setAuditEnabled(true);
-        zms.dbService.updateRoleSystemMetaFields(role, "auditenabled", meta, "unit-test");
-        assertTrue(role.getAuditEnabled());
+        zms.dbService.updateRoleSystemMetaFields(mockJdbcConn, updatedRole, originalRole, "auditenabled", meta, "unit-test");
+        assertTrue(updatedRole.getAuditEnabled());
         try {
-            zms.dbService.updateRoleSystemMetaFields(role, "unknown", meta, "unit-test");
+            zms.dbService.updateRoleSystemMetaFields(mockJdbcConn, updatedRole, originalRole, "unknown", meta, "unit-test");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -4850,7 +4851,7 @@ public class DBServiceTest {
         zms.dbService.executePutRole(mockDomRsrcCtx, domainName, roleName, role1, auditRef, "putRole");
 
         RoleSystemMeta meta = new RoleSystemMeta().setAuditEnabled(true);
-        zms.dbService.updateRoleSystemMetaFields(role1, "auditenabled", meta, "unit-test");
+        zms.dbService.updateRoleSystemMetaFields(mockJdbcConn, role1, role1, "auditenabled", meta, "unit-test");
 
         zms.dbService.executePutRoleSystemMeta(mockDomRsrcCtx, domainName, roleName, meta, "auditenabled", auditRef, "");
 
@@ -6779,9 +6780,14 @@ public class DBServiceTest {
 
         zms.dbService.zmsConfig.setUserAuthority(authority);
 
+        // if not a user then it's always false
+
+        RoleMember roleMember = new RoleMember().setMemberName("coretech.api");
+        assertFalse(zms.dbService.updateUserAuthorityExpiry(roleMember, "elevated-clearance"));
+
         // user.joe - no expiry setting
 
-        RoleMember roleMember = new RoleMember().setMemberName("user.joe");
+        roleMember = new RoleMember().setMemberName("user.joe");
         assertTrue(zms.dbService.updateUserAuthorityExpiry(roleMember, "elevated-clearance"));
         assertNotNull(roleMember.getExpiration());
 
@@ -8595,5 +8601,24 @@ public class DBServiceTest {
         assertEquals(zms.dbService.auditLogBooleanDefault(null, Boolean.FALSE), "true");
         assertEquals(zms.dbService.auditLogBooleanDefault(Boolean.TRUE, Boolean.FALSE), "true");
         assertEquals(zms.dbService.auditLogBooleanDefault(Boolean.FALSE, Boolean.FALSE), "false");
+    }
+
+    @Test
+    public void testUpdateRoleSystemMetaFieldsInvalidGroup() {
+
+        Role updatedRole = new Role().setAuditEnabled(true);
+        RoleMember roleMember = new RoleMember().setMemberName("coretech:group.group1");
+        List<RoleMember> roleMembers = new ArrayList<>();
+        roleMembers.add(roleMember);
+        Role originalRole = new Role().setRoleMembers(roleMembers);
+        RoleSystemMeta meta = new RoleSystemMeta().setAuditEnabled(true);
+
+        try {
+            zms.dbService.updateRoleSystemMetaFields(mockJdbcConn, updatedRole, originalRole, "auditenabled",
+                    meta, "unittest");
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("role has invalid group member"));
+        }
     }
 }
