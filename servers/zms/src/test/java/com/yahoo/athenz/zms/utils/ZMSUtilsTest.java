@@ -433,4 +433,37 @@ public class ZMSUtilsTest {
         assertEquals(ZMSUtils.lowerDomainInResource(""), "");
         assertNull(ZMSUtils.lowerDomainInResource(null));
     }
+
+    @Test
+    public void testUserAuthorityAttrPresent() {
+
+        // empty role filter cases
+
+        assertFalse(ZMSUtils.userAuthorityAttrMissing(null, "test1"));
+        assertFalse(ZMSUtils.userAuthorityAttrMissing("", "test1"));
+
+        // if role filter is not empty but group is - then failure
+
+        assertTrue(ZMSUtils.userAuthorityAttrMissing("test1", null));
+        assertTrue(ZMSUtils.userAuthorityAttrMissing("test1", ""));
+
+        // values match
+
+        assertFalse(ZMSUtils.userAuthorityAttrMissing("test1", "test1"));
+        assertFalse(ZMSUtils.userAuthorityAttrMissing("test1,test2", "test1,test2"));
+
+        // array value match
+
+        assertFalse(ZMSUtils.userAuthorityAttrMissing("test2,test3,test1", "test1,test3,test2"));
+
+        // subset values match
+
+        assertFalse(ZMSUtils.userAuthorityAttrMissing("test2,test3", "test1,test3,test2"));
+        assertFalse(ZMSUtils.userAuthorityAttrMissing("test3", "test1,test3,test2"));
+
+        // mismatch values
+
+        assertTrue(ZMSUtils.userAuthorityAttrMissing("test1", "test2"));
+        assertTrue(ZMSUtils.userAuthorityAttrMissing("test2,test3,test1", "test4,test3,test2"));
+    }
 }

@@ -31,6 +31,7 @@ import com.yahoo.athenz.zms.store.ObjectStoreConnection;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
 import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Timestamp;
+import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -4805,6 +4806,13 @@ public class DBService implements RolesProvider {
 
                 updateGroupMetaFields(updatedGroup, meta);
 
+                // if either the filter or the expiry has been removed we need to make
+                // sure the group is not a member in a role that requires it
+
+                validateGroupUserAuthorityAttrRequirements(con, originalGroup, updatedGroup, ctx.getApiName());
+
+                // update the group in the database
+
                 con.updateGroup(domainName, updatedGroup);
                 saveChanges(con, domainName);
 
@@ -4833,6 +4841,88 @@ public class DBService implements RolesProvider {
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
                     throw ex;
+                }
+            }
+        }
+    }
+
+    String getDomainUserAuthorityFilterFromMap(ObjectStoreConnection con, Map<String, String> domainFitlerMap, final String domainName) {
+        String domainUserAuthorityFilter = domainFitlerMap.get(domainName);
+        if (domainUserAuthorityFilter == null) {
+            final String domainFilter = getDomainUserAuthorityFilter(con, domainName);
+            domainUserAuthorityFilter = domainFilter == null ? "" : domainFilter;
+            domainFitlerMap.put(domainName, domainUserAuthorityFilter);
+        }
+        return domainUserAuthorityFilter;
+    }
+
+    void validateGroupUserAuthorityAttrRequirements(ObjectStoreConnection con, Group originalGroup, Group updatedGroup,
+                                                    final String caller)  {
+
+        // check to see if the attribute filter or expiration values have been removed
+
+        boolean filterRemoved = ZMSUtils.userAuthorityAttrMissing(originalGroup.getUserAuthorityFilter(),
+                updatedGroup.getUserAuthorityFilter());
+        boolean expiryRemoved = ZMSUtils.userAuthorityAttrMissing(originalGroup.getUserAuthorityExpiration(),
+                updatedGroup.getUserAuthorityExpiration());
+
+        // if nothing was removed then we're done with our checks
+
+        if (!filterRemoved && !expiryRemoved) {
+            return;
+        }
+
+        // obtain all the roles that have the given group as member
+        // if we get back 404 then the group is not a member of any
+        // role which is success otherwise we'll re-throw the exception
+
+        DomainRoleMember domainRoleMember;
+        try {
+            domainRoleMember = con.getPrincipalRoles(updatedGroup.getName(), null);
+        } catch (ResourceException ex) {
+            if (ex.getCode() == ResourceException.NOT_FOUND) {
+                return;
+            }
+            throw ex;
+        }
+
+        Map<String, String> domainFitlerMap = new HashMap<>();
+        for (MemberRole memberRole : domainRoleMember.getMemberRoles()) {
+
+            // first let's fetch the role and skip if it doesn't exist
+            // (e.g. got deleted right after we run the query)
+
+            Role role = con.getRole(memberRole.getDomainName(), memberRole.getRoleName());
+            if (role == null) {
+                continue;
+            }
+
+            // first process if the user attribute filter was removed
+
+            if (filterRemoved) {
+
+                // if the user attribute filter is removed, then we need to
+                // also obtain the domain level setting
+
+                String domainUserAuthorityFilter = getDomainUserAuthorityFilterFromMap(con, domainFitlerMap, memberRole.getDomainName());
+                final String roleUserAuthorityFilter = ZMSUtils.combineUserAuthorityFilters(role.getUserAuthorityFilter(),
+                        domainUserAuthorityFilter);
+                if (ZMSUtils.userAuthorityAttrMissing(roleUserAuthorityFilter, updatedGroup.getUserAuthorityFilter())) {
+                    throw ZMSUtils.requestError("Setting " + updatedGroup.getUserAuthorityFilter() +
+                            " user authority filter on the group will not satisfy "
+                            + ZMSUtils.roleResourceName(memberRole.getDomainName(), memberRole.getRoleName())
+                            + " role filter requirements", caller);
+                }
+            }
+
+            // now process if the expiry attribute was removed
+
+            if (expiryRemoved) {
+                if (ZMSUtils.userAuthorityAttrMissing(role.getUserAuthorityExpiration(), updatedGroup.getUserAuthorityExpiration())) {
+                    throw ZMSUtils.requestError("Setting " + updatedGroup.getUserAuthorityExpiration() +
+                            " user authority expiration on the group will not satisfy "
+                            + ZMSUtils.roleResourceName(memberRole.getDomainName(), memberRole.getRoleName())
+                            + " role expiration requirements", caller);
                 }
             }
         }

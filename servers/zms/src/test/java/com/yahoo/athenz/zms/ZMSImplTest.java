@@ -23867,7 +23867,7 @@ public class ZMSImplTest {
     }
 
     @Test
-    public void testPutGroupMetaUserAuthorityFilterExpirtySet() {
+    public void testPutGroupMetaUserAuthorityFilterExpirySet() {
 
         final String domainName = "put-group-meta-elevated-clearance";
         final String groupName = "group1";
@@ -24111,39 +24111,6 @@ public class ZMSImplTest {
     }
 
     @Test
-    public void testUserAuthorityFilterPresent() {
-
-        // empty role filter cases
-
-        assertTrue(zms.userAuthorityFilterPresent(null, "test1"));
-        assertTrue(zms.userAuthorityFilterPresent("", "test1"));
-
-        // if role filter is not empty but group is - then failure
-
-        assertFalse(zms.userAuthorityFilterPresent("test1", null));
-        assertFalse(zms.userAuthorityFilterPresent("test1", ""));
-
-        // values match
-
-        assertTrue(zms.userAuthorityFilterPresent("test1", "test1"));
-        assertTrue(zms.userAuthorityFilterPresent("test1,test2", "test1,test2"));
-
-        // array value match
-
-        assertTrue(zms.userAuthorityFilterPresent("test2,test3,test1", "test1,test3,test2"));
-
-        // subset values match
-
-        assertTrue(zms.userAuthorityFilterPresent("test2,test3", "test1,test3,test2"));
-        assertTrue(zms.userAuthorityFilterPresent("test3", "test1,test3,test2"));
-
-        // mismatch values
-
-        assertFalse(zms.userAuthorityFilterPresent("test1", "test2"));
-        assertFalse(zms.userAuthorityFilterPresent("test2,test3,test1", "test4,test3,test2"));
-    }
-
-    @Test
     public void testValidateGroupPrincipalFailures() {
 
         final String domainName = "val-group-principal";
@@ -24320,4 +24287,119 @@ public class ZMSImplTest {
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
+
+    @Test
+    public void testGroupUserAuthorityFilterRemoveRejection() {
+
+        final String domainName = "reject-group-filter-remove";
+        final String groupName = "group1";
+        final String roleName = "role1";
+
+        Authority savedAuthority = zms.userAuthority;
+
+        Authority authority = Mockito.mock(Authority.class);
+        Mockito.when(authority.isValidUser(anyString())).thenReturn(true);
+        Mockito.when(authority.isAttributeSet("user.john", "OnShore-US")).thenReturn(true);
+        Set<String> attrs = new HashSet<>();
+        attrs.add("OnShore-US");
+        Mockito.when(authority.booleanAttributesSupported()).thenReturn(attrs);
+        zms.userAuthority = authority;
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", adminUser);
+        dom1.setAuditEnabled(true);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Group group = createGroupObject(domainName, groupName, "user.john", "user.jane");
+        zms.putGroup(mockDomRsrcCtx, domainName, groupName, auditRef, group);
+
+        GroupMeta gm = new GroupMeta().setUserAuthorityFilter("OnShore-US");
+        zms.putGroupMeta(mockDomRsrcCtx, domainName, groupName, auditRef, gm);
+
+        Role role = createRoleObject(domainName, roleName, null, "user.john", ZMSUtils.groupResourceName(domainName, groupName));
+        role.setUserAuthorityFilter("OnShore-US");
+        zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, role);
+
+        // now we're going to try to remove the user authority filter
+        // from the group and it should be rejected since the role
+        // has the filter set on the group
+
+        gm = new GroupMeta().setUserAuthorityFilter("");
+        try {
+            zms.putGroupMeta(mockDomRsrcCtx, domainName, groupName, auditRef, gm);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("role filter requirements"));
+        }
+
+        // now let's remove the filter from the role
+
+        RoleMeta rm = new RoleMeta().setUserAuthorityFilter("");
+        zms.putRoleMeta(mockDomRsrcCtx, domainName, roleName, auditRef, rm);
+
+        // now our group meta should work
+
+        zms.putGroupMeta(mockDomRsrcCtx, domainName, groupName, auditRef, gm);
+
+        zms.userAuthority = savedAuthority;
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testGroupUserAuthorityExpiryRemoveRejection2() {
+
+        final String domainName = "reject-group-expiry-remove";
+        final String groupName = "group1";
+        final String roleName = "role1";
+
+        Authority savedAuthority = zms.userAuthority;
+
+        Authority authority = Mockito.mock(Authority.class);
+        Mockito.when(authority.isValidUser(anyString())).thenReturn(true);
+        Mockito.when(authority.getDateAttribute("user.john", "elevated-clearance")).thenReturn(new Date());
+        Mockito.when(authority.getDateAttribute("user.jane", "elevated-clearance")).thenReturn(new Date());
+        Set<String> attrs = new HashSet<>();
+        attrs.add("elevated-clearance");
+        Mockito.when(authority.booleanAttributesSupported()).thenReturn(attrs);
+        Mockito.when(authority.dateAttributesSupported()).thenReturn(attrs);
+        zms.userAuthority = authority;
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", adminUser);
+        dom1.setAuditEnabled(true);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Group group = createGroupObject(domainName, groupName, "user.john", "user.jane");
+        zms.putGroup(mockDomRsrcCtx, domainName, groupName, auditRef, group);
+
+        GroupMeta gm = new GroupMeta().setUserAuthorityExpiration("elevated-clearance");
+        zms.putGroupMeta(mockDomRsrcCtx, domainName, groupName, auditRef, gm);
+
+        Role role = createRoleObject(domainName, roleName, null, "user.john", ZMSUtils.groupResourceName(domainName, groupName));
+        role.setUserAuthorityExpiration("elevated-clearance");
+        zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, role);
+
+        // now we're going to try to remove the user authority expiration
+        // from the group and it should be rejected since the role
+        // has the expiration set on the group
+
+        gm = new GroupMeta().setUserAuthorityExpiration("");
+        try {
+            zms.putGroupMeta(mockDomRsrcCtx, domainName, groupName, auditRef, gm);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("role expiration requirements"));
+        }
+
+        // now let's remove the expiration from the role
+
+        RoleMeta rm = new RoleMeta().setUserAuthorityExpiration("");
+        zms.putRoleMeta(mockDomRsrcCtx, domainName, roleName, auditRef, rm);
+
+        // now our group meta should work
+
+        zms.putGroupMeta(mockDomRsrcCtx, domainName, groupName, auditRef, gm);
+
+        zms.userAuthority = savedAuthority;
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
 }

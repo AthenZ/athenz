@@ -8621,4 +8621,74 @@ public class DBServiceTest {
             assertTrue(ex.getMessage().contains("role has invalid group member"));
         }
     }
+
+    @Test
+    public void testGetDomainUserAuthorityFilterFromMap() {
+
+        // if the map already have an entry we return that and no
+        // connection object is necessary
+
+        Map<String, String> map = new HashMap<>();
+        map.put("coretech", "OnShore-US");
+
+        assertEquals("OnShore-US", zms.dbService.getDomainUserAuthorityFilterFromMap(null, map, "coretech"));
+
+        // we have a domain that is null
+
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+        Mockito.when(conn.getDomain("coretech")).thenReturn(null);
+
+        // in this case we should get back ""
+
+        map.clear();
+        assertTrue(zms.dbService.getDomainUserAuthorityFilterFromMap(conn, map, "coretech").isEmpty());
+
+        // we're going to return domain without authority filter
+        // so we'll return "" as well
+
+        Domain domain = new Domain();
+        Mockito.when(conn.getDomain("coretech")).thenReturn(domain);
+
+        map.clear();
+        assertTrue(zms.dbService.getDomainUserAuthorityFilterFromMap(conn, map, "coretech").isEmpty());
+
+        // now we're going to return with domain filter value
+
+        domain = new Domain().setUserAuthorityFilter("OnShore-US");
+        Mockito.when(conn.getDomain("coretech")).thenReturn(domain);
+
+        map.clear();
+        assertEquals("OnShore-US", zms.dbService.getDomainUserAuthorityFilterFromMap(conn, map, "coretech"));
+    }
+
+    @Test
+    public void testValidateGroupUserAuthorityAttrRequirements() {
+
+        Group originalGroup = new Group().setName("group1").setUserAuthorityFilter("OnShore-US");
+        Group updatedGroup = new Group().setName("group1");
+
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+        Mockito.when(conn.getPrincipalRoles("group1", null)).thenThrow(new ResourceException(ResourceException.BAD_REQUEST));
+
+        try {
+            zms.dbService.validateGroupUserAuthorityAttrRequirements(conn, originalGroup, updatedGroup, "unittest");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        // now we're going to mock the use case where the role no longer exists
+
+        List<MemberRole> memberRoles = new ArrayList<>();
+        memberRoles.add(new MemberRole().setDomainName("coretech").setRoleName("role1"));
+        DomainRoleMember domainRoleMember = new DomainRoleMember();
+        domainRoleMember.setMemberRoles(memberRoles);
+        ObjectStoreConnection conn2 = Mockito.mock(ObjectStoreConnection.class);
+        Mockito.when(conn2.getPrincipalRoles("group1", null)).thenReturn(domainRoleMember);
+        Mockito.when(conn2.getRole("coretech", "role1")).thenReturn(null);
+
+        // the call will complete without any exceptions and no changes
+
+        zms.dbService.validateGroupUserAuthorityAttrRequirements(conn2, originalGroup, updatedGroup, "unittest");
+    }
 }

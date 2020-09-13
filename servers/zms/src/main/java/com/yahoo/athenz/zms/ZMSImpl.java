@@ -3249,12 +3249,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.requestError("Principal " + memberName + " is not valid", caller);
         }
 
-        if (!userAuthorityFilterPresent(userAuthorityFilter, group.getUserAuthorityFilter())) {
+        if (ZMSUtils.userAuthorityAttrMissing(userAuthorityFilter, group.getUserAuthorityFilter())) {
             throw ZMSUtils.requestError("Group " + memberName + " does not have same user authority filter "
                     + userAuthorityFilter + " configured", caller);
         }
 
-        if (!userAuthorityFilterPresent(userAuthorityExpiration, group.getUserAuthorityExpiration())) {
+        if (ZMSUtils.userAuthorityAttrMissing(userAuthorityExpiration, group.getUserAuthorityExpiration())) {
             throw ZMSUtils.requestError("Group " + memberName + " does not have same user authority expiration "
                     + userAuthorityExpiration + " configured", caller);
         }
@@ -7673,51 +7673,16 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 throw ZMSUtils.requestError("Invalid group member " + memberName + " in the role", caller);
             }
 
-            if (!userAuthorityFilterPresent(userAuthorityFilter, group.getUserAuthorityFilter())) {
+            if (ZMSUtils.userAuthorityAttrMissing(userAuthorityFilter, group.getUserAuthorityFilter())) {
                 throw ZMSUtils.requestError("Group " + memberName + " does not have same user authority filter "
                         + userAuthorityFilter + " configured", caller);
             }
 
-            if (!userAuthorityFilterPresent(userAuthorityExpiration, group.getUserAuthorityExpiration())) {
+            if (ZMSUtils.userAuthorityAttrMissing(userAuthorityExpiration, group.getUserAuthorityExpiration())) {
                 throw ZMSUtils.requestError("Group " + memberName + " does not have same user authority expiration "
                         + userAuthorityExpiration + " configured", caller);
             }
         }
-    }
-
-    boolean userAuthorityFilterPresent(final String roleFilter, final String groupMemberFilter) {
-
-        // if the role filter is empty then there is nothing to check
-
-        if (StringUtil.isEmpty(roleFilter)) {
-            return true;
-        }
-
-        // if the group filter is empty then it's a failure
-        // since we know that our role filter is not empty
-
-        if (StringUtil.isEmpty(groupMemberFilter)) {
-            return false;
-        }
-
-        // we'll just compare the values as is in case there
-        // is a match and no further processing is necessary
-
-        if (roleFilter.equals(groupMemberFilter)) {
-            return true;
-        }
-
-        // we need to tokenize our filter values and compare. we want to
-        // make sure all role filter values are present in the group
-
-        Set<String> groupValues = new HashSet<>(Arrays.asList(groupMemberFilter.split(",")));
-        for (String filter : roleFilter.split(",")) {
-            if (!groupValues.contains(filter)) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     Group getGroup(final String groupFullName) {
