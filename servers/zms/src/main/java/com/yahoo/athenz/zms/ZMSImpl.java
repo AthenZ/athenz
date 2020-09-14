@@ -1345,6 +1345,22 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     domainName + ": " + subDomainList.getNames().size() + " subdomains of it exist", caller);
         }
 
+        // we're going to make sure the domain does not have any
+        // groups that are referenced in other domains. if that is the
+        // case the group should be removed from all those domains
+        // before the domain can be deleted
+
+        AthenzDomain domain = getAthenzDomain(domainName, false);
+        if (domain == null) {
+            throw ZMSUtils.notFoundError("Domain not found: '" + domainName + "'", caller);
+        }
+
+        for (Group group : domain.getGroups()) {
+            groupMemberConsistencyCheck(domainName, group.getName(), true, caller);
+        }
+
+        // consistency checks are ok so we can go ahead and delete the domain
+
         dbService.executeDeleteDomain(ctx, domainName, auditRef, caller);
     }
 
@@ -1619,6 +1635,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         validateRequest(ctx.request(), caller);
+        validate(parent, TYPE_DOMAIN_NAME, caller);
+        validate(name, TYPE_SIMPLE_NAME, caller);
 
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case (e.g. domain, role,
@@ -1628,9 +1646,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         name = name.toLowerCase();
         String domainName = parent + "." + name;
         setRequestDomain(ctx, parent);
-
-        validate(parent, TYPE_DOMAIN_NAME, caller);
-        validate(name, TYPE_SIMPLE_NAME, caller);
 
         // verify that request is properly authenticated for this request
 
@@ -1649,7 +1664,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         validateRequest(ctx.request(), caller);
-
         validate(name, TYPE_SIMPLE_NAME, caller);
 
         // for consistent handling of all requests, we're going to convert
@@ -8141,7 +8155,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         AthenzDomain domain = getAthenzDomain(domainName, false);
         if (domain == null) {
-            throw ZMSUtils.notFoundError("getGroups: Domain not found: '" + domainName + "'", caller);
+            throw ZMSUtils.notFoundError("Domain not found: '" + domainName + "'", caller);
         }
 
         result.setList(setupGroupList(domain, members));
@@ -8378,22 +8392,57 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // exceptions - we get 404s if the principal is not part of
         // any roles, for example
 
+        groupMemberConsistencyCheck(domainName, ZMSUtils.groupResourceName(domainName, groupName), false, caller);
+
+        // everything is ok, so we should go ahead and delete the group
+
+        dbService.executeDeleteGroup(ctx, domainName, groupName, auditRef);
+    }
+
+    void groupMemberConsistencyCheck(final String domainName, final String groupResourceName, boolean skipOwnerDomain, final String caller) {
+
         DomainRoleMember drm = null;
         try {
-            drm = dbService.getPrincipalRoles(ZMSUtils.groupResourceName(domainName, groupName), null);
+            drm = dbService.getPrincipalRoles(groupResourceName, null);
         } catch (ResourceException ignored) {
         }
 
-        if (drm != null && !drm.getMemberRoles().isEmpty()) {
-            StringBuilder msgBuilder = new StringBuilder("Remove group membership from the following role(s):");
-            for (MemberRole memberRole : drm.getMemberRoles()) {
-                msgBuilder.append(' ');
-                msgBuilder.append(ZMSUtils.roleResourceName(memberRole.getDomainName(), memberRole.getRoleName()));
-            }
-            throw ZMSUtils.requestError(msgBuilder.toString(), caller);
+        if (drm == null || drm.getMemberRoles().isEmpty()) {
+            return;
         }
 
-        dbService.executeDeleteGroup(ctx, domainName, groupName, auditRef);
+        // if we have the skip owner domain option enabled then we need
+        // to make sure we have roles that are not in the same owner domain
+
+        boolean consistencyCheckFailure = false;
+        if (skipOwnerDomain) {
+            for (MemberRole memberRole : drm.getMemberRoles()) {
+                if (!domainName.equals(memberRole.getDomainName())) {
+                    consistencyCheckFailure = true;
+                    break;
+                }
+            }
+        } else {
+            consistencyCheckFailure = true;
+        }
+
+        // if we have no failures then we'll return right away
+
+        if (!consistencyCheckFailure) {
+            return;
+        }
+
+        StringBuilder msgBuilder = new StringBuilder("Remove group '");
+        msgBuilder.append(groupResourceName);
+        msgBuilder.append("' membership from the following role(s):");
+        for (MemberRole memberRole : drm.getMemberRoles()) {
+            if (skipOwnerDomain && domainName.equals(memberRole.getDomainName())) {
+                continue;
+            }
+            msgBuilder.append(' ');
+            msgBuilder.append(ZMSUtils.roleResourceName(memberRole.getDomainName(), memberRole.getRoleName()));
+        }
+        throw ZMSUtils.requestError(msgBuilder.toString(), caller);
     }
 
     @Override

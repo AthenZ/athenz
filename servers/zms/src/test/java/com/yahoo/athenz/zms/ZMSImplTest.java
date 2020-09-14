@@ -2772,6 +2772,8 @@ public class ZMSImplTest {
     public void testCreateNormalizedGroupMemberRole() {
 
         final String domainName = "group-member-role";
+        final String roleName = "role1";
+
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
@@ -2788,13 +2790,13 @@ public class ZMSImplTest {
         roleMembers.add(new RoleMember().setMemberName(domainName + ":group.group1"));
         roleMembers.add(new RoleMember().setMemberName("coretech:group.dev-team"));
 
-        Role role1 = createRoleObject(domainName, "Role1", null, roleMembers);
-        zms.putRole(mockDomRsrcCtx, domainName, "Role1", auditRef, role1);
+        Role role1 = createRoleObject(domainName, roleName, null, roleMembers);
+        zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, role1);
 
-        Role role = zms.getRole(mockDomRsrcCtx, domainName, "Role1", false, false, false);
+        Role role = zms.getRole(mockDomRsrcCtx, domainName, roleName, false, false, false);
         assertNotNull(role);
 
-        assertEquals(role.getName(), domainName + ":role.Role1".toLowerCase());
+        assertEquals(role.getName(), ZMSUtils.roleResourceName(domainName, roleName));
         List<RoleMember> members = role.getRoleMembers();
         assertNotNull(members);
         assertEquals(members.size(), 2);
@@ -2803,6 +2805,8 @@ public class ZMSImplTest {
         checkList.add("coretech:group.dev-team");
         checkRoleMember(checkList, members);
 
+        zms.deleteRole(mockDomRsrcCtx, domainName, roleName, auditRef);
+
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "coretech", auditRef);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
@@ -2810,24 +2814,22 @@ public class ZMSImplTest {
     @Test
     public void testCreateNormalizedCombinedMemberRole() {
 
-        TopLevelDomain dom1 = createTopLevelDomainObject("CreateNormalizedCombinedMemberRoleDom1",
-                "Test Domain1", "testOrg", adminUser);
+        final String domainName = "normalized-combined-member-role";
+        final String roleName = "role1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
-        TopLevelDomain dom2 = createTopLevelDomainObject("coretech",
-                "Test Domain2", "testOrg", adminUser);
+        TopLevelDomain dom2 = createTopLevelDomainObject("coretech", "Test Domain2", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
         
-        SubDomain subDom2 = createSubDomainObject("storage", "coretech",
-                "Test Domain2", "testOrg", adminUser);
+        SubDomain subDom2 = createSubDomainObject("storage", "coretech", "Test Domain2", "testOrg", adminUser);
         zms.postSubDomain(mockDomRsrcCtx, "coretech", auditRef, subDom2);
         
-        SubDomain subDom3 = createSubDomainObject("user1", "user",
-                "Test Domain2", "testOrg", adminUser);
+        SubDomain subDom3 = createSubDomainObject("user1", "user", "Test Domain2", "testOrg", adminUser);
         zms.postSubDomain(mockDomRsrcCtx, "user", auditRef, subDom3);
         
-        SubDomain subDom4 = createSubDomainObject("dom1", "user.user1",
-                "Test Domain2", "testOrg", adminUser);
+        SubDomain subDom4 = createSubDomainObject("dom1", "user.user1", "Test Domain2", "testOrg", adminUser);
         zms.postSubDomain(mockDomRsrcCtx, "user.user1", auditRef, subDom4);
 
         Group group1 = createGroupObject("coretech.storage", "dev-team", "user.joe", "user.jane");
@@ -2843,14 +2845,13 @@ public class ZMSImplTest {
         roleMembers.add(new RoleMember().setMemberName("user.user1.dom1.api"));
         roleMembers.add(new RoleMember().setMemberName("coretech.storage:group.dev-team"));
 
-        Role role1 = createRoleObject("CreateNormalizedCombinedMemberRoleDom1", "Role1", 
-                null, roleMembers);
-        zms.putRole(mockDomRsrcCtx, "CreateNormalizedCombinedMemberRoleDom1", "Role1", auditRef, role1);
+        Role role1 = createRoleObject(domainName, roleName, null, roleMembers);
+        zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, role1);
 
-        Role role = zms.getRole(mockDomRsrcCtx, "CreateNormalizedCombinedMemberRoleDom1", "Role1", false, false, false);
+        Role role = zms.getRole(mockDomRsrcCtx, domainName, roleName, false, false, false);
         assertNotNull(role);
 
-        assertEquals(role.getName(), "CreateNormalizedCombinedMemberRoleDom1:role.Role1".toLowerCase());
+        assertEquals(role.getName(), ZMSUtils.roleResourceName(domainName, roleName));
         List<RoleMember> members = role.getRoleMembers();
         assertNotNull(members);
         assertEquals(members.size(), 5);
@@ -2862,11 +2863,13 @@ public class ZMSImplTest {
         checkList.add("coretech.storage:group.dev-team");
         checkRoleMember(checkList, members);
 
+        zms.deleteRole(mockDomRsrcCtx, domainName, roleName, auditRef);
+
         zms.deleteSubDomain(mockDomRsrcCtx, "user.user1", "dom1", auditRef);
         zms.deleteSubDomain(mockDomRsrcCtx, "user", "user1", auditRef);
         zms.deleteSubDomain(mockDomRsrcCtx, "coretech", "storage", auditRef);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "coretech", auditRef);
-        zms.deleteTopLevelDomain(mockDomRsrcCtx,"CreateNormalizedCombinedMemberRoleDom1", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
     
     @Test
@@ -21929,7 +21932,7 @@ public class ZMSImplTest {
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName1, "Test Domain1", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
-        TopLevelDomain dom2 = createTopLevelDomainObject(domainName2, "Test Domain1", "testOrg", adminUser);
+        TopLevelDomain dom2 = createTopLevelDomainObject(domainName2, "Test Domain2", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
 
         Group group1 = createGroupObject(domainName1, groupName1, "user.joe", "user.jane");
@@ -24452,4 +24455,71 @@ public class ZMSImplTest {
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 
+    @Test
+    public void testDeleteDomainWithGroupConsistency() {
+
+        final String domainName1 = "delete-group1";
+        final String domainName2 = "delete-group2";
+        final String domainName3 = "delete-group3";
+        final String groupName1 = "group1";
+        final String groupName2 = "group2";
+        final String groupName3 = "group3";
+        final String roleName1 = "role1";
+        final String roleName2 = "role2";
+        final String roleName3 = "role3";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName1, "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        TopLevelDomain dom2 = createTopLevelDomainObject(domainName2, "Test Domain2", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
+
+        TopLevelDomain dom3 = createTopLevelDomainObject(domainName3, "Test Domain3", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom3);
+
+        Group group1 = createGroupObject(domainName1, groupName1, "user.joe", "user.jane");
+        zms.putGroup(mockDomRsrcCtx, domainName1, groupName1, auditRef, group1);
+
+        Group group2 = createGroupObject(domainName1, groupName2, "user.joe", "user.jane");
+        zms.putGroup(mockDomRsrcCtx, domainName1, groupName2, auditRef, group2);
+
+        Group group3 = createGroupObject(domainName3, groupName3, "user.joe", "user.jane");
+        zms.putGroup(mockDomRsrcCtx, domainName3, groupName3, auditRef, group3);
+
+        // add group2 as a member to roles in 2 different domains
+
+        Role role1 = createRoleObject(domainName1, roleName1, null, "user.john",
+                ZMSUtils.groupResourceName(domainName1, groupName2));
+        zms.putRole(mockDomRsrcCtx, domainName1, roleName1, auditRef, role1);
+
+        Role role2 = createRoleObject(domainName2, roleName2, null, "user.john",
+                ZMSUtils.groupResourceName(domainName1, groupName2));
+        zms.putRole(mockDomRsrcCtx, domainName2, roleName2, auditRef, role2);
+
+        Role role3 = createRoleObject(domainName3, roleName3, null, "user.john",
+                ZMSUtils.groupResourceName(domainName3, groupName3));
+        zms.putRole(mockDomRsrcCtx, domainName2, roleName2, auditRef, role2);
+
+        // we should be able to delete domain3 without any issues since
+        // group3 is included in the same domain only
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName3, auditRef);
+
+        // we should not able to delete domain1 since the group from domain1
+        // is included in both domain1 and domain2. our error message should
+        // only include reference from domain2
+
+        try {
+            zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName1, auditRef);
+            fail();
+        } catch (ResourceException ex) {
+            assertFalse(ex.getMessage().contains(ZMSUtils.roleResourceName(domainName1, roleName1)));
+            assertTrue(ex.getMessage().contains(ZMSUtils.roleResourceName(domainName2, roleName2)));
+        }
+
+        // after we delete domain2 we can delete domain1 successfully
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName2, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName1, auditRef);
+    }
 }
