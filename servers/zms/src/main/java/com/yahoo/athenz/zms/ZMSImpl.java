@@ -8372,6 +8372,27 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
 
+        // before deleting a group make sure the group is not included
+        // in any roles in which case those need to be removed first
+        // to maintain good consistency (we're going t ignore any
+        // exceptions - we get 404s if the principal is not part of
+        // any roles, for example
+
+        DomainRoleMember drm = null;
+        try {
+            drm = dbService.getPrincipalRoles(ZMSUtils.groupResourceName(domainName, groupName), null);
+        } catch (ResourceException ignored) {
+        }
+
+        if (drm != null && !drm.getMemberRoles().isEmpty()) {
+            StringBuilder msgBuilder = new StringBuilder("Remove group membership from the following role(s):");
+            for (MemberRole memberRole : drm.getMemberRoles()) {
+                msgBuilder.append(' ');
+                msgBuilder.append(ZMSUtils.roleResourceName(memberRole.getDomainName(), memberRole.getRoleName()));
+            }
+            throw ZMSUtils.requestError(msgBuilder.toString(), caller);
+        }
+
         dbService.executeDeleteGroup(ctx, domainName, groupName, auditRef);
     }
 

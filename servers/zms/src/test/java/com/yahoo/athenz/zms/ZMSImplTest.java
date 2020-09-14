@@ -18818,12 +18818,12 @@ public class ZMSImplTest {
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 
-    private void clenaupPrincipalAuditedRoleApprovalByOrg(ZMSImpl zms, final String org) {
+    private void cleanupPrincipalAuditedRoleApprovalByOrg(ZMSImpl zms, final String org) {
         zms.deleteRole(mockDomRsrcCtx, "sys.auth.audit.org", org, auditRef);
         zms.deletePolicy(mockDomRsrcCtx, "sys.auth.audit.org", org, auditRef);
     }
 
-    private void clenaupPrincipalAuditedRoleApprovalByDomain(ZMSImpl zms, final String domainName) {
+    private void cleanupPrincipalAuditedRoleApprovalByDomain(ZMSImpl zms, final String domainName) {
         zms.deleteRole(mockDomRsrcCtx, "sys.auth.audit.domain", domainName, auditRef);
         zms.deletePolicy(mockDomRsrcCtx, "sys.auth.audit.domain", domainName, auditRef);
     }
@@ -18908,7 +18908,7 @@ public class ZMSImplTest {
             }
         }
 
-        clenaupPrincipalAuditedRoleApprovalByOrg(zms, "testOrg");
+        cleanupPrincipalAuditedRoleApprovalByOrg(zms, "testOrg");
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 
@@ -18992,7 +18992,7 @@ public class ZMSImplTest {
             }
         }
 
-        clenaupPrincipalAuditedRoleApprovalByDomain(zms, domainName);
+        cleanupPrincipalAuditedRoleApprovalByDomain(zms, domainName);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 
@@ -19071,7 +19071,7 @@ public class ZMSImplTest {
         mbr.setApproved(false);
         zms.putMembershipDecision(mockDomRsrcCtx, "testdomain1", "testrole1", "user.bob", auditRef, mbr);
 
-        clenaupPrincipalAuditedRoleApprovalByOrg(zms, "testOrg");
+        cleanupPrincipalAuditedRoleApprovalByOrg(zms, "testOrg");
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "testdomain1", auditRef);
     }
 
@@ -19285,7 +19285,7 @@ public class ZMSImplTest {
         }
 
         cleanupPrincipalSystemMetaDelete(zms);
-        clenaupPrincipalAuditedRoleApprovalByOrg(zms, "testOrg");
+        cleanupPrincipalAuditedRoleApprovalByOrg(zms, "testOrg");
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "testdomain1", auditRef);
     }
@@ -20750,7 +20750,7 @@ public class ZMSImplTest {
         }
 
         cleanupPrincipalSystemMetaDelete(zms);
-        clenaupPrincipalAuditedRoleApprovalByOrg(zms, "testOrg");
+        cleanupPrincipalAuditedRoleApprovalByOrg(zms, "testOrg");
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
@@ -20840,7 +20840,7 @@ public class ZMSImplTest {
         assertTrue(domainRoleMembership.getDomainRoleMembersList().isEmpty());
 
         cleanupPrincipalSystemMetaDelete(zms);
-        clenaupPrincipalAuditedRoleApprovalByOrg(zms, "testOrg");
+        cleanupPrincipalAuditedRoleApprovalByOrg(zms, "testOrg");
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
@@ -21919,33 +21919,83 @@ public class ZMSImplTest {
     @Test
     public void testDeleteGroup() {
 
-        final String domainName = "delete-group";
+        final String domainName1 = "delete-group1";
+        final String domainName2 = "delete-group2";
         final String groupName1 = "group1";
         final String groupName2 = "group2";
+        final String roleName1 = "role1";
+        final String roleName2 = "role2";
 
-        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", adminUser);
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName1, "Test Domain1", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
-        Group group1 = createGroupObject(domainName, groupName1, "user.joe", "user.jane");
-        zms.putGroup(mockDomRsrcCtx, domainName, groupName1, auditRef, group1);
+        TopLevelDomain dom2 = createTopLevelDomainObject(domainName2, "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
 
-        Group group2 = createGroupObject(domainName, groupName2, "user.joe", "user.jane");
-        zms.putGroup(mockDomRsrcCtx, domainName, groupName2, auditRef, group2);
+        Group group1 = createGroupObject(domainName1, groupName1, "user.joe", "user.jane");
+        zms.putGroup(mockDomRsrcCtx, domainName1, groupName1, auditRef, group1);
 
-        Groups groupList = zms.getGroups(mockDomRsrcCtx, domainName, false);
+        Group group2 = createGroupObject(domainName1, groupName2, "user.joe", "user.jane");
+        zms.putGroup(mockDomRsrcCtx, domainName1, groupName2, auditRef, group2);
+
+        // add group2 as a member to roles in 2 different domains
+
+        Role role1 = createRoleObject(domainName1, roleName1, null, "user.john",
+                ZMSUtils.groupResourceName(domainName1, groupName2));
+        zms.putRole(mockDomRsrcCtx, domainName1, roleName1, auditRef, role1);
+
+        Role role2 = createRoleObject(domainName2, roleName2, null, "user.john",
+                ZMSUtils.groupResourceName(domainName1, groupName2));
+        zms.putRole(mockDomRsrcCtx, domainName2, roleName2, auditRef, role2);
+
+        Groups groupList = zms.getGroups(mockDomRsrcCtx, domainName1, false);
         assertNotNull(groupList);
 
         assertEquals(groupList.getList().size(), 2);
 
-        zms.deleteGroup(mockDomRsrcCtx, domainName, groupName1, auditRef);
+        // now delete group 1 which should be good since it's not part
+        // of any roles
 
-        groupList = zms.getGroups(mockDomRsrcCtx, domainName, false);
+        zms.deleteGroup(mockDomRsrcCtx, domainName1, groupName1, auditRef);
+
+        groupList = zms.getGroups(mockDomRsrcCtx, domainName1, false);
         assertNotNull(groupList);
 
         assertEquals(groupList.getList().size(), 1);
+        assertEquals(groupList.getList().get(0).getName(), domainName1 + ":group.group2");
 
-        assertEquals(groupList.getList().get(0).getName(), domainName + ":group.group2");
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        // now delete group2 which should be rejected since it's
+        // included in 2 roles
+
+        try {
+            zms.deleteGroup(mockDomRsrcCtx, domainName1, groupName2, auditRef);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains(ZMSUtils.roleResourceName(domainName1, roleName1)));
+            assertTrue(ex.getMessage().contains(ZMSUtils.roleResourceName(domainName2, roleName2)));
+        }
+
+        // delete one of the roles
+
+        zms.deleteRole(mockDomRsrcCtx, domainName1, roleName1, auditRef);
+
+        // we should still fail since it's still included in one other role
+
+        try {
+            zms.deleteGroup(mockDomRsrcCtx, domainName1, groupName2, auditRef);
+            fail();
+        } catch (ResourceException ex) {
+            assertFalse(ex.getMessage().contains(ZMSUtils.roleResourceName(domainName1, roleName1)));
+            assertTrue(ex.getMessage().contains(ZMSUtils.roleResourceName(domainName2, roleName2)));
+        }
+
+        // delete the second role and now we should be able to delete the group
+
+        zms.deleteRole(mockDomRsrcCtx, domainName2, roleName2, auditRef);
+        zms.deleteGroup(mockDomRsrcCtx, domainName1, groupName2, auditRef);
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName1, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName2, auditRef);
     }
 
     @Test
@@ -22708,7 +22758,7 @@ public class ZMSImplTest {
             }
         }
 
-        clenaupPrincipalAuditedRoleApprovalByDomain(zms, domainName);
+        cleanupPrincipalAuditedRoleApprovalByDomain(zms, domainName);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 
@@ -22790,7 +22840,7 @@ public class ZMSImplTest {
         mbr.setApproved(false);
         zms.putGroupMembershipDecision(mockDomRsrcCtx, domainName, groupName, "user.bob", auditRef, mbr);
 
-        clenaupPrincipalAuditedRoleApprovalByOrg(zms, "testOrg");
+        cleanupPrincipalAuditedRoleApprovalByOrg(zms, "testOrg");
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 
@@ -23163,7 +23213,7 @@ public class ZMSImplTest {
         }
 
         cleanupPrincipalSystemMetaDelete(zms);
-        clenaupPrincipalAuditedRoleApprovalByOrg(zms, "testOrg");
+        cleanupPrincipalAuditedRoleApprovalByOrg(zms, "testOrg");
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
@@ -23338,7 +23388,7 @@ public class ZMSImplTest {
         }
 
         cleanupPrincipalSystemMetaDelete(zms);
-        clenaupPrincipalAuditedRoleApprovalByOrg(zms, "testOrg");
+        cleanupPrincipalAuditedRoleApprovalByOrg(zms, "testOrg");
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
