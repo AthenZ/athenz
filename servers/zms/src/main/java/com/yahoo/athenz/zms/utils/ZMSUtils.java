@@ -15,11 +15,11 @@
  */
 package com.yahoo.athenz.zms.utils;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.zms.*;
+import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -443,5 +443,40 @@ public class ZMSUtils {
 
         String lowerCasedDomain = resource.substring(0, delimiterIndex).toLowerCase();
         return lowerCasedDomain + resource.substring(delimiterIndex);
+    }
+
+    public static boolean userAuthorityAttrMissing(final String origAttrList, final String checkAttrList) {
+
+        // if the original attr list is empty then there is nothing to check
+
+        if (StringUtil.isEmpty(origAttrList)) {
+            return false;
+        }
+
+        // if the check attribute list is empty then it's a failure
+        // since we know that our original attr is not empty
+
+        if (StringUtil.isEmpty(checkAttrList)) {
+            return true;
+        }
+
+        // we'll just compare the values as is in case there
+        // is a match and no further processing is necessary
+
+        if (origAttrList.equals(checkAttrList)) {
+            return false;
+        }
+
+        // we need to tokenize our attr values and compare. we want to
+        // make sure all original attribute values are present in the check list
+
+        Set<String> checkValues = new HashSet<>(Arrays.asList(checkAttrList.split(",")));
+        for (String attr : origAttrList.split(",")) {
+            if (!checkValues.contains(attr)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

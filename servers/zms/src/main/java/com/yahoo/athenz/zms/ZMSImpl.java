@@ -1345,6 +1345,22 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     domainName + ": " + subDomainList.getNames().size() + " subdomains of it exist", caller);
         }
 
+        // we're going to make sure the domain does not have any
+        // groups that are referenced in other domains. if that is the
+        // case the group should be removed from all those domains
+        // before the domain can be deleted
+
+        AthenzDomain domain = getAthenzDomain(domainName, false);
+        if (domain == null) {
+            throw ZMSUtils.notFoundError("Domain not found: '" + domainName + "'", caller);
+        }
+
+        for (Group group : domain.getGroups()) {
+            groupMemberConsistencyCheck(domainName, group.getName(), true, caller);
+        }
+
+        // consistency checks are ok so we can go ahead and delete the domain
+
         dbService.executeDeleteDomain(ctx, domainName, auditRef, caller);
     }
 
@@ -1424,7 +1440,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // to be the home domain and the admin of the domain is the user
 
         final String userDomainAdmin = userDomainPrefix + principal.getName();
-        validateRoleMemberPrincipal(userDomainAdmin, Principal.Type.USER.getValue(), null, null, caller);
+        validateRoleMemberPrincipal(userDomainAdmin, Principal.Type.USER.getValue(), null, null, null, caller);
 
         List<String> adminUsers = new ArrayList<>();
         adminUsers.add(userDomainAdmin);
@@ -1619,6 +1635,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         validateRequest(ctx.request(), caller);
+        validate(parent, TYPE_DOMAIN_NAME, caller);
+        validate(name, TYPE_SIMPLE_NAME, caller);
 
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case (e.g. domain, role,
@@ -1628,9 +1646,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         name = name.toLowerCase();
         String domainName = parent + "." + name;
         setRequestDomain(ctx, parent);
-
-        validate(parent, TYPE_DOMAIN_NAME, caller);
-        validate(name, TYPE_SIMPLE_NAME, caller);
 
         // verify that request is properly authenticated for this request
 
@@ -1649,7 +1664,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         validateRequest(ctx.request(), caller);
-
         validate(name, TYPE_SIMPLE_NAME, caller);
 
         // for consistent handling of all requests, we're going to convert
@@ -2941,7 +2955,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // now go through the list and make sure they're all valid
 
         for (String admin : normalizedAdmins) {
-            validateRoleMemberPrincipal(admin, principalType(admin), domainUserAuthorityFilter, null, caller);
+            validateRoleMemberPrincipal(admin, principalType(admin), domainUserAuthorityFilter, null, null, caller);
         }
 
         return new ArrayList<>(normalizedAdmins);
@@ -3162,7 +3176,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         for (RoleMember roleMember : role.getRoleMembers()) {
             validateRoleMemberPrincipal(roleMember.getMemberName(), roleMember.getPrincipalType(),
-                    userAuthorityFilter, role.getUserAuthorityExpiration(), caller);
+                    userAuthorityFilter, role.getUserAuthorityExpiration(), role.getAuditEnabled(), caller);
         }
     }
 
@@ -3242,26 +3256,33 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     void validateGroupPrincipal(final String memberName, final String userAuthorityFilter,
-                                final String userAuthorityExpiration, final String caller) {
+                                final String userAuthorityExpiration, Boolean auditEnabled, final String caller) {
 
         Group group = getGroup(memberName);
         if (group == null) {
             throw ZMSUtils.requestError("Principal " + memberName + " is not valid", caller);
         }
 
-        if (!userAuthorityFilterPresent(userAuthorityFilter, group.getUserAuthorityFilter())) {
+        if (ZMSUtils.userAuthorityAttrMissing(userAuthorityFilter, group.getUserAuthorityFilter())) {
             throw ZMSUtils.requestError("Group " + memberName + " does not have same user authority filter "
                     + userAuthorityFilter + " configured", caller);
         }
 
-        if (!userAuthorityFilterPresent(userAuthorityExpiration, group.getUserAuthorityExpiration())) {
+        if (ZMSUtils.userAuthorityAttrMissing(userAuthorityExpiration, group.getUserAuthorityExpiration())) {
             throw ZMSUtils.requestError("Group " + memberName + " does not have same user authority expiration "
                     + userAuthorityExpiration + " configured", caller);
+        }
+
+        // verify if role is audit enabled and we have a group member then
+        // group must also have audit enabled flag
+
+        if (auditEnabled == Boolean.TRUE && group.getAuditEnabled() != Boolean.TRUE) {
+            throw ZMSUtils.requestError("Group " + memberName + " must be audit enabled", caller);
         }
     }
 
     void validateRoleMemberPrincipal(final String memberName, int principalType, final String userAuthorityFilter,
-                                     final String userAuthorityExpiration, final String caller) {
+                                     final String userAuthorityExpiration, Boolean roleAuditEnabled, final String caller) {
 
         switch (Principal.Type.getType(principalType)) {
 
@@ -3289,7 +3310,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
             case GROUP:
 
-                validateGroupPrincipal(memberName, userAuthorityFilter, userAuthorityExpiration, caller);
+                validateGroupPrincipal(memberName, userAuthorityFilter, userAuthorityExpiration, roleAuditEnabled, caller);
                 break;
 
             default:
@@ -3644,7 +3665,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String userAuthorityFilter = enforcedUserAuthorityFilter(role.getUserAuthorityFilter(),
                 domain.getDomain().getUserAuthorityFilter());
         validateRoleMemberPrincipal(roleMember.getMemberName(), roleMember.getPrincipalType(), userAuthorityFilter,
-                role.getUserAuthorityExpiration(), caller);
+                role.getUserAuthorityExpiration(), role.getAuditEnabled(), caller);
 
         // authorization check which also automatically updates
         // the active and approved flags for the request
@@ -7666,51 +7687,16 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 throw ZMSUtils.requestError("Invalid group member " + memberName + " in the role", caller);
             }
 
-            if (!userAuthorityFilterPresent(userAuthorityFilter, group.getUserAuthorityFilter())) {
+            if (ZMSUtils.userAuthorityAttrMissing(userAuthorityFilter, group.getUserAuthorityFilter())) {
                 throw ZMSUtils.requestError("Group " + memberName + " does not have same user authority filter "
                         + userAuthorityFilter + " configured", caller);
             }
 
-            if (!userAuthorityFilterPresent(userAuthorityExpiration, group.getUserAuthorityExpiration())) {
+            if (ZMSUtils.userAuthorityAttrMissing(userAuthorityExpiration, group.getUserAuthorityExpiration())) {
                 throw ZMSUtils.requestError("Group " + memberName + " does not have same user authority expiration "
                         + userAuthorityExpiration + " configured", caller);
             }
         }
-    }
-
-    boolean userAuthorityFilterPresent(final String roleFilter, final String groupMemberFilter) {
-
-        // if the role filter is empty then there is nothing to check
-
-        if (StringUtil.isEmpty(roleFilter)) {
-            return true;
-        }
-
-        // if the group filter is empty then it's a failure
-        // since we know that our role filter is not empty
-
-        if (StringUtil.isEmpty(groupMemberFilter)) {
-            return false;
-        }
-
-        // we'll just compare the values as is in case there
-        // is a match and no further processing is necessary
-
-        if (roleFilter.equals(groupMemberFilter)) {
-            return true;
-        }
-
-        // we need to tokenize our filter values and compare. we want to
-        // make sure all role filter values are present in the group
-
-        Set<String> groupValues = new HashSet<>(Arrays.asList(groupMemberFilter.split(",")));
-        for (String filter : roleFilter.split(",")) {
-            if (!groupValues.contains(filter)) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     Group getGroup(final String groupFullName) {
@@ -7805,7 +7791,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             final String userAuthorityFilter = enforcedUserAuthorityFilter(role.getUserAuthorityFilter(),
                     domain.getDomain().getUserAuthorityFilter());
             validateRoleMemberPrincipal(roleMember.getMemberName(), roleMember.getPrincipalType(),
-                    userAuthorityFilter, role.getUserAuthorityExpiration(), caller);
+                    userAuthorityFilter, role.getUserAuthorityExpiration(), role.getAuditEnabled(), caller);
         }
 
         dbService.executePutMembershipDecision(ctx, domainName, roleName, roleMember, auditRef, caller);
@@ -8169,7 +8155,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         AthenzDomain domain = getAthenzDomain(domainName, false);
         if (domain == null) {
-            throw ZMSUtils.notFoundError("getGroups: Domain not found: '" + domainName + "'", caller);
+            throw ZMSUtils.notFoundError("Domain not found: '" + domainName + "'", caller);
         }
 
         result.setList(setupGroupList(domain, members));
@@ -8400,7 +8386,63 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
 
+        // before deleting a group make sure the group is not included
+        // in any roles in which case those need to be removed first
+        // to maintain good consistency (we're going t ignore any
+        // exceptions - we get 404s if the principal is not part of
+        // any roles, for example
+
+        groupMemberConsistencyCheck(domainName, ZMSUtils.groupResourceName(domainName, groupName), false, caller);
+
+        // everything is ok, so we should go ahead and delete the group
+
         dbService.executeDeleteGroup(ctx, domainName, groupName, auditRef);
+    }
+
+    void groupMemberConsistencyCheck(final String domainName, final String groupResourceName, boolean skipOwnerDomain, final String caller) {
+
+        DomainRoleMember drm = null;
+        try {
+            drm = dbService.getPrincipalRoles(groupResourceName, null);
+        } catch (ResourceException ignored) {
+        }
+
+        if (drm == null || drm.getMemberRoles().isEmpty()) {
+            return;
+        }
+
+        // if we have the skip owner domain option enabled then we need
+        // to make sure we have roles that are not in the same owner domain
+
+        boolean consistencyCheckFailure = false;
+        if (skipOwnerDomain) {
+            for (MemberRole memberRole : drm.getMemberRoles()) {
+                if (!domainName.equals(memberRole.getDomainName())) {
+                    consistencyCheckFailure = true;
+                    break;
+                }
+            }
+        } else {
+            consistencyCheckFailure = true;
+        }
+
+        // if we have no failures then we'll return right away
+
+        if (!consistencyCheckFailure) {
+            return;
+        }
+
+        StringBuilder msgBuilder = new StringBuilder("Remove group '");
+        msgBuilder.append(groupResourceName);
+        msgBuilder.append("' membership from the following role(s):");
+        for (MemberRole memberRole : drm.getMemberRoles()) {
+            if (skipOwnerDomain && domainName.equals(memberRole.getDomainName())) {
+                continue;
+            }
+            msgBuilder.append(' ');
+            msgBuilder.append(ZMSUtils.roleResourceName(memberRole.getDomainName(), memberRole.getRoleName()));
+        }
+        throw ZMSUtils.requestError(msgBuilder.toString(), caller);
     }
 
     @Override

@@ -3024,13 +3024,38 @@ public class DBService implements RolesProvider {
         }
     }
 
-    void updateRoleSystemMetaFields(Role role, final String attribute, RoleSystemMeta meta, final String caller) {
+    void updateRoleSystemMetaFields(ObjectStoreConnection con, Role updatedRole, Role originalRole,
+                                    final String attribute, RoleSystemMeta meta, final String caller) {
 
         // system attributes we'll only set if they're available
         // in the given object
 
         if (ZMSConsts.SYSTEM_META_AUDIT_ENABLED.equals(attribute)) {
-            role.setAuditEnabled(meta.getAuditEnabled());
+            updatedRole.setAuditEnabled(meta.getAuditEnabled());
+
+            // we also need to verify that if we have any group members
+            // then those groups have the audit enabled flag as well
+
+            if (updatedRole.getAuditEnabled() == Boolean.TRUE && originalRole.getRoleMembers() != null) {
+                for (RoleMember roleMember : originalRole.getRoleMembers()) {
+                    final String memberName = roleMember.getMemberName();
+                    if (ZMSUtils.principalType(memberName, zmsConfig.getUserDomainPrefix(),
+                            zmsConfig.getAddlUserCheckDomainPrefixList()) != Principal.Type.GROUP) {
+                        continue;
+                    }
+
+                    int idx = memberName.indexOf(AuthorityConsts.GROUP_SEP);
+                    final String domainName = memberName.substring(0, idx);
+                    final String groupName = memberName.substring(idx + AuthorityConsts.GROUP_SEP.length());
+                    Group group = con.getGroup(domainName, groupName);
+                    if (group == null) {
+                        throw ZMSUtils.requestError("role has invalid group member: " + memberName, caller);
+                    }
+                    if (group.getAuditEnabled() != Boolean.TRUE) {
+                        throw ZMSUtils.requestError("role member: " + memberName + " must have audit flag enabled", caller);
+                    }
+                }
+            }
         } else {
             throw ZMSUtils.requestError("unknown role system meta attribute: " + attribute, caller);
         }
@@ -4469,7 +4494,7 @@ public class DBService implements RolesProvider {
                 // then we're going to apply the updated fields
                 // from the given object
 
-                updateRoleSystemMetaFields(updatedRole, attribute, meta, ctx.getApiName());
+                updateRoleSystemMetaFields(con, updatedRole, originalRole, attribute, meta, ctx.getApiName());
 
                 con.updateRole(domainName, updatedRole);
                 saveChanges(con, domainName);
@@ -4780,6 +4805,13 @@ public class DBService implements RolesProvider {
 
                 updateGroupMetaFields(updatedGroup, meta);
 
+                // if either the filter or the expiry has been removed we need to make
+                // sure the group is not a member in a role that requires it
+
+                validateGroupUserAuthorityAttrRequirements(con, originalGroup, updatedGroup, ctx.getApiName());
+
+                // update the group in the database
+
                 con.updateGroup(domainName, updatedGroup);
                 saveChanges(con, domainName);
 
@@ -4808,6 +4840,88 @@ public class DBService implements RolesProvider {
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
                     throw ex;
+                }
+            }
+        }
+    }
+
+    String getDomainUserAuthorityFilterFromMap(ObjectStoreConnection con, Map<String, String> domainFitlerMap, final String domainName) {
+        String domainUserAuthorityFilter = domainFitlerMap.get(domainName);
+        if (domainUserAuthorityFilter == null) {
+            final String domainFilter = getDomainUserAuthorityFilter(con, domainName);
+            domainUserAuthorityFilter = domainFilter == null ? "" : domainFilter;
+            domainFitlerMap.put(domainName, domainUserAuthorityFilter);
+        }
+        return domainUserAuthorityFilter;
+    }
+
+    void validateGroupUserAuthorityAttrRequirements(ObjectStoreConnection con, Group originalGroup, Group updatedGroup,
+                                                    final String caller)  {
+
+        // check to see if the attribute filter or expiration values have been removed
+
+        boolean filterRemoved = ZMSUtils.userAuthorityAttrMissing(originalGroup.getUserAuthorityFilter(),
+                updatedGroup.getUserAuthorityFilter());
+        boolean expiryRemoved = ZMSUtils.userAuthorityAttrMissing(originalGroup.getUserAuthorityExpiration(),
+                updatedGroup.getUserAuthorityExpiration());
+
+        // if nothing was removed then we're done with our checks
+
+        if (!filterRemoved && !expiryRemoved) {
+            return;
+        }
+
+        // obtain all the roles that have the given group as member
+        // if we get back 404 then the group is not a member of any
+        // role which is success otherwise we'll re-throw the exception
+
+        DomainRoleMember domainRoleMember;
+        try {
+            domainRoleMember = con.getPrincipalRoles(updatedGroup.getName(), null);
+        } catch (ResourceException ex) {
+            if (ex.getCode() == ResourceException.NOT_FOUND) {
+                return;
+            }
+            throw ex;
+        }
+
+        Map<String, String> domainFitlerMap = new HashMap<>();
+        for (MemberRole memberRole : domainRoleMember.getMemberRoles()) {
+
+            // first let's fetch the role and skip if it doesn't exist
+            // (e.g. got deleted right after we run the query)
+
+            Role role = con.getRole(memberRole.getDomainName(), memberRole.getRoleName());
+            if (role == null) {
+                continue;
+            }
+
+            // first process if the user attribute filter was removed
+
+            if (filterRemoved) {
+
+                // if the user attribute filter is removed, then we need to
+                // also obtain the domain level setting
+
+                String domainUserAuthorityFilter = getDomainUserAuthorityFilterFromMap(con, domainFitlerMap, memberRole.getDomainName());
+                final String roleUserAuthorityFilter = ZMSUtils.combineUserAuthorityFilters(role.getUserAuthorityFilter(),
+                        domainUserAuthorityFilter);
+                if (ZMSUtils.userAuthorityAttrMissing(roleUserAuthorityFilter, updatedGroup.getUserAuthorityFilter())) {
+                    throw ZMSUtils.requestError("Setting " + updatedGroup.getUserAuthorityFilter() +
+                            " user authority filter on the group will not satisfy "
+                            + ZMSUtils.roleResourceName(memberRole.getDomainName(), memberRole.getRoleName())
+                            + " role filter requirements", caller);
+                }
+            }
+
+            // now process if the expiry attribute was removed
+
+            if (expiryRemoved) {
+                if (ZMSUtils.userAuthorityAttrMissing(role.getUserAuthorityExpiration(), updatedGroup.getUserAuthorityExpiration())) {
+                    throw ZMSUtils.requestError("Setting " + updatedGroup.getUserAuthorityExpiration() +
+                            " user authority expiration on the group will not satisfy "
+                            + ZMSUtils.roleResourceName(memberRole.getDomainName(), memberRole.getRoleName())
+                            + " role expiration requirements", caller);
                 }
             }
         }
