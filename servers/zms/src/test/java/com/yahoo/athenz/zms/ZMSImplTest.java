@@ -6963,6 +6963,136 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testGetAccessWithGroups() {
+
+        final String domainName1 = "access-domain1";
+        final String domainName2 = "access-domain2";
+        final String domainName3 = "access-domain3";
+        final String groupName1 = "group1";
+        final String groupName2 = "group2";
+        final String groupName3 = "group3";
+        final String groupName4 = "group4";
+        final String roleName1 = "role1";
+        final String roleName2 = "role2";
+        final String roleName3 = "role3";
+        final String roleName4 = "role4";
+        final String policyName1 = "policy1";
+        final String policyName2 = "policy2";
+        final String policyName3 = "policy3";
+        final String policyName4 = "policy4";
+
+        Authority savedAuthority = zms.userAuthority;
+
+        Authority authority = Mockito.mock(Authority.class);
+        Mockito.when(authority.isValidUser(anyString())).thenReturn(true);
+        Mockito.when(authority.getDateAttribute(anyString(), anyString())).thenReturn(null);
+        Set<String> attrs = new HashSet<>();
+        attrs.add("elevated-clearance");
+        Mockito.when(authority.dateAttributesSupported()).thenReturn(attrs);
+        zms.userAuthority = authority;
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName1, "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        TopLevelDomain dom2 = createTopLevelDomainObject(domainName2, "Test Domain2", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
+
+        TopLevelDomain dom3 = createTopLevelDomainObject(domainName3, "Test Domain3", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom3);
+
+        Group group1 = createGroupObject(domainName1, groupName1, "user.user1", "user.user2");
+        zms.putGroup(mockDomRsrcCtx, domainName1, groupName1, auditRef, group1);
+
+        Group group2 = createGroupObject(domainName2, groupName2, "user.user2", "user.user3");
+        zms.putGroup(mockDomRsrcCtx, domainName2, groupName2, auditRef, group2);
+
+        // set elevated clearance so both users become expired
+
+        Group group3 = createGroupObject(domainName3, groupName3, "user.user1", "user.user2");
+        zms.putGroup(mockDomRsrcCtx, domainName3, groupName3, auditRef, group3);
+        GroupMeta gm = new GroupMeta().setUserAuthorityExpiration("elevated-clearance");
+        zms.putGroupMeta(mockDomRsrcCtx, domainName3, groupName3, auditRef, gm);
+
+        // group 4 with no members
+
+        Group group4 = new Group().setName(groupName4);
+        zms.putGroup(mockDomRsrcCtx, domainName2, groupName4, auditRef, group4);
+
+        // role1 will have user.user1 through group1
+
+        Role role1 = createRoleObject(domainName1, roleName1, null, "user.user2", "user.user3");
+        role1.getRoleMembers().add(new RoleMember().setMemberName(ZMSUtils.groupResourceName(domainName2, groupName2)));
+        role1.getRoleMembers().add(new RoleMember().setMemberName(ZMSUtils.groupResourceName(domainName1, groupName1)));
+        zms.putRole(mockDomRsrcCtx, domainName1, roleName1, auditRef, role1);
+
+        // role2 has user1 as expired but ok from group1 as well
+
+        Role role2 = createRoleObject(domainName1, roleName2, null, "user.user2", "user.user3");
+        role2.getRoleMembers().add(new RoleMember().setMemberName("user.user1")
+            .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() - 1000)));
+        role2.getRoleMembers().add(new RoleMember().setMemberName(ZMSUtils.groupResourceName(domainName2, groupName2)));
+        role2.getRoleMembers().add(new RoleMember().setMemberName(ZMSUtils.groupResourceName(domainName1, groupName1)));
+        zms.putRole(mockDomRsrcCtx, domainName1, roleName2, auditRef, role2);
+
+        // role3 has user1 as expired but also group1 expired as well
+
+        Role role3 = createRoleObject(domainName1, roleName3, null, "user.user2", "user.user3");
+        role3.getRoleMembers().add(new RoleMember().setMemberName("user.user1")
+                .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() - 1000)));
+        role3.getRoleMembers().add(new RoleMember().setMemberName(ZMSUtils.groupResourceName(domainName1, groupName1))
+                .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() - 1000)));
+        zms.putRole(mockDomRsrcCtx, domainName1, roleName3, auditRef, role3);
+
+        // role4 does not have user1 at all
+
+        Role role4 = createRoleObject(domainName1, roleName4, null, "user.user2", "user.user3");
+        role4.getRoleMembers().add(new RoleMember().setMemberName(ZMSUtils.groupResourceName(domainName2, groupName2)));
+        role4.getRoleMembers().add(new RoleMember().setMemberName(ZMSUtils.groupResourceName(domainName2, groupName4)));
+        zms.putRole(mockDomRsrcCtx, domainName1, roleName4, auditRef, role4);
+
+        Policy policy1 = createPolicyObject(domainName1, policyName1, roleName1,
+                "update", domainName1 + ":resource1", AssertionEffect.ALLOW);
+        zms.putPolicy(mockDomRsrcCtx, domainName1, policyName1, auditRef, policy1);
+
+        Policy policy2 = createPolicyObject(domainName1, policyName2, roleName2,
+                "update", domainName1 + ":resource2", AssertionEffect.ALLOW);
+        zms.putPolicy(mockDomRsrcCtx, domainName1, policyName2, auditRef, policy2);
+
+        Policy policy3 = createPolicyObject(domainName1, policyName3, roleName3,
+                "update", domainName1 + ":resource3", AssertionEffect.ALLOW);
+        zms.putPolicy(mockDomRsrcCtx, domainName1, policyName3, auditRef, policy3);
+
+        Policy policy4 = createPolicyObject(domainName1, policyName4, roleName4,
+                "update", domainName1 + ":resource4", AssertionEffect.ALLOW);
+        zms.putPolicy(mockDomRsrcCtx, domainName1, policyName4, auditRef, policy4);
+
+        // user1 and user3 have access to UPDATE/resource1
+
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        Principal principal1 = principalAuthority.authenticate("v=U1;d=user;n=user1;s=signature",
+                "10.11.12.13", "GET", null);
+        ResourceContext rsrcCtx1 = createResourceContext(principal1);
+
+        Access access = zms.getAccess(rsrcCtx1, "update", domainName1 + ":resource1", null, null);
+        assertTrue(access.getGranted());
+
+        access = zms.getAccess(rsrcCtx1, "update", domainName1 + ":resource2", null, null);
+        assertTrue(access.getGranted());
+
+        access = zms.getAccess(rsrcCtx1, "update", domainName1 + ":resource3", null, null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccess(rsrcCtx1, "update", domainName1 + ":resource4", null, null);
+        assertFalse(access.getGranted());
+
+        zms.userAuthority = savedAuthority;
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName1, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName2, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName3, auditRef);
+    }
+
+    @Test
     public void testGetAccessWildcard() {
 
         TopLevelDomain dom1 = createTopLevelDomainObject("AccessDom1",
@@ -21159,16 +21289,16 @@ public class ZMSImplTest {
         RoleMember roleMember = new RoleMember();
 
         roleMember.setSystemDisabled(null);
-        assertTrue(zms.isMemberEnabled(roleMember));
+        assertTrue(zms.isMemberEnabled(roleMember.getSystemDisabled()));
 
         roleMember.setSystemDisabled(0);
-        assertTrue(zms.isMemberEnabled(roleMember));
+        assertTrue(zms.isMemberEnabled(roleMember.getSystemDisabled()));
 
         roleMember.setSystemDisabled(1);
-        assertFalse(zms.isMemberEnabled(roleMember));
+        assertFalse(zms.isMemberEnabled(roleMember.getSystemDisabled()));
 
         roleMember.setSystemDisabled(3);
-        assertFalse(zms.isMemberEnabled(roleMember));
+        assertFalse(zms.isMemberEnabled(roleMember.getSystemDisabled()));
     }
 
     @Test
@@ -21177,13 +21307,13 @@ public class ZMSImplTest {
         RoleMember roleMember = new RoleMember();
 
         roleMember.setExpiration(null);
-        assertFalse(zms.isMemberExpired(roleMember));
+        assertFalse(zms.isMemberExpired(roleMember.getExpiration()));
 
         roleMember.setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + 100000));
-        assertFalse(zms.isMemberExpired(roleMember));
+        assertFalse(zms.isMemberExpired(roleMember.getExpiration()));
 
         roleMember.setExpiration(Timestamp.fromMillis(System.currentTimeMillis() - 1));
-        assertTrue(zms.isMemberExpired(roleMember));
+        assertTrue(zms.isMemberExpired(roleMember.getExpiration()));
     }
 
     @Test
@@ -21221,10 +21351,14 @@ public class ZMSImplTest {
                 .setSystemDisabled(3)
                 .setMemberName("user.john-bad")
                 .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() - 10000));
+        RoleMember roleGroup1  = new RoleMember()
+                .setMemberName("coretech:group.dev-team")
+                .setPrincipalType(Principal.Type.GROUP.getValue());
 
         roleMembers.add(roleMemberJoeBad);
         roleMembers.add(roleMemberJaneBad);
         roleMembers.add(roleMemberJohnBad);
+        roleMembers.add(roleGroup1);
 
         // carry out the checks
 
@@ -24521,5 +24655,17 @@ public class ZMSImplTest {
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName2, auditRef);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName1, auditRef);
+    }
+
+    @Test
+    public void testIsMemberOfGroup() {
+        Group group = new Group();
+        assertFalse(zms.isMemberOfGroup(group, "user.user1"));
+
+        group = createGroupObject("coretech", "dev-team", "user.user1", "coretech.api");
+        assertTrue(zms.isMemberOfGroup(group, "user.user1"));
+        assertTrue(zms.isMemberOfGroup(group, "coretech.api"));
+        assertFalse(zms.isMemberOfGroup(group, "user.user2"));
+        assertFalse(zms.isMemberOfGroup(group, "coretech.dev.api"));
     }
 }

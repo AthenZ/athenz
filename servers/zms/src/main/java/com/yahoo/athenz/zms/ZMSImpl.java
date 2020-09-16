@@ -2269,6 +2269,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             List<String> authenticatedRoles, String trustDomain, Principal principal) {
 
         // In ZMS, mTLS restricted certs cannot be used in APIs that require authorization
+
         if (principal.getMtlsRestricted()) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("evaluateAccess: mTLS restricted, access denied");
@@ -3397,26 +3398,92 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
 
-    boolean isMemberEnabled(RoleMember roleMember) {
-        return (roleMember.getSystemDisabled() == null || roleMember.getSystemDisabled() == 0);
+    boolean isMemberEnabled(Integer memberSystemDisabled) {
+        return (memberSystemDisabled == null || memberSystemDisabled == 0);
     }
 
-    boolean isMemberExpired(RoleMember roleMember) {
+    boolean isMemberExpired(Timestamp memberExpiration) {
         // check expiration, if is not defined, its not expired.
-        Timestamp expiration = roleMember.getExpiration();
-        return (expiration != null && expiration.millis() < System.currentTimeMillis());
+        return (memberExpiration != null && memberExpiration.millis() < System.currentTimeMillis());
     }
 
-    boolean checkRoleMemberValidity(List<RoleMember> roleMembers, String member) {
+    boolean checkRoleMemberValidity(List<RoleMember> roleMembers, final String member) {
+
+        // we need to make sure that both the user is not expired
+        // and not disabled by the system. the members can also
+        // include groups so that means even if we get a response
+        // from one group that is expired, we can't just stop
+        // and need to check the other groups as well.
+        // For efficiency reasons we'll process groups at the
+        // end so in case we get a match in a role there is no
+        // need to look at the groups at all
+
+        List<RoleMember> groupMembers = new ArrayList<>();
+        for (RoleMember memberInfo: roleMembers) {
+            if (memberInfo.getPrincipalType() != null && memberInfo.getPrincipalType() == Principal.Type.GROUP.getValue()) {
+                groupMembers.add(memberInfo);
+            }
+        }
+
+        // first only process regular members
+
+        boolean isMember = false;
+        for (RoleMember memberInfo: roleMembers) {
+            if (memberInfo.getPrincipalType() != null && memberInfo.getPrincipalType() == Principal.Type.GROUP.getValue()) {
+                continue;
+            }
+            final String memberName = memberInfo.getMemberName();
+            if (memberNameMatch(memberName, member)) {
+                isMember = isMemberEnabled(memberInfo.getSystemDisabled()) && !isMemberExpired(memberInfo.getExpiration());
+                break;
+            }
+        }
+
+        // if we have a match or no group members then we're done
+
+        if (isMember || groupMembers.isEmpty()) {
+            return isMember;
+        }
+
+        // now let's process our groups
+
+        for (RoleMember memberInfo : groupMembers) {
+
+            // if the group is expired there is no need to check
+
+            if (isMemberExpired(memberInfo.getExpiration())) {
+                continue;
+            }
+            Group group = getGroup(memberInfo.getMemberName());
+            if (group == null) {
+                continue;
+            }
+            isMember = isMemberOfGroup(group, member);
+            if (isMember) {
+                break;
+            }
+        }
+        return isMember;
+    }
+
+    boolean isMemberOfGroup(Group group, final String member) {
+        List<GroupMember> groupMembers = group.getGroupMembers();
+        if (groupMembers == null) {
+            return false;
+        }
+        return checkGroupMemberValidity(groupMembers, member);
+    }
+
+    boolean checkGroupMemberValidity(List<GroupMember> groupMembers, final String member) {
 
         // we need to make sure that both the user is not expired
         // and not disabled by the system
 
         boolean isMember = false;
-        for (RoleMember memberInfo: roleMembers) {
+        for (GroupMember memberInfo: groupMembers) {
             final String memberName = memberInfo.getMemberName();
             if (memberNameMatch(memberName, member)) {
-                isMember = isMemberEnabled(memberInfo) && !isMemberExpired(memberInfo);
+                isMember = isMemberEnabled(memberInfo.getSystemDisabled()) && !isMemberExpired(memberInfo.getExpiration());
                 break;
             }
         }
@@ -8973,7 +9040,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         if (authorityFilter != null && !authorityFilter.isEmpty()) {
             if (userAuthority == null) {
-                throw ZMSUtils.requestError("Role User Authority filter specified without a valid user authority", caller);
+                throw ZMSUtils.requestError("User Authority filter specified without a valid user authority", caller);
             }
 
             Set<String> attrSet = userAuthority.booleanAttributesSupported();
@@ -8989,7 +9056,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         if (authorityExpiration != null && !authorityExpiration.isEmpty()) {
             if (userAuthority == null) {
-                throw ZMSUtils.requestError("Role User Authority expiry specified without a valid user authority", caller);
+                throw ZMSUtils.requestError("User Authority expiry specified without a valid user authority", caller);
             }
 
             Set<String> attrSet = userAuthority.dateAttributesSupported();

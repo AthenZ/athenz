@@ -4143,6 +4143,8 @@ public class DBService implements RolesProvider {
                         role.setMembers(members);
                     }
                     for (RoleMember roleMember: roleMembers) {
+                        roleMember.setPrincipalType(ZMSUtils.principalType(roleMember.getMemberName(),
+                                zmsConfig.getUserDomainPrefix(), zmsConfig.getAddlUserCheckDomainPrefixList()).getValue());
                         members.add(roleMember.getMemberName());
                     }
                 }
