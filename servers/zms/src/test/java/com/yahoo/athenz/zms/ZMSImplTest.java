@@ -6267,6 +6267,9 @@ public class ZMSImplTest {
                 "Test Domain1", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
+        Group group1 = createGroupObject("signeddom1", "group1", "user.user1", "user.user2");
+        zms.putGroup(mockDomRsrcCtx, "signeddom1", "group1", auditRef, group1);
+
         // set the meta attributes for domain
         
         DomainMeta meta = createDomainMetaObject("Tenant Domain1", null, true, false, "12345", 0);

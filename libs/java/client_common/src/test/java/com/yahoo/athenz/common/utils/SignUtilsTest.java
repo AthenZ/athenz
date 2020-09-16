@@ -47,6 +47,7 @@ public class SignUtilsTest {
         Mockito.when(mockDomain.getAuditEnabled()).thenReturn(null);
         Mockito.when(mockDomain.getEnabled()).thenReturn(null);
         Mockito.when(mockDomain.getRoles()).thenReturn(null);
+        Mockito.when(mockDomain.getGroups()).thenReturn(null);
         Mockito.when(mockDomain.getServices()).thenReturn(null);
         Mockito.when(mockDomain.getMemberExpiryDays()).thenReturn(null);
         Mockito.when(mockDomain.getServiceExpiryDays()).thenReturn(null);
@@ -54,7 +55,7 @@ public class SignUtilsTest {
 
         String check = SignUtils.asCanonicalString(mockDomain);
         assertNotNull(check);
-        assertEquals(check,"{\"roleCertExpiryMins\":0,\"roles\":[],\"serviceCertExpiryMins\":0,\"services\":[],\"ypmId\":0}");
+        assertEquals(check,"{\"groups\":[],\"roleCertExpiryMins\":0,\"roles\":[],\"serviceCertExpiryMins\":0,\"services\":[],\"ypmId\":0}");
     }
     
     @Test
@@ -151,6 +152,7 @@ public class SignUtilsTest {
         Mockito.when(mockDomain.getAuditEnabled()).thenReturn(null);
         Mockito.when(mockDomain.getEnabled()).thenReturn(null);
         Mockito.when(mockDomain.getAccount()).thenReturn("chk_string");
+        Mockito.when(mockDomain.getGroups()).thenReturn(null);
         Mockito.when(mockDomain.getRoles()).thenReturn(roles);
         Mockito.when(mRole.getMembers()).thenReturn(items);
         Mockito.when(mockDomain.getServices()).thenReturn(services);
@@ -164,7 +166,7 @@ public class SignUtilsTest {
         
         String check = SignUtils.asCanonicalString(mockDomain);
         assertNotNull(check);
-        assertEquals(check, "{\"account\":\"chk_string\",\"memberExpiryDays\":30,\"policies\""
+        assertEquals(check, "{\"account\":\"chk_string\",\"groups\":[],\"memberExpiryDays\":30,\"policies\""
                 +":{\"contents\":{\"policies\":[]}},\"roleCertExpiryMins\":0,\"roles\":[{\"certExpiryMins\":0,\"members\":[\"check_item\"],"
                 +"\"roleMembers\":[]}],\"serviceCertExpiryMins\":0,\"serviceExpiryDays\":40,\"services\":[{\"publicKeys\":[{}]}],"
                 +"\"tokenExpiryMins\":450,\"ypmId\":0}");
@@ -175,7 +177,7 @@ public class SignUtilsTest {
 
         check = SignUtils.asCanonicalString(mockDomain);
         assertNotNull(check);
-        assertEquals(check,"{\"account\":\"chk_string\",\"policies\":{\"contents\":{\"policies\":[]}},"
+        assertEquals(check,"{\"account\":\"chk_string\",\"groups\":[],\"policies\":{\"contents\":{\"policies\":[]}},"
                 +"\"roleCertExpiryMins\":0,\"roles\":[{\"certExpiryMins\":0,\"members\":[\"check_item\"],\"roleMembers\":[]}],"
                 +"\"serviceCertExpiryMins\":0,\"services\""
                 +":[{\"publicKeys\":[]}],\"tokenExpiryMins\":450,\"ypmId\":0}");
@@ -202,7 +204,8 @@ public class SignUtilsTest {
                 .setEnabled(Boolean.TRUE);
 
         final String check = SignUtils.asCanonicalString(data);
-        final String expected = "{\"enabled\":true,\"roles\":[{\"certExpiryMins\":300,\"memberExpiryDays\":30,\"name\":\"role1\","
+        final String expected = "{\"enabled\":true,\"groups\":[],\"roles\":[{\"certExpiryMins\":300,"
+            +"\"memberExpiryDays\":30,\"name\":\"role1\","
             +"\"roleMembers\":[],\"serviceExpiryDays\":40,\"tokenExpiryMins\":450},"
             +"{\"name\":\"role2\",\"roleMembers\":[{\"expiration\":\"1970-01-01T00:00:00.000Z\","
             +"\"memberName\":\"user.joe\"},{\"expiration\":\"1970-01-01T00:00:00.000Z\","
@@ -243,11 +246,41 @@ public class SignUtilsTest {
                 .setTokenExpiryMins(300).setSignAlgorithm("rsa");
 
         final String check = SignUtils.asCanonicalString(data);
-        final String expected = "{\"auditEnabled\":true,\"enabled\":true,\"roleCertExpiryMins\":100,\"roles\":[{\"auditEnabled\":true,\"name\":\"role1\",\"roleMembers\":[]},"
+        final String expected = "{\"auditEnabled\":true,\"enabled\":true,\"groups\":[],\"roleCertExpiryMins\":100,"
+                +"\"roles\":[{\"auditEnabled\":true,\"name\":\"role1\",\"roleMembers\":[]},"
                 +"{\"name\":\"role2\",\"roleMembers\":[{\"expiration\":\"1970-01-01T00:00:00.000Z\","
                 +"\"memberName\":\"user.joe\"},{\"expiration\":\"1970-01-01T00:00:00.000Z\","
                 +"\"memberName\":\"user.jane\"}]},{\"name\":\"role3\"}],\"serviceCertExpiryMins\":200,"
                 +"\"services\":[],\"signAlgorithm\":\"rsa\",\"tokenExpiryMins\":300,\"ypmId\":100}";
+        assertEquals(check, expected);
+    }
+
+    @Test
+    public void testAsStructGroup() {
+
+        List<GroupMember> groupMembers1 = new ArrayList<>();
+        Group group1 = new Group().setName("group1").setGroupMembers(groupMembers1)
+                .setReviewEnabled(true).setSelfServe(true).setAuditEnabled(true);
+
+        List<GroupMember> groupMembers2 = new ArrayList<>();
+        groupMembers2.add(new GroupMember().setMemberName("user.joe").setExpiration(Timestamp.fromMillis(0)));
+        groupMembers2.add(new GroupMember().setMemberName("user.jane").setExpiration(Timestamp.fromMillis(0)));
+        Group group2 = new Group().setName("group2").setGroupMembers(groupMembers2);
+
+        List<Group> groups = new ArrayList<>();
+        groups.add(group1);
+        groups.add(group2);
+        groups.add(new Group().setName("group3"));
+        DomainData data = new DomainData().setGroups(groups).setYpmId(100)
+                .setEnabled(Boolean.TRUE);
+
+        final String check = SignUtils.asCanonicalString(data);
+        final String expected = "{\"enabled\":true,\"groups\":[{\"auditEnabled\":true,"
+                +"\"groupMembers\":[],\"name\":\"group1\",\"reviewEnabled\":true,\"selfServe\":true},"
+                +"{\"groupMembers\":[{\"expiration\":\"1970-01-01T00:00:00.000Z\","
+                +"\"memberName\":\"user.joe\"},{\"expiration\":\"1970-01-01T00:00:00.000Z\","
+                +"\"memberName\":\"user.jane\"}],\"name\":\"group2\"},{\"name\":\"group3\"}],"
+                +"\"roles\":[],\"services\":[],\"ypmId\":100}";
         assertEquals(check, expected);
     }
 }

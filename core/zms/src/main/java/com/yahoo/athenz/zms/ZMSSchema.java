@@ -487,6 +487,7 @@ public class ZMSSchema {
             .field("policies", "SignedPolicies", false, "list of policies in the domain signed with ZMS private key")
             .arrayField("services", "ServiceIdentity", false, "list of services in the domain")
             .arrayField("entities", "Entity", false, "list of entities in the domain")
+            .arrayField("groups", "Group", false, "list of groups in the domain")
             .field("modified", "Timestamp", false, "last modification timestamp");
 
         sb.structType("SignedDomain")
