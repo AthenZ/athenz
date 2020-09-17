@@ -710,6 +710,11 @@ public class ZMSCoreTest {
         assertFalse(sis.equals(null));
         assertFalse(sis.equals(new String()));
 
+        // groups for the domain object
+
+        List<Group> gl =  new ArrayList<>();
+        gl.add(new Group().setName("dev-team"));
+
         // DomainData test
         List<Entity> elist = new ArrayList<>();
         DomainData dd = new DomainData().setName("test.domain").setAccount("user.test").setYpmId(1).setRoles(rl)
@@ -718,7 +723,7 @@ public class ZMSCoreTest {
                 .setMemberExpiryDays(30).setServiceExpiryDays(40).setGroupExpiryDays(50)
                 .setTokenExpiryMins(300).setRoleCertExpiryMins(120)
                 .setServiceCertExpiryMins(150).setDescription("main domain").setOrg("org").setSignAlgorithm("rsa")
-                .setUserAuthorityFilter("OnShore");
+                .setUserAuthorityFilter("OnShore").setGroups(gl);
 
         result = validator.validate(dd, "DomainData");
         assertTrue(result.valid, result.error);
@@ -727,6 +732,7 @@ public class ZMSCoreTest {
         assertEquals(dd.getAccount(), "user.test");
         assertEquals((int) dd.getYpmId(), 1);
         assertEquals(dd.getRoles(), rl);
+        assertEquals(dd.getGroups(), gl);
         assertEquals(dd.getPolicies(), sp);
         assertEquals(dd.getServices(), sil);
         assertEquals(dd.getEntities(), elist);
@@ -751,9 +757,18 @@ public class ZMSCoreTest {
                 .setEnabled(true).setApplicationId("101").setCertDnsDomain("athenz.cloud").setAuditEnabled(false)
                 .setMemberExpiryDays(30).setTokenExpiryMins(300).setRoleCertExpiryMins(120).setServiceCertExpiryMins(150)
                 .setDescription("main domain").setOrg("org").setSignAlgorithm("rsa").setServiceExpiryDays(40)
-                .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50);
+                .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setGroups(gl);
 
         assertTrue(dd.equals(dd2));
+
+        List<Group> gl2 = new ArrayList<>();
+        gl2.add(new Group().setName("new-name"));
+        dd2.setGroups(gl2);
+        assertFalse(dd2.equals(dd));
+        dd2.setGroups(null);
+        assertFalse(dd2.equals(dd));
+        dd2.setGroups(gl);
+        assertTrue(dd2.equals(dd));
 
         dd2.setUserAuthorityFilter("NotOnShore");
         assertFalse(dd2.equals(dd));

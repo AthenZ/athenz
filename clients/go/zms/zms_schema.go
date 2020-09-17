@@ -565,6 +565,7 @@ func init() {
 	tDomainData.Field("policies", "SignedPolicies", false, nil, "list of policies in the domain signed with ZMS private key")
 	tDomainData.ArrayField("services", "ServiceIdentity", false, "list of services in the domain")
 	tDomainData.ArrayField("entities", "Entity", false, "list of entities in the domain")
+	tDomainData.ArrayField("groups", "Group", false, "list of groups in the domain")
 	tDomainData.Field("modified", "Timestamp", false, nil, "last modification timestamp")
 	sb.AddType(tDomainData.Build())
 

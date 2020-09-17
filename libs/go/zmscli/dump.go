@@ -535,6 +535,12 @@ func (cli Zms) dumpSignedDomain(buf *bytes.Buffer, signedDomain *zms.SignedDomai
 	}
 
 	buf.WriteString(indentLevel1)
+	buf.WriteString("groups:\n")
+	for _, group := range domainData.Groups {
+		cli.dumpGroup(buf, *group, false, indentLevel2Dash, indentLevel2DashLvl)
+	}
+
+	buf.WriteString(indentLevel1)
 	buf.WriteString("policies:\n")
 	signedPolicies := domainData.Policies
 	domainPolicies := signedPolicies.Contents

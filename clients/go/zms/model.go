@@ -5864,6 +5864,11 @@ type DomainData struct {
 	Entities []*Entity `json:"entities"`
 
 	//
+	// list of groups in the domain
+	//
+	Groups []*Group `json:"groups"`
+
+	//
 	// last modification timestamp
 	//
 	Modified rdl.Timestamp `json:"modified"`
@@ -5905,6 +5910,9 @@ func (self *DomainData) Init() *DomainData {
 	}
 	if self.Entities == nil {
 		self.Entities = make([]*Entity, 0)
+	}
+	if self.Groups == nil {
+		self.Groups = make([]*Group, 0)
 	}
 	return self
 }
@@ -5990,6 +5998,9 @@ func (self *DomainData) Validate() error {
 	}
 	if self.Entities == nil {
 		return fmt.Errorf("DomainData: Missing required field: entities")
+	}
+	if self.Groups == nil {
+		return fmt.Errorf("DomainData: Missing required field: groups")
 	}
 	if self.Modified.IsZero() {
 		return fmt.Errorf("DomainData: Missing required field: modified")

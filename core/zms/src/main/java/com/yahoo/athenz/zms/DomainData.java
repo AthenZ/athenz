@@ -64,6 +64,7 @@ public class DomainData {
     public SignedPolicies policies;
     public List<ServiceIdentity> services;
     public List<Entity> entities;
+    public List<Group> groups;
     public Timestamp modified;
 
     public DomainData setDescription(String description) {
@@ -213,6 +214,13 @@ public class DomainData {
     public List<Entity> getEntities() {
         return entities;
     }
+    public DomainData setGroups(List<Group> groups) {
+        this.groups = groups;
+        return this;
+    }
+    public List<Group> getGroups() {
+        return groups;
+    }
     public DomainData setModified(Timestamp modified) {
         this.modified = modified;
         return this;
@@ -289,6 +297,9 @@ public class DomainData {
                 return false;
             }
             if (entities == null ? a.entities != null : !entities.equals(a.entities)) {
+                return false;
+            }
+            if (groups == null ? a.groups != null : !groups.equals(a.groups)) {
                 return false;
             }
             if (modified == null ? a.modified != null : !modified.equals(a.modified)) {
