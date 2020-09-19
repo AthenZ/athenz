@@ -17,7 +17,10 @@ package com.yahoo.athenz.zts.cache;
 
 import java.util.*;
 
+import com.yahoo.athenz.auth.AuthorityConsts;
+import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.util.AthenzUtils;
+import com.yahoo.athenz.common.server.util.AuthzHelper;
 import com.yahoo.athenz.zms.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,15 +97,14 @@ public class DataCache {
         for (RoleMember member : members) {
             
             // if the role member is disabled then we'll skip it
-            
-            Integer systemDisabled = member.getSystemDisabled();
-            if (systemDisabled != null && systemDisabled != 0) {
+
+            if (AuthzHelper.isMemberDisabled(member.getSystemDisabled())) {
                 continue;
             }
 
             // if the role member is already expired then there
             // is no point to add it to the cache
-            
+
             long expiration = member.getExpiration() == null ? 0 : member.getExpiration().millis();
             if (expiration != 0 && expiration < currentTime) {
                 continue;
@@ -169,7 +171,12 @@ public class DataCache {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Processing role: {}", role.getName());
         }
-        
+
+        // set group type for role members which we need
+        // for authorization checks
+
+        setRoleMemberGroupType(role.getRoleMembers());
+
         // first process members
         
         processRoleMembers(role.getName(), role.getRoleMembers());
@@ -181,6 +188,19 @@ public class DataCache {
         // now process the role meta data
 
         processRoleMeta(role);
+    }
+
+    void setRoleMemberGroupType(List<RoleMember> roleMembers) {
+
+        if (roleMembers == null || roleMembers.isEmpty()) {
+            return;
+        }
+
+        for (RoleMember roleMember : roleMembers) {
+            if (roleMember.getMemberName().contains(AuthorityConsts.GROUP_SEP)) {
+                roleMember.setPrincipalType(Principal.Type.GROUP.getValue());
+            }
+        }
     }
 
     void processProviderSuffixAssertion(Assertion assertion, AssertionEffect effect, Map<String, Role> roles,

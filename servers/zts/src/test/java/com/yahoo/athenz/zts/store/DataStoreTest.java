@@ -34,6 +34,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.*;
 
+import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.common.server.store.ChangeLogStore;
 import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.zts.ResourceException;
@@ -4110,5 +4111,352 @@ public class DataStoreTest {
 
         fetchedRoles = store.getRolesByDomain("unknownDomain");
         assertEquals(fetchedRoles.size(), 0);
+    }
+
+    @Test
+    public void testProcessGroup() {
+
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root", pkey, "0");
+        DataStore store = new DataStore(clogStore, null);
+
+        // we have no group
+
+        assertNull(store.principalGroupCache.getIfPresent("user.user1"));
+        assertNull(store.groupMemberCache.getIfPresent("coretech:group.dev-team"));
+
+        // process a group with no members
+
+        Group group = new Group().setName("coretech:group.dev-team");
+        store.processGroup(group);
+
+        assertTrue(store.groupMemberCache.getIfPresent("coretech:group.dev-team").isEmpty());
+        assertNull(store.principalGroupCache.getIfPresent("user.user1"));
+
+        // update the group and add a two new members
+
+        List<GroupMember> members = new ArrayList<>();
+        members.add(new GroupMember().setMemberName("user.user1")
+                .setPrincipalType(Principal.Type.USER.getValue())
+                .setGroupName("coretech:group.dev-team"));
+        members.add(new GroupMember().setMemberName("user.user2")
+                .setPrincipalType(Principal.Type.USER.getValue())
+                .setGroupName("coretech:group.dev-team"));
+        group.setGroupMembers(members);
+        store.processGroup(group);
+
+        // create and process another group
+
+        group = new Group().setName("coretech:group.pe-team");
+        members = new ArrayList<>();
+        members.add(new GroupMember().setMemberName("user.user1")
+                .setPrincipalType(Principal.Type.USER.getValue())
+                .setGroupName("coretech:group.pe-team"));
+        members.add(new GroupMember().setMemberName("coretech.api")
+                .setPrincipalType(Principal.Type.SERVICE.getValue())
+                .setGroupName("coretech:group.pe-team"));
+        group.setGroupMembers(members);
+        store.processGroup(group);
+
+        // verify our groups now
+
+        members = store.groupMemberCache.getIfPresent("coretech:group.dev-team");
+        assertNotNull(members);
+        assertEquals(members.size(), 2);
+        assertTrue(ZTSTestUtils.verifyGroupMemberName(members, "user.user1"));
+        assertTrue(ZTSTestUtils.verifyGroupMemberName(members, "user.user2"));
+
+        members = store.groupMemberCache.getIfPresent("coretech:group.pe-team");
+        assertNotNull(members);
+        assertEquals(members.size(), 2);
+        assertTrue(ZTSTestUtils.verifyGroupMemberName(members, "user.user1"));
+        assertTrue(ZTSTestUtils.verifyGroupMemberName(members, "coretech.api"));
+
+        members = store.principalGroupCache.getIfPresent("user.user1");
+        assertNotNull(members);
+        assertEquals(members.size(), 2);
+        assertTrue(ZTSTestUtils.verifyGroupMemberGroup(members, "coretech:group.dev-team"));
+        assertTrue(ZTSTestUtils.verifyGroupMemberGroup(members, "coretech:group.pe-team"));
+
+        members = store.principalGroupCache.getIfPresent("user.user2");
+        assertNotNull(members);
+        assertEquals(members.size(), 1);
+        assertTrue(ZTSTestUtils.verifyGroupMemberGroup(members, "coretech:group.dev-team"));
+
+        members = store.principalGroupCache.getIfPresent("coretech.api");
+        assertNotNull(members);
+        assertEquals(members.size(), 1);
+        assertTrue(ZTSTestUtils.verifyGroupMemberGroup(members, "coretech:group.pe-team"));
+
+        // delete user2 and add user3
+
+        group = new Group().setName("coretech:group.dev-team");
+        members = new ArrayList<>();
+        members.add(new GroupMember().setMemberName("user.user1")
+                .setPrincipalType(Principal.Type.USER.getValue())
+                .setGroupName("coretech:group.dev-team"));
+        members.add(new GroupMember().setMemberName("user.user3")
+                .setPrincipalType(Principal.Type.USER.getValue())
+                .setGroupName("coretech:group.dev-team"));
+        group.setGroupMembers(members);
+        store.processGroup(group);
+
+        members = store.groupMemberCache.getIfPresent("coretech:group.dev-team");
+        assertNotNull(members);
+        assertEquals(members.size(), 2);
+        assertTrue(ZTSTestUtils.verifyGroupMemberName(members, "user.user1"));
+        assertTrue(ZTSTestUtils.verifyGroupMemberName(members, "user.user3"));
+
+        members = store.principalGroupCache.getIfPresent("user.user1");
+        assertNotNull(members);
+        assertEquals(members.size(), 2);
+        assertTrue(ZTSTestUtils.verifyGroupMemberGroup(members, "coretech:group.dev-team"));
+        assertTrue(ZTSTestUtils.verifyGroupMemberGroup(members, "coretech:group.pe-team"));
+
+        members = store.principalGroupCache.getIfPresent("user.user2");
+        assertNotNull(members);
+        assertTrue(members.isEmpty());
+
+        members = store.principalGroupCache.getIfPresent("user.user3");
+        assertNotNull(members);
+        assertEquals(members.size(), 1);
+        assertTrue(ZTSTestUtils.verifyGroupMemberGroup(members, "coretech:group.dev-team"));
+
+        // add new members that are disabled and expired
+
+        group = new Group().setName("coretech:group.dev-team");
+        members = new ArrayList<>();
+        members.add(new GroupMember().setMemberName("user.user1")
+                .setPrincipalType(Principal.Type.USER.getValue())
+                .setGroupName("coretech:group.dev-team")
+                .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + 100000)));
+        members.add(new GroupMember().setMemberName("user.user3")
+                .setPrincipalType(Principal.Type.USER.getValue())
+                .setGroupName("coretech:group.dev-team"));
+        members.add(new GroupMember().setMemberName("user.user4")
+                .setPrincipalType(Principal.Type.USER.getValue())
+                .setGroupName("coretech:group.dev-team")
+                .setSystemDisabled(1));
+        members.add(new GroupMember().setMemberName("user.user5")
+                .setPrincipalType(Principal.Type.USER.getValue())
+                .setGroupName("coretech:group.dev-team")
+                .setExpiration(Timestamp.fromMillis(1000)));
+        members.add(new GroupMember().setMemberName("user.user6")
+                .setPrincipalType(Principal.Type.USER.getValue())
+                .setGroupName("coretech:group.dev-team")
+                .setExpiration(Timestamp.fromMillis(1000)));
+        group.setGroupMembers(members);
+        store.processGroup(group);
+
+        members = store.groupMemberCache.getIfPresent("coretech:group.dev-team");
+        assertNotNull(members);
+        assertEquals(members.size(), 5);
+        assertTrue(ZTSTestUtils.verifyGroupMemberName(members, "user.user1"));
+        assertTrue(ZTSTestUtils.verifyGroupMemberName(members, "user.user3"));
+        assertTrue(ZTSTestUtils.verifyGroupMemberName(members, "user.user4"));
+        assertTrue(ZTSTestUtils.verifyGroupMemberName(members, "user.user5"));
+        assertTrue(ZTSTestUtils.verifyGroupMemberName(members, "user.user6"));
+
+        members = store.principalGroupCache.getIfPresent("user.user1");
+        assertNotNull(members);
+        assertEquals(members.size(), 2);
+        assertTrue(ZTSTestUtils.verifyGroupMemberGroup(members, "coretech:group.dev-team"));
+        assertTrue(ZTSTestUtils.verifyGroupMemberGroup(members, "coretech:group.pe-team"));
+
+        members = store.principalGroupCache.getIfPresent("user.user3");
+        assertNotNull(members);
+        assertEquals(members.size(), 1);
+        assertTrue(ZTSTestUtils.verifyGroupMemberGroup(members, "coretech:group.dev-team"));
+
+        // expired and disabled users are not present
+
+        assertNull(store.principalGroupCache.getIfPresent("user.user4"));
+        assertNull(store.principalGroupCache.getIfPresent("user.user5"));
+        assertNull(store.principalGroupCache.getIfPresent("user.user6"));
+
+        // now make user4 as enabled, expire user 3 and delete user6
+
+        group = new Group().setName("coretech:group.dev-team");
+        members = new ArrayList<>();
+        members.add(new GroupMember().setMemberName("user.user1")
+                .setPrincipalType(Principal.Type.USER.getValue())
+                .setGroupName("coretech:group.dev-team")
+                .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + 100000)));
+        members.add(new GroupMember().setMemberName("user.user3")
+                .setPrincipalType(Principal.Type.USER.getValue())
+                .setGroupName("coretech:group.dev-team")
+                .setExpiration(Timestamp.fromMillis(1000)));
+        members.add(new GroupMember().setMemberName("user.user4")
+                .setPrincipalType(Principal.Type.USER.getValue())
+                .setGroupName("coretech:group.dev-team")
+                .setSystemDisabled(0));
+        members.add(new GroupMember().setMemberName("user.user5")
+                .setPrincipalType(Principal.Type.USER.getValue())
+                .setGroupName("coretech:group.dev-team")
+                .setExpiration(Timestamp.fromMillis(1000)));
+        group.setGroupMembers(members);
+        store.processGroup(group);
+
+        members = store.groupMemberCache.getIfPresent("coretech:group.dev-team");
+        assertNotNull(members);
+        assertEquals(members.size(), 4);
+        assertTrue(ZTSTestUtils.verifyGroupMemberName(members, "user.user1"));
+        assertTrue(ZTSTestUtils.verifyGroupMemberName(members, "user.user3"));
+        assertTrue(ZTSTestUtils.verifyGroupMemberName(members, "user.user4"));
+        assertTrue(ZTSTestUtils.verifyGroupMemberName(members, "user.user5"));
+
+        members = store.principalGroupCache.getIfPresent("user.user1");
+        assertNotNull(members);
+        assertEquals(members.size(), 2);
+        assertTrue(ZTSTestUtils.verifyGroupMemberGroup(members, "coretech:group.dev-team"));
+        assertTrue(ZTSTestUtils.verifyGroupMemberGroup(members, "coretech:group.pe-team"));
+
+        members = store.principalGroupCache.getIfPresent("user.user3");
+        assertNotNull(members);
+        assertTrue(members.isEmpty());
+
+        members = store.principalGroupCache.getIfPresent("user.user4");
+        assertNotNull(members);
+        assertEquals(members.size(), 1);
+        assertTrue(ZTSTestUtils.verifyGroupMemberGroup(members, "coretech:group.dev-team"));
+
+        assertNull(store.principalGroupCache.getIfPresent("user.user5"));
+        assertNull(store.principalGroupCache.getIfPresent("user.user6"));
+
+        // now make user5 as valid as well
+
+        group = new Group().setName("coretech:group.dev-team");
+        members = new ArrayList<>();
+        members.add(new GroupMember().setMemberName("user.user1")
+                .setPrincipalType(Principal.Type.USER.getValue())
+                .setGroupName("coretech:group.dev-team")
+                .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + 100000)));
+        members.add(new GroupMember().setMemberName("user.user3")
+                .setPrincipalType(Principal.Type.USER.getValue())
+                .setGroupName("coretech:group.dev-team")
+                .setExpiration(Timestamp.fromMillis(1000)));
+        members.add(new GroupMember().setMemberName("user.user4")
+                .setPrincipalType(Principal.Type.USER.getValue())
+                .setGroupName("coretech:group.dev-team")
+                .setSystemDisabled(0));
+        members.add(new GroupMember().setMemberName("user.user5")
+                .setPrincipalType(Principal.Type.USER.getValue())
+                .setGroupName("coretech:group.dev-team")
+                .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + 100000)));
+        group.setGroupMembers(members);
+        store.processGroup(group);
+
+        members = store.groupMemberCache.getIfPresent("coretech:group.dev-team");
+        assertNotNull(members);
+        assertEquals(members.size(), 4);
+        assertTrue(ZTSTestUtils.verifyGroupMemberName(members, "user.user1"));
+        assertTrue(ZTSTestUtils.verifyGroupMemberName(members, "user.user3"));
+        assertTrue(ZTSTestUtils.verifyGroupMemberName(members, "user.user4"));
+        assertTrue(ZTSTestUtils.verifyGroupMemberName(members, "user.user5"));
+
+        members = store.principalGroupCache.getIfPresent("user.user1");
+        assertNotNull(members);
+        assertEquals(members.size(), 2);
+        assertTrue(ZTSTestUtils.verifyGroupMemberGroup(members, "coretech:group.dev-team"));
+        assertTrue(ZTSTestUtils.verifyGroupMemberGroup(members, "coretech:group.pe-team"));
+
+        members = store.principalGroupCache.getIfPresent("user.user3");
+        assertNotNull(members);
+        assertTrue(members.isEmpty());
+
+        members = store.principalGroupCache.getIfPresent("user.user4");
+        assertNotNull(members);
+        assertEquals(members.size(), 1);
+        assertTrue(ZTSTestUtils.verifyGroupMemberGroup(members, "coretech:group.dev-team"));
+
+        members = store.principalGroupCache.getIfPresent("user.user5");
+        assertNotNull(members);
+        assertEquals(members.size(), 1);
+        assertTrue(ZTSTestUtils.verifyGroupMemberGroup(members, "coretech:group.dev-team"));
+
+        // update the pe-team with no changes
+
+        group = new Group().setName("coretech:group.pe-team");
+        members = new ArrayList<>();
+        members.add(new GroupMember().setMemberName("user.user1")
+                .setPrincipalType(Principal.Type.USER.getValue())
+                .setGroupName("coretech:group.pe-team"));
+        members.add(new GroupMember().setMemberName("coretech.api")
+                .setPrincipalType(Principal.Type.SERVICE.getValue())
+                .setGroupName("coretech:group.pe-team"));
+        group.setGroupMembers(members);
+        store.processGroup(group);
+
+        members = store.groupMemberCache.getIfPresent("coretech:group.pe-team");
+        assertNotNull(members);
+        assertEquals(members.size(), 2);
+        assertTrue(ZTSTestUtils.verifyGroupMemberName(members, "user.user1"));
+        assertTrue(ZTSTestUtils.verifyGroupMemberName(members, "coretech.api"));
+
+        members = store.principalGroupCache.getIfPresent("user.user1");
+        assertNotNull(members);
+        assertEquals(members.size(), 2);
+        assertTrue(ZTSTestUtils.verifyGroupMemberGroup(members, "coretech:group.dev-team"));
+        assertTrue(ZTSTestUtils.verifyGroupMemberGroup(members, "coretech:group.pe-team"));
+
+        members = store.principalGroupCache.getIfPresent("coretech.api");
+        assertNotNull(members);
+        assertEquals(members.size(), 1);
+        assertTrue(ZTSTestUtils.verifyGroupMemberGroup(members, "coretech:group.pe-team"));
+    }
+
+    @Test
+    public void testGetAccessibleRolesWithGroups() {
+
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root", pkey, "0");
+        DataStore store = new DataStore(clogStore, null);
+        store.loadAthenzPublicKeys();
+
+        final String domainName = "access-domain";
+        ZTSTestUtils.setupDomainsWithGroups(store, pkey, domainName);
+
+        Set<String> accessibleRoles = new HashSet<>();
+        DataCache data = store.getDataCache("access-domain1");
+        store.getAccessibleRoles(data, "access-domain1", "user.user1", null, accessibleRoles, false);
+
+        assertEquals(accessibleRoles.size(), 2);
+        assertTrue(accessibleRoles.contains("role1"));
+        assertTrue(accessibleRoles.contains("role2"));
+
+        accessibleRoles.clear();
+        store.getAccessibleRoles(data, "access-domain1", "user.user2", null, accessibleRoles, false);
+
+        assertEquals(accessibleRoles.size(), 4);
+        assertTrue(accessibleRoles.contains("role1"));
+        assertTrue(accessibleRoles.contains("role2"));
+        assertTrue(accessibleRoles.contains("role3"));
+        assertTrue(accessibleRoles.contains("role4"));
+
+        accessibleRoles.clear();
+        store.getAccessibleRoles(data, "access-domain1", "user.user3", null, accessibleRoles, false);
+
+        assertEquals(accessibleRoles.size(), 4);
+        assertTrue(accessibleRoles.contains("role1"));
+        assertTrue(accessibleRoles.contains("role2"));
+        assertTrue(accessibleRoles.contains("role3"));
+        assertTrue(accessibleRoles.contains("role4"));
+
+        data = store.getDataCache("access-domain3");
+        accessibleRoles.clear();
+        store.getAccessibleRoles(data, "access-domain3", "user.user4", null, accessibleRoles, false);
+
+        assertEquals(accessibleRoles.size(), 1);
+        assertTrue(accessibleRoles.contains("role5"));
+
+        accessibleRoles.clear();
+        store.getAccessibleRoles(data, "access-domain3", "user.user5", null, accessibleRoles, false);
+        assertTrue(accessibleRoles.isEmpty());
+
+        // sleep for a second so user6 becomes expired
+
+        ZTSTestUtils.sleep(1000);
+
+        accessibleRoles.clear();
+        store.getAccessibleRoles(data, "access-domain3", "user.user6", null, accessibleRoles, false);
+        assertTrue(accessibleRoles.isEmpty());
     }
 }

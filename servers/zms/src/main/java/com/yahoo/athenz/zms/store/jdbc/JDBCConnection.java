@@ -3284,6 +3284,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                     }
                     GroupMember groupMember = new GroupMember();
                     groupMember.setMemberName(rs.getString(2));
+                    groupMember.setGroupName(group.getName());
                     java.sql.Timestamp expiration = rs.getTimestamp(3);
                     if (expiration != null) {
                         groupMember.setExpiration(Timestamp.fromMillis(expiration.getTime()));

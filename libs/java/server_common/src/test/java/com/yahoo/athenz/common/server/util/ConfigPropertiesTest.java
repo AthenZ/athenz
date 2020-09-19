@@ -72,6 +72,23 @@ public class ConfigPropertiesTest {
         ConfigProperties.loadProperties(currentDirectory.getCanonicalPath() + "/src/test/resources/testFileConfig.properties");
     }
 
+    @Test
+    public void testRetrieveConfigValueNull() {
+        assertEquals(ConfigProperties.retrieveConfigSetting("unknown", 10), 10);
+    }
+
+    @Test
+    public void testRetrieveConfigValue() {
+        System.setProperty("athenz.port", "4443");
+        assertEquals(ConfigProperties.retrieveConfigSetting("athenz.port", 4080), 4443);
+
+        System.setProperty("athenz.port", "-4443");
+        assertEquals(ConfigProperties.retrieveConfigSetting("athenz.port", 4080), 4080);
+
+        System.setProperty("athenz.port", "data");
+        assertEquals(ConfigProperties.retrieveConfigSetting("athenz.port", 4080), 4080);
+    }
+
     public static String getRootDir() {
 
         if (ROOT_DIR == null) {

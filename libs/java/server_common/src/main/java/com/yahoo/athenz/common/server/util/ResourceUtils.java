@@ -30,4 +30,12 @@ public class ResourceUtils {
     public static String roleResourceName(String domainName, String roleName) {
         return generateResourceName(domainName, roleName, ServerCommonConsts.OBJECT_ROLE);
     }
+
+    public static String groupResourceName(String domainName, String groupName) {
+        return generateResourceName(domainName, groupName, ServerCommonConsts.OBJECT_GROUP);
+    }
+
+    public static String serviceResourceName(String domainName, String serviceName) {
+        return generateResourceName(domainName, serviceName, "");
+    }
 }

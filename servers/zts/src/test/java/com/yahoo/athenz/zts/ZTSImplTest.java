@@ -43,6 +43,7 @@ import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.ssh.SSHCertRecord;
 import com.yahoo.athenz.common.server.store.ChangeLogStore;
 import com.yahoo.athenz.common.server.store.impl.ZMSFileChangeLogStore;
+import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.zms.Assertion;
 import com.yahoo.athenz.zms.AssertionEffect;
@@ -286,64 +287,6 @@ public class ZTSImplTest {
         return rsrcCtxWrapper;
     }
     
-    private static Role createRoleObject(String domainName, String roleName,
-                                         String trust) {
-        Role role = new Role();
-        role.setName(domainName + ":role." + roleName);
-        role.setTrust(trust);
-        return role;
-    }
-    
-    private static Role createRoleObject(String domainName, String roleName,
-                                         String trust, String member1, String member2) {
-
-        List<RoleMember> members = new ArrayList<>();
-        if (member1 != null) {
-            members.add(new RoleMember().setMemberName(member1));
-        }
-        if (member2 != null) {
-            members.add(new RoleMember().setMemberName(member2));
-        }
-        return createRoleObject(domainName, roleName, trust, members);
-    }
-
-    private static Role createRoleObject(String domainName, String roleName,
-                                         String trust, List<RoleMember> members) {
-        
-        Role role = new Role();
-        role.setName(domainName + ":role." + roleName);
-        role.setRoleMembers(members);
-        if (trust != null) {
-            role.setTrust(trust);
-        }
-        
-        return role;
-    }
-    
-    private Policy createPolicyObject(String domainName, String policyName,
-            String roleName, boolean generateRoleName, String action,
-            String resource, AssertionEffect effect) {
-
-        Policy policy = new Policy();
-        policy.setName(domainName + ":policy." + policyName);
-
-        Assertion assertion = new Assertion();
-        assertion.setAction(action);
-        assertion.setEffect(effect);
-        assertion.setResource(resource);
-        if (generateRoleName) {
-            assertion.setRole(domainName + ":role." + roleName);
-        } else {
-            assertion.setRole(roleName);
-        }
-
-        List<Assertion> assertList = new ArrayList<>();
-        assertList.add(assertion);
-
-        policy.setAssertions(assertList);
-        return policy;
-    }
-    
     private Metric getMetric(){
         com.yahoo.athenz.common.metrics.MetricFactory metricFactory;
         com.yahoo.athenz.common.metrics.Metric metric;
@@ -370,9 +313,14 @@ public class ZTSImplTest {
     private String generateServiceIdentityName(String domain, String service) {
         return domain + "." + service;
     }
-    
+
     private SignedDomain createSignedDomain(String domainName, String tenantDomain,
             String serviceName, boolean includeServices) {
+        return createSignedDomain(domainName, tenantDomain, serviceName, includeServices, null);
+    }
+
+    private SignedDomain createSignedDomain(String domainName, String tenantDomain,
+            String serviceName, boolean includeServices, List<Group> groups) {
         
         List<RoleMember> writers = new ArrayList<>();
         writers.add(new RoleMember().setMemberName("user_domain.user"));
@@ -384,12 +332,18 @@ public class ZTSImplTest {
         readers.add(new RoleMember().setMemberName("user_domain.user1"));
         
         return createSignedDomain(domainName, tenantDomain, serviceName, writers,
-                readers, includeServices);
+                readers, includeServices, groups);
     }
-    
+
     private SignedDomain createSignedDomain(String domainName, String tenantDomain,
             String serviceName, List<RoleMember> writers, List<RoleMember> readers,
             boolean includeServices) {
+        return createSignedDomain(domainName, tenantDomain, serviceName, writers, readers, includeServices, null);
+    }
+
+    private SignedDomain createSignedDomain(String domainName, String tenantDomain,
+            String serviceName, List<RoleMember> writers, List<RoleMember> readers,
+            boolean includeServices, List<Group> groups) {
         
         SignedDomain signedDomain = new SignedDomain();
 
@@ -446,7 +400,7 @@ public class ZTSImplTest {
             service.setHosts(hosts);
             services.add(service);
         }
-        
+
         List<com.yahoo.athenz.zms.Policy> policies = new ArrayList<>();
         
         com.yahoo.athenz.zms.Policy policy = new com.yahoo.athenz.zms.Policy();
@@ -489,6 +443,7 @@ public class ZTSImplTest {
         DomainData domain = new DomainData();
         domain.setName(domainName);
         domain.setRoles(roles);
+        domain.setGroups(groups);
         domain.setServices(services);
         domain.setPolicies(signedPolicies);
         domain.setModified(Timestamp.fromCurrentTime());
@@ -500,7 +455,7 @@ public class ZTSImplTest {
         
         return signedDomain;
     }
-    
+
     private SignedDomain createSignedDomainExpiration(String domainName, String serviceName) {
         return createSignedDomainExpiration(domainName, serviceName, null);
     }
@@ -1018,26 +973,6 @@ public class ZTSImplTest {
     }
     
     @Test
-    public void testShouldRunDelegatedTrustCheckNullTrust() {
-        assertFalse(authorizer.shouldRunDelegatedTrustCheck(null, "TrustDomain"));
-    }
-    
-    @Test
-    public void testShouldRunDelegatedTrustCheckNullTrustDomain() {
-        assertTrue(authorizer.shouldRunDelegatedTrustCheck("TrustDomain", null));
-    }
-    
-    @Test
-    public void testShouldRunDelegatedTrustCheckMatch() {
-        assertTrue(authorizer.shouldRunDelegatedTrustCheck("TrustDomain", "TrustDomain"));
-    }
-    
-    @Test
-    public void testShouldRunDelegatedTrustCheckNoMatch() {
-        assertFalse(authorizer.shouldRunDelegatedTrustCheck("TrustDomain1", "TrustDomain"));
-    }
-    
-    @Test
     public void testEvaluateAccessNoAssertions() {
         
         DataCache domain = new DataCache();
@@ -1063,7 +998,7 @@ public class ZTSImplTest {
         domainData.setName("coretech");
         domain.setDomainData(domainData);
         domainData.setRoles(new ArrayList<>());
-        Role role = createRoleObject("coretech", "role1", null, "user_domain.user1", null);
+        Role role = ZTSTestUtils.createRoleObject("coretech", "role1", "user_domain.user1");
         domainData.getRoles().add(role);
 
         Policy policy = new Policy().setName("coretech:policy.policy1");
@@ -1090,7 +1025,7 @@ public class ZTSImplTest {
         domainData.setName("coretech");
         domain.setDomainData(domainData);
         domainData.setRoles(new ArrayList<>());
-        Role role = createRoleObject("coretech", "role1", null, "user_domain.user1", null);
+        Role role = ZTSTestUtils.createRoleObject("coretech", "role1", "user_domain.user1");
         domainData.getRoles().add(role);
 
         Policy policy = new Policy().setName("coretech:policy.policy1");
@@ -1126,7 +1061,7 @@ public class ZTSImplTest {
         domainData.setName("coretech");
         domain.setDomainData(domainData);
         domainData.setRoles(new ArrayList<>());
-        Role role = createRoleObject("coretech", "role1", null, "user_domain.user1", null);
+        Role role = ZTSTestUtils.createRoleObject("coretech", "role1", "user_domain.user1");
         domainData.getRoles().add(role);
 
         Policy policy = new Policy().setName("coretech:policy.policy1");
@@ -1159,7 +1094,7 @@ public class ZTSImplTest {
         domainData.setName("coretech");
         domain.setDomainData(domainData);
         domainData.setRoles(new ArrayList<>());
-        Role role = createRoleObject("coretech", "role1", null, "user_domain.user1", null);
+        Role role = ZTSTestUtils.createRoleObject("coretech", "role1", "user_domain.user1");
         domainData.getRoles().add(role);
 
         Policy policy = new Policy().setName("coretech:policy.policy1");
@@ -2057,16 +1992,14 @@ public class ZTSImplTest {
         ResourceContext context = createResourceContext(principal);
         
         try {
-            @SuppressWarnings("unused")
-            com.yahoo.athenz.zts.ServiceIdentity svc = zts.getServiceIdentity(context, "coretech", "storage2");
+            zts.getServiceIdentity(context, "coretech", "storage2");
             fail();
         } catch (ResourceException ex) {
             assertTrue(true);
         }
         
         try {
-            @SuppressWarnings("unused")
-            com.yahoo.athenz.zts.ServiceIdentity svc = zts.getServiceIdentity(context, "testDomain2", "storage");
+            zts.getServiceIdentity(context, "testDomain2", "storage");
             fail();
         } catch (ResourceException ex) {
             assertTrue(true);
@@ -2903,220 +2836,29 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testRetrieveResourceDomainAssumeRoleWithTrust() {
-        assertEquals("trustdomain", authorizer.retrieveResourceDomain("resource", "assume_role", "trustdomain"));
-    }
-    
-    @Test
-    public void testRetrieveResourceDomainAssumeRoleWithOutTrust() {
-        assertEquals("domain1", authorizer.retrieveResourceDomain("domain1:resource", "assume_role", null));
-    }
-    
-    @Test
-    public void testRetrieveResourceDomainValidDomain() {
-        assertEquals("domain1", authorizer.retrieveResourceDomain("domain1:resource", "read", null));
-        assertEquals("domain1", authorizer.retrieveResourceDomain("domain1:resource", "read", "trustdomain"));
-        assertEquals("domain1", authorizer.retrieveResourceDomain("domain1:resource:invalid", "read", null));
-    }
-    
-    @Test
-    public void testRetrieveResourceDomainInvalidResource() {
-        assertNull(authorizer.retrieveResourceDomain("domain1", "read", "trustdomain"));
-    }
-
-
-    @Test
-    public void testCheckKerberosAuthorityAuthorization() {
-        Authority authority = new com.yahoo.athenz.auth.impl.KerberosAuthority();
-        Principal principal = SimplePrincipal.create("krb", "user1", "v=U1;d=krb;n=user1;s=signature",
-                0, authority);
-        assertTrue(authorizer.authorityAuthorizationAllowed(principal));
-    }
-    
-    @Test
-    public void testCheckNullAuthorityAuthorization() {
-        Principal principal = SimplePrincipal.create("user", "joe", "v=U1;d=user;n=joe;s=signature",
-                0, null);
-        assertTrue(authorizer.authorityAuthorizationAllowed(principal));
-    }
-    
-    @Test
-    public void testMatchDelegatedTrustAssertionInvalidAction() {
-        
-        Assertion assertion = new Assertion();
-        assertion.setAction("READ");
-        assertion.setEffect(AssertionEffect.ALLOW);
-        assertion.setResource("domain:*");
-        assertion.setRole("domain:role.Role");
-
-        assertFalse(authorizer.matchDelegatedTrustAssertion(assertion, null, null, null));
-    }
-    
-    @Test
-    public void testMatchDelegatedTrustAssertionNoResPatternMatchWithOutPattern() {
-        
-        Assertion assertion = new Assertion();
-        assertion.setAction("ASSUME_ROLE");
-        assertion.setEffect(AssertionEffect.ALLOW);
-        assertion.setResource("domain:role.Role");
-        assertion.setRole("domain:role.Role");
-
-        assertFalse(authorizer.matchDelegatedTrustAssertion(assertion, "domain:role.Role2", null, null));
-        assertFalse(authorizer.matchDelegatedTrustAssertion(assertion, "coretech:role.Role", null, null));
-    }
-    
-    @Test
-    public void testMatchDelegatedTrustAssertionNoResPatternMatchWithPattern() {
-        
-        Assertion assertion = new Assertion();
-        assertion.setAction("ASSUME_ROLE");
-        assertion.setEffect(AssertionEffect.ALLOW);
-        assertion.setResource("*:role.Role");
-        assertion.setRole("domain:role.Role");
-
-        assertFalse(authorizer.matchDelegatedTrustAssertion(assertion, "domain:role.Role2", null, null));
-        assertFalse(authorizer.matchDelegatedTrustAssertion(assertion, "coretech:role.Role2", null, null));
-    }
-    
-    @Test
-    public void testMatchDelegatedTrustAssertionNoRoleMatchWithPattern() {
-        
-        Assertion assertion = new Assertion();
-        assertion.setAction("ASSUME_ROLE");
-        assertion.setEffect(AssertionEffect.ALLOW);
-        assertion.setResource("*:role.Role");
-        assertion.setRole("weather:role.*");
-        
-        Role role;
-        List<Role> roles = new ArrayList<>();
-        
-        role = createRoleObject("coretech",  "readers", null);
-        roles.add(role);
-
-        role = createRoleObject("coretech",  "writers", null);
-        roles.add(role);
-
-        role = createRoleObject("coretech",  "updaters", null);
-        roles.add(role);
-        
-        assertFalse(authorizer.matchDelegatedTrustAssertion(assertion, "coretech:role.Role", null, roles));
-    }
-    
-    @Test
-    public void testMatchDelegatedTrustAssertionNoRoleMatchWithOutPattern() {
-        
-        Assertion assertion = new Assertion();
-        assertion.setAction("ASSUME_ROLE");
-        assertion.setEffect(AssertionEffect.ALLOW);
-        assertion.setResource("*:role.Role");
-        assertion.setRole("weather:role.Role");
-        
-        Role role;
-        List<Role> roles = new ArrayList<>();
-        
-        role = createRoleObject("coretech",  "Role1", null);
-        roles.add(role);
-
-        role = createRoleObject("coretech",  "Role2", null);
-        roles.add(role);
-        
-        assertFalse(authorizer.matchDelegatedTrustAssertion(assertion, "weather:role.Role1", null, roles));
-        assertFalse(authorizer.matchDelegatedTrustAssertion(assertion, "coretech:role.Role", null, roles));
-    }
-    
-    @Test
-    public void testMatchDelegatedTrustAssertionNoMemberMatch() {
-        
-        Assertion assertion = new Assertion();
-        assertion.setAction("ASSUME_ROLE");
-        assertion.setEffect(AssertionEffect.ALLOW);
-        assertion.setResource("*:role.Role");
-        assertion.setRole("weather:role.Role");
-        
-        Role role;
-        List<Role> roles = new ArrayList<>();
-        
-        role = createRoleObject("weather",  "Role1", null, "user_domain.user1", null);
-        roles.add(role);
-
-        role = createRoleObject("weather",  "Role", null, "user_domain.user2", null);
-        roles.add(role);
-        
-        assertFalse(authorizer.matchDelegatedTrustAssertion(assertion, "weather:role.Role", "user_domain.user1", roles));
-    }
-    
-    @Test
-    public void testMatchDelegatedTrustAssertionValidWithPattern() {
-        
-        Assertion assertion = new Assertion();
-        assertion.setAction("ASSUME_ROLE");
-        assertion.setEffect(AssertionEffect.ALLOW);
-        assertion.setResource("*:role.Role");
-        assertion.setRole("weather:role.*");
-        
-        Role role;
-        List<Role> roles = new ArrayList<>();
-        
-        role = createRoleObject("weather",  "Role1", null, "user_domain.user1", null);
-        roles.add(role);
-
-        role = createRoleObject("weather",  "Role", null, "user_domain.user2", null);
-        roles.add(role);
-        
-        assertTrue(authorizer.matchDelegatedTrustAssertion(assertion, "weather:role.Role", "user_domain.user2", roles));
-    }
-    
-    @Test
-    public void testMatchDelegatedTrustAssertionValidWithOutPattern() {
-        
-        Assertion assertion = new Assertion();
-        assertion.setAction("ASSUME_ROLE");
-        assertion.setEffect(AssertionEffect.ALLOW);
-        assertion.setResource("*:role.Role");
-        assertion.setRole("weather:role.Role");
-        
-        Role role;
-        List<Role> roles = new ArrayList<>();
-        
-        role = createRoleObject("weather",  "Role1", null, "user_domain.user1", null);
-        roles.add(role);
-
-        role = createRoleObject("weather",  "Role", null, "user_domain.user2", null);
-        roles.add(role);
-        
-        assertTrue(authorizer.matchDelegatedTrustAssertion(assertion, "weather:role.Role", "user_domain.user2", roles));
-    }
-    
-    @Test
-    public void testMatchDelegatedTrustPolicyNoAssertions() {
-        Policy policy = new Policy();
-        assertFalse(authorizer.matchDelegatedTrustPolicy(policy, "roleName", "user_domain.user1", null));
-    }
-    
-    @Test
     public void testMatchPrincipalInRoleStdMemberMatch() {
         
-        Role role = createRoleObject("weather",  "Role", null, "user_domain.user2", null);
+        Role role = ZTSTestUtils.createRoleObject("weather", "Role", "user_domain.user2");
         assertTrue(authorizer.matchPrincipalInRole(role, null, "user_domain.user2", null));
     }
     
     @Test
     public void testMatchPrincipalInRoleStdMemberNoMatch() {
         
-        Role role = createRoleObject("weather",  "Role", null, "user_domain.user2", null);
+        Role role = ZTSTestUtils.createRoleObject("weather", "Role", "user_domain.user2");
         assertFalse(authorizer.matchPrincipalInRole(role, null, "user_domain.user23", null));
     }
     
     @Test
     public void testMatchPrincipalInRoleNoDelegatedTrust() {
-        Role role = createRoleObject("weather",  "Role", null);
+        Role role = ZTSTestUtils.createRoleObject("weather", "Role", null, null);
         assertFalse(authorizer.matchPrincipalInRole(role, null, null, null));
         assertFalse(authorizer.matchPrincipalInRole(role, null, null, "weather"));
     }
     
     @Test
     public void testMatchPrincipalInRoleDelegatedTrustNoMatch() {
-        Role role = createRoleObject("weather",  "Role", "coretech_not_present");
+        Role role = ZTSTestUtils.createRoleObject("weather", "Role", "coretech_not_present", null);
         assertFalse(authorizer.matchPrincipalInRole(role, "Role", "user_domain.user1", "coretech_not_present"));
     }
 
@@ -3128,12 +2870,12 @@ public class ZTSImplTest {
         domainData.setName("coretechtrust");
         domain.setDomainData(domainData);
         domainData.setRoles(new ArrayList<>());
-        Role role1 = createRoleObject("coretechtrust",  "role1", null, "user_domain.user1", null);
-        Role role2 = createRoleObject("coretechtrust",  "role2", null, "user_domain.user2", null);
+        Role role1 = ZTSTestUtils.createRoleObject("coretechtrust", "role1", "user_domain.user1");
+        Role role2 = ZTSTestUtils.createRoleObject("coretechtrust", "role2", "user_domain.user2");
         domainData.getRoles().add(role1);
         domainData.getRoles().add(role2);
 
-        Policy policy = createPolicyObject("coretechtrust", "trust", "coretechtrust:role.role1",
+        Policy policy = ZTSTestUtils.createPolicyObject("coretechtrust", "trust", "coretechtrust:role.role1",
                 false, "ASSUME_ROLE", "weather:role.role1", AssertionEffect.ALLOW);
         domainData.setPolicies(new com.yahoo.athenz.zms.SignedPolicies());
         domainData.getPolicies().setContents(new com.yahoo.athenz.zms.DomainPolicies());
@@ -3141,7 +2883,7 @@ public class ZTSImplTest {
         domainData.getPolicies().getContents().getPolicies().add(policy);
         
         store.getCacheStore().put("coretechtrust", domain);
-        Role role = createRoleObject("weather", "role1", "coretechtrust");
+        Role role = ZTSTestUtils.createRoleObject("weather", "role1", "coretechtrust", null);
         assertTrue(authorizer.matchPrincipalInRole(role, "weather:role.role1", "user_domain.user1", "coretechtrust"));
         assertFalse(authorizer.matchPrincipalInRole(role, "weather:role.role1", "user_domain.user1", "coretechtrust2"));
         assertFalse(authorizer.matchPrincipalInRole(role, "weather:role.role1", "user_domain.user3", "coretechtrust"));
@@ -3156,12 +2898,12 @@ public class ZTSImplTest {
         domainData.setName("coretechtrust");
         domain.setDomainData(domainData);
         domainData.setRoles(new ArrayList<>());
-        Role role1 = createRoleObject("coretechtrust",  "role1", null, "user_domain.user1", null);
-        Role role2 = createRoleObject("coretechtrust",  "role2", null, "user_domain.user2", null);
+        Role role1 = ZTSTestUtils.createRoleObject("coretechtrust", "role1", "user_domain.user1");
+        Role role2 = ZTSTestUtils.createRoleObject("coretechtrust", "role2", "user_domain.user2");
         domainData.getRoles().add(role1);
         domainData.getRoles().add(role2);
 
-        Policy policy = createPolicyObject("coretechtrust", "trust", "coretechtrust:role.role1",
+        Policy policy = ZTSTestUtils.createPolicyObject("coretechtrust", "trust", "coretechtrust:role.role1",
                 false, "ASSUME_ROLE", "weather:role.role1", AssertionEffect.ALLOW);
         domainData.setPolicies(new com.yahoo.athenz.zms.SignedPolicies());
         domainData.getPolicies().setContents(new com.yahoo.athenz.zms.DomainPolicies());
@@ -3174,10 +2916,10 @@ public class ZTSImplTest {
         domainData.setName("weather");
         domain.setDomainData(domainData);
         domainData.setRoles(new ArrayList<>());
-        role1 = createRoleObject("weather", "role1", "coretechtrust");
+        role1 = ZTSTestUtils.createRoleObject("weather", "role1", "coretechtrust", null);
         domainData.getRoles().add(role1);
 
-        policy = createPolicyObject("weather", "access", "weather:role.role1",
+        policy = ZTSTestUtils.createPolicyObject("weather", "access", "weather:role.role1",
                 false, "update", "weather:table1", AssertionEffect.ALLOW);
         domainData.setPolicies(new com.yahoo.athenz.zms.SignedPolicies());
         domainData.getPolicies().setContents(new com.yahoo.athenz.zms.DomainPolicies());
@@ -3213,12 +2955,12 @@ public class ZTSImplTest {
         domainData.setName("coretechtrust");
         domain.setDomainData(domainData);
         domainData.setRoles(new ArrayList<>());
-        Role role1 = createRoleObject("coretechtrust",  "role1", null, "user_domain.user1", null);
-        Role role2 = createRoleObject("coretechtrust",  "role2", null, "user_domain.user2", null);
+        Role role1 = ZTSTestUtils.createRoleObject("coretechtrust", "role1", "user_domain.user1");
+        Role role2 = ZTSTestUtils.createRoleObject("coretechtrust", "role2", "user_domain.user2");
         domainData.getRoles().add(role1);
         domainData.getRoles().add(role2);
 
-        Policy policy = createPolicyObject("coretechtrust", "access", "coretechtrust:role.role1",
+        Policy policy = ZTSTestUtils.createPolicyObject("coretechtrust", "access", "coretechtrust:role.role1",
                 false, "update", "coretechtrust:table1", AssertionEffect.ALLOW);
         domainData.setPolicies(new com.yahoo.athenz.zms.SignedPolicies());
         domainData.getPolicies().setContents(new com.yahoo.athenz.zms.DomainPolicies());
@@ -3267,12 +3009,6 @@ public class ZTSImplTest {
         } catch (ResourceException ex) {
             assertEquals(404, ex.getCode());
         }
-    }
-    
-    @Test
-    public void testIsMemberOfRoleNoMembers() {
-        Role role1 = new Role();
-        assertFalse(authorizer.isMemberOfRole(role1, "user_domain.user1"));
     }
 
     @Test
@@ -3812,12 +3548,12 @@ public class ZTSImplTest {
         domainData.setName(domainName);
         domain.setDomainData(domainData);
         domainData.setRoles(new ArrayList<>());
-        Role role1 = createRoleObject(domainName,  "role1", null, "user.user1", "user.user3");
-        Role role2 = createRoleObject(domainName,  "role2", null, "user.user2", null);
+        Role role1 = ZTSTestUtils.createRoleObject(domainName, "role1", "user.user1", "user.user3");
+        Role role2 = ZTSTestUtils.createRoleObject(domainName, "role2", "user.user2");
         domainData.getRoles().add(role1);
         domainData.getRoles().add(role2);
 
-        Policy policy = createPolicyObject(domainName, "access", domainName + ":role.role1",
+        Policy policy = ZTSTestUtils.createPolicyObject(domainName, "access", domainName + ":role.role1",
                 false, "update", domainName + ":table1", AssertionEffect.ALLOW);
         domainData.setPolicies(new com.yahoo.athenz.zms.SignedPolicies());
         domainData.getPolicies().setContents(new com.yahoo.athenz.zms.DomainPolicies());
@@ -3860,7 +3596,34 @@ public class ZTSImplTest {
 
         store.getCacheStore().invalidate(domainName);
     }
-    
+
+    @Test
+    public void testGetResourceAccessWithGroups() {
+
+        final String domainName = "access-domain";
+        ZTSTestUtils.setupDomainsWithGroups(store, privateKey, domainName);
+
+        // user1 and user3 have access to UPDATE/resource1
+
+        Principal principal = SimplePrincipal.create("user", "user1",
+                "v=U1;d=user;n=user1;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        // user1 and user3 have access to UPDATE/resource1
+
+        ResourceAccess access = zts.getResourceAccess(context, "update", domainName + "1:resource1", null, null);
+        assertTrue(access.getGranted());
+
+        access = zts.getResourceAccess(context, "update", domainName + "1:resource2", null, null);
+        assertTrue(access.getGranted());
+
+        access = zts.getResourceAccess(context, "update", domainName + "1:resource3", null, null);
+        assertFalse(access.getGranted());
+
+        access = zts.getResourceAccess(context, "update", domainName + "1:resource4", null, null);
+        assertFalse(access.getGranted());
+    }
+
     @Test
     public void testGetAccess() {
         
@@ -3898,7 +3661,7 @@ public class ZTSImplTest {
         access = zts.getAccess(context, "coretech", "writers", "user_domain.user4");
         assertFalse(access.getGranted());
     }
-    
+
     @Test
     public void testGetAccessInvalidData() {
         
@@ -4786,24 +4549,6 @@ public class ZTSImplTest {
         ResourceContext ctx = zts.newResourceContext(request, null, "apiName");
         zts.logPrincipalAndGetDomain(ctx);
         assertTrue(request.attributes.isEmpty());
-    }
-    
-    @Test
-    public void testMemberNameMatch() {
-        assertTrue(authorizer.memberNameMatch("*", "user.joe"));
-        assertTrue(authorizer.memberNameMatch("*", "athenz.service.storage"));
-        assertTrue(authorizer.memberNameMatch("user.*", "user.joe"));
-        assertTrue(authorizer.memberNameMatch("athenz.*", "athenz.service.storage"));
-        assertTrue(authorizer.memberNameMatch("athenz.service*", "athenz.service.storage"));
-        assertTrue(authorizer.memberNameMatch("athenz.service*", "athenz.service-storage"));
-        assertTrue(authorizer.memberNameMatch("athenz.service*", "athenz.service"));
-        assertTrue(authorizer.memberNameMatch("user.joe", "user.joe"));
-        
-        assertFalse(authorizer.memberNameMatch("user.*", "athenz.joe"));
-        assertFalse(authorizer.memberNameMatch("athenz.*", "athenztest.joe"));
-        assertFalse(authorizer.memberNameMatch("athenz.service*", "athenz.servic"));
-        assertFalse(authorizer.memberNameMatch("athenz.service*", "athenz.servictag"));
-        assertFalse(authorizer.memberNameMatch("user.joe", "user.joel"));
     }
     
     @Test
@@ -8465,7 +8210,6 @@ public class ZTSImplTest {
 
         ResourceContext context = createResourceContext(principal, servletRequest);
 
-        //noinspection CatchMayIgnoreException
         try {
             ztsImpl.postInstanceRefreshRequest(context, "athenz", "syncer", req);
             fail();
@@ -8554,7 +8298,6 @@ public class ZTSImplTest {
                 Mockito.anyInt())).thenReturn(null);
         ztsImpl.instanceCertManager = certManager;
 
-        //noinspection CatchMayIgnoreException
         try {
             ztsImpl.postInstanceRefreshRequest(context, "athenz", "syncer", req);
             fail();
@@ -8635,7 +8378,6 @@ public class ZTSImplTest {
 
         ResourceContext context = createResourceContext(principal, servletRequest);
 
-        //noinspection CatchMayIgnoreException
         try {
             ztsImpl.postInstanceRefreshRequest(context, "athenz", "syncer", req);
             fail();
@@ -8679,7 +8421,6 @@ public class ZTSImplTest {
 
         ResourceContext context = createResourceContext(principal, servletRequest);
 
-        //noinspection CatchMayIgnoreException
         try {
             ztsImpl.postInstanceRefreshRequest(context, "athenz", "api", req);
             fail();
@@ -8723,7 +8464,6 @@ public class ZTSImplTest {
 
         ResourceContext context = createResourceContext(principal, servletRequest);
 
-        //noinspection CatchMayIgnoreException
         try {
             ztsImpl.postInstanceRefreshRequest(context, "athenz", "syncer", req);
             fail();
@@ -9015,7 +8755,6 @@ public class ZTSImplTest {
 
         ResourceContext context = createResourceContext(principal, servletRequest);
 
-        //noinspection CatchMayIgnoreException
         try {
             ztsImpl.postInstanceRefreshRequest(context, "athenz", "syncer", req);
             fail();
@@ -9557,7 +9296,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testLoadHostnameResolver() throws IOException {
+    public void testLoadHostnameResolver() {
 
         System.setProperty(ZTSConsts.ZTS_PROP_HOSTNAME_RESOLVER_FACTORY_CLASS,
                 "com.yahoo.athenz.zts.cert.impl.TestHostnameResolverFactory");
@@ -10393,7 +10132,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostRoleCertificateExtInvalidCSR() throws IOException {
+    public void testPostRoleCertificateExtInvalidCSR() {
 
         // this csr is for coretech:role.readers and coretech:role.writers roles
 
@@ -11338,10 +11077,9 @@ public class ZTSImplTest {
 
     @Test
     public void testRecordMetricsNoCtx() {
-        RsrcCtxWrapper ctx = null;
         int httpStatus = 200;
         zts.metric = Mockito.mock(Metric.class);
-        zts.recordMetrics(ctx, httpStatus);
+        zts.recordMetrics(null, httpStatus);
         Mockito.verify(zts.metric,
                 times(1)).increment (
                 eq("zts_api"),
@@ -11386,5 +11124,30 @@ public class ZTSImplTest {
         assertTrue(zts.certRecordChanged("test1", "test2"));
         assertTrue(zts.certRecordChanged("test1", ""));
         assertTrue(zts.certRecordChanged("", "test2"));
+    }
+
+    @Test
+    public void testZTSGroupMemberFetcher() {
+
+        // first failure case
+
+        assertNull(zts.authorizer.groupMembersFetcher.getGroupMembers("coretech:group.unknown"));
+
+        // now valid case
+
+        List<Group> groups = new ArrayList<>();
+        Group group = new Group().setName("coretech:group.dev-team");
+        List<GroupMember> members = new ArrayList<>();
+        members.add(new GroupMember().setMemberName("user.user1"));
+        members.add(new GroupMember().setMemberName("user.user2"));
+        group.setGroupMembers(members);
+        groups.add(group);
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true, groups);
+        zts.dataStore.processDomain(signedDomain, false);
+
+        List<GroupMember> groupMembers = zts.authorizer.groupMembersFetcher.getGroupMembers("coretech:group.dev-team");
+        assertNotNull(groupMembers);
+        assertEquals(groupMembers.size(), 2);
     }
 }

@@ -25,6 +25,7 @@ import com.yahoo.athenz.common.server.audit.AuditReferenceValidator;
 import com.yahoo.athenz.common.server.db.RolesProvider;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.log.AuditLogger;
+import com.yahoo.athenz.common.server.util.AuthzHelper;
 import com.yahoo.athenz.zms.store.AthenzDomain;
 import com.yahoo.athenz.zms.store.ObjectStore;
 import com.yahoo.athenz.zms.store.ObjectStoreConnection;
@@ -682,12 +683,12 @@ public class DBService implements RolesProvider {
         
         // remove current members from new members
         
-        ZMSUtils.removeRoleMembers(newMembers, curMembers);
+        AuthzHelper.removeRoleMembers(newMembers, curMembers);
         
         // remove new members from current members
         // which leaves the deleted members.
-        
-        ZMSUtils.removeRoleMembers(delMembers, roleMembers);
+
+        AuthzHelper.removeRoleMembers(delMembers, roleMembers);
         
         if (!ignoreDeletes) {
             for (RoleMember member : delMembers) {
@@ -721,12 +722,12 @@ public class DBService implements RolesProvider {
 
         // remove current members from new members
 
-        ZMSUtils.removeGroupMembers(newMembers, curMembers);
+        AuthzHelper.removeGroupMembers(newMembers, curMembers);
 
         // remove new members from current members
         // which leaves the deleted members.
 
-        ZMSUtils.removeGroupMembers(delMembers, groupMembers);
+        AuthzHelper.removeGroupMembers(delMembers, groupMembers);
 
         for (GroupMember member : delMembers) {
             if (!con.deleteGroupMember(domainName, groupName, member.getMemberName(), admin, auditRef)) {
@@ -2524,7 +2525,7 @@ public class DBService implements RolesProvider {
             
             for (Assertion assertion : assertions) {
                 
-                if (!ZMSUtils.assumeRoleResourceMatch(fullRoleName, assertion)) {
+                if (!AuthzHelper.assumeRoleResourceMatch(fullRoleName, assertion)) {
                     continue;
                 }
                 

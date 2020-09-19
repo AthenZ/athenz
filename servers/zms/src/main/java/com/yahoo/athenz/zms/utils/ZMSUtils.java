@@ -24,7 +24,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.yahoo.athenz.auth.AuthorityConsts;
-import com.yahoo.athenz.auth.util.StringUtils;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.log.AuditLogger;
@@ -149,46 +148,6 @@ public class ZMSUtils {
             trustedRole.append("res_group.").append(resourceGroup).append('.');
         }
         return trustedRole.toString();
-    }
-    
-    public static boolean assumeRoleResourceMatch(String roleName, Assertion assertion) {
-        
-        if (!ZMSConsts.ACTION_ASSUME_ROLE.equalsIgnoreCase(assertion.getAction())) {
-            return false;
-        }
-        
-        String rezPattern = StringUtils.patternFromGlob(assertion.getResource());
-        return roleName.matches(rezPattern);
-    }
-    
-    public static void removeRoleMembers(List<RoleMember> originalRoleMembers, List<RoleMember> removeRoleMembers) {
-        if (removeRoleMembers == null || originalRoleMembers == null) {
-            return;
-        }
-        for (RoleMember removeMember : removeRoleMembers) {
-            String removeName = removeMember.getMemberName();
-            for (int j = 0; j < originalRoleMembers.size(); j++) {
-                if (removeName.equalsIgnoreCase(originalRoleMembers.get(j).getMemberName())) {
-                    originalRoleMembers.remove(j);
-                    break;
-                }
-            }
-        }
-    }
-
-    public static void removeGroupMembers(List<GroupMember> originalGroupMembers, List<GroupMember> removeGroupMembers) {
-        if (removeGroupMembers == null || originalGroupMembers == null) {
-            return;
-        }
-        for (GroupMember removeMember : removeGroupMembers) {
-            String removeName = removeMember.getMemberName();
-            for (int j = 0; j < originalGroupMembers.size(); j++) {
-                if (removeName.equalsIgnoreCase(originalGroupMembers.get(j).getMemberName())) {
-                    originalGroupMembers.remove(j);
-                    break;
-                }
-            }
-        }
     }
 
     public static List<String> convertRoleMembersToMembers(List<RoleMember> members) {
