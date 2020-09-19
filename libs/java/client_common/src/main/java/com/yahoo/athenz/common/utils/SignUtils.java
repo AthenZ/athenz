@@ -47,6 +47,7 @@ public class SignUtils {
     private static final String ATTR_ROLE_MEMBERS = "roleMembers";
     private static final String ATTR_GROUP_MEMBERS = "groupMembers";
     private static final String ATTR_MEMBER_NAME = "memberName";
+    private static final String ATTR_GROUP_NAME = "groupName";
     private static final String ATTR_SYSTEM_DISABLED = "systemDisabled";
     private static final String ATTR_EXPIRATION = "expiration";
     private static final String ATTR_NAME = "name";
@@ -187,6 +188,7 @@ public class SignUtils {
             for (GroupMember groupMember : groupMembers) {
                 Struct structRoleMember = new Struct();
                 appendObject(structRoleMember, ATTR_EXPIRATION, groupMember.getExpiration());
+                appendObject(structRoleMember, ATTR_GROUP_NAME, groupMember.getGroupName());
                 appendObject(structRoleMember, ATTR_MEMBER_NAME, groupMember.getMemberName());
                 appendObject(structRoleMember, ATTR_SYSTEM_DISABLED, groupMember.getSystemDisabled());
                 groupMembersArray.add(structRoleMember);
