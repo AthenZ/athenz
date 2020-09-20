@@ -540,13 +540,38 @@ public class DataStore implements DataCacheProvider, RolesProvider {
 
     void processDomainGroups(DomainData domainData) {
 
-        List<Group> groups = domainData.getGroups();
-        if (groups == null) {
-            return;
+        // get the current list of groups so we can determine
+        // which groups have been deleted
+
+        List<Group> deletedGroups = null;
+        DataCache dataCache = getCacheStore().getIfPresent(domainData.getName());
+        if (dataCache != null) {
+            deletedGroups = dataCache.getDomainData().getGroups();
         }
 
-        for (Group group : groups) {
-            processGroup(group);
+        List<Group> groups = domainData.getGroups();
+        if (groups != null) {
+            for (Group group : groups) {
+
+                // first remove the group from our original list
+                // since it's not deleted
+
+                if (deletedGroups != null) {
+                    deletedGroups.removeIf(item -> item.getName().equalsIgnoreCase(group.getName()));
+                }
+
+                // now process our group
+
+                processGroup(group);
+            }
+        }
+
+        // before returning we need to process our deleted groups
+
+        if (deletedGroups != null) {
+            for (Group group : deletedGroups) {
+                processGroupDelete(group);
+            }
         }
     }
 
@@ -605,8 +630,8 @@ public class DataStore implements DataCacheProvider, RolesProvider {
                 // otherwise we'll add this member to our new list
 
                 groupMembers = new ArrayList<>();
-                principalGroupCache.put(member.getMemberName(), groupMembers);
                 groupMembers.add(member);
+                principalGroupCache.put(member.getMemberName(), groupMembers);
 
             } else {
 
@@ -614,12 +639,12 @@ public class DataStore implements DataCacheProvider, RolesProvider {
                 // from our list otherwise we'll just update it
 
                 if (AuthzHelper.shouldSkipGroupMember(member, currentTime)) {
-                    groupMembers.removeIf(item -> item.getGroupName().equalsIgnoreCase(member.getGroupName()));
+                    groupMembers.removeIf(item -> item.getGroupName().equalsIgnoreCase(group.getName()));
                 } else {
                     // we need to find our entry and update details
 
                     for (GroupMember mbr : groupMembers) {
-                        if (mbr.getGroupName().equalsIgnoreCase(member.getGroupName())) {
+                        if (mbr.getGroupName().equalsIgnoreCase(group.getName())) {
                             mbr.setExpiration(member.getExpiration());
                             mbr.setSystemDisabled(member.getSystemDisabled());
                             mbr.setActive(member.getActive());
@@ -631,7 +656,7 @@ public class DataStore implements DataCacheProvider, RolesProvider {
             }
         }
 
-        // add the new members and remove deleted members
+        // now let's add our new members
 
         for (GroupMember member : newMembers) {
 
@@ -649,15 +674,37 @@ public class DataStore implements DataCacheProvider, RolesProvider {
             groupMembers.add(member);
         }
 
-        // process deletes
+        // process deleted members from the group
 
-        for (GroupMember member : delMembers) {
+        processGroupDeletedMembers(group.getName(), delMembers);
+    }
+
+    void processGroupDeletedMembers(final String groupName, List<GroupMember> deletedMembers) {
+
+        // if the group has no members then we have nothing to do
+
+        if (deletedMembers == null) {
+            return;
+        }
+
+        for (GroupMember member : deletedMembers) {
             List<GroupMember> groupMembers = principalGroupCache.getIfPresent(member.getMemberName());
             if (groupMembers == null) {
                 continue;
             }
-            groupMembers.removeIf(item -> item.getMemberName().equals(member.getMemberName()));
+            groupMembers.removeIf(item -> item.getGroupName().equalsIgnoreCase(groupName));
         }
+    }
+
+    void processGroupDelete(Group group) {
+
+        // first remove the group from our cache
+
+        groupMemberCache.invalidate(group.getName());
+
+        // delete all the members from our cache objects
+
+        processGroupDeletedMembers(group.getName(), group.getGroupMembers());
     }
 
     void processDomainPolicies(DomainData domainData, DataCache domainCache) {
@@ -850,7 +897,11 @@ public class DataStore implements DataCacheProvider, RolesProvider {
     }
 
     // Internal
-    void deleteDomain(String domainName) {
+    void deleteDomain(final String domainName) {
+
+        /* first delete all groups for this domain */
+
+        processDeleteDomainGroups(domainName);
 
         /* first delete our data from the cache */
 
@@ -860,7 +911,27 @@ public class DataStore implements DataCacheProvider, RolesProvider {
 
         changeLogStore.removeLocalDomain(domainName);
     }
-    
+
+    void processDeleteDomainGroups(final String domainName) {
+
+        // get the current list of groups so we can determine
+        // which groups have been deleted
+
+        DataCache dataCache = getCacheStore().getIfPresent(domainName);
+        if (dataCache == null) {
+            return;
+        }
+
+        List<Group> deletedGroups = dataCache.getDomainData().getGroups();
+        if (deletedGroups == null) {
+            return;
+        }
+
+        for (Group group : deletedGroups) {
+            processGroupDelete(group);
+        }
+    }
+
     // Internal
     boolean processSignedDomains(SignedDomains signedDomains) {
         

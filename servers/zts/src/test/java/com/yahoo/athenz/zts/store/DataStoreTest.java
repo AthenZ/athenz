@@ -4412,7 +4412,7 @@ public class DataStoreTest {
         store.loadAthenzPublicKeys();
 
         final String domainName = "access-domain";
-        ZTSTestUtils.setupDomainsWithGroups(store, pkey, domainName);
+        ZTSTestUtils.setupDomainsWithGroups(store, pkey, domainName, Collections.emptyList());
 
         Set<String> accessibleRoles = new HashSet<>();
         DataCache data = store.getDataCache("access-domain1");
@@ -4458,5 +4458,66 @@ public class DataStoreTest {
         accessibleRoles.clear();
         store.getAccessibleRoles(data, "access-domain3", "user.user6", null, accessibleRoles, false);
         assertTrue(accessibleRoles.isEmpty());
+
+        // now we're going to delete group1, group4 and group6 so user1 will no longer have access to role1
+        // and role2 so we'll have an empty result and user3 will no longer be in role4
+
+        ZTSTestUtils.setupDomainsWithGroups(store, pkey, domainName,
+                Arrays.asList("access-domain1:group.group1", "access-domain3:group.group6", "access-domain2:group.group4"));
+
+        data = store.getDataCache("access-domain1");
+
+        accessibleRoles.clear();
+        store.getAccessibleRoles(data, "access-domain1", "user.user1", null, accessibleRoles, false);
+        assertTrue(accessibleRoles.isEmpty());
+
+        accessibleRoles.clear();
+        store.getAccessibleRoles(data, "access-domain1", "user.user3", null, accessibleRoles, false);
+
+        assertEquals(accessibleRoles.size(), 3);
+        assertTrue(accessibleRoles.contains("role1"));
+        assertTrue(accessibleRoles.contains("role2"));
+        assertTrue(accessibleRoles.contains("role3"));
+    }
+
+    @Test
+    public void testDomainDeleteWithGroups() {
+
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root", pkey, "0");
+        DataStore store = new DataStore(clogStore, null);
+        store.loadAthenzPublicKeys();
+
+        final String domainName = "access-domain";
+        ZTSTestUtils.setupDomainsWithGroups(store, pkey, domainName, Collections.emptyList());
+
+        List<GroupMember> groupMembers = store.principalGroupCache.getIfPresent("user.user1");
+        assertEquals(groupMembers.size(), 2);
+        assertTrue(ZTSTestUtils.verifyGroupMemberGroup(groupMembers, "access-domain1:group.group1"));
+        assertTrue(ZTSTestUtils.verifyGroupMemberGroup(groupMembers, "access-domain3:group.group3"));
+
+        store.deleteDomain("access-domain1");
+
+        groupMembers = store.principalGroupCache.getIfPresent("user.user1");
+        assertEquals(groupMembers.size(), 1);
+        assertTrue(ZTSTestUtils.verifyGroupMemberGroup(groupMembers, "access-domain3:group.group3"));
+
+        store.deleteDomain("access-domain2");
+        store.deleteDomain("access-domain3");
+
+        groupMembers = store.principalGroupCache.getIfPresent("user.user1");
+        assertTrue(groupMembers.isEmpty());
+    }
+
+    @Test
+    public void testProcessGroupDeletedMembersNull() {
+
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root", pkey, "0");
+        DataStore store = new DataStore(clogStore, null);
+        store.loadAthenzPublicKeys();
+
+        // if we pass null for the members then we return right
+        // away so sno exceptions even if we pass null for the group name
+
+        store.processGroupDeletedMembers(null, null);
     }
 }

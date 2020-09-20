@@ -3601,7 +3601,7 @@ public class ZTSImplTest {
     public void testGetResourceAccessWithGroups() {
 
         final String domainName = "access-domain";
-        ZTSTestUtils.setupDomainsWithGroups(store, privateKey, domainName);
+        ZTSTestUtils.setupDomainsWithGroups(store, privateKey, domainName, Collections.emptyList());
 
         // user1 and user3 have access to UPDATE/resource1
 

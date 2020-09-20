@@ -119,7 +119,8 @@ public class ZTSTestUtils {
         return signedDomain;
     }
 
-    public static void setupDomainsWithGroups(DataStore store, PrivateKey privateKey, final String domainName) {
+    public static void setupDomainsWithGroups(DataStore store, PrivateKey privateKey, final String domainName,
+                                              List<String> skipGroups) {
 
         final String domainName1 = domainName + "1";
         final String domainName2 = domainName + "2";
@@ -140,44 +141,66 @@ public class ZTSTestUtils {
         final String policyName3 = "policy3";
         final String policyName4 = "policy4";
 
-        Group group1 = createGroupObject(domainName1, groupName1, "user.user1", "user.user2");
+        Group group1 = null;
+        if (!skipGroups.contains(ResourceUtils.groupResourceName(domainName1, groupName1))) {
+            group1 = createGroupObject(domainName1, groupName1, "user.user1", "user.user2");
+        }
 
-        Group group2 = createGroupObject(domainName2, groupName2, "user.user2", "user.user3");
+        Group group2 = null;
+        if (!skipGroups.contains(ResourceUtils.groupResourceName(domainName2, groupName2))) {
+            group2 = createGroupObject(domainName2, groupName2, "user.user2", "user.user7");
+        }
 
         // set elevated clearance so both users become expired
 
-        Group group3 = createGroupObject(domainName3, groupName3, "user.user4");
-        group3.getGroupMembers().add(new GroupMember().setMemberName("user.user1")
-                .setGroupName(ResourceUtils.groupResourceName(domainName3, groupName3)));
-        group3.getGroupMembers().add(new GroupMember().setMemberName("user.user2")
-                .setGroupName(ResourceUtils.groupResourceName(domainName3, groupName3)));
+        Group group3 = null;
+        if (!skipGroups.contains(ResourceUtils.groupResourceName(domainName3, groupName3))) {
+            group3 = createGroupObject(domainName3, groupName3, "user.user4");
+            group3.getGroupMembers().add(new GroupMember().setMemberName("user.user1")
+                    .setGroupName(ResourceUtils.groupResourceName(domainName3, groupName3)));
+            group3.getGroupMembers().add(new GroupMember().setMemberName("user.user2")
+                    .setGroupName(ResourceUtils.groupResourceName(domainName3, groupName3)));
+        }
 
         // group 4 with no members
 
-        Group group4 = new Group().setName(ResourceUtils.groupResourceName(domainName2, groupName4));
+        Group group4 = null;
+        if (!skipGroups.contains(ResourceUtils.groupResourceName(domainName2, groupName4))) {
+            group4 = new Group().setName(ResourceUtils.groupResourceName(domainName2, groupName4));
+        }
 
         // group 5 with disabled and soon to be expired user
 
-        Group group5 = createGroupObject(domainName3, groupName5, "user.user4");
-        group5.getGroupMembers().add(new GroupMember().setMemberName("user.user5")
-                .setGroupName(ResourceUtils.groupResourceName(domainName3, groupName5))
-                .setSystemDisabled(1));
-        group5.getGroupMembers().add(new GroupMember().setMemberName("user.user6")
-                .setGroupName(ResourceUtils.groupResourceName(domainName3, groupName5))
-                .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + 1000)));
+        Group group5 = null;
+        if (!skipGroups.contains(ResourceUtils.groupResourceName(domainName3, groupName5))) {
+            group5 = createGroupObject(domainName3, groupName5, "user.user4");
+            group5.getGroupMembers().add(new GroupMember().setMemberName("user.user5")
+                    .setGroupName(ResourceUtils.groupResourceName(domainName3, groupName5))
+                    .setSystemDisabled(1));
+            group5.getGroupMembers().add(new GroupMember().setMemberName("user.user6")
+                    .setGroupName(ResourceUtils.groupResourceName(domainName3, groupName5))
+                    .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + 1000)));
+        }
 
-        // group 6 with user 6
+        // group 6 with users 3 and 6
 
-        Group group6 = createGroupObject(domainName3, groupName6, "user.user6");
+        Group group6 = null;
+        if (!skipGroups.contains(ResourceUtils.groupResourceName(domainName3, groupName6))) {
+            group6 = createGroupObject(domainName3, groupName6, "user.user6", "user.user3");
+        }
 
         // role1 will have user.user1 through group1
 
         List<Role> roles = new ArrayList<>();
         Role role1 = createRoleObject(domainName1, roleName1, "user.user2", "user.user3");
-        role1.getRoleMembers().add(new RoleMember()
-                .setMemberName(ResourceUtils.groupResourceName(domainName2, groupName2)));
-        role1.getRoleMembers().add(new RoleMember()
-                .setMemberName(ResourceUtils.groupResourceName(domainName1, groupName1)));
+        if (group2 != null) {
+            role1.getRoleMembers().add(new RoleMember()
+                    .setMemberName(ResourceUtils.groupResourceName(domainName2, groupName2)));
+        }
+        if (group1 != null) {
+            role1.getRoleMembers().add(new RoleMember()
+                    .setMemberName(ResourceUtils.groupResourceName(domainName1, groupName1)));
+        }
         roles.add(role1);
 
         // role2 has user1 as expired but ok from group1 as well
@@ -185,10 +208,14 @@ public class ZTSTestUtils {
         Role role2 = createRoleObject(domainName1, roleName2, "user.user2", "user.user3");
         role2.getRoleMembers().add(new RoleMember().setMemberName("user.user1")
                 .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() - 1000)));
-        role2.getRoleMembers().add(new RoleMember()
-                .setMemberName(ResourceUtils.groupResourceName(domainName2, groupName2)));
-        role2.getRoleMembers().add(new RoleMember()
-                .setMemberName(ResourceUtils.groupResourceName(domainName1, groupName1)));
+        if (group2 != null) {
+            role2.getRoleMembers().add(new RoleMember()
+                    .setMemberName(ResourceUtils.groupResourceName(domainName2, groupName2)));
+        }
+        if (group1 != null) {
+            role2.getRoleMembers().add(new RoleMember()
+                    .setMemberName(ResourceUtils.groupResourceName(domainName1, groupName1)));
+        }
         roles.add(role2);
 
         // role3 has user1 as expired but also group1 expired as well
@@ -196,18 +223,28 @@ public class ZTSTestUtils {
         Role role3 = createRoleObject(domainName1, roleName3, "user.user2", "user.user3");
         role3.getRoleMembers().add(new RoleMember().setMemberName("user.user1")
                 .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() - 1000)));
-        role3.getRoleMembers().add(new RoleMember()
-                .setMemberName(ResourceUtils.groupResourceName(domainName1, groupName1))
-                .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() - 1000)));
+        if (group1 != null) {
+            role3.getRoleMembers().add(new RoleMember()
+                    .setMemberName(ResourceUtils.groupResourceName(domainName1, groupName1))
+                    .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() - 1000)));
+        }
         roles.add(role3);
 
         // role4 does not have user1 at all
 
-        Role role4 = createRoleObject(domainName1, roleName4, "user.user2", "user.user3");
-        role4.getRoleMembers().add(new RoleMember()
-                .setMemberName(ResourceUtils.groupResourceName(domainName2, groupName2)));
-        role4.getRoleMembers().add(new RoleMember()
-                .setMemberName(ResourceUtils.groupResourceName(domainName2, groupName4)));
+        Role role4 = createRoleObject(domainName1, roleName4, "user.user2");
+        if (group2 != null) {
+            role4.getRoleMembers().add(new RoleMember()
+                    .setMemberName(ResourceUtils.groupResourceName(domainName2, groupName2)));
+        }
+        if (group4 != null) {
+            role4.getRoleMembers().add(new RoleMember()
+                    .setMemberName(ResourceUtils.groupResourceName(domainName2, groupName4)));
+        }
+        if (group6 != null) {
+            role4.getRoleMembers().add(new RoleMember()
+                    .setMemberName(ResourceUtils.groupResourceName(domainName3, groupName6)));
+        }
         roles.add(role4);
 
         List<Policy> policies = new ArrayList<>();
@@ -227,14 +264,19 @@ public class ZTSTestUtils {
         // setup our signed domains and process them
 
         List<Group> groups = new ArrayList<>();
-        groups.add(group1);
-
+        if (group1 != null) {
+            groups.add(group1);
+        }
         SignedDomain signedDomain = ZTSTestUtils.createSignedDomain(domainName1, roles, policies, null, groups, privateKey);
         store.processDomain(signedDomain, false);
 
         groups = new ArrayList<>();
-        groups.add(group2);
-        groups.add(group4);
+        if (group2 != null) {
+            groups.add(group2);
+        }
+        if (group4 != null) {
+            groups.add(group4);
+        }
 
         // just admin role for domain
 
@@ -251,16 +293,26 @@ public class ZTSTestUtils {
         store.processDomain(signedDomain, false);
 
         groups = new ArrayList<>();
-        groups.add(group3);
-        groups.add(group5);
-        groups.add(group6);
+        if (group3 != null) {
+            groups.add(group3);
+        }
+        if (group5 != null) {
+            groups.add(group5);
+        }
+        if (group6 != null) {
+            groups.add(group6);
+        }
 
         // role5 in domain 3 has group5
 
         Role role5 = createRoleObject(domainName3, roleName5, "user.admin");
-        role5.getRoleMembers().add(new RoleMember().setMemberName(domainName3 + ":group." + groupName5));
-        role5.getRoleMembers().add(new RoleMember().setMemberName(domainName3 + ":group." + groupName6)
-                .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + 1000)));
+        if (group5 != null) {
+            role5.getRoleMembers().add(new RoleMember().setMemberName(domainName3 + ":group." + groupName5));
+        }
+        if (group6 != null) {
+            role5.getRoleMembers().add(new RoleMember().setMemberName(domainName3 + ":group." + groupName6)
+                    .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + 1000)));
+        }
 
         adminRole = createRoleObject(domainName3, "admin", "user.admin1", "user.admin2");
         roles = new ArrayList<>();
