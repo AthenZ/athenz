@@ -20,7 +20,6 @@ import static org.testng.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import com.yahoo.athenz.auth.Authority;
@@ -32,7 +31,6 @@ import com.yahoo.athenz.common.server.log.AuditLoggerFactory;
 import com.yahoo.athenz.common.server.log.impl.DefaultAuditLoggerFactory;
 import com.yahoo.athenz.zms.*;
 import org.mockito.Mockito;
-import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import javax.servlet.http.HttpServletRequestWrapper;
@@ -71,137 +69,6 @@ public class ZMSUtilsTest {
                 ZMSUtils.getProviderResourceGroupRolePrefix("sports", "hosted", "hockey"));
         assertEquals("sports.hosted.",
                 ZMSUtils.getProviderResourceGroupRolePrefix("sports", "hosted", null));
-    }
-
-    @Test
-    public void testAssumeRoleResourceMatchActionNoMatch() {
-        Assertion assertion = new Assertion()
-                .setAction("test")
-                .setEffect(AssertionEffect.ALLOW)
-                .setRole("domain1:role.role1")
-                .setResource("domain1:*");
-        assertFalse(ZMSUtils.assumeRoleResourceMatch("domain1:role.role1", assertion));
-
-        assertion = new Assertion()
-                .setAction("assume_role1")
-                .setEffect(AssertionEffect.ALLOW)
-                .setRole("domain1:role.role1")
-                .setResource("domain1:*");
-        assertFalse(ZMSUtils.assumeRoleResourceMatch("domain1:role.role1", assertion));
-
-        assertion = new Assertion()
-                .setAction("assume_rol")
-                .setEffect(AssertionEffect.ALLOW)
-                .setRole("domain1:role.role1")
-                .setResource("domain1:*");
-        assertFalse(ZMSUtils.assumeRoleResourceMatch("domain1:role.role1", assertion));
-    }
-
-    @Test
-    public void testAssumeRoleResourceMatchRoleNoMatch() {
-        Assertion assertion = new Assertion()
-                .setAction("assume_role")
-                .setEffect(AssertionEffect.ALLOW)
-                .setRole("domain1:role.role1")
-                .setResource("domain1:role.role2");
-        assertFalse(ZMSUtils.assumeRoleResourceMatch("domain1:role.role1", assertion));
-
-        assertion = new Assertion()
-                .setAction("assume_role")
-                .setEffect(AssertionEffect.ALLOW)
-                .setRole("domain1:role.role1")
-                .setResource("domain2:role.role1");
-        assertFalse(ZMSUtils.assumeRoleResourceMatch("domain1:role.role1", assertion));
-
-        assertion = new Assertion()
-                .setAction("assume_role")
-                .setEffect(AssertionEffect.ALLOW)
-                .setRole("domain1:role.role1")
-                .setResource("domain1:role.reader*");
-        assertFalse(ZMSUtils.assumeRoleResourceMatch("domain1:role.role1", assertion));
-
-        assertion = new Assertion()
-                .setAction("assume_role")
-                .setEffect(AssertionEffect.ALLOW)
-                .setRole("domain1:role.role1")
-                .setResource("*:role.role2");
-        assertFalse(ZMSUtils.assumeRoleResourceMatch("domain1:role.role1", assertion));
-    }
-
-    @Test
-    public void testAssumeRoleResourceMatch() {
-        Assertion assertion = new Assertion()
-                .setAction("assume_role")
-                .setEffect(AssertionEffect.ALLOW)
-                .setRole("domain2:role.role1")
-                .setResource("domain1:role.role1");
-        assertTrue(ZMSUtils.assumeRoleResourceMatch("domain1:role.role1", assertion));
-
-        assertion = new Assertion()
-                .setAction("assume_role")
-                .setEffect(AssertionEffect.ALLOW)
-                .setRole("domain2:role.role1")
-                .setResource("domain1:role.*");
-        assertTrue(ZMSUtils.assumeRoleResourceMatch("domain1:role.role1", assertion));
-
-        assertion = new Assertion()
-                .setAction("assume_role")
-                .setEffect(AssertionEffect.ALLOW)
-                .setRole("domain2:role.role1")
-                .setResource("domain1:*");
-        assertTrue(ZMSUtils.assumeRoleResourceMatch("domain1:role.role1", assertion));
-
-        assertion = new Assertion()
-                .setAction("assume_role")
-                .setEffect(AssertionEffect.ALLOW)
-                .setRole("domain2:role.role1")
-                .setResource("*:role.role1");
-        assertTrue(ZMSUtils.assumeRoleResourceMatch("domain1:role.role1", assertion));
-    }
-
-    @DataProvider(name = "members")
-    public static Object[][] getMembers() {
-        return new Object[][]{
-                {Collections.singletonList("member1"), null, 1},
-                {Collections.singletonList("member1"), Collections.singletonList("member1"), 0},
-                {Collections.singletonList("member1"), Collections.singletonList("member2"), 1},
-                {Collections.singletonList("member1"), Arrays.asList("member2", "member1"), 0},
-                {Arrays.asList("member1", "member2"), Arrays.asList("member2", "member1"), 0},
-                {Arrays.asList("member1", "member2"), Collections.singletonList("member3"), 2}
-        };
-    }
-
-    @Test(dataProvider = "members")
-    public void testRemoveRoleMembers(List<String> originalRoleMembersList,
-                                  List<String> removeRoleMembersList, int expectedSize) {
-
-        List<RoleMember> originalRoleMembers = ZMSUtils.convertMembersToRoleMembers(originalRoleMembersList);
-        List<RoleMember> removeRoleMembers = ZMSUtils.convertMembersToRoleMembers(removeRoleMembersList);
-
-        ZMSUtils.removeRoleMembers(originalRoleMembers, removeRoleMembers);
-
-        //remove case
-        for (RoleMember orgMember : originalRoleMembers) {
-            for (RoleMember removeMember : removeRoleMembers) {
-                if (orgMember.getMemberName().equalsIgnoreCase(removeMember.getMemberName())) {
-                    fail("Should have removed " + removeMember.getMemberName());
-                }
-            }
-        }
-
-        assertEquals(originalRoleMembers.size(), expectedSize);
-    }
-
-    @Test
-    public void testRemoveRoleMembersInvalidInput() {
-        List<RoleMember> list = Collections.singletonList(new RoleMember().setMemberName("member1"));
-        ZMSUtils.removeRoleMembers(list, null);
-        assertEquals(list.size(), 1);
-        assertEquals(list.get(0).getMemberName(), "member1");
-
-        ZMSUtils.removeRoleMembers(null, list);
-        assertEquals(list.size(), 1);
-        assertEquals(list.get(0).getMemberName(), "member1");
     }
 
     @Test
@@ -361,62 +228,6 @@ public class ZMSUtilsTest {
 
         assertEquals("role,domain", ZMSUtils.combineUserAuthorityFilters("role", "domain"));
         assertEquals("same,same", ZMSUtils.combineUserAuthorityFilters("same", "same"));
-    }
-
-    @DataProvider(name = "group-members")
-    public static Object[][] getGroupMembers() {
-        return new Object[][]{
-                {Collections.singletonList("member1"), null, 1},
-                {Collections.singletonList("member1"), Collections.singletonList("member1"), 0},
-                {Collections.singletonList("member1"), Collections.singletonList("member2"), 1},
-                {Collections.singletonList("member1"), Arrays.asList("member2", "member1"), 0},
-                {Arrays.asList("member1", "member2"), Arrays.asList("member2", "member1"), 0},
-                {Arrays.asList("member1", "member2"), Collections.singletonList("member3"), 2}
-        };
-    }
-
-    private List<GroupMember> convertListToGroupMembers(List<String> members) {
-        List<GroupMember> groupMembers = new ArrayList<>();
-        if (members == null) {
-            return groupMembers;
-        }
-        for (String member : members) {
-            groupMembers.add(new GroupMember().setMemberName(member));
-        }
-        return groupMembers;
-    }
-
-    @Test(dataProvider = "group-members")
-    public void testRemoveGroupMembers(List<String> originalGroupMembersList,
-                                      List<String> removeGroupMembersList, int expectedSize) {
-
-        List<GroupMember> originalGroupMembers = convertListToGroupMembers(originalGroupMembersList);
-        List<GroupMember> removeGroupMembers = convertListToGroupMembers(removeGroupMembersList);
-
-        ZMSUtils.removeGroupMembers(originalGroupMembers, removeGroupMembers);
-
-        //remove case
-        for (GroupMember orgMember : originalGroupMembers) {
-            for (GroupMember removeMember : removeGroupMembers) {
-                if (orgMember.getMemberName().equalsIgnoreCase(removeMember.getMemberName())) {
-                    fail("Should have removed " + removeMember.getMemberName());
-                }
-            }
-        }
-
-        assertEquals(originalGroupMembers.size(), expectedSize);
-    }
-
-    @Test
-    public void testRemoveGroupMembersInvalidInput() {
-        List<GroupMember> list = Collections.singletonList(new GroupMember().setMemberName("member1"));
-        ZMSUtils.removeGroupMembers(list, null);
-        assertEquals(list.size(), 1);
-        assertEquals(list.get(0).getMemberName(), "member1");
-
-        ZMSUtils.removeGroupMembers(null, list);
-        assertEquals(list.size(), 1);
-        assertEquals(list.get(0).getMemberName(), "member1");
     }
 
     @Test

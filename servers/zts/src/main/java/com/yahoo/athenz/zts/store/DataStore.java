@@ -21,16 +21,19 @@ import com.yahoo.athenz.auth.util.StringUtils;
 import com.yahoo.athenz.common.server.db.RolesProvider;
 import com.yahoo.athenz.common.server.store.ChangeLogStore;
 import com.yahoo.athenz.common.server.util.ConfigProperties;
+import com.yahoo.athenz.common.server.util.AuthzHelper;
+import com.yahoo.athenz.zms.DomainData;
+import com.yahoo.athenz.zms.Group;
+import com.yahoo.athenz.zms.GroupMember;
+import com.yahoo.athenz.zms.Role;
+import com.yahoo.athenz.zms.SignedDomain;
+import com.yahoo.athenz.zms.SignedDomains;
 import com.yahoo.athenz.zts.*;
 import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.rdl.*;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.config.AthenzConfig;
 import com.yahoo.athenz.common.utils.SignUtils;
-import com.yahoo.athenz.zms.DomainData;
-import com.yahoo.athenz.zms.Role;
-import com.yahoo.athenz.zms.SignedDomain;
-import com.yahoo.athenz.zms.SignedDomains;
 import com.yahoo.athenz.zts.cache.DataCache;
 import com.yahoo.athenz.zts.cache.DataCacheProvider;
 import com.yahoo.athenz.zts.cache.MemberRole;
@@ -66,6 +69,8 @@ public class DataStore implements DataCacheProvider, RolesProvider {
     private CloudStore cloudStore;
     private final Cache<String, DataCache> cacheStore;
     final Cache<String, PublicKey> zmsPublicKeyCache;
+    final Cache<String, List<GroupMember>> groupMemberCache;
+    final Cache<String, List<GroupMember>> principalGroupCache;
     final Map<String, List<String>> hostCache;
     final Map<String, String> publicKeyCache;
     final JWKList ztsJWKList;
@@ -104,6 +109,9 @@ public class DataStore implements DataCacheProvider, RolesProvider {
 
         cacheStore = CacheBuilder.newBuilder().concurrencyLevel(25).build();
         zmsPublicKeyCache = CacheBuilder.newBuilder().concurrencyLevel(25).build();
+
+        groupMemberCache = CacheBuilder.newBuilder().concurrencyLevel(25).build();
+        principalGroupCache = CacheBuilder.newBuilder().concurrencyLevel(25).build();
 
         ztsJWKList = new JWKList();
         ztsJWKListStrictRFC = new JWKList();
@@ -529,7 +537,176 @@ public class DataStore implements DataCacheProvider, RolesProvider {
             domainCache.processRole(role);
         }
     }
-    
+
+    void processDomainGroups(DomainData domainData) {
+
+        // get the current list of groups so we can determine
+        // which groups have been deleted
+
+        List<Group> deletedGroups = null;
+        DataCache dataCache = getCacheStore().getIfPresent(domainData.getName());
+        if (dataCache != null) {
+            deletedGroups = dataCache.getDomainData().getGroups();
+        }
+
+        List<Group> groups = domainData.getGroups();
+        if (groups != null) {
+            for (Group group : groups) {
+
+                // first remove the group from our original list
+                // since it's not deleted
+
+                if (deletedGroups != null) {
+                    deletedGroups.removeIf(item -> item.getName().equalsIgnoreCase(group.getName()));
+                }
+
+                // now process our group
+
+                processGroup(group);
+            }
+        }
+
+        // before returning we need to process our deleted groups
+
+        if (deletedGroups != null) {
+            for (Group group : deletedGroups) {
+                processGroupDelete(group);
+            }
+        }
+    }
+
+    void processGroup(Group group) {
+
+        // if the group has null members we'll replace it with an empty set
+
+        if (group.getGroupMembers() == null) {
+            group.setGroupMembers(new ArrayList<>());
+        }
+
+        // obtain the previous list of members for the group
+        // and determine the list of changes between old and new members
+
+        List<GroupMember> originalMembers = groupMemberCache.getIfPresent(group.getName());
+        List<GroupMember> curMembers = originalMembers == null ? new ArrayList<>() : new ArrayList<>(originalMembers);
+        List<GroupMember> delMembers = new ArrayList<>(curMembers);
+        List<GroupMember> newMembers = new ArrayList<>(group.getGroupMembers());
+        List<GroupMember> updMembers = new ArrayList<>(group.getGroupMembers());
+
+        // remove current members from new members
+
+        AuthzHelper.removeGroupMembers(newMembers, curMembers);
+
+        // remove new members from current members
+        // which leaves the deleted members.
+
+        AuthzHelper.removeGroupMembers(delMembers, group.getGroupMembers());
+
+        // now let's remove our new members from the member list to
+        // get the possible list of users that need to be updated
+
+        AuthzHelper.removeGroupMembers(updMembers, newMembers);
+
+        // update the group member cache with the new members
+
+        groupMemberCache.put(group.getName(), group.getGroupMembers());
+
+        // first process the updated entries
+
+        long currentTime = System.currentTimeMillis();
+        for (GroupMember member : updMembers) {
+
+            // it's possible that initially we skipped the entry because it was
+            // disabled or expired so we might have no entries in the map
+
+            List<GroupMember> groupMembers = principalGroupCache.getIfPresent(member.getMemberName());
+            if (groupMembers == null) {
+
+                // make sure we want to process this user
+
+                if (AuthzHelper.shouldSkipGroupMember(member, currentTime)) {
+                    continue;
+                }
+
+                // otherwise we'll add this member to our new list
+
+                groupMembers = new ArrayList<>();
+                groupMembers.add(member);
+                principalGroupCache.put(member.getMemberName(), groupMembers);
+
+            } else {
+
+                // if we need to skip the entry then we'll delete the member
+                // from our list otherwise we'll just update it
+
+                if (AuthzHelper.shouldSkipGroupMember(member, currentTime)) {
+                    groupMembers.removeIf(item -> item.getGroupName().equalsIgnoreCase(group.getName()));
+                } else {
+                    // we need to find our entry and update details
+
+                    for (GroupMember mbr : groupMembers) {
+                        if (mbr.getGroupName().equalsIgnoreCase(group.getName())) {
+                            mbr.setExpiration(member.getExpiration());
+                            mbr.setSystemDisabled(member.getSystemDisabled());
+                            mbr.setActive(member.getActive());
+                            mbr.setApproved(member.getApproved());
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        // now let's add our new members
+
+        for (GroupMember member : newMembers) {
+
+            // skip any disabled and expired users
+
+            if (AuthzHelper.shouldSkipGroupMember(member, currentTime)) {
+                continue;
+            }
+
+            List<GroupMember> groupMembers = principalGroupCache.getIfPresent(member.getMemberName());
+            if (groupMembers == null) {
+                groupMembers = new ArrayList<>();
+                principalGroupCache.put(member.getMemberName(), groupMembers);
+            }
+            groupMembers.add(member);
+        }
+
+        // process deleted members from the group
+
+        processGroupDeletedMembers(group.getName(), delMembers);
+    }
+
+    void processGroupDeletedMembers(final String groupName, List<GroupMember> deletedMembers) {
+
+        // if the group has no members then we have nothing to do
+
+        if (deletedMembers == null) {
+            return;
+        }
+
+        for (GroupMember member : deletedMembers) {
+            List<GroupMember> groupMembers = principalGroupCache.getIfPresent(member.getMemberName());
+            if (groupMembers == null) {
+                continue;
+            }
+            groupMembers.removeIf(item -> item.getGroupName().equalsIgnoreCase(groupName));
+        }
+    }
+
+    void processGroupDelete(Group group) {
+
+        // first remove the group from our cache
+
+        groupMemberCache.invalidate(group.getName());
+
+        // delete all the members from our cache objects
+
+        processGroupDeletedMembers(group.getName(), group.getGroupMembers());
+    }
+
     void processDomainPolicies(DomainData domainData, DataCache domainCache) {
         
         com.yahoo.athenz.zms.SignedPolicies signedPolicies = domainData.getPolicies();
@@ -601,6 +778,10 @@ public class DataStore implements DataCacheProvider, RolesProvider {
         /* process the roles for this domain */
 
         processDomainRoles(domainData, domainCache);
+
+        /* process the groups for this domain */
+
+        processDomainGroups(domainData);
 
         /* process the policies for this domain */
         
@@ -716,7 +897,11 @@ public class DataStore implements DataCacheProvider, RolesProvider {
     }
 
     // Internal
-    void deleteDomain(String domainName) {
+    void deleteDomain(final String domainName) {
+
+        /* first delete all groups for this domain */
+
+        processDeleteDomainGroups(domainName);
 
         /* first delete our data from the cache */
 
@@ -726,7 +911,27 @@ public class DataStore implements DataCacheProvider, RolesProvider {
 
         changeLogStore.removeLocalDomain(domainName);
     }
-    
+
+    void processDeleteDomainGroups(final String domainName) {
+
+        // get the current list of groups so we can determine
+        // which groups have been deleted
+
+        DataCache dataCache = getCacheStore().getIfPresent(domainName);
+        if (dataCache == null) {
+            return;
+        }
+
+        List<Group> deletedGroups = dataCache.getDomainData().getGroups();
+        if (deletedGroups == null) {
+            return;
+        }
+
+        for (Group group : deletedGroups) {
+            processGroupDelete(group);
+        }
+    }
+
     // Internal
     boolean processSignedDomains(SignedDomains signedDomains) {
         
@@ -939,7 +1144,7 @@ public class DataStore implements DataCacheProvider, RolesProvider {
             
             // before adding to the list make sure the user
             // hasn't expired
-            
+
             long expiration = memberRole.getExpiration();
             if (expiration != 0 && expiration < currentTime) {
                 continue;
@@ -948,7 +1153,36 @@ public class DataStore implements DataCacheProvider, RolesProvider {
                     accessibleRoles, keepFullName);
         }
     }
-    
+
+    void processGroupMembership(DataCache data, final String identity, final String rolePrefix,
+                                String[] requestedRoleList, Set<String> accessibleRoles, boolean keepFullName) {
+
+        // get the list of groups that a given identity is part of
+
+        List<GroupMember> groupMembers = principalGroupCache.getIfPresent(identity);
+        if (groupMembers == null || groupMembers.isEmpty()) {
+            return;
+        }
+
+        // go through the group list and see if the any of the groups
+        // the user is included in the given domain role
+
+        long currentTime = System.currentTimeMillis();
+        for (GroupMember member : groupMembers) {
+
+            // skip any members that have already expired
+
+            if (AuthzHelper.isMemberExpired(member.getExpiration(), currentTime)) {
+                continue;
+            }
+
+            // process the role as a standard identity check
+
+            processStandardMembership(data.getMemberRoleSet(member.getGroupName()),
+                    rolePrefix, requestedRoleList, accessibleRoles, keepFullName);
+        }
+    }
+
     // Internal
     void processTrustMembership(DataCache data, String identity, String rolePrefix,
             String[] requestedRoleList, Set<String> accessibleRoles, boolean keepFullName) {
@@ -969,6 +1203,10 @@ public class DataStore implements DataCacheProvider, RolesProvider {
     @Override
     public DataCache getDataCache(String domainName) {
         return getCacheStore().getIfPresent(domainName);
+    }
+
+    public List<GroupMember> getGroupMembers(final String groupName) {
+        return groupMemberCache.getIfPresent(groupName);
     }
 
     // API
@@ -1006,7 +1244,11 @@ public class DataStore implements DataCacheProvider, RolesProvider {
                         rolePrefix, requestedRoleList, accessibleRoles, keepFullName);
             }
         }
-        
+
+        // now process our group membership
+
+        processGroupMembership(data, identity, rolePrefix, requestedRoleList, accessibleRoles, keepFullName);
+
         /* finally process all the roles that have trusted domain specified */
 
         processTrustMembership(data, identity, rolePrefix, requestedRoleList,

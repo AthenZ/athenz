@@ -36,6 +36,7 @@ import com.yahoo.athenz.common.server.status.StatusChecker;
 import com.yahoo.athenz.common.server.status.StatusCheckerFactory;
 import com.yahoo.athenz.common.server.util.ConfigProperties;
 import com.yahoo.athenz.common.server.util.ServletRequestUtil;
+import com.yahoo.athenz.common.server.util.AuthzHelper;
 import com.yahoo.athenz.common.utils.SignUtils;
 import com.yahoo.athenz.zms.config.AllowedOperation;
 import com.yahoo.athenz.zms.config.AuthorizedService;
@@ -192,6 +193,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected ObjectMapper jsonMapper;
     protected StatusChecker statusChecker = null;
     protected ObjectStore objectStore = null;
+    protected ZMSGroupMembersFetcher groupMemberFetcher = null;
 
     // enum to represent our access response since in some cases we want to
     // handle domain not founds differently instead of just returning failure
@@ -791,6 +793,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         objectStore = objFactory.create(keyStore);
         dbService = new DBService(objectStore, auditLogger, zmsConfig, auditReferenceValidator);
+
+        // create our group fetcher based on the db service
+
+        groupMemberFetcher = new ZMSGroupMembersFetcher(dbService);
     }
 
     void loadMetricObject() {
@@ -2402,7 +2408,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // must get a usertoken from ZMS first and the submit the request
         // with that token
 
-        if (!authorityAuthorizationAllowed(principal)) {
+        if (!AuthzHelper.authorityAuthorizationAllowed(principal)) {
             LOG.error("Authority is not allowed to support authorization checks");
             return false;
         }
@@ -2416,7 +2422,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // for rest.ResourceExceptions so we'll throw that exception in this
         // special case of not found domains.
 
-        String domainName = retrieveResourceDomain(resource, action, trustDomain);
+        String domainName = AuthzHelper.retrieveResourceDomain(resource, action, trustDomain);
         if (domainName == null) {
             throw new com.yahoo.athenz.common.server.rest.ResourceException(
                     ResourceException.NOT_FOUND, "Domain not found");
@@ -2437,34 +2443,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         AccessStatus accessStatus = hasAccess(domain, action, resource, principal, trustDomain);
         return accessStatus == AccessStatus.ALLOWED;
-    }
-
-    boolean authorityAuthorizationAllowed(Principal principal) {
-
-        Authority authority = principal.getAuthority();
-        if (authority == null) {
-            return true;
-        }
-
-        return authority.allowAuthorization();
-    }
-
-    String retrieveResourceDomain(String resource, String op, String trustDomain) {
-
-        // special handling for ASSUME_ROLE assertions. Since any assertion with
-        // that action refers to a resource in another domain, there is no point
-        // to retrieve the domain name from the resource. In these cases the caller
-        // must specify the trust domain attribute so we'll use that instead and
-        // if one is not specified then we'll fall back to using the domain name
-        // from the resource
-
-        String domainName;
-        if (ZMSConsts.ACTION_ASSUME_ROLE.equalsIgnoreCase(op) && trustDomain != null) {
-            domainName = trustDomain;
-        } else {
-            domainName = extractDomainName(resource);
-        }
-        return domainName;
     }
 
     AccessStatus hasAccess(AthenzDomain domain, String action, String resource,
@@ -2539,7 +2517,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // retrieve the domain based on our resource and action/trustDomain pair
 
-        String domainName = retrieveResourceDomain(resource, action, trustDomain);
+        String domainName = AuthzHelper.retrieveResourceDomain(resource, action, trustDomain);
         setRequestDomain(ctx, domainName);
         if (domainName == null) {
             setRequestDomain(ctx, ZMSConsts.ZMS_INVALID_DOMAIN);
@@ -3386,116 +3364,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         dbService.executeDeleteRole(ctx, domainName, roleName, auditRef, caller);
     }
 
-    boolean memberNameMatch(String memberName, String matchName) {
-        // we are supporting 3 formats for role members
-        // *, <domain>.* and <domain>.<user>*
-        if (memberName.equals("*")) {
-            return true;
-        } else if (memberName.endsWith("*")) {
-            return matchName.startsWith(memberName.substring(0, memberName.length() - 1));
-        } else {
-            return memberName.equals(matchName);
-        }
-    }
-
-    boolean isMemberEnabled(Integer memberSystemDisabled) {
-        return (memberSystemDisabled == null || memberSystemDisabled == 0);
-    }
-
-    boolean isMemberExpired(Timestamp memberExpiration) {
-        // check expiration, if is not defined, its not expired.
-        return (memberExpiration != null && memberExpiration.millis() < System.currentTimeMillis());
-    }
-
-    boolean checkRoleMemberValidity(List<RoleMember> roleMembers, final String member) {
-
-        // we need to make sure that both the user is not expired
-        // and not disabled by the system. the members can also
-        // include groups so that means even if we get a response
-        // from one group that is expired, we can't just stop
-        // and need to check the other groups as well.
-        // For efficiency reasons we'll process groups at the
-        // end so in case we get a match in a role there is no
-        // need to look at the groups at all
-
-        List<RoleMember> groupMembers = new ArrayList<>();
-        for (RoleMember memberInfo: roleMembers) {
-            if (memberInfo.getPrincipalType() != null && memberInfo.getPrincipalType() == Principal.Type.GROUP.getValue()) {
-                groupMembers.add(memberInfo);
-            }
-        }
-
-        // first only process regular members
-
-        boolean isMember = false;
-        for (RoleMember memberInfo: roleMembers) {
-            if (memberInfo.getPrincipalType() != null && memberInfo.getPrincipalType() == Principal.Type.GROUP.getValue()) {
-                continue;
-            }
-            final String memberName = memberInfo.getMemberName();
-            if (memberNameMatch(memberName, member)) {
-                isMember = isMemberEnabled(memberInfo.getSystemDisabled()) && !isMemberExpired(memberInfo.getExpiration());
-                break;
-            }
-        }
-
-        // if we have a match or no group members then we're done
-
-        if (isMember || groupMembers.isEmpty()) {
-            return isMember;
-        }
-
-        // now let's process our groups
-
-        for (RoleMember memberInfo : groupMembers) {
-
-            // if the group is expired there is no need to check
-
-            if (isMemberExpired(memberInfo.getExpiration())) {
-                continue;
-            }
-            Group group = getGroup(memberInfo.getMemberName());
-            if (group == null) {
-                continue;
-            }
-            isMember = isMemberOfGroup(group, member);
-            if (isMember) {
-                break;
-            }
-        }
-        return isMember;
-    }
-
-    boolean isMemberOfGroup(Group group, final String member) {
-        List<GroupMember> groupMembers = group.getGroupMembers();
-        if (groupMembers == null) {
-            return false;
-        }
-        return checkGroupMemberValidity(groupMembers, member);
-    }
-
-    boolean checkGroupMemberValidity(List<GroupMember> groupMembers, final String member) {
-
-        // we need to make sure that both the user is not expired
-        // and not disabled by the system
-
-        boolean isMember = false;
-        for (GroupMember memberInfo: groupMembers) {
-            final String memberName = memberInfo.getMemberName();
-            if (memberNameMatch(memberName, member)) {
-                isMember = isMemberEnabled(memberInfo.getSystemDisabled()) && !isMemberExpired(memberInfo.getExpiration());
-                break;
-            }
-        }
-        return isMember;
-    }
-
     boolean isMemberOfRole(Role role, String member) {
         List<RoleMember> roleMembers = role.getRoleMembers();
         if (roleMembers == null) {
             return false;
         }
-        return checkRoleMemberValidity(roleMembers, member);
+        return AuthzHelper.checkRoleMemberValidity(roleMembers, member, groupMemberFetcher);
     }
 
     @Override
@@ -4454,44 +4328,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         dbService.executeDeletePolicy(ctx, domainName, policyName, auditRef, caller);
     }
 
-    boolean matchDelegatedTrustAssertion(Assertion assertion, String roleName,
-            String roleMember, List<Role> roles) {
-
-        if (!ZMSUtils.assumeRoleResourceMatch(roleName, assertion)) {
-            return false;
-        }
-
-        String rolePattern = StringUtils.patternFromGlob(assertion.getRole());
-        for (Role role : roles) {
-            String name = role.getName();
-            if (!name.matches(rolePattern)) {
-                continue;
-            }
-
-            if (isMemberOfRole(role, roleMember)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    boolean matchDelegatedTrustPolicy(Policy policy, String roleName, String roleMember, List<Role> roles) {
-
-        List<Assertion> assertions = policy.getAssertions();
-        if (assertions == null) {
-            return false;
-        }
-
-        for (Assertion assertion : assertions) {
-            if (matchDelegatedTrustAssertion(assertion, roleName, roleMember, roles)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     boolean delegatedTrust(String domainName, String roleName, String roleMember) {
 
         AthenzDomain domain = getAthenzDomain(domainName, true);
@@ -4500,7 +4336,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         for (Policy policy : domain.getPolicies()) {
-            if (matchDelegatedTrustPolicy(policy, roleName, roleMember, domain.getRoles())) {
+            if (AuthzHelper.matchDelegatedTrustPolicy(policy, roleName, roleMember, domain.getRoles(), groupMemberFetcher)) {
                 return true;
             }
         }
@@ -4533,27 +4369,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return false;
     }
 
-    boolean shouldRunDelegatedTrustCheck(String trust, String trustDomain) {
-
-        // if no trust field field then no delegated trust check
-
-        if (trust == null) {
-            return false;
-        }
-
-        // if no specific trust domain specifies then we need
-        // run the delegated trust check for this domain
-
-        if (trustDomain == null) {
-            return true;
-        }
-
-        // otherwise we'll run the delegated trust check only if
-        // domain name matches
-
-        return trust.equalsIgnoreCase(trustDomain);
-    }
-
     boolean matchPrincipalInRole(Role role, String roleName, String fullUser, String trustDomain) {
 
         // if we have members in the role then we're going to check
@@ -4566,7 +4381,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // no members so let's check if this is a trust domain
 
         String trust = role.getTrust();
-        if (!shouldRunDelegatedTrustCheck(trust, trustDomain)) {
+        if (!AuthzHelper.shouldRunDelegatedTrustCheck(trust, trustDomain)) {
             return false;
         }
 
@@ -6774,17 +6589,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         dbService.executeDeleteTenantRoles(ctx, provSvcDomain, provSvcName, tenantDomain,
                 resourceGroup, auditRef, caller);
-    }
-    
-    String extractDomainName(String resource) {
-        int idx = resource.indexOf(':');
-        if (idx == -1) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("extractDomainName: missing domain name: " + resource);
-            }
-            return null;
-        }
-        return resource.substring(0, idx);
     }
 
     void validateRequest(HttpServletRequest request, String caller) {
@@ -9102,5 +8906,25 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String timerName = (apiName != null) ? apiName + "_timing" : null;
         metric.increment("zms_api", domainName, principalDomainName, httpMethod, httpStatus, apiName);
         metric.stopTiming(timerMetric, domainName, principalDomainName, httpMethod, httpStatus, timerName);
+    }
+
+    static class ZMSGroupMembersFetcher implements AuthzHelper.GroupMembersFetcher {
+
+        DBService dbService;
+        ZMSGroupMembersFetcher(DBService dbService) {
+            this.dbService = dbService;
+        }
+
+        @Override
+        public List<GroupMember> getGroupMembers(String groupName) {
+            int idx = groupName.indexOf(AuthorityConsts.GROUP_SEP);
+            final String domName = groupName.substring(0, idx);
+            final String grpName = groupName.substring(idx + AuthorityConsts.GROUP_SEP.length());
+            Group group = dbService.getGroup(domName, grpName, false, false);
+            if (group == null) {
+                return null;
+            }
+            return group.getGroupMembers();
+        }
     }
 }

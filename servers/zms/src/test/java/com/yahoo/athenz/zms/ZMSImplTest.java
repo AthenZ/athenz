@@ -9533,23 +9533,6 @@ public class ZMSImplTest {
     }
     
     @Test
-    public void testCheckKerberosAuthorityAuthorization() {
-        Authority authority = new com.yahoo.athenz.auth.impl.KerberosAuthority();
-        Principal principal = SimplePrincipal.create("krb", "user1", "v=U1;d=user;n=user1;s=signature",
-                0, authority);
-        assertNotNull(principal);
-        assertTrue(zms.authorityAuthorizationAllowed(principal));
-    }
-    
-    @Test
-    public void testCheckNullAuthorityAuthorization() {
-        Principal principal = SimplePrincipal.create("user", "joe", "v=U1;d=user;n=user1;s=signature",
-                0, null);
-        assertNotNull(principal);
-        assertTrue(zms.authorityAuthorizationAllowed(principal));
-    }
-    
-    @Test
     public void testValidateRoleBasedAccessCheckTrustDomain() {
         assertFalse(zms.validateRoleBasedAccessCheck(Collections.emptyList(), "trustdomain",
                 "domain1", "domain1"));
@@ -9897,23 +9880,6 @@ public class ZMSImplTest {
     }
 
     @Test
-    public void testShouldRunDelegatedTrustCheckNullTrust() {
-        assertFalse(zms.shouldRunDelegatedTrustCheck(null, "TrustDomain"));
-    }
-    @Test
-    public void testShouldRunDelegatedTrustCheckNullTrustDomain() {
-        assertTrue(zms.shouldRunDelegatedTrustCheck("TrustDomain", null));
-    }
-    @Test
-    public void testShouldRunDelegatedTrustCheckMatch() {
-        assertTrue(zms.shouldRunDelegatedTrustCheck("TrustDomain", "TrustDomain"));
-    }
-    @Test
-    public void testShouldRunDelegatedTrustCheckNoMatch() {
-        assertFalse(zms.shouldRunDelegatedTrustCheck("TrustDomain1", "TrustDomain"));
-    }
-
-    @Test
     public void testIsValidUserTokenRequestNoAuthority() {
         Principal principal = SimplePrincipal.create("user", "user1", "v=U1;d=user;n=user1;s=signature");
         assertFalse(zms.isValidUserTokenRequest(principal, "user1"));
@@ -9932,155 +9898,7 @@ public class ZMSImplTest {
     public void testIsValidUserTokenRequestNullPrincipal() {
         assertFalse(zms.isValidUserTokenRequest(null, "user1"));
     }
-    
-    @Test
-    public void testMatchDelegatedTrustPolicyNullAssertions() {
-        Policy policy = new Policy();
-        assertFalse(zms.matchDelegatedTrustPolicy(policy, "testRole", "testMember", null));
-    }
-    
-    @Test
-    public void testMatchDelegatedTrustAssertionInvalidAction() {
-        
-        Assertion assertion = new Assertion();
-        assertion.setAction("READ");
-        assertion.setEffect(AssertionEffect.ALLOW);
-        assertion.setResource("domain:*");
-        assertion.setRole("domain:role.Role");
 
-        assertFalse(zms.matchDelegatedTrustAssertion(assertion, null, null, null));
-    }
-    
-    @Test
-    public void testMatchDelegatedTrustAssertionNoResPatternMatchWithOutPattern() {
-        
-        Assertion assertion = new Assertion();
-        assertion.setAction("ASSUME_ROLE");
-        assertion.setEffect(AssertionEffect.ALLOW);
-        assertion.setResource("domain:role.Role");
-        assertion.setRole("domain:role.Role");
-
-        assertFalse(zms.matchDelegatedTrustAssertion(assertion, "domain:role.Role2", null, null));
-        assertFalse(zms.matchDelegatedTrustAssertion(assertion, "coretech:role.Role", null, null));
-    }
-    
-    @Test
-    public void testMatchDelegatedTrustAssertionNoResPatternMatchWithPattern() {
-        
-        Assertion assertion = new Assertion();
-        assertion.setAction("ASSUME_ROLE");
-        assertion.setEffect(AssertionEffect.ALLOW);
-        assertion.setResource("*:role.Role");
-        assertion.setRole("domain:role.Role");
-
-        assertFalse(zms.matchDelegatedTrustAssertion(assertion, "domain:role.Role2", null, null));
-        assertFalse(zms.matchDelegatedTrustAssertion(assertion, "coretech:role.Role2", null, null));
-    }
-    
-    @Test
-    public void testMatchDelegatedTrustAssertionNoRoleMatchWithPattern() {
-        
-        Assertion assertion = new Assertion();
-        assertion.setAction("ASSUME_ROLE");
-        assertion.setEffect(AssertionEffect.ALLOW);
-        assertion.setResource("*:role.Role");
-        assertion.setRole("weather:role.*");
-        
-        List<Role> roles = new ArrayList<>();
-        
-        Role role = createRoleObject("coretech",  "readers", null);
-        roles.add(role);
-
-        role = createRoleObject("coretech",  "writers", null);
-        roles.add(role);
-
-        role = createRoleObject("coretech",  "updaters", null);
-        roles.add(role);
-        
-        assertFalse(zms.matchDelegatedTrustAssertion(assertion, "coretech:role.Role", null, roles));
-    }
-    
-    @Test
-    public void testMatchDelegatedTrustAssertionNoRoleMatchWithOutPattern() {
-        
-        Assertion assertion = new Assertion();
-        assertion.setAction("ASSUME_ROLE");
-        assertion.setEffect(AssertionEffect.ALLOW);
-        assertion.setResource("*:role.Role");
-        assertion.setRole("weather:role.Role");
-        
-        List<Role> roles = new ArrayList<>();
-        
-        Role role = createRoleObject("coretech",  "Role1", null);
-        roles.add(role);
-
-        role = createRoleObject("coretech",  "Role2", null);
-        roles.add(role);
-        
-        assertFalse(zms.matchDelegatedTrustAssertion(assertion, "weather:role.Role1", null, roles));
-        assertFalse(zms.matchDelegatedTrustAssertion(assertion, "coretech:role.Role", null, roles));
-    }
-    
-    @Test
-    public void testMatchDelegatedTrustAssertionNoMemberMatch() {
-        
-        Assertion assertion = new Assertion();
-        assertion.setAction("ASSUME_ROLE");
-        assertion.setEffect(AssertionEffect.ALLOW);
-        assertion.setResource("*:role.Role");
-        assertion.setRole("weather:role.Role");
-        
-        List<Role> roles = new ArrayList<>();
-        
-        Role role = createRoleObject("weather",  "Role1", null, "user.user1", null);
-        roles.add(role);
-
-        role = createRoleObject("weather",  "Role", null, "user.user2", null);
-        roles.add(role);
-        
-        assertFalse(zms.matchDelegatedTrustAssertion(assertion, "weather:role.Role", "user.user1", roles));
-    }
-    
-    @Test
-    public void testMatchDelegatedTrustAssertionValidWithPattern() {
-        
-        Assertion assertion = new Assertion();
-        assertion.setAction("ASSUME_ROLE");
-        assertion.setEffect(AssertionEffect.ALLOW);
-        assertion.setResource("*:role.Role");
-        assertion.setRole("weather:role.*");
-        
-        List<Role> roles = new ArrayList<>();
-        
-        Role role = createRoleObject("weather",  "Role1", null, "user.user1", null);
-        roles.add(role);
-
-        role = createRoleObject("weather",  "Role", null, "user.user2", null);
-        roles.add(role);
-        
-        assertTrue(zms.matchDelegatedTrustAssertion(assertion, "weather:role.Role", "user.user2", roles));
-    }
-    
-    @Test
-    public void testMatchDelegatedTrustAssertionValidWithOutPattern() {
-        
-        Assertion assertion = new Assertion();
-        assertion.setAction("ASSUME_ROLE");
-        assertion.setEffect(AssertionEffect.ALLOW);
-        assertion.setResource("*:role.Role");
-        assertion.setRole("weather:role.Role");
-        
-        List<Role> roles = new ArrayList<>();
-        
-        Role role = createRoleObject("weather",  "Role1", null, "user.user1", null);
-        roles.add(role);
-
-        role = createRoleObject("weather",  "Role", null, "user.user2", null);
-        roles.add(role);
-        
-        assertTrue(zms.matchDelegatedTrustAssertion(assertion, "weather:role.Role", "user.user2", roles));
-    }
-    
     @Test
     public void testMatchPrincipalInRoleStdMemberMatch() {
         
@@ -14067,29 +13885,6 @@ public class ZMSImplTest {
             assertEquals(e.getCode(), 400);
         }
     }
-    
-    @Test
-    public void testRetrieveResourceDomainAssumeRoleWithTrust() {
-        assertEquals("trustdomain", zms.retrieveResourceDomain("resource", "assume_role", "trustdomain"));
-    }
-    
-    @Test
-    public void testRetrieveResourceDomainAssumeRoleWithOutTrust() {
-        assertEquals("domain1", zms.retrieveResourceDomain("domain1:resource", "assume_role", null));
-    }
-    
-    @Test
-    public void testRetrieveResourceDomainValidDomain() {
-        assertEquals("domain1", zms.retrieveResourceDomain("domain1:resource", "read", null));
-        assertEquals("domain1", zms.retrieveResourceDomain("domain1:resource", "read", "trustdomain"));
-        assertEquals("domain1", zms.retrieveResourceDomain("domain1:a:b:c:d:e", "read", "trustdomain"));
-
-    }
-    
-    @Test
-    public void testRetrieveResourceDomainInvalidResource() {
-        assertNull(zms.retrieveResourceDomain("domain1-invalid", "read", null));
-    }
 
     @Test
     public void testLoadSolutionTemplatesInvalid() {
@@ -14728,13 +14523,6 @@ public class ZMSImplTest {
         authRoles.add("domain:role.role1");
 
         assertTrue(zms.matchRole("domain", roles, "domain:role\\.role.*", authRoles));
-    }
-
-    @Test
-    public void testExtractDomainName() {
-        assertEquals(zms.extractDomainName("domain:entity"), "domain");
-        assertEquals(zms.extractDomainName("domain:entity:value2"), "domain");
-        assertEquals(zms.extractDomainName("domain:https://web.athenz.com/data"), "domain");
     }
     
     @Test
@@ -16541,24 +16329,6 @@ public class ZMSImplTest {
                 0, principalAuthority);
         assertNotNull(principal);
         assertFalse(zms.isSysAdminUser(principal));
-    }
-    
-    @Test
-    public void testMemberNameMatch() {
-        assertTrue(zms.memberNameMatch("*", "user.joe"));
-        assertTrue(zms.memberNameMatch("*", "athenz.service.storage"));
-        assertTrue(zms.memberNameMatch("user.*", "user.joe"));
-        assertTrue(zms.memberNameMatch("athenz.*", "athenz.service.storage"));
-        assertTrue(zms.memberNameMatch("athenz.service*", "athenz.service.storage"));
-        assertTrue(zms.memberNameMatch("athenz.service*", "athenz.service-storage"));
-        assertTrue(zms.memberNameMatch("athenz.service*", "athenz.service"));
-        assertTrue(zms.memberNameMatch("user.joe", "user.joe"));
-        
-        assertFalse(zms.memberNameMatch("user.*", "athenz.joe"));
-        assertFalse(zms.memberNameMatch("athenz.*", "athenztest.joe"));
-        assertFalse(zms.memberNameMatch("athenz.service*", "athenz.servic"));
-        assertFalse(zms.memberNameMatch("athenz.service*", "athenz.servictag"));
-        assertFalse(zms.memberNameMatch("user.joe", "user.joel"));
     }
     
     @Test
@@ -21286,94 +21056,6 @@ public class ZMSImplTest {
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 
-    @Test
-    public void testIsMemberEnabled() {
-
-        RoleMember roleMember = new RoleMember();
-
-        roleMember.setSystemDisabled(null);
-        assertTrue(zms.isMemberEnabled(roleMember.getSystemDisabled()));
-
-        roleMember.setSystemDisabled(0);
-        assertTrue(zms.isMemberEnabled(roleMember.getSystemDisabled()));
-
-        roleMember.setSystemDisabled(1);
-        assertFalse(zms.isMemberEnabled(roleMember.getSystemDisabled()));
-
-        roleMember.setSystemDisabled(3);
-        assertFalse(zms.isMemberEnabled(roleMember.getSystemDisabled()));
-    }
-
-    @Test
-    public void testIsMemberExpired() {
-
-        RoleMember roleMember = new RoleMember();
-
-        roleMember.setExpiration(null);
-        assertFalse(zms.isMemberExpired(roleMember.getExpiration()));
-
-        roleMember.setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + 100000));
-        assertFalse(zms.isMemberExpired(roleMember.getExpiration()));
-
-        roleMember.setExpiration(Timestamp.fromMillis(System.currentTimeMillis() - 1));
-        assertTrue(zms.isMemberExpired(roleMember.getExpiration()));
-    }
-
-    @Test
-    public void testCheckRoleMemberValidity() {
-
-        List<RoleMember> roleMembers = new ArrayList<>();
-
-        // valid members
-
-        RoleMember roleMemberJoe = new RoleMember()
-                .setMemberName("user.joe");
-        RoleMember roleMemberJane = new RoleMember()
-                .setMemberName("user.jane")
-                .setSystemDisabled(null)
-                .setExpiration(null);
-        RoleMember roleMemberJohn = new RoleMember()
-                .setSystemDisabled(0)
-                .setMemberName("user.john")
-                .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + 100000));
-
-        roleMembers.add(roleMemberJoe);
-        roleMembers.add(roleMemberJane);
-        roleMembers.add(roleMemberJohn);
-
-        // invalid members
-
-        RoleMember roleMemberJoeBad = new RoleMember()
-                .setMemberName("user.joe-bad")
-                .setSystemDisabled(1);
-        RoleMember roleMemberJaneBad = new RoleMember()
-                .setMemberName("user.jane-bad")
-                .setSystemDisabled(null)
-                .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() - 1));
-        RoleMember roleMemberJohnBad = new RoleMember()
-                .setSystemDisabled(3)
-                .setMemberName("user.john-bad")
-                .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() - 10000));
-        RoleMember roleGroup1  = new RoleMember()
-                .setMemberName("coretech:group.dev-team")
-                .setPrincipalType(Principal.Type.GROUP.getValue());
-
-        roleMembers.add(roleMemberJoeBad);
-        roleMembers.add(roleMemberJaneBad);
-        roleMembers.add(roleMemberJohnBad);
-        roleMembers.add(roleGroup1);
-
-        // carry out the checks
-
-        assertTrue(zms.checkRoleMemberValidity(roleMembers, "user.joe"));
-        assertTrue(zms.checkRoleMemberValidity(roleMembers, "user.jane"));
-        assertTrue(zms.checkRoleMemberValidity(roleMembers, "user.john"));
-
-        assertFalse(zms.checkRoleMemberValidity(roleMembers, "user.joe-bad"));
-        assertFalse(zms.checkRoleMemberValidity(roleMembers, "user.jane-bad"));
-        assertFalse(zms.checkRoleMemberValidity(roleMembers, "user.john-bad"));
-    }
-
     @DataProvider(name = "delegatedRoles")
     public static Object[][] getDelegatedRoles() {
         String domainName = "test_domain";
@@ -24661,14 +24343,27 @@ public class ZMSImplTest {
     }
 
     @Test
-    public void testIsMemberOfGroup() {
-        Group group = new Group();
-        assertFalse(zms.isMemberOfGroup(group, "user.user1"));
+    public void testZMSGroupMemberFetcher() {
 
-        group = createGroupObject("coretech", "dev-team", "user.user1", "coretech.api");
-        assertTrue(zms.isMemberOfGroup(group, "user.user1"));
-        assertTrue(zms.isMemberOfGroup(group, "coretech.api"));
-        assertFalse(zms.isMemberOfGroup(group, "user.user2"));
-        assertFalse(zms.isMemberOfGroup(group, "coretech.dev.api"));
+        final String domainName1 = "group-fetcher";
+        final String groupName1 = "group1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName1, "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Group group1 = createGroupObject(domainName1, groupName1, "user.joe", "user.jane");
+        zms.putGroup(mockDomRsrcCtx, domainName1, groupName1, auditRef, group1);
+
+        // first failure case
+
+        assertNull(zms.groupMemberFetcher.getGroupMembers("group-fetcher:group.group2"));
+
+        // now valid case
+
+        List<GroupMember> members = zms.groupMemberFetcher.getGroupMembers("group-fetcher:group.group1");
+        assertNotNull(members);
+        assertEquals(members.size(), 2);
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName1, auditRef);
     }
 }

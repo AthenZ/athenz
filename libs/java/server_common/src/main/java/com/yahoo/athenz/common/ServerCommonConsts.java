@@ -19,6 +19,7 @@ package com.yahoo.athenz.common;
 public final class ServerCommonConsts {
     public static final String ADMIN_ROLE_NAME  = "admin";
     public static final String OBJECT_ROLE      = "role";
+    public static final String OBJECT_GROUP     = "group";
     public static final String USER_DOMAIN      = "user";
 
     public static final String USER_DOMAIN_PREFIX = "user.";
