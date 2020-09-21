@@ -3,6 +3,7 @@
 //
 
 package com.yahoo.athenz.zts;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.List;
 import com.yahoo.rdl.*;
 
@@ -10,6 +11,7 @@ import com.yahoo.rdl.*;
 // ServiceIdentityList - The representation for an enumeration of services in
 // the namespace.
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ServiceIdentityList {
     public List<String> names;
 

@@ -3,6 +3,7 @@
 //
 
 package com.yahoo.athenz.zts;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.yahoo.rdl.*;
 
@@ -10,6 +11,7 @@ import com.yahoo.rdl.*;
 // Assertion - A representation for the encapsulation of an action to be
 // performed on a resource by a principal.
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Assertion {
     public String role;
     public String resource;

@@ -3,11 +3,13 @@
 //
 
 package com.yahoo.athenz.zts;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.yahoo.rdl.*;
 
 //
 // DomainMetric -
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class DomainMetric {
     public DomainMetricType metricType;
     public int metricVal;

@@ -584,7 +584,7 @@ func init() {
 	tJWSDomain := rdl.NewStructTypeBuilder("Struct", "JWSDomain")
 	tJWSDomain.Comment("SignedDomain using flattened JWS JSON Serialization syntax. https://tools.ietf.org/html/rfc7515#section-7.2.2")
 	tJWSDomain.Field("payload", "String", false, nil, "")
-	tJWSDomain.Field("protectedHeader", "String", false, nil, "")
+	tJWSDomain.Field("protected", "String", false, nil, "")
 	tJWSDomain.MapField("header", "String", "String", false, "")
 	tJWSDomain.Field("signature", "String", false, nil, "")
 	sb.AddType(tJWSDomain.Build())

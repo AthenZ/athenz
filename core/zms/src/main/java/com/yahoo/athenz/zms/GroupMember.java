@@ -3,12 +3,14 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.yahoo.rdl.*;
 
 //
 // GroupMember -
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class GroupMember {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)

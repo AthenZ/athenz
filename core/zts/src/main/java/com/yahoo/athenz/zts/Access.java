@@ -3,11 +3,13 @@
 //
 
 package com.yahoo.athenz.zts;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.yahoo.rdl.*;
 
 //
 // Access - Access can be checked and returned as this resource.
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Access {
     public boolean granted;
 

@@ -3,12 +3,14 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.yahoo.rdl.*;
 
 //
 // RoleAuditLog - An audit log entry for role membership change.
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class RoleAuditLog {
     public String member;
     public String admin;

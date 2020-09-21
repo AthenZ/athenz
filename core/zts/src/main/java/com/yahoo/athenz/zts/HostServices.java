@@ -3,6 +3,7 @@
 //
 
 package com.yahoo.athenz.zts;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.List;
 import com.yahoo.rdl.*;
 
@@ -10,6 +11,7 @@ import com.yahoo.rdl.*;
 // HostServices - The representation for an enumeration of services authorized
 // to run on a specific host.
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class HostServices {
     public String host;
     public List<String> names;

@@ -3,12 +3,14 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.List;
 import com.yahoo.rdl.*;
 
 //
 // DomainMetaList - A list of domain objects with their meta attributes.
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class DomainMetaList {
     public List<Domain> domains;
 

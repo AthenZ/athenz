@@ -3,12 +3,14 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.yahoo.rdl.*;
 
 //
 // SignedPolicies - A signed bulk transfer of policies. The data is signed with
 // server's private key.
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class SignedPolicies {
     public DomainPolicies contents;
     public String signature;

@@ -3,6 +3,7 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.yahoo.rdl.*;
 
@@ -11,6 +12,7 @@ import com.yahoo.rdl.*;
 // signature and keyid are optional if the metaonly flag is set to true in the
 // getSignedDomains api call
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class SignedDomain {
     public DomainData domain;
     @RdlOptional

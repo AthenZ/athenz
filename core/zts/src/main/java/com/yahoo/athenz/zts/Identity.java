@@ -3,6 +3,7 @@
 //
 
 package com.yahoo.athenz.zts;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.Map;
 import com.yahoo.rdl.*;
@@ -12,6 +13,7 @@ import com.yahoo.rdl.*;
 // response could be either a client certificate or just a regular NToken
 // (depending if the request contained a csr or not).
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Identity {
     public String name;
     @RdlOptional

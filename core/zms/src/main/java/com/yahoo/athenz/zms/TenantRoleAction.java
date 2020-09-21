@@ -3,11 +3,13 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.yahoo.rdl.*;
 
 //
 // TenantRoleAction - A representation of tenant role action.
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class TenantRoleAction {
     public String role;
     public String action;

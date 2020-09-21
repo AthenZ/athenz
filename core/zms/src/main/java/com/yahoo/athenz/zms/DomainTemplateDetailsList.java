@@ -3,6 +3,7 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.List;
 import com.yahoo.rdl.*;
 
@@ -10,6 +11,7 @@ import com.yahoo.rdl.*;
 // DomainTemplateDetailsList - List of templates with metadata details given a
 // domain
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class DomainTemplateDetailsList {
     public List<TemplateMetaData> metaData;
 

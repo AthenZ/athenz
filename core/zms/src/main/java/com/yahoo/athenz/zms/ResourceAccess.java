@@ -3,12 +3,14 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.List;
 import com.yahoo.rdl.*;
 
 //
 // ResourceAccess -
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ResourceAccess {
     public String principal;
     public List<Assertion> assertions;

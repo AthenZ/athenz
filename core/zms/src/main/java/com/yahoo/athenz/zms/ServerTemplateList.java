@@ -3,12 +3,14 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.List;
 import com.yahoo.rdl.*;
 
 //
 // ServerTemplateList - List of solution templates available in the server
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ServerTemplateList {
     public List<String> templateNames;
 

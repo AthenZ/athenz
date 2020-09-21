@@ -6153,10 +6153,10 @@ func (self *SignedDomains) Validate() error {
 // https://tools.ietf.org/html/rfc7515#section-7.2.2
 //
 type JWSDomain struct {
-	Payload         string            `json:"payload"`
-	ProtectedHeader string            `json:"protectedHeader"`
-	Header          map[string]string `json:"header"`
-	Signature       string            `json:"signature"`
+	Payload   string            `json:"payload"`
+	Protected string            `json:"protected"`
+	Header    map[string]string `json:"header"`
+	Signature string            `json:"signature"`
 }
 
 //
@@ -6210,12 +6210,12 @@ func (self *JWSDomain) Validate() error {
 			return fmt.Errorf("JWSDomain.payload does not contain a valid String (%v)", val.Error)
 		}
 	}
-	if self.ProtectedHeader == "" {
-		return fmt.Errorf("JWSDomain.protectedHeader is missing but is a required field")
+	if self.Protected == "" {
+		return fmt.Errorf("JWSDomain.protected is missing but is a required field")
 	} else {
-		val := rdl.Validate(ZMSSchema(), "String", self.ProtectedHeader)
+		val := rdl.Validate(ZMSSchema(), "String", self.Protected)
 		if !val.Valid {
-			return fmt.Errorf("JWSDomain.protectedHeader does not contain a valid String (%v)", val.Error)
+			return fmt.Errorf("JWSDomain.protected does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.Header == nil {

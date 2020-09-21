@@ -503,7 +503,7 @@ public class ZMSSchema {
         sb.structType("JWSDomain")
             .comment("SignedDomain using flattened JWS JSON Serialization syntax. https://tools.ietf.org/html/rfc7515#section-7.2.2")
             .field("payload", "String", false, "")
-            .field("protectedHeader", "String", false, "")
+            .field("protected", "String", false, "")
             .mapField("header", "String", "String", false, "")
             .field("signature", "String", false, "");
 

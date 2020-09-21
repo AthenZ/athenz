@@ -3,11 +3,13 @@
 //
 
 package com.yahoo.athenz.zts;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.yahoo.rdl.*;
 
 //
 // CertificateAuthorityBundle -
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class CertificateAuthorityBundle {
     public String name;
     public String certs;
