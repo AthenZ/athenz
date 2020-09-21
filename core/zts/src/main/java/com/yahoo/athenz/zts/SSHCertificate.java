@@ -3,12 +3,14 @@
 //
 
 package com.yahoo.athenz.zts;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.yahoo.rdl.*;
 
 //
 // SSHCertificate -
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class SSHCertificate {
     public String certificate;
     @RdlOptional

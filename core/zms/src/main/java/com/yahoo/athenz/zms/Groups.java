@@ -3,12 +3,14 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.List;
 import com.yahoo.rdl.*;
 
 //
 // Groups - The representation for a list of groups with full details
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Groups {
     public List<Group> list;
 

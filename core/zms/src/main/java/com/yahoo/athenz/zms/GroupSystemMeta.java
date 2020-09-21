@@ -3,6 +3,7 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.yahoo.rdl.*;
 
@@ -10,6 +11,7 @@ import com.yahoo.rdl.*;
 // GroupSystemMeta - Set of system metadata attributes that all groups may have
 // and can be changed by system admins.
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class GroupSystemMeta {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)

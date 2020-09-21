@@ -3,6 +3,7 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;
 import com.yahoo.rdl.*;
@@ -10,6 +11,7 @@ import com.yahoo.rdl.*;
 //
 // Role - The representation for a Role with set of members.
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Role {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)

@@ -3,12 +3,14 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.List;
 import com.yahoo.rdl.*;
 
 //
 // DefaultAdmins - The list of domain administrators.
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class DefaultAdmins {
     public List<String> admins;
 

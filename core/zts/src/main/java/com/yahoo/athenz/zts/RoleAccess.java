@@ -3,12 +3,14 @@
 //
 
 package com.yahoo.athenz.zts;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.List;
 import com.yahoo.rdl.*;
 
 //
 // RoleAccess -
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class RoleAccess {
     public List<String> roles;
 

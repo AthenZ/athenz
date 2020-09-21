@@ -3,12 +3,14 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.List;
 import com.yahoo.rdl.*;
 
 //
 // Roles - The representation for a list of roles with full details
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Roles {
     public List<Role> list;
 

@@ -3,12 +3,14 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.yahoo.rdl.*;
 
 //
 // MemberRole -
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class MemberRole {
     public String roleName;
     @RdlOptional

@@ -3,12 +3,14 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.List;
 import com.yahoo.rdl.*;
 
 //
 // Policies - The representation of list of policy objects
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Policies {
     public List<Policy> list;
 

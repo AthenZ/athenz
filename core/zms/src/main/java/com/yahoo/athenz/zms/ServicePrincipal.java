@@ -3,11 +3,13 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.yahoo.rdl.*;
 
 //
 // ServicePrincipal - A service principal object identifying a given service.
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ServicePrincipal {
     public String domain;
     public String service;

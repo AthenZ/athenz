@@ -3,12 +3,14 @@
 //
 
 package com.yahoo.athenz.zts;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.yahoo.rdl.*;
 
 //
 // SignedPolicyData - A representation of policies object defined in a given
 // server.
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class SignedPolicyData {
     public PolicyData policyData;
     public String zmsSignature;

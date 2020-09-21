@@ -3,6 +3,7 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;
 import com.yahoo.rdl.*;
@@ -11,6 +12,7 @@ import com.yahoo.rdl.*;
 // RoleList - The representation for an enumeration of roles in the namespace,
 // with pagination.
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class RoleList {
     public List<String> names;
     @RdlOptional

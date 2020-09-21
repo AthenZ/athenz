@@ -3,12 +3,14 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.yahoo.rdl.*;
 
 //
 // GroupMembership - The representation for a group membership.
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class GroupMembership {
     public String memberName;
     @RdlOptional

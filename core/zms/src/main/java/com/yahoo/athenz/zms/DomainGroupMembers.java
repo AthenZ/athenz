@@ -3,12 +3,14 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.List;
 import com.yahoo.rdl.*;
 
 //
 // DomainGroupMembers -
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class DomainGroupMembers {
     public String domainName;
     public List<DomainGroupMember> members;

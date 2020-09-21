@@ -3,6 +3,7 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.List;
 import com.yahoo.rdl.*;
 
@@ -10,6 +11,7 @@ import com.yahoo.rdl.*;
 // TemplateList - List of template names that is the base struct for server and
 // domain templates
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class TemplateList {
     public List<String> templateNames;
 

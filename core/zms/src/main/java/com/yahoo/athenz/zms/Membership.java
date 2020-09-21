@@ -3,12 +3,14 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.yahoo.rdl.*;
 
 //
 // Membership - The representation for a role membership.
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Membership {
     public String memberName;
     @RdlOptional

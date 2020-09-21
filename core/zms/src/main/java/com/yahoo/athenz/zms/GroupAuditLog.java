@@ -3,12 +3,14 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.yahoo.rdl.*;
 
 //
 // GroupAuditLog - An audit log entry for group membership change.
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class GroupAuditLog {
     public String member;
     public String admin;

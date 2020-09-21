@@ -3,12 +3,14 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.yahoo.rdl.*;
 
 //
 // PublicKeyEntry - The representation of the public key in a service identity
 // object.
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class PublicKeyEntry {
     public String key;
     public String id;

@@ -3,6 +3,7 @@
 //
 
 package com.yahoo.athenz.zts;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.yahoo.rdl.*;
 
@@ -10,6 +11,7 @@ import com.yahoo.rdl.*;
 // OSTKInstanceRefreshRequest - OSTKCertificateRequest - a certificate signing
 // request
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class OSTKInstanceRefreshRequest {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)

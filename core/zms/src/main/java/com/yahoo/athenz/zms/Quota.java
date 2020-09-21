@@ -3,12 +3,14 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.yahoo.rdl.*;
 
 //
 // Quota - The representation for a quota object
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Quota {
     public String name;
     public int subdomain;

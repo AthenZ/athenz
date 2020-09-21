@@ -3,6 +3,7 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.yahoo.rdl.*;
 
@@ -14,6 +15,7 @@ import com.yahoo.rdl.*;
 // reverse-DNS namespaces). The top level domains are governed by the special
 // "sys.auth" domain.
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Domain {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)

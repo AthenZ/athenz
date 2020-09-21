@@ -3,6 +3,7 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;
 import com.yahoo.rdl.*;
@@ -10,6 +11,7 @@ import com.yahoo.rdl.*;
 //
 // Template - Solution Template object defined on the server
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Template {
     public List<Role> roles;
     public List<Policy> policies;

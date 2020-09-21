@@ -1,5 +1,4 @@
-// Copyright 2015 Yahoo Inc. https://github.com/ardielle
-//           2019 Oath Holdings Inc. Modified to generate go client code for Athenz Clients
+// Copyright 2020 Verizon Media
 // Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
 
 package main
@@ -11,8 +10,6 @@ import (
 
 	"github.com/ardielle/ardielle-go/rdl"
 )
-
-const RdlGoImport = "github.com/ardielle/ardielle-go/rdl"
 
 func main() {
 	banner := "rdl (development version)"
@@ -26,22 +23,18 @@ func main() {
 
 	schema, err := rdl.ParseRDLFile(*pSchemaFile, false, false, false)
 	if err == nil {
-		generateGoModel(banner, schema, *pOutdir)
+		generateJavaModel(banner, schema, *pOutdir)
 		os.Exit(0)
 	}
 	fmt.Fprintf(os.Stderr, "*** %v\n", err)
 	os.Exit(1)
 }
 
-func generateGoModel(banner string, schema *rdl.Schema, outdir string) error {
-	return GenerateAthenzGoModel(schema, &GeneratorParams{
-		Outdir:         outdir,
-		Banner:         banner,
-		Namespace:      "",
-		LibRdl:         RdlGoImport,
-		PrefixEnums:    false,
-		PreciseTypes:   true,
-		UntaggedUnions: []string{},
-		GenerateSchema: true,
+func generateJavaModel(banner string, schema *rdl.Schema, outdir string) error {
+	return GenerateAthenzJavaModel(schema, &GeneratorParams{
+		Outdir:     outdir,
+		Banner:     banner,
+		Namespace:  "",
+		GetSetters: true,
         })
 }

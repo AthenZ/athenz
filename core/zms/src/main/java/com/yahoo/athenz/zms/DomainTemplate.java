@@ -3,6 +3,7 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;
 import com.yahoo.rdl.*;
@@ -10,6 +11,7 @@ import com.yahoo.rdl.*;
 //
 // DomainTemplate - solution template(s) to be applied to a domain
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class DomainTemplate {
     public List<String> templateNames;
     @RdlOptional

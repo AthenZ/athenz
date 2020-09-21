@@ -3,6 +3,7 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.Map;
 import com.yahoo.rdl.*;
 
@@ -10,9 +11,11 @@ import com.yahoo.rdl.*;
 // JWSDomain - SignedDomain using flattened JWS JSON Serialization syntax.
 // https://tools.ietf.org/html/rfc7515#section-7.2.2
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class JWSDomain {
     public String payload;
-    @com.fasterxml.jackson.annotation.JsonProperty("protected") public String protectedHeader;
+    @com.fasterxml.jackson.annotation.JsonProperty("protected")
+    public String protectedHeader;
     public Map<String, String> header;
     public String signature;
 
