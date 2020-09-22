@@ -55,7 +55,7 @@ public class SignUtilsTest {
 
         String check = SignUtils.asCanonicalString(mockDomain);
         assertNotNull(check);
-        assertEquals(check,"{\"groups\":[],\"roleCertExpiryMins\":0,\"roles\":[],\"serviceCertExpiryMins\":0,\"services\":[],\"ypmId\":0}");
+        assertEquals(check,"{\"roleCertExpiryMins\":0,\"roles\":[],\"serviceCertExpiryMins\":0,\"services\":[],\"ypmId\":0}");
     }
     
     @Test
@@ -166,7 +166,7 @@ public class SignUtilsTest {
         
         String check = SignUtils.asCanonicalString(mockDomain);
         assertNotNull(check);
-        assertEquals(check, "{\"account\":\"chk_string\",\"groups\":[],\"memberExpiryDays\":30,\"policies\""
+        assertEquals(check, "{\"account\":\"chk_string\",\"memberExpiryDays\":30,\"policies\""
                 +":{\"contents\":{\"policies\":[]}},\"roleCertExpiryMins\":0,\"roles\":[{\"certExpiryMins\":0,\"members\":[\"check_item\"],"
                 +"\"roleMembers\":[]}],\"serviceCertExpiryMins\":0,\"serviceExpiryDays\":40,\"services\":[{\"publicKeys\":[{}]}],"
                 +"\"tokenExpiryMins\":450,\"ypmId\":0}");
@@ -177,7 +177,7 @@ public class SignUtilsTest {
 
         check = SignUtils.asCanonicalString(mockDomain);
         assertNotNull(check);
-        assertEquals(check,"{\"account\":\"chk_string\",\"groups\":[],\"policies\":{\"contents\":{\"policies\":[]}},"
+        assertEquals(check,"{\"account\":\"chk_string\",\"policies\":{\"contents\":{\"policies\":[]}},"
                 +"\"roleCertExpiryMins\":0,\"roles\":[{\"certExpiryMins\":0,\"members\":[\"check_item\"],\"roleMembers\":[]}],"
                 +"\"serviceCertExpiryMins\":0,\"services\""
                 +":[{\"publicKeys\":[]}],\"tokenExpiryMins\":450,\"ypmId\":0}");
@@ -204,7 +204,7 @@ public class SignUtilsTest {
                 .setEnabled(Boolean.TRUE);
 
         final String check = SignUtils.asCanonicalString(data);
-        final String expected = "{\"enabled\":true,\"groups\":[],\"roles\":[{\"certExpiryMins\":300,"
+        final String expected = "{\"enabled\":true,\"roles\":[{\"certExpiryMins\":300,"
             +"\"memberExpiryDays\":30,\"name\":\"role1\","
             +"\"roleMembers\":[],\"serviceExpiryDays\":40,\"tokenExpiryMins\":450},"
             +"{\"name\":\"role2\",\"roleMembers\":[{\"expiration\":\"1970-01-01T00:00:00.000Z\","
@@ -246,7 +246,7 @@ public class SignUtilsTest {
                 .setTokenExpiryMins(300).setSignAlgorithm("rsa");
 
         final String check = SignUtils.asCanonicalString(data);
-        final String expected = "{\"auditEnabled\":true,\"enabled\":true,\"groups\":[],\"roleCertExpiryMins\":100,"
+        final String expected = "{\"auditEnabled\":true,\"enabled\":true,\"roleCertExpiryMins\":100,"
                 +"\"roles\":[{\"auditEnabled\":true,\"name\":\"role1\",\"roleMembers\":[]},"
                 +"{\"name\":\"role2\",\"roleMembers\":[{\"expiration\":\"1970-01-01T00:00:00.000Z\","
                 +"\"memberName\":\"user.joe\"},{\"expiration\":\"1970-01-01T00:00:00.000Z\","
