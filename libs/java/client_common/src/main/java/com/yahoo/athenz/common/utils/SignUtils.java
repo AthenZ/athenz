@@ -34,7 +34,7 @@ import com.yahoo.rdl.Array;
 import com.yahoo.rdl.Struct;
 
 public class SignUtils {
-    
+
     private static final String ATTR_ENABLED = "enabled";
     private static final String ATTR_MODIFIED = "modified";
     private static final String ATTR_POLICIES = "policies";
@@ -294,13 +294,13 @@ public class SignUtils {
         appendObject(struct, ATTR_AUDIT_ENABLED, domainData.getAuditEnabled());
         appendObject(struct, ATTR_CERT_DNS_DOMAIN, domainData.getCertDnsDomain());
         appendObject(struct, ATTR_ENABLED, domainData.getEnabled());
-        Array structGroups = new Array();
-        if (domainData.getGroups() != null) {
+        if (domainData.getGroups() != null && !domainData.getGroups().isEmpty()) {
+            Array structGroups = new Array();
             for (Group group : domainData.getGroups()) {
                 structGroups.add(asStruct(group));
             }
+            appendArray(struct, ATTR_GROUPS, structGroups);
         }
-        appendArray(struct, ATTR_GROUPS, structGroups);
         appendObject(struct, ATTR_MEMBER_EXPIRY_DAYS, domainData.getMemberExpiryDays());
         appendObject(struct, ATTR_MODIFIED, domainData.getModified());
         appendObject(struct, ATTR_NAME, domainData.getName());
