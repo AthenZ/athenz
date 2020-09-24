@@ -8691,4 +8691,20 @@ public class DBServiceTest {
 
         zms.dbService.validateGroupUserAuthorityAttrRequirements(conn2, originalGroup, updatedGroup, "unittest");
     }
+
+    @Test
+    public void testMemberStrictExpiration() {
+
+        assertNull(zms.dbService.memberStrictExpiration(null, null));
+        Timestamp now = Timestamp.fromCurrentTime();
+        assertEquals(zms.dbService.memberStrictExpiration(null, now), now);
+
+        assertEquals(zms.dbService.memberStrictExpiration(now, null), now);
+
+        Timestamp past = Timestamp.fromMillis(System.currentTimeMillis() - 100000);
+        Timestamp future = Timestamp.fromMillis(System.currentTimeMillis() + 100000);
+
+        assertEquals(zms.dbService.memberStrictExpiration(now, future), now);
+        assertEquals(zms.dbService.memberStrictExpiration(now, past), past);
+    }
 }
