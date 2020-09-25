@@ -2444,6 +2444,50 @@ public class DBService implements RolesProvider {
         }
     }
 
+    Timestamp memberStrictExpiration(Timestamp groupExpiration, Timestamp memberExpiration) {
+        if (groupExpiration == null) {
+            return memberExpiration;
+        } else if (memberExpiration == null) {
+            return groupExpiration;
+        } else if (groupExpiration.millis() < memberExpiration.millis()) {
+            return groupExpiration;
+        } else {
+            return memberExpiration;
+        }
+    }
+
+    RoleMember convertGroupToRoleMember(GroupMember groupMember, Timestamp groupExpiration) {
+        return new RoleMember()
+                .setMemberName(groupMember.getMemberName())
+                .setActive(groupMember.getActive())
+                .setApproved(groupMember.getApproved())
+                .setAuditRef(groupMember.getAuditRef())
+                .setSystemDisabled(groupMember.getSystemDisabled())
+                .setRequestTime(groupMember.getRequestTime())
+                .setExpiration(memberStrictExpiration(groupExpiration, groupMember.getExpiration()));
+    }
+
+    void expandRoleGroupMembers(ObjectStoreConnection con, Role role, List<RoleMember> roleMembers, Boolean pending) {
+
+        List<RoleMember> expandedMembers = new ArrayList<>();
+        for (RoleMember roleMember : roleMembers) {
+            final String memberName = roleMember.getMemberName();
+
+            int idx = memberName.indexOf(AuthorityConsts.GROUP_SEP);
+            if (idx == -1) {
+                expandedMembers.add(roleMember);
+            } else {
+                final String domainName = memberName.substring(0, idx);
+                final String groupName = memberName.substring(idx + AuthorityConsts.GROUP_SEP.length());
+                List<GroupMember> groupMembers = con.listGroupMembers(domainName, groupName, pending);
+                for (GroupMember groupMember : groupMembers) {
+                    expandedMembers.add(convertGroupToRoleMember(groupMember, roleMember.getExpiration()));
+                }
+            }
+        }
+        role.setRoleMembers(expandedMembers);
+    }
+
     Role getRole(ObjectStoreConnection con, String domainName, String roleName,
             Boolean auditLog, Boolean expand, Boolean pending) {
 
@@ -2453,14 +2497,19 @@ public class DBService implements RolesProvider {
             if (role.getTrust() == null) {
                 
                 // if we have no trust field specified then we need to
-                // retrieve our standard group role members
-                
-                role.setRoleMembers(con.listRoleMembers(domainName, roleName, pending));
-                
+                // retrieve our standard group role members. However,
+                // since we can have groups as members in roles check
+                // to see if we're asked to expand them
+
+                if (expand == Boolean.TRUE) {
+                    expandRoleGroupMembers(con, role, con.listRoleMembers(domainName, roleName, pending), pending);
+                } else {
+                    role.setRoleMembers(con.listRoleMembers(domainName, roleName, pending));
+                }
+
                 // still populate the members for old clients
 
-                role.setMembers(ZMSUtils.convertRoleMembersToMembers(
-                        role.getRoleMembers()));
+                role.setMembers(ZMSUtils.convertRoleMembersToMembers(role.getRoleMembers()));
 
                 if (auditLog == Boolean.TRUE) {
                     role.setAuditLog(con.listRoleAuditLogs(domainName, roleName));

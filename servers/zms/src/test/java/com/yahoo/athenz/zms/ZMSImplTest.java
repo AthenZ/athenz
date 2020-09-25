@@ -36,6 +36,7 @@ import com.yahoo.athenz.auth.impl.*;
 import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
+import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.zms.notification.PutRoleMembershipNotificationTask;
 import com.yahoo.athenz.zms.status.MockStatusCheckerThrowException;
 import com.yahoo.athenz.zms.status.MockStatusCheckerNoException;
@@ -24317,7 +24318,7 @@ public class ZMSImplTest {
 
         Role role3 = createRoleObject(domainName3, roleName3, null, "user.john",
                 ZMSUtils.groupResourceName(domainName3, groupName3));
-        zms.putRole(mockDomRsrcCtx, domainName2, roleName2, auditRef, role2);
+        zms.putRole(mockDomRsrcCtx, domainName3, roleName3, auditRef, role3);
 
         // we should be able to delete domain3 without any issues since
         // group3 is included in the same domain only
@@ -24365,5 +24366,123 @@ public class ZMSImplTest {
         assertEquals(members.size(), 2);
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName1, auditRef);
+    }
+
+    @Test
+    public void testGetRoleWithGroupMembers() {
+
+        final String domainName = "role-with-group";
+        final String roleName1 = "role1";
+        final String roleName2 = "role2";
+        final String groupName1 = "dev-team";
+        final String groupName2 = "pe-team";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", "user.user1");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Role role1 = createRoleObject(domainName, roleName1, null, "user.joe", "user.jane");
+        zms.putRole(mockDomRsrcCtx, domainName, roleName1, auditRef, role1);
+
+        Role role = zms.getRole(mockDomRsrcCtx, domainName, roleName1, false, true, false);
+        assertNotNull(role);
+
+        List<RoleMember> members = role.getRoleMembers();
+        assertNotNull(members);
+        assertEquals(members.size(), 2);
+
+        List<String> checkList = new ArrayList<>();
+        checkList.add("user.joe");
+        checkList.add("user.jane");
+        checkRoleMember(checkList, members);
+
+        // now let's create a group with 2 new members and it to the role
+
+        Group group1 = createGroupObject(domainName, groupName1, "user.joey", "user.moe");
+        zms.putGroup(mockDomRsrcCtx, domainName, groupName1, auditRef, group1);
+
+        Membership mbr = new Membership().setMemberName(ResourceUtils.groupResourceName(domainName, groupName1));
+        zms.putMembership(mockDomRsrcCtx, domainName, roleName1,
+                ResourceUtils.groupResourceName(domainName, groupName1), auditRef, mbr);
+
+        role = zms.getRole(mockDomRsrcCtx, domainName, roleName1, false, true, false);
+        assertNotNull(role);
+
+        members = role.getRoleMembers();
+        assertNotNull(members);
+        assertEquals(members.size(), 4);
+
+        checkList = new ArrayList<>();
+        checkList.add("user.joe");
+        checkList.add("user.jane");
+        checkList.add("user.joey");
+        checkList.add("user.moe");
+        checkRoleMember(checkList, members);
+
+        // now we're going to add another group with the same users from role and group1
+
+        Group group2 = createGroupObject(domainName, groupName2, "user.joey", "user.joe");
+        zms.putGroup(mockDomRsrcCtx, domainName, groupName2, auditRef, group2);
+
+        mbr = new Membership().setMemberName(ResourceUtils.groupResourceName(domainName, groupName2));
+        zms.putMembership(mockDomRsrcCtx, domainName, roleName1,
+                ResourceUtils.groupResourceName(domainName, groupName2), auditRef, mbr);
+
+        role = zms.getRole(mockDomRsrcCtx, domainName, roleName1, false, true, false);
+        assertNotNull(role);
+
+        members = role.getRoleMembers();
+        assertNotNull(members);
+        assertEquals(members.size(), 6);
+
+        // make sure joe and joey are listed twice
+
+        int joeCount = 0;
+        int joeyCount = 0;
+        for (RoleMember roleMember : members) {
+            switch (roleMember.getMemberName()) {
+                case "user.joe":
+                    joeCount += 1;
+                    break;
+                case "user.joey":
+                    joeyCount += 1;
+                    break;
+            }
+        }
+        assertEquals(2, joeCount);
+        assertEquals(2, joeyCount);
+
+        // now let's create a role member where the group has an expiry
+
+        Role role2 = createRoleObject(domainName, roleName2, null, "user.joe", "user.jane");
+        role2.getRoleMembers().add(new RoleMember()
+                .setMemberName(ResourceUtils.groupResourceName(domainName, groupName2))
+                .setExpiration(Timestamp.fromCurrentTime()));
+        zms.putRole(mockDomRsrcCtx, domainName, roleName2, auditRef, role2);
+
+        role = zms.getRole(mockDomRsrcCtx, domainName, roleName2, false, true, false);
+        assertNotNull(role);
+
+        members = role.getRoleMembers();
+        assertNotNull(members);
+        assertEquals(members.size(), 4);
+
+        // make sure joe is listed twice once with expiry and one
+        // without expiry
+
+        joeCount = 0;
+        int joeCountWithExpiry = 0;
+        for (RoleMember roleMember : members) {
+            if ("user.joe".equals(roleMember.getMemberName())) {
+                if (roleMember.getExpiration() == null) {
+                    joeCount += 1;
+                } else {
+                    joeCountWithExpiry += 1;
+                }
+            }
+        }
+        assertEquals(1, joeCount);
+        assertEquals(1, joeCountWithExpiry);
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 }
