@@ -3,7 +3,10 @@ repo_url: https://github.com/yahoo/athenz
 repo_name: GitHub
 site_description: Athenz User Guide
 strict: true
-theme: material
+theme:
+    name: material
+    favicon: 'images/favicon.ico'
+    logo: 'images/athenz-icon.png'
 extra_css: [extra.css]
 markdown_extensions:
   - codehilite
