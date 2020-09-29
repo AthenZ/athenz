@@ -138,7 +138,7 @@ func (cli Zms) dumpRole(buf *bytes.Buffer, role zms.Role, auditLog bool, indent1
 		indent3 := indent2 + "  - "
 		indent4 := indent2 + "    "
 		for _, memberItem := range role.RoleMembers {
-			buf.WriteString(indent3)
+			buf.WriteString(indent3 + "name: ")
 			cli.dumpUserName(buf, string(memberItem.MemberName), true)
 			if memberItem.Expiration != nil {
 				buf.WriteString("\n" + indent4 + "expiration: " + memberItem.Expiration.String())
