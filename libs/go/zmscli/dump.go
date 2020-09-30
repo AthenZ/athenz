@@ -203,7 +203,7 @@ func (cli Zms) dumpGroup(buf *bytes.Buffer, group zms.Group, auditLog bool, inde
 		indent3 := indent2 + "  - "
 		indent4 := indent2 + "    "
 		for _, memberItem := range group.GroupMembers {
-			buf.WriteString(indent3)
+			buf.WriteString(indent3 + "name: ")
 			cli.dumpUserName(buf, string(memberItem.MemberName), true)
 			if memberItem.Expiration != nil {
 				buf.WriteString("\n" + indent4 + "expiration: " + memberItem.Expiration.String())
