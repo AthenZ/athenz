@@ -19250,7 +19250,7 @@ public class ZMSImplTest {
         roleMembers.add(new RoleMember().setMemberName("coretech.backend").setPrincipalType(Principal.Type.SERVICE.getValue()));
 
         Role role = new Role().setRoleMembers(roleMembers);
-        zms.validateRoleMemberPrincipals(role, null, "unittest");
+        zms.validateRoleMemberPrincipals(role, null, false, "unittest");
 
         // enable user authority check
 
@@ -19264,13 +19264,27 @@ public class ZMSImplTest {
         roleMembers.add(new RoleMember().setMemberName("user.jane").setPrincipalType(Principal.Type.USER.getValue()));
         role.setRoleMembers(roleMembers);
 
-        zms.validateRoleMemberPrincipals(role, null, "unittest");
+        zms.validateRoleMemberPrincipals(role, null, false, "unittest");
 
         // add one more invalid user
 
         roleMembers.add(new RoleMember().setMemberName("user.john").setPrincipalType(Principal.Type.USER.getValue()));
         try {
-            zms.validateRoleMemberPrincipals(role, null, "unittest");
+            zms.validateRoleMemberPrincipals(role, null, false, "unittest");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        // do not allow any groups
+
+        roleMembers = new ArrayList<>();
+        roleMembers.add(new RoleMember().setMemberName("user.joe").setPrincipalType(Principal.Type.USER.getValue()));
+        roleMembers.add(new RoleMember().setMemberName("user.jane").setPrincipalType(Principal.Type.USER.getValue()));
+        roleMembers.add(new RoleMember().setMemberName("coretech:group.dev-team").setPrincipalType(Principal.Type.GROUP.getValue()));
+        role.setRoleMembers(roleMembers);
+        try {
+            zms.validateRoleMemberPrincipals(role, null, true, "unittest");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -19282,7 +19296,7 @@ public class ZMSImplTest {
         roleMembers.add(new RoleMember().setMemberName("unknown").setPrincipalType(Principal.Type.UNKNOWN.getValue()));
         role.setRoleMembers(roleMembers);
         try {
-            zms.validateRoleMemberPrincipals(role, null, "unittest");
+            zms.validateRoleMemberPrincipals(role, null, false, "unittest");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -19298,13 +19312,13 @@ public class ZMSImplTest {
 
         // valid users no exception
 
-        zms.validateRoleMemberPrincipal("user.joe", Principal.Type.USER.getValue(), null, null, null, "unittest");
-        zms.validateRoleMemberPrincipal("user.jane", Principal.Type.USER.getValue(), null, null, null, "unittest");
+        zms.validateRoleMemberPrincipal("user.joe", Principal.Type.USER.getValue(), null, null, null, false, "unittest");
+        zms.validateRoleMemberPrincipal("user.jane", Principal.Type.USER.getValue(), null, null, null, false, "unittest");
 
         // invalid user request error
 
         try {
-            zms.validateRoleMemberPrincipal("user.john", Principal.Type.USER.getValue(), null, null, null, "unittest");
+            zms.validateRoleMemberPrincipal("user.john", Principal.Type.USER.getValue(), null, null, null, false, "unittest");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -19313,31 +19327,31 @@ public class ZMSImplTest {
         // non - user principals by default are accepted
 
         zms.validateRoleMemberPrincipal("coretech.api", Principal.Type.SERVICE.getValue(),
-                null, null, null, "unittest");
+                null, null, null, false, "unittest");
 
         // valid employee and contractor users
 
         zms.validateRoleMemberPrincipal("user.joe", Principal.Type.USER.getValue(), "employee",
-                null, null, "unittest");
+                null, null, false, "unittest");
         zms.validateRoleMemberPrincipal("user.jane", Principal.Type.USER.getValue(), "employee",
-                null, null, "unittest");
+                null, null, false, "unittest");
         zms.validateRoleMemberPrincipal("user.jack", Principal.Type.USER.getValue(), "contractor",
-                null, null, "unittest");
+                null, null, false, "unittest");
 
         // valid multiple attribute users
 
         zms.validateRoleMemberPrincipal("user.joe", Principal.Type.USER.getValue(), "employee,local",
-                null, null, "unittest");
+                null, null, false, "unittest");
         zms.validateRoleMemberPrincipal("user.jane", Principal.Type.USER.getValue(), "employee,local",
-                null, null, "unittest");
+                null, null, false, "unittest");
         zms.validateRoleMemberPrincipal("user.jack", Principal.Type.USER.getValue(), "contractor,local",
-                null, null, "unittest");
+                null, null, false, "unittest");
 
         // invalid employee type
 
         try {
             zms.validateRoleMemberPrincipal("user.jack", Principal.Type.USER.getValue(), "employee",
-                    null, null, "unittest");
+                    null, null, false, "unittest");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -19347,7 +19361,7 @@ public class ZMSImplTest {
 
         try {
             zms.validateRoleMemberPrincipal("user.jack", Principal.Type.USER.getValue(), "local,employee",
-                    null, null, "unittest");
+                    null, null, false, "unittest");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -19364,15 +19378,15 @@ public class ZMSImplTest {
         // wildcards are always valid with no exception
 
         zms.validateRoleMemberPrincipal("athenz.api*", Principal.Type.SERVICE.getValue(),
-                null, null, null, "unittest");
+                null, null, null, false, "unittest");
         zms.validateRoleMemberPrincipal("coretech.*", Principal.Type.SERVICE.getValue(),
-                null, null, null, "unittest");
+                null, null, null, false, "unittest");
 
         // should get back invalid request since service does not exist
 
         try {
             zms.validateRoleMemberPrincipal("coretech.api", Principal.Type.SERVICE.getValue(), "employee",
-                    null, null, "unittest");
+                    null, null, false, "unittest");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -19382,7 +19396,7 @@ public class ZMSImplTest {
 
         try {
             zms.validateRoleMemberPrincipal("coretech", Principal.Type.SERVICE.getValue(),
-                    null, null, null, "unittest");
+                    null, null, null, false, "unittest");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -19405,13 +19419,13 @@ public class ZMSImplTest {
         // known service - no exception
 
         zms.validateRoleMemberPrincipal("coretech.api", Principal.Type.SERVICE.getValue(),
-                null, null,  null, "unittest");
+                null, null,  null, false, "unittest");
 
         // unknown service - exception
 
         try {
             zms.validateRoleMemberPrincipal("coretech.backend", Principal.Type.SERVICE.getValue(),
-                    null, null, null, "unittest");
+                    null, null, null, false, "unittest");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -19428,13 +19442,13 @@ public class ZMSImplTest {
         // coretech is now accepted
 
         zms.validateRoleMemberPrincipal("coretech.backend", Principal.Type.SERVICE.getValue(),
-                null, null, null, "unittest");
+                null, null, null, false, "unittest");
 
         // but coretech2 is rejected
 
         try {
             zms.validateRoleMemberPrincipal("coretech2.backend", Principal.Type.SERVICE.getValue(),
-                    null, null, null, "unittest");
+                    null, null, null, false, "unittest");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -19442,7 +19456,7 @@ public class ZMSImplTest {
 
         // user principals by default are accepted
 
-        zms.validateRoleMemberPrincipal("user.john", Principal.Type.USER.getValue(), null, null, null, "unittest");
+        zms.validateRoleMemberPrincipal("user.john", Principal.Type.USER.getValue(), null, null, null, false, "unittest");
 
         // reset our setting
 
@@ -24482,6 +24496,57 @@ public class ZMSImplTest {
         }
         assertEquals(1, joeCount);
         assertEquals(1, joeCountWithExpiry);
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testAdminRoleGroupRestriction() {
+
+        final String domainName = "role-with-group";
+        final String groupName1 = "dev-team";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", "user.user1");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Group group1 = createGroupObject(domainName, groupName1, "user.joey", "user.moe");
+        zms.putGroup(mockDomRsrcCtx, domainName, groupName1, auditRef, group1);
+
+        // we're not allowed to create top level domain with group members
+
+        TopLevelDomain dom2 = createTopLevelDomainObject(domainName, "Test Domain2", "testOrg",
+                "user.user1");
+        dom2.getAdminUsers().add(ResourceUtils.groupResourceName(domainName, groupName1));
+
+        try {
+            zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        // we should be not be allowed to update admin role
+
+        Role role1 = createRoleObject(domainName, "admin", null, "user.joe",
+                ResourceUtils.groupResourceName(domainName, groupName1));
+
+        try {
+            zms.putRole(mockDomRsrcCtx, domainName, "admin", auditRef, role1);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        // we should not be allowed to add groups to the admin role
+
+        Membership mbr = new Membership().setMemberName(ResourceUtils.groupResourceName(domainName, groupName1));
+        try {
+            zms.putMembership(mockDomRsrcCtx, domainName, "admin",
+                    ResourceUtils.groupResourceName(domainName, groupName1), auditRef, mbr);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
