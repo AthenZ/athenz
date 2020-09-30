@@ -204,8 +204,16 @@ export default class RoleMemberDetails extends React.Component {
     }
 
     loadRole() {
+        var expandDueToDelegate =
+            this.state.trust && this.state.trust.length > 0;
         this.props.api
-            .getRole(this.props.domain, this.props.role, true, true, true)
+            .getRole(
+                this.props.domain,
+                this.props.role,
+                true,
+                expandDueToDelegate,
+                true
+            )
             .then((role) => {
                 let justificationRequired =
                     this.props.justificationRequired ||
