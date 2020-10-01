@@ -15,6 +15,8 @@
  */
 package com.yahoo.athenz.common.metrics;
 
+import java.util.Map;
+
 public interface Metric {
 
     /**
@@ -22,7 +24,7 @@ public interface Metric {
      * @param metric Name of the counter
      */
     void increment(String metric);
-    
+
     /**
      * Increment the counter for the specified metric for the given domainName
      * @param metric Name of the counter
@@ -84,6 +86,15 @@ public interface Metric {
      */
     default void increment(String metric, String requestDomainName, String principalDomainName, String httpMethod, int httpStatus, String apiName) {
         increment(metric, requestDomainName);
+    }
+
+    /**
+     * Increment the counter for the specified metric with the specified attributes
+     * @param metric Name of the counter
+     * @param attributes Attributes for the metric (tags)
+     */
+    default void increment(String metric, Map<String, String> attributes) {
+        // No op
     }
 
     /**

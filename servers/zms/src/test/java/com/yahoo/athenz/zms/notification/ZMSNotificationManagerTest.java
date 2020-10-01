@@ -34,7 +34,7 @@ import static com.yahoo.athenz.common.ServerCommonConsts.USER_DOMAIN_PREFIX;
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.NOTIFICATION_PROP_SERVICE_FACTORY_CLASS;
 import static org.testng.Assert.*;
 
-public class NotificationManagerTest {
+public class ZMSNotificationManagerTest {
 
     @BeforeClass
     public void setUp() {
@@ -67,13 +67,19 @@ public class NotificationManagerTest {
     }
 
     public static NotificationManager getNotificationManager(DBService dbsvc, NotificationServiceFactory notificationServiceFactory) {
+        List<NotificationServiceFactory> notificationServiceFactories = (notificationServiceFactory == null) ?
+                null : Collections.singletonList(notificationServiceFactory);
+        return getNotificationManagerMultipleServices(dbsvc, notificationServiceFactories);
+    }
+
+    public static NotificationManager getNotificationManagerMultipleServices(DBService dbsvc, List<NotificationServiceFactory> notificationServiceFactories) {
         ZMSNotificationTaskFactory zmsNotificationTaskFactory = new ZMSNotificationTaskFactory(dbsvc, USER_DOMAIN_PREFIX);
         List<NotificationTask> notificationTasks = zmsNotificationTaskFactory.getNotificationTasks();
 
-        if (notificationServiceFactory == null) {
+        if (notificationServiceFactories == null) {
             return new NotificationManager(notificationTasks);
         }
-        return new NotificationManager(notificationServiceFactory, notificationTasks);
+        return new NotificationManager(notificationServiceFactories, notificationTasks);
     }
 
     @Test

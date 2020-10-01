@@ -80,6 +80,7 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import static com.yahoo.athenz.common.ServerCommonConsts.METRIC_DEFAULT_FACTORY_CLASS;
 import static com.yahoo.athenz.common.ServerCommonConsts.USER_DOMAIN_PREFIX;
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
 
@@ -802,7 +803,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     void loadMetricObject() {
 
         String metricFactoryClass = System.getProperty(ZMSConsts.ZMS_PROP_METRIC_FACTORY_CLASS,
-                ZMSConsts.ZMS_METRIC_FACTORY_CLASS);
+                METRIC_DEFAULT_FACTORY_CLASS);
         MetricFactory metricFactory;
         try {
             metricFactory = (MetricFactory) Class.forName(metricFactoryClass).newInstance();

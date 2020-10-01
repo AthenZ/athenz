@@ -562,7 +562,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     void loadMetricObject() {
         
         final String metricFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_METRIC_FACTORY_CLASS,
-                ZTSConsts.ZTS_METRIC_FACTORY_CLASS);
+                METRIC_DEFAULT_FACTORY_CLASS);
 
         MetricFactory metricFactory;
         try {
