@@ -44,56 +44,39 @@
   "provisioners": [
     {
       "type": "shell",
-      "execute_command": "echo {{user `ssh_username`}} | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
       "inline": [
-        "mkdir -p /opt",
-        "chmod a+w /opt"
-      ]
-    },
-    {
-      "type": "shell",
-      "execute_command": "echo {{user `ssh_username`}} | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
-      "inline": [
-        "mkdir -p /opt/zts/tars",
-        "mkdir -p /opt/zts/jars",
-        "mkdir -p /opt/zts/logs",
-        "mkdir -p /opt/zts/domains",
-        "mkdir -p /opt/zts/webapps",
-        "mkdir -p /opt/zts/etc",
-        "mkdir -p /opt/zts/bin",
-        "mkdir -p /opt/zts/temp",
-        "mkdir -p /opt/zts/service",
-        "mkdir -p /opt/zts/conf",
-        "mkdir /var/log/zts_server",
-        "chmod 777 /opt/zts -R"
+        "mkdir -p /tmp/zts/tars",
+        "mkdir -p /tmp/zts/jars",
+        "mkdir -p /tmp/zts/logs",
+        "mkdir -p /tmp/zts/domains",
+        "mkdir -p /tmp/zts/webapps",
+        "mkdir -p /tmp/zts/etc",
+        "mkdir -p /tmp/zts/bin",
+        "mkdir -p /tmp/zts/temp",
+        "mkdir -p /tmp/zts/service",
+        "mkdir -p /tmp/zts/conf",
+        "mkdir /var/log/zts_server"
       ]
     },
     {
       "type": "file",
       "source": "build/bin/",
-      "destination": "/opt/zts/bin/"
+      "destination": "/tmp/zts/bin/"
     },
     {
       "type": "file",
       "source": "build/conf/",
-      "destination": "/opt/zts/conf/"
+      "destination": "/tmp/zts/conf/"
     },
     {
       "type": "file",
       "source": "build/service/",
-      "destination": "/opt/zts/service"
+      "destination": "/tmp/zts/service"
     },
     {
       "type": "file",
       "source": "tars/",
-      "destination": "/opt/zts/tars/"
-    },
-    {
-      "type": "shell",
-      "execute_command": "echo {{user `ssh_username`}} | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
-      "inline": [
-        "ls -ltr /opt/"
-      ]
+      "destination": "/tmp/zts/tars/"
     },
     {
       "type": "shell",

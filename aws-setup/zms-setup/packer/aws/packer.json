@@ -43,56 +43,39 @@
   "provisioners": [
     {
       "type": "shell",
-      "execute_command": "echo {{user `ssh_username`}} | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
       "inline": [
-        "mkdir -p /opt",
-        "chmod a+w /opt"
-      ]
-    },
-    {
-      "type": "shell",
-      "execute_command": "echo {{user `ssh_username`}} | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
-      "inline": [
-        "mkdir -p /opt/zms/tars",
-        "mkdir -p /opt/zms/jars",
-        "mkdir -p /opt/zms/logs",
-        "mkdir -p /opt/zms/webapps",
-        "mkdir -p /opt/zms/etc",
-        "mkdir -p /opt/zms/bin",
-        "mkdir -p /opt/zms/temp",
-        "mkdir -p /opt/zms/service",
-        "mkdir -p /opt/zms/conf",
-        "mkdir -p /opt/zms/conf/zms_server",
-        "mkdir /var/log/zms_server",
-        "chmod 777 /opt/zms -R"
+        "mkdir -p /tmp/zms/tars",
+        "mkdir -p /tmp/zms/jars",
+        "mkdir -p /tmp/zms/logs",
+        "mkdir -p /tmp/zms/webapps",
+        "mkdir -p /tmp/zms/etc",
+        "mkdir -p /tmp/zms/bin",
+        "mkdir -p /tmp/zms/temp",
+        "mkdir -p /tmp/zms/service",
+        "mkdir -p /tmp/zms/conf/zms_server",
+        "mkdir -p /tmp/zms/conf",
+        "mkdir /var/log/zms_server"
       ]
     },
     {
       "type": "file",
       "source": "build/bin/",
-      "destination": "/opt/zms/bin/"
+      "destination": "/tmp/zms/bin/"
     },
     {
       "type": "file",
       "source": "build/conf/",
-      "destination": "/opt/zms/conf/"
+      "destination": "/tmp/zms/conf/"
     },
     {
       "type": "file",
       "source": "build/service/",
-      "destination": "/opt/zms/service"
+      "destination": "/tmp/zms/service"
     },
     {
       "type": "file",
       "source": "tars/",
-      "destination": "/opt/zms/tars/"
-    },
-    {
-      "type": "shell",
-      "execute_command": "echo {{user `ssh_username`}} | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
-      "inline": [
-        "ls -ltr /opt/"
-      ]
+      "destination": "/tmp/zms/tars/"
     },
     {
       "type": "shell",

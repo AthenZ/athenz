@@ -6,7 +6,6 @@ set -xe
 sudo yum repolist
 sudo yum -y install epel-release
 
-
 # install aws_cli
 
 echo "install aws"
@@ -24,10 +23,18 @@ sudo yum -y install --disablerepo=* --enablerepo=nodesource nodejs
 sudo groupadd athenz
 sudo useradd -g athenz athenz-ui
 
+# move our files out of temp
+
+sudo mv /tmp/athenz-ui /opt/
+
+# extract our package
+
+sudo tar -xzf /opt/athenz-ui/tars/athenz-ui-bin.tar.gz -C /opt/
+
 # setup our ui service
 
 sudo mkdir /etc/ui
-sudo cp /opt/athenz-ui/ui.service /etc/ui/ui.service
+sudo cp /opt/athenz-ui/service/ui.service /etc/ui/ui.service
 sudo systemctl enable /etc/ui/ui.service
 sudo cp /opt/athenz-ui/conf/ui-user /etc/sudoers.d/
 

@@ -44,49 +44,33 @@
   "provisioners": [
     {
       "type": "shell",
-      "execute_command": "echo {{user `ssh_username`}} | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
       "inline": [
-        "mkdir -p /opt",
-        "chmod a+w /opt"
+        "mkdir -p /tmp/athenz-ui/tars",
+        "mkdir -p /tmp/athenz-ui/conf",
+        "mkdir -p /tmp/athenz-ui/logs",
+        "mkdir -p /tmp/athenz-ui/bin",
+        "mkdir -p /tmp/athenz-ui/service"
       ]
     },
     {
       "type": "file",
       "source": "tars/",
-      "destination": "/opt/"
-    },
-    {
-      "type": "shell",
-      "execute_command": "echo {{user `ssh_username`}} | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
-      "inline": [
-        "sudo tar -xzf /opt/athenz-ui-bin.tar.gz -C /opt/",
-        "sudo chmod 777 /opt/athenz-ui",
-        "mkdir -p /opt/athenz-ui/conf",
-        "mkdir -p /opt/athenz-ui/logs",
-        "sudo chmod 777 /opt/athenz-ui -R"
-      ]
+      "destination": "/tmp/athenz-ui/tars/"
     },
     {
       "type": "file",
       "source": "build/bin/",
-      "destination": "/opt/athenz-ui/bin/"
+      "destination": "/tmp/athenz-ui/bin/"
     },
     {
       "type": "file",
       "source": "build/conf/",
-      "destination": "/opt/athenz-ui/conf/"
+      "destination": "/tmp/athenz-ui/conf/"
     },
     {
-    "type": "file",
-    "source": "build/service/",
-    "destination": "/opt/athenz-ui/"
-    },
-    {
-      "type": "shell",
-      "execute_command": "echo {{user `ssh_username`}} | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
-      "inline": [
-        "ls -ltr /opt/"
-      ]
+      "type": "file",
+      "source": "build/service/",
+      "destination": "/tmp/athenz-ui/service/"
     },
     {
       "type": "shell",
