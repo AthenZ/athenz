@@ -36,6 +36,8 @@ public final class ServerCommonConsts {
     public static final String PROP_ATHENZ_CONF             = "athenz.athenz_conf";
     public static final String ZTS_PROP_FILE_NAME           = "athenz.zts.prop_file";
 
+    public static final String METRIC_DEFAULT_FACTORY_CLASS = "com.yahoo.athenz.common.metrics.impl.NoOpMetricFactory";
+
     // for tests
     public static final String ZTS_PROP_AWS_PUBLIC_CERT = "athenz.zts.aws_public_cert";
 
