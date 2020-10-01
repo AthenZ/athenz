@@ -1446,7 +1446,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // to be the home domain and the admin of the domain is the user
 
         final String userDomainAdmin = userDomainPrefix + principal.getName();
-        validateRoleMemberPrincipal(userDomainAdmin, Principal.Type.USER.getValue(), null, null, null, caller);
+        validateRoleMemberPrincipal(userDomainAdmin, Principal.Type.USER.getValue(), null, null, null, true, caller);
 
         List<String> adminUsers = new ArrayList<>();
         adminUsers.add(userDomainAdmin);
@@ -2934,7 +2934,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // now go through the list and make sure they're all valid
 
         for (String admin : normalizedAdmins) {
-            validateRoleMemberPrincipal(admin, principalType(admin), domainUserAuthorityFilter, null, null, caller);
+            validateRoleMemberPrincipal(admin, principalType(admin), domainUserAuthorityFilter, null, null, true, caller);
         }
 
         return new ArrayList<>(normalizedAdmins);
@@ -3047,14 +3047,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         roleName = roleName.toLowerCase();
         AthenzObject.ROLE.convertToLowerCase(role);
 
-        // validate the user authority settings if they're provided
-
-        validateUserAuthorityAttributes(role.getUserAuthorityFilter(), role.getUserAuthorityExpiration(), caller);
-
-        // verify that request is properly authenticated for this request
-
-        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
-
         // verify the role name in the URI and request are consistent
 
         if (!isConsistentRoleName(domainName, roleName, role)) {
@@ -3062,6 +3054,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     + ZMSUtils.roleResourceName(domainName, roleName) + ", actual: "
                     + role.getName(), caller);
         }
+
+        // validate the user authority settings if they're provided
+
+        validateUserAuthorityAttributes(role.getUserAuthorityFilter(), role.getUserAuthorityExpiration(), caller);
+
+        // verify that request is properly authenticated for this request
+
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
 
         Domain domain = dbService.getDomain(domainName, false);
         if (domain == null) {
@@ -3077,9 +3077,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         normalizeRoleMembers(role);
 
         // check to see if we need to validate user and service members
-        // and possibly user authority filter restrictions
+        // and possibly user authority filter restrictions. For the
+        // admin role we're not going to allow any group members to
+        // enforce least privilege access where specific users must
+        // be specified as members.
 
-        validateRoleMemberPrincipals(role, domain.getUserAuthorityFilter(), caller);
+        boolean disallowGroups = ADMIN_ROLE_NAME.equals(roleName);
+        validateRoleMemberPrincipals(role, domain.getUserAuthorityFilter(), disallowGroups, caller);
 
         // if the role is review enabled then it cannot contain
         // role members as we want review and audit enabled roles
@@ -3146,7 +3150,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
 
-    void validateRoleMemberPrincipals(final Role role, final String domainUserAuthorityFilter, final String caller) {
+    void validateRoleMemberPrincipals(final Role role, final String domainUserAuthorityFilter, boolean disallowGroups,
+                                      final String caller) {
 
         // extract the user authority filter for the role
 
@@ -3155,7 +3160,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         for (RoleMember roleMember : role.getRoleMembers()) {
             validateRoleMemberPrincipal(roleMember.getMemberName(), roleMember.getPrincipalType(),
-                    userAuthorityFilter, role.getUserAuthorityExpiration(), role.getAuditEnabled(), caller);
+                    userAuthorityFilter, role.getUserAuthorityExpiration(), role.getAuditEnabled(),
+                    disallowGroups, caller);
         }
     }
 
@@ -3261,7 +3267,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     void validateRoleMemberPrincipal(final String memberName, int principalType, final String userAuthorityFilter,
-                                     final String userAuthorityExpiration, Boolean roleAuditEnabled, final String caller) {
+                                     final String userAuthorityExpiration, Boolean roleAuditEnabled,
+                                     boolean disallowGroups, final String caller) {
 
         switch (Principal.Type.getType(principalType)) {
 
@@ -3288,6 +3295,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 break;
 
             case GROUP:
+
+                if (disallowGroups) {
+                    throw ZMSUtils.requestError("Group principals are not allowed in the role", caller);
+                }
 
                 validateGroupPrincipal(memberName, userAuthorityFilter, userAuthorityExpiration, roleAuditEnabled, caller);
                 break;
@@ -3605,8 +3616,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         final String userAuthorityFilter = enforcedUserAuthorityFilter(role.getUserAuthorityFilter(),
                 domain.getDomain().getUserAuthorityFilter());
+        boolean disallowGroups = ADMIN_ROLE_NAME.equals(roleName);
         validateRoleMemberPrincipal(roleMember.getMemberName(), roleMember.getPrincipalType(), userAuthorityFilter,
-                role.getUserAuthorityExpiration(), role.getAuditEnabled(), caller);
+                role.getUserAuthorityExpiration(), role.getAuditEnabled(), disallowGroups, caller);
 
         // authorization check which also automatically updates
         // the active and approved flags for the request
@@ -7662,8 +7674,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
             final String userAuthorityFilter = enforcedUserAuthorityFilter(role.getUserAuthorityFilter(),
                     domain.getDomain().getUserAuthorityFilter());
+            boolean disallowGroups = ADMIN_ROLE_NAME.equals(roleName);
             validateRoleMemberPrincipal(roleMember.getMemberName(), roleMember.getPrincipalType(),
-                    userAuthorityFilter, role.getUserAuthorityExpiration(), role.getAuditEnabled(), caller);
+                    userAuthorityFilter, role.getUserAuthorityExpiration(), role.getAuditEnabled(),
+                    disallowGroups, caller);
         }
 
         dbService.executePutMembershipDecision(ctx, domainName, roleName, roleMember, auditRef, caller);
