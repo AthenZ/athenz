@@ -47,9 +47,11 @@ public class RoleMemberNotificationCommonTest {
                 members,
                 new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter(),
                 new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter(),
-                new RoleMemberExpiryNotificationTask.ExpiryRoleMemberDetailStringer());
+                new RoleMemberExpiryNotificationTask.ExpiryRoleMemberDetailStringer(),
+                "testNotification");
         assertEquals(1, notification.size());
         assertTrue(notification.get(0).getDetails().isEmpty());
+        assertEquals(notification.get(0).getType(), "testNotification");
 
         // Verify the same result when setting the memberRoles to an empty collection
         roleMember.setMemberRoles(Collections.emptyList());
@@ -57,10 +59,11 @@ public class RoleMemberNotificationCommonTest {
                 members,
                 new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter(),
                 new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter(),
-                new RoleMemberExpiryNotificationTask.ExpiryRoleMemberDetailStringer());
+                new RoleMemberExpiryNotificationTask.ExpiryRoleMemberDetailStringer(),
+                "testNotification");
         assertEquals(1, notification.size());
         assertTrue(notification.get(0).getDetails().isEmpty());
-
+        assertEquals(notification.get(0).getType(), "testNotification");
 
         final Timestamp expirationTs = Timestamp.fromMillis(100);
         final Timestamp reviewTs = Timestamp.fromMillis(50);
@@ -74,10 +77,12 @@ public class RoleMemberNotificationCommonTest {
                 members,
                 new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter(),
                 new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter(),
-                new RoleMemberExpiryNotificationTask.ExpiryRoleMemberDetailStringer());
+                new RoleMemberExpiryNotificationTask.ExpiryRoleMemberDetailStringer(),
+                "testNotification");
 
         assertEquals(1, notification.size());
         assertEquals(2, notification.get(0).getDetails().size());
+        assertEquals(notification.get(0).getType(), "testNotification");
 
         assertEquals(notification.get(0).getDetails().get(NOTIFICATION_DETAILS_ROLES_LIST),
                 "athenz1;role1;" + expirationTs);
@@ -92,8 +97,10 @@ public class RoleMemberNotificationCommonTest {
                 members,
                 new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter(),
                 new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter(),
-                new RoleMemberExpiryNotificationTask.ExpiryRoleMemberDetailStringer());
+                new RoleMemberExpiryNotificationTask.ExpiryRoleMemberDetailStringer(),
+                "testNotification");
 
+        assertEquals(notification.get(0).getType(), "testNotification");
         assertEquals(1, notification.size());
         assertEquals(2, notification.get(0).getDetails().size());
         assertEquals(notification.get(0).getDetails().get(NOTIFICATION_DETAILS_ROLES_LIST),
@@ -117,9 +124,11 @@ public class RoleMemberNotificationCommonTest {
                 members,
                 new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter(),
                 new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToEmailConverter(),
-                new RoleMemberReviewNotificationTask.ReviewRoleMemberDetailStringer());
+                new RoleMemberReviewNotificationTask.ReviewRoleMemberDetailStringer(),
+                "testNotification");
         assertEquals(1, notification.size());
         assertTrue(notification.get(0).getDetails().isEmpty());
+        assertEquals(notification.get(0).getType(), "testNotification");
 
         // Verify the same result when setting the memberRoles to an empty collection
         roleMember.setMemberRoles(Collections.emptyList());
@@ -127,9 +136,11 @@ public class RoleMemberNotificationCommonTest {
                 members,
                 new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter(),
                 new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToEmailConverter(),
-                new RoleMemberReviewNotificationTask.ReviewRoleMemberDetailStringer());
+                new RoleMemberReviewNotificationTask.ReviewRoleMemberDetailStringer(),
+                "testNotification");
         assertEquals(1, notification.size());
         assertTrue(notification.get(0).getDetails().isEmpty());
+        assertEquals(notification.get(0).getType(), "testNotification");
 
 
         final Timestamp expirationTs = Timestamp.fromMillis(100);
@@ -144,8 +155,10 @@ public class RoleMemberNotificationCommonTest {
                 members,
                 new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter(),
                 new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToEmailConverter(),
-                new RoleMemberReviewNotificationTask.ReviewRoleMemberDetailStringer());
+                new RoleMemberReviewNotificationTask.ReviewRoleMemberDetailStringer(),
+                "testNotification");
 
+        assertEquals(notification.get(0).getType(), "testNotification");
         assertEquals(1, notification.size());
         assertEquals(2, notification.get(0).getDetails().size());
 
@@ -162,8 +175,10 @@ public class RoleMemberNotificationCommonTest {
                 members,
                 new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter(),
                 new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToEmailConverter(),
-                new RoleMemberReviewNotificationTask.ReviewRoleMemberDetailStringer());
+                new RoleMemberReviewNotificationTask.ReviewRoleMemberDetailStringer(),
+                "testNotification");
 
+        assertEquals(notification.get(0).getType(), "testNotification");
         assertEquals(1, notification.size());
         assertEquals(2, notification.get(0).getDetails().size());
         String expectedRolesList = "athenz1;role1;" + reviewTs +

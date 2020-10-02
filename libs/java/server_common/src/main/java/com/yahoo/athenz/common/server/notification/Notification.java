@@ -26,16 +26,11 @@ public class Notification {
     // key value pair describing additional details about notification
     private Map<String, String> details;
 
+    // Type of notification
+    private String type;
+
     // Utility class to convert the notification into an email
     private NotificationToEmailConverter notificationToEmailConverter;
-
-    public Notification (Set<String> recipients,
-                         Map<String, String> details,
-                         NotificationToEmailConverter notificationToEmailConverter) {
-        this.recipients = recipients;
-        this.details = details;
-        this.notificationToEmailConverter = notificationToEmailConverter;
-    }
 
     public Notification () {
     }
@@ -77,6 +72,15 @@ public class Notification {
         return this;
     }
 
+    public String getType() {
+        return type;
+    }
+
+    public Notification setType(String type) {
+        this.type = type;
+        return this;
+    }
+
     public Notification setNotificationToEmailConverter(NotificationToEmailConverter notificationToEmailConverter) {
         this.notificationToEmailConverter = notificationToEmailConverter;
         return this;
@@ -89,7 +93,6 @@ public class Notification {
         return null;
     }
 
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -101,12 +104,13 @@ public class Notification {
         Notification that = (Notification) o;
         return  Objects.equals(getRecipients(), that.getRecipients()) &&
                 Objects.equals(getDetails(), that.getDetails()) &&
+                Objects.equals(getType(), that.getType()) &&
                 Objects.equals(getNotificationAsEmail(), that.getNotificationAsEmail());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getRecipients(), getDetails(), getNotificationAsEmail());
+        return Objects.hash(getRecipients(), getDetails(), getType(), getNotificationAsEmail());
     }
 
     @Override
@@ -116,7 +120,8 @@ public class Notification {
             emailConverterClassName = notificationToEmailConverter.getClass().getName();
         }
         return "Notification{" +
-                "recipients=" + recipients +
+                "type=" + type +
+                ", recipients=" + recipients +
                 ", details=" + details +
                 ", emailConverterClass=" + emailConverterClassName +
                 '}';

@@ -37,6 +37,7 @@ public class PutGroupMembershipNotificationTask implements NotificationTask {
     private final Map<String, String> details;
     private final NotificationCommon notificationCommon;
     private final static String DESCRIPTION = "Group Membership Approval Notification";
+    private final static String NOTIFICATION_TYPE = "group_membership_approval";
     private final PutGroupMembershipNotificationToEmailConverter putGroupMembershipNotificationToEmailConverter;
 
     public PutGroupMembershipNotificationTask(String domain, String org, Group group, Map<String, String> details, DBService dbService, String userDomainPrefix) {
@@ -95,7 +96,8 @@ public class PutGroupMembershipNotificationTask implements NotificationTask {
         return Collections.singletonList(notificationCommon.createNotification(
                 recipients,
                 details,
-                putGroupMembershipNotificationToEmailConverter));
+                putGroupMembershipNotificationToEmailConverter,
+                NOTIFICATION_TYPE));
     }
 
     @Override

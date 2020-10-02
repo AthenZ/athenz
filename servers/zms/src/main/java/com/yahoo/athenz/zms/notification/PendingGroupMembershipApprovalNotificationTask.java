@@ -33,6 +33,7 @@ public class PendingGroupMembershipApprovalNotificationTask implements Notificat
     private final String monitorIdentity;
     private final NotificationCommon notificationCommon;
     private final static String DESCRIPTION = "pending group membership approvals reminders";
+    private final static String NOTIFICATION_TYPE = "pending_group_membership_approval";
     private final PendingGroupMembershipApprovalNotificationToEmailConverter pendingMembershipApprovalNotificationToEmailConverter;
 
     public PendingGroupMembershipApprovalNotificationTask(DBService dbService, int pendingGroupMemberLifespan, String monitorIdentity, String userDomainPrefix) {
@@ -51,7 +52,8 @@ public class PendingGroupMembershipApprovalNotificationTask implements Notificat
         return Collections.singletonList(notificationCommon.createNotification(
                 recipients,
                 null,
-                pendingMembershipApprovalNotificationToEmailConverter));
+                pendingMembershipApprovalNotificationToEmailConverter,
+                NOTIFICATION_TYPE));
     }
 
     @Override

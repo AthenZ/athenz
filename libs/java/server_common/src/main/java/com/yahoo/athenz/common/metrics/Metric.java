@@ -22,7 +22,7 @@ public interface Metric {
      * @param metric Name of the counter
      */
     void increment(String metric);
-    
+
     /**
      * Increment the counter for the specified metric for the given domainName
      * @param metric Name of the counter
@@ -84,6 +84,15 @@ public interface Metric {
      */
     default void increment(String metric, String requestDomainName, String principalDomainName, String httpMethod, int httpStatus, String apiName) {
         increment(metric, requestDomainName);
+    }
+
+    /**
+     * Increment the counter for the specified metric with the specified attributes
+     * @param metric Name of the counter
+     * @param attributes a sorted array of tag key-value pairs in a flattened array
+     */
+    default void increment(String metric, final String... attributes) {
+        // No op
     }
 
     /**

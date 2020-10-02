@@ -31,7 +31,7 @@ import java.util.Map;
 import static com.yahoo.athenz.common.ServerCommonConsts.USER_DOMAIN_PREFIX;
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.NOTIFICATION_DETAILS_MEMBERS_LIST;
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.NOTIFICATION_DETAILS_ROLES_LIST;
-import static com.yahoo.athenz.zms.notification.NotificationManagerTest.getNotificationManager;
+import static com.yahoo.athenz.zms.notification.ZMSNotificationManagerTest.getNotificationManager;
 import static org.mockito.ArgumentMatchers.any;
 import static org.testng.Assert.*;
 
@@ -133,12 +133,14 @@ public class GroupMemberExpiryNotificationTaskTest {
         expectedFirstNotification.addDetails(NOTIFICATION_DETAILS_ROLES_LIST, "athenz1;group1;1970-01-01T00:00:00.100Z");
         expectedFirstNotification.addDetails("member", "user.joe");
         expectedFirstNotification.setNotificationToEmailConverter(new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToEmailConverter());
+        expectedFirstNotification.setType("group_membership_expiry");
 
         Notification expectedSecondNotification = new Notification();
         expectedSecondNotification.addRecipient("user.jane");
         expectedSecondNotification.addDetails(NOTIFICATION_DETAILS_MEMBERS_LIST, "user.joe;group1;1970-01-01T00:00:00.100Z");
         expectedSecondNotification.addDetails("domain", "athenz1");
         expectedSecondNotification.setNotificationToEmailConverter(new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToEmailConverter());
+        expectedSecondNotification.setType("group_membership_expiry");
 
         assertEquals(notifications.get(0), expectedFirstNotification);
         assertEquals(notifications.get(1), expectedSecondNotification);

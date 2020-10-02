@@ -185,6 +185,7 @@ public class AWSEmailProviderTest {
                 return new NotificationEmail(subject, body, new HashSet<>());
             }
         };
+        notification.setType("testNotification");
 
         notification.setNotificationToEmailConverter(notificationToEmailConverter);
         boolean status = svc.notify(notification);

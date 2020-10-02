@@ -29,6 +29,7 @@ import static com.yahoo.athenz.common.server.notification.NotificationServiceCon
 
 public class AWSZTSHealthNotificationTask implements NotificationTask {
     private final static String DESCRIPTION = "ZTS On AWS Health Notification";
+    private final static String NOTIFICATION_TYPE = "aws_zts_health";
     private final NotificationCommon notificationCommon;
     private final ZTSClientNotification ztsClientNotification;
     private final String serverName;
@@ -57,7 +58,8 @@ public class AWSZTSHealthNotificationTask implements NotificationTask {
         Notification notification = notificationCommon.createNotification(
                 ResourceUtils.roleResourceName(athenzAdminDomain, ADMIN_ROLE_NAME),
                 details,
-                awsZTSHealthNotificationToEmailConverter);
+                awsZTSHealthNotificationToEmailConverter,
+                NOTIFICATION_TYPE);
         if (notification != null) {
             notificationList.add(notification);
         }

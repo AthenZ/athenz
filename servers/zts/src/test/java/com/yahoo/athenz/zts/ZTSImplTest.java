@@ -92,8 +92,7 @@ import com.yahoo.athenz.zts.utils.ZTSUtils;
 import com.yahoo.rdl.Schema;
 import com.yahoo.rdl.Timestamp;
 
-import static com.yahoo.athenz.common.ServerCommonConsts.PROP_ATHENZ_CONF;
-import static com.yahoo.athenz.common.ServerCommonConsts.ZTS_PROP_FILE_NAME;
+import static com.yahoo.athenz.common.ServerCommonConsts.*;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.times;
@@ -158,7 +157,7 @@ public class ZTSImplTest {
         MockitoAnnotations.initMocks(this);
         Mockito.when(mockServletRequest.getRemoteAddr()).thenReturn(MOCKCLIENTADDR);
         
-        System.setProperty(ZTSConsts.ZTS_PROP_METRIC_FACTORY_CLASS, ZTSConsts.ZTS_METRIC_FACTORY_CLASS);
+        System.setProperty(ZTSConsts.ZTS_PROP_METRIC_FACTORY_CLASS, METRIC_DEFAULT_FACTORY_CLASS);
         System.setProperty(ZTSConsts.ZTS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
                 "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory");
         System.setProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_FACTORY_CLASS,
@@ -295,7 +294,7 @@ public class ZTSImplTest {
                 Class.forName(System.getProperty(ZTSConsts.ZTS_PROP_METRIC_FACTORY_CLASS)).newInstance();
             metric = metricFactory.create();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException exc) {
-            System.out.println("Invalid MetricFactory class: " + ZTSConsts.ZTS_METRIC_FACTORY_CLASS
+            System.out.println("Invalid MetricFactory class: " + METRIC_DEFAULT_FACTORY_CLASS
                     + " error: " + exc.getMessage());
             metric = new com.yahoo.athenz.common.metrics.impl.NoOpMetric();
         }

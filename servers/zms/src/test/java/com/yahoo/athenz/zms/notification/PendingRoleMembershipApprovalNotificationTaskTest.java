@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.USER_DOMAIN_PREFIX;
-import static com.yahoo.athenz.zms.notification.NotificationManagerTest.getNotificationManager;
+import static com.yahoo.athenz.zms.notification.ZMSNotificationManagerTest.getNotificationManager;
 import static org.testng.Assert.*;
 import static org.testng.Assert.assertFalse;
 
@@ -60,6 +60,7 @@ public class PendingRoleMembershipApprovalNotificationTaskTest {
         Notification expectedNotification = new Notification();
         expectedNotification.setNotificationToEmailConverter(new PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToEmailConverter());
         expectedNotification.addRecipient("user.joe");
+        expectedNotification.setType("pending_role_membership_approval");
         assertEquals(notifications.get(0), expectedNotification);
         notificationManager.shutdown();
     }

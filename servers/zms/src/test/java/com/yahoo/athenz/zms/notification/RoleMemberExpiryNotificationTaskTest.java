@@ -27,7 +27,7 @@ import java.util.*;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.USER_DOMAIN_PREFIX;
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
-import static com.yahoo.athenz.zms.notification.NotificationManagerTest.getNotificationManager;
+import static com.yahoo.athenz.zms.notification.ZMSNotificationManagerTest.getNotificationManager;
 import static org.mockito.ArgumentMatchers.any;
 import static org.testng.Assert.*;
 
@@ -131,12 +131,14 @@ public class RoleMemberExpiryNotificationTaskTest {
         expectedFirstNotification.addDetails(NOTIFICATION_DETAILS_ROLES_LIST, "athenz1;role1;1970-01-01T00:00:00.100Z");
         expectedFirstNotification.addDetails("member", "user.joe");
         expectedFirstNotification.setNotificationToEmailConverter(new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter());
+        expectedFirstNotification.setType("role_membership_expiry");
 
         Notification expectedSecondNotification = new Notification();
         expectedSecondNotification.addRecipient("user.jane");
         expectedSecondNotification.addDetails(NOTIFICATION_DETAILS_MEMBERS_LIST, "user.joe;role1;1970-01-01T00:00:00.100Z");
         expectedSecondNotification.addDetails("domain", "athenz1");
         expectedSecondNotification.setNotificationToEmailConverter(new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter());
+        expectedSecondNotification.setType("role_membership_expiry");
 
         assertEquals(notifications.get(0), expectedFirstNotification);
         assertEquals(notifications.get(1), expectedSecondNotification);

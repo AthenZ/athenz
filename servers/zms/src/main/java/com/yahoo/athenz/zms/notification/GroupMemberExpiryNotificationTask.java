@@ -32,6 +32,7 @@ public class GroupMemberExpiryNotificationTask implements NotificationTask {
     private final NotificationCommon notificationCommon;
     private static final Logger LOGGER = LoggerFactory.getLogger(GroupMemberExpiryNotificationTask.class);
     private final static String DESCRIPTION = "group membership expiration reminders";
+    private final static String NOTIFICATION_TYPE = "group_membership_expiry";
     private final GroupExpiryDomainNotificationToEmailConverter groupExpiryDomainNotificationToEmailConverter;
     private final GroupExpiryPrincipalNotificationToEmailConverter groupExpiryPrincipalNotificationToEmailConverter;
 
@@ -160,7 +161,7 @@ public class GroupMemberExpiryNotificationTask implements NotificationTask {
 
             Map<String, String> details = processGroupReminder(domainAdminMap, groupMember);
             Notification notification = notificationCommon.createNotification(
-                    groupMember.getMemberName(), details, principalNotificationToEmailConverter);
+                    groupMember.getMemberName(), details, principalNotificationToEmailConverter, NOTIFICATION_TYPE);
             if (notification != null) {
                 notificationList.add(notification);
             }
@@ -173,7 +174,7 @@ public class GroupMemberExpiryNotificationTask implements NotificationTask {
             Map<String, String> details = processMemberReminder(domainAdmin.getKey(), domainAdmin.getValue());
             Notification notification = notificationCommon.createNotification(
                     ZMSUtils.roleResourceName(domainAdmin.getKey(), ADMIN_ROLE_NAME),
-                    details, domainAdminNotificationToEmailConverter);
+                    details, domainAdminNotificationToEmailConverter, NOTIFICATION_TYPE);
             if (notification != null) {
                 notificationList.add(notification);
             }

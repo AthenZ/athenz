@@ -46,6 +46,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.*;
 
+import static com.yahoo.athenz.common.ServerCommonConsts.METRIC_DEFAULT_FACTORY_CLASS;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
@@ -171,7 +172,7 @@ public class ZMSImplTest {
         Mockito.when(mockServletRequest.getMethod()).thenReturn("GET");
         
         System.setProperty(ZMSConsts.ZMS_PROP_FILE_NAME, "src/test/resources/zms.properties");
-        System.setProperty(ZMSConsts.ZMS_PROP_METRIC_FACTORY_CLASS, ZMSConsts.ZMS_METRIC_FACTORY_CLASS);
+        System.setProperty(ZMSConsts.ZMS_PROP_METRIC_FACTORY_CLASS, METRIC_DEFAULT_FACTORY_CLASS);
         System.setProperty(ZMSConsts.ZMS_PROP_PROVIDER_ENDPOINTS, ".athenzcompany.com");
         System.setProperty(ZMSConsts.ZMS_PROP_MASTER_COPY_FOR_SIGNED_DOMAINS, "true");
 
@@ -19621,6 +19622,7 @@ public class ZMSImplTest {
         expextedNotifications.get(0).addDetails("domain", "testdomain1");
         expextedNotifications.get(0).addDetails("member", "user.fury");
         expextedNotifications.get(0).setNotificationToEmailConverter(new PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter());
+        expextedNotifications.get(0).setType("role_membership_approval");
 
         Mockito.verify(mockNotificationManager,
                 times(1)).sendNotifications(eq(expextedNotifications));
