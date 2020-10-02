@@ -2220,6 +2220,17 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   audit-enabled : enable/disable audit flag for the group\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " set-group-audit-enabled readers true\n")
+	case "set-group-review-enabled":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " set-group-review-enabled group review-enabled\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain        : name of the domain that group belongs to\n")
+		}
+		buf.WriteString("   group    : name of the group to be modified\n")
+		buf.WriteString("   review-enabled : enable/disable review flag for the group\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " set-group-review-enabled readers true\n")
 	case "set-group-notify-roles":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " set-group-notify-roles group rolename[,rolename...]]\n")
@@ -2389,6 +2400,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   list-domain-group-members\n")
 	buf.WriteString("   delete-group group\n")
 	buf.WriteString("   set-group-audit-enabled group audit-enabled\n")
+	buf.WriteString("   set-group-review-enabled group review-enabled\n")
 	buf.WriteString("   set-group-self-serve group self-serve\n")
 	buf.WriteString("   set-group-notify-roles group rolename[,rolename...]\n")
 	buf.WriteString("   set-group-user-authority-filter group attribute[,attribute...]\n")
