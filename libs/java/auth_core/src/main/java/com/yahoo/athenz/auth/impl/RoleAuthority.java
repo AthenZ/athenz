@@ -57,7 +57,12 @@ public class RoleAuthority implements Authority, AuthorityKeyStore {
             allowedOffset = 300;
         }
     }
-    
+
+    @Override
+    public String getID() {
+        return "Auth-ROLE";
+    }
+
     @Override
     public void initialize() {
     }

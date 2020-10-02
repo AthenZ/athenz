@@ -48,6 +48,11 @@ public class LDAPAuthority implements Authority {
     }
 
     @Override
+    public String getID() {
+        return "Auth-LDAP";
+    }
+
+    @Override
     public String getDomain() {
         return "user";
     }

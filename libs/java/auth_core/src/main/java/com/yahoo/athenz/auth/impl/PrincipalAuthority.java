@@ -69,7 +69,12 @@ public class PrincipalAuthority implements Authority, AuthorityKeyStore {
             allowedOffset = 300;
         }
     }
-    
+
+    @Override
+    public String getID() {
+        return "Auth-NTOKEN";
+    }
+
     @Override
     public void initialize() {
     }

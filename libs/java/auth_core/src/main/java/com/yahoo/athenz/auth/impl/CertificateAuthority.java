@@ -58,6 +58,11 @@ public class CertificateAuthority implements Authority {
     }
 
     @Override
+    public String getID() {
+        return "Auth-X509";
+    }
+
+    @Override
     public String getDomain() {
         return null;
     }

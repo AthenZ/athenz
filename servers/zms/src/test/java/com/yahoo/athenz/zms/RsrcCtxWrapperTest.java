@@ -175,6 +175,7 @@ public class RsrcCtxWrapperTest {
 
         wrapper.logPrincipal(principal);
         assertEquals(servletRequest.getAttribute("com.yahoo.athenz.auth.principal"), "hockey.kings");
+        assertEquals(servletRequest.getAttribute("com.yahoo.athenz.auth.authority_id"), "Auth-NTOKEN");
     }
 
     @Test

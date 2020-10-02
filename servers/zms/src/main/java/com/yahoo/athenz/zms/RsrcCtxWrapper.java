@@ -18,13 +18,13 @@ package com.yahoo.athenz.zms;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.common.ServerCommonConsts;
 import com.yahoo.athenz.common.server.rest.Http;
 
 public class RsrcCtxWrapper implements ResourceContext {
-
-    private static final String ZMS_REQUEST_PRINCIPAL   = "com.yahoo.athenz.auth.principal";
 
     private final com.yahoo.athenz.common.server.rest.ResourceContext ctx;
     private Object timerMetric;
@@ -104,9 +104,17 @@ public class RsrcCtxWrapper implements ResourceContext {
         if (principal == null) {
             return;
         }
-        ctx.request().setAttribute(ZMS_REQUEST_PRINCIPAL, principal.getFullName());
+        ctx.request().setAttribute(ServerCommonConsts.REQUEST_PRINCIPAL, principal.getFullName());
+        logAuthorityId(principal.getAuthority());
     }
-    
+
+    public void logAuthorityId(Authority authority) {
+        if (authority == null) {
+            return;
+        }
+        ctx.request().setAttribute(ServerCommonConsts.REQUEST_AUTHORITY_ID, authority.getID());
+    }
+
     void throwZmsException(com.yahoo.athenz.common.server.rest.ResourceException restExc) {
 
         // first check to see if this is an auth failure and if

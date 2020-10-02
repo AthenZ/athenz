@@ -49,6 +49,11 @@ public class UserAuthority implements Authority {
     }
 
     @Override
+    public String getID() {
+        return "Auth-UNIX";
+    }
+
+    @Override
     public String getDomain() {
         return "user";
     }
