@@ -391,7 +391,7 @@ exports[`PendingApprovalTableHeader should render 1`] = `
           value=""
         />
         <input
-          class="fp-workflowHeader form-control input"
+          class=" form-control input"
           placeholder="Expiration (Optional)"
           readonly="readonly"
           tabindex="0"

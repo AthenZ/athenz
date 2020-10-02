@@ -6,114 +6,213 @@ exports[`RoleList should render 1`] = `
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
+  border-radius: 2px;
   box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  height: 18px;
-  outline: 0;
-  position: relative;
-}
-
-.emotion-0 > input[type='checkbox'] {
-  box-sizing: border-box;
-  cursor: pointer;
-  position: absolute;
-  top: 0;
-  visibility: hidden;
-}
-
-.emotion-0 > input[type='checkbox'] + label {
-  box-sizing: border-box;
-  cursor: pointer;
+  color: #303030;
+  cursor: initial;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
   font-family: Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 300;
-  height: 18px;
-  line-height: 18px;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  margin: 3px;
+  padding: 0 12px;
+  -webkit-transition: color 0.2s ease-in 0.1s;
+  transition: color 0.2s ease-in 0.1s;
   white-space: nowrap;
+  z-index: 1;
 }
 
-.emotion-0 > input[type='checkbox'] + label .label-content {
+.emotion-0:hover {
+  color: #303030;
+}
+
+.emotion-1 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  border-radius: 2px;
+  box-sizing: border-box;
+  color: #3697f2;
+  cursor: pointer;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  margin: 3px;
+  padding: 0 12px;
+  -webkit-transition: color 0.2s ease-in 0.1s;
+  transition: color 0.2s ease-in 0.1s;
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.emotion-1:hover {
+  color: #3570f4;
+}
+
+.emotion-2 {
+  -webkit-align-items: stretch;
+  -webkit-box-align: stretch;
+  -ms-flex-align: stretch;
+  align-items: stretch;
+  background: rgba(53,112,244,0.05);
+  border-radius: 2px;
+  box-sizing: border-box;
+  display: inline-grid;
+  grid-template-columns: repeat(2,1fr);
+  height: 28px;
+  position: relative;
+}
+
+.emotion-2::before {
+  background: #fff;
+  border: 2px solid #0072df;
+  border-radius: 2px;
+  box-sizing: border-box;
+  content: '';
+  height: calc(100% + 4px);
+  margin: -2px -2px -2px calc(0% - 2px);
+  position: absolute;
+  -webkit-transition: all 0.3s ease-in;
+  transition: all 0.3s ease-in;
+  width: calc(50% + 4px);
+}
+
+.emotion-5 {
+  box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
   display: -ms-inline-flexbox;
   display: inline-flex;
-  margin-left: 6px;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 100%;
 }
 
-@-moz-document url-prefix()  {
-  .emotion-0 > input[type='checkbox'] + label .label-content {
-    margin-top: 1px;
-  }
-}
-
-.emotion-0 > input[type='checkbox'] + label:before {
-  background: #d5d5d5;
-  border-radius: 9px;
+.emotion-5 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
   box-sizing: border-box;
-  content: '';
-  cursor: pointer;
-  display: inline-block;
-  height: 4px;
-  line-height: 16px;
-  margin: 7px 0 0 0;
-  -webkit-transition: all 0.25s;
-  transition: all 0.25s;
-  vertical-align: top;
-  width: 34px;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
 }
 
-.emotion-0 > input[type='checkbox'] + label::after {
-  background-color: #fff;
-  border: 2px solid rgba(54,151,242,0.5);
-  border-radius: 50%;
-  box-sizing: border-box;
-  content: ' ';
-  cursor: pointer;
-  display: block;
-  height: 18px;
+.emotion-5.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+}
+
+.emotion-5 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-5 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-5 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-5 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-5 input.focused,
+.emotion-5 input:active,
+.emotion-5 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-5 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-5 .message {
+  font-size: 12px;
   left: 0;
+  line-height: 1.8;
   position: absolute;
-  -webkit-transition: all 0.25s ease;
-  transition: all 0.25s ease;
-  top: 0;
-  width: 18px;
+  top: 2.571rem;
 }
 
-.emotion-0 > input[type='checkbox']:checked + label::before {
-  background-color: rgba(21,192,70,0.45);
+.emotion-5.error input,
+.emotion-5.error input.focused,
+.emotion-5.error input:active,
+.emotion-5.error input:focus {
+  border-bottom: 2px solid #d01111;
 }
 
-.emotion-0 > input[type='checkbox']:checked + label::after {
-  background-color: #15c046;
-  border-color: #15c046;
-  left: 16px;
+.emotion-5.error .message {
+  color: #d01111;
 }
 
-.emotion-0 > input[type='checkbox']:disabled + label {
-  color: #9a9a9a;
-  cursor: not-allowed;
+.emotion-5 input {
+  padding-right: 36px;
 }
 
-.emotion-0 > input[type='checkbox']:disabled + label::before {
-  background-color: #e8e8e8;
-  cursor: not-allowed;
+.emotion-5 .input-icon {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 36px;
+  position: absolute;
+  right: 6px;
 }
 
-.emotion-0 > input[type='checkbox']:disabled + label::after {
-  border-color: #d5d5d5;
-  cursor: not-allowed;
+.emotion-4 {
+  fill: #3570f4;
+  cursor: inherit;
+  vertical-align: text-bottom;
 }
 
-.emotion-0 > input[type='checkbox']:checked:disabled + label::after {
-  background: #d5d5d5;
-}
-
-.emotion-3 {
+.emotion-7 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -139,29 +238,29 @@ exports[`RoleList should render 1`] = `
   color: #3697f2;
 }
 
-.emotion-3:first-of-type {
+.emotion-7:first-of-type {
   margin-left: 0;
 }
 
-.emotion-3:disabled {
+.emotion-7:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-3:disabled {
+.emotion-7:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-3:hover:not(:disabled) {
+.emotion-7:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-15 {
+.emotion-19 {
   margin: 20px;
 }
 
-.emotion-5 {
+.emotion-9 {
   padding-bottom: 20px;
   display: -webkit-box;
   display: -webkit-flex;
@@ -180,26 +279,23 @@ exports[`RoleList should render 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-2 {
+.emotion-3 {
   vertical-align: middle;
 }
 
-.emotion-1 {
-  color: #303030;
-  margin-left: 5px;
-  white-space: nowrap;
-  font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
+.emotion-6 {
+  width: 50%;
 }
 
-.emotion-14 {
+.emotion-18 {
   width: 100%;
-  border-spacing: 0;
+  border-spacing: 0 15px;
   display: table;
   border-collapse: separate;
   border-color: grey;
 }
 
-.emotion-6 {
+.emotion-10 {
   text-align: left;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -212,7 +308,7 @@ exports[`RoleList should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-7 {
+.emotion-11 {
   text-align: left;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -225,7 +321,7 @@ exports[`RoleList should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-9 {
+.emotion-13 {
   text-align: center;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -239,43 +335,82 @@ exports[`RoleList should render 1`] = `
 }
 
 <div
-  class="emotion-15"
+  class="emotion-19"
   data-testid="rolelist"
 >
   <div
-    class="emotion-5"
+    class="emotion-9"
   >
     <div
-      class="emotion-2"
+      class="emotion-3"
     >
       <div
-        class="emotion-0 denali-switch"
-        data-testid="switch-wrapper"
+        class="emotion-2 denali-button-group"
+        data-testid="buttongroup"
+      >
+        <div
+          class="emotion-0"
+          data-active="true"
+          id="button-roles"
+        >
+          Roles
+        </div>
+        <div
+          class="emotion-1"
+          data-active="false"
+          id="button-users"
+        >
+          Users
+        </div>
+      </div>
+    </div>
+    <div
+      class="emotion-6"
+    >
+      <div
+        class="emotion-5 denali-input animated"
+        data-testid="input-wrapper"
       >
         <input
-          id="switch-viewRoleByUser"
-          name="viewRoleByUser"
-          type="checkbox"
+          autocomplete="off"
+          data-testid="input-node"
+          name="search"
+          placeholder="Enter role name"
+          value=""
         />
-        <label
-          for="switch-viewRoleByUser"
+        <div
+          class="input-icon"
+        >
+          <svg
+            class="emotion-4"
+            data-testid="icon"
+            height="24px"
+            viewBox="0 0 1024 1024"
+            width="24px"
+          >
+            <title>
+              search
+            </title>
+            <path
+              d="M659.413 599.68c40.125-53.054 64.27-120.136 64.27-192.857 0-177.556-143.937-321.493-321.493-321.493s-321.493 143.937-321.493 321.493c0 177.556 143.937 321.493 321.493 321.493 74.297 0 142.708-25.203 197.149-67.525l-0.726 0.543 267.307 264.96c7.723 7.731 18.396 12.514 30.187 12.514s22.464-4.782 30.186-12.513l0-0c7.795-7.733 12.621-18.45 12.621-30.293s-4.826-22.56-12.618-30.291l-0.003-0.003zM444.8 637.227c-11.829 2.113-25.446 3.322-39.345 3.322-129.603 0-234.667-105.064-234.667-234.667s105.064-234.667 234.667-234.667c129.603 0 234.667 105.064 234.667 234.667 0 13.899-1.208 27.516-3.526 40.752l0.204-1.407c-17.178 98.349-93.651 174.822-190.593 191.796l-1.407 0.204z"
+            />
+          </svg>
+        </div>
+        <div
+          class="message"
+          data-testid="message"
         />
       </div>
-      <label
-        class="emotion-1"
-      >
-        View Roles By Users
-      </label>
     </div>
     <div>
       <button
-        class="emotion-3 denali-button"
+        class="emotion-7 denali-button"
       >
         Add Role
       </button>
       
       <button
-        class="emotion-3 denali-button"
+        class="emotion-7 denali-button"
       >
         Add Member
       </button>
@@ -283,48 +418,48 @@ exports[`RoleList should render 1`] = `
     </div>
   </div>
   <table
-    class="emotion-14"
+    class="emotion-18"
     data-testid="roletable"
   >
     <thead>
       <tr>
         <th
-          class="emotion-6"
+          class="emotion-10"
         >
           Role
         </th>
         <th
-          class="emotion-7"
+          class="emotion-11"
         >
           Modified Date
         </th>
         <th
-          class="emotion-7"
+          class="emotion-11"
         >
-          Last Reviewed Date
+          Reviewed Date
         </th>
         <th
-          class="emotion-9"
-        >
-          Review Enabled
-        </th>
-        <th
-          class="emotion-9"
-        >
-          Self Served
-        </th>
-        <th
-          class="emotion-9"
+          class="emotion-13"
         >
           Members
         </th>
         <th
-          class="emotion-9"
+          class="emotion-13"
         >
           Review
         </th>
         <th
-          class="emotion-9"
+          class="emotion-13"
+        >
+          Policy Rule
+        </th>
+        <th
+          class="emotion-13"
+        >
+          Settings
+        </th>
+        <th
+          class="emotion-13"
         >
           Delete
         </th>

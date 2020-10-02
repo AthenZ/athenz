@@ -76,7 +76,7 @@ export default class Tabs extends React.Component {
                 this.props.api
                     .getStatus()
                     .then(function() {
-                        Router.pushRoute('policy', { domain });
+                        Router.pushRoute('domain-policy', { domain });
                     })
                     .catch((err) => {
                         if (err.statusCode === 0) {

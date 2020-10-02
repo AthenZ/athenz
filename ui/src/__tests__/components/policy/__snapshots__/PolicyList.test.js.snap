@@ -1,19 +1,72 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`PolicyList should render 1`] = `
+.emotion-0 {
+  border: none;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  font-family: Helvetica,Arial,sans-serif;
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 1;
+  margin: 5px;
+  outline: 0;
+  padding: 10px 24px;
+  text-align: center;
+  text-shadow: none;
+  text-transform: none;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  vertical-align: baseline;
+  white-space: nowrap;
+  background: transparent;
+  box-shadow: 0 0 0 1px #3697f2 inset;
+  color: #3697f2;
+}
+
+.emotion-0:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-0:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
+.emotion-0:disabled {
+  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
+}
+
+.emotion-0:hover:not(:disabled) {
+  background: #d7e2fd;
+}
+
 .emotion-7 {
   margin: 20px;
 }
 
 .emotion-1 {
   padding-bottom: 20px;
-}
-
-.emotion-0 {
-  color: #3570f4;
-  -webkit-text-decoration: none;
-  text-decoration: none;
-  cursor: pointer;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  float: right;
 }
 
 .emotion-6 {
@@ -57,12 +110,14 @@ exports[`PolicyList should render 1`] = `
   <div
     class="emotion-1"
   >
-    <a
-      class="emotion-0"
-    >
-      Add Policy
-    </a>
-    
+    <div>
+      <button
+        class="emotion-0 denali-button"
+      >
+        Add Policy
+      </button>
+      
+    </div>
   </div>
   <table
     class="emotion-6"

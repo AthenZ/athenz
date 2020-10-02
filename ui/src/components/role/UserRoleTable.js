@@ -26,7 +26,7 @@ import RequestUtils from '../utils/RequestUtils';
 
 const StyleTable = styled.table`
     width: 100%;
-    border-spacing: 0;
+    border-spacing: 0 15px;
     display: table;
     border-collapse: separate;
     border-color: grey;
@@ -44,20 +44,6 @@ const TableHeadStyled = styled.th`
     word-break: break-all;
 `;
 
-const TableHeadStyledUser = styled.th`
-    text-align: ${(props) => props.align};
-    border-bottom: 2px solid #d5d5d5;
-    color: #9a9a9a;
-    font-weight: 600;
-    font-size: 0.8rem;
-    padding-bottom: 5px;
-    vertical-align: top;
-    text-transform: uppercase;
-    padding: 5px 0 5px 15px;
-    word-break: break-all;
-    width: 120px;
-`;
-
 const LeftMarginSpan = styled.span`
     margin-right: 10px;
     verticalAlign：bottom；
@@ -69,6 +55,18 @@ const TDStyled = styled.td`
     padding: 5px 0 5px 15px;
     vertical-align: middle;
     word-break: break-all;
+`;
+
+const TrStyled = styled.tr`
+    box-sizing: border-box;
+    margin-top: 10px;
+    box-shadow: 0 1px 4px #d9d9d9;
+    border: 1px solid #fff;
+    -webkit-border-image: none;
+    border-image: none;
+    -webkit-border-image: initial;
+    border-image: initial;
+    height: 50px;
 `;
 
 const TDStyledSub = styled.td`
@@ -95,9 +93,19 @@ export default class UserRoleTable extends React.Component {
             showDelete: false,
             expandTable: {},
             showSuccess: false,
+            searchText: props.searchText,
         };
         this.dateUtils = new DateUtils();
     }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.searchText !== this.props.searchText) {
+            this.setState({
+                searchText: this.props.searchText,
+            });
+        }
+    }
+
     deleteItem(name, memberName) {
         this.setState({
             showDelete: true,
@@ -232,16 +240,10 @@ export default class UserRoleTable extends React.Component {
                     role.roleName,
                     memberName
                 );
-                let color = '';
-                if (i % 2 === 0) {
-                    color = colors.row;
-                }
                 return (
                     <tr key={role.roleName}>
-                        <TDStyled color={color} align={left}>
-                            {role.roleName}
-                        </TDStyled>
-                        <TDStyled color={color} align={center}>
+                        <TDStyled align={left}>{role.roleName}</TDStyled>
+                        <TDStyled align={center}>
                             {role.expiration
                                 ? this.dateUtils.getLocalDate(
                                       role.expiration,
@@ -250,7 +252,7 @@ export default class UserRoleTable extends React.Component {
                                   )
                                 : null}
                         </TDStyled>
-                        <TDStyledSub color={color} align={center}>
+                        <TDStyledSub align={center}>
                             <Icon
                                 icon={'trash'}
                                 onClick={deleteItem}
@@ -328,6 +330,11 @@ export default class UserRoleTable extends React.Component {
         const rows =
             this.state.list.members &&
             this.state.list.members
+                .filter((member) => {
+                    return member.memberName.includes(
+                        this.state.searchText.trim()
+                    );
+                })
                 .sort((a, b) => {
                     return a.memberName.localeCompare(b.memberName);
                 })
@@ -340,22 +347,18 @@ export default class UserRoleTable extends React.Component {
                         this,
                         item.memberName
                     );
-                    let color = '';
-                    if (i % 2 === 0) {
-                        color = colors.row;
-                    }
 
                     let toReturn = [];
                     toReturn.push(
-                        <tr key={item.memberName}>
-                            <TDStyled color={color} align={left}>
+                        <TrStyled key={item.memberName}>
+                            <TDStyled align={left}>
                                 <LeftMarginSpan>
                                     <Icon
-                                        icon={'arrowhead-down-circle-solid'}
+                                        icon={'arrowhead-down-circle'}
                                         onClick={expandRole}
                                         color={colors.icons}
                                         isLink
-                                        size={'1em'}
+                                        size={'1.5em'}
                                         verticalAlign={'text-bottom'}
                                     />
                                 </LeftMarginSpan>
@@ -372,8 +375,8 @@ export default class UserRoleTable extends React.Component {
                                     item.memberRoles.length +
                                     ')'}
                             </TDStyled>
-                            <TDStyled color={color} align={center} />
-                            <TDStyled color={color} align={center}>
+                            <TDStyled align={center} />
+                            <TDStyled align={center}>
                                 <Icon
                                     icon={'trash'}
                                     onClick={deleteItem}
@@ -383,24 +386,14 @@ export default class UserRoleTable extends React.Component {
                                     verticalAlign={'text-bottom'}
                                 />
                             </TDStyled>
-                        </tr>
+                        </TrStyled>
                     );
-                    toReturn.push(
-                        <tr>
-                            <RoleUserTable
-                                showTable={
-                                    this.state.expandTable[item.memberName]
-                                }
-                            >
-                                {this.state.contents[item.memberName]}
-                            </RoleUserTable>
-                        </tr>
-                    );
+                    toReturn.push(this.state.contents[item.memberName]);
                     return toReturn;
                 });
 
         return (
-            <StyleTable data-testid='userroletable'>
+            <StyleTable key='user-role-table' data-testid='userroletable'>
                 <thead>
                     {this.state.showSuccess ? (
                         <Alert
@@ -416,12 +409,10 @@ export default class UserRoleTable extends React.Component {
                     ) : null}
                     <tr>
                         <TableHeadStyled align={left}>MEMBER</TableHeadStyled>
-                        <TableHeadStyledUser align={center}>
+                        <TableHeadStyled align={center}>
                             Expiration Date
-                        </TableHeadStyledUser>
-                        <TableHeadStyledUser align={center}>
-                            Delete
-                        </TableHeadStyledUser>
+                        </TableHeadStyled>
+                        <TableHeadStyled align={center}>Delete</TableHeadStyled>
                     </tr>
                 </thead>
                 <DeleteModal

@@ -29,11 +29,6 @@ const StyleTable = styled.table`
     border-collapse: separate;
 `;
 
-const StyleTd = styled.td`
-    padding: 30px 20px;
-    background-color: ${(props) => props.color};
-`;
-
 const RuleHeadStyled = styled.th`
     border-bottom: 2px solid #d5d5d5;
     color: #9a9a9a;
@@ -191,21 +186,25 @@ export default class PolicyRuleTable extends React.Component {
                 assertion.role,
                 assertion.id
             );
+            let color = '';
+            if (i % 2 === 0) {
+                color = colors.row;
+            }
             rows.push(
                 <tr key={this.props.name + i + '-assertion'}>
-                    <TDStyled color={'white'} align={left}>
+                    <TDStyled color={color} align={left}>
                         {assertion.effect}
                     </TDStyled>
-                    <TDStyled color={'white'} align={left}>
+                    <TDStyled color={color} align={left}>
                         {assertion.action}
                     </TDStyled>
-                    <TDStyled color={'white'} align={left}>
+                    <TDStyled color={color} align={left}>
                         {assertion.role}
                     </TDStyled>
-                    <TDStyled color={'white'} align={left}>
+                    <TDStyled color={color} align={left}>
                         {assertion.resource}
                     </TDStyled>
-                    <TDStyled color={'white'} align={center}>
+                    <TDStyled color={color} align={center}>
                         <Icon
                             icon={'trash'}
                             onClick={onClickDeleteAssertion}
@@ -232,11 +231,7 @@ export default class PolicyRuleTable extends React.Component {
             );
         }
         return (
-            <StyleTd
-                colSpan={4}
-                backgroundColor={'black'}
-                data-testid='ruletable'
-            >
+            <td colSpan={4} backgroundColor={'black'} data-testid='ruletable'>
                 <StyleTable data-testid='ruledetailstable'>
                     <tbody>
                         <tr>
@@ -309,7 +304,7 @@ export default class PolicyRuleTable extends React.Component {
                         }
                     />
                 ) : null}
-            </StyleTd>
+            </td>
         );
     }
 }

@@ -241,7 +241,7 @@ exports[`AddMemberForm should render 1`] = `
           value=""
         />
         <input
-          class="fp-roleName form-control input"
+          class=" form-control input"
           placeholder="Expiration (Optional)"
           readonly="readonly"
           tabindex="0"
@@ -285,7 +285,7 @@ exports[`AddMemberForm should render 1`] = `
           value=""
         />
         <input
-          class="fp-roleName-reminder form-control input"
+          class=" form-control input"
           placeholder="Reminder (Optional)"
           readonly="readonly"
           tabindex="0"

@@ -16,7 +16,9 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import { colors } from '../denali/styles';
+import Button from '../denali/Button';
 import AddPolicy from './AddPolicy';
+import AddPolicyToRole from './AddPolicyToRole';
 import PolicyRow from './PolicyRow';
 import Alert from '../denali/Alert';
 import DeleteModal from '../modal/DeleteModal';
@@ -30,6 +32,11 @@ const PolicySectionDiv = styled.div`
 
 const AddContainerDiv = styled.div`
     padding-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-flow: row nowrap;
+    float: right;
 `;
 
 const StyledAnchor = styled.a`
@@ -40,7 +47,7 @@ const StyledAnchor = styled.a`
 
 const PolicyTable = styled.table`
     width: 100%;
-    border-spacing: 0;
+    border-spacing: 0 15px;
     display: table;
     border-collapse: separate;
     border-color: grey;
@@ -109,11 +116,31 @@ export default class PolicyList extends React.Component {
     }
 
     reloadPolicies(successMessage) {
+        let role = this.props.role;
+
         this.api
-            .getPolicies(this.props.domain)
+            .getPolicies(this.props.domain, true)
             .then((data) => {
+                let filteredPolicies = data;
+                if (role) {
+                    filteredPolicies = data.filter((policy) => {
+                        let included = false;
+                        policy.assertions.forEach((element) => {
+                            if (
+                                NameUtils.getShortName(
+                                    ':role.',
+                                    element.role
+                                ) == role
+                            ) {
+                                included = true;
+                            }
+                        });
+                        return included;
+                    });
+                }
+
                 this.setState({
-                    list: data,
+                    list: filteredPolicies,
                     showAddPolicy: false,
                     showSuccess: true,
                     successMessage,
@@ -146,22 +173,18 @@ export default class PolicyList extends React.Component {
     }
 
     render() {
-        const { domain } = this.props;
+        const { domain, role } = this.props;
         const left = 'left';
         const center = 'center';
         const rows = this.state.list.map((item, i) => {
             const name = NameUtils.getShortName(':policy.', item.name);
-            let color = '';
-            if (i % 2 === 0) {
-                color = colors.row;
-            }
             let onClickDeletePolicy = this.onClickDeletePolicy.bind(this, name);
             return (
                 <PolicyRow
                     name={name}
                     domain={domain}
+                    role={role}
                     modified={item.modified}
-                    color={color}
                     api={this.api}
                     key={item.name}
                     _csrf={this.props._csrf}
@@ -170,11 +193,12 @@ export default class PolicyList extends React.Component {
             );
         });
         let addPolicy = this.state.showAddPolicy ? (
-            <AddPolicy
+            <AddPolicyToRole
                 showAddPolicy={this.state.showAddPolicy}
                 onCancel={this.toggleAddPolicy}
                 onSubmit={this.reloadPolicies}
                 domain={domain}
+                role={role}
                 api={this.api}
                 _csrf={this.props._csrf}
             />
@@ -184,28 +208,14 @@ export default class PolicyList extends React.Component {
         return (
             <PolicySectionDiv data-testid='policylist'>
                 <AddContainerDiv>
-                    <StyledAnchor onClick={this.toggleAddPolicy}>
-                        Add Policy
-                    </StyledAnchor>
-                    {addPolicy}
+                    <div>
+                        <Button secondary onClick={this.toggleAddPolicy}>
+                            Add Policy
+                        </Button>
+                        {addPolicy}
+                    </div>
                 </AddContainerDiv>
                 <PolicyTable>
-                    <thead>
-                        <tr>
-                            <TableHeadStyled align={left}>
-                                Policy
-                            </TableHeadStyled>
-                            <TableHeadStyled align={left}>
-                                Modified Date
-                            </TableHeadStyled>
-                            <TableHeadStyled align={center}>
-                                Rules
-                            </TableHeadStyled>
-                            <TableHeadStyled align={center}>
-                                Delete
-                            </TableHeadStyled>
-                        </tr>
-                    </thead>
                     <tbody>{rows}</tbody>
                 </PolicyTable>
                 {this.state.showSuccess ? (
