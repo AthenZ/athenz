@@ -27,6 +27,7 @@ import org.eclipse.jetty.http.HttpHeader;
 public class AthenzRequestLog extends NCSARequestLog {
 
     private static final String REQUEST_PRINCIPAL      = "com.yahoo.athenz.auth.principal";
+    private static final String REQUEST_AUTHORITY_ID   = "com.yahoo.athenz.auth.authority_id";
     private static final String REQUEST_URI_SKIP_QUERY = "com.yahoo.athenz.uri.skip_query";
     private static final String REQUEST_URI_ADDL_QUERY = "com.yahoo.athenz.uri.addl_query";
 
@@ -95,6 +96,11 @@ public class AthenzRequestLog extends NCSARequestLog {
         append(buf, (principal == null) ? null : principal.toString());
     }
 
+    private void logAuthorityId(StringBuilder buf, Request request) {
+        final Object authId = request.getAttribute(REQUEST_AUTHORITY_ID);
+        append(buf, (authId == null) ? "Auth-None" : authId.toString());
+    }
+
     private void append(StringBuilder buf, String str) {
         if (str != null && !str.isEmpty()) {
             buf.append(str);
@@ -147,6 +153,9 @@ public class AthenzRequestLog extends NCSARequestLog {
 
             buf.append(' ');
             buf.append(System.currentTimeMillis() - request.getTimeStamp());
+
+            buf.append(' ');
+            logAuthorityId(buf, request);
 
             write(buf.toString());
 

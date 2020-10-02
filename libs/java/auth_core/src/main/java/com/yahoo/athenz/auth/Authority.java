@@ -43,6 +43,16 @@ public interface Authority {
     void initialize();
 
     /**
+     * @return the string to be included as the identifier for the
+     *  authority which will be logged in the server access log file
+     *  as the last field so we know what authority was responsible
+     *  for authenticating the principal.
+     */
+    default String getID() {
+        return "Auth-ID";
+    }
+
+    /**
      * @return credentials source - headers or certificate with headers being default
      */
     default CredSource getCredSource() {
