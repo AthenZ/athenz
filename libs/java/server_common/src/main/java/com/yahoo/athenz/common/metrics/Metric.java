@@ -15,8 +15,6 @@
  */
 package com.yahoo.athenz.common.metrics;
 
-import java.util.Map;
-
 public interface Metric {
 
     /**
@@ -91,9 +89,9 @@ public interface Metric {
     /**
      * Increment the counter for the specified metric with the specified attributes
      * @param metric Name of the counter
-     * @param attributes Attributes for the metric (tags)
+     * @param attributes a sorted array of tag key-value pairs in a flattened array
      */
-    default void increment(String metric, Map<String, String> attributes) {
+    default void increment(String metric, final String... attributes) {
         // No op
     }
 

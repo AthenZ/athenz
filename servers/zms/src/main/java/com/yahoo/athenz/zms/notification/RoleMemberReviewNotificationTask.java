@@ -35,6 +35,7 @@ public class RoleMemberReviewNotificationTask implements NotificationTask {
     private final RoleMemberNotificationCommon roleMemberNotificationCommon;
     private static final Logger LOGGER = LoggerFactory.getLogger(RoleMemberReviewNotificationTask.class);
     private final static String DESCRIPTION = "Periodic Review Reminder";
+    private final static String NOTIFICATION_TYPE = "role_membership_review";
     private final RoleReviewPrincipalNotificationToEmailConverter roleReviewPrincipalNotificationToEmailConverter;
     private final RoleReviewDomainNotificationToEmailConverter roleReviewDomainNotificationToEmailConverter;
 
@@ -59,7 +60,8 @@ public class RoleMemberReviewNotificationTask implements NotificationTask {
                 reviewMembers,
                 roleReviewPrincipalNotificationToEmailConverter,
                 roleReviewDomainNotificationToEmailConverter,
-                new ReviewRoleMemberDetailStringer());
+                new ReviewRoleMemberDetailStringer(),
+                NOTIFICATION_TYPE);
     }
 
     static class ReviewRoleMemberDetailStringer implements RoleMemberNotificationCommon.RoleMemberDetailStringer {

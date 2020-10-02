@@ -17,8 +17,6 @@ package com.yahoo.athenz.common.metrics.impl;
 
 import com.yahoo.athenz.common.metrics.Metric;
 
-import java.util.Map;
-
 public class NoOpMetric implements Metric {
 
     /**
@@ -53,7 +51,7 @@ public class NoOpMetric implements Metric {
     }
 
     @Override
-    public void increment(String metric, Map<String, String> attributes) {
+    public void increment(String metric, final String... attributes) {
     }
 
     @Override

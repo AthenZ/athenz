@@ -44,6 +44,7 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
     private final NotificationCommon notificationCommon;
     private static final Logger LOGGER = LoggerFactory.getLogger(CertFailedRefreshNotificationTask.class);
     private final static String DESCRIPTION = "certificate failed refresh notification";
+    private final static String NOTIFICATION_TYPE = "cert_fail_refresh";
     private final HostnameResolver hostnameResolver;
     private final CertFailedRefreshNotificationToEmailConverter certFailedRefreshNotificationToEmailConverter;
     private final GlobStringsMatcher globStringsMatcher;
@@ -123,7 +124,8 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
             Notification notification = notificationCommon.createNotification(
                     ResourceUtils.roleResourceName(domain, ADMIN_ROLE_NAME),
                     details,
-                    certFailedRefreshNotificationToEmailConverter);
+                    certFailedRefreshNotificationToEmailConverter,
+                    NOTIFICATION_TYPE);
             if (notification != null) {
                 notificationList.add(notification);
             }

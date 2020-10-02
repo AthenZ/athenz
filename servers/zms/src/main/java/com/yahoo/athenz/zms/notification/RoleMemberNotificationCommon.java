@@ -44,7 +44,8 @@ public class RoleMemberNotificationCommon {
     public List<Notification> getNotificationDetails(Map<String, DomainRoleMember> members,
                                                      NotificationToEmailConverter principalNotificationToEmailConverter,
                                                      NotificationToEmailConverter domainAdminNotificationToEmailConverter,
-                                                     RoleMemberDetailStringer roleMemberDetailStringer) {
+                                                     RoleMemberDetailStringer roleMemberDetailStringer,
+                                                     String notificationType) {
         // first we're going to send reminders to all the members indicating to
         // them that they're going to expiry (or nearing review date) and they should follow up with
         // domain admins to extend their membership.
@@ -68,7 +69,8 @@ public class RoleMemberNotificationCommon {
             Notification notification = notificationCommon.createNotification(
                     roleMember.getMemberName(),
                     details,
-                    principalNotificationToEmailConverter);
+                    principalNotificationToEmailConverter,
+                    notificationType);
             if (notification != null) {
                 notificationList.add(notification);
             }
@@ -82,7 +84,8 @@ public class RoleMemberNotificationCommon {
             Notification notification = notificationCommon.createNotification(
                     ZMSUtils.roleResourceName(domainAdmin.getKey(), ADMIN_ROLE_NAME),
                     details,
-                    domainAdminNotificationToEmailConverter);
+                    domainAdminNotificationToEmailConverter,
+                    notificationType);
             if (notification != null) {
                 notificationList.add(notification);
             }

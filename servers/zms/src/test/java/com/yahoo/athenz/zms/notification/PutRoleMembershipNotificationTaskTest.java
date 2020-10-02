@@ -101,6 +101,7 @@ public class PutRoleMembershipNotificationTaskTest {
         notification.addDetails("domain", "testdomain1").addDetails("role", "role1");
         PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter converter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter();
         notification.setNotificationToEmailConverter(converter);
+        notification.setType("role_membership_approval");
         Mockito.verify(mockNotificationService, atLeastOnce()).notify(captor.capture());
         Notification actualNotification = captor.getValue();
 
@@ -151,6 +152,7 @@ public class PutRoleMembershipNotificationTaskTest {
         notification.addDetails("domain", "testdomain1").addDetails("role", "role1");
         PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter converter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter();
         notification.setNotificationToEmailConverter(converter);
+        notification.setType("role_membership_approval");
         Mockito.verify(mockNotificationService, atLeastOnce()).notify(captor.capture());
         Notification actualNotification = captor.getValue();
 
@@ -201,6 +203,7 @@ public class PutRoleMembershipNotificationTaskTest {
         notification.addDetails("domain", "testdomain1").addDetails("role", "role1");
         PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter converter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter();
         notification.setNotificationToEmailConverter(converter);
+        notification.setType("role_membership_approval");
         Mockito.verify(mockNotificationService, atLeastOnce()).notify(captor.capture());
         Notification actualNotification = captor.getValue();
 
@@ -251,6 +254,7 @@ public class PutRoleMembershipNotificationTaskTest {
         notification.addDetails("domain", "testdomain1").addDetails("role", "role1");
         PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter converter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter();
         notification.setNotificationToEmailConverter(converter);
+        notification.setType("role_membership_approval");
         Mockito.verify(mockNotificationService, atLeastOnce()).notify(captor.capture());
         Notification actualNotification = captor.getValue();
 
@@ -322,6 +326,7 @@ public class PutRoleMembershipNotificationTaskTest {
         notification.addDetails("domain", "testdomain1").addDetails("role", "role1");
         PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter converter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter();
         notification.setNotificationToEmailConverter(converter);
+        notification.setType("role_membership_approval");
         Mockito.verify(mockNotificationService, atLeastOnce()).notify(captor.capture());
         Notification actualNotification = captor.getValue();
 

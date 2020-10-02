@@ -20,6 +20,9 @@ import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.notification.NotificationService;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MetricNotificationService implements NotificationService {
 
     private final Metric metric;
@@ -30,7 +33,19 @@ public class MetricNotificationService implements NotificationService {
 
     @Override
     public boolean notify(Notification notification) {
-        metric.increment("athenz_notification", notification.getDetails());
+        // Convert details to flat array
+        List<String> attributesList = new ArrayList<>();
+        notification.getDetails().forEach((k, v) -> {
+            attributesList.add(k);
+            attributesList.add(v);
+        });
+
+        // add notification type
+        attributesList.add("notif_type");
+        attributesList.add(notification.getType());
+
+        // Increment metric
+        metric.increment("athenz_notification", attributesList.toArray(new String[0]));
         return true;
     }
 }

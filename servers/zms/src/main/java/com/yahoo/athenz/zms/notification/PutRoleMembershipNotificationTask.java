@@ -36,6 +36,7 @@ public class PutRoleMembershipNotificationTask implements NotificationTask {
     private Map<String, String> details;
     private NotificationCommon notificationCommon;
     private final static String DESCRIPTION = "Membership Approval Notification";
+    private final static String NOTIFICATION_TYPE = "role_membership_approval";
     private final PutMembershipNotificationToEmailConverter putMembershipNotificationToEmailConverter;
 
     public PutRoleMembershipNotificationTask(String domain, String org, Role role, Map<String, String> details, DBService dbService, String userDomainPrefix) {
@@ -94,7 +95,8 @@ public class PutRoleMembershipNotificationTask implements NotificationTask {
         return Collections.singletonList(notificationCommon.createNotification(
                 recipients,
                 details,
-                putMembershipNotificationToEmailConverter));
+                putMembershipNotificationToEmailConverter,
+                NOTIFICATION_TYPE));
     }
 
     @Override

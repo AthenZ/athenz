@@ -133,12 +133,14 @@ public class GroupMemberExpiryNotificationTaskTest {
         expectedFirstNotification.addDetails(NOTIFICATION_DETAILS_ROLES_LIST, "athenz1;group1;1970-01-01T00:00:00.100Z");
         expectedFirstNotification.addDetails("member", "user.joe");
         expectedFirstNotification.setNotificationToEmailConverter(new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToEmailConverter());
+        expectedFirstNotification.setType("group_membership_expiry");
 
         Notification expectedSecondNotification = new Notification();
         expectedSecondNotification.addRecipient("user.jane");
         expectedSecondNotification.addDetails(NOTIFICATION_DETAILS_MEMBERS_LIST, "user.joe;group1;1970-01-01T00:00:00.100Z");
         expectedSecondNotification.addDetails("domain", "athenz1");
         expectedSecondNotification.setNotificationToEmailConverter(new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToEmailConverter());
+        expectedSecondNotification.setType("group_membership_expiry");
 
         assertEquals(notifications.get(0), expectedFirstNotification);
         assertEquals(notifications.get(1), expectedSecondNotification);

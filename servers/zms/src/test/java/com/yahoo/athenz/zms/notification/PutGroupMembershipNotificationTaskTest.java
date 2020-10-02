@@ -100,6 +100,7 @@ public class PutGroupMembershipNotificationTaskTest {
         PutGroupMembershipNotificationTask.PutGroupMembershipNotificationToEmailConverter converter =
                 new PutGroupMembershipNotificationTask.PutGroupMembershipNotificationToEmailConverter();
         notification.setNotificationToEmailConverter(converter);
+        notification.setType("group_membership_approval");
         Mockito.verify(mockNotificationService, atLeastOnce()).notify(captor.capture());
         Notification actualNotification = captor.getValue();
 
@@ -152,6 +153,7 @@ public class PutGroupMembershipNotificationTaskTest {
         PutGroupMembershipNotificationTask.PutGroupMembershipNotificationToEmailConverter converter =
                 new PutGroupMembershipNotificationTask.PutGroupMembershipNotificationToEmailConverter();
         notification.setNotificationToEmailConverter(converter);
+        notification.setType("group_membership_approval");
         Mockito.verify(mockNotificationService, atLeastOnce()).notify(captor.capture());
         Notification actualNotification = captor.getValue();
 
@@ -204,6 +206,7 @@ public class PutGroupMembershipNotificationTaskTest {
         PutGroupMembershipNotificationTask.PutGroupMembershipNotificationToEmailConverter converter =
                 new PutGroupMembershipNotificationTask.PutGroupMembershipNotificationToEmailConverter();
         notification.setNotificationToEmailConverter(converter);
+        notification.setType("group_membership_approval");
         Mockito.verify(mockNotificationService, atLeastOnce()).notify(captor.capture());
         Notification actualNotification = captor.getValue();
 
@@ -256,6 +259,7 @@ public class PutGroupMembershipNotificationTaskTest {
         PutGroupMembershipNotificationTask.PutGroupMembershipNotificationToEmailConverter converter =
                 new PutGroupMembershipNotificationTask.PutGroupMembershipNotificationToEmailConverter();
         notification.setNotificationToEmailConverter(converter);
+        notification.setType("group_membership_approval");
         Mockito.verify(mockNotificationService, atLeastOnce()).notify(captor.capture());
         Notification actualNotification = captor.getValue();
 
@@ -329,6 +333,7 @@ public class PutGroupMembershipNotificationTaskTest {
         PutGroupMembershipNotificationTask.PutGroupMembershipNotificationToEmailConverter converter =
                 new PutGroupMembershipNotificationTask.PutGroupMembershipNotificationToEmailConverter();
         notification.setNotificationToEmailConverter(converter);
+        notification.setType("group_membership_approval");
         Mockito.verify(mockNotificationService, atLeastOnce()).notify(captor.capture());
         Notification actualNotification = captor.getValue();
 
@@ -371,7 +376,7 @@ public class PutGroupMembershipNotificationTaskTest {
     }
 
     @Test
-    public void testDescription() {
+    public void testDescriptionAndType() {
         DBService dbsvc = Mockito.mock(DBService.class);
         PutGroupMembershipNotificationTask putGroupMembershipNotificationTask =
                 new PutGroupMembershipNotificationTask("testDomain", "testOrg", new Group(),

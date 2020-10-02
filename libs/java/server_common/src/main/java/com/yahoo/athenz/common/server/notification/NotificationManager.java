@@ -16,7 +16,7 @@
 
 package com.yahoo.athenz.common.server.notification;
 
-import com.mysql.cj.util.StringUtils;
+import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +38,7 @@ public class NotificationManager {
     public NotificationManager(List<NotificationTask> notificationTasks) {
         this.notificationTasks = notificationTasks;
         String notificationServiceFactoryClasses = System.getProperty(NOTIFICATION_PROP_SERVICE_FACTORY_CLASS);
-        if (!StringUtils.isNullOrEmpty(notificationServiceFactoryClasses)) {
+        if (!StringUtil.isEmpty(notificationServiceFactoryClasses)) {
             String[] notificationServiceFactoryClassArray = notificationServiceFactoryClasses.split(",");
             for (String notificationServiceFactoryClass : notificationServiceFactoryClassArray) {
                 NotificationServiceFactory notificationServiceFactory;
@@ -63,9 +63,9 @@ public class NotificationManager {
         }
     }
 
-    public NotificationManager(final List<NotificationServiceFactory> notificationServiceFactory, List<NotificationTask> notificationTasks) {
+    public NotificationManager(final List<NotificationServiceFactory> notificationServiceFactories, List<NotificationTask> notificationTasks) {
         this.notificationTasks = notificationTasks;
-        notificationServiceFactory.stream().filter(Objects::nonNull).forEach(notificationFactory -> {
+        notificationServiceFactories.stream().filter(Objects::nonNull).forEach(notificationFactory -> {
             NotificationService notificationService = notificationFactory.create();
             if (notificationService != null) {
                 notificationServices.add(notificationService);

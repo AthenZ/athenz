@@ -33,6 +33,7 @@ public class PendingRoleMembershipApprovalNotificationTask implements Notificati
     private final String monitorIdentity;
     private NotificationCommon notificationCommon;
     private final static String DESCRIPTION = "pending role membership approvals reminders";
+    private final static String NOTIFICATION_TYPE = "pending_role_membership_approval";
     private final PendingRoleMembershipApprovalNotificationToEmailConverter pendingMembershipApprovalNotificationToEmailConverter;
 
     public PendingRoleMembershipApprovalNotificationTask(DBService dbService, int pendingRoleMemberLifespan, String monitorIdentity, String userDomainPrefix) {
@@ -51,7 +52,8 @@ public class PendingRoleMembershipApprovalNotificationTask implements Notificati
         return Collections.singletonList(notificationCommon.createNotification(
                 recipients,
                 null,
-                pendingMembershipApprovalNotificationToEmailConverter));
+                pendingMembershipApprovalNotificationToEmailConverter,
+                NOTIFICATION_TYPE));
     }
 
     @Override

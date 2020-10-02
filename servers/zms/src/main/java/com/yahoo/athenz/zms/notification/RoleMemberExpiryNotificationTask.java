@@ -33,6 +33,7 @@ public class RoleMemberExpiryNotificationTask implements NotificationTask {
     private final RoleMemberNotificationCommon roleMemberNotificationCommon;
     private static final Logger LOGGER = LoggerFactory.getLogger(RoleMemberExpiryNotificationTask.class);
     private final static String DESCRIPTION = "membership expiration reminders";
+    private final static String NOTIFICATION_TYPE = "role_membership_expiry";
     private final RoleExpiryDomainNotificationToEmailConverter roleExpiryDomainNotificationToEmailConverter;
     private final RoleExpiryPrincipalNotificationToEmailConverter roleExpiryPrincipalNotificationToEmailConverter;
 
@@ -57,7 +58,8 @@ public class RoleMemberExpiryNotificationTask implements NotificationTask {
                 expiryMembers,
                 roleExpiryPrincipalNotificationToEmailConverter,
                 roleExpiryDomainNotificationToEmailConverter,
-                new ExpiryRoleMemberDetailStringer());
+                new ExpiryRoleMemberDetailStringer(),
+                NOTIFICATION_TYPE);
     }
 
     static class ExpiryRoleMemberDetailStringer implements RoleMemberNotificationCommon.RoleMemberDetailStringer {

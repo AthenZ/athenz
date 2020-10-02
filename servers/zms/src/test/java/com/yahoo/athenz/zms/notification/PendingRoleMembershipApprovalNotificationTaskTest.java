@@ -60,6 +60,7 @@ public class PendingRoleMembershipApprovalNotificationTaskTest {
         Notification expectedNotification = new Notification();
         expectedNotification.setNotificationToEmailConverter(new PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToEmailConverter());
         expectedNotification.addRecipient("user.joe");
+        expectedNotification.setType("pending_role_membership_approval");
         assertEquals(notifications.get(0), expectedNotification);
         notificationManager.shutdown();
     }
