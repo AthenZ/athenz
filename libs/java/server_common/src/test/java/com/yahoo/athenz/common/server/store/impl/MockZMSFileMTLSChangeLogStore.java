@@ -15,30 +15,32 @@
  */
 package com.yahoo.athenz.common.server.store.impl;
 
-import static com.yahoo.athenz.common.ServerCommonConsts.PROP_USER_DOMAIN;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.security.PrivateKey;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.mockito.Mockito;
-
+import com.oath.auth.KeyRefresherException;
 import com.yahoo.athenz.zms.DomainList;
 import com.yahoo.athenz.zms.SignedDomains;
 import com.yahoo.athenz.zms.ZMSClient;
 import com.yahoo.athenz.zms.ZMSClientException;
+import org.mockito.Mockito;
 
-public class MockZMSFileChangeLogStore extends ZMSFileChangeLogStore {
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
-    private ZMSClient zms;
+import static com.yahoo.athenz.common.ServerCommonConsts.PROP_USER_DOMAIN;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+public class MockZMSFileMTLSChangeLogStore extends ZMSFileMTLSChangeLogStore {
+
+    private final ZMSClient zms = mock(ZMSClient.class);
     private boolean refreshSupport = false;
 
-    public MockZMSFileChangeLogStore(String rootDirectory, PrivateKey privateKey, String privateKeyId) {
-        
-        super(rootDirectory, privateKey, privateKeyId);
-        zms = mock(ZMSClient.class);
+    public MockZMSFileMTLSChangeLogStore(String rootDirectory, final String keyPath, final String certPath,
+                                     final String trustStorePath, final String trustStorePassword)
+            throws InterruptedException, KeyRefresherException, IOException {
+
+        super(rootDirectory, keyPath, certPath, trustStorePath, trustStorePassword);
+        setZMSClient(zms);
         
         // setup some default values to return when the store is initialized
         // we're going to return on domain for local list and then another
@@ -55,17 +57,8 @@ public class MockZMSFileChangeLogStore extends ZMSFileChangeLogStore {
         List<String> serverDomains = new ArrayList<>();
         serverDomains.add("sys");
         serverDomainList.setNames(serverDomains);
-        
-        when(zms.getDomainList()).thenReturn(localDomainList).thenReturn(serverDomainList);
-    }
-    
-    @Override
-    public ZMSClient getZMSClient() {
-        return zms;
-    }
 
-    public void setZMSClient(ZMSClient zms) {
-        this.zms = zms;
+        when(zms.getDomainList()).thenReturn(localDomainList).thenReturn(serverDomainList);
     }
 
     public void setDomainList(List<String> domains) {

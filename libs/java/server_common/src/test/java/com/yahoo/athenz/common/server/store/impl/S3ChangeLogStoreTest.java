@@ -26,7 +26,6 @@ import java.util.concurrent.TimeUnit;
 
 import com.amazonaws.services.s3.AmazonS3;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.mockito.Mockito;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -45,7 +44,7 @@ import com.yahoo.athenz.zms.SignedDomains;
 public class S3ChangeLogStoreTest {
 
     private static final String DEFAULT_TIMEOUT_SECONDS = "athenz.zts.bucket.threads.timeout";
-    private int defaultTimeoutSeconds = Integer.valueOf(System.getProperty(DEFAULT_TIMEOUT_SECONDS, "1800"));
+    private final int defaultTimeoutSeconds = Integer.parseInt(System.getProperty(DEFAULT_TIMEOUT_SECONDS, "1800"));
 
     @BeforeMethod
     public void setup() {
@@ -72,7 +71,7 @@ public class S3ChangeLogStoreTest {
         }
 
         System.setProperty(ZTS_PROP_AWS_BUCKET_NAME, "s3-unit-test-bucket-name");
-        assertNotNull(new S3ChangeLogStore());
+        new S3ChangeLogStore();
     }
 
     @Test
@@ -470,7 +469,7 @@ public class S3ChangeLogStoreTest {
         assertNull(store.getSignedDomain(store.awsS3Client, "iaas"));
     }
     
-    private class MockS3ObjectInputStream extends S3ObjectInputStream {
+    private static class MockS3ObjectInputStream extends S3ObjectInputStream {
         MockS3ObjectInputStream(InputStream in, HttpRequestBase httpRequest) {
             super(in, httpRequest);
         }

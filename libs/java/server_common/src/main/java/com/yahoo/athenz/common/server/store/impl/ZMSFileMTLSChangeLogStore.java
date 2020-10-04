@@ -16,10 +16,9 @@
 
 package com.yahoo.athenz.common.server.store.impl;
 
-import com.yahoo.athenz.auth.Authority;
-import com.yahoo.athenz.auth.Principal;
-import com.yahoo.athenz.auth.impl.SimplePrincipal;
-import com.yahoo.athenz.auth.token.PrincipalToken;
+import com.oath.auth.KeyRefresher;
+import com.oath.auth.KeyRefresherException;
+import com.oath.auth.Utils;
 import com.yahoo.athenz.common.server.store.ChangeLogStore;
 import com.yahoo.athenz.zms.SignedDomain;
 import com.yahoo.athenz.zms.SignedDomains;
@@ -28,36 +27,37 @@ import com.yahoo.athenz.zms.ZMSClientException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.security.PrivateKey;
+import javax.net.ssl.SSLContext;
+import java.io.IOException;
 import java.util.*;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.*;
 
-public class ZMSFileChangeLogStore implements ChangeLogStore {
+public class ZMSFileMTLSChangeLogStore implements ChangeLogStore {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ZMSFileChangeLogStore.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ZMSFileMTLSChangeLogStore.class);
 
-    private final PrivateKey privateKey;
-    private final String privateKeyId;
-    private final Authority authority;
-    private final String zmsUrl;
+    private ZMSClient zmsClient;
+    private ZMSFileChangeLogStoreCommon changeLogStoreCommon;
 
-    private final ZMSFileChangeLogStoreCommon changeLogStoreCommon;
-
-    public ZMSFileChangeLogStore(String rootDirectory, PrivateKey privateKey, String privateKeyId) {
-
-        // save our private key and authority
-
-        this.privateKey = privateKey;
-        this.privateKeyId = privateKeyId;
-
-        // setup principal authority for our zms client
-
-        authority = new com.yahoo.athenz.auth.impl.PrincipalAuthority();
+    public ZMSFileMTLSChangeLogStore(String rootDirectory, final String keyPath, final String certPath,
+                                     final String trustStorePath, final String trustStorePassword)
+            throws InterruptedException, KeyRefresherException, IOException {
 
         // check to see if we need to override the ZMS url from the config file
 
-        zmsUrl = System.getProperty(ZTS_PROP_ZMS_URL_OVERRIDE);
+        final String zmsUrl = System.getProperty(ZTS_PROP_ZMS_URL_OVERRIDE);
+
+        // setup our mtls client first to make sure our settings are correct
+
+        KeyRefresher keyRefresher = Utils.generateKeyRefresher(trustStorePath, trustStorePassword,
+                certPath, keyPath);
+        keyRefresher.startup();
+
+        SSLContext sslContext = Utils.buildSSLContext(keyRefresher.getKeyManagerProxy(),
+                keyRefresher.getTrustManagerProxy());
+
+        zmsClient = new ZMSClient(zmsUrl, sslContext);
 
         // create our common logic object
 
@@ -77,7 +77,7 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
     @Override
     public SignedDomain getServerSignedDomain(String domainName) {
 
-        try (ZMSClient zmsClient = getZMSClient()) {
+        try {
             return changeLogStoreCommon.getServerSignedDomain(zmsClient, domainName);
         } catch (ZMSClientException ex) {
             LOGGER.error("Error when fetching {} data from ZMS: {}", domainName, ex.getMessage());
@@ -100,25 +100,11 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
         return changeLogStoreCommon.getLocalDomainList();
     }
 
-    public ZMSClient getZMSClient() {
-
-        PrincipalToken token = new PrincipalToken.Builder("S1", ATHENZ_SYS_DOMAIN, ZTS_SERVICE)
-                .expirationWindow(24 * 60 * 60L).keyId(privateKeyId).build();
-        token.sign(privateKey);
-
-        Principal principal = SimplePrincipal.create(ATHENZ_SYS_DOMAIN,
-                ZTS_SERVICE, token.getSignedToken(), authority);
-
-        ZMSClient zmsClient = new ZMSClient(zmsUrl);
-        zmsClient.addCredentials(principal);
-        return zmsClient;
-    }
-
     @Override
     public Set<String> getServerDomainList() {
 
         Set<String> zmsDomainList;
-        try (ZMSClient zmsClient = getZMSClient()) {
+        try {
             zmsDomainList = changeLogStoreCommon.getServerDomainList(zmsClient);
         } catch (ZMSClientException ex) {
             LOGGER.error("Unable to retrieve domain list from ZMS",  ex);
@@ -136,8 +122,7 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
     public SignedDomains getServerDomainModifiedList() {
 
         SignedDomains signedDomains = null;
-        try (ZMSClient zmsClient = getZMSClient()) {
-
+        try {
             signedDomains = changeLogStoreCommon.getServerDomainModifiedList(zmsClient);
 
             if (LOGGER.isDebugEnabled()) {
@@ -158,11 +143,19 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
     @Override
     public SignedDomains getUpdatedSignedDomains(StringBuilder lastModTimeBuffer) {
 
-        try (ZMSClient zmsClient = getZMSClient()) {
+        try {
             return changeLogStoreCommon.getUpdatedSignedDomains(zmsClient, lastModTimeBuffer);
         } catch (ZMSClientException ex) {
             LOGGER.error("Error when refreshing data from ZMS: {}", ex.getMessage());
             return null;
         }
+    }
+
+    void setZMSClient(ZMSClient client) {
+        zmsClient = client;
+    }
+
+    void setChangeLogStoreCommon(ZMSFileChangeLogStoreCommon changeLogStoreCommon) {
+        this.changeLogStoreCommon = changeLogStoreCommon;
     }
 }

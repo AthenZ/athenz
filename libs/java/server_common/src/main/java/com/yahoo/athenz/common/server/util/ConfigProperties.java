@@ -73,7 +73,7 @@ public class ConfigProperties {
             }
             
         } catch (NumberFormatException ex) {
-            LOGGER.info("invalid port: " + propValue + ". Using default port: " + defaultValue);
+            LOGGER.info("invalid port: {}. Using default port: {}", propValue, defaultValue);
             port = defaultValue;
         }
         
@@ -92,13 +92,11 @@ public class ConfigProperties {
             settingValue = Integer.parseInt(propValue);
 
             if (settingValue <= 0) {
-                LOGGER.error("Invalid " + property + " value: " + propValue +
-                        ", defaulting to " + defaultValue + " seconds");
+                LOGGER.error("Invalid {} value: {}, defaulting to {}", property, propValue, defaultValue);
                 settingValue = defaultValue;
             }
         } catch (Exception ex) {
-            LOGGER.error("Invalid " + property + " value, defaulting to " +
-                    defaultValue + " seconds: " + ex.getMessage());
+            LOGGER.error("Invalid {} value, defaulting to {}: {}", property, defaultValue, ex.getMessage());
             settingValue = defaultValue;
         }
 
