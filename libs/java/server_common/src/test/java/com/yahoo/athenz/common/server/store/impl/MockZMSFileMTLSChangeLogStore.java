@@ -13,16 +13,16 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.yahoo.athenz.zts.store;
+package com.yahoo.athenz.common.server.store.impl;
 
-import com.yahoo.athenz.common.server.store.impl.ZMSFileChangeLogStore;
+import com.oath.auth.KeyRefresherException;
 import com.yahoo.athenz.zms.DomainList;
 import com.yahoo.athenz.zms.SignedDomains;
 import com.yahoo.athenz.zms.ZMSClient;
 import com.yahoo.athenz.zms.ZMSClientException;
 import org.mockito.Mockito;
 
-import java.security.PrivateKey;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,21 +30,17 @@ import static com.yahoo.athenz.common.ServerCommonConsts.PROP_USER_DOMAIN;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class MockZMSFileChangeLogStore extends ZMSFileChangeLogStore {
+public class MockZMSFileMTLSChangeLogStore extends ZMSFileMTLSChangeLogStore {
 
-    private final ZMSClient zms;
+    private final ZMSClient zms = mock(ZMSClient.class);
     private boolean refreshSupport = false;
-    private final MockZMSFileChangeLogStoreCommon mockClogStoreCommon;
 
-    public MockZMSFileChangeLogStore(String rootDirectory, PrivateKey privateKey, String privateKeyId) {
-        
-        super(rootDirectory, privateKey, privateKeyId);
+    public MockZMSFileMTLSChangeLogStore(String rootDirectory, final String keyPath, final String certPath,
+                                     final String trustStorePath, final String trustStorePassword)
+            throws InterruptedException, KeyRefresherException, IOException {
 
-        mockClogStoreCommon = new MockZMSFileChangeLogStoreCommon("/tmp/zts_server_unit_tests/zts_root");
-        mockClogStoreCommon.setTagHeader("2014-01-01T12:00:00");
-        super.setChangeLogStoreCommon(mockClogStoreCommon);
-
-        zms = mock(ZMSClient.class);
+        super(rootDirectory, keyPath, certPath, trustStorePath, trustStorePassword);
+        setZMSClient(zms);
         
         // setup some default values to return when the store is initialized
         // we're going to return on domain for local list and then another
@@ -61,13 +57,8 @@ public class MockZMSFileChangeLogStore extends ZMSFileChangeLogStore {
         List<String> serverDomains = new ArrayList<>();
         serverDomains.add("sys");
         serverDomainList.setNames(serverDomains);
-        
+
         when(zms.getDomainList()).thenReturn(localDomainList).thenReturn(serverDomainList);
-    }
-    
-    @Override
-    public ZMSClient getZMSClient() {
-        return zms;
     }
 
     public void setDomainList(List<String> domains) {
@@ -85,6 +76,11 @@ public class MockZMSFileChangeLogStore extends ZMSFileChangeLogStore {
                 .thenReturn(signedDomains);
     }
 
+    public void setSignedDomainsExc() {
+        when(zms.getSignedDomains(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
+                .thenThrow(new ZMSClientException(500, "Invalid request"));
+    }
+
     public void setRefreshSupport(boolean refreshSupport) {
         this.refreshSupport = refreshSupport;
     }
@@ -92,9 +88,5 @@ public class MockZMSFileChangeLogStore extends ZMSFileChangeLogStore {
     @Override
     public boolean supportsFullRefresh() {
         return refreshSupport;
-    }
-
-    public MockZMSFileChangeLogStoreCommon getClogStoreCommon() {
-        return mockClogStoreCommon;
     }
 }

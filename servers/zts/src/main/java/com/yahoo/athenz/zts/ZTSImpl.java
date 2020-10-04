@@ -555,7 +555,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
         
         // create our struct store
-        
+
+        clogFactory.setPrivateKeyStore(privateKeyStore);
         return clogFactory.create(homeDir, privateKey.getKey(), privateKey.getId());
     }
     
