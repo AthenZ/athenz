@@ -36,4 +36,24 @@ describe('DeleteModal', () => {
         const deleteModalMessage = getByTestId('delete-modal-message');
         expect(deleteModalMessage).toMatchSnapshot();
     });
+
+    it('should render with Domain input field', () => {
+        const isOpen = true;
+        const cancel = function() {};
+        const message = 'test';
+        const name = 'name';
+        const submit = function() {};
+        const { getByTestId } = render(
+            <DeleteModal
+                isOpen={isOpen}
+                cancel={cancel}
+                message={message}
+                name={name}
+                submit={submit}
+                showDomainInput={true}
+            />
+        );
+        const deleteModalMessage = getByTestId('delete-modal-message');
+        expect(deleteModalMessage).toMatchSnapshot();
+    });
 });
