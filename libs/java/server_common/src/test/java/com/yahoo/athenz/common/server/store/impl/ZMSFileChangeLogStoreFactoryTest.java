@@ -78,6 +78,23 @@ public class ZMSFileChangeLogStoreFactoryTest {
     }
 
     @Test
+    public void testCreateMTLSClientStoreInvalidTrustStorePassword() {
+
+        setupMTLSSettings();
+        System.clearProperty("athenz.common.server.clog.zts_server_trust_store_password_name");
+
+        ZMSFileChangeLogStoreFactory factory = new ZMSFileChangeLogStoreFactory();
+        try {
+            factory.create(ZTS_DATA_STORE_PATH, null, null);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex instanceof IllegalArgumentException);
+        }
+
+        clearMTLSSettings();
+    }
+
+    @Test
     public void testCreateMTLSClientStoreWithKeyStoree() {
 
         setupMTLSSettings();

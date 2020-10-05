@@ -83,10 +83,13 @@ public class ZMSFileChangeLogStoreFactory implements ChangeLogStoreFactory {
             return null;
         }
 
-        final String trustStorePwdName = System.getProperty(ZTS_SERVER_PROP_TRUSTORE_PWD_NAME, DEFAULT_JDK_TRUSTSTORE_PWD);
-        final String trustStorePwdApp = System.getProperty(ZTS_SERVER_PROP_TRUSTORE_PWD_APP);
-        final String trustStorePassword = (privateKeyStore == null) ? trustStorePwdName :
-             privateKeyStore.getApplicationSecret(trustStorePwdApp, trustStorePwdName);
+        String trustStorePassword = DEFAULT_JDK_TRUSTSTORE_PWD;
+        final String trustStorePwdName = System.getProperty(ZTS_SERVER_PROP_TRUSTORE_PWD_NAME, "");
+        if (!trustStorePwdName.isEmpty()) {
+            final String trustStorePwdApp = System.getProperty(ZTS_SERVER_PROP_TRUSTORE_PWD_APP);
+            trustStorePassword = (privateKeyStore == null) ? trustStorePwdName :
+                    privateKeyStore.getApplicationSecret(trustStorePwdApp, trustStorePwdName);
+        }
 
         // catch any exceptions thrown from the change log store and instead
         // throw a runtime exception to block the server from starting up
