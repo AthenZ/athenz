@@ -234,7 +234,7 @@ export default class AddRole extends React.Component {
         if (members.length === 1) {
             members = null;
         } else {
-            members.splice(idx,1);
+            members.splice(idx, 1);
         }
         this.setState({ members });
     }
