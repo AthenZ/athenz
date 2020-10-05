@@ -24,10 +24,6 @@ import java.util.concurrent.TimeUnit;
 
 public class DynamoDBUtils {
 
-    private DynamoDBUtils() {
-        // Prevent instantiating utility class
-    }
-
     public static String getIso8601FromDate(Date date) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         return sdf.format(date);

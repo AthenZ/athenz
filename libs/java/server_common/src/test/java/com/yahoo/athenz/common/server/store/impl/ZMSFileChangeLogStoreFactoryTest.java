@@ -15,12 +15,18 @@
  */
 package com.yahoo.athenz.common.server.store.impl;
 
+import static com.yahoo.athenz.common.ServerCommonConsts.PROP_ATHENZ_CONF;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 import java.io.File;
 import java.security.PrivateKey;
+import java.util.Objects;
 
+import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.common.server.store.ChangeLogStore;
+import com.yahoo.athenz.common.server.store.ChangeLogStoreFactory;
 import org.testng.annotations.Test;
 
 import com.yahoo.athenz.auth.util.Crypto;
@@ -39,5 +45,103 @@ public class ZMSFileChangeLogStoreFactoryTest {
         ZMSFileChangeLogStoreFactory factory = new ZMSFileChangeLogStoreFactory();
         ChangeLogStore store = factory.create(ZTS_DATA_STORE_PATH, pkey, "0");
         assertNotNull(store);
+    }
+
+    @Test
+    public void testCreateMTLSClientStore() {
+
+        setupMTLSSettings();
+
+        ZMSFileChangeLogStoreFactory factory = new ZMSFileChangeLogStoreFactory();
+        ChangeLogStore store = factory.create(ZTS_DATA_STORE_PATH, null, null);
+        assertNotNull(store);
+        assertTrue(store instanceof ZMSFileMTLSChangeLogStore);
+
+        clearMTLSSettings();
+    }
+
+    @Test
+    public void testCreateMTLSClientStoreInvalidUrl() {
+
+        setupMTLSSettings();
+        System.clearProperty(PROP_ATHENZ_CONF);
+
+        ZMSFileChangeLogStoreFactory factory = new ZMSFileChangeLogStoreFactory();
+        try {
+            factory.create(ZTS_DATA_STORE_PATH, null, null);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex instanceof IllegalArgumentException);
+        }
+
+        clearMTLSSettings();
+    }
+
+    @Test
+    public void testCreateMTLSClientStoreInvalidTrustStorePassword() {
+
+        setupMTLSSettings();
+        System.clearProperty("athenz.common.server.clog.zts_server_trust_store_password_name");
+
+        ZMSFileChangeLogStoreFactory factory = new ZMSFileChangeLogStoreFactory();
+        try {
+            factory.create(ZTS_DATA_STORE_PATH, null, null);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex instanceof IllegalArgumentException);
+        }
+
+        clearMTLSSettings();
+    }
+
+    @Test
+    public void testCreateMTLSClientStoreWithKeyStoree() {
+
+        setupMTLSSettings();
+        PrivateKeyStore privateKeyStore = new PrivateKeyStore() {
+            @Override
+            public String getApplicationSecret(String appName, String keyName) {
+                return keyName;
+            }
+        };
+
+        ZMSFileChangeLogStoreFactory factory = new ZMSFileChangeLogStoreFactory();
+        factory.setPrivateKeyStore(privateKeyStore);
+        ChangeLogStore store = factory.create(ZTS_DATA_STORE_PATH, null, null);
+        assertNotNull(store);
+        assertTrue(store instanceof ZMSFileMTLSChangeLogStore);
+
+        clearMTLSSettings();
+    }
+
+    @Test
+    public void testChangeLogFactoryInterface() {
+        ChangeLogStoreFactory factory = (ztsHomeDir, privateKey, privateKeyId) -> null;
+
+        // default function so no failure is expected
+
+        factory.setPrivateKeyStore(null);
+    }
+
+    private void setupMTLSSettings() {
+        ClassLoader classLoader = this.getClass().getClassLoader();
+
+        System.setProperty(PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
+        System.setProperty("athenz.common.server.clog.zts_server_trust_store_path",
+                Objects.requireNonNull(classLoader.getResource("driver.truststore.jks")).getFile());
+        System.setProperty("athenz.common.server.clog.zts_server_cert_path",
+                Objects.requireNonNull(classLoader.getResource("driver.cert.pem")).getFile());
+        System.setProperty("athenz.common.server.clog.zts_server_key_path",
+                Objects.requireNonNull(classLoader.getResource("unit_test_driver.key.pem")).getFile());
+
+        System.setProperty("athenz.common.server.clog.zts_server_trust_store_password_name", "123456");
+    }
+
+    private void clearMTLSSettings() {
+        System.clearProperty("athenz.common.server.clog.zts_server_trust_store_path");
+        System.clearProperty("athenz.common.server.clog.zts_server_cert_path");
+        System.clearProperty("athenz.common.server.clog.zts_server_key_path");
+        System.clearProperty("athenz.common.server.clog.zts_server_trust_store_password_name");
+        System.clearProperty(PROP_ATHENZ_CONF);
     }
 }
