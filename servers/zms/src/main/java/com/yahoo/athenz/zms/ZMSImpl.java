@@ -981,7 +981,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         Map<String, Integer> eligibleTemplatesForAutoUpdate = new HashMap<>();
         for (String templateName : serverSolutionTemplates.getTemplates().keySet()) {
             Template template = serverSolutionTemplates.get(templateName);
-            if (template.getMetadata().getAutoUpdate()
+            if (template != null && template.getMetadata() != null && template.getMetadata().getAutoUpdate() == Boolean.TRUE
                     && template.getMetadata().getKeywordsToReplace().isEmpty()) {
                 eligibleTemplatesForAutoUpdate.put(templateName, template.getMetadata().getLatestVersion());
             }
