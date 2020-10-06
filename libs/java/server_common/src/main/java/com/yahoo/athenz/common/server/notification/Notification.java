@@ -16,6 +16,8 @@
 
 package com.yahoo.athenz.common.server.notification;
 
+import com.yahoo.rdl.Timestamp;
+
 import java.util.*;
 
 public class Notification {
@@ -26,11 +28,11 @@ public class Notification {
     // key value pair describing additional details about notification
     private Map<String, String> details;
 
-    // Type of notification
-    private String type;
-
     // Utility class to convert the notification into an email
     private NotificationToEmailConverter notificationToEmailConverter;
+
+    // Utility class to convert the notification into metric attributes
+    private NotificationToMetricConverter notificationToMetricConverter;
 
     public Notification () {
     }
@@ -72,15 +74,6 @@ public class Notification {
         return this;
     }
 
-    public String getType() {
-        return type;
-    }
-
-    public Notification setType(String type) {
-        this.type = type;
-        return this;
-    }
-
     public Notification setNotificationToEmailConverter(NotificationToEmailConverter notificationToEmailConverter) {
         this.notificationToEmailConverter = notificationToEmailConverter;
         return this;
@@ -89,6 +82,18 @@ public class Notification {
     public NotificationEmail getNotificationAsEmail() {
         if (notificationToEmailConverter != null) {
             return notificationToEmailConverter.getNotificationAsEmail(this);
+        }
+        return null;
+    }
+
+    public Notification setNotificationToMetricConverter(NotificationToMetricConverter notificationToMetricConverter) {
+        this.notificationToMetricConverter = notificationToMetricConverter;
+        return this;
+    }
+
+    public NotificationMetric getNotificationAsMetrics(Timestamp currentTime) {
+        if (notificationToMetricConverter != null) {
+            return notificationToMetricConverter.getNotificationAsMetrics(this, currentTime);
         }
         return null;
     }
@@ -102,15 +107,16 @@ public class Notification {
             return false;
         }
         Notification that = (Notification) o;
+        Timestamp currentTime = Timestamp.fromMillis(System.currentTimeMillis());
         return  Objects.equals(getRecipients(), that.getRecipients()) &&
                 Objects.equals(getDetails(), that.getDetails()) &&
-                Objects.equals(getType(), that.getType()) &&
+                Objects.equals(getNotificationAsMetrics(currentTime), that.getNotificationAsMetrics(currentTime)) &&
                 Objects.equals(getNotificationAsEmail(), that.getNotificationAsEmail());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getRecipients(), getDetails(), getType(), getNotificationAsEmail());
+        return Objects.hash(getRecipients(), getDetails());
     }
 
     @Override
@@ -119,11 +125,15 @@ public class Notification {
         if (notificationToEmailConverter != null) {
             emailConverterClassName = notificationToEmailConverter.getClass().getName();
         }
+        String metricConverterClassName = "";
+        if (notificationToMetricConverter != null) {
+            metricConverterClassName = notificationToMetricConverter.getClass().getName();
+        }
         return "Notification{" +
-                "type=" + type +
-                ", recipients=" + recipients +
+                "recipients=" + recipients +
                 ", details=" + details +
                 ", emailConverterClass=" + emailConverterClassName +
+                ", metricConverterClass=" + metricConverterClassName +
                 '}';
     }
 }

@@ -20,6 +20,7 @@ import com.yahoo.athenz.common.server.notification.*;
 import com.yahoo.athenz.zms.DBService;
 import com.yahoo.athenz.zms.DomainRoleMember;
 import com.yahoo.athenz.zms.MemberRole;
+import com.yahoo.rdl.Timestamp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,21 +28,25 @@ import java.util.*;
 
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.NOTIFICATION_DETAILS_MEMBERS_LIST;
+import static com.yahoo.athenz.common.server.notification.impl.MetricNotificationService.*;
 
 public class RoleMemberExpiryNotificationTask implements NotificationTask {
     private final DBService dbService;
     private final RoleMemberNotificationCommon roleMemberNotificationCommon;
     private static final Logger LOGGER = LoggerFactory.getLogger(RoleMemberExpiryNotificationTask.class);
     private final static String DESCRIPTION = "membership expiration reminders";
-    private final static String NOTIFICATION_TYPE = "role_membership_expiry";
     private final RoleExpiryDomainNotificationToEmailConverter roleExpiryDomainNotificationToEmailConverter;
     private final RoleExpiryPrincipalNotificationToEmailConverter roleExpiryPrincipalNotificationToEmailConverter;
+    private final RoleExpiryDomainNotificationToMetricConverter roleExpiryDomainNotificationToMetricConverter;
+    private final RoleExpiryPrincipalNotificationToMetricConverter roleExpiryPrincipalNotificationToMetricConverter;
 
     public RoleMemberExpiryNotificationTask(DBService dbService, String userDomainPrefix) {
         this.dbService = dbService;
         this.roleMemberNotificationCommon = new RoleMemberNotificationCommon(dbService, userDomainPrefix);
         this.roleExpiryPrincipalNotificationToEmailConverter = new RoleExpiryPrincipalNotificationToEmailConverter();
         this.roleExpiryDomainNotificationToEmailConverter = new RoleExpiryDomainNotificationToEmailConverter();
+        this.roleExpiryPrincipalNotificationToMetricConverter = new RoleExpiryPrincipalNotificationToMetricConverter();
+        this.roleExpiryDomainNotificationToMetricConverter = new RoleExpiryDomainNotificationToMetricConverter();
     }
 
     @Override
@@ -59,7 +64,8 @@ public class RoleMemberExpiryNotificationTask implements NotificationTask {
                 roleExpiryPrincipalNotificationToEmailConverter,
                 roleExpiryDomainNotificationToEmailConverter,
                 new ExpiryRoleMemberDetailStringer(),
-                NOTIFICATION_TYPE);
+                roleExpiryPrincipalNotificationToMetricConverter,
+                roleExpiryDomainNotificationToMetricConverter);
     }
 
     static class ExpiryRoleMemberDetailStringer implements RoleMemberNotificationCommon.RoleMemberDetailStringer {
@@ -143,6 +149,70 @@ public class RoleMemberExpiryNotificationTask implements NotificationTask {
             String body = getDomainMemberExpiryBody(notification.getDetails());
             Set<String> fullyQualifiedEmailAddresses = notificationToEmailConverterCommon.getFullyQualifiedEmailAddresses(notification.getRecipients());
             return new NotificationEmail(subject, body, fullyQualifiedEmailAddresses);
+        }
+    }
+
+    public static class RoleExpiryPrincipalNotificationToMetricConverter implements NotificationToMetricConverter {
+        private final static String NOTIFICATION_TYPE = "principal_role_membership_expiry";
+        private final NotificationToMetricConverterCommon notificationToMetricConverterCommon = new NotificationToMetricConverterCommon();
+
+        @Override
+        public NotificationMetric getNotificationAsMetrics(Notification notification, Timestamp currentTime) {
+            Map<String, String> details = notification.getDetails();
+
+            String memberName = details.get(NOTIFICATION_DETAILS_MEMBER);
+
+            List<String[]> attributes = new ArrayList<>();
+            String[] records = details.get(NOTIFICATION_DETAILS_ROLES_LIST).split("\\|");
+            for (String record: records) {
+                String[] recordAttributes = record.split(";");
+                if (recordAttributes.length != 3) {
+                    // Bad entry, skip
+                    continue;
+                }
+                String[] metricRecord = new String[] {
+                        METRIC_NOTIFICATION_TYPE_KEY, NOTIFICATION_TYPE,
+                        METRIC_NOTIFICATION_MEMBER_KEY, memberName,
+                        METRIC_NOTIFICATION_DOMAIN_KEY, recordAttributes[0],
+                        METRIC_NOTIFICATION_ROLE_KEY, recordAttributes[1],
+                        METRIC_NOTIFICATION_EXPIRY_DAYS_KEY, notificationToMetricConverterCommon.getNumberOfDaysBetweenTimestamps(currentTime.toString(), recordAttributes[2])
+                };
+
+                attributes.add(metricRecord);
+            }
+
+            return new NotificationMetric(attributes);
+        }
+    }
+
+    public static class RoleExpiryDomainNotificationToMetricConverter implements NotificationToMetricConverter {
+        private final static String NOTIFICATION_TYPE = "domain_role_membership_expiry";
+        private final NotificationToMetricConverterCommon notificationToMetricConverterCommon = new NotificationToMetricConverterCommon();
+
+        @Override
+        public NotificationMetric getNotificationAsMetrics(Notification notification, Timestamp currentTime) {
+            Map<String, String> details = notification.getDetails();
+            String domain = details.get(NOTIFICATION_DETAILS_DOMAIN);
+            List<String[]> attributes = new ArrayList<>();
+            String[] records = details.get(NOTIFICATION_DETAILS_MEMBERS_LIST).split("\\|");
+            for (String record: records) {
+                String[] recordAttributes = record.split(";");
+                if (recordAttributes.length != 3) {
+                    // Bad entry, skip
+                    continue;
+                }
+                String[] metricRecord = new String[] {
+                        METRIC_NOTIFICATION_TYPE_KEY, NOTIFICATION_TYPE,
+                        METRIC_NOTIFICATION_DOMAIN_KEY, domain,
+                        METRIC_NOTIFICATION_MEMBER_KEY, recordAttributes[0],
+                        METRIC_NOTIFICATION_ROLE_KEY, recordAttributes[1],
+                        METRIC_NOTIFICATION_EXPIRY_DAYS_KEY, notificationToMetricConverterCommon.getNumberOfDaysBetweenTimestamps(currentTime.toString(), recordAttributes[2])
+                };
+
+                attributes.add(metricRecord);
+            }
+
+            return new NotificationMetric(attributes);
         }
     }
 }

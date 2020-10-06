@@ -23,17 +23,15 @@ import com.yahoo.rdl.Timestamp;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.USER_DOMAIN_PREFIX;
-import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.NOTIFICATION_DETAILS_MEMBERS_LIST;
-import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.NOTIFICATION_DETAILS_ROLES_LIST;
+import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
+import static com.yahoo.athenz.common.server.notification.impl.MetricNotificationService.*;
 import static com.yahoo.athenz.zms.notification.ZMSNotificationManagerTest.getNotificationManager;
 import static org.mockito.ArgumentMatchers.any;
 import static org.testng.Assert.*;
+import static org.testng.AssertJUnit.assertEquals;
 
 public class GroupMemberExpiryNotificationTaskTest {
     @Test
@@ -133,14 +131,14 @@ public class GroupMemberExpiryNotificationTaskTest {
         expectedFirstNotification.addDetails(NOTIFICATION_DETAILS_ROLES_LIST, "athenz1;group1;1970-01-01T00:00:00.100Z");
         expectedFirstNotification.addDetails("member", "user.joe");
         expectedFirstNotification.setNotificationToEmailConverter(new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToEmailConverter());
-        expectedFirstNotification.setType("group_membership_expiry");
+        expectedFirstNotification.setNotificationToMetricConverter(new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToToMetricConverter());
 
         Notification expectedSecondNotification = new Notification();
         expectedSecondNotification.addRecipient("user.jane");
         expectedSecondNotification.addDetails(NOTIFICATION_DETAILS_MEMBERS_LIST, "user.joe;group1;1970-01-01T00:00:00.100Z");
         expectedSecondNotification.addDetails("domain", "athenz1");
         expectedSecondNotification.setNotificationToEmailConverter(new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToEmailConverter());
-        expectedSecondNotification.setType("group_membership_expiry");
+        expectedSecondNotification.setNotificationToMetricConverter(new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToMetricConverter());
 
         assertEquals(notifications.get(0), expectedFirstNotification);
         assertEquals(notifications.get(1), expectedSecondNotification);
@@ -273,5 +271,79 @@ public class GroupMemberExpiryNotificationTaskTest {
         notificationAsEmail = principalConverter.getNotificationAsEmail(notification);
         subject = notificationAsEmail.getSubject();
         assertEquals(subject, "Athenz Group Member Expiration Notification");
+    }
+
+    @Test
+    public void testGetNotificationAsMetric() {
+        Timestamp currentTimeStamp = Timestamp.fromMillis(System.currentTimeMillis());
+        Timestamp twentyDaysFromNow = ZMSTestUtils.addDays(currentTimeStamp, 20);
+        Timestamp twentyFiveDaysFromNow = ZMSTestUtils.addDays(currentTimeStamp, 25);
+
+        Map<String, String> details = new HashMap<>();
+        details.put(NOTIFICATION_DETAILS_DOMAIN, "dom1");
+        details.put(NOTIFICATION_DETAILS_MEMBERS_LIST,
+                "user.joe;group1;" + twentyFiveDaysFromNow + "|user.jane;group1;" + twentyDaysFromNow + "|user.bad;group3");
+
+        Notification notification = new Notification();
+        notification.setDetails(details);
+
+        GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToMetricConverter domainConverter = new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToMetricConverter();
+
+        final NotificationMetric notificationAsMetrics = domainConverter.getNotificationAsMetrics(notification, currentTimeStamp);
+
+        final String[] expectedRecord1 = new String[] {
+                METRIC_NOTIFICATION_TYPE_KEY, "domain_group_membership_expiry",
+                METRIC_NOTIFICATION_DOMAIN_KEY, "dom1",
+                METRIC_NOTIFICATION_MEMBER_KEY, "user.joe",
+                METRIC_NOTIFICATION_GROUP_KEY, "group1",
+                METRIC_NOTIFICATION_EXPIRY_DAYS_KEY, "25"
+        };
+
+        final String[] expectedRecord2 = new String[] {
+                METRIC_NOTIFICATION_TYPE_KEY, "domain_group_membership_expiry",
+                METRIC_NOTIFICATION_DOMAIN_KEY, "dom1",
+                METRIC_NOTIFICATION_MEMBER_KEY, "user.jane",
+                METRIC_NOTIFICATION_GROUP_KEY, "group1",
+                METRIC_NOTIFICATION_EXPIRY_DAYS_KEY, "20"
+        };
+
+        final List<String[]> expectedAttributes = new ArrayList<>();
+        expectedAttributes.add(expectedRecord1);
+        expectedAttributes.add(expectedRecord2);
+
+        assertEquals(new NotificationMetric(expectedAttributes), notificationAsMetrics);
+
+        details.put(NOTIFICATION_DETAILS_ROLES_LIST,
+                "athenz1;group1;" + twentyFiveDaysFromNow + "|athenz2;group2;" + twentyDaysFromNow);
+        details.put(NOTIFICATION_DETAILS_MEMBER, "user.joe");
+
+        notification = new Notification();
+        notification.setDetails(details);
+
+        GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToToMetricConverter principalConverter = new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToToMetricConverter();
+
+        final NotificationMetric notificationAsMetricsPrincipal = principalConverter.getNotificationAsMetrics(notification, currentTimeStamp);
+
+        final String[] expectedRecord3 = new String[] {
+                METRIC_NOTIFICATION_TYPE_KEY, "principal_group_membership_expiry",
+                METRIC_NOTIFICATION_MEMBER_KEY, "user.joe",
+                METRIC_NOTIFICATION_DOMAIN_KEY, "athenz1",
+                METRIC_NOTIFICATION_GROUP_KEY, "group1",
+                METRIC_NOTIFICATION_EXPIRY_DAYS_KEY, "25"
+        };
+
+        final String[] expectedRecord4 = new String[] {
+                METRIC_NOTIFICATION_TYPE_KEY, "principal_group_membership_expiry",
+                METRIC_NOTIFICATION_MEMBER_KEY, "user.joe",
+                METRIC_NOTIFICATION_DOMAIN_KEY, "athenz2",
+                METRIC_NOTIFICATION_GROUP_KEY, "group2",
+                METRIC_NOTIFICATION_EXPIRY_DAYS_KEY, "20"
+        };
+
+        final List<String[]> expectedAttributesPrincipal = new ArrayList<>();
+        expectedAttributesPrincipal.add(expectedRecord3);
+        expectedAttributesPrincipal.add(expectedRecord4);
+
+        assertEquals(new NotificationMetric(expectedAttributesPrincipal), notificationAsMetricsPrincipal);
     }
 }

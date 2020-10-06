@@ -18,11 +18,14 @@ package com.yahoo.athenz.zts.notification;
 
 import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.notification.NotificationEmail;
+import com.yahoo.athenz.common.server.notification.NotificationMetric;
 import com.yahoo.athenz.zms.Role;
 import com.yahoo.athenz.zms.RoleMember;
 import com.yahoo.athenz.zts.ZTSClientNotification;
 import com.yahoo.athenz.zts.ZTSConsts;
+import com.yahoo.athenz.zts.ZTSTestUtils;
 import com.yahoo.athenz.zts.store.DataStore;
+import com.yahoo.rdl.Timestamp;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
@@ -31,6 +34,7 @@ import org.testng.annotations.Test;
 import java.util.*;
 
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
+import static com.yahoo.athenz.common.server.notification.impl.MetricNotificationService.*;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.*;
@@ -100,7 +104,8 @@ public class AWSZTSHealthNotificationTaskTest {
         assertEquals(1, notifications.size());
         assertTrue(notifications.get(0).getRecipients().contains("user.test1"));
         assertTrue(notifications.get(0).getRecipients().contains("user.test2"));
-        assertEquals("zts.url;testDomain;role;1592346376;Fail to get token of type AWS. ", notifications.get(0).getDetails().get("awsZtsHealth"));
+        Timestamp expiration = Timestamp.fromMillis(clientNotification.getExpiration() * 1000);
+        assertEquals("zts.url;testDomain;role;" + expiration + ";Fail to get token of type AWS. ", notifications.get(0).getDetails().get("awsZtsHealth"));
         assertEquals("testServer", notifications.get(0).getDetails().get("affectedZts"));
 
         System.clearProperty(ZTSConsts.ZTS_PROP_NOTIFICATION_AWS_HEALTH_DOMAIN);
@@ -159,5 +164,36 @@ public class AWSZTSHealthNotificationTaskTest {
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
         String subject = notificationAsEmail.getSubject();
         Assert.assertEquals(subject, "AWS ZTS Failure Notification");
+    }
+
+    @Test
+    public void testGetNotificationAsMetric() {
+        Timestamp currentTimeStamp = Timestamp.fromCurrentTime();
+        Timestamp twentyFiveDaysFromNow = ZTSTestUtils.addDays(currentTimeStamp, 25);
+
+        Map<String, String> details = new HashMap<>();
+        details.put(NOTIFICATION_DETAILS_AFFECTED_ZTS, "affected zts");
+        details.put(NOTIFICATION_DETAILS_AWS_ZTS_HEALTH,
+                "zts.url;domain0;role0;" + twentyFiveDaysFromNow + ";Error message");
+
+        Notification notification = new Notification();
+        notification.setDetails(details);
+
+        AWSZTSHealthNotificationTask.AWSZTSHealthNotificationToMetricConverter converter = new AWSZTSHealthNotificationTask.AWSZTSHealthNotificationToMetricConverter();
+        NotificationMetric notificationAsMetrics = converter.getNotificationAsMetrics(notification, currentTimeStamp);
+
+        String[] expectedRecord = new String[]{
+                METRIC_NOTIFICATION_TYPE_KEY, "aws_zts_health",
+                METRIC_NOTIFICATION_ZTS_KEY, "zts.url",
+                METRIC_NOTIFICATION_DOMAIN_KEY, "domain0",
+                METRIC_NOTIFICATION_ROLE_KEY, "role0",
+                METRIC_NOTIFICATION_EXPIRY_DAYS_KEY, "25",
+                METRIC_NOTIFICATION_ZTS_HEALTH_MSG_KEY, "Error message"
+        };
+
+        List<String[]> expectedAttributes = new ArrayList<>();
+        expectedAttributes.add(expectedRecord);
+
+        assertEquals(new NotificationMetric(expectedAttributes), notificationAsMetrics);
     }
 }

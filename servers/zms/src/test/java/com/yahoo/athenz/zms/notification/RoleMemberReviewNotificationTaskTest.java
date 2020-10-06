@@ -23,16 +23,15 @@ import com.yahoo.rdl.Timestamp;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.USER_DOMAIN_PREFIX;
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
+import static com.yahoo.athenz.common.server.notification.impl.MetricNotificationService.*;
 import static com.yahoo.athenz.zms.notification.ZMSNotificationManagerTest.getNotificationManager;
 import static org.mockito.ArgumentMatchers.any;
 import static org.testng.Assert.*;
+import static org.testng.AssertJUnit.assertEquals;
 
 public class RoleMemberReviewNotificationTaskTest {
     @Test
@@ -132,14 +131,14 @@ public class RoleMemberReviewNotificationTaskTest {
         expectedFirstNotification.addDetails(NOTIFICATION_DETAILS_ROLES_LIST, "athenz1;role1;1970-01-01T00:00:00.100Z");
         expectedFirstNotification.addDetails("member", "user.joe");
         expectedFirstNotification.setNotificationToEmailConverter(new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter());
-        expectedFirstNotification.setType("role_membership_review");
+        expectedFirstNotification.setNotificationToMetricConverter(new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToMetricConverter());
 
         Notification expectedSecondNotification = new Notification();
         expectedSecondNotification.addRecipient("user.jane");
         expectedSecondNotification.addDetails(NOTIFICATION_DETAILS_MEMBERS_LIST, "user.joe;role1;1970-01-01T00:00:00.100Z");
         expectedSecondNotification.addDetails("domain", "athenz1");
         expectedSecondNotification.setNotificationToEmailConverter(new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToEmailConverter());
-        expectedSecondNotification.setType("role_membership_review");
+        expectedSecondNotification.setNotificationToMetricConverter(new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToMetricConverter());
 
         assertEquals(notifications.get(0), expectedFirstNotification);
         assertEquals(notifications.get(1), expectedSecondNotification);
@@ -304,5 +303,81 @@ public class RoleMemberReviewNotificationTaskTest {
         detailStringBuilder = stringer.getDetailString(memberRole);
         expectedStringBuilder = "testRoleName;1970-01-01T00:00:00.050Z";
         assertEquals(detailStringBuilder.toString(), expectedStringBuilder);
+    }
+
+    @Test
+    public void testGetNotificationAsMetric() {
+        Timestamp currentTimeStamp = Timestamp.fromMillis(System.currentTimeMillis());
+        Timestamp twentyDaysFromNow = ZMSTestUtils.addDays(currentTimeStamp, 20);
+        Timestamp twentyFiveDaysFromNow = ZMSTestUtils.addDays(currentTimeStamp, 25);
+
+        Map<String, String> details = new HashMap<>();
+        details.put(NOTIFICATION_DETAILS_DOMAIN, "dom1");
+        details.put(NOTIFICATION_DETAILS_MEMBERS_LIST,
+                "user.joe;role1;" + twentyFiveDaysFromNow + "|user.jane;role1;" + twentyDaysFromNow + "|user.bad;role1");
+
+        Notification notification = new Notification();
+        notification.setDetails(details);
+
+        RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToMetricConverter domainConverter =
+                new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToMetricConverter();
+
+        final NotificationMetric notificationAsMetrics = domainConverter.getNotificationAsMetrics(notification, currentTimeStamp);
+
+        final String[] expectedRecord1 = new String[] {
+                METRIC_NOTIFICATION_TYPE_KEY, "domain_role_membership_review",
+                METRIC_NOTIFICATION_DOMAIN_KEY, "dom1",
+                METRIC_NOTIFICATION_MEMBER_KEY, "user.joe",
+                METRIC_NOTIFICATION_ROLE_KEY, "role1",
+                METRIC_NOTIFICATION_REVIEW_DAYS_KEY, "25"
+        };
+
+        final String[] expectedRecord2 = new String[] {
+                METRIC_NOTIFICATION_TYPE_KEY, "domain_role_membership_review",
+                METRIC_NOTIFICATION_DOMAIN_KEY, "dom1",
+                METRIC_NOTIFICATION_MEMBER_KEY, "user.jane",
+                METRIC_NOTIFICATION_ROLE_KEY, "role1",
+                METRIC_NOTIFICATION_REVIEW_DAYS_KEY, "20"
+        };
+
+        final List<String[]> expectedAttributes = new ArrayList<>();
+        expectedAttributes.add(expectedRecord1);
+        expectedAttributes.add(expectedRecord2);
+
+        assertEquals(new NotificationMetric(expectedAttributes), notificationAsMetrics);
+
+        details.put(NOTIFICATION_DETAILS_ROLES_LIST,
+                "athenz1;role1;" + twentyFiveDaysFromNow + "|athenz2;role2;" + twentyDaysFromNow);
+        details.put(NOTIFICATION_DETAILS_MEMBER, "user.joe");
+
+        notification = new Notification();
+        notification.setDetails(details);
+
+        RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToMetricConverter principalConverter =
+                new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToMetricConverter();
+
+        final NotificationMetric notificationAsMetricsPrincipal = principalConverter.getNotificationAsMetrics(notification, currentTimeStamp);
+
+        String[] expectedRecord3 = new String[] {
+                METRIC_NOTIFICATION_TYPE_KEY, "principal_role_membership_review",
+                METRIC_NOTIFICATION_MEMBER_KEY, "user.joe",
+                METRIC_NOTIFICATION_DOMAIN_KEY, "athenz1",
+                METRIC_NOTIFICATION_ROLE_KEY, "role1",
+                METRIC_NOTIFICATION_REVIEW_DAYS_KEY, "25"
+        };
+
+        String[] expectedRecord4 = new String[] {
+                METRIC_NOTIFICATION_TYPE_KEY, "principal_role_membership_review",
+                METRIC_NOTIFICATION_MEMBER_KEY, "user.joe",
+                METRIC_NOTIFICATION_DOMAIN_KEY, "athenz2",
+                METRIC_NOTIFICATION_ROLE_KEY, "role2",
+                METRIC_NOTIFICATION_REVIEW_DAYS_KEY, "20"
+        };
+
+        List<String[]> expectedAttributesPrincipal = new ArrayList<>();
+        expectedAttributesPrincipal.add(expectedRecord3);
+        expectedAttributesPrincipal.add(expectedRecord4);
+
+        assertEquals(new NotificationMetric(expectedAttributesPrincipal), notificationAsMetricsPrincipal);
     }
 }

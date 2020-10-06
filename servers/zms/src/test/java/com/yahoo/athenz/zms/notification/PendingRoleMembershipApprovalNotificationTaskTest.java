@@ -19,18 +19,18 @@ package com.yahoo.athenz.zms.notification;
 import com.yahoo.athenz.common.server.notification.*;
 import com.yahoo.athenz.zms.DBService;
 import com.yahoo.athenz.zms.ZMSTestUtils;
+import com.yahoo.rdl.Timestamp;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.USER_DOMAIN_PREFIX;
+import static com.yahoo.athenz.common.server.notification.impl.MetricNotificationService.METRIC_NOTIFICATION_TYPE_KEY;
 import static com.yahoo.athenz.zms.notification.ZMSNotificationManagerTest.getNotificationManager;
 import static org.testng.Assert.*;
 import static org.testng.Assert.assertFalse;
+import static org.testng.AssertJUnit.assertEquals;
 
 public class PendingRoleMembershipApprovalNotificationTaskTest {
     @Test
@@ -59,8 +59,8 @@ public class PendingRoleMembershipApprovalNotificationTaskTest {
         assertEquals(notifications.size(), 1);
         Notification expectedNotification = new Notification();
         expectedNotification.setNotificationToEmailConverter(new PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToEmailConverter());
+        expectedNotification.setNotificationToMetricConverter(new PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToMetricConverter());
         expectedNotification.addRecipient("user.joe");
-        expectedNotification.setType("pending_role_membership_approval");
         assertEquals(notifications.get(0), expectedNotification);
         notificationManager.shutdown();
     }
@@ -104,5 +104,21 @@ public class PendingRoleMembershipApprovalNotificationTaskTest {
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
         String subject = notificationAsEmail.getSubject();
         assertEquals(subject, "Membership Approval Reminder Notification");
+    }
+
+    @Test
+    public void testGetNotificationAsMetric() {
+        PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToMetricConverter converter =
+                new PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToMetricConverter();
+        Notification notification = new Notification();
+        NotificationMetric notificationAsMetrics = converter.getNotificationAsMetrics(notification, Timestamp.fromMillis(System.currentTimeMillis()));
+        String[] record = new String[] {
+                METRIC_NOTIFICATION_TYPE_KEY, "pending_role_membership_approval"
+        };
+
+        List<String[]> expectedAttributes = new ArrayList<>();
+        expectedAttributes.add(record);
+
+        assertEquals(new NotificationMetric(expectedAttributes), notificationAsMetrics);
     }
 }

@@ -25,11 +25,15 @@ import com.yahoo.athenz.zms.Policy;
 import com.yahoo.athenz.zms.ServiceIdentity;
 import com.yahoo.athenz.zts.store.DataStore;
 import com.yahoo.rdl.Timestamp;
+import org.testng.internal.junit.ArrayAsserts;
 
 import java.io.File;
 import java.security.PrivateKey;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
+
+import static org.testng.AssertJUnit.assertEquals;
 
 public class ZTSTestUtils {
 
@@ -377,5 +381,12 @@ public class ZTSTestUtils {
         } catch (InterruptedException e) {
             //ignored
         }
+    }
+
+    public static Timestamp addDays(Timestamp date, int days) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(date.millis());
+        cal.add(Calendar.DATE, days);
+        return Timestamp.fromMillis(cal.getTime().getTime());
     }
 }

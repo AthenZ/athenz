@@ -43,7 +43,7 @@ public class NotificationCommon {
     public Notification createNotification(Set<String> recipients,
                                            Map<String, String> details,
                                            NotificationToEmailConverter notificationToEmailConverter,
-                                           String notificationType) {
+                                           NotificationToMetricConverter notificationToMetricConverter) {
 
         if (recipients == null || recipients.isEmpty()) {
             LOGGER.error("Notification requires at least 1 recipient.");
@@ -53,7 +53,7 @@ public class NotificationCommon {
         Notification notification = new Notification();
         notification.setDetails(details);
         notification.setNotificationToEmailConverter(notificationToEmailConverter);
-        notification.setType(notificationType);
+        notification.setNotificationToMetricConverter(notificationToMetricConverter);
 
         for (String recipient : recipients) {
             addNotificationRecipient(notification, recipient, true);
@@ -70,7 +70,7 @@ public class NotificationCommon {
     public Notification createNotification(final String recipient,
                                            Map<String, String> details,
                                            NotificationToEmailConverter notificationToEmailConverter,
-                                           String notificationType) {
+                                           NotificationToMetricConverter notificationToMetricConverter) {
 
         if (recipient == null || recipient.isEmpty()) {
             LOGGER.error("Notification requires a valid recipient");
@@ -80,7 +80,7 @@ public class NotificationCommon {
         Notification notification = new Notification();
         notification.setDetails(details);
         notification.setNotificationToEmailConverter(notificationToEmailConverter);
-        notification.setType(notificationType);
+        notification.setNotificationToMetricConverter(notificationToMetricConverter);
 
         // if the recipient is a service then we're going to send a notification
         // to the service's domain admin users

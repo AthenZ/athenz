@@ -166,12 +166,12 @@ public class NotificationManagerTest {
         details.put("key2", "value2");
 
         NotificationToEmailConverter converter = Mockito.mock(NotificationToEmailConverter.class);
-        Notification notification = notificationCommon.createNotification(recipients, details, converter, "testType");
+        NotificationToMetricConverter metricConverter = Mockito.mock(NotificationToMetricConverter.class);
+        Notification notification = notificationCommon.createNotification(recipients, details, converter, metricConverter);
         assertNotNull(notification);
 
         assertTrue(notification.getRecipients().contains("user.recipient1"));
         assertTrue(notification.getRecipients().contains("user.recipient2"));
-        assertEquals(notification.getType(), "testType");
         assertEquals(notification.getDetails().size(), 2);
         assertEquals(notification.getDetails().get("key1"), "value1");
         assertEquals(notification.getDetails().get("key2"), "value2");
@@ -196,7 +196,8 @@ public class NotificationManagerTest {
         DomainRoleMembersFetcher domainRoleMembersFetcher = new DomainRoleMembersFetcher(rolesProvider, USER_DOMAIN_PREFIX);
         NotificationCommon notificationCommon = new NotificationCommon(domainRoleMembersFetcher, USER_DOMAIN_PREFIX);
         NotificationToEmailConverter converter = Mockito.mock(NotificationToEmailConverter.class);
-        Notification notification = notificationCommon.createNotification(recipients, null, converter, "testNotification");
+        NotificationToMetricConverter metricConverter = Mockito.mock(NotificationToMetricConverter.class);
+        Notification notification = notificationCommon.createNotification(recipients, null, converter, metricConverter);
         assertNull(notification);
     }
 
@@ -243,13 +244,14 @@ public class NotificationManagerTest {
         Map<String, String> details = new HashMap<>();
 
         NotificationToEmailConverter converter = Mockito.mock(NotificationToEmailConverter.class);
-        assertNull(notificationCommon.createNotification((String) null, details, converter, "testNotification"));
-        assertNull(notificationCommon.createNotification("", details, converter, "testNotification"));
-        assertNull(notificationCommon.createNotification("athenz", details, converter, "testNotification"));
+        NotificationToMetricConverter metricConverter = Mockito.mock(NotificationToMetricConverter.class);
+        assertNull(notificationCommon.createNotification((String) null, details, converter, metricConverter));
+        assertNull(notificationCommon.createNotification("", details, converter, metricConverter));
+        assertNull(notificationCommon.createNotification("athenz", details, converter, metricConverter));
 
         // valid service name but we have no valid domain so we're still
         // going to get null notification
 
-        assertNull(notificationCommon.createNotification("athenz.service", details, converter, "testNotification"));
+        assertNull(notificationCommon.createNotification("athenz.service", details, converter, metricConverter));
     }
 }

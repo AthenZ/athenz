@@ -19,17 +19,18 @@ package com.yahoo.athenz.zms.notification;
 import com.yahoo.athenz.common.server.notification.*;
 import com.yahoo.athenz.zms.DBService;
 import com.yahoo.athenz.zms.ZMSTestUtils;
+import com.yahoo.rdl.Timestamp;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
+import org.testng.internal.junit.ArrayAsserts;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.USER_DOMAIN_PREFIX;
+import static com.yahoo.athenz.common.server.notification.impl.MetricNotificationService.METRIC_NOTIFICATION_TYPE_KEY;
 import static com.yahoo.athenz.zms.notification.ZMSNotificationManagerTest.getNotificationManager;
 import static org.testng.Assert.*;
+import static org.testng.AssertJUnit.assertEquals;
 
 public class PendingGroupMembershipApprovalNotificationTaskTest {
     @Test
@@ -59,8 +60,8 @@ public class PendingGroupMembershipApprovalNotificationTaskTest {
         assertEquals(notifications.size(), 1);
         Notification expectedNotification = new Notification();
         expectedNotification.setNotificationToEmailConverter(new PendingGroupMembershipApprovalNotificationTask.PendingGroupMembershipApprovalNotificationToEmailConverter());
+        expectedNotification.setNotificationToMetricConverter(new PendingGroupMembershipApprovalNotificationTask.PendingGroupMembershipApprovalNotificationToMetricConverter());
         expectedNotification.addRecipient("user.joe");
-        expectedNotification.setType("pending_group_membership_approval");
         assertEquals(notifications.get(0), expectedNotification);
         notificationManager.shutdown();
     }
@@ -106,5 +107,21 @@ public class PendingGroupMembershipApprovalNotificationTaskTest {
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
         String subject = notificationAsEmail.getSubject();
         assertEquals(subject, "Group Membership Approval Reminder Notification");
+    }
+
+    @Test
+    public void testGetNotificationAsMetric() {
+        PendingGroupMembershipApprovalNotificationTask.PendingGroupMembershipApprovalNotificationToMetricConverter converter =
+                new PendingGroupMembershipApprovalNotificationTask.PendingGroupMembershipApprovalNotificationToMetricConverter();
+        Notification notification = new Notification();
+        NotificationMetric notificationAsMetrics = converter.getNotificationAsMetrics(notification, Timestamp.fromMillis(System.currentTimeMillis()));
+        String[] record = new String[] {
+                METRIC_NOTIFICATION_TYPE_KEY, "pending_group_membership_approval"
+        };
+
+        List<String[]> expectedAttributes = new ArrayList<>();
+        expectedAttributes.add(record);
+
+        assertEquals(new NotificationMetric(expectedAttributes), notificationAsMetrics);
     }
 }

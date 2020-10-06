@@ -21,22 +21,23 @@ import com.yahoo.athenz.common.server.notification.*;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.zts.ZTSClientNotification;
 import com.yahoo.athenz.zts.ZTSConsts;
+import com.yahoo.rdl.Timestamp;
 
 import java.util.*;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.*;
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
+import static com.yahoo.athenz.common.server.notification.impl.MetricNotificationService.*;
 
 public class AWSZTSHealthNotificationTask implements NotificationTask {
     private final static String DESCRIPTION = "ZTS On AWS Health Notification";
-    private final static String NOTIFICATION_TYPE = "aws_zts_health";
     private final NotificationCommon notificationCommon;
     private final ZTSClientNotification ztsClientNotification;
     private final String serverName;
     private final String athenzAdminDomain;
 
-    private final AWSZTSHealthNotificationTask.AWSZTSHealthNotificationToEmailConverter awsZTSHealthNotificationToEmailConverter;
-
+    private final AWSZTSHealthNotificationToEmailConverter awsZTSHealthNotificationToEmailConverter;
+    private final AWSZTSHealthNotificationToMetricConverter awsztsHealthNotificationToMetricConverter;
 
     public AWSZTSHealthNotificationTask(ZTSClientNotification ztsClientNotification,
                                         RolesProvider rolesProvider,
@@ -44,7 +45,8 @@ public class AWSZTSHealthNotificationTask implements NotificationTask {
                                         String serverName) {
         DomainRoleMembersFetcher domainRoleMembersFetcher = new DomainRoleMembersFetcher(rolesProvider, USER_DOMAIN_PREFIX);
         this.notificationCommon = new NotificationCommon(domainRoleMembersFetcher, userDomainPrefix);
-        this.awsZTSHealthNotificationToEmailConverter = new AWSZTSHealthNotificationTask.AWSZTSHealthNotificationToEmailConverter();
+        this.awsZTSHealthNotificationToEmailConverter = new AWSZTSHealthNotificationToEmailConverter();
+        this.awsztsHealthNotificationToMetricConverter = new AWSZTSHealthNotificationToMetricConverter();
         this.ztsClientNotification = ztsClientNotification;
         this.serverName = serverName;
         this.athenzAdminDomain = System.getProperty(ZTSConsts.ZTS_PROP_NOTIFICATION_AWS_HEALTH_DOMAIN, ATHENZ_SYS_DOMAIN);
@@ -59,7 +61,7 @@ public class AWSZTSHealthNotificationTask implements NotificationTask {
                 ResourceUtils.roleResourceName(athenzAdminDomain, ADMIN_ROLE_NAME),
                 details,
                 awsZTSHealthNotificationToEmailConverter,
-                NOTIFICATION_TYPE);
+                awsztsHealthNotificationToMetricConverter);
         if (notification != null) {
             notificationList.add(notification);
         }
@@ -70,11 +72,12 @@ public class AWSZTSHealthNotificationTask implements NotificationTask {
     private Map<String, String> getNotificationDetails() {
         Map<String, String> details = new HashMap<>();
         StringBuilder awsZtsDetails = new StringBuilder(256);
+        Timestamp expiration = Timestamp.fromMillis(ztsClientNotification.getExpiration() * 1000);
         awsZtsDetails.append(
                 ztsClientNotification.getZtsURL()).append(';')
                 .append(ztsClientNotification.getDomain()).append(';')
                 .append(ztsClientNotification.getRole()).append(';')
-                .append(ztsClientNotification.getExpiration()).append(';')
+                .append(expiration).append(';')
                 .append(ztsClientNotification.getMessage());
 
         details.put(NOTIFICATION_DETAILS_AWS_ZTS_HEALTH, awsZtsDetails.toString());
@@ -118,6 +121,30 @@ public class AWSZTSHealthNotificationTask implements NotificationTask {
             String body = getAwsZtsHealthBody(notification.getDetails());
             Set<String> fullyQualifiedEmailAddresses = notificationToEmailConverterCommon.getFullyQualifiedEmailAddresses(notification.getRecipients());
             return new NotificationEmail(subject, body, fullyQualifiedEmailAddresses);
+        }
+    }
+
+    public static class AWSZTSHealthNotificationToMetricConverter implements NotificationToMetricConverter {
+        private final static String NOTIFICATION_TYPE = "aws_zts_health";
+        private final NotificationToMetricConverterCommon notificationToMetricConverterCommon = new NotificationToMetricConverterCommon();
+
+        @Override
+        public NotificationMetric getNotificationAsMetrics(Notification notification, Timestamp currentTime) {
+            String[] details = notification.getDetails().get(NOTIFICATION_DETAILS_AWS_ZTS_HEALTH).split(";");
+
+            String[] record = new String[]{
+                    METRIC_NOTIFICATION_TYPE_KEY, NOTIFICATION_TYPE,
+                    METRIC_NOTIFICATION_ZTS_KEY, details[0],
+                    METRIC_NOTIFICATION_DOMAIN_KEY, details[1],
+                    METRIC_NOTIFICATION_ROLE_KEY, details[2],
+                    METRIC_NOTIFICATION_EXPIRY_DAYS_KEY, notificationToMetricConverterCommon.getNumberOfDaysBetweenTimestamps(currentTime.toString(), details[3]),
+                    METRIC_NOTIFICATION_ZTS_HEALTH_MSG_KEY, details[4]
+            };
+
+            List<String[]> attributes = new ArrayList<>();
+            attributes.add(record);
+
+            return new NotificationMetric(attributes);
         }
     }
 }
