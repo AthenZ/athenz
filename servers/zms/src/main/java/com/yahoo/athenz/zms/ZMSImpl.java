@@ -6639,10 +6639,15 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         if (val == null) {
             throw ZMSUtils.requestError("Missing or malformed " + type, caller);
         }
-        
-        Result result = validator.validate(val, type);
-        if (!result.valid) {
-            throw ZMSUtils.requestError("Invalid " + type  + " error: " + result.error, caller);
+
+        try {
+            Result result = validator.validate(val, type);
+            if (!result.valid) {
+                throw ZMSUtils.requestError("Invalid " + type + " error: " + result.error, caller);
+            }
+        } catch (Exception ex) {
+            LOG.error("Object validation exception", ex);
+            throw ZMSUtils.requestError("Invalid " + type + " error: " + ex.getMessage(), caller);
         }
     }
     

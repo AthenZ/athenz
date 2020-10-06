@@ -8403,6 +8403,19 @@ public class ZMSImplTest {
             fail();
         } catch (ResourceException ignored) {
         }
+
+        role = new Role().setName("coretech:role.dev-team");
+        roleMembers = new ArrayList<>();
+        roleMembers.add(new RoleMember().setMemberName("user.user1"));
+        roleMembers.add(null);
+        role.setRoleMembers(roleMembers);
+
+        try {
+            zms.validate(role, "Role", "testValidate");
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Invalid Role"), ex.getMessage());
+        }
     }
     
     @Test
