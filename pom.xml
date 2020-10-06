@@ -69,26 +69,26 @@
   </ciManagement>
 
   <properties>
-    <jetty.version>9.4.31.v20200723</jetty.version>
-    <jersey.version>2.31</jersey.version>
-    <jackson.core.version>2.11.1</jackson.core.version>
-    <jackson.databind.version>2.11.1</jackson.databind.version>
-    <jackson.annotations.version>2.11.1</jackson.annotations.version>
-    <jackson.jaxrs.version>2.11.1</jackson.jaxrs.version>
+    <jetty.version>9.4.32.v20200930</jetty.version>
+    <jersey.version>2.32</jersey.version>
+    <jackson.core.version>2.11.3</jackson.core.version>
+    <jackson.databind.version>2.11.3</jackson.databind.version>
+    <jackson.annotations.version>2.11.3</jackson.annotations.version>
+    <jackson.jaxrs.version>2.11.3</jackson.jaxrs.version>
     <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
     <rdl.version>1.5.3</rdl.version>
     <bouncycastle.version>1.66</bouncycastle.version>
-    <aws.version>1.11.832</aws.version>
+    <aws.version>1.11.876</aws.version>
     <guava.version>29.0-jre</guava.version>
     <logback.version>1.2.3</logback.version>
     <javax.version>3.1.0</javax.version>
     <javax.ws.version>2.1.1</javax.ws.version>
-    <mockito.version>3.4.6</mockito.version>
+    <mockito.version>3.5.13</mockito.version>
     <jmockit.version>1.49</jmockit.version>
     <jjwt.version>0.11.2</jjwt.version>
     <mysql.connector.version>8.0.21</mysql.connector.version>
-    <commons.daemon.version>1.2.2</commons.daemon.version>
-    <apache.httpclient.version>4.5.12</apache.httpclient.version>
+    <commons.daemon.version>1.2.3</commons.daemon.version>
+    <apache.httpclient.version>4.5.13</apache.httpclient.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <code.coverage.min>0.95</code.coverage.min>
@@ -284,7 +284,7 @@
     <dependency>
       <groupId>org.testng</groupId>
       <artifactId>testng</artifactId>
-      <version>7.1.0</version>
+      <version>7.3.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
