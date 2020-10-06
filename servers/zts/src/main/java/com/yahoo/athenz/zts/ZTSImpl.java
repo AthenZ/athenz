@@ -3948,10 +3948,16 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw requestError("Missing or malformed " + type, caller,
                     ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
-        
-        Result result = validator.validate(val, type);
-        if (!result.valid) {
-            throw requestError("Invalid " + type  + " error: " + result.error, caller,
+
+        try {
+            Result result = validator.validate(val, type);
+            if (!result.valid) {
+                throw requestError("Invalid " + type + " error: " + result.error, caller,
+                        ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+            }
+        } catch (Exception ex) {
+            LOGGER.error("Object validation exception", ex);
+            throw requestError("Invalid " + type + " error: " + ex.getMessage(), caller,
                     ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
     }
