@@ -323,7 +323,6 @@ func (cli Zms) ShowRolesPrincipal(principal string, dn string) (*string, error) 
 	if err != nil {
 		return nil, err
 	}
-	buf.WriteString("roles for principal:\n")
 	cli.dumpRolesPrincipal(&buf, domainRoleMember)
 	s := buf.String()
 	return &s, nil

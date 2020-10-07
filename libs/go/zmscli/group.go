@@ -180,7 +180,6 @@ func (cli Zms) ShowGroupsPrincipal(principal string, dn string) (*string, error)
 	if err != nil {
 		return nil, err
 	}
-	buf.WriteString("groups for principal:\n")
 	cli.dumpGroupsPrincipal(&buf, domainGroupMember)
 	s := buf.String()
 	return &s, nil
