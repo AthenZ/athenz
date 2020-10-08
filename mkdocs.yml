@@ -36,6 +36,7 @@ nav:
     - Role Member Review Reminder Support: member_soft_expiration.md
     - Self-Served Roles: self_serve_roles.md
     - Athenz Templates: athenz_templates.md
+    - Principal Groups: principal_groups.md
 - Authentication:
     - Athenz Service Identity X.509 Certificate for AWS EC2 instances: service_x509_credentials_aws.md
     - Athenz Service Identity X.509 Certificate for AWS ECS containers: service_x509_credentials_aws_ecs.md

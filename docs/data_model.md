@@ -11,6 +11,7 @@
     * [Principals](#principals)
         * [Users](#users)
         * [Services](#services)
+        * [Groups](#groups)
     * [Tokens](#tokens)
         * [Principal Token - NToken](#principal-token-ntoken)
         * [Access Tokens](#access-tokens)
@@ -36,7 +37,7 @@ decentralized authorization, and how to set up role-based authorization.
 7. Cryptographic signatures are used to ensure the fidelity of assertions and
    their lifecycle attributes
 8. Policy orientation, as opposed to Resource orientation, allows few assertions
-   (in policies) to affect a potentially large number of resources, and also allows
+   (in policies) to affect a potentially large number of resources, and allows
    more flexible scoping via wildcarding over groups of resources.
 9. In Athenz, the authorization management server converts all incoming
    data to lowercase before any processing - this applies to all data types
@@ -63,11 +64,11 @@ decentralized authorization, and how to set up role-based authorization.
   an Athenz-aware container, reachable via an explicit endpoint.
 * Provider - a type of service that participates in the multi-tenant provisioning protocol.
 * Tenant - a Domain that is provisioned to access some Resources in a Provider
-* Group - A group is a Role with explicit principal assignments
+* Group - A group is a collection of user and service principals
 * Control Plane - operations done to provision or otherwise setup a system,
   outside its normal operation.
 * Data Plane - operations done in the normal usage of a system, after it is
-  set up. These operations are usually highly performance sensitive
+  set up. These operations are usually highly performance sensitive.
 
 There are numerous domains, and domains can themselves “contain” subdomains,
 from a creation/deletion perspective. However, all domains and subdomains,
@@ -81,16 +82,16 @@ and Services are all defined in a Domain.
 
 Domains are namespaces, strictly partitioned, providing a context for
 authoritative statements to be made about entities it contains. Only
-system administrators can create and destroy top level domains. Each
-such domain is assigned users in an administrative role. Those admins
+system administrators can create and destroy top-level domains. Each
+domain is assigned users in an administrative role. Those admins
 can, in turn, create and delete subdomains, that is, domains that start
 with the parent domain as a prefix, using a '.' as a domain delimiter.
-For example, "media" is a top level domain, and "media.news" is a
+For example, "media" is a top-level domain, and "media.news" is a
 subdomain of it. It is important to note that the only relation between
 these two domains involves creation and destruction of the domains --
 the two domains share no state by default, and there is no inheritance
 or other relation between them other than that implied by their names.
-This allows all domains (whether top level or subdomains) to be
+This allows all domains (whether top-level or subdomains) to be
 completely partitioned from each other, and the ownership of the
 entities defined within a domain is clear.
 
@@ -201,9 +202,22 @@ User. Athenz provides support for registering such a Service Identity, in a doma
 along with its public key that can be used to later verify an NToken that is
 presented by the service.
 
+#### Groups
+-----------
+
+To simplify principal management, the users and services can be included
+in Groups. Then, the Group can be added as a principal to any role
+within Athenz thus granting the members of that group access to the configured
+resources. For example, if you need to add your development team members to
+multiple roles in your domain, you can create a group called `dev-team`, add
+those users into that group and then include the group as a member in the
+corresponding roles. When you need to remove or add a member, then you only
+need to modify the membership of your `dev-team` group. The groups cannot
+contain other groups.
+
+
 ## Tokens
 ---------
-
 
 Athenz authorization system utilizes 2 types of tokens: Principal Tokens
 (NTokens) and Access Tokens.
@@ -257,7 +271,7 @@ Athenz supports the OAuth2 standard by enabling the generation of Access Tokens.
 Access tokens represent an authoritative statement that a given principal may assume 
 some number of roles in a domain for a limited period. They are signed to prevent tampering.
 
-Using Access Tokens instead of directly asking for an access check with a principal identity, reduces
-the chance of providing identity details to a compromised service.
-This mechanism also allows a service to make a completely local access check against the cached 
-policies used by the policy engine.
+Using Access Tokens instead of directly asking for an access check with a principal identity,
+reduces the chance of providing identity details to a compromised service. This mechanism
+also allows a service to make a completely local access check against the cached policies
+used by the policy engine.

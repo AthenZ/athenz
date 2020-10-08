@@ -21,8 +21,7 @@ The groups are identified in Athenz with the following resource uri:
 ## Group Management
 
 The group name can only include alpha numeric characters including - and _. Currently,
-groups can only be provisioned with `zms-cli` command line utility (make sure
-you have 2.3.x version of the zms-cli utility):
+groups can only be provisioned with `zms-cli` command line utility:
 
 ```
 zms-cli -d <domain-name> add-group <group-name> <member> [<member> ...]
@@ -95,33 +94,3 @@ until one of the domain administrators approves the request.
 ```
 zms-cli -d <domain-name> set-group-self-serve <group-name> true
 ```
-
-### Elevated Clearance Support
-
-The domain administrator can configure groups to only allow members that have PCI Elevated
-Clearance completed. The members in these groups will have an expiry date matching their
-clearance expiry date as registered in Workday.
-
-```
-zms-cli -d <domain-name> set-group-user-authority-expiration <group-name> ElevatedClearance
-```
-
-If the role already has the Elevated Clearance filter set, then the group must also have
-the filter set before it can be added as a member. Similarly, once added, the group
-administrator may not remove the filter as long as that group is a member of a role that
-has the filter restriction set.
-
-### OnShore Support
-
-The domain administrator can configure groups to only allow members that have their
-work location set to a US based office. This satisfies governance requirement to automatically
-enforce that OffShore users are not authorized to access OnShore resources.
-
-```
-zms-cli -d <domain-name> set-group-user-authority-filter <group-name> OnShore-US
-```
-
-If the role already has the OnShore filter set, then the group must also have
-the filter set before it can be added as a member. Similarly, once added, the group
-administrator may not remove the filter as long as that group is a member of a role that
-has the filter restriction set.
