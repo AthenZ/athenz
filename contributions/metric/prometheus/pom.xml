@@ -28,7 +28,7 @@
   <description>Athenz Yahoo Server Metrics Interface implementation for Prometheus</description>
 
   <properties>
-    <athenz.version>1.9.14</athenz.version>
+    <athenz.version>1.9.20</athenz.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <prometheus.version>0.6.0</prometheus.version>
@@ -115,6 +115,12 @@
           <artifactId>junit</artifactId>
         </exclusion>
       </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.13</version>
+      <scope>test</scope>
     </dependency>
 
   </dependencies>
