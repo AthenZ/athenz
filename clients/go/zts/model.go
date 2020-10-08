@@ -1631,60 +1631,6 @@ func (self *AWSTemporaryCredentials) Validate() error {
 }
 
 //
-// OSTKInstanceRefreshRequest - OSTKCertificateRequest - a certificate signing
-// request
-//
-type OSTKInstanceRefreshRequest struct {
-
-	//
-	// request an X.509 certificate
-	//
-	Csr string `json:"csr,omitempty" rdl:"optional"`
-}
-
-//
-// NewOSTKInstanceRefreshRequest - creates an initialized OSTKInstanceRefreshRequest instance, returns a pointer to it
-//
-func NewOSTKInstanceRefreshRequest(init ...*OSTKInstanceRefreshRequest) *OSTKInstanceRefreshRequest {
-	var o *OSTKInstanceRefreshRequest
-	if len(init) == 1 {
-		o = init[0]
-	} else {
-		o = new(OSTKInstanceRefreshRequest)
-	}
-	return o
-}
-
-type rawOSTKInstanceRefreshRequest OSTKInstanceRefreshRequest
-
-//
-// UnmarshalJSON is defined for proper JSON decoding of a OSTKInstanceRefreshRequest
-//
-func (self *OSTKInstanceRefreshRequest) UnmarshalJSON(b []byte) error {
-	var m rawOSTKInstanceRefreshRequest
-	err := json.Unmarshal(b, &m)
-	if err == nil {
-		o := OSTKInstanceRefreshRequest(m)
-		*self = o
-		err = self.Validate()
-	}
-	return err
-}
-
-//
-// Validate - checks for missing required fields, etc
-//
-func (self *OSTKInstanceRefreshRequest) Validate() error {
-	if self.Csr != "" {
-		val := rdl.Validate(ZTSSchema(), "String", self.Csr)
-		if !val.Valid {
-			return fmt.Errorf("OSTKInstanceRefreshRequest.csr does not contain a valid String (%v)", val.Error)
-		}
-	}
-	return nil
-}
-
-//
 // InstanceRegisterInformation -
 //
 type InstanceRegisterInformation struct {

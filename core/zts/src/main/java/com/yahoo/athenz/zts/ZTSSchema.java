@@ -203,10 +203,6 @@ public class ZTSSchema {
             .field("sessionToken", "String", false, "")
             .field("expiration", "Timestamp", false, "");
 
-        sb.structType("OSTKInstanceRefreshRequest")
-            .comment("OSTKCertificateRequest - a certificate signing request")
-            .field("csr", "String", true, "request an X.509 certificate");
-
         sb.structType("InstanceRegisterInformation")
             .field("provider", "ServiceName", false, "the provider service name (i.e. \"aws.us-west-2\", \"sys.openstack.cluster1\")")
             .field("domain", "DomainName", false, "the domain of the instance")
@@ -534,24 +530,6 @@ public class ZTSSchema {
             .exception("BAD_REQUEST", "ResourceError", "")
 
             .exception("FORBIDDEN", "ResourceError", "")
-
-            .exception("NOT_FOUND", "ResourceError", "")
-
-            .exception("UNAUTHORIZED", "ResourceError", "")
-;
-
-        sb.resource("OSTKInstanceRefreshRequest", "POST", "/ostk/instance/{domain}/{service}/refresh")
-            .comment("Refresh self identity if the original identity was issued by ZTS The token must include the original requestor's name and the server will verify that the service still has authorization to grant inception to the current service requesting to refresh its identity")
-            .pathParam("domain", "CompoundName", "name of the tenant domain")
-            .pathParam("service", "SimpleName", "name of the tenant service")
-            .input("req", "OSTKInstanceRefreshRequest", "the refresh request")
-            .auth("", "", true)
-            .expected("OK")
-            .exception("BAD_REQUEST", "ResourceError", "")
-
-            .exception("FORBIDDEN", "ResourceError", "")
-
-            .exception("INTERNAL_SERVER_ERROR", "ResourceError", "")
 
             .exception("NOT_FOUND", "ResourceError", "")
 

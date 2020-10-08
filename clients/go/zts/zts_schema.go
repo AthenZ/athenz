@@ -240,11 +240,6 @@ func init() {
 	tAWSTemporaryCredentials.Field("expiration", "Timestamp", false, nil, "")
 	sb.AddType(tAWSTemporaryCredentials.Build())
 
-	tOSTKInstanceRefreshRequest := rdl.NewStructTypeBuilder("Struct", "OSTKInstanceRefreshRequest")
-	tOSTKInstanceRefreshRequest.Comment("OSTKCertificateRequest - a certificate signing request")
-	tOSTKInstanceRefreshRequest.Field("csr", "String", true, nil, "request an X.509 certificate")
-	sb.AddType(tOSTKInstanceRefreshRequest.Build())
-
 	tInstanceRegisterInformation := rdl.NewStructTypeBuilder("Struct", "InstanceRegisterInformation")
 	tInstanceRegisterInformation.Field("provider", "ServiceName", false, nil, "the provider service name (i.e. \"aws.us-west-2\", \"sys.openstack.cluster1\")")
 	tInstanceRegisterInformation.Field("domain", "DomainName", false, nil, "the domain of the instance")
@@ -548,19 +543,6 @@ func init() {
 	mGetAWSTemporaryCredentials.Exception("NOT_FOUND", "ResourceError", "")
 	mGetAWSTemporaryCredentials.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetAWSTemporaryCredentials.Build())
-
-	mPostOSTKInstanceRefreshRequest := rdl.NewResourceBuilder("Identity", "POST", "/ostk/instance/{domain}/{service}/refresh")
-	mPostOSTKInstanceRefreshRequest.Comment("Refresh self identity if the original identity was issued by ZTS The token must include the original requestor's name and the server will verify that the service still has authorization to grant inception to the current service requesting to refresh its identity")
-	mPostOSTKInstanceRefreshRequest.Input("domain", "CompoundName", true, "", "", false, nil, "name of the tenant domain")
-	mPostOSTKInstanceRefreshRequest.Input("service", "SimpleName", true, "", "", false, nil, "name of the tenant service")
-	mPostOSTKInstanceRefreshRequest.Input("req", "OSTKInstanceRefreshRequest", false, "", "", false, nil, "the refresh request")
-	mPostOSTKInstanceRefreshRequest.Auth("", "", true, "")
-	mPostOSTKInstanceRefreshRequest.Exception("BAD_REQUEST", "ResourceError", "")
-	mPostOSTKInstanceRefreshRequest.Exception("FORBIDDEN", "ResourceError", "")
-	mPostOSTKInstanceRefreshRequest.Exception("INTERNAL_SERVER_ERROR", "ResourceError", "")
-	mPostOSTKInstanceRefreshRequest.Exception("NOT_FOUND", "ResourceError", "")
-	mPostOSTKInstanceRefreshRequest.Exception("UNAUTHORIZED", "ResourceError", "")
-	sb.AddResource(mPostOSTKInstanceRefreshRequest.Build())
 
 	mPostInstanceRegisterInformation := rdl.NewResourceBuilder("InstanceIdentity", "POST", "/instance")
 	mPostInstanceRegisterInformation.Comment("we have an authenticate enabled for this endpoint but in most cases the service owner might need to make it optional by setting the zts servers no_auth_uri list to include this endpoint. We need the authenticate in case the request comes with a client certificate and the provider needs to know who that principal was in the client certificate")
