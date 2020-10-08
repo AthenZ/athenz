@@ -53,6 +53,9 @@ export default class FlatPicker extends React.Component {
 
     onChange(selectedDates, dateStr, instance) {
         this.onChangeDate = dateStr;
+        if (dateStr === '') {
+            this.props.onChange(selectedDates);
+        }
     }
 
     onClose(selectedDates, dateStr, instance) {
