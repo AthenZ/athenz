@@ -18,13 +18,16 @@ package com.yahoo.athenz.zms.notification;
 
 import com.yahoo.athenz.common.server.notification.*;
 import com.yahoo.athenz.zms.DBService;
+import com.yahoo.rdl.Timestamp;
 
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.USER_DOMAIN_PREFIX;
+import static com.yahoo.athenz.common.server.notification.impl.MetricNotificationService.METRIC_NOTIFICATION_TYPE_KEY;
 
 public class PendingRoleMembershipApprovalNotificationTask implements NotificationTask {
 
@@ -33,8 +36,8 @@ public class PendingRoleMembershipApprovalNotificationTask implements Notificati
     private final String monitorIdentity;
     private NotificationCommon notificationCommon;
     private final static String DESCRIPTION = "pending role membership approvals reminders";
-    private final static String NOTIFICATION_TYPE = "pending_role_membership_approval";
     private final PendingRoleMembershipApprovalNotificationToEmailConverter pendingMembershipApprovalNotificationToEmailConverter;
+    private final PendingRoleMembershipApprovalNotificationToMetricConverter pendingRoleMembershipApprovalNotificationToMetricConverter;
 
     public PendingRoleMembershipApprovalNotificationTask(DBService dbService, int pendingRoleMemberLifespan, String monitorIdentity, String userDomainPrefix) {
         this.dbService = dbService;
@@ -43,6 +46,7 @@ public class PendingRoleMembershipApprovalNotificationTask implements Notificati
         DomainRoleMembersFetcher domainRoleMembersFetcher = new DomainRoleMembersFetcher(dbService, USER_DOMAIN_PREFIX);
         this.notificationCommon = new NotificationCommon(domainRoleMembersFetcher, userDomainPrefix);
         this.pendingMembershipApprovalNotificationToEmailConverter = new PendingRoleMembershipApprovalNotificationToEmailConverter();
+        this.pendingRoleMembershipApprovalNotificationToMetricConverter = new PendingRoleMembershipApprovalNotificationToMetricConverter();
     }
 
     @Override
@@ -53,7 +57,7 @@ public class PendingRoleMembershipApprovalNotificationTask implements Notificati
                 recipients,
                 null,
                 pendingMembershipApprovalNotificationToEmailConverter,
-                NOTIFICATION_TYPE));
+                pendingRoleMembershipApprovalNotificationToMetricConverter));
     }
 
     @Override
@@ -86,6 +90,22 @@ public class PendingRoleMembershipApprovalNotificationTask implements Notificati
             String body = getMembershipApprovalReminderBody();
             Set<String> fullyQualifiedEmailAddresses = notificationToEmailConverterCommon.getFullyQualifiedEmailAddresses(notification.getRecipients());
             return new NotificationEmail(subject, body, fullyQualifiedEmailAddresses);
+        }
+    }
+
+    public static class PendingRoleMembershipApprovalNotificationToMetricConverter implements NotificationToMetricConverter {
+        private final static String NOTIFICATION_TYPE = "pending_role_membership_approval";
+
+        @Override
+        public NotificationMetric getNotificationAsMetrics(Notification notification, Timestamp currentTime) {
+            String[] record = new String[] {
+                    METRIC_NOTIFICATION_TYPE_KEY, NOTIFICATION_TYPE
+            };
+
+            List<String[]> attributes = new ArrayList<>();
+            attributes.add(record);
+            // This notification doesn't contain any details. We should consider adding the recipients in their own tags.
+            return new NotificationMetric(attributes);
         }
     }
 }

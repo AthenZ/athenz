@@ -20,14 +20,18 @@ import com.yahoo.athenz.common.server.notification.*;
 import com.yahoo.athenz.zms.DBService;
 import com.yahoo.athenz.zms.Role;
 import com.yahoo.athenz.zms.RoleMember;
+import com.yahoo.athenz.zms.ZMSTestUtils;
 import com.yahoo.athenz.zms.store.AthenzDomain;
+import com.yahoo.rdl.Timestamp;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.util.*;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.USER_DOMAIN_PREFIX;
+import static com.yahoo.athenz.common.server.notification.impl.MetricNotificationService.*;
 import static com.yahoo.athenz.zms.notification.ZMSNotificationManagerTest.getNotificationManager;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -99,9 +103,13 @@ public class PutRoleMembershipNotificationTaskTest {
                 .addRecipient("user.orgapprover1")
                 .addRecipient("user.orgapprover2");
         notification.addDetails("domain", "testdomain1").addDetails("role", "role1");
+
         PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter converter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter();
         notification.setNotificationToEmailConverter(converter);
-        notification.setType("role_membership_approval");
+
+        PutRoleMembershipNotificationTask.PutMembershipNotificationToMetricConverter metricConverter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToMetricConverter();
+        notification.setNotificationToMetricConverter(metricConverter);
+
         Mockito.verify(mockNotificationService, atLeastOnce()).notify(captor.capture());
         Notification actualNotification = captor.getValue();
 
@@ -150,9 +158,13 @@ public class PutRoleMembershipNotificationTaskTest {
                 .addRecipient("user.orgapprover1")
                 .addRecipient("user.orgapprover2");
         notification.addDetails("domain", "testdomain1").addDetails("role", "role1");
+
         PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter converter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter();
         notification.setNotificationToEmailConverter(converter);
-        notification.setType("role_membership_approval");
+
+        PutRoleMembershipNotificationTask.PutMembershipNotificationToMetricConverter metricConverter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToMetricConverter();
+        notification.setNotificationToMetricConverter(metricConverter);
+
         Mockito.verify(mockNotificationService, atLeastOnce()).notify(captor.capture());
         Notification actualNotification = captor.getValue();
 
@@ -201,9 +213,13 @@ public class PutRoleMembershipNotificationTaskTest {
                 .addRecipient("user.domapprover1")
                 .addRecipient("user.domapprover2");
         notification.addDetails("domain", "testdomain1").addDetails("role", "role1");
+
         PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter converter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter();
         notification.setNotificationToEmailConverter(converter);
-        notification.setType("role_membership_approval");
+
+        PutRoleMembershipNotificationTask.PutMembershipNotificationToMetricConverter metricConverter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToMetricConverter();
+        notification.setNotificationToMetricConverter(metricConverter);
+
         Mockito.verify(mockNotificationService, atLeastOnce()).notify(captor.capture());
         Notification actualNotification = captor.getValue();
 
@@ -252,9 +268,13 @@ public class PutRoleMembershipNotificationTaskTest {
                 .addRecipient("user.domadmin1")
                 .addRecipient("user.domadmin2");
         notification.addDetails("domain", "testdomain1").addDetails("role", "role1");
+
         PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter converter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter();
         notification.setNotificationToEmailConverter(converter);
-        notification.setType("role_membership_approval");
+
+        PutRoleMembershipNotificationTask.PutMembershipNotificationToMetricConverter metricConverter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToMetricConverter();
+        notification.setNotificationToMetricConverter(metricConverter);
+
         Mockito.verify(mockNotificationService, atLeastOnce()).notify(captor.capture());
         Notification actualNotification = captor.getValue();
 
@@ -324,9 +344,13 @@ public class PutRoleMembershipNotificationTaskTest {
                 .addRecipient("user.approver1")
                 .addRecipient("user.approver2");
         notification.addDetails("domain", "testdomain1").addDetails("role", "role1");
+
         PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter converter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter();
         notification.setNotificationToEmailConverter(converter);
-        notification.setType("role_membership_approval");
+
+        PutRoleMembershipNotificationTask.PutMembershipNotificationToMetricConverter metricConverter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToMetricConverter();
+        notification.setNotificationToMetricConverter(metricConverter);
+
         Mockito.verify(mockNotificationService, atLeastOnce()).notify(captor.capture());
         Notification actualNotification = captor.getValue();
 
@@ -425,5 +449,36 @@ public class PutRoleMembershipNotificationTaskTest {
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
         String subject = notificationAsEmail.getSubject();
         assertEquals(subject, "Membership Approval Notification");
+    }
+
+    @Test
+    public void testGetNotificationAsMetric() {
+        Map<String, String> details = new HashMap<>();
+        details.put("domain", "dom1");
+        details.put("role", "role1");
+        details.put("member", "user.member1");
+        details.put("reason", "test reason");
+        details.put("requester", "user.requester");
+
+        Notification notification = new Notification();
+        notification.setDetails(details);
+
+        PutRoleMembershipNotificationTask.PutMembershipNotificationToMetricConverter converter =
+                new PutRoleMembershipNotificationTask.PutMembershipNotificationToMetricConverter();
+
+        NotificationMetric notificationAsMetrics = converter.getNotificationAsMetrics(notification, Timestamp.fromMillis(System.currentTimeMillis()));
+        String[] record = new String[] {
+                METRIC_NOTIFICATION_TYPE_KEY, "role_membership_approval",
+                METRIC_NOTIFICATION_DOMAIN_KEY, "dom1",
+                METRIC_NOTIFICATION_ROLE_KEY, "role1",
+                METRIC_NOTIFICATION_MEMBER_KEY, "user.member1",
+                METRIC_NOTIFICATION_REASON_KEY, "test reason",
+                METRIC_NOTIFICATION_REQUESTER_KEY, "user.requester"
+        };
+
+        List<String[]> expectedAttributes = new ArrayList<>();
+        expectedAttributes.add(record);
+
+        assertEquals(new NotificationMetric(expectedAttributes), notificationAsMetrics);
     }
 }

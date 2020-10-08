@@ -52,6 +52,7 @@ public class NotificationManager {
                     LOGGER.error("Invalid NotificationServiceFactory class: " + notificationServiceFactoryClass + " error: " + e.getMessage());
                 }
             }
+            LOGGER.info("Loaded Notification Services: " + String.join(",", getLoadedNotificationServices()));
             init();
         }
     }

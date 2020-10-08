@@ -23,11 +23,13 @@ import com.yahoo.athenz.zms.DBService;
 import com.yahoo.athenz.zms.Role;
 import com.yahoo.athenz.zms.ZMSConsts;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
+import com.yahoo.rdl.Timestamp;
 
 import java.text.MessageFormat;
 import java.util.*;
 
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
+import static com.yahoo.athenz.common.server.notification.impl.MetricNotificationService.*;
 
 public class PutRoleMembershipNotificationTask implements NotificationTask {
     final String domain;
@@ -36,8 +38,8 @@ public class PutRoleMembershipNotificationTask implements NotificationTask {
     private Map<String, String> details;
     private NotificationCommon notificationCommon;
     private final static String DESCRIPTION = "Membership Approval Notification";
-    private final static String NOTIFICATION_TYPE = "role_membership_approval";
     private final PutMembershipNotificationToEmailConverter putMembershipNotificationToEmailConverter;
+    private final PutMembershipNotificationToMetricConverter putMembershipNotificationToMetricConverter;
 
     public PutRoleMembershipNotificationTask(String domain, String org, Role role, Map<String, String> details, DBService dbService, String userDomainPrefix) {
         this.domain = domain;
@@ -47,6 +49,7 @@ public class PutRoleMembershipNotificationTask implements NotificationTask {
         DomainRoleMembersFetcher domainRoleMembersFetcher = new DomainRoleMembersFetcher(dbService, userDomainPrefix);
         this.notificationCommon = new NotificationCommon(domainRoleMembersFetcher, userDomainPrefix);
         this.putMembershipNotificationToEmailConverter = new PutMembershipNotificationToEmailConverter();
+        this.putMembershipNotificationToMetricConverter = new PutMembershipNotificationToMetricConverter();
     }
 
     @Override
@@ -96,7 +99,7 @@ public class PutRoleMembershipNotificationTask implements NotificationTask {
                 recipients,
                 details,
                 putMembershipNotificationToEmailConverter,
-                NOTIFICATION_TYPE));
+                putMembershipNotificationToMetricConverter));
     }
 
     @Override
@@ -135,6 +138,26 @@ public class PutRoleMembershipNotificationTask implements NotificationTask {
             String body = getMembershipApprovalBody(notification.getDetails());
             Set<String> fullyQualifiedEmailAddresses = notificationToEmailConverterCommon.getFullyQualifiedEmailAddresses(notification.getRecipients());
             return new NotificationEmail(subject, body, fullyQualifiedEmailAddresses);
+        }
+    }
+
+    public static class PutMembershipNotificationToMetricConverter implements NotificationToMetricConverter {
+        private final static String NOTIFICATION_TYPE = "role_membership_approval";
+
+        @Override
+        public NotificationMetric getNotificationAsMetrics(Notification notification, Timestamp currentTime) {
+            String[] record = new String[] {
+                    METRIC_NOTIFICATION_TYPE_KEY, NOTIFICATION_TYPE,
+                    METRIC_NOTIFICATION_DOMAIN_KEY, notification.getDetails().get(NOTIFICATION_DETAILS_DOMAIN),
+                    METRIC_NOTIFICATION_ROLE_KEY, notification.getDetails().get(NOTIFICATION_DETAILS_ROLE),
+                    METRIC_NOTIFICATION_MEMBER_KEY, notification.getDetails().get(NOTIFICATION_DETAILS_MEMBER),
+                    METRIC_NOTIFICATION_REASON_KEY, notification.getDetails().get(NOTIFICATION_DETAILS_REASON),
+                    METRIC_NOTIFICATION_REQUESTER_KEY, notification.getDetails().get(NOTIFICATION_DETAILS_REQUESTER)
+            };
+
+            List<String[]> attributes = new ArrayList<>();
+            attributes.add(record);
+            return new NotificationMetric(attributes);
         }
     }
 }

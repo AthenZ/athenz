@@ -16,10 +16,7 @@
 
 package com.yahoo.athenz.zms.notification;
 
-import com.yahoo.athenz.common.server.notification.DomainRoleMembersFetcher;
-import com.yahoo.athenz.common.server.notification.Notification;
-import com.yahoo.athenz.common.server.notification.NotificationCommon;
-import com.yahoo.athenz.common.server.notification.NotificationToEmailConverter;
+import com.yahoo.athenz.common.server.notification.*;
 import com.yahoo.athenz.zms.DBService;
 import com.yahoo.athenz.zms.DomainRoleMember;
 import com.yahoo.athenz.zms.MemberRole;
@@ -45,7 +42,8 @@ public class RoleMemberNotificationCommon {
                                                      NotificationToEmailConverter principalNotificationToEmailConverter,
                                                      NotificationToEmailConverter domainAdminNotificationToEmailConverter,
                                                      RoleMemberDetailStringer roleMemberDetailStringer,
-                                                     String notificationType) {
+                                                     NotificationToMetricConverter principalNotificationToMetricConverter,
+                                                     NotificationToMetricConverter domainAdminNotificationToMetricConverter) {
         // first we're going to send reminders to all the members indicating to
         // them that they're going to expiry (or nearing review date) and they should follow up with
         // domain admins to extend their membership.
@@ -70,7 +68,7 @@ public class RoleMemberNotificationCommon {
                     roleMember.getMemberName(),
                     details,
                     principalNotificationToEmailConverter,
-                    notificationType);
+                    principalNotificationToMetricConverter);
             if (notification != null) {
                 notificationList.add(notification);
             }
@@ -85,7 +83,7 @@ public class RoleMemberNotificationCommon {
                     ZMSUtils.roleResourceName(domainAdmin.getKey(), ADMIN_ROLE_NAME),
                     details,
                     domainAdminNotificationToEmailConverter,
-                    notificationType);
+                    domainAdminNotificationToMetricConverter);
             if (notification != null) {
                 notificationList.add(notification);
             }

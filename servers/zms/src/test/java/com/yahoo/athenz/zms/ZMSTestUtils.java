@@ -21,8 +21,10 @@ import com.wix.mysql.SqlScriptSource;
 import com.wix.mysql.config.MysqldConfig;
 import com.yahoo.rdl.Timestamp;
 import com.yahoo.rdl.UUID;
+import org.testng.internal.junit.ArrayAsserts;
 
 import java.io.File;
+import java.util.Calendar;
 import java.util.List;
 import java.util.function.Function;
 
@@ -30,6 +32,7 @@ import static com.wix.mysql.EmbeddedMysql.anEmbeddedMysql;
 import static com.wix.mysql.ScriptResolver.classPathScript;
 import static com.wix.mysql.config.MysqldConfig.aMysqldConfig;
 import static com.wix.mysql.distribution.Version.v5_7_latest;
+import static org.testng.AssertJUnit.assertEquals;
 
 public class ZMSTestUtils {
 
@@ -146,5 +149,12 @@ public class ZMSTestUtils {
             }
             zms.deleteUser(ctx, user.substring(5), "audit-ref");
         }
+    }
+
+    public static Timestamp addDays(Timestamp date, int days) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(date.millis());
+        cal.add(Calendar.DATE, days);
+        return Timestamp.fromMillis(cal.getTime().getTime());
     }
 }

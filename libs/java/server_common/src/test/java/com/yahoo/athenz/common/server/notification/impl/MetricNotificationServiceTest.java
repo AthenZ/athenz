@@ -18,12 +18,15 @@ package com.yahoo.athenz.common.server.notification.impl;
 
 import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.server.notification.Notification;
+import com.yahoo.athenz.common.server.notification.NotificationMetric;
+import com.yahoo.athenz.common.server.notification.NotificationToMetricConverter;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
+import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 
 public class MetricNotificationServiceTest {
@@ -33,26 +36,53 @@ public class MetricNotificationServiceTest {
         Metric metric = Mockito.mock(Metric.class);
         MetricNotificationService metricNotificationService = new MetricNotificationService(metric);
 
-        Map<String, String> details = new HashMap<>();
-        details.put("key1", "attribute1");
-        details.put("key2", "attribute2");
-        details.put("key3", "attribute3");
+        String[] attributesList1 = new String[] {
+                "key1", "attribute11",
+                "key2", "attribute12",
+                "key3", "attribute13"
+        };
+
+        String[] attributesList2 = new String[] {
+                "key1", "attribute21",
+                "key2", "attribute22",
+                "key3", "attribute23"
+        };
+
+        List<String[]> attributes = new ArrayList<>();
+        attributes.add(attributesList1);
+        attributes.add(attributesList2);
+
+        NotificationToMetricConverter notificationToMetricConverter = Mockito.mock(NotificationToMetricConverter.class);
+        Mockito.when(notificationToMetricConverter.getNotificationAsMetrics(Mockito.any(), Mockito.any())).thenReturn(new NotificationMetric(attributes));
 
         Notification notification = new Notification();
-        notification.setDetails(details);
-        notification.setType("testType");
+        notification.setNotificationToMetricConverter(notificationToMetricConverter);
 
         boolean notify = metricNotificationService.notify(notification);
         assertTrue(notify);
 
-        String[] expectedAttributes = new String[] {
-                "key1", "attribute1",
-                "key2", "attribute2",
-                "key3", "attribute3",
-                "notif_type", "testType"
-        };
+        ArgumentCaptor<String> captorMetric = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String[]> captorAttributes = ArgumentCaptor.forClass(String[].class);
 
-        Mockito.verify(metric, Mockito.times(1))
-                .increment("athenz_notification", expectedAttributes);
+        Mockito.verify(metric, Mockito.times(2))
+                .increment(captorMetric.capture(), captorAttributes.capture());
+
+        assertEquals(2, captorMetric.getAllValues().size());
+        assertEquals("athenz_notification", captorMetric.getAllValues().get(0));
+        assertEquals("athenz_notification", captorMetric.getAllValues().get(1));
+
+        // Mockito captures all varargs arguments in a single array
+        assertEquals(12, captorAttributes.getAllValues().size());
+
+        List<String> expectedAttributes = new ArrayList<String>(Arrays.asList(
+                "key1", "attribute11",
+                "key2", "attribute12",
+                "key3", "attribute13",
+                "key1", "attribute21",
+                "key2", "attribute22",
+                "key3", "attribute23"
+        ));
+
+        assertEquals(expectedAttributes, captorAttributes.getAllValues());
     }
 }

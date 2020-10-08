@@ -18,12 +18,31 @@ package com.yahoo.athenz.common.server.notification.impl;
 
 import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.server.notification.Notification;
+import com.yahoo.athenz.common.server.notification.NotificationMetric;
 import com.yahoo.athenz.common.server.notification.NotificationService;
-
-import java.util.ArrayList;
-import java.util.List;
+import com.yahoo.rdl.Timestamp;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MetricNotificationService implements NotificationService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(MetricNotificationService.class);
+    public static final String METRIC_NOTIFICATION_TYPE_KEY             = "notif_type";
+    public static final String METRIC_NOTIFICATION_DOMAIN_KEY           = "domain";
+    public static final String METRIC_NOTIFICATION_ZTS_KEY              = "zts_url";
+    public static final String METRIC_NOTIFICATION_ROLE_KEY             = "role";
+    public static final String METRIC_NOTIFICATION_EXPIRY_DAYS_KEY      = "expiry_days";
+    public static final String METRIC_NOTIFICATION_UPDATE_DAYS_KEY      = "update_days";
+    public static final String METRIC_NOTIFICATION_REVIEW_DAYS_KEY      = "review_days";
+    public static final String METRIC_NOTIFICATION_ZTS_HEALTH_MSG_KEY   = "zts_health_msg";
+    public static final String METRIC_NOTIFICATION_SERVICE_KEY          = "service";
+    public static final String METRIC_NOTIFICATION_PROVIDER_KEY         = "provider";
+    public static final String METRIC_NOTIFICATION_INSTANCE_ID_KEY      = "instance_id";
+    public static final String METRIC_NOTIFICATION_MEMBER_KEY           = "member";
+    public static final String METRIC_NOTIFICATION_GROUP_KEY            = "group";
+    public static final String METRIC_NOTIFICATION_REASON_KEY           = "reason";
+    public static final String METRIC_NOTIFICATION_REQUESTER_KEY        = "requester";
+
 
     private final Metric metric;
 
@@ -33,19 +52,20 @@ public class MetricNotificationService implements NotificationService {
 
     @Override
     public boolean notify(Notification notification) {
-        // Convert details to flat array
-        List<String> attributesList = new ArrayList<>();
-        notification.getDetails().forEach((k, v) -> {
-            attributesList.add(k);
-            attributesList.add(v);
-        });
+        NotificationMetric notificationAsMetrics = notification.getNotificationAsMetrics(Timestamp.fromMillis(System.currentTimeMillis()));
+        if (notificationAsMetrics == null) {
+            return false;
+        }
 
-        // add notification type
-        attributesList.add("notif_type");
-        attributesList.add(notification.getType());
+        for (String[] attributesFlatArray: notificationAsMetrics.getAttributes()) {
+            // Increment metric
+            metric.increment("athenz_notification", attributesFlatArray);
 
-        // Increment metric
-        metric.increment("athenz_notification", attributesList.toArray(new String[0]));
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Notification Metric sent: " + String.join(",", attributesFlatArray));
+            }
+        }
+
         return true;
     }
 }

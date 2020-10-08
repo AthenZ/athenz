@@ -19,13 +19,16 @@ package com.yahoo.athenz.zms.notification;
 import com.yahoo.athenz.common.server.notification.*;
 import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.zms.store.AthenzDomain;
+import com.yahoo.rdl.Timestamp;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.util.*;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.USER_DOMAIN_PREFIX;
+import static com.yahoo.athenz.common.server.notification.impl.MetricNotificationService.*;
 import static com.yahoo.athenz.zms.notification.ZMSNotificationManagerTest.getNotificationManager;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -97,10 +100,15 @@ public class PutGroupMembershipNotificationTaskTest {
                 .addRecipient("user.orgapprover1")
                 .addRecipient("user.orgapprover2");
         notification.addDetails("domain", "testdomain1").addDetails("group", "group1");
+
         PutGroupMembershipNotificationTask.PutGroupMembershipNotificationToEmailConverter converter =
                 new PutGroupMembershipNotificationTask.PutGroupMembershipNotificationToEmailConverter();
         notification.setNotificationToEmailConverter(converter);
-        notification.setType("group_membership_approval");
+
+        PutGroupMembershipNotificationTask.PutGroupMembershipNotificationToMetricConverter metricConverter =
+                new PutGroupMembershipNotificationTask.PutGroupMembershipNotificationToMetricConverter();
+        notification.setNotificationToMetricConverter(metricConverter);
+
         Mockito.verify(mockNotificationService, atLeastOnce()).notify(captor.capture());
         Notification actualNotification = captor.getValue();
 
@@ -153,7 +161,12 @@ public class PutGroupMembershipNotificationTaskTest {
         PutGroupMembershipNotificationTask.PutGroupMembershipNotificationToEmailConverter converter =
                 new PutGroupMembershipNotificationTask.PutGroupMembershipNotificationToEmailConverter();
         notification.setNotificationToEmailConverter(converter);
-        notification.setType("group_membership_approval");
+
+
+        PutGroupMembershipNotificationTask.PutGroupMembershipNotificationToMetricConverter metricConverter =
+                new PutGroupMembershipNotificationTask.PutGroupMembershipNotificationToMetricConverter();
+        notification.setNotificationToMetricConverter(metricConverter);
+
         Mockito.verify(mockNotificationService, atLeastOnce()).notify(captor.capture());
         Notification actualNotification = captor.getValue();
 
@@ -203,10 +216,15 @@ public class PutGroupMembershipNotificationTaskTest {
                 .addRecipient("user.domapprover1")
                 .addRecipient("user.domapprover2");
         notification.addDetails("domain", "testdomain1").addDetails("group", "group1");
+
         PutGroupMembershipNotificationTask.PutGroupMembershipNotificationToEmailConverter converter =
                 new PutGroupMembershipNotificationTask.PutGroupMembershipNotificationToEmailConverter();
         notification.setNotificationToEmailConverter(converter);
-        notification.setType("group_membership_approval");
+
+        PutGroupMembershipNotificationTask.PutGroupMembershipNotificationToMetricConverter metricConverter =
+                new PutGroupMembershipNotificationTask.PutGroupMembershipNotificationToMetricConverter();
+        notification.setNotificationToMetricConverter(metricConverter);
+
         Mockito.verify(mockNotificationService, atLeastOnce()).notify(captor.capture());
         Notification actualNotification = captor.getValue();
 
@@ -256,10 +274,15 @@ public class PutGroupMembershipNotificationTaskTest {
                 .addRecipient("user.domadmin1")
                 .addRecipient("user.domadmin2");
         notification.addDetails("domain", "testdomain1").addDetails("group", "group1");
+
         PutGroupMembershipNotificationTask.PutGroupMembershipNotificationToEmailConverter converter =
                 new PutGroupMembershipNotificationTask.PutGroupMembershipNotificationToEmailConverter();
         notification.setNotificationToEmailConverter(converter);
-        notification.setType("group_membership_approval");
+
+        PutGroupMembershipNotificationTask.PutGroupMembershipNotificationToMetricConverter metricConverter =
+                new PutGroupMembershipNotificationTask.PutGroupMembershipNotificationToMetricConverter();
+        notification.setNotificationToMetricConverter(metricConverter);
+
         Mockito.verify(mockNotificationService, atLeastOnce()).notify(captor.capture());
         Notification actualNotification = captor.getValue();
 
@@ -330,10 +353,15 @@ public class PutGroupMembershipNotificationTaskTest {
                 .addRecipient("user.approver1")
                 .addRecipient("user.approver2");
         notification.addDetails("domain", "testdomain1").addDetails("group", "group1");
+
         PutGroupMembershipNotificationTask.PutGroupMembershipNotificationToEmailConverter converter =
                 new PutGroupMembershipNotificationTask.PutGroupMembershipNotificationToEmailConverter();
         notification.setNotificationToEmailConverter(converter);
-        notification.setType("group_membership_approval");
+
+        PutGroupMembershipNotificationTask.PutGroupMembershipNotificationToMetricConverter metricConverter =
+                new PutGroupMembershipNotificationTask.PutGroupMembershipNotificationToMetricConverter();
+        notification.setNotificationToMetricConverter(metricConverter);
+
         Mockito.verify(mockNotificationService, atLeastOnce()).notify(captor.capture());
         Notification actualNotification = captor.getValue();
 
@@ -432,5 +460,36 @@ public class PutGroupMembershipNotificationTaskTest {
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
         String subject = notificationAsEmail.getSubject();
         assertEquals(subject, "Group Membership Approval Notification");
+    }
+
+    @Test
+    public void testGetNotificationAsMetric() {
+        Map<String, String> details = new HashMap<>();
+        details.put("domain", "dom1");
+        details.put("group", "group1");
+        details.put("member", "user.member1");
+        details.put("reason", "test reason");
+        details.put("requester", "user.requester");
+
+        Notification notification = new Notification();
+        notification.setDetails(details);
+
+        PutGroupMembershipNotificationTask.PutGroupMembershipNotificationToMetricConverter converter =
+                new PutGroupMembershipNotificationTask.PutGroupMembershipNotificationToMetricConverter();
+
+        NotificationMetric notificationAsMetrics = converter.getNotificationAsMetrics(notification, Timestamp.fromMillis(System.currentTimeMillis()));
+        String[] record = new String[] {
+                METRIC_NOTIFICATION_TYPE_KEY, "group_membership_approval",
+                METRIC_NOTIFICATION_DOMAIN_KEY, "dom1",
+                METRIC_NOTIFICATION_GROUP_KEY, "group1",
+                METRIC_NOTIFICATION_MEMBER_KEY, "user.member1",
+                METRIC_NOTIFICATION_REASON_KEY, "test reason",
+                METRIC_NOTIFICATION_REQUESTER_KEY, "user.requester"
+        };
+
+        List<String[]> expectedAttributes = new ArrayList<>();
+        expectedAttributes.add(record);
+
+        assertEquals(new NotificationMetric(expectedAttributes), notificationAsMetrics);
     }
 }
