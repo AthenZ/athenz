@@ -43,7 +43,6 @@ import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.ssh.SSHCertRecord;
 import com.yahoo.athenz.common.server.store.ChangeLogStore;
 import com.yahoo.athenz.common.server.store.impl.ZMSFileChangeLogStore;
-import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.zms.Assertion;
 import com.yahoo.athenz.zms.AssertionEffect;
@@ -107,7 +106,6 @@ public class ZTSImplTest {
     private ZTSAuthorizer authorizer = null;
     private DataStore store = null;
     private PrivateKey privateKey = null;
-    private AuditLogger auditLogger = null;
     private CloudStore cloudStore = null;
     @Mock private CloudStore mockCloudStore;
     
@@ -171,8 +169,7 @@ public class ZTSImplTest {
         System.setProperty(ZTSConsts.ZTS_PROP_OSTK_HOST_SIGNER_SERVICE, "sys.auth.hostsignd");
         System.setProperty(ZTSConsts.ZTS_PROP_CERT_ALLOWED_O_VALUES, "Athenz, Inc.|My Test Company|Athenz|Yahoo");
         System.setProperty(ZTSConsts.ZTS_PROP_NOAUTH_URI_LIST, "/zts/v1/schema,/zts/v1/status");
-
-        auditLogger = new DefaultAuditLogger();
+        System.setProperty(ZTSConsts.ZTS_PROP_VALIDATE_SERVICE_SKIP_DOMAINS, "screwdriver");
     }
     
     @BeforeMethod
@@ -4759,6 +4756,35 @@ public class ZTSImplTest {
     }
 
     @Test
+    public void testPostInstanceRegisterInformationInvalidDomain() throws IOException {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+
+        DataStore store = new DataStore(structStore, null);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
+        String certCsr = new String(Files.readAllBytes(path));
+
+        InstanceRegisterInformation info = new InstanceRegisterInformation()
+                .setAttestationData("attestationData").setCsr(certCsr)
+                .setDomain("athenz").setService("production")
+                .setProvider("athenz.provider").setToken(true)
+                .setHostname("unknown.host.athenz.cloud");
+
+        ResourceContext context = createResourceContext(null);
+
+        try {
+            ztsImpl.postInstanceRegisterInformation(context, info);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+            assertTrue(ex.getMessage().contains("Domain not found: athenz"));
+        }
+    }
+
+    @Test
     public void testPostInstanceRegisterInformationInvalidHostname() throws IOException {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
@@ -7381,6 +7407,9 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
+        SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
+        store.processDomain(tenantDomain, false);
+
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String certCsr = new String(Files.readAllBytes(path));
 
@@ -7389,7 +7418,7 @@ public class ZTSImplTest {
 
         PrincipalAuthority authority = new PrincipalAuthority();
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
-                "v=S1;d=athenzn=production;s=signature", 0, authority);
+                "v=S1;d=athenz;n=production;s=signature", 0, authority);
 
         ResourceContext context = createResourceContext(principal);
 
@@ -7411,6 +7440,12 @@ public class ZTSImplTest {
 
         DataStore store = new DataStore(structStore, null);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
+        store.processDomain(tenantDomain, false);
+
+        tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz2", "production");
+        store.processDomain(tenantDomain, false);
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String certCsr = new String(Files.readAllBytes(path));
@@ -7435,6 +7470,37 @@ public class ZTSImplTest {
     }
 
     @Test
+    public void testPostInstanceRefreshInformationInvalidDomain() throws IOException {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+
+        DataStore store = new DataStore(structStore, null);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
+        String certCsr = new String(Files.readAllBytes(path));
+
+        InstanceRefreshInformation info = new InstanceRefreshInformation()
+                .setCsr(certCsr);
+
+        PrincipalAuthority authority = new PrincipalAuthority();
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
+                "v=S1;d=athenz;n=production;s=signature", 0, authority);
+
+        ResourceContext context = createResourceContext(principal);
+
+        try {
+            ztsImpl.postInstanceRefreshInformation(context,
+                    "athenz.provider", "athenz", "production", "1001", info);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+            assertTrue(ex.getMessage().contains("Domain not found: athenz"));
+        }
+    }
+
+    @Test
     public void testPostInstanceRefreshInformationNullCSRs() {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
@@ -7443,12 +7509,15 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
+        SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
+        store.processDomain(tenantDomain, false);
+
         InstanceRefreshInformation info = new InstanceRefreshInformation()
                 .setCsr(null).setSsh("");
 
         PrincipalAuthority authority = new PrincipalAuthority();
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
-                "v=S1;d=athenzn=production;s=signature", 0, authority);
+                "v=S1;d=athenz;n=production;s=signature", 0, authority);
 
         ResourceContext context = createResourceContext(principal);
 
@@ -8340,7 +8409,6 @@ public class ZTSImplTest {
 
         ResourceContext context = createResourceContext(principal, servletRequest);
 
-        //noinspection CatchMayIgnoreException
         try {
             ztsImpl.postInstanceRefreshRequest(context, "user", "doe", req);
             fail();
@@ -10884,8 +10952,7 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         System.setProperty(ZTSConsts.ZTS_PROP_CERT_BUNDLES_FNAME, "src/test/resources/ca-bundle-file.json");
-        InstanceCertManager certManager = new InstanceCertManager(null, null, null, true);
-        ztsImpl.instanceCertManager = certManager;
+        ztsImpl.instanceCertManager = new InstanceCertManager(null, null, null, true);
 
         CertificateAuthorityBundle bundle = ztsImpl.getCertificateAuthorityBundle(context, "athenz");
         assertNotNull(bundle);
@@ -11014,8 +11081,6 @@ public class ZTSImplTest {
     @Test
     public void testRecordMetricsUnauthenticated() {
         zts.metric = Mockito.mock(Metric.class);
-        Principal principal = SimplePrincipal.create("user_domain", "user1",
-                "v=U1;d=user_domain;n=user;s=signature", 0, null);
         Mockito.when(mockServletRequest.getMethod()).thenReturn("GET");
         RsrcCtxWrapper ctx = (RsrcCtxWrapper) zts.newResourceContext(mockServletRequest, mockServletResponse, "someApiMethod");
         String testDomain = "testDomain";
@@ -11148,5 +11213,44 @@ public class ZTSImplTest {
         List<GroupMember> groupMembers = zts.authorizer.groupMembersFetcher.getGroupMembers("coretech:group.dev-team");
         assertNotNull(groupMembers);
         assertEquals(groupMembers.size(), 2);
+    }
+
+    @Test
+    public void testValidateInstanceServiceIdentity() {
+
+        DomainData domainData = new DomainData();
+
+        // TODO once enabled a domain data with null services should throw an exception
+
+        zts.validateInstanceServiceIdentity(domainData, "athenz.api", "unit-test");
+        zts.validateInstanceServiceIdentity(domainData, "athenz.backend", "unit-test");
+
+        List<com.yahoo.athenz.zms.ServiceIdentity> services = new ArrayList<>();
+        com.yahoo.athenz.zms.ServiceIdentity serviceBackend = new com.yahoo.athenz.zms.ServiceIdentity()
+                .setName("athenz.backend");
+        com.yahoo.athenz.zms.ServiceIdentity serviceApi = new com.yahoo.athenz.zms.ServiceIdentity()
+                .setName("athenz.api");
+        services.add(serviceBackend);
+        services.add(serviceApi);
+
+        domainData.setServices(services);
+
+        // known services should work as expected
+
+        zts.validateInstanceServiceIdentity(domainData, "athenz.api", "unit-test");
+        zts.validateInstanceServiceIdentity(domainData, "athenz.backend", "unit-test");
+
+        // TODO unknown services should throw an exception once enabled
+
+        zts.validateInstanceServiceIdentity(domainData, "athenz.frontend", "unit-test");
+        zts.validateInstanceServiceIdentity(domainData, "athenz.api2", "unit-test");
+
+        // screwdriver services are excluded from the check since they're dynamic
+        // screwdriver is configured as service skip domain
+
+        domainData = new DomainData().setName("screwdriver");
+
+        zts.validateInstanceServiceIdentity(domainData, "screwdriver.project1", "unit-test");
+        zts.validateInstanceServiceIdentity(domainData, "screwdriver.project2", "unit-test");
     }
 }

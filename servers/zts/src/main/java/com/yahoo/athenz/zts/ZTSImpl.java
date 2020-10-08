@@ -43,6 +43,7 @@ import com.yahoo.athenz.common.server.status.StatusChecker;
 import com.yahoo.athenz.common.server.status.StatusCheckerFactory;
 import com.yahoo.athenz.common.server.store.ChangeLogStore;
 import com.yahoo.athenz.common.server.store.ChangeLogStoreFactory;
+import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.zms.RoleMeta;
 import com.yahoo.athenz.zts.cert.*;
 import com.yahoo.athenz.zts.notification.ZTSNotificationTaskFactory;
@@ -125,6 +126,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected Set<String> authorizedProxyUsers = null;
     protected Set<String> validCertSubjectOrgValues = null;
     protected Set<String> validCertSubjectOrgUnitValues = null;
+    protected Set<String> validateServiceSkipDomains;
     protected boolean secureRequestsOnly = true;
     protected int svcTokenTimeout = 86400;
     protected Set<String> authFreeUriSet = null;
@@ -510,6 +512,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // get server region
 
         serverRegion = System.getProperty(ZTSConsts.ZTS_PROP_SERVER_REGION);
+
+        // list of domains to be skipped when validating services for instance
+        // register/refresh operations since the services in these domains are
+        // dynamic - e.g. screwdriver projects
+
+        final String skipDomains = System.getProperty(ZTSConsts.ZTS_PROP_VALIDATE_SERVICE_SKIP_DOMAINS, "");
+        validateServiceSkipDomains = new HashSet<>(Arrays.asList(skipDomains.split(",")));
     }
     
     static String getServerHostName() {
@@ -2469,6 +2478,31 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return x509CertRecord;
     }
 
+    void validateInstanceServiceIdentity(DomainData domainData, final String serviceName, final String caller) {
+
+        // if the domain is one of the skip domains then we have no
+        // need to check anything
+
+        if (validateServiceSkipDomains.contains(domainData.getName())) {
+            return;
+        }
+
+        List<com.yahoo.athenz.zms.ServiceIdentity> services = domainData.getServices();
+        if (services != null) {
+            for (com.yahoo.athenz.zms.ServiceIdentity service : services) {
+                if (service.getName().equalsIgnoreCase(serviceName)) {
+                    return;
+                }
+            }
+        }
+
+        // eventually we'll reject these requests but first we want to see
+        // how many of these services are still running
+
+        //throw requestError("Service not registered in domain", caller, domainData.getName(), domainData.getName());
+        LOGGER.error("validateInstanceServiceIdentity: {} not registered for caller {}", serviceName, caller);
+    }
+
     @Override
     public Response postInstanceRegisterInformation(ResourceContext ctx, InstanceRegisterInformation info) {
 
@@ -2489,10 +2523,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         AthenzObject.INSTANCE_REGISTER_INFO.convertToLowerCase(info);
 
-        final String domain = info.getDomain();
+        final String domain = info.getDomain().toLowerCase();
         setRequestDomain(ctx, domain);
-        final String service = info.getService();
-        final String cn = domain + "." + service;
+        final String service = info.getService().toLowerCase();
+        final String cn = ResourceUtils.serviceResourceName(domain, service);
         ((RsrcCtxWrapper) ctx).logPrincipal(cn);
 
         // before running any checks make sure it's coming from
@@ -2504,6 +2538,16 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw forbiddenError("Unknown IP: " + ipAddress + " for Provider: " + provider,
                     caller, domain, principalDomain);
         }
+
+        // get our domain object and validate the service is correctly registered
+
+        DomainData domainData = dataStore.getDomainData(domain);
+        if (domainData == null) {
+            setRequestDomain(ctx, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
+            throw notFoundError("Domain not found: " + domain, caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+        }
+
+        validateInstanceServiceIdentity(domainData, cn, caller);
 
         // run the authorization checks to make sure the provider has been
         // authorized to launch instances in Athenz and the service has
@@ -2526,7 +2570,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     caller, domain, principalDomain);
         }
 
-        final String serviceDnsSuffix = dataStore.getDomainData(domain).getCertDnsDomain();
+        final String serviceDnsSuffix = domainData.getCertDnsDomain();
         final DataCache athenzSysDomainCache = dataStore.getDataCache(ATHENZ_SYS_DOMAIN);
 
         if (!certReq.validate(domain, service, provider, validCertSubjectOrgValues, athenzSysDomainCache,
@@ -2817,7 +2861,17 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw forbiddenError("Unknown IP: " + ipAddress + " for Provider: " + provider,
                     caller, domain, principalDomain);
         }
-        
+
+        // get our domain object and validate the service is correctly registered
+
+        DomainData domainData = dataStore.getDomainData(domain);
+        if (domainData == null) {
+            setRequestDomain(ctx, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
+            throw notFoundError("Domain not found: " + domain, caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+        }
+
+        validateInstanceServiceIdentity(domainData, ResourceUtils.serviceResourceName(domain, service), caller);
+
         // we are going to get two use cases here. client asking for:
         // * x509 cert (optionally with ssh certificate)
         // * only ssh certificate
@@ -2865,20 +2919,18 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         InstanceIdentity identity;
         if (x509Csr != null) {
-            identity = processProviderX509RefreshRequest(ctx, principal, domain, service, provider,
-                    instanceId, info, cert, caller);
+            identity = processProviderX509RefreshRequest(ctx, domainData, principal, domain, service,
+                    provider, instanceId, info, cert, caller);
         } else {
-            identity = processProviderSSHRefreshRequest(ctx, principal, domain, service, provider,
-                    instanceId, sshCsr, caller);
+            identity = processProviderSSHRefreshRequest(principal, domain, provider, instanceId, sshCsr, caller);
         }
         
         return identity;
     }
     
-    InstanceIdentity processProviderX509RefreshRequest(ResourceContext ctx, final Principal principal,
-            final String domain, final String service, final String provider,
-            final String instanceId, InstanceRefreshInformation info, X509Certificate cert,
-            final String caller) {
+    InstanceIdentity processProviderX509RefreshRequest(ResourceContext ctx, DomainData domainData,
+            final Principal principal, final String domain, final String service, final String provider,
+            final String instanceId, InstanceRefreshInformation info, X509Certificate cert, final String caller) {
 
         // parse and validate our CSR
 
@@ -2890,7 +2942,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw requestError("unable to parse PKCS10 CSR", caller, domain, principalDomain);
         }
 
-        final String serviceDnsSuffix = dataStore.getDomainData(domain).getCertDnsDomain();
+        final String serviceDnsSuffix = domainData.getCertDnsDomain();
         final DataCache athenzSysDomainCache = dataStore.getDataCache(ATHENZ_SYS_DOMAIN);
 
         StringBuilder errorMsg = new StringBuilder(256);
@@ -3088,9 +3140,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return ((value1 == null && value2 != null) || (value1 != null && !value1.equals(value2)));
     }
 
-    InstanceIdentity processProviderSSHRefreshRequest(ResourceContext ctx, final Principal principal,
-            final String domain, final String service, final String provider,
-            final String instanceId, final String sshCsr, final String caller) {
+    InstanceIdentity processProviderSSHRefreshRequest(final Principal principal, final String domain,
+            final String provider, final String instanceId, final String sshCsr, final String caller) {
 
         LOGGER.info("User ssh certificate request from {}", principal.getFullName());
 
