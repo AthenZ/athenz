@@ -113,8 +113,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected long x509CertRefreshResetTime;
     protected long signedPolicyTimeout;
     protected static String serverHostName = null;
-    protected String ostkHostSignerDomain = null;
-    protected String ostkHostSignerService = null;
     protected AuditLogger auditLogger = null;
     protected String serverRegion = null;
     protected String userDomain;
@@ -151,7 +149,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     private static final String TYPE_INSTANCE_REGISTER_INFO = "InstanceRegisterInformation";
     private static final String TYPE_INSTANCE_REFRESH_INFO = "InstanceRefreshInformation";
     private static final String TYPE_INSTANCE_REFRESH_REQUEST = "InstanceRefreshRequest";
-    private static final String TYPE_OSTK_INSTANCE_REFRESH_REQUEST = "OSTKInstanceRefreshRequest";
     private static final String TYPE_DOMAIN_METRICS = "DomainMetrics";
     private static final String TYPE_ROLE_CERTIFICATE_REQUEST = "RoleCertificateRequest";
     private static final String TYPE_SSH_CERT_REQUEST = "SSHCertRequest";
@@ -428,19 +425,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         userDomainAlias = System.getProperty(ZTSConsts.ZTS_PROP_USER_DOMAIN_ALIAS);
         if (userDomainAlias != null) {
             userDomainAliasPrefix = userDomainAlias + ".";
-        }
-
-        // retrieve our temporary ostk host signer domain/service name
-        
-        final String hostSignerService = System.getProperty(ZTSConsts.ZTS_PROP_OSTK_HOST_SIGNER_SERVICE);
-        if (hostSignerService != null) {
-            int idx = hostSignerService.lastIndexOf('.');
-            if (idx == -1) {
-                LOGGER.error("ZTSImpl: invalid singer service name: " + hostSignerService);
-            } else {
-                ostkHostSignerService = hostSignerService.substring(idx + 1);
-                ostkHostSignerDomain = hostSignerService.substring(0, idx);
-            }
         }
         
         // get the list of uris that we want to allow an-authenticated access
@@ -981,7 +965,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
 
     AssertionEffect getAssertionEffect(com.yahoo.athenz.zms.AssertionEffect effect) {
-        if (effect != null && effect == com.yahoo.athenz.zms.AssertionEffect.DENY) {
+        if (effect == com.yahoo.athenz.zms.AssertionEffect.DENY) {
             return AssertionEffect.DENY;
         } else {
             return AssertionEffect.ALLOW;
@@ -2082,7 +2066,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // validate the ip address if any provided
 
-        return verifyCertRequestIP ? certReq.validateIPAddress(cert, ip) : true;
+        return !verifyCertRequestIP || certReq.validateIPAddress(cert, ip);
     }
 
     boolean validateRoleCertSubjectOU(X509RoleCertRequest certReq, X509Certificate cert) {
@@ -2308,7 +2292,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // validate the ip address if any provided
 
-        return verifyCertRequestIP ? certReq.validateIPAddress(cert, ip) : true;
+        return !verifyCertRequestIP || certReq.validateIPAddress(cert, ip);
     }
 
     boolean isAuthorizedServicePrincipal(final Principal principal) {
@@ -2742,7 +2726,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             queryLog.append("&hostname=");
             queryLog.append(hostname);
         }
-        return (queryLog.length() < 1024) ? queryLog.toString() : queryLog.toString().substring(0, 1024);
+        return (queryLog.length() < 1024) ? queryLog.toString() : queryLog.substring(0, 1024);
     }
 
     SSHCertRecord generateSSHCertRecord(ResourceContext ctx, final String service, final String instanceId,
@@ -3540,141 +3524,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         return dataStore.getZtsJWKList(rfc);
     }
-
-    /// CLOVER:OFF
-    // this method will be removed and replaced with call to postInstanceRefreshInformation
-    @Deprecated
-    @Override
-    public Identity postOSTKInstanceRefreshRequest(ResourceContext ctx, String domain,
-            String service, OSTKInstanceRefreshRequest req) {
-
-        final String caller = ctx.getApiName();
-        final String principalDomain = logPrincipalAndGetDomain(ctx);
-
-        if (readOnlyMode) {
-            throw requestError("Server in Maintenance Read-Only mode. Please try your request later",
-                    caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
-        }
-        
-        validateRequest(ctx.request(), principalDomain, caller);
-        validate(domain, TYPE_DOMAIN_NAME, principalDomain, caller);
-        validate(service, TYPE_SIMPLE_NAME, principalDomain, caller);
-        validate(req, TYPE_OSTK_INSTANCE_REFRESH_REQUEST, principalDomain, caller);
-
-        // for consistent handling of all requests, we're going to convert
-        // all incoming object values into lower case (e.g. domain, role,
-        // policy, service, etc name)
-        
-        domain = domain.toLowerCase();
-        setRequestDomain(ctx, domain);
-        service = service.toLowerCase();
-
-        // make sure the credentials match to whatever the request is
-
-        Principal principal = ((RsrcCtxWrapper) ctx).principal();
-        String principalName = domain + "." + service;
-        if (!principalName.equals(principal.getFullName())) {
-            throw requestError("postOSTKInstanceRefreshRequest: Principal mismatch: "
-                    + principalName + " vs. " + principal.getFullName(), caller, domain, principalDomain);
-        }
-
-        Authority authority = principal.getAuthority();
-        
-        // currently we only support services that already have certificates
-        
-        if (!(authority instanceof CertificateAuthority)) {
-            throw requestError("postOSTKInstanceRefreshRequest: Unsupported authority for TLS Certs: " +
-                    authority.toString(), caller, domain, principalDomain);
-        }
-        
-        X509Certificate cert = principal.getX509Certificate();
-        X509CertRecord x509CertRecord = instanceCertManager.getX509CertRecord("ostk", cert);
-        if (x509CertRecord == null) {
-            throw forbiddenError("postOSTKInstanceRefreshRequest: Unable to find certificate record",
-                    caller, domain, principalDomain);
-        }
-
-        // validate that the cn and public key (if required) match to
-        // the provided details
-        
-        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(req.getCsr());
-        if (certReq == null) {
-            throw requestError("postOSTKInstanceRefreshRequest: unable to parse PKCS10 certificate request",
-                    caller, domain, principalDomain);
-        }
-        
-        if (!ZTSUtils.verifyCertificateRequest(certReq, domain, service, x509CertRecord)) {
-            throw requestError("postOSTKInstanceRefreshRequest: invalid CSR - cn mismatch",
-                    caller, domain, principalDomain);
-        }
-        
-        // now we need to make sure the serial number for the certificate
-        // matches to what we had issued previously. If we have a mismatch
-        // then we're going to revoke this instance as it has been possibly
-        // compromised
-        
-        String serialNumber = cert.getSerialNumber().toString();
-        if (x509CertRecord.getCurrentSerial().equals(serialNumber)) {
-            
-            // update the record to mark current as previous
-            // and we'll update the current set with our existing
-            // details
-            
-            x509CertRecord.setPrevIP(x509CertRecord.getCurrentIP());
-            x509CertRecord.setPrevTime(x509CertRecord.getCurrentTime());
-            x509CertRecord.setPrevSerial(x509CertRecord.getCurrentSerial());
-
-        } else if (!x509CertRecord.getPrevSerial().equals(serialNumber)) {
-            
-            // we have a mismatch for both current and previous serial
-            // numbers so we're going to revoke it
-            
-            LOGGER.error("postOSTKInstanceRefreshRequest: Revoking certificate refresh for cn: {} " +
-                    "instance id: {}, current serial: {}, previous serial: {}, cert serial: {}",
-                    principalName, x509CertRecord.getInstanceId(), x509CertRecord.getCurrentSerial(),
-                    x509CertRecord.getPrevSerial(), serialNumber);
-            
-            x509CertRecord.setPrevSerial("-1");
-            x509CertRecord.setCurrentSerial("-1");
-            
-            instanceCertManager.updateX509CertRecord(x509CertRecord);
-            throw forbiddenError("postOSTKInstanceRefreshRequest: Certificate revoked",
-                    caller, domain, principalDomain);
-        }
-        
-        // generate identity with the certificate
-        
-        Identity identity = ZTSUtils.generateIdentity(instanceCertManager, req.getCsr(),
-                principalName, null, 0);
-        if (identity == null) {
-            throw serverError("Unable to generate identity", caller, domain, principalDomain);
-        }
-        identity.setCaCertBundle(instanceCertManager.getX509CertificateSigner());
-
-        // need to update our cert record with new certificate details
-
-        final String ipAddress = ServletRequestUtil.getRemoteAddress(ctx.request());
-
-        X509Certificate newCert = Crypto.loadX509Certificate(identity.getCertificate());
-        x509CertRecord.setCurrentSerial(newCert.getSerialNumber().toString());
-        x509CertRecord.setCurrentIP(ipAddress);
-        x509CertRecord.setCurrentTime(new Date());
-        
-        // we must be able to update our record db otherwise we will
-        // not be able to validate the refresh request next time
-        
-        if (!instanceCertManager.updateX509CertRecord(x509CertRecord)) {
-            throw serverError("postOSTKInstanceRefreshRequest: unable to update cert db",
-                    caller, domain, principalDomain);
-        }
-
-        // log our certificate
-
-        instanceCertManager.logX509Cert(principal, ipAddress, "ostk", x509CertRecord.getInstanceId(), newCert);
-
-        return identity;
-    }
-    ///CLOVER:ON
 
     long getSvcTokenExpiryTime(Integer expiryTime) {
         
