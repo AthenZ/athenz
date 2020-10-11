@@ -458,7 +458,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "ON role.domain_id=domain.domain_id JOIN role_member ON role.role_id=role_member.role_id "
             + "WHERE role_member.principal_id=? AND role_member.active=true AND role.name='admin' ) "
             + "order by do.name, grp.name, principal.name;";
-    private static final String SQL_GET_EXPIRED_PENDING_GROUP_MEMBERS = "SELECT d.name, r.name, p.name, pgm.expiration, pgm.audit_ref, pgm.req_time, pgm.req_principal "
+    private static final String SQL_GET_EXPIRED_PENDING_GROUP_MEMBERS = "SELECT d.name, grp.name, p.name, pgm.expiration, pgm.audit_ref, pgm.req_time, pgm.req_principal "
             + "FROM principal p JOIN pending_principal_group_member pgm "
             + "ON pgm.principal_id=p.principal_id JOIN principal_group grp ON pgm.group_id=grp.group_id JOIN domain d ON d.domain_id=grp.domain_id "
             + "WHERE pgm.req_time < (CURRENT_TIME - INTERVAL ? DAY);";
