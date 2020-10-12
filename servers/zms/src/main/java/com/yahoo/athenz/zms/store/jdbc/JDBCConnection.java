@@ -393,7 +393,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_UPDATE_GROUP_REVIEW_TIMESTAMP = "UPDATE principal_group SET last_reviewed_time=CURRENT_TIMESTAMP(3) WHERE group_id=?;";
     private static final String SQL_LIST_GROUPS_WITH_RESTRICTIONS = "SELECT domain.name as domain_name, "
             + "principal_group.name as group_name, domain.user_authority_filter as domain_user_authority_filter FROM principal_group "
-            + "JOIN domain ON role.domain_id=domain.domain_id WHERE principal_group.user_authority_filter!='' "
+            + "JOIN domain ON principal_group.domain_id=domain.domain_id WHERE principal_group.user_authority_filter!='' "
             + "OR principal_group.user_authority_expiration!='' OR domain.user_authority_filter!='';";
     private static final String SQL_LIST_GROUP_MEMBERS = "SELECT principal.name, principal_group_member.expiration, "
             + "principal_group_member.active, principal_group_member.audit_ref, principal_group_member.system_disabled FROM principal "
