@@ -377,6 +377,32 @@ public class PrometheusMetricTest {
     }
 
     @Test
+    public void testIncrementFlatArrayAttributes() {
+        CollectorRegistry registry = new CollectorRegistry();
+        ConcurrentHashMap<String, Collector> namesToCollectors = new ConcurrentHashMap<>();
+        String namespace = "metric_test";
+
+        PrometheusMetric metric_1 = new PrometheusMetric(registry, namesToCollectors, null, namespace);
+        String metricName_1 = "test_counter_1";
+        String fullMetricName_1 = namespace + "_" + metricName_1 + "_" + PrometheusMetric.COUNTER_SUFFIX;
+
+        metric_1.increment(metricName_1, new String[] {});
+        metric_1.increment(metricName_1, new String[] {"notif_type", "notif_type1"});
+        metric_1.increment(metricName_1, new String[] {});
+        metric_1.increment(metricName_1, new String[] {"notif_type", "notif_type1", "instance_id", "instance_id1"});
+        metric_1.increment(metricName_1, new String[] {"notif_type", "notif_type2", "instance_id", "instance_id2"});
+        metric_1.increment(metricName_1, new String[] {"member", "member1", "instance_id", "instance_id3"});
+        metric_1.increment(metricName_1, new String[] {"instance_id", "instance_id3", "member", "member1"});
+
+        String[] labelNames = Utils.MetricNotificationEnum.keys();
+        Assert.assertEquals(registry.getSampleValue(fullMetricName_1, labelNames, new String[]{"", "", "", "", "", "", "", "", "", "", "", "", "", "", ""}), 2d, 0.1d);
+        Assert.assertEquals(registry.getSampleValue(fullMetricName_1, labelNames, new String[]{"notif_type1", "", "", "", "", "", "", "", "", "", "", "", "", "", ""}), 1d, 0.1d);
+        Assert.assertNull(registry.getSampleValue(fullMetricName_1, labelNames, new String[]{"notif_type1", "test_domain", "", "", "", "", "", "", "", "", "", "", "", "", ""}));
+        Assert.assertEquals(registry.getSampleValue(fullMetricName_1, labelNames, new String[]{"notif_type1", "", "", "", "", "", "", "", "", "", "instance_id1", "", "", "", ""}), 1d, 0.1d);
+        Assert.assertEquals(registry.getSampleValue(fullMetricName_1, labelNames, new String[]{"", "", "", "", "", "", "", "", "", "", "instance_id3", "member1", "", "", ""}), 2d, 0.1d);
+    }
+
+    @Test
     public void testStartTiming() {
         CollectorRegistry registry = new CollectorRegistry();
         ConcurrentHashMap<String, Collector> namesToCollectors = new ConcurrentHashMap<>();
