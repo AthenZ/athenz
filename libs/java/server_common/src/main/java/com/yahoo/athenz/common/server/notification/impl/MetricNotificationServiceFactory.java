@@ -49,6 +49,7 @@ public class MetricNotificationServiceFactory implements NotificationServiceFact
             throw new IllegalArgumentException("Invalid metric class");
         }
 
+        LOG.info("Loaded MetricFactory for receiving notification metrics: " + metricFactoryClass);
         // create our metric
         return metricFactory.create();
     }
