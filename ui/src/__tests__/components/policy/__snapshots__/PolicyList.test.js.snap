@@ -45,7 +45,7 @@ exports[`PolicyList should render 1`] = `
   background: #d7e2fd;
 }
 
-.emotion-7 {
+.emotion-3 {
   margin: 20px;
 }
 
@@ -69,42 +69,16 @@ exports[`PolicyList should render 1`] = `
   float: right;
 }
 
-.emotion-6 {
+.emotion-2 {
   width: 100%;
-  border-spacing: 0;
+  border-spacing: 0 15px;
   display: table;
   border-collapse: separate;
   border-color: grey;
 }
 
-.emotion-2 {
-  text-align: left;
-  border-bottom: 2px solid #d5d5d5;
-  color: #9a9a9a;
-  font-weight: 600;
-  font-size: 0.8rem;
-  padding-bottom: 5px;
-  vertical-align: top;
-  text-transform: uppercase;
-  padding: 5px 0 5px 15px;
-  word-break: break-all;
-}
-
-.emotion-4 {
-  text-align: center;
-  border-bottom: 2px solid #d5d5d5;
-  color: #9a9a9a;
-  font-weight: 600;
-  font-size: 0.8rem;
-  padding-bottom: 5px;
-  vertical-align: top;
-  text-transform: uppercase;
-  padding: 5px 0 5px 15px;
-  word-break: break-all;
-}
-
 <div
-  class="emotion-7"
+  class="emotion-3"
   data-testid="policylist"
 >
   <div
@@ -120,32 +94,8 @@ exports[`PolicyList should render 1`] = `
     </div>
   </div>
   <table
-    class="emotion-6"
+    class="emotion-2"
   >
-    <thead>
-      <tr>
-        <th
-          class="emotion-2"
-        >
-          Policy
-        </th>
-        <th
-          class="emotion-2"
-        >
-          Modified Date
-        </th>
-        <th
-          class="emotion-4"
-        >
-          Rules
-        </th>
-        <th
-          class="emotion-4"
-        >
-          Delete
-        </th>
-      </tr>
-    </thead>
     <tbody />
   </table>
 </div>

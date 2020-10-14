@@ -384,7 +384,7 @@ exports[`PendingApprovalTable should render 1`] = `
           value=""
         />
         <input
-          class=" form-control input"
+          class="fp-abc form-control input"
           placeholder="Expiration (Optional)"
           readonly="readonly"
           tabindex="0"

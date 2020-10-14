@@ -7,10 +7,6 @@ exports[`PolicyRuleTable should render 1`] = `
   vertical-align: text-bottom;
 }
 
-.emotion-17 {
-  padding: 30px 20px;
-}
-
 .emotion-14 {
   width: 100%;
   border-spacing: 0;
@@ -80,7 +76,7 @@ exports[`PolicyRuleTable should render 1`] = `
 }
 
 .emotion-8 {
-  background-color: white;
+  background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
@@ -88,7 +84,7 @@ exports[`PolicyRuleTable should render 1`] = `
 }
 
 .emotion-13 {
-  background-color: white;
+  background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
@@ -96,7 +92,7 @@ exports[`PolicyRuleTable should render 1`] = `
 }
 
 <td
-  class="emotion-17"
+  backgroundcolor="black"
   colspan="4"
   data-testid="ruletable"
 >
@@ -171,31 +167,31 @@ exports[`PolicyRuleTable should render 1`] = `
                 <tr>
                   <td
                     class="emotion-8"
-                    color="white"
+                    color="#3570f40D"
                   >
                     ALLOW
                   </td>
                   <td
                     class="emotion-8"
-                    color="white"
+                    color="#3570f40D"
                   >
                     aaa
                   </td>
                   <td
                     class="emotion-8"
-                    color="white"
+                    color="#3570f40D"
                   >
                     home.pgote:role.allunixusers
                   </td>
                   <td
                     class="emotion-8"
-                    color="white"
+                    color="#3570f40D"
                   >
                     home.pgote:aaaa
                   </td>
                   <td
                     class="emotion-13"
-                    color="white"
+                    color="#3570f40D"
                   >
                     <svg
                       class="emotion-12"
@@ -233,10 +229,6 @@ exports[`PolicyRuleTable should render 2`] = `
   vertical-align: text-bottom;
 }
 
-.emotion-17 {
-  padding: 30px 20px;
-}
-
 .emotion-14 {
   width: 100%;
   border-spacing: 0;
@@ -306,7 +298,7 @@ exports[`PolicyRuleTable should render 2`] = `
 }
 
 .emotion-8 {
-  background-color: white;
+  background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
@@ -314,7 +306,7 @@ exports[`PolicyRuleTable should render 2`] = `
 }
 
 .emotion-13 {
-  background-color: white;
+  background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
@@ -322,7 +314,7 @@ exports[`PolicyRuleTable should render 2`] = `
 }
 
 <td
-  class="emotion-17"
+  backgroundcolor="black"
   colspan="4"
   data-testid="ruletable"
 >
@@ -397,31 +389,31 @@ exports[`PolicyRuleTable should render 2`] = `
                 <tr>
                   <td
                     class="emotion-8"
-                    color="white"
+                    color="#3570f40D"
                   >
                     ALLOW
                   </td>
                   <td
                     class="emotion-8"
-                    color="white"
+                    color="#3570f40D"
                   >
                     aaa
                   </td>
                   <td
                     class="emotion-8"
-                    color="white"
+                    color="#3570f40D"
                   >
                     home.pgote:role.allunixusers
                   </td>
                   <td
                     class="emotion-8"
-                    color="white"
+                    color="#3570f40D"
                   >
                     home.pgote:aaaa
                   </td>
                   <td
                     class="emotion-13"
-                    color="white"
+                    color="#3570f40D"
                   >
                     <svg
                       class="emotion-12"
