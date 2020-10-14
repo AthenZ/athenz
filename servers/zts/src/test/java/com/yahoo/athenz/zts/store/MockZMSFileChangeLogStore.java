@@ -25,7 +25,6 @@ import org.mockito.Mockito;
 import java.security.PrivateKey;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.PROP_USER_DOMAIN;
 import static org.mockito.Mockito.mock;
@@ -33,13 +32,18 @@ import static org.mockito.Mockito.when;
 
 public class MockZMSFileChangeLogStore extends ZMSFileChangeLogStore {
 
-    private ZMSClient zms;
-    private String tagHeader;
+    private final ZMSClient zms;
     private boolean refreshSupport = false;
+    private final MockZMSFileChangeLogStoreCommon mockClogStoreCommon;
 
     public MockZMSFileChangeLogStore(String rootDirectory, PrivateKey privateKey, String privateKeyId) {
         
         super(rootDirectory, privateKey, privateKeyId);
+
+        mockClogStoreCommon = new MockZMSFileChangeLogStoreCommon("/tmp/zts_server_unit_tests/zts_root");
+        mockClogStoreCommon.setTagHeader("2014-01-01T12:00:00");
+        super.setChangeLogStoreCommon(mockClogStoreCommon);
+
         zms = mock(ZMSClient.class);
         
         // setup some default values to return when the store is initialized
@@ -58,17 +62,12 @@ public class MockZMSFileChangeLogStore extends ZMSFileChangeLogStore {
         serverDomains.add("sys");
         serverDomainList.setNames(serverDomains);
         
-        tagHeader = "2014-01-01T12:00:00";
         when(zms.getDomainList()).thenReturn(localDomainList).thenReturn(serverDomainList);
     }
     
     @Override
     public ZMSClient getZMSClient() {
         return zms;
-    }
-
-    public void setZMSClient(ZMSClient zms) {
-        this.zms = zms;
     }
 
     public void setDomainList(List<String> domains) {
@@ -81,29 +80,9 @@ public class MockZMSFileChangeLogStore extends ZMSFileChangeLogStore {
         }
     }
     
-    @SuppressWarnings("unchecked")
     public void setSignedDomains(SignedDomains signedDomains) {
-        when(zms.getSignedDomains(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.<Map>any()))
+        when(zms.getSignedDomains(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
                 .thenReturn(signedDomains);
-    }
-
-    @SuppressWarnings("unchecked")
-    public void setSignedDomainsExc() {
-        when(zms.getSignedDomains(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.<Map>any()))
-                .thenThrow(new ZMSClientException(500, "Invalid request"));
-    }
-
-    public void setTagHeader(String tagHeader) {
-        this.tagHeader = tagHeader;
-    }
-    
-    @Override
-    public String retrieveTagHeader(Map<String, List<String>> responseHeaders) {
-        if (tagHeader == null) {
-            return super.retrieveTagHeader(responseHeaders);
-        } else {
-            return tagHeader;
-        }
     }
 
     public void setRefreshSupport(boolean refreshSupport) {
@@ -113,5 +92,9 @@ public class MockZMSFileChangeLogStore extends ZMSFileChangeLogStore {
     @Override
     public boolean supportsFullRefresh() {
         return refreshSupport;
+    }
+
+    public MockZMSFileChangeLogStoreCommon getClogStoreCommon() {
+        return mockClogStoreCommon;
     }
 }

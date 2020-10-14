@@ -20,6 +20,7 @@ import com.yahoo.athenz.common.server.notification.*;
 import com.yahoo.athenz.zms.DBService;
 import com.yahoo.athenz.zms.DomainRoleMember;
 import com.yahoo.athenz.zms.MemberRole;
+import com.yahoo.rdl.Timestamp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,6 +30,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
+import static com.yahoo.athenz.common.server.notification.impl.MetricNotificationService.*;
 
 public class RoleMemberReviewNotificationTask implements NotificationTask {
     private final DBService dbService;
@@ -37,12 +39,16 @@ public class RoleMemberReviewNotificationTask implements NotificationTask {
     private final static String DESCRIPTION = "Periodic Review Reminder";
     private final RoleReviewPrincipalNotificationToEmailConverter roleReviewPrincipalNotificationToEmailConverter;
     private final RoleReviewDomainNotificationToEmailConverter roleReviewDomainNotificationToEmailConverter;
+    private final RoleReviewPrincipalNotificationToMetricConverter roleReviewPrincipalNotificationToMetricConverter;
+    private final RoleReviewDomainNotificationToMetricConverter roleReviewDomainNotificationToMetricConverter;
 
     public RoleMemberReviewNotificationTask(DBService dbService, String userDomainPrefix) {
         this.dbService = dbService;
         this.roleMemberNotificationCommon = new RoleMemberNotificationCommon(dbService, userDomainPrefix);
         this.roleReviewDomainNotificationToEmailConverter = new RoleReviewDomainNotificationToEmailConverter();
         this.roleReviewPrincipalNotificationToEmailConverter = new RoleReviewPrincipalNotificationToEmailConverter();
+        this.roleReviewDomainNotificationToMetricConverter = new RoleReviewDomainNotificationToMetricConverter();
+        this.roleReviewPrincipalNotificationToMetricConverter = new RoleReviewPrincipalNotificationToMetricConverter();
     }
 
     @Override
@@ -59,7 +65,9 @@ public class RoleMemberReviewNotificationTask implements NotificationTask {
                 reviewMembers,
                 roleReviewPrincipalNotificationToEmailConverter,
                 roleReviewDomainNotificationToEmailConverter,
-                new ReviewRoleMemberDetailStringer());
+                new ReviewRoleMemberDetailStringer(),
+                roleReviewPrincipalNotificationToMetricConverter,
+                roleReviewDomainNotificationToMetricConverter);
     }
 
     static class ReviewRoleMemberDetailStringer implements RoleMemberNotificationCommon.RoleMemberDetailStringer {
@@ -147,6 +155,71 @@ public class RoleMemberReviewNotificationTask implements NotificationTask {
             String body = getDomainMemberReviewBody(notification.getDetails());
             Set<String> fullyQualifiedEmailAddresses = notificationToEmailConverterCommon.getFullyQualifiedEmailAddresses(notification.getRecipients());
             return new NotificationEmail(subject, body, fullyQualifiedEmailAddresses);
+        }
+    }
+
+    public static class RoleReviewPrincipalNotificationToMetricConverter implements NotificationToMetricConverter {
+        private final static String NOTIFICATION_TYPE = "principal_role_membership_review";
+        private final NotificationToMetricConverterCommon notificationToMetricConverterCommon = new NotificationToMetricConverterCommon();
+
+        @Override
+        public NotificationMetric getNotificationAsMetrics(Notification notification, Timestamp currentTime) {
+            Map<String, String> details = notification.getDetails();
+
+            String memberName = details.get(NOTIFICATION_DETAILS_MEMBER);
+
+            List<String[]> attributes = new ArrayList<>();
+            String[] records = details.get(NOTIFICATION_DETAILS_ROLES_LIST).split("\\|");
+            for (String record: records) {
+                String[] recordAttributes = record.split(";");
+                if (recordAttributes.length != 3) {
+                    // Bad entry, skip
+                    continue;
+                }
+                String[] metricRecord = new String[] {
+                        METRIC_NOTIFICATION_TYPE_KEY, NOTIFICATION_TYPE,
+                        METRIC_NOTIFICATION_MEMBER_KEY, memberName,
+                        METRIC_NOTIFICATION_DOMAIN_KEY, recordAttributes[0],
+                        METRIC_NOTIFICATION_ROLE_KEY, recordAttributes[1],
+                        METRIC_NOTIFICATION_REVIEW_DAYS_KEY, notificationToMetricConverterCommon.getNumberOfDaysBetweenTimestamps(currentTime.toString(), recordAttributes[2])
+                };
+
+                attributes.add(metricRecord);
+            }
+
+            return new NotificationMetric(attributes);
+        }
+    }
+
+    public static class RoleReviewDomainNotificationToMetricConverter implements NotificationToMetricConverter {
+        private final static String NOTIFICATION_TYPE = "domain_role_membership_review";
+        private final NotificationToMetricConverterCommon notificationToMetricConverterCommon = new NotificationToMetricConverterCommon();
+
+        @Override
+        public NotificationMetric getNotificationAsMetrics(Notification notification, Timestamp currentTime) {
+            Map<String, String> details = notification.getDetails();
+            String domain = details.get(NOTIFICATION_DETAILS_DOMAIN);
+            List<String[]> attributes = new ArrayList<>();
+            String[] records = details.get(NOTIFICATION_DETAILS_MEMBERS_LIST).split("\\|");
+            for (String record: records) {
+                String[] recordAttributes = record.split(";");
+                if (recordAttributes.length != 3) {
+                    // Bad entry, skip
+                    continue;
+                }
+                String[] metricRecord = new String[] {
+                        METRIC_NOTIFICATION_TYPE_KEY, NOTIFICATION_TYPE,
+                        METRIC_NOTIFICATION_DOMAIN_KEY, domain,
+                        METRIC_NOTIFICATION_MEMBER_KEY, recordAttributes[0],
+                        METRIC_NOTIFICATION_ROLE_KEY, recordAttributes[1],
+                        METRIC_NOTIFICATION_REVIEW_DAYS_KEY, notificationToMetricConverterCommon.getNumberOfDaysBetweenTimestamps(currentTime.toString(), recordAttributes[2])
+                };
+
+
+                attributes.add(metricRecord);
+            }
+
+            return new NotificationMetric(attributes);
         }
     }
 }

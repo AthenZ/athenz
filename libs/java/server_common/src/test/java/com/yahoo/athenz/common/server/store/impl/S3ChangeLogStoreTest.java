@@ -25,6 +25,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import com.amazonaws.services.s3.AmazonS3;
+import com.yahoo.rdl.Timestamp;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.mockito.Mockito;
 import org.testng.annotations.BeforeMethod;
@@ -45,7 +46,7 @@ import com.yahoo.athenz.zms.SignedDomains;
 public class S3ChangeLogStoreTest {
 
     private static final String DEFAULT_TIMEOUT_SECONDS = "athenz.zts.bucket.threads.timeout";
-    private int defaultTimeoutSeconds = Integer.valueOf(System.getProperty(DEFAULT_TIMEOUT_SECONDS, "1800"));
+    private final int defaultTimeoutSeconds = Integer.parseInt(System.getProperty(DEFAULT_TIMEOUT_SECONDS, "1800"));
 
     @BeforeMethod
     public void setup() {
@@ -72,7 +73,7 @@ public class S3ChangeLogStoreTest {
         }
 
         System.setProperty(ZTS_PROP_AWS_BUCKET_NAME, "s3-unit-test-bucket-name");
-        assertNotNull(new S3ChangeLogStore());
+        new S3ChangeLogStore();
     }
 
     @Test
@@ -165,9 +166,9 @@ public class S3ChangeLogStoreTest {
 
     @Test
     public void testListObjectsAllObjectsNoPage() {
-        
+
         MockS3ChangeLogStore store = new MockS3ChangeLogStore();
-        
+
         ArrayList<S3ObjectSummary> objectList = new ArrayList<>();
         S3ObjectSummary objectSummary = new S3ObjectSummary();
         objectSummary.setKey("iaas");
@@ -183,20 +184,20 @@ public class S3ChangeLogStoreTest {
         when(objectListing.getObjectSummaries()).thenReturn(objectList);
         when(objectListing.isTruncated()).thenReturn(false);
         when(store.awsS3Client.listObjects(any(ListObjectsRequest.class))).thenReturn(objectListing);
-        
+
         ArrayList<String> domains = new ArrayList<>();
         store.listObjects(store.awsS3Client, domains, 0);
-        
+
         assertEquals(domains.size(), 2);
         assertTrue(domains.contains("iaas"));
         assertTrue(domains.contains("iaas.athenz"));
     }
-    
+
     @Test
     public void testListObjectsAllObjectsNoPageModTime() {
-        
+
         MockS3ChangeLogStore store = new MockS3ChangeLogStore();
-        
+
         ArrayList<S3ObjectSummary> objectList = new ArrayList<>();
         S3ObjectSummary objectSummary = new S3ObjectSummary();
         objectSummary.setKey("iaas");
@@ -206,24 +207,24 @@ public class S3ChangeLogStoreTest {
         objectSummary.setKey("iaas.athenz");
         objectSummary.setLastModified(new Date(200));
         objectList.add(objectSummary);
-        
+
         ObjectListing objectListing = mock(ObjectListing.class);
         when(objectListing.getObjectSummaries()).thenReturn(objectList);
         when(objectListing.isTruncated()).thenReturn(false);
         when(store.awsS3Client.listObjects(any(ListObjectsRequest.class))).thenReturn(objectListing);
-        
+
         ArrayList<String> domains = new ArrayList<>();
         store.listObjects(store.awsS3Client, domains, (new Date(150)).getTime());
-        
+
         assertEquals(domains.size(), 1);
         assertTrue(domains.contains("iaas.athenz"));
     }
-    
+
     @Test
     public void testListObjectsAllObjectsMultiplePages() {
-        
+
         MockS3ChangeLogStore store = new MockS3ChangeLogStore();
-        
+
         ArrayList<S3ObjectSummary> objectList1 = new ArrayList<>();
         S3ObjectSummary objectSummary = new S3ObjectSummary();
         objectSummary.setKey("iaas");
@@ -231,7 +232,7 @@ public class S3ChangeLogStoreTest {
         objectSummary = new S3ObjectSummary();
         objectSummary.setKey("iaas.athenz");
         objectList1.add(objectSummary);
-        
+
         ArrayList<S3ObjectSummary> objectList2 = new ArrayList<>();
         objectSummary = new S3ObjectSummary();
         objectSummary.setKey("cd");
@@ -239,7 +240,7 @@ public class S3ChangeLogStoreTest {
         objectSummary = new S3ObjectSummary();
         objectSummary.setKey("cd.docker");
         objectList2.add(objectSummary);
-        
+
         ArrayList<S3ObjectSummary> objectList3 = new ArrayList<>();
         objectSummary = new S3ObjectSummary();
         objectSummary.setKey("platforms");
@@ -247,7 +248,7 @@ public class S3ChangeLogStoreTest {
         objectSummary = new S3ObjectSummary();
         objectSummary.setKey("platforms.mh2");
         objectList3.add(objectSummary);
-        
+
         ObjectListing objectListing = mock(ObjectListing.class);
         when(objectListing.getObjectSummaries())
             .thenReturn(objectList1)
@@ -262,7 +263,7 @@ public class S3ChangeLogStoreTest {
 
         ArrayList<String> domains = new ArrayList<>();
         store.listObjects(store.awsS3Client, domains, 0);
-        
+
         assertEquals(domains.size(), 6);
         assertTrue(domains.contains("iaas"));
         assertTrue(domains.contains("iaas.athenz"));
@@ -470,7 +471,7 @@ public class S3ChangeLogStoreTest {
         assertNull(store.getSignedDomain(store.awsS3Client, "iaas"));
     }
     
-    private class MockS3ObjectInputStream extends S3ObjectInputStream {
+    private static class MockS3ObjectInputStream extends S3ObjectInputStream {
         MockS3ObjectInputStream(InputStream in, HttpRequestBase httpRequest) {
             super(in, httpRequest);
         }
@@ -664,5 +665,118 @@ public class S3ChangeLogStoreTest {
         } catch (RuntimeException ex) {
             assertEquals(ex.getMessage(), "S3ChangeLogStore: Couldn't detect AWS region");
         }
+    }
+
+    @Test
+    public void testAsyncDomainObjectsFetcher() throws Exception {
+
+        MockS3ChangeLogStore store = new MockS3ChangeLogStore();
+
+        // Generate mocked s3Client
+        int numberOfDomainsToMock = 500;
+        AmazonS3 s3client = buildMockS3Client(numberOfDomainsToMock);
+        store.setAwsS3Client(s3client);
+        List<String> localDomainList = store.getLocalDomainList();
+
+        assertEquals(localDomainList.size(), numberOfDomainsToMock);
+    }
+
+    @Test
+    public void testAsyncDomainObjectsFetcherSignedDomains() throws Exception {
+
+        MockS3ChangeLogStore store = new MockS3ChangeLogStore();
+
+        // Generate mocked s3Client
+        int numberOfDomainsToMock = 800;
+        AmazonS3 s3client = buildMockS3Client(numberOfDomainsToMock);
+        store.setAwsS3Client(s3client);
+
+        List<String> domainsList = new ArrayList<>();
+        for (int i = 0; i < numberOfDomainsToMock; ++i) {
+            domainsList.add("domain" + i);
+        }
+        store.getAllSignedDomains(domainsList);
+
+        assertEquals(store.tempSignedDomainMap.size(), numberOfDomainsToMock);
+    }
+
+    private AmazonS3 buildMockS3Client(int numOfDomains) {
+        String bucketName = "s3-unit-test-bucket-name";
+        AmazonS3 s3client = Mockito.mock(AmazonS3.class);
+
+        ArrayList<S3ObjectSummary> objectList = new ArrayList<>();
+        for (int i = 0; i < numOfDomains; ++i) {
+            // Add domain to mock objectListing
+            S3ObjectSummary objectSummary = new S3ObjectSummary();
+            String domainName = "domain" + i;
+            objectSummary.setKey(domainName);
+            objectSummary.setLastModified(new Date(100 + i));
+            objectList.add(objectSummary);
+
+            // Add domain mock object
+            String jsonDomainObject = generateJsonDomainObject(domainName);
+            InputStream domainObjectStream = new ByteArrayInputStream(jsonDomainObject.getBytes());
+            MockS3ObjectInputStream s3ObjectInputStream = new MockS3ObjectInputStream(domainObjectStream, null);
+
+            S3Object domainObject = mock(S3Object.class);
+            when(domainObject.getObjectContent()).thenReturn(s3ObjectInputStream);
+
+            Mockito.when(s3client.getObject(Mockito.anyString(), Mockito.eq(domainName))).thenReturn(domainObject);
+        }
+
+        ObjectListing objectListing = mock(ObjectListing.class);
+        when(objectListing.getObjectSummaries()).thenReturn(objectList);
+        when(objectListing.isTruncated()).thenReturn(false);
+
+        when(s3client.listObjects(Mockito.any(ListObjectsRequest.class))).thenReturn(objectListing);
+        return s3client;
+    }
+
+    private String generateJsonDomainObject(String domainName) {
+        String domainPostFix = domainName.substring("domain".length());
+        int postFixInt = Integer.parseInt(domainPostFix);
+        String modifiedTimeStamp = Timestamp.fromMillis(100 + postFixInt).toString();
+        String adminRole = domainName + ":role.admin";
+        String policyAdmin = domainName + ":policy.admin";
+        String json =
+                "{\"domain\":{" +
+                        "\"roles\":[" +
+                        "{" +
+                        "\"modified\":" + "\"" + modifiedTimeStamp + "\"," +
+                        "\"name\":" + "\"" + adminRole + "\"," +
+                        "\"members\":[" +
+                        "\"yby.hga\"," +
+                        "\"yby.zms_test_admin\"" +
+                        "]" +
+                        "}" +
+                        "]," +
+                        "\"policies\":{" +
+                        "\"contents\":{" +
+                        "\"domain\":" + "\"" + modifiedTimeStamp + "\"," +
+                        "\"policies\":[" +
+                        "{" +
+                        "\"modified\":" + "\"" + modifiedTimeStamp + "\"," +
+                        "\"assertions\":[" +
+                        "{" +
+                        "\"role\":" + "\"" + adminRole + "\"," +
+                        "\"action\":\"*\"," +
+                        "\"effect\":\"ALLOW\"," +
+                        "\"resource\":\"iaas:*\"" +
+                        "}" +
+                        "]," +
+                        "\"name\":" + "\"" + policyAdmin + "\"" +
+                        "}" +
+                        "]" +
+                        "}," +
+                        "\"keyId\":\"zms.dev.0\"," +
+                        "\"signature\":\"MEUCID0ciS7zBGIEJbUo2aIamnwcA4K_Sx4HtE1LZkPCtZKKAiEA9sAufsEnjODZM8U1p4EOqObJZ9L2Szna_qwsFtinm0U-\"" +
+                        "}," +
+                        "\"modified\":" + "\"" + modifiedTimeStamp + "\"," +
+                        "\"services\":[]," +
+                        "\"name\":" + "\"" + domainName + "\"" +
+                        "}," +
+                        "\"keyId\":\"zms.dev.0\"," +
+                        "\"signature\":\"MEQCIBl9i0P.apXlpPJ7NCl1FMOHCHTPBgazwtHcEflDIIB1AiA3IUSh7CEDRUXM3PkjU8hBT6XNnXQRLT2ywi2Q0ZciMw--\"}";
+        return json;
     }
 }

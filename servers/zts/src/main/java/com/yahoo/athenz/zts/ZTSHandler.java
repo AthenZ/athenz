@@ -26,7 +26,6 @@ public interface ZTSHandler {
     TenantDomains getTenantDomains(ResourceContext context, String providerDomainName, String userName, String roleName, String serviceName);
     Identity postInstanceRefreshRequest(ResourceContext context, String domain, String service, InstanceRefreshRequest req);
     AWSTemporaryCredentials getAWSTemporaryCredentials(ResourceContext context, String domainName, String role, Integer durationSeconds, String externalId);
-    Identity postOSTKInstanceRefreshRequest(ResourceContext context, String domain, String service, OSTKInstanceRefreshRequest req);
     Response postInstanceRegisterInformation(ResourceContext context, InstanceRegisterInformation info);
     InstanceIdentity postInstanceRefreshInformation(ResourceContext context, String provider, String domain, String service, String instanceId, InstanceRefreshInformation info);
     void deleteInstanceIdentity(ResourceContext context, String provider, String domain, String service, String instanceId);

@@ -35,15 +35,12 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.Response;
 
-import com.yahoo.athenz.common.server.cert.CertRecordStore;
-import com.yahoo.athenz.common.server.cert.CertRecordStoreConnection;
 import com.yahoo.athenz.common.server.cert.X509CertRecord;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.ssh.SSHCertRecord;
 import com.yahoo.athenz.common.server.store.ChangeLogStore;
 import com.yahoo.athenz.common.server.store.impl.ZMSFileChangeLogStore;
-import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.zms.Assertion;
 import com.yahoo.athenz.zms.AssertionEffect;
@@ -58,7 +55,6 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.SignatureException;
-import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
@@ -77,8 +73,6 @@ import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.impl.UserAuthority;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.metrics.Metric;
-import com.yahoo.athenz.common.server.log.AuditLogger;
-import com.yahoo.athenz.common.server.log.impl.DefaultAuditLogger;
 import com.yahoo.athenz.common.utils.SignUtils;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
@@ -92,8 +86,7 @@ import com.yahoo.athenz.zts.utils.ZTSUtils;
 import com.yahoo.rdl.Schema;
 import com.yahoo.rdl.Timestamp;
 
-import static com.yahoo.athenz.common.ServerCommonConsts.PROP_ATHENZ_CONF;
-import static com.yahoo.athenz.common.ServerCommonConsts.ZTS_PROP_FILE_NAME;
+import static com.yahoo.athenz.common.ServerCommonConsts.*;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.times;
@@ -108,7 +101,6 @@ public class ZTSImplTest {
     private ZTSAuthorizer authorizer = null;
     private DataStore store = null;
     private PrivateKey privateKey = null;
-    private AuditLogger auditLogger = null;
     private CloudStore cloudStore = null;
     @Mock private CloudStore mockCloudStore;
     
@@ -158,7 +150,7 @@ public class ZTSImplTest {
         MockitoAnnotations.initMocks(this);
         Mockito.when(mockServletRequest.getRemoteAddr()).thenReturn(MOCKCLIENTADDR);
         
-        System.setProperty(ZTSConsts.ZTS_PROP_METRIC_FACTORY_CLASS, ZTSConsts.ZTS_METRIC_FACTORY_CLASS);
+        System.setProperty(ZTSConsts.ZTS_PROP_METRIC_FACTORY_CLASS, METRIC_DEFAULT_FACTORY_CLASS);
         System.setProperty(ZTSConsts.ZTS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
                 "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory");
         System.setProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_FACTORY_CLASS,
@@ -169,11 +161,9 @@ public class ZTSImplTest {
         System.setProperty(ZTS_PROP_FILE_NAME, "src/test/resources/zts.properties");
         System.setProperty(ZTSConsts.ZTS_PROP_CERT_REFRESH_IP_FNAME,
                 "src/test/resources/cert_refresh_ipblocks.txt");
-        System.setProperty(ZTSConsts.ZTS_PROP_OSTK_HOST_SIGNER_SERVICE, "sys.auth.hostsignd");
         System.setProperty(ZTSConsts.ZTS_PROP_CERT_ALLOWED_O_VALUES, "Athenz, Inc.|My Test Company|Athenz|Yahoo");
         System.setProperty(ZTSConsts.ZTS_PROP_NOAUTH_URI_LIST, "/zts/v1/schema,/zts/v1/status");
-
-        auditLogger = new DefaultAuditLogger();
+        System.setProperty(ZTSConsts.ZTS_PROP_VALIDATE_SERVICE_SKIP_DOMAINS, "screwdriver");
     }
     
     @BeforeMethod
@@ -210,7 +200,6 @@ public class ZTSImplTest {
         cloudStore = new CloudStore();
         cloudStore.setHttpClient(null);
 
-        System.setProperty(ZTSConsts.ZTS_PROP_OSTK_HOST_SIGNER_SERVICE, "sys.auth.hostsignd");
         System.setProperty(ZTSConsts.ZTS_PROP_CERT_ALLOWED_O_VALUES, "Athenz, Inc.|My Test Company|Athenz|Yahoo");
         System.setProperty(ZTSConsts.ZTS_PROP_NOAUTH_URI_LIST, "/zts/v1/schema,/zts/v1/status");
 
@@ -295,7 +284,7 @@ public class ZTSImplTest {
                 Class.forName(System.getProperty(ZTSConsts.ZTS_PROP_METRIC_FACTORY_CLASS)).newInstance();
             metric = metricFactory.create();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException exc) {
-            System.out.println("Invalid MetricFactory class: " + ZTSConsts.ZTS_METRIC_FACTORY_CLASS
+            System.out.println("Invalid MetricFactory class: " + METRIC_DEFAULT_FACTORY_CLASS
                     + " error: " + exc.getMessage());
             metric = new com.yahoo.athenz.common.metrics.impl.NoOpMetric();
         }
@@ -3012,214 +3001,6 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostOSTKInstanceRefreshRequest() throws IOException {
-        Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
-        String certCsr = new String(Files.readAllBytes(path));
-
-        OSTKInstanceRefreshRequest req = new OSTKInstanceRefreshRequest().setCsr(certCsr);
-
-        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create(
-                "athenz",
-                "production",
-                "v=S1,d=athenz;n=production;s=sig",
-                0,
-                new CertificateAuthority()
-        );
-        HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
-        Mockito.when(servletRequest.isSecure()).thenReturn(true);
-        
-        path = Paths.get("src/test/resources/athenz.instanceid.pem");
-        String pem = new String(Files.readAllBytes(path));
-        X509Certificate cert = Crypto.loadX509Certificate(pem);
-        principal.setX509Certificate(cert);
-        
-        ResourceContext context = createResourceContext(principal, servletRequest);
-
-        X509CertRecord certRecord = new X509CertRecord();
-        certRecord.setService("athenz.production");
-        certRecord.setInstanceId("1001");
-        certRecord.setCurrentSerial("16503746516960996918");
-        certRecord.setPrevSerial("16503746516960996918");
-        
-        CertRecordStore certStore = Mockito.mock(CertRecordStore.class);
-        CertRecordStoreConnection certConnection = Mockito.mock(CertRecordStoreConnection.class);
-        Mockito.when(certStore.getConnection()).thenReturn(certConnection);
-        Mockito.when(certConnection.getX509CertRecord("ostk", "1001", "athenz.production")).thenReturn(certRecord);
-        Mockito.when(certConnection.updateX509CertRecord(ArgumentMatchers.isA(X509CertRecord.class))).thenReturn(true);
-        zts.instanceCertManager.setCertStore(certStore);
-        
-        Identity identity = zts.postOSTKInstanceRefreshRequest(context, "athenz", "production", req);
-        assertNotNull(identity);
-
-        X509Certificate x509Cert = Crypto.loadX509Certificate(identity.getCertificate());
-        assertNotNull(x509Cert);
-    }
-
-    @Test
-    public void testPostOSTKInstanceRefreshRequestPreviousSerialMatch() throws IOException {
-        Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
-        String certCsr = new String(Files.readAllBytes(path));
-
-        OSTKInstanceRefreshRequest req = new OSTKInstanceRefreshRequest().setCsr(certCsr);
-
-        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create(
-                "athenz",
-                "production",
-                "v=S1,d=athenz;n=production;s=sig",
-                0,
-                new CertificateAuthority()
-        );
-        HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
-        Mockito.when(servletRequest.isSecure()).thenReturn(true);
-        
-        path = Paths.get("src/test/resources/athenz.instanceid.pem");
-        String pem = new String(Files.readAllBytes(path));
-        X509Certificate cert = Crypto.loadX509Certificate(pem);
-        principal.setX509Certificate(cert);
-        
-        ResourceContext context = createResourceContext(principal, servletRequest);
-
-        X509CertRecord certRecord = new X509CertRecord();
-        certRecord.setService("athenz.production");
-        certRecord.setProvider("ostk");
-        certRecord.setInstanceId("1001");
-        certRecord.setCurrentSerial("12341324334");
-        certRecord.setPrevSerial("16503746516960996918");
-        
-        CertRecordStore certStore = Mockito.mock(CertRecordStore.class);
-        CertRecordStoreConnection certConnection = Mockito.mock(CertRecordStoreConnection.class);
-        Mockito.when(certStore.getConnection()).thenReturn(certConnection);
-        Mockito.when(certConnection.getX509CertRecord("ostk", "1001", "athenz.production")).thenReturn(certRecord);
-        Mockito.when(certConnection.updateX509CertRecord(ArgumentMatchers.isA(X509CertRecord.class))).thenReturn(true);
-        zts.instanceCertManager.setCertStore(certStore);
-        
-        Identity identity = zts.postOSTKInstanceRefreshRequest(context, "athenz", "production", req);
-        assertNotNull(identity);
-
-        X509Certificate x509Cert = Crypto.loadX509Certificate(identity.getCertificate());
-        assertNotNull(x509Cert);
-    }
-    
-    @Test
-    public void testPostOSTKInstanceRefreshRequestSerialMisMatch() throws IOException {
-        Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
-        String certCsr = new String(Files.readAllBytes(path));
-
-        OSTKInstanceRefreshRequest req = new OSTKInstanceRefreshRequest().setCsr(certCsr);
-
-        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create(
-                "athenz",
-                "production",
-                "v=S1,d=athenz;n=production;s=sig",
-                0,
-                new CertificateAuthority()
-        );
-        HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
-        Mockito.when(servletRequest.isSecure()).thenReturn(true);
-        
-        path = Paths.get("src/test/resources/athenz.instanceid.pem");
-        String pem = new String(Files.readAllBytes(path));
-        X509Certificate cert = Crypto.loadX509Certificate(pem);
-        principal.setX509Certificate(cert);
-        
-        ResourceContext context = createResourceContext(principal, servletRequest);
-
-        X509CertRecord certRecord = new X509CertRecord();
-        certRecord.setService("athenz.production");
-        certRecord.setProvider("ostk");
-        certRecord.setInstanceId("1001");
-        certRecord.setCurrentSerial("12341324334");
-        certRecord.setPrevSerial("2342134323");
-        
-        CertRecordStore certStore = Mockito.mock(CertRecordStore.class);
-        CertRecordStoreConnection certConnection = Mockito.mock(CertRecordStoreConnection.class);
-        Mockito.when(certStore.getConnection()).thenReturn(certConnection);
-        Mockito.when(certConnection.getX509CertRecord("ostk", "1001", "athenz.production")).thenReturn(certRecord);
-        Mockito.when(certConnection.updateX509CertRecord(ArgumentMatchers.isA(X509CertRecord.class))).thenReturn(true);
-        zts.instanceCertManager.setCertStore(certStore);
-        
-        try {
-            zts.postOSTKInstanceRefreshRequest(context, "athenz", "production", req);
-            fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 403);
-            assertTrue(ex.getMessage().contains("Certificate revoked"));
-        }
-    }
-    
-    @Test
-    public void testPostOSTKInstanceRefreshRequestCertRecordCnMismatch() throws IOException {
-        Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
-        String certCsr = new String(Files.readAllBytes(path));
-
-        OSTKInstanceRefreshRequest req = new OSTKInstanceRefreshRequest().setCsr(certCsr);
-
-        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create(
-                "athenz",
-                "production",
-                "v=S1,d=athenz;n=production;s=sig",
-                0,
-                new CertificateAuthority()
-        );
-        HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
-        Mockito.when(servletRequest.isSecure()).thenReturn(true);
-        
-        path = Paths.get("src/test/resources/athenz.instanceid.pem");
-        String pem = new String(Files.readAllBytes(path));
-        X509Certificate cert = Crypto.loadX509Certificate(pem);
-        principal.setX509Certificate(cert);
-        
-        ResourceContext context = createResourceContext(principal, servletRequest);
-
-        X509CertRecord certRecord = new X509CertRecord();
-        certRecord.setService("athenz2.production");
-        certRecord.setProvider("ostk");
-
-        CertRecordStore certStore = Mockito.mock(CertRecordStore.class);
-        CertRecordStoreConnection certConnection = Mockito.mock(CertRecordStoreConnection.class);
-        Mockito.when(certStore.getConnection()).thenReturn(certConnection);
-        Mockito.when(certConnection.getX509CertRecord("ostk", "1001", "athenz.production")).thenReturn(certRecord);
-        zts.instanceCertManager.setCertStore(certStore);
-        
-        // we'll get back 400 mismatch cn error message
-        
-        try {
-            zts.postOSTKInstanceRefreshRequest(context, "athenz", "production", req);
-            fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 400);
-            assertTrue(ex.getMessage().contains("cn mismatch"));
-        }
-    }
-    
-    @Test
-    public void testPostOSTKInstanceRefreshRequestPrincipalMismatch() throws IOException {
-        Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
-        String certCsr = new String(Files.readAllBytes(path));
-
-        OSTKInstanceRefreshRequest req = new OSTKInstanceRefreshRequest().setCsr(certCsr);
-
-        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create(
-                "athenz2",
-                "production",
-                "v=S1,d=athenz2;n=production;s=sig",
-                0,
-                new CertificateAuthority()
-        );
-        HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
-        Mockito.when(servletRequest.isSecure()).thenReturn(true);
-
-        ResourceContext context = createResourceContext(principal, servletRequest);
-
-        try {
-            zts.postOSTKInstanceRefreshRequest(context, "athenz", "production", req);
-            fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 400);
-        }
-    }
-    
-    @Test
     public void testGetSchema() {
         Schema schema = zts.getRdlSchema(null);
         assertNotNull(schema);
@@ -4757,6 +4538,35 @@ public class ZTSImplTest {
         assertEquals(response.getStatus(), 201);
         InstanceIdentity resIdentity = (InstanceIdentity) response.getEntity();
         assertNotNull(resIdentity.getX509Certificate());
+    }
+
+    @Test
+    public void testPostInstanceRegisterInformationInvalidDomain() throws IOException {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+
+        DataStore store = new DataStore(structStore, null);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
+        String certCsr = new String(Files.readAllBytes(path));
+
+        InstanceRegisterInformation info = new InstanceRegisterInformation()
+                .setAttestationData("attestationData").setCsr(certCsr)
+                .setDomain("athenz").setService("production")
+                .setProvider("athenz.provider").setToken(true)
+                .setHostname("unknown.host.athenz.cloud");
+
+        ResourceContext context = createResourceContext(null);
+
+        try {
+            ztsImpl.postInstanceRegisterInformation(context, info);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+            assertTrue(ex.getMessage().contains("Domain not found: athenz"));
+        }
     }
 
     @Test
@@ -7382,6 +7192,9 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
+        SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
+        store.processDomain(tenantDomain, false);
+
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String certCsr = new String(Files.readAllBytes(path));
 
@@ -7390,7 +7203,7 @@ public class ZTSImplTest {
 
         PrincipalAuthority authority = new PrincipalAuthority();
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
-                "v=S1;d=athenzn=production;s=signature", 0, authority);
+                "v=S1;d=athenz;n=production;s=signature", 0, authority);
 
         ResourceContext context = createResourceContext(principal);
 
@@ -7412,6 +7225,12 @@ public class ZTSImplTest {
 
         DataStore store = new DataStore(structStore, null);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
+        store.processDomain(tenantDomain, false);
+
+        tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz2", "production");
+        store.processDomain(tenantDomain, false);
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String certCsr = new String(Files.readAllBytes(path));
@@ -7436,6 +7255,37 @@ public class ZTSImplTest {
     }
 
     @Test
+    public void testPostInstanceRefreshInformationInvalidDomain() throws IOException {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+
+        DataStore store = new DataStore(structStore, null);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
+        String certCsr = new String(Files.readAllBytes(path));
+
+        InstanceRefreshInformation info = new InstanceRefreshInformation()
+                .setCsr(certCsr);
+
+        PrincipalAuthority authority = new PrincipalAuthority();
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
+                "v=S1;d=athenz;n=production;s=signature", 0, authority);
+
+        ResourceContext context = createResourceContext(principal);
+
+        try {
+            ztsImpl.postInstanceRefreshInformation(context,
+                    "athenz.provider", "athenz", "production", "1001", info);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+            assertTrue(ex.getMessage().contains("Domain not found: athenz"));
+        }
+    }
+
+    @Test
     public void testPostInstanceRefreshInformationNullCSRs() {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
@@ -7444,12 +7294,15 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
+        SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
+        store.processDomain(tenantDomain, false);
+
         InstanceRefreshInformation info = new InstanceRefreshInformation()
                 .setCsr(null).setSsh("");
 
         PrincipalAuthority authority = new PrincipalAuthority();
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
-                "v=S1;d=athenzn=production;s=signature", 0, authority);
+                "v=S1;d=athenz;n=production;s=signature", 0, authority);
 
         ResourceContext context = createResourceContext(principal);
 
@@ -8341,7 +8194,6 @@ public class ZTSImplTest {
 
         ResourceContext context = createResourceContext(principal, servletRequest);
 
-        //noinspection CatchMayIgnoreException
         try {
             ztsImpl.postInstanceRefreshRequest(context, "user", "doe", req);
             fail();
@@ -8876,14 +8728,6 @@ public class ZTSImplTest {
         }
 
         try {
-            ztsImpl.postOSTKInstanceRefreshRequest(ctx, null, null, null);
-            fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 400);
-            assertTrue(ex.getMessage().contains("Read-Only mode"));
-        }
-
-        try {
             ztsImpl.postDomainMetrics(ctx, null, null);
             fail();
         } catch (ResourceException ex) {
@@ -9195,7 +9039,6 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null);
 
         System.clearProperty(ZTSConsts.ZTS_PROP_AUTHORIZED_PROXY_USERS);
-        System.clearProperty(ZTSConsts.ZTS_PROP_OSTK_HOST_SIGNER_SERVICE);
         System.clearProperty(ZTSConsts.ZTS_PROP_CERT_ALLOWED_O_VALUES);
         System.clearProperty(ZTSConsts.ZTS_PROP_NOAUTH_URI_LIST);
 
@@ -9204,8 +9047,6 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         assertNull(ztsImpl.authorizedProxyUsers);
-        assertNull(ztsImpl.ostkHostSignerDomain);
-        assertNull(ztsImpl.ostkHostSignerService);
         assertNull(ztsImpl.authFreeUriList);
         assertNull(ztsImpl.authFreeUriSet);
         assertNull(ztsImpl.validCertSubjectOrgValues);
@@ -9215,13 +9056,10 @@ public class ZTSImplTest {
         // some more config values tests
 
         System.clearProperty(ZTSConsts.ZTS_PROP_USER_DOMAIN_ALIAS);
-        System.setProperty(ZTSConsts.ZTS_PROP_OSTK_HOST_SIGNER_SERVICE, "service");
         System.setProperty(ZTSConsts.ZTS_PROP_NOAUTH_URI_LIST, "/uri1,/uri1+,/uri2");
         System.setProperty(ZTSConsts.ZTS_PROP_CERT_ALLOWED_OU_VALUES, "Athenz|Athens");
 
         ztsImpl = new ZTSImpl(mockCloudStore, store);
-        assertNull(ztsImpl.ostkHostSignerDomain);
-        assertNull(ztsImpl.ostkHostSignerService);
         assertEquals(ztsImpl.authFreeUriList.size(), 1);
         assertEquals(ztsImpl.authFreeUriSet.size(), 2);
         assertEquals(ztsImpl.validCertSubjectOrgUnitValues.size(), 2);
@@ -9229,7 +9067,6 @@ public class ZTSImplTest {
         assertTrue(ztsImpl.validCertSubjectOrgUnitValues.contains("Athens"));
 
         System.clearProperty(ZTSConsts.ZTS_PROP_USER_DOMAIN_ALIAS);
-        System.clearProperty(ZTSConsts.ZTS_PROP_OSTK_HOST_SIGNER_SERVICE);
         System.clearProperty(ZTSConsts.ZTS_PROP_NOAUTH_URI_LIST);
         System.clearProperty(ZTSConsts.ZTS_PROP_CERT_ALLOWED_OU_VALUES);
     }
@@ -10885,8 +10722,7 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         System.setProperty(ZTSConsts.ZTS_PROP_CERT_BUNDLES_FNAME, "src/test/resources/ca-bundle-file.json");
-        InstanceCertManager certManager = new InstanceCertManager(null, null, null, true);
-        ztsImpl.instanceCertManager = certManager;
+        ztsImpl.instanceCertManager = new InstanceCertManager(null, null, null, true);
 
         CertificateAuthorityBundle bundle = ztsImpl.getCertificateAuthorityBundle(context, "athenz");
         assertNotNull(bundle);
@@ -11015,8 +10851,6 @@ public class ZTSImplTest {
     @Test
     public void testRecordMetricsUnauthenticated() {
         zts.metric = Mockito.mock(Metric.class);
-        Principal principal = SimplePrincipal.create("user_domain", "user1",
-                "v=U1;d=user_domain;n=user;s=signature", 0, null);
         Mockito.when(mockServletRequest.getMethod()).thenReturn("GET");
         RsrcCtxWrapper ctx = (RsrcCtxWrapper) zts.newResourceContext(mockServletRequest, mockServletResponse, "someApiMethod");
         String testDomain = "testDomain";
@@ -11149,5 +10983,44 @@ public class ZTSImplTest {
         List<GroupMember> groupMembers = zts.authorizer.groupMembersFetcher.getGroupMembers("coretech:group.dev-team");
         assertNotNull(groupMembers);
         assertEquals(groupMembers.size(), 2);
+    }
+
+    @Test
+    public void testValidateInstanceServiceIdentity() {
+
+        DomainData domainData = new DomainData();
+
+        // TODO once enabled a domain data with null services should throw an exception
+
+        zts.validateInstanceServiceIdentity(domainData, "athenz.api", "unit-test");
+        zts.validateInstanceServiceIdentity(domainData, "athenz.backend", "unit-test");
+
+        List<com.yahoo.athenz.zms.ServiceIdentity> services = new ArrayList<>();
+        com.yahoo.athenz.zms.ServiceIdentity serviceBackend = new com.yahoo.athenz.zms.ServiceIdentity()
+                .setName("athenz.backend");
+        com.yahoo.athenz.zms.ServiceIdentity serviceApi = new com.yahoo.athenz.zms.ServiceIdentity()
+                .setName("athenz.api");
+        services.add(serviceBackend);
+        services.add(serviceApi);
+
+        domainData.setServices(services);
+
+        // known services should work as expected
+
+        zts.validateInstanceServiceIdentity(domainData, "athenz.api", "unit-test");
+        zts.validateInstanceServiceIdentity(domainData, "athenz.backend", "unit-test");
+
+        // TODO unknown services should throw an exception once enabled
+
+        zts.validateInstanceServiceIdentity(domainData, "athenz.frontend", "unit-test");
+        zts.validateInstanceServiceIdentity(domainData, "athenz.api2", "unit-test");
+
+        // screwdriver services are excluded from the check since they're dynamic
+        // screwdriver is configured as service skip domain
+
+        domainData = new DomainData().setName("screwdriver");
+
+        zts.validateInstanceServiceIdentity(domainData, "screwdriver.project1", "unit-test");
+        zts.validateInstanceServiceIdentity(domainData, "screwdriver.project2", "unit-test");
     }
 }

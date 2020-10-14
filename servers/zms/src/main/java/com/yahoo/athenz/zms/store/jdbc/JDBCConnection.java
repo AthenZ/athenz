@@ -393,7 +393,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_UPDATE_GROUP_REVIEW_TIMESTAMP = "UPDATE principal_group SET last_reviewed_time=CURRENT_TIMESTAMP(3) WHERE group_id=?;";
     private static final String SQL_LIST_GROUPS_WITH_RESTRICTIONS = "SELECT domain.name as domain_name, "
             + "principal_group.name as group_name, domain.user_authority_filter as domain_user_authority_filter FROM principal_group "
-            + "JOIN domain ON role.domain_id=domain.domain_id WHERE principal_group.user_authority_filter!='' "
+            + "JOIN domain ON principal_group.domain_id=domain.domain_id WHERE principal_group.user_authority_filter!='' "
             + "OR principal_group.user_authority_expiration!='' OR domain.user_authority_filter!='';";
     private static final String SQL_LIST_GROUP_MEMBERS = "SELECT principal.name, principal_group_member.expiration, "
             + "principal_group_member.active, principal_group_member.audit_ref, principal_group_member.system_disabled FROM principal "
@@ -458,7 +458,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "ON role.domain_id=domain.domain_id JOIN role_member ON role.role_id=role_member.role_id "
             + "WHERE role_member.principal_id=? AND role_member.active=true AND role.name='admin' ) "
             + "order by do.name, grp.name, principal.name;";
-    private static final String SQL_GET_EXPIRED_PENDING_GROUP_MEMBERS = "SELECT d.name, r.name, p.name, pgm.expiration, pgm.audit_ref, pgm.req_time, pgm.req_principal "
+    private static final String SQL_GET_EXPIRED_PENDING_GROUP_MEMBERS = "SELECT d.name, grp.name, p.name, pgm.expiration, pgm.audit_ref, pgm.req_time, pgm.req_principal "
             + "FROM principal p JOIN pending_principal_group_member pgm "
             + "ON pgm.principal_id=p.principal_id JOIN principal_group grp ON pgm.group_id=grp.group_id JOIN domain d ON d.domain_id=grp.domain_id "
             + "WHERE pgm.req_time < (CURRENT_TIME - INTERVAL ? DAY);";

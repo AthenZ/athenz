@@ -84,7 +84,6 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_SELF_SIGNER_PRIVATE_KEY_FNAME    = "athenz.zts.self_signer_private_key_fname";
     public static final String ZTS_PROP_SELF_SIGNER_PRIVATE_KEY_PASSWORD = "athenz.zts.self_signer_private_key_password";
     public static final String ZTS_PROP_SELF_SIGNER_CERT_DN              = "athenz.zts.self_signer_cert_dn";
-    public static final String ZTS_PROP_OSTK_HOST_SIGNER_SERVICE         = "athenz.zts.ostk_host_signer_service";
     public static final String ZTS_PROP_CERT_REFRESH_VERIFY_HOSTNAMES    = "athenz.zts.cert_refresh_verify_hostnames";
     public static final String ZTS_PROP_CERT_REFRESH_RESET_TIME          = "athenz.zts.cert_refresh_reset_time";
     public static final String ZTS_PROP_CERT_REQUEST_VERIFY_IP           = "athenz.zts.cert_request_verify_ip";
@@ -188,8 +187,8 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_CERT_RECORD_STORE_FACTORY_CLASS  = "athenz.zts.cert_record_store_factory_class";
     public static final String ZTS_PROP_HOSTNAME_RESOLVER_FACTORY_CLASS  = "athenz.zts.hostname_resolver_factory_class";
     public static final String ZTS_PROP_SSH_RECORD_STORE_FACTORY_CLASS   = "athenz.zts.ssh_record_store_factory_class";
+    public static final String ZTS_PROP_VALIDATE_SERVICE_SKIP_DOMAINS    = "athenz.zts.validate_service_skip_domains";
 
-    public static final String ZTS_METRIC_FACTORY_CLASS            = "com.yahoo.athenz.common.metrics.impl.NoOpMetricFactory";
     public static final String ZTS_CHANGE_LOG_STORE_FACTORY_CLASS  = "com.yahoo.athenz.common.server.store.impl.ZMSFileChangeLogStoreFactory";
     public static final String ZTS_PKEY_STORE_FACTORY_CLASS        = "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory";
     public static final String ZTS_CERT_SIGNER_FACTORY_CLASS       = "com.yahoo.athenz.zts.cert.impl.HttpCertSignerFactory";

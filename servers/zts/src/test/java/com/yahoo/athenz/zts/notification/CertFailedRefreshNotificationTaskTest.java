@@ -20,18 +20,20 @@ import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.cert.X509CertRecord;
 import com.yahoo.athenz.common.server.notification.NotificationEmail;
-import com.yahoo.athenz.zms.DomainData;
+import com.yahoo.athenz.common.server.notification.NotificationMetric;
+import com.yahoo.athenz.zts.ZTSTestUtils;
 import com.yahoo.athenz.zts.cert.InstanceCertManager;
 import com.yahoo.athenz.zts.store.DataStore;
+import com.yahoo.rdl.Timestamp;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import java.sql.Timestamp;
 import java.util.*;
 
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
+import static com.yahoo.athenz.common.server.notification.impl.MetricNotificationService.*;
 import static com.yahoo.athenz.zts.ZTSConsts.ZTS_PROP_NOTIFICATION_CERT_FAIL_IGNORED_SERVICES_LIST;
 import static com.yahoo.athenz.zts.ZTSConsts.ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST;
 import static org.mockito.ArgumentMatchers.*;
@@ -217,24 +219,24 @@ public class CertFailedRefreshNotificationTaskTest {
         assertEquals(6, notifications.size());
         notifications.sort(Comparator.comparing(notif -> notif.getDetails().get(NOTIFICATION_DETAILS_UNREFRESHED_CERTS)));
         // Assert one records for provider1:
-        String expectedDetail = "service0;provider1;instanceID0;" + new Timestamp(currentDate.getTime()) + ";;hostName0";
+        String expectedDetail = "service0;provider1;instanceID0;" + Timestamp.fromMillis(currentDate.getTime()) + ";;hostName0";
         assertEquals(expectedDetail, notifications.get(0).getDetails().get(NOTIFICATION_DETAILS_UNREFRESHED_CERTS));
 
         // Assert two records for provider2:
-        expectedDetail = "service1;provider2;instanceID1;" + new Timestamp(currentDate.getTime()) + ";;hostName1";
+        expectedDetail = "service1;provider2;instanceID1;" + Timestamp.fromMillis(currentDate.getTime()) + ";;hostName1";
         assertEquals(expectedDetail, notifications.get(1).getDetails().get(NOTIFICATION_DETAILS_UNREFRESHED_CERTS));
 
-        expectedDetail = "service2;provider2;instanceID2;" + new Timestamp(currentDate.getTime()) + ";;hostName2";
+        expectedDetail = "service2;provider2;instanceID2;" + Timestamp.fromMillis(currentDate.getTime()) + ";;hostName2";
         assertEquals(expectedDetail, notifications.get(2).getDetails().get(NOTIFICATION_DETAILS_UNREFRESHED_CERTS));
 
         // Assert three records for provider3:
-        expectedDetail = "service3;provider3;instanceID3;" + new Timestamp(currentDate.getTime()) + ";;hostName3";
+        expectedDetail = "service3;provider3;instanceID3;" + Timestamp.fromMillis(currentDate.getTime()) + ";;hostName3";
         assertEquals(expectedDetail, notifications.get(3).getDetails().get(NOTIFICATION_DETAILS_UNREFRESHED_CERTS));
 
-        expectedDetail = "service4;provider3;instanceID4;" + new Timestamp(currentDate.getTime()) + ";;hostName4";
+        expectedDetail = "service4;provider3;instanceID4;" + Timestamp.fromMillis(currentDate.getTime()) + ";;hostName4";
         assertEquals(expectedDetail, notifications.get(4).getDetails().get(NOTIFICATION_DETAILS_UNREFRESHED_CERTS));
 
-        expectedDetail = "service5;provider3;instanceID5;" + new Timestamp(currentDate.getTime()) + ";;hostName5";
+        expectedDetail = "service5;provider3;instanceID5;" + Timestamp.fromMillis(currentDate.getTime()) + ";;hostName5";
         assertEquals(expectedDetail, notifications.get(5).getDetails().get(NOTIFICATION_DETAILS_UNREFRESHED_CERTS));
 
         System.clearProperty(ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST);
@@ -463,15 +465,15 @@ public class CertFailedRefreshNotificationTaskTest {
         List<Notification> notifications = certFailedRefreshNotificationTask.getNotifications();
         assertEquals(6, notifications.size());
         // Assert 2 records for domain5 and domain0:
-        String twoRecordsDomain5 = "service5;provider;instanceID5;" + new Timestamp(currentDate.getTime()) + ";;hostName5|" +
-                "service5;provider;instanceID5;" + new Timestamp(currentDate.getTime()) + ";;secondHostName5";
+        String twoRecordsDomain5 = "service5;provider;instanceID5;" + Timestamp.fromMillis(currentDate.getTime()) + ";;hostName5|" +
+                "service5;provider;instanceID5;" + Timestamp.fromMillis(currentDate.getTime()) + ";;secondHostName5";
         assertEquals(twoRecordsDomain5, notifications.get(1).getDetails().get(NOTIFICATION_DETAILS_UNREFRESHED_CERTS));
-        String twoRecordsDomain0 = "service0;provider;instanceID0;" + new Timestamp(currentDate.getTime()) + ";;hostName0|" +
-                "service0;provider;instanceID0;" + new Timestamp(currentDate.getTime()) + ";;secondHostName0";
+        String twoRecordsDomain0 = "service0;provider;instanceID0;" + Timestamp.fromMillis(currentDate.getTime()) + ";;hostName0|" +
+                "service0;provider;instanceID0;" + Timestamp.fromMillis(currentDate.getTime()) + ";;secondHostName0";
         assertEquals(twoRecordsDomain0, notifications.get(4).getDetails().get(NOTIFICATION_DETAILS_UNREFRESHED_CERTS));
 
         // Assert other domains only have 1 record:
-        String oneRecordDomain1 = "service1;provider;instanceID1;" + new Timestamp(currentDate.getTime()) + ";;hostName1";
+        String oneRecordDomain1 = "service1;provider;instanceID1;" + Timestamp.fromMillis(currentDate.getTime()) + ";;hostName1";
         assertEquals(oneRecordDomain1, notifications.get(5).getDetails().get(NOTIFICATION_DETAILS_UNREFRESHED_CERTS));
 
         System.clearProperty(ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST);
@@ -570,5 +572,50 @@ public class CertFailedRefreshNotificationTaskTest {
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
         String subject = notificationAsEmail.getSubject();
         Assert.assertEquals(subject, "Athenz Unrefreshed Certificates Notification");
+    }
+
+    @Test
+    public void testGetNotificationAsMetric() {
+        Timestamp currentTimeStamp = Timestamp.fromMillis(System.currentTimeMillis());
+        Timestamp fiveDaysAgo = ZTSTestUtils.addDays(currentTimeStamp, -5);
+        Timestamp twentyFiveDaysFromNow = ZTSTestUtils.addDays(currentTimeStamp, 25);
+
+        Map<String, String> details = new HashMap<>();
+        details.put("domain", "dom1");
+        details.put(NOTIFICATION_DETAILS_UNREFRESHED_CERTS,
+                        "service0;provider0;instanceID0;" + fiveDaysAgo.toString() + ";" + twentyFiveDaysFromNow + ";hostName1|" +
+                        "service1;provider1;instanceID1;" + fiveDaysAgo.toString() + ";" + twentyFiveDaysFromNow + ";hostName2");
+
+        Notification notification = new Notification();
+        notification.setDetails(details);
+
+        CertFailedRefreshNotificationTask.CertFailedRefreshNotificationToMetricConverter converter = new CertFailedRefreshNotificationTask.CertFailedRefreshNotificationToMetricConverter();
+        NotificationMetric notificationAsMetrics = converter.getNotificationAsMetrics(notification, currentTimeStamp);
+
+        String[] expectedRecord1 = new String[]{
+                METRIC_NOTIFICATION_TYPE_KEY, "cert_fail_refresh",
+                METRIC_NOTIFICATION_DOMAIN_KEY, "dom1",
+                METRIC_NOTIFICATION_SERVICE_KEY, "service0",
+                METRIC_NOTIFICATION_PROVIDER_KEY, "provider0",
+                METRIC_NOTIFICATION_INSTANCE_ID_KEY, "instanceID0",
+                METRIC_NOTIFICATION_UPDATE_DAYS_KEY, "-5",
+                METRIC_NOTIFICATION_EXPIRY_DAYS_KEY, "25"
+        };
+
+        String[] expectedRecord2 = new String[]{
+                METRIC_NOTIFICATION_TYPE_KEY, "cert_fail_refresh",
+                METRIC_NOTIFICATION_DOMAIN_KEY, "dom1",
+                METRIC_NOTIFICATION_SERVICE_KEY, "service1",
+                METRIC_NOTIFICATION_PROVIDER_KEY, "provider1",
+                METRIC_NOTIFICATION_INSTANCE_ID_KEY, "instanceID1",
+                METRIC_NOTIFICATION_UPDATE_DAYS_KEY, "-5",
+                METRIC_NOTIFICATION_EXPIRY_DAYS_KEY, "25"
+        };
+
+        List<String[]> expectedAttributes = new ArrayList<>();
+        expectedAttributes.add(expectedRecord1);
+        expectedAttributes.add(expectedRecord2);
+
+        assertEquals(new NotificationMetric(expectedAttributes), notificationAsMetrics);
     }
 }

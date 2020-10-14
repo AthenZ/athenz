@@ -25,27 +25,18 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.PosixFilePermission;
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.List;
 import java.security.PrivateKey;
 import java.util.Set;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.athenz.CommonTestUtils;
 import com.yahoo.athenz.auth.util.Crypto;
-import com.yahoo.athenz.common.server.util.FilesHelper;
+import com.yahoo.athenz.zms.*;
 import org.mockito.Mockito;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-
-import com.yahoo.athenz.zms.DomainData;
-import com.yahoo.athenz.zms.SignedDomain;
-import com.yahoo.athenz.zms.SignedDomains;
-import com.yahoo.athenz.zms.ZMSClient;
-import com.yahoo.athenz.zms.ZMSClientException;
 
 import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Struct;
@@ -96,8 +87,7 @@ public class ZMSFileChangeLogStoreTest {
             String fpath = FSTORE_PATH + "/zts_file.tmp";
             touch(fpath);
             
-            @SuppressWarnings("unused")
-            ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(fpath, null, null);
+            new ZMSFileChangeLogStore(fpath, null, null);
             fail();
         } catch (RuntimeException | IOException ex) {
             assertTrue(true);
@@ -114,49 +104,6 @@ public class ZMSFileChangeLogStoreTest {
             assertTrue(true);
         }
     }
-
-    @Test
-    public void testGetNonExistent() {
-
-        ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
-        Struct st = fstore.get("NotExistent", Struct.class);
-        assertNull(st);
-    }
-
-    @Test
-    public void testGetExistent() {
-
-        ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
-        Struct data = new Struct();
-        data.put("key", "val1");
-        fstore.put("test1", JSON.bytes(data));
-        
-        Struct st = fstore.get("test1", Struct.class);
-        assertNotNull(st);
-        assertEquals(st.get("key"), "val1");
-    }
-    
-    @Test
-    public void testDeleteExistent() {
-        
-        ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
-        Struct data = new Struct();
-        data.put("key", "val1");
-        fstore.put("test1", JSON.bytes(data));
-        
-        fstore.delete("test1");
-        Struct st = fstore.get("test1", Struct.class);
-        assertNull(st);
-    }
-    
-    @Test
-    public void testDeleteNonExistent() {
-        
-        ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
-        
-        fstore.delete("test1");
-        assertTrue(true);
-    }
     
     @Test
     public void testGetLocalDomainListEmpty() {
@@ -168,10 +115,11 @@ public class ZMSFileChangeLogStoreTest {
     @Test
     public void testGetLocalDomainListError() {
         ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
+        ZMSFileChangeLogStoreCommon cstore = new ZMSFileChangeLogStoreCommon(FSTORE_PATH);
 
-        File dir = Mockito.spy(fstore.rootDir);
+        File dir = Mockito.spy(cstore.rootDir);
         Mockito.when(dir.list()).thenReturn(null);
-        fstore.rootDir = dir;
+        cstore.rootDir = dir;
 
         List<String> ls = fstore.getLocalDomainList();
         assertEquals(ls.size(), 0);
@@ -190,9 +138,11 @@ public class ZMSFileChangeLogStoreTest {
         Files.write(path, JSON.bytes(lastModStruct));
 
         ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
+        ZMSFileChangeLogStoreCommon cstore = new ZMSFileChangeLogStoreCommon(FSTORE_PATH);
+
         Struct data = new Struct();
         data.put("key", "val1");
-        fstore.put("test1", JSON.bytes(data));
+        cstore.put("test1", JSON.bytes(data));
         
         List<String> ls = fstore.getLocalDomainList();
         assertEquals(ls.size(), 1);
@@ -202,18 +152,19 @@ public class ZMSFileChangeLogStoreTest {
     @Test
     public void testGetLocalDomainListMultiple() {
         ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
-        
+        ZMSFileChangeLogStoreCommon cstore = new ZMSFileChangeLogStoreCommon(FSTORE_PATH);
+
         Struct data = new Struct();
         data.put("key", "val1");
-        fstore.put("test1", JSON.bytes(data));
+        cstore.put("test1", JSON.bytes(data));
         
         data = new Struct();
         data.put("key", "val1");
-        fstore.put("test2", JSON.bytes(data));
+        cstore.put("test2", JSON.bytes(data));
         
         data = new Struct();
         data.put("key", "val1");
-        fstore.put("test3", JSON.bytes(data));
+        cstore.put("test3", JSON.bytes(data));
         
         List<String> ls = fstore.getLocalDomainList();
         assertEquals(ls.size(), 3);
@@ -225,18 +176,19 @@ public class ZMSFileChangeLogStoreTest {
     @Test
     public void testGetLocalDomainListHidden() {
         ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
-        
+        ZMSFileChangeLogStoreCommon cstore = new ZMSFileChangeLogStoreCommon(FSTORE_PATH);
+
         Struct data = new Struct();
         data.put("key", "val1");
-        fstore.put("test1", JSON.bytes(data));
+        cstore.put("test1", JSON.bytes(data));
         
         data = new Struct();
         data.put("key", "val1");
-        fstore.put(".test2", JSON.bytes(data));
+        cstore.put(".test2", JSON.bytes(data));
         
         data = new Struct();
         data.put("key", "val1");
-        fstore.put(".test3", JSON.bytes(data));
+        cstore.put(".test3", JSON.bytes(data));
         
         List<String> ls = fstore.getLocalDomainList();
         assertEquals(ls.size(), 1);
@@ -246,20 +198,21 @@ public class ZMSFileChangeLogStoreTest {
     @Test
     public void testGetLocalDomainListDelete() {
         ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
-        
+        ZMSFileChangeLogStoreCommon cstore = new ZMSFileChangeLogStoreCommon(FSTORE_PATH);
+
         Struct data = new Struct();
         data.put("key", "val1");
-        fstore.put("test1", JSON.bytes(data));
+        cstore.put("test1", JSON.bytes(data));
         
         data = new Struct();
         data.put("key", "val1");
-        fstore.put("test2", JSON.bytes(data));
+        cstore.put("test2", JSON.bytes(data));
         
         data = new Struct();
         data.put("key", "val1");
-        fstore.put("test3", JSON.bytes(data));
-        
-        fstore.delete("test2");
+        cstore.put("test3", JSON.bytes(data));
+
+        cstore.delete("test2");
         
         List<String> ls = fstore.getLocalDomainList();
         assertEquals(ls.size(), 2);
@@ -272,91 +225,6 @@ public class ZMSFileChangeLogStoreTest {
 
         ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
         assertFalse(fstore.supportsFullRefresh());
-    }
-    
-    @Test
-    public void testGetSignedDomainList() {
-        ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
-        ZMSClient zmsClient = Mockito.mock(ZMSClient.class);
-        
-        List<SignedDomain> domains = new ArrayList<>();
-        DomainData domData = new DomainData().setName("athenz");
-        SignedDomain domain = new SignedDomain().setDomain(domData);
-        domains.add(domain);
-        SignedDomains domainList = new SignedDomains().setDomains(domains);
-        
-        Mockito.when(zmsClient.getSignedDomains("athenz", null, null, null)).thenReturn(domainList);
-
-        List<SignedDomain> returnList = fstore.getSignedDomainList(zmsClient, domainList);
-        assertEquals(returnList.size(), 1);
-        assertEquals(returnList.get(0).getDomain().getName(), "athenz");
-    }
-
-    @Test
-    public void testGetSignedDomainListNonRateFailure() {
-        ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
-        ZMSClient zmsClient = Mockito.mock(ZMSClient.class);
-
-        List<SignedDomain> domains = new ArrayList<>();
-        DomainData domData = new DomainData().setName("athenz");
-        SignedDomain domain = new SignedDomain().setDomain(domData);
-        domains.add(domain);
-        SignedDomains domainList = new SignedDomains().setDomains(domains);
-
-        Mockito.when(zmsClient.getSignedDomains("athenz", null, null, null))
-                .thenThrow(new ZMSClientException(401, "invalid credentials"));
-
-        List<SignedDomain> returnList = fstore.getSignedDomainList(zmsClient, domainList);
-        assertEquals(returnList.size(), 0);
-    }
-
-    @Test
-    public void testGetSignedDomainListRateFailure() {
-        ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
-        ZMSClient zmsClient = Mockito.mock(ZMSClient.class);
-
-        List<SignedDomain> domains = new ArrayList<>();
-        DomainData domData = new DomainData().setName("athenz");
-        SignedDomain domain = new SignedDomain().setDomain(domData);
-        domains.add(domain);
-        SignedDomains domainList = new SignedDomains().setDomains(domains);
-
-        Mockito.when(zmsClient.getSignedDomains("athenz", null, null, null))
-                .thenThrow(new ZMSClientException(429, "too many requests"))
-                .thenReturn(domainList);
-
-        List<SignedDomain> returnList = fstore.getSignedDomainList(zmsClient, domainList);
-        assertEquals(returnList.size(), 1);
-        assertEquals(returnList.get(0).getDomain().getName(), "athenz");
-    }
-
-    @Test
-    public void testGetSignedDomainListOneBadDomain() {
-        ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
-        ZMSClient zmsClient = Mockito.mock(ZMSClient.class);
-        
-        DomainData domData1 = new DomainData().setName("athenz");
-        SignedDomain domain1 = new SignedDomain().setDomain(domData1);
-        
-        DomainData domData2 = new DomainData().setName("sports");
-        SignedDomain domain2 = new SignedDomain().setDomain(domData2);
-
-        List<SignedDomain> domains = new ArrayList<>();
-        domains.add(domain1);
-        domains.add(domain2);
-        
-        SignedDomains domainList = new SignedDomains().setDomains(domains);
-        
-        List<SignedDomain> mockDomains = new ArrayList<>();
-        mockDomains.add(domain1);
-        SignedDomains mockDomainList = new SignedDomains().setDomains(mockDomains);
-        
-        Mockito.when(zmsClient.getSignedDomains("athenz", null, null, null)).thenReturn(mockDomainList);
-        Mockito.when(zmsClient.getSignedDomains("sports", null, null, null)).thenReturn(null);
-
-        List<SignedDomain> returnList = fstore.getSignedDomainList(zmsClient, domainList);
-        assertEquals(returnList.size(), 1);
-        assertEquals(returnList.get(0).getDomain().getName(), "athenz");
     }
 
     @Test
@@ -385,115 +253,6 @@ public class ZMSFileChangeLogStoreTest {
         store.setSignedDomains(domains);
         StringBuilder str = new StringBuilder();
         assertNull(store.getUpdatedSignedDomains(str));
-    }
-
-    @Test
-    public void testJsonValueAsBytes() {
-
-        ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
-        ObjectMapper mapper = Mockito.mock(ObjectMapper.class);
-        Mockito.when(mapper.writerWithView(Struct.class)).thenThrow(new RuntimeException("invalid class"));
-        fstore.jsonMapper = mapper;
-        Struct testStruct = new Struct();
-        testStruct.putIfAbsent("key", "value");
-        assertNull(fstore.jsonValueAsBytes(testStruct, Struct.class));
-    }
-
-    @Test
-    public void testGetJsonException() throws IOException {
-
-        ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
-        Struct data = new Struct();
-        data.put("key", "val1");
-        fstore.put("test1", JSON.bytes(data));
-
-        ObjectMapper mapper = Mockito.mock(ObjectMapper.class);
-        File file = new File(FSTORE_PATH, "test1");
-        Mockito.when(mapper.readValue(file, Struct.class)).thenThrow(new RuntimeException("invalid class"));
-        fstore.jsonMapper = mapper;
-
-        assertNull(fstore.get("test1", Struct.class));
-    }
-
-    @Test
-    public void testPutException() throws IOException {
-
-        ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
-        FilesHelper helper = Mockito.mock(FilesHelper.class);
-        Mockito.when(helper.write(Mockito.any(), Mockito.any()))
-                .thenThrow(new IOException("io exception"));
-        fstore.filesHelper = helper;
-
-        Struct data = new Struct();
-        data.put("key", "val1");
-        try {
-            fstore.put("test1", JSON.bytes(data));
-            fail();
-        } catch (Exception ex) {
-            assertTrue(true);
-        }
-    }
-
-    @Test
-    public void testDeleteException() throws IOException {
-
-        ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
-
-        // create the file
-
-        Struct data = new Struct();
-        data.put("key", "val1");
-        fstore.put("test1", JSON.bytes(data));
-
-        // update the helper to be our mock
-
-        FilesHelper helper = Mockito.mock(FilesHelper.class);
-        Mockito.doThrow(new IOException("io exception")).when(helper).delete(Mockito.any());
-        fstore.filesHelper = helper;
-
-        try {
-            fstore.delete("test1");
-            fail();
-        } catch (Exception ex) {
-            assertTrue(true);
-        }
-    }
-
-    @Test
-    public void testSetupDomainFileException() throws IOException {
-
-        ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
-        FilesHelper helper = Mockito.mock(FilesHelper.class);
-        Mockito.doThrow(new IOException("io exception")).when(helper).createEmptyFile(Mockito.any());
-        fstore.filesHelper = helper;
-
-        try {
-            File file = new File(FSTORE_PATH, "domain");
-            fstore.setupDomainFile(file);
-            fail();
-        } catch (Exception ex) {
-            assertTrue(true);
-        }
-    }
-
-    @Test
-    public void testSetFilePermissionsException() throws IOException {
-
-        ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
-        FilesHelper helper = Mockito.mock(FilesHelper.class);
-        Mockito.when(helper.setPosixFilePermissions(Mockito.any(), Mockito.any()))
-                .thenThrow(new IOException("io exception"));
-        fstore.filesHelper = helper;
-
-        try {
-            File file = new File(FSTORE_PATH, "domain");
-            Set<PosixFilePermission> perms = EnumSet.of(PosixFilePermission.OWNER_READ,
-                    PosixFilePermission.OWNER_WRITE, PosixFilePermission.OWNER_EXECUTE);
-            fstore.setupFilePermissions(file, perms);
-            fail();
-        } catch (Exception ex) {
-            assertTrue(true);
-        }
     }
 
     @Test
@@ -595,5 +354,56 @@ public class ZMSFileChangeLogStoreTest {
             .thenThrow(new ZMSClientException(500, "invalid server error:"));
 
         assertNull(fstore.getServerSignedDomain("athenz"));
+    }
+
+    @Test
+    public void testDomainOperations() {
+        final String domainName = "coretech";
+        DomainData domainData = new DomainData().setName(domainName).setDescription("test domain");
+        SignedDomain signedDomain = new SignedDomain().setDomain(domainData);
+
+        ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
+
+        SignedDomain signedDomain1 = fstore.getLocalSignedDomain(domainName);
+        assertNull(signedDomain1);
+
+        fstore.saveLocalDomain(domainName, signedDomain);
+
+        signedDomain1 = fstore.getLocalSignedDomain(domainName);
+        assertNotNull(signedDomain1);
+
+        fstore.removeLocalDomain(domainName);
+        signedDomain1 = fstore.getLocalSignedDomain(domainName);
+        assertNull(signedDomain1);
+    }
+
+    @Test
+    public void testLastModificationTimestamp() {
+
+        MockZMSFileChangeLogStore fstore = new MockZMSFileChangeLogStore(FSTORE_PATH, null, null);
+        ZMSFileChangeLogStoreCommon cstore = new ZMSFileChangeLogStoreCommon(FSTORE_PATH);
+
+        assertNull(cstore.retrieveLastModificationTime());
+
+        final String now = Long.toString(System.currentTimeMillis());
+        fstore.setLastModificationTimestamp(now);
+
+        assertEquals(cstore.retrieveLastModificationTime(), now);
+
+        fstore.setLastModificationTimestamp(null);
+        assertNull(cstore.retrieveLastModificationTime());
+    }
+
+    @Test
+    public void testGetServerDomainList() {
+        MockZMSFileChangeLogStore fstore = new MockZMSFileChangeLogStore(FSTORE_PATH, null, null);
+        MockZMSFileChangeLogStoreCommon storeCommon = new MockZMSFileChangeLogStoreCommon(FSTORE_PATH);
+        fstore.setChangeLogStoreCommon(storeCommon);
+
+        Set<String> domainList = fstore.getServerDomainList();
+        assertTrue(domainList.contains("user"));
+
+        fstore.setDomainList(null);
+        assertNull(fstore.getServerDomainList());
     }
 }

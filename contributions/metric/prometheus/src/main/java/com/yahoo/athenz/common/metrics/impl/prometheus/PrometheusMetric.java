@@ -15,7 +15,7 @@
  */
 package com.yahoo.athenz.common.metrics.impl.prometheus;
 
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ConcurrentMap;
 
 import io.prometheus.client.Collector;
@@ -38,6 +38,8 @@ public class PrometheusMetric implements Metric {
     public static final String METRIC_NAME_DELIMITER = "_";
     public static final String COUNTER_SUFFIX = "total";
     public static final String TIMER_UNIT = "seconds";
+
+    private final Utils utils = new Utils();
 
     private final CollectorRegistry registry;
     private final ConcurrentMap<String, Collector> namesToCollectors;
@@ -136,6 +138,15 @@ public class PrometheusMetric implements Metric {
     }
 
     @Override
+    public void increment(String metricName, final String... attributes) {
+        metricName = this.normalizeCounterMetricName(metricName);
+        Map<String, String[]> attributesMap = utils.flatArrayToMap(attributes);
+
+        Counter counter = (Counter) createOrGetCollector(metricName, Counter.build(), attributesMap.get(Utils.ATTRIBUTES_KEYS));
+        counter.labels(attributesMap.get(Utils.ATTRIBUTES_VALUES)).inc(1);
+    }
+
+    @Override
     public Object startTiming(String metricName, String requestDomainName) {
         return startTiming(metricName, requestDomainName, null);
     }
@@ -204,6 +215,11 @@ public class PrometheusMetric implements Metric {
      * @param builder Prometheus Collector Builder
      */
     private Collector createOrGetCollector(String metricName, SimpleCollector.Builder<?, ?> builder) {
+        String[] labels = new String[] { REQUEST_DOMAIN_LABEL_NAME, PRINCIPAL_DOMAIN_LABEL_NAME, REQUEST_HTTP_METHOD_LABEL_NAME, REQUEST_HTTP_STATUS_LABEL_NAME, REQUEST_API_LABEL_NAME };
+        return createOrGetCollector(metricName, builder, labels);
+    }
+
+    private Collector createOrGetCollector(String metricName, SimpleCollector.Builder<?, ?> builder, String[] labels) {
         String key = metricName;
         ConcurrentMap<String, Collector> map = this.namesToCollectors;
         Collector collector = map.get(key);
@@ -214,10 +230,10 @@ public class PrometheusMetric implements Metric {
                 if (!map.containsKey(key)) {
                     // create
                     builder = builder
-                        .namespace(this.namespace)
-                        .name(metricName)
-                        .help(metricName)
-                        .labelNames(REQUEST_DOMAIN_LABEL_NAME, PRINCIPAL_DOMAIN_LABEL_NAME, REQUEST_HTTP_METHOD_LABEL_NAME, REQUEST_HTTP_STATUS_LABEL_NAME, REQUEST_API_LABEL_NAME);
+                            .namespace(this.namespace)
+                            .name(metricName)
+                            .help(metricName)
+                            .labelNames(labels);
                     collector = builder.register(this.registry);
                     // put
                     map.put(key, collector);
@@ -226,7 +242,7 @@ public class PrometheusMetric implements Metric {
                     collector = map.get(key);
                 }
             }
-        };
+        }
 
         return collector;
     }

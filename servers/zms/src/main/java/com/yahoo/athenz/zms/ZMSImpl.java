@@ -80,6 +80,7 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import static com.yahoo.athenz.common.ServerCommonConsts.METRIC_DEFAULT_FACTORY_CLASS;
 import static com.yahoo.athenz.common.ServerCommonConsts.USER_DOMAIN_PREFIX;
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
 
@@ -802,7 +803,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     void loadMetricObject() {
 
         String metricFactoryClass = System.getProperty(ZMSConsts.ZMS_PROP_METRIC_FACTORY_CLASS,
-                ZMSConsts.ZMS_METRIC_FACTORY_CLASS);
+                METRIC_DEFAULT_FACTORY_CLASS);
         MetricFactory metricFactory;
         try {
             metricFactory = (MetricFactory) Class.forName(metricFactoryClass).newInstance();
@@ -980,7 +981,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         Map<String, Integer> eligibleTemplatesForAutoUpdate = new HashMap<>();
         for (String templateName : serverSolutionTemplates.getTemplates().keySet()) {
             Template template = serverSolutionTemplates.get(templateName);
-            if (template.getMetadata().getAutoUpdate()
+            if (template != null && template.getMetadata() != null && template.getMetadata().getAutoUpdate() == Boolean.TRUE
                     && template.getMetadata().getKeywordsToReplace().isEmpty()) {
                 eligibleTemplatesForAutoUpdate.put(templateName, template.getMetadata().getLatestVersion());
             }
@@ -6638,10 +6639,15 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         if (val == null) {
             throw ZMSUtils.requestError("Missing or malformed " + type, caller);
         }
-        
-        Result result = validator.validate(val, type);
-        if (!result.valid) {
-            throw ZMSUtils.requestError("Invalid " + type  + " error: " + result.error, caller);
+
+        try {
+            Result result = validator.validate(val, type);
+            if (!result.valid) {
+                throw ZMSUtils.requestError("Invalid " + type + " error: " + result.error, caller);
+            }
+        } catch (Exception ex) {
+            LOG.error("Object validation exception", ex);
+            throw ZMSUtils.requestError("Invalid " + type + " error: " + ex.getMessage(), caller);
         }
     }
     

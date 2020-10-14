@@ -20,7 +20,9 @@ import org.testng.annotations.Test;
 
 import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.metrics.MetricFactory;
-import com.yahoo.athenz.common.metrics.impl.NoOpMetricFactory;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class MetricsTest {
 
@@ -38,6 +40,14 @@ public class MetricsTest {
         metric.increment("metric1", "athenz", "sports");
         metric.increment("metric1", "athenz", "sports", 3);
         metric.increment("apiRquestsMetric", "athenz", "sports", "POST", 200, "caller");
+
+        String[] attributes = new String[] {
+                "tag1", "value1",
+                "tag2", "value2",
+                "tag3", "value3",
+        };
+
+        metric.increment("metric1", attributes);
 
         assertNull(metric.startTiming("metric1", "athenz"));
         assertNull(metric.startTiming("metric1", "athenz", "sports"));
@@ -100,6 +110,13 @@ public class MetricsTest {
         metric.increment("metric1", "athenz", "sports");
         metric.increment("metric1", "athenz", "sports", 3);
         metric.increment("apiRquestsMetric", "athenz", "sports", "POST", 200, "caller");
+
+        String[] attributes = new String[] {
+                "tag1", "value1",
+                "tag2", "value2",
+                "tag3", "value3",
+        };
+        metric.increment("metric1", attributes);
 
         //assertNull(metric.startTiming("metric1", "athenz"));
         assertNull(metric.startTiming("metric1", "athenz", "sports"));

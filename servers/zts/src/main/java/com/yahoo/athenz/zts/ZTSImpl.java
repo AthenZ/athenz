@@ -43,6 +43,7 @@ import com.yahoo.athenz.common.server.status.StatusChecker;
 import com.yahoo.athenz.common.server.status.StatusCheckerFactory;
 import com.yahoo.athenz.common.server.store.ChangeLogStore;
 import com.yahoo.athenz.common.server.store.ChangeLogStoreFactory;
+import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.zms.RoleMeta;
 import com.yahoo.athenz.zts.cert.*;
 import com.yahoo.athenz.zts.notification.ZTSNotificationTaskFactory;
@@ -112,8 +113,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected long x509CertRefreshResetTime;
     protected long signedPolicyTimeout;
     protected static String serverHostName = null;
-    protected String ostkHostSignerDomain = null;
-    protected String ostkHostSignerService = null;
     protected AuditLogger auditLogger = null;
     protected String serverRegion = null;
     protected String userDomain;
@@ -125,6 +124,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected Set<String> authorizedProxyUsers = null;
     protected Set<String> validCertSubjectOrgValues = null;
     protected Set<String> validCertSubjectOrgUnitValues = null;
+    protected Set<String> validateServiceSkipDomains;
     protected boolean secureRequestsOnly = true;
     protected int svcTokenTimeout = 86400;
     protected Set<String> authFreeUriSet = null;
@@ -149,7 +149,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     private static final String TYPE_INSTANCE_REGISTER_INFO = "InstanceRegisterInformation";
     private static final String TYPE_INSTANCE_REFRESH_INFO = "InstanceRefreshInformation";
     private static final String TYPE_INSTANCE_REFRESH_REQUEST = "InstanceRefreshRequest";
-    private static final String TYPE_OSTK_INSTANCE_REFRESH_REQUEST = "OSTKInstanceRefreshRequest";
     private static final String TYPE_DOMAIN_METRICS = "DomainMetrics";
     private static final String TYPE_ROLE_CERTIFICATE_REQUEST = "RoleCertificateRequest";
     private static final String TYPE_SSH_CERT_REQUEST = "SSHCertRequest";
@@ -427,19 +426,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         if (userDomainAlias != null) {
             userDomainAliasPrefix = userDomainAlias + ".";
         }
-
-        // retrieve our temporary ostk host signer domain/service name
-        
-        final String hostSignerService = System.getProperty(ZTSConsts.ZTS_PROP_OSTK_HOST_SIGNER_SERVICE);
-        if (hostSignerService != null) {
-            int idx = hostSignerService.lastIndexOf('.');
-            if (idx == -1) {
-                LOGGER.error("ZTSImpl: invalid singer service name: " + hostSignerService);
-            } else {
-                ostkHostSignerService = hostSignerService.substring(idx + 1);
-                ostkHostSignerDomain = hostSignerService.substring(0, idx);
-            }
-        }
         
         // get the list of uris that we want to allow an-authenticated access
         
@@ -510,6 +496,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // get server region
 
         serverRegion = System.getProperty(ZTSConsts.ZTS_PROP_SERVER_REGION);
+
+        // list of domains to be skipped when validating services for instance
+        // register/refresh operations since the services in these domains are
+        // dynamic - e.g. screwdriver projects
+
+        final String skipDomains = System.getProperty(ZTSConsts.ZTS_PROP_VALIDATE_SERVICE_SKIP_DOMAINS, "");
+        validateServiceSkipDomains = new HashSet<>(Arrays.asList(skipDomains.split(",")));
     }
     
     static String getServerHostName() {
@@ -555,14 +548,15 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
         
         // create our struct store
-        
+
+        clogFactory.setPrivateKeyStore(privateKeyStore);
         return clogFactory.create(homeDir, privateKey.getKey(), privateKey.getId());
     }
     
     void loadMetricObject() {
         
         final String metricFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_METRIC_FACTORY_CLASS,
-                ZTSConsts.ZTS_METRIC_FACTORY_CLASS);
+                METRIC_DEFAULT_FACTORY_CLASS);
 
         MetricFactory metricFactory;
         try {
@@ -971,7 +965,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
 
     AssertionEffect getAssertionEffect(com.yahoo.athenz.zms.AssertionEffect effect) {
-        if (effect != null && effect == com.yahoo.athenz.zms.AssertionEffect.DENY) {
+        if (effect == com.yahoo.athenz.zms.AssertionEffect.DENY) {
             return AssertionEffect.DENY;
         } else {
             return AssertionEffect.ALLOW;
@@ -2072,7 +2066,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // validate the ip address if any provided
 
-        return verifyCertRequestIP ? certReq.validateIPAddress(cert, ip) : true;
+        return !verifyCertRequestIP || certReq.validateIPAddress(cert, ip);
     }
 
     boolean validateRoleCertSubjectOU(X509RoleCertRequest certReq, X509Certificate cert) {
@@ -2298,7 +2292,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // validate the ip address if any provided
 
-        return verifyCertRequestIP ? certReq.validateIPAddress(cert, ip) : true;
+        return !verifyCertRequestIP || certReq.validateIPAddress(cert, ip);
     }
 
     boolean isAuthorizedServicePrincipal(final Principal principal) {
@@ -2468,6 +2462,31 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return x509CertRecord;
     }
 
+    void validateInstanceServiceIdentity(DomainData domainData, final String serviceName, final String caller) {
+
+        // if the domain is one of the skip domains then we have no
+        // need to check anything
+
+        if (validateServiceSkipDomains.contains(domainData.getName())) {
+            return;
+        }
+
+        List<com.yahoo.athenz.zms.ServiceIdentity> services = domainData.getServices();
+        if (services != null) {
+            for (com.yahoo.athenz.zms.ServiceIdentity service : services) {
+                if (service.getName().equalsIgnoreCase(serviceName)) {
+                    return;
+                }
+            }
+        }
+
+        // eventually we'll reject these requests but first we want to see
+        // how many of these services are still running
+
+        //throw requestError("Service not registered in domain", caller, domainData.getName(), domainData.getName());
+        LOGGER.error("validateInstanceServiceIdentity: {} not registered for caller {}", serviceName, caller);
+    }
+
     @Override
     public Response postInstanceRegisterInformation(ResourceContext ctx, InstanceRegisterInformation info) {
 
@@ -2488,10 +2507,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         AthenzObject.INSTANCE_REGISTER_INFO.convertToLowerCase(info);
 
-        final String domain = info.getDomain();
+        final String domain = info.getDomain().toLowerCase();
         setRequestDomain(ctx, domain);
-        final String service = info.getService();
-        final String cn = domain + "." + service;
+        final String service = info.getService().toLowerCase();
+        final String cn = ResourceUtils.serviceResourceName(domain, service);
         ((RsrcCtxWrapper) ctx).logPrincipal(cn);
 
         // before running any checks make sure it's coming from
@@ -2503,6 +2522,16 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw forbiddenError("Unknown IP: " + ipAddress + " for Provider: " + provider,
                     caller, domain, principalDomain);
         }
+
+        // get our domain object and validate the service is correctly registered
+
+        DomainData domainData = dataStore.getDomainData(domain);
+        if (domainData == null) {
+            setRequestDomain(ctx, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
+            throw notFoundError("Domain not found: " + domain, caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+        }
+
+        validateInstanceServiceIdentity(domainData, cn, caller);
 
         // run the authorization checks to make sure the provider has been
         // authorized to launch instances in Athenz and the service has
@@ -2525,7 +2554,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     caller, domain, principalDomain);
         }
 
-        final String serviceDnsSuffix = dataStore.getDomainData(domain).getCertDnsDomain();
+        final String serviceDnsSuffix = domainData.getCertDnsDomain();
         final DataCache athenzSysDomainCache = dataStore.getDataCache(ATHENZ_SYS_DOMAIN);
 
         if (!certReq.validate(domain, service, provider, validCertSubjectOrgValues, athenzSysDomainCache,
@@ -2697,7 +2726,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             queryLog.append("&hostname=");
             queryLog.append(hostname);
         }
-        return (queryLog.length() < 1024) ? queryLog.toString() : queryLog.toString().substring(0, 1024);
+        return (queryLog.length() < 1024) ? queryLog.toString() : queryLog.substring(0, 1024);
     }
 
     SSHCertRecord generateSSHCertRecord(ResourceContext ctx, final String service, final String instanceId,
@@ -2816,7 +2845,17 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw forbiddenError("Unknown IP: " + ipAddress + " for Provider: " + provider,
                     caller, domain, principalDomain);
         }
-        
+
+        // get our domain object and validate the service is correctly registered
+
+        DomainData domainData = dataStore.getDomainData(domain);
+        if (domainData == null) {
+            setRequestDomain(ctx, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
+            throw notFoundError("Domain not found: " + domain, caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+        }
+
+        validateInstanceServiceIdentity(domainData, ResourceUtils.serviceResourceName(domain, service), caller);
+
         // we are going to get two use cases here. client asking for:
         // * x509 cert (optionally with ssh certificate)
         // * only ssh certificate
@@ -2864,20 +2903,18 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         InstanceIdentity identity;
         if (x509Csr != null) {
-            identity = processProviderX509RefreshRequest(ctx, principal, domain, service, provider,
-                    instanceId, info, cert, caller);
+            identity = processProviderX509RefreshRequest(ctx, domainData, principal, domain, service,
+                    provider, instanceId, info, cert, caller);
         } else {
-            identity = processProviderSSHRefreshRequest(ctx, principal, domain, service, provider,
-                    instanceId, sshCsr, caller);
+            identity = processProviderSSHRefreshRequest(principal, domain, provider, instanceId, sshCsr, caller);
         }
         
         return identity;
     }
     
-    InstanceIdentity processProviderX509RefreshRequest(ResourceContext ctx, final Principal principal,
-            final String domain, final String service, final String provider,
-            final String instanceId, InstanceRefreshInformation info, X509Certificate cert,
-            final String caller) {
+    InstanceIdentity processProviderX509RefreshRequest(ResourceContext ctx, DomainData domainData,
+            final Principal principal, final String domain, final String service, final String provider,
+            final String instanceId, InstanceRefreshInformation info, X509Certificate cert, final String caller) {
 
         // parse and validate our CSR
 
@@ -2889,7 +2926,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw requestError("unable to parse PKCS10 CSR", caller, domain, principalDomain);
         }
 
-        final String serviceDnsSuffix = dataStore.getDomainData(domain).getCertDnsDomain();
+        final String serviceDnsSuffix = domainData.getCertDnsDomain();
         final DataCache athenzSysDomainCache = dataStore.getDataCache(ATHENZ_SYS_DOMAIN);
 
         StringBuilder errorMsg = new StringBuilder(256);
@@ -3087,9 +3124,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return ((value1 == null && value2 != null) || (value1 != null && !value1.equals(value2)));
     }
 
-    InstanceIdentity processProviderSSHRefreshRequest(ResourceContext ctx, final Principal principal,
-            final String domain, final String service, final String provider,
-            final String instanceId, final String sshCsr, final String caller) {
+    InstanceIdentity processProviderSSHRefreshRequest(final Principal principal, final String domain,
+            final String provider, final String instanceId, final String sshCsr, final String caller) {
 
         LOGGER.info("User ssh certificate request from {}", principal.getFullName());
 
@@ -3489,141 +3525,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return dataStore.getZtsJWKList(rfc);
     }
 
-    /// CLOVER:OFF
-    // this method will be removed and replaced with call to postInstanceRefreshInformation
-    @Deprecated
-    @Override
-    public Identity postOSTKInstanceRefreshRequest(ResourceContext ctx, String domain,
-            String service, OSTKInstanceRefreshRequest req) {
-
-        final String caller = ctx.getApiName();
-        final String principalDomain = logPrincipalAndGetDomain(ctx);
-
-        if (readOnlyMode) {
-            throw requestError("Server in Maintenance Read-Only mode. Please try your request later",
-                    caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
-        }
-        
-        validateRequest(ctx.request(), principalDomain, caller);
-        validate(domain, TYPE_DOMAIN_NAME, principalDomain, caller);
-        validate(service, TYPE_SIMPLE_NAME, principalDomain, caller);
-        validate(req, TYPE_OSTK_INSTANCE_REFRESH_REQUEST, principalDomain, caller);
-
-        // for consistent handling of all requests, we're going to convert
-        // all incoming object values into lower case (e.g. domain, role,
-        // policy, service, etc name)
-        
-        domain = domain.toLowerCase();
-        setRequestDomain(ctx, domain);
-        service = service.toLowerCase();
-
-        // make sure the credentials match to whatever the request is
-
-        Principal principal = ((RsrcCtxWrapper) ctx).principal();
-        String principalName = domain + "." + service;
-        if (!principalName.equals(principal.getFullName())) {
-            throw requestError("postOSTKInstanceRefreshRequest: Principal mismatch: "
-                    + principalName + " vs. " + principal.getFullName(), caller, domain, principalDomain);
-        }
-
-        Authority authority = principal.getAuthority();
-        
-        // currently we only support services that already have certificates
-        
-        if (!(authority instanceof CertificateAuthority)) {
-            throw requestError("postOSTKInstanceRefreshRequest: Unsupported authority for TLS Certs: " +
-                    authority.toString(), caller, domain, principalDomain);
-        }
-        
-        X509Certificate cert = principal.getX509Certificate();
-        X509CertRecord x509CertRecord = instanceCertManager.getX509CertRecord("ostk", cert);
-        if (x509CertRecord == null) {
-            throw forbiddenError("postOSTKInstanceRefreshRequest: Unable to find certificate record",
-                    caller, domain, principalDomain);
-        }
-
-        // validate that the cn and public key (if required) match to
-        // the provided details
-        
-        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(req.getCsr());
-        if (certReq == null) {
-            throw requestError("postOSTKInstanceRefreshRequest: unable to parse PKCS10 certificate request",
-                    caller, domain, principalDomain);
-        }
-        
-        if (!ZTSUtils.verifyCertificateRequest(certReq, domain, service, x509CertRecord)) {
-            throw requestError("postOSTKInstanceRefreshRequest: invalid CSR - cn mismatch",
-                    caller, domain, principalDomain);
-        }
-        
-        // now we need to make sure the serial number for the certificate
-        // matches to what we had issued previously. If we have a mismatch
-        // then we're going to revoke this instance as it has been possibly
-        // compromised
-        
-        String serialNumber = cert.getSerialNumber().toString();
-        if (x509CertRecord.getCurrentSerial().equals(serialNumber)) {
-            
-            // update the record to mark current as previous
-            // and we'll update the current set with our existing
-            // details
-            
-            x509CertRecord.setPrevIP(x509CertRecord.getCurrentIP());
-            x509CertRecord.setPrevTime(x509CertRecord.getCurrentTime());
-            x509CertRecord.setPrevSerial(x509CertRecord.getCurrentSerial());
-
-        } else if (!x509CertRecord.getPrevSerial().equals(serialNumber)) {
-            
-            // we have a mismatch for both current and previous serial
-            // numbers so we're going to revoke it
-            
-            LOGGER.error("postOSTKInstanceRefreshRequest: Revoking certificate refresh for cn: {} " +
-                    "instance id: {}, current serial: {}, previous serial: {}, cert serial: {}",
-                    principalName, x509CertRecord.getInstanceId(), x509CertRecord.getCurrentSerial(),
-                    x509CertRecord.getPrevSerial(), serialNumber);
-            
-            x509CertRecord.setPrevSerial("-1");
-            x509CertRecord.setCurrentSerial("-1");
-            
-            instanceCertManager.updateX509CertRecord(x509CertRecord);
-            throw forbiddenError("postOSTKInstanceRefreshRequest: Certificate revoked",
-                    caller, domain, principalDomain);
-        }
-        
-        // generate identity with the certificate
-        
-        Identity identity = ZTSUtils.generateIdentity(instanceCertManager, req.getCsr(),
-                principalName, null, 0);
-        if (identity == null) {
-            throw serverError("Unable to generate identity", caller, domain, principalDomain);
-        }
-        identity.setCaCertBundle(instanceCertManager.getX509CertificateSigner());
-
-        // need to update our cert record with new certificate details
-
-        final String ipAddress = ServletRequestUtil.getRemoteAddress(ctx.request());
-
-        X509Certificate newCert = Crypto.loadX509Certificate(identity.getCertificate());
-        x509CertRecord.setCurrentSerial(newCert.getSerialNumber().toString());
-        x509CertRecord.setCurrentIP(ipAddress);
-        x509CertRecord.setCurrentTime(new Date());
-        
-        // we must be able to update our record db otherwise we will
-        // not be able to validate the refresh request next time
-        
-        if (!instanceCertManager.updateX509CertRecord(x509CertRecord)) {
-            throw serverError("postOSTKInstanceRefreshRequest: unable to update cert db",
-                    caller, domain, principalDomain);
-        }
-
-        // log our certificate
-
-        instanceCertManager.logX509Cert(principal, ipAddress, "ostk", x509CertRecord.getInstanceId(), newCert);
-
-        return identity;
-    }
-    ///CLOVER:ON
-
     long getSvcTokenExpiryTime(Integer expiryTime) {
         
         long requestedValue = (expiryTime != null) ? expiryTime : ZTS_NTOKEN_DEFAULT_EXPIRY;
@@ -3947,10 +3848,16 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw requestError("Missing or malformed " + type, caller,
                     ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
-        
-        Result result = validator.validate(val, type);
-        if (!result.valid) {
-            throw requestError("Invalid " + type  + " error: " + result.error, caller,
+
+        try {
+            Result result = validator.validate(val, type);
+            if (!result.valid) {
+                throw requestError("Invalid " + type + " error: " + result.error, caller,
+                        ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+            }
+        } catch (Exception ex) {
+            LOGGER.error("Object validation exception", ex);
+            throw requestError("Invalid " + type + " error: " + ex.getMessage(), caller,
                     ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
     }

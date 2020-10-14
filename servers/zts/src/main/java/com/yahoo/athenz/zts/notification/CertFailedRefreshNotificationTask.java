@@ -25,10 +25,10 @@ import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.cert.InstanceCertManager;
 import com.yahoo.athenz.zts.store.DataStore;
+import com.yahoo.rdl.Timestamp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.Timestamp;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -36,6 +36,7 @@ import java.util.stream.Collectors;
 import static com.yahoo.athenz.common.ServerCommonConsts.ADMIN_ROLE_NAME;
 import static com.yahoo.athenz.common.ServerCommonConsts.USER_DOMAIN_PREFIX;
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
+import static com.yahoo.athenz.common.server.notification.impl.MetricNotificationService.*;
 
 public class CertFailedRefreshNotificationTask implements NotificationTask {
     private final String serverName;
@@ -46,6 +47,8 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
     private final static String DESCRIPTION = "certificate failed refresh notification";
     private final HostnameResolver hostnameResolver;
     private final CertFailedRefreshNotificationToEmailConverter certFailedRefreshNotificationToEmailConverter;
+    private final CertFailedRefreshNotificationToMetricConverter certFailedRefreshNotificationToMetricConverter;
+
     private final GlobStringsMatcher globStringsMatcher;
 
     public CertFailedRefreshNotificationTask(InstanceCertManager instanceCertManager,
@@ -62,6 +65,7 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
         this.hostnameResolver = hostnameResolver;
         final String apiHostName = System.getProperty(ZTSConsts.ZTS_PROP_NOTIFICATION_API_HOSTNAME, serverName);
         this.certFailedRefreshNotificationToEmailConverter = new CertFailedRefreshNotificationToEmailConverter(apiHostName, httpsPort);
+        this.certFailedRefreshNotificationToMetricConverter = new CertFailedRefreshNotificationToMetricConverter();
         globStringsMatcher = new GlobStringsMatcher(ZTSConsts.ZTS_PROP_NOTIFICATION_CERT_FAIL_IGNORED_SERVICES_LIST);
     }
 
@@ -123,7 +127,8 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
             Notification notification = notificationCommon.createNotification(
                     ResourceUtils.roleResourceName(domain, ADMIN_ROLE_NAME),
                     details,
-                    certFailedRefreshNotificationToEmailConverter);
+                    certFailedRefreshNotificationToEmailConverter,
+                    certFailedRefreshNotificationToMetricConverter);
             if (notification != null) {
                 notificationList.add(notification);
             }
@@ -179,7 +184,7 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
     }
 
     private String getTimestampAsString(Date date) {
-        return (date != null) ? new Timestamp(date.getTime()).toString() : "";
+        return (date != null) ? Timestamp.fromMillis(date.getTime()).toString() : "";
     }
 
     @Override
@@ -252,6 +257,38 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
             String body = getUnrefreshedCertsBody(notification.getDetails());
             Set<String> fullyQualifiedEmailAddresses = notificationToEmailConverterCommon.getFullyQualifiedEmailAddresses(notification.getRecipients());
             return new NotificationEmail(subject, body, fullyQualifiedEmailAddresses);
+        }
+    }
+
+    public static class CertFailedRefreshNotificationToMetricConverter implements NotificationToMetricConverter {
+
+        private final static String NOTIFICATION_TYPE = "cert_fail_refresh";
+        private final NotificationToMetricConverterCommon notificationToMetricConverterCommon = new NotificationToMetricConverterCommon();
+
+        @Override
+        public NotificationMetric getNotificationAsMetrics(Notification notification, Timestamp currentTime) {
+            Map<String, String> details = notification.getDetails();
+            String domain = details.get(NOTIFICATION_DETAILS_DOMAIN);
+            List<String[]> attributes = new ArrayList<>();
+            String[] records = details.get(NOTIFICATION_DETAILS_UNREFRESHED_CERTS).split("\\|");
+            String currentTimeStr = currentTime.toString();
+            for (String record: records) {
+                String[] recordAttributes = record.split(";");
+
+                String[] metricRecord = new String[]{
+                        METRIC_NOTIFICATION_TYPE_KEY, NOTIFICATION_TYPE,
+                        METRIC_NOTIFICATION_DOMAIN_KEY, domain,
+                        METRIC_NOTIFICATION_SERVICE_KEY, recordAttributes[0],
+                        METRIC_NOTIFICATION_PROVIDER_KEY, recordAttributes[1],
+                        METRIC_NOTIFICATION_INSTANCE_ID_KEY, recordAttributes[2],
+                        METRIC_NOTIFICATION_UPDATE_DAYS_KEY, notificationToMetricConverterCommon.getNumberOfDaysBetweenTimestamps(currentTimeStr, recordAttributes[3]),
+                        METRIC_NOTIFICATION_EXPIRY_DAYS_KEY, notificationToMetricConverterCommon.getNumberOfDaysBetweenTimestamps(currentTimeStr, recordAttributes[4])
+                };
+
+                attributes.add(metricRecord);
+            }
+
+            return new NotificationMetric(attributes);
         }
     }
 }

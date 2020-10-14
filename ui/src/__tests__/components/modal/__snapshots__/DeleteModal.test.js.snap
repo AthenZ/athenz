@@ -18,3 +18,22 @@ exports[`DeleteModal should render 1`] = `
    ?
 </div>
 `;
+
+exports[`DeleteModal should render with Domain input field 1`] = `
+.emotion-0 {
+  text-align: center;
+  font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
+  padding-bottom: 15px;
+}
+
+<div
+  class="emotion-0"
+  data-testid="delete-modal-message"
+>
+  test
+  <b>
+    name
+  </b>
+   ?
+</div>
+`;
