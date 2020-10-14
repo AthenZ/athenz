@@ -47,7 +47,10 @@ public class RoleMemberNotificationCommonTest {
                 members,
                 new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter(),
                 new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter(),
-                new RoleMemberExpiryNotificationTask.ExpiryRoleMemberDetailStringer());
+                new RoleMemberExpiryNotificationTask.ExpiryRoleMemberDetailStringer(),
+                new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToMetricConverter(),
+                new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToMetricConverter());
+
         assertEquals(1, notification.size());
         assertTrue(notification.get(0).getDetails().isEmpty());
 
@@ -57,10 +60,12 @@ public class RoleMemberNotificationCommonTest {
                 members,
                 new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter(),
                 new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter(),
-                new RoleMemberExpiryNotificationTask.ExpiryRoleMemberDetailStringer());
+                new RoleMemberExpiryNotificationTask.ExpiryRoleMemberDetailStringer(),
+                new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToMetricConverter(),
+                new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToMetricConverter());
+
         assertEquals(1, notification.size());
         assertTrue(notification.get(0).getDetails().isEmpty());
-
 
         final Timestamp expirationTs = Timestamp.fromMillis(100);
         final Timestamp reviewTs = Timestamp.fromMillis(50);
@@ -74,7 +79,9 @@ public class RoleMemberNotificationCommonTest {
                 members,
                 new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter(),
                 new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter(),
-                new RoleMemberExpiryNotificationTask.ExpiryRoleMemberDetailStringer());
+                new RoleMemberExpiryNotificationTask.ExpiryRoleMemberDetailStringer(),
+                new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToMetricConverter(),
+                new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToMetricConverter());
 
         assertEquals(1, notification.size());
         assertEquals(2, notification.get(0).getDetails().size());
@@ -92,7 +99,9 @@ public class RoleMemberNotificationCommonTest {
                 members,
                 new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter(),
                 new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter(),
-                new RoleMemberExpiryNotificationTask.ExpiryRoleMemberDetailStringer());
+                new RoleMemberExpiryNotificationTask.ExpiryRoleMemberDetailStringer(),
+                new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToMetricConverter(),
+                new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToMetricConverter());
 
         assertEquals(1, notification.size());
         assertEquals(2, notification.get(0).getDetails().size());
@@ -117,7 +126,10 @@ public class RoleMemberNotificationCommonTest {
                 members,
                 new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter(),
                 new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToEmailConverter(),
-                new RoleMemberReviewNotificationTask.ReviewRoleMemberDetailStringer());
+                new RoleMemberReviewNotificationTask.ReviewRoleMemberDetailStringer(),
+                new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToMetricConverter(),
+                new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToMetricConverter());
+
         assertEquals(1, notification.size());
         assertTrue(notification.get(0).getDetails().isEmpty());
 
@@ -127,10 +139,11 @@ public class RoleMemberNotificationCommonTest {
                 members,
                 new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter(),
                 new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToEmailConverter(),
-                new RoleMemberReviewNotificationTask.ReviewRoleMemberDetailStringer());
+                new RoleMemberReviewNotificationTask.ReviewRoleMemberDetailStringer(),
+                new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToMetricConverter(),
+                new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToMetricConverter());
         assertEquals(1, notification.size());
         assertTrue(notification.get(0).getDetails().isEmpty());
-
 
         final Timestamp expirationTs = Timestamp.fromMillis(100);
         final Timestamp reviewTs = Timestamp.fromMillis(50);
@@ -144,7 +157,9 @@ public class RoleMemberNotificationCommonTest {
                 members,
                 new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter(),
                 new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToEmailConverter(),
-                new RoleMemberReviewNotificationTask.ReviewRoleMemberDetailStringer());
+                new RoleMemberReviewNotificationTask.ReviewRoleMemberDetailStringer(),
+                new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToMetricConverter(),
+                new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToMetricConverter());
 
         assertEquals(1, notification.size());
         assertEquals(2, notification.get(0).getDetails().size());
@@ -162,7 +177,9 @@ public class RoleMemberNotificationCommonTest {
                 members,
                 new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter(),
                 new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToEmailConverter(),
-                new RoleMemberReviewNotificationTask.ReviewRoleMemberDetailStringer());
+                new RoleMemberReviewNotificationTask.ReviewRoleMemberDetailStringer(),
+                new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToMetricConverter(),
+                new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToMetricConverter());
 
         assertEquals(1, notification.size());
         assertEquals(2, notification.get(0).getDetails().size());

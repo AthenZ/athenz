@@ -23,11 +23,13 @@ import com.yahoo.athenz.zms.DBService;
 import com.yahoo.athenz.zms.Group;
 import com.yahoo.athenz.zms.ZMSConsts;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
+import com.yahoo.rdl.Timestamp;
 
 import java.text.MessageFormat;
 import java.util.*;
 
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
+import static com.yahoo.athenz.common.server.notification.impl.MetricNotificationService.*;
 
 public class PutGroupMembershipNotificationTask implements NotificationTask {
 
@@ -38,6 +40,7 @@ public class PutGroupMembershipNotificationTask implements NotificationTask {
     private final NotificationCommon notificationCommon;
     private final static String DESCRIPTION = "Group Membership Approval Notification";
     private final PutGroupMembershipNotificationToEmailConverter putGroupMembershipNotificationToEmailConverter;
+    private final PutGroupMembershipNotificationToMetricConverter putGroupMembershipNotificationToMetricConverter;
 
     public PutGroupMembershipNotificationTask(String domain, String org, Group group, Map<String, String> details, DBService dbService, String userDomainPrefix) {
         this.domain = domain;
@@ -47,6 +50,7 @@ public class PutGroupMembershipNotificationTask implements NotificationTask {
         DomainRoleMembersFetcher domainRoleMembersFetcher = new DomainRoleMembersFetcher(dbService, userDomainPrefix);
         this.notificationCommon = new NotificationCommon(domainRoleMembersFetcher, userDomainPrefix);
         this.putGroupMembershipNotificationToEmailConverter = new PutGroupMembershipNotificationToEmailConverter();
+        this.putGroupMembershipNotificationToMetricConverter = new PutGroupMembershipNotificationToMetricConverter();
     }
 
     @Override
@@ -95,7 +99,8 @@ public class PutGroupMembershipNotificationTask implements NotificationTask {
         return Collections.singletonList(notificationCommon.createNotification(
                 recipients,
                 details,
-                putGroupMembershipNotificationToEmailConverter));
+                putGroupMembershipNotificationToEmailConverter,
+                putGroupMembershipNotificationToMetricConverter));
     }
 
     @Override
@@ -134,6 +139,26 @@ public class PutGroupMembershipNotificationTask implements NotificationTask {
             String body = getMembershipApprovalBody(notification.getDetails());
             Set<String> fullyQualifiedEmailAddresses = notificationToEmailConverterCommon.getFullyQualifiedEmailAddresses(notification.getRecipients());
             return new NotificationEmail(subject, body, fullyQualifiedEmailAddresses);
+        }
+    }
+
+    public static class PutGroupMembershipNotificationToMetricConverter implements NotificationToMetricConverter {
+        private final static String NOTIFICATION_TYPE = "group_membership_approval";
+
+        @Override
+        public NotificationMetric getNotificationAsMetrics(Notification notification, Timestamp currentTime) {
+            String[] record = new String[] {
+                    METRIC_NOTIFICATION_TYPE_KEY, NOTIFICATION_TYPE,
+                    METRIC_NOTIFICATION_DOMAIN_KEY, notification.getDetails().get(NOTIFICATION_DETAILS_DOMAIN),
+                    METRIC_NOTIFICATION_GROUP_KEY, notification.getDetails().get(NOTIFICATION_DETAILS_GROUP),
+                    METRIC_NOTIFICATION_MEMBER_KEY, notification.getDetails().get(NOTIFICATION_DETAILS_MEMBER),
+                    METRIC_NOTIFICATION_REASON_KEY, notification.getDetails().get(NOTIFICATION_DETAILS_REASON),
+                    METRIC_NOTIFICATION_REQUESTER_KEY, notification.getDetails().get(NOTIFICATION_DETAILS_REQUESTER)
+            };
+
+            List<String[]> attributes = new ArrayList<>();
+            attributes.add(record);
+            return new NotificationMetric(attributes);
         }
     }
 }

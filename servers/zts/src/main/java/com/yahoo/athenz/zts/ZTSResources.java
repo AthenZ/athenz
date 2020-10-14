@@ -416,39 +416,6 @@ public class ZTSResources {
     }
 
     @POST
-    @Path("/ostk/instance/{domain}/{service}/refresh")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Identity postOSTKInstanceRefreshRequest(@PathParam("domain") String domain, @PathParam("service") String service, OSTKInstanceRefreshRequest req) {
-        int code = ResourceException.OK;
-        ResourceContext context = null;
-        try {
-            context = this.delegate.newResourceContext(this.request, this.response, "postOSTKInstanceRefreshRequest");
-            context.authenticate();
-            return this.delegate.postOSTKInstanceRefreshRequest(context, domain, service, req);
-        } catch (ResourceException e) {
-            code = e.getCode();
-            switch (code) {
-            case ResourceException.BAD_REQUEST:
-                throw typedException(code, e, ResourceError.class);
-            case ResourceException.FORBIDDEN:
-                throw typedException(code, e, ResourceError.class);
-            case ResourceException.INTERNAL_SERVER_ERROR:
-                throw typedException(code, e, ResourceError.class);
-            case ResourceException.NOT_FOUND:
-                throw typedException(code, e, ResourceError.class);
-            case ResourceException.UNAUTHORIZED:
-                throw typedException(code, e, ResourceError.class);
-            default:
-                System.err.println("*** Warning: undeclared exception (" + code + ") for resource postOSTKInstanceRefreshRequest");
-                throw typedException(code, e, ResourceError.class);
-            }
-        } finally {
-            this.delegate.recordMetrics(context, code);
-        }
-    }
-
-    @POST
     @Path("/instance")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)

@@ -16,6 +16,7 @@
 
 package com.yahoo.athenz.common.server.notification;
 
+import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,22 +31,29 @@ public class NotificationManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NotificationManager.class);
 
-    private NotificationService notificationService;
+    private List<NotificationService> notificationServices = new ArrayList<>();
     private ScheduledExecutorService scheduledExecutor;
     private List<NotificationTask> notificationTasks;
 
     public NotificationManager(List<NotificationTask> notificationTasks) {
         this.notificationTasks = notificationTasks;
-        String notificationServiceFactoryClass = System.getProperty(NOTIFICATION_PROP_SERVICE_FACTORY_CLASS);
-        if (notificationServiceFactoryClass != null) {
-            NotificationServiceFactory notificationServiceFactory;
-            try {
-                notificationServiceFactory = (NotificationServiceFactory) Class.forName(notificationServiceFactoryClass).newInstance();
-                notificationService = notificationServiceFactory.create();
-                init();
-            } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-                LOGGER.error("Invalid NotificationServiceFactory class: " + notificationServiceFactoryClass + " error: " + e.getMessage());
+        String notificationServiceFactoryClasses = System.getProperty(NOTIFICATION_PROP_SERVICE_FACTORY_CLASS);
+        if (!StringUtil.isEmpty(notificationServiceFactoryClasses)) {
+            String[] notificationServiceFactoryClassArray = notificationServiceFactoryClasses.split(",");
+            for (String notificationServiceFactoryClass : notificationServiceFactoryClassArray) {
+                NotificationServiceFactory notificationServiceFactory;
+                try {
+                    notificationServiceFactory = (NotificationServiceFactory) Class.forName(notificationServiceFactoryClass.trim()).newInstance();
+                    NotificationService notificationService = notificationServiceFactory.create();
+                    if (notificationService != null) {
+                        notificationServices.add(notificationService);
+                    }
+                } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+                    LOGGER.error("Invalid NotificationServiceFactory class: " + notificationServiceFactoryClass + " error: " + e.getMessage());
+                }
             }
+            LOGGER.info("Loaded Notification Services: " + String.join(",", getLoadedNotificationServices()));
+            init();
         }
     }
 
@@ -56,9 +64,14 @@ public class NotificationManager {
         }
     }
 
-    public NotificationManager(final NotificationServiceFactory notificationServiceFactory, List<NotificationTask> notificationTasks) {
+    public NotificationManager(final List<NotificationServiceFactory> notificationServiceFactories, List<NotificationTask> notificationTasks) {
         this.notificationTasks = notificationTasks;
-        notificationService = notificationServiceFactory.create();
+        notificationServiceFactories.stream().filter(Objects::nonNull).forEach(notificationFactory -> {
+            NotificationService notificationService = notificationFactory.create();
+            if (notificationService != null) {
+                notificationServices.add(notificationService);
+            }
+        });
         init();
     }
 
@@ -70,17 +83,25 @@ public class NotificationManager {
 
     public void sendNotifications(List<Notification> notifications) {
         if (isNotificationFeatureAvailable()) {
-            notifications.stream().filter(Objects::nonNull).forEach(notification -> notificationService.notify(notification));
+            notifications.stream().filter(Objects::nonNull).forEach(notification -> {
+                notificationServices.stream().filter(Objects::nonNull).forEach(service -> service.notify(notification));
+            });
         }
     }
 
     public boolean isNotificationFeatureAvailable () {
-        return notificationService != null;
+        return notificationServices != null && notificationServices.size() > 0;
     }
 
     private boolean enableScheduledNotifications() {
         // Enable notification scheduler if a NotificationService is available and NotificationTasks exist
         return isNotificationFeatureAvailable() && this.notificationTasks != null && !this.notificationTasks.isEmpty();
+    }
+
+    public List<String> getLoadedNotificationServices() {
+        List<String> loadedNotificationServices = new ArrayList<>();
+        notificationServices.forEach(notificationService -> loadedNotificationServices.add(notificationService.getClass().getName()));
+        return loadedNotificationServices;
     }
 
     class PeriodicNotificationsSender implements Runnable {
@@ -99,8 +120,9 @@ public class NotificationManager {
                     List<Notification> notifications = notificationTask.getNotifications();
                     notifications.stream()
                             .filter(Objects::nonNull)
-                            .forEach(notification -> notificationService.notify(notification));
-
+                            .forEach(notification -> {
+                                notificationServices.forEach(service -> service.notify(notification));
+                            });
                     if (LOGGER.isDebugEnabled()) {
                         LOGGER.debug(String.format("PeriodicNotificationsSender: Sent %s.", notificationTask.getDescription()));
                     }

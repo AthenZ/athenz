@@ -61,3 +61,10 @@ Once the jar is ready, change the value of athenz.zms.notification_service_facto
 ```
 athenz.zms.notification_service_factory_class=your.packge.YourNotificationServiceFactory
 ```
+
+We can also send notifications to more than one service by specifying all service factories.
+For example, if we would like notifications to be sent via `your.packge.YourNotificationServiceFactory` and
+`their.packge.TheirNotificationServiceFactory`, specify both values in the property using `,` as a delimiter:
+```
+athenz.zms.notification_service_factory_class=your.packge.YourNotificationServiceFactory, their.packge.TheirNotificationServiceFactory
+```

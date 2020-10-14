@@ -34,7 +34,7 @@ import static com.yahoo.athenz.common.ServerCommonConsts.USER_DOMAIN_PREFIX;
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.NOTIFICATION_PROP_SERVICE_FACTORY_CLASS;
 import static org.testng.Assert.*;
 
-public class NotificationManagerTest {
+public class ZMSNotificationManagerTest {
 
     @BeforeClass
     public void setUp() {
@@ -67,13 +67,19 @@ public class NotificationManagerTest {
     }
 
     public static NotificationManager getNotificationManager(DBService dbsvc, NotificationServiceFactory notificationServiceFactory) {
+        List<NotificationServiceFactory> notificationServiceFactories = (notificationServiceFactory == null) ?
+                null : Collections.singletonList(notificationServiceFactory);
+        return getNotificationManagerMultipleServices(dbsvc, notificationServiceFactories);
+    }
+
+    public static NotificationManager getNotificationManagerMultipleServices(DBService dbsvc, List<NotificationServiceFactory> notificationServiceFactories) {
         ZMSNotificationTaskFactory zmsNotificationTaskFactory = new ZMSNotificationTaskFactory(dbsvc, USER_DOMAIN_PREFIX);
         List<NotificationTask> notificationTasks = zmsNotificationTaskFactory.getNotificationTasks();
 
-        if (notificationServiceFactory == null) {
+        if (notificationServiceFactories == null) {
             return new NotificationManager(notificationTasks);
         }
-        return new NotificationManager(notificationServiceFactory, notificationTasks);
+        return new NotificationManager(notificationServiceFactories, notificationTasks);
     }
 
     @Test
@@ -145,7 +151,8 @@ public class NotificationManagerTest {
         DomainRoleMembersFetcher domainRoleMembersFetcher = new DomainRoleMembersFetcher(dbsvc, USER_DOMAIN_PREFIX);
         NotificationCommon notificationCommon = new NotificationCommon(domainRoleMembersFetcher, USER_DOMAIN_PREFIX);
         PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter converter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter();
-        Notification notification = notificationCommon.createNotification(recipients, details, converter);
+        PutRoleMembershipNotificationTask.PutMembershipNotificationToMetricConverter metricConverter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToMetricConverter();
+        Notification notification = notificationCommon.createNotification(recipients, details, converter, metricConverter);
         assertNotNull(notification);
 
         // Assert service is not a receipient
@@ -169,8 +176,8 @@ public class NotificationManagerTest {
 
         DomainRoleMembersFetcher domainRoleMembersFetcher = new DomainRoleMembersFetcher(dbsvc, USER_DOMAIN_PREFIX);
         NotificationCommon notificationCommon = new NotificationCommon(domainRoleMembersFetcher, USER_DOMAIN_PREFIX);
-        assertNull(notificationCommon.createNotification((Set<String>) null, null, null));
-        assertNull(notificationCommon.createNotification(Collections.emptySet(), null, null));
+        assertNull(notificationCommon.createNotification((Set<String>) null, null, null, null));
+        assertNull(notificationCommon.createNotification(Collections.emptySet(), null, null, null));
     }
 
     @Test
@@ -200,7 +207,8 @@ public class NotificationManagerTest {
         DomainRoleMembersFetcher domainRoleMembersFetcher = new DomainRoleMembersFetcher(dbsvc, USER_DOMAIN_PREFIX);
         NotificationCommon notificationCommon = new NotificationCommon(domainRoleMembersFetcher, USER_DOMAIN_PREFIX);
         PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToEmailConverter converter = new PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToEmailConverter();
-        Notification notification = notificationCommon.createNotification(recipients, null, converter);
+        PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToMetricConverter metricConverter = new PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToMetricConverter();
+        Notification notification = notificationCommon.createNotification(recipients, null, converter, metricConverter);
         assertNull(notification);
     }
 
@@ -268,13 +276,14 @@ public class NotificationManagerTest {
 
         Map<String, String> details = new HashMap<>();
         PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToEmailConverter converter = new PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToEmailConverter();
-        assertNull(notificationCommon.createNotification((String) null, details, converter));
-        assertNull(notificationCommon.createNotification("", details, converter));
-        assertNull(notificationCommon.createNotification("athenz", details, converter));
+        PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToMetricConverter metricConverter = new PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToMetricConverter();
+        assertNull(notificationCommon.createNotification((String) null, details, converter, metricConverter));
+        assertNull(notificationCommon.createNotification("", details, converter, metricConverter));
+        assertNull(notificationCommon.createNotification("athenz", details, converter, metricConverter));
 
         // valid service name but we have no valid domain so we're still
         // going to get null notification
 
-        assertNull(notificationCommon.createNotification("athenz.service", details, converter));
+        assertNull(notificationCommon.createNotification("athenz.service", details, converter, metricConverter));
     }
 }

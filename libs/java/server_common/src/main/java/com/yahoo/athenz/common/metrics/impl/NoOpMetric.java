@@ -51,6 +51,10 @@ public class NoOpMetric implements Metric {
     }
 
     @Override
+    public void increment(String metric, final String... attributes) {
+    }
+
+    @Override
     public Object startTiming(String metric, String requestDomainName) {
         return null;
     }

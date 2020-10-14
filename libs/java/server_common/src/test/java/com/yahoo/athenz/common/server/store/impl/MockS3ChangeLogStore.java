@@ -18,8 +18,10 @@ package com.yahoo.athenz.common.server.store.impl;
 import static org.mockito.Mockito.mock;
 
 import com.amazonaws.services.s3.AmazonS3;
+import com.yahoo.athenz.zms.SignedDomain;
 import org.mockito.Mockito;
 
+import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
 
 class MockS3ChangeLogStore extends S3ChangeLogStore {
@@ -40,6 +42,10 @@ class MockS3ChangeLogStore extends S3ChangeLogStore {
 
     void resetAWSS3Client() {
         awsS3Client = null;
+    }
+
+    void setAwsS3Client(AmazonS3 s3Client) {
+        this.awsS3Client = s3Client;
     }
 
     @Override

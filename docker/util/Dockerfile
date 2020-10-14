@@ -32,7 +32,7 @@ RUN GO111MODULE=on \
   CGO_LDFLAGS="-g -Ofast -march=native" \
   GOOS=$(go env GOOS) \
   GOARCH=$(go env GOARCH) \
-  mvn install -Dmaven.test.skip=true \
+  mvn install -Dmaven.test.skip=true -Djacoco.skip=true \
   -pl core/zms \
   -pl core/zts \
   -pl libs/java/auth_core \

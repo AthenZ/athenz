@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -51,7 +52,7 @@ public class S3ChangeLogStore implements ChangeLogStore {
     private static final String DEFAULT_TIMEOUT_SECONDS = "athenz.zts.bucket.threads.timeout";
     private int nThreads = Integer.parseInt(System.getProperty(NUMBER_OF_THREADS, "10"));
     private int defaultTimeoutSeconds = Integer.parseInt(System.getProperty(DEFAULT_TIMEOUT_SECONDS, "1800"));
-    private volatile HashMap<String, SignedDomain> tempSignedDomainMap = new HashMap<>();
+    protected Map<String, SignedDomain> tempSignedDomainMap = new ConcurrentHashMap<>();
 
     public S3ChangeLogStore() {
         init();
@@ -399,9 +400,9 @@ public class S3ChangeLogStore implements ChangeLogStore {
 
         String domainName;
         AmazonS3 s3;
-        HashMap<String, SignedDomain> signedDomainMap;
+        Map<String, SignedDomain> signedDomainMap;
 
-        public ObjectS3Thread(String domainName, HashMap<String, SignedDomain> signedDomainMap, AmazonS3 s3) {
+        public ObjectS3Thread(String domainName,  Map<String, SignedDomain> signedDomainMap, AmazonS3 s3) {
             this.domainName = domainName;
             this.s3 = s3;
             this.signedDomainMap = signedDomainMap;

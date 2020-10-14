@@ -16,9 +16,19 @@
 
 package com.yahoo.athenz.common.server.store;
 
+import com.yahoo.athenz.auth.PrivateKeyStore;
 import java.security.PrivateKey;
 
 public interface ChangeLogStoreFactory {
+
+    /**
+     * Set the private key store object for the changelog factory
+     * in case the implementation needs to read any secrets. This
+     * method is called first before the create method call.
+     * @param privateKeyStore Private Key Store object
+     */
+    default void setPrivateKeyStore(PrivateKeyStore privateKeyStore) {
+    }
 
     /**
      * Create and return a new ChangeLogStore instance
@@ -27,6 +37,5 @@ public interface ChangeLogStoreFactory {
      * @param privateKeyId the private key identifier
      * @return ChangeLogStore instance
      */
-    ChangeLogStore create(String ztsHomeDir, PrivateKey privateKey,
-                          String privateKeyId);
+    ChangeLogStore create(String ztsHomeDir, PrivateKey privateKey, String privateKeyId);
 }

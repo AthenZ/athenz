@@ -16,48 +16,33 @@
 
 package com.yahoo.athenz.common.server.store.impl;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.token.PrincipalToken;
 import com.yahoo.athenz.common.server.store.ChangeLogStore;
-import com.yahoo.athenz.common.server.util.FilesHelper;
 import com.yahoo.athenz.zms.SignedDomain;
 import com.yahoo.athenz.zms.SignedDomains;
 import com.yahoo.athenz.zms.ZMSClient;
 import com.yahoo.athenz.zms.ZMSClientException;
-import com.yahoo.rdl.Struct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.attribute.PosixFilePermission;
 import java.security.PrivateKey;
 import java.util.*;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.*;
 
 public class ZMSFileChangeLogStore implements ChangeLogStore {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(ZMSFileChangeLogStore.class);
 
-    File rootDir;
-    ObjectMapper jsonMapper;
-    FilesHelper filesHelper;
+    private final PrivateKey privateKey;
+    private final String privateKeyId;
+    private final Authority authority;
+    private final String zmsUrl;
 
-    public String lastModTime;
-
-    private PrivateKey privateKey;
-    private String privateKeyId;
-    private Authority authority;
-    private String zmsUrl;
-
-    private static final String ATTR_TAG           = "tag";
-    private static final String VALUE_TRUE         = "true";
-    private static final String LAST_MOD_FNAME     = ".lastModTime";
-    private static final String ATTR_LAST_MOD_TIME = "lastModTime";
+    private ZMSFileChangeLogStoreCommon changeLogStoreCommon;
 
     public ZMSFileChangeLogStore(String rootDirectory, PrivateKey privateKey, String privateKeyId) {
 
@@ -74,81 +59,26 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
 
         zmsUrl = System.getProperty(ZTS_PROP_ZMS_URL_OVERRIDE);
 
-        // create our file helper object
+        // create our common logic object
 
-        filesHelper = new FilesHelper();
-
-        // initialize our jackson object mapper
-
-        jsonMapper = new ObjectMapper();
-        jsonMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
-        // setup our directory for storing domain files
-
-        rootDir = new File(rootDirectory);
-
-        if (!rootDir.exists()) {
-            if (!rootDir.mkdirs()) {
-                error("cannot create specified root: " + rootDirectory);
-            }
-        } else {
-            if (!rootDir.isDirectory()) {
-                error("specified root is not a directory: " + rootDirectory);
-            }
-        }
-
-        // make sure only the user has access
-
-        Set<PosixFilePermission> perms = EnumSet.of(PosixFilePermission.OWNER_READ,
-                PosixFilePermission.OWNER_WRITE, PosixFilePermission.OWNER_EXECUTE);
-        setupFilePermissions(rootDir, perms);
-
-        // retrieve our last modification timestamp
-
-        lastModTime = retrieveLastModificationTime();
-
-        // if we do not have a last modification timestamp then we're going to
-        // clean up all locally cached domain files
-
-        if (lastModTime == null) {
-            List<String> localDomains = getLocalDomainList();
-            for (String domain : localDomains) {
-                delete(domain);
-            }
-        }
+        changeLogStoreCommon = new ZMSFileChangeLogStoreCommon(rootDirectory);
     }
 
     @Override
     public boolean supportsFullRefresh() {
-        return false;
+        return changeLogStoreCommon.supportsFullRefresh();
     }
 
     @Override
     public SignedDomain getLocalSignedDomain(String domainName) {
-        return get(domainName, SignedDomain.class);
+        return changeLogStoreCommon.getLocalSignedDomain(domainName);
     }
 
     @Override
     public SignedDomain getServerSignedDomain(String domainName) {
 
         try (ZMSClient zmsClient = getZMSClient()) {
-
-            SignedDomains signedDomains = zmsClient.getSignedDomains(domainName,
-                    null, null, null);
-
-            if (signedDomains == null) {
-                LOGGER.error("No data was returned from ZMS for domain {}", domainName);
-                return null;
-            }
-
-            List<SignedDomain> domains = signedDomains.getDomains();
-            if (domains == null || domains.size() != 1) {
-                LOGGER.error("Invalid data was returned from ZMS for domain {}", domainName);
-                return null;
-            }
-
-            return domains.get(0);
-
+            return changeLogStoreCommon.getServerSignedDomain(zmsClient, domainName);
         } catch (ZMSClientException ex) {
             LOGGER.error("Error when fetching {} data from ZMS: {}", domainName, ex.getMessage());
             return null;
@@ -157,95 +87,17 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
 
     @Override
     public void removeLocalDomain(String domainName) {
-        delete(domainName);
+        changeLogStoreCommon.removeLocalDomain(domainName);
     }
 
     @Override
     public void saveLocalDomain(String domainName, SignedDomain signedDomain) {
-        put(domainName, jsonValueAsBytes(signedDomain, SignedDomain.class));
-    }
-
-    void setupFilePermissions(File file, Set<PosixFilePermission> perms) {
-        try {
-            filesHelper.setPosixFilePermissions(file, perms);
-        } catch (IOException ex) {
-            error("unable to setup file with permissions: " + ex.getMessage());
-        }
-    }
-
-    void setupDomainFile(File file) {
-
-        try {
-            filesHelper.createEmptyFile(file);
-            Set<PosixFilePermission> perms = EnumSet.of(PosixFilePermission.OWNER_READ,
-                    PosixFilePermission.OWNER_WRITE);
-            setupFilePermissions(file, perms);
-        } catch (IOException ex) {
-            error("unable to setup domain file with permissions: " + ex.getMessage());
-        }
-    }
-
-    public synchronized <T> T get(String name, Class<T> classType) {
-
-        File file = new File(rootDir, name);
-        if (!file.exists()) {
-            return null;
-        }
-
-        try {
-            return jsonMapper.readValue(file, classType);
-        } catch (Exception ex) {
-            LOGGER.error("Unable to retrieve file: {} error: {}",
-                    file.getAbsolutePath(), ex.getMessage());
-        }
-        return null;
-    }
-
-    public synchronized void put(String name, byte[] data) {
-
-        File file = new File(rootDir, name);
-        if (!file.exists()) {
-            setupDomainFile(file);
-        }
-
-        try {
-            filesHelper.write(file, data);
-        } catch (IOException ex) {
-            error("unable to save file: " + file.getPath() + " error: " + ex.getMessage());
-        }
-    }
-
-    public synchronized void delete(String name) {
-        File file = new File(rootDir, name);
-        if (!file.exists()) {
-            return;
-        }
-
-        try {
-            filesHelper.delete(file);
-        } catch (Exception exc) {
-            error("Cannot delete file or directory: " + name + " : exc: " + exc);
-        }
+        changeLogStoreCommon.saveLocalDomain(domainName, signedDomain);
     }
 
     @Override
     public List<String> getLocalDomainList() {
-
-        List<String> names = new ArrayList<>();
-        String[] domains = rootDir.list();
-        if (domains == null) {
-            return names;
-        }
-        for (String name : domains) {
-
-            // we are going to skip any hidden files
-
-            if (name.charAt(0) != '.') {
-                names.add(name);
-            }
-        }
-
-        return names;
+        return changeLogStoreCommon.getLocalDomainList();
     }
 
     public ZMSClient getZMSClient() {
@@ -267,7 +119,7 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
 
         Set<String> zmsDomainList;
         try (ZMSClient zmsClient = getZMSClient()) {
-            zmsDomainList = new HashSet<>(zmsClient.getDomainList().getNames());
+            zmsDomainList = changeLogStoreCommon.getServerDomainList(zmsClient);
         } catch (ZMSClientException ex) {
             LOGGER.error("Unable to retrieve domain list from ZMS",  ex);
             return null;
@@ -286,10 +138,10 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
         SignedDomains signedDomains = null;
         try (ZMSClient zmsClient = getZMSClient()) {
 
-            signedDomains = zmsClient.getSignedDomains(null, VALUE_TRUE, null, null);
+            signedDomains = changeLogStoreCommon.getServerDomainModifiedList(zmsClient);
 
-            if (LOGGER.isDebugEnabled() && signedDomains != null) {
-                LOGGER.debug("Number of ZMS domains: {}", signedDomains.getDomains().size());
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Number of ZMS domains: {}", signedDomains == null ? 0 : signedDomains.getDomains().size());
             }
         } catch (ZMSClientException ex) {
             LOGGER.error("Unable to retrieve signed domain list from ZMS", ex);
@@ -298,142 +150,23 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
         return signedDomains;
     }
 
-    public String retrieveLastModificationTime() {
-        Struct lastModStruct = get(LAST_MOD_FNAME, Struct.class);
-        if (lastModStruct == null) {
-            return null;
-        }
-        return lastModStruct.getString(ATTR_LAST_MOD_TIME);
-    }
-
     @Override
     public void setLastModificationTimestamp(String newLastModTime) {
-
-        lastModTime = newLastModTime;
-        if (lastModTime == null) {
-            delete(LAST_MOD_FNAME);
-        } else {
-
-            // update the last modification timestamp
-
-            Struct lastModStruct = new Struct();
-            lastModStruct.put(ATTR_LAST_MOD_TIME, lastModTime);
-            put(LAST_MOD_FNAME, jsonValueAsBytes(lastModStruct, Struct.class));
-        }
-    }
-
-    byte[] jsonValueAsBytes(Object obj, Class<?> cls) {
-        try {
-            return jsonMapper.writerWithView(cls).writeValueAsBytes(obj);
-        } catch (Exception ex) {
-            LOGGER.error("Unable to serialize json object: {}", ex.getMessage());
-            return null;
-        }
-    }
-
-    public String retrieveTagHeader(Map<String, List<String>> responseHeaders) {
-
-        // our tag value is going to be returned from the server in the
-        // response headers as the value to the key "tag"
-
-        List<String> tagData = responseHeaders.get(ATTR_TAG);
-        if (tagData == null || tagData.isEmpty()) {
-            LOGGER.error("Response headers from ZMS does not include 'ETag/tag' value");
-            return null;
-        }
-        return tagData.get(0);
-    }
-
-    List<SignedDomain> getSignedDomainList(ZMSClient zmsClient, SignedDomains domainList) {
-
-        List<SignedDomain> domains = new ArrayList<>();
-        for (SignedDomain domain : domainList.getDomains()) {
-
-            final String domainName = domain.getDomain().getName();
-
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("getSignedDomainList: fetching domain {}", domainName);
-            }
-
-            while (true) {
-                try {
-                    SignedDomains singleDomain = zmsClient.getSignedDomains(domainName,
-                            null, null, null);
-
-                    if (singleDomain != null && !singleDomain.getDomains().isEmpty()) {
-                        domains.addAll(singleDomain.getDomains());
-                    }
-
-                    break;
-
-                } catch (ZMSClientException ex) {
-
-                    LOGGER.error("Error fetching domain {} from ZMS: {}", domainName,
-                            ex.getMessage());
-
-                    // if we get a rate limiting failure, we're going to sleep
-                    // for a second and retry our operation again
-
-                    if (ex.getCode() != ZMSClientException.TOO_MANY_REQUESTS) {
-                        break;
-                    }
-
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException ignored) {
-                    }
-                }
-            }
-        }
-        return domains;
+        changeLogStoreCommon.setLastModificationTimestamp(newLastModTime);
     }
 
     @Override
     public SignedDomains getUpdatedSignedDomains(StringBuilder lastModTimeBuffer) {
 
         try (ZMSClient zmsClient = getZMSClient()) {
-
-            // request all the changes from ZMS. In this call we're asking for
-            // meta data only so we'll only get the list of domains
-
-            Map<String, List<String>> responseHeaders = new HashMap<>();
-            SignedDomains domainList = zmsClient.getSignedDomains(null, VALUE_TRUE,
-                    lastModTime, responseHeaders);
-
-            // retrieve the tag value for the request
-
-            String newLastModTime = retrieveTagHeader(responseHeaders);
-            if (newLastModTime == null) {
-                return null;
-            }
-
-            // set the last modification time to be returned to the caller
-
-            lastModTimeBuffer.setLength(0);
-            lastModTimeBuffer.append(newLastModTime);
-
-            // now let's iterate through our list and retrieve one domain
-            // at a time
-
-            if (domainList == null || domainList.getDomains() == null) {
-                return null;
-            }
-
-            if (LOGGER.isInfoEnabled()) {
-                LOGGER.info("getUpdatedSignedDomains: {} updated domains", domainList.getDomains().size());
-            }
-
-            List<SignedDomain> domains = getSignedDomainList(zmsClient, domainList);
-            return new SignedDomains().setDomains(domains);
-
+            return changeLogStoreCommon.getUpdatedSignedDomains(zmsClient, lastModTimeBuffer);
         } catch (ZMSClientException ex) {
             LOGGER.error("Error when refreshing data from ZMS: {}", ex.getMessage());
             return null;
         }
     }
 
-    static void error(String msg) {
-        LOGGER.error(msg);
-        throw new RuntimeException("ZMSFileChangeLogStore: " + msg);
+    public void setChangeLogStoreCommon(ZMSFileChangeLogStoreCommon changeLogStoreCommon) {
+        this.changeLogStoreCommon = changeLogStoreCommon;
     }
 }
