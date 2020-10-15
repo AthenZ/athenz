@@ -70,7 +70,7 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
     }
 
     private List<String> getProvidersList() {
-        return AthenzUtils.splitCommaSeperatedSystemProperty(ZTSConsts.ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST);
+        return AthenzUtils.splitCommaSeparatedSystemProperty(ZTSConsts.ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST);
     }
 
     @Override
