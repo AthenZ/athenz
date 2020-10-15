@@ -189,7 +189,7 @@ public class AthenzUtils {
     private AthenzUtils() {
     }
 
-    public static List<String> splitCommaSeperatedSystemProperty(String property) {
+    public static List<String> splitCommaSeparatedSystemProperty(String property) {
         String propertyListStr = System.getProperty(property, null);
 
         if (propertyListStr == null) {

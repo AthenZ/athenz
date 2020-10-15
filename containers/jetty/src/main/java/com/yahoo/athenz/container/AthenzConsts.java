@@ -47,7 +47,7 @@ public final class AthenzConsts {
     public static final String ATHENZ_PROP_SEND_SERVER_VERSION    = "athenz.http_send_server_version";
     public static final String ATHENZ_PROP_SEND_DATE_HEADER       = "athenz.http_send_date_header";
     public static final String ATHENZ_PROP_OUTPUT_BUFFER_SIZE     = "athenz.http_output_buffer_size";
-    public static final String ATHENZ_PROP_REQUEST_HEADER_SIZE    = "athenz.http_reqeust_header_size";
+    public static final String ATHENZ_PROP_REQUEST_HEADER_SIZE    = "athenz.http_request_header_size";
     public static final String ATHENZ_PROP_RESPONSE_HEADER_SIZE   = "athenz.http_response_header_size";
     public static final String ATHENZ_PROP_LISTEN_HOST            = "athenz.listen_host";
     public static final String ATHENZ_PROP_KEEP_ALIVE             = "athenz.keep_alive";
