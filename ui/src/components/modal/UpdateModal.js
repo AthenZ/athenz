@@ -82,7 +82,6 @@ export default class UpdateModal extends React.Component {
                 )}
                 <ButtonDiv>
                     <ModifiedButton
-                        danger
                         onClick={this.props.submit}
                         data-testid={'update-modal-update'}
                     >
