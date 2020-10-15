@@ -27,7 +27,7 @@ import RequestUtils from '../utils/RequestUtils';
 const TDStyled = styled.td`
     background-color: ${(props) => props.color};
     text-align: ${(props) => props.align};
-    padding: 5px 0 5px 15px;
+    padding: 5px 0 5px 0;
     vertical-align: middle;
     word-break: break-all;
 `;

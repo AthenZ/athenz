@@ -143,6 +143,7 @@ export default class RoleTable extends React.Component {
         const awsRolePrefix = domain + ':role.aws.';
         const umsRolePrefix = domain + ':role.ums.';
         const ckmsRolePrefix = domain + ':role.paranoids.ppse.ckms.ykeykey_';
+        const adminRole = domain + ':role.admin';
         const awsRoleName = 'aws';
         const umsRoleName = 'ums';
         const ckmsRoleName = 'ckms';
@@ -153,8 +154,34 @@ export default class RoleTable extends React.Component {
                 (item) =>
                     !item.name.startsWith(awsRolePrefix) &&
                     !item.name.startsWith(umsRolePrefix) &&
-                    !item.name.startsWith(ckmsRolePrefix)
+                    !item.name.startsWith(ckmsRolePrefix) &&
+                    item.name !== adminRole
             );
+
+            // put admin role at first place
+            let adminRow = this.state.roles
+                .filter((item) => {
+                    return item.name == adminRole;
+                })
+                .map((item, i) => {
+                    return (
+                        <RoleRow
+                            details={item}
+                            idx={i}
+                            domain={domain}
+                            api={this.api}
+                            key={item.name}
+                            onUpdateSuccess={this.props.onSubmit}
+                            _csrf={this.props._csrf}
+                            justificationRequired={
+                                this.props.justificationRequired
+                            }
+                            userProfileLink={this.props.userProfileLink}
+                        />
+                    );
+                });
+
+            rows.push(adminRow);
 
             // AWS rows
             let awsGroup = (

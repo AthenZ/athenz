@@ -44,6 +44,15 @@ const TrStyled = styled.tr`
     height: 50px;
 `;
 
+const StyledDiv = styled.div`
+    padding: 10px 0 10px 0;
+    width: 100%;
+`;
+
+const StyledTable = styled.table`
+    width: 100%;
+`;
+
 export default class RoleGroup extends React.Component {
     constructor(props) {
         super(props);
@@ -88,25 +97,6 @@ export default class RoleGroup extends React.Component {
             let label = this.props.name.toUpperCase();
             let length = this.state.roles.length;
 
-            rows.push(
-                <TrStyled key='aws-role-section'>
-                    <TDStyled align={left}>
-                        <LeftMarginSpan>
-                            <Icon
-                                icon={this.state.expanded ? arrowup : arrowdown}
-                                onClick={expandRole}
-                                color={colors.icons}
-                                isLink
-                                size={'1.25em'}
-                                verticalAlign={'text-bottom'}
-                            />
-                        </LeftMarginSpan>
-                        {`${label} Roles (${length})`}
-                    </TDStyled>
-                    <TDStyled align={center} />
-                </TrStyled>
-            );
-
             if (this.state.expanded) {
                 let sectionRows = this.state.roles.map((item, i) => {
                     let color = '';
@@ -131,7 +121,55 @@ export default class RoleGroup extends React.Component {
                     );
                 });
 
-                rows.push(sectionRows);
+                rows.push(
+                    <TrStyled key='aws-role-section'>
+                        <TDStyled align={left} colSpan='8'>
+                            <StyledDiv>
+                                <LeftMarginSpan>
+                                    <Icon
+                                        icon={
+                                            this.state.expanded
+                                                ? arrowup
+                                                : arrowdown
+                                        }
+                                        onClick={expandRole}
+                                        color={colors.icons}
+                                        isLink
+                                        size={'1.25em'}
+                                        verticalAlign={'text-bottom'}
+                                    />
+                                </LeftMarginSpan>
+                                {`${label} Roles (${length})`}
+                            </StyledDiv>
+                            <StyledDiv>
+                                <StyledTable>{sectionRows}</StyledTable>
+                            </StyledDiv>
+                        </TDStyled>
+                    </TrStyled>
+                );
+            } else {
+                rows.push(
+                    <TrStyled key='aws-role-section'>
+                        <TDStyled align={left}>
+                            <LeftMarginSpan>
+                                <Icon
+                                    icon={
+                                        this.state.expanded
+                                            ? arrowup
+                                            : arrowdown
+                                    }
+                                    onClick={expandRole}
+                                    color={colors.icons}
+                                    isLink
+                                    size={'1.25em'}
+                                    verticalAlign={'text-bottom'}
+                                />
+                            </LeftMarginSpan>
+                            {`${label} Roles (${length})`}
+                        </TDStyled>
+                        <TDStyled align={center} />
+                    </TrStyled>
+                );
             }
 
             return rows;
