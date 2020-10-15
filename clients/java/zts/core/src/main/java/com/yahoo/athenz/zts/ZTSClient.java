@@ -1201,8 +1201,8 @@ public class ZTSClient implements Closeable {
         // if no hit then we need to look up in disk
         try {
             accessTokenResponse = ztsAccessTokenFileLoader.lookupAccessTokenFromDisk(domainName, roleNames);
-        } catch (IOException e) {
-            LOG.error("GetAccessToken: failed to load access token from disk ", e.getMessage());
+        } catch (IOException ex) {
+            LOG.error("GetAccessToken: failed to load access token from disk {}", ex.getMessage());
         }
 
         // if no hit then we need to request a new token from ZTS
