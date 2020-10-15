@@ -32,6 +32,51 @@ const TDStyled = styled.td`
     word-break: break-all;
 `;
 
+const TDName = styled.td`
+    background-color: ${(props) => props.color};
+    text-align: ${(props) => props.align};
+    padding: 5px 0 5px 0;
+    vertical-align: middle;
+    word-break: break-all;
+    width: 29%;
+`;
+
+const TDModified = styled.td`
+    background-color: ${(props) => props.color};
+    text-align: ${(props) => props.align};
+    padding: 5px 0 5px 0;
+    vertical-align: middle;
+    word-break: break-all;
+    width: 17%;
+`;
+
+const TDReview = styled.td`
+    background-color: ${(props) => props.color};
+    text-align: ${(props) => props.align};
+    padding: 5px 0 5px 0;
+    vertical-align: middle;
+    word-break: break-all;
+    width: 12%;
+`;
+
+const TDIcon = styled.td`
+    background-color: ${(props) => props.color};
+    text-align: ${(props) => props.align};
+    padding: 5px 0 5px 0;
+    vertical-align: middle;
+    word-break: break-all;
+    width: 9%;
+`;
+
+const TDDelete = styled.td`
+    background-color: ${(props) => props.color};
+    text-align: ${(props) => props.align};
+    padding: 5px 0 5px 0;
+    vertical-align: middle;
+    word-break: break-all;
+    width: 6%;
+`;
+
 const TrStyled = styled.tr`
     background-color: ${(props) => props.color};
 `;
@@ -212,15 +257,15 @@ export default class RoleSectionRow extends React.Component {
 
         rows.push(
             <TrStyled key={this.state.name} data-testid='role-row'>
-                <TDStyled color={color} align={left}>
+                <TDName color={color} align={left}>
                     {roleTypeIcon}
                     {roleAuditIcon}
                     {roleNameSpan}
-                </TDStyled>
-                <TDStyled color={color} align={left}>
+                </TDName>
+                <TDModified color={color} align={left}>
                     {this.localDate.getLocalDate(role.modified, 'UTC', 'UTC')}
-                </TDStyled>
-                <TDStyled color={color} align={left}>
+                </TDModified>
+                <TDReview color={color} align={left}>
                     {role.lastReviewedDate
                         ? this.localDate.getLocalDate(
                               role.lastReviewedDate,
@@ -228,8 +273,8 @@ export default class RoleSectionRow extends React.Component {
                               'UTC'
                           )
                         : 'N/A'}
-                </TDStyled>
-                <TDStyled color={color} align={center}>
+                </TDReview>
+                <TDIcon color={color} align={center}>
                     <Menu
                         placement='bottom-start'
                         trigger={
@@ -247,8 +292,8 @@ export default class RoleSectionRow extends React.Component {
                     >
                         <MenuDiv>Members</MenuDiv>
                     </Menu>
-                </TDStyled>
-                <TDStyled color={color} align={center}>
+                </TDIcon>
+                <TDIcon color={color} align={center}>
                     <Menu
                         placement='bottom-start'
                         trigger={
@@ -266,8 +311,8 @@ export default class RoleSectionRow extends React.Component {
                     >
                         <MenuDiv>Review Members</MenuDiv>
                     </Menu>
-                </TDStyled>
-                <TDStyled color={color} align={center}>
+                </TDIcon>
+                <TDIcon color={color} align={center}>
                     <Menu
                         placement='bottom-start'
                         trigger={
@@ -285,8 +330,8 @@ export default class RoleSectionRow extends React.Component {
                     >
                         <MenuDiv>Rule Policy</MenuDiv>
                     </Menu>
-                </TDStyled>
-                <TDStyled color={color} align={center}>
+                </TDIcon>
+                <TDIcon color={color} align={center}>
                     <Menu
                         placement='bottom-start'
                         trigger={
@@ -304,8 +349,8 @@ export default class RoleSectionRow extends React.Component {
                     >
                         <MenuDiv>Settings</MenuDiv>
                     </Menu>
-                </TDStyled>
-                <TDStyled color={color} align={center}>
+                </TDIcon>
+                <TDDelete color={color} align={center}>
                     <Menu
                         placement='bottom-start'
                         trigger={
@@ -323,7 +368,7 @@ export default class RoleSectionRow extends React.Component {
                     >
                         <MenuDiv>Delete Role</MenuDiv>
                     </Menu>
-                </TDStyled>
+                </TDDelete>
             </TrStyled>
         );
 
