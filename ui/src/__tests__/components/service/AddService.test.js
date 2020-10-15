@@ -65,6 +65,19 @@ describe('AddService', () => {
                     });
                 });
             },
+            getService: function(
+                domainName,
+                serviceName
+            ) {
+                return new Promise((resolve, reject) => {
+                    reject({
+                        statusCode: 404,
+                        body: {
+                            message: 'test-error',
+                        },
+                    });
+                });
+            },
         };
         const {
             getByTestId,
@@ -115,6 +128,19 @@ describe('AddService', () => {
                 return new Promise((resolve, reject) => {
                     reject({
                         statusCode: 1,
+                        body: {
+                            message: 'test-error',
+                        },
+                    });
+                });
+            },
+            getService: function(
+                domainName,
+                serviceName,
+            ) {
+                return new Promise((resolve, reject) => {
+                    reject({
+                        statusCode: 404,
                         body: {
                             message: 'test-error',
                         },
@@ -176,6 +202,19 @@ describe('AddService', () => {
                     resolve();
                 });
             },
+            getService: function(
+                domainName,
+                serviceName,
+            ) {
+                return new Promise((resolve, reject) => {
+                    reject({
+                        statusCode: 404,
+                        body: {
+                            message: 'test-error',
+                        },
+                    });
+                });
+            },
         };
         const {
             getByTestId,
@@ -227,6 +266,7 @@ describe('AddService', () => {
                 });
             },
         };
+
         const {
             getByTestId,
             querySelector,
@@ -241,6 +281,138 @@ describe('AddService', () => {
                 pageConfig={pageConfig}
             />
         );
+        fireEvent.click(await waitForElement(() => getByText('Submit')));
+        expect(
+            await waitForElement(() => getByTestId('error-message'))
+        ).toMatchSnapshot();
+    });
+
+    it('should render error when service already exists', async () => {
+        const cancel = function () {
+        };
+        const domain = 'domain';
+        const api = {
+            addService: function (
+                domainName,
+                serviceName,
+                description,
+                endpoint,
+                keyId,
+                keyValue,
+                _csrf
+            ) {
+                return new Promise((resolve, reject) => {
+                    reject({
+                        statusCode: 1,
+                        body: {
+                            message: 'test-error',
+                        },
+                    });
+                });
+            },
+            getService: function (
+                domainName,
+                serviceName,
+            ) {
+                return new Promise((resolve, reject) => {
+                    resolve();
+                });
+            },
+        };
+        const {
+            getByTestId,
+            querySelector,
+            getByText,
+            getAllByTestId,
+        } = render(
+            <AddService
+                onCancel={cancel}
+                domain={domain}
+                api={api}
+                showAddService={true}
+                pageConfig={pageConfig}
+            />
+        );
+        const addServiceInput = await waitForElement(() =>
+            getAllByTestId('input-node')
+        );
+        fireEvent.change(addServiceInput[0], {
+            target: {
+                value: 'test-name',
+            },
+        });
+        fireEvent.change(addServiceInput[1], {
+            target: {
+                value: 'test-key',
+            },
+        });
+        fireEvent.click(await waitForElement(() => getByText('Submit')));
+        expect(
+            await waitForElement(() => getByTestId('error-message'))
+        ).toMatchSnapshot();
+    });
+
+    it('should render error when after getService throws error(other)', async () => {
+        const cancel = function () {
+        };
+        const domain = 'domain';
+        const api = {
+            addService: function (
+                domainName,
+                serviceName,
+                description,
+                endpoint,
+                keyId,
+                keyValue,
+                _csrf
+            ) {
+                return new Promise((resolve, reject) => {
+                    reject({
+                        statusCode: 1,
+                        body: {
+                            message: 'test-error',
+                        },
+                    });
+                });
+            },
+            getService: function (
+                domainName,
+                serviceName,
+            ) {
+                return new Promise((resolve, reject) => {
+                    reject({
+                        statusCode: 0,
+                    });
+                });
+            },
+        };
+        const {
+            getByTestId,
+            querySelector,
+            getByText,
+            getAllByTestId,
+        } = render(
+            <AddService
+                onCancel={cancel}
+                domain={domain}
+                api={api}
+                showAddService={true}
+                pageConfig={pageConfig}
+            />
+        );
+        const addServiceInput = await waitForElement(() =>
+            getAllByTestId('input-node')
+        );
+        fireEvent.change(addServiceInput[0], {
+            target: {
+                value: 'test-name',
+            },
+        });
+        fireEvent.change(addServiceInput[1], {
+            target: {
+                value: 'test-key',
+            },
+        });
         fireEvent.click(await waitForElement(() => getByText('Submit')));
         expect(
             await waitForElement(() => getByTestId('error-message'))
