@@ -72,6 +72,9 @@ describe('AddService', () => {
                 return new Promise((resolve, reject) => {
                     reject({
                         statusCode: 404,
+                        body: {
+                            message: 'test-error',
+                        },
                     });
                 });
             },
