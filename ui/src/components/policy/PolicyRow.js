@@ -46,6 +46,15 @@ const LeftMarginSpan = styled.span`
     verticalAlign：bottom；
 `;
 
+const StyledDiv = styled.div`
+    padding: 10px 0 10px 0;
+    width: 100%;
+`;
+
+const StyledTable = styled.table`
+    width: 100%;
+`;
+
 export default class PolicyRow extends React.Component {
     constructor(props) {
         super(props);
@@ -84,35 +93,64 @@ export default class PolicyRow extends React.Component {
         const arrowup = 'arrowhead-up-circle-solid';
         const arrowdown = 'arrowhead-down-circle';
 
-        rows.push(
-            <TrStyled key={this.state.name} data-testid='policy-row'>
-                <TdStyled align={left}>
-                    <LeftMarginSpan>
-                        <Icon
-                            icon={this.state.assertions ? arrowup : arrowdown}
-                            onClick={this.toggleAssertions}
-                            color={colors.icons}
-                            isLink
-                            size={'1.25em'}
-                            verticalAlign={'text-bottom'}
-                        />
-                    </LeftMarginSpan>
-                    {this.state.name}
-                </TdStyled>
-            </TrStyled>
-        );
         if (this.state.assertions) {
             rows.push(
-                <tr key={this.state.name + '-info'}>
-                    <PolicyRuleTable
-                        assertions={this.state.assertions}
-                        name={this.state.name}
-                        api={this.api}
-                        domain={this.props.domain}
-                        role={this.props.role}
-                        _csrf={this.props._csrf}
-                    />
-                </tr>
+                <TrStyled key={this.state.name} data-testid='policy-row'>
+                    <TdStyled align={left}>
+                        <StyledDiv>
+                            <LeftMarginSpan>
+                                <Icon
+                                    icon={
+                                        this.state.assertions
+                                            ? arrowup
+                                            : arrowdown
+                                    }
+                                    onClick={this.toggleAssertions}
+                                    color={colors.icons}
+                                    isLink
+                                    size={'1.25em'}
+                                    verticalAlign={'text-bottom'}
+                                />
+                            </LeftMarginSpan>
+                            {this.state.name}
+                        </StyledDiv>
+                        <StyledDiv>
+                            <PolicyRuleTable
+                                assertions={this.state.assertions}
+                                name={this.state.name}
+                                api={this.api}
+                                domain={this.props.domain}
+                                role={this.props.role}
+                                _csrf={this.props._csrf}
+                            />
+                        </StyledDiv>
+                    </TdStyled>
+                </TrStyled>
+            );
+            // rows.push(
+            //     <tr key={this.state.name + '-info'}>
+
+            //     </tr>
+            // );
+        } else {
+            rows.push(
+                <TrStyled key={this.state.name} data-testid='policy-row'>
+                    <TdStyled align={left}>
+                        <LeftMarginSpan>
+                            <Icon
+                                icon={
+                                    this.state.assertions ? arrowup : arrowdown
+                                }
+                                onClick={this.toggleAssertions}
+                                color={colors.icons}
+                                isLink
+                                size={'1.25em'}
+                                verticalAlign={'text-bottom'}
+                            />
+                        </LeftMarginSpan>
+                        {this.state.name}
+                    </TdStyled>
+                </TrStyled>
             );
         }
         return rows;

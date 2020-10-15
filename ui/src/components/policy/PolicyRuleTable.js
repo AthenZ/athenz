@@ -231,59 +231,60 @@ export default class PolicyRuleTable extends React.Component {
             );
         }
         return (
-            <td colSpan={4} backgroundColor={'black'} data-testid='ruletable'>
-                <StyleTable data-testid='ruledetailstable'>
-                    <tbody>
-                        <tr>
-                            <TableHeadStyled
-                                align={left}
-                                size={'16px'}
-                                weight={600}
-                                color={'#303030'}
-                            >
-                                Rule Details({this.props.assertions.length})
-                            </TableHeadStyled>
-                            <TableHeadStyled
-                                align={right}
-                                color={'#3570F4'}
-                                weight={300}
-                                size={'14px'}
-                                onClick={this.toggleAddAssertion}
-                            >
-                                <StyledAnchor>Add rule</StyledAnchor>
-                            </TableHeadStyled>
-                        </tr>
-                        <tr>
-                            <td colSpan={4}>{addAssertion}</td>
-                        </tr>
-                        <tr>
-                            <td colSpan={4}>
-                                <TableDiv>
-                                    <StyleTable>
-                                        <thead>
-                                            <tr>
-                                                <RuleHeadStyled>
-                                                    Effect
-                                                </RuleHeadStyled>
-                                                <RuleHeadStyled>
-                                                    Action
-                                                </RuleHeadStyled>
-                                                <RuleHeadStyled>
-                                                    Role
-                                                </RuleHeadStyled>
-                                                <RuleHeadStyled>
-                                                    Resource
-                                                </RuleHeadStyled>
-                                                <IconHeadStyled />
-                                            </tr>
-                                        </thead>
-                                        <tbody>{rows}</tbody>
-                                    </StyleTable>
-                                </TableDiv>
-                            </td>
-                        </tr>
-                    </tbody>
-                </StyleTable>
+            <StyleTable
+                key={this.props.name + '-info'}
+                data-testid='ruledetailstable'
+            >
+                <tbody>
+                    <tr>
+                        <TableHeadStyled
+                            align={left}
+                            size={'16px'}
+                            weight={600}
+                            color={'#303030'}
+                        >
+                            Rule Details({this.props.assertions.length})
+                        </TableHeadStyled>
+                        <TableHeadStyled
+                            align={right}
+                            color={'#3570F4'}
+                            weight={300}
+                            size={'14px'}
+                            onClick={this.toggleAddAssertion}
+                        >
+                            <StyledAnchor>Add rule</StyledAnchor>
+                        </TableHeadStyled>
+                    </tr>
+                    <tr>
+                        <td colSpan={4}>{addAssertion}</td>
+                    </tr>
+                    <tr>
+                        <td colSpan={4}>
+                            <TableDiv>
+                                <StyleTable>
+                                    <thead>
+                                        <tr>
+                                            <RuleHeadStyled>
+                                                Effect
+                                            </RuleHeadStyled>
+                                            <RuleHeadStyled>
+                                                Action
+                                            </RuleHeadStyled>
+                                            <RuleHeadStyled>
+                                                Role
+                                            </RuleHeadStyled>
+                                            <RuleHeadStyled>
+                                                Resource
+                                            </RuleHeadStyled>
+                                            <IconHeadStyled />
+                                        </tr>
+                                    </thead>
+                                    <tbody>{rows}</tbody>
+                                </StyleTable>
+                            </TableDiv>
+                        </td>
+                    </tr>
+                </tbody>
                 {this.state.showSuccess ? (
                     <Alert
                         isOpen={this.state.showSuccess}
@@ -304,7 +305,7 @@ export default class PolicyRuleTable extends React.Component {
                         }
                     />
                 ) : null}
-            </td>
+            </StyleTable>
         );
     }
 }
