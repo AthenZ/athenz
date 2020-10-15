@@ -26,6 +26,10 @@ class NameUtils {
         resource = resource.trim();
         return resource.includes(':') ? resource : `${domainId}:${resource}`;
     }
+
+    static getFlatPickrKey(key) {
+        return key.replace(/\./g, '_').replace(/\W/g, '_');
+    }
 }
 
 export default NameUtils;
