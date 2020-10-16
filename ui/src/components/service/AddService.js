@@ -68,9 +68,7 @@ export default class AddService extends React.Component {
                         )
                         .then(() => {
                             this.setState({ showModal: false });
-                            this.props.onSubmit(
-                                `Successfully created service ${this.state.name}`
-                            );
+                            this.props.onSubmit(`${this.state.name}`, false);
                         })
                         .catch((err) => {
                             this.setState({

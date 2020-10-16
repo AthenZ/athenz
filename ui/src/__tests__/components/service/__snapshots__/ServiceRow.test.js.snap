@@ -1,6 +1,76 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`ServiceRow should render 1`] = `
+exports[`ServiceRow should render keys on click of key 1`] = `
+.emotion-0 {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+<div
+  class="emotion-0"
+>
+  Details
+</div>
+`;
+
+exports[`ServiceRow should render keys on click of key 2`] = `
+<span>
+  This is a service
+</span>
+`;
+
+exports[`ServiceRow should render keys on click of key 3`] = `
+.emotion-0 {
+  color: #303030;
+  font-weight: 600;
+  -webkit-flex: 1 1 100%;
+  -ms-flex: 1 1 100%;
+  flex: 1 1 100%;
+  margin-bottom: 5px;
+}
+
+<div
+  class="emotion-0"
+>
+  Public Key Version: 
+  0
+</div>
+`;
+
+exports[`ServiceRow should render keys on click of key 4`] = `
+.emotion-0 {
+  color: #303030;
+  font-weight: 600;
+  -webkit-flex: 1 1 100%;
+  -ms-flex: 1 1 100%;
+  flex: 1 1 100%;
+  margin-bottom: 5px;
+}
+
+<div
+  class="emotion-0"
+>
+  Public Key Version: 
+  1
+</div>
+`;
+
+exports[`ServiceRow should render providers on click of cloud 1`] = `
+.emotion-0 {
+  text-align: left;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+<td
+  class="emotion-0"
+>
+  AWS EC2/EKS/Fargate launches instances for the service
+</td>
+`;
+
+exports[`ServiceRow should render row 1`] = `
 .emotion-2 {
   fill: #188fff;
   cursor: pointer;
@@ -22,6 +92,7 @@ exports[`ServiceRow should render 1`] = `
 }
 
 <tr
+  class="emotion-8"
   data-testid="service-row"
 >
   <td
@@ -97,74 +168,4 @@ exports[`ServiceRow should render 1`] = `
     </svg>
   </td>
 </tr>
-`;
-
-exports[`ServiceRow should render keys on click of key 1`] = `
-.emotion-0 {
-  font-size: 16px;
-  font-weight: 600;
-}
-
-<div
-  class="emotion-0"
->
-  Details
-</div>
-`;
-
-exports[`ServiceRow should render keys on click of key 2`] = `
-<span>
-  This is a service
-</span>
-`;
-
-exports[`ServiceRow should render keys on click of key 3`] = `
-.emotion-0 {
-  color: #303030;
-  font-weight: 600;
-  -webkit-flex: 1 1 100%;
-  -ms-flex: 1 1 100%;
-  flex: 1 1 100%;
-  margin-bottom: 5px;
-}
-
-<div
-  class="emotion-0"
->
-  Public Key Version: 
-  0
-</div>
-`;
-
-exports[`ServiceRow should render keys on click of key 4`] = `
-.emotion-0 {
-  color: #303030;
-  font-weight: 600;
-  -webkit-flex: 1 1 100%;
-  -ms-flex: 1 1 100%;
-  flex: 1 1 100%;
-  margin-bottom: 5px;
-}
-
-<div
-  class="emotion-0"
->
-  Public Key Version: 
-  1
-</div>
-`;
-
-exports[`ServiceRow should render providers on click of cloud 1`] = `
-.emotion-0 {
-  text-align: left;
-  padding: 5px 0 5px 15px;
-  vertical-align: middle;
-  word-break: break-all;
-}
-
-<td
-  class="emotion-0"
->
-  AWS EC2/EKS/Fargate launches instances for the service
-</td>
 `;

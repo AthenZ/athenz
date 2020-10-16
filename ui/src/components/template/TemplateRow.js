@@ -133,21 +133,16 @@ export default class TemplateRow extends React.Component {
                     {templateName}
                 </TdStyled>
                 <TdStyled color={color} align={center}>
-                    <Menu
-                        placement='bottom-start'
-                        trigger={
-                            <span>
-                                <Icon
-                                    icon={'information-circle'}
-                                    onClick={this.toggleDescription}
-                                    color={colors.icons}
-                                    isLink
-                                    size={'1.25em'}
-                                    verticalAlign={'text-bottom'}
-                                />
-                            </span>
-                        }
-                    ></Menu>
+                    <span>
+                        <Icon
+                            icon={'information-circle'}
+                            onClick={this.toggleDescription}
+                            color={colors.icons}
+                            isLink
+                            size={'1.25em'}
+                            verticalAlign={'text-bottom'}
+                        />
+                    </span>
                 </TdStyled>
                 <TdStyled color={color} align={center}>
                     {currentVersion}
