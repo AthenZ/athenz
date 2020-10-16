@@ -150,10 +150,7 @@ export default class ServiceList extends React.Component {
         const center = 'center';
         const rows = this.state.list.map((item, i) => {
             const serviceName = NameUtils.getShortName('.', item.name);
-            let newService = false;
-            if (serviceName === this.state.successMessage) {
-                newService = true;
-            }
+            let newService = serviceName === this.state.successMessage;
             let onClickDeleteService = this.onClickDeleteService.bind(
                 this,
                 serviceName
