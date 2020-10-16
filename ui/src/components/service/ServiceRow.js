@@ -42,8 +42,8 @@ const colorTransition = keyframes`
 
 const TrStyled = styled.tr`
     ${(props) =>
-    props.isSuccess === true &&
-    css`
+        props.isSuccess === true &&
+        css`
             animation: ${colorTransition} 3s ease;
         `}
 `;
