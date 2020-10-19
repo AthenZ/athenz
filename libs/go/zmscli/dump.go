@@ -30,6 +30,7 @@ func (cli Zms) dumpDomain(buf *bytes.Buffer, domain *zms.Domain) {
 	dumpInt32Value(buf, indentLevel1, "product_id", domain.YpmId)
 	dumpStringValue(buf, indentLevel1, "org", string(domain.Org))
 	dumpBoolValue(buf, indentLevel1, "audit_enabled", domain.AuditEnabled)
+	dumpStringValue(buf, indentLevel1, "user_authority_filter", domain.UserAuthorityFilter)
 	dumpInt32Value(buf, indentLevel1, "member_expiry_days", domain.MemberExpiryDays)
 	dumpInt32Value(buf, indentLevel1, "service_expiry_days", domain.ServiceExpiryDays)
 	dumpInt32Value(buf, indentLevel1, "token_expiry_mins", domain.TokenExpiryMins)
