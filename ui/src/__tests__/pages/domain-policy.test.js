@@ -15,9 +15,9 @@
  */
 import React from 'react';
 import { render } from '@testing-library/react';
-import DomainPolicyPage from '../../pages/domain-policy';
+import PolicyPage from '../../pages/domain-policy';
 
-describe('DomainPolicyPage', () => {
+describe('PolicyPage', () => {
     it('should render', () => {
         const query = {
             domain: 'dom',
@@ -48,7 +48,7 @@ describe('DomainPolicyPage', () => {
             ],
         };
         const { getByTestId } = render(
-            <DomainPolicyPage
+            <PolicyPage
                 domains={domains}
                 req='req'
                 userId={userId}

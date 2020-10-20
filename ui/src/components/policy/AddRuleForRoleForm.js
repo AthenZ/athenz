@@ -62,7 +62,7 @@ const ErrorDiv = styled.div`
     margin-left: 155px;
 `;
 
-export default class AddRuleForm extends React.Component {
+export default class AddRuleForRoleForm extends React.Component {
     constructor(props) {
         super(props);
         this.api = props.api;

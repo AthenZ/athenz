@@ -106,9 +106,8 @@ export default class MemberTable extends React.Component {
     }
 
     expandMembers() {
-        let expanded = this.state.expanded;
         this.setState({
-            expanded: !expanded,
+            expanded: !this.state.expanded,
         });
     }
 

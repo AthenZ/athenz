@@ -17,22 +17,16 @@ import React from 'react';
 import styled from '@emotion/styled';
 import Icon from '../denali/icons/Icon';
 import { colors } from '../denali/styles';
-import AddAssertion from '../policy/AddAssertion';
+import AddAssertion from './AddAssertion';
 import Alert from '../denali/Alert';
 import DeleteModal from '../modal/DeleteModal';
 import { MODAL_TIME_OUT } from '../constants/constants';
 import RequestUtils from '../utils/RequestUtils';
-
 const StyleTable = styled.table`
     width: 100%;
     border-spacing: 0;
     display: table;
     border-collapse: separate;
-`;
-
-const StyleTd = styled.td`
-    padding: 30px 20px;
-    background-color: ${(props) => props.color};
 `;
 
 const RuleHeadStyled = styled.th`
@@ -91,7 +85,7 @@ const StyledAnchor = styled.a`
     cursor: pointer;
 `;
 
-export default class PolicyRuleTable extends React.Component {
+export default class RolePolicyRuleTable extends React.Component {
     constructor(props) {
         super(props);
         this.toggleAddAssertion = this.toggleAddAssertion.bind(this);
@@ -192,21 +186,25 @@ export default class PolicyRuleTable extends React.Component {
                 assertion.role,
                 assertion.id
             );
+            let color = '';
+            if (i % 2 === 0) {
+                color = colors.row;
+            }
             rows.push(
                 <tr key={this.props.name + i + '-assertion'}>
-                    <TDStyled color={'white'} align={left}>
+                    <TDStyled color={color} align={left}>
                         {assertion.effect}
                     </TDStyled>
-                    <TDStyled color={'white'} align={left}>
+                    <TDStyled color={color} align={left}>
                         {assertion.action}
                     </TDStyled>
-                    <TDStyled color={'white'} align={left}>
+                    <TDStyled color={color} align={left}>
                         {assertion.role}
                     </TDStyled>
-                    <TDStyled color={'white'} align={left}>
+                    <TDStyled color={color} align={left}>
                         {assertion.resource}
                     </TDStyled>
-                    <TDStyled color={'white'} align={center}>
+                    <TDStyled color={color} align={center}>
                         <Icon
                             icon={'trash'}
                             onClick={onClickDeleteAssertion}
@@ -233,63 +231,60 @@ export default class PolicyRuleTable extends React.Component {
             );
         }
         return (
-            <StyleTd
-                colSpan={4}
-                backgroundColor={'black'}
-                data-testid='ruletable'
+            <StyleTable
+                key={this.props.name + '-info'}
+                data-testid='ruledetailstable'
             >
-                <StyleTable data-testid='ruledetailstable'>
-                    <tbody>
-                        <tr>
-                            <TableHeadStyled
-                                align={left}
-                                size={'16px'}
-                                weight={600}
-                                color={'#303030'}
-                            >
-                                Rule Details({this.props.assertions.length})
-                            </TableHeadStyled>
-                            <TableHeadStyled
-                                align={right}
-                                color={'#3570F4'}
-                                weight={300}
-                                size={'14px'}
-                                onClick={this.toggleAddAssertion}
-                            >
-                                <StyledAnchor>Add rule</StyledAnchor>
-                            </TableHeadStyled>
-                        </tr>
-                        <tr>
-                            <td colSpan={4}>{addAssertion}</td>
-                        </tr>
-                        <tr>
-                            <td colSpan={4}>
-                                <TableDiv>
-                                    <StyleTable>
-                                        <thead>
-                                            <tr>
-                                                <RuleHeadStyled>
-                                                    Effect
-                                                </RuleHeadStyled>
-                                                <RuleHeadStyled>
-                                                    Action
-                                                </RuleHeadStyled>
-                                                <RuleHeadStyled>
-                                                    Role
-                                                </RuleHeadStyled>
-                                                <RuleHeadStyled>
-                                                    Resource
-                                                </RuleHeadStyled>
-                                                <IconHeadStyled />
-                                            </tr>
-                                        </thead>
-                                        <tbody>{rows}</tbody>
-                                    </StyleTable>
-                                </TableDiv>
-                            </td>
-                        </tr>
-                    </tbody>
-                </StyleTable>
+                <tbody>
+                    <tr>
+                        <TableHeadStyled
+                            align={left}
+                            size={'16px'}
+                            weight={600}
+                            color={'#303030'}
+                        >
+                            Rule Details({this.props.assertions.length})
+                        </TableHeadStyled>
+                        <TableHeadStyled
+                            align={right}
+                            color={'#3570F4'}
+                            weight={300}
+                            size={'14px'}
+                            onClick={this.toggleAddAssertion}
+                        >
+                            <StyledAnchor>Add rule</StyledAnchor>
+                        </TableHeadStyled>
+                    </tr>
+                    <tr>
+                        <td colSpan={4}>{addAssertion}</td>
+                    </tr>
+                    <tr>
+                        <td colSpan={4}>
+                            <TableDiv>
+                                <StyleTable>
+                                    <thead>
+                                        <tr>
+                                            <RuleHeadStyled>
+                                                Effect
+                                            </RuleHeadStyled>
+                                            <RuleHeadStyled>
+                                                Action
+                                            </RuleHeadStyled>
+                                            <RuleHeadStyled>
+                                                Role
+                                            </RuleHeadStyled>
+                                            <RuleHeadStyled>
+                                                Resource
+                                            </RuleHeadStyled>
+                                            <IconHeadStyled />
+                                        </tr>
+                                    </thead>
+                                    <tbody>{rows}</tbody>
+                                </StyleTable>
+                            </TableDiv>
+                        </td>
+                    </tr>
+                </tbody>
                 {this.state.showSuccess ? (
                     <Alert
                         isOpen={this.state.showSuccess}
@@ -310,7 +305,7 @@ export default class PolicyRuleTable extends React.Component {
                         }
                     />
                 ) : null}
-            </StyleTd>
+            </StyleTable>
         );
     }
 }

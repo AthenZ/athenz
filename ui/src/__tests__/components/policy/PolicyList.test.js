@@ -14,29 +14,14 @@
  * limitations under the License.
  */
 import React from 'react';
-import styled from '@emotion/styled';
+import { render } from '@testing-library/react';
+import PolicyList from '../../../components/policy/PolicyList';
 
-const StyleTableSub = styled.table`
-    width: 100%;
-    border-spacing: 0;
-    display: table;
-    border-collapse: separate;
-    border-color: grey;
-`;
+describe('PolicyList', () => {
+    it('should render', () => {
+        const { getByTestId } = render(<PolicyList />);
+        const policylist = getByTestId('policylist');
 
-const TdStyled = styled.td`
-    colspan: '1';
-`;
-
-export default class RoleSectionTable extends React.Component {
-    constructor(props) {
-        super(props);
-    }
-    render() {
-        return (
-            <TdStyled colSpan={8} data-testid='rolesectiontable'>
-                <StyleTableSub>{this.props.children}</StyleTableSub>
-            </TdStyled>
-        );
-    }
-}
+        expect(policylist).toMatchSnapshot();
+    });
+});

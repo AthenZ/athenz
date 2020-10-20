@@ -376,7 +376,7 @@ exports[`HistoryList should render 1`] = `
           value="2019-10-20 07:51"
         />
         <input
-          class="fp-startDate form-control input"
+          class=" form-control input"
           placeholder="Start Date (Optional)"
           readonly="readonly"
           tabindex="0"
@@ -399,7 +399,7 @@ exports[`HistoryList should render 1`] = `
           value="2020-01-20 07:55"
         />
         <input
-          class="fp-endDate form-control input"
+          class=" form-control input"
           placeholder="End Date (Optional)"
           readonly="readonly"
           tabindex="0"

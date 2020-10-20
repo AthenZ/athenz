@@ -15,25 +15,28 @@
  */
 import React from 'react';
 import { render } from '@testing-library/react';
-import DeleteModal from '../../../components/modal/DeleteModal';
+import PolicyRow from '../../../components/policy/PolicyRow';
+import { colors } from '../../../components/denali/styles';
 
-describe('DeleteModal', () => {
+describe('PolicyRow', () => {
     it('should render', () => {
-        const isOpen = true;
-        const cancel = function() {};
-        const message = 'test';
-        const name = 'name';
-        const submit = function() {};
+        const color = colors.row;
+        const name = 'sections';
+        const api = {
+            getPolicy(domain) {
+                return new Promise((resolve, reject) => {
+                    resolve(['a, b']);
+                });
+            },
+        };
         const { getByTestId } = render(
-            <DeleteModal
-                isOpen={isOpen}
-                cancel={cancel}
-                message={message}
-                name={name}
-                submit={submit}
-            />
+            <table>
+                <tbody>
+                    <PolicyRow name={name} color={color} api={api} />
+                </tbody>
+            </table>
         );
-        const deleteModalMessage = getByTestId('delete-modal-message');
-        expect(deleteModalMessage).toMatchSnapshot();
+        const domainPolicyRow = getByTestId('policy-row');
+        expect(domainPolicyRow).toMatchSnapshot();
     });
 });

@@ -30,29 +30,7 @@ const TdStyled = styled.td`
 `;
 
 const TrStyled = styled.tr`
-    box-sizing: border-box;
-    margin-top: 10px;
-    box-shadow: 0 1px 4px #d9d9d9;
-    border: 1px solid #fff;
-    -webkit-border-image: none;
-    border-image: none;
-    -webkit-border-image: initial;
-    border-image: initial;
-    height: 50px;
-`;
-
-const LeftMarginSpan = styled.span`
-    margin-right: 10px;
-    verticalAlign：bottom；
-`;
-
-const StyledDiv = styled.div`
-    padding: 10px 0 10px 0;
-    width: 100%;
-`;
-
-const StyledTable = styled.table`
-    width: 100%;
+    background-color: ${(props) => props.color};
 `;
 
 export default class PolicyRow extends React.Component {
@@ -90,66 +68,56 @@ export default class PolicyRow extends React.Component {
     render() {
         let rows = [];
         let left = 'left';
-        const arrowup = 'arrowhead-up-circle-solid';
-        const arrowdown = 'arrowhead-down-circle';
-
+        let center = 'center';
+        rows.push(
+            <tr key={this.state.name} data-testid='policy-row'>
+                <TdStyled color={this.props.color} align={left}>
+                    {this.state.name}
+                </TdStyled>
+                <TdStyled color={this.props.color} align={left}>
+                    {this.localDate.getLocalDate(
+                        this.props.modified,
+                        'UTC',
+                        'UTC'
+                    )}
+                </TdStyled>
+                <TdStyled color={this.props.color} align={center}>
+                    <Icon
+                        icon={'list-check'}
+                        onClick={this.toggleAssertions}
+                        color={colors.icons}
+                        isLink
+                        size={'1.25em'}
+                        verticalAlign={'text-bottom'}
+                    />
+                </TdStyled>
+                <TdStyled color={this.props.color} align={center}>
+                    <Icon
+                        icon={'trash'}
+                        onClick={this.props.onClickDeletePolicy}
+                        color={colors.icons}
+                        isLink
+                        size={'1.25em'}
+                        verticalAlign={'text-bottom'}
+                    />
+                </TdStyled>
+            </tr>
+        );
         if (this.state.assertions) {
             rows.push(
-                <TrStyled key={this.state.name} data-testid='policy-row'>
-                    <TdStyled align={left}>
-                        <StyledDiv>
-                            <LeftMarginSpan>
-                                <Icon
-                                    icon={
-                                        this.state.assertions
-                                            ? arrowup
-                                            : arrowdown
-                                    }
-                                    onClick={this.toggleAssertions}
-                                    color={colors.icons}
-                                    isLink
-                                    size={'1.25em'}
-                                    verticalAlign={'text-bottom'}
-                                />
-                            </LeftMarginSpan>
-                            {this.state.name}
-                        </StyledDiv>
-                        <StyledDiv>
-                            <PolicyRuleTable
-                                assertions={this.state.assertions}
-                                name={this.state.name}
-                                api={this.api}
-                                domain={this.props.domain}
-                                role={this.props.role}
-                                _csrf={this.props._csrf}
-                            />
-                        </StyledDiv>
-                    </TdStyled>
-                </TrStyled>
-            );
-            // rows.push(
-            //     <tr key={this.state.name + '-info'}>
-
-            //     </tr>
-            // );
-        } else {
-            rows.push(
-                <TrStyled key={this.state.name} data-testid='policy-row'>
-                    <TdStyled align={left}>
-                        <LeftMarginSpan>
-                            <Icon
-                                icon={
-                                    this.state.assertions ? arrowup : arrowdown
-                                }
-                                onClick={this.toggleAssertions}
-                                color={colors.icons}
-                                isLink
-                                size={'1.25em'}
-                                verticalAlign={'text-bottom'}
-                            />
-                        </LeftMarginSpan>
-                        {this.state.name}
-                    </TdStyled>
+                <TrStyled
+                    color={this.props.color}
+                    key={this.state.name + '-info'}
+                >
+                    <PolicyRuleTable
+                        color={this.props.color}
+                        assertions={this.state.assertions}
+                        name={this.state.name}
+                        api={this.api}
+                        domain={this.props.domain}
+                        role={this.props.role}
+                        _csrf={this.props._csrf}
+                    />
                 </TrStyled>
             );
         }

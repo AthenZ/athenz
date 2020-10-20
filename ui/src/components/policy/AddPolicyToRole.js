@@ -18,7 +18,7 @@ import AddModal from '../modal/AddModal';
 import AddRuleForRoleForm from './AddRuleForRoleForm';
 import RequestUtils from '../utils/RequestUtils';
 
-export default class AddPolicy extends React.Component {
+export default class AddPolicyToRole extends React.Component {
     constructor(props) {
         super(props);
         this.api = this.props.api;

@@ -80,7 +80,6 @@ export default class RoleHistoryPage extends React.Component {
             api.getHeaderDetails(),
             api.getDomain(props.query.domain),
             api.getRole(props.query.domain, props.query.role, true, true, true),
-            api.getHistory(props.query.domain, props.query.role, null, null),
             api.getPendingDomainRoleMembersList(),
             api.getForm(),
         ]).catch((err) => {
@@ -101,9 +100,9 @@ export default class RoleHistoryPage extends React.Component {
             domainDeails: historyData[2],
             auditEnabled: historyData[2].auditEnabled,
             roleDetails: historyData[3],
-            historyrows: historyData[4],
-            pending: historyData[5],
-            _csrf: historyData[6],
+            historyrows: historyData[3].auditLog,
+            pending: historyData[4],
+            _csrf: historyData[5],
         };
     }
 

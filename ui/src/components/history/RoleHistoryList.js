@@ -17,11 +17,9 @@ import React from 'react';
 import styled from '@emotion/styled';
 import { colors } from '../denali/styles';
 import Button from '../denali/Button';
-import InputDropdown from '../denali/InputDropdown';
 import FlatPicker from '../flatpicker/FlatPicker';
-import NameUtils from '../utils/NameUtils';
-import Alert from '../denali/Alert';
 import Menu from '../denali/Menu/Menu';
+import Alert from '../denali/Alert';
 import { MODAL_TIME_OUT } from '../constants/constants';
 import DateUtils from '../utils/DateUtils';
 const HistorySectionDiv = styled.div`
@@ -127,25 +125,28 @@ export default class RoleHistoryList extends React.Component {
         let result = '';
         const columnDelimiter = ',',
             lineDelimiter = '\n';
-        result += 'ACTION,EXECUTED BY,MODIFIED DATE,DETAILS,AUDIT REFERENCE';
+        result += 'ACTION,EXECUTED BY,MODIFIED DATE,MEMBERS,AUDIT REFERENCE';
         result += lineDelimiter;
 
         this.state.list.forEach((item) => {
             result +=
                 item.action +
                 columnDelimiter +
-                item.who +
+                item.adminFullName +
                 columnDelimiter +
-                item.when +
+                item.created +
                 columnDelimiter +
-                item.details +
+                item.memberFullName +
                 columnDelimiter +
-                item.why;
+                item.auditRef;
             result += lineDelimiter;
         });
 
         // Download CSV file
-        this.downloadCSV(result, this.props.domain + '-audit-history.csv');
+        this.downloadCSV(
+            result,
+            this.props.domain + this.props.role + '-role-audit-history.csv'
+        );
     }
 
     downloadCSV(csv, filename) {
@@ -204,13 +205,7 @@ export default class RoleHistoryList extends React.Component {
             return;
         }
         this.api
-            .getHistory(
-                this.props.domain,
-                this.props.role,
-                this.state.startDate,
-                this.state.endDate,
-                this.props._csrf
-            )
+            .getRole(this.props.domain, this.props.role, true, true, true)
             .then((data) => {
                 let successMsg = `Filtered history records for role ${this.props.role} below. `;
                 let alertType = 'success';
@@ -218,8 +213,19 @@ export default class RoleHistoryList extends React.Component {
                     successMsg = `No history records for role ${this.props.role} found. `;
                     alertType = 'warning';
                 }
+                let historyRows = data.auditLog.filter(
+                    (item) =>
+                        item.created >=
+                            this.dateUtils.uxDatetimeToRDLTimestamp(
+                                this.state.startDate
+                            ) &&
+                        item.created <=
+                            this.dateUtils.uxDatetimeToRDLTimestamp(
+                                this.state.endDate
+                            )
+                );
                 this.setState({
-                    list: data,
+                    list: historyRows,
                     showSuccess: true,
                     successMessage: successMsg,
                     alertType: alertType,
@@ -248,14 +254,13 @@ export default class RoleHistoryList extends React.Component {
                         {item.action}
                     </TDStyled>
                     <TDStyled color={color} align={left}>
-                        {item.whatEntity}
-                    </TDStyled>
-                    <TDStyled color={color} align={left}>
                         <Menu
                             placement='bottom-start'
                             trigger={
                                 <span>
-                                    {item.whoFull ? item.whoFull : item.who}
+                                    {item.adminFullName
+                                        ? item.adminFullName
+                                        : item.admin}
                                 </span>
                             }
                         >
@@ -263,13 +268,30 @@ export default class RoleHistoryList extends React.Component {
                         </Menu>
                     </TDStyled>
                     <TDStyled color={color} align={left}>
-                        {this.dateUtils.getLocalDate(item.when, 'UTC', 'UTC')}
+                        {this.dateUtils.getLocalDate(
+                            item.created,
+                            'UTC',
+                            'UTC'
+                        )}
                     </TDStyled>
                     <TDStyled color={color} align={left}>
-                        {item.details}
+                        <Menu
+                            placement='bottom-start'
+                            trigger={
+                                <span>
+                                    {item.memberFullName
+                                        ? item.memberFullName
+                                        : item.member}
+                                </span>
+                            }
+                        >
+                            <MenuDiv>{item.member}</MenuDiv>
+                        </Menu>
                     </TDStyled>
                     <TDStyled color={color} align={left}>
-                        {item.why}
+                        {item.auditRef && item.auditRef !== 'undefined'
+                            ? item.auditRef
+                            : ''}
                     </TDStyled>
                 </tr>
             );
@@ -336,10 +358,10 @@ export default class RoleHistoryList extends React.Component {
                                 MODIFIED DATE
                             </TableHeadStyled>
                             <TableHeadStyled align={left}>
-                                DETAILS
+                                MEMBERS
                             </TableHeadStyled>
                             <TableHeadStyled align={left}>
-                                JUSTIFICATION
+                                AUDIT REFERENCE
                             </TableHeadStyled>
                         </tr>
                     </thead>

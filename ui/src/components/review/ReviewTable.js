@@ -65,9 +65,8 @@ export default class ReviewTable extends React.Component {
 
         if (this.props.members && this.props.members.length > 0) {
             rows = this.props.members
-                .filter((item) => item.approved === false)
                 .sort((a, b) => {
-                    return a.name.localeCompare(b.memberName);
+                    return a.memberName.localeCompare(b.memberName);
                 })
                 .map((item, i) => {
                     return (
@@ -100,14 +99,9 @@ export default class ReviewTable extends React.Component {
                             Name of User
                         </TableHeadStyled>
                         <TableHeadStyled align={left}>
-                            Review By Date
+                            Expiration Date
                         </TableHeadStyled>
-                        <TableHeadStyled align={left}>
-                            Review Last Notified Date
-                        </TableHeadStyled>
-                        <TableHeadStyled align={center}>
-                            Approve
-                        </TableHeadStyled>
+                        <TableHeadStyled align={center}>Extend</TableHeadStyled>
                         <TableHeadStyled align={center}>Deny</TableHeadStyled>
                     </tr>
                 </thead>

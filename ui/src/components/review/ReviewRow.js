@@ -205,18 +205,9 @@ export default class ReviewRow extends React.Component {
                     {member.memberFullName}
                 </TDStyled>
                 <TDStyled color={color} align={left}>
-                    {member.reviewReminder
+                    {member.expiration
                         ? this.localDate.getLocalDate(
-                              member.reviewReminder,
-                              'UTC',
-                              'UTC'
-                          )
-                        : 'N/A'}
-                </TDStyled>
-                <TDStyled color={color} align={left}>
-                    {member.reviewLastNotifiedTime
-                        ? this.localDate.getLocalDate(
-                              member.reviewLastNotifiedTime,
+                              member.expiration,
                               'UTC',
                               'UTC'
                           )

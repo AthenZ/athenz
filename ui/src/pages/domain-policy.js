@@ -22,7 +22,7 @@ import Head from 'next/head';
 // there is an issue with next-link and next-css if the css is not present then it doesnt load so adding this
 import 'flatpickr/dist/themes/light.css';
 import DomainDetails from '../components/header/DomainDetails';
-import DomainPolicyList from '../components/domain-policy/DomainPolicyList';
+import PolicyList from '../components/policy/PolicyList';
 import RequestUtils from '../components/utils/RequestUtils';
 import Tabs from '../components/header/Tabs';
 import Error from './_error';
@@ -144,7 +144,7 @@ export default class DomainPolicyPage extends React.Component {
                                         selectedName={'policies'}
                                     />
                                 </PageHeaderDiv>
-                                <DomainPolicyList
+                                <PolicyList
                                     api={this.api}
                                     domain={domain}
                                     policies={policies}

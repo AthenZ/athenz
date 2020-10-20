@@ -112,7 +112,7 @@ export default class AddMember extends React.Component {
     }
 
     onSubmit() {
-        if (!this.state.memberName || this.state.memberName === '') {
+        if (!this.state.memberName || this.state.memberName.trim() === '') {
             this.setState({
                 errorMessage: 'Member name is required.',
             });
@@ -194,7 +194,7 @@ export default class AddMember extends React.Component {
                                 this,
                                 'memberName'
                             )}
-                            placeholder='user.<shortid> or <domain>.<service>'
+                            placeholder='user.<shortid> or <domain>.<service> or unix.<group>'
                         />
                         <FlatPickrInputDiv>
                             <FlatPicker

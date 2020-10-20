@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`DomainPolicyPage should render 1`] = `
+exports[`PolicyPage should render 1`] = `
 .emotion-11 {
   -webkit-align-items: center;
   -webkit-box-align: center;
