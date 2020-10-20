@@ -26,6 +26,7 @@ import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.cert.InstanceCertManager;
 import com.yahoo.athenz.zts.store.DataStore;
 import com.yahoo.rdl.Timestamp;
+import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,9 +77,7 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
     @Override
     public List<Notification> getNotifications() {
         if (providers == null || providers.isEmpty()) {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("No configured providers");
-            }
+            LOGGER.warn("No configured providers. Notifications will not be sent.");
             return new ArrayList<>();
         }
 
@@ -87,26 +86,22 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
             unrefreshedCerts.addAll(instanceCertManager.getUnrefreshedCertsNotifications(serverName, provider));
         }
         if (unrefreshedCerts.isEmpty()) {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("No unrefreshed certificates available to send notifications");
-            }
+            LOGGER.info("No unrefreshed certificates available to send notifications");
             return new ArrayList<>();
         }
 
         List<X509CertRecord> unrefreshedCertsValidServices = getRecordsWithValidServices(unrefreshedCerts);
         if (unrefreshedCertsValidServices.isEmpty()) {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("No unrefreshed certificates with configured services available to send notifications");
-            }
+            LOGGER.info("No unrefreshed certificates with configured services available to send notifications");
             return new ArrayList<>();
         }
 
         List<X509CertRecord> unrefreshedCertsValidHosts = getRecordsWithValidHosts(unrefreshedCertsValidServices);
         if (unrefreshedCertsValidHosts.isEmpty()) {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("No unrefreshed certificates with valid hosts available to send notifications");
-            }
+            LOGGER.info("No unrefreshed certificates with valid hosts available to send notifications");
             return new ArrayList<>();
+        } else {
+            LOGGER.info("Number of valid certificate records that will receive notifications: " + unrefreshedCertsValidHosts.size());
         }
 
         Map<String, List<X509CertRecord>> domainToCertRecordsMap = getDomainToCertRecordsMap(unrefreshedCertsValidHosts);
@@ -138,8 +133,14 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
     }
 
     private List<X509CertRecord> getRecordsWithValidHosts(List<X509CertRecord> unrefreshedCerts) {
+        unrefreshedCerts.stream()
+                .filter(record -> StringUtil.isEmpty(record.getHostName()))
+                .peek(record -> LOGGER.warn("Record with empty hostName: " + record.toString()))
+                .collect(Collectors.toList());
+
+        // Filter all records with non existing hosts or hosts not recognized by DNS
         return unrefreshedCerts.stream()
-                    .filter(record -> hostnameResolver == null || hostnameResolver.isValidHostname(record.getHostName()))
+                    .filter(record -> !StringUtil.isEmpty(record.getHostName()) && (hostnameResolver == null || hostnameResolver.isValidHostname(record.getHostName())))
                     .collect(Collectors.toList());
     }
 
