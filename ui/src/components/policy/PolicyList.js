@@ -124,7 +124,7 @@ export default class PolicyList extends React.Component {
                                 NameUtils.getShortName(
                                     ':role.',
                                     element.role
-                                ) == role
+                                ) === role
                             ) {
                                 included = true;
                             }

@@ -101,7 +101,7 @@ export default class MemberTable extends React.Component {
         this.api = props.api;
 
         this.state = {
-            expanded: false,
+            expanded: true,
         };
     }
 
