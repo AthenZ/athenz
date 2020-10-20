@@ -258,7 +258,7 @@ public class CertFailedRefreshNotificationTaskTest {
             isValidHost = !isValidHost;
         }
 
-        // Make a 7th record with no host (but make it valid)
+        // Make a 7th record with no host (but make it valid). It shouldn't return
         X509CertRecord record = getMockX509CertRecord(currentDate, 7);
         record.setHostName(null);
         records.add(record);
@@ -275,11 +275,10 @@ public class CertFailedRefreshNotificationTaskTest {
                 httpsPort);
 
         List<Notification> notifications = certFailedRefreshNotificationTask.getNotifications();
-        assertEquals(4, notifications.size());
-        assertEquals("domain7", notifications.get(0).getDetails().get("domain"));
-        assertEquals("domain4", notifications.get(1).getDetails().get("domain"));
-        assertEquals("domain2", notifications.get(2).getDetails().get("domain"));
-        assertEquals("domain0", notifications.get(3).getDetails().get("domain"));
+        assertEquals(3, notifications.size());
+        assertEquals("domain4", notifications.get(0).getDetails().get("domain"));
+        assertEquals("domain2", notifications.get(1).getDetails().get("domain"));
+        assertEquals("domain0", notifications.get(2).getDetails().get("domain"));
 
         System.clearProperty(ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST);
     }
