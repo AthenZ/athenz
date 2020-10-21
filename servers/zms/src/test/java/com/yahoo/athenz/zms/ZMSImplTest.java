@@ -189,6 +189,9 @@ public class ZMSImplTest {
                 "uri1,uri2,uri3+uri4");
         System.setProperty(ZMSConsts.ZMS_PROP_AUDIT_REF_CHECK_OBJECTS,
                 "role,group,policy,service,domain,entity,tenancy,template");
+
+        System.setProperty(ZMSConsts.ZMS_PROP_PRINCIPAL_STATE_UPDATER_DISABLE_TIMER, "true");
+
         auditLogger = new DefaultAuditLogger();
 
         initializeZms();
@@ -291,7 +294,7 @@ public class ZMSImplTest {
     }
 
     private ZMSImpl getZmsImpl(AuditLogger alogger) {
-
+        System.setProperty(ZMSConsts.ZMS_PROP_PRINCIPAL_STATE_UPDATER_DISABLE_TIMER, "true");
         ZMSImpl zmsObj = new ZMSImpl();
         zmsObj.auditLogger = alogger;
         zmsObj.dbService.auditLogger = alogger;
@@ -13961,6 +13964,7 @@ public class ZMSImplTest {
         // now we're going to create a new instance with read-only mode
         
         System.setProperty(ZMSConsts.ZMS_PROP_READ_ONLY_MODE, "true");
+        System.setProperty(ZMSConsts.ZMS_PROP_PRINCIPAL_STATE_UPDATER_DISABLE_TIMER, "true");
         
         zmsTest = new ZMSImpl();
         ZMSImpl.serverHostName = "localhost";
@@ -16763,54 +16767,6 @@ public class ZMSImplTest {
         assertEquals(zmsImpl.userHomeDomainResource("user.john.smith:domain"), "home.john-smith:domain");
         assertEquals(zmsImpl.userHomeDomainResource("testuser.john.smith:domain"), "testuser.john.smith:domain");
         assertEquals(zmsImpl.userHomeDomainResource("product.john.smith:domain"), "product.john.smith:domain");
-
-        zmsImpl.objectStore.clearConnections();
-    }
-
-    @Test
-    public void testCreatePrincipalForName() {
-        
-        ZMSImpl zmsImpl = zmsInit();
-        zmsImpl.userDomain = "user";
-        zmsImpl.userDomainAlias = null;
-        
-        Principal principal = zmsImpl.createPrincipalForName("joe");
-        assertEquals(principal.getFullName(), "user.joe");
-        
-        principal = zmsImpl.createPrincipalForName("joe-smith");
-        assertEquals(principal.getFullName(), "user.joe-smith");
-        
-        principal = zmsImpl.createPrincipalForName("user.joe");
-        assertEquals(principal.getFullName(), "user.joe");
-
-        principal = zmsImpl.createPrincipalForName("user.joe.storage");
-        assertEquals(principal.getFullName(), "user.joe.storage");
-        
-        principal = zmsImpl.createPrincipalForName("alias.joe");
-        assertEquals(principal.getFullName(), "alias.joe");
-        
-        principal = zmsImpl.createPrincipalForName("alias.joe.storage");
-        assertEquals(principal.getFullName(), "alias.joe.storage");
-        
-        zmsImpl.userDomainAlias = "alias";
-        
-        principal = zmsImpl.createPrincipalForName("joe");
-        assertEquals(principal.getFullName(), "user.joe");
-        
-        principal = zmsImpl.createPrincipalForName("joe-smith");
-        assertEquals(principal.getFullName(), "user.joe-smith");
-        
-        principal = zmsImpl.createPrincipalForName("user.joe");
-        assertEquals(principal.getFullName(), "user.joe");
-
-        principal = zmsImpl.createPrincipalForName("user.joe.storage");
-        assertEquals(principal.getFullName(), "user.joe.storage");
-        
-        principal = zmsImpl.createPrincipalForName("alias.joe");
-        assertEquals(principal.getFullName(), "user.joe");
-        
-        principal = zmsImpl.createPrincipalForName("alias.joe.storage");
-        assertEquals(principal.getFullName(), "alias.joe.storage");
 
         zmsImpl.objectStore.clearConnections();
     }

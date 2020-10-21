@@ -479,6 +479,8 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "JOIN principal ON principal.principal_id=principal_group_member.principal_id "
             + "JOIN domain ON domain.domain_id=principal_group.domain_id "
             + "WHERE principal_group_member.last_notified_time=? AND principal_group_member.server=?;";
+    private static final String SQL_UPDATE_PRINCIPAL = "UPDATE principal SET system_disabled=? WHERE principal_id=?;";
+    private static final String SQL_GET_PRINCIPAL = "SELECT name FROM principal WHERE system_disabled=?;";
 
     private static final String CACHE_DOMAIN    = "d:";
     private static final String CACHE_ROLE      = "r:";
@@ -5601,6 +5603,43 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
 
         return groups;
+    }
+
+
+    @Override
+    public boolean updatePrincipal(String principal, int newState) {
+        final String caller = "updatePrincipal";
+
+        int principalId = getPrincipalId(principal);
+        if (principalId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_PRINCIPAL, principal);
+        }
+        int affectedRows;
+        try (PreparedStatement ps = con.prepareStatement(SQL_UPDATE_PRINCIPAL)) {
+            ps.setInt(1, newState);
+            ps.setInt(2, principalId);
+            affectedRows = executeUpdate(ps, caller);
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return (affectedRows > 0);
+    }
+
+    @Override
+    public List<String> getPrincipals(int queriedState) {
+        final String caller = "getPrincipals";
+        List<String> principals = new ArrayList<>();
+        try (PreparedStatement ps = con.prepareStatement(SQL_GET_PRINCIPAL)) {
+            ps.setInt(1, queriedState);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    principals.add(rs.getString(1));
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return principals;
     }
 
     // To avoid firing multiple queries against DB, this function will generate 1 consolidated query for all domains->templates combination

@@ -184,4 +184,8 @@ public interface ObjectStoreConnection extends Closeable {
 
     List<TemplateMetaData> getDomainTemplates(String domainName);
     boolean updateDomainTemplate(String domainName, String templateName, TemplateMetaData templateMetaData);
+
+    boolean updatePrincipal(String principal, int newState);
+
+    List<String> getPrincipals(int queriedState);
 }

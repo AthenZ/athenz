@@ -19,6 +19,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.yahoo.athenz.auth.AuthorityConsts;
 import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.util.AthenzUtils;
 import com.yahoo.athenz.auth.util.StringUtils;
 import com.yahoo.athenz.common.server.audit.AuditReferenceValidator;
@@ -67,7 +68,7 @@ public class DBService implements RolesProvider {
     private static final String ROLE_PREFIX = "role.";
     private static final String POLICY_PREFIX = "policy.";
     private static final String TEMPLATE_DOMAIN_NAME = "_domain_";
-    private static final String AUDIT_REF = "Athenz User Authority Filter Enforcer";
+    private static final String AUDIT_REF = "Athenz User Authority Enforcer";
 
     AuditReferenceValidator auditReferenceValidator;
     private ScheduledExecutorService userAuthorityFilterExecutor;
@@ -6398,6 +6399,147 @@ public class DBService implements RolesProvider {
                 con.updateGroupModTimestamp(domainName, groupName);
                 con.updateDomainModTimestamp(domainName);
                 cacheStore.invalidate(domainName);
+            }
+        }
+    }
+
+    /**
+     * This method returns list of Principals based on the state parameter supplied
+     * @param queriedState state of principal
+     * @return List of Principals from DB
+     */
+    List<Principal> getPrincipals(int queriedState) {
+        List<Principal> principals = new ArrayList<>();
+        Principal principal;
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+           List<String> dbPrincipals = con.getPrincipals(queriedState);
+           for (String dbPrincipal : dbPrincipals) {
+               principal = ZMSUtils.createPrincipalForName(dbPrincipal, zmsConfig.getUserDomain(), null);
+               ((SimplePrincipal) principal).setState(Principal.State.getState(queriedState));
+               principals.add(principal);
+           }
+        }
+        return principals;
+    }
+
+    /**
+     * This method toggles state for supplied Principals based on the flag in DB
+     * as well as modifies memberships of all roles and groups of current principal(s)
+     * @param changedPrincipals List of Principals from User Authority
+     * @param newState new state {@link Principal.State}
+     */
+    void updatePrincipalBasedOnAuthorityState(List<Principal> changedPrincipals, Principal.State newState) {
+        final String caller = "updateMembershipBasedOnUserState";
+        List<Principal> updatedUsers = new ArrayList<>();
+        try (ObjectStoreConnection con = store.getConnection(true, true)) {
+
+            // first lets update the new state in DB
+            for (Principal changedPrincipal : changedPrincipals) {
+                try {
+                    switch (newState) {
+                        case ACTIVE:
+                            if (con.updatePrincipal(changedPrincipal.getFullName(), Principal.State.ACTIVE.getValue())) {
+                                updatedUsers.add(changedPrincipal);
+                            }
+                            break;
+                        case AUTHORITY_SYSTEM_DISABLED:
+                            if (con.updatePrincipal(changedPrincipal.getFullName(), Principal.State.AUTHORITY_SYSTEM_DISABLED.getValue())) {
+                                updatedUsers.add(changedPrincipal);
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+                } catch (ResourceException ex) {
+                    if (ex.getCode() == ResourceException.NOT_FOUND) {
+                        continue;
+                    }
+                    throw ex;
+                }
+            }
+            // if new state is updated successfully
+            // then we need to modify all roles and groups where given principal is member of
+            if (!updatedUsers.isEmpty()) {
+
+                DomainRoleMember domainRoleMember;
+                DomainGroupMember domainGroupMember;
+                RoleMember roleMember;
+                GroupMember groupMember;
+                List<RoleMember> roleMembersWithUpdatedState;
+                List<GroupMember> groupMembersWithUpdatedState;
+                for (Principal updatedUser : updatedUsers) {
+                    try {
+                        // get all roles from all domains
+                        domainRoleMember = con.getPrincipalRoles(updatedUser.getFullName(), null);
+                        if (!domainRoleMember.getMemberRoles().isEmpty()) {
+                            for (MemberRole memberRole : domainRoleMember.getMemberRoles()) {
+                                roleMember = new RoleMember();
+                                roleMember.setMemberName(updatedUser.getFullName());
+                                switch (newState) {
+                                    case ACTIVE:
+                                        // if new state is ACTIVE then revert back to previous state for the member
+                                        roleMember.setSystemDisabled(memberRole.getSystemDisabled() & ~newState.getValue());
+                                        break;
+                                    case AUTHORITY_SYSTEM_DISABLED:
+                                        // if new state is SYSTEM_DISABLED then add it on to existing state
+                                        roleMember.setSystemDisabled(memberRole.getSystemDisabled() | newState.getValue());
+                                        break;
+                                    default:
+                                        break;
+                                }
+                                roleMembersWithUpdatedState = new ArrayList<>();
+                                roleMembersWithUpdatedState.add(roleMember);
+
+                                // Following method does Audit entry as well
+                                if (updateRoleMemberDisabledState(null, con, roleMembersWithUpdatedState, memberRole.getDomainName(),
+                                        memberRole.getRoleName(), ZMSConsts.SYS_AUTH_MONITOR, AUDIT_REF, caller)) {
+
+                                    // update our role and domain time-stamps, and invalidate local cache entry
+                                    con.updateRoleModTimestamp(memberRole.getDomainName(), memberRole.getRoleName());
+                                    con.updateDomainModTimestamp(memberRole.getDomainName());
+                                    cacheStore.invalidate(memberRole.getDomainName());
+                                }
+                            }
+                        }
+                        domainGroupMember = con.getPrincipalGroups(updatedUser.getFullName(), null);
+                        if (!domainGroupMember.getMemberGroups().isEmpty()) {
+                            for (GroupMember currentGroup : domainGroupMember.getMemberGroups()) {
+                                groupMember = new GroupMember();
+                                groupMember.setMemberName(updatedUser.getFullName());
+                                switch (newState) {
+                                    case ACTIVE:
+                                        // if new state is ACTIVE then revert back to previous state for the member
+                                        groupMember.setSystemDisabled(currentGroup.getSystemDisabled() & ~newState.getValue());
+                                        break;
+                                    case AUTHORITY_SYSTEM_DISABLED:
+                                        // if new state is SYSTEM_DISABLED then add it on to existing state
+                                        groupMember.setSystemDisabled(currentGroup.getSystemDisabled() | newState.getValue());
+                                        break;
+                                    default:
+                                        break;
+                                }
+                                groupMembersWithUpdatedState = new ArrayList<>();
+                                groupMembersWithUpdatedState.add(groupMember);
+
+                                // Following method does Audit entry as well
+                                if (updateGroupMemberDisabledState(null, con, groupMembersWithUpdatedState, currentGroup.getDomainName(),
+                                        currentGroup.getGroupName(), ZMSConsts.SYS_AUTH_MONITOR, AUDIT_REF, caller)) {
+
+                                    // update our group and domain time-stamps, and invalidate local cache entry
+
+                                    con.updateGroupModTimestamp(currentGroup.getDomainName(), currentGroup.getGroupName());
+                                    con.updateDomainModTimestamp(currentGroup.getDomainName());
+                                    cacheStore.invalidate(currentGroup.getDomainName());
+                                }
+                            }
+                        }
+                    } catch (ResourceException ex) {
+                        if (ex.getCode() == ResourceException.NOT_FOUND) {
+                            continue;
+                        }
+                        throw ex;
+                    }
+                }
             }
         }
     }
