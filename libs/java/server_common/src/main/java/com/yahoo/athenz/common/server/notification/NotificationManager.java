@@ -121,8 +121,8 @@ public class NotificationManager {
                             .forEach(notification -> {
                                 notificationServices.forEach(service -> service.notify(notification));
                             });
-                    LOGGER.info(String.format("PeriodicNotificationsSender: Sent %s.", notificationTask.getDescription()));
-
+                    int numberOfNotificationsSent = (notifications != null) ? notifications.size() : 0;
+                    LOGGER.info("PeriodicNotificationsSender: Sent {} notifications of type {}.", numberOfNotificationsSent, notificationTask.getDescription());
                 } catch (Throwable t) {
                     LOGGER.error(String.format("PeriodicNotificationsSender: unable to send %s: ", notificationTask.getDescription()), t);
                 }

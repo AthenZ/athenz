@@ -101,6 +101,13 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
     }
 
     private X509CertRecord itemToX509CertRecord(Item item) {
+        boolean clientCert;
+        try {
+            clientCert = item.getBoolean(KEY_CLIENT_CERT);
+        } catch (Exception ex) {
+            LOGGER.warn("clientCert for item doesn't exist. Will set it to false. Item: {}", item.toString());
+            clientCert = false;
+        }
         X509CertRecord certRecord = new X509CertRecord();
         certRecord.setProvider(item.getString(KEY_PROVIDER));
         certRecord.setInstanceId(item.getString(KEY_INSTANCE_ID));
@@ -111,7 +118,7 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
         certRecord.setPrevSerial(item.getString(KEY_PREV_SERIAL));
         certRecord.setPrevIP(item.getString(KEY_PREV_IP));
         certRecord.setPrevTime(getDateFromItem(item, KEY_PREV_TIME));
-        certRecord.setClientCert(item.getBoolean(KEY_CLIENT_CERT));
+        certRecord.setClientCert(clientCert);
         certRecord.setLastNotifiedTime(getDateFromItem(item, KEY_LAST_NOTIFIED_TIME));
         certRecord.setLastNotifiedServer(item.getString(KEY_LAST_NOTIFIED_SERVER));
         certRecord.setExpiryTime(getDateFromItem(item, KEY_EXPIRY_TIME));
@@ -259,21 +266,25 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
 
         List<X509CertRecord> updatedRecords = new ArrayList<>();
         for (Item item : items) {
-            // For each item, update lastNotifiedTime and lastNotifiedServer (unless they were already updated)
-            UpdateItemSpec updateItemSpec = new UpdateItemSpec().withPrimaryKey(KEY_PRIMARY, item.getString(KEY_PRIMARY))
-                    .withReturnValues(ReturnValue.ALL_NEW)
-                    .withUpdateExpression("set lastNotifiedTime = :lastNotifiedTimeVal, lastNotifiedServer = :lastNotifiedServerVal")
-                    .withConditionExpression("attribute_not_exists(lastNotifiedTime) OR lastNotifiedTime < :v_yesterday")
-                    .withValueMap(new ValueMap()
-                            .with(":lastNotifiedTimeVal", lastNotifiedTime)
-                            .withNumber(":v_yesterday", yesterday)
-                            .withString(":lastNotifiedServerVal", lastNotifiedServer));
+            try {
+                // For each item, update lastNotifiedTime and lastNotifiedServer (unless they were already updated)
+                UpdateItemSpec updateItemSpec = new UpdateItemSpec().withPrimaryKey(KEY_PRIMARY, item.getString(KEY_PRIMARY))
+                        .withReturnValues(ReturnValue.ALL_NEW)
+                        .withUpdateExpression("set lastNotifiedTime = :lastNotifiedTimeVal, lastNotifiedServer = :lastNotifiedServerVal")
+                        .withConditionExpression("attribute_not_exists(lastNotifiedTime) OR lastNotifiedTime < :v_yesterday")
+                        .withValueMap(new ValueMap()
+                                .with(":lastNotifiedTimeVal", lastNotifiedTime)
+                                .withNumber(":v_yesterday", yesterday)
+                                .withString(":lastNotifiedServerVal", lastNotifiedServer));
 
-            Item updatedItem = table.updateItem(updateItemSpec).getItem();
+                Item updatedItem = table.updateItem(updateItemSpec).getItem();
 
-            if (isRecordUpdatedWithNotificationTimeAndServer(lastNotifiedServer, lastNotifiedTime, updatedItem)) {
-                X509CertRecord x509CertRecord = itemToX509CertRecord(updatedItem);
-                updatedRecords.add(x509CertRecord);
+                if (isRecordUpdatedWithNotificationTimeAndServer(lastNotifiedServer, lastNotifiedTime, updatedItem)) {
+                    X509CertRecord x509CertRecord = itemToX509CertRecord(updatedItem);
+                    updatedRecords.add(x509CertRecord);
+                }
+            } catch (Exception ex) {
+                LOGGER.error("DynamoDB updateLastNotified failed for item: {}, error: {}", item.toString(), ex.getMessage());
             }
         }
 
@@ -303,19 +314,25 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
     }
 
     private List<Item> getUnrefreshedCertRecordsByDate(String provider, Index index, long yesterday, String unrefreshedCertDate) {
-        QuerySpec spec = new QuerySpec()
-                .withKeyConditionExpression("currentDate = :v_current_date")
-                .withFilterExpression("provider = :v_provider AND (attribute_not_exists(lastNotifiedTime) OR lastNotifiedTime < :v_last_notified)")
-                .withValueMap(new ValueMap()
-                        .withString(":v_current_date", unrefreshedCertDate)
-                        .withNumber(":v_last_notified", yesterday)
-                        .withString(":v_provider", provider));
+        try {
+            QuerySpec spec = new QuerySpec()
+                    .withKeyConditionExpression("currentDate = :v_current_date")
+                    .withFilterExpression("provider = :v_provider AND (attribute_not_exists(lastNotifiedTime) OR lastNotifiedTime < :v_last_notified)")
+                    .withValueMap(new ValueMap()
+                            .withString(":v_current_date", unrefreshedCertDate)
+                            .withNumber(":v_last_notified", yesterday)
+                            .withString(":v_provider", provider));
 
-        ItemCollection<QueryOutcome> outcome = index.query(spec);
-        List<Item> items = new ArrayList<>();
-        for (Item item : outcome) {
-            items.add(item);
+            ItemCollection<QueryOutcome> outcome = index.query(spec);
+            List<Item> items = new ArrayList<>();
+            for (Item item : outcome) {
+                items.add(item);
+            }
+            return items;
+        } catch (Exception ex) {
+            LOGGER.error("DynamoDB getUnrefreshedCertRecordsByDate failed for provider: {}, date: {} error: {}", provider, unrefreshedCertDate, ex.getMessage());
         }
-        return items;
+
+        return new ArrayList<>();
     }
 }
