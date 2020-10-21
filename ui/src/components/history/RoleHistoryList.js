@@ -187,7 +187,7 @@ export default class RoleHistoryList extends React.Component {
             this.dateUtils.uxDatetimeToRDLTimestamp(this.state.endDate) <
             this.dateUtils.uxDatetimeToRDLTimestamp(this.state.startDate)
         ) {
-            let successMsg = `End Date should not be lesser than Start Date`;
+            let successMsg = 'End Date should not be lesser than Start Date';
             let alertType = 'danger';
             this.setState({
                 showSuccess: true,

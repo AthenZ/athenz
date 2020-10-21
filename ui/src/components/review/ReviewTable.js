@@ -329,7 +329,7 @@ export default class RoleMemberReviewDetails extends React.Component {
         );
     }
 
-    getContent() {
+    render() {
         const left = 'left';
         let center = 'center';
         const rows =
@@ -464,10 +464,5 @@ export default class RoleMemberReviewDetails extends React.Component {
                 </ReviewMembersContainerDiv>
             );
         }
-    }
-
-    render() {
-        let { color } = this.props;
-        return this.getContent();
     }
 }

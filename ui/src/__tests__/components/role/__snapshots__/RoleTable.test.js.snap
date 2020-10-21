@@ -133,9 +133,6 @@ exports[`RoleTable should render 1`] = `
     </tr>
   </thead>
   <tbody>
-    <div />
-    <div />
-    <div />
     <tr
       class="emotion-22"
       data-testid="role-row"

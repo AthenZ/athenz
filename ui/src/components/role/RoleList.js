@@ -234,6 +234,7 @@ export default class RoleList extends React.Component {
                         roles={roles}
                         api={this.api}
                         domain={this.props.domain}
+                        prefixes={this.props.prefixes}
                         _csrf={this.props._csrf}
                         onSubmit={this.reloadRoles}
                         justificationRequired={this.props.isDomainAuditEnabled}

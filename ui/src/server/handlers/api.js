@@ -628,6 +628,25 @@ Fetchr.registerService({
 });
 
 Fetchr.registerService({
+    name: 'auth-options',
+    read(req, resource, params, config, callback) {
+        callback(null, {
+            zms: appConfig.zms,
+            athenzDomainService: appConfig.athenzDomainService,
+        });
+    },
+});
+
+Fetchr.registerService({
+    name: 'prefix',
+    read(req, resource, params, config, callback) {
+        callback(null, {
+            allPrefixes: appConfig.allPrefixes,
+        });
+    },
+});
+
+Fetchr.registerService({
     name: 'role',
     read(req, resource, params, config, callback) {
         req.clients.zms.getRole(params, function(err, data) {
@@ -1035,6 +1054,7 @@ module.exports.load = function(config, secrets) {
         createDomainMessage: config.createDomainMessage,
         servicePageConfig: config.servicePageConfig,
         productMasterLink: config.productMasterLink,
+        allPrefixes: config.allPrefixes,
     };
     return CLIENTS.load(config, secrets);
 };

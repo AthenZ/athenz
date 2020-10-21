@@ -63,7 +63,7 @@ const NameTDStyled = styled.td`
     padding: 5px 0 5px 15px;
     vertical-align: middle;
     word-break: break-all;
-    width: 52%;
+    width: 60%;
 `;
 
 const ExpTDStyled = styled.td`
@@ -72,7 +72,7 @@ const ExpTDStyled = styled.td`
     padding: 5px 0 5px 15px;
     vertical-align: middle;
     word-break: break-all;
-    width: 33%;
+    width: 28%;
 `;
 
 const TrStyled = styled.tr`

@@ -77,11 +77,12 @@ export default class RolePage extends React.Component {
             api.getPendingDomainRoleMembersList(),
             api.getForm(),
             api.isAWSTemplateApplied(props.query.domain),
+            api.getRolePrefix(),
         ]).catch((err) => {
             let response = RequestUtils.errorCheckHelper(err);
             reload = response.reload;
             error = response.error;
-            return [{}, {}, {}, {}, {}, {}, {}];
+            return [{}, {}, {}, {}, {}, {}, {}, {}];
         });
         let domainDetails = domains[2];
         domainDetails.isAWSTemplateApplied = !!domains[6];
@@ -98,6 +99,7 @@ export default class RolePage extends React.Component {
             users: domains[1],
             pending: domains[4],
             _csrf: domains[5],
+            prefixes: domains[7].allPrefixes,
         };
     }
 
@@ -113,6 +115,7 @@ export default class RolePage extends React.Component {
             domainDetails,
             roles,
             users,
+            prefixes,
             _csrf,
         } = this.props;
         if (reload) {
@@ -122,6 +125,7 @@ export default class RolePage extends React.Component {
         if (this.props.error) {
             return <Error err={this.props.error} />;
         }
+
         return (
             <div data-testid='role'>
                 <Head>
@@ -159,6 +163,7 @@ export default class RolePage extends React.Component {
                                     roles={roles}
                                     users={users}
                                     _csrf={_csrf}
+                                    prefixes={prefixes}
                                     isDomainAuditEnabled={
                                         domainDetails.auditEnabled
                                     }

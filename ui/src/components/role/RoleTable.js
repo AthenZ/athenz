@@ -17,11 +17,6 @@ import React from 'react';
 import styled from '@emotion/styled';
 import RoleRow from './RoleRow';
 import RoleGroup from './RoleGroup';
-import {
-    AWS_ROLE_PREFIX,
-    UMS_ROLE_PREFIX,
-    CKMS_ROLE_PREFIX,
-} from '../constants/constants';
 
 const StyleTable = styled.table`
     width: 100%;
@@ -57,50 +52,21 @@ const TableHeadStyledRoleName = styled.th`
     word-break: break-all;
 `;
 
-const LeftMarginSpan = styled.span`
-    margin-right: 10px;
-    verticalAlign：bottom；
-`;
-
-const TDStyled = styled.td`
-    background-color: ${(props) => props.color};
-    text-align: ${(props) => props.align};
-    padding: 5px 0 5px 15px;
-    vertical-align: middle;
-    word-break: break-all;
-`;
-
-const TrStyled = styled.tr`
-    box-sizing: border-box;
-    margin-top: 5px;
-    box-shadow: 0 1px 4px #d9d9d9;
-    border: 1px solid #fff;
-    -webkit-border-image: none;
-    border-image: none;
-    -webkit-border-image: initial;
-    border-image: initial;
-    height: 50px;
-`;
-
 export default class RoleTable extends React.Component {
     constructor(props) {
         super(props);
         this.api = props.api;
 
-        let awsRows = props.roles.filter((item) =>
-            item.name.startsWith(props.domain + AWS_ROLE_PREFIX)
-        );
-        let umsRows = props.roles.filter((item) =>
-            item.name.startsWith(props.domain + UMS_ROLE_PREFIX)
-        );
-        let ckmsRows = props.roles.filter((item) =>
-            item.name.startsWith(props.domain + CKMS_ROLE_PREFIX)
-        );
-
         let subRows = [];
-        subRows['aws'] = awsRows;
-        subRows['ums'] = umsRows;
-        subRows['ckms'] = ckmsRows;
+
+        if (props.prefixes) {
+            props.prefixes.map((prefix) => {
+                let rows = props.roles.filter((item) =>
+                    item.name.startsWith(props.domain + prefix.prefix)
+                );
+                subRows[prefix.name] = rows;
+            });
+        }
 
         this.state = {
             roles: props.roles || [],
@@ -114,20 +80,15 @@ export default class RoleTable extends React.Component {
                 rows: {},
             });
         } else if (prevProps.roles !== this.props.roles) {
-            let awsRows = this.props.roles.filter((item) =>
-                item.name.startsWith(this.props.domain + AWS_ROLE_PREFIX)
-            );
-            let umsRows = this.props.roles.filter((item) =>
-                item.name.startsWith(this.props.domain + UMS_ROLE_PREFIX)
-            );
-            let ckmsRows = this.props.roles.filter((item) =>
-                item.name.startsWith(this.props.domain + CKMS_ROLE_PREFIX)
-            );
-
             let subRows = [];
-            subRows['aws'] = awsRows;
-            subRows['ums'] = umsRows;
-            subRows['ckms'] = ckmsRows;
+            if (this.props.prefixes) {
+                this.props.prefixes.map((prefix) => {
+                    let rows = props.roles.filter((item) =>
+                        item.name.startsWith(props.domain + prefix.prefix)
+                    );
+                    subRows[prefix.name] = rows;
+                });
+            }
 
             this.setState({
                 roles: this.props.roles || [],
@@ -140,23 +101,29 @@ export default class RoleTable extends React.Component {
         const center = 'center';
         const left = 'left';
         const { domain } = this.props;
-        const awsRolePrefix = domain + ':role.aws.';
-        const umsRolePrefix = domain + ':role.ums.';
-        const ckmsRolePrefix = domain + ':role.paranoids.ppse.ckms.ykeykey_';
         const adminRole = domain + ':role.admin';
-        const awsRoleName = 'aws';
-        const umsRoleName = 'ums';
-        const ckmsRoleName = 'ckms';
         let rows = [];
 
         if (this.state.roles && this.state.roles.length > 0) {
-            let remainingRows = this.state.roles.filter(
-                (item) =>
-                    !item.name.startsWith(awsRolePrefix) &&
-                    !item.name.startsWith(umsRolePrefix) &&
-                    !item.name.startsWith(ckmsRolePrefix) &&
-                    item.name !== adminRole
-            );
+            let remainingRows = this.state.roles.filter((item) => {
+                if (item.name === adminRole) {
+                    return false;
+                }
+                let included = false;
+                if (this.props.prefixes) {
+                    this.props.prefixes.forEach((prefix) => {
+                        if (
+                            item.name.startsWith(
+                                this.props.domain + prefix.prefix
+                            )
+                        ) {
+                            included = true;
+                        }
+                    });
+                }
+
+                return !included;
+            });
 
             // put admin role at first place
             let adminRow = this.state.roles
@@ -183,47 +150,23 @@ export default class RoleTable extends React.Component {
 
             rows.push(adminRow);
 
-            // AWS rows
-            let awsGroup = (
-                <RoleGroup
-                    api={this.api}
-                    domain={domain}
-                    name={awsRoleName}
-                    roles={this.state.rows[awsRoleName]}
-                    onUpdateSuccess={this.props.onSubmit}
-                    _csrf={this.props._csrf}
-                />
-            );
+            if (this.state.rows) {
+                for (let name in this.state.rows) {
+                    // group rows
+                    let roleGroup = (
+                        <RoleGroup
+                            api={this.api}
+                            domain={domain}
+                            name={name}
+                            roles={this.state.rows[name]}
+                            onUpdateSuccess={this.props.onSubmit}
+                            _csrf={this.props._csrf}
+                        />
+                    );
 
-            rows.push(awsGroup);
-
-            // UMS rows
-            let umsGroup = (
-                <RoleGroup
-                    api={this.api}
-                    domain={domain}
-                    name={umsRoleName}
-                    roles={this.state.rows[umsRoleName]}
-                    onUpdateSuccess={this.props.onSubmit}
-                    _csrf={this.props._csrf}
-                />
-            );
-
-            rows.push(umsGroup);
-
-            // CKMS rows
-            let ckmsGroup = (
-                <RoleGroup
-                    api={this.api}
-                    domain={domain}
-                    name={ckmsRoleName}
-                    roles={this.state.rows[ckmsRoleName]}
-                    onUpdateSuccess={this.props.onSubmit}
-                    _csrf={this.props._csrf}
-                />
-            );
-
-            rows.push(ckmsGroup);
+                    rows.push(roleGroup);
+                }
+            }
 
             let otherRows = remainingRows
                 .sort((a, b) => {
