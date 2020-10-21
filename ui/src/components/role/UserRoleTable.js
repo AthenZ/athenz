@@ -57,6 +57,15 @@ const TDStyled = styled.td`
     word-break: break-all;
 `;
 
+const NameTDStyled = styled.td`
+    background-color: ${(props) => props.color};
+    text-align: ${(props) => props.align};
+    padding: 5px 0 5px 15px;
+    vertical-align: middle;
+    word-break: break-all;
+    width: 100%;
+`;
+
 const TrStyled = styled.tr`
     box-sizing: border-box;
     margin-top: 10px;
@@ -76,6 +85,14 @@ const TDStyledSub = styled.td`
     vertical-align: middle;
     word-break: break-all;
     width: 120px;
+`;
+
+const StyledDiv = styled.div`
+    width: 157%;
+`;
+
+const StyledTable = styled.table`
+    width: 100%;
 `;
 
 export default class UserRoleTable extends React.Component {
@@ -349,46 +366,99 @@ export default class UserRoleTable extends React.Component {
                     );
 
                     let toReturn = [];
-                    toReturn.push(
-                        <TrStyled key={item.memberName}>
-                            <TDStyled align={left}>
-                                <LeftMarginSpan>
+
+                    if (!this.state.contents[item.memberName]) {
+                        toReturn.push(
+                            <TrStyled key={item.memberName}>
+                                <TDStyled align={left}>
+                                    <LeftMarginSpan>
+                                        <Icon
+                                            icon={'arrowhead-down-circle'}
+                                            onClick={expandRole}
+                                            color={colors.icons}
+                                            isLink
+                                            size={'1.5em'}
+                                            verticalAlign={'text-bottom'}
+                                        />
+                                    </LeftMarginSpan>
+                                    {item.memberName +
+                                        (this.state.fullNames[
+                                            item.memberName
+                                        ] !== undefined
+                                            ? ' (' +
+                                              this.state.fullNames[
+                                                  item.memberName
+                                              ] +
+                                              ')'
+                                            : '') +
+                                        ' (' +
+                                        item.memberRoles.length +
+                                        ')'}
+                                </TDStyled>
+                                <TDStyled align={center} />
+                                <TDStyled align={center}>
                                     <Icon
-                                        icon={'arrowhead-down-circle'}
-                                        onClick={expandRole}
+                                        icon={'trash'}
+                                        onClick={deleteItem}
                                         color={colors.icons}
                                         isLink
-                                        size={'1.5em'}
+                                        size={'1.25em'}
                                         verticalAlign={'text-bottom'}
                                     />
-                                </LeftMarginSpan>
-                                {item.memberName +
-                                    (this.state.fullNames[item.memberName] !==
-                                    undefined
-                                        ? ' (' +
-                                          this.state.fullNames[
-                                              item.memberName
-                                          ] +
-                                          ')'
-                                        : '') +
-                                    ' (' +
-                                    item.memberRoles.length +
-                                    ')'}
-                            </TDStyled>
-                            <TDStyled align={center} />
-                            <TDStyled align={center}>
-                                <Icon
-                                    icon={'trash'}
-                                    onClick={deleteItem}
-                                    color={colors.icons}
-                                    isLink
-                                    size={'1.25em'}
-                                    verticalAlign={'text-bottom'}
-                                />
-                            </TDStyled>
-                        </TrStyled>
-                    );
-                    toReturn.push(this.state.contents[item.memberName]);
+                                </TDStyled>
+                            </TrStyled>
+                        );
+                    } else {
+                        toReturn.push(
+                            <TrStyled key={item.memberName}>
+                                <StyledDiv colSpan={3}>
+                                    <NameTDStyled align={left} colSpan={1}>
+                                        <LeftMarginSpan>
+                                            <Icon
+                                                icon={
+                                                    'arrowhead-up-circle-solid'
+                                                }
+                                                onClick={expandRole}
+                                                color={colors.icons}
+                                                isLink
+                                                size={'1.5em'}
+                                                verticalAlign={'text-bottom'}
+                                            />
+                                        </LeftMarginSpan>
+                                        {item.memberName +
+                                            (this.state.fullNames[
+                                                item.memberName
+                                            ] !== undefined
+                                                ? ' (' +
+                                                  this.state.fullNames[
+                                                      item.memberName
+                                                  ] +
+                                                  ')'
+                                                : '') +
+                                            ' (' +
+                                            item.memberRoles.length +
+                                            ')'}
+                                    </NameTDStyled>
+                                    <TDStyled align={center} colSpan={1} />
+                                    <TDStyled align={center} colSpan={1}>
+                                        <Icon
+                                            icon={'trash'}
+                                            onClick={deleteItem}
+                                            color={colors.icons}
+                                            isLink
+                                            size={'1.25em'}
+                                            verticalAlign={'text-bottom'}
+                                        />
+                                    </TDStyled>
+                                </StyledDiv>
+                                <StyledDiv colSpan={3}>
+                                    <StyledTable>
+                                        {this.state.contents[item.memberName]}
+                                    </StyledTable>
+                                </StyledDiv>
+                            </TrStyled>
+                        );
+                    }
                     return toReturn;
                 });
 

@@ -17,7 +17,7 @@ import React from 'react';
 import styled from '@emotion/styled';
 import Icon from '../denali/icons/Icon';
 import { colors } from '../denali/styles';
-import AddAssertion from './AddAssertion';
+import AddAssertion from '../policy/AddAssertion';
 import Alert from '../denali/Alert';
 import DeleteModal from '../modal/DeleteModal';
 import { MODAL_TIME_OUT } from '../constants/constants';

@@ -47,6 +47,7 @@ export default class SettingTable extends React.Component {
         super(props);
         this.api = props.api;
         this.toggleSubmit = this.toggleSubmit.bind(this);
+        this.toggleReset = this.toggleReset.bind(this);
         this.onSubmitUpdate = this.onSubmitUpdate.bind(this);
         this.onClickUpdateCancel = this.onClickUpdateCancel.bind(this);
         this.closeModal = this.closeModal.bind(this);
@@ -70,6 +71,22 @@ export default class SettingTable extends React.Component {
     toggleSubmit() {
         this.setState({
             showSubmit: !this.state.showSubmit,
+        });
+    }
+
+    toggleReset() {
+        console.log('reset');
+        this.setState({
+            reviewEnabled: !!this.props.roleDetails.reviewEnabled,
+            selfServe: !!this.props.roleDetails.selfServe,
+            memberExpiryDays: this.props.roleDetails.memberExpiryDays,
+            serviceExpiryDays: this.props.roleDetails.serviceExpiryDays,
+            tokenExpiryMins: this.props.roleDetails.tokenExpiryMins,
+            certExpiryMins: this.props.roleDetails.certExpiryMins,
+            signAlgorithm: this.props.roleDetails.signAlgorithm,
+            showSubmit: false,
+            showSuccess: false,
+            errorMessage: null,
         });
     }
 
@@ -342,6 +359,9 @@ export default class SettingTable extends React.Component {
                         Submit
                     </Button>
                     {submitSettings}
+                    <Button secondary onClick={this.toggleReset}>
+                        Reset
+                    </Button>
                     {message}
                 </div>
             </AddContainerDiv>

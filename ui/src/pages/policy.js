@@ -23,7 +23,7 @@ import { Link } from '../routes';
 // there is an issue with next-link and next-css if the css is not present then it doesnt load so adding this
 import 'flatpickr/dist/themes/light.css';
 import RoleDetails from '../components/header/RoleDetails';
-import PolicyList from '../components/policy/PolicyList';
+import RolePolicyList from '../components/role-policy/RolePolicyList';
 import RequestUtils from '../components/utils/RequestUtils';
 import RoleTabs from '../components/header/RoleTabs';
 import Error from './_error';
@@ -191,7 +191,7 @@ export default class PolicyPage extends React.Component {
                                         selectedName={'policies'}
                                     />
                                 </PageHeaderDiv>
-                                <PolicyList
+                                <RolePolicyList
                                     api={this.api}
                                     domain={domain}
                                     role={role}

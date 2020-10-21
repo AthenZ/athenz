@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 export const MODAL_TIME_OUT = 2000;
-export const AWS_ROLE_PREFIX = ':role.aws.';
-export const UMS_ROLE_PREFIX = ':role.ums.';
+
+// TODO: these prefix need to be fetched from config file
+export const AWS_ROLE_PREFIX = ':role.aws';
+export const UMS_ROLE_PREFIX = ':role.ums';
 export const CKMS_ROLE_PREFIX = ':role.paranoids.ppse.ckms.ykeykey_';

@@ -129,7 +129,7 @@ export default class RolePolicyRow extends React.Component {
             );
         } else {
             rows.push(
-                <TrStyled key={this.state.name} data-testid='policy-row'>
+                <TrStyled key={this.state.name} data-testid='role-policy-row'>
                     <TdStyled align={left}>
                         <LeftMarginSpan>
                             <Icon

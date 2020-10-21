@@ -65,6 +65,14 @@ export default class SettingRow extends React.Component {
         };
     }
 
+    componentDidUpdate = (prevProps) => {
+        if (prevProps.value !== this.props.value) {
+            this.setState({
+                value: this.props.value,
+            });
+        }
+    };
+
     saveJustification(val) {
         this.setState({ deleteJustification: val });
     }
