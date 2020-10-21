@@ -110,7 +110,7 @@ export default class ReviewList extends React.Component {
                     members={this.state.members}
                     api={this.api}
                     _csrf={this.props._csrf}
-                    onSubmit={this.reloadMembers}
+                    onUpdateSuccess={this.reloadMembers}
                     justificationRequired={this.props.isDomainAuditEnabled}
                     userProfileLink={this.props.userProfileLink}
                 />

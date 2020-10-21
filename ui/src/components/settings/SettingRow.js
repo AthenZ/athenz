@@ -101,6 +101,13 @@ export default class SettingRow extends React.Component {
         }
     }
 
+    numRestricted(event) {
+        const re = /[0-9]+/g;
+        if (!re.test(event.key)) {
+            event.preventDefault();
+        }
+    }
+
     getSettingButton() {
         const algOptions = [
             { value: 'ECDSA', label: 'ECDSA' },
@@ -121,10 +128,12 @@ export default class SettingRow extends React.Component {
                 return (
                     <StyledDiv>
                         <SettingInput
+                            pattern='[0-9]*'
                             placeholder={this.props.unit}
                             fluid
                             id={'setting-' + this.props.name}
                             onChange={this.onTimeChange}
+                            onKeyPress={this.numRestricted}
                             value={this.state.value}
                         />
                     </StyledDiv>

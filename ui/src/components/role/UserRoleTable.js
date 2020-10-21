@@ -63,7 +63,16 @@ const NameTDStyled = styled.td`
     padding: 5px 0 5px 15px;
     vertical-align: middle;
     word-break: break-all;
-    width: 100%;
+    width: 52%;
+`;
+
+const ExpTDStyled = styled.td`
+    background-color: ${(props) => props.color};
+    text-align: ${(props) => props.align};
+    padding: 5px 0 5px 15px;
+    vertical-align: middle;
+    word-break: break-all;
+    width: 33%;
 `;
 
 const TrStyled = styled.tr`
@@ -87,8 +96,8 @@ const TDStyledSub = styled.td`
     width: 120px;
 `;
 
-const StyledDiv = styled.div`
-    width: 157%;
+const StyledTd = styled.td`
+    width: 100%;
 `;
 
 const StyledTable = styled.table`
@@ -259,8 +268,10 @@ export default class UserRoleTable extends React.Component {
                 );
                 return (
                     <tr key={role.roleName}>
-                        <TDStyled align={left}>{role.roleName}</TDStyled>
-                        <TDStyled align={center}>
+                        <NameTDStyled align={left}>
+                            {role.roleName}
+                        </NameTDStyled>
+                        <ExpTDStyled align={center}>
                             {role.expiration
                                 ? this.dateUtils.getLocalDate(
                                       role.expiration,
@@ -268,7 +279,7 @@ export default class UserRoleTable extends React.Component {
                                       'UTC'
                                   )
                                 : null}
-                        </TDStyled>
+                        </ExpTDStyled>
                         <TDStyledSub align={center}>
                             <Icon
                                 icon={'trash'}
@@ -411,51 +422,61 @@ export default class UserRoleTable extends React.Component {
                     } else {
                         toReturn.push(
                             <TrStyled key={item.memberName}>
-                                <StyledDiv colSpan={3}>
-                                    <NameTDStyled align={left} colSpan={1}>
-                                        <LeftMarginSpan>
-                                            <Icon
-                                                icon={
-                                                    'arrowhead-up-circle-solid'
-                                                }
-                                                onClick={expandRole}
-                                                color={colors.icons}
-                                                isLink
-                                                size={'1.5em'}
-                                                verticalAlign={'text-bottom'}
-                                            />
-                                        </LeftMarginSpan>
-                                        {item.memberName +
-                                            (this.state.fullNames[
-                                                item.memberName
-                                            ] !== undefined
-                                                ? ' (' +
-                                                  this.state.fullNames[
-                                                      item.memberName
-                                                  ] +
-                                                  ')'
-                                                : '') +
-                                            ' (' +
-                                            item.memberRoles.length +
-                                            ')'}
-                                    </NameTDStyled>
-                                    <TDStyled align={center} colSpan={1} />
-                                    <TDStyled align={center} colSpan={1}>
-                                        <Icon
-                                            icon={'trash'}
-                                            onClick={deleteItem}
-                                            color={colors.icons}
-                                            isLink
-                                            size={'1.25em'}
-                                            verticalAlign={'text-bottom'}
-                                        />
-                                    </TDStyled>
-                                </StyledDiv>
-                                <StyledDiv colSpan={3}>
+                                <StyledTd colSpan={3}>
                                     <StyledTable>
+                                        <tr>
+                                            <TDStyled align={left} colSpan={1}>
+                                                <LeftMarginSpan>
+                                                    <Icon
+                                                        icon={
+                                                            'arrowhead-up-circle-solid'
+                                                        }
+                                                        onClick={expandRole}
+                                                        color={colors.icons}
+                                                        isLink
+                                                        size={'1.5em'}
+                                                        verticalAlign={
+                                                            'text-bottom'
+                                                        }
+                                                    />
+                                                </LeftMarginSpan>
+                                                {item.memberName +
+                                                    (this.state.fullNames[
+                                                        item.memberName
+                                                    ] !== undefined
+                                                        ? ' (' +
+                                                          this.state.fullNames[
+                                                              item.memberName
+                                                          ] +
+                                                          ')'
+                                                        : '') +
+                                                    ' (' +
+                                                    item.memberRoles.length +
+                                                    ')'}
+                                            </TDStyled>
+                                            <TDStyled
+                                                align={center}
+                                                colSpan={1}
+                                            />
+                                            <TDStyled
+                                                align={center}
+                                                colSpan={1}
+                                            >
+                                                <Icon
+                                                    icon={'trash'}
+                                                    onClick={deleteItem}
+                                                    color={colors.icons}
+                                                    isLink
+                                                    size={'1.25em'}
+                                                    verticalAlign={
+                                                        'text-bottom'
+                                                    }
+                                                />
+                                            </TDStyled>
+                                        </tr>
                                         {this.state.contents[item.memberName]}
                                     </StyledTable>
-                                </StyledDiv>
+                                </StyledTd>
                             </TrStyled>
                         );
                     }

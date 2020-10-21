@@ -82,7 +82,7 @@ export default class RoleTabs extends React.Component {
                 this.props.api
                     .getStatus()
                     .then(function() {
-                        Router.pushRoute('policy', {
+                        Router.pushRoute('role-policy', {
                             domain: domain,
                             role: role,
                         });

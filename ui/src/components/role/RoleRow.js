@@ -159,7 +159,7 @@ export default class RoleRow extends React.Component {
         );
         let clickPolicy = this.onClickFunction.bind(
             this,
-            'policy',
+            'role-policy',
             this.props.domain,
             this.state.name
         );

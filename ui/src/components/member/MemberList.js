@@ -68,41 +68,6 @@ export default class MemberList extends React.Component {
         }
     };
 
-    renderRoleMembers(memberStatus) {
-        if (this.state.members) {
-            let items = this.state.members
-                .filter((item) =>
-                    this.state.trust
-                        ? memberStatus
-                        : item.approved === memberStatus
-                )
-                .map((item, idx) => {
-                    return (
-                        <RoleMember
-                            key={idx}
-                            item={item}
-                            domain={this.props.domain}
-                            role={this.props.role}
-                            api={this.props.api}
-                            noanim
-                            _csrf={this.props._csrf}
-                            onClickRemove={this.onClickDelete}
-                            onClickPendingRemove={this.onClickPendingDelete}
-                            onError={this.onError}
-                            userProfileLink={this.props.userProfileLink}
-                        />
-                    );
-                });
-            return <RoleMembersDiv>{items}</RoleMembersDiv>;
-        } else {
-            return (
-                <RoleMembersDiv>
-                    <Loader />
-                </RoleMembersDiv>
-            );
-        }
-    }
-
     reloadMembers(successMessage) {
         this.api
             .getRole(this.props.domain, this.props.role, true, true, true)

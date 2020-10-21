@@ -15,7 +15,7 @@
  */
 import React from 'react';
 import { render } from '@testing-library/react';
-import PolicyPage from '../../pages/domain-policy';
+import PolicyPage from '../../pages/policy';
 
 describe('PolicyPage', () => {
     it('should render', () => {

@@ -19,15 +19,13 @@ import UserDomains from '../components/domain/UserDomains';
 import API from '../api';
 import styled from '@emotion/styled';
 import Head from 'next/head';
-import { Link } from '../routes';
 // there is an issue with next-link and next-css if the css is not present then it doesnt load so adding this
 import 'flatpickr/dist/themes/light.css';
-import RoleDetails from '../components/header/RoleDetails';
-import RolePolicyList from '../components/role-policy/RolePolicyList';
+import DomainDetails from '../components/header/DomainDetails';
+import PolicyList from '../components/policy/PolicyList';
 import RequestUtils from '../components/utils/RequestUtils';
-import RoleTabs from '../components/header/RoleTabs';
+import Tabs from '../components/header/Tabs';
 import Error from './_error';
-import NameUtils from '../components/utils/NameUtils';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -64,50 +62,40 @@ const TitleDiv = styled.div`
     margin-bottom: 10px;
 `;
 
-const StyledAnchor = styled.a`
-    color: #3570f4;
-    text-decoration: none;
-    cursor: pointer;
-`;
-
 export default class PolicyPage extends React.Component {
     static async getInitialProps(props) {
         let api = API(props.req);
         let reload = false;
         let notFound = false;
         let error = undefined;
-        const roles = await Promise.all([
+        const domains = await Promise.all([
             api.listUserDomains(),
             api.getHeaderDetails(),
-            api.getRole(
-                props.query.domain,
-                props.query.role,
-                false,
-                false,
-                false
-            ),
-            api.getPolicies(props.query.domain, true),
+            api.getDomain(props.query.domain),
+            api.getPolicies(props.query.domain),
             api.getForm(),
             api.getPendingDomainRoleMembersList(),
+            api.isAWSTemplateApplied(props.query.domain),
         ]).catch((err) => {
             let response = RequestUtils.errorCheckHelper(err);
             reload = response.reload;
             error = response.error;
             return [{}, {}, {}, {}, {}, {}, {}];
         });
+        let domainDetails = domains[2];
+        domainDetails.isAWSTemplateApplied = !!domains[6];
         return {
             api,
             reload,
             notFound,
             error,
-            domains: roles[0],
-            headerDetails: roles[1],
+            domains: domains[0],
+            headerDetails: domains[1],
             domain: props.query.domain,
-            roleDetails: roles[2],
-            role: props.query.role,
-            policies: roles[3],
-            _csrf: roles[4],
-            pending: roles[5],
+            domainDetails: domainDetails,
+            policies: domains[3],
+            _csrf: domains[4],
+            pending: domains[5],
         };
     }
 
@@ -117,34 +105,7 @@ export default class PolicyPage extends React.Component {
     }
 
     render() {
-        const {
-            domain,
-            role,
-            reload,
-            roleDetails,
-            policies,
-            _csrf,
-        } = this.props;
-
-        let filteredPolicies = policies;
-
-        if (policies) {
-            filteredPolicies = policies.filter((policy) => {
-                let included = false;
-                if (policy.assertions) {
-                    policy.assertions.forEach((element) => {
-                        if (
-                            NameUtils.getShortName(':role.', element.role) ==
-                            role
-                        ) {
-                            included = true;
-                        }
-                    });
-                }
-                return included;
-            });
-        }
-
+        const { domain, reload, domainDetails, policies, _csrf } = this.props;
         if (reload) {
             window.location.reload();
             return <div />;
@@ -167,16 +128,9 @@ export default class PolicyPage extends React.Component {
                         <PoliciesContainerDiv>
                             <PoliciesContentDiv>
                                 <PageHeaderDiv>
-                                    <TitleDiv>
-                                        <Link route='role' params={{ domain }}>
-                                            <StyledAnchor>
-                                                {domain}
-                                            </StyledAnchor>
-                                        </Link>
-                                        / {role}
-                                    </TitleDiv>
-                                    <RoleDetails
-                                        roleDetails={roleDetails}
+                                    <TitleDiv>{domain}</TitleDiv>
+                                    <DomainDetails
+                                        domainDetails={domainDetails}
                                         api={this.api}
                                         _csrf={_csrf}
                                         productMasterLink={
@@ -184,18 +138,16 @@ export default class PolicyPage extends React.Component {
                                                 .productMasterLink
                                         }
                                     />
-                                    <RoleTabs
+                                    <Tabs
                                         api={this.api}
                                         domain={domain}
-                                        role={role}
                                         selectedName={'policies'}
                                     />
                                 </PageHeaderDiv>
-                                <RolePolicyList
+                                <PolicyList
                                     api={this.api}
                                     domain={domain}
-                                    role={role}
-                                    policies={filteredPolicies}
+                                    policies={policies}
                                     _csrf={this.props._csrf}
                                 />
                             </PoliciesContentDiv>

@@ -39,7 +39,7 @@ const ModifiedButton = styled(Button)`
     min-height: 1em;
 `;
 
-const StyledInput = styled(Input)`
+const StyledJustification = styled(Input)`
     width: 300px;
     margin: 5px;
     margin-left: 15px;
@@ -68,27 +68,12 @@ export default class DeleteModal extends React.Component {
                 </MessageDiv>
                 {this.props.showJustification && (
                     <MessageDiv>
-                        <StyledInput
+                        <StyledJustification
                             id='justification'
                             name='justification'
                             onChange={this.onJustification}
                             autoComplete={'off'}
                             placeholder='Justification for this action'
-                        />
-                    </MessageDiv>
-                )}
-                {this.props.showDomainInput && (
-                    <MessageDiv>
-                        <StyledInput
-                            id='domain'
-                            name='domain'
-                            onChange={(evt) =>
-                                this.props.domainNameProvided(
-                                    evt.target.value && evt.target.value.trim()
-                                )
-                            }
-                            autoComplete={'off'}
-                            placeholder='Enter the domain name to delete'
                         />
                     </MessageDiv>
                 )}
