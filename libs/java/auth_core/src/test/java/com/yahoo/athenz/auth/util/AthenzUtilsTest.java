@@ -208,13 +208,13 @@ public class AthenzUtilsTest {
         String systemProperty = "athenz.zts.notification_cert_fail_ignored_services_list";
         System.setProperty(systemProperty, "aaa, bbb, ccc");
 
-        List<String> values = AthenzUtils.splitCommaSeperatedSystemProperty(systemProperty);
+        List<String> values = AthenzUtils.splitCommaSeparatedSystemProperty(systemProperty);
         assertEquals(3, values.size());
         assertEquals("aaa", values.get(0));
         assertEquals("bbb", values.get(1));
         assertEquals("ccc", values.get(2));
 
-        List<String> values2 = AthenzUtils.splitCommaSeperatedSystemProperty("unset.property");
+        List<String> values2 = AthenzUtils.splitCommaSeparatedSystemProperty("unset.property");
         assertEquals(new ArrayList<>(), values2);
 
         System.clearProperty(systemProperty);

@@ -436,3 +436,23 @@ exports[`AddService should render error if no key name specified 1`] = `
   Service name is required.
 </div>
 `;
+
+exports[`AddService should render error when after getService throws error(other) 1`] = `
+<div
+  data-testid="error-message"
+  name="red600"
+  style="color: rgb(208, 17, 17); display: inline-block;"
+>
+  Session expired. Please refresh the page.
+</div>
+`;
+
+exports[`AddService should render error when service already exists 1`] = `
+<div
+  data-testid="error-message"
+  name="red600"
+  style="color: rgb(208, 17, 17); display: inline-block;"
+>
+  Service test-name already exists.
+</div>
+`;
