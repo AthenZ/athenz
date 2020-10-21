@@ -21,6 +21,7 @@ import FlatPicker from '../flatpicker/FlatPicker';
 import DateUtils from '../utils/DateUtils';
 import Color from '../denali/Color';
 import RequestUtils from '../utils/RequestUtils';
+import NameUtils from '../utils/NameUtils';
 
 const SectionsDiv = styled.div`
     width: 100%;
@@ -197,7 +198,7 @@ export default class AddMemberForm extends React.Component {
                         <FlatPicker
                             onChange={memberExpiryChanged}
                             clear={this.state.memberExpiry}
-                            id={this.props.role.replace(/\./g, '_')}
+                            id={NameUtils.getFlatPickrKey(this.props.role)}
                         />
                     </FlatPickrInputDiv>
                 </div>
@@ -208,7 +209,7 @@ export default class AddMemberForm extends React.Component {
                             clear={this.state.memberReviewReminder}
                             placeholder='Reminder (Optional)'
                             id={
-                                this.props.role.replace(/\./g, '_') +
+                                NameUtils.getFlatPickrKey(this.props.role) +
                                 '-reminder'
                             }
                         />

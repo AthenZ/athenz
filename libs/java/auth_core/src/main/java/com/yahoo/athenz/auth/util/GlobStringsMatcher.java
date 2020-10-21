@@ -29,7 +29,7 @@ public class GlobStringsMatcher {
     private final List<String> patterns;
 
     public GlobStringsMatcher(String systemProperty) {
-        List<String> globList = AthenzUtils.splitCommaSeperatedSystemProperty(systemProperty);
+        List<String> globList = AthenzUtils.splitCommaSeparatedSystemProperty(systemProperty);
         patterns = globList.stream().map(glob -> StringUtils.patternFromGlob(glob)).collect(Collectors.toList());
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(String.format("Property: %s, Regex List: %s", systemProperty, Arrays.toString(patterns.toArray())));

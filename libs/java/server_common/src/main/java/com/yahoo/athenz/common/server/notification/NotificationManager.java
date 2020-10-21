@@ -109,9 +109,7 @@ public class NotificationManager {
         @Override
         public void run() {
 
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("PeriodicNotificationsSender: Starting notifications thread...");
-            }
+            LOGGER.info("PeriodicNotificationsSender: Starting notifications thread...");
 
             // Note that ordering in the list of notifications is important as a NotificationTask might depend on a previous
             // NotificationTask running
@@ -123,18 +121,14 @@ public class NotificationManager {
                             .forEach(notification -> {
                                 notificationServices.forEach(service -> service.notify(notification));
                             });
-                    if (LOGGER.isDebugEnabled()) {
-                        LOGGER.debug(String.format("PeriodicNotificationsSender: Sent %s.", notificationTask.getDescription()));
-                    }
+                    LOGGER.info(String.format("PeriodicNotificationsSender: Sent %s.", notificationTask.getDescription()));
 
                 } catch (Throwable t) {
                     LOGGER.error(String.format("PeriodicNotificationsSender: unable to send %s: ", notificationTask.getDescription()), t);
                 }
             }
 
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("PeriodicNotificationsSender: completed");
-            }
+            LOGGER.info("PeriodicNotificationsSender: completed");
         }
     }
 }

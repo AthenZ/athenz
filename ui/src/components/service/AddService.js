@@ -47,25 +47,43 @@ export default class AddService extends React.Component {
         }
 
         this.api
-            .addService(
-                this.props.domain,
-                this.state.name,
-                this.state.description,
-                this.state.providerEndpoint,
-                this.state.keyId,
-                keyValue,
-                this.props._csrf
-            )
+            .getService(this.props.domain, this.state.name)
             .then(() => {
-                this.setState({ showModal: false });
-                this.props.onSubmit(
-                    `Successfully created service ${this.state.name}`
-                );
+                this.setState({
+                    errorMessage:
+                        'Service ' + this.state.name + ' already exists.',
+                });
             })
             .catch((err) => {
-                this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                });
+                if (err.statusCode === 404) {
+                    this.api
+                        .addService(
+                            this.props.domain,
+                            this.state.name,
+                            this.state.description,
+                            this.state.providerEndpoint,
+                            this.state.keyId,
+                            keyValue,
+                            this.props._csrf
+                        )
+                        .then(() => {
+                            this.setState({ showModal: false });
+                            this.props.onSubmit(
+                                `Successfully created service ${this.state.name}`
+                            );
+                        })
+                        .catch((err) => {
+                            this.setState({
+                                errorMessage: RequestUtils.xhrErrorCheckHelper(
+                                    err
+                                ),
+                            });
+                        });
+                } else {
+                    this.setState({
+                        errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+                    });
+                }
             });
     }
 
