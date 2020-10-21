@@ -41,6 +41,7 @@ import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.ssh.SSHCertRecord;
 import com.yahoo.athenz.common.server.store.ChangeLogStore;
 import com.yahoo.athenz.common.server.store.impl.ZMSFileChangeLogStore;
+import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.zms.Assertion;
 import com.yahoo.athenz.zms.AssertionEffect;
@@ -11022,5 +11023,237 @@ public class ZTSImplTest {
 
         zts.validateInstanceServiceIdentity(domainData, "screwdriver.project1", "unit-test");
         zts.validateInstanceServiceIdentity(domainData, "screwdriver.project2", "unit-test");
+    }
+
+    @Test
+    public void testGetRoleAccessWithDelegatedRolesWithGroups() {
+
+        final String newsDomainName = "news";
+        final String sportsDomainName = "sports";
+        final String weatherDomainName = "weather";
+
+        SignedDomain weatherDomain = new SignedDomain();
+        List<Role> roles = new ArrayList<>();
+
+        // create the admin role
+
+        Role role = new Role();
+        role.setName(generateRoleName(weatherDomainName, "admin"));
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user_domain.adminuser"));
+        role.setRoleMembers(members);
+        roles.add(role);
+
+        // create the trusted role
+
+        roles.add(new Role().setName(generateRoleName(weatherDomainName, "role1")).setTrust(sportsDomainName));
+
+        // no services
+
+        List<ServiceIdentity> services = new ArrayList<>();
+
+        // create admin policy
+
+        List<com.yahoo.athenz.zms.Policy> policies = new ArrayList<>();
+
+        com.yahoo.athenz.zms.Policy policy = new com.yahoo.athenz.zms.Policy();
+        com.yahoo.athenz.zms.Assertion assertion = new com.yahoo.athenz.zms.Assertion();
+        assertion.setResource(weatherDomainName + ".*");
+        assertion.setAction("*");
+        assertion.setRole(generateRoleName(weatherDomainName, "admin"));
+
+        List<com.yahoo.athenz.zms.Assertion> assertions = new ArrayList<>();
+        assertions.add(assertion);
+
+        policy.setAssertions(assertions);
+        policy.setName(generatePolicyName(weatherDomainName, "admin"));
+        policies.add(policy);
+
+        com.yahoo.athenz.zms.DomainPolicies domainPolicies = new com.yahoo.athenz.zms.DomainPolicies();
+        domainPolicies.setDomain(weatherDomainName);
+        domainPolicies.setPolicies(policies);
+
+        com.yahoo.athenz.zms.SignedPolicies signedPolicies = new com.yahoo.athenz.zms.SignedPolicies();
+        signedPolicies.setContents(domainPolicies);
+        signedPolicies.setSignature(Crypto.sign(SignUtils.asCanonicalString(domainPolicies), privateKey));
+        signedPolicies.setKeyId("0");
+
+        DomainData domain = new DomainData();
+        domain.setName(weatherDomainName);
+        domain.setRoles(roles);
+        domain.setServices(services);
+        domain.setPolicies(signedPolicies);
+        domain.setModified(Timestamp.fromCurrentTime());
+
+        weatherDomain.setDomain(domain);
+
+        weatherDomain.setSignature(Crypto.sign(SignUtils.asCanonicalString(domain), privateKey));
+        weatherDomain.setKeyId("0");
+
+        // now process the domain in ZTS
+
+        store.processDomain(weatherDomain, false);
+
+        // now create the sports domain that includes the delegated role
+
+        SignedDomain sportsDomain = new SignedDomain();
+
+        roles = new ArrayList<>();
+        role = new Role();
+        role.setName(generateRoleName(sportsDomainName, "admin"));
+        members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user_domain.adminuser"));
+        role.setRoleMembers(members);
+        roles.add(role);
+
+        role = new Role();
+        role.setName(generateRoleName(sportsDomainName, "role1"));
+        members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user_domain.user2"));
+        members.add(new RoleMember().setMemberName(ResourceUtils.groupResourceName(newsDomainName, "group1")));
+        role.setRoleMembers(members);
+        roles.add(role);
+
+        policies = new ArrayList<>();
+
+        policy = new com.yahoo.athenz.zms.Policy();
+        assertion = new com.yahoo.athenz.zms.Assertion();
+        assertion.setResource(sportsDomainName + ".*");
+        assertion.setAction("*");
+        assertion.setRole(generateRoleName(sportsDomainName, "admin"));
+
+        assertions = new ArrayList<>();
+        assertions.add(assertion);
+
+        policy.setAssertions(assertions);
+        policy.setName(generatePolicyName(sportsDomainName, "admin"));
+        policies.add(policy);
+
+        policy = new com.yahoo.athenz.zms.Policy();
+        assertion = new com.yahoo.athenz.zms.Assertion();
+        assertion.setResource(generateRoleName(weatherDomainName, "role1"));
+        assertion.setAction("assume_role");
+        assertion.setRole(generateRoleName(sportsDomainName, "role1"));
+
+        assertions = new ArrayList<>();
+        assertions.add(assertion);
+
+        policy.setAssertions(assertions);
+        policy.setName(generatePolicyName(sportsDomainName, "role1"));
+        policies.add(policy);
+
+        domainPolicies = new com.yahoo.athenz.zms.DomainPolicies();
+        domainPolicies.setDomain(sportsDomainName);
+        domainPolicies.setPolicies(policies);
+
+        signedPolicies = new com.yahoo.athenz.zms.SignedPolicies();
+        signedPolicies.setContents(domainPolicies);
+        signedPolicies.setSignature(Crypto.sign(SignUtils.asCanonicalString(domainPolicies), privateKey));
+        signedPolicies.setKeyId("0");
+
+        domain = new DomainData();
+        domain.setName(sportsDomainName);
+        domain.setRoles(roles);
+        domain.setServices(services);
+        domain.setPolicies(signedPolicies);
+        domain.setModified(Timestamp.fromCurrentTime());
+
+        sportsDomain.setDomain(domain);
+
+        sportsDomain.setSignature(Crypto.sign(SignUtils.asCanonicalString(domain), privateKey));
+        sportsDomain.setKeyId("0");
+
+        store.processDomain(sportsDomain, false);
+
+        // create the group domain for news
+
+        SignedDomain newsDomain = new SignedDomain();
+        roles = new ArrayList<>();
+
+        // create the admin role
+
+        role = new Role();
+        role.setName(generateRoleName(newsDomainName, "admin"));
+        members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user_domain.adminuser"));
+        role.setRoleMembers(members);
+        roles.add(role);
+
+        // create our groups
+
+        List<Group> groups = new ArrayList<>();
+
+        Group group = new Group().setName(ResourceUtils.groupResourceName(newsDomainName, "group1"));
+        List<GroupMember> groupMembers = new ArrayList<>();
+        groupMembers.add(new GroupMember().setMemberName("user_domain.user1").setGroupName(group.getName()));
+        group.setGroupMembers(groupMembers);
+        groups.add(group);
+
+        // create admin policy
+
+        policies = new ArrayList<>();
+
+        policy = new com.yahoo.athenz.zms.Policy();
+        assertion = new com.yahoo.athenz.zms.Assertion();
+        assertion.setResource(newsDomainName + ".*");
+        assertion.setAction("*");
+        assertion.setRole(generateRoleName(newsDomainName, "admin"));
+
+        assertions = new ArrayList<>();
+        assertions.add(assertion);
+
+        policy.setAssertions(assertions);
+        policy.setName(generatePolicyName(newsDomainName, "admin"));
+        policies.add(policy);
+
+        domainPolicies = new com.yahoo.athenz.zms.DomainPolicies();
+        domainPolicies.setDomain(weatherDomainName);
+        domainPolicies.setPolicies(policies);
+
+        signedPolicies = new com.yahoo.athenz.zms.SignedPolicies();
+        signedPolicies.setContents(domainPolicies);
+        signedPolicies.setSignature(Crypto.sign(SignUtils.asCanonicalString(domainPolicies), privateKey));
+        signedPolicies.setKeyId("0");
+
+        domain = new DomainData();
+        domain.setName(newsDomainName);
+        domain.setRoles(roles);
+        domain.setGroups(groups);
+        domain.setServices(services);
+        domain.setPolicies(signedPolicies);
+        domain.setModified(Timestamp.fromCurrentTime());
+
+        newsDomain.setDomain(domain);
+
+        newsDomain.setSignature(Crypto.sign(SignUtils.asCanonicalString(domain), privateKey));
+        newsDomain.setKeyId("0");
+
+        // now process the domain in ZTS
+
+        store.processDomain(newsDomain, false);
+
+        // now let's carry out our checks - we should get role1 for user1
+        // when asked for both sports and weather domains
+
+        Principal principal = SimplePrincipal.create("user_domain", "user", "v=U1;d=user_domain;n=user;s=sig", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        RoleAccess roleAccess = zts.getRoleAccess(context, weatherDomainName, "user_domain.user1");
+        assertEquals(roleAccess.getRoles().size(), 1);
+        assertTrue(roleAccess.getRoles().contains("role1"));
+
+        roleAccess = zts.getRoleAccess(context, sportsDomainName, "user_domain.user1");
+        assertEquals(roleAccess.getRoles().size(), 1);
+        assertTrue(roleAccess.getRoles().contains("role1"));
+
+        // user2 should have same access as user1
+
+        roleAccess = zts.getRoleAccess(context, weatherDomainName, "user_domain.user2");
+        assertEquals(roleAccess.getRoles().size(), 1);
+        assertTrue(roleAccess.getRoles().contains("role1"));
+
+        roleAccess = zts.getRoleAccess(context, sportsDomainName, "user_domain.user2");
+        assertEquals(roleAccess.getRoles().size(), 1);
+        assertTrue(roleAccess.getRoles().contains("role1"));
     }
 }
