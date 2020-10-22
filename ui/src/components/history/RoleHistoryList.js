@@ -264,7 +264,7 @@ export default class RoleHistoryList extends React.Component {
                                 </span>
                             }
                         >
-                            <MenuDiv>{item.who}</MenuDiv>
+                            <MenuDiv>{item.admin}</MenuDiv>
                         </Menu>
                     </TDStyled>
                     <TDStyled color={color} align={left}>
