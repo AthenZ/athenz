@@ -70,6 +70,7 @@ export default class ManageDomains extends React.Component {
             auditRef: '',
         };
         this.saveJustification = this.saveJustification.bind(this);
+        this.domainNameProvided = this.domainNameProvided.bind(this);
         this.dateUtils = new DateUtils();
     }
 
@@ -87,12 +88,19 @@ export default class ManageDomains extends React.Component {
             deleteName: '',
             auditEnabled: false,
             auditRef: '',
+            errorMessage: null,
         });
     }
 
     saveJustification(val) {
         this.setState({
             auditRef: val,
+        });
+    }
+
+    domainNameProvided(val) {
+        this.setState({
+            domainNameProvided: val,
         });
     }
 
@@ -114,6 +122,14 @@ export default class ManageDomains extends React.Component {
 
     onSubmitDelete() {
         let domainName = this.state.deleteName;
+
+        if (domainName !== this.state.domainNameProvided) {
+            this.setState({
+                errorMessageForModal: 'Domain names do not match',
+            });
+            return;
+        }
+
         const splittedDomain = domainName.split('.');
         const domain = splittedDomain.pop();
         const parent = splittedDomain.join('.');
@@ -130,6 +146,7 @@ export default class ManageDomains extends React.Component {
                     deleteName: null,
                     auditEnabled: false,
                     auditRef: '',
+                    errorMessage: null,
                 });
                 this.props.loadDomains(
                     `Successfully deleted domain ${domainName}`
@@ -225,8 +242,11 @@ export default class ManageDomains extends React.Component {
                     name={this.state.deleteName}
                     submit={clickDeleteSubmit}
                     showJustification={this.state.auditEnabled}
+                    showDomainInput={true}
                     onJustification={this.saveJustification}
                     key={'delete-modal'}
+                    errorMessage={this.state.errorMessageForModal}
+                    domainNameProvided={this.domainNameProvided}
                 />
             );
         }
