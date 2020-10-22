@@ -134,7 +134,7 @@ export default class RolePolicyPage extends React.Component {
                 if (policy.assertions) {
                     policy.assertions.forEach((element) => {
                         if (
-                            NameUtils.getShortName(':role.', element.role) ==
+                            NameUtils.getShortName(':role.', element.role) ===
                             role
                         ) {
                             included = true;
