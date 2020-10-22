@@ -115,6 +115,7 @@ export default class PolicyRow extends React.Component {
                         name={this.state.name}
                         api={this.api}
                         domain={this.props.domain}
+                        role={this.props.role}
                         _csrf={this.props._csrf}
                     />
                 </TrStyled>

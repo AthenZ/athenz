@@ -15,9 +15,9 @@
  */
 import React from 'react';
 import styled from '@emotion/styled';
-import Switch from '../denali/Switch';
 import { colors } from '../denali/styles';
 import Button from '../denali/Button';
+import SearchInput from '../denali/SearchInput';
 import RoleTable from './RoleTable';
 import UserRoleTable from './UserRoleTable';
 import AddRole from './AddRole';
@@ -25,6 +25,8 @@ import Alert from '../denali/Alert';
 import AddMemberToRoles from './AddMemberToRoles';
 import { MODAL_TIME_OUT } from '../constants/constants';
 import RequestUtils from '../utils/RequestUtils';
+import ButtonGroup from '../denali/ButtonGroup';
+import NameUtils from '../utils/NameUtils';
 
 const RolesSectionDiv = styled.div`
     margin: 20px;
@@ -41,6 +43,10 @@ const SliderDiv = styled.div`
     vertical-align: middle;
 `;
 
+const StyledSearchInputDiv = styled.div`
+    width: 50%;
+`;
+
 const AddContainerDiv = styled.div`
     padding-bottom: 20px;
     display: flex;
@@ -55,9 +61,11 @@ export default class RoleList extends React.Component {
         this.api = props.api;
         this.state = {
             showuser: false,
+            selectedView: 'roles',
             showAddRole: false,
             roles: props.roles || [],
             errorMessage: null,
+            searchText: '',
         };
         this.viewRoleByUser = this.viewRoleByUser.bind(this);
         this.toggleAddRole = this.toggleAddRole.bind(this);
@@ -67,7 +75,11 @@ export default class RoleList extends React.Component {
     }
 
     viewRoleByUser() {
-        this.setState({ showuser: !this.state.showuser });
+        let selected = this.state.showuser ? 'roles' : 'users';
+        this.setState({
+            showuser: !this.state.showuser,
+            selectedView: selected,
+        });
     }
 
     toggleAddRole() {
@@ -87,6 +99,10 @@ export default class RoleList extends React.Component {
             this.setState({
                 roles: this.props.roles,
                 showuser: false,
+                selectedView: 'roles',
+                showAddRole: false,
+                errorMessage: null,
+                searchText: '',
             });
         }
     };
@@ -123,6 +139,14 @@ export default class RoleList extends React.Component {
     }
 
     render() {
+        let roles = this.state.roles;
+        if (this.state.searchText.trim() !== '') {
+            roles = this.state.roles.filter((role) => {
+                return NameUtils.getShortName(':role.', role.name).includes(
+                    this.state.searchText.trim()
+                );
+            });
+        }
         let addRole = this.state.showAddRole ? (
             <AddRole
                 api={this.api}
@@ -150,17 +174,40 @@ export default class RoleList extends React.Component {
         ) : (
             ''
         );
+        const viewButtons = [
+            { id: 'roles', name: 'roles', label: 'Roles' },
+            { id: 'users', name: 'users', label: 'Users' },
+        ];
         return (
             <RolesSectionDiv data-testid='rolelist'>
                 <AddContainerDiv>
                     <SliderDiv>
-                        <Switch
-                            name={'viewRoleByUser'}
-                            checked={!!this.state.showuser}
-                            onChange={this.viewRoleByUser}
+                        <ButtonGroup
+                            buttons={viewButtons}
+                            selectedName={this.state.selectedView}
+                            onClick={this.viewRoleByUser}
                         />
-                        <RoleLabel>View Roles By Users</RoleLabel>
                     </SliderDiv>
+                    <StyledSearchInputDiv>
+                        <SearchInput
+                            dark={false}
+                            name='search'
+                            fluid={true}
+                            value={this.state.searchText}
+                            placeholder={
+                                this.state.showuser
+                                    ? 'Enter user name'
+                                    : 'Enter role name'
+                            }
+                            error={this.state.error}
+                            onChange={(event) =>
+                                this.setState({
+                                    searchText: event.target.value,
+                                    error: false,
+                                })
+                            }
+                        />
+                    </StyledSearchInputDiv>
                     <div>
                         <Button secondary onClick={this.toggleAddRole}>
                             Add Role
@@ -175,7 +222,8 @@ export default class RoleList extends React.Component {
                 {this.state.showuser ? (
                     <UserRoleTable
                         users={this.props.users}
-                        roles={this.state.roles}
+                        searchText={this.state.searchText}
+                        roles={roles}
                         api={this.api}
                         domain={this.props.domain}
                         _csrf={this.props._csrf}
@@ -183,9 +231,10 @@ export default class RoleList extends React.Component {
                     />
                 ) : (
                     <RoleTable
-                        roles={this.state.roles}
+                        roles={roles}
                         api={this.api}
                         domain={this.props.domain}
+                        prefixes={this.props.prefixes}
                         _csrf={this.props._csrf}
                         onSubmit={this.reloadRoles}
                         justificationRequired={this.props.isDomainAuditEnabled}

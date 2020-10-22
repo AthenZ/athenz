@@ -15,16 +15,17 @@
  */
 import React from 'react';
 import styled from '@emotion/styled';
-import { colors } from '../denali/styles';
 import RoleRow from './RoleRow';
+import RoleGroup from './RoleGroup';
 
 const StyleTable = styled.table`
     width: 100%;
-    border-spacing: 0;
+    border-spacing: 0 15px;
     display: table;
     border-collapse: separate;
     border-color: grey;
 `;
+
 const TableHeadStyled = styled.th`
     text-align: ${(props) => props.align};
     border-bottom: 2px solid #d5d5d5;
@@ -55,30 +56,86 @@ export default class RoleTable extends React.Component {
     constructor(props) {
         super(props);
         this.api = props.api;
+
+        let subRows = [];
+
+        if (props.prefixes) {
+            props.prefixes.map((prefix) => {
+                let rows = props.roles.filter((item) =>
+                    item.name.startsWith(props.domain + prefix.prefix)
+                );
+                subRows[prefix.name] = rows;
+            });
+        }
+
+        this.state = {
+            roles: props.roles || [],
+            rows: subRows,
+        };
     }
+
+    componentDidUpdate = (prevProps) => {
+        if (prevProps.domain !== this.props.domain) {
+            this.setState({
+                rows: {},
+            });
+        } else if (prevProps.roles !== this.props.roles) {
+            let subRows = [];
+            if (this.props.prefixes) {
+                this.props.prefixes.map((prefix) => {
+                    let rows = this.props.roles.filter((item) =>
+                        item.name.startsWith(props.domain + prefix.prefix)
+                    );
+                    subRows[prefix.name] = rows;
+                });
+            }
+
+            this.setState({
+                roles: this.props.roles || [],
+                rows: subRows,
+            });
+        }
+    };
 
     render() {
         const center = 'center';
         const left = 'left';
         const { domain } = this.props;
+        const adminRole = domain + ':role.admin';
         let rows = [];
 
-        if (this.props.roles && this.props.roles.length > 0) {
-            rows = this.props.roles
-                .sort((a, b) => {
-                    return a.name.localeCompare(b.name);
+        if (this.state.roles && this.state.roles.length > 0) {
+            let remainingRows = this.state.roles.filter((item) => {
+                if (item.name === adminRole) {
+                    return false;
+                }
+                let included = false;
+                if (this.props.prefixes) {
+                    this.props.prefixes.forEach((prefix) => {
+                        if (
+                            item.name.startsWith(
+                                this.props.domain + prefix.prefix
+                            )
+                        ) {
+                            included = true;
+                        }
+                    });
+                }
+
+                return !included;
+            });
+
+            // put admin role at first place
+            let adminRow = this.state.roles
+                .filter((item) => {
+                    return item.name == adminRole;
                 })
                 .map((item, i) => {
-                    let color = '';
-                    if (i % 2 === 0) {
-                        color = colors.row;
-                    }
                     return (
                         <RoleRow
                             details={item}
                             idx={i}
                             domain={domain}
-                            color={color}
                             api={this.api}
                             key={item.name}
                             onUpdateSuccess={this.props.onSubmit}
@@ -90,10 +147,54 @@ export default class RoleTable extends React.Component {
                         />
                     );
                 });
+
+            rows.push(adminRow);
+
+            if (this.state.rows) {
+                for (let name in this.state.rows) {
+                    // group rows
+                    let roleGroup = (
+                        <RoleGroup
+                            api={this.api}
+                            domain={domain}
+                            name={name}
+                            roles={this.state.rows[name]}
+                            onUpdateSuccess={this.props.onSubmit}
+                            _csrf={this.props._csrf}
+                        />
+                    );
+
+                    rows.push(roleGroup);
+                }
+            }
+
+            let otherRows = remainingRows
+                .sort((a, b) => {
+                    return a.name.localeCompare(b.name);
+                })
+                .map((item, i) => {
+                    return (
+                        <RoleRow
+                            details={item}
+                            idx={i}
+                            domain={domain}
+                            api={this.api}
+                            key={item.name}
+                            onUpdateSuccess={this.props.onSubmit}
+                            _csrf={this.props._csrf}
+                            justificationRequired={
+                                this.props.justificationRequired
+                            }
+                            userProfileLink={this.props.userProfileLink}
+                        />
+                    );
+                });
+
+            rows.push(otherRows);
         }
 
         return (
-            <StyleTable data-testid='roletable'>
+            <StyleTable key='role-table' data-testid='roletable'>
                 <thead>
                     <tr>
                         <TableHeadStyledRoleName align={left}>
@@ -103,18 +204,18 @@ export default class RoleTable extends React.Component {
                             Modified Date
                         </TableHeadStyled>
                         <TableHeadStyled align={left}>
-                            Last Reviewed Date
-                        </TableHeadStyled>
-                        <TableHeadStyled align={center}>
-                            Review Enabled
-                        </TableHeadStyled>
-                        <TableHeadStyled align={center}>
-                            Self Served
+                            Reviewed Date
                         </TableHeadStyled>
                         <TableHeadStyled align={center}>
                             Members
                         </TableHeadStyled>
                         <TableHeadStyled align={center}>Review</TableHeadStyled>
+                        <TableHeadStyled align={center}>
+                            Policy Rule
+                        </TableHeadStyled>
+                        <TableHeadStyled align={center}>
+                            Settings
+                        </TableHeadStyled>
                         <TableHeadStyled align={center}>Delete</TableHeadStyled>
                     </tr>
                 </thead>

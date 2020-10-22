@@ -703,11 +703,26 @@ export default (req) => {
             });
         },
 
-        getPolicies(domainName) {
+        getRolePrefix() {
+            return new Promise((resolve, reject) => {
+                fetchr
+                    .read('prefix')
+                    .params()
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
+            });
+        },
+
+        getPolicies(domainName, assertions) {
             return new Promise((resolve, reject) => {
                 fetchr
                     .read('policies')
-                    .params({ domainName })
+                    .params({ domainName: domainName, assertions: assertions })
                     .end((err, data) => {
                         if (err) {
                             reject(err);

@@ -28,10 +28,18 @@ const TDStyled = styled.td`
 `;
 
 const TrStyled = styled.tr`
-    background-color: ${(props) => props.color};
+    box-sizing: border-box;
+    margin-top: 10px;
+    box-shadow: 0 1px 4px #d9d9d9;
+    border: 1px solid #fff;
+    -webkit-border-image: none;
+    border-image: none;
+    -webkit-border-image: initial;
+    border-image: initial;
+    height: 50px;
 `;
 
-export default class ReviewMembersRow extends React.Component {
+export default class ReviewRow extends React.Component {
     constructor(props) {
         super(props);
         this.api = this.props.api;

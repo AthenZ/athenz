@@ -16,6 +16,7 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import { colors } from '../denali/styles';
+import Button from '../denali/Button';
 import NameUtils from '../utils/NameUtils';
 import ServiceRow from './ServiceRow';
 import Alert from '../denali/Alert';
@@ -30,6 +31,11 @@ const ServicesSectionDiv = styled.div`
 
 const AddContainerDiv = styled.div`
     padding-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-flow: row nowrap;
+    float: right;
 `;
 
 const ServiceTable = styled.table`
@@ -189,10 +195,12 @@ export default class ServiceList extends React.Component {
         return (
             <ServicesSectionDiv data-testid='service-list'>
                 <AddContainerDiv>
-                    <StyledAnchor onClick={this.toggleAddService}>
-                        Add Service
-                    </StyledAnchor>
-                    {addService}
+                    <div>
+                        <Button secondary onClick={this.toggleAddService}>
+                            Add Service
+                        </Button>
+                        {addService}
+                    </div>
                 </AddContainerDiv>
                 <ServiceTable>
                     <thead>
