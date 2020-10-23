@@ -6413,9 +6413,10 @@ public class DBService implements RolesProvider {
         Principal principal;
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
            List<String> dbPrincipals = con.getPrincipals(queriedState);
+            Principal.State principalState = Principal.State.getState(queriedState);
            for (String dbPrincipal : dbPrincipals) {
                principal = ZMSUtils.createPrincipalForName(dbPrincipal, zmsConfig.getUserDomain(), null);
-               ((SimplePrincipal) principal).setState(Principal.State.getState(queriedState));
+               ((SimplePrincipal) principal).setState(principalState);
                principals.add(principal);
            }
         }
@@ -6426,121 +6427,120 @@ public class DBService implements RolesProvider {
      * This method toggles state for supplied Principals based on the flag in DB
      * as well as modifies memberships of all roles and groups of current principal(s)
      * @param changedPrincipals List of Principals from User Authority
-     * @param newState new state {@link Principal.State}
+     * @param suspended boolean indicating principal's state
      */
-    void updatePrincipalBasedOnAuthorityState(List<Principal> changedPrincipals, Principal.State newState) {
-        final String caller = "updateMembershipBasedOnUserState";
+    void updatePrincipalByStateFromAuthority(List<Principal> changedPrincipals, boolean suspended) {
+        final String caller = "updatePrincipalByStateFromAuthority";
         List<Principal> updatedUsers = new ArrayList<>();
-        try (ObjectStoreConnection con = store.getConnection(true, true)) {
+        if (!changedPrincipals.isEmpty()) {
+            try (ObjectStoreConnection con = store.getConnection(true, true)) {
 
-            // first lets update the new state in DB
-            for (Principal changedPrincipal : changedPrincipals) {
-                try {
-                    switch (newState) {
-                        case ACTIVE:
-                            if (con.updatePrincipal(changedPrincipal.getFullName(), Principal.State.ACTIVE.getValue())) {
-                                updatedUsers.add(changedPrincipal);
-                            }
-                            break;
-                        case AUTHORITY_SYSTEM_DISABLED:
-                            if (con.updatePrincipal(changedPrincipal.getFullName(), Principal.State.AUTHORITY_SYSTEM_DISABLED.getValue())) {
-                                updatedUsers.add(changedPrincipal);
-                            }
-                            break;
-                        default:
-                            break;
-                    }
-                } catch (ResourceException ex) {
-                    if (ex.getCode() == ResourceException.NOT_FOUND) {
-                        continue;
-                    }
-                    throw ex;
+                // first lets update the new state in DB
+                for (Principal changedPrincipal : changedPrincipals) {
+                    updatePrincipalState(suspended, updatedUsers, con, changedPrincipal);
                 }
-            }
-            // if new state is updated successfully
-            // then we need to modify all roles and groups where given principal is member of
-            if (!updatedUsers.isEmpty()) {
-
-                DomainRoleMember domainRoleMember;
-                DomainGroupMember domainGroupMember;
-                RoleMember roleMember;
-                GroupMember groupMember;
-                List<RoleMember> roleMembersWithUpdatedState;
-                List<GroupMember> groupMembersWithUpdatedState;
-                for (Principal updatedUser : updatedUsers) {
-                    try {
-                        // get all roles from all domains
-                        domainRoleMember = con.getPrincipalRoles(updatedUser.getFullName(), null);
-                        if (!domainRoleMember.getMemberRoles().isEmpty()) {
-                            for (MemberRole memberRole : domainRoleMember.getMemberRoles()) {
-                                roleMember = new RoleMember();
-                                roleMember.setMemberName(updatedUser.getFullName());
-                                switch (newState) {
-                                    case ACTIVE:
-                                        // if new state is ACTIVE then revert back to previous state for the member
-                                        roleMember.setSystemDisabled(memberRole.getSystemDisabled() & ~newState.getValue());
-                                        break;
-                                    case AUTHORITY_SYSTEM_DISABLED:
-                                        // if new state is SYSTEM_DISABLED then add it on to existing state
-                                        roleMember.setSystemDisabled(memberRole.getSystemDisabled() | newState.getValue());
-                                        break;
-                                    default:
-                                        break;
-                                }
-                                roleMembersWithUpdatedState = new ArrayList<>();
-                                roleMembersWithUpdatedState.add(roleMember);
-
-                                // Following method does Audit entry as well
-                                if (updateRoleMemberDisabledState(null, con, roleMembersWithUpdatedState, memberRole.getDomainName(),
-                                        memberRole.getRoleName(), ZMSConsts.SYS_AUTH_MONITOR, AUDIT_REF, caller)) {
-
-                                    // update our role and domain time-stamps, and invalidate local cache entry
-                                    con.updateRoleModTimestamp(memberRole.getDomainName(), memberRole.getRoleName());
-                                    con.updateDomainModTimestamp(memberRole.getDomainName());
-                                    cacheStore.invalidate(memberRole.getDomainName());
-                                }
+                // if new state is updated successfully
+                // then we need to modify all roles and groups where given principal is member of
+                if (!updatedUsers.isEmpty()) {
+                    for (Principal updatedUser : updatedUsers) {
+                        try {
+                            updateRoleMembershipsByPrincipalState(suspended, caller, con, updatedUser);
+                            updateGroupMembershipByPrincipalState(suspended, caller, con, updatedUser);
+                        } catch (ResourceException ex) {
+                            if (ex.getCode() == ResourceException.NOT_FOUND) {
+                                continue;
                             }
+                            throw ex;
                         }
-                        domainGroupMember = con.getPrincipalGroups(updatedUser.getFullName(), null);
-                        if (!domainGroupMember.getMemberGroups().isEmpty()) {
-                            for (GroupMember currentGroup : domainGroupMember.getMemberGroups()) {
-                                groupMember = new GroupMember();
-                                groupMember.setMemberName(updatedUser.getFullName());
-                                switch (newState) {
-                                    case ACTIVE:
-                                        // if new state is ACTIVE then revert back to previous state for the member
-                                        groupMember.setSystemDisabled(currentGroup.getSystemDisabled() & ~newState.getValue());
-                                        break;
-                                    case AUTHORITY_SYSTEM_DISABLED:
-                                        // if new state is SYSTEM_DISABLED then add it on to existing state
-                                        groupMember.setSystemDisabled(currentGroup.getSystemDisabled() | newState.getValue());
-                                        break;
-                                    default:
-                                        break;
-                                }
-                                groupMembersWithUpdatedState = new ArrayList<>();
-                                groupMembersWithUpdatedState.add(groupMember);
-
-                                // Following method does Audit entry as well
-                                if (updateGroupMemberDisabledState(null, con, groupMembersWithUpdatedState, currentGroup.getDomainName(),
-                                        currentGroup.getGroupName(), ZMSConsts.SYS_AUTH_MONITOR, AUDIT_REF, caller)) {
-
-                                    // update our group and domain time-stamps, and invalidate local cache entry
-
-                                    con.updateGroupModTimestamp(currentGroup.getDomainName(), currentGroup.getGroupName());
-                                    con.updateDomainModTimestamp(currentGroup.getDomainName());
-                                    cacheStore.invalidate(currentGroup.getDomainName());
-                                }
-                            }
-                        }
-                    } catch (ResourceException ex) {
-                        if (ex.getCode() == ResourceException.NOT_FOUND) {
-                            continue;
-                        }
-                        throw ex;
                     }
                 }
             }
+        }
+    }
+
+    private void updateGroupMembershipByPrincipalState(boolean suspended, String caller, ObjectStoreConnection con, Principal updatedUser) {
+        List<GroupMember> groupMembersWithUpdatedState;
+        GroupMember groupMember;
+        DomainGroupMember domainGroupMember;
+        Set<GroupMember> updatedGroups = new HashSet<>();
+
+        domainGroupMember = con.getPrincipalGroups(updatedUser.getFullName(), null);
+        if (!domainGroupMember.getMemberGroups().isEmpty()) {
+            for (GroupMember currentGroup : domainGroupMember.getMemberGroups()) {
+                groupMember = new GroupMember();
+                groupMember.setMemberName(updatedUser.getFullName());
+                if (suspended) {
+                    groupMember.setSystemDisabled(currentGroup.getSystemDisabled() & ~Principal.State.AUTHORITY_SYSTEM_SUSPENDED.getValue());
+                } else {
+                    groupMember.setSystemDisabled(currentGroup.getSystemDisabled() | Principal.State.AUTHORITY_SYSTEM_SUSPENDED.getValue());
+                }
+                groupMembersWithUpdatedState = new ArrayList<>();
+                groupMembersWithUpdatedState.add(groupMember);
+
+                // Following method does Audit entry as well
+                if (updateGroupMemberDisabledState(null, con, groupMembersWithUpdatedState, currentGroup.getDomainName(),
+                        currentGroup.getGroupName(), ZMSConsts.SYS_AUTH_MONITOR, AUDIT_REF, caller)) {
+                    updatedGroups.add(currentGroup);
+                }
+            }
+            for (GroupMember updatedGM : updatedGroups) {
+
+                // update our group and domain time-stamps, and invalidate local cache entry
+                con.updateGroupModTimestamp(updatedGM.getDomainName(), updatedGM.getGroupName());
+                con.updateDomainModTimestamp(updatedGM.getDomainName());
+                cacheStore.invalidate(updatedGM.getDomainName());
+            }
+        }
+    }
+
+    private void updateRoleMembershipsByPrincipalState(boolean suspended, String caller, ObjectStoreConnection con, Principal updatedUser) {
+        RoleMember roleMember;
+        List<RoleMember> roleMembersWithUpdatedState;
+        DomainRoleMember domainRoleMember;
+        Set<MemberRole> updatedRoles = new HashSet<>();
+
+        domainRoleMember = con.getPrincipalRoles(updatedUser.getFullName(), null);
+        if (!domainRoleMember.getMemberRoles().isEmpty()) {
+            for (MemberRole memberRole : domainRoleMember.getMemberRoles()) {
+                roleMember = new RoleMember();
+                roleMember.setMemberName(updatedUser.getFullName());
+                if (suspended) {
+                    roleMember.setSystemDisabled(memberRole.getSystemDisabled() & ~Principal.State.AUTHORITY_SYSTEM_SUSPENDED.getValue());
+                } else {
+                    roleMember.setSystemDisabled(memberRole.getSystemDisabled() | Principal.State.AUTHORITY_SYSTEM_SUSPENDED.getValue());
+                }
+                roleMembersWithUpdatedState = new ArrayList<>();
+                roleMembersWithUpdatedState.add(roleMember);
+
+                // Following method does Audit entry as well
+                if (updateRoleMemberDisabledState(null, con, roleMembersWithUpdatedState, memberRole.getDomainName(),
+                        memberRole.getRoleName(), ZMSConsts.SYS_AUTH_MONITOR, AUDIT_REF, caller)) {
+                    updatedRoles.add(memberRole);
+                }
+            }
+            for (MemberRole updatedMR : updatedRoles) {
+
+                // update our role and domain time-stamps, and invalidate local cache entry
+                con.updateRoleModTimestamp(updatedMR.getDomainName(), updatedMR.getRoleName());
+                con.updateDomainModTimestamp(updatedMR.getDomainName());
+                cacheStore.invalidate(updatedMR.getDomainName());
+            }
+        }
+    }
+
+    private void updatePrincipalState(boolean suspended, List<Principal> updatedUsers, ObjectStoreConnection con, Principal changedPrincipal) {
+        try {
+            if (suspended) {
+                if (con.updatePrincipal(changedPrincipal.getFullName(), Principal.State.AUTHORITY_SYSTEM_SUSPENDED.getValue())) {
+                    updatedUsers.add(changedPrincipal);
+                }
+            } else {
+                if (con.updatePrincipal(changedPrincipal.getFullName(), Principal.State.ACTIVE.getValue())) {
+                    updatedUsers.add(changedPrincipal);
+                }
+            }
+        } catch (ResourceException ex) {
+            LOG.error("Exception in updating principal state from Authority {} Moving on.", ex.getMessage());
         }
     }
 

@@ -55,7 +55,7 @@ public interface Principal {
     enum State {
         ACTIVE(0x00),
         AUTHORITY_FILTER_DISABLED(0x01),
-        AUTHORITY_SYSTEM_DISABLED(0x02);
+        AUTHORITY_SYSTEM_SUSPENDED(0x02);
 
         private final int principalState;
         State(int state) {

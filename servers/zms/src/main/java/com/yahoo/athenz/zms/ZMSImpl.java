@@ -194,8 +194,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected StatusChecker statusChecker = null;
     protected ObjectStore objectStore = null;
     protected ZMSGroupMembersFetcher groupMemberFetcher = null;
-    protected boolean enablePrincipalStateUpdater;
-    protected PrincipalStateUpdater principalStateUpdater = null;
 
     // enum to represent our access response since in some cases we want to
     // handle domain not founds differently instead of just returning failure
@@ -585,8 +583,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     private void initializePrincipalStateUpdater() {
-        if (enablePrincipalStateUpdater) {
-            principalStateUpdater = new PrincipalStateUpdater(this.dbService, this.userAuthority);
+        if (Boolean.parseBoolean(System.getProperty(ZMSConsts.ZMS_PROP_ENABLE_PRINCIPAL_STATE_UPDATER, "false"))) {
+            new PrincipalStateUpdater(this.dbService, this.userAuthority);
         }
     }
 
@@ -781,8 +779,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // get server region
 
         serverRegion = System.getProperty(ZMSConsts.ZMS_PROP_SERVER_REGION);
-
-        enablePrincipalStateUpdater = Boolean.parseBoolean(System.getProperty(ZMSConsts.ZMS_PROP_ENABLE_PRINCIPAL_STATE_UPDATER, "false"));
     }
 
     void loadObjectStore() {

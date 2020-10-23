@@ -11981,16 +11981,13 @@ public class JDBCConnectionTest {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
-        Mockito.when(mockResultSet.next()).thenReturn(true);
-        Mockito.doReturn(3).when(mockResultSet).getInt(1); // return principal id
-
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
 
-        boolean requestSuccess = jdbcConn.updatePrincipal("user1", 1);
+        boolean requestSuccess = jdbcConn.updatePrincipal("user.user1", 1);
         assertTrue(requestSuccess);
 
         Mockito.verify(mockPrepStmt, times(1)).setInt(1, 1);
-        Mockito.verify(mockPrepStmt, times(1)).setInt(2, 3);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "user.user1");
         jdbcConn.close();
     }
 
@@ -11998,16 +11995,8 @@ public class JDBCConnectionTest {
     public void testUpdatePrincipalInvalid() throws Exception {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-
-        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
-        Mockito.when(mockResultSet.next()).thenReturn(false);
-
-        try {
-            jdbcConn.updatePrincipal("user1", 1);
-            fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
-        }
+        Mockito.doReturn(0).when(mockPrepStmt).executeUpdate();
+        assertFalse(jdbcConn.updatePrincipal("user.user1", 1));
         jdbcConn.close();
     }
 
@@ -12015,12 +12004,10 @@ public class JDBCConnectionTest {
     public void testUpdatePrincipalError() throws Exception {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
-        Mockito.when(mockResultSet.next()).thenReturn(true);
-        Mockito.doReturn(3).when(mockResultSet).getInt(1); // return principal id
         Mockito.when(mockPrepStmt.executeUpdate())
                 .thenThrow(new SQLException("sql error"));
         try {
-            jdbcConn.updatePrincipal("user1", 1);
+            jdbcConn.updatePrincipal("user.user1", 1);
             fail();
         } catch (RuntimeException ex) {
             assertTrue(ex.getMessage().contains("sql error"));

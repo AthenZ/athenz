@@ -479,8 +479,8 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "JOIN principal ON principal.principal_id=principal_group_member.principal_id "
             + "JOIN domain ON domain.domain_id=principal_group.domain_id "
             + "WHERE principal_group_member.last_notified_time=? AND principal_group_member.server=?;";
-    private static final String SQL_UPDATE_PRINCIPAL = "UPDATE principal SET system_disabled=? WHERE principal_id=?;";
-    private static final String SQL_GET_PRINCIPAL = "SELECT name FROM principal WHERE system_disabled=?;";
+    private static final String SQL_UPDATE_PRINCIPAL = "UPDATE principal SET system_suspended=? WHERE principal_id=?;";
+    private static final String SQL_GET_PRINCIPAL = "SELECT name FROM principal WHERE system_suspended=?;";
 
     private static final String CACHE_DOMAIN    = "d:";
     private static final String CACHE_ROLE      = "r:";
@@ -5610,14 +5610,10 @@ public class JDBCConnection implements ObjectStoreConnection {
     public boolean updatePrincipal(String principal, int newState) {
         final String caller = "updatePrincipal";
 
-        int principalId = getPrincipalId(principal);
-        if (principalId == 0) {
-            throw notFoundError(caller, ZMSConsts.OBJECT_PRINCIPAL, principal);
-        }
         int affectedRows;
         try (PreparedStatement ps = con.prepareStatement(SQL_UPDATE_PRINCIPAL)) {
             ps.setInt(1, newState);
-            ps.setInt(2, principalId);
+            ps.setString(2, principal);
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -5633,7 +5629,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setInt(1, queriedState);
             try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
-                    principals.add(rs.getString(1));
+                    principals.add(rs.getString(ZMSConsts.DB_COLUMN_NAME));
                 }
             }
         } catch (SQLException ex) {

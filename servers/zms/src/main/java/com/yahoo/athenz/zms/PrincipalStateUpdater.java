@@ -88,18 +88,18 @@ public class PrincipalStateUpdater {
      void refreshPrincipalStateFromAuthority() {
 
          // First lets get a list of users by system disabled state from authority
-        List<Principal> newSystemDisabledPrincipals = principalAuthority.getPrincipals(EnumSet.of(Principal.State.AUTHORITY_SYSTEM_DISABLED));
+        List<Principal> newSystemDisabledPrincipals = principalAuthority.getPrincipals(EnumSet.of(Principal.State.AUTHORITY_SYSTEM_SUSPENDED));
         LOGGER.info("Found suspendedPrincipals={} from Principal Authority", newSystemDisabledPrincipals);
 
         // Then get a list of system disabled principals from DB
-        List<Principal> existingSystemDisabledPrincipals = dbService.getPrincipals(Principal.State.AUTHORITY_SYSTEM_DISABLED.getValue());
+        List<Principal> existingSystemDisabledPrincipals = dbService.getPrincipals(Principal.State.AUTHORITY_SYSTEM_SUSPENDED.getValue());
 
         // To find out the new system disabled principals, lets remove the ones which are already marked as system disabled in DB
         List<Principal> suspendedPrincipals = new ArrayList<>(newSystemDisabledPrincipals);
         suspendedPrincipals.removeAll(existingSystemDisabledPrincipals);
 
         // Update new system disabled in DB
-        dbService.updatePrincipalBasedOnAuthorityState(suspendedPrincipals, Principal.State.AUTHORITY_SYSTEM_DISABLED);
+        dbService.updatePrincipalByStateFromAuthority(suspendedPrincipals, true);
         LOGGER.info("Updated newSystemDisabledPrincipals={} in DB", suspendedPrincipals);
 
         // Now lets re activate existing system disabled which are not present in new list
@@ -107,7 +107,7 @@ public class PrincipalStateUpdater {
         reEnabledPrincipals.removeAll(newSystemDisabledPrincipals);
 
         // Revert back system disabled state in DB
-        dbService.updatePrincipalBasedOnAuthorityState(reEnabledPrincipals, Principal.State.ACTIVE);
+        dbService.updatePrincipalByStateFromAuthority(reEnabledPrincipals, false);
         LOGGER.info("Updated reEnabledPrincipals={} in DB", reEnabledPrincipals);
     }
 }

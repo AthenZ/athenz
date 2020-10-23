@@ -69,8 +69,8 @@ public class PrincipalStateUpdaterTest {
         p = SimplePrincipal.create("user", "user4", (String) null);
         newSuspended.add(p);
 
-        Mockito.when(dbsvc.getPrincipals(Principal.State.AUTHORITY_SYSTEM_DISABLED.getValue())).thenReturn(currSuspended);
-        Mockito.when(authority.getPrincipals(EnumSet.of(Principal.State.AUTHORITY_SYSTEM_DISABLED))).thenReturn(newSuspended);
+        Mockito.when(dbsvc.getPrincipals(Principal.State.AUTHORITY_SYSTEM_SUSPENDED.getValue())).thenReturn(currSuspended);
+        Mockito.when(authority.getPrincipals(EnumSet.of(Principal.State.AUTHORITY_SYSTEM_SUSPENDED))).thenReturn(newSuspended);
 
         try {
             PrincipalStateUpdater principalStateUpdater = new PrincipalStateUpdater(dbsvc, authority);
@@ -81,8 +81,8 @@ public class PrincipalStateUpdaterTest {
 
     @Test
     public void testShutdown() {
-        Mockito.when(dbsvc.getPrincipals(Principal.State.AUTHORITY_SYSTEM_DISABLED.getValue())).thenReturn(Collections.emptyList());
-        Mockito.when(authority.getPrincipals(EnumSet.of(Principal.State.AUTHORITY_SYSTEM_DISABLED))).thenReturn(Collections.emptyList());
+        Mockito.when(dbsvc.getPrincipals(Principal.State.AUTHORITY_SYSTEM_SUSPENDED.getValue())).thenReturn(Collections.emptyList());
+        Mockito.when(authority.getPrincipals(EnumSet.of(Principal.State.AUTHORITY_SYSTEM_SUSPENDED))).thenReturn(Collections.emptyList());
 
         try {
             PrincipalStateUpdater principalStateUpdater = new PrincipalStateUpdater(dbsvc, authority);
@@ -94,8 +94,8 @@ public class PrincipalStateUpdaterTest {
 
     @Test
     public void testNoTimer() {
-        Mockito.when(dbsvc.getPrincipals(Principal.State.AUTHORITY_SYSTEM_DISABLED.getValue())).thenReturn(Collections.emptyList());
-        Mockito.when(authority.getPrincipals(EnumSet.of(Principal.State.AUTHORITY_SYSTEM_DISABLED))).thenReturn(Collections.emptyList());
+        Mockito.when(dbsvc.getPrincipals(Principal.State.AUTHORITY_SYSTEM_SUSPENDED.getValue())).thenReturn(Collections.emptyList());
+        Mockito.when(authority.getPrincipals(EnumSet.of(Principal.State.AUTHORITY_SYSTEM_SUSPENDED))).thenReturn(Collections.emptyList());
         System.setProperty(ZMS_PROP_PRINCIPAL_STATE_UPDATER_DISABLE_TIMER, "true");
         try {
             PrincipalStateUpdater principalStateUpdater = new PrincipalStateUpdater(dbsvc, authority);
