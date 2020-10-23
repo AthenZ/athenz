@@ -479,7 +479,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "JOIN principal ON principal.principal_id=principal_group_member.principal_id "
             + "JOIN domain ON domain.domain_id=principal_group.domain_id "
             + "WHERE principal_group_member.last_notified_time=? AND principal_group_member.server=?;";
-    private static final String SQL_UPDATE_PRINCIPAL = "UPDATE principal SET system_suspended=? WHERE principal_id=?;";
+    private static final String SQL_UPDATE_PRINCIPAL = "UPDATE principal SET system_suspended=? WHERE name=?;";
     private static final String SQL_GET_PRINCIPAL = "SELECT name FROM principal WHERE system_suspended=?;";
 
     private static final String CACHE_DOMAIN    = "d:";

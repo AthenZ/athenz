@@ -6430,28 +6430,48 @@ public class DBService implements RolesProvider {
      * @param suspended boolean indicating principal's state
      */
     void updatePrincipalByStateFromAuthority(List<Principal> changedPrincipals, boolean suspended) {
+
+        if (changedPrincipals.isEmpty()) {
+            return;
+        }
+
         final String caller = "updatePrincipalByStateFromAuthority";
         List<Principal> updatedUsers = new ArrayList<>();
-        if (!changedPrincipals.isEmpty()) {
-            try (ObjectStoreConnection con = store.getConnection(true, true)) {
+        int newPrincipalState = suspended ? Principal.State.AUTHORITY_SYSTEM_SUSPENDED.getValue() : Principal.State.ACTIVE.getValue();
+        try (ObjectStoreConnection con = store.getConnection(true, true)) {
 
-                // first lets update the new state in DB
-                for (Principal changedPrincipal : changedPrincipals) {
-                    updatePrincipalState(suspended, updatedUsers, con, changedPrincipal);
+            // first lets update the new state in DB
+            for (Principal changedPrincipal : changedPrincipals) {
+                try {
+                    if (con.updatePrincipal(changedPrincipal.getFullName(), newPrincipalState)) {
+                        updatedUsers.add(changedPrincipal);
+                    }
+                } catch (ResourceException ex) {
+                    // log the exception and continue with remaining principals
+                    LOG.error("Exception in updating principal state from Authority {} Moving on.", ex.getMessage());
                 }
-                // if new state is updated successfully
-                // then we need to modify all roles and groups where given principal is member of
-                if (!updatedUsers.isEmpty()) {
-                    for (Principal updatedUser : updatedUsers) {
-                        try {
-                            updateRoleMembershipsByPrincipalState(suspended, caller, con, updatedUser);
-                            updateGroupMembershipByPrincipalState(suspended, caller, con, updatedUser);
-                        } catch (ResourceException ex) {
-                            if (ex.getCode() == ResourceException.NOT_FOUND) {
-                                continue;
-                            }
-                            throw ex;
+            }
+            // if new state is updated successfully
+            // then we need to modify all roles and groups where given principal is member of
+            if (!updatedUsers.isEmpty()) {
+                for (Principal updatedUser : updatedUsers) {
+                    // separate try blocks to treat group and role membership 404s separately
+                    try {
+                        updateRoleMembershipsByPrincipalState(suspended, caller, con, updatedUser);
+                    } catch (ResourceException ex) {
+                        if (ex.getCode() == ResourceException.NOT_FOUND) {
+                            continue;
                         }
+                        throw ex;
+                    }
+                    // separate try blocks to treat group and role membership 404s separately
+                    try {
+                        updateGroupMembershipByPrincipalState(suspended, caller, con, updatedUser);
+                    } catch (ResourceException ex) {
+                        if (ex.getCode() == ResourceException.NOT_FOUND) {
+                            continue;
+                        }
+                        throw ex;
                     }
                 }
             }
@@ -6462,34 +6482,29 @@ public class DBService implements RolesProvider {
         List<GroupMember> groupMembersWithUpdatedState;
         GroupMember groupMember;
         DomainGroupMember domainGroupMember;
-        Set<GroupMember> updatedGroups = new HashSet<>();
-
+        int newState;
+        Set<String> updatedDomains = new HashSet<>();
         domainGroupMember = con.getPrincipalGroups(updatedUser.getFullName(), null);
         if (!domainGroupMember.getMemberGroups().isEmpty()) {
             for (GroupMember currentGroup : domainGroupMember.getMemberGroups()) {
                 groupMember = new GroupMember();
                 groupMember.setMemberName(updatedUser.getFullName());
-                if (suspended) {
-                    groupMember.setSystemDisabled(currentGroup.getSystemDisabled() & ~Principal.State.AUTHORITY_SYSTEM_SUSPENDED.getValue());
-                } else {
-                    groupMember.setSystemDisabled(currentGroup.getSystemDisabled() | Principal.State.AUTHORITY_SYSTEM_SUSPENDED.getValue());
-                }
-                groupMembersWithUpdatedState = new ArrayList<>();
-                groupMembersWithUpdatedState.add(groupMember);
+                newState = suspended ? currentGroup.getSystemDisabled() | Principal.State.AUTHORITY_SYSTEM_SUSPENDED.getValue() :
+                        currentGroup.getSystemDisabled() & ~Principal.State.AUTHORITY_SYSTEM_SUSPENDED.getValue();
+                groupMember.setSystemDisabled(newState);
+                groupMembersWithUpdatedState = Collections.singletonList(groupMember);
 
                 // Following method does Audit entry as well
                 if (updateGroupMemberDisabledState(null, con, groupMembersWithUpdatedState, currentGroup.getDomainName(),
                         currentGroup.getGroupName(), ZMSConsts.SYS_AUTH_MONITOR, AUDIT_REF, caller)) {
-                    updatedGroups.add(currentGroup);
+                    con.updateGroupModTimestamp(currentGroup.getDomainName(), currentGroup.getGroupName());
+                    updatedDomains.add(currentGroup.getDomainName());
                 }
             }
-            for (GroupMember updatedGM : updatedGroups) {
-
-                // update our group and domain time-stamps, and invalidate local cache entry
-                con.updateGroupModTimestamp(updatedGM.getDomainName(), updatedGM.getGroupName());
-                con.updateDomainModTimestamp(updatedGM.getDomainName());
-                cacheStore.invalidate(updatedGM.getDomainName());
-            }
+            updatedDomains.forEach(dom -> {
+                con.updateDomainModTimestamp(dom);
+                cacheStore.invalidate(dom);
+            });
         }
     }
 
@@ -6497,50 +6512,29 @@ public class DBService implements RolesProvider {
         RoleMember roleMember;
         List<RoleMember> roleMembersWithUpdatedState;
         DomainRoleMember domainRoleMember;
-        Set<MemberRole> updatedRoles = new HashSet<>();
-
+        int newState;
+        Set<String> updatedDomains = new HashSet<>();
         domainRoleMember = con.getPrincipalRoles(updatedUser.getFullName(), null);
         if (!domainRoleMember.getMemberRoles().isEmpty()) {
             for (MemberRole memberRole : domainRoleMember.getMemberRoles()) {
                 roleMember = new RoleMember();
                 roleMember.setMemberName(updatedUser.getFullName());
-                if (suspended) {
-                    roleMember.setSystemDisabled(memberRole.getSystemDisabled() & ~Principal.State.AUTHORITY_SYSTEM_SUSPENDED.getValue());
-                } else {
-                    roleMember.setSystemDisabled(memberRole.getSystemDisabled() | Principal.State.AUTHORITY_SYSTEM_SUSPENDED.getValue());
-                }
-                roleMembersWithUpdatedState = new ArrayList<>();
-                roleMembersWithUpdatedState.add(roleMember);
+                newState = suspended ? memberRole.getSystemDisabled() | Principal.State.AUTHORITY_SYSTEM_SUSPENDED.getValue() :
+                        memberRole.getSystemDisabled() & ~Principal.State.AUTHORITY_SYSTEM_SUSPENDED.getValue();
+                roleMember.setSystemDisabled(newState);
+                roleMembersWithUpdatedState = Collections.singletonList(roleMember);
 
                 // Following method does Audit entry as well
                 if (updateRoleMemberDisabledState(null, con, roleMembersWithUpdatedState, memberRole.getDomainName(),
                         memberRole.getRoleName(), ZMSConsts.SYS_AUTH_MONITOR, AUDIT_REF, caller)) {
-                    updatedRoles.add(memberRole);
+                    con.updateRoleModTimestamp(memberRole.getDomainName(), memberRole.getRoleName());
+                    updatedDomains.add(memberRole.getDomainName());
                 }
             }
-            for (MemberRole updatedMR : updatedRoles) {
-
-                // update our role and domain time-stamps, and invalidate local cache entry
-                con.updateRoleModTimestamp(updatedMR.getDomainName(), updatedMR.getRoleName());
-                con.updateDomainModTimestamp(updatedMR.getDomainName());
-                cacheStore.invalidate(updatedMR.getDomainName());
-            }
-        }
-    }
-
-    private void updatePrincipalState(boolean suspended, List<Principal> updatedUsers, ObjectStoreConnection con, Principal changedPrincipal) {
-        try {
-            if (suspended) {
-                if (con.updatePrincipal(changedPrincipal.getFullName(), Principal.State.AUTHORITY_SYSTEM_SUSPENDED.getValue())) {
-                    updatedUsers.add(changedPrincipal);
-                }
-            } else {
-                if (con.updatePrincipal(changedPrincipal.getFullName(), Principal.State.ACTIVE.getValue())) {
-                    updatedUsers.add(changedPrincipal);
-                }
-            }
-        } catch (ResourceException ex) {
-            LOG.error("Exception in updating principal state from Authority {} Moving on.", ex.getMessage());
+            updatedDomains.forEach(dom -> {
+                con.updateDomainModTimestamp(dom);
+                cacheStore.invalidate(dom);
+            });
         }
     }
 
