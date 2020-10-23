@@ -15,7 +15,7 @@
  */
 import React from 'react';
 import styled from '@emotion/styled';
-import ReviewMembersRow from './ReviewMembersRow';
+import ReviewRow from './ReviewRow';
 import Button from '../denali/Button';
 import Color from '../denali/Color';
 import InputLabel from '../denali/InputLabel';
@@ -44,7 +44,7 @@ const ReviewMembersSectionDiv = styled.div`
 
 const ReviewMembersTable = styled.table`
     width: 100%;
-    border-spacing: 0;
+    border-spacing: 0 15px;
     display: table;
     border-collapse: separate;
     border-color: grey;
@@ -329,7 +329,7 @@ export default class RoleMemberReviewDetails extends React.Component {
         );
     }
 
-    getContent() {
+    render() {
         const left = 'left';
         let center = 'center';
         const rows =
@@ -341,7 +341,7 @@ export default class RoleMemberReviewDetails extends React.Component {
                       .map((item, i) => {
                           let color = 'white';
                           return (
-                              <ReviewMembersRow
+                              <ReviewRow
                                   key={'role-review-' + i}
                                   idx={'role-review-' + i}
                                   details={item}
@@ -459,81 +459,10 @@ export default class RoleMemberReviewDetails extends React.Component {
             return (
                 <ReviewMembersContainerDiv>
                     User principal and/or Service principal expiry days are
-                    required before a role can be reviewed.
-                    <div>
-                        <StyledInputLabel htmlFor='role-meta-member-expiry'>
-                            User Principal Expiry ( in Days )
-                        </StyledInputLabel>
-                        <ContentDiv>
-                            <StyledInput
-                                id='role-meta-member-expiry'
-                                name='role-meta-member-expiry'
-                                value={
-                                    this.state.memberExpiry
-                                        ? '' + this.state.memberExpiry
-                                        : ''
-                                }
-                                onChange={(e) =>
-                                    this.setState({
-                                        memberExpiry: e.target.value,
-                                    })
-                                }
-                            />
-                        </ContentDiv>
-                    </div>
-                    <div>
-                        <StyledInputLabel htmlFor='role-meta-service-expiry'>
-                            Service Principal Expiry ( in Days )
-                        </StyledInputLabel>
-                        <ContentDiv>
-                            <StyledInput
-                                id='role-meta-service-expiry'
-                                name='role-meta-service-expiry'
-                                value={
-                                    this.state.serviceExpiry
-                                        ? '' + this.state.serviceExpiry
-                                        : ''
-                                }
-                                onChange={(e) =>
-                                    this.setState({
-                                        serviceExpiry: e.target.value,
-                                    })
-                                }
-                            />
-                        </ContentDiv>
-                    </div>
-                    <SubmitDiv>
-                        <Button
-                            secondary={true}
-                            onClick={this.submitRoleMetaExpiry}
-                        >
-                            Submit Expiry
-                        </Button>
-                        <Button
-                            secondary={true}
-                            onClick={this.cancelRoleMetaUpdate}
-                        >
-                            Cancel
-                        </Button>
-                    </SubmitDiv>
-                    {this.state.errorMessage && (
-                        <Color name={'red600'}>{this.state.errorMessage}</Color>
-                    )}
+                    required before a role can be reviewed. Please go to
+                    Settings tab to set those up.
                 </ReviewMembersContainerDiv>
             );
         }
-    }
-
-    render() {
-        let { color } = this.props;
-        return (
-            <TDStyled
-                color={color}
-                colSpan={8}
-                data-testid='role-member-review-details'
-            >
-                {this.getContent()}
-            </TDStyled>
-        );
     }
 }

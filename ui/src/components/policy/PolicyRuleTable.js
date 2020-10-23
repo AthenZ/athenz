@@ -22,6 +22,7 @@ import Alert from '../denali/Alert';
 import DeleteModal from '../modal/DeleteModal';
 import { MODAL_TIME_OUT } from '../constants/constants';
 import RequestUtils from '../utils/RequestUtils';
+
 const StyleTable = styled.table`
     width: 100%;
     border-spacing: 0;

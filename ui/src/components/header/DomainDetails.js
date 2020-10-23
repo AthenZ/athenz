@@ -17,6 +17,7 @@ import styled from '@emotion/styled';
 import DateUtils from '../utils/DateUtils';
 import React from 'react';
 import Button from '../denali/Button';
+import Switch from '../denali/Switch';
 import Alert from '../denali/Alert';
 import { MODAL_TIME_OUT } from '../constants/constants';
 import AddModal from '../modal/AddModal';
@@ -156,9 +157,12 @@ export default class DomainDetails extends React.Component {
                     </SectionDiv>
                     <SectionDiv>
                         <ValueDiv>
-                            {this.props.domainDetails.auditEnabled
-                                ? 'true'
-                                : 'N/A'}
+                            <Switch
+                                name={'auditDomainDetails'}
+                                value={this.props.domainDetails.auditEnabled}
+                                checked={this.props.domainDetails.auditEnabled}
+                                disabled
+                            />
                         </ValueDiv>
                         <LabelDiv>AUDIT ENABLED</LabelDiv>
                     </SectionDiv>

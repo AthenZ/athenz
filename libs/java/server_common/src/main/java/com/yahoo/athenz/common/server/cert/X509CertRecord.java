@@ -157,4 +157,25 @@ public class X509CertRecord {
     public void setSvcDataUpdateTime(Date svcDataUpdateTime) {
         this.svcDataUpdateTime = svcDataUpdateTime;
     }
+
+    @Override
+    public String toString() {
+        return "X509CertRecord{" +
+                "provider='" + provider + '\'' +
+                ", instanceId='" + instanceId + '\'' +
+                ", service='" + service + '\'' +
+                ", currentSerial='" + currentSerial + '\'' +
+                ", currentTime=" + currentTime +
+                ", currentIP='" + currentIP + '\'' +
+                ", prevSerial='" + prevSerial + '\'' +
+                ", prevTime=" + prevTime +
+                ", prevIP='" + prevIP + '\'' +
+                ", clientCert=" + clientCert +
+                ", lastNotifiedTime=" + lastNotifiedTime +
+                ", lastNotifiedServer='" + lastNotifiedServer + '\'' +
+                ", expiryTime=" + expiryTime +
+                ", hostName='" + hostName + '\'' +
+                ", svcDataUpdateTime=" + svcDataUpdateTime +
+                '}';
+    }
 }

@@ -1,11 +1,123 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`DomainDetails should render 1`] = `
-.emotion-16 {
+.emotion-9 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  height: 18px;
+  outline: 0;
+  position: relative;
+}
+
+.emotion-9 > input[type='checkbox'] {
+  box-sizing: border-box;
+  cursor: pointer;
+  position: absolute;
+  top: 0;
+  visibility: hidden;
+}
+
+.emotion-9 > input[type='checkbox'] + label {
+  box-sizing: border-box;
+  cursor: pointer;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  height: 18px;
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+.emotion-9 > input[type='checkbox'] + label .label-content {
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  margin-left: 6px;
+}
+
+@-moz-document url-prefix()  {
+  .emotion-9 > input[type='checkbox'] + label .label-content {
+    margin-top: 1px;
+  }
+}
+
+.emotion-9 > input[type='checkbox'] + label:before {
+  background: #d5d5d5;
+  border-radius: 9px;
+  box-sizing: border-box;
+  content: '';
+  cursor: pointer;
+  display: inline-block;
+  height: 4px;
+  line-height: 16px;
+  margin: 7px 0 0 0;
+  -webkit-transition: all 0.25s;
+  transition: all 0.25s;
+  vertical-align: top;
+  width: 34px;
+}
+
+.emotion-9 > input[type='checkbox'] + label::after {
+  background-color: #fff;
+  border: 2px solid rgba(54,151,242,0.5);
+  border-radius: 50%;
+  box-sizing: border-box;
+  content: ' ';
+  cursor: pointer;
+  display: block;
+  height: 18px;
+  left: 0;
+  position: absolute;
+  -webkit-transition: all 0.25s ease;
+  transition: all 0.25s ease;
+  top: 0;
+  width: 18px;
+}
+
+.emotion-9 > input[type='checkbox']:checked + label::before {
+  background-color: rgba(21,192,70,0.45);
+}
+
+.emotion-9 > input[type='checkbox']:checked + label::after {
+  background-color: #15c046;
+  border-color: #15c046;
+  left: 16px;
+}
+
+.emotion-9 > input[type='checkbox']:disabled + label {
+  color: #9a9a9a;
+  cursor: not-allowed;
+}
+
+.emotion-9 > input[type='checkbox']:disabled + label::before {
+  background-color: #e8e8e8;
+  cursor: not-allowed;
+}
+
+.emotion-9 > input[type='checkbox']:disabled + label::after {
+  border-color: #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-9 > input[type='checkbox']:checked:disabled + label::after {
+  background: #d5d5d5;
+}
+
+.emotion-17 {
   margin: 20px 0;
 }
 
-.emotion-15 {
+.emotion-16 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -30,11 +142,11 @@ exports[`DomainDetails should render 1`] = `
 }
 
 <div
-  class="emotion-16"
+  class="emotion-17"
   data-testid="domain-details"
 >
   <div
-    class="emotion-15"
+    class="emotion-16"
   >
     <div
       class="emotion-2"
@@ -84,7 +196,21 @@ exports[`DomainDetails should render 1`] = `
       <div
         class="emotion-0"
       >
-        N/A
+        <div
+          class="emotion-9 denali-switch"
+          data-testid="switch-wrapper"
+        >
+          <input
+            disabled=""
+            id="switch-auditDomainDetails"
+            name="auditDomainDetails"
+            type="checkbox"
+            value=""
+          />
+          <label
+            for="switch-auditDomainDetails"
+          />
+        </div>
       </div>
       <div
         class="emotion-1"
@@ -111,7 +237,119 @@ exports[`DomainDetails should render 1`] = `
 `;
 
 exports[`DomainDetails should render with mock data 1`] = `
-.emotion-16 {
+.emotion-10 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  height: 18px;
+  outline: 0;
+  position: relative;
+}
+
+.emotion-10 > input[type='checkbox'] {
+  box-sizing: border-box;
+  cursor: pointer;
+  position: absolute;
+  top: 0;
+  visibility: hidden;
+}
+
+.emotion-10 > input[type='checkbox'] + label {
+  box-sizing: border-box;
+  cursor: pointer;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  height: 18px;
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+.emotion-10 > input[type='checkbox'] + label .label-content {
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  margin-left: 6px;
+}
+
+@-moz-document url-prefix()  {
+  .emotion-10 > input[type='checkbox'] + label .label-content {
+    margin-top: 1px;
+  }
+}
+
+.emotion-10 > input[type='checkbox'] + label:before {
+  background: #d5d5d5;
+  border-radius: 9px;
+  box-sizing: border-box;
+  content: '';
+  cursor: pointer;
+  display: inline-block;
+  height: 4px;
+  line-height: 16px;
+  margin: 7px 0 0 0;
+  -webkit-transition: all 0.25s;
+  transition: all 0.25s;
+  vertical-align: top;
+  width: 34px;
+}
+
+.emotion-10 > input[type='checkbox'] + label::after {
+  background-color: #fff;
+  border: 2px solid rgba(54,151,242,0.5);
+  border-radius: 50%;
+  box-sizing: border-box;
+  content: ' ';
+  cursor: pointer;
+  display: block;
+  height: 18px;
+  left: 0;
+  position: absolute;
+  -webkit-transition: all 0.25s ease;
+  transition: all 0.25s ease;
+  top: 0;
+  width: 18px;
+}
+
+.emotion-10 > input[type='checkbox']:checked + label::before {
+  background-color: rgba(21,192,70,0.45);
+}
+
+.emotion-10 > input[type='checkbox']:checked + label::after {
+  background-color: #15c046;
+  border-color: #15c046;
+  left: 16px;
+}
+
+.emotion-10 > input[type='checkbox']:disabled + label {
+  color: #9a9a9a;
+  cursor: not-allowed;
+}
+
+.emotion-10 > input[type='checkbox']:disabled + label::before {
+  background-color: #e8e8e8;
+  cursor: not-allowed;
+}
+
+.emotion-10 > input[type='checkbox']:disabled + label::after {
+  border-color: #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-10 > input[type='checkbox']:checked:disabled + label::after {
+  background: #d5d5d5;
+}
+
+.emotion-17 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -137,29 +375,29 @@ exports[`DomainDetails should render with mock data 1`] = `
   color: #3697f2;
 }
 
-.emotion-16:first-of-type {
+.emotion-17:first-of-type {
   margin-left: 0;
 }
 
-.emotion-16:disabled {
+.emotion-17:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-16:disabled {
+.emotion-17:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-16:hover:not(:disabled) {
+.emotion-17:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-19 {
+.emotion-20 {
   margin: 20px 0;
 }
 
-.emotion-18 {
+.emotion-19 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -191,11 +429,11 @@ exports[`DomainDetails should render with mock data 1`] = `
 }
 
 <div
-  class="emotion-19"
+  class="emotion-20"
   data-testid="domain-details"
 >
   <div
-    class="emotion-18"
+    class="emotion-19"
   >
     <div
       class="emotion-2"
@@ -250,7 +488,22 @@ exports[`DomainDetails should render with mock data 1`] = `
       <div
         class="emotion-0"
       >
-        true
+        <div
+          class="emotion-10 denali-switch"
+          data-testid="switch-wrapper"
+        >
+          <input
+            checked=""
+            disabled=""
+            id="switch-auditDomainDetails"
+            name="auditDomainDetails"
+            type="checkbox"
+            value="true"
+          />
+          <label
+            for="switch-auditDomainDetails"
+          />
+        </div>
       </div>
       <div
         class="emotion-1"
@@ -276,7 +529,7 @@ exports[`DomainDetails should render with mock data 1`] = `
       class="emotion-2"
     >
       <button
-        class="emotion-16 denali-button"
+        class="emotion-17 denali-button"
       >
         Onboard to AWS
       </button>

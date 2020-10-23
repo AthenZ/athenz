@@ -18,10 +18,8 @@ import Icon from '../denali/icons/Icon';
 import { colors } from '../denali/styles';
 import NameUtils from '../utils/NameUtils';
 import styled from '@emotion/styled';
-import Switch from '../denali/Switch';
+import { Router } from '../../routes.js';
 import DeleteModal from '../modal/DeleteModal';
-import RoleMemberDetails from './RoleMemberDetails';
-import RoleMemberReviewDetails from './RoleMemberReviewDetails';
 import Menu from '../denali/Menu/Menu';
 import DateUtils from '../utils/DateUtils';
 import RequestUtils from '../utils/RequestUtils';
@@ -35,7 +33,15 @@ const TDStyled = styled.td`
 `;
 
 const TrStyled = styled.tr`
-    background-color: ${(props) => props.color};
+    box-sizing: border-box;
+    margin-top: 10px;
+    box-shadow: 0 1px 4px #d9d9d9;
+    border: 1px solid #fff;
+    -webkit-border-image: none;
+    border-image: none;
+    -webkit-border-image: initial;
+    border-image: initial;
+    height: 50px;
 `;
 
 const MenuDiv = styled.div`
@@ -55,23 +61,12 @@ export default class RoleRow extends React.Component {
         this.api = this.props.api;
         this.onSubmitDelete = this.onSubmitDelete.bind(this);
         this.onClickDeleteCancel = this.onClickDeleteCancel.bind(this);
-        this.updateRoleMeta = this.updateRoleMeta.bind(this);
         this.saveJustification = this.saveJustification.bind(this);
-        this.onReviewSubmit = this.onReviewSubmit.bind(this);
         this.state = {
             name: NameUtils.getShortName(':role.', this.props.details.name),
             showDelete: false,
-            reviewMembers: false,
-            showMembers: false,
         };
         this.localDate = new DateUtils();
-    }
-
-    onReviewSubmit(message) {
-        this.setState({ reviewMembers: false });
-        if (message) {
-            this.props.onUpdateSuccess(message);
-        }
     }
 
     saveJustification(val) {
@@ -83,6 +78,10 @@ export default class RoleRow extends React.Component {
             showDelete: true,
             deleteName: name,
         });
+    }
+
+    onClickFunction(route, domain, role) {
+        Router.pushRoute(route, { domain: domain, role: role });
     }
 
     onSubmitDelete(domain) {
@@ -132,67 +131,6 @@ export default class RoleRow extends React.Component {
         });
     }
 
-    updateRoleMeta(key, value) {
-        let roleMeta = {};
-
-        switch (key) {
-            case 'selfServe':
-                roleMeta.selfServe = value;
-                roleMeta.reviewEnabled = this.props.details.reviewEnabled;
-                break;
-            case 'reviewEnabled':
-                roleMeta.reviewEnabled = value;
-                roleMeta.selfServe = this.props.details.selfServe;
-                break;
-        }
-
-        this.api
-            .putRoleMeta(
-                this.props.domain,
-                this.state.name,
-                roleMeta,
-                'Added using Athenz UI',
-                this.props._csrf
-            )
-            .then(() =>
-                this.props.onUpdateSuccess(
-                    `Successfully updated metadata for role ${this.state.name}`
-                )
-            )
-            .catch((err) => {
-                this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                });
-            });
-    }
-
-    toggleSelfServe(selfServe) {
-        this.updateRoleMeta('selfServe', !selfServe);
-    }
-    toggleReviewEnabled(reviewEnabled) {
-        this.updateRoleMeta('reviewEnabled', !reviewEnabled);
-    }
-    expandRole() {
-        if (this.state.reviewMembers) {
-            this.setState({
-                showMembers: !this.state.showMembers,
-                reviewMembers: false,
-            });
-        } else {
-            this.setState({ showMembers: !this.state.showMembers });
-        }
-    }
-    expandReview() {
-        if (this.state.showMembers) {
-            this.setState({
-                reviewMembers: !this.state.reviewMembers,
-                showMembers: false,
-            });
-        } else {
-            this.setState({ reviewMembers: !this.state.reviewMembers });
-        }
-    }
-
     render() {
         let rows = [];
         let left = 'left';
@@ -201,27 +139,35 @@ export default class RoleRow extends React.Component {
         let color = this.props.color;
         let idx = this.props.idx;
 
-        let clickDeleteCancel = this.onClickDeleteCancel.bind(this);
-        let submitDelete = this.onSubmitDelete.bind(this, this.props.domain);
-        let clickDelete = this.onClickDelete.bind(this, this.state.name);
-        let expandRole = this.expandRole.bind(
+        let clickMembers = this.onClickFunction.bind(
             this,
+            'members',
             this.props.domain,
             this.state.name
         );
-        let expandReview = this.expandReview.bind(
+        let clickReview = this.onClickFunction.bind(
             this,
+            'review',
+            this.props.domain,
+            this.state.name
+        );
+        let clickSettings = this.onClickFunction.bind(
+            this,
+            'settings',
+            this.props.domain,
+            this.state.name
+        );
+        let clickPolicy = this.onClickFunction.bind(
+            this,
+            'role-policy',
             this.props.domain,
             this.state.name
         );
 
-        let selfServe = !!role.selfServe;
-        let toggleSelfServe = this.toggleSelfServe.bind(this, selfServe);
-        let reviewEnabled = !!role.reviewEnabled;
-        let toggleReviewEnabled = this.toggleReviewEnabled.bind(
-            this,
-            reviewEnabled
-        );
+        let clickDelete = this.onClickDelete.bind(this, this.state.name);
+        let submitDelete = this.onSubmitDelete.bind(this, this.props.domain);
+        let clickDeleteCancel = this.onClickDeleteCancel.bind(this);
+
         let iconDelegated = (
             <Menu
                 placement='bottom-start'
@@ -273,7 +219,7 @@ export default class RoleRow extends React.Component {
             );
 
         rows.push(
-            <tr key={this.state.name} data-testid='role-row'>
+            <TrStyled key={this.state.name} data-testid='role-row'>
                 <TDStyled color={color} align={left}>
                     {roleTypeIcon}
                     {roleAuditIcon}
@@ -292,29 +238,13 @@ export default class RoleRow extends React.Component {
                         : 'N/A'}
                 </TDStyled>
                 <TDStyled color={color} align={center}>
-                    <Switch
-                        name={'reviewEnabled-' + idx}
-                        value={reviewEnabled}
-                        checked={reviewEnabled}
-                        onChange={toggleReviewEnabled}
-                    />
-                </TDStyled>
-                <TDStyled color={color} align={center}>
-                    <Switch
-                        name={'selfServe-' + idx}
-                        value={selfServe}
-                        checked={selfServe}
-                        onChange={toggleSelfServe}
-                    />
-                </TDStyled>
-                <TDStyled color={color} align={center}>
                     <Menu
                         placement='bottom-start'
                         trigger={
                             <span>
                                 <Icon
                                     icon={'user-group'}
-                                    onClick={expandRole}
+                                    onClick={clickMembers}
                                     color={colors.icons}
                                     isLink
                                     size={'1.25em'}
@@ -323,7 +253,7 @@ export default class RoleRow extends React.Component {
                             </span>
                         }
                     >
-                        <MenuDiv>Show Members</MenuDiv>
+                        <MenuDiv>Members</MenuDiv>
                     </Menu>
                 </TDStyled>
                 <TDStyled color={color} align={center}>
@@ -333,7 +263,7 @@ export default class RoleRow extends React.Component {
                             <span>
                                 <Icon
                                     icon={'assignment-priority'}
-                                    onClick={expandReview}
+                                    onClick={clickReview}
                                     color={colors.icons}
                                     isLink
                                     size={'1.25em'}
@@ -343,6 +273,44 @@ export default class RoleRow extends React.Component {
                         }
                     >
                         <MenuDiv>Review Members</MenuDiv>
+                    </Menu>
+                </TDStyled>
+                <TDStyled color={color} align={center}>
+                    <Menu
+                        placement='bottom-start'
+                        trigger={
+                            <span>
+                                <Icon
+                                    icon={'list-check'}
+                                    onClick={clickPolicy}
+                                    color={colors.icons}
+                                    isLink
+                                    size={'1.25em'}
+                                    verticalAlign={'text-bottom'}
+                                />
+                            </span>
+                        }
+                    >
+                        <MenuDiv>Rule Policy</MenuDiv>
+                    </Menu>
+                </TDStyled>
+                <TDStyled color={color} align={center}>
+                    <Menu
+                        placement='bottom-start'
+                        trigger={
+                            <span>
+                                <Icon
+                                    icon={'setting'}
+                                    onClick={clickSettings}
+                                    color={colors.icons}
+                                    isLink
+                                    size={'1.25em'}
+                                    verticalAlign={'text-bottom'}
+                                />
+                            </span>
+                        }
+                    >
+                        <MenuDiv>Settings</MenuDiv>
                     </Menu>
                 </TDStyled>
                 <TDStyled color={color} align={center}>
@@ -364,48 +332,8 @@ export default class RoleRow extends React.Component {
                         <MenuDiv>Delete Role</MenuDiv>
                     </Menu>
                 </TDStyled>
-            </tr>
+            </TrStyled>
         );
-
-        if (this.state.showMembers) {
-            rows.push(
-                <TrStyled
-                    color={this.props.color}
-                    key={this.state.name + '-members'}
-                >
-                    <RoleMemberDetails
-                        color={this.props.color}
-                        domain={this.props.domain}
-                        role={this.state.name}
-                        members={this.props.details.roleMembers}
-                        api={this.api}
-                        trust={this.props.details.trust}
-                        _csrf={this.props._csrf}
-                        justificationRequired={this.props.justificationRequired}
-                        userProfileLink={this.props.userProfileLink}
-                    />
-                </TrStyled>
-            );
-        }
-        if (this.state.reviewMembers) {
-            rows.push(
-                <TrStyled
-                    color={this.props.color}
-                    key={this.state.name + '-reviewMembers'}
-                >
-                    <RoleMemberReviewDetails
-                        color={this.props.color}
-                        domain={this.props.domain}
-                        role={this.state.name}
-                        members={this.props.details.roleMembers}
-                        api={this.api}
-                        _csrf={this.props._csrf}
-                        justificationRequired={this.props.justificationRequired}
-                        onUpdateSuccess={this.onReviewSubmit}
-                    />
-                </TrStyled>
-            );
-        }
 
         if (this.state.showDelete) {
             rows.push(
@@ -414,7 +342,7 @@ export default class RoleRow extends React.Component {
                     isOpen={this.state.showDelete}
                     cancel={clickDeleteCancel}
                     submit={submitDelete}
-                    key={this.state.deleteName + '-delete'}
+                    key={this.state.deleteName + '-delete' + idx}
                     showJustification={this.props.justificationRequired}
                     message={
                         'Are you sure you want to permanently delete the Role '
