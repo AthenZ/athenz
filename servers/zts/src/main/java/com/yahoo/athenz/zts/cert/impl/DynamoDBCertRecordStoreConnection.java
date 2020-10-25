@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 import com.amazonaws.services.dynamodbv2.document.*;
 import com.amazonaws.services.dynamodbv2.document.spec.QuerySpec;
 import com.amazonaws.services.dynamodbv2.document.utils.ValueMap;
+import com.amazonaws.services.dynamodbv2.model.ConditionalCheckFailedException;
 import com.amazonaws.services.dynamodbv2.model.ReturnValue;
 import com.yahoo.athenz.common.server.cert.CertRecordStoreConnection;
 import com.yahoo.athenz.common.server.cert.X509CertRecord;
@@ -283,6 +284,8 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
                     X509CertRecord x509CertRecord = itemToX509CertRecord(updatedItem);
                     updatedRecords.add(x509CertRecord);
                 }
+            } catch (ConditionalCheckFailedException ex) {
+                // This error appears when the update didn't work because it was already updated by another server. We can ignore it.
             } catch (Exception ex) {
                 LOGGER.error("DynamoDB updateLastNotified failed for item: {}, error: {}", item.toString(), ex.getMessage());
             }
