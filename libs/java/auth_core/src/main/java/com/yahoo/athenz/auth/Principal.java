@@ -49,6 +49,31 @@ public interface Principal {
         }
     }
 
+    /**
+     * Principal state - active, authority filter disabled or authority system disabled
+     */
+    enum State {
+        ACTIVE(0x00),
+        AUTHORITY_FILTER_DISABLED(0x01),
+        AUTHORITY_SYSTEM_SUSPENDED(0x02);
+
+        private final int principalState;
+        State(int state) {
+            principalState = state;
+        }
+        public int getValue() {
+            return principalState;
+        }
+        public static State getState(int value) {
+            for (State state : values()) {
+                if (state.getValue() == value) {
+                    return state;
+                }
+            }
+            return ACTIVE;
+        }
+    }
+
     /** @return the domain of the authority over this principal, i.e. "user" */
     String getDomain();
 
@@ -112,4 +137,10 @@ public interface Principal {
     default boolean getMtlsRestricted() {
         return false;
     }
+
+    /** @return State */
+    default Principal.State getState() {
+        return State.ACTIVE;
+    }
+
 }

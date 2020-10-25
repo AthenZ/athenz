@@ -2265,5 +2265,15 @@ public class FileConnection implements ObjectStoreConnection {
     public List<PrincipalGroup> listGroupsWithUserAuthorityRestrictions() {
         return null;
     }
+
+    @Override
+    public boolean updatePrincipal(String principal, int newState) {
+        return false;
+    }
+
+    @Override
+    public List<String> getPrincipals(int queriedState) {
+        return Collections.emptyList();
+    }
 }
 ///CLOVER:ON

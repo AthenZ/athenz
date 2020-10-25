@@ -21,6 +21,7 @@ public class ZMSBinderTest {
         System.setProperty(ZMSConsts.ZMS_PROP_JDBC_RW_STORE, "jdbc:mysql://localhost:3310/zms_server");
         System.setProperty(ZMSConsts.ZMS_PROP_JDBC_RW_USER, DB_USER);
         System.setProperty(ZMSConsts.ZMS_PROP_JDBC_RW_PASSWORD, DB_PASS);
+        System.setProperty(ZMSConsts.ZMS_PROP_PRINCIPAL_STATE_UPDATER_DISABLE_TIMER, "true");
     }
 
     @AfterClass

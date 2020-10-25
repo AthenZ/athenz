@@ -11975,4 +11975,85 @@ public class JDBCConnectionTest {
         }
         jdbcConn.close();
     }
+
+    @Test
+    public void testUpdatePrincipal() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        boolean requestSuccess = jdbcConn.updatePrincipal("user.user1", 1);
+        assertTrue(requestSuccess);
+
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 1);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "user.user1");
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testUpdatePrincipalInvalid() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.doReturn(0).when(mockPrepStmt).executeUpdate();
+        assertFalse(jdbcConn.updatePrincipal("user.user1", 1));
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testUpdatePrincipalError() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockPrepStmt.executeUpdate())
+                .thenThrow(new SQLException("sql error"));
+        try {
+            jdbcConn.updatePrincipal("user.user1", 1);
+            fail();
+        } catch (RuntimeException ex) {
+            assertTrue(ex.getMessage().contains("sql error"));
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetPrincipal() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(true).thenReturn(false);
+        Mockito.doReturn("user.user1").when(mockResultSet).getString(1);
+        Mockito.doReturn("user.user2").when(mockResultSet).getString(1);
+
+        List<String> principals = jdbcConn.getPrincipals(1);
+        assertFalse(principals.isEmpty());
+        assertEquals(principals.size(), 2);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 1);
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetPrincipalEmpty() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.next()).thenReturn(false);
+
+        List<String> principals = jdbcConn.getPrincipals(1);
+        assertTrue(principals.isEmpty());
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 1);
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetPrincipalError() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenThrow(new SQLException("sql error"));
+        try {
+            List<String> principals = jdbcConn.getPrincipals(1);
+            fail();
+        } catch (RuntimeException ex) {
+            assertTrue(ex.getMessage().contains("sql error"));
+        }
+        jdbcConn.close();
+    }
 }

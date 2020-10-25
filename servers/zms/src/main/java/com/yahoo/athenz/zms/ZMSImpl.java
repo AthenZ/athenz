@@ -17,7 +17,6 @@ package com.yahoo.athenz.zms;
 
 import com.google.common.primitives.Bytes;
 import com.yahoo.athenz.auth.*;
-import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.token.PrincipalToken;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.StringUtils;
@@ -577,6 +576,16 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // load the StatusChecker
 
         loadStatusChecker();
+
+        // system disabled from UserAuthority
+        
+        initializePrincipalStateUpdater();
+    }
+
+    private void initializePrincipalStateUpdater() {
+        if (Boolean.parseBoolean(System.getProperty(ZMSConsts.ZMS_PROP_ENABLE_PRINCIPAL_STATE_UPDATER, "false"))) {
+            new PrincipalStateUpdater(this.dbService, this.userAuthority);
+        }
     }
 
     private void setNotificationManager() {
@@ -2134,29 +2143,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         dbService.executeDeleteDomainTemplate(ctx, domainName, templateName, auditRef, caller);
     }
 
-    Principal createPrincipalForName(String principalName) {
-
-        String domain;
-        String name;
-
-        // if we have no . in the principal name we're going to default
-        // to our configured user domain
-
-        int idx = principalName.lastIndexOf('.');
-        if (idx == -1) {
-            domain = userDomain;
-            name = principalName;
-        } else {
-            domain = principalName.substring(0, idx);
-            if (userDomainAlias != null && userDomainAlias.equals(domain)) {
-                domain = userDomain;
-            }
-            name = principalName.substring(idx + 1);
-        }
-
-        return SimplePrincipal.create(domain, name, (String) null);
-    }
-
     boolean validateRoleBasedAccessCheck(List<String> roles, final String trustDomain, final String domainName,
                                          final String principalName) {
 
@@ -2543,7 +2529,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // check against that principal
 
         if (checkPrincipal != null) {
-            principal = createPrincipalForName(checkPrincipal);
+            principal = ZMSUtils.createPrincipalForName(checkPrincipal, userDomain, userDomainAlias);
             if (principal == null) {
                 throw ZMSUtils.unauthorizedError("getAccessCheck: Invalid check principal value specified", caller);
             }

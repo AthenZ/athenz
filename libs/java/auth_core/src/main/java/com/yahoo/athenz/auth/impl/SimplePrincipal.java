@@ -17,6 +17,7 @@ package com.yahoo.athenz.auth.impl;
 
 import java.security.cert.X509Certificate;
 import java.util.List;
+import java.util.Objects;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +45,9 @@ public class SimplePrincipal implements Principal {
     X509Certificate x509Certificate = null;
     String applicationId = null;
     private boolean mtlsRestricted = false;
+
+    // defaulting to ACTIVE state
+    private Principal.State state = State.ACTIVE;
 
     public static Principal create(String domain, String name, String creds) {
         return create(domain, name, creds, 0, null);
@@ -166,6 +170,11 @@ public class SimplePrincipal implements Principal {
     public void setMtlsRestricted(boolean isMtlsRestricted) {
         this.mtlsRestricted = isMtlsRestricted;
     }
+
+    public void setState(State state) {
+        this.state = state;
+    }
+
     @Override
     public String getIP() {
         return ip;
@@ -261,5 +270,27 @@ public class SimplePrincipal implements Principal {
     @Override
     public boolean getMtlsRestricted() {
         return this.mtlsRestricted;
+    }
+
+    @Override
+    public Principal.State getState() {
+        return this.state;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        SimplePrincipal that = (SimplePrincipal) o;
+        return getFullName().equals(that.getFullName());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getFullName());
     }
 }
