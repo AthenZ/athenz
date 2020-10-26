@@ -59,7 +59,7 @@ export ZTS_SIGNER_TRUSTSTORE_PATH="${ZTS_CERTS_DIR}/zts_signer_truststore.jks"
 ## ZMS client filepaths
 export ZMS_CLIENT_KEYSTORE_PATH="${ZTS_CERTS_DIR}/zms_client_keystore.pkcs12"
 export ZMS_CLIENT_TRUSTSTORE_PATH="${ZTS_CERTS_DIR}/zms_client_truststore.jks"
-### PROD env. ZMS PATH
+### PROD env. ZTS PATH
 export PROD_ZTS_DIR="${DOCKER_DIR}/prod/zts"
 mkdir -p "${PROD_ZTS_DIR}"
 export ZTS_CERT_KEY_PATH="${PROD_ZTS_DIR}/zts_key.pem"
@@ -71,6 +71,30 @@ export ZTS_SIGNER_CERT_PATH="${PROD_ZTS_DIR}/zts_signer_cert.pem"
 export ZMS_CLIENT_CERT_KEY_PATH="${PROD_ZTS_DIR}/zms_client_key.pem"
 # export ZMS_CLIENT_CSR_PATH="${PROD_ZTS_DIR}/zms_client_csr.pem"
 export ZMS_CLIENT_CERT_PATH="${PROD_ZTS_DIR}/zms_client_cert.pem"
+
+### ----------------------------------------------------------------
+# UI dirs
+export UI_DIR="${DOCKER_DIR}/ui"
+export UI_LOGS_DIR="${DOCKER_DIR}/logs/ui"
+export UI_CONF_DIR="${UI_DIR}/conf"
+export UI_CERTS_DIR="${UI_DIR}/var/certs"
+export UI_KEYS_DIR="${UI_DIR}/var/keys"
+mkdir -p "${UI_LOGS_DIR}"
+mkdir -p "${UI_CONF_DIR}"
+mkdir -p "${UI_CERTS_DIR}"
+mkdir -p "${UI_KEYS_DIR}"
+## UI filepaths
+export UI_ATHENZ_CONF="${UI_CONF_DIR}/athenz.conf"
+export UI_PRIVATE_KEY_PATH="${UI_KEYS_DIR}/athenz.ui-server.pem"
+export UI_PUBLIC_KEY_PATH="${UI_KEYS_DIR}/athenz.ui-server_pub.pem"
+export UI_SESSION_SECRET_PATH="${UI_KEYS_DIR}/cookie-session"
+
+### PROD env. UI PATH
+export PROD_UI_DIR="${DOCKER_DIR}/prod/ui"
+mkdir -p "${PROD_UI_DIR}"
+export UI_CERT_KEY_PATH="${PROD_UI_DIR}/ui_key.pem"
+export UI_CSR_PATH="${PROD_UI_DIR}/ui_csr.pem"
+export UI_CERT_PATH="${PROD_UI_DIR}/ui_cert.pem"
 
 ### ----------------------------------------------------------------
 ### 3rd-party paths
@@ -104,6 +128,9 @@ export ZTS_DB_HOST="${ZTS_DB_HOST:-athenz-zts-db}"
 export ZTS_DB_PORT="${ZTS_DB_PORT:-3307}"
 export ZTS_HOST="${ZTS_HOST:-athenz-zts-server}"
 export ZTS_PORT="${ZTS_PORT:-8443}"
+export UI_HOST="${UI_HOST:-athenz-ui-server}"
+export UI_PORT="${UI_PORT:-443}"
+export UI_CONTAINER_PORT="${UI_CONTAINER_PORT:-5443}"
 
 ### ----------------------------------------------------------------
 # domain admin
