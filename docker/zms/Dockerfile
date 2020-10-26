@@ -18,6 +18,10 @@ LABEL org.label-schema.vcs-ref=$VCS_REF
 ARG GID=1001
 ARG UID=10001
 
+RUN apk update && apk add linux-pam
+
+RUN adduser -S -H -u 10002 uiuser && passwd -u uiuser << Athenz123#
+
 # add athenz user
 RUN addgroup -g ${GID} athenz && \
   adduser -S -D -H -s /sbin/nologin -u ${UID} -G athenz athenz

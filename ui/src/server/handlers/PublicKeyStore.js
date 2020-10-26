@@ -33,9 +33,11 @@ class PublicKeyStore extends KeyStore {
 
         switch (domain + '.' + service) {
             case 'sys.auth.zms':
-                let publicKeys = JSON.parse(
-                    fs.readFileSync('src/config/athenz.conf')
-                ).zmsPublicKeys;
+                let cfgPath = process.env.UI_CONF_PATH
+                    ? process.env.UI_CONF_PATH + '/athenz.conf'
+                    : 'src/config/athenz.conf';
+                let publicKeys = JSON.parse(fs.readFileSync(cfgPath))
+                    .zmsPublicKeys;
                 for (var id in publicKeys) {
                     if (publicKeys[id].id === keyId) {
                         return YBase64.ybase64Decode(publicKeys[id].key);

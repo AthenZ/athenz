@@ -31,7 +31,7 @@
     <security-constraint>
         <web-resource-collection>
             <web-resource-name>Enable OPTIONS for /zms/v1</web-resource-name>
-            <url-pattern>/v1</url-pattern>
+            <url-pattern>/v1/*</url-pattern>
             <http-method>OPTIONS</http-method>
             <!-- no auth-constraint -->
         </web-resource-collection>

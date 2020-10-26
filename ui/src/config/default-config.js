@@ -23,8 +23,9 @@ const config = {
         authHeader: 'Athenz-Principal-Auth',
         strictSSL: false,
         user: 'ui-server',
-        athenzDomainService: 'athenz.ui-server',
-        authKeyVersion: '0',
+        athenzDomainService:
+            process.env.UI_DOMAIN_SERVICE || 'athenz.ui-server',
+        authKeyVersion: process.env.UI_SERVICE_KEY_VERSION || '0',
         envLabel: 'local',
         userData: (user) => {
             return {
@@ -89,11 +90,12 @@ const config = {
         cookieName: 'Athenz-Principal-Auth',
         cookieMaxAge: 60 * 60 * 1000,
         loginPath: '/login',
-        uiKeyPath: 'keys/ui_key.pem',
-        uiCertPath: 'keys/ui_cert.pem',
+        uiKeyPath: process.env.UI_CERT_KEY_PATH || 'keys/ui_key.pem',
+        uiCertPath: process.env.UI_CERT_PATH || 'keys/ui_cert.pem',
         userFileName: 'users_data.json',
-        userFilePath: 'src/config',
-        cookieSession: 'keys/cookie-session',
+        userFilePath: process.env.UI_CONF_PATH || 'src/config',
+        cookieSession:
+            process.env.UI_SESSION_SECRET_PATH || 'keys/cookie-session',
         userDomains: 'user,unix',
         port: parseInt(process.env.PORT, 10) || 443,
         allProviders: [
@@ -106,6 +108,7 @@ const config = {
             'Athenz top level domain creation is manual. \n Please connect with your system administrator to create top level domains. \n',
         cspReportUri: '',
         cspImgSrc: '',
+        statusPath: process.env.UI_SESSION_SECRET_PATH || 'keys/cookie-session',
     },
     unittest: {
         athenzDomainService: 'athenz.unit-test',
