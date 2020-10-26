@@ -540,16 +540,6 @@ public class DBService implements RolesProvider {
         // a new insert operation or an update
 
         List<RoleMember> roleMembers = role.getRoleMembers();
-        
-        // support older clients which might send members field
-        // at this point, we expect either roleMembers or members,
-        // and we can't have both
-        
-        List<String> members = role.getMembers();
-        if (members != null && !members.isEmpty()) {
-            roleMembers = ZMSUtils.convertMembersToRoleMembers(members);
-        }
-        
         if (originalRole == null) {
             
             // we are just going to process all members as new inserts
@@ -2508,10 +2498,6 @@ public class DBService implements RolesProvider {
                     role.setRoleMembers(con.listRoleMembers(domainName, roleName, pending));
                 }
 
-                // still populate the members for old clients
-
-                role.setMembers(ZMSUtils.convertRoleMembersToMembers(role.getRoleMembers()));
-
                 if (auditLog == Boolean.TRUE) {
                     role.setAuditLog(con.listRoleAuditLogs(domainName, roleName));
                 }
@@ -2522,10 +2508,6 @@ public class DBService implements RolesProvider {
                 // membership and return the list of members
                 
                 role.setRoleMembers(getDelegatedRoleMembers(con, domainName, role.getTrust(), roleName));
-                
-                // still populate the members for old clients
-
-                role.setMembers(ZMSUtils.convertRoleMembersToMembers(role.getRoleMembers()));
             }
         }
         return role;
@@ -4173,34 +4155,13 @@ public class DBService implements RolesProvider {
         }
 
         athenzDomain = con.getAthenzDomain(domainName);
-        setMembersInDomain(athenzDomain);
+        athenzDomain.setRoleMemberPrincipalTypes(zmsConfig.getUserDomainPrefix(), zmsConfig.getAddlUserCheckDomainPrefixList());
 
         DataCache dataCache = new DataCache(athenzDomain,
                 athenzDomain.getDomain().getModified().millis());
         cacheStore.put(domainName, dataCache);
 
         return athenzDomain;
-    }
-
-    private void setMembersInDomain(AthenzDomain athenzDomain) {
-        List<Role> roleList = athenzDomain.getRoles();
-        if (roleList != null) {
-            for (Role role: roleList) {
-                List<RoleMember> roleMembers = role.getRoleMembers();
-                if (roleMembers != null) {
-                    List<String> members = role.getMembers();
-                    if (members == null) {
-                        members = new ArrayList<>();
-                        role.setMembers(members);
-                    }
-                    for (RoleMember roleMember: roleMembers) {
-                        roleMember.setPrincipalType(ZMSUtils.principalType(roleMember.getMemberName(),
-                                zmsConfig.getUserDomainPrefix(), zmsConfig.getAddlUserCheckDomainPrefixList()).getValue());
-                        members.add(roleMember.getMemberName());
-                    }
-                }
-            }
-        }
     }
     
     DomainMetaList listModifiedDomains(long modifiedSince) {

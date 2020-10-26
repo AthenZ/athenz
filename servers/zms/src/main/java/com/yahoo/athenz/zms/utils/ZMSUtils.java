@@ -150,31 +150,6 @@ public class ZMSUtils {
         }
         return trustedRole.toString();
     }
-
-    public static List<String> convertRoleMembersToMembers(List<RoleMember> members) {
-        List<String> memberList = new ArrayList<>();
-        if (members == null) {
-            return memberList;
-        }
-        for (RoleMember member: members) {
-            // only add active members to membername list. Active flag is optional for default value
-            if (member.getActive() != Boolean.FALSE) {
-                memberList.add(member.getMemberName());
-            }
-        }
-        return memberList;
-    }
-    
-    public static List<RoleMember> convertMembersToRoleMembers(List<String> members) {
-        List<RoleMember> roleMemberList = new ArrayList<>();
-        if (members == null) {
-            return roleMemberList;
-        }
-        for (String member: members) {
-            roleMemberList.add(new RoleMember().setMemberName(member));
-        }
-        return roleMemberList;
-    }
     
     /**
      * Setup a new AuditLogMsgBuilder object with common values.

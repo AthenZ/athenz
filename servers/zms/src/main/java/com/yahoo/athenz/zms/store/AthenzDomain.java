@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.yahoo.athenz.zms.*;
+import com.yahoo.athenz.zms.utils.ZMSUtils;
 
 public class AthenzDomain {
 
@@ -83,5 +84,20 @@ public class AthenzDomain {
 
     public Domain getDomain() {
         return domain;
+    }
+
+    public void setRoleMemberPrincipalTypes(final String userDomainPrefix, List<String> addlUserCheckDomainPrefixList) {
+        if (roles == null) {
+            return;
+        }
+        for (Role role: roles) {
+            List<RoleMember> roleMembers = role.getRoleMembers();
+            if (roleMembers != null) {
+                for (RoleMember roleMember: roleMembers) {
+                    roleMember.setPrincipalType(ZMSUtils.principalType(roleMember.getMemberName(),
+                            userDomainPrefix, addlUserCheckDomainPrefixList).getValue());
+                }
+            }
+        }
     }
 }
