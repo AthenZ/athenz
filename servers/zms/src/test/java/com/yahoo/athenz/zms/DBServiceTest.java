@@ -6639,9 +6639,9 @@ public class DBServiceTest {
 
         AthenzDomain resAthenzDomain = zms.dbService.getAthenzDomain(domainName, false);
         assertNotNull(resAthenzDomain.getRoles());
-        List<String> members = resAthenzDomain.getRoles().get(0).getMembers();
-        assertEquals(members.size(), 1);
-        assertEquals(members.get(0), "user.admin");
+        List<RoleMember> roleMembersResult = resAthenzDomain.getRoles().get(0).getRoleMembers();
+        assertEquals(roleMembersResult.size(), 1);
+        assertEquals(roleMembersResult.get(0).getMemberName(), "user.admin");
 
         zms.dbService.store = saveStore;
     }

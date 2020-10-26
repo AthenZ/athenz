@@ -2698,16 +2698,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.notFoundError("getTemplate: Template not found: '" + templateName + "'", caller);
         }
 
-        List<Role> roles = template.getRoles();
-        if (roles != null && !roles.isEmpty()) {
-            for (Role role : roles) {
-                List<RoleMember> roleMembers = role.getRoleMembers();
-                if (roleMembers != null) {
-                    role.setMembers(ZMSUtils.convertRoleMembersToMembers(roleMembers));
-                }
-            }
-        }
-
         return template;
     }
 
@@ -2962,6 +2952,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         List<String> members = role.getMembers();
         if (members != null) {
+            LOG.error("DEPRECATED - Role {} provided with old members", role.getName());
             for (String memberOld : members) {
                 RoleMember member = new RoleMember().setMemberName(memberOld);
                 if (addNormalizedRoleMember(normalizedMembers, member)) {
