@@ -130,32 +130,15 @@ public class EmailNotificationService implements NotificationService {
         message.setFrom(new InternetAddress(from));
         message.setRecipients(javax.mail.Message.RecipientType.BCC, InternetAddress.parse(String.join(",", recipients)));
 
-        // Create a multipart/alternative child container.
-        MimeMultipart msgBody = new MimeMultipart("alternative");
-
-        // Create a wrapper for the HTML and text parts.
-        MimeBodyPart wrap = new MimeBodyPart();
-
-        // Set the text part.
-        MimeBodyPart textPart = new MimeBodyPart();
-        textPart.setContent(body, "text/plain; charset=" + CHARSET_UTF_8);
-
         // Set the HTML part.
         MimeBodyPart htmlPart = new MimeBodyPart();
         htmlPart.setContent(body, "text/html; charset=" + CHARSET_UTF_8);
 
-        // Add the text and HTML parts to the child container.
-        msgBody.addBodyPart(textPart);
-        msgBody.addBodyPart(htmlPart);
-
-        // Add the child container to the wrapper object.
-        wrap.setContent(msgBody);
-
         // Create a multipart/mixed parent container.
         MimeMultipart msgParent = new MimeMultipart("related");
 
-        // Add the multipart/alternative part to the message.
-        msgParent.addBodyPart(wrap);
+        // Add the body to the message.
+        msgParent.addBodyPart(htmlPart);
 
         // Add the parent container to the message.
         message.setContent(msgParent);
