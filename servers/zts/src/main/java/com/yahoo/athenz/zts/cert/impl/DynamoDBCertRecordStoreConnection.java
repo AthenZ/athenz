@@ -338,11 +338,15 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
 
     private boolean mostUpdatedHostRecord(Item recordToCheck) {
         try {
-            // Query all records with the same hostName as recordToCheck
+            // Query all records with the same hostName / provider / service as recordToCheck
             QuerySpec spec = new QuerySpec()
                     .withKeyConditionExpression("hostName = :v_host_name")
+                    .withFilterExpression("attribute_exists(provider) AND provider = :v_provider AND attribute_exists(service) AND service = :v_service")
                     .withValueMap(new ValueMap()
-                            .withString(":v_host_name", recordToCheck.getString(KEY_HOSTNAME)));
+                            .withString(":v_host_name", recordToCheck.getString(KEY_HOSTNAME))
+                            .withString(":v_provider", recordToCheck.getString(KEY_PROVIDER))
+                            .withString(":v_service", recordToCheck.getString(KEY_SERVICE))
+                    );
 
             ItemCollection<QueryOutcome> outcome = hostNameIndex.query(spec);
             List<Item> allRecordsWithHost = new ArrayList<>();
