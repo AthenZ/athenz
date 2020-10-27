@@ -88,7 +88,8 @@ export default class ServiceList extends React.Component {
             )
             .then(() => {
                 this.reloadServices(
-                    `Successfully deleted service ${this.state.deleteServiceName}`
+                    `Successfully deleted service ${this.state.deleteServiceName}`,
+                    true
                 );
             })
             .catch((err) => {
@@ -112,19 +113,18 @@ export default class ServiceList extends React.Component {
             errorMessage: null,
         });
     }
-
-    reloadServices(successMessage) {
+    //successMessage is only name of new service when adding a service
+    reloadServices(successMessage, showSuccess) {
         this.api
             .getServices(this.props.domain)
             .then((data) => {
                 this.setState({
                     list: data,
                     showAddService: false,
-                    showSuccess: true,
+                    showSuccess,
                     successMessage,
                     showDelete: false,
                 });
-                // this is to close the success alert
                 setTimeout(
                     () =>
                         this.setState({
@@ -140,14 +140,14 @@ export default class ServiceList extends React.Component {
             });
     }
 
+    closeModal() {
+        this.setState({ showSuccess: false });
+    }
+
     toggleAddService() {
         this.setState({
             showAddService: !this.state.showAddService,
         });
-    }
-
-    closeModal() {
-        this.setState({ successService: null });
     }
 
     render() {
@@ -156,6 +156,7 @@ export default class ServiceList extends React.Component {
         const center = 'center';
         const rows = this.state.list.map((item, i) => {
             const serviceName = NameUtils.getShortName('.', item.name);
+            let newService = serviceName === this.state.successMessage;
             let onClickDeleteService = this.onClickDeleteService.bind(
                 this,
                 serviceName
@@ -170,6 +171,7 @@ export default class ServiceList extends React.Component {
                     serviceName={serviceName}
                     domainName={domain}
                     modified={item.modified}
+                    newService={newService}
                     color={color}
                     api={this.api}
                     key={item.name}

@@ -25,12 +25,13 @@ const allProviders = [
 ];
 
 describe('ServiceRow', () => {
-    it('should render', () => {
+    it('should render row', () => {
         const domainName = 'domain';
         const serviceName = 'serviceName';
         const modified = '2017-12-19T20:24:41.195Z';
         const api = {};
         const color = '';
+        const newService = false;
         const { getByTestId } = render(
             <table>
                 <tbody>
@@ -40,6 +41,7 @@ describe('ServiceRow', () => {
                         api={api}
                         color={color}
                         modified={modified}
+                        newService={newService}
                     />
                 </tbody>
             </table>
@@ -78,6 +80,7 @@ describe('ServiceRow', () => {
             },
         };
         const color = '';
+        const newService = false;
         const { getByText, getByTitle } = render(
             <table>
                 <tbody>
@@ -87,6 +90,7 @@ describe('ServiceRow', () => {
                         api={api}
                         color={color}
                         modified={modified}
+                        newService={newService}
                     />
                 </tbody>
             </table>
@@ -133,6 +137,7 @@ describe('ServiceRow', () => {
             },
         };
         const color = '';
+        const newService = false;
         const { getByText, getByTitle } = render(
             <table>
                 <tbody>
@@ -142,6 +147,7 @@ describe('ServiceRow', () => {
                         api={api}
                         color={color}
                         modified={modified}
+                        newService={newService}
                     />
                 </tbody>
             </table>

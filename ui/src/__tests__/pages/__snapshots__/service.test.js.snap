@@ -678,13 +678,13 @@ exports[`ServicePage should render 1`] = `
   vertical-align: text-bottom;
 }
 
-.emotion-68 {
+.emotion-70 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-75 {
+.emotion-77 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -716,7 +716,7 @@ exports[`ServicePage should render 1`] = `
   margin-left: 15px;
 }
 
-.emotion-86 {
+.emotion-88 {
   -webkit-flex: 1 1 calc(100vh - 60px);
   -ms-flex: 1 1 calc(100vh - 60px);
   flex: 1 1 calc(100vh - 60px);
@@ -724,7 +724,7 @@ exports[`ServicePage should render 1`] = `
   font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
 }
 
-.emotion-85 {
+.emotion-87 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -743,7 +743,7 @@ exports[`ServicePage should render 1`] = `
   justify-content: flex-start;
 }
 
-.emotion-67 {
+.emotion-69 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -800,7 +800,7 @@ exports[`ServicePage should render 1`] = `
   text-transform: uppercase;
 }
 
-.emotion-65 {
+.emotion-67 {
   margin: 20px;
 }
 
@@ -824,7 +824,7 @@ exports[`ServicePage should render 1`] = `
   float: right;
 }
 
-.emotion-64 {
+.emotion-66 {
   width: 100%;
   border-spacing: 0;
   display: table;
@@ -874,21 +874,21 @@ exports[`ServicePage should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-56 {
+.emotion-57 {
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-59 {
+.emotion-60 {
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-69 {
+.emotion-71 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -914,7 +914,7 @@ exports[`ServicePage should render 1`] = `
   width: 20px;
 }
 
-.emotion-84 {
+.emotion-86 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -929,7 +929,7 @@ exports[`ServicePage should render 1`] = `
   width: 350px;
 }
 
-.emotion-74 {
+.emotion-76 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -948,28 +948,28 @@ exports[`ServicePage should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-70 {
+.emotion-72 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-71 {
+.emotion-73 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-72 {
+.emotion-74 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-83 {
+.emotion-85 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-78 {
+.emotion-80 {
   padding: 10px 0;
   display: -webkit-box;
   display: -webkit-flex;
@@ -977,7 +977,7 @@ exports[`ServicePage should render 1`] = `
   display: flex;
 }
 
-.emotion-76 {
+.emotion-78 {
   font-size: 1.25em;
   margin-right: 5px;
 }
@@ -1100,16 +1100,16 @@ exports[`ServicePage should render 1`] = `
     </div>
   </div>
   <div
-    class="emotion-86"
+    class="emotion-88"
   >
     <div
-      class="emotion-85"
+      class="emotion-87"
     >
       <div
-        class="emotion-67"
+        class="emotion-69"
       >
         <div
-          class="emotion-66"
+          class="emotion-68"
         >
           <div
             class="emotion-40"
@@ -1258,7 +1258,7 @@ exports[`ServicePage should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-65"
+            class="emotion-67"
             data-testid="service-list"
           >
             <div
@@ -1274,7 +1274,7 @@ exports[`ServicePage should render 1`] = `
               </div>
             </div>
             <table
-              class="emotion-64"
+              class="emotion-66"
             >
               <thead>
                 <tr>
@@ -1307,6 +1307,7 @@ exports[`ServicePage should render 1`] = `
               </thead>
               <tbody>
                 <tr
+                  class="emotion-56"
                   data-testid="service-row"
                 >
                   <td
@@ -1383,22 +1384,23 @@ exports[`ServicePage should render 1`] = `
                   </td>
                 </tr>
                 <tr
+                  class="emotion-56"
                   data-testid="service-row"
                 >
                   <td
-                    class="emotion-56"
+                    class="emotion-57"
                     color=""
                   >
                     openhouse
                   </td>
                   <td
-                    class="emotion-56"
+                    class="emotion-57"
                     color=""
                   >
                     2017-12-19 20:24 UTC
                   </td>
                   <td
-                    class="emotion-59"
+                    class="emotion-60"
                     color=""
                   >
                     <svg
@@ -1417,7 +1419,7 @@ exports[`ServicePage should render 1`] = `
                     </svg>
                   </td>
                   <td
-                    class="emotion-59"
+                    class="emotion-60"
                     color=""
                   >
                     <svg
@@ -1436,7 +1438,7 @@ exports[`ServicePage should render 1`] = `
                     </svg>
                   </td>
                   <td
-                    class="emotion-59"
+                    class="emotion-60"
                     color=""
                   >
                     <svg
@@ -1467,11 +1469,11 @@ exports[`ServicePage should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-69"
+          class="emotion-71"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-68"
+            class="emotion-70"
             data-testid="icon"
             height="1em"
             viewBox="0 0 1024 1024"
@@ -1486,45 +1488,45 @@ exports[`ServicePage should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-84"
+          class="emotion-86"
         >
           <div
-            class="emotion-74"
+            class="emotion-76"
           >
             <div
-              class="emotion-70"
+              class="emotion-72"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-71"
+                class="emotion-73"
               >
                 Create
               </a>
               <span
-                class="emotion-72"
+                class="emotion-74"
               >
                  | 
               </span>
               <a
-                class="emotion-71"
+                class="emotion-73"
               >
                 Manage
               </a>
             </div>
           </div>
           <div
-            class="emotion-83"
+            class="emotion-85"
           >
             <div
-              class="emotion-78"
+              class="emotion-80"
             >
               <div
-                class="emotion-76"
+                class="emotion-78"
               >
                 <svg
-                  class="emotion-75"
+                  class="emotion-77"
                   data-testid="icon"
                   height="1em"
                   viewBox="0 0 1024 1024"
@@ -1545,19 +1547,19 @@ exports[`ServicePage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-71"
+                class="emotion-73"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-78"
+              class="emotion-80"
             >
               <div
-                class="emotion-76"
+                class="emotion-78"
               >
                 <svg
-                  class="emotion-75"
+                  class="emotion-77"
                   data-testid="icon"
                   height="1em"
                   viewBox="0 0 1024 1024"
@@ -1578,7 +1580,7 @@ exports[`ServicePage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-71"
+                class="emotion-73"
               >
                 athens.ci
               </a>

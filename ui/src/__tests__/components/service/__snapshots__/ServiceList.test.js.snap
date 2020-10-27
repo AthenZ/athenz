@@ -51,7 +51,7 @@ exports[`ServiceList should render add service modal after click 1`] = `
   vertical-align: text-bottom;
 }
 
-.emotion-16 {
+.emotion-17 {
   margin: 20px;
 }
 
@@ -75,7 +75,7 @@ exports[`ServiceList should render add service modal after click 1`] = `
   float: right;
 }
 
-.emotion-15 {
+.emotion-16 {
   width: 100%;
   border-spacing: 0;
   display: table;
@@ -126,7 +126,7 @@ exports[`ServiceList should render add service modal after click 1`] = `
 }
 
 <div
-  class="emotion-16"
+  class="emotion-17"
   data-testid="service-list"
 >
   <div
@@ -141,7 +141,7 @@ exports[`ServiceList should render add service modal after click 1`] = `
     </div>
   </div>
   <table
-    class="emotion-15"
+    class="emotion-16"
   >
     <thead>
       <tr>
@@ -174,6 +174,7 @@ exports[`ServiceList should render add service modal after click 1`] = `
     </thead>
     <tbody>
       <tr
+        class="emotion-15"
         data-testid="service-row"
       >
         <td
@@ -315,7 +316,7 @@ exports[`ServiceList should render delete service modal error(other) after click
   vertical-align: text-bottom;
 }
 
-.emotion-16 {
+.emotion-17 {
   margin: 20px;
 }
 
@@ -339,7 +340,7 @@ exports[`ServiceList should render delete service modal error(other) after click
   float: right;
 }
 
-.emotion-15 {
+.emotion-16 {
   width: 100%;
   border-spacing: 0;
   display: table;
@@ -390,7 +391,7 @@ exports[`ServiceList should render delete service modal error(other) after click
 }
 
 <div
-  class="emotion-16"
+  class="emotion-17"
   data-testid="service-list"
 >
   <div
@@ -406,7 +407,7 @@ exports[`ServiceList should render delete service modal error(other) after click
     </div>
   </div>
   <table
-    class="emotion-15"
+    class="emotion-16"
   >
     <thead>
       <tr>
@@ -439,6 +440,7 @@ exports[`ServiceList should render delete service modal error(other) after click
     </thead>
     <tbody>
       <tr
+        class="emotion-15"
         data-testid="service-row"
       >
         <td
@@ -570,7 +572,7 @@ exports[`ServiceList should render delete service modal error(refresh) after cli
   vertical-align: text-bottom;
 }
 
-.emotion-16 {
+.emotion-17 {
   margin: 20px;
 }
 
@@ -594,7 +596,7 @@ exports[`ServiceList should render delete service modal error(refresh) after cli
   float: right;
 }
 
-.emotion-15 {
+.emotion-16 {
   width: 100%;
   border-spacing: 0;
   display: table;
@@ -645,7 +647,7 @@ exports[`ServiceList should render delete service modal error(refresh) after cli
 }
 
 <div
-  class="emotion-16"
+  class="emotion-17"
   data-testid="service-list"
 >
   <div
@@ -661,7 +663,7 @@ exports[`ServiceList should render delete service modal error(refresh) after cli
     </div>
   </div>
   <table
-    class="emotion-15"
+    class="emotion-16"
   >
     <thead>
       <tr>
@@ -694,6 +696,7 @@ exports[`ServiceList should render delete service modal error(refresh) after cli
     </thead>
     <tbody>
       <tr
+        class="emotion-15"
         data-testid="service-row"
       >
         <td
@@ -825,7 +828,7 @@ exports[`ServiceList should render serviceList again after cancel delete 1`] = `
   vertical-align: text-bottom;
 }
 
-.emotion-16 {
+.emotion-17 {
   margin: 20px;
 }
 
@@ -849,7 +852,7 @@ exports[`ServiceList should render serviceList again after cancel delete 1`] = `
   float: right;
 }
 
-.emotion-15 {
+.emotion-16 {
   width: 100%;
   border-spacing: 0;
   display: table;
@@ -900,7 +903,7 @@ exports[`ServiceList should render serviceList again after cancel delete 1`] = `
 }
 
 <div
-  class="emotion-16"
+  class="emotion-17"
   data-testid="service-list"
 >
   <div
@@ -916,7 +919,7 @@ exports[`ServiceList should render serviceList again after cancel delete 1`] = `
     </div>
   </div>
   <table
-    class="emotion-15"
+    class="emotion-16"
   >
     <thead>
       <tr>
@@ -949,6 +952,7 @@ exports[`ServiceList should render serviceList again after cancel delete 1`] = `
     </thead>
     <tbody>
       <tr
+        class="emotion-15"
         data-testid="service-row"
       >
         <td
@@ -1236,7 +1240,7 @@ exports[`ServiceList should render with services 1`] = `
   vertical-align: text-bottom;
 }
 
-.emotion-16 {
+.emotion-17 {
   margin: 20px;
 }
 
@@ -1260,7 +1264,7 @@ exports[`ServiceList should render with services 1`] = `
   float: right;
 }
 
-.emotion-15 {
+.emotion-16 {
   width: 100%;
   border-spacing: 0;
   display: table;
@@ -1311,7 +1315,7 @@ exports[`ServiceList should render with services 1`] = `
 }
 
 <div
-  class="emotion-16"
+  class="emotion-17"
   data-testid="service-list"
 >
   <div
@@ -1327,7 +1331,7 @@ exports[`ServiceList should render with services 1`] = `
     </div>
   </div>
   <table
-    class="emotion-15"
+    class="emotion-16"
   >
     <thead>
       <tr>
@@ -1360,6 +1364,7 @@ exports[`ServiceList should render with services 1`] = `
     </thead>
     <tbody>
       <tr
+        class="emotion-15"
         data-testid="service-row"
       >
         <td
