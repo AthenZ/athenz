@@ -62,6 +62,7 @@ public class DynamoDBCertRecordStoreFactoryTest {
 
         System.setProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_TABLE_NAME, "Athenz-ZTS-Table");
         System.setProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_INDEX_CURRENT_TIME_NAME, "Athenz-ZTS-Current-Time-Index");
+        System.setProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_INDEX_HOST_NAME, "Athenz-ZTS-Host-Name-Index");
 
         PrivateKeyStore keyStore = Mockito.mock(PrivateKeyStore.class);
 
@@ -71,6 +72,7 @@ public class DynamoDBCertRecordStoreFactoryTest {
 
         System.clearProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_TABLE_NAME);
         System.clearProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_INDEX_CURRENT_TIME_NAME);
+        System.clearProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_INDEX_HOST_NAME);
     }
 
     @Test
@@ -78,7 +80,7 @@ public class DynamoDBCertRecordStoreFactoryTest {
 
         System.setProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_TABLE_NAME, "Athenz-ZTS-Table");
         System.setProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_INDEX_CURRENT_TIME_NAME, "Athenz-ZTS-Current-Time-Index");
-
+        System.setProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_INDEX_HOST_NAME, "Athenz-ZTS-Host-Name-Index");
 
         PrivateKeyStore keyStore = Mockito.mock(PrivateKeyStore.class);
         TestDynamoDBCertRecordStoreFactory factory = new TestDynamoDBCertRecordStoreFactory();
@@ -89,6 +91,7 @@ public class DynamoDBCertRecordStoreFactoryTest {
 
         System.clearProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_TABLE_NAME);
         System.clearProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_INDEX_CURRENT_TIME_NAME);
+        System.clearProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_INDEX_HOST_NAME);
     }
 
     @Test
@@ -119,10 +122,18 @@ public class DynamoDBCertRecordStoreFactoryTest {
     @Test
     public void testCreateMissingIndexName() {
 
+        System.setProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_TABLE_NAME, "Athenz-ZTS-Table");
+        testCreateMissingIndexName(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_INDEX_CURRENT_TIME_NAME);
+        testCreateMissingIndexName(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_INDEX_HOST_NAME);
+        System.clearProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_TABLE_NAME);
+
+    }
+
+    public void testCreateMissingIndexName(String indexName) {
+
         PrivateKeyStore keyStore = Mockito.mock(PrivateKeyStore.class);
 
-        System.setProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_TABLE_NAME, "Athenz-ZTS-Table");
-        System.clearProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_INDEX_CURRENT_TIME_NAME);
+        System.clearProperty(indexName);
         DynamoDBCertRecordStoreFactory factory = new DynamoDBCertRecordStoreFactory();
         try {
             factory.create(keyStore);
@@ -131,7 +142,7 @@ public class DynamoDBCertRecordStoreFactoryTest {
             assertEquals(ex.getCode(), ResourceException.SERVICE_UNAVAILABLE);
         }
 
-        System.setProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_INDEX_CURRENT_TIME_NAME, "");
+        System.setProperty(indexName, "");
         try {
             factory.create(keyStore);
             fail();
@@ -139,7 +150,7 @@ public class DynamoDBCertRecordStoreFactoryTest {
             assertEquals(ex.getCode(), ResourceException.SERVICE_UNAVAILABLE);
         }
 
-        System.clearProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_INDEX_CURRENT_TIME_NAME);
+        System.clearProperty(indexName);
     }
 
     @Test

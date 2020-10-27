@@ -102,6 +102,8 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_CERT_DYNAMODB_TABLE_NAME                = "athenz.zts.cert_dynamodb_table_name";
     public static final String ZTS_PROP_CERT_DYNAMODB_ITEM_TTL_HOURS            = "athenz.zts.cert_dynamodb_item_ttl_hours";
     public static final String ZTS_PROP_CERT_DYNAMODB_INDEX_CURRENT_TIME_NAME   = "athenz.zts.cert_dynamodb_index_current_time_name";
+    public static final String ZTS_PROP_CERT_DYNAMODB_INDEX_HOST_NAME           = "athenz.zts.cert_dynamodb_index_host_name";
+
 
     public static final String ZTS_PROP_DYNAMODB_KEY_PATH            = "athenz.zts.dynamodb_key_path";
     public static final String ZTS_PROP_DYNAMODB_CERT_PATH           = "athenz.zts.dynamodb_cert_path";
