@@ -110,3 +110,11 @@ clean: remove-all
 	docker image rm athenz-conf || true
 	docker image rm athenz-setup-env || true
 	docker image rm rdl-athenz-java-model || true
+
+remove-local: remove-all
+	docker image rm abvaidya/athenz-setup-env:1.9.22 || true
+	docker image rm abvaidya/athenz-zms-db:1.9.22 || true
+	docker image rm abvaidya/athenz-zms-server:1.9.22 || true
+	docker image rm abvaidya/athenz-zts-db:1.9.22 || true
+	docker image rm abvaidya/athenz-zts-server:1.9.22 || true
+	docker image rm abvaidya/athenz-ui:1.9.22 || true

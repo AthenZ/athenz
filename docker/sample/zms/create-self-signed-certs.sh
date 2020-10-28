@@ -15,7 +15,7 @@ CN='Sample Self Signed ZMS' SAN="${ZMS_HOST}" openssl req -nodes \
   -keyout "${DEV_ZMS_CERT_KEY_PATH}" \
   -out "${DEV_ZMS_CSR_PATH}" 2> /dev/null
 # sign request
-SAN="${ZMS_HOST}" openssl x509 -req -days 3650 \
+SAN="${ZMS_HOST}" openssl x509 -req -days 364 \
   -in "${DEV_ZMS_CSR_PATH}" \
   -CA "${DEV_ATHENZ_CA_PATH}" \
   -CAkey "${DEV_ATHENZ_CA_KEY_PATH}" \

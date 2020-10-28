@@ -17,7 +17,7 @@ CN='Sample Self Signed UI' SAN="${UI_HOST}" openssl req -nodes \
   -keyout "${DEV_UI_CERT_KEY_PATH}" \
   -out "${DEV_UI_CSR_PATH}" 2> /dev/null
 # sign request
-SAN="${UI_HOST}" openssl x509 -req -days 3650 \
+SAN="${UI_HOST}" openssl x509 -req -days 364 \
   -in "${DEV_UI_CSR_PATH}" \
   -CA "${DEV_ATHENZ_CA_PATH}" \
   -CAkey "${DEV_ATHENZ_CA_KEY_PATH}" \
