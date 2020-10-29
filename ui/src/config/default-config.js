@@ -20,6 +20,8 @@ const config = {
         timeZone: 'America/Los_Angeles',
         language: 'en-US',
         zms: process.env.ZMS_SERVER_URL || 'https://localhost:4443/zms/v1/',
+        zmsLoginUrl:
+            process.env.ZMS_LOGIN_URL || 'https://localhost:4443/zms/v1/',
         authHeader: 'Athenz-Principal-Auth',
         strictSSL: false,
         user: 'ui-server',
