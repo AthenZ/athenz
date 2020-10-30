@@ -5,12 +5,24 @@ set -o pipefail
 
 cd docker
 
+# import functions
+. ./setup-scripts/common/color-print.sh
+
 make deploy-local &
 MAKE_PID=$!
 
 wait $MAKE_PID
 
-# change trust setting for the cert so that browser is happy ( Mac specific optional step )
-# security add-trusted-cert -k $HOME/Library/Keychains/login.keychain sample/CAs/athenz_ca.der
+cat <<'EOF' | colored_cat c
 
-echo "You can access UI now at https://localhost"
+#################################################
+### Athenz is up!
+#################################################
+
+EOF
+
+printf 'You can access UI now at https://localhost' | colored_cat g
+printf '\n'
+printf 'If you are on Mac you can run the following command to add the self-signed certificate to login keychain, so that browser does not complain about it. \n' | colored_cat y
+printf 'security add-trusted-cert -k %s/Library/Keychains/login.keychain sample/CAs/athenz_ca.der\n' "$HOME"
+printf '\n'
