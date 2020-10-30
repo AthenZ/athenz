@@ -98,7 +98,12 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 			return cli.helpCommand(params)
 		case "lookup-domain-by-aws-account", "lookup-domain-by-account":
 			if argc == 1 {
-				return cli.LookupDomainById(args[0], nil)
+				return cli.LookupDomainById(args[0], "", nil)
+			}
+			return cli.helpCommand(params)
+		case "lookup-domain-by-azure-subscription", "lookup-domain-by-subscription":
+			if argc == 1 {
+				return cli.LookupDomainById("", args[0], nil)
 			}
 			return cli.helpCommand(params)
 		case "lookup-domain-by-product-id":
@@ -107,7 +112,7 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 				if err != nil {
 					return nil, err
 				}
-				return cli.LookupDomainById("", &productID)
+				return cli.LookupDomainById("", "", &productID)
 			}
 			return cli.helpCommand(params)
 		case "overdue-review":
@@ -581,6 +586,10 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 			if argc == 1 {
 				return cli.SetDomainAccount(dn, args[0])
 			}
+		case "set-azure-subscription", "set-domain-subscription":
+			if argc == 1 {
+				return cli.SetDomainSubscription(dn, args[0])
+			}
 		case "set-domain-member-expiry-days":
 			if argc == 1 {
 				days, err := cli.getInt32(args[0])
@@ -916,6 +925,13 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   account-id  : lookup domain with specified account id\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   lookup-domain-by-aws-account 1234567890\n")
+	case "lookup-domain-by-subscription", "lookup-domain-by-azure-subscription":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   lookup-domain-by-azure-subscription subscription-id\n")
+		buf.WriteString(" parameters:\n")
+		buf.WriteString("   subscription-id  : lookup domain with specified subscription id\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   lookup-domain-by-azure-subscription 12345678-1234-1234-1234-1234567890\n")
 	case "lookup-domain-by-product-id":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   lookup-domain-by-product-id product-id\n")
@@ -983,6 +999,16 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   account-id    : set the aws account id for the domain\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " set-aws-account \"134901934383\"\n")
+	case "set-azure-subscription", "set-domain-subscription":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " set-azure-subscription subscription-id\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain        : name of the domain being updated\n")
+		}
+		buf.WriteString("   subscription-id    : set the azure subscription id for the domain\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " set-azure-subscription \"12345678-1234-1234-1234-1234567890\"\n")
 	case "set-audit-enabled":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " set-audit-enabled audit-enabled\n")
@@ -2313,6 +2339,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   list-domain [prefix] | [limit skip prefix depth]\n")
 	buf.WriteString("   show-domain [domain]\n")
 	buf.WriteString("   lookup-domain-by-aws-account account-id\n")
+	buf.WriteString("   lookup-domain-by-azure-subscription subscription-id\n")
 	buf.WriteString("   lookup-domain-by-product-id product-id\n")
 	buf.WriteString("   lookup-domain-by-role role-member role-name\n")
 	buf.WriteString("   add-domain domain product-id [admin ...] - to add top level domains\n")
@@ -2320,6 +2347,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   set-domain-meta description\n")
 	buf.WriteString("   set-audit-enabled audit-enabled\n")
 	buf.WriteString("   set-aws-account account-id\n")
+	buf.WriteString("   set-azure-subscription subscription-id\n")
 	buf.WriteString("   set-product-id product-id\n")
 	buf.WriteString("   set-application-id application-id\n")
 	buf.WriteString("   set-org-name org-name\n")

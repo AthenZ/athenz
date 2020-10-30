@@ -61,6 +61,9 @@ public class DomainData {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String userAuthorityFilter;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String azureSubscription;
     public String name;
     public List<Role> roles;
     public SignedPolicies policies;
@@ -181,6 +184,13 @@ public class DomainData {
     public String getUserAuthorityFilter() {
         return userAuthorityFilter;
     }
+    public DomainData setAzureSubscription(String azureSubscription) {
+        this.azureSubscription = azureSubscription;
+        return this;
+    }
+    public String getAzureSubscription() {
+        return azureSubscription;
+    }
     public DomainData setName(String name) {
         this.name = name;
         return this;
@@ -284,6 +294,9 @@ public class DomainData {
                 return false;
             }
             if (userAuthorityFilter == null ? a.userAuthorityFilter != null : !userAuthorityFilter.equals(a.userAuthorityFilter)) {
+                return false;
+            }
+            if (azureSubscription == null ? a.azureSubscription != null : !azureSubscription.equals(a.azureSubscription)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

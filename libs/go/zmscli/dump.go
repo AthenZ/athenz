@@ -27,6 +27,7 @@ func (cli Zms) dumpDomain(buf *bytes.Buffer, domain *zms.Domain) {
 	dumpStringValue(buf, indentLevel1, "name", string(domain.Name))
 	dumpStringValue(buf, indentLevel1, "description", domain.Description)
 	dumpStringValue(buf, indentLevel1, "aws_account", domain.Account)
+	dumpStringValue(buf, indentLevel1, "azure_subscription", domain.AzureSubscription)
 	dumpInt32Value(buf, indentLevel1, "product_id", domain.YpmId)
 	dumpStringValue(buf, indentLevel1, "org", string(domain.Org))
 	dumpBoolValue(buf, indentLevel1, "audit_enabled", domain.AuditEnabled)
@@ -513,6 +514,12 @@ func (cli Zms) dumpSignedDomain(buf *bytes.Buffer, signedDomain *zms.SignedDomai
 			buf.WriteString(indentLevel1)
 			buf.WriteString("account: ")
 			buf.WriteString(domainData.Account)
+			buf.WriteString("\n")
+		}
+		if domainData.AzureSubscription != "" {
+			buf.WriteString(indentLevel1)
+			buf.WriteString("azureSubscription: ")
+			buf.WriteString(domainData.AzureSubscription)
 			buf.WriteString("\n")
 		}
 		buf.WriteString(indentLevel1)

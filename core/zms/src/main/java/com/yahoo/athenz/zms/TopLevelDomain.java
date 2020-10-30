@@ -62,6 +62,9 @@ public class TopLevelDomain {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String userAuthorityFilter;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String azureSubscription;
     public String name;
     public List<String> adminUsers;
     @RdlOptional
@@ -180,6 +183,13 @@ public class TopLevelDomain {
     public String getUserAuthorityFilter() {
         return userAuthorityFilter;
     }
+    public TopLevelDomain setAzureSubscription(String azureSubscription) {
+        this.azureSubscription = azureSubscription;
+        return this;
+    }
+    public String getAzureSubscription() {
+        return azureSubscription;
+    }
     public TopLevelDomain setName(String name) {
         this.name = name;
         return this;
@@ -255,6 +265,9 @@ public class TopLevelDomain {
                 return false;
             }
             if (userAuthorityFilter == null ? a.userAuthorityFilter != null : !userAuthorityFilter.equals(a.userAuthorityFilter)) {
+                return false;
+            }
+            if (azureSubscription == null ? a.azureSubscription != null : !azureSubscription.equals(a.azureSubscription)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

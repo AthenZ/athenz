@@ -61,6 +61,9 @@ public class DomainMeta {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String userAuthorityFilter;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String azureSubscription;
 
     public DomainMeta setDescription(String description) {
         this.description = description;
@@ -174,6 +177,13 @@ public class DomainMeta {
     public String getUserAuthorityFilter() {
         return userAuthorityFilter;
     }
+    public DomainMeta setAzureSubscription(String azureSubscription) {
+        this.azureSubscription = azureSubscription;
+        return this;
+    }
+    public String getAzureSubscription() {
+        return azureSubscription;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -228,6 +238,9 @@ public class DomainMeta {
                 return false;
             }
             if (userAuthorityFilter == null ? a.userAuthorityFilter != null : !userAuthorityFilter.equals(a.userAuthorityFilter)) {
+                return false;
+            }
+            if (azureSubscription == null ? a.azureSubscription != null : !azureSubscription.equals(a.azureSubscription)) {
                 return false;
             }
         }
