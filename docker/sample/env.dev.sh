@@ -17,6 +17,7 @@ export DEV_USER_CA_KEY_PATH="${DEV_CA_DIR}/user_ca.pem"
 export DEV_USER_CA_PATH="${DEV_CA_DIR}/user_ca.pem"
 export DEV_SERVICE_CA_KEY_PATH="${DEV_CA_DIR}/service_ca.pem"
 export DEV_SERVICE_CA_PATH="${DEV_CA_DIR}/service_ca.pem"
+export DEV_ATHENZ_CA_DER_PATH="${DEV_CA_DIR}/athenz_ca.der"
 
 ### ----------------------------------------------------------------
 ### domain admin

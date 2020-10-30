@@ -17,7 +17,7 @@ CN='Sample Self Signed ZTS' SAN="${ZTS_HOST}" openssl req -nodes \
   -keyout "${DEV_ZTS_CERT_KEY_PATH}" \
   -out "${DEV_ZTS_CSR_PATH}" 2> /dev/null
 # sign request
-SAN="${ZTS_HOST}" openssl x509 -req -days 3650 \
+SAN="${ZTS_HOST}" openssl x509 -req -days 364 \
   -in "${DEV_ZTS_CSR_PATH}" \
   -CA "${DEV_ATHENZ_CA_PATH}" \
   -CAkey "${DEV_ATHENZ_CA_KEY_PATH}" \

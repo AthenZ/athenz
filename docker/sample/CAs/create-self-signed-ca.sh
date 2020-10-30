@@ -31,6 +31,9 @@ CN='Sample Self Signed Service CA' \
   -keyout "${DEV_SERVICE_CA_KEY_PATH}" \
   -out "${DEV_SERVICE_CA_PATH}" 2> /dev/null
 
+# convert pem cert to der format so that it can be imported into OS ( optional step )
+openssl x509 -outform der -in "${DEV_ATHENZ_CA_PATH}" -out "${DEV_ATHENZ_CA_DER_PATH}"
+
 # print result
 cat <<EOF
 

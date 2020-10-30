@@ -14,7 +14,7 @@ CN="${DEV_DOMAIN_ADMIN}" openssl req -nodes \
   -keyout "${DEV_DOMAIN_ADMIN_CERT_KEY_PATH}" \
   -out "${DEV_DOMAIN_ADMIN_CSR_PATH}" 2> /dev/null
 # sign request
-openssl x509 -req -days 3650 \
+openssl x509 -req -days 30 \
   -in "${DEV_DOMAIN_ADMIN_CSR_PATH}" \
   -CA "${DEV_USER_CA_PATH}" \
   -CAkey "${DEV_USER_CA_KEY_PATH}" \

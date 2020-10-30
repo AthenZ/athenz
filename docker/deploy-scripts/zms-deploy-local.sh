@@ -55,7 +55,7 @@ docker run -d -h "${ZMS_DB_HOST}" \
     --user mysql:mysql \
     -v "${DOCKER_DIR}/db/zms/zms-db.cnf:/etc/mysql/conf.d/zms-db.cnf" \
     -e "MYSQL_ROOT_PASSWORD=${ZMS_DB_ROOT_PASS}" \
-    --name "${ZMS_DB_HOST}" abvaidya/athenz-zms-db:1.9.22
+    --name "${ZMS_DB_HOST}" athenz/athenz-zms-db:1.9.22
 # wait for ZMS DB to be ready
 docker run --rm \
     --network="${DOCKER_NETWORK}" \
@@ -64,7 +64,7 @@ docker run --rm \
     -v "${DOCKER_DIR}/db/zms/zms-db.cnf:/etc/my.cnf" \
     -e "MYSQL_PWD=${ZMS_DB_ROOT_PASS}" \
     --entrypoint '/bin/wait-for-mysql.sh' \
-    --name wait-for-mysql abvaidya/athenz-zms-db:1.9.22 \
+    --name wait-for-mysql athenz/athenz-zms-db:1.9.22 \
     --user='root' \
     --host="${ZMS_DB_HOST}" \
     --port=3306
@@ -92,7 +92,7 @@ docker run -d -h "${ZMS_HOST}" \
     -p "${ZMS_PORT}:${ZMS_PORT}" \
     --dns="${DOCKER_DNS}" \
     --network="${DOCKER_NETWORK}" \
-    --user "athenz:shadow" \
+    --user "$(id -u):$(id -g)" \
     -v "${DOCKER_DIR}/zms/var:/opt/athenz/zms/var" \
     -v "${DOCKER_DIR}/zms/conf:/opt/athenz/zms/conf/zms_server" \
     -v "${DOCKER_DIR}/logs/zms:/opt/athenz/zms/logs/zms_server" \
@@ -103,12 +103,12 @@ docker run -d -h "${ZMS_HOST}" \
     -e "ZMS_KEYSTORE_PASS=${ZMS_KEYSTORE_PASS}" \
     -e "ZMS_TRUSTSTORE_PASS=${ZMS_TRUSTSTORE_PASS}" \
     -e "ZMS_PORT=${ZMS_PORT}" \
-    --name "${ZMS_HOST}" abvaidya/athenz-zms-server:1.9.22
+    --name "${ZMS_HOST}" athenz/athenz-zms-server:1.9.22
 # wait for ZMS to be ready
 until docker run --rm --entrypoint curl \
     --network="${DOCKER_NETWORK}" \
     --user "$(id -u):$(id -g)" \
-    --name athenz-curl abvaidya/athenz-setup-env:1.9.22 \
+    --name athenz-curl athenz/athenz-setup-env:1.9.22 \
     -k --silent --fail --show-error --output /dev/null "https://${ZMS_HOST}:${ZMS_PORT}/zms/v1/status" \
     ; do
     echo 'ZMS is unavailable - will sleep 3s...'

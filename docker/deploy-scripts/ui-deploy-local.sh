@@ -52,12 +52,12 @@ docker run -d -h "${UI_HOST}" \
     -e "PORT=${UI_CONTAINER_PORT}" \
     -e "UI_CONF_PATH=/opt/athenz/ui/conf/ui_server" \
     -e "ZMS_SERVER_URL=https://${ZMS_HOST}:${ZMS_PORT}/zms/v1/" \
-    --name "${UI_HOST}" abvaidya/athenz-ui:1.9.22
+    --name "${UI_HOST}" athenz/athenz-ui:1.9.22
 # wait for UI to be ready
 until docker run --rm --entrypoint curl \
     --network="${DOCKER_NETWORK}" \
     --user "$(id -u):$(id -g)" \
-    --name athenz-curl abvaidya/athenz-setup-env:1.9.22 \
+    --name athenz-curl athenz/athenz-setup-env:1.9.22 \
     -k --silent --fail --show-error --output /dev/null "https://${UI_HOST}:${UI_CONTAINER_PORT}/status" \
     ; do
     echo 'UI is unavailable - will sleep 3s...'

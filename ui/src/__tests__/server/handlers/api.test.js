@@ -22,6 +22,7 @@ const CLIENTS = require('../../../server/clients');
 
 const config = {
     zms: 'https://zms.athenz.io',
+    zmsLoginUrl: 'https://zms.athenz.io',
     athenzDomainService: 'athenz.unit-test',
     headerLinks: [],
     allProviders: [
@@ -944,7 +945,7 @@ describe('Fetchr Server API Test', () => {
                 .get('/api/v1/auth-options')
                 .then((res) => {
                     expect(res.body).toEqual({
-                        zms: 'https://zms.athenz.io',
+                        zmsLoginUrl: 'https://zms.athenz.io',
                         athenzDomainService: 'athenz.unit-test',
                     });
                 });

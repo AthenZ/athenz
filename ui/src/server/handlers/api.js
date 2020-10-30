@@ -631,7 +631,7 @@ Fetchr.registerService({
     name: 'auth-options',
     read(req, resource, params, config, callback) {
         callback(null, {
-            zms: appConfig.zms,
+            zmsLoginUrl: appConfig.zmsLoginUrl,
             athenzDomainService: appConfig.athenzDomainService,
         });
     },
@@ -993,16 +993,6 @@ Fetchr.registerService({
 });
 
 Fetchr.registerService({
-    name: 'auth-options',
-    read(req, resource, params, config, callback) {
-        callback(null, {
-            zms: appConfig.zms,
-            athenzDomainService: appConfig.athenzDomainService,
-        });
-    },
-});
-
-Fetchr.registerService({
     name: 'domain-history',
     read(req, resource, params, config, callback) {
         if (typeof domainHistoryApi === 'function') {
@@ -1055,6 +1045,7 @@ module.exports.load = function(config, secrets) {
         servicePageConfig: config.servicePageConfig,
         productMasterLink: config.productMasterLink,
         allPrefixes: config.allPrefixes,
+        zmsLoginUrl: config.zmsLoginUrl,
     };
     return CLIENTS.load(config, secrets);
 };

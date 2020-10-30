@@ -55,7 +55,7 @@ docker run -d -h "${ZTS_DB_HOST}" \
     --user mysql:mysql \
     -v "${DOCKER_DIR}/db/zts/zts-db.cnf:/etc/mysql/conf.d/zts-db.cnf" \
     -e "MYSQL_ROOT_PASSWORD=${ZTS_DB_ROOT_PASS}" \
-    --name "${ZTS_DB_HOST}" abvaidya/athenz-zts-db:1.9.22
+    --name "${ZTS_DB_HOST}" athenz/athenz-zts-db:1.9.22
 # wait for ZTS DB to be ready
 docker run --rm \
     --network="${DOCKER_NETWORK}" \
@@ -64,7 +64,7 @@ docker run --rm \
     -v "${DOCKER_DIR}/db/zts/zts-db.cnf:/etc/my.cnf" \
     -e "MYSQL_PWD=${ZTS_DB_ROOT_PASS}" \
     --entrypoint '/bin/wait-for-mysql.sh' \
-    --name wait-for-mysql abvaidya/athenz-zts-db:1.9.22 \
+    --name wait-for-mysql athenz/athenz-zts-db:1.9.22 \
     --user='root' \
     --host="${ZTS_DB_HOST}" \
     --port=3306
@@ -106,12 +106,12 @@ docker run -d -h "${ZTS_HOST}" \
     -e "ZMS_CLIENT_KEYSTORE_PASS=${ZMS_CLIENT_KEYSTORE_PASS}" \
     -e "ZMS_CLIENT_TRUSTSTORE_PASS=${ZMS_CLIENT_TRUSTSTORE_PASS}" \
     -e "ZTS_PORT=${ZTS_PORT}" \
-    --name "${ZTS_HOST}" abvaidya/athenz-zts-server:1.9.22
+    --name "${ZTS_HOST}" athenz/athenz-zts-server:1.9.22
 # wait for ZTS to be ready
 until docker run --rm --entrypoint curl \
     --network="${DOCKER_NETWORK}" \
     --user "$(id -u):$(id -g)" \
-    --name athenz-curl abvaidya/athenz-setup-env:1.9.22 \
+    --name athenz-curl athenz/athenz-setup-env:1.9.22 \
     -k --silent --fail --show-error --output /dev/null "https://${ZTS_HOST}:${ZTS_PORT}/zts/v1/status" \
     ; do
     echo 'ZTS is unavailable - will sleep 3s...'
