@@ -331,8 +331,15 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_UPDATE_PENDING_ROLE_MEMBERS_NOTIFICATION_TIMESTAMP = "UPDATE pending_role_member SET last_notified_time=?, server=? " +
             "WHERE DAYOFWEEK(req_time)=DAYOFWEEK(?) AND (last_notified_time IS NULL || last_notified_time < (CURRENT_TIME - INTERVAL ? DAY));";
 
-    private static final String SQL_UPDATE_ROLE_MEMBERS_EXPIRY_NOTIFICATION_TIMESTAMP = "UPDATE role_member SET last_notified_time=?, server=? " +
-            "WHERE expiration > CURRENT_TIME AND DATEDIFF(expiration, CURRENT_TIME) IN (0,1,7,14,21,28) AND (last_notified_time IS NULL || last_notified_time < (CURRENT_TIME - INTERVAL ? DAY));";
+    private static final String SQL_UPDATE_ROLE_MEMBERS_EXPIRY_NOTIFICATION_TIMESTAMP =
+            "UPDATE role_member SET last_notified_time=?, server=? " +
+            "WHERE (" +
+                    // Expiration is set and Review isn't (or after expiration) - start sending a month before expiration
+                    "(expiration > CURRENT_TIME AND (review_reminder is NULL OR review_reminder >= expiration) AND DATEDIFF(expiration, CURRENT_TIME) IN (0,1,7,14,21,28)) OR" +
+                    // Expiration and Review both set and review is before expiration - start sending from review date
+                    "(expiration > CURRENT_TIME AND review_reminder is not NULL AND review_reminder <= CURRENT_TIME AND DATEDIFF(expiration, CURRENT_TIME) IN (0,1,7,14,21,28))" +
+                    ") AND " +
+                    "(last_notified_time IS NULL || last_notified_time < (CURRENT_TIME - INTERVAL ? DAY));";
     private static final String SQL_LIST_NOTIFY_TEMPORARY_ROLE_MEMBERS = "SELECT domain.name AS domain_name, role.name AS role_name, " +
             "principal.name AS principal_name, role_member.expiration, role_member.review_reminder FROM role_member " +
             "JOIN role ON role.role_id=role_member.role_id " +
@@ -340,8 +347,11 @@ public class JDBCConnection implements ObjectStoreConnection {
             "JOIN domain ON domain.domain_id=role.domain_id " +
             "WHERE role_member.last_notified_time=? AND role_member.server=?;";
 
-    private static final String SQL_UPDATE_ROLE_MEMBERS_REVIEW_NOTIFICATION_TIMESTAMP = "UPDATE role_member SET review_last_notified_time=?, review_server=? " +
-            "WHERE review_reminder > CURRENT_TIME AND DATEDIFF(review_reminder, CURRENT_TIME) IN (0,1,7,14,21,28) AND (review_last_notified_time IS NULL || review_last_notified_time < (CURRENT_TIME - INTERVAL ? DAY));";
+    private static final String SQL_UPDATE_ROLE_MEMBERS_REVIEW_NOTIFICATION_TIMESTAMP =
+            "UPDATE role_member SET review_last_notified_time=?, review_server=? " +
+            "WHERE (" +
+                    "review_reminder > CURRENT_TIME AND (expiration is NULL) AND DATEDIFF(review_reminder, CURRENT_TIME) IN (0,1,7,14,21,28) AND " +
+                    "(review_last_notified_time IS NULL || review_last_notified_time < (CURRENT_TIME - INTERVAL ? DAY)));";
     private static final String SQL_LIST_NOTIFY_REVIEW_ROLE_MEMBERS = "SELECT domain.name AS domain_name, role.name AS role_name, " +
             "principal.name AS principal_name, role_member.expiration, role_member.review_reminder FROM role_member " +
             "JOIN role ON role.role_id=role_member.role_id " +
