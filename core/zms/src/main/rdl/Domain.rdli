@@ -29,12 +29,13 @@ type DomainList Struct {
 
 //Enumerate domains. Can be filtered by prefix and depth, and paginated.
 //This operation can be expensive, as it may span multiple domains.
-resource DomainList GET "/domain?limit={limit}&skip={skip}&prefix={prefix}&depth={depth}&account={account}&ypmid={productId}&member={roleMember}&role={roleName}" {
+resource DomainList GET "/domain?limit={limit}&skip={skip}&prefix={prefix}&depth={depth}&account={account}&ypmid={productId}&member={roleMember}&role={roleName}&azure={subscription}" {
     Int32 limit (optional); //restrict the number of results in this call
     String skip (optional); //restrict the set to those after the specified "next" token returned from a previous call
     String prefix (optional); //restrict to names that start with the prefix
     Int32 depth (optional); //restrict the depth of the name, specifying the number of '.' characters that can appear
     String account (optional); //restrict to domain names that have specified account name
+    String subscription (optional); //restrict to domain names that have specified azure subscription name
     Int32 productId (optional); //restrict the domain names that have specified product id
     ResourceName roleMember (optional); //restrict the domain names where the specified user is in a role - see roleName
     ResourceName roleName (optional); //restrict the domain names where the specified user is in this role - see roleMember

@@ -194,7 +194,7 @@ func (cli Zms) ExportDomain(dn string, filename string) (*string, error) {
 }
 
 func (cli Zms) SystemBackup(dir string) (*string, error) {
-	res, err := cli.Zms.GetDomainList(nil, "", "", nil, "", nil, "", "", "")
+	res, err := cli.Zms.GetDomainList(nil, "", "", nil, "", nil, "", "", "", "")
 	if err != nil {
 		return nil, err
 	}
@@ -276,7 +276,7 @@ func (cli Zms) createDomain(dn string, productID *int32, admins []string) (*stri
 
 func (cli Zms) LookupDomainByRole(roleMember string, roleName string) (*string, error) {
 	var buf bytes.Buffer
-	res, err := cli.Zms.GetDomainList(nil, "", "", nil, "", nil, zms.ResourceName(roleMember), zms.ResourceName(roleName), "")
+	res, err := cli.Zms.GetDomainList(nil, "", "", nil, "", nil, zms.ResourceName(roleMember), zms.ResourceName(roleName), "", "")
 	if err == nil {
 		buf.WriteString("domains:\n")
 		for _, name := range res.Names {
@@ -288,9 +288,9 @@ func (cli Zms) LookupDomainByRole(roleMember string, roleName string) (*string, 
 	return nil, err
 }
 
-func (cli Zms) LookupDomainById(account string, productID *int32) (*string, error) {
+func (cli Zms) LookupDomainById(account, subscription string, productID *int32) (*string, error) {
 	var buf bytes.Buffer
-	res, err := cli.Zms.GetDomainList(nil, "", "", nil, account, productID, "", "", "")
+	res, err := cli.Zms.GetDomainList(nil, "", "", nil, account, productID, "", "", "", subscription)
 	if err == nil {
 		buf.WriteString("domain:\n")
 		for _, name := range res.Names {
@@ -304,7 +304,7 @@ func (cli Zms) LookupDomainById(account string, productID *int32) (*string, erro
 
 func (cli Zms) ListDomains(limit *int32, skip string, prefix string, depth *int32) (*string, error) {
 	var buf bytes.Buffer
-	res, err := cli.Zms.GetDomainList(limit, skip, prefix, depth, "", nil, "", "", "")
+	res, err := cli.Zms.GetDomainList(limit, skip, prefix, depth, "", nil, "", "", "", "")
 	if err == nil {
 		buf.WriteString("domains:\n")
 		for _, name := range res.Names {
@@ -599,6 +599,18 @@ func (cli Zms) SetDomainAccount(dn string, account string) (*string, error) {
 		return nil, err
 	}
 	s := "[domain " + dn + " account successfully updated]\n"
+	return &s, nil
+}
+
+func (cli Zms) SetDomainSubscription(dn string, subscription string) (*string, error) {
+	meta := zms.DomainMeta{
+		AzureSubscription: subscription,
+	}
+	err := cli.Zms.PutDomainSystemMeta(zms.DomainName(dn), "azuresubscription", cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " subscription successfully updated]\n"
 	return &s, nil
 }
 

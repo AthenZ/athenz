@@ -95,7 +95,7 @@ public class ZMSSchema {
             .field("org", "ResourceName", true, "a reference to an Organization. (i.e. org:media)")
             .field("enabled", "Bool", true, "Future use only, currently not used", true)
             .field("auditEnabled", "Bool", true, "Flag indicates whether or not domain modifications should be logged for SOX+Auditing. If true, the auditRef parameter must be supplied(not empty) for any API defining it.", false)
-            .field("account", "String", true, "associated cloud (i.e. aws) account id (system attribute - uniqueness check)")
+            .field("account", "String", true, "associated aws account id (system attribute - uniqueness check)")
             .field("ypmId", "Int32", true, "associated product id (system attribute - uniqueness check)")
             .field("applicationId", "String", true, "associated application id")
             .field("certDnsDomain", "String", true, "domain certificate dns domain (system attribute)")
@@ -106,7 +106,8 @@ public class ZMSSchema {
             .field("signAlgorithm", "SimpleName", true, "rsa or ec signing algorithm to be used for tokens")
             .field("serviceExpiryDays", "Int32", true, "all services in the domain roles will have specified max expiry days")
             .field("groupExpiryDays", "Int32", true, "all groups in the domain roles will have specified max expiry days")
-            .field("userAuthorityFilter", "String", true, "membership filtered based on user authority configured attributes");
+            .field("userAuthorityFilter", "String", true, "membership filtered based on user authority configured attributes")
+            .field("azureSubscription", "String", true, "associated azure subscription id (system attribute - uniqueness check)");
 
         sb.structType("Domain", "DomainMeta")
             .comment("A domain is an independent partition of users, roles, and resources. Its name represents the definition of a namespace; the only way a new namespace can be created, from the top, is by creating Domains. Administration of a domain is governed by the parent domain (using reverse-DNS namespaces). The top level domains are governed by the special \"sys.auth\" domain.")
@@ -576,6 +577,7 @@ public class ZMSSchema {
             .queryParam("ypmid", "productId", "Int32", null, "restrict the domain names that have specified product id")
             .queryParam("member", "roleMember", "ResourceName", null, "restrict the domain names where the specified user is in a role - see roleName")
             .queryParam("role", "roleName", "ResourceName", null, "restrict the domain names where the specified user is in this role - see roleMember")
+            .queryParam("azure", "subscription", "String", null, "restrict to domain names that have specified azure subscription name")
             .headerParam("If-Modified-Since", "modifiedSince", "String", null, "This header specifies to the server to return any domains modified since this HTTP date")
             .auth("", "", true)
             .expected("OK")

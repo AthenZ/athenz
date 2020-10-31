@@ -61,6 +61,9 @@ public class SubDomain {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String userAuthorityFilter;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String azureSubscription;
     public String name;
     public List<String> adminUsers;
     @RdlOptional
@@ -180,6 +183,13 @@ public class SubDomain {
     public String getUserAuthorityFilter() {
         return userAuthorityFilter;
     }
+    public SubDomain setAzureSubscription(String azureSubscription) {
+        this.azureSubscription = azureSubscription;
+        return this;
+    }
+    public String getAzureSubscription() {
+        return azureSubscription;
+    }
     public SubDomain setName(String name) {
         this.name = name;
         return this;
@@ -262,6 +272,9 @@ public class SubDomain {
                 return false;
             }
             if (userAuthorityFilter == null ? a.userAuthorityFilter != null : !userAuthorityFilter.equals(a.userAuthorityFilter)) {
+                return false;
+            }
+            if (azureSubscription == null ? a.azureSubscription != null : !azureSubscription.equals(a.azureSubscription)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

@@ -46,16 +46,18 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_GET_ACTIVE_DOMAIN_ID = "SELECT domain_id FROM domain WHERE name=? AND enabled=true;";
     private static final String SQL_GET_DOMAINS_WITH_NAME = "SELECT name FROM domain WHERE name LIKE ?;";
     private static final String SQL_GET_DOMAIN_WITH_ACCOUNT = "SELECT name FROM domain WHERE account=?;";
+    private static final String SQL_GET_DOMAIN_WITH_SUBSCRIPTION = "SELECT name FROM domain WHERE azure_subscription=?;";
     private static final String SQL_GET_DOMAIN_WITH_PRODUCT_ID = "SELECT name FROM domain WHERE ypm_id=?;";
     private static final String SQL_INSERT_DOMAIN = "INSERT INTO domain "
             + "(name, description, org, uuid, enabled, audit_enabled, account, ypm_id, application_id, cert_dns_domain,"
             + " member_expiry_days, token_expiry_mins, service_cert_expiry_mins, role_cert_expiry_mins, sign_algorithm,"
-            + " service_expiry_days, user_authority_filter, group_expiry_days) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+            + " service_expiry_days, user_authority_filter, group_expiry_days, azure_subscription)"
+            + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
     private static final String SQL_UPDATE_DOMAIN = "UPDATE domain "
             + "SET description=?, org=?, uuid=?, enabled=?, audit_enabled=?, account=?, ypm_id=?, application_id=?,"
             + " cert_dns_domain=?, member_expiry_days=?, token_expiry_mins=?, service_cert_expiry_mins=?,"
             + " role_cert_expiry_mins=?, sign_algorithm=?, service_expiry_days=?, user_authority_filter=?,"
-            + " group_expiry_days=? WHERE name=?;";
+            + " group_expiry_days=?, azure_subscription=? WHERE name=?;";
     private static final String SQL_UPDATE_DOMAIN_MOD_TIMESTAMP = "UPDATE domain "
             + "SET modified=CURRENT_TIMESTAMP(3) WHERE name=?;";
     private static final String SQL_GET_DOMAIN_MOD_TIMESTAMP = "SELECT modified FROM domain WHERE name=?;";
@@ -622,6 +624,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                 .setOrg(saveValue(rs.getString(ZMSConsts.DB_COLUMN_ORG)))
                 .setId(saveUuidValue(rs.getString(ZMSConsts.DB_COLUMN_UUID)))
                 .setAccount(saveValue(rs.getString(ZMSConsts.DB_COLUMN_ACCOUNT)))
+                .setAzureSubscription(saveValue(rs.getString(ZMSConsts.DB_COLUMN_AZURE_SUBSCRIPTION)))
                 .setYpmId(rs.getInt(ZMSConsts.DB_COLUMN_PRODUCT_ID))
                 .setCertDnsDomain(saveValue(rs.getString(ZMSConsts.DB_COLUMN_CERT_DNS_DOMAIN)))
                 .setMemberExpiryDays(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_MEMBER_EXPIRY_DAYS), 0))
@@ -661,8 +664,9 @@ public class JDBCConnection implements ObjectStoreConnection {
         // we need to verify that our account and product ids are unique
         // in the store. we can't rely on db uniqueness check since
         // some of the domains will not have these attributes set
-        
+
         verifyDomainAccountUniqueness(domain.getName(), domain.getAccount(), caller);
+        verifyDomainSubscriptionUniqueness(domain.getName(), domain.getAzureSubscription(), caller);
         verifyDomainProductIdUniqueness(domain.getName(), domain.getYpmId(), caller);
         verifyDomainNameDashUniqueness(domain.getName(), caller);
 
@@ -685,6 +689,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setInt(16, processInsertValue(domain.getServiceExpiryDays()));
             ps.setString(17, processInsertValue(domain.getUserAuthorityFilter()));
             ps.setInt(18, processInsertValue(domain.getGroupExpiryDays()));
+            ps.setString(19, processInsertValue(domain.getAzureSubscription()));
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -723,22 +728,35 @@ public class JDBCConnection implements ObjectStoreConnection {
             return;
         }
         
-        String domainName = lookupDomainById(null, productId);
+        String domainName = lookupDomainById(null, null, productId);
         if (domainName != null && !domainName.equals(name)) {
             throw requestError(caller, "Product Id: " + productId +
                     " is already assigned to domain: " + domainName);
         }
     }
     
-    void verifyDomainAccountUniqueness(String name, String account, String caller) {
+    void verifyDomainAccountUniqueness(final String name, final String account, final String caller) {
         
         if (account == null || account.isEmpty()) {
             return;
         }
         
-        String domainName = lookupDomainById(account, 0);
+        String domainName = lookupDomainById(account, null, 0);
         if (domainName != null && !domainName.equals(name)) {
             throw requestError(caller, "Account Id: " + account +
+                    " is already assigned to domain: " + domainName);
+        }
+    }
+
+    void verifyDomainSubscriptionUniqueness(final String name, final String subscription, final String caller) {
+
+        if (subscription == null || subscription.isEmpty()) {
+            return;
+        }
+
+        String domainName = lookupDomainById(null, subscription, 0);
+        if (domainName != null && !domainName.equals(name)) {
+            throw requestError(caller, "Subscription Id: " + subscription +
                     " is already assigned to domain: " + domainName);
         }
     }
@@ -752,8 +770,9 @@ public class JDBCConnection implements ObjectStoreConnection {
         // we need to verify that our account and product ids are unique
         // in the store. we can't rely on db uniqueness check since
         // some of the domains will not have these attributes set
-        
+
         verifyDomainAccountUniqueness(domain.getName(), domain.getAccount(), caller);
+        verifyDomainSubscriptionUniqueness(domain.getName(), domain.getAzureSubscription(), caller);
         verifyDomainProductIdUniqueness(domain.getName(), domain.getYpmId(), caller);
         
         try (PreparedStatement ps = con.prepareStatement(SQL_UPDATE_DOMAIN)) {
@@ -774,7 +793,8 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setInt(15, processInsertValue(domain.getServiceExpiryDays()));
             ps.setString(16, processInsertValue(domain.getUserAuthorityFilter()));
             ps.setInt(17, processInsertValue(domain.getGroupExpiryDays()));
-            ps.setString(18, domain.getName());
+            ps.setString(18, processInsertValue(domain.getAzureSubscription()));
+            ps.setString(19, domain.getName());
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -912,16 +932,25 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
     
     @Override
-    public String lookupDomainById(String account, int productId) {
+    public String lookupDomainById(String account, String subscription, int productId) {
         
         final String caller = "lookupDomain";
-        final String sqlCmd = (account != null) ? SQL_GET_DOMAIN_WITH_ACCOUNT : SQL_GET_DOMAIN_WITH_PRODUCT_ID;
+        String sqlCmd;
+        if (account != null) {
+            sqlCmd = SQL_GET_DOMAIN_WITH_ACCOUNT;
+        } else if (subscription != null) {
+            sqlCmd = SQL_GET_DOMAIN_WITH_SUBSCRIPTION;
+        } else {
+            sqlCmd = SQL_GET_DOMAIN_WITH_PRODUCT_ID;
+        }
 
         String domainName = null;
         try (PreparedStatement ps = con.prepareStatement(sqlCmd)) {
             
             if (account != null) {
                 ps.setString(1, account.trim());
+            } else if (subscription != null) {
+                ps.setString(1, subscription.trim());
             } else {
                 ps.setInt(1, productId);
             }

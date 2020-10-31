@@ -960,7 +960,7 @@ public class ZMSImplTest {
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
 
         DomainList domList = zms.getDomainList(mockDomRsrcCtx, null, null, null, null,
-                null, null, null, null, null);
+                null, null, null, null, null, null);
         assertNotNull(domList);
 
         assertTrue(domList.getNames().contains("ListDom1".toLowerCase()));
@@ -981,18 +981,65 @@ public class ZMSImplTest {
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
         DomainList domList = zms.getDomainList(mockDomRsrcCtx, null, null, null, null,
-                "1234", null, null, null, null);
+                "1234", null, null, null, null, null);
         assertNotNull(domList.getNames());
         assertEquals(domList.getNames().size(), 1);
         assertEquals(domList.getNames().get(0), domainName);
         
         domList = zms.getDomainList(mockDomRsrcCtx, null, null, null, null,
-                "1235", null, null, null, null);
+                "1235", null, null, null, null, null);
         assertNull(domList.getNames());
         
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
-    
+
+    @Test
+    public void testGetDomainListBySubscription() {
+
+        final String domainName = "lookup-domain-azure-subscription";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", adminUser);
+        dom1.setAzureSubscription("azure1");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        DomainList domList = zms.getDomainList(mockDomRsrcCtx, null, null, null, null,
+                null, null, null, null, null, "azure1");
+        assertNotNull(domList.getNames());
+        assertEquals(domList.getNames().size(), 1);
+        assertEquals(domList.getNames().get(0), domainName);
+
+        domList = zms.getDomainList(mockDomRsrcCtx, null, null, null, null,
+                null, null, null, null, null, "azure2");
+        assertNull(domList.getNames());
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testGetDomainListByRoleDetails() {
+
+        final String domainName = "lookup-domain-role-details";
+        final String roleName = "role-test1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Role role = createRoleObject(domainName, roleName, null, "user.user101", null);
+        zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, role);
+
+        DomainList domList = zms.getDomainList(mockDomRsrcCtx, null, null, null, null,
+                null, null, "user.user101", roleName, null, null);
+        assertNotNull(domList.getNames());
+        assertEquals(domList.getNames().size(), 1);
+        assertEquals(domList.getNames().get(0), domainName);
+
+        domList = zms.getDomainList(mockDomRsrcCtx, null, null, null, null,
+                null, null, "user.user101", "unknown-role-name", null, null);
+        assertTrue(domList.getNames().isEmpty());
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
     @Test
     public void testGetDomainListByProductId() {
         
@@ -1009,13 +1056,13 @@ public class ZMSImplTest {
         zmsImpl.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
         DomainList domList = zmsImpl.getDomainList(mockDomRsrcCtx, null, null, null,
-                null, null, 101, null, null, null);
+                null, null, 101, null, null, null, null);
         assertNotNull(domList.getNames());
         assertEquals(domList.getNames().size(), 1);
         assertEquals(domList.getNames().get(0), domainName);
         
         domList = zmsImpl.getDomainList(mockDomRsrcCtx, null, null, null, null, null,
-                102, null, null, null);
+                102, null, null, null, null);
         assertNull(domList.getNames());
         
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
@@ -1048,7 +1095,7 @@ public class ZMSImplTest {
         // option so this will be tested in zms_system_test package
         
         DomainList domList = zms.getDomainList(mockDomRsrcCtx, null, null, null,
-                null, null, null, null, null, modifiedSince);
+                null, null, null, null, null, modifiedSince, null);
         assertNotNull(domList);
 
         assertTrue(domList.getNames().contains("ListDom2".toLowerCase()));
@@ -1056,13 +1103,13 @@ public class ZMSImplTest {
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "ListDom1", auditRef);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "ListDom2", auditRef);
     }
-    
+
     @Test
     public void testGetDomainListInvalidIfModifiedSince() {
 
         try {
             zms.getDomainList(mockDomRsrcCtx, null, null, null, null, null,
-                    null, null, null, "abc");
+                    null, null, null, "abc", null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -1070,7 +1117,7 @@ public class ZMSImplTest {
         
         try {
             zms.getDomainList(mockDomRsrcCtx, null, null, null, null, null,
-                    null, null, null, "May 20, 1099");
+                    null, null, null, "May 20, 1099", null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -1078,7 +1125,7 @@ public class ZMSImplTest {
         
         try {
             zms.getDomainList(mockDomRsrcCtx, null, null, null, null, null,
-                    null, null, null, "03:03:20 PM");
+                    null, null, null, "03:03:20 PM", null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -1097,7 +1144,7 @@ public class ZMSImplTest {
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
 
         DomainList domList = zms.getDomainList(mockDomRsrcCtx, 1, null, null,
-                null, null, null, null, null, null);
+                null, null, null, null, null, null, null);
         assertEquals(1, domList.getNames().size());
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "LimitDom1", auditRef);
@@ -1120,18 +1167,18 @@ public class ZMSImplTest {
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom3);
 
         DomainList domList = zms.getDomainList(mockDomRsrcCtx, null, null, null,
-                null, null, null, null, null, null);
+                null, null, null, null, null, null, null);
         int size = domList.getNames().size();
         assertTrue(size > 3);
 
         // ask for only for 2 domains back
         domList = zms.getDomainList(mockDomRsrcCtx, 2, null, null, null, null,
-                null, null, null, null);
+                null, null, null, null, null);
         assertEquals(domList.getNames().size(), 2);
 
         // ask for the remaining domains
         DomainList remList = zms.getDomainList(mockDomRsrcCtx, null, domList.getNext(),
-                null, null, null, null, null, null, null);
+                null, null, null, null, null, null, null, null);
         assertEquals(remList.getNames().size(), size - 2);
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "SkipDom1", auditRef);
@@ -1151,7 +1198,7 @@ public class ZMSImplTest {
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
 
         DomainList domList = zms.getDomainList(mockDomRsrcCtx, null, null,
-                "Prefix", null, null, null, null, null, null);
+                "Prefix", null, null, null, null, null, null, null);
 
         assertFalse(domList.getNames().contains("NoPrefixDom1".toLowerCase()));
         assertTrue(domList.getNames().contains("PrefixDom2".toLowerCase()));
@@ -1176,7 +1223,7 @@ public class ZMSImplTest {
         zms.postSubDomain(mockDomRsrcCtx, "DepthDom1.DepthDom2", auditRef, dom3);
 
         DomainList domList = zms.getDomainList(mockDomRsrcCtx, null, null, null,
-                1, null, null, null, null, null);
+                1, null, null, null, null, null, null);
 
         assertTrue(domList.getNames().contains("DepthDom1".toLowerCase()));
         assertTrue(domList.getNames().contains("DepthDom1.DepthDom2".toLowerCase()));
@@ -1190,7 +1237,7 @@ public class ZMSImplTest {
     @Test
     public void testGetDomainListThrowException() {
         try {
-            zms.getDomainList(mockDomRsrcCtx, -1, null, null, null, null, null, null, null, null);
+            zms.getDomainList(mockDomRsrcCtx, -1, null, null, null, null, null, null, null, null, null);
             fail("requesterror not thrown.");
         } catch (ResourceException e) {
             assertEquals(e.getCode(), 400);
@@ -2069,33 +2116,49 @@ public class ZMSImplTest {
     @Test
     public void testPutDomainMetaDefaults() {
 
-        TopLevelDomain dom1 = createTopLevelDomainObject("MetaDom2",
-                null, null, adminUser);
+        final String domainName = "meta-dom-values";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, null, null, adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
-        Domain resDom1 = zms.getDomain(mockDomRsrcCtx, "MetaDom2");
+        Domain resDom1 = zms.getDomain(mockDomRsrcCtx, domainName);
         assertNotNull(resDom1);
         assertNull(resDom1.getDescription());
         assertNull(resDom1.getOrg());
         assertTrue(resDom1.getEnabled());
         assertFalse(resDom1.getAuditEnabled());
 
-        DomainMeta meta = createDomainMetaObject("Test2 Domain", "NewOrg",
-                true, false, null, 0);
-        zms.putDomainMeta(mockDomRsrcCtx, "MetaDom2", auditRef, meta);
+        DomainMeta meta = createDomainMetaObject("Test2 Domain", "NewOrg", true, false, null, 0);
+        zms.putDomainMeta(mockDomRsrcCtx, domainName, auditRef, meta);
 
-        zms.putDomainSystemMeta(mockDomRsrcCtx, "MetaDom2", "org", auditRef, meta);
+        zms.putDomainSystemMeta(mockDomRsrcCtx, domainName, "org", auditRef, meta);
 
-        Domain resDom3 = zms.getDomain(mockDomRsrcCtx, "MetaDom2");
+        Domain resDom3 = zms.getDomain(mockDomRsrcCtx, domainName);
         assertNotNull(resDom3);
         assertEquals(resDom3.getDescription(), "Test2 Domain");
         assertEquals(resDom3.getOrg(), "neworg");
         assertTrue(resDom3.getEnabled());
         assertFalse(resDom3.getAuditEnabled());
         assertNull(resDom3.getAccount());
+        assertNull(resDom3.getAzureSubscription());
         assertEquals(Integer.valueOf(0), resDom3.getYpmId());
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, "MetaDom2", auditRef);
+        meta.setAccount("aws");
+        zms.putDomainSystemMeta(mockDomRsrcCtx, domainName, "account", auditRef, meta);
+        resDom3 = zms.getDomain(mockDomRsrcCtx, domainName);
+        assertNotNull(resDom3);
+        assertEquals(resDom3.getOrg(), "neworg");
+        assertEquals(resDom3.getAccount(), "aws");
+        assertNull(resDom3.getAzureSubscription());
+
+        meta.setAzureSubscription("azure");
+        zms.putDomainSystemMeta(mockDomRsrcCtx, domainName, "azuresubscription", auditRef, meta);
+        resDom3 = zms.getDomain(mockDomRsrcCtx, domainName);
+        assertNotNull(resDom3);
+        assertEquals(resDom3.getOrg(), "neworg");
+        assertEquals(resDom3.getAccount(), "aws");
+        assertEquals(resDom3.getAzureSubscription(), "azure");
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 
     @Test
@@ -6292,7 +6355,7 @@ public class ZMSImplTest {
         zms.putDomainSystemMeta(mockDomRsrcCtx, "signeddom2", "account", auditRef, meta);
 
         DomainList domList = zms.getDomainList(mockDomRsrcCtx, null, null, null, null,
-                null, null, null, null, null);
+                null, null, null, null, null, null);
         List<String> domNames = domList.getNames();
         int numDoms = domNames.size();
 
@@ -16087,7 +16150,7 @@ public class ZMSImplTest {
         assertNotNull(principal);
         ((SimplePrincipal) principal).setUnsignedCreds(userId);
         ResourceContext rsrcCtx1 = createResourceContext(principal);
-        zms.getDomainList(rsrcCtx1, 100, null, null, 100, "account", 224, "roleMem1", "role1", null);
+        zms.getDomainList(rsrcCtx1, 100, null, null, 100, "account", 224, "roleMem1", "role1", null, null);
     }
 
     @Test
@@ -17193,37 +17256,55 @@ public class ZMSImplTest {
 
         ZMSImpl zmsImpl = zmsInit();
         Domain domainMeta = new Domain().setName("dom1").setYpmId(123).setModified(Timestamp.fromCurrentTime())
-                .setAccount("1234").setAuditEnabled(true).setOrg("org");
+                .setAccount("1234").setAuditEnabled(true).setOrg("org").setAzureSubscription("4567");
         SignedDomain domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, null);
         assertNull(domain.getDomain().getAccount());
         assertNull(domain.getDomain().getYpmId());
+        assertNull(domain.getDomain().getOrg());
+        assertNull(domain.getDomain().getAuditEnabled());
+        assertNull(domain.getDomain().getAzureSubscription());
 
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "unknown");
         assertNull(domain.getDomain().getAccount());
         assertNull(domain.getDomain().getYpmId());
         assertNull(domain.getDomain().getOrg());
         assertNull(domain.getDomain().getAuditEnabled());
+        assertNull(domain.getDomain().getAzureSubscription());
 
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "account");
         assertEquals(domain.getDomain().getAccount(), "1234");
         assertNull(domain.getDomain().getYpmId());
         assertNull(domain.getDomain().getOrg());
         assertNull(domain.getDomain().getAuditEnabled());
+        assertNull(domain.getDomain().getAzureSubscription());
 
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "ypmid");
         assertNull(domain.getDomain().getAccount());
         assertEquals(domain.getDomain().getYpmId().intValue(), 123);
         assertNull(domain.getDomain().getOrg());
         assertNull(domain.getDomain().getAuditEnabled());
+        assertNull(domain.getDomain().getAzureSubscription());
+
+        domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "azuresubscription");
+        assertEquals(domain.getDomain().getAzureSubscription(), "4567");
+        assertNull(domain.getDomain().getAccount());
+        assertNull(domain.getDomain().getYpmId());
+        assertNull(domain.getDomain().getOrg());
+        assertNull(domain.getDomain().getAuditEnabled());
 
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "all");
         assertEquals(domain.getDomain().getAccount(), "1234");
+        assertEquals(domain.getDomain().getAzureSubscription(), "4567");
         assertEquals(domain.getDomain().getYpmId().intValue(), 123);
         assertEquals(domain.getDomain().getOrg(), "org");
         assertTrue(domain.getDomain().getAuditEnabled());
 
         domainMeta.setAccount(null);
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "account");
+        assertNull(domain);
+
+        domainMeta.setAzureSubscription(null);
+        domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "azuresubscription");
         assertNull(domain);
 
         domainMeta.setAccount("1234");
@@ -17289,7 +17370,7 @@ public class ZMSImplTest {
         cleanupPrincipalSystemMetaDelete(zms);
 
         DomainList domList = zms.getDomainList(mockDomRsrcCtx, null, null, null, null,
-                null, null, null, null, null);
+                null, null, null, null, null, null);
         assertNotNull(domList);
 
         zms.privateKey = new ServerPrivateKey(Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey)), "0");
@@ -17780,37 +17861,33 @@ public class ZMSImplTest {
     }
 
     @Test
-    public void testPostSubDomainWithInvalidProductId() {
+    public void testPostSubDomainSkipSystemAttributes() {
 
-        TestAuditLogger alogger = new TestAuditLogger();
-        System.setProperty(ZMSConsts.ZMS_PROP_PRODUCT_ID_SUPPORT, "true");
+        final String domainName = "subdomain-with-system-attrs";
 
-        ZMSImpl zmsImpl = getZmsImpl(alogger);
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", adminUser);
+        dom1.setAzureSubscription("azure");
+        dom1.setAccount("aws");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
-        TopLevelDomain dom1 = createTopLevelDomainObject("AddSubDom1",
-                "Test Domain1", "testOrg", adminUser);
-        zmsImpl.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        Domain dom1Res = zms.getDomain(mockDomRsrcCtx, domainName);
+        assertEquals(dom1Res.getAccount(), "aws");
+        assertEquals(dom1Res.getAzureSubscription(), "azure");
 
-        DomainMeta meta = createDomainMetaObject("Test Domain1", "testOrg",
-                true, true, "12345", 1001);
-        zmsImpl.putDomainMeta(mockDomRsrcCtx, "AddSubDom1", auditRef, meta);
-        zmsImpl.putDomainSystemMeta(mockDomRsrcCtx, "AddSubDom1", "auditenabled", auditRef, meta);
+        SubDomain dom2 = createSubDomainObject("sub", domainName, "Test Domain2", "testOrg", adminUser);
+        dom2.setAzureSubscription("azure");
+        dom2.setAccount("aws");
 
-        SubDomain dom2 = createSubDomainObject("AddSubDom2", "AddSubDom1",
-                "Test Domain2", "testOrg", adminUser);
-        dom2.setYpmId(-1);
+        // system meta attributes are automatically skipped
 
-        try {
-            zmsImpl.postSubDomain(mockDomRsrcCtx, "AddSubDom1", auditRef, dom2);
-            fail("ProductId error not thrown.");
-        } catch (ResourceException e) {
-            assertEquals(e.getCode(), 400);
-        }
+        zms.postSubDomain(mockDomRsrcCtx, domainName, auditRef, dom2);
+        Domain dom2Res = zms.getDomain(mockDomRsrcCtx, domainName + ".sub");
+        assertNull(dom2Res.getAccount());
+        assertNull(dom2Res.getAzureSubscription());
 
-        zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, "AddSubDom1", auditRef);
-        System.clearProperty(ZMSConsts.ZMS_PROP_PRODUCT_ID_SUPPORT);
+        zms.deleteSubDomain(mockDomRsrcCtx, domainName, "sub", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
-
 
     @Test
     public void testGetPrincipalDomain() {
@@ -24518,6 +24595,78 @@ public class ZMSImplTest {
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
         }
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testAzureSubscriptionUniquenessCheck() {
+
+        final String domainName1 = "azure-sub-unique1";
+        final String domainName2 = "azure-sub-unique2";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName1, "Test Domain1", "testOrg", "user.user1");
+        dom1.setAzureSubscription("azure1");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        // create another domai with the same subscription which should be rejected
+
+        TopLevelDomain dom2 = createTopLevelDomainObject(domainName2, "Test Domain1", "testOrg", "user.user1");
+        dom2.setAzureSubscription("azure1");
+        try {
+            zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Subscription Id: azure1 is already assigned to domain: " + domainName1));
+        }
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName1, auditRef);
+    }
+
+    @Test
+    public void testCreateTopLevelDomainNegativeProductId(){
+
+        final String domainName = "negative-product-id";
+
+        TestAuditLogger alogger = new TestAuditLogger();
+        System.setProperty(ZMSConsts.ZMS_PROP_PRODUCT_ID_SUPPORT, "true");
+        ZMSImpl zmsImpl = getZmsImpl(alogger);
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", "user.user1");
+        dom1.setYpmId(-11001);
+
+        try {
+            zmsImpl.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Product Id must be a positive integer"));
+        }
+
+        System.clearProperty(ZMSConsts.ZMS_PROP_PRODUCT_ID_SUPPORT);
+    }
+
+    @Test
+    public void testCreateTopLevelDomainWithTemplate(){
+
+        final String domainName = "domain-with-template";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", "user.user1");
+        DomainTemplateList templateList = new DomainTemplateList();
+        List<String> templates = new ArrayList<>();
+        templates.add("vipng");
+        templateList.setTemplateNames(templates);
+        dom1.setTemplates(templateList);
+
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        Domain domain = zms.getDomain(mockDomRsrcCtx, domainName);
+        assertNotNull(domain);
+
+        Role role = zms.getRole(mockDomRsrcCtx, domainName, "vip_admin", false, false, false);
+        assertNotNull(role);
+
+        Policy policy = zms.getPolicy(mockDomRsrcCtx, domainName, "vip_admin");
+        assertNotNull(policy);
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }

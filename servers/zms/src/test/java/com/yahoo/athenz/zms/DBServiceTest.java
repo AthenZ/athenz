@@ -3051,28 +3051,57 @@ public class DBServiceTest {
         
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        dom1.setAccount("1234");
+        dom1.setAccount("aws");
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
-        DomainList list = zms.dbService.lookupDomainByAccount("1234");
+        DomainList list = zms.dbService.lookupDomainByAWSAccount("aws");
         assertNotNull(list.getNames());
         assertEquals(list.getNames().size(), 1);
         assertEquals(list.getNames().get(0), domainName);
 
-        list = zms.dbService.lookupDomainById("1234", 0);
+        list = zms.dbService.lookupDomainById("aws", null, 0);
         assertNotNull(list.getNames());
         assertEquals(list.getNames().size(), 1);
         assertEquals(list.getNames().get(0), domainName);
         
-        list = zms.dbService.lookupDomainByAccount("1235");
+        list = zms.dbService.lookupDomainByAWSAccount("aws2");
         assertNull(list.getNames());
 
-        list = zms.dbService.lookupDomainById("1235", 0);
+        list = zms.dbService.lookupDomainById("aws2", null, 0);
         assertNull(list.getNames());
         
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
-    
+
+    @Test
+    public void testLookupDomainBySubscription() {
+
+        String domainName = "lookupdomainsubscription";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        dom1.setAzureSubscription("azure");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        DomainList list = zms.dbService.lookupDomainByAzureSubscription("azure");
+        assertNotNull(list.getNames());
+        assertEquals(list.getNames().size(), 1);
+        assertEquals(list.getNames().get(0), domainName);
+
+        list = zms.dbService.lookupDomainById(null, "azure", 0);
+        assertNotNull(list.getNames());
+        assertEquals(list.getNames().size(), 1);
+        assertEquals(list.getNames().get(0), domainName);
+
+        list = zms.dbService.lookupDomainByAWSAccount("azure2");
+        assertNull(list.getNames());
+
+        list = zms.dbService.lookupDomainById(null, "azure2", 0);
+        assertNull(list.getNames());
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
     @Test
     public void testLookupDomainByProductId() {
         
@@ -3088,7 +3117,7 @@ public class DBServiceTest {
         assertEquals(list.getNames().size(), 1);
         assertEquals(list.getNames().get(0), domainName);
 
-        list = zms.dbService.lookupDomainById(null, 101);
+        list = zms.dbService.lookupDomainById(null, null, 101);
         assertNotNull(list.getNames());
         assertEquals(list.getNames().size(), 1);
         assertEquals(list.getNames().get(0), domainName);
@@ -3096,15 +3125,15 @@ public class DBServiceTest {
         list = zms.dbService.lookupDomainByProductId(102);
         assertNull(list.getNames());
 
-        list = zms.dbService.lookupDomainById(null, 102);
+        list = zms.dbService.lookupDomainById(null, null, 102);
         assertNull(list.getNames());
 
-        // by default we're assiging id 0 to all domains without valid value
+        // by default we're assigning id 0 to all domains without valid value
 
         list = zms.dbService.lookupDomainByProductId(0);
         assertNotNull(list.getNames());
         
-        list = zms.dbService.lookupDomainById(null, 0);
+        list = zms.dbService.lookupDomainById(null, null, 0);
         assertNotNull(list.getNames());
         
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
@@ -4172,13 +4201,16 @@ public class DBServiceTest {
         DomainMeta meta = new DomainMeta()
                 .setAccount("acct")
                 .setYpmId(1234)
-                .setCertDnsDomain("athenz.cloud");
+                .setCertDnsDomain("athenz.cloud")
+                .setAzureSubscription("azure");
         zms.dbService.updateSystemMetaFields(domain, "account", true, meta);
         assertEquals(domain.getAccount(), "acct");
         zms.dbService.updateSystemMetaFields(domain, "productid", true, meta);
         assertEquals(domain.getYpmId().intValue(), 1234);
         zms.dbService.updateSystemMetaFields(domain, "certdnsdomain", true, meta);
         assertEquals(domain.getCertDnsDomain(), "athenz.cloud");
+        zms.dbService.updateSystemMetaFields(domain, "azuresubscription", true, meta);
+        assertEquals(domain.getAzureSubscription(), "azure");
         try {
             zms.dbService.updateSystemMetaFields(domain, "unknown", true, meta);
             fail();
@@ -4192,24 +4224,29 @@ public class DBServiceTest {
         DomainMeta meta1 = new DomainMeta()
                 .setAccount("acct")
                 .setYpmId(1234)
-                .setCertDnsDomain("athenz.cloud");
+                .setCertDnsDomain("athenz.cloud")
+                .setAzureSubscription("azure");
         zms.dbService.updateSystemMetaFields(domain1, "account", false, meta1);
         assertEquals(domain1.getAccount(), "acct");
         zms.dbService.updateSystemMetaFields(domain1, "productid", false, meta1);
         assertEquals(domain1.getYpmId().intValue(), 1234);
         zms.dbService.updateSystemMetaFields(domain1, "certdnsdomain", false, meta1);
         assertEquals(domain1.getCertDnsDomain(), "athenz.cloud");
+        zms.dbService.updateSystemMetaFields(domain1, "azuresubscription", false, meta1);
+        assertEquals(domain1.getAzureSubscription(), "azure");
 
         // setting from set values should be all rejected
 
         Domain domain2 = new Domain()
                 .setAccount("acct")
                 .setYpmId(1234)
-                .setCertDnsDomain("athenz.cloud");
+                .setCertDnsDomain("athenz.cloud")
+                .setAzureSubscription("azure");
         DomainMeta meta2 = new DomainMeta()
                 .setAccount("acct-new")
                 .setYpmId(1235)
-                .setCertDnsDomain("athenz.cloud.new");
+                .setCertDnsDomain("athenz.cloud.new")
+                .setAzureSubscription("azure.new");
 
         // setting from the old value to new value with
         // no delete flag should be rejected
@@ -4235,22 +4272,33 @@ public class DBServiceTest {
             assertTrue(ex.getMessage().contains("reset system meta attribute"));
         }
 
+        try {
+            zms.dbService.updateSystemMetaFields(domain2, "azuresubscription", false, meta2);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+            assertTrue(ex.getMessage().contains("reset system meta attribute"));
+        }
+
         // setting from set value to the same value should be allowed
 
         Domain domain3 = new Domain()
                 .setAccount("acct")
                 .setYpmId(1234)
-                .setCertDnsDomain("athenz.cloud");
+                .setCertDnsDomain("athenz.cloud")
+                .setAzureSubscription("azure");
         DomainMeta meta3 = new DomainMeta()
                 .setAccount("acct")
                 .setYpmId(1234)
-                .setCertDnsDomain("athenz.cloud");
+                .setCertDnsDomain("athenz.cloud")
+                .setAzureSubscription("azure");
         zms.dbService.updateSystemMetaFields(domain3, "account", false, meta3);
         assertEquals(domain3.getAccount(), "acct");
         zms.dbService.updateSystemMetaFields(domain3, "productid", false, meta3);
         assertEquals(domain3.getYpmId().intValue(), 1234);
         zms.dbService.updateSystemMetaFields(domain3, "certdnsdomain", false, meta3);
         assertEquals(domain3.getCertDnsDomain(), "athenz.cloud");
+        zms.dbService.updateSystemMetaFields(domain3, "azuresubscription", false, meta3);
+        assertEquals(domain3.getAzureSubscription(), "azure");
     }
 
     @Test

@@ -2310,35 +2310,35 @@ public class DBService implements RolesProvider {
         }
     }
 
-    DomainList lookupDomainById(String account, int productId) {
+    DomainList lookupDomainById(final String account, final String subscription, int productId) {
         
         DomainList domList = new DomainList();
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
-            String domain = con.lookupDomainById(account, productId);
+            String domain = con.lookupDomainById(account, subscription, productId);
             if (domain != null) {
-                List<String> list = Collections.singletonList(domain);
-                domList.setNames(list);
+                domList.setNames(Collections.singletonList(domain));
             }
         }
         return domList;
     }
     
-    DomainList lookupDomainByAccount(String account) {
-        return lookupDomainById(account, 0);
+    DomainList lookupDomainByAWSAccount(String account) {
+        return lookupDomainById(account, null, 0);
+    }
+
+    DomainList lookupDomainByAzureSubscription(String subscription) {
+        return lookupDomainById(null, subscription, 0);
     }
 
     DomainList lookupDomainByProductId(Integer productId) {
-        return lookupDomainById(null, productId);
+        return lookupDomainById(null, null, productId);
     }
     
     DomainList lookupDomainByRole(String roleMember, String roleName) {
         
         DomainList domList = new DomainList();
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
-            List<String> domains = con.lookupDomainByRole(roleMember, roleName);
-            if (domains != null) {
-                domList.setNames(domains);
-            }
+            domList.setNames(con.lookupDomainByRole(roleMember, roleName));
         }
         return domList;
     }
@@ -2775,6 +2775,7 @@ public class DBService implements RolesProvider {
                         .setOrg(domain.getOrg())
                         .setApplicationId(domain.getApplicationId())
                         .setAccount(domain.getAccount())
+                        .setAzureSubscription(domain.getAzureSubscription())
                         .setYpmId(domain.getYpmId())
                         .setCertDnsDomain(domain.getCertDnsDomain())
                         .setMemberExpiryDays(domain.getMemberExpiryDays())
@@ -3024,6 +3025,12 @@ public class DBService implements RolesProvider {
                     throw ZMSUtils.forbiddenError("unauthorized to reset system meta attribute: " + attribute, caller);
                 }
                 domain.setAccount(meta.getAccount());
+                break;
+            case ZMSConsts.SYSTEM_META_AZURE_SUBSCRIPTION:
+                if (!isDeleteSystemMetaAllowed(deleteAllowed, domain.getAzureSubscription(), meta.getAzureSubscription())) {
+                    throw ZMSUtils.forbiddenError("unauthorized to reset system meta attribute: " + attribute, caller);
+                }
+                domain.setAzureSubscription(meta.getAzureSubscription());
                 break;
             case ZMSConsts.SYSTEM_META_PRODUCT_ID:
                 if (!isDeleteSystemMetaAllowed(deleteAllowed, domain.getYpmId(), meta.getYpmId())) {

@@ -40,7 +40,7 @@ public interface ObjectStoreConnection extends Closeable {
     long getDomainModTimestamp(String domainName);
     boolean updateDomainModTimestamp(String domainName);
     List<String> listDomains(String prefix, long modifiedSince);
-    String lookupDomainById(String account, int productId);
+    String lookupDomainById(String account, String subscription, int productId);
     List<String> lookupDomainByRole(String roleMember, String roleName);
     
     AthenzDomain getAthenzDomain(String domainName);

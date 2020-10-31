@@ -95,7 +95,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     private static final String ADMIN_POLICY_NAME = "admin";
     private static final String ADMIN_ROLE_NAME = "admin";
 
-    private static final String META_ATTR_ACCOUNT = "account";
     private static final String META_ATTR_YPM_ID = "ypmid";
     private static final String META_ATTR_ALL = "all";
 
@@ -1128,9 +1127,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return schema;
     }
 
+    @Override
     public DomainList getDomainList(ResourceContext ctx, Integer limit, String skip, String prefix,
             Integer depth, String account, Integer productId, String roleMember, String roleName,
-            String modifiedSince) {
+            String modifiedSince, String subscription) {
 
         final String caller = ctx.getApiName();
 
@@ -1139,8 +1139,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateRequest(ctx.request(), caller);
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("getDomainList: limit: " + limit + " skip: " + skip
-                    + " prefix: " + prefix + " depth: " + depth + " modifiedSince: " + modifiedSince);
+            LOG.debug("getDomainList: limit: {}, skip: {}, prefix: {}, depth: {}, account: {}, " +
+                            "productId: {}, roleMember: {}, roleName: {}, modifiedSince: {}, subscription: {}",
+                    limit, skip, prefix, depth, account, productId, roleMember, roleName, modifiedSince, subscription);
         }
 
         // for consistent handling of all requests, we're going to convert
@@ -1188,8 +1189,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // do our regular domain list
 
         DomainList dlist;
-        if (account != null && !account.isEmpty()) {
-            dlist = dbService.lookupDomainByAccount(account);
+        if (!StringUtil.isEmpty(account)) {
+            dlist = dbService.lookupDomainByAWSAccount(account);
+        } else if (!StringUtil.isEmpty(subscription)) {
+            dlist = dbService.lookupDomainByAzureSubscription(subscription);
         } else if (productId != null && productId != 0) {
             dlist = dbService.lookupDomainByProductId(productId);
         } else if (roleMember != null || roleName != null) {
@@ -1234,7 +1237,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         validateRequest(ctx.request(), caller);
-
         validate(detail, TYPE_TOP_LEVEL_DOMAIN, caller);
 
         String domainName = detail.getName();
@@ -1279,7 +1281,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         int productId = 0;
         if (productIdSupport) {
             if (detail.getYpmId() != null) {
-                if ((productId = detail.getYpmId()) <= 0) {
+                productId = detail.getYpmId();
+                if (productId <= 0) {
                     throw ZMSUtils.requestError("Product Id must be a positive integer", caller);
                 }
             } else {
@@ -1301,6 +1304,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setOrg(detail.getOrg())
                 .setId(UUID.fromCurrentTime())
                 .setAccount(detail.getAccount())
+                .setAzureSubscription(detail.getAzureSubscription())
                 .setYpmId(productId)
                 .setModified(Timestamp.fromCurrentTime())
                 .setApplicationId(detail.getApplicationId())
@@ -1472,9 +1476,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setName(homeDomain + "." + getUserDomainName(detail.getName()))
                 .setAuditEnabled(detail.getAuditEnabled())
                 .setDescription(detail.getDescription())
-                .setOrg(detail.getOrg())
                 .setId(UUID.fromCurrentTime())
-                .setAccount(detail.getAccount())
                 .setModified(Timestamp.fromCurrentTime())
                 .setApplicationId(detail.getApplicationId())
                 .setMemberExpiryDays(detail.getMemberExpiryDays())
@@ -1542,21 +1544,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             validateSolutionTemplates(solutionTemplates, caller);
         }
 
-        // while it's not required for sub domains to have product ids
-        // we're going to store it in case there is a requirement to
-        // generate reports based on product ids even for subdomains
-        // unlike top level domains, passing 0 is ok here as it indicates
-        // that there is no product id
-
-        int productId = 0;
-        if (productIdSupport) {
-            if (detail.getYpmId() != null) {
-                if ((productId = detail.getYpmId()) < 0) {
-                    throw ZMSUtils.requestError("Product Id must be a positive integer", caller);
-                }
-            }
-        }
-
         // verify that the parent domain exists
 
         AthenzDomain parentDomain = getAthenzDomain(parent, false);
@@ -1581,8 +1568,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setDescription(detail.getDescription())
                 .setOrg(detail.getOrg())
                 .setId(UUID.fromCurrentTime())
-                .setYpmId(productId)
-                .setAccount(detail.getAccount())
                 .setModified(Timestamp.fromCurrentTime())
                 .setApplicationId(detail.getApplicationId())
                 .setMemberExpiryDays(detail.getMemberExpiryDays())
@@ -1839,6 +1824,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateString(domain.getApplicationId(), TYPE_COMPOUND_NAME, caller);
         validateString(domain.getAccount(), TYPE_COMPOUND_NAME, caller);
+        validateString(domain.getAzureSubscription(), TYPE_COMPOUND_NAME, caller);
         validateString(domain.getUserAuthorityFilter(), TYPE_AUTHORITY_KEYWORDS, caller);
     }
 
@@ -4979,12 +4965,19 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         SignedDomain signedDomain = createSignedDomain(domain.getName(), domain.getModified().millis());
         if (metaAttr != null) {
             switch (metaAttr) {
-                case META_ATTR_ACCOUNT:
+                case ZMSConsts.SYSTEM_META_ACCOUNT:
                     final String account = domain.getAccount();
                     if (account == null) {
                         return null;
                     }
                     signedDomain.getDomain().setAccount(account);
+                    break;
+                case ZMSConsts.SYSTEM_META_AZURE_SUBSCRIPTION:
+                    final String azureSubscription = domain.getAzureSubscription();
+                    if (azureSubscription == null) {
+                        return null;
+                    }
+                    signedDomain.getDomain().setAzureSubscription(azureSubscription);
                     break;
                 case META_ATTR_YPM_ID:
                     final Integer ypmId = domain.getYpmId();
@@ -4997,6 +4990,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     DomainData domainData = signedDomain.getDomain();
                     domainData.setDescription(domain.getDescription());
                     domainData.setAccount(domain.getAccount());
+                    domainData.setAzureSubscription(domain.getAzureSubscription());
                     domainData.setYpmId(domain.getYpmId());
                     domainData.setApplicationId(domain.getApplicationId());
                     domainData.setMemberExpiryDays(domain.getMemberExpiryDays());
@@ -5064,6 +5058,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             domainData.setAuditEnabled(true);
         }
         domainData.setAccount(athenzDomain.getDomain().getAccount());
+        domainData.setAzureSubscription(athenzDomain.getDomain().getAzureSubscription());
         domainData.setYpmId(athenzDomain.getDomain().getYpmId());
         domainData.setApplicationId(athenzDomain.getDomain().getApplicationId());
         domainData.setSignAlgorithm(athenzDomain.getDomain().getSignAlgorithm());
@@ -5296,6 +5291,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setEnabled(domain.getEnabled())
                 .setAuditEnabled(domain.getAuditEnabled())
                 .setAccount(domain.getAccount())
+                .setAzureSubscription(domain.getAzureSubscription())
                 .setYpmId(domain.getYpmId())
                 .setApplicationId(domain.getApplicationId())
                 .setSignAlgorithm(domain.getSignAlgorithm())

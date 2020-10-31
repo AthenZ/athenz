@@ -148,8 +148,7 @@ type DomainMeta struct {
 	AuditEnabled *bool `json:"auditEnabled,omitempty" rdl:"optional"`
 
 	//
-	// associated cloud (i.e. aws) account id (system attribute - uniqueness
-	// check)
+	// associated aws account id (system attribute - uniqueness check)
 	//
 	Account string `json:"account" rdl:"optional"`
 
@@ -208,6 +207,11 @@ type DomainMeta struct {
 	// membership filtered based on user authority configured attributes
 	//
 	UserAuthorityFilter string `json:"userAuthorityFilter" rdl:"optional"`
+
+	//
+	// associated azure subscription id (system attribute - uniqueness check)
+	//
+	AzureSubscription string `json:"azureSubscription" rdl:"optional"`
 }
 
 //
@@ -300,6 +304,12 @@ func (self *DomainMeta) Validate() error {
 			return fmt.Errorf("DomainMeta.userAuthorityFilter does not contain a valid String (%v)", val.Error)
 		}
 	}
+	if self.AzureSubscription != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.AzureSubscription)
+		if !val.Valid {
+			return fmt.Errorf("DomainMeta.azureSubscription does not contain a valid String (%v)", val.Error)
+		}
+	}
 	return nil
 }
 
@@ -336,8 +346,7 @@ type Domain struct {
 	AuditEnabled *bool `json:"auditEnabled,omitempty" rdl:"optional"`
 
 	//
-	// associated cloud (i.e. aws) account id (system attribute - uniqueness
-	// check)
+	// associated aws account id (system attribute - uniqueness check)
 	//
 	Account string `json:"account" rdl:"optional"`
 
@@ -396,6 +405,11 @@ type Domain struct {
 	// membership filtered based on user authority configured attributes
 	//
 	UserAuthorityFilter string `json:"userAuthorityFilter" rdl:"optional"`
+
+	//
+	// associated azure subscription id (system attribute - uniqueness check)
+	//
+	AzureSubscription string `json:"azureSubscription" rdl:"optional"`
 
 	//
 	// the common name to be referred to, the symbolic id. It is immutable
@@ -501,6 +515,12 @@ func (self *Domain) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.UserAuthorityFilter)
 		if !val.Valid {
 			return fmt.Errorf("Domain.userAuthorityFilter does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.AzureSubscription != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.AzureSubscription)
+		if !val.Valid {
+			return fmt.Errorf("Domain.azureSubscription does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.Name == "" {
@@ -3166,8 +3186,7 @@ type TopLevelDomain struct {
 	AuditEnabled *bool `json:"auditEnabled,omitempty" rdl:"optional"`
 
 	//
-	// associated cloud (i.e. aws) account id (system attribute - uniqueness
-	// check)
+	// associated aws account id (system attribute - uniqueness check)
 	//
 	Account string `json:"account" rdl:"optional"`
 
@@ -3226,6 +3245,11 @@ type TopLevelDomain struct {
 	// membership filtered based on user authority configured attributes
 	//
 	UserAuthorityFilter string `json:"userAuthorityFilter" rdl:"optional"`
+
+	//
+	// associated azure subscription id (system attribute - uniqueness check)
+	//
+	AzureSubscription string `json:"azureSubscription" rdl:"optional"`
 
 	//
 	// name of the domain
@@ -3336,6 +3360,12 @@ func (self *TopLevelDomain) Validate() error {
 			return fmt.Errorf("TopLevelDomain.userAuthorityFilter does not contain a valid String (%v)", val.Error)
 		}
 	}
+	if self.AzureSubscription != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.AzureSubscription)
+		if !val.Valid {
+			return fmt.Errorf("TopLevelDomain.azureSubscription does not contain a valid String (%v)", val.Error)
+		}
+	}
 	if self.Name == "" {
 		return fmt.Errorf("TopLevelDomain.name is missing but is a required field")
 	} else {
@@ -3378,8 +3408,7 @@ type SubDomain struct {
 	AuditEnabled *bool `json:"auditEnabled,omitempty" rdl:"optional"`
 
 	//
-	// associated cloud (i.e. aws) account id (system attribute - uniqueness
-	// check)
+	// associated aws account id (system attribute - uniqueness check)
 	//
 	Account string `json:"account" rdl:"optional"`
 
@@ -3438,6 +3467,11 @@ type SubDomain struct {
 	// membership filtered based on user authority configured attributes
 	//
 	UserAuthorityFilter string `json:"userAuthorityFilter" rdl:"optional"`
+
+	//
+	// associated azure subscription id (system attribute - uniqueness check)
+	//
+	AzureSubscription string `json:"azureSubscription" rdl:"optional"`
 
 	//
 	// name of the domain
@@ -3553,6 +3587,12 @@ func (self *SubDomain) Validate() error {
 			return fmt.Errorf("SubDomain.userAuthorityFilter does not contain a valid String (%v)", val.Error)
 		}
 	}
+	if self.AzureSubscription != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.AzureSubscription)
+		if !val.Valid {
+			return fmt.Errorf("SubDomain.azureSubscription does not contain a valid String (%v)", val.Error)
+		}
+	}
 	if self.Name == "" {
 		return fmt.Errorf("SubDomain.name is missing but is a required field")
 	} else {
@@ -3604,8 +3644,7 @@ type UserDomain struct {
 	AuditEnabled *bool `json:"auditEnabled,omitempty" rdl:"optional"`
 
 	//
-	// associated cloud (i.e. aws) account id (system attribute - uniqueness
-	// check)
+	// associated aws account id (system attribute - uniqueness check)
 	//
 	Account string `json:"account" rdl:"optional"`
 
@@ -3664,6 +3703,11 @@ type UserDomain struct {
 	// membership filtered based on user authority configured attributes
 	//
 	UserAuthorityFilter string `json:"userAuthorityFilter" rdl:"optional"`
+
+	//
+	// associated azure subscription id (system attribute - uniqueness check)
+	//
+	AzureSubscription string `json:"azureSubscription" rdl:"optional"`
 
 	//
 	// user id which will be the domain name
@@ -3764,6 +3808,12 @@ func (self *UserDomain) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.UserAuthorityFilter)
 		if !val.Valid {
 			return fmt.Errorf("UserDomain.userAuthorityFilter does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.AzureSubscription != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.AzureSubscription)
+		if !val.Valid {
+			return fmt.Errorf("UserDomain.azureSubscription does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.Name == "" {
@@ -5777,8 +5827,7 @@ type DomainData struct {
 	AuditEnabled *bool `json:"auditEnabled,omitempty" rdl:"optional"`
 
 	//
-	// associated cloud (i.e. aws) account id (system attribute - uniqueness
-	// check)
+	// associated aws account id (system attribute - uniqueness check)
 	//
 	Account string `json:"account" rdl:"optional"`
 
@@ -5837,6 +5886,11 @@ type DomainData struct {
 	// membership filtered based on user authority configured attributes
 	//
 	UserAuthorityFilter string `json:"userAuthorityFilter" rdl:"optional"`
+
+	//
+	// associated azure subscription id (system attribute - uniqueness check)
+	//
+	AzureSubscription string `json:"azureSubscription" rdl:"optional"`
 
 	//
 	// name of the domain
@@ -5977,6 +6031,12 @@ func (self *DomainData) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.UserAuthorityFilter)
 		if !val.Valid {
 			return fmt.Errorf("DomainData.userAuthorityFilter does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.AzureSubscription != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.AzureSubscription)
+		if !val.Valid {
+			return fmt.Errorf("DomainData.azureSubscription does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.Name == "" {

@@ -10,7 +10,7 @@ type DomainMeta Struct {
     ResourceName org (optional); //a reference to an Organization. (i.e. org:media)
     Bool enabled (optional, default=true); //Future use only, currently not used
     Bool auditEnabled (optional, default=false); //Flag indicates whether or not domain modifications should be logged for SOX+Auditing. If true, the auditRef parameter must be supplied(not empty) for any API defining it.
-    String account (optional); //associated cloud (i.e. aws) account id (system attribute - uniqueness check)
+    String account (optional); //associated aws account id (system attribute - uniqueness check)
     Int32 ypmId (optional); //associated product id (system attribute - uniqueness check)
     String applicationId (optional); //associated application id
     String certDnsDomain (optional); //domain certificate dns domain (system attribute)
@@ -22,6 +22,7 @@ type DomainMeta Struct {
     Int32 serviceExpiryDays (optional); //all services in the domain roles will have specified max expiry days
     Int32 groupExpiryDays (optional); //all groups in the domain roles will have specified max expiry days
     String userAuthorityFilter (optional); //membership filtered based on user authority configured attributes
+    String azureSubscription (optional); //associated azure subscription id (system attribute - uniqueness check)
 }
 
 //A domain is an independent partition of users, roles, and resources.

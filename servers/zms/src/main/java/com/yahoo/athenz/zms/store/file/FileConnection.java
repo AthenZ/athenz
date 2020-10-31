@@ -86,6 +86,7 @@ public class FileConnection implements ObjectStoreConnection {
     private Domain getDomain(DomainStruct domainStruct) {
         Domain domain = new Domain()
                 .setAccount(domainStruct.getMeta().getAccount())
+                .setAzureSubscription(domainStruct.getMeta().getAzureSubscription())
                 .setDescription(domainStruct.getMeta().getDescription())
                 .setId(domainStruct.getId())
                 .setModified(domainStruct.getModified())
@@ -149,6 +150,7 @@ public class FileConnection implements ObjectStoreConnection {
 
         DomainMeta meta = new DomainMeta()
                 .setAccount(domain.getAccount())
+                .setAzureSubscription(domain.getAzureSubscription())
                 .setAuditEnabled(domain.getAuditEnabled())
                 .setDescription(domain.getDescription())
                 .setEnabled(domain.getEnabled())
@@ -174,7 +176,7 @@ public class FileConnection implements ObjectStoreConnection {
         if (productId == null || productId == 0) {
             return;
         }
-        String domName = lookupDomainById(null, productId);
+        String domName = lookupDomainById(null, null, productId);
         if (domName != null && !domName.equals(name)) {
             throw ZMSUtils.requestError("Product Id: " + productId +
                     " is already assigned to domain: " + domName, caller);
@@ -197,6 +199,7 @@ public class FileConnection implements ObjectStoreConnection {
         domainStruct.setModified(Timestamp.fromCurrentTime());
         DomainMeta meta = new DomainMeta()
                 .setAccount(domain.getAccount())
+                .setAzureSubscription(domain.getAzureSubscription())
                 .setAuditEnabled(domain.getAuditEnabled())
                 .setDescription(domain.getDescription())
                 .setEnabled(domain.getEnabled())
@@ -319,7 +322,7 @@ public class FileConnection implements ObjectStoreConnection {
     }
 
     @Override
-    public String lookupDomainById(String account, int productId) {
+    public String lookupDomainById(String account, String subscription, int productId) {
 
         // first get the list of domains
 
@@ -331,6 +334,10 @@ public class FileConnection implements ObjectStoreConnection {
             }
             if (account != null) {
                 if (domain.getAccount() != null && account.equals(domain.getAccount())) {
+                    return domainName;
+                }
+            } else if (subscription != null) {
+                if (domain.getAzureSubscription() != null && subscription.equals(domain.getAzureSubscription())) {
                     return domainName;
                 }
             } else if (productId != 0) {
