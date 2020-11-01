@@ -32,6 +32,7 @@ import com.amazonaws.services.dynamodbv2.document.spec.DeleteItemSpec;
 import com.amazonaws.services.dynamodbv2.document.spec.UpdateItemSpec;
 
 import com.yahoo.athenz.zts.utils.DynamoDBUtils;
+import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -157,6 +158,12 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
             certRecord.setSvcDataUpdateTime(new Date());
         }
 
+        String hostName = certRecord.getHostName();
+        // Prevent inserting null values in hostName as the hostName-Index will not allow it
+        if (StringUtil.isEmpty(hostName)) {
+            hostName = primaryKey;
+        }
+
         try {
             UpdateItemSpec updateItemSpec = new UpdateItemSpec()
                     .withPrimaryKey(KEY_PRIMARY, primaryKey)
@@ -174,11 +181,9 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
                             new AttributeUpdate(KEY_CLIENT_CERT).put(certRecord.getClientCert()),
                             new AttributeUpdate(KEY_TTL).put(certRecord.getCurrentTime().getTime() / 1000L + expiryTime),
                             new AttributeUpdate(KEY_SVC_DATA_UPDATE_TIME).put(getLongFromDate(certRecord.getSvcDataUpdateTime())),
-                            new AttributeUpdate(KEY_EXPIRY_TIME).put(getLongFromDate(certRecord.getExpiryTime()))
-                    );
-            if (certRecord.getHostName() != null) {
-                updateItemSpec.addAttributeUpdate(new AttributeUpdate(KEY_HOSTNAME).put(certRecord.getHostName()));
-            }
+                            new AttributeUpdate(KEY_EXPIRY_TIME).put(getLongFromDate(certRecord.getExpiryTime())),
+                            new AttributeUpdate(KEY_HOSTNAME).put(hostName)
+                            );
             table.updateItem(updateItemSpec);
             return true;
         } catch (Exception ex) {
@@ -192,6 +197,11 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
 
         final String primaryKey = getPrimaryKey(certRecord.getProvider(), certRecord.getInstanceId(),
                 certRecord.getService());
+        String hostName = certRecord.getHostName();
+        // Prevent inserting null values in hostName as the hostName-Index will not allow it
+        if (StringUtil.isEmpty(hostName)) {
+            hostName = primaryKey;
+        }
         try {
             Item item = new Item()
                     .withPrimaryKey(KEY_PRIMARY, primaryKey)
@@ -210,7 +220,7 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
                     .with(KEY_EXPIRY_TIME, getLongFromDate(certRecord.getExpiryTime()))
                     .with(KEY_SVC_DATA_UPDATE_TIME, getLongFromDate(certRecord.getSvcDataUpdateTime()))
                     .withLong(KEY_REGISTER_TIME, System.currentTimeMillis())
-                    .with(KEY_HOSTNAME, certRecord.getHostName());
+                    .with(KEY_HOSTNAME, hostName);
             table.putItem(item);
             return true;
         } catch (Exception ex) {

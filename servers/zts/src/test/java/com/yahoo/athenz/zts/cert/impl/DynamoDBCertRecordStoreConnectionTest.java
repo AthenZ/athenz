@@ -35,6 +35,7 @@ import java.util.*;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.mockito.internal.verification.VerificationModeFactory.times;
 import static org.testng.Assert.*;
 
 public class DynamoDBCertRecordStoreConnectionTest {
@@ -169,6 +170,67 @@ public class DynamoDBCertRecordStoreConnectionTest {
         boolean requestSuccess = dbConn.insertX509CertRecord(certRecord);
         assertTrue(requestSuccess);
 
+        ArgumentCaptor<Item> itemCaptor = ArgumentCaptor.forClass(Item.class);
+        Mockito.verify(table, times(1)).putItem(itemCaptor.capture());
+        List<Item> allValues = itemCaptor.getAllValues();
+        assertEquals(1, allValues.size());
+        assertEquals(allValues.get(0).get("primaryKey"), item.get("primaryKey"));
+        assertEquals(allValues.get(0).get("provider"), item.get("provider"));
+        assertEquals(allValues.get(0).get("instanceId"), item.get("instanceId"));
+        assertEquals(allValues.get(0).get("service"), item.get("service"));
+        assertEquals(allValues.get(0).get("expiryTime"), item.get("expiryTime"));
+        assertEquals(allValues.get(0).get("hostName"), item.get("hostName"));
+
+        dbConn.close();
+    }
+
+    @Test
+    public void testInsertX509RecordNoHostname() {
+
+        DynamoDBCertRecordStoreConnection dbConn = new DynamoDBCertRecordStoreConnection(dynamoDB, tableName, indexName);
+
+        Date now = new Date();
+        String dateIsoFormat = DynamoDBUtils.getIso8601FromDate(now);
+        X509CertRecord certRecord = getRecordNonNullableColumns(now);
+        certRecord.setLastNotifiedTime(now);
+        certRecord.setLastNotifiedServer("last-notified-server");
+        certRecord.setExpiryTime(now);
+
+        Item item = new Item()
+                .withPrimaryKey("primaryKey", "athenz.provider:cn:1234")
+                .withString("instanceId", certRecord.getInstanceId())
+                .withString("provider", certRecord.getProvider())
+                .withString("service", certRecord.getService())
+                .withString("currentSerial", certRecord.getCurrentSerial())
+                .withString("currentIP", certRecord.getCurrentIP())
+                .withLong("currentTime", certRecord.getCurrentTime().getTime())
+                .withString("currentDate", dateIsoFormat)
+                .withString("prevSerial", certRecord.getPrevSerial())
+                .withString("prevIP", certRecord.getPrevIP())
+                .withLong("prevTime", certRecord.getPrevTime().getTime())
+                .withBoolean("clientCert", certRecord.getClientCert())
+                .withLong("ttl", certRecord.getCurrentTime().getTime() / 1000L + 3660 * 720)
+                .withLong("lastNotifiedTime", certRecord.getLastNotifiedTime().getTime())
+                .withString("lastNotifiedServer", certRecord.getLastNotifiedServer())
+                .withLong("expiryTime", certRecord.getExpiryTime().getTime());
+
+        Mockito.doReturn(putOutcome).when(table).putItem(item);
+        boolean requestSuccess = dbConn.insertX509CertRecord(certRecord);
+        assertTrue(requestSuccess);
+
+        ArgumentCaptor<Item> itemCaptor = ArgumentCaptor.forClass(Item.class);
+        Mockito.verify(table, times(1)).putItem(itemCaptor.capture());
+        List<Item> allValues = itemCaptor.getAllValues();
+        assertEquals(1, allValues.size());
+        assertEquals(allValues.get(0).get("primaryKey"), item.get("primaryKey"));
+        assertEquals(allValues.get(0).get("provider"), item.get("provider"));
+        assertEquals(allValues.get(0).get("instanceId"), item.get("instanceId"));
+        assertEquals(allValues.get(0).get("service"), item.get("service"));
+        assertEquals(allValues.get(0).get("expiryTime"), item.get("expiryTime"));
+
+        // When hostname is null, primaryKey will be used
+        assertEquals(allValues.get(0).get("hostName"), item.get("primaryKey"));
+
         dbConn.close();
     }
 
@@ -262,6 +324,83 @@ public class DynamoDBCertRecordStoreConnectionTest {
         Mockito.doReturn(updateOutcome).when(table).updateItem(item);
         boolean requestSuccess = dbConn.updateX509CertRecord(certRecord);
         assertTrue(requestSuccess);
+
+        ArgumentCaptor<UpdateItemSpec> itemCaptor = ArgumentCaptor.forClass(UpdateItemSpec.class);
+        Mockito.verify(table, times(1)).updateItem(itemCaptor.capture());
+        List<UpdateItemSpec> allValues = itemCaptor.getAllValues();
+        assertEquals(1, allValues.size());
+
+        UpdateItemSpec capturedItem = allValues.get(0);
+        assertEquals(capturedItem.getKeyComponents().toArray()[0].toString(), item.getKeyComponents().toArray()[0].toString());
+
+        List<AttributeUpdate> capturedAttributes = capturedItem.getAttributeUpdate();
+        List<AttributeUpdate> expectedAttributes = item.getAttributeUpdate();
+
+        for (int i = 0; i < expectedAttributes.size(); ++i) {
+            System.out.println("expected attr: " + expectedAttributes.get(i).getAttributeName() + ", value: " + expectedAttributes.get(i).getValue());
+            assertEquals(capturedAttributes.get(i).getAttributeName(), expectedAttributes.get(i).getAttributeName());
+            assertEquals(capturedAttributes.get(i).getValue(),  expectedAttributes.get(i).getValue());
+        }
+
+        dbConn.close();
+    }
+
+    @Test
+    public void testUpdateX509RecordNoHostName() {
+
+        DynamoDBCertRecordStoreConnection dbConn = getDBConnection();
+
+        Date now = new Date();
+        X509CertRecord certRecord = getRecordNonNullableColumns(now);
+        certRecord.setLastNotifiedTime(now);
+        certRecord.setLastNotifiedServer("last-notified-server");
+        certRecord.setExpiryTime(now);
+        certRecord.setSvcDataUpdateTime(now);
+
+        UpdateItemSpec item = new UpdateItemSpec()
+                .withPrimaryKey("primaryKey", "athenz.provider:cn:1234")
+                .withAttributeUpdate(
+                        new AttributeUpdate("instanceId").put(certRecord.getInstanceId()),
+                        new AttributeUpdate("provider").put(certRecord.getProvider()),
+                        new AttributeUpdate("service").put(certRecord.getService()),
+                        new AttributeUpdate("currentSerial").put(certRecord.getCurrentSerial()),
+                        new AttributeUpdate("currentIP").put(certRecord.getCurrentIP()),
+                        new AttributeUpdate("currentTime").put(certRecord.getCurrentTime().getTime()),
+                        new AttributeUpdate("currentDate").put(DynamoDBUtils.getIso8601FromDate(certRecord.getCurrentTime())),
+                        new AttributeUpdate("prevSerial").put(certRecord.getPrevSerial()),
+                        new AttributeUpdate("prevIP").put(certRecord.getPrevIP()),
+                        new AttributeUpdate("prevTime").put(certRecord.getPrevTime().getTime()),
+                        new AttributeUpdate("clientCert").put(certRecord.getClientCert()),
+                        new AttributeUpdate("ttl").put(certRecord.getCurrentTime().getTime() / 1000L + 3660 * 720),
+                        new AttributeUpdate("svcDataUpdateTime").put(certRecord.getSvcDataUpdateTime().getTime()),
+                        new AttributeUpdate("expiryTime").put(certRecord.getExpiryTime().getTime()));
+
+        Mockito.doReturn(updateOutcome).when(table).updateItem(item);
+        boolean requestSuccess = dbConn.updateX509CertRecord(certRecord);
+        assertTrue(requestSuccess);
+
+        ArgumentCaptor<UpdateItemSpec> itemCaptor = ArgumentCaptor.forClass(UpdateItemSpec.class);
+        Mockito.verify(table, times(1)).updateItem(itemCaptor.capture());
+        List<UpdateItemSpec> allValues = itemCaptor.getAllValues();
+        assertEquals(1, allValues.size());
+
+        UpdateItemSpec capturedItem = allValues.get(0);
+        assertEquals(capturedItem.getKeyComponents().toArray()[0].toString(), item.getKeyComponents().toArray()[0].toString());
+
+        List<AttributeUpdate> capturedAttributes = capturedItem.getAttributeUpdate();
+        List<AttributeUpdate> expectedAttributes = item.getAttributeUpdate();
+
+        // Check everyone except the hostname (it will be filled with the primaryKey value as the hostName index doesn't allow nulls)
+        for (int i = 0; i < capturedAttributes.size() - 1; ++i) {
+            System.out.println("expected attr: " + expectedAttributes.get(i).getAttributeName() + ", value: " + expectedAttributes.get(i).getValue());
+            assertEquals(capturedAttributes.get(i).getAttributeName(), expectedAttributes.get(i).getAttributeName());
+            assertEquals(capturedAttributes.get(i).getValue(),  expectedAttributes.get(i).getValue());
+        }
+
+        // Make sure hostName received the value of the primaryKey
+        System.out.println("expected attr: hostName, value: athenz.provider:cn:1234");
+        assertEquals(capturedAttributes.get(capturedAttributes.size() - 1).getAttributeName(), "hostName");
+        assertEquals(capturedAttributes.get(capturedAttributes.size() - 1).getValue(), "athenz.provider:cn:1234");
 
         dbConn.close();
     }
