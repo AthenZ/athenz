@@ -60,14 +60,17 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
     private static final String KEY_TTL = "ttl";
     private static final String KEY_REGISTER_TIME = "registerTime";
     private static final String KEY_SVC_DATA_UPDATE_TIME = "svcDataUpdateTime";
-    private static final int NOTIFICATIONS_GRACE_PERIOD_IN_HOURS = 72;
 
     // the configuration setting is in hours so we'll automatically
     // convert into seconds since that's what dynamoDB needs
     // we need to expire records in 30 days
-
     private static final Long EXPIRY_HOURS = Long.parseLong(
             System.getProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_ITEM_TTL_HOURS, "720"));
+
+    // Default grace period - 2 weeks (336 hours)
+    private static final Long EXPIRY_HOURS_GRACE = Long.parseLong(
+            System.getProperty(ZTSConsts.ZTS_PROP_NOTIFICATION_GRACE_PERIOD_HOURS, "336"));
+
     private static long expiryTime = 3660 * EXPIRY_HOURS;
 
     private Table table;
@@ -319,7 +322,7 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
     private List<Item> getUnrefreshedCertsRecords(long lastNotifiedTime, String provider) {
         long yesterday = lastNotifiedTime - TimeUnit.DAYS.toMillis(1);
         long unrefreshedCertsRangeBegin = lastNotifiedTime - TimeUnit.HOURS.toMillis(EXPIRY_HOURS);
-        long unrefreshedCertsRangeEnd = lastNotifiedTime - TimeUnit.HOURS.toMillis(NOTIFICATIONS_GRACE_PERIOD_IN_HOURS);
+        long unrefreshedCertsRangeEnd = lastNotifiedTime - TimeUnit.HOURS.toMillis(EXPIRY_HOURS_GRACE);
 
         List<Item> items = new ArrayList<>();
         List<String> unrefreshedCertDates = DynamoDBUtils.getISODatesByRange(unrefreshedCertsRangeBegin, unrefreshedCertsRangeEnd);
