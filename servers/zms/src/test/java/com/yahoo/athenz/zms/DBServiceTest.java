@@ -20,7 +20,7 @@ import com.yahoo.athenz.zms.audit.MockAuditReferenceValidatorImpl;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
 import com.yahoo.athenz.zms.store.ObjectStoreConnection;
 import com.yahoo.athenz.common.server.audit.AuditReferenceValidator;
-import com.yahoo.athenz.zms.store.jdbc.JDBCConnection;
+import com.yahoo.athenz.zms.store.impl.jdbc.JDBCConnection;
 import com.yahoo.rdl.Timestamp;
 import org.mockito.Mockito;
 import org.mockito.Mock;

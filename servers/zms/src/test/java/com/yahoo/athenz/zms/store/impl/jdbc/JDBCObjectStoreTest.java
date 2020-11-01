@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.zms.store.jdbc;
+package com.yahoo.athenz.zms.store.impl.jdbc;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -22,7 +22,7 @@ import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
 import com.yahoo.athenz.common.server.db.PoolableDataSource;
-import com.yahoo.athenz.zms.store.jdbc.JDBCObjectStore;
+import com.yahoo.athenz.zms.store.impl.jdbc.JDBCObjectStore;
 
 import static org.testng.Assert.*;
 

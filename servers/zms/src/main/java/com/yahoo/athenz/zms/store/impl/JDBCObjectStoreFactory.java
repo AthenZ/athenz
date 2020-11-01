@@ -23,7 +23,7 @@ import com.yahoo.athenz.common.server.db.PoolableDataSource;
 import com.yahoo.athenz.zms.ZMSConsts;
 import com.yahoo.athenz.zms.store.ObjectStore;
 import com.yahoo.athenz.zms.store.ObjectStoreFactory;
-import com.yahoo.athenz.zms.store.jdbc.JDBCObjectStore;
+import com.yahoo.athenz.zms.store.impl.jdbc.JDBCObjectStore;
 
 public class JDBCObjectStoreFactory implements ObjectStoreFactory {
 

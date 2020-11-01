@@ -39,7 +39,7 @@
   </dependencyManagement>
 
   <properties>
-    <code.coverage.min>0.95</code.coverage.min>
+    <code.coverage.min>0.96</code.coverage.min>
   </properties>
 
   <dependencies>
@@ -190,8 +190,6 @@
         <configuration>
           <excludes>
             <exclude>**/ZMSResources.class</exclude>
-            <exclude>**/FileConnection.class</exclude>
-            <exclude>**/FileObjectStore.class</exclude>
           </excludes>
         </configuration>
       </plugin>
