@@ -190,7 +190,7 @@ public class DynamoDBCertRecordStoreConnectionTest {
     @Test
     public void testInsertX509RecordNoHostname() {
 
-        DynamoDBCertRecordStoreConnection dbConn = new DynamoDBCertRecordStoreConnection(dynamoDB, tableName, indexName);
+        DynamoDBCertRecordStoreConnection dbConn = new DynamoDBCertRecordStoreConnection(dynamoDB, tableName, currentTimeIndexName, hostNameIndexName);
 
         Date now = new Date();
         String dateIsoFormat = DynamoDBUtils.getIso8601FromDate(now);
