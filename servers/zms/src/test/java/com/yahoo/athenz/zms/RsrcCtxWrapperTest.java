@@ -201,4 +201,24 @@ public class RsrcCtxWrapperTest {
             assertEquals(503, ex.getCode());
         }
     }
+
+    @Test
+    public void testLogAuthorityId() {
+
+        HttpServletRequest servletRequest = new MockHttpServletRequest();
+        HttpServletResponse servletResponse = Mockito.mock(HttpServletResponse.class);
+
+        AuthorityList authListMock = new AuthorityList();
+        Authorizer authorizerMock = Mockito.mock(Authorizer.class);
+
+        Object timerMetric = new Object();
+        RsrcCtxWrapper wrapper = new RsrcCtxWrapper(servletRequest, servletResponse,
+                authListMock, false, authorizerMock, timerMetric, "apiName");
+
+        wrapper.logAuthorityId(null);
+        assertNull(servletRequest.getAttribute("com.yahoo.athenz.auth.authority_id"));
+
+        wrapper.logAuthorityId(new PrincipalAuthority());
+        assertEquals(servletRequest.getAttribute("com.yahoo.athenz.auth.authority_id"), "Auth-NTOKEN");
+    }
 }

@@ -6101,6 +6101,77 @@ public class DBServiceTest {
     }
 
     @Test
+    public void testGetGroupExpiryMembers() {
+
+        final String domainName1 = "group-members1";
+        final String domainName2 = "group-members2";
+        List<String> admins = new ArrayList<>();
+        admins.add(adminUser);
+
+        // Create domain
+        zms.dbService.makeDomain(mockDomRsrcCtx, ZMSTestUtils.makeDomainObject(domainName1, "test desc", "org", false,
+                "", 1234, "", 0), admins, null, auditRef);
+
+        // Create group with two members - oneday and sevenday
+        Group group = createGroupObject(domainName1, "group1", "user.john", "user.jane");
+        Timestamp oneDayFromNow = Timestamp.fromMillis(System.currentTimeMillis()
+                + TimeUnit.MILLISECONDS.convert(1, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS));
+        Timestamp sevenDaysFromNow = Timestamp.fromMillis(System.currentTimeMillis()
+                + TimeUnit.MILLISECONDS.convert(7, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS));
+        GroupMember groupMemberOneDay = new GroupMember().setMemberName("user.oneday")
+                .setApproved(true).setExpiration(oneDayFromNow);
+        GroupMember groupMemberSevenDays = new GroupMember().setMemberName("user.sevenday")
+                .setApproved(true).setExpiration(sevenDaysFromNow);
+        group.getGroupMembers().add(groupMemberOneDay);
+        group.getGroupMembers().add(groupMemberSevenDays);
+
+        zms.dbService.executePutGroup(mockDomRsrcCtx, domainName1, "group1", group, "putGroup");
+
+        // Create group2 with one member - twoday
+        Group group2 = createGroupObject(domainName1, "group2", "user.john", "user.jane");
+        Timestamp twoDayFromNow = Timestamp.fromMillis(System.currentTimeMillis()
+                + TimeUnit.MILLISECONDS.convert(2, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS));
+        GroupMember groupMemberTwoDays = new GroupMember().setMemberName("user.twoday")
+                .setApproved(true).setExpiration(twoDayFromNow);
+        group2.getGroupMembers().add(groupMemberTwoDays);
+        zms.dbService.executePutGroup(mockDomRsrcCtx, domainName1, "group2", group2, "putrole");
+
+        zms.dbService.makeDomain(mockDomRsrcCtx, ZMSTestUtils.makeDomainObject(domainName2, "test desc", "org", false,
+                "", 1235, "", 0), admins, null, auditRef);
+
+        // Create group3 with two members - tourteenday and thirtyfiveday
+        Group group3 = createGroupObject(domainName2, "group3", "user.john", "user.jane");
+        Timestamp fourteenDayFromNow = Timestamp.fromMillis(System.currentTimeMillis()
+                + TimeUnit.MILLISECONDS.convert(14, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS));
+        Timestamp thirtyfiveDayFromNow = Timestamp.fromMillis(System.currentTimeMillis()
+                + TimeUnit.MILLISECONDS.convert(35, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS));
+        GroupMember groupMemberFourteenDays = new GroupMember().setMemberName("user.fourteenday")
+                .setApproved(true).setExpiration(fourteenDayFromNow);
+        GroupMember groupMemberThirtyFiveDays = new GroupMember().setMemberName("user.thirtyfiveday")
+                .setApproved(true).setExpiration(thirtyfiveDayFromNow);
+        group3.getGroupMembers().add(groupMemberFourteenDays);
+        group3.getGroupMembers().add(groupMemberThirtyFiveDays);
+
+        zms.dbService.executePutGroup(mockDomRsrcCtx, domainName2, "group3", group3, "putrole");
+
+        Map<String, DomainGroupMember> domainGroupMembers = zms.dbService.getGroupExpiryMembers(0);
+        assertNotNull(domainGroupMembers);
+        assertEquals(domainGroupMembers.size(), 3);
+
+        DomainGroupMember groupMember = domainGroupMembers.get("user.oneday");
+        assertNotNull(groupMember);
+
+        groupMember = domainGroupMembers.get("user.sevenday");
+        assertNotNull(groupMember);
+
+        groupMember = domainGroupMembers.get("user.fourteenday");
+        assertNotNull(groupMember);
+
+        zms.dbService.executeDeleteDomain(mockDomRsrcCtx, domainName1, auditRef, "deletedomain");
+        zms.dbService.executeDeleteDomain(mockDomRsrcCtx, domainName2, auditRef, "deletedomain");
+    }
+
+    @Test
     public void testGetRoleExpiryMembersFailure() {
 
         ObjectStore saveStore = zms.dbService.store;
@@ -6232,6 +6303,20 @@ public class DBServiceTest {
         Mockito.when(mockConn.updateRoleMemberReviewNotificationTimestamp(anyString(), anyLong(), anyInt())).thenReturn(false);
 
         assertNull(zms.dbService.getRoleReviewMembers(1));
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testGetGroupExpiryMembersFailure() {
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        ObjectStoreConnection mockConn = Mockito.mock(ObjectStoreConnection.class);
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockConn);
+        Mockito.when(mockConn.updateGroupMemberExpirationNotificationTimestamp(anyString(), anyLong(), anyInt())).thenReturn(false);
+
+        assertNull(zms.dbService.getGroupExpiryMembers(1));
         zms.dbService.store = saveStore;
     }
 
@@ -8310,12 +8395,12 @@ public class DBServiceTest {
 
         Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getExpiredPendingDomainGroupMembers(30)).thenReturn(memberList);
-        Mockito.when(mockJdbcConn.deletePendingRoleMember("dom1", "role1", "user.user1", "sys.auth.monitor",
+        Mockito.when(mockJdbcConn.deletePendingGroupMember("dom1", "role1", "user.user1", "sys.auth.monitor",
                 "Expired - auto reject")).thenReturn(true);
-        Mockito.when(mockJdbcConn.deletePendingRoleMember("dom1", "role1", "user.user2", "sys.auth.monitor",
+        Mockito.when(mockJdbcConn.deletePendingGroupMember("dom1", "role1", "user.user2", "sys.auth.monitor",
                 "Expired - auto reject")).thenReturn(false);
 
-        zms.dbService.processExpiredPendingMembers(30, "sys.auth.monitor");
+        zms.dbService.processExpiredPendingGroupMembers(30, "sys.auth.monitor");
         zms.dbService.store = saveStore;
     }
 
