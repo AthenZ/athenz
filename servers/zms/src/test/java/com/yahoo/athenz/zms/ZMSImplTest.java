@@ -1003,13 +1003,13 @@ public class ZMSImplTest {
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
         DomainList domList = zms.getDomainList(mockDomRsrcCtx, null, null, null, null,
-                null, null, null, null, null, "azure1");
+                null, null, null, null, "azure1", null);
         assertNotNull(domList.getNames());
         assertEquals(domList.getNames().size(), 1);
         assertEquals(domList.getNames().get(0), domainName);
 
         domList = zms.getDomainList(mockDomRsrcCtx, null, null, null, null,
-                null, null, null, null, null, "azure2");
+                null, null, null, null, "azure2", null);
         assertNull(domList.getNames());
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
@@ -1095,7 +1095,7 @@ public class ZMSImplTest {
         // option so this will be tested in zms_system_test package
         
         DomainList domList = zms.getDomainList(mockDomRsrcCtx, null, null, null,
-                null, null, null, null, null, modifiedSince, null);
+                null, null, null, null, null, null, modifiedSince);
         assertNotNull(domList);
 
         assertTrue(domList.getNames().contains("ListDom2".toLowerCase()));
@@ -1109,7 +1109,7 @@ public class ZMSImplTest {
 
         try {
             zms.getDomainList(mockDomRsrcCtx, null, null, null, null, null,
-                    null, null, null, "abc", null);
+                    null, null, null, null, "abc");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -1117,7 +1117,7 @@ public class ZMSImplTest {
         
         try {
             zms.getDomainList(mockDomRsrcCtx, null, null, null, null, null,
-                    null, null, null, "May 20, 1099", null);
+                    null, null, null, null, "May 20, 1099");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -1125,7 +1125,7 @@ public class ZMSImplTest {
         
         try {
             zms.getDomainList(mockDomRsrcCtx, null, null, null, null, null,
-                    null, null, null, "03:03:20 PM", null);
+                    null, null, null, null, "03:03:20 PM");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);

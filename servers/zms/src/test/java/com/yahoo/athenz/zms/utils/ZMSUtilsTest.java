@@ -16,15 +16,14 @@
 package com.yahoo.athenz.zms.utils;
 
 import static org.testng.Assert.*;
-import static org.testng.Assert.assertEquals;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
+import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.log.AuditLoggerFactory;
@@ -263,7 +262,6 @@ public class ZMSUtilsTest {
     @Test
     public void testCreatePrincipalForName() {
 
-
         String userDomain = "user";
         String userDomainAlias = null;
 
@@ -304,6 +302,17 @@ public class ZMSUtilsTest {
 
         principal = ZMSUtils.createPrincipalForName("alias.joe.storage", userDomain, userDomainAlias);
         assertEquals(principal.getFullName(), "alias.joe.storage");
+    }
 
+    @Test
+    public void testEmitMonmetricError() {
+
+        Metric savedMetric = ZMSImpl.metric;
+        assertFalse(ZMSUtils.emitMonmetricError(-1, "unittest"));
+        assertFalse(ZMSUtils.emitMonmetricError(400, null));
+        assertFalse(ZMSUtils.emitMonmetricError(400, ""));
+        ZMSImpl.metric = null;
+        assertFalse(ZMSUtils.emitMonmetricError(400, "unittest"));
+        ZMSImpl.metric = savedMetric;
     }
 }
