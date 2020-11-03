@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Oath Holdings Inc.
+ * Copyright 2020 Verizon Media
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,22 +15,23 @@
  */
 package com.yahoo.athenz.auth.token.jwts;
 
-import javax.net.ssl.SSLContext;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class MockJwtsSigningKeyResolver extends JwtsSigningKeyResolver {
+/*
+ * For now we only care about the jwks_uri field from the openid
+ * configuration document so we'll define that as the only attribute.
+ * We'll extend this class in the future as necessary.
+ */
+public class OpenIdConfiguration {
 
-    private static String responseBody;
+    @JsonProperty("jwks_uri")
+    private String jwksUri;
 
-    public MockJwtsSigningKeyResolver(final String serverUrl, final SSLContext sslContext) {
-        super(serverUrl, sslContext);
+    public String getJwksUri() {
+        return jwksUri;
     }
 
-    public static void setResponseBody(final String body) {
-        responseBody = body;
-    }
-
-    @Override
-    String getHttpData(String jwksUri, SSLContext sslContext) {
-        return responseBody;
+    public void setJwksUri(String jwksUri) {
+        this.jwksUri = jwksUri;
     }
 }

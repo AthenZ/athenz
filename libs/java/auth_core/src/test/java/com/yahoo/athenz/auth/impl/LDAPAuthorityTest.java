@@ -86,6 +86,13 @@ public class LDAPAuthorityTest {
     }
 
     @Test
+    public void testGetID() {
+        ldapAuthority = new LDAPAuthority();
+        ldapAuthority.initialize();
+        assertEquals("Auth-LDAP", ldapAuthority.getID());
+    }
+
+    @Test
     public void testAuthenticationChallenge() {
         ldapAuthority = new LDAPAuthority();
         ldapAuthority.initialize();

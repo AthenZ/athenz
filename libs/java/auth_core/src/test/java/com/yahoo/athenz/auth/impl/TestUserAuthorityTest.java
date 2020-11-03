@@ -85,7 +85,7 @@ public class TestUserAuthorityTest {
 
         // invalid format 2
         testToken = "Basic ";
-        principal = tua.authenticate(testToken, "10.72.118.45", "GET", errMsg);
+        principal = tua.authenticate(testToken, "10.72.118.45", "GET", null);
         assertNull(principal);
 
         // invalid format 3

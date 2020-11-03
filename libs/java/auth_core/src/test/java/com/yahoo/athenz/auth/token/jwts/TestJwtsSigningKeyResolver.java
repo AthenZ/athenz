@@ -19,23 +19,11 @@ import io.jsonwebtoken.JwsHeader;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
-import java.io.IOException;
-import java.net.URLConnection;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNull;
+import static org.testng.Assert.*;
 
 public class TestJwtsSigningKeyResolver {
 
-    @Test
-    public void testGetConnection() throws IOException {
-
-        final String oldConf = System.setProperty(JwtsSigningKeyResolver.ZTS_PROP_ATHENZ_CONF,
-                "src/test/resources/athenz.conf");
-
-        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(null, null);
-        URLConnection con = resolver.getConnection("https://localhost:4443");
-        assertNotNull(con);
-
+    private void resetConfProperty(final String oldConf) {
         if (oldConf == null) {
             System.clearProperty(JwtsSigningKeyResolver.ZTS_PROP_ATHENZ_CONF);
         } else {
@@ -50,6 +38,8 @@ public class TestJwtsSigningKeyResolver {
                 "src/test/resources/athenz.conf");
 
         JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(null, null);
+        assertEquals(resolver.publicKeyCount(), 2);
+
         JwsHeader header = Mockito.mock(JwsHeader.class);
         Mockito.when(header.getKeyId())
                 .thenReturn("eckey1")
@@ -65,11 +55,7 @@ public class TestJwtsSigningKeyResolver {
         key = resolver.resolveSigningKey(header, "body");
         assertNull(key);
 
-        if (oldConf == null) {
-            System.clearProperty(JwtsSigningKeyResolver.ZTS_PROP_ATHENZ_CONF);
-        } else {
-            System.setProperty(JwtsSigningKeyResolver.ZTS_PROP_ATHENZ_CONF, oldConf);
-        }
+        resetConfProperty(oldConf);
     }
 
     @Test
@@ -81,26 +67,6 @@ public class TestJwtsSigningKeyResolver {
         JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver("https://localhost:10099", null);
         assertNotNull(resolver);
 
-        if (oldConf == null) {
-            System.clearProperty(JwtsSigningKeyResolver.ZTS_PROP_ATHENZ_CONF);
-        } else {
-            System.setProperty(JwtsSigningKeyResolver.ZTS_PROP_ATHENZ_CONF, oldConf);
-        }
-    }
-
-    @Test
-    public void testGetSocketFactory() {
-
-        final String oldConf = System.setProperty(JwtsSigningKeyResolver.ZTS_PROP_ATHENZ_CONF,
-                "src/test/resources/athenz.conf");
-
-        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(null, null);
-        assertNull(resolver.getSocketFactory(null));
-
-        if (oldConf == null) {
-            System.clearProperty(JwtsSigningKeyResolver.ZTS_PROP_ATHENZ_CONF);
-        } else {
-            System.setProperty(JwtsSigningKeyResolver.ZTS_PROP_ATHENZ_CONF, oldConf);
-        }
+        resetConfProperty(oldConf);
     }
 }

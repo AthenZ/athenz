@@ -52,6 +52,13 @@ public class CertificateAuthorityTest {
     }
 
     @Test
+    public void testGetID() {
+        CertificateAuthority authority = new CertificateAuthority();
+        authority.initialize();
+        assertEquals("Auth-X509", authority.getID());
+    }
+
+    @Test
     public void testHeaderAuthenticate() {
 
         CertificateAuthority authority = new CertificateAuthority();
