@@ -31,6 +31,26 @@ public class JwtsHelperTest {
     }
 
     @Test
+    public void testExtractJwksNullUri() {
+
+        MockJwtsHelper.setResponseCode(200);
+        MockJwtsHelper.setResponseBody("{\"token_endpoint\":\"https://localhost/oauth2/token\"}");
+        MockJwtsHelper helper = new MockJwtsHelper();
+
+        assertNull(helper.extractJwksUri("localhost", null));
+    }
+
+    @Test
+    public void testExtractJwksEmptyUri() {
+
+        MockJwtsHelper.setResponseCode(200);
+        MockJwtsHelper.setResponseBody("{\"token_endpoint\":\"https://localhost/oauth2/token\",\"jwks_uri\":\"\"}");
+        MockJwtsHelper helper = new MockJwtsHelper();
+
+        assertTrue(helper.extractJwksUri("localhost", null).isEmpty());
+    }
+
+    @Test
     public void testExtractJwksUriNullData() {
 
         MockJwtsHelper.setResponseCode(200);
