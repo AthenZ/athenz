@@ -19,6 +19,7 @@ import java.sql.*;
 import java.util.*;
 import java.util.Date;
 
+import com.yahoo.athenz.zts.ZTSConsts;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +32,10 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
     private static final Logger LOGGER = LoggerFactory.getLogger(JDBCCertRecordStoreConnection.class);
 
     private static final int MYSQL_ER_OPTION_DUPLICATE_ENTRY = 1062;
+
+    // Default grace period - 2 weeks (336 hours)
+    private static final Long EXPIRY_HOURS_GRACE = Long.parseLong(
+            System.getProperty(ZTSConsts.ZTS_PROP_NOTIFICATION_GRACE_PERIOD_HOURS, "336"));
 
     private static final String SQL_GET_X509_RECORD = "SELECT * FROM certificates WHERE provider=? AND instanceId=? AND service=?;";
     private static final String SQL_INSERT_X509_RECORD = "INSERT INTO certificates " +
@@ -60,7 +65,7 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
                 "GROUP BY hostName, provider, service" +
             ") AS m on (m.hostName=a.hostName AND m.provider=a.provider AND m.service=a.service AND a.currentTime=date_updated) " +
             "SET lastNotifiedTime=?, lastNotifiedServer=? " +
-            "WHERE a.currentTime < (CURRENT_DATE - INTERVAL 3 DAY) AND " +
+            "WHERE a.currentTime < (CURRENT_DATE - INTERVAL ? HOUR) AND " +
                 "a.provider=? AND " +
                 "(a.lastNotifiedTime IS NULL || a.lastNotifiedTime < (CURRENT_DATE - INTERVAL 1 DAY))";
     private static final String SQL_LIST_NOTIFY_UNREFRESHED_X509_RECORDS = "SELECT * FROM certificates WHERE lastNotifiedTime=? AND lastNotifiedServer=?;";
@@ -297,7 +302,8 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
         try (PreparedStatement ps = con.prepareStatement(SQL_UPDATE_UNREFRESHED_X509_RECORDS_NOTIFICATION_TIMESTAMP)) {
             ps.setTimestamp(1, new java.sql.Timestamp(lastNotifiedTime));
             ps.setString(2, lastNotifiedServer);
-            ps.setString(3, provider);
+            ps.setLong(3, EXPIRY_HOURS_GRACE);
+            ps.setString(4, provider);
 
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
