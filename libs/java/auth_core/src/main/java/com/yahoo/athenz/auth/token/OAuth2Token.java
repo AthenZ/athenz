@@ -21,6 +21,7 @@ import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 
 import java.security.PublicKey;
+import java.util.Date;
 
 public class OAuth2Token {
 
@@ -33,6 +34,7 @@ public class OAuth2Token {
     protected long expiryTime;
     protected long issueTime;
     protected long authTime;
+    protected long notBeforeTime;
     protected String audience;
     protected String issuer;
     protected String subject;
@@ -63,13 +65,46 @@ public class OAuth2Token {
         setTokenFields();
     }
 
+    int parseIntegerValue(Claims body, final String claimName) {
+
+        // if the object is not of our expected integer class
+        // then we'll just return 0 and ignore all exceptions
+
+        try {
+            return body.get(claimName, Integer.class);
+        } catch (Exception ignored) {
+        }
+        return 0;
+    }
+
+    long parseLongValue(Claims body, final String claimName) {
+
+        // if the object is not of our expected long class
+        // then we'll just return 0 and ignore all exceptions
+
+        try {
+            return body.get(claimName, Long.class);
+        } catch (Exception ignored) {
+        }
+        return 0;
+    }
+
+    long parseDateValue(Date date) {
+
+        // our date values are stored in seconds
+
+        return date == null ? 0 : date.getTime() / 1000;
+    }
+
     void setTokenFields() {
         final Claims body = claims.getBody();
-        setVersion(body.get(CLAIM_VERSION, Integer.class));
+
+        setVersion(parseIntegerValue(body, CLAIM_VERSION));
         setAudience(body.getAudience());
-        setExpiryTime(body.getExpiration().getTime() / 1000);
-        setIssueTime(body.getIssuedAt().getTime() / 1000);
-        setAuthTime(body.get(CLAIM_AUTH_TIME, Long.class));
+        setExpiryTime(parseDateValue(body.getExpiration()));
+        setIssueTime(parseDateValue(body.getIssuedAt()));
+        setNotBeforeTime(parseDateValue(body.getNotBefore()));
+        setAuthTime(parseLongValue(body, CLAIM_AUTH_TIME));
         setIssuer(body.getIssuer());
         setSubject(body.getSubject());
     }
@@ -104,6 +139,14 @@ public class OAuth2Token {
 
     public void setIssueTime(long issueTime) {
         this.issueTime = issueTime;
+    }
+
+    public long getNotBeforeTime() {
+        return notBeforeTime;
+    }
+
+    public void setNotBeforeTime(long notBeforeTime) {
+        this.notBeforeTime = notBeforeTime;
     }
 
     public String getIssuer() {

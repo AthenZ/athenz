@@ -46,16 +46,18 @@ public interface InstanceProvider {
      * by the client. Check the Copper Argos developer guide
      * for description of each attribute
      */
-    String ZTS_INSTANCE_SAN_DNS        = "sanDNS";
-    String ZTS_INSTANCE_SAN_IP         = "sanIP";
-    String ZTS_INSTANCE_SAN_URI        = "sanURI";
-    String ZTS_INSTANCE_CLIENT_IP      = "clientIP";
-    String ZTS_INSTANCE_CLOUD_ACCOUNT  = "cloudAccount";
-    String ZTS_INSTANCE_ID             = "instanceId";
-    String ZTS_INSTANCE_CSR_PUBLIC_KEY = "csrPublicKey";
-    String ZTS_INSTANCE_HOSTNAME       = "hostname";
-    String ZTS_REQUEST_PRINCIPAL       = "principal";
-    String ZTS_INSTANCE_PRIVATE_IP     = "instancePrivateIp";
+    String ZTS_INSTANCE_SAN_DNS            = "sanDNS";
+    String ZTS_INSTANCE_SAN_IP             = "sanIP";
+    String ZTS_INSTANCE_SAN_URI            = "sanURI";
+    String ZTS_INSTANCE_CLIENT_IP          = "clientIP";
+    String ZTS_INSTANCE_CLOUD_ACCOUNT      = "cloudAccount";
+    String ZTS_INSTANCE_ID                 = "instanceId";
+    String ZTS_INSTANCE_CSR_PUBLIC_KEY     = "csrPublicKey";
+    String ZTS_INSTANCE_HOSTNAME           = "hostname";
+    String ZTS_REQUEST_PRINCIPAL           = "principal";
+    String ZTS_INSTANCE_PRIVATE_IP         = "instancePrivateIp";
+    String ZTS_INSTANCE_AWS_ACCOUNT        = "awsAccount";
+    String ZTS_INSTANCE_AZURE_SUBSCRIPTION = "azureSubscription";
 
     enum Scheme {
         HTTP,

@@ -29,6 +29,10 @@
   <description>Athenz Instance Provider Classes</description>
   <packaging>jar</packaging>
 
+  <properties>
+    <code.coverage.min>0.99</code.coverage.min>
+  </properties>
+
   <dependencyManagement>
     <dependencies>
       <dependency>

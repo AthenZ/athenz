@@ -28,6 +28,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -42,6 +43,7 @@ import java.io.Closeable;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -72,10 +74,11 @@ public class HttpDriver implements Closeable {
     public static class Builder {
         // Required Parameters
         private final String baseUrl;
-        private final String truststorePath;
-        private final char[] truststorePassword;
-        private final String certPath;
-        private final String keyPath;
+        private String truststorePath = null;
+        private char[] truststorePassword = null;
+        private String certPath = null;
+        private String keyPath = null;
+        private SSLContext sslContext = null;
 
         // Optional Parameters
         private int maxPoolPerRoute = DEFAULT_MAX_POOL_PER_ROUTE;
@@ -91,6 +94,11 @@ public class HttpDriver implements Closeable {
             this.truststorePassword = trustorePassword;
             this.certPath = certPath;
             this.keyPath = keyPath;
+        }
+
+        public Builder(String baseUrl, SSLContext sslContext) {
+            this.baseUrl = baseUrl;
+            this.sslContext = sslContext;
         }
 
         public Builder maxPoolPerRoute(int value) {
@@ -126,7 +134,6 @@ public class HttpDriver implements Closeable {
         public HttpDriver build() {
             return new HttpDriver(this);
         }
-
     }
 
      public HttpDriver(Builder builder) {
@@ -138,21 +145,22 @@ public class HttpDriver implements Closeable {
         clientConnectTimeoutMs = builder.clientConnectTimeoutMs;
         clientReadTimeoutMs = builder.clientReadTimeoutMs;
 
-        SSLContext sslContext;
-        try {
-            sslContext = createSSLContext(builder.truststorePath, builder.truststorePassword, builder.certPath, builder.keyPath);
-        } catch (IOException | InterruptedException | KeyRefresherException e) {
-            //This is hard failure.
-            LOGGER.error("Unable to create TLS/SSL context.", e);
-            throw new IllegalArgumentException("Unable to create TLS/SSL context.", e);
+        SSLContext sslContext = builder.sslContext;
+        if (sslContext == null) {
+            try {
+                sslContext = createSSLContext(builder.truststorePath, builder.truststorePassword, builder.certPath, builder.keyPath);
+            } catch (IOException | InterruptedException | KeyRefresherException e) {
+                //This is hard failure.
+                LOGGER.error("Unable to create TLS/SSL context.", e);
+                throw new IllegalArgumentException("Unable to create TLS/SSL context.", e);
+            }
         }
 
         connManager = createConnectionPooling(sslContext);
         client = createHttpClient(clientConnectTimeoutMs, clientReadTimeoutMs, sslContext, connManager);
 
-        LOGGER.info("initialized Names HttpDriver with base url: "
-                + "{} connectionTimeoutMs: {} readTimeoutMs: {}", baseUrl, clientConnectTimeoutMs, clientReadTimeoutMs);
-
+        LOGGER.info("initialized Names HttpDriver with base url: {} connectionTimeoutMs: {} readTimeoutMs: {}",
+                baseUrl, clientConnectTimeoutMs, clientReadTimeoutMs);
     }
 
     public void setHttpClient(CloseableHttpClient httpClient) {
@@ -175,8 +183,10 @@ public class HttpDriver implements Closeable {
         if (sslContext == null) {
             return null;
         }
-        SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslContext);
-        Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create().register("https", sslsf).build();
+        Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create()
+                .register("https", new SSLConnectionSocketFactory(sslContext))
+                .register("http", new PlainConnectionSocketFactory())
+                .build();
         PoolingHttpClientConnectionManager poolingHttpClientConnectionManager = new PoolingHttpClientConnectionManager(registry);
 
         //route is host + port.  Since we have only one, set the max and the route the same
@@ -201,7 +211,7 @@ public class HttpDriver implements Closeable {
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         if (client != null) {
             try {
                 this.client.close();
@@ -219,11 +229,30 @@ public class HttpDriver implements Closeable {
      * doGet performs GET method with the url supplied and returns a string
      * @param url including query parameters
      * @return response string
-     * @throws IOException
+     * @throws IOException in case of any errors
      */
     public String doGet(final String url) throws IOException {
+        return doGet(url, null);
+    }
+
+    /**
+     * doGet performs GET method with the url supplied and the list of specified
+     * http headers and returns a string
+     * @param url including query parameters
+     * @param headers include given http headers
+     * @return response string
+     * @throws IOException in case of any errors
+     */
+    public String doGet(final String url, final Map<String, String> headers) throws IOException {
+
         LOGGER.debug("Requesting api for {}", url);
         HttpGet httpGet = new HttpGet(url);
+
+        if (headers != null) {
+            for (String headerName : headers.keySet()) {
+                httpGet.addHeader(headerName, headers.get(headerName));
+            }
+        }
 
         // Retry when IOException occurs
         for (int i = 0; i < clientMaxRetries; i++) {
@@ -253,9 +282,9 @@ public class HttpDriver implements Closeable {
 
     /**
      * doPost performs post operation and returns a string
-     * @param httpPost
+     * @param httpPost post request to process
      * @return response string
-     * @throws IOException
+     * @throws IOException in case of any errors
      */
     public String doPost(HttpPost httpPost) throws IOException {
         String url = httpPost.getURI().toString();
@@ -297,7 +326,7 @@ public class HttpDriver implements Closeable {
      * @param url target url
      * @param fields form fields that need to posted to the url
      * @return response string
-     * @throws IOException
+     * @throws IOException in case of any errors
      */
     public String doPost(final String url, final List<NameValuePair> fields) throws IOException {
         HttpPost httpPost = new HttpPost(url);
@@ -311,7 +340,7 @@ public class HttpDriver implements Closeable {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             httpPost.getEntity().writeTo(byteArrayOutputStream);
             return byteArrayOutputStream.toString();
-        } catch (IOException e) {
+        } catch (IOException ignored) {
         }
         return "";
     }

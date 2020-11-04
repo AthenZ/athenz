@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Oath Holdings Inc.
+ * Copyright 2020 Verizon Media
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.auth.token.jwts;
+package com.yahoo.athenz.instance.provider.impl;
 
-import javax.net.ssl.SSLContext;
+public class AzureVmProperties {
 
-public class MockJwtsSigningKeyResolver extends JwtsSigningKeyResolver {
+    private String vmId;
 
-    private static String responseBody;
-
-    public MockJwtsSigningKeyResolver(final String serverUrl, final SSLContext sslContext) {
-        super(serverUrl, sslContext);
+    public String getVmId() {
+        return vmId;
     }
 
-    public static void setResponseBody(final String body) {
-        responseBody = body;
-    }
-
-    @Override
-    String getHttpData(String jwksUri, SSLContext sslContext) {
-        return responseBody;
+    public void setVmId(String vmId) {
+        this.vmId = vmId;
     }
 }

@@ -55,6 +55,7 @@ public class DynamoDBCertRecordStoreTest {
                 dbClient,
                 "Athenz-ZTS-Table",
                 "Athenz-ZTS-Current-Time-Index",
+                "Athenz-ZTS-Host-Name-Index",
                 null);
 
         CertRecordStoreConnection dbConn = store.getConnection();
@@ -69,7 +70,12 @@ public class DynamoDBCertRecordStoreTest {
     public void testGetConnectionException() {
 
         // passing null for table name to get exception
-        DynamoDBCertRecordStore store = new DynamoDBCertRecordStore(dbClient, null, "Athenz-ZTS-Current-Time-Index", null);
+        DynamoDBCertRecordStore store = new DynamoDBCertRecordStore(
+                dbClient,
+                null,
+                "Athenz-ZTS-Current-Time-Index",
+                "Athenz-ZTS-Host-Name-Index",
+                null);
 
         try {
             store.getConnection();
@@ -78,7 +84,7 @@ public class DynamoDBCertRecordStoreTest {
         }
 
         // passing null for index name to get exception
-        store = new DynamoDBCertRecordStore(dbClient, "Athenz-ZTS-Table", null, null);
+        store = new DynamoDBCertRecordStore(dbClient, "Athenz-ZTS-Table", null, null, null);
 
         try {
             store.getConnection();
@@ -90,7 +96,12 @@ public class DynamoDBCertRecordStoreTest {
     @Test
     public void testLog() {
 
-        DynamoDBCertRecordStore store = new DynamoDBCertRecordStore(dbClient, "Athenz-ZTS-Table", "Athenz-ZTS-Current-Time-Index", null);
+        DynamoDBCertRecordStore store = new DynamoDBCertRecordStore(
+                dbClient,
+                "Athenz-ZTS-Table",
+                "Athenz-ZTS-Current-Time-Index",
+                "Athenz-ZTS-Host-Name-Index",
+                null);
 
         File file = new File("src/test/resources/cert_log.pem");
         String pem = null;
@@ -110,12 +121,22 @@ public class DynamoDBCertRecordStoreTest {
 
     @Test
     public void testEnableNotifications() {
-        DynamoDBCertRecordStore store = new DynamoDBCertRecordStore(dbClient, "Athenz-ZTS-Table", "Athenz-ZTS-Current-Time-Index",null);
+        DynamoDBCertRecordStore store = new DynamoDBCertRecordStore(
+                dbClient,
+                "Athenz-ZTS-Table",
+                "Athenz-ZTS-Current-Time-Index",
+                "Athenz-ZTS-Host-Name-Index",
+                null);
         boolean isEnabled = store.enableNotifications(null, null, null);
         assertFalse(isEnabled);
 
         ZTSClientNotificationSenderImpl ztsClientNotificationSender = new ZTSClientNotificationSenderImpl();
-        store = new DynamoDBCertRecordStore(dbClient, "Athenz-ZTS-Table", "Athenz-ZTS-Current-Time-Index", ztsClientNotificationSender);
+        store = new DynamoDBCertRecordStore(
+                dbClient,
+                "Athenz-ZTS-Table",
+                "Athenz-ZTS-Current-Time-Index",
+                "Athenz-ZTS-Host-Name-Index",
+                ztsClientNotificationSender);
         isEnabled = store.enableNotifications(null, null, null);
         assertFalse(isEnabled);
 

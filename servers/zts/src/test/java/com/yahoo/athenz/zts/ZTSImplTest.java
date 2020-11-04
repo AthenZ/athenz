@@ -5221,7 +5221,7 @@ public class ZTSImplTest {
         Mockito.when(providerClient.confirmInstance(Mockito.any())).thenReturn(confirmation);
         Mockito.when(instanceManager.insertX509CertRecord(Mockito.any())).thenReturn(true);
         
-        Mockito.when(mockCloudStore.getCloudAccount("athenz")).thenReturn("1234");
+        Mockito.when(mockCloudStore.getAwsAccount("athenz")).thenReturn("1234");
         
         path = Paths.get("src/test/resources/athenz.instanceid.pem");
         String pem = new String(Files.readAllBytes(path));

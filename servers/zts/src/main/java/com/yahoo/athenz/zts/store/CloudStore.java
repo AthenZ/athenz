@@ -30,6 +30,7 @@ import com.amazonaws.AmazonServiceException;
 import com.yahoo.athenz.common.server.util.ConfigProperties;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
+import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,7 +63,8 @@ public class CloudStore {
     int cacheTimeout;
     int invalidCacheTimeout;
     BasicSessionCredentials credentials;
-    private Map<String, String> cloudAccountCache;
+    final private Map<String, String> awsAccountCache;
+    final private Map<String, String> azureSubscriptionCache;
     ConcurrentHashMap<String, AWSTemporaryCredentials> awsCredsCache;
     ConcurrentHashMap<String, Long> awsInvalidCredsCache;
     private HttpClient httpClient;
@@ -73,9 +75,13 @@ public class CloudStore {
 
         // initialize our account and cred cache
 
-        cloudAccountCache = new HashMap<>();
+        awsAccountCache = new HashMap<>();
         awsCredsCache = new ConcurrentHashMap<>();
         awsInvalidCredsCache = new ConcurrentHashMap<>();
+
+        // initialize azure cache
+
+        azureSubscriptionCache = new ConcurrentHashMap<>();
 
         // Instantiate and start our HttpClient
 
@@ -372,8 +378,7 @@ public class CloudStore {
         return data;
     }
 
-    AssumeRoleRequest getAssumeRoleRequest(String account, String roleName, String principal,
-                                           Integer durationSeconds, String externalId) {
+    AssumeRoleRequest getAssumeRoleRequest(String account, String roleName, Integer durationSeconds, String externalId) {
 
         // assume the target role to get the credentials for the client
         // aws format is arn:aws:iam::<account-id>:role/<role-name>
@@ -547,8 +552,7 @@ public class CloudStore {
             return null;
         }
 
-        AssumeRoleRequest req = getAssumeRoleRequest(account, roleName, principal,
-                durationSeconds, externalId);
+        AssumeRoleRequest req = getAssumeRoleRequest(account, roleName, durationSeconds, externalId);
 
         try {
             AWSSecurityTokenService client = getTokenServiceClient();
@@ -587,21 +591,39 @@ public class CloudStore {
         return tempCreds;
     }
 
-    public String getCloudAccount(String domainName) {
-        return cloudAccountCache.get(domainName);
+    public String getAwsAccount(String domainName) {
+        return awsAccountCache.get(domainName);
     }
 
-    void updateAccount(String domainName, String account) {
+    public String getAzureSubscription(String domainName) {
+        return azureSubscriptionCache.get(domainName);
+    }
+
+    void updateAwsAccount(final String domainName, final String awsAccount) {
 
         /* if we have a value specified for the domain, then we're just
          * going to insert it into our map and update the record. If
          * the new value is not present and we had a value stored before
          * then let's remove it */
 
-        if (account != null && !account.isEmpty()) {
-            cloudAccountCache.put(domainName, account);
-        } else if (cloudAccountCache.get(domainName) != null) {
-            cloudAccountCache.remove(domainName);
+        if (!StringUtil.isEmpty(awsAccount)) {
+            awsAccountCache.put(domainName, awsAccount);
+        } else if (awsAccountCache.get(domainName) != null) {
+            awsAccountCache.remove(domainName);
+        }
+    }
+
+    void updateAzureSubscription(final String domainName, final String azureSubscription) {
+
+        /* if we have a value specified for the domain, then we're just
+         * going to insert it into our map and update the record. If
+         * the new value is not present and we had a value stored before
+         * then let's remove it */
+
+        if (!StringUtil.isEmpty(azureSubscription)) {
+            azureSubscriptionCache.put(domainName, azureSubscription);
+        } else if (awsAccountCache.get(domainName) != null) {
+            azureSubscriptionCache.remove(domainName);
         }
     }
 

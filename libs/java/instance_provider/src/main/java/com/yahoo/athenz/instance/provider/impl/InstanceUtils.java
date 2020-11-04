@@ -52,7 +52,7 @@ public class InstanceUtils {
         // make sure we have valid dns suffix specified
 
         if (dnsSuffix == null || dnsSuffix.isEmpty()) {
-            LOGGER.error("No AWS DNS suffix specified for validation");
+            LOGGER.error("No Cloud Provider DNS suffix specified for validation");
             return false;
         }
 
