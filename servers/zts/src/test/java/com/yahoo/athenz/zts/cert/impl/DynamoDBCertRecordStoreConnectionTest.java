@@ -15,15 +15,14 @@
  */
 package com.yahoo.athenz.zts.cert.impl;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.document.*;
 import com.amazonaws.services.dynamodbv2.document.internal.IteratorSupport;
 import com.amazonaws.services.dynamodbv2.document.spec.QuerySpec;
 import com.amazonaws.services.dynamodbv2.model.AmazonDynamoDBException;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.yahoo.athenz.common.server.cert.X509CertRecord;
+import com.yahoo.athenz.zts.ZTSTestUtils;
 import com.yahoo.athenz.zts.utils.DynamoDBUtils;
-import org.eclipse.jetty.util.StringUtil;
 import org.mockito.*;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -41,11 +40,14 @@ import static org.testng.Assert.*;
 public class DynamoDBCertRecordStoreConnectionTest {
 
     private final String tableName = "cert-table";
-    private final String indexName = "cert-table-index";
+    private final String currentTimeIndexName = "cert-table-currenttime-index";
+    private final String hostNameIndexName = "cert-table-hostname-index";
+
 
     @Mock private DynamoDB dynamoDB = Mockito.mock(DynamoDB.class);
     @Mock private Table table = Mockito.mock(Table.class);
-    @Mock private Index index = Mockito.mock(Index.class);
+    @Mock private Index currentTimeIndex = Mockito.mock(Index.class);
+    @Mock private Index hostNameIndex = Mockito.mock(Index.class);
     @Mock private Item item = Mockito.mock(Item.class);
     @Mock private PutItemOutcome putOutcome = Mockito.mock(PutItemOutcome.class);
     @Mock private DeleteItemOutcome deleteOutcome = Mockito.mock(DeleteItemOutcome.class);
@@ -56,11 +58,12 @@ public class DynamoDBCertRecordStoreConnectionTest {
     public void setUp() {
         MockitoAnnotations.initMocks(this);
         Mockito.doReturn(table).when(dynamoDB).getTable(tableName);
-        Mockito.doReturn(index).when(table).getIndex(indexName);
+        Mockito.doReturn(currentTimeIndex).when(table).getIndex(currentTimeIndexName);
+        Mockito.doReturn(hostNameIndex).when(table).getIndex(hostNameIndexName);
     }
 
     private DynamoDBCertRecordStoreConnection getDBConnection() {
-        return new DynamoDBCertRecordStoreConnection(dynamoDB, tableName, indexName);
+        return new DynamoDBCertRecordStoreConnection(dynamoDB, tableName, currentTimeIndexName, hostNameIndexName);
     }
 
     @Test
@@ -137,7 +140,7 @@ public class DynamoDBCertRecordStoreConnectionTest {
     @Test
     public void testInsertX509Record() {
 
-        DynamoDBCertRecordStoreConnection dbConn = new DynamoDBCertRecordStoreConnection(dynamoDB, tableName, indexName);
+        DynamoDBCertRecordStoreConnection dbConn = new DynamoDBCertRecordStoreConnection(dynamoDB, tableName, currentTimeIndexName, hostNameIndexName);
 
         Date now = new Date();
         String dateIsoFormat = DynamoDBUtils.getIso8601FromDate(now);
@@ -187,7 +190,7 @@ public class DynamoDBCertRecordStoreConnectionTest {
     @Test
     public void testInsertX509RecordNoHostname() {
 
-        DynamoDBCertRecordStoreConnection dbConn = new DynamoDBCertRecordStoreConnection(dynamoDB, tableName, indexName);
+        DynamoDBCertRecordStoreConnection dbConn = new DynamoDBCertRecordStoreConnection(dynamoDB, tableName, currentTimeIndexName, hostNameIndexName);
 
         Date now = new Date();
         String dateIsoFormat = DynamoDBUtils.getIso8601FromDate(now);
@@ -237,7 +240,7 @@ public class DynamoDBCertRecordStoreConnectionTest {
     @Test
     public void testInsertX509RecordNullableColumns() {
 
-        DynamoDBCertRecordStoreConnection dbConn = new DynamoDBCertRecordStoreConnection(dynamoDB, tableName, indexName);
+        DynamoDBCertRecordStoreConnection dbConn = new DynamoDBCertRecordStoreConnection(dynamoDB, tableName, currentTimeIndexName, hostNameIndexName);
 
         Date now = new Date();
         String dateIsoFormat = DynamoDBUtils.getIso8601FromDate(now);
@@ -550,48 +553,76 @@ public class DynamoDBCertRecordStoreConnectionTest {
     @Test
     public void testUpdateUnrefreshedCertificatesNotificationTimestamp() {
         DynamoDBCertRecordStoreConnection dbConn = getDBConnection();
-        ItemCollection<QueryOutcome> itemCollection = Mockito.mock(ItemCollection.class);
         Date now = new Date(1591706189000L);
         long nowL = now.getTime();
         long fiveDaysAgo = nowL - 5 * 24 * 60 * 60 * 1000;
+        long sevenDaysAgo = nowL - 7 * 24 * 60 * 60 * 1000;
 
-        Map<String, AttributeValue> unNotified = generateAttributeValues(
+        Map<String, AttributeValue> unNotified = ZTSTestUtils.generateAttributeValues(
                 "home.test.service2",
-                "testInstance2",
+                "unNotified",
                 null,
                 null,
                 null,
                 null,
                 "testHost1");
 
-        Map<String, AttributeValue> reNotified = generateAttributeValues(
+        Map<String, AttributeValue> reNotified = ZTSTestUtils.generateAttributeValues(
                 "home.test.service3",
-                "testInstance3",
+                "reNotified",
                 Long.toString(fiveDaysAgo),
                 Long.toString(fiveDaysAgo),
                 "testServer",
                 null,
-                "testHost1");
+                "testHost2");
 
-        Map<String, AttributeValue> willBeUpdatedByOtherZts = generateAttributeValues(
+        Map<String, AttributeValue> rebootstrapped = ZTSTestUtils.generateAttributeValues(
+                "home.test.service3",
+                "rebootstrapped",
+                Long.toString(sevenDaysAgo),
+                Long.toString(sevenDaysAgo),
+                "testServer",
+                null,
+                "testHost2");
+
+        Map<String, AttributeValue> willBeUpdatedByOtherZts = ZTSTestUtils.generateAttributeValues(
                 "home.test.service4",
-                "testInstance4",
+                "willBeUpdatedByOtherZts",
                 Long.toString(fiveDaysAgo),
                 Long.toString(fiveDaysAgo),
                 "testServer",
                 null,
-                "testHost1");
+                "testHost3");
 
         Item item1 = ItemUtils.toItem(unNotified);
         Item item2 = ItemUtils.toItem(reNotified);
         Item item3 = ItemUtils.toItem(willBeUpdatedByOtherZts);
+        Item item4 = ItemUtils.toItem(rebootstrapped);
 
+        ItemCollection<QueryOutcome> itemCollection = Mockito.mock(ItemCollection.class);
         IteratorSupport<Item, QueryOutcome> iteratorSupport = Mockito.mock(IteratorSupport.class);
         when(itemCollection.iterator()).thenReturn(iteratorSupport);
-        when(iteratorSupport.hasNext()).thenReturn(true, true, true, false);
-        when(iteratorSupport.next()).thenReturn(item1).thenReturn(item2).thenReturn(item3);
+        when(iteratorSupport.hasNext()).thenReturn(true, true, true, true, false);
+        when(iteratorSupport.next()).thenReturn(item1).thenReturn(item2).thenReturn(item3).thenReturn(item4);
 
-        Mockito.doReturn(itemCollection).when(index).query(any(QuerySpec.class));
+        Mockito.doReturn(itemCollection).when(currentTimeIndex).query(any(QuerySpec.class));
+
+        ItemCollection<QueryOutcome> itemCollection2 = Mockito.mock(ItemCollection.class);
+        IteratorSupport<Item, QueryOutcome> iteratorSupport2 = Mockito.mock(IteratorSupport.class);
+        when(itemCollection2.iterator()).thenReturn(iteratorSupport2);
+        when(iteratorSupport2.hasNext()).thenReturn(
+                true, false, // One record with host testHost1
+                true, true, false, // Two records with host testHost2
+                true, false, // One record with host testHost3
+                true, true, false); // Two records with host testHost2
+
+        when(iteratorSupport2.next())
+                .thenReturn(item1)
+                .thenReturn(item2).thenReturn(item4)
+                .thenReturn(item3)
+                .thenReturn(item2).thenReturn(item4);
+
+        Mockito.doReturn(itemCollection2).when(hostNameIndex).query(any(QuerySpec.class));
 
         AttributeValue lastNotifiedTimeAttrValue = new AttributeValue();
         lastNotifiedTimeAttrValue.setN(Long.toString(nowL));
@@ -628,6 +659,17 @@ public class DynamoDBCertRecordStoreConnectionTest {
                 nowL,
                 "provider");
 
+        ArgumentCaptor<UpdateItemSpec> updateArguments = ArgumentCaptor.forClass(UpdateItemSpec.class);
+        Mockito.verify(table, Mockito.times(3)).updateItem(updateArguments.capture());
+
+        // Assert get filtered records
+        List<UpdateItemSpec> allUpdateArguments = updateArguments.getAllValues();
+        assertEquals(3, allUpdateArguments.size());
+        assertEquals("{primaryKey: provider:home.test.service2:unNotified}", allUpdateArguments.get(0).getKeyComponents().toArray()[0].toString());
+        assertEquals("{primaryKey: provider:home.test.service3:reNotified}", allUpdateArguments.get(1).getKeyComponents().toArray()[0].toString());
+        assertEquals("{primaryKey: provider:home.test.service4:willBeUpdatedByOtherZts}", allUpdateArguments.get(2).getKeyComponents().toArray()[0].toString());
+
+        // Assert Update
         assertEquals(records.size(), 2);
         assertNull(records.get(0).getCurrentTime());
         assertEquals(records.get(0).getService(), "home.test.service2");
@@ -651,60 +693,5 @@ public class DynamoDBCertRecordStoreConnectionTest {
         assertEquals(result.size(), 0);
 
         dbConn.close();
-    }
-
-    private Map<String, AttributeValue> generateAttributeValues(String service,
-                                                                String instanceId,
-                                                                String currentTime,
-                                                                String lastNotifiedTime,
-                                                                String lastNotifiedServer,
-                                                                String expiryTime,
-                                                                String hostName) {
-        String provider = "provider";
-        String primaryKey = provider + ":" + service + ":" + instanceId;
-        Map<String, AttributeValue> item = new HashMap<>();
-        item.put("primaryKey", new AttributeValue(primaryKey));
-        item.put("service", new AttributeValue(service));
-        item.put("provider", new AttributeValue(provider));
-        item.put("instanceId", new AttributeValue(instanceId));
-        item.put("currentSerial", new AttributeValue("currentSerial"));
-
-        AttributeValue currentTimeVal = new AttributeValue();
-        currentTimeVal.setN(currentTime);
-
-        if (!StringUtil.isEmpty(currentTime)) {
-            item.put("currentTime", currentTimeVal);
-            item.put("prevTime", currentTimeVal);
-        }
-
-        item.put("currentIP", new AttributeValue("currentIP"));
-        item.put("prevSerial", new AttributeValue("prevSerial"));
-        item.put("prevIP", new AttributeValue("prevIP"));
-
-        AttributeValue clientCertVal = new AttributeValue();
-        clientCertVal.setBOOL(false);
-        item.put("clientCert", clientCertVal);
-
-        if (!StringUtil.isEmpty(lastNotifiedTime)) {
-            AttributeValue lastNotifiedTimeVal = new AttributeValue();
-            lastNotifiedTimeVal.setN(lastNotifiedTime);
-            item.put("lastNotifiedTime", lastNotifiedTimeVal);
-        }
-
-        if (!StringUtil.isEmpty(lastNotifiedServer)) {
-            item.put("lastNotifiedServer", new AttributeValue(lastNotifiedServer));
-        }
-
-        if (!StringUtil.isEmpty(expiryTime)) {
-            AttributeValue expiryTimeVal = new AttributeValue();
-            expiryTimeVal.setN(expiryTime);
-            item.put("expiryTime", expiryTimeVal);
-        }
-
-        if (!StringUtil.isEmpty(hostName)) {
-            item.put("hostName", new AttributeValue(hostName));
-        }
-
-        return item;
     }
 }

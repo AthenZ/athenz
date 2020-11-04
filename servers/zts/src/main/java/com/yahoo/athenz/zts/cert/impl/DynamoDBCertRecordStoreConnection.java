@@ -17,6 +17,7 @@ package com.yahoo.athenz.zts.cert.impl;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import com.amazonaws.services.dynamodbv2.document.*;
 import com.amazonaws.services.dynamodbv2.document.spec.QuerySpec;
@@ -70,11 +71,15 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
     private static long expiryTime = 3660 * EXPIRY_HOURS;
 
     private Table table;
-    private Index index;
+    private final Index currentTimeIndex;
+    private final Index hostNameIndex;
 
-    public DynamoDBCertRecordStoreConnection(DynamoDB dynamoDB, final String tableName, String indexName) {
+    private final DynamoDBNotificationsHelper dynamoDBNotificationsHelper = new DynamoDBNotificationsHelper();
+
+    public DynamoDBCertRecordStoreConnection(DynamoDB dynamoDB, final String tableName, String currentTimeIndexName, String hostIndexName) {
         this.table = dynamoDB.getTable(tableName);
-        this.index = table.getIndex(indexName);
+        this.currentTimeIndex = table.getIndex(currentTimeIndexName);
+        this.hostNameIndex = table.getIndex(hostIndexName);
     }
 
     @Override
@@ -320,23 +325,54 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
         List<String> unrefreshedCertDates = DynamoDBUtils.getISODatesByRange(unrefreshedCertsRangeBegin, unrefreshedCertsRangeEnd);
 
         for (String unrefreshedCertDate : unrefreshedCertDates) {
-            items.addAll(getUnrefreshedCertRecordsByDate(provider, index, yesterday, unrefreshedCertDate));
+            items.addAll(getUnrefreshedCertRecordsByDate(provider, yesterday, unrefreshedCertDate));
         }
+
+        // Filter outdated records from before re-bootstrapping (another record exist with a new uuid)
+        items = items.stream()
+                .filter(item -> (mostUpdatedHostRecord(item)))
+                .collect(Collectors.toList());
 
         return items;
     }
 
-    private List<Item> getUnrefreshedCertRecordsByDate(String provider, Index index, long yesterday, String unrefreshedCertDate) {
+    private boolean mostUpdatedHostRecord(Item recordToCheck) {
+        try {
+            // Query all records with the same hostName / provider / service as recordToCheck
+            QuerySpec spec = new QuerySpec()
+                    .withKeyConditionExpression("hostName = :v_host_name")
+                    .withFilterExpression("attribute_exists(provider) AND provider = :v_provider AND attribute_exists(service) AND service = :v_service")
+                    .withValueMap(new ValueMap()
+                            .withString(":v_host_name", recordToCheck.getString(KEY_HOSTNAME))
+                            .withString(":v_provider", recordToCheck.getString(KEY_PROVIDER))
+                            .withString(":v_service", recordToCheck.getString(KEY_SERVICE))
+                    );
+
+            ItemCollection<QueryOutcome> outcome = hostNameIndex.query(spec);
+            List<Item> allRecordsWithHost = new ArrayList<>();
+            for (Item item : outcome) {
+                allRecordsWithHost.add(item);
+            }
+
+            // Verify recordToCheck is the most updated record with this hostName
+            return dynamoDBNotificationsHelper.isMostUpdatedRecordBasedOnAttribute(recordToCheck, allRecordsWithHost, KEY_CURRENT_TIME, KEY_PRIMARY);
+        } catch (Exception ex) {
+            LOGGER.error("DynamoDB mostUpdatedHostRecord failed for item: {}, error: {}", recordToCheck.toString(), ex.getMessage());
+            return false;
+        }
+    }
+
+    private List<Item> getUnrefreshedCertRecordsByDate(String provider, long yesterday, String unrefreshedCertDate) {
         try {
             QuerySpec spec = new QuerySpec()
                     .withKeyConditionExpression("currentDate = :v_current_date")
-                    .withFilterExpression("provider = :v_provider AND (attribute_not_exists(lastNotifiedTime) OR lastNotifiedTime < :v_last_notified)")
+                    .withFilterExpression("provider = :v_provider AND attribute_exists(hostName) AND (attribute_not_exists(lastNotifiedTime) OR lastNotifiedTime < :v_last_notified)")
                     .withValueMap(new ValueMap()
                             .withString(":v_current_date", unrefreshedCertDate)
                             .withNumber(":v_last_notified", yesterday)
                             .withString(":v_provider", provider));
 
-            ItemCollection<QueryOutcome> outcome = index.query(spec);
+            ItemCollection<QueryOutcome> outcome = currentTimeIndex.query(spec);
             List<Item> items = new ArrayList<>();
             for (Item item : outcome) {
                 items.add(item);

@@ -45,11 +45,24 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
             "WHERE provider=? AND instanceId=? AND service=?;";
     private static final String SQL_DELETE_EXPIRED_X509_RECORDS = "DELETE FROM certificates " +
             "WHERE currentTime < ADDDATE(NOW(), INTERVAL -? MINUTE);";
-    private static final String SQL_UPDATE_UNREFRESHED_X509_RECORDS_NOTIFICATION_TIMESTAMP = "UPDATE certificates SET lastNotifiedTime=?, lastNotifiedServer=? " +
-            "WHERE currentTime < (CURRENT_DATE - INTERVAL 3 DAY) AND " +
-            "(hostName IS NOT NULL AND hostName != '') AND " +
-            "provider=? AND " +
-            "(lastNotifiedTime IS NULL || lastNotifiedTime < (CURRENT_DATE - INTERVAL 1 DAY))";
+
+    // Get all records that didn't refresh and update notification time.
+    // Query explanation:
+    // - Group all records with the same hostName / Provider / Service and the most updated "currentTime"
+    // - Get all records that need to be notified. This might include rebootstrapped records (instanceId changed).
+    // Join them to get only records that appear in both
+    private static final String SQL_UPDATE_UNREFRESHED_X509_RECORDS_NOTIFICATION_TIMESTAMP =
+            "UPDATE certificates as a " +
+            "INNER JOIN (" +
+                "SELECT hostName, provider, service, MAX(currentTime) AS date_updated " +
+                "FROM certificates " +
+                "WHERE hostName IS NOT NULL AND hostName != '' " +
+                "GROUP BY hostName, provider, service" +
+            ") AS m on (m.hostName=a.hostName AND m.provider=a.provider AND m.service=a.service AND a.currentTime=date_updated) " +
+            "SET lastNotifiedTime=?, lastNotifiedServer=? " +
+            "WHERE a.currentTime < (CURRENT_DATE - INTERVAL 3 DAY) AND " +
+                "a.provider=? AND " +
+                "(a.lastNotifiedTime IS NULL || a.lastNotifiedTime < (CURRENT_DATE - INTERVAL 1 DAY))";
     private static final String SQL_LIST_NOTIFY_UNREFRESHED_X509_RECORDS = "SELECT * FROM certificates WHERE lastNotifiedTime=? AND lastNotifiedServer=?;";
 
     public static final String DB_COLUMN_INSTANCE_ID            = "instanceId";
