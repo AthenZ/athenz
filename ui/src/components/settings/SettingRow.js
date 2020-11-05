@@ -47,10 +47,6 @@ const SettingInput = styled(Input)`
     margin-top: 5px;
 `;
 
-const SettingRadioButtonGroup = styled(RadioButtonGroup)`
-    margin-top: 8px;
-`;
-
 export default class SettingRow extends React.Component {
     constructor(props) {
         super(props);

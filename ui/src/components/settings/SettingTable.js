@@ -223,6 +223,16 @@ export default class SettingTable extends React.Component {
             ''
         );
 
+        let submitButton = this.state.valueChanged ? (
+            <Button primary onClick={this.toggleSubmit}>
+                Submit
+            </Button>
+        ) : (
+            <Button secondary onClick={this.toggleSubmit}>
+                Submit
+            </Button>
+        );
+
         let message = this.state.showSuccess ? (
             <Alert
                 isOpen={this.state.showSuccess}
@@ -347,9 +357,7 @@ export default class SettingTable extends React.Component {
         rows.push(
             <AddContainerDiv>
                 <div>
-                    <Button secondary onClick={this.toggleSubmit}>
-                        Submit
-                    </Button>
+                    {submitButton}
                     {submitSettings}
                     <Button secondary onClick={this.toggleReset}>
                         Reset
