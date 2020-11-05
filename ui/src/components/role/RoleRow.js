@@ -128,6 +128,7 @@ export default class RoleRow extends React.Component {
         this.setState({
             showDelete: false,
             deleteName: '',
+            errorMessage: null,
         });
     }
 

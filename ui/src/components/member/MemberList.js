@@ -100,15 +100,32 @@ export default class MemberList extends React.Component {
     }
 
     render() {
-        const { domain, role } = this.props;
-        const right = 'right';
+        const { domain, role, roleDetails } = this.props;
 
-        let approvedMembers = this.state.members.filter(
-            (item) => item.approved
-        );
-        let pendingMembers = this.state.members.filter(
-            (item) => !item.approved
-        );
+        let approvedMembers = [];
+        let pendingMembers = [];
+        let addMemberButton = '';
+        if (roleDetails.trust) {
+            approvedMembers = this.state.members;
+        } else {
+            approvedMembers = this.state.members
+                ? this.state.members.filter((item) => item.approved)
+                : [];
+            pendingMembers = this.state.members
+                ? this.state.members.filter((item) => !item.approved)
+                : [];
+            addMemberButton = (
+                <AddContainerDiv>
+                    <div>
+                        <Button secondary onClick={this.toggleAddMember}>
+                            Add Member
+                        </Button>
+                        {addMember}
+                    </div>
+                </AddContainerDiv>
+            );
+        }
+
         let showPending = pendingMembers.length > 0;
 
         let addMember = this.state.showAddMember ? (
@@ -125,16 +142,10 @@ export default class MemberList extends React.Component {
         ) : (
             ''
         );
+
         return (
             <MembersSectionDiv data-testid='member-list'>
-                <AddContainerDiv>
-                    <div>
-                        <Button secondary onClick={this.toggleAddMember}>
-                            Add Member
-                        </Button>
-                        {addMember}
-                    </div>
-                </AddContainerDiv>
+                {addMemberButton}
                 <MemberTable
                     domain={domain}
                     role={role}
@@ -152,6 +163,7 @@ export default class MemberList extends React.Component {
                         domain={domain}
                         role={role}
                         members={pendingMembers}
+                        pending={true}
                         caption='Pending'
                         api={this.api}
                         _csrf={this.props._csrf}

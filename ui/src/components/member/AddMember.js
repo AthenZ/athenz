@@ -205,6 +205,15 @@ export default class AddMember extends React.Component {
                                 clear={this.state.memberExpiry}
                             />
                         </FlatPickrInputDiv>
+                        <FlatPickrInputDiv>
+                            <FlatPicker
+                                onChange={(memberReviewReminder) => {
+                                    this.setState({ memberReviewReminder });
+                                }}
+                                id='addMemberToRoles-reminder'
+                                clear={this.state.memberReviewReminder}
+                            />
+                        </FlatPickrInputDiv>
                         {this.props.justificationRequired && (
                             <StyledJustification
                                 id='justification'

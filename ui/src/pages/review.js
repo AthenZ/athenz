@@ -19,13 +19,13 @@ import UserDomains from '../components/domain/UserDomains';
 import API from '../api';
 import styled from '@emotion/styled';
 import Head from 'next/head';
-import { Link } from '../routes';
 // there is an issue with next-link and next-css if the css is not present then it doesnt load so adding this
 import 'flatpickr/dist/themes/light.css';
 import RoleDetails from '../components/header/RoleDetails';
 import ReviewList from '../components/review/ReviewList';
 import RequestUtils from '../components/utils/RequestUtils';
 import RoleTabs from '../components/header/RoleTabs';
+import RoleNameHeader from '../components/header/RoleNameHeader';
 import Error from './_error';
 import { MODAL_TIME_OUT } from '../components/constants/constants';
 
@@ -59,17 +59,6 @@ const PageHeaderDiv = styled.div`
     padding: 20px 30px 0;
 `;
 
-const TitleDiv = styled.div`
-    font: 600 20px HelveticaNeue-Reg, Helvetica, Arial, sans-serif;
-    margin-bottom: 10px;
-`;
-
-const StyledAnchor = styled.a`
-    color: #3570f4;
-    text-decoration: none;
-    cursor: pointer;
-`;
-
 export default class ReviewPage extends React.Component {
     static async getInitialProps(props) {
         let api = API(props.req);
@@ -80,7 +69,13 @@ export default class ReviewPage extends React.Component {
             api.listUserDomains(),
             api.getHeaderDetails(),
             api.getDomain(props.query.domain),
-            api.getRole(props.query.domain, props.query.role, true, true, true),
+            api.getRole(
+                props.query.domain,
+                props.query.role,
+                false,
+                true,
+                false
+            ),
             api.getPendingDomainRoleMembersList(),
             api.getForm(),
         ]).catch((err) => {
@@ -144,14 +139,11 @@ export default class ReviewPage extends React.Component {
                         <RolesContainerDiv>
                             <RolesContentDiv>
                                 <PageHeaderDiv>
-                                    <TitleDiv>
-                                        <Link route='role' params={{ domain }}>
-                                            <StyledAnchor>
-                                                {domain}
-                                            </StyledAnchor>
-                                        </Link>
-                                        / {role}
-                                    </TitleDiv>
+                                    <RoleNameHeader
+                                        domain={domain}
+                                        role={role}
+                                        roleDetails={roleDetails}
+                                    />
                                     <RoleDetails
                                         roleDetails={roleDetails}
                                         api={this.api}
@@ -172,6 +164,7 @@ export default class ReviewPage extends React.Component {
                                     api={this.api}
                                     domain={domain}
                                     role={role}
+                                    roleDetails={roleDetails}
                                     members={members}
                                     _csrf={_csrf}
                                     isDomainAuditEnabled={isDomainAuditEnabled}

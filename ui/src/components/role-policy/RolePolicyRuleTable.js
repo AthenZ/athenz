@@ -17,7 +17,7 @@ import React from 'react';
 import styled from '@emotion/styled';
 import Icon from '../denali/icons/Icon';
 import { colors } from '../denali/styles';
-import AddAssertion from '../policy/AddAssertion';
+import AddAssertionForRole from './AddAssertionForRole';
 import Alert from '../denali/Alert';
 import DeleteModal from '../modal/DeleteModal';
 import { MODAL_TIME_OUT } from '../constants/constants';
@@ -180,6 +180,7 @@ export default class RolePolicyRuleTable extends React.Component {
         const left = 'left';
         const center = 'center';
         const right = 'right';
+        let id = this.props.id;
         this.state.assertions.forEach((assertion, i) => {
             let onClickDeleteAssertion = this.onClickDeleteAssertion.bind(
                 this,
@@ -191,7 +192,7 @@ export default class RolePolicyRuleTable extends React.Component {
                 color = colors.row;
             }
             rows.push(
-                <tr key={this.props.name + i + '-assertion'}>
+                <tr key={this.props.name + id + i + '-assertion'}>
                     <TDStyled color={color} align={left}>
                         {assertion.effect}
                     </TDStyled>
@@ -220,9 +221,11 @@ export default class RolePolicyRuleTable extends React.Component {
         let addAssertion = '';
         if (this.state.addAssertion) {
             addAssertion = (
-                <AddAssertion
+                <AddAssertionForRole
+                    id={id}
                     api={this.api}
                     domain={this.props.domain}
+                    role={this.props.role}
                     cancel={this.toggleAddAssertion}
                     submit={this.reLoadAssertions}
                     _csrf={this.props._csrf}
@@ -232,7 +235,7 @@ export default class RolePolicyRuleTable extends React.Component {
         }
         return (
             <StyleTable
-                key={this.props.name + '-info'}
+                key={this.props.name + '-info-' + id}
                 data-testid='ruledetailstable'
             >
                 <tbody>

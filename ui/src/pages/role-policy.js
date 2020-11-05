@@ -19,13 +19,13 @@ import UserDomains from '../components/domain/UserDomains';
 import API from '../api';
 import styled from '@emotion/styled';
 import Head from 'next/head';
-import { Link } from '../routes';
 // there is an issue with next-link and next-css if the css is not present then it doesnt load so adding this
 import 'flatpickr/dist/themes/light.css';
 import RoleDetails from '../components/header/RoleDetails';
 import RolePolicyList from '../components/role-policy/RolePolicyList';
 import RequestUtils from '../components/utils/RequestUtils';
 import RoleTabs from '../components/header/RoleTabs';
+import RoleNameHeader from '../components/header/RoleNameHeader';
 import Error from './_error';
 import NameUtils from '../components/utils/NameUtils';
 
@@ -57,17 +57,6 @@ const PoliciesContentDiv = styled.div``;
 const PageHeaderDiv = styled.div`
     background: linear-gradient(to top, #f2f2f2, #fff);
     padding: 20px 30px 0;
-`;
-
-const TitleDiv = styled.div`
-    font: 600 20px HelveticaNeue-Reg, Helvetica, Arial, sans-serif;
-    margin-bottom: 10px;
-`;
-
-const StyledAnchor = styled.a`
-    color: #3570f4;
-    text-decoration: none;
-    cursor: pointer;
 `;
 
 export default class RolePolicyPage extends React.Component {
@@ -167,14 +156,11 @@ export default class RolePolicyPage extends React.Component {
                         <PoliciesContainerDiv>
                             <PoliciesContentDiv>
                                 <PageHeaderDiv>
-                                    <TitleDiv>
-                                        <Link route='role' params={{ domain }}>
-                                            <StyledAnchor>
-                                                {domain}
-                                            </StyledAnchor>
-                                        </Link>
-                                        / {role}
-                                    </TitleDiv>
+                                    <RoleNameHeader
+                                        domain={domain}
+                                        role={role}
+                                        roleDetails={roleDetails}
+                                    />
                                     <RoleDetails
                                         roleDetails={roleDetails}
                                         api={this.api}

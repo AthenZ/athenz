@@ -32,7 +32,7 @@ export default class RoleTabs extends React.Component {
             name: 'review',
         },
         {
-            label: 'Policies',
+            label: 'Policy Rules',
             name: 'policies',
         },
         {

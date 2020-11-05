@@ -135,6 +135,7 @@ export default class MemberTable extends React.Component {
                         <MemberRow
                             domain={domain}
                             role={role}
+                            pending={this.props.pending}
                             details={item}
                             idx={i}
                             color={color}

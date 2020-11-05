@@ -109,11 +109,6 @@ export default class SettingRow extends React.Component {
     }
 
     getSettingButton() {
-        const algOptions = [
-            { value: 'ECDSA', label: 'ECDSA' },
-            { value: 'RSA', label: 'RSA' },
-        ];
-
         switch (this.props.type) {
             case 'switch':
                 return (
@@ -137,18 +132,6 @@ export default class SettingRow extends React.Component {
                             value={this.state.value}
                         />
                     </StyledDiv>
-                );
-            case 'radio':
-                let currentValue = this.state.value
-                    ? this.state.value.toUpperCase()
-                    : '';
-                return (
-                    <SettingRadioButtonGroup
-                        name={'setting-' + this.props.name + '-radio-group'}
-                        inputs={algOptions}
-                        selectedValue={currentValue}
-                        onChange={this.onRadioChange}
-                    />
                 );
         }
     }

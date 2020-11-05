@@ -16,7 +16,6 @@
 import React from 'react';
 import Icon from '../denali/icons/Icon';
 import { colors } from '../denali/styles';
-import NameUtils from '../utils/NameUtils';
 import styled from '@emotion/styled';
 import DeleteModal from '../modal/DeleteModal';
 import Menu from '../denali/Menu/Menu';
@@ -91,38 +90,68 @@ export default class MemberRow extends React.Component {
             return;
         }
 
-        this.api
-            .deleteMember(
-                domain,
-                roleName,
-                this.state.deleteName,
-                this.state.deleteJustification
-                    ? this.state.deleteJustification
-                    : 'deleted using Athenz UI',
-                this.props._csrf
-            )
-            .then(() => {
-                this.setState({
-                    showDelete: false,
-                    deleteName: null,
-                    deleteJustification: null,
-                    errorMessage: null,
+        if (this.props.pending) {
+            this.api
+                .deletePendingMember(
+                    domain,
+                    roleName,
+                    this.state.deleteName,
+                    this.state.deleteJustification
+                        ? this.state.deleteJustification
+                        : 'deleted using Athenz UI',
+                    this.props._csrf
+                )
+                .then(() => {
+                    this.setState({
+                        showDelete: false,
+                        deleteName: null,
+                        deleteJustification: null,
+                        errorMessage: null,
+                    });
+                    this.props.onUpdateSuccess(
+                        `Successfully deleted pending member ${this.state.deleteName}`
+                    );
+                })
+                .catch((err) => {
+                    this.setState({
+                        errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+                    });
                 });
-                this.props.onUpdateSuccess(
-                    `Successfully deleted role ${roleName}`
-                );
-            })
-            .catch((err) => {
-                this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+        } else {
+            this.api
+                .deleteMember(
+                    domain,
+                    roleName,
+                    this.state.deleteName,
+                    this.state.deleteJustification
+                        ? this.state.deleteJustification
+                        : 'deleted using Athenz UI',
+                    this.props._csrf
+                )
+                .then(() => {
+                    this.setState({
+                        showDelete: false,
+                        deleteName: null,
+                        deleteJustification: null,
+                        errorMessage: null,
+                    });
+                    this.props.onUpdateSuccess(
+                        `Successfully deleted member ${this.state.deleteName}`
+                    );
+                })
+                .catch((err) => {
+                    this.setState({
+                        errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+                    });
                 });
-            });
+        }
     }
 
     onClickDeleteCancel() {
         this.setState({
             showDelete: false,
             deleteName: '',
+            errorMessage: null,
         });
     }
 
