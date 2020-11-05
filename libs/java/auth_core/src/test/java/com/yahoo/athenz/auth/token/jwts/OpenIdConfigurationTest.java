@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Oath Holdings Inc.
+ * Copyright 2020 Verizon Media
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,22 +15,17 @@
  */
 package com.yahoo.athenz.auth.token.jwts;
 
-import javax.net.ssl.SSLContext;
+import org.testng.annotations.Test;
 
-public class MockJwtsSigningKeyResolver extends JwtsSigningKeyResolver {
+import static org.testng.Assert.*;
 
-    private static String responseBody;
+public class OpenIdConfigurationTest {
 
-    public MockJwtsSigningKeyResolver(final String serverUrl, final SSLContext sslContext) {
-        super(serverUrl, sslContext);
-    }
+    @Test
+    public void testOpenIdConfiguration() {
 
-    public static void setResponseBody(final String body) {
-        responseBody = body;
-    }
-
-    @Override
-    String getHttpData(String jwksUri, SSLContext sslContext) {
-        return responseBody;
+        OpenIdConfiguration config = new OpenIdConfiguration();
+        config.setJwksUri("https://localhost:4443/ouath2/keys");
+        assertEquals(config.getJwksUri(), "https://localhost:4443/ouath2/keys");
     }
 }

@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.zts;
 
+import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.common.utils.SignUtils;
@@ -25,13 +26,12 @@ import com.yahoo.athenz.zms.Policy;
 import com.yahoo.athenz.zms.ServiceIdentity;
 import com.yahoo.athenz.zts.store.DataStore;
 import com.yahoo.rdl.Timestamp;
+import org.eclipse.jetty.util.StringUtil;
 import org.testng.internal.junit.ArrayAsserts;
 
 import java.io.File;
 import java.security.PrivateKey;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
+import java.util.*;
 
 import static org.testng.AssertJUnit.assertEquals;
 
@@ -388,5 +388,60 @@ public class ZTSTestUtils {
         cal.setTimeInMillis(date.millis());
         cal.add(Calendar.DATE, days);
         return Timestamp.fromMillis(cal.getTime().getTime());
+    }
+
+    public static Map<String, AttributeValue> generateAttributeValues(String service,
+                                                                String instanceId,
+                                                                String currentTime,
+                                                                String lastNotifiedTime,
+                                                                String lastNotifiedServer,
+                                                                String expiryTime,
+                                                                String hostName) {
+        String provider = "provider";
+        String primaryKey = provider + ":" + service + ":" + instanceId;
+        Map<String, AttributeValue> item = new HashMap<>();
+        item.put("primaryKey", new AttributeValue(primaryKey));
+        item.put("service", new AttributeValue(service));
+        item.put("provider", new AttributeValue(provider));
+        item.put("instanceId", new AttributeValue(instanceId));
+        item.put("currentSerial", new AttributeValue("currentSerial"));
+
+        AttributeValue currentTimeVal = new AttributeValue();
+        currentTimeVal.setN(currentTime);
+
+        if (!StringUtil.isEmpty(currentTime)) {
+            item.put("currentTime", currentTimeVal);
+            item.put("prevTime", currentTimeVal);
+        }
+
+        item.put("currentIP", new AttributeValue("currentIP"));
+        item.put("prevSerial", new AttributeValue("prevSerial"));
+        item.put("prevIP", new AttributeValue("prevIP"));
+
+        AttributeValue clientCertVal = new AttributeValue();
+        clientCertVal.setBOOL(false);
+        item.put("clientCert", clientCertVal);
+
+        if (!StringUtil.isEmpty(lastNotifiedTime)) {
+            AttributeValue lastNotifiedTimeVal = new AttributeValue();
+            lastNotifiedTimeVal.setN(lastNotifiedTime);
+            item.put("lastNotifiedTime", lastNotifiedTimeVal);
+        }
+
+        if (!StringUtil.isEmpty(lastNotifiedServer)) {
+            item.put("lastNotifiedServer", new AttributeValue(lastNotifiedServer));
+        }
+
+        if (!StringUtil.isEmpty(expiryTime)) {
+            AttributeValue expiryTimeVal = new AttributeValue();
+            expiryTimeVal.setN(expiryTime);
+            item.put("expiryTime", expiryTimeVal);
+        }
+
+        if (!StringUtil.isEmpty(hostName)) {
+            item.put("hostName", new AttributeValue(hostName));
+        }
+
+        return item;
     }
 }
