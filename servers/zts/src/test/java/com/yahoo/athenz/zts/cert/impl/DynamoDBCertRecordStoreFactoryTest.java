@@ -121,36 +121,53 @@ public class DynamoDBCertRecordStoreFactoryTest {
 
     @Test
     public void testCreateMissingIndexName() {
-
         System.setProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_TABLE_NAME, "Athenz-ZTS-Table");
-        testCreateMissingIndexName(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_INDEX_CURRENT_TIME_NAME);
-        testCreateMissingIndexName(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_INDEX_HOST_NAME);
-        System.clearProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_TABLE_NAME);
-
-    }
-
-    public void testCreateMissingIndexName(String indexName) {
-
         PrivateKeyStore keyStore = Mockito.mock(PrivateKeyStore.class);
 
-        System.clearProperty(indexName);
+        // First, don't set any index - will fail on ZTSConsts.ZTS_PROP_CERT_DYNAMODB_INDEX_CURRENT_TIME_NAME index
         DynamoDBCertRecordStoreFactory factory = new DynamoDBCertRecordStoreFactory();
         try {
             factory.create(keyStore);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.SERVICE_UNAVAILABLE);
+            assertEquals(ex.getMessage(), "ResourceException (503): DynamoDB index current-time not specified");
         }
 
-        System.setProperty(indexName, "");
+        // Set it to empty value, will still fail
+        System.setProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_INDEX_CURRENT_TIME_NAME, "");
         try {
             factory.create(keyStore);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.SERVICE_UNAVAILABLE);
+            assertEquals(ex.getMessage(), "ResourceException (503): DynamoDB index current-time not specified");
         }
 
-        System.clearProperty(indexName);
+        // Set it to correct value, now will fail on host
+        System.setProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_INDEX_CURRENT_TIME_NAME, "Athenz-ZTS-Current-Time-Index");
+        try {
+            factory.create(keyStore);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.SERVICE_UNAVAILABLE);
+            assertEquals(ex.getMessage(), "ResourceException (503): DynamoDB index host-name not specified");
+        }
+
+        // Set it to empty value, will still fail
+        System.setProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_INDEX_HOST_NAME, "");
+        try {
+            factory.create(keyStore);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.SERVICE_UNAVAILABLE);
+            assertEquals(ex.getMessage(), "ResourceException (503): DynamoDB index host-name not specified");
+        }
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_INDEX_CURRENT_TIME_NAME);
+        System.clearProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_INDEX_HOST_NAME);
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_TABLE_NAME);
     }
 
     @Test
