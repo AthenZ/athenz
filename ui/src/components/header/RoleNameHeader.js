@@ -45,7 +45,6 @@ export default class RoleNameHeader extends React.Component {
 
     render() {
         const { domain, roleDetails, role } = this.props;
-        console.log(domain);
 
         let iconDelegated = (
             <Menu

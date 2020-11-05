@@ -21,6 +21,7 @@ import Color from '../denali/Color';
 import InputLabel from '../denali/InputLabel';
 import Input from '../denali/Input';
 import RequestUtils from '../utils/RequestUtils';
+import { Router } from '../../routes';
 
 const TitleDiv = styled.div`
     font-size: 16px;
@@ -96,7 +97,7 @@ export default class ReviewTable extends React.Component {
         this.api = this.props.api;
         this.submitReview = this.submitReview.bind(this);
         this.submitRoleMetaExpiry = this.submitRoleMetaExpiry.bind(this);
-        this.updateRoleMeta = this.updateRoleMeta.bind(this);
+        this.onClickSettings = this.onClickSettings.bind(this);
         this.cancelRoleMetaUpdate = this.cancelRoleMetaUpdate.bind(this);
         this.onUpdate = this.onUpdate.bind(this);
 
@@ -104,6 +105,8 @@ export default class ReviewTable extends React.Component {
         this.state = {
             roleObj: props.roleDetails,
             list: props.members || [],
+            memberExpiry: '',
+            serviceExpiry: '',
             memberExpiry: props.roleDetails.memberExpiryDays,
             serviceExpiry: props.roleDetails.serviceExpiryDays,
             submittedReview: false,
@@ -272,7 +275,7 @@ export default class ReviewTable extends React.Component {
         }
     }
 
-    updateRoleMeta() {
+    onClickSettings() {
         Router.pushRoute('settings', {
             domain: this.props.domain,
             role: this.props.role,
@@ -324,7 +327,7 @@ export default class ReviewTable extends React.Component {
                 {text}
                 <br />
                 {changeText}
-                <StyledAnchor onClick={this.updateRoleMeta}>
+                <StyledAnchor onClick={this.onClickSettings}>
                     {' '}
                     here{' '}
                 </StyledAnchor>
@@ -463,13 +466,10 @@ export default class ReviewTable extends React.Component {
                 <ReviewMembersContainerDiv>
                     User principal and/or Service principal expiry days are
                     required before a role can be reviewed. Please go to
-                    <Link
-                        route='settings'
-                        params={(this.props.domain, this.props.role)}
-                    >
+                    <StyledAnchor onClick={this.onClickSettings}>
                         {' '}
                         Settings{' '}
-                    </Link>
+                    </StyledAnchor>
                     tab to set those up.
                 </ReviewMembersContainerDiv>
             );

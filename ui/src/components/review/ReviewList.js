@@ -89,7 +89,7 @@ export default class ReviewList extends React.Component {
                 <ReviewTable
                     domain={domain}
                     role={role}
-                    roleDeatils={roleDetails}
+                    roleDetails={roleDetails}
                     members={this.state.members}
                     api={this.api}
                     _csrf={this.props._csrf}
