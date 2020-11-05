@@ -18,7 +18,7 @@ package com.yahoo.athenz.auth.token.jwts;
 import java.util.ArrayList;
 import java.util.List;
 
-class Keys {
+public class Keys {
     private List<Key> keys = new ArrayList<>();
 
     public List<Key> getKeys() {

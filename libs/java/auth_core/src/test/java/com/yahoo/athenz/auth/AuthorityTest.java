@@ -20,6 +20,7 @@ import org.testng.annotations.Test;
 import javax.servlet.http.HttpServletRequest;
 import java.security.cert.X509Certificate;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.Set;
 
 import static org.testng.Assert.*;
@@ -82,5 +83,47 @@ public class AuthorityTest {
         assertNull(authority.getDateAttribute("john", "review"));
         assertNotNull(authority.getDateAttribute("john", "expiry"));
         assertEquals(authority.getUserEmail("john"), "john@example.com");
+        assertEquals(authority.getID(), "Auth-ID");
+    }
+
+    @Test
+    public void testAuthorityDefaults() {
+
+        Authority authority = new Authority() {
+            @Override
+            public void initialize() {
+            }
+
+            @Override
+            public String getDomain() {
+                return null;
+            }
+
+            @Override
+            public String getHeader() {
+                return null;
+            }
+
+            @Override
+            public Principal authenticate(String creds, String remoteAddr, String httpMethod, StringBuilder errMsg) {
+                return null;
+            }
+        };
+
+        assertNull(authority.getAuthenticateChallenge());
+        assertEquals(Authority.CredSource.HEADER, authority.getCredSource());
+        assertTrue(authority.allowAuthorization());
+        assertEquals("user", authority.getUserDomainName("user"));
+        assertTrue(authority.isValidUser("john"));
+        assertNull(authority.authenticate((X509Certificate[]) null, null));
+        assertNull(authority.authenticate((HttpServletRequest) null, null));
+        assertNull(authority.authenticate("creds", "127.0.0.1", "GET", null));
+        assertTrue(authority.booleanAttributesSupported().isEmpty());
+        assertFalse(authority.isAttributeSet("john", "remote"));
+        assertTrue(authority.dateAttributesSupported().isEmpty());
+        assertNull(authority.getDateAttribute("john", "review"));
+        assertNull(authority.getUserEmail("john"), "john@example.com");
+        assertEquals(authority.getID(), "Auth-ID");
+        assertTrue(authority.getPrincipals(EnumSet.of(Principal.State.ACTIVE)).isEmpty());
     }
 }

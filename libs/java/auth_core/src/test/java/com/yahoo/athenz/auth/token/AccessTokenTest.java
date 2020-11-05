@@ -110,6 +110,14 @@ public class AccessTokenTest {
         }
     }
 
+    private void resetConfProperty(final String oldConf) {
+        if (oldConf == null) {
+            System.clearProperty(JwtsSigningKeyResolver.ZTS_PROP_ATHENZ_CONF);
+        } else {
+            System.setProperty(JwtsSigningKeyResolver.ZTS_PROP_ATHENZ_CONF, oldConf);
+        }
+    }
+
     @Test
     public void testAccessToken() {
 
@@ -294,11 +302,7 @@ public class AccessTokenTest {
         AccessToken checkToken = new AccessToken(accessJws, resolver);
         validateAccessToken(checkToken, now);
 
-        if (oldConf == null) {
-            System.clearProperty(JwtsSigningKeyResolver.ZTS_PROP_ATHENZ_CONF);
-        } else {
-            System.setProperty(JwtsSigningKeyResolver.ZTS_PROP_ATHENZ_CONF, oldConf);
-        }
+        resetConfProperty(oldConf);
     }
 
     @Test
@@ -335,11 +339,7 @@ public class AccessTokenTest {
         } catch (Exception ex) {
         }
 
-        if (oldConf == null) {
-            System.clearProperty(JwtsSigningKeyResolver.ZTS_PROP_ATHENZ_CONF);
-        } else {
-            System.setProperty(JwtsSigningKeyResolver.ZTS_PROP_ATHENZ_CONF, oldConf);
-        }
+        resetConfProperty(oldConf);
     }
 
     @Test
@@ -359,18 +359,13 @@ public class AccessTokenTest {
 
         final String oldConf = System.setProperty(JwtsSigningKeyResolver.ZTS_PROP_ATHENZ_CONF,
                 "src/test/resources/athenz-no-keys.conf");
-        MockJwtsSigningKeyResolver.setResponseCode(200);
         MockJwtsSigningKeyResolver.setResponseBody(JWT_KEYS);
         MockJwtsSigningKeyResolver resolver = new MockJwtsSigningKeyResolver("https://localhost:4443", null);
 
         AccessToken checkToken = new AccessToken(accessJws, resolver);
         validateAccessToken(checkToken, now);
 
-        if (oldConf == null) {
-            System.clearProperty(JwtsSigningKeyResolver.ZTS_PROP_ATHENZ_CONF);
-        } else {
-            System.setProperty(JwtsSigningKeyResolver.ZTS_PROP_ATHENZ_CONF, oldConf);
-        }
+        resetConfProperty(oldConf);
     }
 
     @Test
@@ -390,7 +385,6 @@ public class AccessTokenTest {
 
         final String oldConf = System.setProperty(JwtsSigningKeyResolver.ZTS_PROP_ATHENZ_CONF,
                 "src/test/resources/athenz-no-keys.conf");
-        MockJwtsSigningKeyResolver.setResponseCode(401);
         MockJwtsSigningKeyResolver.setResponseBody("");
         SSLContext sslContext = Mockito.mock(SSLContext.class);
         MockJwtsSigningKeyResolver resolver = new MockJwtsSigningKeyResolver("https://localhost:4443", sslContext);
@@ -402,11 +396,7 @@ public class AccessTokenTest {
             assertTrue(ex instanceof IllegalArgumentException, ex.getMessage());
         }
 
-        if (oldConf == null) {
-            System.clearProperty(JwtsSigningKeyResolver.ZTS_PROP_ATHENZ_CONF);
-        } else {
-            System.setProperty(JwtsSigningKeyResolver.ZTS_PROP_ATHENZ_CONF, oldConf);
-        }
+        resetConfProperty(oldConf);
     }
 
     @Test
@@ -437,11 +427,7 @@ public class AccessTokenTest {
             assertTrue(ex.getMessage().contains("expired"));
         }
 
-        if (oldConf == null) {
-            System.clearProperty(JwtsSigningKeyResolver.ZTS_PROP_ATHENZ_CONF);
-        } else {
-            System.setProperty(JwtsSigningKeyResolver.ZTS_PROP_ATHENZ_CONF, oldConf);
-        }
+        resetConfProperty(oldConf);
     }
 
     @Test

@@ -217,6 +217,8 @@ public class KerberosAuthorityTest {
         
         KerberosAuthority kauth = new KerberosAuthority();
         kauth.initialize();
+        assertEquals("Auth-KERB", kauth.getID());
+
         Exception initState = kauth.getInitState();
         assertNull(initState);
         
