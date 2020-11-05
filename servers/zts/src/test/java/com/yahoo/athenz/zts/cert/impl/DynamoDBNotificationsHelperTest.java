@@ -63,7 +63,7 @@ public class DynamoDBNotificationsHelperTest {
         Item itemEmptyCurrentTime = ItemUtils.toItem(emptyCurrentTime);
         Item itemFiveDaysAgo = ItemUtils.toItem(fiveDaysAgoMap);
         Item itemThreeDaysAgo = ItemUtils.toItem(threeDaysAgoMap);
-        List<Item> allItems = Arrays.asList(itemNoCurrentTime, itemEmptyCurrentTime, itemFiveDaysAgo, itemThreeDaysAgo);
+        List<Item> allItems = Arrays.asList(itemEmptyCurrentTime, itemFiveDaysAgo, itemThreeDaysAgo, itemNoCurrentTime);
 
         DynamoDBNotificationsHelper dynamoDBNotificationsHelper = new DynamoDBNotificationsHelper();
 

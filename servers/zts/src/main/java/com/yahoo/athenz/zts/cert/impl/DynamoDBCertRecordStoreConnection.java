@@ -267,13 +267,8 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
     public List<X509CertRecord> updateUnrefreshedCertificatesNotificationTimestamp(String lastNotifiedServer,
                                                                       long lastNotifiedTime,
                                                                       String provider) {
-        try {
-            List<Item> items = getUnrefreshedCertsRecords(lastNotifiedTime, provider);
-            return updateLastNotified(lastNotifiedServer, lastNotifiedTime, items);
-        } catch (Exception ex) {
-            LOGGER.error("DynamoDB updateUnrefreshedCertificatesNotificationTimestamp Error: {}/{}", ex.getClass(), ex.getMessage());
-            return new ArrayList<>();
-        }
+        List<Item> items = getUnrefreshedCertsRecords(lastNotifiedTime, provider);
+        return updateLastNotified(lastNotifiedServer, lastNotifiedTime, items);
     }
 
     private String getPrimaryKey(final String provider, final String instanceId, final String service) {

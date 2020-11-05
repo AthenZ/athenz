@@ -20,7 +20,9 @@ import com.amazonaws.services.dynamodbv2.document.internal.IteratorSupport;
 import com.amazonaws.services.dynamodbv2.document.spec.QuerySpec;
 import com.amazonaws.services.dynamodbv2.model.AmazonDynamoDBException;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.TransactionConflictException;
 import com.yahoo.athenz.common.server.cert.X509CertRecord;
+import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.ZTSTestUtils;
 import com.yahoo.athenz.zts.utils.DynamoDBUtils;
 import org.mockito.*;
@@ -33,9 +35,11 @@ import com.amazonaws.services.dynamodbv2.document.spec.UpdateItemSpec;
 import java.util.*;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
 
 public class DynamoDBCertRecordStoreConnectionTest {
 
@@ -70,7 +74,7 @@ public class DynamoDBCertRecordStoreConnectionTest {
     public void testGetX509CertRecord() {
 
         Date now = new Date();
-        long tstamp = mockNonNullableColumns(now);
+        long tstamp = mockNonNullableColumns(now, false);
         Mockito.doReturn(tstamp).when(item).getLong("lastNotifiedTime");
         Mockito.doReturn(tstamp).when(item).get("lastNotifiedTime");
         Mockito.doReturn("last-notified-server").when(item).getString("lastNotifiedServer");
@@ -87,6 +91,7 @@ public class DynamoDBCertRecordStoreConnectionTest {
         assertEquals(certRecord.getLastNotifiedServer(), "last-notified-server");
         assertEquals(certRecord.getExpiryTime(), now);
         assertEquals(certRecord.getHostName(), "hostname");
+        assertEquals(certRecord.getClientCert(), false);
 
         dbConn.close();
     }
@@ -95,7 +100,7 @@ public class DynamoDBCertRecordStoreConnectionTest {
     public void testGetX509CertRecordNullableColumns() {
 
         Date now = new Date();
-        mockNonNullableColumns(now);
+        mockNonNullableColumns(now, true);
         Mockito.doReturn(true).when(item).isNull("lastNotifiedTime");
         Mockito.doReturn(true).when(item).isNull("lastNotifiedServer");
         Mockito.doReturn(true).when(item).isNull("expiryTime");
@@ -525,7 +530,7 @@ public class DynamoDBCertRecordStoreConnectionTest {
         assertFalse(certRecord.getClientCert());
     }
 
-    private long mockNonNullableColumns(Date now) {
+    private long mockNonNullableColumns(Date now, boolean clientCertHasValue) {
         long tstamp = now.getTime();
 
         Mockito.doReturn(item).when(table).getItem("primaryKey", "athenz.provider:cn:1234");
@@ -546,7 +551,11 @@ public class DynamoDBCertRecordStoreConnectionTest {
         Mockito.doReturn("prev-ip").when(item).getString("prevIP");
         Mockito.doReturn(tstamp).when(item).getLong("prevTime");
         Mockito.doReturn(tstamp).when(item).get("prevTime");
-        Mockito.doReturn(false).when(item).getBoolean("clientCert");
+        if (clientCertHasValue) {
+            Mockito.doReturn(false).when(item).getBoolean("clientCert");
+        } else {
+            Mockito.when(item.getBoolean(anyString())).thenThrow(new IncompatibleTypeException("Value not found"));
+        }
         return tstamp;
     }
 
@@ -680,11 +689,147 @@ public class DynamoDBCertRecordStoreConnectionTest {
     }
 
     @Test
-    public void testUpdateUnrefreshedCertificatesNotificationTimestampException() {
+    public void testUpdateUnrefreshedCertificatesNotificationTimestampUpdateDynamoDBException() {
+        DynamoDBCertRecordStoreConnection dbConn = getDBConnection();
+        Date now = new Date(1591706189000L);
+        long nowL = now.getTime();
+        long fiveDaysAgo = nowL - 5 * 24 * 60 * 60 * 1000;
+
+        Map<String, AttributeValue> reNotified = ZTSTestUtils.generateAttributeValues(
+                "home.test.service3",
+                "reNotified",
+                Long.toString(fiveDaysAgo),
+                Long.toString(fiveDaysAgo),
+                "testServer",
+                null,
+                "testHost2");
+
+        Item item1 = ItemUtils.toItem(reNotified);
+
+        ItemCollection<QueryOutcome> itemCollection = Mockito.mock(ItemCollection.class);
+        IteratorSupport<Item, QueryOutcome> iteratorSupport = Mockito.mock(IteratorSupport.class);
+        when(itemCollection.iterator()).thenReturn(iteratorSupport);
+        when(iteratorSupport.hasNext()).thenReturn(true, false);
+        when(iteratorSupport.next()).thenReturn(item1);
+
+        Mockito.doReturn(itemCollection).when(currentTimeIndex).query(any(QuerySpec.class));
+
+        ItemCollection<QueryOutcome> itemCollection2 = Mockito.mock(ItemCollection.class);
+        IteratorSupport<Item, QueryOutcome> iteratorSupport2 = Mockito.mock(IteratorSupport.class);
+        when(itemCollection2.iterator()).thenReturn(iteratorSupport2);
+        when(iteratorSupport2.hasNext()).thenReturn(true, false);
+
+        when(iteratorSupport2.next()).thenReturn(item1);
+
+        Mockito.doReturn(itemCollection2).when(hostNameIndex).query(any(QuerySpec.class));
+
         Mockito.doThrow(new AmazonDynamoDBException("invalid operation"))
                 .when(table).updateItem(any(UpdateItemSpec.class));
 
+        List<X509CertRecord> result = dbConn.updateUnrefreshedCertificatesNotificationTimestamp(
+                "serverTest",
+                1591706189000L,
+                "providerTest");
+
+        assertEquals(result.size(), 0);
+
+        dbConn.close();
+    }
+
+    @Test
+    public void testUpdateUnrefreshedCertificatesNotificationTimestampUpdateException() {
         DynamoDBCertRecordStoreConnection dbConn = getDBConnection();
+        Date now = new Date(1591706189000L);
+        long nowL = now.getTime();
+        long fiveDaysAgo = nowL - 5 * 24 * 60 * 60 * 1000;
+
+        Map<String, AttributeValue> reNotified = ZTSTestUtils.generateAttributeValues(
+                "home.test.service3",
+                "reNotified",
+                Long.toString(fiveDaysAgo),
+                Long.toString(fiveDaysAgo),
+                "testServer",
+                null,
+                "testHost2");
+
+        Item item1 = ItemUtils.toItem(reNotified);
+
+        ItemCollection<QueryOutcome> itemCollection = Mockito.mock(ItemCollection.class);
+        IteratorSupport<Item, QueryOutcome> iteratorSupport = Mockito.mock(IteratorSupport.class);
+        when(itemCollection.iterator()).thenReturn(iteratorSupport);
+        when(iteratorSupport.hasNext()).thenReturn(true, false);
+        when(iteratorSupport.next()).thenReturn(item1);
+
+        Mockito.doReturn(itemCollection).when(currentTimeIndex).query(any(QuerySpec.class));
+
+        ItemCollection<QueryOutcome> itemCollection2 = Mockito.mock(ItemCollection.class);
+        IteratorSupport<Item, QueryOutcome> iteratorSupport2 = Mockito.mock(IteratorSupport.class);
+        when(itemCollection2.iterator()).thenReturn(iteratorSupport2);
+        when(iteratorSupport2.hasNext()).thenReturn(true, false);
+
+        when(iteratorSupport2.next()).thenReturn(item1);
+
+        Mockito.doReturn(itemCollection2).when(hostNameIndex).query(any(QuerySpec.class));
+
+        Mockito.doThrow(new TransactionConflictException("error"))
+                .when(table).updateItem(any(UpdateItemSpec.class));
+
+        List<X509CertRecord> result = dbConn.updateUnrefreshedCertificatesNotificationTimestamp(
+                "serverTest",
+                1591706189000L,
+                "providerTest");
+
+        assertEquals(result.size(), 0);
+
+        dbConn.close();
+    }
+
+    @Test
+    public void testUpdateUnrefreshedCertificatesNotificationTimestampTimeException() {
+        DynamoDBCertRecordStoreConnection dbConn = getDBConnection();
+
+        Mockito.doThrow(new TransactionConflictException("error"))
+                .when(currentTimeIndex).query(any(QuerySpec.class));
+
+        List<X509CertRecord> result = dbConn.updateUnrefreshedCertificatesNotificationTimestamp(
+                "serverTest",
+                1591706189000L,
+                "providerTest");
+
+        assertEquals(result.size(), 0);
+
+        dbConn.close();
+    }
+
+    @Test
+    public void testUpdateUnrefreshedCertificatesNotificationTimestampHostException() {
+        DynamoDBCertRecordStoreConnection dbConn = getDBConnection();
+        Date now = new Date(1591706189000L);
+        long nowL = now.getTime();
+        long fiveDaysAgo = nowL - 5 * 24 * 60 * 60 * 1000;
+
+        Map<String, AttributeValue> reNotified = ZTSTestUtils.generateAttributeValues(
+                "home.test.service3",
+                "reNotified",
+                Long.toString(fiveDaysAgo),
+                Long.toString(fiveDaysAgo),
+                "testServer",
+                null,
+                "testHost2");
+
+        Item item1 = ItemUtils.toItem(reNotified);
+
+        ItemCollection<QueryOutcome> itemCollection = Mockito.mock(ItemCollection.class);
+        IteratorSupport<Item, QueryOutcome> iteratorSupport = Mockito.mock(IteratorSupport.class);
+        when(itemCollection.iterator()).thenReturn(iteratorSupport);
+        when(iteratorSupport.hasNext()).thenReturn(true, false);
+        when(iteratorSupport.next()).thenReturn(item1);
+
+        Mockito.doReturn(itemCollection).when(currentTimeIndex).query(any(QuerySpec.class));
+
+        Mockito.doThrow(new TransactionConflictException("error"))
+                .when(hostNameIndex).query(any(QuerySpec.class));
+
         List<X509CertRecord> result = dbConn.updateUnrefreshedCertificatesNotificationTimestamp(
                 "serverTest",
                 1591706189000L,
