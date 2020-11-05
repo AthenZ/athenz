@@ -79,5 +79,45 @@ public class PrincipalTest {
         assertNull(principal.getKeyService());
         assertNull(principal.getKeyId());
         assertNull(principal.getApplicationId());
+        assertFalse(principal.getMtlsRestricted());
+        assertEquals(principal.getState(), Principal.State.ACTIVE);
+    }
+
+    @Test
+    public void testPrincipalState() {
+        Principal.State state = Principal.State.ACTIVE;
+        assertEquals(state.getValue(), 0);
+
+        state = Principal.State.AUTHORITY_FILTER_DISABLED;
+        assertEquals(state.getValue(), 1);
+
+        state = Principal.State.AUTHORITY_SYSTEM_SUSPENDED;
+        assertEquals(state.getValue(), 2);
+
+        assertEquals(Principal.State.getState(0), Principal.State.ACTIVE);
+        assertEquals(Principal.State.getState(1), Principal.State.AUTHORITY_FILTER_DISABLED);
+        assertEquals(Principal.State.getState(2), Principal.State.AUTHORITY_SYSTEM_SUSPENDED);
+        assertEquals(Principal.State.getState(3), Principal.State.ACTIVE);
+    }
+
+    @Test
+    public void testPrincipalType() {
+        Principal.Type type = Principal.Type.UNKNOWN;
+        assertEquals(type.getValue(), 0);
+
+        type = Principal.Type.USER;
+        assertEquals(type.getValue(), 1);
+
+        type = Principal.Type.SERVICE;
+        assertEquals(type.getValue(), 2);
+
+        type = Principal.Type.GROUP;
+        assertEquals(type.getValue(), 3);
+
+        assertEquals(Principal.Type.getType(0), Principal.Type.UNKNOWN);
+        assertEquals(Principal.Type.getType(1), Principal.Type.USER);
+        assertEquals(Principal.Type.getType(2), Principal.Type.SERVICE);
+        assertEquals(Principal.Type.getType(3), Principal.Type.GROUP);
+        assertEquals(Principal.Type.getType(4), Principal.Type.UNKNOWN);
     }
 }

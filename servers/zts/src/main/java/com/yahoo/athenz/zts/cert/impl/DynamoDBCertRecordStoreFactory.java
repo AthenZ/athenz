@@ -37,15 +37,22 @@ public class DynamoDBCertRecordStoreFactory implements CertRecordStoreFactory {
             throw new ResourceException(ResourceException.SERVICE_UNAVAILABLE, "DynamoDB table name not specified");
         }
 
-        final String indexName = System.getProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_INDEX_CURRENT_TIME_NAME);
-        if (indexName == null || indexName.isEmpty()) {
+        final String currentTimeIndexName = System.getProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_INDEX_CURRENT_TIME_NAME);
+        if (currentTimeIndexName == null || currentTimeIndexName.isEmpty()) {
             LOGGER.error("Cert Store DynamoDB index current-time not specified");
             throw new ResourceException(ResourceException.SERVICE_UNAVAILABLE, "DynamoDB index current-time not specified");
         }
 
+        final String hostNameIndex = System.getProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_INDEX_HOST_NAME);
+        if (hostNameIndex == null || hostNameIndex.isEmpty()) {
+            LOGGER.error("Cert Store DynamoDB index host-name not specified");
+            throw new ResourceException(ResourceException.SERVICE_UNAVAILABLE, "DynamoDB index host-name not specified");
+        }
+
+
         ZTSClientNotificationSenderImpl ztsClientNotificationSender = new ZTSClientNotificationSenderImpl();
         AmazonDynamoDB client = getDynamoDBClient(ztsClientNotificationSender, keyStore);
-        return new DynamoDBCertRecordStore(client, tableName, indexName, ztsClientNotificationSender);
+        return new DynamoDBCertRecordStore(client, tableName, currentTimeIndexName, hostNameIndex, ztsClientNotificationSender);
     }
 
     AmazonDynamoDB getDynamoDBClient(ZTSClientNotificationSenderImpl ztsClientNotificationSender, PrivateKeyStore keyStore) {

@@ -21,12 +21,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwsHeader;
 import io.jsonwebtoken.SigningKeyResolver;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -40,9 +35,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
 
 public class JwtsSigningKeyResolver implements SigningKeyResolver {
 
@@ -60,16 +53,16 @@ public class JwtsSigningKeyResolver implements SigningKeyResolver {
         return mapper;
     }
 
-    public JwtsSigningKeyResolver(final String serverUrl, final SSLContext sslContext) {
-        this(serverUrl, sslContext, false);
+    public JwtsSigningKeyResolver(final String jwksUri, final SSLContext sslContext) {
+        this(jwksUri, sslContext, false);
     }
 
-    public JwtsSigningKeyResolver(final String serverUrl, final SSLContext sslContext, boolean skipConfig) {
+    public JwtsSigningKeyResolver(final String jwksUri, final SSLContext sslContext, boolean skipConfig) {
         publicKeys = new ConcurrentHashMap<>();
         if (!skipConfig) {
             loadPublicKeysFromConfig();
         }
-        loadPublicKeysFromServer(serverUrl, sslContext);
+        loadPublicKeysFromServer(jwksUri, sslContext);
     }
 
     @Override
@@ -90,73 +83,34 @@ public class JwtsSigningKeyResolver implements SigningKeyResolver {
         publicKeys.put(keyId, publicKey);
     }
 
-    void loadPublicKeysFromServer(final String serverUrl, final SSLContext sslContext) {
+    public int publicKeyCount() {
+        return publicKeys.size();
+    }
 
-        if (serverUrl == null || serverUrl.isEmpty()) {
-            LOGGER.info("No URL specified to fetch Json Web Keys");
+    void loadPublicKeysFromServer(final String jwksUri, final SSLContext sslContext) {
+
+        final String jwksData = getHttpData(jwksUri, sslContext);
+        if (jwksData == null) {
             return;
         }
 
         try {
-            URLConnection con = getConnection(serverUrl);
-            con.setRequestProperty("Accept", "application/json");
-            con.setReadTimeout(15000);
-            con.setDoOutput(true);
-            if (con instanceof HttpURLConnection) {
-                HttpURLConnection httpCon = (HttpURLConnection) con;
-                httpCon.setRequestMethod("GET");
-            }
-            if (con instanceof HttpsURLConnection) {
-                HttpsURLConnection httpsCon = (HttpsURLConnection) con;
-                SSLSocketFactory sslSocketFactory = getSocketFactory(sslContext);
-                if (sslSocketFactory != null) {
-                    httpsCon.setSSLSocketFactory(sslSocketFactory);
-                }
-            }
-
-            con.connect();
-            if (con instanceof HttpURLConnection) {
-                HttpURLConnection httpCon = (HttpURLConnection) con;
-                if (httpCon.getResponseCode() != HttpURLConnection.HTTP_OK) {
-                    LOGGER.error("Unable to extract json web keys from {} error: {}", serverUrl, httpCon.getResponseCode());
-                    return;
-                }
-            }
-
-            try (BufferedReader br = new BufferedReader(new InputStreamReader(con.getInputStream()))) {
-                StringBuilder sb = new StringBuilder();
-
-                // not using assignment in expression in order to
-                // get clover to calculate coverage
-
-                String line = br.readLine();
-                while (line != null) {
-                    sb.append(line);
-                    line = br.readLine();
-                }
-
-                Keys keys = JSON_MAPPER.readValue(sb.toString(), Keys.class);
-                for (com.yahoo.athenz.auth.token.jwts.Key key : keys.getKeys()) {
-                    try {
-                        publicKeys.put(key.getKid(), key.getPublicKey());
-                    } catch (Exception ex) {
-                        LOGGER.error("Unable to generate json web key for key-id {}", key.getKid());
-                    }
+            Keys keys = JSON_MAPPER.readValue(jwksData, Keys.class);
+            for (com.yahoo.athenz.auth.token.jwts.Key key : keys.getKeys()) {
+                try {
+                    publicKeys.put(key.getKid(), key.getPublicKey());
+                } catch (Exception ex) {
+                    LOGGER.error("Unable to generate json web key for key-id {}", key.getKid());
                 }
             }
         } catch (Exception ex) {
-            LOGGER.error("Unable to extract json web keys from {} error: {}", serverUrl, ex.getMessage());
+            LOGGER.error("Unable to extract json web keys from {}", jwksUri, ex);
         }
     }
 
-    ///CLOVER:OFF
-    SSLSocketFactory getSocketFactory(SSLContext sslContext) {
-        return (sslContext == null) ? null : sslContext.getSocketFactory();
-    }
-    ///CLOVER:ON
-
-    URLConnection getConnection(final String serverUrl) throws IOException {
-        return new URL(serverUrl).openConnection();
+    String getHttpData(final String jwksUri, final SSLContext sslContext) {
+        JwtsHelper jwtsHelper = new JwtsHelper();
+        return jwtsHelper.getHttpData(jwksUri, sslContext);
     }
 
     void loadPublicKeysFromConfig() {
@@ -193,7 +147,6 @@ public class JwtsSigningKeyResolver implements SigningKeyResolver {
             }
             if (publicKeys.size() == 0) {
                 LOGGER.error("No valid public json web keys in conf file: {}", confFileName);
-                return;
             }
         } catch (IOException ex) {
             LOGGER.error("Unable to parse conf file {}, error: {}", confFileName, ex.getMessage());
