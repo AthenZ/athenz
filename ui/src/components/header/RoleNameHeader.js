@@ -38,13 +38,15 @@ const MenuDiv = styled.div`
     font-size: 12px;
 `;
 
-export default class RoleDetails extends React.Component {
+export default class RoleNameHeader extends React.Component {
     constructor(props) {
         super(props);
     }
 
     render() {
         const { domain, roleDetails, role } = this.props;
+        console.log(domain);
+
         let iconDelegated = (
             <Menu
                 placement='bottom-start'
@@ -93,12 +95,12 @@ export default class RoleDetails extends React.Component {
                 <TitleDiv>
                     {roleTypeIcon}
                     {roleAuditIcon}
-                    <Link route='role' params={{ domain }}>
+                    <Link route='role' params={{ domain: domain }}>
                         <StyledAnchor>{domain} </StyledAnchor>
                     </Link>
                     / {role}
                     {' (Delegated by '}
-                    <Link route='role' params={deDomain}>
+                    <Link route='role' params={{ domain: deDomain }}>
                         <StyledAnchor>{deDomain}</StyledAnchor>
                     </Link>
                     {' )'}
@@ -110,7 +112,7 @@ export default class RoleDetails extends React.Component {
             <TitleDiv>
                 {roleTypeIcon}
                 {roleAuditIcon}
-                <Link route='role' params={{ domain }}>
+                <Link route='role' params={{ domain: domain }}>
                     <StyledAnchor>{domain} </StyledAnchor>
                 </Link>
                 / {role}

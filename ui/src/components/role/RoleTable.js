@@ -84,7 +84,7 @@ export default class RoleTable extends React.Component {
             if (this.props.prefixes) {
                 this.props.prefixes.map((prefix) => {
                     let rows = this.props.roles.filter((item) =>
-                        item.name.startsWith(props.domain + prefix.prefix)
+                        item.name.startsWith(this.props.domain + prefix.prefix)
                     );
                     subRows[prefix.name] = rows;
                 });

@@ -27,7 +27,6 @@ import RequestUtils from '../components/utils/RequestUtils';
 import RoleTabs from '../components/header/RoleTabs';
 import RoleNameHeader from '../components/header/RoleNameHeader';
 import Error from './_error';
-import { MODAL_TIME_OUT } from '../components/constants/constants';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
