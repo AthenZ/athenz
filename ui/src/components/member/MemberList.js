@@ -105,6 +105,22 @@ export default class MemberList extends React.Component {
         let approvedMembers = [];
         let pendingMembers = [];
         let addMemberButton = '';
+
+        let addMember = this.state.showAddMember ? (
+            <AddMember
+                api={this.api}
+                domain={this.props.domain}
+                role={this.props.role}
+                onSubmit={this.reloadMembers}
+                onCancel={this.toggleAddMember}
+                _csrf={this.props._csrf}
+                showAddMember={this.state.showAddMember}
+                justificationRequired={this.props.isDomainAuditEnabled}
+            />
+        ) : (
+            ''
+        );
+
         if (roleDetails.trust) {
             approvedMembers = this.state.members;
         } else {
@@ -127,21 +143,6 @@ export default class MemberList extends React.Component {
         }
 
         let showPending = pendingMembers.length > 0;
-
-        let addMember = this.state.showAddMember ? (
-            <AddMember
-                api={this.api}
-                domain={this.props.domain}
-                role={this.props.role}
-                onSubmit={this.reloadMembers}
-                onCancel={this.toggleAddMember}
-                _csrf={this.props._csrf}
-                showAddMember={this.state.showAddMember}
-                justificationRequired={this.props.isDomainAuditEnabled}
-            />
-        ) : (
-            ''
-        );
 
         return (
             <MembersSectionDiv data-testid='member-list'>
