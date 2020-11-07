@@ -93,6 +93,7 @@ public class PrincipalStateUpdater {
 
         // Then get a list of system disabled principals from DB
         List<Principal> existingSystemDisabledPrincipals = dbService.getPrincipals(Principal.State.AUTHORITY_SYSTEM_SUSPENDED.getValue());
+         LOGGER.info("Found existingSystemDisabledPrincipals={} from DB", existingSystemDisabledPrincipals);
 
         // To find out the new system disabled principals, lets remove the ones which are already marked as system disabled in DB
         List<Principal> suspendedPrincipals = new ArrayList<>(newSystemDisabledPrincipals);
