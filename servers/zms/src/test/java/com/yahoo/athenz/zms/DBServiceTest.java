@@ -8868,13 +8868,13 @@ public class DBServiceTest {
         zms.dbService.store = mockObjStore;
 
         DomainRoleMember drm = new DomainRoleMember();
-        MemberRole mr1 = new MemberRole().setMemberName("user.user1").setRoleName("role1").setDomainName("dom1").setSystemDisabled(0);
+        MemberRole mr1 = new MemberRole().setMemberName("user.user1").setRoleName("role1").setDomainName("dom1").setSystemDisabled(null);
         List<MemberRole> memberRoles = new ArrayList<>();
         memberRoles.add(mr1);
         drm.setMemberRoles(memberRoles);
 
         DomainGroupMember dgm = new DomainGroupMember();
-        GroupMember gm1 = new GroupMember().setMemberName("user.user1").setGroupName("grp1").setDomainName("dom1").setSystemDisabled(0);
+        GroupMember gm1 = new GroupMember().setMemberName("user.user1").setGroupName("grp1").setDomainName("dom1").setSystemDisabled(null);
         List<GroupMember> memberGroups = new ArrayList<>();
         memberGroups.add(gm1);
         dgm.setMemberGroups(memberGroups);
@@ -8890,6 +8890,8 @@ public class DBServiceTest {
         Mockito.when(mockJdbcConn.getPrincipalGroups("user.user1", null)).thenReturn(dgm);
         Mockito.when(mockJdbcConn.updateGroupMemberDisabledState("dom1", "grp1", "user.user1",
                 ZMSConsts.SYS_AUTH_MONITOR, 2, "Athenz User Authority Enforcer")).thenReturn(true);
+        Mockito.when(mockJdbcConn.updateGroupModTimestamp(anyString(), anyString())).thenReturn(true);
+        Mockito.when(mockJdbcConn.updateDomainModTimestamp(anyString())).thenReturn(true);
 
         List<Principal> changedPrincipals = new ArrayList<>();
         changedPrincipals.add(ZMSUtils.createPrincipalForName("user.user1", "user", null));
@@ -8912,6 +8914,74 @@ public class DBServiceTest {
         Mockito.when(mockJdbcConn.getPrincipalGroups("user.user1", null)).thenReturn(dgm);
         Mockito.when(mockJdbcConn.updateGroupMemberDisabledState("dom1", "grp1", "user.user1",
                 ZMSConsts.SYS_AUTH_MONITOR, 0, "Athenz User Authority Enforcer")).thenReturn(true);
+        Mockito.when(mockJdbcConn.updateGroupModTimestamp(anyString(), anyString())).thenReturn(true);
+        Mockito.when(mockJdbcConn.updateDomainModTimestamp(anyString())).thenReturn(true);
+
+        try {
+            zms.dbService.updatePrincipalByStateFromAuthority(changedPrincipals, false);
+
+        }catch (ResourceException rex) {
+            fail();
+        }
+        zms.dbService.store = savedStore;
+    }
+
+    @Test
+    public void testUpdatePrincipalByStateFromAuthorityExistingDisabled() {
+        JDBCConnection jdbcConn = Mockito.mock(JDBCConnection.class);
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(jdbcConn);
+        ObjectStore savedStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        DomainRoleMember drm = new DomainRoleMember();
+        MemberRole mr1 = new MemberRole().setMemberName("user.user1").setRoleName("role1").setDomainName("dom1").setSystemDisabled(1);
+        List<MemberRole> memberRoles = new ArrayList<>();
+        memberRoles.add(mr1);
+        drm.setMemberRoles(memberRoles);
+
+        DomainGroupMember dgm = new DomainGroupMember();
+        GroupMember gm1 = new GroupMember().setMemberName("user.user1").setGroupName("grp1").setDomainName("dom1").setSystemDisabled(1);
+        List<GroupMember> memberGroups = new ArrayList<>();
+        memberGroups.add(gm1);
+        dgm.setMemberGroups(memberGroups);
+
+        Mockito.when(jdbcConn.updatePrincipal("user.user1", 2)).thenReturn(true);
+
+        Mockito.when(jdbcConn.getPrincipalRoles("user.user1", null)).thenReturn(drm);
+        Mockito.when(jdbcConn.updateRoleMemberDisabledState("dom1", "role1", "user.user1",
+                ZMSConsts.SYS_AUTH_MONITOR, 2, "Athenz User Authority Enforcer")).thenReturn(true);
+        Mockito.when(jdbcConn.updateRoleModTimestamp(anyString(), anyString())).thenReturn(true);
+        Mockito.when(jdbcConn.updateDomainModTimestamp(anyString())).thenReturn(true);
+
+        Mockito.when(jdbcConn.getPrincipalGroups("user.user1", null)).thenReturn(dgm);
+        Mockito.when(jdbcConn.updateGroupMemberDisabledState("dom1", "grp1", "user.user1",
+                ZMSConsts.SYS_AUTH_MONITOR, 2, "Athenz User Authority Enforcer")).thenReturn(true);
+        Mockito.when(jdbcConn.updateGroupModTimestamp(anyString(), anyString())).thenReturn(true);
+        Mockito.when(jdbcConn.updateDomainModTimestamp(anyString())).thenReturn(true);
+
+        List<Principal> changedPrincipals = new ArrayList<>();
+        changedPrincipals.add(ZMSUtils.createPrincipalForName("user.user1", "user", null));
+
+        try {
+            zms.dbService.updatePrincipalByStateFromAuthority(changedPrincipals, true);
+
+        }catch (ResourceException rex) {
+            fail();
+        }
+
+        Mockito.when(jdbcConn.updatePrincipal("user.user1", 0)).thenReturn(true);
+
+        Mockito.when(jdbcConn.getPrincipalRoles("user.user1", null)).thenReturn(drm);
+        Mockito.when(jdbcConn.updateRoleMemberDisabledState("dom1", "role1", "user.user1",
+                ZMSConsts.SYS_AUTH_MONITOR, 0, "Athenz User Authority Enforcer")).thenReturn(true);
+        Mockito.when(jdbcConn.updateRoleModTimestamp(anyString(), anyString())).thenReturn(true);
+        Mockito.when(jdbcConn.updateDomainModTimestamp(anyString())).thenReturn(true);
+
+        Mockito.when(jdbcConn.getPrincipalGroups("user.user1", null)).thenReturn(dgm);
+        Mockito.when(jdbcConn.updateGroupMemberDisabledState("dom1", "grp1", "user.user1",
+                ZMSConsts.SYS_AUTH_MONITOR, 0, "Athenz User Authority Enforcer")).thenReturn(true);
+        Mockito.when(jdbcConn.updateGroupModTimestamp(anyString(), anyString())).thenReturn(true);
+        Mockito.when(jdbcConn.updateDomainModTimestamp(anyString())).thenReturn(true);
 
         try {
             zms.dbService.updatePrincipalByStateFromAuthority(changedPrincipals, false);
@@ -8965,17 +9035,52 @@ public class DBServiceTest {
     }
 
     @Test
-    public void testUpdatePrincipalByStateFromAuthorityExceptionUpdateMembership() {
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
+    public void testUpdatePrincipalByStateFromAuthorityExceptionUpdateRoleMembership() {
+        JDBCConnection jdbcConn = Mockito.mock(JDBCConnection.class);
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(jdbcConn);
         ObjectStore savedStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
 
-        Mockito.when(mockJdbcConn.updatePrincipal("user.user1", 2)).thenReturn(true);
-        Mockito.when(mockJdbcConn.updatePrincipal("user.user2", 2)).thenReturn(true);
+        Mockito.when(jdbcConn.updatePrincipal("user.user3", 2)).thenReturn(true);
+        Mockito.when(jdbcConn.updatePrincipal("user.user4", 2)).thenReturn(true);
 
-        Mockito.when(mockJdbcConn.getPrincipalRoles("user.user1", null)).thenThrow(new ResourceException(ResourceException.NOT_FOUND, "not found"));
-        Mockito.when(mockJdbcConn.getPrincipalRoles("user.user2", null)).thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
+        Mockito.when(jdbcConn.getPrincipalRoles("user.user3", null)).thenThrow(new ResourceException(ResourceException.NOT_FOUND, "not found"));
+        Mockito.when(jdbcConn.getPrincipalRoles("user.user4", null)).thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
 
+
+        List<Principal> changedPrincipals = new ArrayList<>();
+        changedPrincipals.add(ZMSUtils.createPrincipalForName("user.user3", "user", null));
+        changedPrincipals.add(ZMSUtils.createPrincipalForName("user.user4", "user", null));
+        try {
+            zms.dbService.updatePrincipalByStateFromAuthority(changedPrincipals, true);
+            fail();
+        }catch (ResourceException rex) {
+            assertEquals(rex.getCode(), ResourceException.CONFLICT);
+        }
+        Mockito.verify(jdbcConn, atLeastOnce()).getPrincipalRoles("user.user3", null);
+        Mockito.verify(jdbcConn, atLeastOnce()).getPrincipalRoles("user.user4", null);
+        zms.dbService.store = savedStore;
+    }
+
+    @Test
+    public void testUpdatePrincipalByStateFromAuthorityExceptionUpdateGroupMembership() {
+        JDBCConnection jdbcConn = Mockito.mock(JDBCConnection.class);
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(jdbcConn);
+        ObjectStore savedStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        Mockito.when(jdbcConn.updatePrincipal("user.user1", 2)).thenReturn(true);
+        Mockito.when(jdbcConn.updatePrincipal("user.user2", 2)).thenReturn(true);
+
+        DomainRoleMember drm = new DomainRoleMember();
+        List<MemberRole> memberRoles = new ArrayList<>();
+        drm.setMemberRoles(memberRoles);
+
+        Mockito.when(jdbcConn.getPrincipalRoles("user.user1", null)).thenReturn(drm);
+        Mockito.when(jdbcConn.getPrincipalRoles("user.user2", null)).thenReturn(drm);
+
+        Mockito.when(jdbcConn.getPrincipalGroups("user.user1", null)).thenThrow(new ResourceException(ResourceException.NOT_FOUND, "not found"));
+        Mockito.when(jdbcConn.getPrincipalGroups("user.user2", null)).thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
 
         List<Principal> changedPrincipals = new ArrayList<>();
         changedPrincipals.add(ZMSUtils.createPrincipalForName("user.user1", "user", null));
@@ -8986,8 +9091,9 @@ public class DBServiceTest {
         }catch (ResourceException rex) {
             assertEquals(rex.getCode(), ResourceException.CONFLICT);
         }
-        Mockito.verify(mockJdbcConn, atLeastOnce()).getPrincipalRoles("user.user1", null);
-        Mockito.verify(mockJdbcConn, atLeastOnce()).getPrincipalRoles("user.user2", null);
+        Mockito.verify(jdbcConn, atLeastOnce()).getPrincipalGroups("user.user1", null);
+        Mockito.verify(jdbcConn, atLeastOnce()).getPrincipalGroups("user.user2", null);
+
         zms.dbService.store = savedStore;
     }
 
