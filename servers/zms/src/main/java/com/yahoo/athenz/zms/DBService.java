@@ -6450,18 +6450,21 @@ public class DBService implements RolesProvider {
         List<GroupMember> groupMembersWithUpdatedState;
         GroupMember groupMember;
         DomainGroupMember domainGroupMember;
-        int newState;
+        int newState, oldState;
         Set<String> updatedDomains = new HashSet<>();
         domainGroupMember = con.getPrincipalGroups(updatedUser.getFullName(), null);
         if (!domainGroupMember.getMemberGroups().isEmpty()) {
             for (GroupMember currentGroup : domainGroupMember.getMemberGroups()) {
                 groupMember = new GroupMember();
                 groupMember.setMemberName(updatedUser.getFullName());
-                newState = suspended ? currentGroup.getSystemDisabled() | Principal.State.AUTHORITY_SYSTEM_SUSPENDED.getValue() :
-                        currentGroup.getSystemDisabled() & ~Principal.State.AUTHORITY_SYSTEM_SUSPENDED.getValue();
+                oldState = 0;
+                if (groupMember.getSystemDisabled() != null) {
+                    oldState = groupMember.getSystemDisabled();
+                }
+                newState = suspended ? oldState | Principal.State.AUTHORITY_SYSTEM_SUSPENDED.getValue() :
+                        oldState & ~Principal.State.AUTHORITY_SYSTEM_SUSPENDED.getValue();
                 groupMember.setSystemDisabled(newState);
                 groupMembersWithUpdatedState = Collections.singletonList(groupMember);
-
                 // Following method does Audit entry as well
                 if (updateGroupMemberDisabledState(null, con, groupMembersWithUpdatedState, currentGroup.getDomainName(),
                         currentGroup.getGroupName(), ZMSConsts.SYS_AUTH_MONITOR, AUDIT_REF, caller)) {
@@ -6480,15 +6483,19 @@ public class DBService implements RolesProvider {
         RoleMember roleMember;
         List<RoleMember> roleMembersWithUpdatedState;
         DomainRoleMember domainRoleMember;
-        int newState;
+        int newState, oldState;
         Set<String> updatedDomains = new HashSet<>();
         domainRoleMember = con.getPrincipalRoles(updatedUser.getFullName(), null);
         if (!domainRoleMember.getMemberRoles().isEmpty()) {
             for (MemberRole memberRole : domainRoleMember.getMemberRoles()) {
                 roleMember = new RoleMember();
                 roleMember.setMemberName(updatedUser.getFullName());
-                newState = suspended ? memberRole.getSystemDisabled() | Principal.State.AUTHORITY_SYSTEM_SUSPENDED.getValue() :
-                        memberRole.getSystemDisabled() & ~Principal.State.AUTHORITY_SYSTEM_SUSPENDED.getValue();
+                oldState = 0;
+                if (memberRole.getSystemDisabled() != null) {
+                    oldState = memberRole.getSystemDisabled();
+                }
+                newState = suspended ? oldState | Principal.State.AUTHORITY_SYSTEM_SUSPENDED.getValue() :
+                        oldState & ~Principal.State.AUTHORITY_SYSTEM_SUSPENDED.getValue();
                 roleMember.setSystemDisabled(newState);
                 roleMembersWithUpdatedState = Collections.singletonList(roleMember);
 
