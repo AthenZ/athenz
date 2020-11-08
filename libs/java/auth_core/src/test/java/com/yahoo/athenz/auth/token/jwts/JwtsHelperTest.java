@@ -19,7 +19,6 @@ import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
 import javax.net.ssl.SSLContext;
-
 import static org.testng.Assert.*;
 
 public class JwtsHelperTest {
