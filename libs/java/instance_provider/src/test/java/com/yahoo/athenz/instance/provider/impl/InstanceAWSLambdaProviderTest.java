@@ -74,7 +74,7 @@ public class InstanceAWSLambdaProviderTest {
                 .setAttestationData("{\"document\": \"\",\"signature\": \"signature\",\"role\": \"athenz.service\"}")
                 .setDomain("athenz").setProvider("provider").setService("service");
         HashMap<String, String> attributes = new HashMap<>();
-        attributes.put("cloudAccount", "1234");
+        attributes.put("awsAccount", "1234");
         attributes.put("sanDNS", "service.athenz.athenz.cloud,i-1234.instanceid.athenz.athenz.cloud");
         confirmation.setAttributes(attributes);
         
@@ -96,7 +96,7 @@ public class InstanceAWSLambdaProviderTest {
                 .setAttestationData("{\"signature\": \"signature\",\"role\": \"athenz.service\"}")
                 .setDomain("athenz").setProvider("provider").setService("service");
         HashMap<String, String> attributes = new HashMap<>();
-        attributes.put("cloudAccount", "1234");
+        attributes.put("awsAccount", "1234");
         attributes.put("sanDNS", "service.athenz.athenz.cloud,i-1234.instanceid.athenz.athenz.cloud");
         confirmation.setAttributes(attributes);
         

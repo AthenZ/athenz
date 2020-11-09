@@ -15,7 +15,10 @@
  */
 package com.yahoo.athenz.auth.token.jwts;
 
+import org.mockito.Mockito;
 import org.testng.annotations.Test;
+
+import javax.net.ssl.SSLContext;
 import static org.testng.Assert.*;
 
 public class JwtsHelperTest {
@@ -28,6 +31,8 @@ public class JwtsHelperTest {
         MockJwtsHelper helper = new MockJwtsHelper();
 
         assertEquals(helper.extractJwksUri("localhost", null), "https://localhost/oauth2/keys");
+        assertNull(helper.extractJwksUri(null, null));
+        assertNull(helper.extractJwksUri("", null));
     }
 
     @Test
@@ -68,5 +73,12 @@ public class JwtsHelperTest {
         MockJwtsHelper helper = new MockJwtsHelper();
 
         assertNull(helper.extractJwksUri("localhost", null));
+    }
+
+    @Test
+    public void testGetSocketFactory() {
+        SSLContext sslContext = Mockito.mock(SSLContext.class);
+        JwtsHelper helper = new JwtsHelper();
+        assertNull(helper.getSocketFactory(sslContext));
     }
 }

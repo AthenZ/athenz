@@ -2375,7 +2375,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // now need to get the associated cloud account for the domain name
         
-        String account = cloudStore.getCloudAccount(domainName);
+        String account = cloudStore.getAwsAccount(domainName);
         if (account == null) {
             throw requestError("getAWSTemporaryCredentials: unable to retrieve AWS account for: "
                     + domainName, caller, domainName, principalDomain);
@@ -2780,9 +2780,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // if we have a cloud account setup for this domain, we're going
         // to include it in the optional attributes
         
-        final String account = cloudStore.getCloudAccount(domain);
-        if (account != null) {
-            attributes.put(InstanceProvider.ZTS_INSTANCE_CLOUD_ACCOUNT, account);
+        final String awsAccount = cloudStore.getAwsAccount(domain);
+        if (awsAccount != null) {
+            attributes.put(InstanceProvider.ZTS_INSTANCE_AWS_ACCOUNT, awsAccount);
+        }
+        final String azureSubscription = cloudStore.getAzureSubscription(domain);
+        if (azureSubscription != null) {
+            attributes.put(InstanceProvider.ZTS_INSTANCE_AZURE_SUBSCRIPTION, azureSubscription);
         }
 
         // if this is a class based provider then we're also going

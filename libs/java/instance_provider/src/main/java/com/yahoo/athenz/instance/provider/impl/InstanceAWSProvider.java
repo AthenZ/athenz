@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,8 +54,6 @@ public class InstanceAWSProvider implements InstanceProvider {
     static final String ATTR_PENDING_TIME = "pendingTime";
     static final String ATTR_INSTANCE_ID  = "instanceId";
     static final String ATTR_PRIVATE_IP   = "privateIp";
-
-    static final String ZTS_INSTANCE_AWS_ACCOUNT  = "cloudAccount";
 
     static final String AWS_PROP_PUBLIC_CERT      = "athenz.zts.aws_public_cert";
     static final String AWS_PROP_BOOT_TIME_OFFSET = "athenz.zts.aws_boot_time_offset";
@@ -270,7 +269,7 @@ public class InstanceAWSProvider implements InstanceProvider {
         // object has an associated aws account id
         
         final String awsAccount = InstanceUtils.getInstanceProperty(instanceAttributes, ZTS_INSTANCE_AWS_ACCOUNT);
-        if (awsAccount == null) {
+        if (StringUtil.isEmpty(awsAccount)) {
             throw error("Unable to extract AWS Account id");
         }
         

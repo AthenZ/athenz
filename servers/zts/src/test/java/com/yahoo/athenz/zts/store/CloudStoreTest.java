@@ -119,17 +119,17 @@ public class CloudStoreTest {
     public void testUpdateAccountUpdate() {
 
         CloudStore store = new CloudStore();
-        assertNull(store.getCloudAccount("iaas"));
+        assertNull(store.getAwsAccount("iaas"));
 
         // set the account to 1234
 
-        store.updateAccount("iaas", "1234");
-        assertEquals("1234", store.getCloudAccount("iaas"));
+        store.updateAwsAccount("iaas", "1234");
+        assertEquals("1234", store.getAwsAccount("iaas"));
 
         // update the account value
 
-        store.updateAccount("iaas", "1235");
-        assertEquals("1235", store.getCloudAccount("iaas"));
+        store.updateAwsAccount("iaas", "1235");
+        assertEquals("1235", store.getAwsAccount("iaas"));
         store.close();
     }
 
@@ -140,23 +140,23 @@ public class CloudStoreTest {
 
         // set the account to 1234
 
-        store.updateAccount("iaas", "1234");
-        assertEquals("1234", store.getCloudAccount("iaas"));
+        store.updateAwsAccount("iaas", "1234");
+        assertEquals("1234", store.getAwsAccount("iaas"));
 
         // delete the account with null
 
-        store.updateAccount("iaas", null);
-        assertNull(store.getCloudAccount("iaas"));
+        store.updateAwsAccount("iaas", null);
+        assertNull(store.getAwsAccount("iaas"));
 
         // update the account value
 
-        store.updateAccount("iaas", "1235");
-        assertEquals("1235", store.getCloudAccount("iaas"));
+        store.updateAwsAccount("iaas", "1235");
+        assertEquals("1235", store.getAwsAccount("iaas"));
 
         // delete the account with empty string
 
-        store.updateAccount("iaas", "");
-        assertNull(store.getCloudAccount("iaas"));
+        store.updateAwsAccount("iaas", "");
+        assertNull(store.getAwsAccount("iaas"));
         store.close();
     }
 
@@ -164,13 +164,13 @@ public class CloudStoreTest {
     public void testGetAssumeRoleRequest() {
 
         CloudStore store = new CloudStore();
-        AssumeRoleRequest req = store.getAssumeRoleRequest("1234", "admin", "sys.auth.zts", null, null);
+        AssumeRoleRequest req = store.getAssumeRoleRequest("1234", "admin", null, null);
         assertEquals("arn:aws:iam::1234:role/admin", req.getRoleArn());
         assertEquals("athenz-zts-service", req.getRoleSessionName());
         assertNull(req.getDurationSeconds());
         assertNull(req.getExternalId());
 
-        req = store.getAssumeRoleRequest("12345", "adminuser", "athenz.zts", 101, "external");
+        req = store.getAssumeRoleRequest("12345", "adminuser", 101, "external");
         assertEquals("arn:aws:iam::12345:role/adminuser", req.getRoleArn());
         assertEquals("athenz-zts-service", req.getRoleSessionName());
         assertEquals(Integer.valueOf(101), req.getDurationSeconds());
@@ -306,7 +306,6 @@ public class CloudStoreTest {
         store.close();
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void testGetMetaDataExceptions() throws InterruptedException, ExecutionException, TimeoutException {
 
