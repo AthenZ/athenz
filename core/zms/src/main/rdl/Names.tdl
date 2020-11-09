@@ -21,7 +21,7 @@ type EntityName String (pattern="{CompoundName}");
 //A service name will generally be a unique subdomain.
 type ServiceName String (pattern="{CompoundName}");
 
-//A location name is not yet defined, but will be a 
+//A location name is not yet defined, but will be a
 //dotted name like everything else.
 type LocationName String (pattern="{CompoundName}");
 
@@ -69,3 +69,7 @@ type MemberName String (pattern="\\*|{DomainName}\\.\\*|{ServiceName}(\\*)?|{Gro
 //A comma separated list of authority keywords
 type AuthorityKeyword String (pattern="{SimpleName}");
 type AuthorityKeywords String (pattern="({AuthorityKeyword},)*{AuthorityKeyword}");
+
+type StringList Struct {
+    Array<CompoundName> list; //generic list of strings
+}

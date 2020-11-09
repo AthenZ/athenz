@@ -21,9 +21,11 @@ resource RoleList GET "/domain/{domainName}/role?limit={limit}&skip={skip}" {
 
 // Get the list of all roles in a domain with optional flag
 // whether or not include members
-resource Roles GET "/domain/{domainName}/roles?members={members}" {
+resource Roles GET "/domain/{domainName}/roles?members={members}&tagKey={tagKey}&tagValue={tagValue}" {
     DomainName domainName; // name of the domain
     Bool members (optional, default=false); // return list of members in the role
+    CompoundName tagKey (optional); //flag to query all roles that have a given tagName
+    CompoundName tagValue (optional); //flag to query all roles that have a given tag name and value
     authenticate;
     exceptions {
         ResourceError BAD_REQUEST;
@@ -166,7 +168,7 @@ resource Membership PUT "/domain/{domainName}/role/{roleName}/member/{memberName
 }
 
 //Delete the specified role membership. Upon successful completion of this delete
-//request, the server will return NO_CONTENT status code without any data (no 
+//request, the server will return NO_CONTENT status code without any data (no
 //object will be returned).
 resource Membership DELETE "/domain/{domainName}/role/{roleName}/member/{memberName}" {
     DomainName domainName; //name of the domain

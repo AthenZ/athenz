@@ -831,13 +831,15 @@ public class ZMSClient implements Closeable {
      *
      * @param domainName name of the domain
      * @param members    include all members for group roles as well
+     * @param tagKey     query all roles with given tag name
+     * @param tagValue  query all roles with given tag key and value
      * @return list of roles
      * @throws ZMSClientException in case of failure
      */
-    public Roles getRoles(String domainName, Boolean members) {
+    public Roles getRoles(String domainName, Boolean members, String tagKey, String tagValue) {
         updatePrincipal();
         try {
-            return client.getRoles(domainName, members);
+            return client.getRoles(domainName, members, tagKey, tagValue);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
@@ -2040,7 +2042,7 @@ public class ZMSClient implements Closeable {
         }
 
         // before returning let's validate that domain, name and
-        // credentials match to what was passed to 
+        // credentials match to what was passed to
 
         if (!servicePrincipal.getDomain().equalsIgnoreCase(validatedPrincipal.getDomain())) {
             throw new ZMSClientException(ZMSClientException.UNAUTHORIZED, "Validated principal domain name mismatch");

@@ -50,7 +50,7 @@ public class ZMSClientTest {
     private String systemAdminFullUser = null;
     private static String ZMS_CLIENT_PROP_ZMS_URL = "athenz.zms.client.zms_url";
     private static String ZMS_CLIENT_PROP_TEST_ADMIN = "athenz.zms.client.test_admin";
-    
+
     private static final String PUB_KEY_ZONE1 = "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlHZk1BM"
             + "EdDU3FHU0liM0RRRUJBUVVBQTRHTkFEQ0JpUUtCZ1FDMXRHU1ZDQTh3bDVldzVZNzZXajJySkFVRA"
             + "pZYW5FSmZLbUFseDVjUS84aEtFVWZTU2dwWHIzQ3pkaDFhMjZkbGI3bW1LMjlxbVhKWGg2dW1XOUF"
@@ -61,21 +61,21 @@ public class ZMSClientTest {
             + "UpLb1pJaHZjTkFRRUJCUUFEU3dBd1NBSkJBTDRnNlF1bGVRcG42bytpSmorK09nenNZM3hXekhHUw"
             + "p4ZW1xZzZhdkkvbHhvT3Jzd2h4YW93MjMrR3AxZXhOWEdzQlNsTkFQSXh5N3RHTXZaRnY0Q3ZrQ0F"
             + "3RUFBUT09Ci0tLS0tRU5EIFBVQkxJQyBLRVktLS0tLQo-";
-    
+
     private boolean printURL = true;
-    
+
     static final Struct TABLE_PROVIDER_ROLE_ACTIONS = new Struct()
         .with("admin", "*").with("writer", "WRITE").with("reader", "READ");
 
     private static String AUDIT_REF = "zmsjcltest";
- 
+
     static final int BASE_PRODUCT_ID = 100000000; // these product id's will lie in 100 million range
     static java.util.Random domainProductId = new java.security.SecureRandom();
 
     static synchronized int getRandomProductId() {
         return BASE_PRODUCT_ID + domainProductId.nextInt(99999999);
     }
-    
+
     @BeforeClass
     public void setup() {
         System.setProperty(ZMS_CLIENT_PROP_ZMS_URL, "http://localhost:10080/");
@@ -83,13 +83,13 @@ public class ZMSClientTest {
         systemAdminUser = System.getProperty(ZMS_CLIENT_PROP_TEST_ADMIN, "user_admin");
         systemAdminFullUser = "user." + systemAdminUser;
     }
-    
+
     private Principal createPrincipal(String userName) {
         Authority authority = new com.yahoo.athenz.auth.impl.PrincipalAuthority();
         return SimplePrincipal.create("user", userName,
                 "v=U1;d=user;n=" + userName + ";s=signature", 0, authority);
     }
-    
+
     private DomainMeta createDomainMetaObject(String description, String org, boolean auditEnabled) {
 
         DomainMeta meta = new DomainMeta();
@@ -99,7 +99,7 @@ public class ZMSClientTest {
 
         return meta;
     }
-    
+
     private ZMSClient createClient(String userName) {
         ZMSClient client = new ZMSClient(getZMSUrl());
         client.addCredentials(createPrincipal(userName));
@@ -107,22 +107,22 @@ public class ZMSClientTest {
             System.out.println("ZMS Url set to: " + client.getZmsUrl());
             printURL = false;
         }
-        
+
         return client;
     }
-    
+
     private String getZMSUrl() {
 
         // if we're given a config setting then use that
-        
+
         String zmsUrl = System.getProperty(ZMS_CLIENT_PROP_ZMS_URL);
-        
+
         // if the value is not available then check the env setting
-        
+
         if (zmsUrl == null) {
             zmsUrl = System.getenv("ZMS_URL");
         }
-        
+
         return zmsUrl;
     }
 
@@ -145,7 +145,7 @@ public class ZMSClientTest {
 
     private SubDomain createSubDomainObject(String name, String parent,
             String description, String org, String admin) {
-        
+
         SubDomain dom = new SubDomain();
         dom.setName(name);
         dom.setDescription(description);
@@ -159,14 +159,14 @@ public class ZMSClientTest {
 
         return dom;
     }
-    
-    private Role createRoleObject(ZMSClient client, String domainName, String roleName, 
+
+    private Role createRoleObject(ZMSClient client, String domainName, String roleName,
             String trust, String member1, String member2) {
-        
+
         Role role = new Role();
         role.setName(client.generateRoleName(domainName, roleName));
         role.setTrust(trust);
-        
+
         List<String> members = new ArrayList<>();
         members.add(member1);
         if (member2 != null) {
@@ -191,35 +191,35 @@ public class ZMSClientTest {
 
     private Policy createPolicyObject(ZMSClient client, String domainName, String policyName,
             String roleName, String action, String resource, AssertionEffect effect) {
-        
+
         Policy policy = new Policy();
         policy.setName(client.generatePolicyName(domainName, policyName));
-        
+
         Assertion assertion = new Assertion();
         assertion.setAction(action);
         assertion.setEffect(effect);
         assertion.setResource(resource);
         assertion.setRole(client.generateRoleName(domainName, roleName));
-        
+
         List<Assertion> assertList = new ArrayList<>();
         assertList.add(assertion);
-        
+
         policy.setAssertions(assertList);
         return policy;
     }
-    
+
     private Policy createPolicyObject(ZMSClient client, String domainName, String policyName) {
         return createPolicyObject(client, domainName, policyName, "Role1", "*", domainName + ":*", AssertionEffect.ALLOW);
     }
-    
-    private ServiceIdentity createServiceObject(ZMSClient client, String domainName, 
+
+    private ServiceIdentity createServiceObject(ZMSClient client, String domainName,
             String serviceName, String endPoint, String executable, String user,
             String group, String host) {
-        
+
         ServiceIdentity service = new ServiceIdentity();
         service.setExecutable(executable);
         service.setName(client.generateServiceIdentityName(domainName, serviceName));
-        
+
         List<PublicKeyEntry> pubKeys = new ArrayList<>();
         pubKeys.add(new PublicKeyEntry().setId("0")
                 .setKey("LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlHZk1BMEdDU3FHU0liM0RRRUJBUVVBQTRHTk"
@@ -229,23 +229,23 @@ public class ZMSClientTest {
                       + "i0tLS0tRU5EIFBVQkxJQyBLRVktLS0tLQo-"));
 
         service.setPublicKeys(pubKeys);
-        
+
         service.setUser(user);
         service.setGroup(group);
 
         service.setProviderEndpoint(endPoint);
-        
+
         List<String> hosts = new ArrayList<>();
         hosts.add(host);
         service.setHosts(hosts);
-        
+
         return service;
     }
 
-    private ServiceIdentity createServiceObjectWithZoneKeys(ZMSClient client, String domainName, 
+    private ServiceIdentity createServiceObjectWithZoneKeys(ZMSClient client, String domainName,
             String serviceName, String endPoint, String executable, String user,
             String group, String host) {
-        
+
         ServiceIdentity service = new ServiceIdentity();
         service.setExecutable(executable);
         service.setGroup(group);
@@ -253,40 +253,40 @@ public class ZMSClientTest {
         service.setUser(user);
 
         List<PublicKeyEntry> pubKeys = new ArrayList<>();
-        
+
         PublicKeyEntry key1 = new PublicKeyEntry();
         key1.setId("zone1");
         key1.setKey(PUB_KEY_ZONE1);
-        
+
         PublicKeyEntry key2 = new PublicKeyEntry();
         key2.setId("zone2");
         key2.setKey(PUB_KEY_ZONE2);
-        
+
         pubKeys.add(key1);
         pubKeys.add(key2);
         service.setPublicKeys(pubKeys);
-        
+
         service.setProviderEndpoint(endPoint);
-        
+
         List<String> hosts = new ArrayList<>();
         hosts.add(host);
         service.setHosts(hosts);
-        
+
         return service;
     }
-    
+
     private Entity createEntityObject(ZMSClient client, String entityName) {
-        
+
         Entity entity = new Entity();
         entity.setName(entityName);
-        
+
         Struct value = new Struct();
         value.put("Key1", "Value1");
         entity.setValue(value);
-        
+
         return entity;
     }
-    
+
     private Tenancy createTenantObject(String domain, String service) {
 
         Tenancy tenant = new Tenancy();
@@ -295,7 +295,7 @@ public class ZMSClientTest {
 
         return tenant;
     }
-    
+
     private void testCreateTopLevelDomain(ZMSClient client, String adminUser) {
 
         TopLevelDomain dom1 = createTopLevelDomainObject("AddTopDom1",
@@ -305,21 +305,21 @@ public class ZMSClientTest {
 
         Domain resDom2 = client.getDomain("AddTopDom1");
         assertNotNull(resDom2);
-        
+
         try {
             client.getDomain("AddTopDom3");
             fail();
         } catch(ResourceException ex) {
             assertTrue(true);
         }
-        
+
         try {
             client.getDomain("AddTopDom3");
             fail();
         } catch(ResourceException ex) {
             assertTrue(true);
         }
-        
+
         client.deleteTopLevelDomain("AddTopDom1", AUDIT_REF);
     }
 
@@ -331,19 +331,19 @@ public class ZMSClientTest {
         assertNotNull(resDom1);
 
         // we should get an exception for the second call
-        
+
         try {
             client.postTopLevelDomain(AUDIT_REF, dom1);
             fail();
         } catch (Exception ex) {
             assertTrue(true);
         }
-        
+
         client.deleteTopLevelDomain("AddOnceTopDom1", AUDIT_REF);
     }
 
     private void testCreateSubDomain(ZMSClient client, String adminUser) {
-        
+
         TopLevelDomain dom1 = createTopLevelDomainObject("AddSubDom1",
                 "Test Domain1", "testOrg", adminUser);
         client.postTopLevelDomain(AUDIT_REF, dom1);
@@ -358,17 +358,17 @@ public class ZMSClientTest {
         } catch(ResourceException ex) {
             assertTrue(true);
         }
-        
+
         Domain resDom2 = client.getDomain("AddSubDom1.AddSubDom2");
         assertNotNull(resDom2);
-        
+
         client.deleteSubDomain("AddSubDom1", "AddSubDom2", AUDIT_REF);
-        
+
         client.deleteTopLevelDomain("AddSubDom1", AUDIT_REF);
     }
 
     private void testCreateSubdomainOnceOnly(ZMSClient client, String adminUser) {
-        
+
         TopLevelDomain dom1 = createTopLevelDomainObject("AddOnceSubDom1",
                 "Test Domain1", "testOrg", adminUser);
         client.postTopLevelDomain(AUDIT_REF, dom1);
@@ -379,32 +379,32 @@ public class ZMSClientTest {
         assertNotNull(resDom1);
 
         // we should get an exception for the second call
-        
+
         try {
             client.postSubDomain("AddOnceSubDom1", AUDIT_REF, dom2);
             fail();
         } catch (Exception ex) {
             assertTrue(true);
         }
-        
+
         client.deleteSubDomain("AddOnceSubDom1", "AddOnceSubDom2", AUDIT_REF);
         client.deleteTopLevelDomain("AddOnceSubDom1", AUDIT_REF);
     }
 
     private void testCreateRole(ZMSClient client, String adminUser) {
-        
+
         TopLevelDomain dom1 = createTopLevelDomainObject("CreateRoleDom1",
                 "Test Domain1", "testOrg", adminUser);
         client.postTopLevelDomain(AUDIT_REF, dom1);
-        
+
         Role role1 = createRoleObject(client, "CreateRoleDom1", "Role1", null, "user.joe", "user.jane");
         client.putRole("CreateRoleDom1", "Role1", AUDIT_REF, role1);
-        
+
         Role role3 = client.getRole("CreateRoleDom1", "Role1");
         assertNotNull(role3);
         assertEquals(role3.getName(), "CreateRoleDom1:role.Role1".toLowerCase());
         assertNull(role3.getTrust());
-        
+
         try {
             client.putRole("CreateRoleDom1", "Role2", AUDIT_REF, role1);
             fail();
@@ -417,7 +417,7 @@ public class ZMSClientTest {
         } catch (ResourceException ex) {
             assertTrue(true);
         }
-        
+
         try {
             client.getRole("CreateRoleDom1", "Role2");
             fail();
@@ -430,20 +430,20 @@ public class ZMSClientTest {
         } catch (ResourceException ex) {
             assertTrue(true);
         }
-        
+
         client.deleteTopLevelDomain("CreateRoleDom1", AUDIT_REF);
     }
 
     private void testAddMembership(ZMSClient client, String adminUser) {
-        
+
         TopLevelDomain dom1 = createTopLevelDomainObject("MbrAddDom1",
                 "Test Domain1", "testOrg", adminUser);
         client.postTopLevelDomain(AUDIT_REF, dom1);
-        
+
         Role role1 = createRoleObject(client, "MbrAddDom1", "Role1", null, "user.member1", "user.member2");
         client.putRole("MbrAddDom1", "Role1", AUDIT_REF, role1);
         client.putMembership("MbrAddDom1", "Role1", "user.member3", AUDIT_REF);
-        
+
         client.putMembership("MbrAddDom1", "Role1", "user.member4",
                 Timestamp.fromMillis(100000), AUDIT_REF);
 
@@ -455,7 +455,7 @@ public class ZMSClientTest {
 
         Role role = client.getRole("MbrAddDom1", "Role1");
         assertNotNull(role);
-        
+
         List<RoleMember> members = role.getRoleMembers();
         assertEquals(members.size(), 6);
         RoleMember roleMember1 = new RoleMember().setMemberName("user.member1");
@@ -506,25 +506,25 @@ public class ZMSClientTest {
     }
 
     private void testDeleteMembership(ZMSClient client, String adminUser) {
-        
+
         TopLevelDomain dom1 = createTopLevelDomainObject("MbrDelDom1",
                 "Test Domain1", "testOrg", adminUser);
         client.postTopLevelDomain(AUDIT_REF, dom1);
-        
+
         Role role1 = createRoleObject(client, "MbrDelDom1", "Role1", null, "user.joe", "user.jane");
         client.putRole("MbrDelDom1", "Role1", AUDIT_REF, role1);
         client.deleteMembership("MbrDelDom1", "Role1", "user.joe", AUDIT_REF);
-        
+
         Role role = client.getRole("MbrDelDom1", "Role1");
         assertNotNull(role);
-        
+
         List<String> members = role.getMembers();
         assertNotNull(members);
         assertEquals(members.size(), 1);
-        
+
         assertFalse(members.contains("user.joe"));
         assertTrue(members.contains("user.jane"));
-        
+
         client.deleteTopLevelDomain("MbrDelDom1", AUDIT_REF);
     }
 
@@ -599,14 +599,14 @@ public class ZMSClientTest {
     }
 
     private void testCreatePolicy(ZMSClient client, String adminUser) {
-        
+
         TopLevelDomain dom1 = createTopLevelDomainObject("PolicyAddDom1",
                 "Test Domain1", "testOrg", adminUser);
         client.postTopLevelDomain(AUDIT_REF, dom1);
-        
+
         Policy policy1 = createPolicyObject(client, "PolicyAddDom1", "Policy1");
         client.putPolicy("PolicyAddDom1", "Policy1", AUDIT_REF, policy1);
-        
+
         Policy policyRes2 = client.getPolicy("PolicyAddDom1", "Policy1");
         assertNotNull(policyRes2);
         assertEquals(policyRes2.getName(), "PolicyAddDom1:policy.Policy1".toLowerCase());
@@ -643,26 +643,26 @@ public class ZMSClientTest {
     }
 
     private void testDeletePolicy(ZMSClient client, String adminUser) {
-        
+
         TopLevelDomain dom1 = createTopLevelDomainObject("PolicyDelDom1",
                 "Test Domain1", "testOrg", adminUser);
         client.postTopLevelDomain(AUDIT_REF, dom1);
-        
+
         Policy policy1 = createPolicyObject(client, "PolicyDelDom1", "Policy1");
         client.putPolicy("PolicyDelDom1", "Policy1", AUDIT_REF, policy1);
 
         Policy policy2 = createPolicyObject(client, "PolicyDelDom1", "Policy2");
         client.putPolicy("PolicyDelDom1", "Policy2", AUDIT_REF, policy2);
-        
+
         Policy policyRes1 = client.getPolicy("PolicyDelDom1", "Policy1");
         assertNotNull(policyRes1);
 
         Policy policyRes2 = client.getPolicy("PolicyDelDom1", "Policy2");
         assertNotNull(policyRes2);
-        
+
         client.deletePolicy("PolicyDelDom1", "Policy1", AUDIT_REF);
-        
-        // we need to get an exception here 
+
+        // we need to get an exception here
         try {
             client.getPolicy("PolicyDelDom1", "Policy1");
             fail();
@@ -675,7 +675,7 @@ public class ZMSClientTest {
 
         client.deletePolicy("PolicyDelDom1", "Policy2", AUDIT_REF);
 
-        // we need to get an exception here 
+        // we need to get an exception here
         try {
             client.getPolicy("PolicyDelDom1", "Policy1");
             fail();
@@ -683,7 +683,7 @@ public class ZMSClientTest {
             assertTrue(true);
         }
 
-        // we need to get an exception here 
+        // we need to get an exception here
         try {
             client.getPolicy("PolicyDelDom1", "Policy2");
             fail();
@@ -709,16 +709,16 @@ public class ZMSClientTest {
     }
 
     private void testCreateServiceIdentity(ZMSClient client, String adminUser) {
-        
+
         TopLevelDomain dom1 = createTopLevelDomainObject("ServiceAddDom1",
                 "Test Domain1", "testOrg", adminUser);
         client.postTopLevelDomain(AUDIT_REF, dom1);
-        
-        ServiceIdentity service = createServiceObject(client, "ServiceAddDom1", "Service1", 
+
+        ServiceIdentity service = createServiceObject(client, "ServiceAddDom1", "Service1",
                 "http://localhost", "/usr/bin/java", "root", "users", "host1");
 
         client.putServiceIdentity("ServiceAddDom1", "Service1", AUDIT_REF, service);
-        
+
         ServiceIdentity serviceRes2 = client.getServiceIdentity("ServiceAddDom1", "Service1");
         assertNotNull(serviceRes2);
         assertEquals(serviceRes2.getName(), "ServiceAddDom1.Service1".toLowerCase());
@@ -739,20 +739,20 @@ public class ZMSClientTest {
 
         client.deleteTopLevelDomain("ServiceAddDom1", AUDIT_REF);
     }
- 
+
     private void testDeletePublicKeyEntry(ZMSClient client, String adminUser) {
-        
+
         TopLevelDomain dom1 = createTopLevelDomainObject("DelPublicKeyDom1",
                 "Test Domain1", "testOrg", adminUser);
         client.postTopLevelDomain(AUDIT_REF, dom1);
-        
-        ServiceIdentity service = createServiceObjectWithZoneKeys(client, "DelPublicKeyDom1", "Service1", 
+
+        ServiceIdentity service = createServiceObjectWithZoneKeys(client, "DelPublicKeyDom1", "Service1",
                 "http://localhost", "/usr/bin/java", "root", "users", "host1");
 
         client.putServiceIdentity("DelPublicKeyDom1", "Service1", AUDIT_REF, service);
-        
+
         client.deletePublicKeyEntry("DelPublicKeyDom1", "Service1", "zone1", AUDIT_REF);
-        
+
         try {
             client.getPublicKeyEntry("DelPublicKeyDom1", "Service1", "zone1");
             fail();
@@ -772,7 +772,7 @@ public class ZMSClientTest {
         assertEquals(entry.getKey(), PUB_KEY_ZONE2);
 
         // we are not allowed to delete the last public key
-        
+
         try {
             client.deletePublicKeyEntry("DelPublicKeyDom1", "Service1", "zone2", AUDIT_REF);
             fail();
@@ -794,14 +794,14 @@ public class ZMSClientTest {
     }
 
     private void testCreateEntity(ZMSClient client, String adminUser) {
-        
+
         TopLevelDomain dom1 = createTopLevelDomainObject("CreateEntityDom1",
                 "Test Domain1", "testOrg", adminUser);
         client.postTopLevelDomain(AUDIT_REF, dom1);
-        
+
         Entity entity1 = createEntityObject(client, "Entity1");
         client.putEntity("CreateEntityDom1", "Entity1", AUDIT_REF, entity1);
-        
+
         Entity entity2 = client.getEntity("CreateEntityDom1", "Entity1");
         assertNotNull(entity2);
         assertEquals(entity2.getName(), "Entity1".toLowerCase());
@@ -844,13 +844,13 @@ public class ZMSClientTest {
         TopLevelDomain dom1 = createTopLevelDomainObject("DelEntityDom1",
                 "Test Domain1", "testOrg", adminUser);
         client.postTopLevelDomain(AUDIT_REF, dom1);
-        
+
         Entity entity1 = createEntityObject(client, "Entity1");
         client.putEntity("DelEntityDom1", "Entity1", AUDIT_REF, entity1);
-        
+
         Entity entity2 = createEntityObject(client, "Entity2");
         client.putEntity("DelEntityDom1", "Entity2", AUDIT_REF, entity2);
-        
+
         Entity entityRes = client.getEntity("DelEntityDom1", "Entity1");
         assertNotNull(entityRes);
 
@@ -904,7 +904,7 @@ public class ZMSClientTest {
     }
 
     // Unit Tests for ZMS Java Client
-    
+
     @Test
     public void testClientConstructors() throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException, KeyManagementException {
 
@@ -1033,7 +1033,7 @@ public class ZMSClientTest {
         String zmsUrl = "http://localhost:11080/zms/v1";
         ZMSClient client = new ZMSClient(zmsUrl);
         assertNotNull(client);
-        
+
         // verify we can't get domain list and try some
         // other operations which should all return
         // zms client exceptions
@@ -1044,17 +1044,17 @@ public class ZMSClientTest {
         } catch (ZMSClientException ex) {
             assertTrue(true);
         }
-        
+
         try {
             TopLevelDomain dom1 = createTopLevelDomainObject("OnlyUrlDomain",
                     "Test Domain1", "testOrg", systemAdminFullUser);
-            
+
             client.postTopLevelDomain(AUDIT_REF, dom1);
             fail();
         } catch (ZMSClientException ex) {
             assertTrue(true);
         }
-        
+
         try {
             client.getAccess("UPDATE", "AccessDom1:resource1", "AccessDom1");
             fail();
@@ -1062,7 +1062,7 @@ public class ZMSClientTest {
             assertTrue(true);
         }
     }
-    
+
     @Test
     public void testClientUrlPrincipal() {
 
@@ -1088,7 +1088,7 @@ public class ZMSClientTest {
 
         client.deleteTopLevelDomain("UrlPrincipalDomain", AUDIT_REF);
     }
-    
+
     @Test
     public void testClientClearPrincipal() {
         String zmsUrl = getZMSUrl();
@@ -1140,7 +1140,7 @@ public class ZMSClientTest {
         DomainList domList = client.getDomainList();
         assertNotNull(domList);
     }
-        
+
     @Test
     public void testClientWithoutEndingSlash() {
         String zmsUrl = getZMSUrl();
@@ -1163,7 +1163,7 @@ public class ZMSClientTest {
         DomainList domList = client.getDomainList();
         assertNotNull(domList);
     }
-    
+
     @Test
     public void testGetDomainList() {
         ZMSClient client = createClient(systemAdminUser);
@@ -1186,7 +1186,7 @@ public class ZMSClientTest {
             assertTrue(true);
         }
     }
-    
+
     @Test
     public void testDeleteSubDomain() {
         ZMSClient client = createClient(systemAdminUser);
@@ -1294,15 +1294,15 @@ public class ZMSClientTest {
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
         try {
-            Mockito.when(c.getRoles("domain1", true)).thenThrow(new NullPointerException());
-            client.getRoles("domain1", true);
+            Mockito.when(c.getRoles("domain1", true, null, null)).thenThrow(new NullPointerException());
+            client.getRoles("domain1", true, null, null);
             fail();
         } catch (ResourceException ex) {
             assertTrue(true);
         }
         try {
-            Mockito.when(c.getRoles("domain2", true)).thenThrow(new ResourceException(400));
-            client.getRoles("domain2", true);
+            Mockito.when(c.getRoles("domain2", true, null, null)).thenThrow(new ResourceException(400));
+            client.getRoles("domain2", true, null, null);
             fail();
         } catch (ResourceException ex) {
             assertTrue(true);
@@ -1442,7 +1442,7 @@ public class ZMSClientTest {
             assertTrue(true);
         }
     }
-    
+
     @Test
     public void testGetResourceAccessList() {
         ZMSClient client = createClient(systemAdminUser);
@@ -1616,13 +1616,13 @@ public class ZMSClientTest {
             assertTrue(true);
         }
     }
-    
+
     @Test
     public void testUserTokenWithAuthority() {
         ZMSClient client = createClient(systemAdminUser);
         assertNotNull(client);
     }
-    
+
     @Test
     public void testCreateTopLevelDomainUserToken() {
         ZMSClient client = createClient(systemAdminUser);
@@ -1740,7 +1740,7 @@ public class ZMSClientTest {
             assertTrue(true);
         }
     }
-    
+
     @Test
     public void testDeleteRole() {
         ZMSClient client = createClient(systemAdminUser);
@@ -2123,7 +2123,7 @@ public class ZMSClientTest {
             assertTrue(true);
         }
     }
-    
+
     @Test
     public void testAddMembershipUserToken() {
         ZMSClient client = createClient(systemAdminUser);
@@ -2199,7 +2199,7 @@ public class ZMSClientTest {
         } catch (ZMSClientException ex) {
             fail();
         }
-        
+
         try {
             client.deleteUser("doe", AUDIT_REF);
             fail();
@@ -2214,7 +2214,7 @@ public class ZMSClientTest {
             assertEquals(ex.getCode(), 400);
         }
     }
-    
+
     @Test
     public void testGetUserList() {
         ZMSClient client = createClient(systemAdminUser);
@@ -2232,7 +2232,7 @@ public class ZMSClientTest {
         } catch (ZMSClientException ex) {
             fail();
         }
-        
+
         try {
             client.getUserList();
             fail();
@@ -2277,7 +2277,7 @@ public class ZMSClientTest {
             assertEquals(ex.getCode(), 400);
         }
     }
-    
+
     @Test
     public void testCreatePolicyUserToken() {
         ZMSClient client = createClient(systemAdminUser);
@@ -2315,7 +2315,7 @@ public class ZMSClientTest {
         Mockito.when(c.deletePolicy("PolicyDelDom3", "Policy1", AUDIT_REF)).thenThrow(new NullPointerException());
         testDeletePolicy(client, systemAdminFullUser);
     }
-    
+
     @Test
     public void testDeletePublicKeyEntryUserToken() {
         ZMSClient client = createClient(systemAdminUser);
@@ -2380,10 +2380,10 @@ public class ZMSClientTest {
         Mockito.when(c.getEntity("DelEntityDom1", "Entity2")).thenReturn(entityMock,entityMock).thenThrow(new ResourceException(204));
         testDeleteEntity(client, systemAdminFullUser);
     }
-    
+
     @Test
     public void testGetPrincipalNull() {
-        
+
         ZMSClient client = new ZMSClient(getZMSUrl());
         try {
             client.getPrincipal(null);
@@ -2393,10 +2393,10 @@ public class ZMSClientTest {
         }
         client.close();
     }
-    
+
     @Test
     public void testGetPrincipalInvalid() {
-        
+
         ZMSClient client = new ZMSClient(getZMSUrl());
         try {
             client.getPrincipal("abcdefg");
@@ -2404,14 +2404,14 @@ public class ZMSClientTest {
         } catch (ZMSClientException ex) {
             assertEquals(401, ex.getCode());
         }
-        
+
         try {
             client.getPrincipal("v=U1;d=coretech;t=12345678;s=signature");
             fail();
         } catch (ZMSClientException ex) {
             assertEquals(401, ex.getCode());
         }
-        
+
         try {
             client.getPrincipal("v=U1;n=storage;t=12345678;s=signature");
             fail();
@@ -2420,20 +2420,20 @@ public class ZMSClientTest {
         }
         client.close();
     }
-    
+
     Struct setupRespHdrsStruct() {
-        
+
         Struct respHdrs = new Struct();
         Array values = new Array();
         values.add("Value1A");
         values.add("Value1B");
         respHdrs.put("tag1", values);
-        
+
         values = new Array();
         values.add("Value2A");
         values.add("Value2B");
         respHdrs.put("tag2", values);
-        
+
         return respHdrs;
     }
 
@@ -2456,7 +2456,7 @@ public class ZMSClientTest {
 
     @Test
     public void testLookupZMSUrl() throws Exception {
-        
+
         System.setProperty(ZMSClient.ZMS_CLIENT_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
         ZMSClient client = new ZMSClient(getZMSUrl());
         assertEquals(client.lookupZMSUrl(), "https://server-zms.athenzcompany.com:4443/");
@@ -2472,7 +2472,7 @@ public class ZMSClientTest {
         client.close();
         setEnv("ROOT", envValue);
     }
-    
+
     @Test
     public void testLookupZMSUrlInvalidFile() {
         System.setProperty(ZMSClient.ZMS_CLIENT_PROP_ATHENZ_CONF, "src/test/resources/athenz_invaild.conf");
@@ -2609,7 +2609,7 @@ public class ZMSClientTest {
         client.deleteDomainTemplate(domName, svrTemplNames.get(1), AUDIT_REF);
         client.deleteTopLevelDomain(domName, AUDIT_REF);
     }
-    
+
     @Test
     public void testGetQuota() {
         ZMSClient client = createClient(systemAdminUser);
@@ -2621,7 +2621,7 @@ public class ZMSClientTest {
         Mockito.when(c.getQuota("athenz")).thenReturn(quota)
                 .thenThrow(new ZMSClientException(401, "fail"))
                 .thenThrow(new IllegalArgumentException("other-error"));
-        
+
         Quota quotaRes = client.getQuota("athenz");
         assertNotNull(quotaRes);
         assertEquals(quotaRes.getPolicy(), 12);
@@ -2645,7 +2645,7 @@ public class ZMSClientTest {
             assertEquals(400, ex.getCode());
         }
     }
-    
+
     @Test
     public void testPutQuota() {
         ZMSClient client = createClient(systemAdminUser);
@@ -2661,7 +2661,7 @@ public class ZMSClientTest {
 
 
         // first time it completes successfully
-        
+
         client.putQuota("athenz", AUDIT_REF, quota);
 
         // second time it fails
@@ -2682,7 +2682,7 @@ public class ZMSClientTest {
             assertEquals(400, ex.getCode());
         }
     }
-    
+
     @Test
     public void testDeleteQuota() {
         ZMSClient client = createClient(systemAdminUser);
@@ -2693,7 +2693,7 @@ public class ZMSClientTest {
                 .thenThrow(new IllegalArgumentException("other-error"));
 
         // first time it completes successfully
-        
+
         client.deleteQuota("athenz", AUDIT_REF);
 
         // second time it fails

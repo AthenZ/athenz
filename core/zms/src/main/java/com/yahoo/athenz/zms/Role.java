@@ -6,6 +6,7 @@ package com.yahoo.athenz.zms;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;
+import java.util.Map;
 import com.yahoo.rdl.*;
 
 //
@@ -52,6 +53,9 @@ public class Role {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Integer groupExpiryDays;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Map<String, StringList> tags;
     public String name;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -166,6 +170,13 @@ public class Role {
     public Integer getGroupExpiryDays() {
         return groupExpiryDays;
     }
+    public Role setTags(Map<String, StringList> tags) {
+        this.tags = tags;
+        return this;
+    }
+    public Map<String, StringList> getTags() {
+        return tags;
+    }
     public Role setName(String name) {
         this.name = name;
         return this;
@@ -267,6 +278,9 @@ public class Role {
                 return false;
             }
             if (groupExpiryDays == null ? a.groupExpiryDays != null : !groupExpiryDays.equals(a.groupExpiryDays)) {
+                return false;
+            }
+            if (tags == null ? a.tags != null : !tags.equals(a.tags)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

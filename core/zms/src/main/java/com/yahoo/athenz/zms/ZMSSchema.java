@@ -89,6 +89,9 @@ public class ZMSSchema {
         sb.stringType("AuthorityKeywords")
             .pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*,)*[a-zA-Z0-9_][a-zA-Z0-9_-]*");
 
+        sb.structType("StringList")
+            .arrayField("list", "CompoundName", false, "generic list of strings");
+
         sb.structType("DomainMeta")
             .comment("Set of metadata attributes that all domains may have and can be changed.")
             .field("description", "String", true, "a description of the domain")
@@ -160,7 +163,8 @@ public class ZMSSchema {
             .field("notifyRoles", "String", true, "list of roles whose members should be notified for member review/approval")
             .field("userAuthorityFilter", "String", true, "membership filtered based on user authority configured attributes")
             .field("userAuthorityExpiration", "String", true, "expiration enforced by a user authority configured attribute")
-            .field("groupExpiryDays", "Int32", true, "all groups in the domain roles will have specified max expiry days");
+            .field("groupExpiryDays", "Int32", true, "all groups in the domain roles will have specified max expiry days")
+            .mapField("tags", "CompoundName", "StringList", true, "key-value pair tags, tag might contain multiple values");
 
         sb.structType("Role", "RoleMeta")
             .comment("The representation for a Role with set of members.")
@@ -915,6 +919,8 @@ public class ZMSSchema {
             .comment("Get the list of all roles in a domain with optional flag whether or not include members")
             .pathParam("domainName", "DomainName", "name of the domain")
             .queryParam("members", "members", "Bool", false, "return list of members in the role")
+            .queryParam("tagKey", "tagKey", "CompoundName", null, "flag to query all roles that have a given tagName")
+            .queryParam("tagValue", "tagValue", "CompoundName", null, "flag to query all roles that have a given tag name and value")
             .auth("", "", true)
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")

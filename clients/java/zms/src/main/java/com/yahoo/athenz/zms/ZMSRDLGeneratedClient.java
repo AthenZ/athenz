@@ -508,11 +508,17 @@ public class ZMSRDLGeneratedClient {
 
     }
 
-    public Roles getRoles(String domainName, Boolean members) {
+    public Roles getRoles(String domainName, Boolean members, String tagKey, String tagValue) {
         WebTarget target = base.path("/domain/{domainName}/roles")
             .resolveTemplate("domainName", domainName);
         if (members != null) {
             target = target.queryParam("members", members);
+        }
+        if (tagKey != null) {
+            target = target.queryParam("tagKey", tagKey);
+        }
+        if (tagValue != null) {
+            target = target.queryParam("tagValue", tagValue);
         }
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {

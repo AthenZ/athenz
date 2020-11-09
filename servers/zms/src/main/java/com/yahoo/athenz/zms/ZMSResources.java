@@ -664,13 +664,13 @@ public class ZMSResources {
     @GET
     @Path("/domain/{domainName}/roles")
     @Produces(MediaType.APPLICATION_JSON)
-    public Roles getRoles(@PathParam("domainName") String domainName, @QueryParam("members") @DefaultValue("false") Boolean members) {
+    public Roles getRoles(@PathParam("domainName") String domainName, @QueryParam("members") @DefaultValue("false") Boolean members, @QueryParam("tagKey") String tagKey, @QueryParam("tagValue") String tagValue) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.request, this.response, "getRoles");
             context.authenticate();
-            return this.delegate.getRoles(context, domainName, members);
+            return this.delegate.getRoles(context, domainName, members, tagKey, tagValue);
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {

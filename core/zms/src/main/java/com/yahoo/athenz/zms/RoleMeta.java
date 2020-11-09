@@ -5,6 +5,7 @@
 package com.yahoo.athenz.zms;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import java.util.Map;
 import com.yahoo.rdl.*;
 
 //
@@ -52,6 +53,9 @@ public class RoleMeta {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Integer groupExpiryDays;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Map<String, StringList> tags;
 
     public RoleMeta setSelfServe(Boolean selfServe) {
         this.selfServe = selfServe;
@@ -144,6 +148,13 @@ public class RoleMeta {
     public Integer getGroupExpiryDays() {
         return groupExpiryDays;
     }
+    public RoleMeta setTags(Map<String, StringList> tags) {
+        this.tags = tags;
+        return this;
+    }
+    public Map<String, StringList> getTags() {
+        return tags;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -189,6 +200,9 @@ public class RoleMeta {
                 return false;
             }
             if (groupExpiryDays == null ? a.groupExpiryDays != null : !groupExpiryDays.equals(a.groupExpiryDays)) {
+                return false;
+            }
+            if (tags == null ? a.tags != null : !tags.equals(a.tags)) {
                 return false;
             }
         }
