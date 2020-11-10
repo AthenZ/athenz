@@ -23,7 +23,6 @@ import com.amazonaws.services.dynamodbv2.document.*;
 import com.amazonaws.services.dynamodbv2.document.spec.QuerySpec;
 import com.amazonaws.services.dynamodbv2.document.utils.ValueMap;
 import com.amazonaws.services.dynamodbv2.model.ConditionalCheckFailedException;
-import com.amazonaws.services.dynamodbv2.model.ReturnValue;
 import com.yahoo.athenz.common.server.cert.CertRecordStoreConnection;
 import com.yahoo.athenz.common.server.cert.X509CertRecord;
 import com.yahoo.athenz.zts.ZTSConsts;
@@ -33,6 +32,7 @@ import com.amazonaws.services.dynamodbv2.document.spec.DeleteItemSpec;
 import com.amazonaws.services.dynamodbv2.document.spec.UpdateItemSpec;
 
 import com.yahoo.athenz.zts.utils.DynamoDBUtils;
+import com.yahoo.athenz.zts.utils.RetryDynamoDBCommand;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,6 +78,12 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
     private final Index hostNameIndex;
 
     private final DynamoDBNotificationsHelper dynamoDBNotificationsHelper = new DynamoDBNotificationsHelper();
+    private final RetryDynamoDBCommand<Item> getItemRetryDynamoDBCommand = new RetryDynamoDBCommand<>();
+    private final RetryDynamoDBCommand<UpdateItemOutcome> updateItemRetryDynamoDBCommand = new RetryDynamoDBCommand<>();
+    private final RetryDynamoDBCommand<PutItemOutcome> putItemRetryDynamoDBCommand = new RetryDynamoDBCommand<>();
+    private final RetryDynamoDBCommand<DeleteItemOutcome> deleteItemRetryDynamoDBCommand = new RetryDynamoDBCommand<>();
+    private final RetryDynamoDBCommand<ItemCollection<QueryOutcome>> itemCollectionRetryDynamoDBCommand = new RetryDynamoDBCommand<>();
+
 
     public DynamoDBCertRecordStoreConnection(DynamoDB dynamoDB, final String tableName, String currentTimeIndexName, String hostIndexName) {
         this.table = dynamoDB.getTable(tableName);
@@ -98,7 +104,7 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
 
         final String primaryKey = getPrimaryKey(provider, instanceId, service);
         try {
-            Item item = table.getItem(KEY_PRIMARY, primaryKey);
+            Item item = getItemRetryDynamoDBCommand.run(() -> table.getItem(KEY_PRIMARY, primaryKey));
             if (item == null) {
                 LOGGER.error("DynamoDB Get Error for {}: item not found", primaryKey);
                 return null;
@@ -192,7 +198,7 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
                             new AttributeUpdate(KEY_EXPIRY_TIME).put(getLongFromDate(certRecord.getExpiryTime())),
                             new AttributeUpdate(KEY_HOSTNAME).put(hostName)
                             );
-            table.updateItem(updateItemSpec);
+            updateItemRetryDynamoDBCommand.run(() -> table.updateItem(updateItemSpec));
             return true;
         } catch (Exception ex) {
             LOGGER.error("DynamoDB Update Error for {}: {}/{}", primaryKey, ex.getClass(), ex.getMessage());
@@ -229,7 +235,7 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
                     .with(KEY_SVC_DATA_UPDATE_TIME, getLongFromDate(certRecord.getSvcDataUpdateTime()))
                     .withLong(KEY_REGISTER_TIME, System.currentTimeMillis())
                     .with(KEY_HOSTNAME, hostName);
-            table.putItem(item);
+            putItemRetryDynamoDBCommand.run(() -> table.putItem(item));
             return true;
         } catch (Exception ex) {
             LOGGER.error("DynamoDB Insert Error for {}: {}/{}", primaryKey, ex.getClass(), ex.getMessage());
@@ -244,7 +250,7 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
         try {
             DeleteItemSpec deleteItemSpec = new DeleteItemSpec()
                     .withPrimaryKey(KEY_PRIMARY, primaryKey);
-            table.deleteItem(deleteItemSpec);
+            deleteItemRetryDynamoDBCommand.run(() -> table.deleteItem(deleteItemSpec));
             return true;
         } catch (Exception ex) {
             LOGGER.error("DynamoDB Delete Error for {}: {}/{}", primaryKey, ex.getClass(), ex.getMessage());
@@ -281,17 +287,7 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
         List<X509CertRecord> updatedRecords = new ArrayList<>();
         for (Item item : items) {
             try {
-                // For each item, update lastNotifiedTime and lastNotifiedServer (unless they were already updated)
-                UpdateItemSpec updateItemSpec = new UpdateItemSpec().withPrimaryKey(KEY_PRIMARY, item.getString(KEY_PRIMARY))
-                        .withReturnValues(ReturnValue.ALL_NEW)
-                        .withUpdateExpression("set lastNotifiedTime = :lastNotifiedTimeVal, lastNotifiedServer = :lastNotifiedServerVal")
-                        .withConditionExpression("attribute_not_exists(lastNotifiedTime) OR lastNotifiedTime < :v_yesterday")
-                        .withValueMap(new ValueMap()
-                                .with(":lastNotifiedTimeVal", lastNotifiedTime)
-                                .withNumber(":v_yesterday", yesterday)
-                                .withString(":lastNotifiedServerVal", lastNotifiedServer));
-
-                Item updatedItem = table.updateItem(updateItemSpec).getItem();
+                Item updatedItem = dynamoDBNotificationsHelper.updateLastNotifiedItem(lastNotifiedServer, lastNotifiedTime, yesterday, item, KEY_PRIMARY, table);
 
                 if (isRecordUpdatedWithNotificationTimeAndServer(lastNotifiedServer, lastNotifiedTime, updatedItem)) {
                     X509CertRecord x509CertRecord = itemToX509CertRecord(updatedItem);
@@ -346,7 +342,7 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
                             .withString(":v_service", recordToCheck.getString(KEY_SERVICE))
                     );
 
-            ItemCollection<QueryOutcome> outcome = hostNameIndex.query(spec);
+            ItemCollection<QueryOutcome> outcome = itemCollectionRetryDynamoDBCommand.run(() -> hostNameIndex.query(spec));
             List<Item> allRecordsWithHost = new ArrayList<>();
             for (Item item : outcome) {
                 allRecordsWithHost.add(item);
@@ -370,7 +366,7 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
                             .withNumber(":v_last_notified", yesterday)
                             .withString(":v_provider", provider));
 
-            ItemCollection<QueryOutcome> outcome = currentTimeIndex.query(spec);
+            ItemCollection<QueryOutcome> outcome = itemCollectionRetryDynamoDBCommand.run(() -> currentTimeIndex.query(spec));
             List<Item> items = new ArrayList<>();
             for (Item item : outcome) {
                 items.add(item);

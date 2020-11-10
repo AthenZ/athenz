@@ -17,8 +17,14 @@
 package com.yahoo.athenz.zts.cert.impl;
 
 import com.amazonaws.services.dynamodbv2.document.Item;
+import com.amazonaws.services.dynamodbv2.document.Table;
+import com.amazonaws.services.dynamodbv2.document.spec.UpdateItemSpec;
+import com.amazonaws.services.dynamodbv2.document.utils.ValueMap;
+import com.amazonaws.services.dynamodbv2.model.ReturnValue;
+import com.yahoo.athenz.zts.utils.RetryDynamoDBCommand;
 
 import java.util.List;
+import java.util.concurrent.TimeoutException;
 
 public class DynamoDBNotificationsHelper {
 
@@ -35,5 +41,22 @@ public class DynamoDBNotificationsHelper {
                 }).get();
 
         return recordToCheck.get(primaryKey).equals(mostUpdatedHostRecord.get(primaryKey));
+    }
+
+    public Item updateLastNotifiedItem(String lastNotifiedServer, long lastNotifiedTime, long yesterday, Item item, String primaryKey, Table table) throws InterruptedException, TimeoutException {
+        RetryDynamoDBCommand<Item> retryDynamoDBCommand = new RetryDynamoDBCommand<>();
+        return retryDynamoDBCommand.run(() -> {
+            // For each item, update lastNotifiedTime and lastNotifiedServer (unless they were already updated)
+            UpdateItemSpec updateItemSpec = new UpdateItemSpec().withPrimaryKey(primaryKey, item.getString(primaryKey))
+                    .withReturnValues(ReturnValue.ALL_NEW)
+                    .withUpdateExpression("set lastNotifiedTime = :lastNotifiedTimeVal, lastNotifiedServer = :lastNotifiedServerVal")
+                    .withConditionExpression("attribute_not_exists(lastNotifiedTime) OR lastNotifiedTime < :v_yesterday")
+                    .withValueMap(new ValueMap()
+                            .with(":lastNotifiedTimeVal", lastNotifiedTime)
+                            .withNumber(":v_yesterday", yesterday)
+                            .withString(":lastNotifiedServerVal", lastNotifiedServer));
+
+            return table.updateItem(updateItemSpec).getItem();
+        });
     }
 }
