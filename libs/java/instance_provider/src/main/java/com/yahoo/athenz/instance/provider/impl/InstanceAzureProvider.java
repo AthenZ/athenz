@@ -414,7 +414,7 @@ public class InstanceAzureProvider implements InstanceProvider {
                 LOGGER.error("AzureCredentialsUpdater: unable to fetch Azure access token", ex);
             }
 
-            LOGGER.info("AzureCredentialsUpdater: Azurezure credentials updater task completed");
+            LOGGER.info("AzureCredentialsUpdater: Azure credentials updater task completed");
         }
     }
 }
