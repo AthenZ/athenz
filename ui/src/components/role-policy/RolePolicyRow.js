@@ -51,10 +51,6 @@ const StyledDiv = styled.div`
     width: 100%;
 `;
 
-const StyledTable = styled.table`
-    width: 100%;
-`;
-
 export default class RolePolicyRow extends React.Component {
     constructor(props) {
         super(props);
@@ -92,10 +88,11 @@ export default class RolePolicyRow extends React.Component {
         let left = 'left';
         const arrowup = 'arrowhead-up-circle-solid';
         const arrowdown = 'arrowhead-down-circle';
+        let id = this.props.id;
 
         if (this.state.assertions) {
             rows.push(
-                <TrStyled key={this.state.name} data-testid='policy-row'>
+                <TrStyled key={this.state.name + id} data-testid='policy-row'>
                     <TdStyled align={left}>
                         <StyledDiv>
                             <LeftMarginSpan>
@@ -117,6 +114,7 @@ export default class RolePolicyRow extends React.Component {
                         <StyledDiv>
                             <RolePolicyRuleTable
                                 assertions={this.state.assertions}
+                                id={id}
                                 name={this.state.name}
                                 api={this.api}
                                 domain={this.props.domain}

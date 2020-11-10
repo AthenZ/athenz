@@ -83,6 +83,7 @@ export default class RolePolicyList extends React.Component {
         this.setState({
             showDelete: false,
             deletePolicyName: null,
+            errorMessage: null,
         });
     }
 
@@ -153,22 +154,32 @@ export default class RolePolicyList extends React.Component {
 
     render() {
         const { domain, role } = this.props;
-        const rows = this.state.list.map((item, i) => {
-            let name = NameUtils.getShortName(':policy.', item.name);
-            let onClickDeletePolicy = this.onClickDeletePolicy.bind(this, name);
-            return (
-                <RolePolicyRow
-                    name={name}
-                    domain={domain}
-                    role={role}
-                    modified={item.modified}
-                    api={this.api}
-                    key={item.name}
-                    _csrf={this.props._csrf}
-                    onClickDeletePolicy={onClickDeletePolicy}
-                />
-            );
-        });
+        let rows = '';
+        if (this.state.list && this.state.list.length > 0) {
+            rows = this.state.list.map((item, i) => {
+                let name = NameUtils.getShortName(':policy.', item.name);
+                let onClickDeletePolicy = this.onClickDeletePolicy.bind(
+                    this,
+                    name
+                );
+                return (
+                    <RolePolicyRow
+                        id={name}
+                        name={name}
+                        domain={domain}
+                        role={role}
+                        modified={item.modified}
+                        api={this.api}
+                        key={item.name}
+                        _csrf={this.props._csrf}
+                        onClickDeletePolicy={onClickDeletePolicy}
+                    />
+                );
+            });
+        } else {
+            rows = 'There is no policy related to this role';
+        }
+
         let addPolicy = this.state.showAddPolicy ? (
             <AddPolicyToRole
                 showAddPolicy={this.state.showAddPolicy}

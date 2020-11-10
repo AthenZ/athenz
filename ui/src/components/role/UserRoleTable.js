@@ -328,7 +328,7 @@ export default class UserRoleTable extends React.Component {
             .catch((err) => {
                 let message;
                 if (err.statusCode === 0) {
-                    message = 'Okta expired. Please refresh the page';
+                    window.location.reload();
                 } else {
                     message = `Status: ${err.statusCode}. Message: ${err.body.message}`;
                 }

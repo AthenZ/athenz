@@ -100,16 +100,11 @@ export default class MemberList extends React.Component {
     }
 
     render() {
-        const { domain, role } = this.props;
-        const right = 'right';
+        const { domain, role, roleDetails } = this.props;
 
-        let approvedMembers = this.state.members.filter(
-            (item) => item.approved
-        );
-        let pendingMembers = this.state.members.filter(
-            (item) => !item.approved
-        );
-        let showPending = pendingMembers.length > 0;
+        let approvedMembers = [];
+        let pendingMembers = [];
+        let addMemberButton = '';
 
         let addMember = this.state.showAddMember ? (
             <AddMember
@@ -125,8 +120,17 @@ export default class MemberList extends React.Component {
         ) : (
             ''
         );
-        return (
-            <MembersSectionDiv data-testid='member-list'>
+
+        if (roleDetails.trust) {
+            approvedMembers = this.state.members;
+        } else {
+            approvedMembers = this.state.members
+                ? this.state.members.filter((item) => item.approved)
+                : [];
+            pendingMembers = this.state.members
+                ? this.state.members.filter((item) => !item.approved)
+                : [];
+            addMemberButton = (
                 <AddContainerDiv>
                     <div>
                         <Button secondary onClick={this.toggleAddMember}>
@@ -135,6 +139,14 @@ export default class MemberList extends React.Component {
                         {addMember}
                     </div>
                 </AddContainerDiv>
+            );
+        }
+
+        let showPending = pendingMembers.length > 0;
+
+        return (
+            <MembersSectionDiv data-testid='member-list'>
+                {addMemberButton}
                 <MemberTable
                     domain={domain}
                     role={role}
@@ -152,6 +164,7 @@ export default class MemberList extends React.Component {
                         domain={domain}
                         role={role}
                         members={pendingMembers}
+                        pending={true}
                         caption='Pending'
                         api={this.api}
                         _csrf={this.props._csrf}

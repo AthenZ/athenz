@@ -61,32 +61,44 @@ export default class SettingTable extends React.Component {
             serviceExpiryDays: props.roleDetails.serviceExpiryDays,
             tokenExpiryMins: props.roleDetails.tokenExpiryMins,
             certExpiryMins: props.roleDetails.certExpiryMins,
-            signAlgorithm: props.roleDetails.signAlgorithm,
             showSubmit: false,
             showSuccess: false,
             errorMessage: null,
+            valueChanged: false,
         };
     }
 
     toggleSubmit() {
         this.setState({
             showSubmit: !this.state.showSubmit,
+            valueChanged: false,
         });
     }
 
     toggleReset() {
-        console.log('reset');
         this.setState({
             reviewEnabled: !!this.props.roleDetails.reviewEnabled,
             selfServe: !!this.props.roleDetails.selfServe,
-            memberExpiryDays: this.props.roleDetails.memberExpiryDays,
-            serviceExpiryDays: this.props.roleDetails.serviceExpiryDays,
-            tokenExpiryMins: this.props.roleDetails.tokenExpiryMins,
-            certExpiryMins: this.props.roleDetails.certExpiryMins,
-            signAlgorithm: this.props.roleDetails.signAlgorithm,
+            memberExpiryDays:
+                this.props.roleDetails.memberExpiryDays === undefined
+                    ? ''
+                    : this.props.roleDetails.memberExpiryDays,
+            serviceExpiryDays:
+                this.props.roleDetails.serviceExpiryDays === undefined
+                    ? ''
+                    : this.props.roleDetails.serviceExpiryDays,
+            tokenExpiryMins:
+                this.props.roleDetails.tokenExpiryMins === undefined
+                    ? ''
+                    : this.props.roleDetails.tokenExpiryMins,
+            certExpiryMins:
+                this.props.roleDetails.certExpiryMins === undefined
+                    ? ''
+                    : this.props.roleDetails.certExpiryMins,
             showSubmit: false,
             showSuccess: false,
             errorMessage: null,
+            valueChanged: false,
         });
     }
 
@@ -107,10 +119,14 @@ export default class SettingTable extends React.Component {
     onClickUpdateCancel() {
         this.setState({
             showSubmit: false,
+            errorMessage: null,
         });
     }
 
     onValueChange(name, val) {
+        this.setState({
+            valueChanged: true,
+        });
         switch (name) {
             case 'reviewEnabled':
                 this.setState({
@@ -142,11 +158,6 @@ export default class SettingTable extends React.Component {
                     certExpiryMins: val,
                 });
                 break;
-            case 'signAlgorithm':
-                this.setState({
-                    signAlgorithm: val,
-                });
-                break;
             default:
                 break;
         }
@@ -155,6 +166,7 @@ export default class SettingTable extends React.Component {
     closeModal() {
         this.setState({
             showSuccess: null,
+            errorMessage: null,
         });
     }
 
@@ -167,7 +179,6 @@ export default class SettingTable extends React.Component {
         roleMeta.serviceExpiryDays = this.state.serviceExpiryDays;
         roleMeta.tokenExpiryMins = this.state.tokenExpiryMins;
         roleMeta.certExpiryMins = this.state.certExpiryMins;
-        roleMeta.signAlgorithm = this.state.signAlgorithm;
 
         this.api
             .putRoleMeta(
@@ -182,7 +193,6 @@ export default class SettingTable extends React.Component {
                     showSuccess: true,
                     showSubmit: false,
                 });
-                window.location.reload();
             })
             .catch((err) => {
                 this.setState({
@@ -211,6 +221,16 @@ export default class SettingTable extends React.Component {
             />
         ) : (
             ''
+        );
+
+        let submitButton = this.state.valueChanged ? (
+            <Button primary onClick={this.toggleSubmit}>
+                Submit
+            </Button>
+        ) : (
+            <Button secondary onClick={this.toggleSubmit}>
+                Submit
+            </Button>
         );
 
         let message = this.state.showSuccess ? (
@@ -335,29 +355,9 @@ export default class SettingTable extends React.Component {
         );
 
         rows.push(
-            <StyledSettingRow
-                domain={domain}
-                role={role}
-                roleDetails={roleDetails}
-                name='signAlgorithm'
-                label='Signing Algorithm'
-                type='radio'
-                desc='RSA or ECDSA signing algorithm to be used for tokens'
-                value={this.state.signAlgorithm}
-                api={this.api}
-                onValueChange={this.onValueChange}
-                _csrf={this.props._csrf}
-                justificationRequired={this.props.justificationRequired}
-                userProfileLink={this.props.userProfileLink}
-            />
-        );
-
-        rows.push(
             <AddContainerDiv>
                 <div>
-                    <Button secondary onClick={this.toggleSubmit}>
-                        Submit
-                    </Button>
+                    {submitButton}
                     {submitSettings}
                     <Button secondary onClick={this.toggleReset}>
                         Reset

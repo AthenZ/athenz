@@ -107,8 +107,8 @@ export default class RoleHistoryList extends React.Component {
         this.state = {
             list: props.historyrows || [],
             role: props.role,
-            startDate: this.getDefaultStartDate(props.startDate),
-            endDate: props.endDate ? new Date(props.endDate) : new Date(),
+            startDate: null,
+            endDate: null,
             showSuccess: false,
         };
         this.exportToCSV = this.exportToCSV.bind(this);

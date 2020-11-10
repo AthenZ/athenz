@@ -88,7 +88,7 @@ export default class SettingList extends React.Component {
     }
 
     render() {
-        const { domain, role, roleDetails } = this.props;
+        const { domain, role } = this.props;
 
         return (
             <RolesSectionDiv data-testid='member-list'>

@@ -157,6 +157,7 @@ export default class RoleSectionRow extends React.Component {
         this.setState({
             showDelete: false,
             deleteName: '',
+            errorMessage: null,
         });
     }
 
@@ -188,7 +189,7 @@ export default class RoleSectionRow extends React.Component {
         );
         let clickPolicy = this.onClickFunction.bind(
             this,
-            'policy',
+            'role-policy',
             this.props.domain,
             this.state.name
         );
