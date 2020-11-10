@@ -848,6 +848,19 @@ public class ZMSClient implements Closeable {
     }
 
     /**
+     * Retrieve the list of roles defined for the specified domain. The roles
+     * will contain their attributes and, if specified, the list of members.
+     *
+     * @param domainName name of the domain
+     * @param members    include all members for group roles as well
+     * @return list of roles
+     * @throws ZMSClientException in case of failure
+     */
+    public Roles getRoles(String domainName, Boolean members) {
+        return getRoles(domainName, members, null, null);
+    }
+
+    /**
      * Retrieve the specified role
      *
      * @param domainName name of the domain

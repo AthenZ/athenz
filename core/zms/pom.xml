@@ -27,7 +27,7 @@
   <description>Core ZMS Interfaces</description>
 
   <properties>
-    <code.coverage.min>0.99</code.coverage.min>
+    <code.coverage.min>1.00</code.coverage.min>
   </properties>
 
   <dependencies>

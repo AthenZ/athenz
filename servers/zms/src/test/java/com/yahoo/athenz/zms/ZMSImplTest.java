@@ -33,6 +33,7 @@ import com.google.common.base.Strings;
 import com.wix.mysql.EmbeddedMysql;
 import com.yahoo.athenz.auth.ServerPrivateKey;
 import com.yahoo.athenz.auth.impl.*;
+import com.yahoo.athenz.auth.util.AthenzUtils;
 import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
@@ -44,6 +45,7 @@ import com.yahoo.athenz.zms.store.ObjectStoreConnection;
 import org.mockito.Mockito;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.testng.Assert;
 import org.testng.annotations.*;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.METRIC_DEFAULT_FACTORY_CLASS;
@@ -14890,7 +14892,7 @@ public class ZMSImplTest {
         zms.putRole(mockDomRsrcCtx, domainName, "Role3", auditRef, role3);
 
         AthenzDomain domain = zms.getAthenzDomain(domainName, false);
-        List<Role> roles = zms.setupRoleList(domain, Boolean.TRUE);
+        List<Role> roles = zms.setupRoleList(domain, Boolean.TRUE, null, null);
         assertEquals(4, roles.size()); // need to account for admin role
 
         boolean role1Check = false;
@@ -14971,7 +14973,7 @@ public class ZMSImplTest {
         zms.putRoleMeta(mockDomRsrcCtx, domainName, "role4", auditRef, rm);
 
         AthenzDomain domain = zms.getAthenzDomain(domainName, false);
-        List<Role> roles = zms.setupRoleList(domain, Boolean.FALSE);
+        List<Role> roles = zms.setupRoleList(domain, Boolean.FALSE, null, null);
         assertEquals(5, roles.size()); // need to account for admin role
 
         boolean role1Check = false;
@@ -15028,7 +15030,7 @@ public class ZMSImplTest {
         // we'll do the same check this time passing null
         // for the boolean flag instead of false
 
-        roles = zms.setupRoleList(domain, null);
+        roles = zms.setupRoleList(domain, null, null, null);
         assertEquals(5, roles.size()); // need to account for admin role
 
         role1Check = false;
@@ -24670,4 +24672,149 @@ public class ZMSImplTest {
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
+
+    @Test
+    public void testQueryPutRoleWithTags() {
+        final String domainName = "sys.auth";
+
+        // put role with multiple tags
+        final String roleWithTags = "roleWithTags";
+        final String tagKey = "tag-key";
+        List<String> tagValues = Arrays.asList("val1", "val2");
+        Role role = createRoleObject(domainName, roleWithTags, null);
+        role.setTags(Collections.singletonMap(tagKey, new StringList().setList(tagValues)));
+        zms.putRole(mockDomRsrcCtx, domainName, roleWithTags, auditRef, role);
+
+        // put role with single tags
+        final String roleSingleTag = "roleSingleTag";
+        List<String> singleTagValue = Collections.singletonList("val1");
+        role = createRoleObject(domainName, roleSingleTag, null);
+        role.setTags(Collections.singletonMap(tagKey, new StringList().setList(singleTagValue)));
+        zms.putRole(mockDomRsrcCtx, domainName, roleSingleTag, auditRef, role);
+
+        //put role without tags
+        final String noTagsRole = "noTagsRole";
+        role = createRoleObject(domainName, noTagsRole, null);
+        zms.putRole(mockDomRsrcCtx, domainName, noTagsRole, auditRef, role);
+
+        // get roles without tags query - both tags should be presented
+        Roles roleList = zms.getRoles(mockDomRsrcCtx, domainName, Boolean.TRUE, null, null);
+        hasRoleWithTags(roleList, roleWithTags, tagKey, tagValues, 2);
+        hasRoleWithTags(roleList, roleSingleTag, tagKey, singleTagValue, 1);
+        hasRoleWithTags(roleList, noTagsRole, null, null, 0);
+
+        // get roles with exact tag value
+        roleList = zms.getRoles(mockDomRsrcCtx, domainName, Boolean.TRUE, tagKey, "val1");
+        hasRoleWithTags(roleList, roleWithTags, tagKey, tagValues, 2);
+        hasRoleWithTags(roleList, roleSingleTag, tagKey, singleTagValue, 1);
+        // ensure there are no more roles
+        assertEquals(roleList.getList().size(), 2);
+
+        // get roles with exact tag value
+        roleList = zms.getRoles(mockDomRsrcCtx, domainName, Boolean.TRUE, tagKey, "val2");
+        hasRoleWithTags(roleList, roleWithTags, tagKey, tagValues, 2);
+        // ensure there are no more roles
+        assertEquals(roleList.getList().size(), 1);
+
+        // get roles with only tag key
+        roleList = zms.getRoles(mockDomRsrcCtx, domainName, Boolean.TRUE, tagKey, null);
+        hasRoleWithTags(roleList, roleWithTags, tagKey, tagValues, 2);
+        hasRoleWithTags(roleList, roleSingleTag, tagKey, singleTagValue, 1);
+        // ensure there are no more roles
+        assertEquals(roleList.getList().size(), 2);
+    }
+
+    @Test
+    public void testQueryUpdateRoleWithTags() {
+        final String domainName = "sys.auth";
+        final String tagKey = "tag-key-update";
+
+        //put role without tags
+        final String noTagsRole = "noTagsRole";
+        Role role = createRoleObject(domainName, noTagsRole, null);
+        zms.putRole(mockDomRsrcCtx, domainName, noTagsRole, auditRef, role);
+
+        // assert there are no tags
+        Roles roleList = zms.getRoles(mockDomRsrcCtx, domainName, Boolean.TRUE, null, null);
+        hasRoleWithTags(roleList, noTagsRole, null, null, 0);
+
+        // update tag list
+        List<String> tagValues = Arrays.asList("val1", "val2", "val3");
+        role.setTags(Collections.singletonMap(tagKey, new StringList().setList(tagValues)));
+        zms.putRole(mockDomRsrcCtx, domainName, noTagsRole, auditRef, role);
+
+        // 2 tags should be presented
+        roleList = zms.getRoles(mockDomRsrcCtx, domainName, Boolean.TRUE, null, null);
+        hasRoleWithTags(roleList, noTagsRole, tagKey, tagValues, 3);
+
+        // get roles with exact tag value
+        roleList = zms.getRoles(mockDomRsrcCtx, domainName, Boolean.FALSE, tagKey, "val1");
+        hasRoleWithTags(roleList, noTagsRole, tagKey, tagValues, 3);
+        assertEquals(roleList.getList().size(), 1);
+
+        // get roles with only tag key
+        roleList = zms.getRoles(mockDomRsrcCtx, domainName, Boolean.TRUE, tagKey, null);
+        hasRoleWithTags(roleList, noTagsRole, tagKey, tagValues, 3);
+        assertEquals(roleList.getList().size(), 1);
+
+        // now create a different tags Map, part is from tagValues
+        Map<String, StringList> tagsMap = new HashMap<>();
+        List<String> modifiedTagValues = Arrays.asList("val1", "new-val");
+        String newTagKey = "newTagKey";
+        List<String> newTagValues = Arrays.asList("val4", "val5", "val6");
+        tagsMap.put(tagKey, new StringList().setList(modifiedTagValues));
+        tagsMap.put(newTagKey, new StringList().setList(newTagValues));
+        role.setTags(tagsMap);
+        zms.putRole(mockDomRsrcCtx, domainName, noTagsRole, auditRef, role);
+
+        // 1 tags should be presented
+        roleList = zms.getRoles(mockDomRsrcCtx, domainName, Boolean.TRUE, null, null);
+        hasRoleWithTags(roleList, noTagsRole, tagKey, modifiedTagValues, 2);
+        hasRoleWithTags(roleList, noTagsRole, newTagKey, newTagValues, 3);
+
+        // get roles with exact tag value
+        roleList = zms.getRoles(mockDomRsrcCtx, domainName, Boolean.TRUE, tagKey, "val1");
+        hasRoleWithTags(roleList, noTagsRole, tagKey, modifiedTagValues, 2);
+        assertEquals(roleList.getList().size(), 1);
+
+        // get roles with non-existent tag value
+        roleList = zms.getRoles(mockDomRsrcCtx, domainName, Boolean.TRUE, tagKey, "val2");
+        assertEquals(roleList.getList().size(), 0);
+
+        // get roles with new tag key
+        roleList = zms.getRoles(mockDomRsrcCtx, domainName, Boolean.TRUE, tagKey, null);
+        hasRoleWithTags(roleList, noTagsRole, newTagKey, newTagValues, 3);
+        assertEquals(roleList.getList().size(), 1);
+    }
+
+    private void hasRoleWithTags(Roles roleList, String roleName, String tagKey, List<String> tagValues, int tagValuesLength) {
+        Role role = getRole(roleList, roleName);
+        Assert.assertNotNull(role);
+        if (tagKey != null) {
+            if (tagValues != null) {
+                Assert.assertEquals(role.getTags().get(tagKey).getList().size(), tagValuesLength);
+                for (String tagValue : tagValues) {
+                    Assert.assertTrue(hasTag(role, tagKey, tagValue));
+                }
+            } else {
+                Assert.assertTrue(hasTag(role, tagKey, null));
+            }
+        }
+    }
+
+    private boolean hasTag(Role role, String tagKey, String tagValue) {
+        StringList tagValues = role.getTags().get(tagKey);
+        if (tagValue != null) {
+            return tagValues.getList().contains(tagValue);
+        }
+        return !tagValues.getList().isEmpty();
+    }
+
+    private Role getRole(Roles roleList, String roleName) {
+        return roleList.getList().stream()
+                .filter(r -> AthenzUtils.extractRoleName(r.getName()).equalsIgnoreCase(roleName))
+                .findFirst()
+                .get();
+    }
+
 }

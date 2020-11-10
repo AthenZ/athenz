@@ -77,6 +77,8 @@ import java.util.concurrent.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.METRIC_DEFAULT_FACTORY_CLASS;
@@ -2751,7 +2753,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return result;
     }
 
-    List<Role> setupRoleList(AthenzDomain domain, Boolean members) {
+    List<Role> setupRoleList(AthenzDomain domain, Boolean members, String tagKey, String tagValue) {
 
         // if we're asked to return the members as well then we
         // just need to return the data as is without any modifications
@@ -2777,12 +2779,31 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                         .setServiceReviewDays(role.getServiceReviewDays())
                         .setSignAlgorithm(role.getSignAlgorithm())
                         .setReviewEnabled(role.getReviewEnabled())
-                        .setLastReviewedDate(role.getLastReviewedDate());
+                        .setLastReviewedDate(role.getLastReviewedDate())
+                        .setTags(role.getTags());
                 roles.add(newRole);
             }
         }
 
+        // filter roles by their tags
+        if (tagKey != null) {
+            roles = roles.stream()
+                    .filter(role -> filterByTag(tagKey, tagValue, role))
+                    .collect(Collectors.toList());
+        }
+
         return roles;
+    }
+
+    private boolean filterByTag(String tagKey, String tagValue, Role role) {
+        boolean result = role.getTags() != null && role.getTags().get(tagKey) != null;
+
+        // if tagValue is present we should filter tag values
+        if (result && tagValue != null) {
+            List<String> tagValues = role.getTags().get(tagKey).getList();
+            result = tagValues != null && tagValues.contains(tagValue);
+        }
+        return result;
     }
 
     public Roles getRoles(ResourceContext ctx, String domainName, Boolean members, String tagKey, String tagValue) {
@@ -2807,7 +2828,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.notFoundError("getRoles: Domain not found: '" + domainName + "'", caller);
         }
 
-        result.setList(setupRoleList(domain, members));
+        result.setList(setupRoleList(domain, members, tagKey, tagValue));
         return result;
     }
 
