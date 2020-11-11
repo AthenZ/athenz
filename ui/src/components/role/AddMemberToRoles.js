@@ -125,6 +125,13 @@ export default class AddMemberToRoles extends React.Component {
             return;
         }
 
+        if (!this.state.checkedRoles || this.state.checkedRoles.length === 0) {
+            this.setState({
+                errorMessage: 'Should select at least one role to add members.',
+            });
+            return;
+        }
+
         if (
             this.props.justificationRequired &&
             (this.state.justification === undefined ||
@@ -249,6 +256,7 @@ export default class AddMemberToRoles extends React.Component {
                                 onChange={(memberReviewReminder) => {
                                     this.setState({ memberReviewReminder });
                                 }}
+                                placeholder='Reminder (Optional)'
                                 id='addMemberToRoles-reminder'
                                 clear={this.state.memberReviewReminder}
                             />

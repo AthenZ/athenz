@@ -79,6 +79,8 @@ export default class MemberRow extends React.Component {
 
     onSubmitDelete(domain) {
         let roleName = this.props.role;
+        let name = this.state.deleteName;
+
         if (
             this.props.justificationRequired &&
             (this.state.deleteJustification === undefined ||
@@ -109,7 +111,7 @@ export default class MemberRow extends React.Component {
                         errorMessage: null,
                     });
                     this.props.onUpdateSuccess(
-                        `Successfully deleted pending member ${this.state.deleteName}`
+                        `Successfully deleted pending member ${name}`
                     );
                 })
                 .catch((err) => {
@@ -136,7 +138,7 @@ export default class MemberRow extends React.Component {
                         errorMessage: null,
                     });
                     this.props.onUpdateSuccess(
-                        `Successfully deleted member ${this.state.deleteName}`
+                        `Successfully deleted member ${name}`
                     );
                 })
                 .catch((err) => {
@@ -161,7 +163,6 @@ export default class MemberRow extends React.Component {
         let center = 'center';
         let member = this.props.details;
         let color = this.props.color;
-        let idx = this.props.idx;
 
         let clickDelete = this.onClickDelete.bind(this, this.state.deleteName);
         let submitDelete = this.onSubmitDelete.bind(this, this.props.domain);
