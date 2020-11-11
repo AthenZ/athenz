@@ -17,6 +17,23 @@
         <servlet-name>zms-server</servlet-name>
         <url-pattern>/*</url-pattern>
     </servlet-mapping>
+
+    <servlet>
+        <servlet-name>jersey</servlet-name>
+        <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
+        <init-param>
+            <param-name>jersey.config.server.provider.packages</param-name>
+            <param-value>
+                io.swagger.v3.jaxrs2.integration.resources,
+                com.yahoo.athenz.zms
+            </param-value>
+        </init-param>
+        <load-on-startup>2</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>jersey</servlet-name>
+        <url-pattern>/v1/api/*</url-pattern>
+    </servlet-mapping>
     <!-- ==================================================================== -->
     <!-- Disable OPTIONS and TRACE methods with security constraint           -->
     <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  -->
