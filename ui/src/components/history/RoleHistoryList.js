@@ -107,8 +107,8 @@ export default class RoleHistoryList extends React.Component {
         this.state = {
             list: props.historyrows || [],
             role: props.role,
-            startDate: null,
-            endDate: null,
+            startDate: this.getDefaultStartDate(props.startDate),
+            endDate: props.endDate ? new Date(props.endDate) : new Date(),
             showSuccess: false,
         };
         this.exportToCSV = this.exportToCSV.bind(this);
@@ -213,17 +213,19 @@ export default class RoleHistoryList extends React.Component {
                     successMsg = `No history records for role ${this.props.role} found. `;
                     alertType = 'warning';
                 }
-                let historyRows = data.auditLog.filter(
-                    (item) =>
-                        item.created >=
-                            this.dateUtils.uxDatetimeToRDLTimestamp(
-                                this.state.startDate
-                            ) &&
-                        item.created <=
-                            this.dateUtils.uxDatetimeToRDLTimestamp(
-                                this.state.endDate
-                            )
-                );
+                let historyRows = data.auditLog
+                    ? data.auditLog.filter(
+                          (item) =>
+                              item.created >=
+                                  this.dateUtils.uxDatetimeToRDLTimestamp(
+                                      this.state.startDate
+                                  ) &&
+                              item.created <=
+                                  this.dateUtils.uxDatetimeToRDLTimestamp(
+                                      this.state.endDate
+                                  )
+                      )
+                    : [];
                 this.setState({
                     list: historyRows,
                     showSuccess: true,

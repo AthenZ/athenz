@@ -386,6 +386,15 @@ export default class ReviewTable extends React.Component {
                 }
             }
 
+            if (!this.state.list || this.state.list.length === 0) {
+                return (
+                    <ReviewMembersContainerDiv>
+                        There is no members to review for role:{' '}
+                        {this.props.role}.
+                    </ReviewMembersContainerDiv>
+                );
+            }
+
             return (
                 <ReviewMembersContainerDiv>
                     <TitleDiv>REVIEW EXPIRING MEMBERS</TitleDiv>

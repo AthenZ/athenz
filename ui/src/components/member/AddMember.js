@@ -210,6 +210,7 @@ export default class AddMember extends React.Component {
                                 onChange={(memberReviewReminder) => {
                                     this.setState({ memberReviewReminder });
                                 }}
+                                placeholder='Reminder (Optional)'
                                 id='addMemberToRoles-reminder'
                                 clear={this.state.memberReviewReminder}
                             />
@@ -237,7 +238,7 @@ export default class AddMember extends React.Component {
                 isOpen={this.state.showModal}
                 cancel={this.props.onCancel}
                 submit={this.onSubmit}
-                title={'Add Member to Role:'}
+                title={'Add Member to Role: ' + this.props.role}
                 errorMessage={this.state.errorMessage}
                 sections={sections}
             />
