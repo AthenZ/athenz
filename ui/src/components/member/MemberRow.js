@@ -185,6 +185,15 @@ export default class MemberRow extends React.Component {
                           )
                         : 'N/A'}
                 </TDStyled>
+                <TDStyled color={color} align={left}>
+                    {member.reviewReminder
+                        ? this.localDate.getLocalDate(
+                              member.reviewReminder,
+                              'UTC',
+                              'UTC'
+                          )
+                        : 'N/A'}
+                </TDStyled>
                 <TDStyled color={color} align={center}>
                     <Menu
                         placement='bottom-start'

@@ -204,6 +204,9 @@ export default class MemberTable extends React.Component {
                         <TableHeadStyled align={left}>
                             Expiration Date
                         </TableHeadStyled>
+                        <TableHeadStyled align={left}>
+                            Review Reminder Date
+                        </TableHeadStyled>
                         <TableHeadStyled align={center}>Delete</TableHeadStyled>
                     </tr>
                 </thead>
