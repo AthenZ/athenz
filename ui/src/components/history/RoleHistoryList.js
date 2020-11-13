@@ -205,7 +205,7 @@ export default class RoleHistoryList extends React.Component {
             return;
         }
         this.api
-            .getRole(this.props.domain, this.props.role, true, true, true)
+            .getRole(this.props.domain, this.props.role, true, false, true)
             .then((data) => {
                 let successMsg = `Filtered history records for role ${this.props.role} below. `;
                 let alertType = 'success';

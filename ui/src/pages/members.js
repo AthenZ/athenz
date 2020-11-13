@@ -68,7 +68,13 @@ export default class MemberPage extends React.Component {
             api.listUserDomains(),
             api.getHeaderDetails(),
             api.getDomain(props.query.domain),
-            api.getRole(props.query.domain, props.query.role, true, true, true),
+            api.getRole(
+                props.query.domain,
+                props.query.role,
+                true,
+                false,
+                true
+            ),
             api.getPendingDomainRoleMembersList(),
             api.getForm(),
         ]).catch((err) => {

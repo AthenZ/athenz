@@ -121,7 +121,7 @@ export default class ReviewTable extends React.Component {
 
     loadRole() {
         this.props.api
-            .getRole(this.props.domain, this.props.role, false, true, false)
+            .getRole(this.props.domain, this.props.role, false, false, false)
             .then((role) => {
                 if (role.trust != null) {
                     this.setState({

@@ -73,7 +73,7 @@ export default class ReviewPage extends React.Component {
                 props.query.domain,
                 props.query.role,
                 false,
-                true,
+                false,
                 false
             ),
             api.getPendingDomainRoleMembersList(),

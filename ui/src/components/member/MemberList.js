@@ -70,7 +70,7 @@ export default class MemberList extends React.Component {
 
     reloadMembers(successMessage) {
         this.api
-            .getRole(this.props.domain, this.props.role, true, true, true)
+            .getRole(this.props.domain, this.props.role, true, false, true)
             .then((role) => {
                 this.setState({
                     members: role.roleMembers,
