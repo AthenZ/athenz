@@ -157,6 +157,21 @@ func (cli Zms) dumpRole(buf *bytes.Buffer, role zms.Role, auditLog bool, indent1
 			buf.WriteString("\n")
 		}
 	}
+	if role.Tags != nil {
+		buf.WriteString(indent2)
+		buf.WriteString("tags:\n")
+		indent3 := indent2 + "  - "
+		indent4 := indent2 + "    "
+		indent5 := indent4 + "  - "
+		for tagKey, tagValues := range role.Tags {
+			buf.WriteString(indent3 + "key: ")
+			buf.WriteString(string(tagKey) + "\n")
+			buf.WriteString(indent4 + "values:\n")
+			for _, tagValue := range tagValues.List {
+				buf.WriteString(indent5 + string(tagValue) + "\n")
+			}
+		}
+	}
 	if auditLog {
 		buf.WriteString(indent2)
 		buf.WriteString("changes: \n")
@@ -178,11 +193,11 @@ func (cli Zms) dumpRole(buf *bytes.Buffer, role zms.Role, auditLog bool, indent1
 	}
 }
 
-func (cli Zms) dumpRoles(buf *bytes.Buffer, dn string) {
+func (cli Zms) dumpRoles(buf *bytes.Buffer, dn string, tagKey string, tagValue string) {
 	buf.WriteString(indentLevel1)
 	buf.WriteString("roles:\n")
 	members := true
-	roles, err := cli.Zms.GetRoles(zms.DomainName(dn), &members, "", "")
+	roles, err := cli.Zms.GetRoles(zms.DomainName(dn), &members, zms.CompoundName(tagKey), zms.CompoundName(tagValue))
 	if err != nil {
 		log.Fatalf("Unable to get role list - error: %v", err)
 	}

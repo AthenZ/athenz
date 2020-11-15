@@ -832,7 +832,7 @@ public class ZMSClient implements Closeable {
      * @param domainName name of the domain
      * @param members    include all members for group roles as well
      * @param tagKey     query all roles with given tag name
-     * @param tagValue  query all roles with given tag key and value
+     * @param tagValue   query all roles with given tag key and value
      * @return list of roles
      * @throws ZMSClientException in case of failure
      */

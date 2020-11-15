@@ -5773,7 +5773,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
 
     Map<String, Map<String, StringList>> getDomainRoleTags(String domainName) {
-        final String caller = "getRoleTags";
+        final String caller = "getDomainRoleTags";
         Map<String, Map<String, StringList>> domainRoleTags = null;
 
         try (PreparedStatement ps = con.prepareStatement(SQL_GET_DOMAIN_ROLE_TAGS)) {

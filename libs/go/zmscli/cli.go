@@ -262,13 +262,13 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 				principal = args[0]
 			}
 			return cli.ListPendingDomainGroupMembers(principal)
-		case "show-roles-principal" :
+		case "show-roles-principal":
 			if argc == 0 {
 				return cli.ShowRolesPrincipal("", dn)
 			} else if argc == 1 {
 				return cli.ShowRolesPrincipal(args[0], dn)
 			}
-		case "show-groups-principal" :
+		case "show-groups-principal":
 			if argc == 0 {
 				return cli.ShowGroupsPrincipal("", dn)
 			} else if argc == 1 {
@@ -851,6 +851,18 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 					return nil, err
 				}
 				return cli.PutGroupMembershipDecision(dn, args[0], args[1], approval)
+			}
+		case "set-role-tag":
+			if argc >= 2 {
+				return cli.SetRoleTags(dn, args[0], args[1], args[2:])
+			}
+		case "show-roles":
+			if argc == 0 {
+				return cli.ShowRoles(dn, "", "")
+			} else if argc == 1 {
+				return cli.ShowRoles(dn, args[0], "")
+			} else if argc == 2 {
+				return cli.ShowRoles(dn, args[0], args[1])
 			}
 		default:
 			return nil, fmt.Errorf("unrecognized command '%v'. type 'zms-cli help' to see help information", cmd)
@@ -1575,7 +1587,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   user_or_service : users or services to be checked if they are members\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " check-group-member readers " + cli.UserDomain + ".john " + cli.UserDomain + ".joe media.sports.storage\n")
-	case "check-active-grorup-member":
+	case "check-active-group-member":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " check-active-group-member group user_or_service\n")
 		buf.WriteString(" parameters:\n")
@@ -1607,6 +1619,29 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   group   : name of the group to be deleted\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " delete-group readers\n")
+	case "set-role-tag":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " set-role-tag group_role tag_key tag_value [tag_value ...]\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain          : name of the domain that role belongs to\n")
+		}
+		buf.WriteString("   group-role      : name of the standard group role to add members to\n")
+		buf.WriteString("   tag_key         : tag key to be added to this role\n")
+		buf.WriteString("   tag_value       : tag values to be added to this role, multiple values are allowed. no value, means delete this key\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " set-role-tag readers readers-tag-key reader-tag-value-1 reader-tag-value-2\n")
+	case "show-roles":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " show-roles [tag_key] [tag_value]\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain          : name of the domain that role belongs to\n")
+		}
+		buf.WriteString("   tag_key         : optional, query all roles with given tag name\n")
+		buf.WriteString("   tag_value       : optional, query all roles with given tag key and value\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " show-roles readers readers-tag-key reader-tag-value\n")
 	case "list-service":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " list-service\n")
@@ -2385,6 +2420,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString(" Role commands:\n")
 	buf.WriteString("   list-role\n")
 	buf.WriteString("   show-role role [log | expand | pending]\n")
+	buf.WriteString("   show-roles [tag_key] [tag_value]\n")
 	buf.WriteString("   show-roles-principal\n")
 	buf.WriteString("   add-delegated-role role trusted_domain\n")
 	buf.WriteString("   add-group-role role member [member ... ]\n")
@@ -2414,6 +2450,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   set-role-notify-roles group_role rolename[,rolename...]\n")
 	buf.WriteString("   set-role-user-authority-filter group_role attribute[,attribute...]\n")
 	buf.WriteString("   set-role-user-authority-expiration group_role attribute\n")
+	buf.WriteString("   set-role-tag group_role tag_key tag_value [tag_value ...]\n")
 	buf.WriteString("   put-membership-decision group_role user_or_service [expiration] decision\n")
 	buf.WriteString("\n")
 	buf.WriteString(" Group commands:\n")
