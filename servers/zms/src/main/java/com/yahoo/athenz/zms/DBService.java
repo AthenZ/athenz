@@ -43,7 +43,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class DBService implements RolesProvider {
-    
+
     ObjectStore store;
     BitSet auditRefSet;
     AuditLogger auditLogger;
@@ -74,14 +74,14 @@ public class DBService implements RolesProvider {
     private ScheduledExecutorService userAuthorityFilterExecutor;
 
     public DBService(ObjectStore store, AuditLogger auditLogger, ZMSConfig zmsConfig, AuditReferenceValidator auditReferenceValidator) {
-        
+
         this.store = store;
         this.zmsConfig = zmsConfig;
         this.auditLogger = auditLogger;
         cacheStore = CacheBuilder.newBuilder().concurrencyLevel(25).build();
 
         // default timeout in seconds for object store commands
-        
+
         defaultOpTimeout = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_STORE_OP_TIMEOUT, "60"));
         if (defaultOpTimeout < 0) {
             defaultOpTimeout = 60;
@@ -93,12 +93,12 @@ public class DBService implements RolesProvider {
         // retrieve the concurrent update retry count. If we're given an invalid negative
         // value for count, we'll default back to our default configured value of 120 retries
         // which would result up to 30 seconds sleeping 250ms each time
-        
+
         defaultRetryCount = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_CONFLICT_RETRY_COUNT, "120"));
         if (defaultRetryCount < 0) {
             defaultRetryCount = 120;
         }
-        
+
         retrySleepTime = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_CONFLICT_RETRY_SLEEP_TIME, "250"));
         if (retrySleepTime < 0) {
             retrySleepTime = 250;
@@ -110,7 +110,7 @@ public class DBService implements RolesProvider {
         this.auditReferenceValidator = auditReferenceValidator;
 
         // create our quota checker class
-        
+
         quotaCheck = new QuotaChecker();
 
         // start our thread to process user authority changes daily
@@ -176,16 +176,16 @@ public class DBService implements RolesProvider {
     static class DataCache {
         AthenzDomain athenzDomain;
         long modTime;
-        
+
         DataCache(AthenzDomain athenzDomain, long modTime) {
             this.athenzDomain = athenzDomain;
             this.modTime = modTime;
         }
-        
+
         AthenzDomain getAthenzDomain() {
             return athenzDomain;
         }
-        
+
         long getModTime() {
             return modTime;
         }
@@ -242,17 +242,17 @@ public class DBService implements RolesProvider {
     }
 
     void saveChanges(ObjectStoreConnection con, String domainName) {
-        
+
         // we're first going to commit our changes which will
         // also set the connection in auto-commit mode. we are
         // going to change the domain timestamp in auto-commit
         // mode so that we don't have a contention
-        
+
         con.commitChanges();
         con.updateDomainModTimestamp(domainName);
         cacheStore.invalidate(domainName);
     }
-    
+
     void auditLogRequest(ResourceContext ctx, String domainName, String auditRef,
             String caller, String operation, String entityName, String auditDetails) {
         auditLogger.log(getAuditLogMsgBuilder(ctx, domainName, auditRef, caller, operation, entityName, auditDetails));
@@ -278,7 +278,7 @@ public class DBService implements RolesProvider {
 
     Domain makeDomain(ResourceContext ctx, Domain domain, List<String> adminUsers,
             List<String> solutionTemplates, String auditRef) {
-        
+
         final String caller = "makedomain";
         final String domainName = domain.getName();
         String principalName = getPrincipalName(ctx);
@@ -368,37 +368,37 @@ public class DBService implements RolesProvider {
             }
         }
     }
-    
+
     boolean processPolicy(ObjectStoreConnection con, Policy originalPolicy, String domainName,
             String policyName, Policy policy, boolean ignoreDeletes, StringBuilder auditDetails) {
 
         // check to see if we need to insert the policy or update it
-        
+
         boolean requestSuccess;
         if (originalPolicy == null) {
             requestSuccess = con.insertPolicy(domainName, policy);
         } else {
             requestSuccess = con.updatePolicy(domainName, policy);
         }
-        
+
         // if we didn't update any policies then we need to return failure
-        
+
         if (!requestSuccess) {
             return false;
         }
-        
+
         // open our audit record
-        
+
         auditDetails.append("{\"name\": \"").append(policyName).append('\"');
 
         // now we need process our policy assertions depending this is
         // a new insert operation or an update
-        
+
         List<Assertion> newAssertions = policy.getAssertions();
         if (originalPolicy == null) {
-            
+
             // we're just going to process our new assertions
-            
+
             if (newAssertions != null) {
                 for (Assertion assertion : newAssertions) {
                     if (!con.insertAssertion(domainName, policyName, assertion)) {
@@ -407,11 +407,11 @@ public class DBService implements RolesProvider {
                 }
                 auditLogAssertions(auditDetails, "added-assertions", newAssertions);
             }
-            
+
         } else {
-            
+
             // first we need to retrieve the current set of assertions
-            
+
             List<Assertion> curAssertions = originalPolicy.getAssertions();
             if (curAssertions == null) {
                 curAssertions = new ArrayList<>();
@@ -419,7 +419,7 @@ public class DBService implements RolesProvider {
             List<Assertion> addAssertions = new ArrayList<>();
             List<Assertion> delAssertions = new ArrayList<>();
             policyAssertionChanges(newAssertions, curAssertions, addAssertions, delAssertions);
-            
+
             if (!ignoreDeletes) {
                 for (Assertion assertion : delAssertions) {
                     if (!con.deleteAssertion(domainName, policyName, assertion.getId())) {
@@ -428,7 +428,7 @@ public class DBService implements RolesProvider {
                 }
                 auditLogAssertions(auditDetails, "deleted-assertions", delAssertions);
             }
-            
+
             for (Assertion assertion : addAssertions) {
                 if (!con.insertAssertion(domainName, policyName, assertion)) {
                     return false;
@@ -436,23 +436,23 @@ public class DBService implements RolesProvider {
             }
             auditLogAssertions(auditDetails, "added-assertions", addAssertions);
         }
-        
+
         auditDetails.append('}');
         return true;
     }
-    
+
     boolean removeMatchedAssertion(Assertion assertion, List<Assertion> assertions, List<Assertion> matchedAssertions) {
-        
+
         AssertionEffect effect = AssertionEffect.ALLOW;
         if (assertion.getEffect() != null) {
             effect = assertion.getEffect();
         }
-        
+
         Iterator<Assertion> itr = assertions.iterator();
         while (itr.hasNext()) {
-            
+
             Assertion checkAssertion = itr.next();
-            
+
             if (!assertion.getAction().equals(checkAssertion.getAction())) {
                 continue;
             }
@@ -462,30 +462,30 @@ public class DBService implements RolesProvider {
             if (!assertion.getRole().equals(checkAssertion.getRole())) {
                 continue;
             }
-            
+
             AssertionEffect checkEffect = AssertionEffect.ALLOW;
             if (checkAssertion.getEffect() != null) {
                 checkEffect = checkAssertion.getEffect();
             }
-            
+
             if (effect != checkEffect) {
                 continue;
             }
-            
+
             itr.remove();
             matchedAssertions.add(checkAssertion);
             return true;
         }
-        
+
         return false;
     }
-    
+
     void policyAssertionChanges(List<Assertion> newAssertions, List<Assertion> curAssertions,
             List<Assertion> addAssertions, List<Assertion> delAssertions) {
-        
+
         // let's iterate through the new list and the ones that are
         // not in the current list should be added to the add list
-        
+
         List<Assertion> matchedAssertions = new ArrayList<>();
         if (newAssertions != null) {
             for (Assertion assertion : newAssertions) {
@@ -494,26 +494,26 @@ public class DBService implements RolesProvider {
                 }
             }
         }
-        
+
         // now our current list has been updated as well and
         // all the assertions that were present moved to the
         // matched assertion list so whatever left in the
         // current list must be deleted
-        
+
         delAssertions.addAll(curAssertions);
-        
+
         // now let's go back and re-add the matched assertions
         // back to our list so we can get the right audit data
-        
+
         curAssertions.addAll(matchedAssertions);
     }
-    
+
     boolean processRole(ObjectStoreConnection con, Role originalRole, String domainName,
             String roleName, Role role, String admin, String auditRef, boolean ignoreDeletes,
             StringBuilder auditDetails) {
-        
+
         // check to see if we need to insert the role or update it
-        
+
         boolean requestSuccess;
         if (originalRole == null) {
             // auditEnabled can only be set with system admin privileges
@@ -524,24 +524,24 @@ public class DBService implements RolesProvider {
             role.setAuditEnabled(originalRole.getAuditEnabled());
             requestSuccess = con.updateRole(domainName, role);
         }
-        
+
         // if we didn't update any roles then we need to return failure
-        
+
         if (!requestSuccess) {
             return false;
         }
 
         // open our audit record and log our trust field if one is available
-        
+
         auditDetails.append("{\"name\": \"").append(roleName)
             .append("\", \"trust\": \"").append(role.getTrust()).append('\"');
-        
+
         // now we need process our role members depending this is
         // a new insert operation or an update
 
         List<RoleMember> roleMembers = role.getRoleMembers();
         if (originalRole == null) {
-            
+
             // we are just going to process all members as new inserts
 
             if (roleMembers != null) {
@@ -554,12 +554,53 @@ public class DBService implements RolesProvider {
                 auditLogRoleMembers(auditDetails, "added-members", roleMembers);
             }
         } else {
-            processUpdateRoleMembers(con, originalRole, roleMembers, ignoreDeletes,
-                    domainName, roleName, admin, auditRef, auditDetails);
+            if (!processUpdateRoleMembers(con, originalRole, roleMembers, ignoreDeletes,
+                    domainName, roleName, admin, auditRef, auditDetails)) {
+                return false;
+            }
         }
-        
+
+        if (!processRoleTags(role, roleName, domainName, originalRole, con)) {
+            return false;
+        }
+
         auditDetails.append('}');
         return true;
+    }
+
+    private boolean processRoleTags(Role role, String roleName, String domainName,
+                                    Role originalRole, ObjectStoreConnection con) {
+        if (role.getTags() != null && !role.getTags().isEmpty()) {
+            if (originalRole == null) {
+                return con.insertRoleTags(roleName, domainName, role.getTags());
+            } else {
+                return processUpdateRoleTags(role, originalRole, con, roleName, domainName);
+            }
+        }
+        return true;
+    }
+
+    private boolean processUpdateRoleTags(Role role, Role originalRole, ObjectStoreConnection con, String roleName, String domainName) {
+        if (originalRole.getTags() == null || originalRole.getTags().isEmpty()) {
+            return con.insertRoleTags(roleName, domainName, role.getTags());
+        }
+        Map<String, StringList> originalRoleTags = originalRole.getTags();
+        Map<String, StringList> currentTags = role.getTags();
+
+        Set<String> tagsToRemove = originalRoleTags.entrySet().stream()
+                .filter(curTag -> currentTags.get(curTag.getKey()) == null
+                        || !currentTags.get(curTag.getKey()).equals(curTag.getValue()))
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toSet());
+
+        Map<String, StringList> tagsToAdd = currentTags.entrySet().stream()
+                .filter(curTag -> originalRoleTags.get(curTag.getKey()) == null
+                        || !originalRoleTags.get(curTag.getKey()).equals(curTag.getValue()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        boolean res = con.deleteRoleTags(roleName, domainName, tagsToRemove);
+
+        return res && con.insertRoleTags(roleName, domainName, tagsToAdd);
     }
 
     boolean processGroup(ObjectStoreConnection con, Group originalGroup, final String domainName,
@@ -666,21 +707,21 @@ public class DBService implements RolesProvider {
             String roleName, String admin, String auditRef, StringBuilder auditDetails) {
 
         // first we need to retrieve the current set of members
-        
+
         List<RoleMember> originalMembers = originalRole.getRoleMembers();
         List<RoleMember> curMembers = (null == originalMembers) ? new ArrayList<>() : new ArrayList<>(originalMembers);
         List<RoleMember> delMembers = new ArrayList<>(curMembers);
         ArrayList<RoleMember> newMembers = (null == roleMembers) ? new ArrayList<>() : new ArrayList<>(roleMembers);
-        
+
         // remove current members from new members
-        
+
         AuthzHelper.removeRoleMembers(newMembers, curMembers);
-        
+
         // remove new members from current members
         // which leaves the deleted members.
 
         AuthzHelper.removeRoleMembers(delMembers, roleMembers);
-        
+
         if (!ignoreDeletes) {
             for (RoleMember member : delMembers) {
                 if (!con.deleteRoleMember(domainName, roleName, member.getMemberName(), admin, auditRef)) {
@@ -689,7 +730,7 @@ public class DBService implements RolesProvider {
             }
             auditLogRoleMembers(auditDetails, "deleted-members", delMembers);
         }
-        
+
         for (RoleMember member : newMembers) {
             if (!con.insertRoleMember(domainName, roleName, member, admin, auditRef)) {
                 return false;
@@ -739,7 +780,7 @@ public class DBService implements RolesProvider {
     boolean processServiceIdentity(ObjectStoreConnection con, ServiceIdentity originalService,
             String domainName, String serviceName, ServiceIdentity service,
             boolean ignoreDeletes, StringBuilder auditDetails) {
-        
+
         boolean requestSuccess;
         if (originalService == null) {
             // provider endpoint can only be set with system admin privileges
@@ -750,31 +791,31 @@ public class DBService implements RolesProvider {
             service.setProviderEndpoint(originalService.getProviderEndpoint());
             requestSuccess = con.updateServiceIdentity(domainName, service);
         }
-        
+
         // if we didn't update any services then we need to return failure
-        
+
         if (!requestSuccess) {
             return false;
         }
 
         // open our audit record and log our service details
-        
+
         auditDetails.append("{\"name\": \"").append(serviceName).append('\"')
             .append(", \"executable\": \"").append(service.getExecutable()).append('\"')
             .append(", \"user\": \"").append(service.getUser()).append('\"')
             .append(", \"group\": \"").append(service.getGroup()).append('\"')
             .append(", \"description\": \"").append(service.getDescription()).append('\"');
-         
+
         // now we need process our public keys depending this is
         // a new insert operation or an update
 
         List<PublicKeyEntry> publicKeys = service.getPublicKeys();
         if (originalService == null) {
-            
+
             // we are just going to process all public keys as new inserts
-            
+
             if (publicKeys != null) {
-                
+
                 for (PublicKeyEntry publicKey : publicKeys) {
                     if (!con.insertPublicKeyEntry(domainName, serviceName, publicKey)) {
                         return false;
@@ -782,11 +823,11 @@ public class DBService implements RolesProvider {
                 }
                 auditLogPublicKeyEntries(auditDetails, "added-publickeys", publicKeys);
             }
-            
+
         } else {
-            
+
             // first we need to retrieve the current set of public keys
-            
+
             List<PublicKeyEntry> curPublicKeys = originalService.getPublicKeys();
             Map<String, PublicKeyEntry> curPublicKeysMap = new HashMap<>();
             if (curPublicKeys != null) {
@@ -814,7 +855,7 @@ public class DBService implements RolesProvider {
                 }
                 auditLogPublicKeyEntries(auditDetails, "deleted-publickeys", delPublicKeysSet);
             }
-            
+
             for (String publicKey : newPublicKeysSet) {
                 if (!con.insertPublicKeyEntry(domainName, serviceName, publicKeysMap.get(publicKey))) {
                     return false;
@@ -822,9 +863,9 @@ public class DBService implements RolesProvider {
             }
             auditLogPublicKeyEntries(auditDetails, "added-publickeys", newPublicKeysSet, publicKeysMap);
         }
-        
+
         // now we need to process the hosts defined for this service
-        
+
         Set<String> curHosts;
         if (originalService != null && originalService.getHosts() != null) {
             curHosts = new HashSet<>(originalService.getHosts());
@@ -838,11 +879,11 @@ public class DBService implements RolesProvider {
         } else {
             newHosts = new HashSet<>();
         }
-        
+
         Set<String> delHosts = new HashSet<>(curHosts);
         delHosts.removeAll(newHosts);
         newHosts.removeAll(curHosts);
-        
+
         for (String host : delHosts) {
             if (!con.deleteServiceHost(domainName, serviceName, host)) {
                 return false;
@@ -862,26 +903,26 @@ public class DBService implements RolesProvider {
     }
 
     boolean shouldRetryOperation(ResourceException ex, int retryCount) {
-        
+
         // before doing anything else let's check to see if
         // we still have the option to retry the operation
-        
+
         if (retryCount <= 1) {
             return false;
         }
-        
+
         // if we got a conflict result it means we either had
         // no connection or deadlock was detected and as such
         // the changes were aborted
-        
+
         boolean retry = false;
         switch (ex.getCode()) {
-            
+
             case ResourceException.CONFLICT:
-                
+
                 retry = true;
                 break;
-                
+
             case ResourceException.GONE:
 
                 // this error indicates that the server is reporting it is in
@@ -889,30 +930,30 @@ public class DBService implements RolesProvider {
                 // and we need to clear all connections and start new ones
                 // this could only happen with write operations against the
                 // read-write object store
-                
+
                 store.clearConnections();
                 retry = true;
                 break;
         }
-        
+
         // if we're asked to retry then we're going to
         // wait for a short period of time to allow the other
         // connection to finish its work
-        
+
         if (retry) {
-            
+
             if (LOG.isDebugEnabled()) {
                 LOG.debug(": possible deadlock, retries available: " + retryCount);
             }
 
             ZMSUtils.threadSleep(retrySleepTime);
         }
-        
+
         // return our response
-        
+
         return retry;
     }
-    
+
     void executePutPolicy(ResourceContext ctx, String domainName, String policyName, Policy policy,
             String auditRef, String caller) {
 
@@ -962,7 +1003,7 @@ public class DBService implements RolesProvider {
             }
         }
     }
-    
+
     void executePutRole(ResourceContext ctx, String domainName, String roleName, Role role,
             String auditRef, String caller) {
 
@@ -1128,7 +1169,7 @@ public class DBService implements RolesProvider {
             }
         }
     }
-    
+
     void executePutPublicKeyEntry(ResourceContext ctx, String domainName, String serviceName,
             PublicKeyEntry keyEntry, String auditRef, String caller) {
 
@@ -1197,7 +1238,7 @@ public class DBService implements RolesProvider {
             }
         }
     }
-    
+
     void executeDeletePublicKeyEntry(ResourceContext ctx, String domainName, String serviceName,
             String keyId, String auditRef, String caller) {
 
@@ -1243,16 +1284,16 @@ public class DBService implements RolesProvider {
             }
         }
     }
-    
+
     boolean isTrustRole(Role role) {
-        
+
         if (role == null) {
             return false;
         }
 
         return role.getTrust() != null && !role.getTrust().isEmpty();
     }
-    
+
     void executePutMembership(ResourceContext ctx, String domainName, String roleName,
             RoleMember roleMember, String auditRef, String caller) {
 
@@ -1448,7 +1489,7 @@ public class DBService implements RolesProvider {
             }
         }
     }
-    
+
     void executeDeleteMembership(ResourceContext ctx, String domainName, String roleName,
             String normalizedMember, String auditRef, String caller) {
 
@@ -1728,7 +1769,7 @@ public class DBService implements RolesProvider {
             }
         }
     }
-    
+
     void executeDeleteRole(ResourceContext ctx, String domainName, String roleName,
             String auditRef, String caller) {
 
@@ -1850,7 +1891,7 @@ public class DBService implements RolesProvider {
             }
         }
     }
-    
+
     /**
      * If the domain has audit enabled, and user did not provide the auditRef,
      * an exception will be thrown
@@ -1935,22 +1976,22 @@ public class DBService implements RolesProvider {
             }
         }
     }
-    
+
     List<String> listPrincipals(String domainName, boolean domainOnly) {
-        
+
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
-            
+
             List<String> principals = con.listPrincipals(domainName);
-            
+
             // if no further filtering is necessary, return the data
             // right away
-            
+
             if (!domainOnly) {
                 return principals;
             }
-            
+
             // generate our return list
-            
+
             List<String> users = new ArrayList<>();
 
             // if we're asked for domain only then we need to match
@@ -1958,34 +1999,34 @@ public class DBService implements RolesProvider {
             // only includes a single period/domain separator
             // we need to skip an extra byte to accommodate for the
             // domain separator (e.g. <domainName>.<userName>)
-            
+
             int prefixLength = 0;
             if (domainName != null) {
                 prefixLength = domainName.length() + 1;
             }
-                
+
             for (String principal : principals) {
-                    
+
                 // make sure the principal name doesn't have multiple
                 // components - e.g. user.joe.test since it represents
                 // a service or a sub-domain and we're only interested
                 // in actual users
-                
+
                 if (prefixLength > 0) {
                     if (principal.substring(prefixLength).indexOf('.') == -1) {
                         users.add(principal);
                     }
                 } else {
-                    
+
                     // we have a single separator when the first index
                     // and the last index are the same
-                    
+
                     if (principal.indexOf('.') == principal.lastIndexOf('.')) {
                         users.add(principal);
                     }
                 }
             }
-            
+
             return users;
         }
     }
@@ -2038,19 +2079,19 @@ public class DBService implements RolesProvider {
 
     void removePrincipalFromAllRoles(ObjectStoreConnection con, String principalName,
             String adminUser, String auditRef) {
-        
+
         // extract all the roles that this principal is member of
         // we have to this here so that there are records of
         // entries in the role member audit logs and the domain
         // entries are properly invalidated
-        
+
         List<PrincipalRole> roles;
         try {
             roles = con.listPrincipalRoles(null, principalName);
         } catch (ResourceException ex) {
-            
+
             // if there is no such principal then we have nothing to do
-            
+
             if (ex.getCode() == ResourceException.NOT_FOUND) {
                 return;
             } else {
@@ -2059,12 +2100,12 @@ public class DBService implements RolesProvider {
         }
 
         for (PrincipalRole role : roles) {
-            
+
             final String domainName = role.getDomainName();
             final String roleName = role.getRoleName();
-            
+
             // process our delete role member operation
-            
+
             if (LOG.isDebugEnabled()) {
                 LOG.debug("removePrincipalFromAllRoles: removing member {} from {}:role.{}",
                         principalName, domainName, roleName);
@@ -2073,7 +2114,7 @@ public class DBService implements RolesProvider {
             // we are going to ignore all errors here rather than
             // rejecting the full operation. our delete user will
             // eventually remove all these principals
-            
+
             try {
                 con.deleteRoleMember(domainName, roleName, principalName, adminUser, auditRef);
             } catch (ResourceException ex) {
@@ -2082,25 +2123,25 @@ public class DBService implements RolesProvider {
             }
 
             // update our role and domain time-stamps, and invalidate local cache entry
-            
+
             con.updateRoleModTimestamp(domainName, roleName);
             con.updateDomainModTimestamp(domainName);
         }
     }
-    
+
     void removePrincipalDomains(ObjectStoreConnection con, String principalName) {
-        
+
         // first we're going to retrieve the list domains for
         // the given user
-        
+
         final String domainPrefix = principalName + ".";
         List<String> subDomains = con.listDomains(domainPrefix, 0);
-        
+
         // first we're going to delete the user domain if
         // one exists and then all the sub-domains. We're not
         // going to fail the operation for these steps - only
         // if the actual user is not deleted
-        
+
         con.deleteDomain(principalName);
         cacheStore.invalidate(principalName);
 
@@ -2194,14 +2235,14 @@ public class DBService implements RolesProvider {
             }
         }
     }
-    
+
     ServiceIdentity getServiceIdentity(String domainName, String serviceName, boolean attrsOnly) {
 
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return getServiceIdentity(con, domainName, serviceName, attrsOnly);
         }
     }
-    
+
     DomainTemplateList listDomainTemplates(String domainName) {
 
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
@@ -2210,7 +2251,7 @@ public class DBService implements RolesProvider {
             return domainTemplateList;
         }
     }
-    
+
     ServiceIdentity getServiceIdentity(ObjectStoreConnection con, String domainName,
             String serviceName, boolean attrsOnly) {
 
@@ -2224,24 +2265,24 @@ public class DBService implements RolesProvider {
         }
         return service;
     }
-    
+
     PublicKeyEntry getPublicKeyFromCache(String domainName, String serviceName, String keyId) {
-        
+
         DataCache data = cacheStore.getIfPresent(domainName);
         if (data == null) {
             return null;
         }
-            
+
         AthenzDomain athenzDomain = data.getAthenzDomain();
         if (athenzDomain == null) {
             return null;
         }
-        
+
         List<ServiceIdentity> services = athenzDomain.getServices();
         if (services == null) {
             return null;
         }
-        
+
         final String fullServiceName = ZMSUtils.serviceResourceName(domainName, serviceName);
         for (ServiceIdentity service : services) {
             if (fullServiceName.equals(service.getName())) {
@@ -2256,10 +2297,10 @@ public class DBService implements RolesProvider {
                 break;
             }
         }
-        
+
         return null;
     }
-    
+
     PublicKeyEntry getServicePublicKeyEntry(String domainName, String serviceName,
             String keyId, boolean domainStateCheck) {
 
@@ -2270,12 +2311,12 @@ public class DBService implements RolesProvider {
                 throw ex;
             }
         }
-        
+
         // if we got this far it means we couldn't get our public key
         // from our DB store either due to timeout or communication
         // error so we're going to see if we have the public key in
         // our cache and use that for our requests
-        
+
         PublicKeyEntry keyEntry = getPublicKeyFromCache(domainName, serviceName, keyId);
         if (keyEntry == null) {
             throw new ResourceException(ResourceException.SERVICE_UNAVAILABLE,
@@ -2283,35 +2324,35 @@ public class DBService implements RolesProvider {
         }
         return keyEntry;
     }
-    
+
     public ResourceAccessList getResourceAccessList(String principal, String action) {
-        
+
         // this commands takes a quite a bit of time due to joining tables
         // and needs to be optimized. For now we'll configure it with
         // default timeout of 30 minutes to avoid any issues
-        
+
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             con.setOperationTimeout(1800);
             return con.listResourceAccess(principal, action, zmsConfig.getUserDomain());
         }
     }
-    
+
     Domain getDomain(String domainName, boolean masterCopy) {
 
         try (ObjectStoreConnection con = store.getConnection(true, masterCopy)) {
             return con.getDomain(domainName);
         }
     }
-    
+
     List<String> listDomains(String prefix, long modifiedSince, boolean masterCopy) {
-        
+
         try (ObjectStoreConnection con = store.getConnection(true, masterCopy)) {
             return con.listDomains(prefix, modifiedSince);
         }
     }
 
     DomainList lookupDomainById(final String account, final String subscription, int productId) {
-        
+
         DomainList domList = new DomainList();
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             String domain = con.lookupDomainById(account, subscription, productId);
@@ -2321,7 +2362,7 @@ public class DBService implements RolesProvider {
         }
         return domList;
     }
-    
+
     DomainList lookupDomainByAWSAccount(String account) {
         return lookupDomainById(account, null, 0);
     }
@@ -2333,26 +2374,26 @@ public class DBService implements RolesProvider {
     DomainList lookupDomainByProductId(Integer productId) {
         return lookupDomainById(null, null, productId);
     }
-    
+
     DomainList lookupDomainByRole(String roleMember, String roleName) {
-        
+
         DomainList domList = new DomainList();
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             domList.setNames(con.lookupDomainByRole(roleMember, roleName));
         }
         return domList;
     }
-    
+
     List<String> listRoles(String domainName) {
-        
+
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return con.listRoles(domainName);
         }
     }
-    
+
     Membership getMembership(String domainName, String roleName, String principal,
             long expiryTimestamp, boolean pending) {
-        
+
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             Membership membership = con.getRoleMember(domainName, roleName, principal, expiryTimestamp, pending);
             Timestamp expiration = membership.getExpiration();
@@ -2362,7 +2403,7 @@ public class DBService implements RolesProvider {
             if (expiration != null && expiration.millis() < System.currentTimeMillis()) {
                 membership.setIsMember(false);
             }
-            
+
             return membership;
         }
     }
@@ -2484,9 +2525,9 @@ public class DBService implements RolesProvider {
 
         Role role = con.getRole(domainName, roleName);
         if (role != null) {
-            
+
             if (role.getTrust() == null) {
-                
+
                 // if we have no trust field specified then we need to
                 // retrieve our standard group role members. However,
                 // since we can have groups as members in roles check
@@ -2501,80 +2542,85 @@ public class DBService implements RolesProvider {
                 if (auditLog == Boolean.TRUE) {
                     role.setAuditLog(con.listRoleAuditLogs(domainName, roleName));
                 }
-                
+
             } else if (expand == Boolean.TRUE) {
 
                 // otherwise, if asked, let's expand the delegated
                 // membership and return the list of members
-                
+
                 role.setRoleMembers(getDelegatedRoleMembers(con, domainName, role.getTrust(), roleName));
+            }
+
+            Map<String, StringList> roleTags = con.getRoleTags(domainName, roleName);
+            if (roleTags != null) {
+                role.setTags(roleTags);
             }
         }
         return role;
     }
-    
+
     List<RoleMember> getDelegatedRoleMembers(ObjectStoreConnection con, final String domainName,
                                              final String trustDomain, final String roleName) {
-        
+
         // verify that the domain and trust domain are not the same
-        
+
         if (domainName.equals(trustDomain)) {
             return null;
         }
-        
+
         // retrieve our trust domain
-        
+
         AthenzDomain domain = null;
         try {
             domain = getAthenzDomain(con, trustDomain);
         } catch (ResourceException ex) {
             LOG.error("unable to fetch domain {}: {}", trustDomain, ex.getMessage());
         }
-        
+
         if (domain == null) {
             return null;
         }
-        
+
         // we need to use a set since we might be matching
         // multiple assertions and we want to automatically
         // skip any duplicate members
-        
+
         Map<String, RoleMember> roleMembers = new HashMap<>();
-        
+
         // generate our full role name
-        
+
         String fullRoleName = ZMSUtils.roleResourceName(domainName, roleName);
-        
+
         // iterate through all policies to see which one has the
         // assume_role assertion for the given role
-        
+
         for (Policy policy : domain.getPolicies()) {
-            
+
             List<Assertion> assertions = policy.getAssertions();
             if (assertions == null) {
                 continue;
             }
-            
+
             for (Assertion assertion : assertions) {
-                
+
                 if (!AuthzHelper.assumeRoleResourceMatch(fullRoleName, assertion)) {
                     continue;
                 }
-                
+
                 String rolePattern = StringUtils.patternFromGlob(assertion.getRole());
                 for (Role role : domain.getRoles()) {
-                    
+
                     // make sure we have members before trying to match the name
-                    
+
                     List<RoleMember> members = role.getRoleMembers();
                     if (members == null || members.isEmpty()) {
                         continue;
                     }
-                    
+
                     if (!role.getName().matches(rolePattern)) {
                         continue;
                     }
-                    
+
                     for (RoleMember member : members) {
                         String memberName = member.getMemberName();
                         if (!roleMembers.containsKey(memberName)) {
@@ -2587,21 +2633,21 @@ public class DBService implements RolesProvider {
 
         return new ArrayList<>(roleMembers.values());
     }
-    
+
     Policy getPolicy(String domainName, String policyName) {
 
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return getPolicy(con, domainName, policyName);
         }
     }
-    
+
     Assertion getAssertion(String domainName, String policyName, Long assertionId) {
 
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return con.getAssertion(domainName, policyName, assertionId);
         }
     }
-    
+
     void executePutAssertion(ResourceContext ctx, String domainName, String policyName,
             Assertion assertion, String auditRef, String caller) {
 
@@ -2655,7 +2701,7 @@ public class DBService implements RolesProvider {
             }
         }
     }
-    
+
     void executeDeleteAssertion(ResourceContext ctx, String domainName, String policyName,
             Long assertionId, String auditRef, String caller) {
 
@@ -2704,21 +2750,21 @@ public class DBService implements RolesProvider {
             }
         }
     }
-    
+
     List<String> listEntities(String domainName) {
-        
+
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return con.listEntities(domainName);
         }
     }
-    
+
     Entity getEntity(String domainName, String entityName) {
 
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return con.getEntity(domainName, entityName);
         }
     }
-    
+
     Policy getPolicy(ObjectStoreConnection con, String domainName, String policyName) {
 
         Policy policy = con.getPolicy(domainName, policyName);
@@ -2727,21 +2773,21 @@ public class DBService implements RolesProvider {
         }
         return policy;
     }
-    
+
     List<String> listPolicies(String domainName) {
 
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return con.listPolicies(domainName, null);
         }
     }
-    
+
     List<String> listServiceIdentities(String domainName) {
 
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return con.listServiceIdentities(domainName);
         }
     }
-    
+
     void executePutDomainMeta(ResourceContext ctx, String domainName, DomainMeta meta,
             final String systemAttribute, boolean deleteAllowed, String auditRef, String caller) {
 
@@ -3176,7 +3222,7 @@ public class DBService implements RolesProvider {
             }
         }
     }
-    
+
     void executeDeleteDomainTemplate(ResourceContext ctx, String domainName, String templateName,
             String auditRef, String caller) {
 
@@ -3224,23 +3270,23 @@ public class DBService implements RolesProvider {
             }
         }
     }
-    
+
     boolean addSolutionTemplate(ObjectStoreConnection con, String domainName, String templateName,
             String admin, List<TemplateParam> templateParams, String auditRef, StringBuilder auditDetails) {
 
         auditDetails.append("{\"name\": \"").append(templateName).append('\"');
-        
+
         // we have already verified that our template is valid but
         // we'll just double check to make sure it's not null
-        
+
         Template template = zmsConfig.getServerSolutionTemplates().get(templateName);
         if (template == null) {
             auditDetails.append("}");
             return true;
         }
-        
+
         boolean firstEntry = true;
-        
+
         // iterate through roles in the list.
         // When adding a template, if the role does not exist in our domain
         // then insert it otherwise only apply the changes to the member list.
@@ -3255,7 +3301,7 @@ public class DBService implements RolesProvider {
                     domainName, ROLE_PREFIX);
 
                 // retrieve our original role
-                
+
                 Role originalRole = getRole(con, domainName, roleName, false, false, false);
 
                 // Merge original role with template role to handle role meta data
@@ -3275,7 +3321,7 @@ public class DBService implements RolesProvider {
                 }
             }
         }
-        
+
         // iterate through policies in the list.
         // When adding a template, if the policy does not exist in our domain
         // then insert it otherwise only apply the changes to the assertions
@@ -3288,13 +3334,13 @@ public class DBService implements RolesProvider {
 
                 String policyName = ZMSUtils.removeDomainPrefix(templatePolicy.getName(),
                     domainName, POLICY_PREFIX);
-                
+
                 // retrieve our original policy
-                
+
                 Policy originalPolicy = getPolicy(con, domainName, policyName);
-                
+
                 // now process the request
-                
+
                 firstEntry = auditLogSeparator(auditDetails, firstEntry);
                 auditDetails.append(" \"add-policy\": ");
                 if (!processPolicy(con, originalPolicy, domainName, policyName, templatePolicy,
@@ -3303,7 +3349,7 @@ public class DBService implements RolesProvider {
                 }
             }
         }
-        
+
         // iterate through service identities in the list.
         // When adding a template, if the service identity does not exist in our domain
         // then insert it otherwise only apply the changes
@@ -3317,14 +3363,14 @@ public class DBService implements RolesProvider {
 
                 String serviceIdentityName = ZMSUtils.removeDomainPrefixForService(
                         templateServiceIdentity.getName(), domainName);
-                
+
                 // retrieve our original service
-                
+
                 ServiceIdentity originalServiceIdentity = getServiceIdentity(con, domainName,
                         serviceIdentityName, false);
-                
+
                 // now process the request
-                
+
                 firstEntry = auditLogSeparator(auditDetails, firstEntry);
                 auditDetails.append(" \"add-service\": ");
                 if (!processServiceIdentity(con, originalServiceIdentity, domainName,
@@ -3333,10 +3379,10 @@ public class DBService implements RolesProvider {
                 }
             }
         }
-        
+
         // if adding a template, only add if it is not in our current list
         // check to see if the template is already listed for the domain
-            
+
         List<String> currentTemplateList = con.listDomainTemplates(domainName);
         if (!currentTemplateList.contains(templateName)) {
             con.insertDomainTemplate(domainName, templateName, null);
@@ -3346,11 +3392,11 @@ public class DBService implements RolesProvider {
         if (template.getMetadata().getLatestVersion() != null) {
             con.updateDomainTemplate(domainName, templateName, template.getMetadata());
         }
-        
+
         auditDetails.append("}");
         return true;
     }
-    
+
     boolean deleteSolutionTemplate(ObjectStoreConnection con, String domainName, String templateName,
             Template template, StringBuilder auditDetails) {
 
@@ -3358,19 +3404,19 @@ public class DBService implements RolesProvider {
         // DELETE request has no payload and we can't pass our parameters
 
         auditDetails.append("{\"name\": \"").append(templateName).append('\"');
-        
+
         // we have already verified that our template is valid but
         // we'll just double check to make sure it's not null
-        
+
         if (template == null) {
             auditDetails.append("}");
             return true;
         }
-        
+
         boolean firstEntry = true;
-        
+
         // iterate through roles in the list and delete the role
-        
+
         List<Role> templateRoles = template.getRoles();
         if (templateRoles != null) {
             for (Role role : templateRoles) {
@@ -3382,7 +3428,7 @@ public class DBService implements RolesProvider {
                 auditDetails.append(" \"delete-role\": \"").append(roleName).append('\"');
             }
         }
-        
+
         // iterate through policies in the list and delete the policy
 
         List<Policy> templatePolicies = template.getPolicies();
@@ -3396,7 +3442,7 @@ public class DBService implements RolesProvider {
                 auditDetails.append(" \"delete-policy\": \"").append(policyName).append('\"');
             }
         }
-        
+
         // iterate through services in the list and delete the service
 
         List<ServiceIdentity> templateServices = template.getServices();
@@ -3409,20 +3455,20 @@ public class DBService implements RolesProvider {
                 auditDetails.append(" \"delete-service\": \"").append(serviceName).append('\"');
             }
         }
-        
+
         // delete the template from the current list
-        
+
         con.deleteDomainTemplate(domainName, templateName, null);
-        
+
         auditDetails.append("}");
         return true;
     }
-    
+
     Role updateTemplateRole(Role role, String domainName, List<TemplateParam> params) {
-        
+
         // first process our given role name and carry out any
         // requested substitutions
-        
+
         String templateRoleName = role.getName().replace(TEMPLATE_DOMAIN_NAME, domainName);
         if (params != null) {
             for (TemplateParam param : params) {
@@ -3447,15 +3493,15 @@ public class DBService implements RolesProvider {
                 .setNotifyRoles(role.getNotifyRoles())
                 .setUserAuthorityFilter(role.getUserAuthorityFilter())
                 .setUserAuthorityExpiration(role.getUserAuthorityExpiration());
-        
+
         List<RoleMember> roleMembers = role.getRoleMembers();
         List<RoleMember> newMembers = new ArrayList<>();
         if (roleMembers != null && !roleMembers.isEmpty()) {
             for (RoleMember roleMember : roleMembers) {
                 RoleMember newRoleMember = new RoleMember();
-                
+
                 // process our role members for any requested substitutions
-                
+
                 String memberName = roleMember.getMemberName().replace(TEMPLATE_DOMAIN_NAME, domainName);
                 if (params != null) {
                     for (TemplateParam param : params) {
@@ -3471,12 +3517,12 @@ public class DBService implements RolesProvider {
         templateRole.setRoleMembers(newMembers);
         return templateRole;
     }
-    
+
     Policy updateTemplatePolicy(Policy policy, String domainName, List<TemplateParam> params) {
-        
+
         // first process our given role name and carry out any
         // requested substitutions
-        
+
         String templatePolicyName = policy.getName().replace(TEMPLATE_DOMAIN_NAME, domainName);
         if (params != null) {
             for (TemplateParam param : params) {
@@ -3484,7 +3530,7 @@ public class DBService implements RolesProvider {
                 templatePolicyName = templatePolicyName.replace(paramKey, param.getValue());
             }
         }
-        
+
         Policy templatePolicy = new Policy().setName(templatePolicyName);
         List<Assertion> assertions = policy.getAssertions();
         List<Assertion> newAssertions = new ArrayList<>();
@@ -3493,9 +3539,9 @@ public class DBService implements RolesProvider {
                 Assertion newAssertion = new Assertion();
                 newAssertion.setAction(assertion.getAction());
                 newAssertion.setEffect(assertion.getEffect());
-                
+
                 // process our assertion resource and role for any requested substitutions
-                
+
                 String resource = assertion.getResource().replace(TEMPLATE_DOMAIN_NAME, domainName);
                 String role = assertion.getRole().replace(TEMPLATE_DOMAIN_NAME, domainName);
                 if (params != null) {
@@ -3513,10 +3559,10 @@ public class DBService implements RolesProvider {
         templatePolicy.setAssertions(newAssertions);
         return templatePolicy;
     }
-    
+
     ServiceIdentity updateTemplateServiceIdentity(ServiceIdentity serviceIdentity,
             String domainName, List<TemplateParam> params) {
-        
+
         String templateServiceName = serviceIdentity.getName().replace(TEMPLATE_DOMAIN_NAME, domainName);
         if (params != null) {
             for (TemplateParam param : params) {
@@ -3524,15 +3570,15 @@ public class DBService implements RolesProvider {
                 templateServiceName = templateServiceName.replace(paramKey, param.getValue());
             }
         }
-        
+
         ServiceIdentity templateServiceIdentity = new ServiceIdentity().setName(templateServiceName);
-        
+
         templateServiceIdentity.setDescription(serviceIdentity.getDescription());
         templateServiceIdentity.setExecutable(serviceIdentity.getExecutable());
         templateServiceIdentity.setGroup(serviceIdentity.getGroup());
         templateServiceIdentity.setUser(serviceIdentity.getUser());
         templateServiceIdentity.setProviderEndpoint(serviceIdentity.getProviderEndpoint());
-        
+
         List<PublicKeyEntry> publicKeyEntries = serviceIdentity.getPublicKeys();
         List<PublicKeyEntry> newPublicKeyEntries = new ArrayList<>();
         if (publicKeyEntries != null && !publicKeyEntries.isEmpty()) {
@@ -3544,16 +3590,16 @@ public class DBService implements RolesProvider {
             }
         }
         templateServiceIdentity.setPublicKeys(newPublicKeyEntries);
-        
+
         List<String> hosts = serviceIdentity.getHosts();
-        
+
         if (hosts != null) {
             templateServiceIdentity.setHosts(new ArrayList<>(hosts));
         }
-        
+
         return templateServiceIdentity;
     }
-    
+
     void setupTenantAdminPolicy(String tenantDomain, String provSvcDomain,
             String provSvcName, String auditRef, String caller) {
 
@@ -3632,7 +3678,7 @@ public class DBService implements RolesProvider {
             }
         }
     }
-    
+
     void executePutTenantRoles(ResourceContext ctx, String provSvcDomain, String provSvcName, String tenantDomain,
             String resourceGroup, List<TenantRoleAction> roles, String auditRef, String caller) {
 
@@ -3731,30 +3777,30 @@ public class DBService implements RolesProvider {
             }
         }
     }
-    
+
     void addAssumeRolePolicy(ObjectStoreConnection con, String rolePrefix,
             String trustedRolePrefix, String role, List<RoleMember> roleMembers,
             String tenantDomain, String admin, String auditRef,
             StringBuilder auditDetails, String caller) {
-        
+
         // first create the role in the domain. We're going to create it
         // only if the role does not already exist
-        
+
         String roleName = rolePrefix + role;
         String roleResourceName = ZMSUtils.roleResourceName(tenantDomain, roleName);
-        
+
         // retrieve our original role in case one exists
-        
+
         Role originalRole = getRole(con, tenantDomain, roleName, false, false, false);
 
         // we need to add the original role members to the new one
-        
+
         if (originalRole != null && originalRole.getRoleMembers() != null) {
             roleMembers.addAll(originalRole.getRoleMembers());
         }
-        
+
         // now process the request
-        
+
         Role roleObj = new Role().setName(roleResourceName).setRoleMembers(roleMembers);
         auditDetails.append("{\"role\": ");
         if (!processRole(con, originalRole, tenantDomain, roleName, roleObj,
@@ -3762,24 +3808,24 @@ public class DBService implements RolesProvider {
             con.rollbackChanges();
             throw ZMSUtils.internalServerError("unable to put role: " + roleName, caller);
         }
-        
+
         // now create the corresponding policy. We're going to create it
         // only if the policy does not exist otherwise we'll just
         // add a new assertion
-        
+
         String policyName = "tenancy." + roleName;
         String policyResourceName = ZMSUtils.policyResourceName(tenantDomain, policyName);
         String serviceRoleResourceName = trustedRolePrefix + role;
         Assertion assertion = new Assertion().setRole(roleResourceName)
                 .setResource(serviceRoleResourceName).setAction(ZMSConsts.ACTION_ASSUME_ROLE)
                 .setEffect(AssertionEffect.ALLOW);
-        
+
         if (LOG.isInfoEnabled()) {
             LOG.info("executePutProviderRoles: ---- ASSUME_ROLE policyName is " + policyName);
         }
-        
+
         // retrieve our original policy
-        
+
         Policy originalPolicy = getPolicy(con, tenantDomain, policyName);
 
         // we need to add the original policy assertions to the new one
@@ -3788,15 +3834,15 @@ public class DBService implements RolesProvider {
         if (originalPolicy != null && originalPolicy.getAssertions() != null) {
             newAssertions.addAll(originalPolicy.getAssertions());
         }
-        
+
         // if our new assertion is not already in the list then that will be added to
-        
+
         if (!newAssertions.contains(assertion)) {
             newAssertions.add(assertion);
         }
-        
+
         // now process the request
-        
+
         Policy assumeRolePolicy = new Policy().setName(policyResourceName).setAssertions(newAssertions);
 
         auditDetails.append(", \"policy\": ");
@@ -3808,7 +3854,7 @@ public class DBService implements RolesProvider {
         }
         auditDetails.append('}');
     }
-    
+
     void executePutProviderRoles(ResourceContext ctx, String tenantDomain, String provSvcDomain,
             String provSvcName, String resourceGroup, List<String> roles, String auditRef, String caller) {
 
@@ -3886,14 +3932,14 @@ public class DBService implements RolesProvider {
             }
         }
     }
-    
+
     void executeDeleteTenancy(ResourceContext ctx, String tenantDomain, String provSvcDomain,
             String provSvcName, String resourceGroup, String auditRef, String caller) {
-        
+
         // create list of policies and delete them from the tenant domain
         // have to get all policies that match "tenant.<provider>.*"
         // ex: tenancy.weather.storage.admin
-        
+
         String rnamePrefix = ZMSUtils.getProviderResourceGroupRolePrefix(provSvcDomain, provSvcName,
                 resourceGroup);
 
@@ -3980,25 +4026,25 @@ public class DBService implements RolesProvider {
     }
 
     boolean validResourceGroupObjectToDelete(String name, String prefix) {
-        
+
         if (!name.startsWith(prefix)) {
             return false;
         }
-        
+
         // the suffix must be the action which should only be
         // simple-name thus it cannot contain any more .'s
         // otherwise we don't want to make a mistake
         // and match substring resource groups - e.g:
         // system.engine and system.engine.test
-        
+
         return (name.indexOf('.', prefix.length()) == -1);
     }
-    
+
     void executeDeleteTenantRoles(ResourceContext ctx, String provSvcDomain, String provSvcName,
             String tenantDomain, String resourceGroup, String auditRef, String caller) {
 
         // look for this tenants roles, ex: storage.tenant.sports.reader
-        
+
         String rolePrefix = ZMSUtils.getTenantResourceGroupRolePrefix(provSvcName, tenantDomain, resourceGroup);
 
         // our exception handling code does the check for retry count
@@ -4051,23 +4097,23 @@ public class DBService implements RolesProvider {
             }
         }
     }
-    
+
     boolean isTrustRoleForTenant(ObjectStoreConnection con, String provSvcDomain, String roleName,
             String rolePrefix, String resourceGroup, String tenantDomain) {
-        
+
         // first make sure the role name starts with the given prefix
-        
+
         if (!isTenantRolePrefixMatch(con, roleName, rolePrefix, resourceGroup, tenantDomain)) {
             return false;
         }
-        
+
         Role role = con.getRole(provSvcDomain, roleName);
         if (role == null) {
             return false;
         }
-        
+
         // ensure it is a trust role for the tenant
-        
+
         String trustDom = role.getTrust();
         return trustDom != null && trustDom.equals(tenantDomain);
 
@@ -4088,17 +4134,17 @@ public class DBService implements RolesProvider {
             return isTenantRolePrefixMatch(con, roleName, rolePrefix, resourceGroup, tenantDomain);
         }
     }
-    
+
     boolean isTenantRolePrefixMatch(ObjectStoreConnection con, String roleName, String rolePrefix,
             String resourceGroup, String tenantDomain) {
-        
+
         if (LOG.isDebugEnabled()) {
             LOG.debug("isTenantRolePrefixMatch: role-name=" + roleName + ", role-prefix=" +
                     rolePrefix + ", resource-group=" + resourceGroup + ", tenant-domain=" + tenantDomain);
         }
-        
+
         // first make sure the role name starts with the given prefix
-        
+
         if (!roleName.startsWith(rolePrefix)) {
             return false;
         }
@@ -4109,26 +4155,26 @@ public class DBService implements RolesProvider {
         // action after the name, if we get another '.' then
         // we're dealing with a substring so the role does
         // match the expected format
-        
+
         if (resourceGroup != null) {
             return (roleName.indexOf('.', rolePrefix.length()) == -1);
         }
-        
+
         // otherwise we're going to split the remaining value
         // into components. If we have 2 components then we'll
         // check if we have a domain for the first component
         // if we don't then it's a resource group and as such
         // it can be removed otherwise, we'll leave it alone
-            
+
         String[] comps = roleName.substring(rolePrefix.length()).split("\\.");
         if (comps.length == 2) {
-            
+
             // check to see if we have a subdomain - if we do then
             // we're not going to include this role as we don't know
             // for sure if this for a resource group or not
-            
+
             String subDomain = tenantDomain + "." + comps[0];
-            
+
             if (LOG.isDebugEnabled()) {
                 LOG.debug("isTenantRolePrefixMatch: verifying tenant subdomain: " + subDomain);
             }
@@ -4144,7 +4190,7 @@ public class DBService implements RolesProvider {
         }
 
     }
-    
+
     public AthenzDomain getAthenzDomain(final String domainName, boolean masterCopy) {
 
         try (ObjectStoreConnection con = store.getConnection(true, masterCopy)) {
@@ -4170,19 +4216,19 @@ public class DBService implements RolesProvider {
 
         return athenzDomain;
     }
-    
+
     DomainMetaList listModifiedDomains(long modifiedSince) {
-        
+
         // since this is the operation executed by ZTS servers to
         // retrieve latest domain changes, we're going to use
         // the read-write store as oppose to read-only store to
         // get our up-to-date data
-        
+
         try (ObjectStoreConnection con = store.getConnection(true, true)) {
             return con.listModifiedDomains(modifiedSince);
         }
     }
-    
+
     boolean auditLogSeparator(StringBuilder auditDetails, boolean firstEntry) {
         if (!firstEntry) {
             auditDetails.append(',');
@@ -4191,7 +4237,7 @@ public class DBService implements RolesProvider {
         // longer the first entry so we return false
         return false;
     }
-    
+
     void auditLogStrings(StringBuilder auditDetails, String label, Collection<String> values) {
         auditDetails.append(", \"").append(label).append("\": [");
         boolean firstEntry = true;
@@ -4200,13 +4246,13 @@ public class DBService implements RolesProvider {
         }
         auditDetails.append(']');
     }
-    
+
     boolean auditLogString(StringBuilder auditDetails, String value, boolean firstEntry) {
         firstEntry = auditLogSeparator(auditDetails, firstEntry);
         auditDetails.append('\"').append(value).append('\"');
         return firstEntry;
     }
-    
+
     void auditLogRoleMembers(StringBuilder auditDetails, String label,
             Collection<RoleMember> values) {
         auditDetails.append(", \"").append(label).append("\": [");
@@ -4272,7 +4318,7 @@ public class DBService implements RolesProvider {
         }
         auditDetails.append(']');
     }
-    
+
     void auditLogPublicKeyEntries(StringBuilder auditDetails, String label, Set<String> values,
             Map<String, PublicKeyEntry> publicKeysMap) {
         auditDetails.append(", \"").append(label).append("\": [");
@@ -4282,7 +4328,7 @@ public class DBService implements RolesProvider {
         }
         auditDetails.append(']');
     }
-    
+
     void auditLogPublicKeyEntries(StringBuilder auditDetails, String label, Set<String> values) {
         auditDetails.append(", \"").append(label).append("\": [");
         boolean firstEntry = true;
@@ -4291,14 +4337,14 @@ public class DBService implements RolesProvider {
         }
         auditDetails.append(']');
     }
-    
+
     boolean auditLogPublicKeyEntry(StringBuilder auditDetails, PublicKeyEntry publicKey, boolean firstEntry) {
         firstEntry = auditLogSeparator(auditDetails, firstEntry);
         auditDetails.append("{\"key\": \"").append(publicKey.getKey())
             .append("\", \"id\": \"").append(publicKey.getId()).append("\"}");
         return firstEntry;
     }
-    
+
     boolean auditLogPublicKeyEntry(StringBuilder auditDetails, String publicKeyId, boolean firstEntry) {
         firstEntry = auditLogSeparator(auditDetails, firstEntry);
         auditDetails.append("{\"id\": \"").append(publicKeyId).append("\"}");
@@ -4313,7 +4359,7 @@ public class DBService implements RolesProvider {
         }
         auditDetails.append(']');
     }
-    
+
     boolean auditLogAssertion(StringBuilder auditDetails, Assertion assertion, boolean firstEntry) {
         firstEntry = auditLogSeparator(auditDetails, firstEntry);
         String assertionEffect = "ALLOW";
@@ -4327,7 +4373,7 @@ public class DBService implements RolesProvider {
                 .append("\"}");
         return firstEntry;
     }
-    
+
     void auditLogDomain(StringBuilder auditDetails, Domain domain) {
         auditDetails.append("{\"description\": \"").append(domain.getDescription())
                 .append("\", \"org\": \"").append(domain.getOrg())

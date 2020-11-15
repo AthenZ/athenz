@@ -107,6 +107,10 @@ func init() {
 	tAuthorityKeywords.Pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*,)*[a-zA-Z0-9_][a-zA-Z0-9_-]*")
 	sb.AddType(tAuthorityKeywords.Build())
 
+	tStringList := rdl.NewStructTypeBuilder("Struct", "StringList")
+	tStringList.ArrayField("list", "CompoundName", false, "generic list of strings")
+	sb.AddType(tStringList.Build())
+
 	tDomainMeta := rdl.NewStructTypeBuilder("Struct", "DomainMeta")
 	tDomainMeta.Comment("Set of metadata attributes that all domains may have and can be changed.")
 	tDomainMeta.Field("description", "String", true, nil, "a description of the domain")
@@ -185,6 +189,7 @@ func init() {
 	tRoleMeta.Field("userAuthorityFilter", "String", true, nil, "membership filtered based on user authority configured attributes")
 	tRoleMeta.Field("userAuthorityExpiration", "String", true, nil, "expiration enforced by a user authority configured attribute")
 	tRoleMeta.Field("groupExpiryDays", "Int32", true, nil, "all groups in the domain roles will have specified max expiry days")
+	tRoleMeta.MapField("tags", "CompoundName", "StringList", true, "key-value pair tags, tag might contain multiple values")
 	sb.AddType(tRoleMeta.Build())
 
 	tRole := rdl.NewStructTypeBuilder("RoleMeta", "Role")
@@ -913,6 +918,8 @@ func init() {
 	mGetRoles.Comment("Get the list of all roles in a domain with optional flag whether or not include members")
 	mGetRoles.Input("domainName", "DomainName", true, "", "", false, nil, "name of the domain")
 	mGetRoles.Input("members", "Bool", false, "members", "", true, false, "return list of members in the role")
+	mGetRoles.Input("tagKey", "CompoundName", false, "tagKey", "", true, nil, "flag to query all roles that have a given tagName")
+	mGetRoles.Input("tagValue", "CompoundName", false, "tagValue", "", true, nil, "flag to query all roles that have a given tag name and value")
 	mGetRoles.Auth("", "", true, "")
 	mGetRoles.Exception("BAD_REQUEST", "ResourceError", "")
 	mGetRoles.Exception("NOT_FOUND", "ResourceError", "")

@@ -182,7 +182,7 @@ func (cli Zms) dumpRoles(buf *bytes.Buffer, dn string) {
 	buf.WriteString(indentLevel1)
 	buf.WriteString("roles:\n")
 	members := true
-	roles, err := cli.Zms.GetRoles(zms.DomainName(dn), &members)
+	roles, err := cli.Zms.GetRoles(zms.DomainName(dn), &members, "", "")
 	if err != nil {
 		log.Fatalf("Unable to get role list - error: %v", err)
 	}
@@ -657,10 +657,10 @@ func (cli Zms) dumpDomainGroupMembers(buf *bytes.Buffer, domainGroupMembers *zms
 }
 
 func (cli Zms) dumpRolesPrincipal(buf *bytes.Buffer, roleMember *zms.DomainRoleMember) {
-	buf.WriteString( "member: " + string(roleMember.MemberName) + "\n")
-	buf.WriteString( "roles:\n")
+	buf.WriteString("member: " + string(roleMember.MemberName) + "\n")
+	buf.WriteString("roles:\n")
 	for _, role := range roleMember.MemberRoles {
-		buf.WriteString(indentLevel1Dash + "name: " + string(role.RoleName) +"\n")
+		buf.WriteString(indentLevel1Dash + "name: " + string(role.RoleName) + "\n")
 		buf.WriteString(indentLevel1 + "  domain: " + string(role.DomainName) + "\n")
 		if role.Expiration != nil {
 			buf.WriteString(indentLevel1 + "  expiration: " + role.Expiration.String() + "\n")
@@ -675,10 +675,10 @@ func (cli Zms) dumpRolesPrincipal(buf *bytes.Buffer, roleMember *zms.DomainRoleM
 }
 
 func (cli Zms) dumpGroupsPrincipal(buf *bytes.Buffer, groupMember *zms.DomainGroupMember) {
-	buf.WriteString( "member: " + string(groupMember.MemberName) + "\n")
-	buf.WriteString( "groups:\n")
+	buf.WriteString("member: " + string(groupMember.MemberName) + "\n")
+	buf.WriteString("groups:\n")
 	for _, group := range groupMember.MemberGroups {
-		buf.WriteString(indentLevel1Dash + "name: " + string(group.GroupName) +"\n")
+		buf.WriteString(indentLevel1Dash + "name: " + string(group.GroupName) + "\n")
 		buf.WriteString(indentLevel1 + "  domain: " + string(group.DomainName) + "\n")
 		if group.Expiration != nil {
 			buf.WriteString(indentLevel1 + "  expiration: " + group.Expiration.String() + "\n")

@@ -32,7 +32,7 @@ public interface ZMSHandler {
     void deleteEntity(ResourceContext context, String domainName, String entityName, String auditRef);
     EntityList getEntityList(ResourceContext context, String domainName);
     RoleList getRoleList(ResourceContext context, String domainName, Integer limit, String skip);
-    Roles getRoles(ResourceContext context, String domainName, Boolean members);
+    Roles getRoles(ResourceContext context, String domainName, Boolean members, String tagKey, String tagValue);
     Role getRole(ResourceContext context, String domainName, String roleName, Boolean auditLog, Boolean expand, Boolean pending);
     void putRole(ResourceContext context, String domainName, String roleName, String auditRef, Role role);
     void deleteRole(ResourceContext context, String domainName, String roleName, String auditRef);

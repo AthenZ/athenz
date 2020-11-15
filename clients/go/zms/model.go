@@ -120,6 +120,66 @@ type AuthorityKeyword string
 type AuthorityKeywords string
 
 //
+// StringList -
+//
+type StringList struct {
+
+	//
+	// generic list of strings
+	//
+	List []CompoundName `json:"list"`
+}
+
+//
+// NewStringList - creates an initialized StringList instance, returns a pointer to it
+//
+func NewStringList(init ...*StringList) *StringList {
+	var o *StringList
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(StringList)
+	}
+	return o.Init()
+}
+
+//
+// Init - sets up the instance according to its default field values, if any
+//
+func (self *StringList) Init() *StringList {
+	if self.List == nil {
+		self.List = make([]CompoundName, 0)
+	}
+	return self
+}
+
+type rawStringList StringList
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a StringList
+//
+func (self *StringList) UnmarshalJSON(b []byte) error {
+	var m rawStringList
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := StringList(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *StringList) Validate() error {
+	if self.List == nil {
+		return fmt.Errorf("StringList: Missing required field: list")
+	}
+	return nil
+}
+
+//
 // DomainMeta - Set of metadata attributes that all domains may have and can be
 // changed.
 //
@@ -982,6 +1042,11 @@ type RoleMeta struct {
 	// all groups in the domain roles will have specified max expiry days
 	//
 	GroupExpiryDays *int32 `json:"groupExpiryDays,omitempty" rdl:"optional"`
+
+	//
+	// key-value pair tags, tag might contain multiple values
+	//
+	Tags map[CompoundName]*StringList `json:"tags,omitempty" rdl:"optional"`
 }
 
 //
@@ -1116,6 +1181,11 @@ type Role struct {
 	// all groups in the domain roles will have specified max expiry days
 	//
 	GroupExpiryDays *int32 `json:"groupExpiryDays,omitempty" rdl:"optional"`
+
+	//
+	// key-value pair tags, tag might contain multiple values
+	//
+	Tags map[CompoundName]*StringList `json:"tags,omitempty" rdl:"optional"`
 
 	//
 	// name of the role

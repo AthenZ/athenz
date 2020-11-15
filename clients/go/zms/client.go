@@ -949,9 +949,9 @@ func (client ZMSClient) GetRoleList(domainName DomainName, limit *int32, skip st
 	}
 }
 
-func (client ZMSClient) GetRoles(domainName DomainName, members *bool) (*Roles, error) {
+func (client ZMSClient) GetRoles(domainName DomainName, members *bool, tagKey CompoundName, tagValue CompoundName) (*Roles, error) {
 	var data *Roles
-	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/roles" + encodeParams(encodeOptionalBoolParam("members", members))
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/roles" + encodeParams(encodeOptionalBoolParam("members", members), encodeStringParam("tagKey", string(tagKey), ""), encodeStringParam("tagValue", string(tagValue), ""))
 	resp, err := client.httpGet(url, nil)
 	if err != nil {
 		return data, err
