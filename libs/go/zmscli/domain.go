@@ -398,7 +398,7 @@ func (cli Zms) showDomain(dn string) (*string, error) {
 
 	var buf bytes.Buffer
 	cli.dumpDomain(&buf, domain)
-	cli.dumpRoles(&buf, dn)
+	cli.dumpRoles(&buf, dn, "", "")
 	cli.dumpPolicies(&buf, dn)
 	cli.dumpServices(&buf, dn)
 

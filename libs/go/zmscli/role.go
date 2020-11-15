@@ -371,6 +371,7 @@ func getRoleMetaObject(role *zms.Role) zms.RoleMeta {
 		ServiceReviewDays:       role.ServiceReviewDays,
 		UserAuthorityExpiration: role.UserAuthorityExpiration,
 		UserAuthorityFilter:     role.UserAuthorityFilter,
+		Tags:                    role.Tags,
 	}
 }
 
@@ -419,6 +420,95 @@ func (cli Zms) SetRoleUserAuthorityExpiration(dn string, rn, filter string) (*st
 		return nil, err
 	}
 	s := "[domain " + dn + " role " + rn + " user-authority-expiration attribute successfully updated]\n"
+	return &s, nil
+}
+
+func (cli Zms) AddRoleTags(dn string, rn, tagKey string, tagValues []string) (*string, error) {
+	role, err := cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), nil, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	tagValueArr := make([]zms.CompoundName, 0)
+
+	if role.Tags == nil {
+		role.Tags = map[zms.CompoundName]*zms.StringList{}
+	} else {
+		// append current tags
+		currentTagValues := role.Tags[zms.CompoundName(tagKey)]
+		if currentTagValues != nil {
+			tagValueArr = append(tagValueArr, currentTagValues.List...)
+		}
+	}
+
+	for _, tagValue := range tagValues {
+		tagValueArr = append(tagValueArr, zms.CompoundName(tagValue))
+	}
+
+	role.Tags[zms.CompoundName(tagKey)] = &zms.StringList{List: tagValueArr}
+
+	err = cli.Zms.PutRole(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, role)
+	if err != nil {
+		return nil, err
+	}
+
+	output, err := cli.ShowRole(dn, rn, false, false, false)
+	if err != nil {
+		// due to mysql read after write issue it's possible that
+		// we'll get 404 after writing our object so in that
+		// case we're going to do a quick sleep and retry request
+		time.Sleep(500 * time.Millisecond)
+		output, err = cli.ShowRole(dn, rn, false, false, false)
+	}
+	return output, err
+}
+
+func (cli Zms) DeleteRoleTags(dn string, rn, tagKey string, tagValue string) (*string, error) {
+	role, err := cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), nil, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	tagValueArr := make([]zms.CompoundName, 0)
+
+	if role.Tags == nil {
+		role.Tags = map[zms.CompoundName]*zms.StringList{}
+	}
+
+	// except given tagValue, set the same tags map
+	if tagValue != "" && role.Tags != nil {
+		currentTagValues := role.Tags[zms.CompoundName(tagKey)]
+		if currentTagValues != nil {
+			for _, curTagValue := range currentTagValues.List {
+				if tagValue != string(curTagValue) {
+					tagValueArr = append(tagValueArr, curTagValue)
+				}
+			}
+		}
+	}
+
+	role.Tags[zms.CompoundName(tagKey)] = &zms.StringList{List: tagValueArr}
+
+	err = cli.Zms.PutRole(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, role)
+	if err != nil {
+		return nil, err
+	}
+
+	output, err := cli.ShowRole(dn, rn, false, false, false)
+	if err != nil {
+		// due to mysql read after write issue it's possible that
+		// we'll get 404 after writing our object so in that
+		// case we're going to do a quick sleep and retry request
+		time.Sleep(500 * time.Millisecond)
+		output, err = cli.ShowRole(dn, rn, false, false, false)
+	}
+	return output, err
+}
+
+func (cli Zms) ShowRoles(dn string, tagKey string, tagValue string) (*string, error) {
+	var buf bytes.Buffer
+	cli.dumpRoles(&buf, dn, tagKey, tagValue)
+	s := buf.String()
 	return &s, nil
 }
 
