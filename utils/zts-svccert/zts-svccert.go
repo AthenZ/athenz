@@ -36,7 +36,7 @@ func main() {
 	var csr, spiffe bool
 	var expiryTime int
 	flag.BoolVar(&csr, "csr", false, "request csr only")
-	flag.BoolVar(&spiffe, "spiffe", false, "include spiffe uri in csr")
+	flag.BoolVar(&spiffe, "spiffe", true, "include spiffe uri in csr")
 	flag.IntVar(&expiryTime, "expiry-time", 0, "expiry time in minutes")
 	flag.StringVar(&certFile, "cert-file", "", "output certificate file")
 	flag.StringVar(&signerCertFile, "signer-cert-file", "", "output signer certificate file")
