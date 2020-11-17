@@ -50,7 +50,7 @@ func main() {
 	flag.StringVar(&subjO, "subj-o", "Oath Inc.", "Subject O/Organization field")
 	flag.StringVar(&subjOU, "subj-ou", "Athenz", "Subject OU/OrganizationalUnit field")
 	flag.StringVar(&ip, "ip", "", "IP address")
-	flag.BoolVar(&spiffe, "spiffe", false, "include spiffe uri in csr")
+	flag.BoolVar(&spiffe, "spiffe", true, "include spiffe uri in csr")
 	flag.BoolVar(&csr, "csr", false, "request csr only")
 	flag.IntVar(&expiryTime, "expiry-time", 0, "expiry time in minutes")
 	flag.BoolVar(&proxy, "proxy", true, "enable proxy mode for request")
