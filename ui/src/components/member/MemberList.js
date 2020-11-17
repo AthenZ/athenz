@@ -69,30 +69,57 @@ export default class MemberList extends React.Component {
     };
 
     reloadMembers(successMessage) {
-        this.api
-            .getRole(this.props.domain, this.props.role, true, true, true)
-            .then((role) => {
-                this.setState({
-                    members: role.roleMembers,
-                    showAddMember: false,
-                    showSuccess: true,
-                    successMessage,
-                    errorMessage: null,
+        if (this.props.roleDetails.trust) {
+            this.api
+                .getRole(this.props.domain, this.props.role, true, true, true)
+                .then((role) => {
+                    this.setState({
+                        members: role.roleMembers,
+                        showAddMember: false,
+                        showSuccess: true,
+                        successMessage,
+                        errorMessage: null,
+                    });
+                    // this is to close the success alert
+                    setTimeout(
+                        () =>
+                            this.setState({
+                                showSuccess: false,
+                            }),
+                        MODAL_TIME_OUT
+                    );
+                })
+                .catch((err) => {
+                    this.setState({
+                        errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+                    });
                 });
-                // this is to close the success alert
-                setTimeout(
-                    () =>
-                        this.setState({
-                            showSuccess: false,
-                        }),
-                    MODAL_TIME_OUT
-                );
-            })
-            .catch((err) => {
-                this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+        } else {
+            this.api
+                .getRole(this.props.domain, this.props.role, true, false, true)
+                .then((role) => {
+                    this.setState({
+                        members: role.roleMembers,
+                        showAddMember: false,
+                        showSuccess: true,
+                        successMessage,
+                        errorMessage: null,
+                    });
+                    // this is to close the success alert
+                    setTimeout(
+                        () =>
+                            this.setState({
+                                showSuccess: false,
+                            }),
+                        MODAL_TIME_OUT
+                    );
+                })
+                .catch((err) => {
+                    this.setState({
+                        errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+                    });
                 });
-            });
+        }
     }
 
     closeModal() {

@@ -68,6 +68,13 @@ export default class MemberPage extends React.Component {
             api.listUserDomains(),
             api.getHeaderDetails(),
             api.getDomain(props.query.domain),
+            api.getRole(
+                props.query.domain,
+                props.query.role,
+                true,
+                false,
+                true
+            ),
             api.getRole(props.query.domain, props.query.role, true, true, true),
             api.getPendingDomainRoleMembersList(),
             api.getForm(),
@@ -85,13 +92,14 @@ export default class MemberPage extends React.Component {
             domains: roles[0],
             role: props.query.role,
             members: roles[3].roleMembers,
+            expandMembers: roles[4].roleMembers,
             headerDetails: roles[1],
             domainDeails: roles[2],
             auditEnabled: roles[2].auditEnabled,
-            roleDetails: roles[3],
+            roleDetails: roles[4],
             domain: props.query.domain,
-            pending: roles[4],
-            _csrf: roles[5],
+            pending: roles[5],
+            _csrf: roles[6],
         };
     }
 
@@ -107,6 +115,7 @@ export default class MemberPage extends React.Component {
             roleDetails,
             role,
             members,
+            expandMembers,
             isDomainAuditEnabled,
             _csrf,
         } = this.props;
@@ -117,6 +126,9 @@ export default class MemberPage extends React.Component {
         if (this.props.error) {
             return <Error err={this.props.error} />;
         }
+
+        let roleMembers = roleDetails.trust ? expandMembers : members;
+
         return (
             <div data-testid='member'>
                 <Head>
@@ -158,7 +170,7 @@ export default class MemberPage extends React.Component {
                                     domain={domain}
                                     role={role}
                                     roleDetails={roleDetails}
-                                    members={members}
+                                    members={roleMembers}
                                     _csrf={_csrf}
                                     isDomainAuditEnabled={isDomainAuditEnabled}
                                     userProfileLink={

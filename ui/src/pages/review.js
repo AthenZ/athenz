@@ -27,7 +27,6 @@ import RequestUtils from '../components/utils/RequestUtils';
 import RoleTabs from '../components/header/RoleTabs';
 import RoleNameHeader from '../components/header/RoleNameHeader';
 import Error from './_error';
-import { MODAL_TIME_OUT } from '../components/constants/constants';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -73,6 +72,13 @@ export default class ReviewPage extends React.Component {
                 props.query.domain,
                 props.query.role,
                 false,
+                false,
+                false
+            ),
+            api.getRole(
+                props.query.domain,
+                props.query.role,
+                false,
                 true,
                 false
             ),
@@ -93,12 +99,13 @@ export default class ReviewPage extends React.Component {
             domain: props.query.domain,
             role: props.query.role,
             members: roles[3].roleMembers,
+            expandMembers: roles[4].roleMembers,
             headerDetails: roles[1],
             domainDeails: roles[2],
             auditEnabled: roles[2].auditEnabled,
             roleDetails: roles[3],
-            pending: roles[4],
-            _csrf: roles[5],
+            pending: roles[5],
+            _csrf: roles[6],
         };
     }
 
@@ -114,6 +121,7 @@ export default class ReviewPage extends React.Component {
             roleDetails,
             role,
             members,
+            expandMembers,
             isDomainAuditEnabled,
             _csrf,
         } = this.props;
@@ -124,6 +132,9 @@ export default class ReviewPage extends React.Component {
         if (this.props.error) {
             return <Error err={this.props.error} />;
         }
+
+        let roleMembers = roleDetails.trust ? expandMembers : members;
+
         return (
             <div data-testid='member'>
                 <Head>
@@ -165,7 +176,7 @@ export default class ReviewPage extends React.Component {
                                     domain={domain}
                                     role={role}
                                     roleDetails={roleDetails}
-                                    members={members}
+                                    members={roleMembers}
                                     _csrf={_csrf}
                                     isDomainAuditEnabled={isDomainAuditEnabled}
                                     userProfileLink={

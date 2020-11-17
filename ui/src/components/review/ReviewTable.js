@@ -120,37 +120,77 @@ export default class ReviewTable extends React.Component {
     }
 
     loadRole() {
-        this.props.api
-            .getRole(this.props.domain, this.props.role, false, true, false)
-            .then((role) => {
-                if (role.trust != null) {
+        if (this.props.roleDetails.trust) {
+            this.props.api
+                .getRole(this.props.domain, this.props.role, false, true, false)
+                .then((role) => {
+                    if (role.trust != null) {
+                        this.setState({
+                            showTrustError: true,
+                            errorMessage: `This is a delegated role. It needs to be reviewed in ${role.trust} domain.`,
+                        });
+                    } else {
+                        let members =
+                            role.roleMembers &&
+                            role.roleMembers.map((m) => m.memberName);
+                        this.setState({
+                            roleObj: role,
+                            list: role.roleMembers || [],
+                            showUpdateRoleMeta: !(
+                                role.memberExpiryDays || role.serviceExpiryDays
+                            ),
+                            memberExpiry: role.memberExpiryDays,
+                            serviceExpiry: role.serviceExpiryDays,
+                            extendedMembers: new Set(members),
+                            deletedMembers: new Set(),
+                            submittedReview: false,
+                        });
+                    }
+                })
+                .catch((err) => {
                     this.setState({
-                        showTrustError: true,
-                        errorMessage: `This is a delegated role. It needs to be reviewed in ${role.trust} domain.`,
+                        errorMessage: RequestUtils.xhrErrorCheckHelper(err),
                     });
-                } else {
-                    let members =
-                        role.roleMembers &&
-                        role.roleMembers.map((m) => m.memberName);
-                    this.setState({
-                        roleObj: role,
-                        list: role.roleMembers || [],
-                        showUpdateRoleMeta: !(
-                            role.memberExpiryDays || role.serviceExpiryDays
-                        ),
-                        memberExpiry: role.memberExpiryDays,
-                        serviceExpiry: role.serviceExpiryDays,
-                        extendedMembers: new Set(members),
-                        deletedMembers: new Set(),
-                        submittedReview: false,
-                    });
-                }
-            })
-            .catch((err) => {
-                this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
                 });
-            });
+        } else {
+            this.props.api
+                .getRole(
+                    this.props.domain,
+                    this.props.role,
+                    false,
+                    false,
+                    false
+                )
+                .then((role) => {
+                    if (role.trust != null) {
+                        this.setState({
+                            showTrustError: true,
+                            errorMessage: `This is a delegated role. It needs to be reviewed in ${role.trust} domain.`,
+                        });
+                    } else {
+                        let members =
+                            role.roleMembers &&
+                            role.roleMembers.map((m) => m.memberName);
+                        this.setState({
+                            roleObj: role,
+                            list: role.roleMembers || [],
+                            showUpdateRoleMeta: !(
+                                role.memberExpiryDays || role.serviceExpiryDays
+                            ),
+                            memberExpiry: role.memberExpiryDays,
+                            serviceExpiry: role.serviceExpiryDays,
+                            extendedMembers: new Set(members),
+                            deletedMembers: new Set(),
+                            submittedReview: false,
+                        });
+                    }
+                })
+                .catch((err) => {
+                    this.setState({
+                        errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+                    });
+                });
+        }
     }
 
     inputChanged(key, evt) {
