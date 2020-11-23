@@ -160,16 +160,6 @@
       <version>4.6.1</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>io.swagger.core.v3</groupId>
-      <artifactId>swagger-jaxrs2</artifactId>
-      <version>${swagger.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.swagger.core.v3</groupId>
-      <artifactId>swagger-jaxrs2-servlet-initializer</artifactId>
-      <version>${swagger.version}</version>
-    </dependency>
   </dependencies>
 
   <build>
