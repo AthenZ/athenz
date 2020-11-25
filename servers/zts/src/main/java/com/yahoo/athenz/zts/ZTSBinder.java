@@ -21,6 +21,6 @@ public class ZTSBinder extends AbstractBinder  {
 
     @Override
     protected void configure() {
-        bind(new ZTSImpl()).to(ZTSHandler.class);
+        bind(ZTSImplFactory.getZtsInstance()).to(ZTSHandler.class);
     }
 }

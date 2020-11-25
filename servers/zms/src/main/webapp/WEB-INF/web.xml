@@ -18,8 +18,9 @@
         <url-pattern>/*</url-pattern>
     </servlet-mapping>
 
+    <!-- Swagger Servlet -->
     <servlet>
-        <servlet-name>jersey</servlet-name>
+        <servlet-name>swagger-servlet</servlet-name>
         <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
         <init-param>
             <param-name>jersey.config.server.provider.packages</param-name>
@@ -31,9 +32,20 @@
         <load-on-startup>2</load-on-startup>
     </servlet>
     <servlet-mapping>
-        <servlet-name>jersey</servlet-name>
+        <servlet-name>swagger-servlet</servlet-name>
         <url-pattern>/v1/api/*</url-pattern>
     </servlet-mapping>
+
+    <!-- Authentication filter for swagger -->
+    <filter>
+        <filter-name>swagger-filter</filter-name>
+        <filter-class>com.yahoo.athenz.zms.servlet.SwaggerFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>swagger-filter</filter-name>
+        <servlet-name>swagger-servlet</servlet-name>
+        <dispatcher>REQUEST</dispatcher>
+    </filter-mapping>
     <!-- ==================================================================== -->
     <!-- Disable OPTIONS and TRACE methods with security constraint           -->
     <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  -->

@@ -21,6 +21,6 @@ class ZMSBinder extends AbstractBinder {
 
     @Override
     protected void configure() {
-        bind(new ZMSImpl()).to(ZMSHandler.class);
+        bind(ZMSImplFactory.getZmsInstance()).to(ZMSHandler.class);
     }
 }
