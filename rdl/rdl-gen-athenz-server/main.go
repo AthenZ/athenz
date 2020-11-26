@@ -287,6 +287,8 @@ import javax.ws.rs.core.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.inject.Inject;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 
 @Path("{{rootPath}}")
 public class {{cName}}Resources {
@@ -535,13 +537,19 @@ func (gen *javaServerGenerator) handlerSignature(r *rdl.Resource) string {
 			continue
 		}
 		k := v.Name
+		required := "true"
+		if (v.Optional) {
+			required = "false"
+		}
+		escapedComment := strings.Replace(v.Comment ,`"`, `\"`, -1)
 		pdecl := ""
+		pdecl += "@Parameter(description = \"" + escapedComment + "\", required = " + required + ") "
 		if v.QueryParam != "" {
-			pdecl = fmt.Sprintf("@QueryParam(%q) ", v.QueryParam) + defaultValueAnnotation(v.Default)
+			pdecl += fmt.Sprintf("@QueryParam(%q) ", v.QueryParam) + defaultValueAnnotation(v.Default)
 		} else if v.PathParam {
-			pdecl = fmt.Sprintf("@PathParam(%q) ", k)
+			pdecl += fmt.Sprintf("@PathParam(%q) ", k)
 		} else if v.Header != "" {
-			pdecl = fmt.Sprintf("@HeaderParam(%q) ", v.Header)
+			pdecl += fmt.Sprintf("@HeaderParam(%q) ", v.Header)
 		}
 		ptype := javaType(reg, v.Type, true, "", "")
 		params = append(params, pdecl+ptype+" "+javaName(k))
@@ -564,9 +572,10 @@ func (gen *javaServerGenerator) handlerSignature(r *rdl.Resource) string {
 	default:
 		spec += "@Produces(MediaType.APPLICATION_JSON)\n    "
 	}
-
+	escapedComment := strings.Replace(r.Comment ,`"`, `\"`, -1)
+	spec += "@Operation(description = \"" + escapedComment + "\")\n    "
 	methName, _ := javaMethodName(reg, r)
-	return spec + "public " + returnType + " " + methName + "(" + strings.Join(params, ", ") + ")"
+	return spec + "public " + returnType + " " + methName + "(\n        " + strings.Join(params, ",\n        ") + ")"
 }
 
 func defaultValueAnnotation(val interface{}) string {
