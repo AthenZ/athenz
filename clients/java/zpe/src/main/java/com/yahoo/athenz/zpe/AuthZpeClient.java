@@ -472,6 +472,35 @@ public class AuthZpeClient {
         }
     }
 
+    /**
+     * Determine if access(action) is allowed against the specified resource by
+     * a user represented by the user (cltToken, cltTokenName).
+     * @param token either role or access token. For role tokens:
+     *        value for the HTTP header: Athenz-Role-Auth
+     *        ex: "v=Z1;d=angler;r=admin;a=aAkjbbDMhnLX;t=1431974053;e=1431974153;k=0"
+     *        For access tokens: value for HTTP header: Authorization: Bearer access-token
+     * @param cert X509 Client Certificate used to establish the mTLS connection
+     *        submitting this request
+     * @param certHash If the connection is coming through a proxy, this includes
+     *        the certificate hash of the client certificate that was calculated
+     *        by the proxy and forwarded in a http header
+     * @param resource is a domain qualified resource the calling service
+     *        will check access for.  ex: my_domain:my_resource
+     *        ex: "angler:pondsKernCounty"
+     *        ex: "sports:service.storage.tenant.Activator.ActionMap"
+     * @param action is the type of access attempted by a client
+     *        ex: "read"
+     *        ex: "scan"
+     * @return AccessCheckStatus if the user can access the resource via the specified action
+     *        the result is ALLOW otherwise one of the DENY_* values specifies the exact
+     *        reason why the access was denied
+     */
+    public static AccessCheckStatus allowAccess(String token, X509Certificate cert, String certHash,
+                                                String resource, String action) {
+        StringBuilder matchRoleName = new StringBuilder();
+        return allowAccess(token, cert, certHash, resource, action, matchRoleName);
+    }
+
     static AccessCheckStatus allowRoleTokenAccess(String roleToken, String resource, String action,
             StringBuilder matchRoleName) {
 
