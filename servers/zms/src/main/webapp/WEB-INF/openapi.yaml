@@ -1,0 +1,8 @@
+prettyPrint: true
+cacheTTL: 0
+openAPI:
+  info:
+    version: '1.0.0'
+    title: 'ZMS Swagger'
+  servers:
+    - url: '/v1/api'
