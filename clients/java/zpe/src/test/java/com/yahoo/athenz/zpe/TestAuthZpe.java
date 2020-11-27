@@ -906,6 +906,30 @@ public class TestAuthZpe {
     }
 
     @Test
+    public void testAllowAccessMatchAllAccessTokenNoRoleName() throws IOException {
+
+        String action = "all";
+        String resource = "angler:stuff";
+
+        Path path = Paths.get("src/test/resources/mtls_token_spec.cert");
+        String certStr = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(certStr);
+
+        AccessCheckStatus status = AuthZpeClient.allowAccess(accessToken0AnglerRegex, cert, null, resource, action);
+        Assert.assertEquals(status, AccessCheckStatus.ALLOW);
+
+        // second time for the same token we should get from the cache
+
+        status = AuthZpeClient.allowAccess(accessToken0AnglerRegex, resource, action);
+        Assert.assertEquals(status, AccessCheckStatus.ALLOW);
+
+        // now we're going to include the Bearer part
+
+        status = AuthZpeClient.allowAccess("Bearer " + accessToken0AnglerRegex, resource, action);
+        Assert.assertEquals(status, AccessCheckStatus.ALLOW);
+    }
+
+    @Test
     public void testAllowAccessCertHashMismatch() throws IOException {
 
         String action = "all";
@@ -917,6 +941,20 @@ public class TestAuthZpe {
         X509Certificate cert = Crypto.loadX509Certificate(certStr);
 
         AccessCheckStatus status = AuthZpeClient.allowAccess(accessToken0AnglerRegex, cert, null, resource, action, roleName);
+        Assert.assertEquals(status, AccessCheckStatus.DENY_CERT_HASH_MISMATCH);
+    }
+
+    @Test
+    public void testAllowAccessCertHashMismatchNoRoleName() throws IOException {
+
+        String action = "all";
+        String resource = "angler:stuff";
+
+        Path path = Paths.get("src/test/resources/mtls_token_mismatch.cert");
+        String certStr = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(certStr);
+
+        AccessCheckStatus status = AuthZpeClient.allowAccess(accessToken0AnglerRegex, cert, null, resource, action);
         Assert.assertEquals(status, AccessCheckStatus.DENY_CERT_HASH_MISMATCH);
     }
 
