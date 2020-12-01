@@ -319,7 +319,7 @@ func (cli Zms) ListDomainRoleMembers(dn string) (*string, error) {
 
 func (cli Zms) ShowRolesPrincipal(principal string, dn string) (*string, error) {
 	var buf bytes.Buffer
-	domainRoleMember, err := cli.Zms.GetPrincipalRoles(zms.EntityName(principal), zms.DomainName(dn))
+	domainRoleMember, err := cli.Zms.GetPrincipalRoles(zms.ResourceName(principal), zms.DomainName(dn))
 	if err != nil {
 		return nil, err
 	}

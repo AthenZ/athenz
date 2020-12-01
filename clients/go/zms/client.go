@@ -1173,7 +1173,7 @@ func (client ZMSClient) GetDomainRoleMembers(domainName DomainName) (*DomainRole
 	}
 }
 
-func (client ZMSClient) GetPrincipalRoles(principal EntityName, domainName DomainName) (*DomainRoleMember, error) {
+func (client ZMSClient) GetPrincipalRoles(principal ResourceName, domainName DomainName) (*DomainRoleMember, error) {
 	var data *DomainRoleMember
 	url := client.URL + "/role" + encodeParams(encodeStringParam("principal", string(principal), ""), encodeStringParam("domain", string(domainName), ""))
 	resp, err := client.httpGet(url, nil)
@@ -2868,7 +2868,7 @@ func (client ZMSClient) GetAccessExt(action ActionName, resource string, domain 
 	}
 }
 
-func (client ZMSClient) GetResourceAccessList(principal EntityName, action ActionName) (*ResourceAccessList, error) {
+func (client ZMSClient) GetResourceAccessList(principal ResourceName, action ActionName) (*ResourceAccessList, error) {
 	var data *ResourceAccessList
 	url := client.URL + "/resource" + encodeParams(encodeStringParam("principal", string(principal), ""), encodeStringParam("action", string(action), ""))
 	resp, err := client.httpGet(url, nil)

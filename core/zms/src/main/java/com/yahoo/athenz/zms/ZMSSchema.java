@@ -468,7 +468,7 @@ public class ZMSSchema {
             .field("granted", "Bool", false, "true (allowed) or false (denied)");
 
         sb.structType("ResourceAccess")
-            .field("principal", "EntityName", false, "")
+            .field("principal", "ResourceName", false, "")
             .arrayField("assertions", "Assertion", false, "");
 
         sb.structType("ResourceAccessList")
@@ -1048,7 +1048,7 @@ public class ZMSSchema {
         sb.resource("DomainRoleMember", "GET", "/role")
             .comment("Fetch all the roles across domains by either calling or specified principal")
             .name("getPrincipalRoles")
-            .queryParam("principal", "principal", "EntityName", null, "If not present, will return roles for the user making the call")
+            .queryParam("principal", "principal", "ResourceName", null, "If not present, will return roles for the user making the call")
             .queryParam("domain", "domainName", "DomainName", null, "If not present, will return roles from all domains")
             .auth("", "", true)
             .expected("OK")
@@ -2097,7 +2097,7 @@ public class ZMSSchema {
 
         sb.resource("ResourceAccessList", "GET", "/resource")
             .comment("Return list of resources that the given principal has access to. Even though the principal is marked as optional, it must be specified unless the caller has authorization from sys.auth domain to check access for all user principals. (action: access, resource: resource-lookup-all)")
-            .queryParam("principal", "principal", "EntityName", null, "specifies principal to query the resource list for")
+            .queryParam("principal", "principal", "ResourceName", null, "specifies principal to query the resource list for")
             .queryParam("action", "action", "ActionName", null, "action as specified in the policy assertion")
             .auth("", "", true)
             .expected("OK")
