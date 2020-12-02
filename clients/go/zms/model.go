@@ -5589,7 +5589,7 @@ func (self *Access) Validate() error {
 // ResourceAccess -
 //
 type ResourceAccess struct {
-	Principal  EntityName   `json:"principal"`
+	Principal  ResourceName `json:"principal"`
 	Assertions []*Assertion `json:"assertions"`
 }
 
@@ -5639,9 +5639,9 @@ func (self *ResourceAccess) Validate() error {
 	if self.Principal == "" {
 		return fmt.Errorf("ResourceAccess.principal is missing but is a required field")
 	} else {
-		val := rdl.Validate(ZMSSchema(), "EntityName", self.Principal)
+		val := rdl.Validate(ZMSSchema(), "ResourceName", self.Principal)
 		if !val.Valid {
-			return fmt.Errorf("ResourceAccess.principal does not contain a valid EntityName (%v)", val.Error)
+			return fmt.Errorf("ResourceAccess.principal does not contain a valid ResourceName (%v)", val.Error)
 		}
 	}
 	if self.Assertions == nil {

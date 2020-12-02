@@ -133,7 +133,7 @@ resource DomainRoleMembers GET "/domain/{domainName}/member" {
 
 // Fetch all the roles across domains by either calling or specified principal
 resource DomainRoleMember GET "/role?principal={principal}&domain={domainName}" (name=getPrincipalRoles) {
-    EntityName principal (optional); //If not present, will return roles for the user making the call
+    ResourceName principal (optional); //If not present, will return roles for the user making the call
     DomainName domainName (optional); //If not present, will return roles from all domains
     authenticate;
     exceptions {

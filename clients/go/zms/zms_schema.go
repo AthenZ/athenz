@@ -543,7 +543,7 @@ func init() {
 	sb.AddType(tAccess.Build())
 
 	tResourceAccess := rdl.NewStructTypeBuilder("Struct", "ResourceAccess")
-	tResourceAccess.Field("principal", "EntityName", false, nil, "")
+	tResourceAccess.Field("principal", "ResourceName", false, nil, "")
 	tResourceAccess.ArrayField("assertions", "Assertion", false, "")
 	sb.AddType(tResourceAccess.Build())
 
@@ -1013,7 +1013,7 @@ func init() {
 	mGetPrincipalRoles := rdl.NewResourceBuilder("DomainRoleMember", "GET", "/role")
 	mGetPrincipalRoles.Comment("Fetch all the roles across domains by either calling or specified principal")
 	mGetPrincipalRoles.Name("getPrincipalRoles")
-	mGetPrincipalRoles.Input("principal", "EntityName", false, "principal", "", true, nil, "If not present, will return roles for the user making the call")
+	mGetPrincipalRoles.Input("principal", "ResourceName", false, "principal", "", true, nil, "If not present, will return roles for the user making the call")
 	mGetPrincipalRoles.Input("domainName", "DomainName", false, "domain", "", true, nil, "If not present, will return roles from all domains")
 	mGetPrincipalRoles.Auth("", "", true, "")
 	mGetPrincipalRoles.Exception("BAD_REQUEST", "ResourceError", "")
@@ -1803,7 +1803,7 @@ func init() {
 
 	mGetResourceAccessList := rdl.NewResourceBuilder("ResourceAccessList", "GET", "/resource")
 	mGetResourceAccessList.Comment("Return list of resources that the given principal has access to. Even though the principal is marked as optional, it must be specified unless the caller has authorization from sys.auth domain to check access for all user principals. (action: access, resource: resource-lookup-all)")
-	mGetResourceAccessList.Input("principal", "EntityName", false, "principal", "", true, nil, "specifies principal to query the resource list for")
+	mGetResourceAccessList.Input("principal", "ResourceName", false, "principal", "", true, nil, "specifies principal to query the resource list for")
 	mGetResourceAccessList.Input("action", "ActionName", false, "action", "", true, nil, "action as specified in the policy assertion")
 	mGetResourceAccessList.Auth("", "", true, "")
 	mGetResourceAccessList.Exception("BAD_REQUEST", "ResourceError", "")
