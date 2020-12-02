@@ -19,7 +19,6 @@ package com.yahoo.athenz.zts.cert.impl;
 import com.yahoo.athenz.common.server.cert.CertRecordStoreConnection;
 import com.yahoo.athenz.common.server.status.StatusCheckException;
 import com.yahoo.athenz.common.server.status.StatusChecker;
-import com.yahoo.athenz.zts.ResourceException;
 
 public class JDBCCertRecordStoreStatusChecker implements StatusChecker {
 
