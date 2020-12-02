@@ -32,7 +32,7 @@ public class JDBCCertRecordStoreStatusChecker implements StatusChecker {
     @Override
     public void check() throws StatusCheckException {
         try (CertRecordStoreConnection certRecordStoreConnection = jdbcCertRecordStore.getConnection()) {
-        } catch (ResourceException e) {
+        } catch (Throwable e) {
             throw new StatusCheckException(e);
         }
     }
