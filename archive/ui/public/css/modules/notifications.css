@@ -1,8 +1,0 @@
-.app-container .notifications-container {
-  .notifications {
-    table {
-      width: 100%;
-      @mixin data-table;
-    }
-  }
-}
