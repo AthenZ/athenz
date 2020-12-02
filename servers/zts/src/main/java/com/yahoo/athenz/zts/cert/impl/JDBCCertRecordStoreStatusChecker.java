@@ -31,15 +31,9 @@ public class JDBCCertRecordStoreStatusChecker implements StatusChecker {
 
     @Override
     public void check() throws StatusCheckException {
-        CertRecordStoreConnection certRecordStoreConnection = null;
-        try {
-            certRecordStoreConnection = jdbcCertRecordStore.getConnection();
+        try (CertRecordStoreConnection certRecordStoreConnection = jdbcCertRecordStore.getConnection()) {
         } catch (ResourceException e) {
             throw new StatusCheckException(e);
-        } finally {
-            if (certRecordStoreConnection != null) {
-                certRecordStoreConnection.close();
-            }
         }
     }
 }
