@@ -133,7 +133,9 @@ export default class MemberList extends React.Component {
         let pendingMembers = [];
         let addMemberButton = '';
         let justificationReq =
-            this.props.isDomainAuditEnabled || roleDetails.reviewEnabled;
+            this.props.isDomainAuditEnabled ||
+            roleDetails.reviewEnabled ||
+            roleDetails.selfServe;
 
         let addMember = this.state.showAddMember ? (
             <AddMember
