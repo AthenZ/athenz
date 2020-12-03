@@ -149,6 +149,7 @@ exports[`Modal should render open state 1`] = `
         aria-describedby="modal-content"
         aria-label="Modal"
         aria-labelledby="modal-title"
+        aria-modal="true"
         class="ReactModal__Content ReactModal__Content--after-open emotion-1 denali-modal"
         role="dialog"
         tabindex="-1"
