@@ -1395,8 +1395,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 roles, false);
         
         if (roles.isEmpty()) {
-            throw forbiddenError("getRoleToken: No access to any roles in domain: "
-                    + domainName, caller, domainName, principalDomain);
+            throw forbiddenError(tokenErrorMessage(caller, principalName, domainName, requestedRoleList),
+                    caller, domainName, principalDomain);
         }
         
         // if this is proxy for operation then we want to make sure that
@@ -1414,7 +1414,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             // with an empty set
             
             if (roles.isEmpty()) {
-                throw forbiddenError("getRoleToken: No access to any roles by User and Proxy Principals",
+                throw forbiddenError(tokenErrorMessage(caller, proxyForPrincipal, domainName, requestedRoleList),
                         caller, domainName, principalDomain);
             }
             
@@ -1449,6 +1449,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         roleToken.setExpiryTime(token.getExpiryTime());
 
         return roleToken;
+    }
+
+    String tokenErrorMessage(final String caller, final String principalName, final String domainName,
+                             String[] requestedRoleList) {
+
+        final String roleComment = requestedRoleList == null ? "any role" : "the requested role(s)";
+        return caller + ": principal " + principalName + " is not included in "
+                + roleComment + " in domain " + domainName;
     }
 
     String decodeString(final String encodedString) {
@@ -1619,8 +1627,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // we return failure if we don't have access to any roles
 
         if (roles.isEmpty()) {
-            throw forbiddenError("No access to any roles in domain: " + domainName, caller,
-                    domainName, principalDomain);
+            throw forbiddenError(tokenErrorMessage(caller, principalName, domainName, requestedRoles),
+                    caller, domainName, principalDomain);
         }
 
         // if this is proxy for operation then we want to make sure that
@@ -1648,7 +1656,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             // with an empty set
 
             if (roles.isEmpty()) {
-                throw forbiddenError("No access to any roles by User and Proxy Principals",
+                throw forbiddenError(tokenErrorMessage(caller, proxyForPrincipal, domainName, requestedRoles),
                         caller, domainName, principalDomain);
             }
 
