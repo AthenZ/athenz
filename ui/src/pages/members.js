@@ -95,7 +95,7 @@ export default class MemberPage extends React.Component {
             expandMembers: roles[4].roleMembers,
             headerDetails: roles[1],
             domainDeails: roles[2],
-            auditEnabled: roles[2].auditEnabled,
+            isDomainAuditEnabled: roles[2].auditEnabled,
             roleDetails: roles[4],
             domain: props.query.domain,
             pending: roles[5],
