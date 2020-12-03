@@ -169,6 +169,7 @@ exports[`Alert should disable animations 1`] = `
       <div
         aria-describedby="alert-description"
         aria-labelledby="alert-title"
+        aria-modal="true"
         class="ReactModal__Content ReactModal__Content--after-open emotion-2 denali-alert denali-alert-info"
         role="dialog"
         tabindex="-1"
@@ -411,6 +412,7 @@ exports[`Alert should render all alert types 1`] = `
       <div
         aria-describedby="alert-description"
         aria-labelledby="alert-title"
+        aria-modal="true"
         class="ReactModal__Content ReactModal__Content--after-open emotion-2 denali-alert denali-alert-danger animated"
         role="dialog"
         tabindex="-1"
@@ -646,6 +648,7 @@ exports[`Alert should render all alert types 2`] = `
       <div
         aria-describedby="alert-description"
         aria-labelledby="alert-title"
+        aria-modal="true"
         class="ReactModal__Content ReactModal__Content--after-open emotion-2 denali-alert denali-alert-info animated"
         role="dialog"
         tabindex="-1"
@@ -881,6 +884,7 @@ exports[`Alert should render all alert types 3`] = `
       <div
         aria-describedby="alert-description"
         aria-labelledby="alert-title"
+        aria-modal="true"
         class="ReactModal__Content ReactModal__Content--after-open emotion-2 denali-alert denali-alert-success animated"
         role="dialog"
         tabindex="-1"
@@ -1116,6 +1120,7 @@ exports[`Alert should render all alert types 4`] = `
       <div
         aria-describedby="alert-description"
         aria-labelledby="alert-title"
+        aria-modal="true"
         class="ReactModal__Content ReactModal__Content--after-open emotion-2 denali-alert denali-alert-warning animated"
         role="dialog"
         tabindex="-1"
@@ -1348,6 +1353,7 @@ exports[`Alert should render open state 1`] = `
       <div
         aria-describedby="alert-description"
         aria-labelledby="alert-title"
+        aria-modal="true"
         class="ReactModal__Content ReactModal__Content--after-open emotion-2 denali-alert denali-alert-info animated"
         role="dialog"
         tabindex="-1"
