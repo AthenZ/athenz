@@ -132,6 +132,8 @@ export default class MemberList extends React.Component {
         let approvedMembers = [];
         let pendingMembers = [];
         let addMemberButton = '';
+        let justificationReq =
+            this.props.isDomainAuditEnabled || roleDetails.reviewEnabled;
 
         let addMember = this.state.showAddMember ? (
             <AddMember
@@ -142,7 +144,7 @@ export default class MemberList extends React.Component {
                 onCancel={this.toggleAddMember}
                 _csrf={this.props._csrf}
                 showAddMember={this.state.showAddMember}
-                justificationRequired={this.props.isDomainAuditEnabled}
+                justificationRequired={justificationReq}
             />
         ) : (
             ''
@@ -182,7 +184,7 @@ export default class MemberList extends React.Component {
                     api={this.api}
                     _csrf={this.props._csrf}
                     onSubmit={this.reloadMembers}
-                    justificationRequired={this.props.isDomainAuditEnabled}
+                    justificationRequired={justificationReq}
                     userProfileLink={this.props.userProfileLink}
                 />
                 <br />
@@ -196,7 +198,7 @@ export default class MemberList extends React.Component {
                         api={this.api}
                         _csrf={this.props._csrf}
                         onSubmit={this.reloadMembers}
-                        justificationRequired={this.props.isDomainAuditEnabled}
+                        justificationRequired={justificationReq}
                         userProfileLink={this.props.userProfileLink}
                     />
                 ) : null}
