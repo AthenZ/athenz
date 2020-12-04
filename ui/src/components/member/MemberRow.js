@@ -52,6 +52,7 @@ export default class MemberRow extends React.Component {
         this.onSubmitDelete = this.onSubmitDelete.bind(this);
         this.onClickDeleteCancel = this.onClickDeleteCancel.bind(this);
         this.onReviewSubmit = this.onReviewSubmit.bind(this);
+        this.saveJustification = this.saveJustification.bind(this);
         this.state = {
             deleteName: this.props.details.memberName,
             showDelete: false,
@@ -87,7 +88,7 @@ export default class MemberRow extends React.Component {
                 this.state.deleteJustification.trim() === '')
         ) {
             this.setState({
-                errorMessage: 'Justification is required to delete a role',
+                errorMessage: 'Justification is required to delete a member',
             });
             return;
         }
