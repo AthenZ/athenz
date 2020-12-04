@@ -258,7 +258,7 @@ export default class AddRole extends React.Component {
         let role = { name: roleName };
         if (this.state.category === 'regular') {
             role.roleMembers =
-                this.state.members.filter(function(member) {
+                this.state.members.filter((member) => {
                     return member != null || member != undefined;
                 }) || [];
             if (this.state.newMemberName && this.state.newMemberName !== '') {
