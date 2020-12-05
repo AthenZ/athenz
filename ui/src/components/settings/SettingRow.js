@@ -113,6 +113,7 @@ export default class SettingRow extends React.Component {
                         value={this.state.value}
                         checked={this.state.value}
                         onChange={this.toggleSwitchButton}
+                        disabled={this.props.disabled}
                     />
                 );
             case 'input':

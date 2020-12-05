@@ -257,6 +257,7 @@ export default class SettingTable extends React.Component {
                 _csrf={this.props._csrf}
                 justificationRequired={this.props.justificationRequired}
                 userProfileLink={this.props.userProfileLink}
+                disabled={role.trim() === 'admin'}
             />
         );
 
