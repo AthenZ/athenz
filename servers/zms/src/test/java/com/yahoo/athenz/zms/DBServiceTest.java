@@ -9282,4 +9282,93 @@ public class DBServiceTest {
                 .contains("tagVal"));
 
     }
+
+    @Test
+    public void testUpdateRoleMetaWithoutTag() {
+        final String domainName = "sys.auth";
+        final String updateRoleMetaTag = "tag-key-update-role-meta-without-tag";
+        final List<String> updateRoleMetaTagValues = Collections.singletonList("update-meta-value");
+        final String roleName = "roleWithTagUpdateMeta";
+
+        Role role = new Role().setName(roleName);
+        RoleMeta rm = new RoleMeta()
+            .setTags(Collections.singletonMap(updateRoleMetaTag,
+                new StringList().setList(updateRoleMetaTagValues)));
+
+        // mock dbService store
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+        Mockito.when(conn.updateRole(any(), any())).thenReturn(true);
+        Mockito.when(conn.insertRoleTags(anyString(), anyString(), anyMap())).thenReturn(true);
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(conn);
+        zms.dbService.store = mockObjStore;
+
+        // update role meta
+        zms.dbService.executePutRoleMeta(mockDomRsrcCtx, domainName , roleName, role, rm, auditRef, "testUpdateRoleMetaWithoutTag");
+
+        // assert tags to add contains role meta tags
+        ArgumentCaptor<String> roleCapture = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> domainCapture = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<Map<String, StringList>> tagInsertCapture = ArgumentCaptor.forClass(Map.class);
+
+        Mockito.verify(conn, times(1)).insertRoleTags(roleCapture.capture(), domainCapture.capture(), tagInsertCapture.capture());
+        assertEquals(roleName, roleCapture.getValue());
+        assertEquals(domainName, domainCapture.getValue());
+
+        Map<String, StringList> resultInsertTags = tagInsertCapture.getAllValues().get(0);
+        StringList tagValues = resultInsertTags.get(updateRoleMetaTag);
+        assertNotNull(tagValues);
+        assertTrue(tagValues.getList().containsAll(updateRoleMetaTagValues));
+    }
+
+    @Test
+    public void testUpdateRoleMetaWithExistingTag() {
+        final String domainName = "sys.auth";
+        final String initialTagKey = "initial-tag-key";
+        final List<String> initialTagValues = Collections.singletonList("initial-tag-value");
+        final String updateRoleMetaTag = "tag-key-update-role-meta-exist-tag";
+        final List<String> updateRoleMetaTagValues = Collections.singletonList("update-meta-value");
+        final String roleName = "roleWithTagUpdateMeta";
+
+        // initial role with tags
+        Role role = new Role().setName(roleName)
+            .setTags(Collections.singletonMap(initialTagKey,
+                new StringList().setList(initialTagValues)));
+
+        // role meta with updated tags
+        RoleMeta rm = new RoleMeta()
+            .setTags(Collections.singletonMap(updateRoleMetaTag,
+                new StringList().setList(updateRoleMetaTagValues)));
+
+        // mock dbService store
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+        Mockito.when(conn.updateRole(any(), any())).thenReturn(true);
+        Mockito.when(conn.deleteRoleTags(anyString(), anyString(), anySet())).thenReturn(true);
+        Mockito.when(conn.insertRoleTags(anyString(), anyString(), anyMap())).thenReturn(true);
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(conn);
+        zms.dbService.store = mockObjStore;
+
+        // update role meta
+        zms.dbService.executePutRoleMeta(mockDomRsrcCtx, domainName , roleName, role, rm, auditRef, "testUpdateRoleMetaWithoutTag");
+
+        // assert tags to removed
+        ArgumentCaptor<Set<String>> tagCapture = ArgumentCaptor.forClass(Set.class);
+        ArgumentCaptor<String> roleCapture = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> domainCapture = ArgumentCaptor.forClass(String.class);
+
+        Mockito.verify(conn, times(1)).deleteRoleTags(roleCapture.capture(), domainCapture.capture(), tagCapture.capture());
+        assertEquals(roleName, roleCapture.getValue());
+        assertEquals(domainName, domainCapture.getValue());
+        assertTrue(tagCapture.getValue().contains(initialTagKey));
+
+        // assert tags to add
+        ArgumentCaptor<Map<String, StringList>> tagInsertCapture = ArgumentCaptor.forClass(Map.class);
+        Mockito.verify(conn, times(1)).insertRoleTags(roleCapture.capture(), domainCapture.capture(), tagInsertCapture.capture());
+        assertEquals(roleName, roleCapture.getValue());
+        assertEquals(domainName, domainCapture.getValue());
+
+        Map<String, StringList> resultInsertTags = tagInsertCapture.getAllValues().get(0);
+        StringList tagValues = resultInsertTags.get(updateRoleMetaTag);
+        assertNotNull(tagValues);
+        assertTrue(tagValues.getList().containsAll(updateRoleMetaTagValues));
+    }
 }

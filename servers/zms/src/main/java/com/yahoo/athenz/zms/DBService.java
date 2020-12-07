@@ -582,6 +582,9 @@ public class DBService implements RolesProvider {
 
     private boolean processUpdateRoleTags(Role role, Role originalRole, ObjectStoreConnection con, String roleName, String domainName) {
         if (originalRole.getTags() == null || originalRole.getTags().isEmpty()) {
+            if (role.getTags() == null || role.getTags().isEmpty()) {
+                return false;
+            }
             return con.insertRoleTags(roleName, domainName, role.getTags());
         }
         Map<String, StringList> originalRoleTags = originalRole.getTags();
@@ -4740,6 +4743,9 @@ public class DBService implements RolesProvider {
         if (meta.getUserAuthorityExpiration() != null) {
             role.setUserAuthorityExpiration(meta.getUserAuthorityExpiration());
         }
+        if (meta.getTags() != null) {
+            role.setTags(meta.getTags());
+        }
     }
 
     public void executePutRoleMeta(ResourceContext ctx, String domainName, String roleName, Role originalRole,
@@ -4775,7 +4781,8 @@ public class DBService implements RolesProvider {
                         .setReviewEnabled(originalRole.getReviewEnabled())
                         .setNotifyRoles(originalRole.getNotifyRoles())
                         .setUserAuthorityFilter(originalRole.getUserAuthorityFilter())
-                        .setUserAuthorityExpiration(originalRole.getUserAuthorityExpiration());
+                        .setUserAuthorityExpiration(originalRole.getUserAuthorityExpiration())
+                        .setTags(originalRole.getTags());
 
                 // then we're going to apply the updated fields
                 // from the given object
@@ -4783,6 +4790,9 @@ public class DBService implements RolesProvider {
                 updateRoleMetaFields(updatedRole, meta);
 
                 con.updateRole(domainName, updatedRole);
+
+                processUpdateRoleTags(updatedRole, originalRole, con, roleName, domainName);
+
                 saveChanges(con, domainName);
 
                 // audit log the request
