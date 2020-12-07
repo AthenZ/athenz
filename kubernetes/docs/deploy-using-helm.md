@@ -90,7 +90,7 @@ To build the Athenz docker image, plx refer to [build-athenz](../../docker/READM
 
 ```bash
 # variables
-ATHENZ_TAG=1.9.6
+ATHENZ_TAG=1.9.26
 DOCKER_REPO_NAME=wzyahoo
 
 # tag
