@@ -507,10 +507,36 @@ Fetchr.registerService({
         );
     },
     create(req, resource, params, body, config, callback) {
-        req.clients.zms.putPolicy(
-            params,
-            responseHandler.bind({ caller: 'putPolicy', callback, req })
-        );
+        req.clients.zms.getPolicy(params, (err) => {
+            if (err) {
+                if (err.status === 404) {
+                    return req.clients.zms.putPolicy(
+                        params,
+                        responseHandler.bind({
+                            caller: 'putPolicy',
+                            callback,
+                            req,
+                        })
+                    );
+                } else {
+                    return callback(errorHandler.fetcherError(err));
+                }
+            }
+            let customError = {
+                status: '500',
+                message: {
+                    message: `Policy ${params.policyName} exists in domain ${params.domainName}.`,
+                },
+            };
+            debug(
+                `principal: ${req.session.shortId} rid: ${
+                    req.headers.rid
+                } Error from ZMS while calling getPolicy API: ${JSON.stringify(
+                    customError
+                )}`
+            );
+            return callback(errorHandler.fetcherError(customError));
+        });
     },
     delete(req, resource, params, config, callback) {
         req.clients.zms.deletePolicy(params, function(err, data) {
@@ -598,6 +624,25 @@ Fetchr.registerService({
             params,
             responseHandler.bind({ caller: 'putDomainTemplate', callback, req })
         );
+    },
+});
+
+Fetchr.registerService({
+    name: 'auth-options',
+    read(req, resource, params, config, callback) {
+        callback(null, {
+            zmsLoginUrl: appConfig.zmsLoginUrl,
+            athenzDomainService: appConfig.athenzDomainService,
+        });
+    },
+});
+
+Fetchr.registerService({
+    name: 'prefix',
+    read(req, resource, params, config, callback) {
+        callback(null, {
+            allPrefixes: appConfig.allPrefixes,
+        });
     },
 });
 
@@ -948,16 +993,6 @@ Fetchr.registerService({
 });
 
 Fetchr.registerService({
-    name: 'auth-options',
-    read(req, resource, params, config, callback) {
-        callback(null, {
-            zms: appConfig.zms,
-            athenzDomainService: appConfig.athenzDomainService,
-        });
-    },
-});
-
-Fetchr.registerService({
     name: 'domain-history',
     read(req, resource, params, config, callback) {
         if (typeof domainHistoryApi === 'function') {
@@ -1009,6 +1044,8 @@ module.exports.load = function(config, secrets) {
         createDomainMessage: config.createDomainMessage,
         servicePageConfig: config.servicePageConfig,
         productMasterLink: config.productMasterLink,
+        allPrefixes: config.allPrefixes,
+        zmsLoginUrl: config.zmsLoginUrl,
     };
     return CLIENTS.load(config, secrets);
 };

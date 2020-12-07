@@ -31,6 +31,7 @@ export default class FlatPicker extends React.Component {
         this.clearDate = React.createRef();
         this.dateUtils = new DateUtils();
         this.onChange = this.onChange.bind(this);
+        this.onClose = this.onClose.bind(this);
         this.state = {
             minDate: this.props.minDate
                 ? this.props.minDate
@@ -46,10 +47,26 @@ export default class FlatPicker extends React.Component {
                 ? this.dateUtils.uxDatetimeToRDLTimestamp(this.props.value)
                 : '',
         };
+        this.onChangeDate = '';
+        this.onCloseDate = '';
     }
 
-    onChange(selectedDates) {
-        this.props.onChange(selectedDates);
+    onChange(selectedDates, dateStr, instance) {
+        this.onChangeDate = dateStr;
+        if (dateStr === '') {
+            this.props.onChange(selectedDates);
+        }
+    }
+
+    onClose(selectedDates, dateStr, instance) {
+        this.onCloseDate = dateStr;
+        if (this.onChangeDate === this.onCloseDate) {
+            if (dateStr !== '') {
+                this.props.onChange(selectedDates);
+            }
+        } else {
+            this.clearDate.current.click();
+        }
     }
 
     componentDidUpdate = (prevProps) => {
@@ -63,9 +80,10 @@ export default class FlatPicker extends React.Component {
     };
 
     componentDidMount() {
-        let fpClass = this.props.id ? this.props.id : 'flatpickr';
+        let fpClass = this.props.id ? 'fp-' + this.props.id : 'flatpickr';
         flatpickr('.' + fpClass, {
             onChange: this.onChange,
+            onClose: this.onClose,
             enableTime: true,
             altInput: true,
             altFormat: 'Y-m-d h:i K',
@@ -76,7 +94,7 @@ export default class FlatPicker extends React.Component {
     }
 
     render() {
-        let fpClass = this.props.id ? this.props.id : 'flatpickr';
+        let fpClass = this.props.id ? 'fp-' + this.props.id : 'flatpickr';
         return (
             <div className={fpClass}>
                 <input

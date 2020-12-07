@@ -403,6 +403,9 @@ func extractProviderFromCert(certFile string) string {
 	}
 	var block *pem.Block
 	block, _ = pem.Decode(data)
+	if block == nil {
+		return ""
+	}
 	cert, err := x509.ParseCertificate(block.Bytes)
 	if err != nil {
 		return ""

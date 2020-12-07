@@ -15,6 +15,8 @@
  */
 package com.yahoo.athenz.zts;
 
+import static com.yahoo.athenz.zts.AccessTokenTestFileHelper.setupInvalidTokenFile;
+import static com.yahoo.athenz.zts.AccessTokenTestFileHelper.setupTokenFile;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotEquals;
@@ -23,6 +25,7 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
 import org.bouncycastle.asn1.x500.RDN;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.style.BCStyle;
@@ -31,7 +34,10 @@ import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
@@ -43,6 +49,7 @@ import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 
 import org.glassfish.jersey.client.JerseyClientBuilder;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -1387,7 +1394,7 @@ public class ZTSClientTest {
     }
 
     @Test
-    public void testPrefetchAwsCredShouldCallServer() throws Exception {
+    public void testPrefetchAwsCredShouldCallServerNoNotification() throws Exception {
         System.out.println("testPrefetchAwsCredShouldCallServer");
 
         ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
@@ -1403,8 +1410,10 @@ public class ZTSClientTest {
         Mockito.when(siaProvider.getIdentity(Mockito.any(),
                 Mockito.any())).thenReturn(principal);
 
+        ZTSClientNotificationSender notificationSender = Mockito.mock(ZTSClientNotificationSender.class);
         ZTSClient client = new ZTSClient("http://localhost:4080/", "user_domain",
                 "user", siaProvider);
+        client.setNotificationSender(notificationSender);
         ZTSClient.cancelPrefetch();
         client.setZTSRDLGeneratedClient(ztsClientMock);
 
@@ -1492,6 +1501,98 @@ public class ZTSClientTest {
         AWSTemporaryCredentials awsCred5 = client.getAWSTemporaryCredentials(domain1, "role1");
         assertNotNull(awsCred5);
         assertNotEquals(awsCred4.getAccessKeyId(), awsCred5.getAccessKeyId());
+
+        // Assert no notifications were sent
+        Mockito.verify(notificationSender, Mockito.times(0)).sendNotification(Mockito.any(ZTSClientNotification.class));
+
+        ZTSClient.cancelPrefetch();
+        client.close();
+    }
+
+    @Test
+    public void testPrefetchAwsCredShouldSendNotifications() throws Exception {
+        System.out.println("testPrefetchAwsCredShouldSendNotifications");
+
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
+        int intervalSecs = Integer.parseInt(System.getProperty(ZTSClient.ZTS_CLIENT_PROP_PREFETCH_SLEEP_INTERVAL, "5"));
+        ztsClientMock.setTestSleepInterval(intervalSecs);
+        ztsClientMock.setExpiryTime(intervalSecs); // token expires in 5 seconds
+        ztsClientMock.setRoleName("role1");
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "auth_creds", PRINCIPAL_AUTHORITY);
+
+        ServiceIdentityProvider siaProvider = Mockito.mock(ServiceIdentityProvider.class);
+        Mockito.when(siaProvider.getIdentity(Mockito.any(),
+                Mockito.any())).thenReturn(principal);
+
+        ZTSClientNotificationSender notificationSender = Mockito.mock(ZTSClientNotificationSender.class);
+        ZTSClient client = new ZTSClient("http://localhost:4080/", "user_domain",
+                "user", siaProvider);
+        client.setNotificationSender(notificationSender);
+        ZTSClient.cancelPrefetch();
+        client.setZTSRDLGeneratedClient(ztsClientMock);
+
+        String domain1 = "coretech";
+        ztsClientMock.setAwsCreds(Timestamp.fromCurrentTime(), domain1, "role1");
+        ztsClientMock.setAwsCreds(Timestamp.fromCurrentTime(), domain1, "role2");
+
+        // initially, roleToken was never fetched.
+        assertTrue(ztsClientMock.getLastRoleTokenFetchedTime(domain1, "role1", null) < 0);
+
+        // initialize the prefetch token process.
+        client.prefetchAwsCreds(domain1, "role1", null, null, null);
+        // make sure only unique items are in the queue
+        long scheduledItemsSize = client.getScheduledItemsSize();
+        //assertEquals(scheduledItemsSize, 1);
+        client.setPrefetchAutoEnable(true);
+        System.setProperty(ZTSClient.ZTS_CLIENT_PROP_PREFETCH_AUTO_ENABLE, "true");
+        AWSTemporaryCredentials awsCred1 = client.getAWSTemporaryCredentials(domain1, "role1");
+        assertNotNull(awsCred1);
+        long rtExpiry = awsCred1.getExpiration().millis();
+        System.out.println("testPrefetchAwsCredShouldCallServer: awsCred1:domain=" + domain1
+                + " expires at " + rtExpiry + " curtime_millis=" + System.currentTimeMillis());
+
+        System.out.println("testPrefetchAwsCredShouldCallServer: sleep Secs="
+                + (2 * intervalSecs) + "+0.1");
+        Thread.sleep((2 * intervalSecs * 1000) + 100);
+        System.out.println("testPrefetchAwsCredShouldCallServer: nap over so what happened");
+
+        assertEquals(client.getScheduledItemsSize(), 1);
+
+        long lastTokenFetchedTime1 = ztsClientMock.getLastRoleTokenFetchedTime(domain1, "role1", null);
+        awsCred1 = client.getAWSTemporaryCredentials(domain1, "role1");
+        long rtExpiry2 = awsCred1.getExpiration().millis();
+        System.out.println("testPrefetchAwsCredShouldCallServer: roleToken1:domain=" + domain1
+                + " expires at " + rtExpiry2 + " curtime_millis=" + System.currentTimeMillis());
+        assertTrue(rtExpiry2 > rtExpiry); // this token was refreshed
+
+        assertTrue(lastTokenFetchedTime1 > 0);
+
+        // Now clear credentials to cause failure and see if notification sent
+        ztsClientMock.credsMap.clear();
+
+        // wait a few seconds, and see subsequent fetch happened.
+        System.out.println("testPrefetchAwsCredShouldCallServer: again sleep Secs="
+                + (2 * intervalSecs) + "+0.1");
+        Thread.sleep((2 * intervalSecs * 1000) + 100);
+        System.out.println("testPrefetchAwsCredShouldCallServer: again nap over so what happened");
+
+        long lastFailureTime = ztsClientMock.getLastTokenFailTime(domain1, "role1");
+        assertNotEquals(lastFailureTime, -1L);
+
+        // assert notification sent
+        ArgumentCaptor<ZTSClientNotification> argument = ArgumentCaptor.forClass(ZTSClientNotification.class);
+        Mockito.verify(notificationSender, Mockito.times(1)).sendNotification(argument.capture());
+        assertEquals(domain1, argument.getValue().getDomain());
+
+        // Restore credentials, now fetching should work fine
+        ztsClientMock.setAwsCreds(Timestamp.fromCurrentTime(), domain1, "role1");
+        ztsClientMock.setAwsCreds(Timestamp.fromCurrentTime(), domain1, "role2");
+
+        awsCred1 = client.getAWSTemporaryCredentials(domain1, "role1");
+        lastFailureTime = ztsClientMock.getLastTokenFailTime(domain1, "role1");
+        assertEquals(lastFailureTime, -1L);
 
         ZTSClient.cancelPrefetch();
         client.close();
@@ -2789,7 +2890,7 @@ public class ZTSClientTest {
     @Test
     public void testGetAWSCredentialsProvider() {
 
-        ZTSClientMock client = new ZTSClientMock("http://localhost:4080");
+        ZTSClientMock client = new ZTSClientMock("http://localhost:40888");
         try {
             client.getAWSCredentialProvider("domain", "role");
             fail();
@@ -3012,6 +3113,32 @@ public class ZTSClientTest {
                 Collections.singletonList("readers"), "backend", null));
 
         client.close();
+    }
+
+    @Test
+    public void testGetAccessTokenFromFile() {
+        File ecPublicKey = new File("./src/test/resources/ec_public.key");
+        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(null, null);
+        PublicKey publicKey = Crypto.loadPublicKey(ecPublicKey);
+        resolver.addPublicKey("eckey1", publicKey);
+        Path path = Paths.get("./src/test/resources/");
+        System.setProperty(ZTSAccessTokenFileLoader.ACCESS_TOKEN_PATH_PROPERTY, path.toString());
+        setupTokenFile();
+        setupInvalidTokenFile();
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "auth_creds", PRINCIPAL_AUTHORITY);
+
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+        client.setZTSRDLGeneratedClient(ztsClientMock);
+        ZTSClient.setAccessTokenSignKeyResolver(resolver);
+        ZTSClient.initZTSAccessTokenFileLoader();
+
+        AccessTokenResponse accessTokenResponse = client.getAccessToken("test.domain", Collections.singletonList("admin"), 3600);
+        assertNotNull(accessTokenResponse);
+        assertEquals(accessTokenResponse.getScope(), "admin");
+        assertTrue(28800 == accessTokenResponse.getExpires_in());
     }
 
     @Test

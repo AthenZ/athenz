@@ -30,7 +30,6 @@ import static org.mockito.ArgumentMatchers.eq;
 public class NotificationTestsCommon {
     public static void mockDomainData(int i, DataStore dataStore) {
         String domainName = "domain" + i;
-        DomainData domainData = new DomainData();
         Role adminRole = new Role();
         adminRole.setName(domainName + ":role.admin");
         RoleMember roleMember1 = new RoleMember();
@@ -38,7 +37,6 @@ public class NotificationTestsCommon {
         RoleMember roleMember2 = new RoleMember();
         roleMember2.setMemberName("user.domain" + i + "rolemember2");
         adminRole.setRoleMembers(Arrays.asList(roleMember1, roleMember2));
-        domainData.setRoles(Collections.singletonList(adminRole));
-        Mockito.when(dataStore.getDomainData(eq(domainName))).thenReturn(domainData);
+        Mockito.when(dataStore.getRolesByDomain(eq(domainName))).thenReturn(Collections.singletonList(adminRole));
     }
 }

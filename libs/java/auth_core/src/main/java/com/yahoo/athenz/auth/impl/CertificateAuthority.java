@@ -20,11 +20,15 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.yahoo.athenz.auth.util.Crypto;
+import com.yahoo.athenz.auth.util.GlobStringsMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
+
+import static com.yahoo.athenz.auth.AuthorityConsts.ATHENZ_PROP_RESTRICTED_OU;
 
 public class CertificateAuthority implements Authority {
 
@@ -36,6 +40,7 @@ public class CertificateAuthority implements Authority {
     private static final String ATHENZ_AUTH_CHALLENGE = "AthenzX509Certificate realm=\"athenz\"";
 
     private CertificateIdentityParser certificateIdentityParser = null;
+    private GlobStringsMatcher globStringsMatcher = new GlobStringsMatcher(ATHENZ_PROP_RESTRICTED_OU);
 
     @Override
     public void initialize() {
@@ -50,6 +55,11 @@ public class CertificateAuthority implements Authority {
         excludeRoleCertificates = Boolean.parseBoolean(System.getProperty(ATHENZ_PROP_EXCLUDE_ROLE_CERTIFICATES, "false"));
 
         this.certificateIdentityParser = new CertificateIdentityParser(excludedPrincipalSet, excludeRoleCertificates);
+    }
+
+    @Override
+    public String getID() {
+        return "Auth-X509";
     }
 
     @Override
@@ -111,6 +121,8 @@ public class CertificateAuthority implements Authority {
         principal.setUnsignedCreds(x509Cert.getSubjectX500Principal().toString());
         principal.setX509Certificate(x509Cert);
         principal.setRoles(certId.getRoles());
+        principal.setMtlsRestricted(Crypto.isRestrictedCertificate(x509Cert, globStringsMatcher));
+
         return principal;
     }
 

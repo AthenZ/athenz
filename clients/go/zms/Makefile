@@ -53,7 +53,7 @@ src/$(RDL_LIB):
 	go get github.com/ardielle/ardielle-tools/...
 
 model.go: $(RDL_FILE)
-	$(GOPATH)/bin/rdl -ps generate -t -o $@ go-model $(RDL_FILE)
+	$(GOPATH)/bin/rdl -ps generate -t -o $@ athenz-go-model $(RDL_FILE)
 
 client.go: $(RDL_FILE)
 	$(GOPATH)/bin/rdl -ps generate -t -o $@ athenz-go-client $(RDL_FILE)

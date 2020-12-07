@@ -1,0 +1,14 @@
+[
+    {
+        "is_human": 1,
+        "login": "user.github-7654321",
+        "gecos": "Default Admin",
+        "enabled_status": 1
+    },
+    {
+        "is_human": 1,
+        "login": "user.uiuser",
+        "gecos": "UI User",
+        "enabled_status": 1
+    }
+]

@@ -23,6 +23,7 @@ import TextArea from '../denali/TextArea';
 import FlatPicker from '../flatpicker/FlatPicker';
 import Icon from '../denali/icons/Icon';
 import DateUtils from '../utils/DateUtils';
+import NameUtils from '../utils/NameUtils';
 
 const TableTd = styled.td`
     text-align: left;
@@ -109,7 +110,7 @@ export default class PendingApprovalTableRow extends React.Component {
     render() {
         const key =
             this.props.domainName + this.props.memberName + this.props.roleName;
-        const fpkey = key.replace(/\./g, '_');
+        const fpkey = NameUtils.getFlatPickrKey(key);
         let approveColor = this.props.checked
             ? colors.grey500
             : colors.green600;

@@ -19,6 +19,7 @@ public class PrincipalRole {
 
     private String domainName;
     private String roleName;
+    private String domainUserAuthorityFilter;
     
     public String getDomainName() {
         return domainName;
@@ -34,5 +35,13 @@ public class PrincipalRole {
 
     public void setRoleName(String roleName) {
         this.roleName = roleName;
+    }
+
+    public String getDomainUserAuthorityFilter() {
+        return domainUserAuthorityFilter;
+    }
+
+    public void setDomainUserAuthorityFilter(String domainUserAuthorityFilter) {
+        this.domainUserAuthorityFilter = domainUserAuthorityFilter;
     }
 }

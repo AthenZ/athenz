@@ -15,10 +15,12 @@
  */
 package com.yahoo.athenz.zms.utils;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import com.yahoo.athenz.auth.Authority;
+import com.yahoo.athenz.auth.impl.SimplePrincipal;
+import com.yahoo.athenz.zms.*;
+import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,18 +29,6 @@ import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.util.ServletRequestUtil;
-import com.yahoo.athenz.common.server.util.StringUtils;
-import com.yahoo.athenz.zms.Assertion;
-import com.yahoo.athenz.zms.AssertionEffect;
-import com.yahoo.athenz.zms.Policy;
-import com.yahoo.athenz.zms.ResourceContext;
-import com.yahoo.athenz.zms.ResourceError;
-import com.yahoo.athenz.zms.ResourceException;
-import com.yahoo.athenz.zms.Role;
-import com.yahoo.athenz.zms.RoleMember;
-import com.yahoo.athenz.zms.RsrcCtxWrapper;
-import com.yahoo.athenz.zms.ZMSConsts;
-import com.yahoo.athenz.zms.ZMSImpl;
 
 public class ZMSUtils {
 
@@ -95,6 +85,10 @@ public class ZMSUtils {
     
     public static String roleResourceName(String domainName, String roleName) {
         return generateResourceName(domainName, roleName, ZMSConsts.OBJECT_ROLE);
+    }
+
+    public static String groupResourceName(String domainName, String groupName) {
+        return generateResourceName(domainName, groupName, ZMSConsts.OBJECT_GROUP);
     }
 
     public static String policyResourceName(String domainName, String policyName) {
@@ -155,84 +149,6 @@ public class ZMSUtils {
             trustedRole.append("res_group.").append(resourceGroup).append('.');
         }
         return trustedRole.toString();
-    }
-    
-    public static boolean assumeRoleResourceMatch(String roleName, Assertion assertion) {
-        
-        if (!ZMSConsts.ACTION_ASSUME_ROLE.equalsIgnoreCase(assertion.getAction())) {
-            return false;
-        }
-        
-        String rezPattern = StringUtils.patternFromGlob(assertion.getResource());
-        return roleName.matches(rezPattern);
-    }
-    
-    public static void validateRoleStructure(final Role role, final String caller,
-            final String domainName) {
-        
-        if ((role.getMembers() != null && !role.getMembers().isEmpty()) 
-                && (role.getRoleMembers() != null && !role.getRoleMembers().isEmpty())) {
-            throw ZMSUtils.requestError("validateRoleMembers: Role cannot have both members and roleMembers set", caller);
-        }
-        
-        // if this is a delegated role then validate that it's not
-        // delegated back to itself and there are no members since
-        // those 2 fields are mutually exclusive
-        
-        if (role.getTrust() != null && !role.getTrust().isEmpty()) {
-            
-            if (role.getRoleMembers() != null && !role.getRoleMembers().isEmpty()) {
-                throw ZMSUtils.requestError("validateRoleMembers: Role cannot have both roleMembers and delegated domain set", caller);
-            }
-            
-            if (role.getMembers() != null && !role.getMembers().isEmpty()) {
-                throw ZMSUtils.requestError("validateRoleMembers: Role cannot have both members and delegated domain set", caller);
-            }
-            
-            if (domainName.equals(role.getTrust())) {
-                throw ZMSUtils.requestError("validateRoleMembers: Role cannot be delegated to itself", caller);
-            }
-        }
-    }
-    
-    public static void removeMembers(List<RoleMember> originalRoleMembers, List<RoleMember> removeRoleMembers) {
-        if (removeRoleMembers == null || originalRoleMembers == null) {
-            return;
-        }
-        for (RoleMember removeMember : removeRoleMembers) {
-            String removeName = removeMember.getMemberName();
-            for (int j = 0; j < originalRoleMembers.size(); j++) {
-                if (removeName.equalsIgnoreCase(originalRoleMembers.get(j).getMemberName())) {
-                    originalRoleMembers.remove(j);
-                    break;
-                }
-            }
-        }
-    }
-    
-    public static List<String> convertRoleMembersToMembers(List<RoleMember> members) {
-        List<String> memberList = new ArrayList<>();
-        if (members == null) {
-            return memberList;
-        }
-        for (RoleMember member: members) {
-            // only add active members to membername list. Active flag is optional for default value
-            if (member.getActive() != Boolean.FALSE) {
-                memberList.add(member.getMemberName());
-            }
-        }
-        return memberList;
-    }
-    
-    public static List<RoleMember> convertMembersToRoleMembers(List<String> members) {
-        List<RoleMember> roleMemberList = new ArrayList<>();
-        if (members == null) {
-            return roleMemberList;
-        }
-        for (String member: members) {
-            roleMemberList.add(new RoleMember().setMemberName(member));
-        }
-        return roleMemberList;
     }
     
     /**
@@ -352,6 +268,18 @@ public class ZMSUtils {
         return boolVal;
     }
 
+    public static Principal.Type principalType(final String memberName, final String userDomainPrefix,
+                                               final List<String> addlUserCheckDomainPrefixList) {
+
+        if (ZMSUtils.isUserDomainPrincipal(memberName, userDomainPrefix, addlUserCheckDomainPrefixList)) {
+            return Principal.Type.USER;
+        } else if (memberName.contains(AuthorityConsts.GROUP_SEP)) {
+            return Principal.Type.GROUP;
+        } else {
+            return Principal.Type.SERVICE;
+        }
+    }
+
     public static boolean isUserDomainPrincipal(final String memberName, final String userDomainPrefix,
             final List<String> addlUserCheckDomainPrefixList) {
 
@@ -385,6 +313,10 @@ public class ZMSUtils {
         return extractObjectName(domainName, fullRoleName, AuthorityConsts.ROLE_SEP);
     }
 
+    public static String extractGroupName(String domainName, String fullGroupName) {
+        return extractObjectName(domainName, fullGroupName, AuthorityConsts.GROUP_SEP);
+    }
+
     public static String extractPolicyName(String domainName, String fullPolicyName) {
         return extractObjectName(domainName, fullPolicyName, ":policy.");
     }
@@ -399,7 +331,10 @@ public class ZMSUtils {
         // so we'll optimize for that case and not create an array
 
         if (filterList.indexOf(',') == -1) {
-            return userAuthority.isAttributeSet(memberName, filterList);
+            if (!userAuthority.isAttributeSet(memberName, filterList)) {
+                LOG.error("Principal {} does not satisfy user authority {} filter", memberName, filterList);
+                return false;
+            }
         } else {
             final String[] filterItems = filterList.split(",");
             for (String filterItem : filterItems) {
@@ -408,7 +343,98 @@ public class ZMSUtils {
                     return false;
                 }
             }
+        }
+        return true;
+    }
+
+    public static String combineUserAuthorityFilters(final String roleUserAuthorityFilter, final String domainUserAuthorityFilter) {
+
+        String authorityFilter = null;
+        if (roleUserAuthorityFilter != null && !roleUserAuthorityFilter.isEmpty()) {
+            authorityFilter = roleUserAuthorityFilter;
+        }
+
+        if (domainUserAuthorityFilter != null && !domainUserAuthorityFilter.isEmpty()) {
+            if (authorityFilter == null) {
+                authorityFilter = domainUserAuthorityFilter;
+            } else {
+                // no need for extra work to remove duplicates
+                authorityFilter += "," + domainUserAuthorityFilter;
+            }
+        }
+
+        return authorityFilter;
+    }
+
+    public static String lowerDomainInResource(String resource) {
+        if (resource == null) {
+            return null;
+        }
+
+        int delimiterIndex = resource.indexOf(":");
+        if (delimiterIndex == -1) {
+            return resource;
+        }
+
+        String lowerCasedDomain = resource.substring(0, delimiterIndex).toLowerCase();
+        return lowerCasedDomain + resource.substring(delimiterIndex);
+    }
+
+    public static boolean userAuthorityAttrMissing(final String origAttrList, final String checkAttrList) {
+
+        // if the original attr list is empty then there is nothing to check
+
+        if (StringUtil.isEmpty(origAttrList)) {
+            return false;
+        }
+
+        // if the check attribute list is empty then it's a failure
+        // since we know that our original attr is not empty
+
+        if (StringUtil.isEmpty(checkAttrList)) {
             return true;
         }
+
+        // we'll just compare the values as is in case there
+        // is a match and no further processing is necessary
+
+        if (origAttrList.equals(checkAttrList)) {
+            return false;
+        }
+
+        // we need to tokenize our attr values and compare. we want to
+        // make sure all original attribute values are present in the check list
+
+        Set<String> checkValues = new HashSet<>(Arrays.asList(checkAttrList.split(",")));
+        for (String attr : origAttrList.split(",")) {
+            if (!checkValues.contains(attr)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static Principal createPrincipalForName(String principalName, String userDomain, String userDomainAlias) {
+
+        String domain;
+        String name;
+
+        // if we have no . in the principal name we're going to default
+        // to our configured user domain
+
+        int idx = principalName.lastIndexOf('.');
+        if (idx == -1) {
+            domain = userDomain;
+            name = principalName;
+        } else {
+            domain = principalName.substring(0, idx);
+            if (userDomainAlias != null && userDomainAlias.equals(domain)) {
+                domain = userDomain;
+            }
+            name = principalName.substring(idx + 1);
+        }
+
+        return SimplePrincipal.create(domain, name, (String) null);
     }
 }

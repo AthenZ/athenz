@@ -3,12 +3,14 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.List;
 import com.yahoo.rdl.*;
 
 //
 // ServiceIdentities - The representation of list of services
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ServiceIdentities {
     public List<ServiceIdentity> list;
 

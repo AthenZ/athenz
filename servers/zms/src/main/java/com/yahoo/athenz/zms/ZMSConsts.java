@@ -73,6 +73,7 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_AWS_RDS_MASTER_PORT        = "athenz.zms.aws_rds_master_port";
     public static final String ZMS_PROP_AWS_RDS_REPLICA_INSTANCE   = "athenz.zms.aws_rds_replica_instance";
     public static final String ZMS_PROP_AWS_RDS_CREDS_REFRESH_TIME = "athenz.zms.aws_rds_creds_refresh_time";
+    public static final String ZMS_AUTO_UPDATE_TEMPLATE_FEATURE_FLAG = "athenz.zms.auto_update_template_feature_flag";
 
     public static final String DB_PROP_USER               = "user";
     public static final String DB_PROP_PASSWORD           = "password";
@@ -101,7 +102,6 @@ public final class ZMSConsts {
     // properties used to over-ride default Audit logger
  
     public static final String ZMS_PROP_METRIC_FACTORY_CLASS            = "athenz.zms.metric_factory_class";
-    public static final String ZMS_METRIC_FACTORY_CLASS                 = "com.yahoo.athenz.common.metrics.impl.NoOpMetricFactory";
 
     public static final String ZMS_PROP_AUDIT_LOGGER_FACTORY_CLASS      = "athenz.zms.audit_logger_factory_class";
     public static final String ZMS_AUDIT_LOGGER_FACTORY_CLASS           = "com.yahoo.athenz.common.server.log.impl.DefaultAuditLoggerFactory";
@@ -110,6 +110,7 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_AUDIT_REF_CHECK_OBJECTS           = "athenz.zms.audit_ref_check_objects";
 
     public static final String ZMS_AUDIT_TYPE_ROLE     = "role";
+    public static final String ZMS_AUDIT_TYPE_GROUP    = "group";
     public static final String ZMS_AUDIT_TYPE_POLICY   = "policy";
     public static final String ZMS_AUDIT_TYPE_SERVICE  = "service";
     public static final String ZMS_AUDIT_TYPE_DOMAIN   = "domain";
@@ -135,6 +136,8 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_QUOTA_PUBLIC_KEY   = "athenz.zms.quota_public_key";
     public static final String ZMS_PROP_QUOTA_ENTITY       = "athenz.zms.quota_entity";
     public static final String ZMS_PROP_QUOTA_SUBDOMAIN    = "athenz.zms.quota_subdomain";
+    public static final String ZMS_PROP_QUOTA_GROUP        = "athenz.zms.quota_group";
+    public static final String ZMS_PROP_QUOTA_GROUP_MEMBER = "athenz.zms.quota_group_member";
 
     public static final String ZMS_PROP_MYSQL_SERVER_TIMEZONE = "athenz.zms.mysql_server_timezone";
 
@@ -224,18 +227,26 @@ public final class ZMSConsts {
     public static final String DB_COLUMN_NOTIFY_ROLES       = "notify_roles";
     public static final String DB_COLUMN_LAST_REVIEWED_TIME = "last_reviewed_time";
     public static final String DB_COLUMN_REQ_PRINCIPAL      = "req_principal";
-    public static final String DB_COLUMN_USER_AUTHORITY_FILTER     = "user_authority_filter";
-    public static final String DB_COLUMN_USER_AUTHORITY_EXPIRATION = "user_authority_expiration";
     public static final String DB_COLUMN_MEMBER_REVIEW_DAYS = "member_review_days";
     public static final String DB_COLUMN_TEMPLATE_NAME      = "template";
     public static final String DB_COLUMN_TEMPLATE_VERSION   = "current_version";
     public static final String DB_COLUMN_AS_DOMAIN_NAME     = "domain_name";
     public static final String DB_COLUMN_AS_ROLE_NAME       = "role_name";
+    public static final String DB_COLUMN_AS_GROUP_NAME      = "group_name";
+    public static final String DB_COLUMN_SYSTEM_DISABLED    = "system_disabled";
+    public static final String DB_COLUMN_AZURE_SUBSCRIPTION = "azure_subscription";
 
     public static final String DB_COLUMN_SERVICE_REVIEW_DAYS      = "service_review_days";
     public static final String DB_COLUMN_SERVICE_EXPIRY_DAYS      = "service_expiry_days";
+    public static final String DB_COLUMN_GROUP_EXPIRY_DAYS        = "group_expiry_days";
     public static final String DB_COLUMN_ROLE_CERT_EXPIRY_MINS    = "role_cert_expiry_mins";
     public static final String DB_COLUMN_SERVICE_CERT_EXPIRY_MINS = "service_cert_expiry_mins";
+    public static final String DB_COLUMN_PRINCIPAL_GROUP          = "principal_group";
+    public static final String DB_COLUMN_PRINCIPAL_GROUP_MEMBER   = "principal_group_member";
+
+    public static final String DB_COLUMN_USER_AUTHORITY_FILTER           = "user_authority_filter";
+    public static final String DB_COLUMN_USER_AUTHORITY_EXPIRATION       = "user_authority_expiration";
+    public static final String DB_COLUMN_AS_DOMAIN_USER_AUTHORITY_FILTER = "domain_user_authority_filter";
 
     public static final String ADMIN_POLICY_NAME = "admin";
     public static final String ADMIN_ROLE_NAME   = "admin";
@@ -251,15 +262,18 @@ public final class ZMSConsts {
     public static final String OBJECT_SERVICE   = "service";
     public static final String OBJECT_PRINCIPAL = "principal";
     public static final String OBJECT_HOST      = "host";
+    public static final String OBJECT_GROUP     = "group";
 
-    public static final String SYSTEM_META_PRODUCT_ID        = "productid";
-    public static final String SYSTEM_META_ACCOUNT           = "account";
-    public static final String SYSTEM_META_CERT_DNS_DOMAIN   = "certdnsdomain";
-    public static final String SYSTEM_META_AUDIT_ENABLED     = "auditenabled";
-    public static final String SYSTEM_META_ENABLED           = "enabled";
-    public static final String SYSTEM_META_ORG               = "org";
-    public static final String SYSTEM_META_LAST_MOD_TIME     = "modified";
-    public static final String SYSTEM_META_PROVIDER_ENDPOINT = "providerendpoint";
+    public static final String SYSTEM_META_PRODUCT_ID         = "productid";
+    public static final String SYSTEM_META_ACCOUNT            = "account";
+    public static final String SYSTEM_META_CERT_DNS_DOMAIN    = "certdnsdomain";
+    public static final String SYSTEM_META_AUDIT_ENABLED      = "auditenabled";
+    public static final String SYSTEM_META_USER_AUTH_FILTER   = "userauthorityfilter";
+    public static final String SYSTEM_META_ENABLED            = "enabled";
+    public static final String SYSTEM_META_ORG                = "org";
+    public static final String SYSTEM_META_LAST_MOD_TIME      = "modified";
+    public static final String SYSTEM_META_PROVIDER_ENDPOINT  = "providerendpoint";
+    public static final String SYSTEM_META_AZURE_SUBSCRIPTION = "azuresubscription";
 
     // HTTP operation types used in metrics
     public static final String HTTP_GET     = "GET";
@@ -283,4 +297,12 @@ public final class ZMSConsts {
     public static final String SYS_AUTH_MONITOR = "sys.auth.monitor";
     public static final String ZMS_PROP_MONITOR_IDENTITY = "athenz.zms.monitor_identity";
 
+    public static final int ZMS_DISABLED_AUTHORITY_FILTER = 0x01;
+
+    public static final String ZMS_PROP_STATUS_CHECKER_FACTORY_CLASS = "athenz.zms.status_checker_factory_class";
+
+    public static final String ZMS_PROP_ENABLE_PRINCIPAL_STATE_UPDATER        = "athenz.zms.enable_principal_state_updater";
+    public static final String ZMS_PROP_PRINCIPAL_STATE_UPDATER_FREQUENCY = "athenz.zms.principal_state_updater_frequency";
+    public static final String ZMS_PROP_PRINCIPAL_STATE_UPDATER_FREQUENCY_DEFAULT = "30"; // in minutes
+    public static final String ZMS_PROP_PRINCIPAL_STATE_UPDATER_DISABLE_TIMER = "athenz.zms.disable_principal_state_updater_timer_task";
 }

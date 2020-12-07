@@ -17,14 +17,18 @@ package com.yahoo.athenz.zts.cache;
 
 import java.util.*;
 
+import com.yahoo.athenz.auth.AuthorityConsts;
+import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.util.AthenzUtils;
+import com.yahoo.athenz.common.server.util.AuthzHelper;
 import com.yahoo.athenz.zms.*;
-import com.yahoo.athenz.zts.ZTSConsts;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.CryptoException;
+
+import static com.yahoo.athenz.common.ServerCommonConsts.ATHENZ_SYS_DOMAIN;
 
 public class DataCache {
 
@@ -92,9 +96,15 @@ public class DataCache {
         long currentTime = System.currentTimeMillis();
         for (RoleMember member : members) {
             
+            // if the role member is disabled then we'll skip it
+
+            if (AuthzHelper.isMemberDisabled(member.getSystemDisabled())) {
+                continue;
+            }
+
             // if the role member is already expired then there
             // is no point to add it to the cache
-            
+
             long expiration = member.getExpiration() == null ? 0 : member.getExpiration().millis();
             if (expiration != 0 && expiration < currentTime) {
                 continue;
@@ -161,7 +171,12 @@ public class DataCache {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Processing role: {}", role.getName());
         }
-        
+
+        // set group type for role members which we need
+        // for authorization checks
+
+        setRoleMemberGroupType(role.getRoleMembers());
+
         // first process members
         
         processRoleMembers(role.getName(), role.getRoleMembers());
@@ -173,6 +188,19 @@ public class DataCache {
         // now process the role meta data
 
         processRoleMeta(role);
+    }
+
+    void setRoleMemberGroupType(List<RoleMember> roleMembers) {
+
+        if (roleMembers == null || roleMembers.isEmpty()) {
+            return;
+        }
+
+        for (RoleMember roleMember : roleMembers) {
+            if (roleMember.getMemberName().contains(AuthorityConsts.GROUP_SEP)) {
+                roleMember.setPrincipalType(Principal.Type.GROUP.getValue());
+            }
+        }
     }
 
     void processProviderSuffixAssertion(Assertion assertion, AssertionEffect effect, Map<String, Role> roles,
@@ -258,7 +286,7 @@ public class DataCache {
         // for now we're only processing launch assertion if the
         // domain happens to be the sys.auth domain
 
-        if (!domainName.equals(ZTSConsts.ATHENZ_SYS_DOMAIN)) {
+        if (!domainName.equals(ATHENZ_SYS_DOMAIN)) {
             return;
         }
 

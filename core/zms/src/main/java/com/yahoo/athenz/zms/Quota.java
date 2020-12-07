@@ -3,12 +3,14 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.yahoo.rdl.*;
 
 //
 // Quota - The representation for a quota object
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Quota {
     public String name;
     public int subdomain;
@@ -20,6 +22,8 @@ public class Quota {
     public int service;
     public int serviceHost;
     public int publicKey;
+    public int group;
+    public int groupMember;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Timestamp modified;
@@ -94,6 +98,20 @@ public class Quota {
     public int getPublicKey() {
         return publicKey;
     }
+    public Quota setGroup(int group) {
+        this.group = group;
+        return this;
+    }
+    public int getGroup() {
+        return group;
+    }
+    public Quota setGroupMember(int groupMember) {
+        this.groupMember = groupMember;
+        return this;
+    }
+    public int getGroupMember() {
+        return groupMember;
+    }
     public Quota setModified(Timestamp modified) {
         this.modified = modified;
         return this;
@@ -137,6 +155,12 @@ public class Quota {
                 return false;
             }
             if (publicKey != a.publicKey) {
+                return false;
+            }
+            if (group != a.group) {
+                return false;
+            }
+            if (groupMember != a.groupMember) {
                 return false;
             }
             if (modified == null ? a.modified != null : !modified.equals(a.modified)) {

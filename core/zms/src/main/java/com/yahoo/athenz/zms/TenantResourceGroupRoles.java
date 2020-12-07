@@ -3,6 +3,7 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.List;
 import com.yahoo.rdl.*;
 
@@ -10,6 +11,7 @@ import com.yahoo.rdl.*;
 // TenantResourceGroupRoles - A representation of tenant roles for resource
 // groups to be provisioned.
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class TenantResourceGroupRoles {
     public String domain;
     public String service;

@@ -1,0 +1,7 @@
+prettyPrint: true
+openAPI:
+  info:
+    version: '1.0.0'
+    title: 'ZTS Swagger'
+  servers:
+    - url: '/v1/api'

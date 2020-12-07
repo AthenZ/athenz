@@ -9,6 +9,8 @@ import javax.ws.rs.core.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.inject.Inject;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 
 @Path("/v1")
 public class ZMSResources {
@@ -16,13 +18,17 @@ public class ZMSResources {
     @GET
     @Path("/domain/{domain}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Domain getDomain(@PathParam("domain") String domain) {
+    @Operation(description = "Get info for the specified domain, by name. This request only returns the configured domain attributes and not any domain objects like roles, policies or service identities.")
+    public Domain getDomain(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domain") String domain) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getDomain");
             context.authenticate();
             return this.delegate.getDomain(context, domain);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -38,19 +44,34 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getDomain");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @GET
     @Path("/domain")
     @Produces(MediaType.APPLICATION_JSON)
-    public DomainList getDomainList(@QueryParam("limit") Integer limit, @QueryParam("skip") String skip, @QueryParam("prefix") String prefix, @QueryParam("depth") Integer depth, @QueryParam("account") String account, @QueryParam("ypmid") Integer productId, @QueryParam("member") String roleMember, @QueryParam("role") String roleName, @HeaderParam("If-Modified-Since") String modifiedSince) {
+    @Operation(description = "Enumerate domains. Can be filtered by prefix and depth, and paginated. This operation can be expensive, as it may span multiple domains.")
+    public DomainList getDomainList(
+        @Parameter(description = "restrict the number of results in this call", required = false) @QueryParam("limit") Integer limit,
+        @Parameter(description = "restrict the set to those after the specified \"next\" token returned from a previous call", required = false) @QueryParam("skip") String skip,
+        @Parameter(description = "restrict to names that start with the prefix", required = false) @QueryParam("prefix") String prefix,
+        @Parameter(description = "restrict the depth of the name, specifying the number of '.' characters that can appear", required = false) @QueryParam("depth") Integer depth,
+        @Parameter(description = "restrict to domain names that have specified account name", required = false) @QueryParam("account") String account,
+        @Parameter(description = "restrict the domain names that have specified product id", required = false) @QueryParam("ypmid") Integer productId,
+        @Parameter(description = "restrict the domain names where the specified user is in a role - see roleName", required = false) @QueryParam("member") String roleMember,
+        @Parameter(description = "restrict the domain names where the specified user is in this role - see roleMember", required = false) @QueryParam("role") String roleName,
+        @Parameter(description = "restrict to domain names that have specified azure subscription name", required = false) @QueryParam("azure") String subscription,
+        @Parameter(description = "This header specifies to the server to return any domains modified since this HTTP date", required = true) @HeaderParam("If-Modified-Since") String modifiedSince) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getDomainList");
             context.authenticate();
-            return this.delegate.getDomainList(context, limit, skip, prefix, depth, account, productId, roleMember, roleName, modifiedSince);
+            return this.delegate.getDomainList(context, limit, skip, prefix, depth, account, productId, roleMember, roleName, subscription, modifiedSince);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.TOO_MANY_REQUESTS:
                 throw typedException(code, e, ResourceError.class);
@@ -60,6 +81,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getDomainList");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -67,13 +90,18 @@ public class ZMSResources {
     @Path("/domain")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Domain postTopLevelDomain(@HeaderParam("Y-Audit-Ref") String auditRef, TopLevelDomain detail) {
+    @Operation(description = "Create a new top level domain. This is a privileged action for the \"sys.auth\" administrators.")
+    public Domain postTopLevelDomain(
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
+        @Parameter(description = "TopLevelDomain object to be created", required = true) TopLevelDomain detail) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "postTopLevelDomain");
             context.authorize("create", "sys.auth:domain", null);
             return this.delegate.postTopLevelDomain(context, auditRef, detail);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -87,6 +115,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource postTopLevelDomain");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -94,13 +124,19 @@ public class ZMSResources {
     @Path("/subdomain/{parent}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Domain postSubDomain(@PathParam("parent") String parent, @HeaderParam("Y-Audit-Ref") String auditRef, SubDomain detail) {
+    @Operation(description = "Create a new subdomain. The domain administrators of the {parent} domain have the privilege to create subdomains.")
+    public Domain postSubDomain(
+        @Parameter(description = "name of the parent domain", required = true) @PathParam("parent") String parent,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
+        @Parameter(description = "Subdomain object to be created", required = true) SubDomain detail) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "postSubDomain");
             context.authorize("create", "" + parent + ":domain", null);
             return this.delegate.postSubDomain(context, parent, auditRef, detail);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -116,6 +152,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource postSubDomain");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -123,13 +161,19 @@ public class ZMSResources {
     @Path("/userdomain/{name}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Domain postUserDomain(@PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef, UserDomain detail) {
+    @Operation(description = "Create a new user domain. The user domain will be created in the user top level domain and the user himself will be set as the administrator for this domain.")
+    public Domain postUserDomain(
+        @Parameter(description = "name of the domain which will be the user id", required = true) @PathParam("name") String name,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
+        @Parameter(description = "UserDomain object to be created", required = true) UserDomain detail) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "postUserDomain");
             context.authorize("create", "user." + name + ":domain", null);
             return this.delegate.postUserDomain(context, name, auditRef, detail);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -145,19 +189,26 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource postUserDomain");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @DELETE
     @Path("/domain/{name}")
     @Produces(MediaType.APPLICATION_JSON)
-    public void deleteTopLevelDomain(@PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef) {
+    @Operation(description = "Delete the specified domain.  This is a privileged action for the \"sys.auth\" administrators. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
+    public void deleteTopLevelDomain(
+        @Parameter(description = "name of the domain to be deleted", required = true) @PathParam("name") String name,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "deleteTopLevelDomain");
             context.authorize("delete", "sys.auth:domain", null);
             this.delegate.deleteTopLevelDomain(context, name, auditRef);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -173,19 +224,27 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource deleteTopLevelDomain");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @DELETE
     @Path("/subdomain/{parent}/{name}")
     @Produces(MediaType.APPLICATION_JSON)
-    public void deleteSubDomain(@PathParam("parent") String parent, @PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef) {
+    @Operation(description = "Delete the specified subdomain. Caller must have domain delete permissions in parent. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
+    public void deleteSubDomain(
+        @Parameter(description = "name of the parent domain", required = true) @PathParam("parent") String parent,
+        @Parameter(description = "name of the subdomain to be deleted", required = true) @PathParam("name") String name,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "deleteSubDomain");
             context.authorize("delete", "" + parent + ":domain", null);
             this.delegate.deleteSubDomain(context, parent, name, auditRef);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -201,19 +260,26 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource deleteSubDomain");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @DELETE
     @Path("/userdomain/{name}")
     @Produces(MediaType.APPLICATION_JSON)
-    public void deleteUserDomain(@PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef) {
+    @Operation(description = "Delete the specified userdomain. Caller must have domain delete permissions in the domain. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
+    public void deleteUserDomain(
+        @Parameter(description = "name of the domain to be deleted which will be the user id", required = true) @PathParam("name") String name,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "deleteUserDomain");
             context.authorize("delete", "user." + name + ":domain", null);
             this.delegate.deleteUserDomain(context, name, auditRef);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -229,6 +295,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource deleteUserDomain");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -236,13 +304,19 @@ public class ZMSResources {
     @Path("/domain/{name}/meta")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public void putDomainMeta(@PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef, DomainMeta detail) {
+    @Operation(description = "Update the specified top level domain metadata. Note that entities in the domain are not affected. Caller must have update privileges on the domain itself.")
+    public void putDomainMeta(
+        @Parameter(description = "name of the domain to be updated", required = true) @PathParam("name") String name,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
+        @Parameter(description = "DomainMeta object with updated attribute values", required = true) DomainMeta detail) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "putDomainMeta");
             context.authorize("update", "" + name + ":", null);
             this.delegate.putDomainMeta(context, name, auditRef, detail);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -260,6 +334,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource putDomainMeta");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -267,13 +343,20 @@ public class ZMSResources {
     @Path("/domain/{name}/meta/system/{attribute}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public void putDomainSystemMeta(@PathParam("name") String name, @PathParam("attribute") String attribute, @HeaderParam("Y-Audit-Ref") String auditRef, DomainMeta detail) {
+    @Operation(description = "Set the specified top level domain metadata. Note that entities in the domain are not affected. Caller must have update privileges on the domain itself. If the system attribute is one of the string attributes, then the caller must also have delete action on the same resource in order to reset the configured value")
+    public void putDomainSystemMeta(
+        @Parameter(description = "name of the domain to be updated", required = true) @PathParam("name") String name,
+        @Parameter(description = "name of the system attribute to be modified", required = true) @PathParam("attribute") String attribute,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
+        @Parameter(description = "DomainMeta object with updated attribute values", required = true) DomainMeta detail) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "putDomainSystemMeta");
             context.authorize("update", "sys.auth:meta.domain." + attribute + "." + name + "", null);
             this.delegate.putDomainSystemMeta(context, name, attribute, auditRef, detail);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -291,6 +374,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource putDomainSystemMeta");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -298,13 +383,19 @@ public class ZMSResources {
     @Path("/domain/{name}/template")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public void putDomainTemplate(@PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef, DomainTemplate domainTemplate) {
+    @Operation(description = "Update the given domain by applying the roles and policies defined in the specified solution template(s). Caller must have UPDATE privileges on the domain itself.")
+    public void putDomainTemplate(
+        @Parameter(description = "name of the domain to be updated", required = true) @PathParam("name") String name,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
+        @Parameter(description = "DomainTemplate object with solution template name(s)", required = true) DomainTemplate domainTemplate) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "putDomainTemplate");
             context.authorize("update", "" + name + ":template", null);
             this.delegate.putDomainTemplate(context, name, auditRef, domainTemplate);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -322,6 +413,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource putDomainTemplate");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -329,13 +422,20 @@ public class ZMSResources {
     @Path("/domain/{name}/template/{template}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public void putDomainTemplateExt(@PathParam("name") String name, @PathParam("template") String template, @HeaderParam("Y-Audit-Ref") String auditRef, DomainTemplate domainTemplate) {
+    @Operation(description = "Update the given domain by applying the roles and policies defined in the specified solution template(s). Caller must have UPDATE privileges on the domain itself.")
+    public void putDomainTemplateExt(
+        @Parameter(description = "name of the domain to be updated", required = true) @PathParam("name") String name,
+        @Parameter(description = "name of the solution template", required = true) @PathParam("template") String template,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
+        @Parameter(description = "DomainTemplate object with a single template name to match URI", required = true) DomainTemplate domainTemplate) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "putDomainTemplateExt");
             context.authorize("update", "" + name + ":template." + template + "", null);
             this.delegate.putDomainTemplateExt(context, name, template, auditRef, domainTemplate);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -353,19 +453,25 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource putDomainTemplateExt");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @GET
     @Path("/domain/{name}/template")
     @Produces(MediaType.APPLICATION_JSON)
-    public DomainTemplateList getDomainTemplateList(@PathParam("name") String name) {
+    @Operation(description = "Get the list of solution templates applied to a domain")
+    public DomainTemplateList getDomainTemplateList(
+        @Parameter(description = "name of the domain", required = true) @PathParam("name") String name) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getDomainTemplateList");
             context.authenticate();
             return this.delegate.getDomainTemplateList(context, name);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -379,19 +485,27 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getDomainTemplateList");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @DELETE
     @Path("/domain/{name}/template/{template}")
     @Produces(MediaType.APPLICATION_JSON)
-    public void deleteDomainTemplate(@PathParam("name") String name, @PathParam("template") String template, @HeaderParam("Y-Audit-Ref") String auditRef) {
+    @Operation(description = "Update the given domain by deleting the specified template from the domain template list. Cycles through the roles and policies defined in the template and deletes them. Caller must have delete privileges on the domain itself.")
+    public void deleteDomainTemplate(
+        @Parameter(description = "name of the domain to be updated", required = true) @PathParam("name") String name,
+        @Parameter(description = "name of the solution template", required = true) @PathParam("template") String template,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "deleteDomainTemplate");
             context.authorize("delete", "" + name + ":template." + template + "", null);
             this.delegate.deleteDomainTemplate(context, name, template, auditRef);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -409,19 +523,25 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource deleteDomainTemplate");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @GET
     @Path("/domain/{domainName}/check")
     @Produces(MediaType.APPLICATION_JSON)
-    public DomainDataCheck getDomainDataCheck(@PathParam("domainName") String domainName) {
+    @Operation(description = "Carry out data check operation for the specified domain.")
+    public DomainDataCheck getDomainDataCheck(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getDomainDataCheck");
             context.authenticate();
             return this.delegate.getDomainDataCheck(context, domainName);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.FORBIDDEN:
                 throw typedException(code, e, ResourceError.class);
@@ -435,6 +555,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getDomainDataCheck");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -442,13 +564,20 @@ public class ZMSResources {
     @Path("/domain/{domainName}/entity/{entityName}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public void putEntity(@PathParam("domainName") String domainName, @PathParam("entityName") String entityName, @HeaderParam("Y-Audit-Ref") String auditRef, Entity entity) {
+    @Operation(description = "Put an entity into the domain.")
+    public void putEntity(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "name of entity", required = true) @PathParam("entityName") String entityName,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
+        @Parameter(description = "Entity object to be added to the domain", required = true) Entity entity) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "putEntity");
             context.authorize("update", "" + domainName + ":entity." + entityName + "", null);
             this.delegate.putEntity(context, domainName, entityName, auditRef, entity);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -466,19 +595,26 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource putEntity");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @GET
     @Path("/domain/{domainName}/entity/{entityName}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Entity getEntity(@PathParam("domainName") String domainName, @PathParam("entityName") String entityName) {
+    @Operation(description = "Get a entity from a domain. open for all authenticated users to read")
+    public Entity getEntity(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "name of entity", required = true) @PathParam("entityName") String entityName) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getEntity");
             context.authenticate();
             return this.delegate.getEntity(context, domainName, entityName);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -494,19 +630,27 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getEntity");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @DELETE
     @Path("/domain/{domainName}/entity/{entityName}")
     @Produces(MediaType.APPLICATION_JSON)
-    public void deleteEntity(@PathParam("domainName") String domainName, @PathParam("entityName") String entityName, @HeaderParam("Y-Audit-Ref") String auditRef) {
+    @Operation(description = "Delete the entity from the domain. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
+    public void deleteEntity(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "name of entity", required = true) @PathParam("entityName") String entityName,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "deleteEntity");
             context.authorize("delete", "" + domainName + ":entity." + entityName + "", null);
             this.delegate.deleteEntity(context, domainName, entityName, auditRef);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -524,19 +668,25 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource deleteEntity");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @GET
     @Path("/domain/{domainName}/entity")
     @Produces(MediaType.APPLICATION_JSON)
-    public EntityList getEntityList(@PathParam("domainName") String domainName) {
+    @Operation(description = "Enumerate entities provisioned in this domain.")
+    public EntityList getEntityList(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getEntityList");
             context.authenticate();
             return this.delegate.getEntityList(context, domainName);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -550,19 +700,27 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getEntityList");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @GET
     @Path("/domain/{domainName}/role")
     @Produces(MediaType.APPLICATION_JSON)
-    public RoleList getRoleList(@PathParam("domainName") String domainName, @QueryParam("limit") Integer limit, @QueryParam("skip") String skip) {
+    @Operation(description = "Enumerate roles provisioned in this domain.")
+    public RoleList getRoleList(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "restrict the number of results in this call", required = false) @QueryParam("limit") Integer limit,
+        @Parameter(description = "restrict the set to those after the specified \"next\" token returned from a previous call", required = false) @QueryParam("skip") String skip) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getRoleList");
             context.authenticate();
             return this.delegate.getRoleList(context, domainName, limit, skip);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -578,19 +736,28 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getRoleList");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @GET
     @Path("/domain/{domainName}/roles")
     @Produces(MediaType.APPLICATION_JSON)
-    public Roles getRoles(@PathParam("domainName") String domainName, @QueryParam("members") @DefaultValue("false") Boolean members) {
+    @Operation(description = "Get the list of all roles in a domain with optional flag whether or not include members")
+    public Roles getRoles(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "return list of members in the role", required = false) @QueryParam("members") @DefaultValue("false") Boolean members,
+        @Parameter(description = "flag to query all roles that have a given tagName", required = false) @QueryParam("tagKey") String tagKey,
+        @Parameter(description = "flag to query all roles that have a given tag name and value", required = false) @QueryParam("tagValue") String tagValue) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getRoles");
             context.authenticate();
-            return this.delegate.getRoles(context, domainName, members);
+            return this.delegate.getRoles(context, domainName, members, tagKey, tagValue);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -604,19 +771,29 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getRoles");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @GET
     @Path("/domain/{domainName}/role/{roleName}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Role getRole(@PathParam("domainName") String domainName, @PathParam("roleName") String roleName, @QueryParam("auditLog") @DefaultValue("false") Boolean auditLog, @QueryParam("expand") @DefaultValue("false") Boolean expand, @QueryParam("pending") @DefaultValue("false") Boolean pending) {
+    @Operation(description = "Get the specified role in the domain.")
+    public Role getRole(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "name of the role to be retrieved", required = true) @PathParam("roleName") String roleName,
+        @Parameter(description = "flag to indicate whether or not to return role audit log", required = false) @QueryParam("auditLog") @DefaultValue("false") Boolean auditLog,
+        @Parameter(description = "expand delegated trust roles and return trusted members", required = false) @QueryParam("expand") @DefaultValue("false") Boolean expand,
+        @Parameter(description = "include pending members", required = false) @QueryParam("pending") @DefaultValue("false") Boolean pending) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getRole");
             context.authenticate();
             return this.delegate.getRole(context, domainName, roleName, auditLog, expand, pending);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -632,6 +809,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getRole");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -639,13 +818,20 @@ public class ZMSResources {
     @Path("/domain/{domainName}/role/{roleName}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public void putRole(@PathParam("domainName") String domainName, @PathParam("roleName") String roleName, @HeaderParam("Y-Audit-Ref") String auditRef, Role role) {
+    @Operation(description = "Create/update the specified role.")
+    public void putRole(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "name of the role to be added/updated", required = true) @PathParam("roleName") String roleName,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
+        @Parameter(description = "Role object to be added/updated in the domain", required = true) Role role) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "putRole");
             context.authorize("update", "" + domainName + ":role." + roleName + "", null);
             this.delegate.putRole(context, domainName, roleName, auditRef, role);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -663,19 +849,27 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource putRole");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @DELETE
     @Path("/domain/{domainName}/role/{roleName}")
     @Produces(MediaType.APPLICATION_JSON)
-    public void deleteRole(@PathParam("domainName") String domainName, @PathParam("roleName") String roleName, @HeaderParam("Y-Audit-Ref") String auditRef) {
+    @Operation(description = "Delete the specified role. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
+    public void deleteRole(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "name of the role to be deleted", required = true) @PathParam("roleName") String roleName,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "deleteRole");
             context.authorize("delete", "" + domainName + ":role." + roleName + "", null);
             this.delegate.deleteRole(context, domainName, roleName, auditRef);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -693,19 +887,28 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource deleteRole");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @GET
     @Path("/domain/{domainName}/role/{roleName}/member/{memberName}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Membership getMembership(@PathParam("domainName") String domainName, @PathParam("roleName") String roleName, @PathParam("memberName") String memberName, @QueryParam("expiration") String expiration) {
+    @Operation(description = "Get the membership status for a specified user in a role.")
+    public Membership getMembership(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "name of the role", required = true) @PathParam("roleName") String roleName,
+        @Parameter(description = "user name to be checked for membership", required = true) @PathParam("memberName") String memberName,
+        @Parameter(description = "the expiration timestamp", required = false) @QueryParam("expiration") String expiration) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getMembership");
             context.authenticate();
             return this.delegate.getMembership(context, domainName, roleName, memberName, expiration);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -721,19 +924,25 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getMembership");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @GET
     @Path("/domain/{domainName}/overdue")
     @Produces(MediaType.APPLICATION_JSON)
-    public DomainRoleMembers getOverdueReview(@PathParam("domainName") String domainName) {
+    @Operation(description = "Get members with overdue review")
+    public DomainRoleMembers getOverdueReview(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getOverdueReview");
             context.authenticate();
             return this.delegate.getOverdueReview(context, domainName);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -749,19 +958,25 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getOverdueReview");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @GET
     @Path("/domain/{domainName}/member")
     @Produces(MediaType.APPLICATION_JSON)
-    public DomainRoleMembers getDomainRoleMembers(@PathParam("domainName") String domainName) {
+    @Operation(description = "Get list of principals defined in roles in the given domain")
+    public DomainRoleMembers getDomainRoleMembers(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getDomainRoleMembers");
             context.authenticate();
             return this.delegate.getDomainRoleMembers(context, domainName);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -777,6 +992,43 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getDomainRoleMembers");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @GET
+    @Path("/role")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Fetch all the roles across domains by either calling or specified principal")
+    public DomainRoleMember getPrincipalRoles(
+        @Parameter(description = "If not present, will return roles for the user making the call", required = false) @QueryParam("principal") String principal,
+        @Parameter(description = "If not present, will return roles from all domains", required = false) @QueryParam("domain") String domainName) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.request, this.response, "getPrincipalRoles");
+            context.authenticate();
+            return this.delegate.getPrincipalRoles(context, principal, domainName);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource getPrincipalRoles");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -784,13 +1036,21 @@ public class ZMSResources {
     @Path("/domain/{domainName}/role/{roleName}/member/{memberName}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public void putMembership(@PathParam("domainName") String domainName, @PathParam("roleName") String roleName, @PathParam("memberName") String memberName, @HeaderParam("Y-Audit-Ref") String auditRef, Membership membership) {
+    @Operation(description = "Add the specified user to the role's member list. If the role is neither auditEnabled nor selfserve, then it will use authorize (\"update\", \"{domainName}:role.{roleName}\") otherwise membership will be sent for approval to either designated delegates ( in case of auditEnabled roles ) or to domain admins ( in case of selfserve roles )")
+    public void putMembership(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "name of the role", required = true) @PathParam("roleName") String roleName,
+        @Parameter(description = "name of the user to be added as a member", required = true) @PathParam("memberName") String memberName,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
+        @Parameter(description = "Membership object (must contain role/member names as specified in the URI)", required = true) Membership membership) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "putMembership");
             context.authenticate();
             this.delegate.putMembership(context, domainName, roleName, memberName, auditRef, membership);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -808,19 +1068,28 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource putMembership");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @DELETE
     @Path("/domain/{domainName}/role/{roleName}/member/{memberName}")
     @Produces(MediaType.APPLICATION_JSON)
-    public void deleteMembership(@PathParam("domainName") String domainName, @PathParam("roleName") String roleName, @PathParam("memberName") String memberName, @HeaderParam("Y-Audit-Ref") String auditRef) {
+    @Operation(description = "Delete the specified role membership. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
+    public void deleteMembership(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "name of the role", required = true) @PathParam("roleName") String roleName,
+        @Parameter(description = "name of the user to be removed as a member", required = true) @PathParam("memberName") String memberName,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "deleteMembership");
             context.authorize("update", "" + domainName + ":role." + roleName + "", null);
             this.delegate.deleteMembership(context, domainName, roleName, memberName, auditRef);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -838,19 +1107,28 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource deleteMembership");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @DELETE
     @Path("/domain/{domainName}/role/{roleName}/pendingmember/{memberName}")
     @Produces(MediaType.APPLICATION_JSON)
-    public void deletePendingMembership(@PathParam("domainName") String domainName, @PathParam("roleName") String roleName, @PathParam("memberName") String memberName, @HeaderParam("Y-Audit-Ref") String auditRef) {
+    @Operation(description = "Delete the specified pending role membership. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned). Authorization will be completed within the server itself since there are two possibilities: 1) The domain admins can delete any pending requests 2) the requestor can also delete his/her own pending request.")
+    public void deletePendingMembership(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "name of the role", required = true) @PathParam("roleName") String roleName,
+        @Parameter(description = "name of the user to be removed as a pending member", required = true) @PathParam("memberName") String memberName,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "deletePendingMembership");
             context.authenticate();
             this.delegate.deletePendingMembership(context, domainName, roleName, memberName, auditRef);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -868,6 +1146,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource deletePendingMembership");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -875,13 +1155,19 @@ public class ZMSResources {
     @Path("/domain/{domainName}/admins")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public void putDefaultAdmins(@PathParam("domainName") String domainName, @HeaderParam("Y-Audit-Ref") String auditRef, DefaultAdmins defaultAdmins) {
+    @Operation(description = "Verify and, if necessary, fix domain roles and policies to make sure the given set of users have administrative access to the domain. This request is only restricted to \"sys.auth\" domain administrators and can be used when the domain administrators incorrectly have blocked their own access to their domains.")
+    public void putDefaultAdmins(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
+        @Parameter(description = "list of domain administrators", required = true) DefaultAdmins defaultAdmins) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "putDefaultAdmins");
             context.authorize("update", "sys.auth:domain", null);
             this.delegate.putDefaultAdmins(context, domainName, auditRef, defaultAdmins);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -897,6 +1183,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource putDefaultAdmins");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -904,13 +1192,21 @@ public class ZMSResources {
     @Path("/domain/{domainName}/role/{roleName}/meta/system/{attribute}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public void putRoleSystemMeta(@PathParam("domainName") String domainName, @PathParam("roleName") String roleName, @PathParam("attribute") String attribute, @HeaderParam("Y-Audit-Ref") String auditRef, RoleSystemMeta detail) {
+    @Operation(description = "Set the specified role metadata. Caller must have update privileges on the sys.auth domain. If the system attribute is one of the string attributes, then the caller must also have delete action on the same resource in order to reset the configured value")
+    public void putRoleSystemMeta(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "name of the role", required = true) @PathParam("roleName") String roleName,
+        @Parameter(description = "name of the system attribute to be modified", required = true) @PathParam("attribute") String attribute,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
+        @Parameter(description = "RoleSystemMeta object with updated attribute values", required = true) RoleSystemMeta detail) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "putRoleSystemMeta");
             context.authorize("update", "sys.auth:meta.role." + attribute + "." + domainName + "", null);
             this.delegate.putRoleSystemMeta(context, domainName, roleName, attribute, auditRef, detail);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -928,6 +1224,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource putRoleSystemMeta");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -935,13 +1233,20 @@ public class ZMSResources {
     @Path("/domain/{domainName}/role/{roleName}/meta")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public void putRoleMeta(@PathParam("domainName") String domainName, @PathParam("roleName") String roleName, @HeaderParam("Y-Audit-Ref") String auditRef, RoleMeta detail) {
+    @Operation(description = "Update the specified role metadata. Caller must have update privileges on the domain itself.")
+    public void putRoleMeta(
+        @Parameter(description = "name of the domain to be updated", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "name of the role", required = true) @PathParam("roleName") String roleName,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
+        @Parameter(description = "RoleMeta object with updated attribute values", required = true) RoleMeta detail) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "putRoleMeta");
             context.authorize("update", "" + domainName + ":role." + roleName + "", null);
             this.delegate.putRoleMeta(context, domainName, roleName, auditRef, detail);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -959,6 +1264,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource putRoleMeta");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -966,13 +1273,21 @@ public class ZMSResources {
     @Path("/domain/{domainName}/role/{roleName}/member/{memberName}/decision")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public void putMembershipDecision(@PathParam("domainName") String domainName, @PathParam("roleName") String roleName, @PathParam("memberName") String memberName, @HeaderParam("Y-Audit-Ref") String auditRef, Membership membership) {
+    @Operation(description = "Approve or Reject the request to add specified user to role membership. This endpoint will be used by 2 use cases: 1. Audit enabled roles with authorize (\"update\", \"sys.auth:meta.role.{attribute}.{domainName}\") 2. Selfserve roles in any domain with authorize (\"update\", \"{domainName}:\")")
+    public void putMembershipDecision(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "name of the role", required = true) @PathParam("roleName") String roleName,
+        @Parameter(description = "name of the user to be added as a member", required = true) @PathParam("memberName") String memberName,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
+        @Parameter(description = "Membership object (must contain role/member names as specified in the URI)", required = true) Membership membership) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "putMembershipDecision");
             context.authenticate();
             this.delegate.putMembershipDecision(context, domainName, roleName, memberName, auditRef, membership);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -990,6 +1305,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource putMembershipDecision");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -997,13 +1314,20 @@ public class ZMSResources {
     @Path("/domain/{domainName}/role/{roleName}/review")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public void putRoleReview(@PathParam("domainName") String domainName, @PathParam("roleName") String roleName, @HeaderParam("Y-Audit-Ref") String auditRef, Role role) {
+    @Operation(description = "Review role membership and take action to either extend and/or delete existing members.")
+    public void putRoleReview(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "name of the role", required = true) @PathParam("roleName") String roleName,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
+        @Parameter(description = "Role object with updated and/or deleted members", required = true) Role role) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "putRoleReview");
             context.authorize("update", "" + domainName + ":role." + roleName + "", null);
             this.delegate.putRoleReview(context, domainName, roleName, auditRef, role);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1021,19 +1345,562 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource putRoleReview");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @GET
+    @Path("/domain/{domainName}/groups")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Get the list of all groups in a domain with optional flag whether or not include members")
+    public Groups getGroups(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "return list of members in the group", required = false) @QueryParam("members") @DefaultValue("false") Boolean members) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.request, this.response, "getGroups");
+            context.authenticate();
+            return this.delegate.getGroups(context, domainName, members);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource getGroups");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @GET
+    @Path("/domain/{domainName}/group/{groupName}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Get the specified group in the domain.")
+    public Group getGroup(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "name of the group to be retrieved", required = true) @PathParam("groupName") String groupName,
+        @Parameter(description = "flag to indicate whether or not to return group audit log", required = false) @QueryParam("auditLog") @DefaultValue("false") Boolean auditLog,
+        @Parameter(description = "include pending members", required = false) @QueryParam("pending") @DefaultValue("false") Boolean pending) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.request, this.response, "getGroup");
+            context.authenticate();
+            return this.delegate.getGroup(context, domainName, groupName, auditLog, pending);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource getGroup");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @PUT
+    @Path("/domain/{domainName}/group/{groupName}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Create/update the specified group.")
+    public void putGroup(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "name of the group to be added/updated", required = true) @PathParam("groupName") String groupName,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
+        @Parameter(description = "Group object to be added/updated in the domain", required = true) Group group) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.request, this.response, "putGroup");
+            context.authorize("update", "" + domainName + ":group." + groupName + "", null);
+            this.delegate.putGroup(context, domainName, groupName, auditRef, group);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.CONFLICT:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource putGroup");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @DELETE
+    @Path("/domain/{domainName}/group/{groupName}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Delete the specified group. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
+    public void deleteGroup(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "name of the group to be deleted", required = true) @PathParam("groupName") String groupName,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.request, this.response, "deleteGroup");
+            context.authorize("delete", "" + domainName + ":group." + groupName + "", null);
+            this.delegate.deleteGroup(context, domainName, groupName, auditRef);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.CONFLICT:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource deleteGroup");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @GET
+    @Path("/domain/{domainName}/group/{groupName}/member/{memberName}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Get the membership status for a specified user in a group.")
+    public GroupMembership getGroupMembership(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "name of the group", required = true) @PathParam("groupName") String groupName,
+        @Parameter(description = "user name to be checked for membership", required = true) @PathParam("memberName") String memberName,
+        @Parameter(description = "the expiration timestamp", required = false) @QueryParam("expiration") String expiration) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.request, this.response, "getGroupMembership");
+            context.authenticate();
+            return this.delegate.getGroupMembership(context, domainName, groupName, memberName, expiration);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource getGroupMembership");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @GET
+    @Path("/group")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Fetch all the groups across domains by either calling or specified principal")
+    public DomainGroupMember getPrincipalGroups(
+        @Parameter(description = "If not present, will return groups for the user making the call", required = false) @QueryParam("principal") String principal,
+        @Parameter(description = "If not present, will return groups from all domains", required = false) @QueryParam("domain") String domainName) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.request, this.response, "getPrincipalGroups");
+            context.authenticate();
+            return this.delegate.getPrincipalGroups(context, principal, domainName);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource getPrincipalGroups");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @PUT
+    @Path("/domain/{domainName}/group/{groupName}/member/{memberName}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Add the specified user to the group's member list. If the group is neither auditEnabled nor selfserve, then it will use authorize (\"update\", \"{domainName}:group.{groupName}\") otherwise membership will be sent for approval to either designated delegates ( in case of auditEnabled groups ) or to domain admins ( in case of selfserve groups )")
+    public void putGroupMembership(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "name of the group", required = true) @PathParam("groupName") String groupName,
+        @Parameter(description = "name of the user to be added as a member", required = true) @PathParam("memberName") String memberName,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
+        @Parameter(description = "Membership object (must contain group/member names as specified in the URI)", required = true) GroupMembership membership) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.request, this.response, "putGroupMembership");
+            context.authenticate();
+            this.delegate.putGroupMembership(context, domainName, groupName, memberName, auditRef, membership);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.CONFLICT:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource putGroupMembership");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @DELETE
+    @Path("/domain/{domainName}/group/{groupName}/member/{memberName}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Delete the specified group membership. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
+    public void deleteGroupMembership(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "name of the group", required = true) @PathParam("groupName") String groupName,
+        @Parameter(description = "name of the user to be removed as a member", required = true) @PathParam("memberName") String memberName,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.request, this.response, "deleteGroupMembership");
+            context.authorize("update", "" + domainName + ":group." + groupName + "", null);
+            this.delegate.deleteGroupMembership(context, domainName, groupName, memberName, auditRef);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.CONFLICT:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource deleteGroupMembership");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @DELETE
+    @Path("/domain/{domainName}/group/{groupName}/pendingmember/{memberName}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Delete the specified pending group membership. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned). Authorization will be completed within the server itself since there are two possibilities: 1) The domain admins can delete any pending requests 2) the requestor can also delete his/her own pending request.")
+    public void deletePendingGroupMembership(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "name of the group", required = true) @PathParam("groupName") String groupName,
+        @Parameter(description = "name of the user to be removed as a pending member", required = true) @PathParam("memberName") String memberName,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.request, this.response, "deletePendingGroupMembership");
+            context.authenticate();
+            this.delegate.deletePendingGroupMembership(context, domainName, groupName, memberName, auditRef);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.CONFLICT:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource deletePendingGroupMembership");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @PUT
+    @Path("/domain/{domainName}/group/{groupName}/meta/system/{attribute}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Set the specified group metadata. Caller must have update privileges on the sys.auth domain. If the system attribute is one of the string attributes, then the caller must also have delete action on the same resource in order to reset the configured value")
+    public void putGroupSystemMeta(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "name of the group", required = true) @PathParam("groupName") String groupName,
+        @Parameter(description = "name of the system attribute to be modified", required = true) @PathParam("attribute") String attribute,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
+        @Parameter(description = "GroupSystemMeta object with updated attribute values", required = true) GroupSystemMeta detail) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.request, this.response, "putGroupSystemMeta");
+            context.authorize("update", "sys.auth:meta.group." + attribute + "." + domainName + "", null);
+            this.delegate.putGroupSystemMeta(context, domainName, groupName, attribute, auditRef, detail);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.CONFLICT:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource putGroupSystemMeta");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @PUT
+    @Path("/domain/{domainName}/group/{groupName}/meta")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Update the specified group metadata. Caller must have update privileges on the domain itself.")
+    public void putGroupMeta(
+        @Parameter(description = "name of the domain to be updated", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "name of the group", required = true) @PathParam("groupName") String groupName,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
+        @Parameter(description = "GroupMeta object with updated attribute values", required = true) GroupMeta detail) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.request, this.response, "putGroupMeta");
+            context.authorize("update", "" + domainName + ":group." + groupName + "", null);
+            this.delegate.putGroupMeta(context, domainName, groupName, auditRef, detail);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.CONFLICT:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource putGroupMeta");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @PUT
+    @Path("/domain/{domainName}/group/{groupName}/member/{memberName}/decision")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Approve or Reject the request to add specified user to group membership. This endpoint will be used by 2 use cases: 1. Audit enabled groups with authorize (\"update\", \"sys.auth:meta.group.{attribute}.{domainName}\") 2. Selfserve groups in any domain with authorize (\"update\", \"{domainName}:\")")
+    public void putGroupMembershipDecision(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "name of the group", required = true) @PathParam("groupName") String groupName,
+        @Parameter(description = "name of the user to be added as a member", required = true) @PathParam("memberName") String memberName,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
+        @Parameter(description = "GroupMembership object (must contain group/member names as specified in the URI)", required = true) GroupMembership membership) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.request, this.response, "putGroupMembershipDecision");
+            context.authenticate();
+            this.delegate.putGroupMembershipDecision(context, domainName, groupName, memberName, auditRef, membership);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.CONFLICT:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource putGroupMembershipDecision");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @PUT
+    @Path("/domain/{domainName}/group/{groupName}/review")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Review group membership and take action to either extend and/or delete existing members.")
+    public void putGroupReview(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "name of the group", required = true) @PathParam("groupName") String groupName,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
+        @Parameter(description = "Group object with updated and/or deleted members", required = true) Group group) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.request, this.response, "putGroupReview");
+            context.authorize("update", "" + domainName + ":group." + groupName + "", null);
+            this.delegate.putGroupReview(context, domainName, groupName, auditRef, group);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.CONFLICT:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource putGroupReview");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @GET
+    @Path("/pending_group_members")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "List of domains containing groups and corresponding members to be approved by either calling or specified principal")
+    public DomainGroupMembership getPendingDomainGroupMembersList(
+        @Parameter(description = "If present, return pending list for this principal", required = false) @QueryParam("principal") String principal) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.request, this.response, "getPendingDomainGroupMembersList");
+            context.authenticate();
+            return this.delegate.getPendingDomainGroupMembersList(context, principal);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource getPendingDomainGroupMembersList");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @GET
     @Path("/domain/{domainName}/policy")
     @Produces(MediaType.APPLICATION_JSON)
-    public PolicyList getPolicyList(@PathParam("domainName") String domainName, @QueryParam("limit") Integer limit, @QueryParam("skip") String skip) {
+    @Operation(description = "List policies provisioned in this namespace.")
+    public PolicyList getPolicyList(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "restrict the number of results in this call", required = false) @QueryParam("limit") Integer limit,
+        @Parameter(description = "restrict the set to those after the specified \"next\" token returned from a previous call", required = false) @QueryParam("skip") String skip) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getPolicyList");
             context.authenticate();
             return this.delegate.getPolicyList(context, domainName, limit, skip);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1049,19 +1916,26 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getPolicyList");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @GET
     @Path("/domain/{domainName}/policies")
     @Produces(MediaType.APPLICATION_JSON)
-    public Policies getPolicies(@PathParam("domainName") String domainName, @QueryParam("assertions") @DefaultValue("false") Boolean assertions) {
+    @Operation(description = "List policies provisioned in this namespace.")
+    public Policies getPolicies(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "return list of assertions in the policy", required = false) @QueryParam("assertions") @DefaultValue("false") Boolean assertions) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getPolicies");
             context.authenticate();
             return this.delegate.getPolicies(context, domainName, assertions);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1075,19 +1949,26 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getPolicies");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @GET
     @Path("/domain/{domainName}/policy/{policyName}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Policy getPolicy(@PathParam("domainName") String domainName, @PathParam("policyName") String policyName) {
+    @Operation(description = "Read the specified policy.")
+    public Policy getPolicy(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "name of the policy to be retrieved", required = true) @PathParam("policyName") String policyName) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getPolicy");
             context.authenticate();
             return this.delegate.getPolicy(context, domainName, policyName);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1103,6 +1984,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getPolicy");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -1110,13 +1993,20 @@ public class ZMSResources {
     @Path("/domain/{domainName}/policy/{policyName}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public void putPolicy(@PathParam("domainName") String domainName, @PathParam("policyName") String policyName, @HeaderParam("Y-Audit-Ref") String auditRef, Policy policy) {
+    @Operation(description = "Create or update the specified policy.")
+    public void putPolicy(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "name of the policy to be added/updated", required = true) @PathParam("policyName") String policyName,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
+        @Parameter(description = "Policy object to be added or updated in the domain", required = true) Policy policy) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "putPolicy");
             context.authorize("update", "" + domainName + ":policy." + policyName + "", null);
             this.delegate.putPolicy(context, domainName, policyName, auditRef, policy);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1134,19 +2024,27 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource putPolicy");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @DELETE
     @Path("/domain/{domainName}/policy/{policyName}")
     @Produces(MediaType.APPLICATION_JSON)
-    public void deletePolicy(@PathParam("domainName") String domainName, @PathParam("policyName") String policyName, @HeaderParam("Y-Audit-Ref") String auditRef) {
+    @Operation(description = "Delete the specified policy. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
+    public void deletePolicy(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "name of the policy to be deleted", required = true) @PathParam("policyName") String policyName,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "deletePolicy");
             context.authorize("delete", "" + domainName + ":policy." + policyName + "", null);
             this.delegate.deletePolicy(context, domainName, policyName, auditRef);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1164,19 +2062,27 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource deletePolicy");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @GET
     @Path("/domain/{domainName}/policy/{policyName}/assertion/{assertionId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Assertion getAssertion(@PathParam("domainName") String domainName, @PathParam("policyName") String policyName, @PathParam("assertionId") Long assertionId) {
+    @Operation(description = "Get the assertion details with specified id in the given policy")
+    public Assertion getAssertion(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "name of the policy", required = true) @PathParam("policyName") String policyName,
+        @Parameter(description = "assertion id", required = true) @PathParam("assertionId") Long assertionId) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getAssertion");
             context.authenticate();
             return this.delegate.getAssertion(context, domainName, policyName, assertionId);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1192,6 +2098,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getAssertion");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -1199,13 +2107,20 @@ public class ZMSResources {
     @Path("/domain/{domainName}/policy/{policyName}/assertion")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Assertion putAssertion(@PathParam("domainName") String domainName, @PathParam("policyName") String policyName, @HeaderParam("Y-Audit-Ref") String auditRef, Assertion assertion) {
+    @Operation(description = "Add the specified assertion to the given policy")
+    public Assertion putAssertion(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "name of the policy", required = true) @PathParam("policyName") String policyName,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
+        @Parameter(description = "Assertion object to be added to the given policy", required = true) Assertion assertion) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "putAssertion");
             context.authorize("update", "" + domainName + ":policy." + policyName + "", null);
             return this.delegate.putAssertion(context, domainName, policyName, auditRef, assertion);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1223,19 +2138,28 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource putAssertion");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @DELETE
     @Path("/domain/{domainName}/policy/{policyName}/assertion/{assertionId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public void deleteAssertion(@PathParam("domainName") String domainName, @PathParam("policyName") String policyName, @PathParam("assertionId") Long assertionId, @HeaderParam("Y-Audit-Ref") String auditRef) {
+    @Operation(description = "Delete the specified policy assertion. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
+    public void deleteAssertion(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "name of the policy", required = true) @PathParam("policyName") String policyName,
+        @Parameter(description = "assertion id", required = true) @PathParam("assertionId") Long assertionId,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "deleteAssertion");
             context.authorize("update", "" + domainName + ":policy." + policyName + "", null);
             this.delegate.deleteAssertion(context, domainName, policyName, assertionId, auditRef);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1253,6 +2177,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource deleteAssertion");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -1260,13 +2186,20 @@ public class ZMSResources {
     @Path("/domain/{domain}/service/{service}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public void putServiceIdentity(@PathParam("domain") String domain, @PathParam("service") String service, @HeaderParam("Y-Audit-Ref") String auditRef, ServiceIdentity detail) {
+    @Operation(description = "Register the specified ServiceIdentity in the specified domain")
+    public void putServiceIdentity(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domain") String domain,
+        @Parameter(description = "name of the service", required = true) @PathParam("service") String service,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
+        @Parameter(description = "ServiceIdentity object to be added/updated in the domain", required = true) ServiceIdentity detail) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "putServiceIdentity");
             context.authorize("update", "" + domain + ":service." + service + "", null);
             this.delegate.putServiceIdentity(context, domain, service, auditRef, detail);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1284,19 +2217,26 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource putServiceIdentity");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @GET
     @Path("/domain/{domain}/service/{service}")
     @Produces(MediaType.APPLICATION_JSON)
-    public ServiceIdentity getServiceIdentity(@PathParam("domain") String domain, @PathParam("service") String service) {
+    @Operation(description = "Get info for the specified ServiceIdentity.")
+    public ServiceIdentity getServiceIdentity(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domain") String domain,
+        @Parameter(description = "name of the service to be retrieved", required = true) @PathParam("service") String service) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getServiceIdentity");
             context.authenticate();
             return this.delegate.getServiceIdentity(context, domain, service);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1312,19 +2252,27 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getServiceIdentity");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @DELETE
     @Path("/domain/{domain}/service/{service}")
     @Produces(MediaType.APPLICATION_JSON)
-    public void deleteServiceIdentity(@PathParam("domain") String domain, @PathParam("service") String service, @HeaderParam("Y-Audit-Ref") String auditRef) {
+    @Operation(description = "Delete the specified ServiceIdentity. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
+    public void deleteServiceIdentity(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domain") String domain,
+        @Parameter(description = "name of the service to be deleted", required = true) @PathParam("service") String service,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "deleteServiceIdentity");
             context.authorize("delete", "" + domain + ":service." + service + "", null);
             this.delegate.deleteServiceIdentity(context, domain, service, auditRef);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1342,19 +2290,27 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource deleteServiceIdentity");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @GET
     @Path("/domain/{domainName}/services")
     @Produces(MediaType.APPLICATION_JSON)
-    public ServiceIdentities getServiceIdentities(@PathParam("domainName") String domainName, @QueryParam("publickeys") @DefaultValue("false") Boolean publickeys, @QueryParam("hosts") @DefaultValue("false") Boolean hosts) {
+    @Operation(description = "Retrieve list of service identities")
+    public ServiceIdentities getServiceIdentities(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "return list of public keys in the service", required = false) @QueryParam("publickeys") @DefaultValue("false") Boolean publickeys,
+        @Parameter(description = "return list of hosts in the service", required = false) @QueryParam("hosts") @DefaultValue("false") Boolean hosts) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getServiceIdentities");
             context.authenticate();
             return this.delegate.getServiceIdentities(context, domainName, publickeys, hosts);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1368,19 +2324,27 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getServiceIdentities");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @GET
     @Path("/domain/{domainName}/service")
     @Produces(MediaType.APPLICATION_JSON)
-    public ServiceIdentityList getServiceIdentityList(@PathParam("domainName") String domainName, @QueryParam("limit") Integer limit, @QueryParam("skip") String skip) {
+    @Operation(description = "Enumerate services provisioned in this domain.")
+    public ServiceIdentityList getServiceIdentityList(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "restrict the number of results in this call", required = false) @QueryParam("limit") Integer limit,
+        @Parameter(description = "restrict the set to those after the specified \"next\" token returned from a previous call", required = false) @QueryParam("skip") String skip) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getServiceIdentityList");
             context.authenticate();
             return this.delegate.getServiceIdentityList(context, domainName, limit, skip);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1396,19 +2360,27 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getServiceIdentityList");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @GET
     @Path("/domain/{domain}/service/{service}/publickey/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public PublicKeyEntry getPublicKeyEntry(@PathParam("domain") String domain, @PathParam("service") String service, @PathParam("id") String id) {
+    @Operation(description = "Retrieve the specified public key from the service.")
+    public PublicKeyEntry getPublicKeyEntry(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domain") String domain,
+        @Parameter(description = "name of the service", required = true) @PathParam("service") String service,
+        @Parameter(description = "the identifier of the public key to be retrieved", required = true) @PathParam("id") String id) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getPublicKeyEntry");
             context.authenticate();
             return this.delegate.getPublicKeyEntry(context, domain, service, id);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1424,6 +2396,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getPublicKeyEntry");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -1431,13 +2405,21 @@ public class ZMSResources {
     @Path("/domain/{domain}/service/{service}/publickey/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public void putPublicKeyEntry(@PathParam("domain") String domain, @PathParam("service") String service, @PathParam("id") String id, @HeaderParam("Y-Audit-Ref") String auditRef, PublicKeyEntry publicKeyEntry) {
+    @Operation(description = "Add the specified public key to the service.")
+    public void putPublicKeyEntry(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domain") String domain,
+        @Parameter(description = "name of the service", required = true) @PathParam("service") String service,
+        @Parameter(description = "the identifier of the public key to be added", required = true) @PathParam("id") String id,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
+        @Parameter(description = "PublicKeyEntry object to be added/updated in the service", required = true) PublicKeyEntry publicKeyEntry) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "putPublicKeyEntry");
             context.authorize("update", "" + domain + ":service." + service + "", null);
             this.delegate.putPublicKeyEntry(context, domain, service, id, auditRef, publicKeyEntry);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1455,19 +2437,28 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource putPublicKeyEntry");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @DELETE
     @Path("/domain/{domain}/service/{service}/publickey/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public void deletePublicKeyEntry(@PathParam("domain") String domain, @PathParam("service") String service, @PathParam("id") String id, @HeaderParam("Y-Audit-Ref") String auditRef) {
+    @Operation(description = "Remove the specified public key from the service. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
+    public void deletePublicKeyEntry(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domain") String domain,
+        @Parameter(description = "name of the service", required = true) @PathParam("service") String service,
+        @Parameter(description = "the identifier of the public key to be deleted", required = true) @PathParam("id") String id,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "deletePublicKeyEntry");
             context.authorize("update", "" + domain + ":service." + service + "", null);
             this.delegate.deletePublicKeyEntry(context, domain, service, id, auditRef);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1485,6 +2476,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource deletePublicKeyEntry");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -1492,13 +2485,21 @@ public class ZMSResources {
     @Path("/domain/{domain}/service/{service}/meta/system/{attribute}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public void putServiceIdentitySystemMeta(@PathParam("domain") String domain, @PathParam("service") String service, @PathParam("attribute") String attribute, @HeaderParam("Y-Audit-Ref") String auditRef, ServiceIdentitySystemMeta detail) {
+    @Operation(description = "Set the specified service metadata. Caller must have update privileges on the sys.auth domain.")
+    public void putServiceIdentitySystemMeta(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domain") String domain,
+        @Parameter(description = "name of the service", required = true) @PathParam("service") String service,
+        @Parameter(description = "name of the system attribute to be modified", required = true) @PathParam("attribute") String attribute,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
+        @Parameter(description = "ServiceIdentitySystemMeta object with updated attribute values", required = true) ServiceIdentitySystemMeta detail) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "putServiceIdentitySystemMeta");
             context.authorize("update", "sys.auth:meta.service." + attribute + "." + domain + "", null);
             this.delegate.putServiceIdentitySystemMeta(context, domain, service, attribute, auditRef, detail);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1516,6 +2517,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource putServiceIdentitySystemMeta");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -1523,13 +2526,20 @@ public class ZMSResources {
     @Path("/domain/{domain}/tenancy/{service}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public void putTenancy(@PathParam("domain") String domain, @PathParam("service") String service, @HeaderParam("Y-Audit-Ref") String auditRef, Tenancy detail) {
+    @Operation(description = "Register the provider service in the tenant's domain.")
+    public void putTenancy(
+        @Parameter(description = "name of the tenant domain", required = true) @PathParam("domain") String domain,
+        @Parameter(description = "name of the provider service", required = true) @PathParam("service") String service,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
+        @Parameter(description = "tenancy object", required = true) Tenancy detail) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "putTenancy");
             context.authorize("update", "" + domain + ":tenancy", null);
             this.delegate.putTenancy(context, domain, service, auditRef, detail);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1547,19 +2557,27 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource putTenancy");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @DELETE
     @Path("/domain/{domain}/tenancy/{service}")
     @Produces(MediaType.APPLICATION_JSON)
-    public void deleteTenancy(@PathParam("domain") String domain, @PathParam("service") String service, @HeaderParam("Y-Audit-Ref") String auditRef) {
+    @Operation(description = "Delete the provider service from the specified tenant domain. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
+    public void deleteTenancy(
+        @Parameter(description = "name of the tenant domain", required = true) @PathParam("domain") String domain,
+        @Parameter(description = "name of the provider service", required = true) @PathParam("service") String service,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "deleteTenancy");
             context.authorize("delete", "" + domain + ":tenancy", null);
             this.delegate.deleteTenancy(context, domain, service, auditRef);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1577,6 +2595,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource deleteTenancy");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -1584,13 +2604,21 @@ public class ZMSResources {
     @Path("/domain/{domain}/service/{service}/tenant/{tenantDomain}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public void putTenant(@PathParam("domain") String domain, @PathParam("service") String service, @PathParam("tenantDomain") String tenantDomain, @HeaderParam("Y-Audit-Ref") String auditRef, Tenancy detail) {
+    @Operation(description = "Register a tenant domain for given provider service")
+    public void putTenant(
+        @Parameter(description = "name of the provider domain", required = true) @PathParam("domain") String domain,
+        @Parameter(description = "name of the provider service", required = true) @PathParam("service") String service,
+        @Parameter(description = "name of the tenant domain", required = true) @PathParam("tenantDomain") String tenantDomain,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
+        @Parameter(description = "tenancy object", required = true) Tenancy detail) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "putTenant");
             context.authorize("update", "" + domain + ":tenant." + service + "", null);
             this.delegate.putTenant(context, domain, service, tenantDomain, auditRef, detail);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1608,19 +2636,28 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource putTenant");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @DELETE
     @Path("/domain/{domain}/service/{service}/tenant/{tenantDomain}")
     @Produces(MediaType.APPLICATION_JSON)
-    public void deleteTenant(@PathParam("domain") String domain, @PathParam("service") String service, @PathParam("tenantDomain") String tenantDomain, @HeaderParam("Y-Audit-Ref") String auditRef) {
+    @Operation(description = "Delete the tenant domain from the provider service. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
+    public void deleteTenant(
+        @Parameter(description = "name of the provider domain", required = true) @PathParam("domain") String domain,
+        @Parameter(description = "name of the provider service", required = true) @PathParam("service") String service,
+        @Parameter(description = "name of the tenant domain", required = true) @PathParam("tenantDomain") String tenantDomain,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "deleteTenant");
             context.authorize("delete", "" + domain + ":tenant." + service + "", null);
             this.delegate.deleteTenant(context, domain, service, tenantDomain, auditRef);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1638,6 +2675,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource deleteTenant");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -1645,13 +2684,22 @@ public class ZMSResources {
     @Path("/domain/{domain}/service/{service}/tenant/{tenantDomain}/resourceGroup/{resourceGroup}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public TenantResourceGroupRoles putTenantResourceGroupRoles(@PathParam("domain") String domain, @PathParam("service") String service, @PathParam("tenantDomain") String tenantDomain, @PathParam("resourceGroup") String resourceGroup, @HeaderParam("Y-Audit-Ref") String auditRef, TenantResourceGroupRoles detail) {
+    @Operation(description = "Create/update set of roles for a given tenant and resource group")
+    public TenantResourceGroupRoles putTenantResourceGroupRoles(
+        @Parameter(description = "name of the provider domain", required = true) @PathParam("domain") String domain,
+        @Parameter(description = "name of the provider service", required = true) @PathParam("service") String service,
+        @Parameter(description = "name of the tenant domain", required = true) @PathParam("tenantDomain") String tenantDomain,
+        @Parameter(description = "tenant resource group", required = true) @PathParam("resourceGroup") String resourceGroup,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
+        @Parameter(description = "list of roles to be added/updated for the tenant", required = true) TenantResourceGroupRoles detail) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "putTenantResourceGroupRoles");
             context.authorize("update", "" + domain + ":tenant." + service + "", null);
             return this.delegate.putTenantResourceGroupRoles(context, domain, service, tenantDomain, resourceGroup, auditRef, detail);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1669,19 +2717,28 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource putTenantResourceGroupRoles");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @GET
     @Path("/domain/{domain}/service/{service}/tenant/{tenantDomain}/resourceGroup/{resourceGroup}")
     @Produces(MediaType.APPLICATION_JSON)
-    public TenantResourceGroupRoles getTenantResourceGroupRoles(@PathParam("domain") String domain, @PathParam("service") String service, @PathParam("tenantDomain") String tenantDomain, @PathParam("resourceGroup") String resourceGroup) {
+    @Operation(description = "Retrieve the configured set of roles for the tenant and resource group")
+    public TenantResourceGroupRoles getTenantResourceGroupRoles(
+        @Parameter(description = "name of the provider domain", required = true) @PathParam("domain") String domain,
+        @Parameter(description = "name of the provider service", required = true) @PathParam("service") String service,
+        @Parameter(description = "name of the tenant domain", required = true) @PathParam("tenantDomain") String tenantDomain,
+        @Parameter(description = "tenant resource group", required = true) @PathParam("resourceGroup") String resourceGroup) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getTenantResourceGroupRoles");
             context.authenticate();
             return this.delegate.getTenantResourceGroupRoles(context, domain, service, tenantDomain, resourceGroup);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1697,19 +2754,29 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getTenantResourceGroupRoles");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @DELETE
     @Path("/domain/{domain}/service/{service}/tenant/{tenantDomain}/resourceGroup/{resourceGroup}")
     @Produces(MediaType.APPLICATION_JSON)
-    public void deleteTenantResourceGroupRoles(@PathParam("domain") String domain, @PathParam("service") String service, @PathParam("tenantDomain") String tenantDomain, @PathParam("resourceGroup") String resourceGroup, @HeaderParam("Y-Audit-Ref") String auditRef) {
+    @Operation(description = "Delete the configured set of roles for the tenant and resource group")
+    public void deleteTenantResourceGroupRoles(
+        @Parameter(description = "name of the provider domain", required = true) @PathParam("domain") String domain,
+        @Parameter(description = "name of the provider service", required = true) @PathParam("service") String service,
+        @Parameter(description = "name of the tenant domain", required = true) @PathParam("tenantDomain") String tenantDomain,
+        @Parameter(description = "tenant resource group", required = true) @PathParam("resourceGroup") String resourceGroup,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "deleteTenantResourceGroupRoles");
             context.authorize("update", "" + domain + ":tenant." + service + "", null);
             this.delegate.deleteTenantResourceGroupRoles(context, domain, service, tenantDomain, resourceGroup, auditRef);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1727,6 +2794,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource deleteTenantResourceGroupRoles");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -1734,13 +2803,22 @@ public class ZMSResources {
     @Path("/domain/{tenantDomain}/provDomain/{provDomain}/provService/{provService}/resourceGroup/{resourceGroup}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProviderResourceGroupRoles putProviderResourceGroupRoles(@PathParam("tenantDomain") String tenantDomain, @PathParam("provDomain") String provDomain, @PathParam("provService") String provService, @PathParam("resourceGroup") String resourceGroup, @HeaderParam("Y-Audit-Ref") String auditRef, ProviderResourceGroupRoles detail) {
+    @Operation(description = "Create/update set of roles for a given provider and resource group")
+    public ProviderResourceGroupRoles putProviderResourceGroupRoles(
+        @Parameter(description = "name of the tenant domain", required = true) @PathParam("tenantDomain") String tenantDomain,
+        @Parameter(description = "name of the provider domain", required = true) @PathParam("provDomain") String provDomain,
+        @Parameter(description = "name of the provider service", required = true) @PathParam("provService") String provService,
+        @Parameter(description = "tenant resource group", required = true) @PathParam("resourceGroup") String resourceGroup,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
+        @Parameter(description = "list of roles to be added/updated for the provider", required = true) ProviderResourceGroupRoles detail) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "putProviderResourceGroupRoles");
             context.authorize("update", "" + tenantDomain + ":tenancy." + provDomain + "." + provService + "", null);
             return this.delegate.putProviderResourceGroupRoles(context, tenantDomain, provDomain, provService, resourceGroup, auditRef, detail);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1758,19 +2836,28 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource putProviderResourceGroupRoles");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @GET
     @Path("/domain/{tenantDomain}/provDomain/{provDomain}/provService/{provService}/resourceGroup/{resourceGroup}")
     @Produces(MediaType.APPLICATION_JSON)
-    public ProviderResourceGroupRoles getProviderResourceGroupRoles(@PathParam("tenantDomain") String tenantDomain, @PathParam("provDomain") String provDomain, @PathParam("provService") String provService, @PathParam("resourceGroup") String resourceGroup) {
+    @Operation(description = "Retrieve the configured set of roles for the provider and resource group")
+    public ProviderResourceGroupRoles getProviderResourceGroupRoles(
+        @Parameter(description = "name of the tenant domain", required = true) @PathParam("tenantDomain") String tenantDomain,
+        @Parameter(description = "name of the provider domain", required = true) @PathParam("provDomain") String provDomain,
+        @Parameter(description = "name of the provider service", required = true) @PathParam("provService") String provService,
+        @Parameter(description = "tenant resource group", required = true) @PathParam("resourceGroup") String resourceGroup) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getProviderResourceGroupRoles");
             context.authenticate();
             return this.delegate.getProviderResourceGroupRoles(context, tenantDomain, provDomain, provService, resourceGroup);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1786,19 +2873,29 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getProviderResourceGroupRoles");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @DELETE
     @Path("/domain/{tenantDomain}/provDomain/{provDomain}/provService/{provService}/resourceGroup/{resourceGroup}")
     @Produces(MediaType.APPLICATION_JSON)
-    public void deleteProviderResourceGroupRoles(@PathParam("tenantDomain") String tenantDomain, @PathParam("provDomain") String provDomain, @PathParam("provService") String provService, @PathParam("resourceGroup") String resourceGroup, @HeaderParam("Y-Audit-Ref") String auditRef) {
+    @Operation(description = "Delete the configured set of roles for the provider and resource group")
+    public void deleteProviderResourceGroupRoles(
+        @Parameter(description = "name of the tenant domain", required = true) @PathParam("tenantDomain") String tenantDomain,
+        @Parameter(description = "name of the provider domain", required = true) @PathParam("provDomain") String provDomain,
+        @Parameter(description = "name of the provider service", required = true) @PathParam("provService") String provService,
+        @Parameter(description = "tenant resource group", required = true) @PathParam("resourceGroup") String resourceGroup,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "deleteProviderResourceGroupRoles");
             context.authorize("update", "" + tenantDomain + ":tenancy." + provDomain + "." + provService + "", null);
             this.delegate.deleteProviderResourceGroupRoles(context, tenantDomain, provDomain, provService, resourceGroup, auditRef);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1816,19 +2913,28 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource deleteProviderResourceGroupRoles");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @GET
     @Path("/access/{action}/{resource}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Access getAccess(@PathParam("action") String action, @PathParam("resource") String resource, @QueryParam("domain") String domain, @QueryParam("principal") String checkPrincipal) {
+    @Operation(description = "Check access for the specified operation on the specified resource for the currently authenticated user. This is the slow centralized access for control-plane purposes. Use distributed mechanisms for decentralized (data-plane) access by fetching signed policies and role tokens for users. With this endpoint the resource is part of the uri and restricted to its strict definition of resource name. If needed, you can use the GetAccessExt api that allows resource name to be less restrictive.")
+    public Access getAccess(
+        @Parameter(description = "action as specified in the policy assertion, i.e. update or read", required = true) @PathParam("action") String action,
+        @Parameter(description = "the resource to check access against, i.e. \"media.news:articles\"", required = true) @PathParam("resource") String resource,
+        @Parameter(description = "usually null. If present, it specifies an alternate domain for cross-domain trust relation", required = false) @QueryParam("domain") String domain,
+        @Parameter(description = "usually null. If present, carry out the access check for this principal", required = false) @QueryParam("principal") String checkPrincipal) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getAccess");
             context.authenticate();
             return this.delegate.getAccess(context, action, resource, domain, checkPrincipal);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1844,19 +2950,28 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getAccess");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @GET
     @Path("/access/{action}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Access getAccessExt(@PathParam("action") String action, @QueryParam("resource") String resource, @QueryParam("domain") String domain, @QueryParam("principal") String checkPrincipal) {
+    @Operation(description = "Check access for the specified operation on the specified resource for the currently authenticated user. This is the slow centralized access for control-plane purposes.")
+    public Access getAccessExt(
+        @Parameter(description = "action as specified in the policy assertion, i.e. update or read", required = true) @PathParam("action") String action,
+        @Parameter(description = "the resource to check access against, i.e. \"media.news:articles\"", required = true) @QueryParam("resource") String resource,
+        @Parameter(description = "usually null. If present, it specifies an alternate domain for cross-domain trust relation", required = false) @QueryParam("domain") String domain,
+        @Parameter(description = "usually null. If present, carry out the access check for this principal", required = false) @QueryParam("principal") String checkPrincipal) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getAccessExt");
             context.authenticate();
             return this.delegate.getAccessExt(context, action, resource, domain, checkPrincipal);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1872,19 +2987,26 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getAccessExt");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @GET
     @Path("/resource")
     @Produces(MediaType.APPLICATION_JSON)
-    public ResourceAccessList getResourceAccessList(@QueryParam("principal") String principal, @QueryParam("action") String action) {
+    @Operation(description = "Return list of resources that the given principal has access to. Even though the principal is marked as optional, it must be specified unless the caller has authorization from sys.auth domain to check access for all user principals. (action: access, resource: resource-lookup-all)")
+    public ResourceAccessList getResourceAccessList(
+        @Parameter(description = "specifies principal to query the resource list for", required = false) @QueryParam("principal") String principal,
+        @Parameter(description = "action as specified in the policy assertion", required = false) @QueryParam("action") String action) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getResourceAccessList");
             context.authenticate();
             return this.delegate.getResourceAccessList(context, principal, action);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1900,19 +3022,29 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getResourceAccessList");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @GET
     @Path("/sys/modified_domains")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getSignedDomains(@QueryParam("domain") String domain, @QueryParam("metaonly") String metaOnly, @QueryParam("metaattr") String metaAttr, @QueryParam("master") Boolean master, @HeaderParam("If-None-Match") String matchingTag) {
+    @Operation(description = "Retrieve the list of modified domains since the specified timestamp. The server will return the list of all modified domains and the latest modification timestamp as the value of the ETag header. The client will need to use this value during its next call to request the changes since the previous request. When metaonly set to true, dont add roles, policies or services, dont sign")
+    public Response getSignedDomains(
+        @Parameter(description = "filter the domain list only to the specified name", required = false) @QueryParam("domain") String domain,
+        @Parameter(description = "valid values are \"true\" or \"false\"", required = false) @QueryParam("metaonly") String metaOnly,
+        @Parameter(description = "domain meta attribute to filter/return, valid values \"account\", \"ypmId\", or \"all\"", required = false) @QueryParam("metaattr") String metaAttr,
+        @Parameter(description = "for system principals only - request data from master data store and not read replicas if any are configured", required = false) @QueryParam("master") Boolean master,
+        @Parameter(description = "Retrieved from the previous request, this timestamp specifies to the server to return any domains modified since this time", required = true) @HeaderParam("If-None-Match") String matchingTag) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getSignedDomains");
             context.authenticate();
             return this.delegate.getSignedDomains(context, domain, metaOnly, metaAttr, master, matchingTag);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.FORBIDDEN:
                 throw typedException(code, e, ResourceError.class);
@@ -1926,19 +3058,25 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getSignedDomains");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @GET
     @Path("/domain/{name}/signed")
     @Produces(MediaType.APPLICATION_JSON)
-    public JWSDomain getJWSDomain(@PathParam("name") String name) {
+    @Operation(description = "")
+    public JWSDomain getJWSDomain(
+        @Parameter(description = "name of the domain to be retrieved", required = true) @PathParam("name") String name) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getJWSDomain");
             context.authenticate();
             return this.delegate.getJWSDomain(context, name);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
@@ -1950,19 +3088,27 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getJWSDomain");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @GET
     @Path("/user/{userName}/token")
     @Produces(MediaType.APPLICATION_JSON)
-    public UserToken getUserToken(@PathParam("userName") String userName, @QueryParam("services") String serviceNames, @QueryParam("header") @DefaultValue("false") Boolean header) {
+    @Operation(description = "Return a user/principal token for the specified authenticated user. Typical authenticated users with their native credentials are not allowed to update their domain data. They must first obtain a UserToken and then use that token for authentication and authorization of their update requests.")
+    public UserToken getUserToken(
+        @Parameter(description = "name of the user", required = true) @PathParam("userName") String userName,
+        @Parameter(description = "comma separated list of on-behalf-of service names", required = false) @QueryParam("services") String serviceNames,
+        @Parameter(description = "include Authorization header name in response", required = false) @QueryParam("header") @DefaultValue("false") Boolean header) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getUserToken");
             context.authenticate();
             return this.delegate.getUserToken(context, userName, serviceNames, header);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.FORBIDDEN:
                 throw typedException(code, e, ResourceError.class);
@@ -1974,17 +3120,24 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getUserToken");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @OPTIONS
     @Path("/user/{userName}/token")
-    public UserToken optionsUserToken(@PathParam("userName") String userName, @QueryParam("services") String serviceNames) {
+    @Operation(description = "CORS (Cross-Origin Resource Sharing) support to allow Provider Services to obtain AuthorizedService Tokens on behalf of Tenant administrators")
+    public UserToken optionsUserToken(
+        @Parameter(description = "name of the user", required = true) @PathParam("userName") String userName,
+        @Parameter(description = "comma separated list of on-behalf-of service names", required = false) @QueryParam("services") String serviceNames) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "optionsUserToken");
             return this.delegate.optionsUserToken(context, userName, serviceNames);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -1994,19 +3147,25 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource optionsUserToken");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @GET
     @Path("/principal")
     @Produces(MediaType.APPLICATION_JSON)
-    public ServicePrincipal getServicePrincipal() {
+    @Operation(description = "Return a ServicePrincipal object if the serviceToken is valid. This request provides a simple operation that an external application can execute to validate a service token.")
+    public ServicePrincipal getServicePrincipal(
+        ) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getServicePrincipal");
             context.authenticate();
             return this.delegate.getServicePrincipal(context);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -2020,19 +3179,25 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getServicePrincipal");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @GET
     @Path("/template")
     @Produces(MediaType.APPLICATION_JSON)
-    public ServerTemplateList getServerTemplateList() {
+    @Operation(description = "Get the list of solution templates defined in the server")
+    public ServerTemplateList getServerTemplateList(
+        ) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getServerTemplateList");
             context.authenticate();
             return this.delegate.getServerTemplateList(context);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.TOO_MANY_REQUESTS:
                 throw typedException(code, e, ResourceError.class);
@@ -2042,19 +3207,25 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getServerTemplateList");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @GET
     @Path("/template/{template}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Template getTemplate(@PathParam("template") String template) {
+    @Operation(description = "Get solution template details. Includes the roles and policies that will be automatically provisioned when the template is applied to a domain")
+    public Template getTemplate(
+        @Parameter(description = "name of the solution template", required = true) @PathParam("template") String template) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getTemplate");
             context.authenticate();
             return this.delegate.getTemplate(context, template);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -2068,19 +3239,25 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getTemplate");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @GET
     @Path("/domain/{name}/templatedetails")
     @Produces(MediaType.APPLICATION_JSON)
-    public DomainTemplateDetailsList getDomainTemplateDetailsList(@PathParam("name") String name) {
+    @Operation(description = "Get a list of Solution templates with meta data details given a domain name")
+    public DomainTemplateDetailsList getDomainTemplateDetailsList(
+        @Parameter(description = "List of templates given a domain name", required = true) @PathParam("name") String name) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getDomainTemplateDetailsList");
             context.authenticate();
             return this.delegate.getDomainTemplateDetailsList(context, name);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -2094,19 +3271,25 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getDomainTemplateDetailsList");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @GET
     @Path("/user")
     @Produces(MediaType.APPLICATION_JSON)
-    public UserList getUserList() {
+    @Operation(description = "Enumerate users that are registered as principals in the system This will return only the principals with \"<user-domain>.\" prefix")
+    public UserList getUserList(
+        ) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getUserList");
             context.authenticate();
             return this.delegate.getUserList(context);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.TOO_MANY_REQUESTS:
                 throw typedException(code, e, ResourceError.class);
@@ -2116,19 +3299,26 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getUserList");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @DELETE
     @Path("/user/{name}")
     @Produces(MediaType.APPLICATION_JSON)
-    public void deleteUser(@PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef) {
+    @Operation(description = "Delete the specified user. This command will delete the home.<name> domain and all of its sub-domains (if they exist) and remove the user.<name> from all the roles in the system that it's member of. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
+    public void deleteUser(
+        @Parameter(description = "name of the user", required = true) @PathParam("name") String name,
+        @Parameter(description = "Audit reference", required = true) @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "deleteUser");
             context.authorize("delete", "sys.auth:user", null);
             this.delegate.deleteUser(context, name, auditRef);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -2146,19 +3336,27 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource deleteUser");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @DELETE
     @Path("/domain/{domainName}/member/{memberName}")
     @Produces(MediaType.APPLICATION_JSON)
-    public void deleteDomainRoleMember(@PathParam("domainName") String domainName, @PathParam("memberName") String memberName, @HeaderParam("Y-Audit-Ref") String auditRef) {
+    @Operation(description = "Delete the specified role member from the given domain. This command will remove the member from all the roles in the domain that it's member of. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
+    public void deleteDomainRoleMember(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "name of the role member/principal", required = true) @PathParam("memberName") String memberName,
+        @Parameter(description = "Audit reference", required = true) @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "deleteDomainRoleMember");
             context.authorize("update", "" + domainName + ":", null);
             this.delegate.deleteDomainRoleMember(context, domainName, memberName, auditRef);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -2176,19 +3374,25 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource deleteDomainRoleMember");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @GET
     @Path("/domain/{name}/quota")
     @Produces(MediaType.APPLICATION_JSON)
-    public Quota getQuota(@PathParam("name") String name) {
+    @Operation(description = "Retrieve the quota object defined for the domain")
+    public Quota getQuota(
+        @Parameter(description = "name of the domain", required = true) @PathParam("name") String name) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getQuota");
             context.authenticate();
             return this.delegate.getQuota(context, name);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -2198,6 +3402,8 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getQuota");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
@@ -2205,13 +3411,19 @@ public class ZMSResources {
     @Path("/domain/{name}/quota")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public void putQuota(@PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef, Quota quota) {
+    @Operation(description = "Update the specified domain's quota object")
+    public void putQuota(
+        @Parameter(description = "name of the domain", required = true) @PathParam("name") String name,
+        @Parameter(description = "Audit reference", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
+        @Parameter(description = "Quota object with limits for the domain", required = true) Quota quota) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "putQuota");
             context.authorize("update", "sys.auth:quota", null);
             this.delegate.putQuota(context, name, auditRef, quota);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -2227,19 +3439,26 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource putQuota");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @DELETE
     @Path("/domain/{name}/quota")
     @Produces(MediaType.APPLICATION_JSON)
-    public void deleteQuota(@PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef) {
+    @Operation(description = "Delete the specified domain's quota")
+    public void deleteQuota(
+        @Parameter(description = "name of the domain", required = true) @PathParam("name") String name,
+        @Parameter(description = "Audit reference", required = true) @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "deleteQuota");
             context.authorize("update", "sys.auth:quota", null);
             this.delegate.deleteQuota(context, name, auditRef);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -2255,19 +3474,25 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource deleteQuota");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @GET
     @Path("/status")
     @Produces(MediaType.APPLICATION_JSON)
-    public Status getStatus() {
+    @Operation(description = "Retrieve the server status")
+    public Status getStatus(
+        ) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getStatus");
             context.authenticate();
             return this.delegate.getStatus(context);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -2279,19 +3504,25 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getStatus");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @GET
     @Path("/pending_members")
     @Produces(MediaType.APPLICATION_JSON)
-    public DomainRoleMembership getPendingDomainRoleMembersList(@QueryParam("principal") String principal) {
+    @Operation(description = "List of domains containing roles and corresponding members to be approved by either calling or specified principal")
+    public DomainRoleMembership getPendingDomainRoleMembersList(
+        @Parameter(description = "If present, return pending list for this principal", required = false) @QueryParam("principal") String principal) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getPendingDomainRoleMembersList");
             context.authenticate();
             return this.delegate.getPendingDomainRoleMembersList(context, principal);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
@@ -2307,24 +3538,32 @@ public class ZMSResources {
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getPendingDomainRoleMembersList");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 
     @GET
     @Path("/schema")
     @Produces(MediaType.APPLICATION_JSON)
-    public Schema getRdlSchema() {
+    @Operation(description = "Get RDL Schema")
+    public Schema getRdlSchema(
+        ) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
         try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context = this.delegate.newResourceContext(this.request, this.response, "getRdlSchema");
             context.authenticate();
             return this.delegate.getRdlSchema(context);
         } catch (ResourceException e) {
-            int code = e.getCode();
+            code = e.getCode();
             switch (code) {
             default:
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getRdlSchema");
                 throw typedException(code, e, ResourceError.class);
             }
+        } finally {
+            this.delegate.recordMetrics(context, code);
         }
     }
 

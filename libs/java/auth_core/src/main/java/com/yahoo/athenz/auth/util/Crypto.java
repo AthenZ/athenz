@@ -1115,6 +1115,24 @@ public class Crypto {
         return extractX509CertSubjectField(x509Cert, BCStyle.O);
     }
 
+    public static boolean isRestrictedCertificate(X509Certificate x509Cert, GlobStringsMatcher globStringsMatcher) {
+        if (globStringsMatcher == null) {
+            LOG.error("isRestrictedCertificate: Required argument globStringsMatcher is null. Returning true.");
+            return true;
+        }
+        if (x509Cert == null) {
+            LOG.error("isRestrictedCertificate: Required argument x509Cert is null. Returning true.");
+            return true;
+        }
+        if (globStringsMatcher.isEmptyPatternsList()) {
+            // No patterns provided, no need to check for mTLS restriction
+            return false;
+        }
+
+        String x509Ou = extractX509CertSubjectOUField(x509Cert);
+        return globStringsMatcher.isMatch(x509Ou);
+    }
+
     private static List<String> extractX509CertSANField(X509Certificate x509Cert, int tagNo) {
         Collection<List<?>> altNames = null;
         try {

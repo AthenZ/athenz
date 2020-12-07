@@ -6,12 +6,12 @@
 * [Resource Definition](#resource-definition)
 * [Athenz Management Setup](#athenz-management-setup)
 * [Code Changes](#code-changes)
-    * [Client Changes](#client-changes)
+    * [Getting an SSL Context to be used in Http Clients](#getting-an-ssl-context-to-be-used-in-http-clients)
         * [Client Project Dependency Update](#client-project-dependency-update)
-        * [Obtaining NTokens from SIA Provider](#obtaining-ntokens-from-sia-provider)
         * [Build Http Client Utility](#build-http-client-utility)
     * [Servlet Changes](#servlet-changes)
         * [Servlet Project Dependency Update](#servlet-project-dependency-update)
+        * [Enable TLS Client Certificate Authentication](#enable-tls-client-certificate-authentication)
         * [Authorization Checks](#authorization-checks)
         * [Build Servlet](#build-servlet)
 * [Deploying Example Servlet](#deploying-example-servlet)
@@ -23,7 +23,7 @@
     * [Other Test Cases](#other-test-cases)
 
 In the centralized access control model, the service as a principal
-requests its NToken from SIA Provider and then presents it to the
+requests an X509 certificate from SIA Provider and then presents it to the
 target service which would perform an identical check with ZMS to confirm
 access.
 
@@ -114,36 +114,46 @@ guide to setup the required access control:
 
 * [Access Control Setup](example_service_athenz_setup.md)
 
+## Obtaining X509 Certificate
+-----------------------------
+The service should obtain an X509 certificate that will be used for authentication
+with Athenz.
+Follow the steps in the Authentication section to receive a certificate depending on the environment:
+[Athenz Service Identity X.509 Certificate for AWS EC2 instances](service_x509_credentials_aws.md)
+[Athenz Service Identity X.509 Certificate for AWS ECS containers](service_x509_credentials_aws_ecs.md)
+[Athenz Service Identity X.509 Certificate for AWS Fargate tasks](service_x509_credentials_aws_fargate.md)
+[Athenz Service Identity X.509 Certificate for AWS EKS pods](service_x509_credentials_aws_eks.md)
+[Athenz Service Identity X.509 Certificate for AWS Lambda functions](service_x509_credentials_aws_lambda.md)
+
 ## Code Changes
 ---------------
 
 Both the client and servlet implementors need to make changes
 in their respective code bases to support centralized authorization
 checks. The client needs to make sure to submit its service
-identity as part of its request, while the servlet needs to
+ certificate as part of its request, while the servlet needs to
 carry out the authorization check based on that service
 identity to determine if it request should be processed or not.
 
-### Client Changes
-------------------
+### Getting an SSL Context to be used in Http Clients
+----------------------------------------------------------------------
 
 The full client source code is available from:
-
-https://github.com/yahoo/athenz/tree/master/examples/java/centralized-use-case/client
+https://github.com/yahoo/athenz/tree/master/libs/java/cert_refresher/examples/tls-support/src/main/java/com/yahoo/athenz/example/http/tls/client/HttpTLSClient.java
 
 #### Client Project Dependency Update
 -------------------------------------
 
 First you need to update your Java project `pom.xml` file to indicate
-the dependency on the Athenz auth_core Library. Checkout the
-[Bintray Auth-Core Package Page](https://bintray.com/yahoo/maven/athenz-auth-core/)
+the dependency on the Athenz Cert Refresher Library. Checkout the
+[Bintray Athenz Cert Refresher Package](https://bintray.com/yahoo/maven/athenz-cert-refresher/)
 to make sure you're using the latest release version:
 
 ```
 <dependency>
     <groupId>com.yahoo.athenz</groupId>
-    <artifactId>athenz-auth-core</artifactId>
-    <version>1.7.13</version>
+    <artifactId>athenz-cert-refresher</artifactId>
+    <version>VERSION-NUMBER</version>
 </dependency>
 
 <repositories>
@@ -155,40 +165,6 @@ to make sure you're using the latest release version:
 </repositories>
 ```
 
-#### Obtaining NTokens from SIA Provider
-----------------------------------------
-
-The domain administrator must have already generated a public/private key pair
-for the service and registered public key in Athenz. The private key must be
-available on the host where the client will be running.
-
-```java
-    // the fields used in the following snippet of code
-    // privateKeyPath -> includes the path to the service's private key file
-    //     the corresponding public key is already registered in Athenz
-    // domainName -> 'editors'
-    // serviceName -> 'movie', 'tvshow' or 'site'
-    // keyId -> 'v0'
-    
-    PrivateKey privateKey = Crypto.loadPrivateKey(new File(privateKeyPath));
-    ServiceIdentityProvider identityProvider = new SimpleServiceIdentityProvider(domainName,
-            serviceName, privateKey, keyId);
-    Principal principal = identityProvider.getIdentity(domainName, serviceName);
-```
-
-Once we have our principal object, then the client before contacting the provider
-service needs to extract the service identity credentials and include
-them in the request as the value of Athenz principal header.
-
-```java
-    // set our Athenz credentials. The authority in the principal provides
-    // the header name (Athenz-Principal-Auth) that we must use for credentials
-    // while the principal itself provides the credentials (ntoken).
-
-    con.setRequestProperty(principal.getAuthority().getHeader(),
-        principal.getCredentials());
-```
-
 #### Build Http Client Utility
 ------------------------------
 
@@ -196,21 +172,21 @@ Checkout and build the client component:
 
 ```shell
 $ git clone https://github.com/yahoo/athenz.git
-$ cd examples/java/centralized-use-case/client/
+$ cd libs/java/cert_refresher/examples/tls-support/src/main/java/com/yahoo/athenz/example/http/tls/client/
 $ mvn clean package
 ```
 
 Verify that the client is built successfully:
 
 ```shell
-$ java -cp target/example-java-client-ntoken-1.0.jar com.yahoo.athenz.example.ntoken.HttpExampleClient
-Missing required options: d, s, p, k, u
+$ java -cp target/example-http-tls-java-client-1.0.jar HttpExampleClient
+Missing required options: k, c, t, p, u
 usage: http-example-client
- -d,--domain <arg>    domain name
- -k,--keyid <arg>     key identifier
- -p,--pkey <arg>      private key path
- -s,--service <arg>   service name
- -u,--url <arg>       request url
+ -k,--keyid <arg>               key identifier
+ -c,--cert <arg>                certficate path
+ -t,--trustStorePath <arg>      CA TrustStore path
+ -p,--trustStorePassword <arg>  CA TrustStore password
+ -u,--url <arg>                 request url
 ```
 
 ### Servlet Changes
@@ -224,15 +200,20 @@ https://github.com/yahoo/athenz/tree/master/examples/java/centralized-use-case/s
 --------------------------------------
 
 First you need to update your Java project `pom.xml` file to indicate
-the dependency on the Athenz ZMS Java Client Library. Checkout the
-[Bintray ZMS Client Package Page](https://bintray.com/yahoo/maven/athenz-zms-java-client/)
+the dependency on the Athenz ZMS Java Client Library and the Athenz Cert Refresher Libarry.
+Checkout [Bintray ZMS Client Package Page](https://bintray.com/yahoo/maven/athenz-zms-java-client/) and [Bintray Athenz Cert Refresher Package](https://bintray.com/yahoo/maven/athenz-cert-refresher/)
 to make sure you're using the latest release version:
 
 ```
 <dependency>
     <groupId>com.yahoo.athenz</groupId>
     <artifactId>athenz-zms-java-client</artifactId>
-    <version>1.7.13</version>
+    <version>VERSION-NUMBER</version>
+</dependency>
+<dependency>
+    <groupId>com.yahoo.athenz</groupId>
+    <artifactId>athenz-cert-refresher</artifactId>
+    <version>VERSION-NUMBER</version>
 </dependency>
 
 <repositories>
@@ -243,12 +224,18 @@ to make sure you're using the latest release version:
   </repository>
 </repositories>
 ```
+#### Enable TLS Client Certificate Authentication
+-------------------------------------------------
+
+To enable TLS Client Certificate Authentication, follow the steps in
+[Server Side Service Identity Authentication](server_side_x509_credentials.md)
+
 
 #### Authorization Checks
 -------------------------
 
 Before any authorization calls, we're going to check to make sure
-our request contains the Athenz principal token:
+our request contains the Athenz X509 certificate:
 
 ```java
     static final String ATHENZ_HEADER = "Athenz-Principal-Auth";
@@ -257,11 +244,13 @@ our request contains the Athenz principal token:
             HttpServletResponse response) throws ServletException, IOException {
 
         // retrieve and verify that our request contains an Athenz
-        // service authentication token
+        // service authentication certificate
         
-        String athenzServiceToken = request.getHeader(ATHENZ_HEADER);
-        if (athenzServiceToken == null) {
-            response.sendError(403, "Forbidden - No Athenz ServiceToken provided in request");
+        X509Certificate[] certs = (X509Certificate[]) request.getAttribute(JAVAX_CERT_ATTR);
+        
+        // Assuming only one certificate sent in the request
+        if (certs == null || certs[0] == null) {
+            response.sendError(403, "Forbidden - No Athenz X509 certificate provided in request");
             return;
         }
         
@@ -310,13 +299,12 @@ is to contact ZMS for the authorization check.
         // carry out the authorization check with the expected resource
         // and action values
         
-        try (ZMSAuthorizer authorizer = new ZMSAuthorizer(zmsUrl, "recommend")) {
-            boolean authorized = authorizer.access(athenzAction, athenzResource,
-                    athenzServiceToken, null);
-            if (!authorized) {
-                response.sendError(403, "Forbidden - Athenz Authorization Rejected");
-                return;
-            }
+        String principalName = x509cert.getSubjectX500Principal().getName();
+        Access access = zmsClient.getAccess(athenzAction, athenzResource, null, principalName);
+        boolean authorized = access.getGranted();
+        if (!authorized) {
+            response.sendError(403, "Forbidden - Athenz Authorization Rejected");
+            return;
         }
     
         ...
@@ -344,6 +332,18 @@ distribution's `webapps` directory
 ```shell
 export ZMS_SERVER_URL=https://<zms-server-hostname>:4443/zms/v1
 ```
+* Configure Valid Issuers file path in the expected environment variable:
+```shell
+export ATHENZ_ISSUERS_FILEPATH=<Path to valid issuers file>
+```
+* Configure environment variables for our web app cert, key and truststore:
+```shell
+export REC_SERVLET_ATHENZ_KEY_PATH=<Path to key>
+export REC_SERVLET_ATHENZ_CERT_PATH=<Path to cert>
+export REC_SERVLET_ATHENZ_TRUSTSTORE_PATH=<Path to truststore>
+export REC_SERVLET_ATHENZ_TRUSTSTORE_PASSWORD=<truststore password>
+```
+
 * If the ZMS Server is running with a self-signed certificate,
 we need to generate a truststore for the java http client to use
 when communicating with the ZMS Server. From your ZMS Server installation,
@@ -367,12 +367,12 @@ Run the following test cases to verify authorization access
 for specific services. We're running jetty server on the local
 box so we're using localhost as the hostname.
 
-* Copy the `example-java-client-ntoken-1.0.jar` file from the client/target
+* Copy the `example-http-tls-java-client-1.0.jar` file from the client/target
 directory to the directory that includes the private keys for the test
 services we created in the section [Athenz Management Setup](#athenz-management-setup)
 above.
 
-### Invalid Access Without ServiceToken
+### Invalid Access Without Cert
 ---------------------------------------
 
 For this test case we'll just use the curl client directly:
@@ -381,7 +381,7 @@ For this test case we'll just use the curl client directly:
 $ curl http://localhost:8080/athenz-control/rec/v1/movie
 <html>
 ...
-<title>Error 403 Forbidden - No Athenz ServiceToken provided in request</title>
+<title>Error 403 Forbidden - No Athenz X509 certificate provided in request</title>
 ...
 </html>
 ```
@@ -392,7 +392,7 @@ $ curl http://localhost:8080/athenz-control/rec/v1/movie
 Movie service can successfully access /rec/v1/movie endpoint:
 
 ```shell
-$ java -cp ./example-java-client-ntoken-1.0.jar com.yahoo.athenz.example.ntoken.HttpExampleClient -d editors -s movie -p ./movie_private.pem -k v0 -u http://localhost:8080/athenz-control/rec/v1/movie
+$ java -cp ./example-http-tls-java-client-1.0.jar HttpTLSClient -d editors -s movie -p ./movie_private.pem -k v0 -u http://localhost:8080/athenz-control/rec/v1/movie
 
 Successful response:
 Name: Slap Shot; Director: George Roy Hill
@@ -401,7 +401,7 @@ Name: Slap Shot; Director: George Roy Hill
 Movie service does not have access to /rec/v1/tvshow endpoint:
 
 ```shell
-$ java -cp ./example-java-client-ntoken-1.0.jar com.yahoo.athenz.example.ntoken.HttpExampleClient -d editors -s movie -p ./movie_private.pem -k v0 -u http://localhost:8080/athenz-control/rec/v1/tvshow
+$ java -cp ./example-http-tls-java-client-1.0.jar HttpTLSClient -d editors -s movie -p ./movie_private.pem -k v0 -u http://localhost:8080/athenz-control/rec/v1/tvshow
 
 Request was forbidden - not authorized
 ```
@@ -412,7 +412,7 @@ Request was forbidden - not authorized
 TvShow service can successfully access /rec/v1/tvshow endpoint:
 
 ```shell
-$ java -cp ./example-java-client-ntoken-1.0.jar com.yahoo.athenz.example.ntoken.HttpExampleClient -d editors -s tvshow -p ./tvshow_private.pem -k v0 -u http://localhost:8080/athenz-control/rec/v1/tvshow
+$ java -cp ./example-http-tls-java-client-1.0.jar HttpTLSClient -d editors -s tvshow -p ./tvshow_private.pem -k v0 -u http://localhost:8080/athenz-control/rec/v1/tvshow
 
 Successful response:
 Name: Middle; Channel: ABC
@@ -421,7 +421,7 @@ Name: Middle; Channel: ABC
 TvShow service does not have access to /rec/v1/movie endpoint:
 
 ```shell
-$ java -cp ./example-java-client-ntoken-1.0.jar com.yahoo.athenz.example.ntoken.HttpExampleClient -d editors -s tvshow -p ./tvshow_private.pem -k v0 -u http://localhost:8080/athenz-control/rec/v1/movie
+$ java -cp ./example-http-tls-java-client-1.0.jar HttpTLSClient -d editors -s tvshow -p ./tvshow_private.pem -k v0 -u http://localhost:8080/athenz-control/rec/v1/movie
 
 Request was forbidden - not authorized
 ```
@@ -432,12 +432,12 @@ Request was forbidden - not authorized
 Site service has access to both /rec/v1/tvshow and /rec/v1/movie endpoints:
 
 ```shell
-$ java -cp ./example-java-client-ntoken-1.0.jar com.yahoo.athenz.example.ntoken.HttpExampleClient -d editors -s site -p ./site_private.pem -k v0 -u http://localhost:8080/athenz-control/rec/v1/movie
+$ java -cp ./example-http-tls-java-client-1.0.jar HttpTLSClient -d editors -s site -p ./site_private.pem -k v0 -u http://localhost:8080/athenz-control/rec/v1/movie
 
 Successful response:
 Name: Slap Shot; Director: George Roy Hill
 
-$ java -cp ./example-java-client-ntoken-1.0.jar com.yahoo.athenz.example.ntoken.HttpExampleClient -d editors -s site -p ./site_private.pem -k v0 -u http://localhost:8080/athenz-control/rec/v1/tvshow
+$ java -cp ./example-http-tls-java-client-1.0.jar HttpTLSClient -d editors -s site -p ./site_private.pem -k v0 -u http://localhost:8080/athenz-control/rec/v1/tvshow
 
 Successful response:
 Name: Middle; Channel: ABC

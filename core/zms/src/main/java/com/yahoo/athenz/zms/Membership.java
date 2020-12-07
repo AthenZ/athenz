@@ -3,12 +3,14 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.yahoo.rdl.*;
 
 //
 // Membership - The representation for a role membership.
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Membership {
     public String memberName;
     @RdlOptional
@@ -35,6 +37,9 @@ public class Membership {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String requestPrincipal;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer systemDisabled;
 
     public Membership setMemberName(String memberName) {
         this.memberName = memberName;
@@ -99,6 +104,13 @@ public class Membership {
     public String getRequestPrincipal() {
         return requestPrincipal;
     }
+    public Membership setSystemDisabled(Integer systemDisabled) {
+        this.systemDisabled = systemDisabled;
+        return this;
+    }
+    public Integer getSystemDisabled() {
+        return systemDisabled;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -132,6 +144,9 @@ public class Membership {
                 return false;
             }
             if (requestPrincipal == null ? a.requestPrincipal != null : !requestPrincipal.equals(a.requestPrincipal)) {
+                return false;
+            }
+            if (systemDisabled == null ? a.systemDisabled != null : !systemDisabled.equals(a.systemDisabled)) {
                 return false;
             }
         }

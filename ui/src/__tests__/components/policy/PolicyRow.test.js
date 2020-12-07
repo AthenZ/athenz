@@ -36,7 +36,7 @@ describe('PolicyRow', () => {
                 </tbody>
             </table>
         );
-        const policyRow = getByTestId('policy-row');
-        expect(policyRow).toMatchSnapshot();
+        const domainPolicyRow = getByTestId('policy-row');
+        expect(domainPolicyRow).toMatchSnapshot();
     });
 });

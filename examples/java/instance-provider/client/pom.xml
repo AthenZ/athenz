@@ -27,9 +27,9 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <athenz.version>1.8.37</athenz.version>
-    <jackson.version>2.10.0</jackson.version>
-    <jersey.version>2.29.1</jersey.version>
+    <athenz.version>1.9.24</athenz.version>
+    <jackson.version>2.11.3</jackson.version>
+    <jersey.version>2.32</jersey.version>
   </properties>
 
   <dependencies>
@@ -55,18 +55,18 @@
     </dependency>
     <dependency>
       <groupId>io.jsonwebtoken</groupId>
-      <artifactId>jjwt</artifactId>
-      <version>0.9.1</version>
+      <artifactId>jjwt-api</artifactId>
+      <version>0.11.2</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-annotations</artifactId>
-      <version>2.10.0</version>
+      <version>${jackson.version}</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>2.10.0</version>
+      <version>${jackson.version}</version>
     </dependency>
     <dependency>
       <groupId>org.glassfish.jersey.media</groupId>

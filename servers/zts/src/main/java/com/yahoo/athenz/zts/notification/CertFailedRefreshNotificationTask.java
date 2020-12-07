@@ -17,6 +17,7 @@
 package com.yahoo.athenz.zts.notification;
 
 import com.yahoo.athenz.auth.util.AthenzUtils;
+import com.yahoo.athenz.auth.util.GlobStringsMatcher;
 import com.yahoo.athenz.common.server.cert.X509CertRecord;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.notification.*;
@@ -24,18 +25,19 @@ import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.cert.InstanceCertManager;
 import com.yahoo.athenz.zts.store.DataStore;
-import com.yahoo.athenz.zts.utils.GlobStringsMatcher;
-import com.yahoo.athenz.zts.utils.ZTSUtils;
+import com.yahoo.rdl.Timestamp;
+import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.Timestamp;
+import java.text.MessageFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.ADMIN_ROLE_NAME;
 import static com.yahoo.athenz.common.ServerCommonConsts.USER_DOMAIN_PREFIX;
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
+import static com.yahoo.athenz.common.server.notification.impl.MetricNotificationService.*;
 
 public class CertFailedRefreshNotificationTask implements NotificationTask {
     private final String serverName;
@@ -46,33 +48,36 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
     private final static String DESCRIPTION = "certificate failed refresh notification";
     private final HostnameResolver hostnameResolver;
     private final CertFailedRefreshNotificationToEmailConverter certFailedRefreshNotificationToEmailConverter;
+    private final CertFailedRefreshNotificationToMetricConverter certFailedRefreshNotificationToMetricConverter;
+
     private final GlobStringsMatcher globStringsMatcher;
 
     public CertFailedRefreshNotificationTask(InstanceCertManager instanceCertManager,
                                              DataStore dataStore,
                                              HostnameResolver hostnameResolver,
                                              String userDomainPrefix,
-                                             String serverName) {
+                                             String serverName,
+                                             int httpsPort) {
         this.serverName = serverName;
         this.providers = getProvidersList();
         this.instanceCertManager = instanceCertManager;
-        ZTSDomainRoleMembersFetcher ztsDomainRoleMembersFetcher = new ZTSDomainRoleMembersFetcher(dataStore, USER_DOMAIN_PREFIX);
-        this.notificationCommon = new NotificationCommon(ztsDomainRoleMembersFetcher, userDomainPrefix);
+        DomainRoleMembersFetcher domainRoleMembersFetcher = new DomainRoleMembersFetcher(dataStore, USER_DOMAIN_PREFIX);
+        this.notificationCommon = new NotificationCommon(domainRoleMembersFetcher, userDomainPrefix);
         this.hostnameResolver = hostnameResolver;
-        this.certFailedRefreshNotificationToEmailConverter = new CertFailedRefreshNotificationToEmailConverter();
+        final String apiHostName = System.getProperty(ZTSConsts.ZTS_PROP_NOTIFICATION_API_HOSTNAME, serverName);
+        this.certFailedRefreshNotificationToEmailConverter = new CertFailedRefreshNotificationToEmailConverter(apiHostName, httpsPort);
+        this.certFailedRefreshNotificationToMetricConverter = new CertFailedRefreshNotificationToMetricConverter();
         globStringsMatcher = new GlobStringsMatcher(ZTSConsts.ZTS_PROP_NOTIFICATION_CERT_FAIL_IGNORED_SERVICES_LIST);
     }
 
     private List<String> getProvidersList() {
-        return ZTSUtils.splitCommaSeperatedSystemProperty(ZTSConsts.ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST);
+        return AthenzUtils.splitCommaSeparatedSystemProperty(ZTSConsts.ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST);
     }
 
     @Override
     public List<Notification> getNotifications() {
         if (providers == null || providers.isEmpty()) {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("No configured providers");
-            }
+            LOGGER.warn("No configured providers. Notifications will not be sent.");
             return new ArrayList<>();
         }
 
@@ -81,26 +86,22 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
             unrefreshedCerts.addAll(instanceCertManager.getUnrefreshedCertsNotifications(serverName, provider));
         }
         if (unrefreshedCerts.isEmpty()) {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("No unrefreshed certificates available to send notifications");
-            }
+            LOGGER.info("No unrefreshed certificates available to send notifications");
             return new ArrayList<>();
         }
 
         List<X509CertRecord> unrefreshedCertsValidServices = getRecordsWithValidServices(unrefreshedCerts);
         if (unrefreshedCertsValidServices.isEmpty()) {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("No unrefreshed certificates with configured services available to send notifications");
-            }
+            LOGGER.info("No unrefreshed certificates with configured services available to send notifications");
             return new ArrayList<>();
         }
 
         List<X509CertRecord> unrefreshedCertsValidHosts = getRecordsWithValidHosts(unrefreshedCertsValidServices);
         if (unrefreshedCertsValidHosts.isEmpty()) {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("No unrefreshed certificates with valid hosts available to send notifications");
-            }
+            LOGGER.info("No unrefreshed certificates with valid hosts available to send notifications");
             return new ArrayList<>();
+        } else {
+            LOGGER.info("Number of valid certificate records that will receive notifications: " + unrefreshedCertsValidHosts.size());
         }
 
         Map<String, List<X509CertRecord>> domainToCertRecordsMap = getDomainToCertRecordsMap(unrefreshedCertsValidHosts);
@@ -121,7 +122,8 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
             Notification notification = notificationCommon.createNotification(
                     ResourceUtils.roleResourceName(domain, ADMIN_ROLE_NAME),
                     details,
-                    certFailedRefreshNotificationToEmailConverter);
+                    certFailedRefreshNotificationToEmailConverter,
+                    certFailedRefreshNotificationToMetricConverter);
             if (notification != null) {
                 notificationList.add(notification);
             }
@@ -131,8 +133,14 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
     }
 
     private List<X509CertRecord> getRecordsWithValidHosts(List<X509CertRecord> unrefreshedCerts) {
+        unrefreshedCerts.stream()
+                .filter(record -> StringUtil.isEmpty(record.getHostName()))
+                .peek(record -> LOGGER.warn("Record with empty hostName: " + record.toString()))
+                .collect(Collectors.toList());
+
+        // Filter all records with non existing hosts or hosts not recognized by DNS
         return unrefreshedCerts.stream()
-                    .filter(record -> hostnameResolver.isValidHostname(record.getHostName()))
+                    .filter(record -> !StringUtil.isEmpty(record.getHostName()) && (hostnameResolver == null || hostnameResolver.isValidHostname(record.getHostName())))
                     .collect(Collectors.toList());
     }
 
@@ -152,9 +160,8 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
             }
 
             String expiryTime =  getTimestampAsString(certRecord.getExpiryTime());
-            String hostName = (certRecord.getHostName() != null) ? certRecord.getHostName() : "";
-            certDetails.append(
-                    certRecord.getService()).append(';')
+            String hostName = certRecord.getHostName();
+            certDetails.append(AthenzUtils.extractPrincipalServiceName(certRecord.getService())).append(';')
                     .append(certRecord.getProvider()).append(';')
                     .append(certRecord.getInstanceId()).append(';')
                     .append(getTimestampAsString(certRecord.getCurrentTime())).append(';')
@@ -165,7 +172,6 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
         details.put(NOTIFICATION_DETAILS_DOMAIN, domainName);
         return details;
     }
-
 
     private Map<String, List<X509CertRecord>> getDomainToCertRecordsMap(List<X509CertRecord> unrefreshedRecords) {
         Map<String, List<X509CertRecord>> domainToCertRecords = new HashMap<>();
@@ -179,7 +185,7 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
     }
 
     private String getTimestampAsString(Date date) {
-        return (date != null) ? new Timestamp(date.getTime()).toString() : "";
+        return (date != null) ? Timestamp.fromMillis(date.getTime()).toString() : "";
     }
 
     @Override
@@ -190,14 +196,17 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
     public static class CertFailedRefreshNotificationToEmailConverter implements NotificationToEmailConverter {
         private static final String EMAIL_TEMPLATE_UNREFRESHED_CERTS = "messages/unrefreshed-certs.html";
         private static final String UNREFRESHED_CERTS_SUBJECT = "athenz.notification.email.unrefreshed.certs.subject";
-        private static final String UNREFRESHED_CERTS_BODY_ENTRY = "athenz.notification.email.unrefreshed.certs.body.entry";
 
         private final NotificationToEmailConverterCommon notificationToEmailConverterCommon;
         private String emailUnrefreshedCertsBody;
+        private final String serverName;
+        private final int httpsPort;
 
-        public CertFailedRefreshNotificationToEmailConverter() {
+        public CertFailedRefreshNotificationToEmailConverter(final String serverName, int httpsPort) {
             notificationToEmailConverterCommon = new NotificationToEmailConverterCommon();
             emailUnrefreshedCertsBody = notificationToEmailConverterCommon.readContentFromFile(getClass().getClassLoader(), EMAIL_TEMPLATE_UNREFRESHED_CERTS);
+            this.serverName = serverName;
+            this.httpsPort = httpsPort;
         }
 
         private String getUnrefreshedCertsBody(Map<String, String> metaDetails) {
@@ -205,13 +214,42 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
                 return null;
             }
 
+            String bodyWithDeleteEndpoint = addInstanceDeleteEndpointDetails(metaDetails, emailUnrefreshedCertsBody);
             return notificationToEmailConverterCommon.generateBodyFromTemplate(
                     metaDetails,
-                    emailUnrefreshedCertsBody,
+                    bodyWithDeleteEndpoint,
                     NOTIFICATION_DETAILS_DOMAIN,
                     NOTIFICATION_DETAILS_UNREFRESHED_CERTS,
-                    6,
-                    UNREFRESHED_CERTS_BODY_ENTRY);
+                    6);
+        }
+
+        private String addInstanceDeleteEndpointDetails(Map<String, String> metaDetails, String messageWithoutZtsDeleteEndpoint) {
+            String ztsApiAddress = serverName + ":" + httpsPort;
+            String domainPlaceHolder = metaDetails.get(NOTIFICATION_DETAILS_DOMAIN);
+            String providerPlaceHolder = "&lt;PROVIDER&gt;";
+            String servicePlaceHolder = "&lt;SERVICE&gt;";
+            String instanceIdHolder = "&lt;INSTANCE-ID&gt;";
+
+            long numberOfRecords = metaDetails.get(NOTIFICATION_DETAILS_UNREFRESHED_CERTS)
+                    .chars()
+                    .filter(ch -> ch == '|')
+                    .count() + 1;
+
+            // If there is only one record, fill the real values to make it easier for him
+            if (numberOfRecords == 1) {
+                String[] recordDetails = metaDetails.get(NOTIFICATION_DETAILS_UNREFRESHED_CERTS).split(";");
+                servicePlaceHolder = recordDetails[0];
+                providerPlaceHolder = recordDetails[1];
+                instanceIdHolder = recordDetails[2];
+            }
+
+            return MessageFormat.format(messageWithoutZtsDeleteEndpoint,
+                    "{0}", "{1}", "{2}", "{3}", // Skip template arguments that will be filled later
+                    ztsApiAddress,
+                    providerPlaceHolder,
+                    domainPlaceHolder,
+                    servicePlaceHolder,
+                    instanceIdHolder);
         }
 
         @Override
@@ -220,6 +258,38 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
             String body = getUnrefreshedCertsBody(notification.getDetails());
             Set<String> fullyQualifiedEmailAddresses = notificationToEmailConverterCommon.getFullyQualifiedEmailAddresses(notification.getRecipients());
             return new NotificationEmail(subject, body, fullyQualifiedEmailAddresses);
+        }
+    }
+
+    public static class CertFailedRefreshNotificationToMetricConverter implements NotificationToMetricConverter {
+
+        private final static String NOTIFICATION_TYPE = "cert_fail_refresh";
+        private final NotificationToMetricConverterCommon notificationToMetricConverterCommon = new NotificationToMetricConverterCommon();
+
+        @Override
+        public NotificationMetric getNotificationAsMetrics(Notification notification, Timestamp currentTime) {
+            Map<String, String> details = notification.getDetails();
+            String domain = details.get(NOTIFICATION_DETAILS_DOMAIN);
+            List<String[]> attributes = new ArrayList<>();
+            String[] records = details.get(NOTIFICATION_DETAILS_UNREFRESHED_CERTS).split("\\|");
+            String currentTimeStr = currentTime.toString();
+            for (String record: records) {
+                String[] recordAttributes = record.split(";");
+
+                String[] metricRecord = new String[]{
+                        METRIC_NOTIFICATION_TYPE_KEY, NOTIFICATION_TYPE,
+                        METRIC_NOTIFICATION_DOMAIN_KEY, domain,
+                        METRIC_NOTIFICATION_SERVICE_KEY, recordAttributes[0],
+                        METRIC_NOTIFICATION_PROVIDER_KEY, recordAttributes[1],
+                        METRIC_NOTIFICATION_INSTANCE_ID_KEY, recordAttributes[2],
+                        METRIC_NOTIFICATION_UPDATE_DAYS_KEY, notificationToMetricConverterCommon.getNumberOfDaysBetweenTimestamps(currentTimeStr, recordAttributes[3]),
+                        METRIC_NOTIFICATION_EXPIRY_DAYS_KEY, notificationToMetricConverterCommon.getNumberOfDaysBetweenTimestamps(currentTimeStr, recordAttributes[4])
+                };
+
+                attributes.add(metricRecord);
+            }
+
+            return new NotificationMetric(attributes);
         }
     }
 }

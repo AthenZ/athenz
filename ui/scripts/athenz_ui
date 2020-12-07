@@ -45,7 +45,7 @@ fi
 
 if [ -z "${ROOT}" ]; then
     BINDIR=$(dirname "$0")
-    export ROOT=$(cd $BINDIR/..;pwd)
+    export "ROOT"=$(cd "$BINDIR"/.. || true;pwd)
 fi
 
 ATHENZ_UI_PID_DIR=${ATHENZ_UI_PID_DIR:-$ROOT/var/ui}
@@ -64,16 +64,16 @@ log=${ATHENZ_UI_LOG_DIR}/ui.out
 case $command in
     (start)
         if [ -f $pid ]; then
-            ATHENZ_UI_PID=$(cat $pid)
-            if kill -0 ${ATHENZ_UI_PID} > /dev/null 2>&1; then
+            ATHENZ_UI_PID=$(cat "$pid")
+            if kill -0 "${ATHENZ_UI_PID}" > /dev/null 2>&1; then
                 echo "Athenz UI already running as process ${ATHENZ_UI_PID}"
                 exit 1
             fi
         fi
 
         echo "Starting Athenz UI..."
-        nohup nodemon -r dotenv/config app.js > "$log" 2>&1 < /dev/null &
-        echo $! > $pid
+        nohup NODE_ENV=production nodemon -r dotenv/config app.js > "$log" 2>&1 < /dev/null &
+        echo $! > "$pid"
         sleep 2;
         if ! ps -p $! > /dev/null ; then
             exit 1
@@ -82,16 +82,16 @@ case $command in
 
     (stop)
         if [ -f $pid ]; then
-            ATHENZ_UI_PID=$(cat $pid)
-            if kill -0 ${ATHENZ_UI_PID} > /dev/null 2>&1; then
+            ATHENZ_UI_PID=$(cat "$pid")
+            if kill -0 "${ATHENZ_UI_PID}" > /dev/null 2>&1; then
                 echo "Stopping Athenz UI..."
-                ATHENZ_UI_GPID=$(ps -o pgid= $ATHENZ_UI_PID | grep -o '[0-9]*')
+                ATHENZ_UI_GPID=$(ps -o pgid= "$ATHENZ_UI_PID" | grep -o '[0-9]*')
                 kill -9 -"${ATHENZ_UI_GPID}"
                 echo "Shutdown completed."
             else
                 echo "Athenz UI is not running"
             fi
-            rm $pid
+            rm "$pid"
         else
             echo "Athenz UI is not running"
         fi

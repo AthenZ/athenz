@@ -16,9 +16,7 @@
 package com.yahoo.athenz.auth;
 
 import java.security.cert.X509Certificate;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Set;
+import java.util.*;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -41,6 +39,16 @@ public interface Authority {
      * Initialize the authority
      */
     void initialize();
+
+    /**
+     * @return the string to be included as the identifier for the
+     *  authority which will be logged in the server access log file
+     *  as the last field so we know what authority was responsible
+     *  for authenticating the principal.
+     */
+    default String getID() {
+        return "Auth-ID";
+    }
 
     /**
      * @return credentials source - headers or certificate with headers being default
@@ -178,5 +186,15 @@ public interface Authority {
      */
     default String getUserEmail(final String username) {
         return null;
+    }
+
+    /**
+     * Retrieves a list of principals based on the state parameter from configured Principal Authority and
+     * uses that data to modify role and group memberships
+     * @param principalStates EnumSet containing expected state(s) of principals
+     * @return List of Principal or an empty collection if none
+     */
+    default List<Principal> getPrincipals(EnumSet<Principal.State> principalStates) {
+        return Collections.emptyList();
     }
 }

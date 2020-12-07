@@ -3,12 +3,14 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.yahoo.rdl.*;
 
 //
 // UserToken - A user token generated based on user's credentials
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class UserToken {
     public String token;
     @RdlOptional

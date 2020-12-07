@@ -19,6 +19,7 @@ import java.sql.*;
 import java.util.*;
 import java.util.Date;
 
+import com.yahoo.athenz.zts.ZTSConsts;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +33,10 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
 
     private static final int MYSQL_ER_OPTION_DUPLICATE_ENTRY = 1062;
 
+    // Default grace period - 2 weeks (336 hours)
+    private static final Long EXPIRY_HOURS_GRACE = Long.parseLong(
+            System.getProperty(ZTSConsts.ZTS_PROP_NOTIFICATION_GRACE_PERIOD_HOURS, "336"));
+
     private static final String SQL_GET_X509_RECORD = "SELECT * FROM certificates WHERE provider=? AND instanceId=? AND service=?;";
     private static final String SQL_INSERT_X509_RECORD = "INSERT INTO certificates " +
             "(provider, instanceId, service, currentSerial, currentTime, currentIP, prevSerial, prevTime, prevIP, clientCert, " +
@@ -39,17 +44,30 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
             "VALUES (?,?,?,?,?,?,?,?,?,?,?,?);";
     private static final String SQL_UPDATE_X509_RECORD = "UPDATE certificates SET " +
             "currentSerial=?, currentTime=?, currentIP=?, prevSerial=?, prevTime=?, prevIP=?, " +
-            "expiryTime=?, hostName=? " +
+            "expiryTime=?, hostName=?, clientCert=? " +
             "WHERE provider=? AND instanceId=? AND service=?;";
     private static final String SQL_DELETE_X509_RECORD = "DELETE from certificates " +
             "WHERE provider=? AND instanceId=? AND service=?;";
     private static final String SQL_DELETE_EXPIRED_X509_RECORDS = "DELETE FROM certificates " +
             "WHERE currentTime < ADDDATE(NOW(), INTERVAL -? MINUTE);";
-    private static final String SQL_UPDATE_UNREFRESHED_X509_RECORDS_NOTIFICATION_TIMESTAMP = "UPDATE certificates SET lastNotifiedTime=?, lastNotifiedServer=? " +
-            "WHERE currentTime < (CURRENT_DATE - INTERVAL 3 DAY) AND " +
-            "(hostName IS NOT NULL AND hostName != '') AND " +
-            "provider=? AND " +
-            "(lastNotifiedTime IS NULL || lastNotifiedTime < (CURRENT_DATE - INTERVAL 1 DAY))";
+
+    // Get all records that didn't refresh and update notification time.
+    // Query explanation:
+    // - Group all records with the same hostName / Provider / Service and the most updated "currentTime"
+    // - Get all records that need to be notified. This might include rebootstrapped records (instanceId changed).
+    // Join them to get only records that appear in both
+    private static final String SQL_UPDATE_UNREFRESHED_X509_RECORDS_NOTIFICATION_TIMESTAMP =
+            "UPDATE certificates as a " +
+            "INNER JOIN (" +
+                "SELECT hostName, provider, service, MAX(currentTime) AS date_updated " +
+                "FROM certificates " +
+                "WHERE hostName IS NOT NULL AND hostName != '' " +
+                "GROUP BY hostName, provider, service" +
+            ") AS m on (m.hostName=a.hostName AND m.provider=a.provider AND m.service=a.service AND a.currentTime=date_updated) " +
+            "SET lastNotifiedTime=?, lastNotifiedServer=? " +
+            "WHERE a.currentTime < (CURRENT_DATE - INTERVAL ? HOUR) AND " +
+                "a.provider=? AND " +
+                "(a.lastNotifiedTime IS NULL || a.lastNotifiedTime < (CURRENT_DATE - INTERVAL 1 DAY))";
     private static final String SQL_LIST_NOTIFY_UNREFRESHED_X509_RECORDS = "SELECT * FROM certificates WHERE lastNotifiedTime=? AND lastNotifiedServer=?;";
 
     public static final String DB_COLUMN_INSTANCE_ID            = "instanceId";
@@ -185,9 +203,10 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
             ps.setString(6, certRecord.getPrevIP());
             ps.setTimestamp(7, getTimestampFromDate(certRecord.getExpiryTime()));
             ps.setString(8, certRecord.getHostName());
-            ps.setString(9, certRecord.getProvider());
-            ps.setString(10, certRecord.getInstanceId());
-            ps.setString(11, certRecord.getService());
+            ps.setBoolean(9, certRecord.getClientCert());
+            ps.setString(10, certRecord.getProvider());
+            ps.setString(11, certRecord.getInstanceId());
+            ps.setString(12, certRecord.getService());
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -274,7 +293,7 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
     }
 
     @Override
-    public boolean updateUnrefreshedCertificatesNotificationTimestamp(String lastNotifiedServer,
+    public List<X509CertRecord> updateUnrefreshedCertificatesNotificationTimestamp(String lastNotifiedServer,
                                                                       long lastNotifiedTime,
                                                                       String provider) {
 
@@ -283,17 +302,21 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
         try (PreparedStatement ps = con.prepareStatement(SQL_UPDATE_UNREFRESHED_X509_RECORDS_NOTIFICATION_TIMESTAMP)) {
             ps.setTimestamp(1, new java.sql.Timestamp(lastNotifiedTime));
             ps.setString(2, lastNotifiedServer);
-            ps.setString(3, provider);
+            ps.setLong(3, EXPIRY_HOURS_GRACE);
+            ps.setString(4, provider);
 
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
-        return (affectedRows > 0);
+        if (affectedRows > 0) {
+            return getNotifyUnrefreshedCertificates(lastNotifiedServer, lastNotifiedTime);
+        }
+
+        return new ArrayList<>();
     }
 
-    @Override
-    public List<X509CertRecord> getNotifyUnrefreshedCertificates(String lastNotifiedServer, long lastNotifiedTime) {
+    private List<X509CertRecord> getNotifyUnrefreshedCertificates(String lastNotifiedServer, long lastNotifiedTime) {
         final String caller = "listNotifyUnrefreshedCertificates";
         List<X509CertRecord> certRecords = new ArrayList<>();
         try (PreparedStatement ps = con.prepareStatement(SQL_LIST_NOTIFY_UNREFRESHED_X509_RECORDS)) {

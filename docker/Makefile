@@ -16,8 +16,8 @@ BUILD_ARG := --build-arg 'BUILD_DATE=$(BUILD_DATE)' --build-arg 'VCS_REF=$(VCS_R
 ifdef TAG
 TAG_COMMIT := $(shell git rev-list -n 1 $(TAG))
 ifeq ($(TAG_COMMIT),)
-$(error TAG=$(TAG) is not found)
-exit 1
+	$(error TAG=$(TAG) is not found)
+	exit 1
 endif
 endif
 
@@ -29,6 +29,7 @@ else
 	$(info Build using current source code)
 endif
 	DOCKER_BUILDKIT=1 docker build $(BUILD_ARG) -t rdl-athenz-server -f ./util/rdl-athenz-server/Dockerfile ../rdl/rdl-gen-athenz-server
+	DOCKER_BUILDKIT=1 docker build $(BUILD_ARG) -t rdl-athenz-java-model -f ./util/rdl-athenz-java-model/Dockerfile ../rdl/rdl-gen-athenz-java-model
 	DOCKER_BUILDKIT=1 docker build $(BUILD_ARG) -t athenz-mvn-base -f ./util/athenz-mvn-base/Dockerfile ../
 	DOCKER_BUILDKIT=1 docker build $(BUILD_ARG) -t athenz-builder -f ./util/athenz-builder/Dockerfile ../
 	DOCKER_BUILDKIT=1 docker build $(BUILD_ARG) $(GID_ARG) $(UID_ARG) -t athenz-zms-server -f ./zms/Dockerfile ../
@@ -55,10 +56,29 @@ deploy-dev:
 	sh "./deploy-scripts/zts-deploy.sh"
 	docker run --rm -t --network="$(DOCKER_NETWORK)" -v "$(BASE_DIR):/athenz" --user "$(shell id -u):$(shell id -g)" athenz-setup-env sh /athenz/docker/deploy-scripts/zts-debug.sh
 
+deploy-local:
+	# generate self-signed certificates
+	docker run --rm -t -v "$(BASE_DIR):/athenz" --user "$(shell id -u):$(shell id -g)" athenz/athenz-setup-env:1.9.22 sh /athenz/docker/setup-scripts/self-signed-certificates.sh
+	# ZMS
+	docker run --rm -t -v "$(BASE_DIR):/athenz" --user "$(shell id -u):$(shell id -g)" athenz/athenz-setup-env:1.9.22 sh /athenz/docker/setup-scripts/zms-auto-config.sh
+	sh "./deploy-scripts/zms-deploy-local.sh"
+	docker run --rm -t --network="$(DOCKER_NETWORK)" -v "$(BASE_DIR):/athenz" --user "$(shell id -u):$(shell id -g)" athenz/athenz-setup-env:1.9.22 sh /athenz/docker/deploy-scripts/zms-debug.sh
+	# ZTS
+	docker run --rm -t --network="$(DOCKER_NETWORK)" -v "$(BASE_DIR):/athenz" --user "$(shell id -u):$(shell id -g)" athenz/athenz-setup-env:1.9.22 sh /athenz/docker/setup-scripts/zts-auto-config.sh
+	sh "./deploy-scripts/zts-deploy-local.sh"
+	docker run --rm -t --network="$(DOCKER_NETWORK)" -v "$(BASE_DIR):/athenz" --user "$(shell id -u):$(shell id -g)" athenz/athenz-setup-env:1.9.22 sh /athenz/docker/deploy-scripts/zts-debug.sh
+	# UI
+	docker run --rm -t --network="$(DOCKER_NETWORK)" -v "$(BASE_DIR):/athenz" --user "$(shell id -u):$(shell id -g)" athenz/athenz-setup-env:1.9.22 sh /athenz/docker/setup-scripts/ui-auto-config.sh
+	sh "./deploy-scripts/ui-deploy-local.sh"
+
+
 verify:
 	docker run --rm -t --network="$(DOCKER_NETWORK)" -v "$(BASE_DIR):/athenz" --user "$(shell id -u):$(shell id -g)" athenz-setup-env sh /athenz/docker/deploy-scripts/zms-verify.sh
 	docker run --rm -t --network="$(DOCKER_NETWORK)" -v "$(BASE_DIR):/athenz" --user "$(shell id -u):$(shell id -g)" athenz-setup-env sh /athenz/docker/deploy-scripts/zts-verify.sh
 
+verify-local:
+	docker run --rm -t --network="$(DOCKER_NETWORK)" -v "$(BASE_DIR):/athenz" --user "$(shell id -u):$(shell id -g)" athenz/athenz-setup-env:1.9.22 sh /athenz/docker/deploy-scripts/zms-verify.sh
+	docker run --rm -t --network="$(DOCKER_NETWORK)" -v "$(BASE_DIR):/athenz" --user "$(shell id -u):$(shell id -g)" athenz/athenz-setup-env:1.9.22 sh /athenz/docker/deploy-scripts/zts-verify.sh
 
 CONTAINERS := $(shell docker ps -aq --filter 'label=org.label-schema.url=https://www.athenz.io/')
 remove-all: remove-containers remove-networks remove-files reset-repo
@@ -89,3 +109,12 @@ clean: remove-all
 	docker image rm athenz-zts-db || true
 	docker image rm athenz-conf || true
 	docker image rm athenz-setup-env || true
+	docker image rm rdl-athenz-java-model || true
+
+remove-local-images:
+	docker image rm athenz/athenz-setup-env:1.9.22 || true
+	docker image rm athenz/athenz-zms-db:1.9.22 || true
+	docker image rm athenz/athenz-zms-server:1.9.22 || true
+	docker image rm athenz/athenz-zts-db:1.9.22 || true
+	docker image rm athenz/athenz-zts-server:1.9.22 || true
+	docker image rm athenz/athenz-ui:1.9.22 || true

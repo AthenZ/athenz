@@ -19,14 +19,6 @@ All ZMS API commands require that the client use a TLS certificate issued by Ath
 Services can use their Athenz Issued Service Identity certificates when communicating
 with ZMS.
 
-### Service/User NToken Support
-
-All ZMS API commands require that the principal executing the operation to be authenticated
-by providing its ServiceToken as part of the request. The NToken must be passed as the
-value of the **Athenz-Principal-Auth** header in the request. If the Authority used to
-authenticate the user credentials does not support authorization, then the user first
-must obtain a NToken from ZMS server and then use that NToken in its request.
-
 ## Authorization
 
 Every write request against ZMS server is authorized against the configured
@@ -563,7 +555,7 @@ A full Resource name (YRN)
 
 #### GET /access/{action}
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): None
 
 Check access for the specified operation/action on the specified resource for the currently authenticated user
@@ -600,7 +592,7 @@ Exception:
 
 #### GET /domain/{domainName}/policy/{policyName}/assertion/{assertionId}
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): None
 
 Read the specified assertion from the policy.
@@ -631,7 +623,7 @@ Exception:
 
 #### PUT /domain/{domainName}/policy/{policyName}/assertion
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): authorize("update", "{domainName}:policy.{policyName}")
 
 Add the provided assertion to the specified policy.
@@ -663,7 +655,7 @@ Exception:
 
 #### DELETE /domain/{domainName}/policy/{policyName}/assertion/{assertionId}
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): authorize("update", "{domainName}:policy.{policyName}")
 
 Delete the assertion with the given id from the specified policy.
@@ -697,7 +689,7 @@ Exception:
 
 #### PUT /domain/{domainName}/admins
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): authorize ("update", "sys.auth:domain");
 
 Verify and, if necessary, fix domain roles and policies to make sure the given set
@@ -733,7 +725,7 @@ Exception:
 
 #### GET /domain/{domain}
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): None
 
 Get info for the specified domain, by name.
@@ -761,7 +753,7 @@ Exception:
 
 #### POST /domain
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): authorize ("create", "sys.auth:domain")
 
 Create a new top level domain. This is a privileged action for the ^sys.auth^ administrators
@@ -790,7 +782,7 @@ Exception:
 
 #### DELETE /domain/{name}
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): authorize ("delete", "sys.auth:domain")
 
 Delete the specified domain. This is a privileged action for the `sys.auth` administrators.
@@ -819,7 +811,7 @@ Exception:
 
 #### PUT /domain/{name}/meta
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): authorize ("update", "{name}:")
 
 Update the specified domain metadata. Note that entities in the domain are not
@@ -899,7 +891,7 @@ Exception:
 
 #### PUT /domain/{domainName}/entity/{entityName}
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): authorize ("update", "{domainName}:{entityName}")
 
 Put an entity into the domain.
@@ -931,7 +923,7 @@ Exception:
 
 #### GET /domain/{domainName}/entity/{entityName}
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): None
 
 Get a entity from a domain open for all authenticated users to read
@@ -961,7 +953,7 @@ Exception:
 
 #### DELETE /domain/{domainName}/entity/{entityName}
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): authorize ("delete", "{domainName}:{entityName}")
 
 Delete the entity from the domain.
@@ -994,7 +986,7 @@ Exception:
 
 #### GET /domain/{domainName}/role/{roleName}/member/{memberName}
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): None
 
 Get the specified role in the domain.
@@ -1025,7 +1017,7 @@ Exception:
 
 #### PUT /domain/{domainName}/role/{roleName}/member/{memberName}
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): authorize ("update", "{domainName}:role.{roleName}"
 
 Create/update the specified role membership.
@@ -1058,7 +1050,7 @@ Exception:
 
 #### DELETE /domain/{domainName}/role/{roleName}/member/{memberName}
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): authorize ("update", "{domainName}:role.{roleName}"
 
 Delete the specified role membership.
@@ -1092,7 +1084,7 @@ Exception:
 
 #### GET /domain/{domainName}/policy/{policyName}
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): None
 
 Read the specified policy.
@@ -1122,7 +1114,7 @@ Exception:
 
 #### PUT /domain/{domainName}/policy/{policyName}
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): authorize("update", "{domainName}:policy.{policyName}")
 
 Create or update the specified policy.
@@ -1154,7 +1146,7 @@ Exception:
 
 #### DELETE /domain/{domainName}/policy/{policyName}
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): authorize("delete", "{domainName}:policy.{policyName}")
 
 Delete the specified policy.
@@ -1187,7 +1179,7 @@ Exception:
 
 #### GET /domain/{domainName}/policies
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): None
 
 Enumerate policies provisioned in this domain and returns the list including
@@ -1223,7 +1215,7 @@ Exception:
 
 #### GET /domain/{domainName}/policy
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): None
 
 List policies provisioned in this namespace.
@@ -1256,7 +1248,7 @@ Exception:
 
 #### PUT /domain/{domain}/service/{service}/publickey/{id}
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): authorize ("update", "{domain}:service.{service}")
 
 Register the specified ServiceIdentity in the specified domain.
@@ -1290,7 +1282,7 @@ Exception:
 
 #### GET /domain/{domain}/service/{service}/publickey/{id}
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): None
 
 Get public key info for the specified service and key id.
@@ -1321,7 +1313,7 @@ Exception:
 
 #### DELETE /domain/{domain}/service/{service}/publickey/{id}
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): authorize ("update", "{domain}:service.{service}")
 
 Delete the specified PublicKey for a service.
@@ -1356,7 +1348,7 @@ Exception:
 
 #### GET /resource
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): None
 
 Return list of resources through the defined assertions that the given principal
@@ -1394,7 +1386,7 @@ Exception:
 
 #### GET /domain/{domainName}/role/{roleName}
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): None
 
 Get the specified role in the domain.
@@ -1431,7 +1423,7 @@ Exception:
 
 #### PUT /domain/{domainName}/role/{roleName}
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): authorize ("update", "{domainName}:role.{roleName}")
 
 Create/update the specified role.
@@ -1463,7 +1455,7 @@ Exception:
 
 #### DELETE /domain/{domainName}/role/{roleName}
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): authorize ("delete", "{domainName}:role.{roleName}")
 
 Delete the specified role
@@ -1496,7 +1488,7 @@ Exception:
 
 #### GET /domain/{domainName}/role
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): None
 
 Enumerate roles provisioned in this domain.
@@ -1529,7 +1521,7 @@ Exception:
 
 #### GET /domain/{domainName}/roles
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): None
 
 Enumerate roles provisioned in this domain and returns the list including role
@@ -1565,7 +1557,7 @@ Exception:
 
 #### GET /domain/{domainName}/services
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): None
 
 Enumerate services provisioned in this domain and returns the list including service
@@ -1604,7 +1596,7 @@ Exception:
 
 #### PUT /domain/{domain}/service/{service}
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): authorize ("update", "{domain}:service")
 
 Register the specified ServiceIdentity in the specified domain.
@@ -1636,7 +1628,7 @@ Exception:
 
 #### GET /domain/{domain}/service/{service}
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): None
 
 Get info for the specified ServiceIdentity.
@@ -1666,7 +1658,7 @@ Exception:
 
 #### DELETE /domain/{domain}/service/{service}
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): authorize ("delete", "{domain}:service")
 
 Delete the specified ServiceIdentity.
@@ -1699,7 +1691,7 @@ Exception:
 
 #### GET /domain/{domainName}/service
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): None
 
 Enumerate services provisioned in this domain.
@@ -1732,7 +1724,7 @@ Exception:
 
 #### GET /principal
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): None
 
 Return a principal object if the serviceToken passed as part of the authentication header is valid.
@@ -1757,7 +1749,7 @@ Exception:
 
 #### GET /sys/modified\_domains
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): None
 
 Retrieve the list of modified domains since the specified timestamp. The server will
@@ -1800,7 +1792,7 @@ Exception:
 
 #### POST /subdomain/{parent}
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): authorize ("create", "{parent}:domain")
 
 Create a new subdomain, The authorization is based on the parent domain.
@@ -1828,7 +1820,7 @@ Exception:
 
 #### DELETE /subdomain/{parent}/{name}
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): authorize ("delete", "{parent}:domain")
 
 Delete the specified subdomain. The {name} component in the URI must not include
@@ -1860,7 +1852,7 @@ Exception:
 
 #### PUT /domain/{name}/template
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): authorize ("update", "{name}:"
 
 Update the given domain by applying the roles and policies defined in the specified
@@ -1892,7 +1884,7 @@ Exception:
 
 #### GET /domain/{name}/template
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): None
 
 Get the list of solution templates applied to a domain
@@ -1921,7 +1913,7 @@ Exception:
 
 #### GET /template
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): None
 
 Get the list of solution templates defined in the server
@@ -1944,7 +1936,7 @@ Exception:
 
 #### GET /template/{template}
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): None
 
 Get solution template details. Includes the roles and policies that will be automatically
@@ -1976,7 +1968,7 @@ Exception:
 
 #### PUT /domain/{domain}/tenancy/{service}
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): authorize ("update", "{domain}:tenancy")
 
 Add a tenant for the specified service.
@@ -2009,7 +2001,7 @@ Exception:
 
 #### DELETE /domain/{domain}/tenancy/{service}
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): authorize ("delete", "{domain}:tenancy")
 
 Delete the tenant from the specified service. Upon successful completion of this
@@ -2042,7 +2034,7 @@ Exception:
 
 #### PUT /domain/{domain}/tenancy/{service}/resourceGroup/{resourceGroup}
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): authorize ("update", "{domain}:tenancy.{service}")
 
 Add a new resource group for the tenant for the specified service
@@ -2075,7 +2067,7 @@ Exception:
 
 #### DELETE /domain/{domain}/tenancy/{service}/resourceGroup/{resourceGroup}
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): authorize ("update", "{domain}:tenancy.{service}")
 
 Delete the specified resource group for tenant from the specified service.
@@ -2107,7 +2099,7 @@ Exception:
 
 #### GET /providerdomain/{providerDomainName}/user/{userName}?roleName={roleName}
 
--   [Authentication](#authentication): Certificate, NToken
+-   [Authentication](#authentication): Certificate
 -   [Authorization](#authorization): None
 
 ##### Request Parameters

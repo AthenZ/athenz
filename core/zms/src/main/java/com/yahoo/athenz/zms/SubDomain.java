@@ -3,6 +3,7 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;
 import com.yahoo.rdl.*;
@@ -10,6 +11,7 @@ import com.yahoo.rdl.*;
 //
 // SubDomain - A Subdomain is a TopLevelDomain, except it has a parent.
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class SubDomain {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -53,6 +55,15 @@ public class SubDomain {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Integer serviceExpiryDays;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer groupExpiryDays;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String userAuthorityFilter;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String azureSubscription;
     public String name;
     public List<String> adminUsers;
     @RdlOptional
@@ -158,6 +169,27 @@ public class SubDomain {
     public Integer getServiceExpiryDays() {
         return serviceExpiryDays;
     }
+    public SubDomain setGroupExpiryDays(Integer groupExpiryDays) {
+        this.groupExpiryDays = groupExpiryDays;
+        return this;
+    }
+    public Integer getGroupExpiryDays() {
+        return groupExpiryDays;
+    }
+    public SubDomain setUserAuthorityFilter(String userAuthorityFilter) {
+        this.userAuthorityFilter = userAuthorityFilter;
+        return this;
+    }
+    public String getUserAuthorityFilter() {
+        return userAuthorityFilter;
+    }
+    public SubDomain setAzureSubscription(String azureSubscription) {
+        this.azureSubscription = azureSubscription;
+        return this;
+    }
+    public String getAzureSubscription() {
+        return azureSubscription;
+    }
     public SubDomain setName(String name) {
         this.name = name;
         return this;
@@ -234,6 +266,15 @@ public class SubDomain {
                 return false;
             }
             if (serviceExpiryDays == null ? a.serviceExpiryDays != null : !serviceExpiryDays.equals(a.serviceExpiryDays)) {
+                return false;
+            }
+            if (groupExpiryDays == null ? a.groupExpiryDays != null : !groupExpiryDays.equals(a.groupExpiryDays)) {
+                return false;
+            }
+            if (userAuthorityFilter == null ? a.userAuthorityFilter != null : !userAuthorityFilter.equals(a.userAuthorityFilter)) {
+                return false;
+            }
+            if (azureSubscription == null ? a.azureSubscription != null : !azureSubscription.equals(a.azureSubscription)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

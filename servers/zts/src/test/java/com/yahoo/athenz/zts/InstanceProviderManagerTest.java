@@ -24,6 +24,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static com.yahoo.athenz.common.ServerCommonConsts.PROP_ATHENZ_CONF;
+import static com.yahoo.athenz.common.ServerCommonConsts.ZTS_PROP_FILE_NAME;
 import static org.testng.Assert.fail;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
@@ -31,6 +33,9 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.assertFalse;
 
+import com.yahoo.athenz.common.server.dns.HostnameResolver;
+import com.yahoo.athenz.common.server.store.ChangeLogStore;
+import com.yahoo.athenz.zts.store.MockZMSFileChangeLogStore;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -44,13 +49,8 @@ import com.yahoo.athenz.zms.Role;
 import com.yahoo.athenz.zms.RoleMember;
 import com.yahoo.athenz.zms.ServiceIdentity;
 import com.yahoo.athenz.zms.SignedDomain;
-import com.yahoo.athenz.zts.InstanceProviderManager;
 import com.yahoo.athenz.zts.InstanceProviderManager.ProviderScheme;
-import com.yahoo.athenz.zts.ZTSConsts;
-import com.yahoo.athenz.zts.store.ChangeLogStore;
 import com.yahoo.athenz.zts.store.DataStore;
-import com.yahoo.athenz.zts.store.impl.MockZMSFileChangeLogStore;
-import com.yahoo.athenz.zts.store.impl.ZMSFileChangeLogStore;
 import com.yahoo.rdl.Timestamp;
 
 import javax.net.ssl.SSLContext;
@@ -65,8 +65,8 @@ public class InstanceProviderManagerTest {
     
     @BeforeClass
     public void setUpClass() {
-        System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
-        System.setProperty(ZTSConsts.ZTS_PROP_FILE_NAME, "src/test/resources/zts.properties");
+        System.setProperty(PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
+        System.setProperty(ZTS_PROP_FILE_NAME, "src/test/resources/zts.properties");
     }
     
     @BeforeMethod
@@ -178,7 +178,7 @@ public class InstanceProviderManagerTest {
         store.processDomain(signedDomain, false);
         
         InstanceProviderManager provider = new InstanceProviderManager(store, null, null);
-        InstanceProvider client = provider.getProvider("coretech");
+        InstanceProvider client = provider.getProvider("coretech", null);
         assertNull(client);
     }
     
@@ -189,7 +189,7 @@ public class InstanceProviderManagerTest {
         store.processDomain(signedDomain, false);
         
         InstanceProviderManager provider = new InstanceProviderManager(store, SSLContext.getDefault(), null);
-        InstanceProvider client = provider.getProvider("coretech.weather");
+        InstanceProvider client = provider.getProvider("coretech.weather", null);
         assertNotNull(client);
         client.close();
     }
@@ -201,7 +201,7 @@ public class InstanceProviderManagerTest {
         store.processDomain(signedDomain, false);
         
         InstanceProviderManager provider = new InstanceProviderManager(store, SSLContext.getDefault(), null);
-        InstanceProvider client = provider.getProvider("coretech.weather2");
+        InstanceProvider client = provider.getProvider("coretech.weather2", null);
         assertNull(client);
     }
     
@@ -212,7 +212,7 @@ public class InstanceProviderManagerTest {
         store.processDomain(signedDomain, false);
         
         InstanceProviderManager provider = new InstanceProviderManager(store, null, null);
-        InstanceProvider client = provider.getProvider("coretech.weather");
+        InstanceProvider client = provider.getProvider("coretech.weather", new HostnameResolver(){});
         assertNotNull(client);
         client.close();
     }
@@ -225,7 +225,7 @@ public class InstanceProviderManagerTest {
 
         System.setProperty("athenz.instance.test.class.exception", "true");
         InstanceProviderManager provider = new InstanceProviderManager(store, null, null);
-        InstanceProvider client = provider.getProvider("coretech.weather");
+        InstanceProvider client = provider.getProvider("coretech.weather", new HostnameResolver(){});
         assertNull(client);
         System.clearProperty("athenz.instance.test.class.exception");
     }
@@ -237,7 +237,7 @@ public class InstanceProviderManagerTest {
         store.processDomain(signedDomain, false);
         
         InstanceProviderManager provider = new InstanceProviderManager(store, null, null);
-        InstanceProvider client = provider.getProvider("coretech2.weather");
+        InstanceProvider client = provider.getProvider("coretech2.weather", null);
         assertNull(client);
     }
     
@@ -248,7 +248,7 @@ public class InstanceProviderManagerTest {
         store.processDomain(signedDomain, false);
         
         InstanceProviderManager provider = new InstanceProviderManager(store, null, null);
-        InstanceProvider client = provider.getProvider("coretech.weather2");
+        InstanceProvider client = provider.getProvider("coretech.weather2", null);
         assertNull(client);
     }
     
@@ -259,7 +259,7 @@ public class InstanceProviderManagerTest {
         store.processDomain(signedDomain, false);
         
         InstanceProviderManager provider = new InstanceProviderManager(store, null, null);
-        InstanceProvider client = provider.getProvider("coretech.weather");
+        InstanceProvider client = provider.getProvider("coretech.weather", null);
         assertNull(client);
     }
     
@@ -271,7 +271,7 @@ public class InstanceProviderManagerTest {
         store.processDomain(signedDomain, false);
         
         InstanceProviderManager provider = new InstanceProviderManager(store, null, null);
-        InstanceProvider client = provider.getProvider("coretech.weather");
+        InstanceProvider client = provider.getProvider("coretech.weather", null);
         assertNull(client);
     }
     
@@ -283,7 +283,7 @@ public class InstanceProviderManagerTest {
         store.processDomain(signedDomain, false);
         
         InstanceProviderManager provider = new InstanceProviderManager(store, null, null);
-        InstanceProvider client = provider.getProvider("coretech.weather");
+        InstanceProvider client = provider.getProvider("coretech.weather", null);
         assertNull(client);
     }
     
@@ -294,7 +294,7 @@ public class InstanceProviderManagerTest {
         store.processDomain(signedDomain, false);
         
         InstanceProviderManager provider = new InstanceProviderManager(store, null, null);
-        InstanceProvider client = provider.getProvider("coretech.weather");
+        InstanceProvider client = provider.getProvider("coretech.weather", null);
         assertNull(client);
     }
     
@@ -377,34 +377,35 @@ public class InstanceProviderManagerTest {
     
     @Test
     public void testGetClassInstance() {
+        HostnameResolver hostnameResolver = new HostnameResolver(){};
 
         InstanceProviderManager providerManager = new InstanceProviderManager(null, null, null);
-        InstanceProvider provider = providerManager.getClassProvider("unknown.class", "provider");
+        InstanceProvider provider = providerManager.getClassProvider("unknown.class", "provider", hostnameResolver);
         assertNull(provider);
         
-        provider = providerManager.getClassProvider("com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", "provider");
+        provider = providerManager.getClassProvider("com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", "provider", hostnameResolver);
         assertNotNull(provider);
 
-        provider = providerManager.getClassProvider("com.yahoo.athenz.instance.provider.impl.InstanceAWSECSProvider", "provider");
+        provider = providerManager.getClassProvider("com.yahoo.athenz.instance.provider.impl.InstanceAWSECSProvider", "provider", hostnameResolver);
         assertNotNull(provider);
 
-        provider = providerManager.getClassProvider("com.yahoo.athenz.instance.provider.impl.InstanceAWSLambdaProvider", "provider");
+        provider = providerManager.getClassProvider("com.yahoo.athenz.instance.provider.impl.InstanceAWSLambdaProvider", "provider", hostnameResolver);
         assertNotNull(provider);
 
         // we should get this from the cache now
         
-        provider = providerManager.getClassProvider("com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", "provider");
+        provider = providerManager.getClassProvider("com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", "provider", hostnameResolver);
         assertNotNull(provider);
         
         // some invalid class name
         
-        provider = providerManager.getClassProvider("com.yahoo.athenz.unknown.class", "provider");
+        provider = providerManager.getClassProvider("com.yahoo.athenz.unknown.class", "provider", hostnameResolver);
         assertNull(provider);
         
         // class name that doesn't implement expected interface
         
         try {
-            providerManager.getClassProvider("com.yahoo.athenz.zts.ZTSConsts", "provider");
+            providerManager.getClassProvider("com.yahoo.athenz.zts.ZTSConsts", "provider", hostnameResolver);
             fail();
         } catch (Exception ignored) {
         }

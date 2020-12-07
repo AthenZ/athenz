@@ -19,13 +19,17 @@
   <parent>
     <groupId>com.yahoo.athenz</groupId>
     <artifactId>athenz</artifactId>
-    <version>1.9.6</version>
+    <version>1.9.26-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
   <artifactId>athenz-zts-server</artifactId>
   <name>athenz-zts-server</name>
   <description>Athenz ZTS Server</description>
+
+  <properties>
+    <code.coverage.min>0.98</code.coverage.min>
+  </properties>
 
   <dependencyManagement>
     <dependencies>
@@ -191,6 +195,21 @@
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
       <version>${apache.httpclient.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>athenz-zts-java-client-core</artifactId>
+      <version>${project.parent.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.swagger.core.v3</groupId>
+      <artifactId>swagger-jaxrs2</artifactId>
+      <version>${swagger.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.swagger.core.v3</groupId>
+      <artifactId>swagger-jaxrs2-servlet-initializer</artifactId>
+      <version>${swagger.version}</version>
     </dependency>
   </dependencies>
 

@@ -18,10 +18,13 @@ package com.yahoo.athenz.zts.cert.impl;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.common.server.db.RolesProvider;
+import com.yahoo.athenz.common.server.notification.NotificationManager;
 import com.yahoo.athenz.common.server.ssh.SSHRecordStore;
 import com.yahoo.athenz.common.server.ssh.SSHRecordStoreConnection;
 import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.cert.X509CertUtils;
+import com.yahoo.athenz.zts.notification.ZTSClientNotificationSenderImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,10 +35,12 @@ public class DynamoDBSSHRecordStore implements SSHRecordStore {
 
     private DynamoDB dynamoDB;
     private String tableName;
+    private ZTSClientNotificationSenderImpl ztsClientNotificationSender;
 
-    public DynamoDBSSHRecordStore(AmazonDynamoDB client, final String tableName) {
-        dynamoDB = new DynamoDB(client);
+    public DynamoDBSSHRecordStore(AmazonDynamoDB client, final String tableName, ZTSClientNotificationSenderImpl ztsClientNotificationSender) {
+        this.dynamoDB = new DynamoDB(client);
         this.tableName = tableName;
+        this.ztsClientNotificationSender = ztsClientNotificationSender;
     }
 
     @Override
@@ -60,5 +65,15 @@ public class DynamoDBSSHRecordStore implements SSHRecordStore {
     public void log(final Principal principal, final String ip, final String service,
                     final String instanceId) {
         X509CertUtils.logSSH(SSHLOGGER, principal, ip, service, instanceId);
+    }
+
+    @Override
+    public boolean enableNotifications(NotificationManager notificationManager, RolesProvider rolesProvider, final String serverName) {
+        if (ztsClientNotificationSender != null) {
+            return ztsClientNotificationSender.init(notificationManager, rolesProvider, serverName);
+        } else {
+            LOGGER.warn("Can't enable notifications as ZTSClientNotificationSenderImpl wasn't provided in CTOR");
+            return false;
+        }
     }
 }

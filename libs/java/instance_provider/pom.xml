@@ -20,7 +20,7 @@
   <parent>
     <groupId>com.yahoo.athenz</groupId>
     <artifactId>athenz</artifactId>
-    <version>1.9.6</version>
+    <version>1.9.26-SNAPSHOT</version>
     <relativePath>../../../pom.xml</relativePath>
   </parent>
 
@@ -28,6 +28,10 @@
   <name>athenz-instance-provider</name>
   <description>Athenz Instance Provider Classes</description>
   <packaging>jar</packaging>
+
+  <properties>
+    <code.coverage.min>0.99</code.coverage.min>
+  </properties>
 
   <dependencyManagement>
     <dependencies>
@@ -106,6 +110,11 @@
     <dependency>
       <groupId>com.amazonaws</groupId>
       <artifactId>aws-java-sdk-sts</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.yahoo.athenz</groupId>
+      <artifactId>athenz-server-common</artifactId>
+      <version>${project.parent.version}</version>
     </dependency>
   </dependencies>
 

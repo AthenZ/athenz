@@ -33,7 +33,7 @@ which will be used for retrieving passwords. Default: `com.yahoo.athenz.auth.imp
     ```
     <config xmlns="http://www.ehcache.org/v3">
         <cache-template name="role-access">
-            <expiry><tti unit="minutes">10</tti></expiry>
+            <expiry><ttl unit="minutes">10</ttl></expiry>
             <heap unit="entries">10000</heap>
         </cache-template>
     </config>

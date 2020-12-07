@@ -16,6 +16,8 @@
 
 package com.yahoo.athenz.common.server.notification;
 
+import com.yahoo.rdl.Timestamp;
+
 import java.util.*;
 
 public class Notification {
@@ -29,13 +31,8 @@ public class Notification {
     // Utility class to convert the notification into an email
     private NotificationToEmailConverter notificationToEmailConverter;
 
-    public Notification (Set<String> recipients,
-                         Map<String, String> details,
-                         NotificationToEmailConverter notificationToEmailConverter) {
-        this.recipients = recipients;
-        this.details = details;
-        this.notificationToEmailConverter = notificationToEmailConverter;
-    }
+    // Utility class to convert the notification into metric attributes
+    private NotificationToMetricConverter notificationToMetricConverter;
 
     public Notification () {
     }
@@ -89,6 +86,17 @@ public class Notification {
         return null;
     }
 
+    public Notification setNotificationToMetricConverter(NotificationToMetricConverter notificationToMetricConverter) {
+        this.notificationToMetricConverter = notificationToMetricConverter;
+        return this;
+    }
+
+    public NotificationMetric getNotificationAsMetrics(Timestamp currentTime) {
+        if (notificationToMetricConverter != null) {
+            return notificationToMetricConverter.getNotificationAsMetrics(this, currentTime);
+        }
+        return null;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -99,14 +107,16 @@ public class Notification {
             return false;
         }
         Notification that = (Notification) o;
+        Timestamp currentTime = Timestamp.fromMillis(System.currentTimeMillis());
         return  Objects.equals(getRecipients(), that.getRecipients()) &&
                 Objects.equals(getDetails(), that.getDetails()) &&
+                Objects.equals(getNotificationAsMetrics(currentTime), that.getNotificationAsMetrics(currentTime)) &&
                 Objects.equals(getNotificationAsEmail(), that.getNotificationAsEmail());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getRecipients(), getDetails(), getNotificationAsEmail());
+        return Objects.hash(getRecipients(), getDetails());
     }
 
     @Override
@@ -115,10 +125,15 @@ public class Notification {
         if (notificationToEmailConverter != null) {
             emailConverterClassName = notificationToEmailConverter.getClass().getName();
         }
+        String metricConverterClassName = "";
+        if (notificationToMetricConverter != null) {
+            metricConverterClassName = notificationToMetricConverter.getClass().getName();
+        }
         return "Notification{" +
                 "recipients=" + recipients +
                 ", details=" + details +
                 ", emailConverterClass=" + emailConverterClassName +
+                ", metricConverterClass=" + metricConverterClassName +
                 '}';
     }
 }

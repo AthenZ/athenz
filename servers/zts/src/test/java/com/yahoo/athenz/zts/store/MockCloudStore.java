@@ -1,29 +1,31 @@
 /*
- * Copyright 2016 Yahoo Inc.
+ *  Copyright 2020 Verizon Media
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
+
 package com.yahoo.athenz.zts.store;
 
 import com.amazonaws.AmazonServiceException;
-import com.amazonaws.services.securitytoken.model.*;
+import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
+import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
+import com.amazonaws.services.securitytoken.model.AssumeRoleResult;
+import com.amazonaws.services.securitytoken.model.GetCallerIdentityRequest;
+import com.amazonaws.services.securitytoken.model.GetCallerIdentityResult;
+import com.yahoo.athenz.zts.AWSTemporaryCredentials;
 import org.mockito.Mockito;
 
-import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
-import com.yahoo.athenz.zts.AWSTemporaryCredentials;
-
 public class MockCloudStore extends CloudStore {
-
     private String account = null;
     private String roleName = null;
     private String principal = null;
@@ -41,7 +43,7 @@ public class MockCloudStore extends CloudStore {
     public boolean isAwsEnabled() {
         return true;
     }
-    
+
     public void setMockFields(String account, String roleName, String principal) {
         this.account = account;
         this.roleName = roleName;
@@ -51,13 +53,13 @@ public class MockCloudStore extends CloudStore {
     void setAssumeRoleResult(AssumeRoleResult assumeRoleResult) {
         this.assumeRoleResult = assumeRoleResult;
     }
-    
+
     void setGetCallerIdentityResult(GetCallerIdentityResult callerIdentityResult) {
         this.callerIdentityResult = callerIdentityResult;
     }
 
     @Override
-    AWSSecurityTokenServiceClient getTokenServiceClient() {
+    public AWSSecurityTokenServiceClient getTokenServiceClient() {
         if (exceptionStatusCode != 0) {
             if (amazonException) {
                 AmazonServiceException ex = new AmazonServiceException("Error");
@@ -77,7 +79,7 @@ public class MockCloudStore extends CloudStore {
     void setReturnSuperAWSRole(boolean returnSuperAWSRole) {
         this.returnSuperAWSRole = returnSuperAWSRole;
     }
-    
+
     @Override
     public AWSTemporaryCredentials assumeAWSRole(String account, String roleName, String principal,
                                                  Integer durationSeconds, String externalId) {
@@ -88,7 +90,7 @@ public class MockCloudStore extends CloudStore {
                     && this.principal.equals(principal)) {
                 tempCreds = new AWSTemporaryCredentials();
             }
-            
+
             return tempCreds;
         } else {
             return super.assumeAWSRole(account, roleName, principal, durationSeconds, externalId);

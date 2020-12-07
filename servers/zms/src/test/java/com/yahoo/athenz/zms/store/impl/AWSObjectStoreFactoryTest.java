@@ -15,8 +15,14 @@
  */
 package com.yahoo.athenz.zms.store.impl;
 
+import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.InstanceProfileCredentialsProvider;
+import com.amazonaws.services.rds.auth.GetIamAuthTokenRequest;
+import com.amazonaws.services.rds.auth.RdsIamAuthTokenGenerator;
+import com.amazonaws.util.EC2MetadataUtils;
 import com.yahoo.athenz.zms.ZMSConsts;
 import com.yahoo.athenz.zms.store.ObjectStore;
+import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertNotNull;
@@ -24,9 +30,24 @@ import static org.testng.Assert.assertNotNull;
 public class AWSObjectStoreFactoryTest {
 
     class TestAWSObjectStoreFactory extends AWSObjectStoreFactory {
-        
+
         @Override
-        String getAuthToken(String hostname, int port, String rdsUser, String rdsIamRole) {
+        InstanceProfileCredentialsProvider getNewInstanceCredentialsProvider() {
+            InstanceProfileCredentialsProvider provider = Mockito.mock(InstanceProfileCredentialsProvider.class);
+            AWSCredentials awsCredentials = Mockito.mock(AWSCredentials.class);
+            Mockito.when(provider.getCredentials()).thenReturn(awsCredentials);
+            Mockito.when(awsCredentials.getAWSAccessKeyId()).thenReturn("id");
+            return provider;
+        }
+
+        @Override
+        String getRegion() {
+            return "us-west-2";
+        }
+
+        @Override
+        String getGeneratorAuthToken(RdsIamAuthTokenGenerator generator, final String hostname,
+                                     int port, final String rdsUser) {
             if (rdsUser.equals("rds-user")) {
                 return "token";
             }
@@ -56,13 +77,41 @@ public class AWSObjectStoreFactoryTest {
     }
 
     @Test
+    public void testOriginalMethods() {
+
+        System.setProperty(ZMSConsts.ZMS_PROP_AWS_RDS_MASTER_INSTANCE, "instance");
+        System.setProperty(ZMSConsts.ZMS_PROP_AWS_RDS_USER, "rds-user");
+        System.setProperty(ZMSConsts.ZMS_PROP_AWS_RDS_IAM_ROLE, "role");
+        System.setProperty(ZMSConsts.ZMS_PROP_AWS_RDS_CREDS_REFRESH_TIME, "30000");
+
+        System.clearProperty(ZMSConsts.ZMS_PROP_AWS_RDS_REPLICA_INSTANCE);
+
+        AWSObjectStoreFactory factory = new AWSObjectStoreFactory();
+
+        try {
+            factory.getNewInstanceCredentialsProvider();
+        } catch (Exception ignored) {
+        }
+
+        try {
+            factory.getRegion();
+        } catch (Exception ignored) {
+        }
+
+        try {
+            factory.getGeneratorAuthToken(null, "localhost", 40888, "rdsUser");
+        } catch (Exception ignored) {
+        }
+    }
+
+    @Test
     public void testCreateWithReplica() {
 
         System.setProperty(ZMSConsts.ZMS_PROP_AWS_RDS_MASTER_INSTANCE, "instance");
         System.setProperty(ZMSConsts.ZMS_PROP_AWS_RDS_REPLICA_INSTANCE, "replica");
         System.setProperty(ZMSConsts.ZMS_PROP_AWS_RDS_USER, "rds-user");
         System.setProperty(ZMSConsts.ZMS_PROP_AWS_RDS_IAM_ROLE, "role");
-        System.setProperty(ZMSConsts.ZMS_PROP_AWS_RDS_CREDS_REFRESH_TIME, "1");
+        System.setProperty(ZMSConsts.ZMS_PROP_AWS_RDS_CREDS_REFRESH_TIME, "30000");
 
         AWSObjectStoreFactory factory = new TestAWSObjectStoreFactory();
         ObjectStore store = factory.create(null);

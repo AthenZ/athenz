@@ -96,4 +96,20 @@ public class NotificationToEmailConverterCommonTest {
         Mockito.when(reader.readLine()).thenThrow(new IOException());
         assertTrue(notificationToEmailConverterCommon.readContentFromFile(getClass().getClassLoader(), "resources/dummy").isEmpty());
     }
+
+    @Test
+    public void testgettTbleEntryTemplate() {
+        NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon();
+        int numOfColumns = 1;
+        String tableEntryTemplate = notificationToEmailConverterCommon.getTableEntryTemplate(numOfColumns);
+        assertEquals(tableEntryTemplate, "<tr><td class=\"cv\">{0}</td></tr>");
+
+        numOfColumns = 3;
+        tableEntryTemplate = notificationToEmailConverterCommon.getTableEntryTemplate(numOfColumns);
+        assertEquals(tableEntryTemplate, "<tr><td class=\"cv\">{0}</td><td class=\"cv\">{1}</td><td class=\"cv\">{2}</td></tr>");
+
+        numOfColumns = 6;
+        tableEntryTemplate = notificationToEmailConverterCommon.getTableEntryTemplate(numOfColumns);
+        assertEquals(tableEntryTemplate, "<tr><td class=\"cv\">{0}</td><td class=\"cv\">{1}</td><td class=\"cv\">{2}</td><td class=\"cv\">{3}</td><td class=\"cv\">{4}</td><td class=\"cv\">{5}</td></tr>");
+    }
 }

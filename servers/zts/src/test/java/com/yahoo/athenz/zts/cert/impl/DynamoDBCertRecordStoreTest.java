@@ -21,7 +21,11 @@ import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.server.cert.CertRecordStoreConnection;
+import com.yahoo.athenz.common.server.db.RolesProvider;
+import com.yahoo.athenz.common.server.notification.NotificationManager;
+import com.yahoo.athenz.zts.notification.ZTSClientNotificationSenderImpl;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -32,6 +36,8 @@ import java.nio.file.Files;
 import java.security.cert.X509Certificate;
 
 import static org.testng.Assert.*;
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertTrue;
 
 public class DynamoDBCertRecordStoreTest {
 
@@ -45,7 +51,12 @@ public class DynamoDBCertRecordStoreTest {
     @Test
     public void testGetConnection() {
 
-        DynamoDBCertRecordStore store = new DynamoDBCertRecordStore(dbClient, "Athenz-ZTS-Table");
+        DynamoDBCertRecordStore store = new DynamoDBCertRecordStore(
+                dbClient,
+                "Athenz-ZTS-Table",
+                "Athenz-ZTS-Current-Time-Index",
+                "Athenz-ZTS-Host-Name-Index",
+                null);
 
         CertRecordStoreConnection dbConn = store.getConnection();
         assertNotNull(dbConn);
@@ -59,7 +70,21 @@ public class DynamoDBCertRecordStoreTest {
     public void testGetConnectionException() {
 
         // passing null for table name to get exception
-        DynamoDBCertRecordStore store = new DynamoDBCertRecordStore(dbClient, null);
+        DynamoDBCertRecordStore store = new DynamoDBCertRecordStore(
+                dbClient,
+                null,
+                "Athenz-ZTS-Current-Time-Index",
+                "Athenz-ZTS-Host-Name-Index",
+                null);
+
+        try {
+            store.getConnection();
+            fail();
+        } catch (Exception ignored) {
+        }
+
+        // passing null for index name to get exception
+        store = new DynamoDBCertRecordStore(dbClient, "Athenz-ZTS-Table", null, null, null);
 
         try {
             store.getConnection();
@@ -71,7 +96,12 @@ public class DynamoDBCertRecordStoreTest {
     @Test
     public void testLog() {
 
-        DynamoDBCertRecordStore store = new DynamoDBCertRecordStore(dbClient, "Athenz-ZTS-Table");
+        DynamoDBCertRecordStore store = new DynamoDBCertRecordStore(
+                dbClient,
+                "Athenz-ZTS-Table",
+                "Athenz-ZTS-Current-Time-Index",
+                "Athenz-ZTS-Host-Name-Index",
+                null);
 
         File file = new File("src/test/resources/cert_log.pem");
         String pem = null;
@@ -87,5 +117,33 @@ public class DynamoDBCertRecordStoreTest {
         // make sure no exceptions are thrown when processing log request
 
         store.log(principal, "10.11.12.13", "athens.provider", "1234", cert);
+    }
+
+    @Test
+    public void testEnableNotifications() {
+        DynamoDBCertRecordStore store = new DynamoDBCertRecordStore(
+                dbClient,
+                "Athenz-ZTS-Table",
+                "Athenz-ZTS-Current-Time-Index",
+                "Athenz-ZTS-Host-Name-Index",
+                null);
+        boolean isEnabled = store.enableNotifications(null, null, null);
+        assertFalse(isEnabled);
+
+        ZTSClientNotificationSenderImpl ztsClientNotificationSender = new ZTSClientNotificationSenderImpl();
+        store = new DynamoDBCertRecordStore(
+                dbClient,
+                "Athenz-ZTS-Table",
+                "Athenz-ZTS-Current-Time-Index",
+                "Athenz-ZTS-Host-Name-Index",
+                ztsClientNotificationSender);
+        isEnabled = store.enableNotifications(null, null, null);
+        assertFalse(isEnabled);
+
+        NotificationManager notificationManager = Mockito.mock(NotificationManager.class);
+        RolesProvider rolesProvider = Mockito.mock(RolesProvider.class);
+        String serverName = "testServer";
+        isEnabled = store.enableNotifications(notificationManager, rolesProvider, serverName);
+        assertTrue(isEnabled);
     }
 }

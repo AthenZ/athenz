@@ -17,6 +17,7 @@ export DEV_USER_CA_KEY_PATH="${DEV_CA_DIR}/user_ca.pem"
 export DEV_USER_CA_PATH="${DEV_CA_DIR}/user_ca.pem"
 export DEV_SERVICE_CA_KEY_PATH="${DEV_CA_DIR}/service_ca.pem"
 export DEV_SERVICE_CA_PATH="${DEV_CA_DIR}/service_ca.pem"
+export DEV_ATHENZ_CA_DER_PATH="${DEV_CA_DIR}/athenz_ca.der"
 
 ### ----------------------------------------------------------------
 ### domain admin
@@ -46,3 +47,10 @@ export DEV_ZMS_CLIENT_CERT_KEY_PATH="${DEV_ZTS_DIR}/zms_client_key.pem"
 export DEV_ZMS_CLIENT_CSR_PATH="${DEV_ZTS_DIR}/zms_client_csr.pem"
 export DEV_ZMS_CLIENT_CERT_PATH="${DEV_ZTS_DIR}/zms_client_cert.pem"
 export DEV_ZMS_CLIENT_CERT_BUNDLE_PATH="${DEV_ZTS_DIR}/zms_client_cert_bundle.pem"
+
+### ----------------------------------------------------------------
+### UI
+export DEV_UI_DIR="${SAMPLE_DIR}/ui"
+export DEV_UI_CERT_KEY_PATH="${DEV_UI_DIR}/ui_key.pem"
+export DEV_UI_CSR_PATH="${DEV_UI_DIR}/ui_csr.pem"
+export DEV_UI_CERT_PATH="${DEV_UI_DIR}/ui_cert.pem"

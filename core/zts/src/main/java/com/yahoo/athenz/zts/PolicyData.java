@@ -3,12 +3,14 @@
 //
 
 package com.yahoo.athenz.zts;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.List;
 import com.yahoo.rdl.*;
 
 //
 // PolicyData -
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class PolicyData {
     public String domain;
     public List<Policy> policies;

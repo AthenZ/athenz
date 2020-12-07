@@ -3,6 +3,7 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;
 import com.yahoo.rdl.*;
@@ -10,6 +11,7 @@ import com.yahoo.rdl.*;
 //
 // DomainData - A domain object that includes its roles, policies and services.
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class DomainData {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -53,11 +55,21 @@ public class DomainData {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Integer serviceExpiryDays;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer groupExpiryDays;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String userAuthorityFilter;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String azureSubscription;
     public String name;
     public List<Role> roles;
     public SignedPolicies policies;
     public List<ServiceIdentity> services;
     public List<Entity> entities;
+    public List<Group> groups;
     public Timestamp modified;
 
     public DomainData setDescription(String description) {
@@ -158,6 +170,27 @@ public class DomainData {
     public Integer getServiceExpiryDays() {
         return serviceExpiryDays;
     }
+    public DomainData setGroupExpiryDays(Integer groupExpiryDays) {
+        this.groupExpiryDays = groupExpiryDays;
+        return this;
+    }
+    public Integer getGroupExpiryDays() {
+        return groupExpiryDays;
+    }
+    public DomainData setUserAuthorityFilter(String userAuthorityFilter) {
+        this.userAuthorityFilter = userAuthorityFilter;
+        return this;
+    }
+    public String getUserAuthorityFilter() {
+        return userAuthorityFilter;
+    }
+    public DomainData setAzureSubscription(String azureSubscription) {
+        this.azureSubscription = azureSubscription;
+        return this;
+    }
+    public String getAzureSubscription() {
+        return azureSubscription;
+    }
     public DomainData setName(String name) {
         this.name = name;
         return this;
@@ -192,6 +225,13 @@ public class DomainData {
     }
     public List<Entity> getEntities() {
         return entities;
+    }
+    public DomainData setGroups(List<Group> groups) {
+        this.groups = groups;
+        return this;
+    }
+    public List<Group> getGroups() {
+        return groups;
     }
     public DomainData setModified(Timestamp modified) {
         this.modified = modified;
@@ -250,6 +290,15 @@ public class DomainData {
             if (serviceExpiryDays == null ? a.serviceExpiryDays != null : !serviceExpiryDays.equals(a.serviceExpiryDays)) {
                 return false;
             }
+            if (groupExpiryDays == null ? a.groupExpiryDays != null : !groupExpiryDays.equals(a.groupExpiryDays)) {
+                return false;
+            }
+            if (userAuthorityFilter == null ? a.userAuthorityFilter != null : !userAuthorityFilter.equals(a.userAuthorityFilter)) {
+                return false;
+            }
+            if (azureSubscription == null ? a.azureSubscription != null : !azureSubscription.equals(a.azureSubscription)) {
+                return false;
+            }
             if (name == null ? a.name != null : !name.equals(a.name)) {
                 return false;
             }
@@ -263,6 +312,9 @@ public class DomainData {
                 return false;
             }
             if (entities == null ? a.entities != null : !entities.equals(a.entities)) {
+                return false;
+            }
+            if (groups == null ? a.groups != null : !groups.equals(a.groups)) {
                 return false;
             }
             if (modified == null ? a.modified != null : !modified.equals(a.modified)) {

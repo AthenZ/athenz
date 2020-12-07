@@ -20,7 +20,9 @@ import org.testng.annotations.Test;
 
 import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.metrics.MetricFactory;
-import com.yahoo.athenz.common.metrics.impl.NoOpMetricFactory;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class MetricsTest {
 
@@ -37,12 +39,23 @@ public class MetricsTest {
         metric.increment("metric1", "athenz", 3);
         metric.increment("metric1", "athenz", "sports");
         metric.increment("metric1", "athenz", "sports", 3);
+        metric.increment("apiRquestsMetric", "athenz", "sports", "POST", 200, "caller");
+
+        String[] attributes = new String[] {
+                "tag1", "value1",
+                "tag2", "value2",
+                "tag3", "value3",
+        };
+
+        metric.increment("metric1", attributes);
 
         assertNull(metric.startTiming("metric1", "athenz"));
         assertNull(metric.startTiming("metric1", "athenz", "sports"));
+        assertNull(metric.startTiming("apiRquestsMetric", "athenz", "sports", "POST", "caller"));
 
         metric.stopTiming("metric1");
         metric.stopTiming("metric1", "athenz", "sports");
+        metric.stopTiming("apiRquestsMetric", "athenz", "sports", "POST", 200, "caller");
 
         metric.flush();
         metric.quit();
@@ -66,12 +79,20 @@ public class MetricsTest {
             }
 
             @Override
+            public void increment(String metric, String requestDomainName, String principalDomainName, String httpMethod, int httpStatus, String apiName) {
+            }
+
+            @Override
             public Object startTiming(String metric, String requestDomainName) {
                 return null;
             }
 
             @Override
             public void stopTiming(Object timerMetric) {
+            }
+
+            @Override
+            public void stopTiming(Object timerMetric, String requestDomainName, String principalDomainName, String httpMethod, int httpStatus, String apiName) {
             }
 
             @Override
@@ -88,12 +109,22 @@ public class MetricsTest {
         metric.increment("metric1", "athenz", 3);
         metric.increment("metric1", "athenz", "sports");
         metric.increment("metric1", "athenz", "sports", 3);
+        metric.increment("apiRquestsMetric", "athenz", "sports", "POST", 200, "caller");
+
+        String[] attributes = new String[] {
+                "tag1", "value1",
+                "tag2", "value2",
+                "tag3", "value3",
+        };
+        metric.increment("metric1", attributes);
 
         //assertNull(metric.startTiming("metric1", "athenz"));
         assertNull(metric.startTiming("metric1", "athenz", "sports"));
+        assertNull(metric.startTiming("apiRquestsMetric", "athenz", "sports", "POST", "caller"));
 
         //metric.stopTiming("metric1");
         metric.stopTiming("metric1", "athenz", "sports");
+        metric.stopTiming("apiRquestsMetric", "athenz", "sports", "POST", 200, "caller");
         metric.flush();
         metric.quit();
     }

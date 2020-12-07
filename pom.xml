@@ -20,7 +20,7 @@
   <groupId>com.yahoo.athenz</groupId>
   <artifactId>athenz</artifactId>
   <packaging>pom</packaging>
-  <version>1.9.6</version>
+  <version>1.9.26-SNAPSHOT</version>
 
   <name>AthenZ</name>
   <description>
@@ -55,7 +55,7 @@
   <scm>
     <url>https://github.com/yahoo/athenz</url>
     <connection>scm:git:https://github.com/yahoo/athenz.git</connection>
-    <tag>v1.9.6</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <issueManagement>
@@ -69,34 +69,38 @@
   </ciManagement>
 
   <properties>
-    <jetty.version>9.4.28.v20200408</jetty.version>
-    <jersey.version>2.30.1</jersey.version>
-    <jackson.core.version>2.10.3</jackson.core.version>
-    <jackson.databind.version>2.10.3</jackson.databind.version>
-    <jackson.annotations.version>2.10.3</jackson.annotations.version>
-    <jackson.jaxrs.version>2.10.3</jackson.jaxrs.version>
+    <jetty.version>9.4.35.v20201120</jetty.version>
+    <jersey.version>2.32</jersey.version>
+    <jackson.core.version>2.11.3</jackson.core.version>
+    <jackson.databind.version>2.11.3</jackson.databind.version>
+    <jackson.annotations.version>2.11.3</jackson.annotations.version>
+    <jackson.jaxrs.version>2.11.3</jackson.jaxrs.version>
     <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
-    <rdl.version>1.5.2</rdl.version>
-    <bouncycastle.version>1.65</bouncycastle.version>
-    <aws.version>1.11.764</aws.version>
-    <guava.version>29.0-jre</guava.version>
+    <rdl.version>1.5.3</rdl.version>
+    <bouncycastle.version>1.67</bouncycastle.version>
+    <aws.version>1.11.908</aws.version>
+    <guava.version>30.0-jre</guava.version>
     <logback.version>1.2.3</logback.version>
     <javax.version>3.1.0</javax.version>
     <javax.ws.version>2.1.1</javax.ws.version>
-    <mockito.version>3.3.3</mockito.version>
+    <mockito.version>3.6.28</mockito.version>
     <jmockit.version>1.49</jmockit.version>
-    <jjwt.version>0.11.0</jjwt.version>
-    <jwks.rsa.version>0.11.0</jwks.rsa.version>
-    <mysql.connector.version>8.0.19</mysql.connector.version>
-    <commons.daemon.version>1.2.2</commons.daemon.version>
-    <apache.httpclient.version>4.5.12</apache.httpclient.version>
+    <jjwt.version>0.11.2</jjwt.version>
+    <mysql.connector.version>8.0.22</mysql.connector.version>
+    <commons.daemon.version>1.2.3</commons.daemon.version>
+    <apache.httpclient.version>4.5.13</apache.httpclient.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <code.coverage.min>0.95</code.coverage.min>
+    <argLine>-Dlogback.configurationFile=src/test/resources/travis_logback.xml</argLine>
+    <swagger.version>2.1.5</swagger.version>
   </properties>
 
   <modules>
     <module>rdl/rdl-gen-athenz-server</module>
+    <module>rdl/rdl-gen-athenz-go-model</module>
     <module>rdl/rdl-gen-athenz-go-client</module>
+    <module>rdl/rdl-gen-athenz-java-model</module>
     <module>core/zms</module>
     <module>core/zts</module>
     <module>libs/java/auth_core</module>
@@ -205,6 +209,64 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>0.8.5</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>report</id>
+            <phase>test</phase>
+            <goals>
+              <goal>report</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>jacoco-check</id>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <configuration>
+              <excludes>
+                <exclude>*Test</exclude>
+                <exclude>**/*ZMSRDLGeneratedClient.class</exclude>
+                <exclude>**/ZMSResources.class</exclude>
+                <exclude>**/ZTSResources.class</exclude>
+                <exclude>**/ZMSHandler.class</exclude>
+                <exclude>**/ZTSHandler.class</exclude>
+                <exclude>**/ZMSConsts.class</exclude>
+                <exclude>**/FileConnection.class</exclude>
+                <exclude>**/FileObjectStore.class</exclude>
+              </excludes>
+              <rules>
+                <rules>
+                  <rule>
+                    <limits>
+                      <limit>
+                        <counter>LINE</counter>
+                        <value>COVEREDRATIO</value>
+                        <minimum>${code.coverage.min}</minimum>
+                      </limit>
+                    </limits>
+                  </rule>
+                </rules>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${maven-surefire-plugin.version}</version>
+        <configuration>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
 
@@ -223,7 +285,7 @@
     <dependency>
       <groupId>org.testng</groupId>
       <artifactId>testng</artifactId>
-      <version>7.1.0</version>
+      <version>7.3.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>

@@ -17,7 +17,7 @@
   <parent>
     <groupId>com.yahoo.athenz</groupId>
     <artifactId>athenz</artifactId>
-    <version>1.9.6</version>
+    <version>1.9.26-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
@@ -37,6 +37,10 @@
       </dependency>
     </dependencies>
   </dependencyManagement>
+
+  <properties>
+    <code.coverage.min>0.96</code.coverage.min>
+  </properties>
 
   <dependencies>
     <dependency>
@@ -150,6 +154,22 @@
       <version>3.1.0</version>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+      <groupId>com.wix</groupId>
+      <artifactId>wix-embedded-mysql</artifactId>
+      <version>4.6.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.swagger.core.v3</groupId>
+      <artifactId>swagger-jaxrs2</artifactId>
+      <version>${swagger.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.swagger.core.v3</groupId>
+      <artifactId>swagger-jaxrs2-servlet-initializer</artifactId>
+      <version>${swagger.version}</version>
+    </dependency>
   </dependencies>
 
   <build>
@@ -172,6 +192,15 @@
           <arguments>
             <argument>scripts/make_stubs.sh</argument>
           </arguments>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>**/ZMSResources.class</exclude>
+          </excludes>
         </configuration>
       </plugin>
     </plugins>

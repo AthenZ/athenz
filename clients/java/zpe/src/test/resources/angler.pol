@@ -37,6 +37,12 @@
                         },
                         {
                             "effect": "DENY",
+                            "action": "ThroW2",
+                            "role": "angler:role.public",
+                            "resource": "angler:StUFf2"
+                        },
+                        {
+                            "effect": "DENY",
                             "action": "fish",
                             "role": "angler:role.public",
                             "resource": "angler:spawningpond*"
@@ -52,6 +58,12 @@
                             "action": "access",
                             "effect": "ALLOW",
                             "resource": "angler:tables.blah"
+                        },
+                        {
+                            "role": "angler:role.pachinko",
+                            "action": "AccEss2",
+                            "effect": "ALLOW",
+                            "resource": "angler:TableS.BlaH2"
                         }
                     ],
                     "modified": "2014-05-24T00:35:11.387Z",

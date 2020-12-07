@@ -89,7 +89,7 @@ public class ZMSClient implements Closeable {
     private static final Logger LOGGER = LoggerFactory.getLogger(ZMSClient.class);
     private static final Authority PRINCIPAL_AUTHORITY = new PrincipalAuthority();
 
-    private static PrivateKeyStore PRIVATE_KEY_STORE = loadServicePrivateKey();
+    private static final PrivateKeyStore PRIVATE_KEY_STORE = loadServicePrivateKey();
 
     static PrivateKeyStore loadServicePrivateKey() {
         String pkeyFactoryClass = System.getProperty(ZMS_CLIENT_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
@@ -547,7 +547,7 @@ public class ZMSClient implements Closeable {
      * @throws ZMSClientException in case of failure
      */
     public DomainList getDomainList() {
-        return getDomainList(null, null, null, null, null, null, null);
+        return getDomainList(null, null, null, null, null, null, null, null);
     }
 
     /**
@@ -558,7 +558,7 @@ public class ZMSClient implements Closeable {
      * @param skip          exclude all the domains including the specified one from the return set
      * @param prefix        return domains starting with this value
      * @param depth         maximum depth of the domain (0 - top level domains only)
-     * @param account       return domain that has the specified account name. If account name
+     * @param awsAccount    return domain that has the specified aws account name. If account name
      *                      is specified all other optional attributes are ignored since there must be
      *                      only one domain matching the specified account name.
      * @param productId     return domain that has the specified product id. If product id
@@ -569,7 +569,33 @@ public class ZMSClient implements Closeable {
      * @throws ZMSClientException in case of failure
      */
     public DomainList getDomainList(Integer limit, String skip, String prefix, Integer depth,
-                                    String account, Integer productId, Date modifiedSince) {
+                                    String awsAccount, Integer productId, Date modifiedSince) {
+        return getDomainList(limit, skip, prefix, depth, awsAccount, productId, null, modifiedSince);
+    }
+
+    /**
+     * Retrieve the list of domains provisioned on the ZMS Server
+     * filters based on the specified arguments
+     *
+     * @param limit         number of domain objects to return
+     * @param skip          exclude all the domains including the specified one from the return set
+     * @param prefix        return domains starting with this value
+     * @param depth         maximum depth of the domain (0 - top level domains only)
+     * @param awsAccount    return domain that has the specified aws account name. If account name
+     *                      is specified all other optional attributes are ignored since there must be
+     *                      only one domain matching the specified account name.
+     * @param productId     return domain that has the specified product id. If product id
+     *                      is specified all other optional attributes are ignored since there must be
+     *                      only one domain matching the specified product id.
+     * @param azureSubscription return domain that has the specified azure subscription id. If subscription
+     *                      id is specified all other optional attributes are ignored since there must be
+     *                      only one domain matching the specified subscription id.
+     * @param modifiedSince return domains only modified since this date
+     * @return list of domain names
+     * @throws ZMSClientException in case of failure
+     */
+    public DomainList getDomainList(Integer limit, String skip, String prefix, Integer depth,
+                                    String awsAccount, Integer productId, String azureSubscription, Date modifiedSince) {
         updatePrincipal();
         String modSinceStr = null;
         if (modifiedSince != null) {
@@ -577,7 +603,7 @@ public class ZMSClient implements Closeable {
             modSinceStr = df.format(modifiedSince);
         }
         try {
-            return client.getDomainList(limit, skip, prefix, depth, account, productId, null, null, modSinceStr);
+            return client.getDomainList(limit, skip, prefix, depth, awsAccount, productId, null, null, azureSubscription, modSinceStr);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
@@ -597,7 +623,7 @@ public class ZMSClient implements Closeable {
     public DomainList getDomainList(String roleMember, String roleName) {
         updatePrincipal();
         try {
-            return client.getDomainList(null, null, null, null, null, null, roleMember, roleName, null);
+            return client.getDomainList(null, null, null, null, null, null, roleMember, roleName, null, null);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
@@ -805,18 +831,33 @@ public class ZMSClient implements Closeable {
      *
      * @param domainName name of the domain
      * @param members    include all members for group roles as well
+     * @param tagKey     query all roles with given tag name
+     * @param tagValue   query all roles with given tag key and value
      * @return list of roles
      * @throws ZMSClientException in case of failure
      */
-    public Roles getRoles(String domainName, Boolean members) {
+    public Roles getRoles(String domainName, Boolean members, String tagKey, String tagValue) {
         updatePrincipal();
         try {
-            return client.getRoles(domainName, members);
+            return client.getRoles(domainName, members, tagKey, tagValue);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
             throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
         }
+    }
+
+    /**
+     * Retrieve the list of roles defined for the specified domain. The roles
+     * will contain their attributes and, if specified, the list of members.
+     *
+     * @param domainName name of the domain
+     * @param members    include all members for group roles as well
+     * @return list of roles
+     * @throws ZMSClientException in case of failure
+     */
+    public Roles getRoles(String domainName, Boolean members) {
+        return getRoles(domainName, members, null, null);
     }
 
     /**
@@ -966,7 +1007,7 @@ public class ZMSClient implements Closeable {
     /**
      * Get all domain members with overdue review dates
      *
-     * @param domainName
+     * @param domainName name of the domain
      * @return Domain members with overdue review dates
      */
     public DomainRoleMembers getOverdueReview(String domainName) {
@@ -2014,7 +2055,7 @@ public class ZMSClient implements Closeable {
         }
 
         // before returning let's validate that domain, name and
-        // credentials match to what was passed to 
+        // credentials match to what was passed to
 
         if (!servicePrincipal.getDomain().equalsIgnoreCase(validatedPrincipal.getDomain())) {
             throw new ZMSClientException(ZMSClientException.UNAUTHORIZED, "Validated principal domain name mismatch");
@@ -2352,6 +2393,22 @@ public class ZMSClient implements Closeable {
     }
 
     /**
+     * Fetch all the roles across domains by either calling or specified principal
+     * @param principal - Requested principal. If null will return roles for the user making the call
+     * @param domainName - Requested domain. If null will return roles from all domains
+     * @return Member with roles in all requested domains
+     */
+    public DomainRoleMember getPrincipalRoles(String principal, String domainName) {
+        updatePrincipal();
+        try {
+            return client.getPrincipalRoles(principal, domainName);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+    /**
      * Set the role system meta parameters
      *
      * @param domainName domain name containing the role to be modified
@@ -2447,6 +2504,304 @@ public class ZMSClient implements Closeable {
         updatePrincipal();
         try {
             client.putRoleReview(domainName, roleName, auditRef, role);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Delete the specified group from domain
+     *
+     * @param domainName name of the domain
+     * @param groupName  name of the group
+     * @param auditRef   string containing audit specification or ticket number
+     * @throws ZMSClientException in case of failure
+     */
+    public void deleteGroup(String domainName, String groupName, String auditRef) {
+        updatePrincipal();
+        try {
+            client.deleteGroup(domainName, groupName, auditRef);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Remove the specified member from the group
+     *
+     * @param domainName name of the domain
+     * @param groupName  name of the group
+     * @param memberName name of the member to be removed
+     * @param auditRef   string containing audit specification or ticket number
+     * @throws ZMSClientException in case of failure
+     */
+    public void deleteGroupMembership(String domainName, String groupName, String memberName, String auditRef) {
+        updatePrincipal();
+        try {
+            client.deleteGroupMembership(domainName, groupName, memberName, auditRef);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Remove the specified pending member from the group
+     *
+     * @param domainName name of the domain
+     * @param groupName  name of the group
+     * @param memberName name of the pending member to be removed
+     * @param auditRef   string containing audit specification or ticket number
+     * @throws ZMSClientException in case of failure
+     */
+    public void deletePendingGroupMembership(String domainName, String groupName, String memberName, String auditRef) {
+        updatePrincipal();
+        try {
+            client.deletePendingGroupMembership(domainName, groupName, memberName, auditRef);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Generate a group name as expected by ZMS Server can be used to
+     * set the group object's name field (e.g. group.setName(name))
+     *
+     * @param domain name of the domain
+     * @param group name of the group
+     * @return full group name
+     */
+    public String generateGroupName(String domain, String group) {
+        return domain + ":group." + group;
+    }
+
+    /**
+     * Get membership details for the specified member in the given group
+     * in a specified domain with an optional expiration
+     *
+     * @param domainName name of the domain
+     * @param groupName  name of the group
+     * @param memberName name of the member
+     * @param expiration member expiration
+     * @return GroupMembership object
+     * @throws ZMSClientException in case of failure
+     */
+    public GroupMembership getGroupMembership(String domainName, String groupName, String memberName, String expiration) {
+        updatePrincipal();
+        try {
+            return client.getGroupMembership(domainName, groupName, memberName, expiration);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Fetch all the groups across domains by either calling or specified principal
+     * @param principal - Requested principal. If null will return groups for the user making the call
+     * @param domainName - Requested domain. If null will return groups from all domains
+     * @return Member with groups in all requested domains
+     */
+    public DomainGroupMember getPrincipalGroups(String principal, String domainName) {
+        updatePrincipal();
+        try {
+            return client.getPrincipalGroups(principal, domainName);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Set the group system meta parameters
+     *
+     * @param domainName domain name containing the group to be modified
+     * @param groupName  group name to be modified
+     * @param attribute  group meta attribute being modified in this request
+     * @param auditRef   string containing audit specification or ticket number
+     * @param meta       meta parameters to be set on the group
+     */
+    public void putGroupSystemMeta(String domainName, String groupName, String attribute, String auditRef, GroupSystemMeta meta) {
+        updatePrincipal();
+        try {
+            client.putGroupSystemMeta(domainName, groupName, attribute, auditRef, meta);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Set the group meta parameters
+     *
+     * @param domainName domain name containing the group to be modified
+     * @param groupName  group name to be modified
+     * @param auditRef   string containing audit specification or ticket number
+     * @param meta       meta parameters to be set on the group
+     */
+    public void putGroupMeta(String domainName, String groupName, String auditRef, GroupMeta meta) {
+        updatePrincipal();
+        try {
+            client.putGroupMeta(domainName, groupName, auditRef, meta);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Approve or reject addition of a member in the specified group
+     *
+     * @param domainName name of the domain
+     * @param groupName  name of the group
+     * @param memberName name of the member to be added
+     * @param approval   flag indicating whether this membership is approved or rejected
+     * @param auditRef   string containing audit specification or ticket number
+     * @throws ZMSClientException in case of failure
+     */
+    public void putGroupMembershipDecision(String domainName, String groupName, String memberName, boolean approval, String auditRef) {
+
+        GroupMembership mbr = new GroupMembership().setGroupName(groupName)
+                .setMemberName(memberName).setApproved(approval);
+        updatePrincipal();
+        try {
+            client.putGroupMembershipDecision(domainName, groupName, memberName, auditRef, mbr);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Return all the list of pending requests for the given principal. If the principal
+     * is null, the server will return the list for the authenticated principal
+     * making the call
+     * @param principal name of the approver principal (optional)
+     * @return DomainGroupMembership object listing all pending users
+     * @throws ZMSClientException in case of failure
+     */
+    public DomainGroupMembership getPendingDomainGroupMembersList(String principal) {
+        updatePrincipal();
+        try {
+            return client.getPendingDomainGroupMembersList(principal);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Review group membership to extend and/or delete group members
+     *
+     * @param domainName  name of the domain
+     * @param groupName   name of the group
+     * @param auditRef    string containing audit specification or ticket number
+     * @param group       Group object containing updated and/or deleted members
+     * @throws ZMSClientException in case of failure
+     */
+    public void putGroupReview(String domainName, String groupName, String auditRef, Group group) {
+        updatePrincipal();
+        try {
+            client.putGroupReview(domainName, groupName, auditRef, group);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Retrieve the specified group
+     *
+     * @param domainName name of the domain
+     * @param groupName  name of the group
+     * @param auditLog   include audit log for the group changes in the response
+     * @param pending    if this flag is set, then all members for that group will be retrieved
+     *                   including pending members
+     * @return group object
+     * @throws ZMSClientException in case of failure
+     */
+    public Group getGroup(String domainName, String groupName, boolean auditLog, boolean pending) {
+        updatePrincipal();
+        try {
+            return client.getGroup(domainName, groupName, auditLog, pending);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Create/Update a new group in the specified domain. If updating a group
+     * the provided object must contain all attributes as it will replace
+     * the full group object configured on the server (not just some of the attributes).
+     *
+     * @param domainName name of the domain
+     * @param groupName  name of the group
+     * @param auditRef   string containing audit specification or ticket number
+     * @param group      group object to be added to the domain
+     * @throws ZMSClientException in case of failure
+     */
+    public void putGroup(String domainName, String groupName, String auditRef, Group group) {
+        updatePrincipal();
+        try {
+            client.putGroup(domainName, groupName, auditRef, group);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Retrieve the list of groups defined for the specified domain. The groups
+     * will contain their attributes and, if specified, the list of members.
+     *
+     * @param domainName name of the domain
+     * @param members    include all members for group groups as well
+     * @return list of groups
+     * @throws ZMSClientException in case of failure
+     */
+    public Groups getGroups(String domainName, Boolean members) {
+        updatePrincipal();
+        try {
+            return client.getGroups(domainName, members);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Add a member in the specified group
+     *
+     * @param domainName name of the domain
+     * @param groupName  name of the group
+     * @param memberName name of the member to be added
+     * @param auditRef   string containing audit specification or ticket number
+     * @throws ZMSClientException in case of failure
+     */
+    public void putGroupMembership(String domainName, String groupName, String memberName, String auditRef) {
+        GroupMembership mbr = new GroupMembership().setGroupName(groupName)
+                .setMemberName(memberName).setIsMember(true);
+        updatePrincipal();
+        try {
+            client.putGroupMembership(domainName, groupName, memberName, auditRef, mbr);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {

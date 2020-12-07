@@ -37,6 +37,11 @@ public class SimplePrincipalTest {
         String testApplicationId = "test_app_id";
         SimplePrincipal p = (SimplePrincipal) SimplePrincipal.create("user", "jdoe", fakeCreds, null);
         assertNotNull(p);
+
+        assertTrue(p.equals(p));
+        assertFalse(p.equals(null));
+        assertFalse(p.equals(testApplicationId));
+
         p.setUnsignedCreds(fakeUnsignedCreds);
         p.setApplicationId(testApplicationId);
         assertEquals(p.getName(), "jdoe");
@@ -186,12 +191,23 @@ public class SimplePrincipalTest {
         ((SimplePrincipal) p).setKeyId("v1");
         X509Certificate cert = Mockito.mock(X509Certificate.class);
         ((SimplePrincipal) p).setX509Certificate(cert);
+        ((SimplePrincipal) p).setState(Principal.State.ACTIVE);
 
         assertEquals(p.toString(), "user.jdoe");
         assertEquals(p.getOriginalRequestor(), "athenz.ci");
         assertEquals(p.getKeyService(), "zts");
         assertEquals(p.getKeyId(), "v1");
         assertEquals(p.getX509Certificate(), cert);
+        assertEquals(p.getState(), Principal.State.ACTIVE);
+
+        Principal p2 = SimplePrincipal.create("user", "jdoe", fakeCreds, 101, userAuthority);
+        assertTrue(p.equals(p2));
+        assertEquals(p2.getState(), Principal.State.ACTIVE);
+        assertEquals(p.hashCode(), p2.hashCode());
+
+        Principal p3 = SimplePrincipal.create("user", "jdoe1", fakeCreds, 101, userAuthority);
+        assertFalse(p.equals(p3));
+        assertTrue(p.hashCode() != p3.hashCode());
     }
 
     @Test

@@ -21,6 +21,7 @@ import PublicKeyTable from '../service/PublicKeyTable';
 import ProviderTable from '../service/ProviderTable';
 import DateUtils from '../utils/DateUtils';
 import RequestUtils from '../utils/RequestUtils';
+import { keyframes, css } from '@emotion/core';
 
 const TdStyled = styled.td`
     background-color: ${(props) => props.color};
@@ -28,6 +29,23 @@ const TdStyled = styled.td`
     padding: 5px 0 5px 15px;
     vertical-align: middle;
     word-break: break-all;
+`;
+
+const colorTransition = keyframes`
+        0% {
+            background-color: rgba(21, 192, 70, 0.20);
+        }
+        100% {
+            background-color: transparent;
+        }
+`;
+
+const TrStyled = styled.tr`
+    ${(props) =>
+        props.isSuccess === true &&
+        css`
+            animation: ${colorTransition} 3s ease;
+        `}
 `;
 
 export default class ServiceRow extends React.Component {
@@ -95,8 +113,13 @@ export default class ServiceRow extends React.Component {
         const color = this.props.color;
         let row = [];
         const serviceName = this.props.serviceName;
+        const newService = this.props.newService;
         row.push(
-            <tr key={serviceName} data-testid='service-row'>
+            <TrStyled
+                key={serviceName}
+                data-testid='service-row'
+                isSuccess={newService}
+            >
                 <TdStyled color={color} align={left}>
                     {serviceName}
                 </TdStyled>
@@ -137,7 +160,7 @@ export default class ServiceRow extends React.Component {
                         verticalAlign={'text-bottom'}
                     />
                 </TdStyled>
-            </tr>
+            </TrStyled>
         );
 
         if (this.state.serviceDetails) {

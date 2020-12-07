@@ -73,21 +73,21 @@ public interface CertRecordStoreConnection extends Closeable {
     int deleteExpiredX509CertRecords(int expiryTimeMins);
 
     /**
-     * Update lastNotifiedServer and lastNotifiedTime for certificate that failed to refresh for more than one day.
-     * @param lastNotifiedServer
+     * Return all certificate records that failed to refresh after updating them with the current notification time and server.
+     * Implementers of this interface should note the following:
+     * 1. The records should be filtered according to the following criteria:
+     *      - The certificates should have a grace period in which no notifications will be sent. The default grace period is 2 weeks
+     *      - Provider as specified in the provider argument
+     *      - Hadn't been notified in the last 24 hours
+     *      - Filter outdated records from rebootstrapped hosts (if several records share the same host / provider / service but not the same instanceId, only leave the records with the latest "currentTime")
+     * 2. Update all records matching the criteria with the "lastNotifiedTime" and "lastNotifiedServer".
+     * You can look at JDBCCertRecordStoreConnection and updateUnrefreshedCertificatesNotificationTimestamp for example implementations of JDBC and DynamoDB respectively
+     * @param lastNotifiedServer - Name of athenz server
      * @param lastNotifiedTime
      * @param provider
-     * @return True if at least one certificate record was updated (needs notification to be sent)
+     * @return List of certificates that failed to refresh
      */
-    boolean updateUnrefreshedCertificatesNotificationTimestamp(String lastNotifiedServer,
-                                                               long lastNotifiedTime,
-                                                               String provider);
-
-    /**
-     * List all certificates that failed to refresh and require notifications to be sent
-     * @param lastNotifiedServer
-     * @param lastNotifiedTime
-     * @return List of unrefreshed certificate records that need to be modified
-     */
-    List<X509CertRecord> getNotifyUnrefreshedCertificates(String lastNotifiedServer, long lastNotifiedTime);
+    List<X509CertRecord> updateUnrefreshedCertificatesNotificationTimestamp(String lastNotifiedServer,
+                                                                            long lastNotifiedTime,
+                                                                            String provider);
 }

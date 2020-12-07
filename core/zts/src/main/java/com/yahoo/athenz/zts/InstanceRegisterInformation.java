@@ -3,6 +3,7 @@
 //
 
 package com.yahoo.athenz.zts;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;
 import com.yahoo.rdl.*;
@@ -10,6 +11,7 @@ import com.yahoo.rdl.*;
 //
 // InstanceRegisterInformation -
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class InstanceRegisterInformation {
     public String provider;
     public String domain;

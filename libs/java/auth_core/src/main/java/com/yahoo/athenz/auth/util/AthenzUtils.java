@@ -16,7 +16,11 @@
 package com.yahoo.athenz.auth.util;
 
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import com.yahoo.athenz.auth.AuthorityConsts;
 
 public class AthenzUtils {
@@ -185,4 +189,13 @@ public class AthenzUtils {
     private AthenzUtils() {
     }
 
+    public static List<String> splitCommaSeparatedSystemProperty(String property) {
+        String propertyListStr = System.getProperty(property, null);
+
+        if (propertyListStr == null) {
+            return new ArrayList<>();
+        }
+
+        return Stream.of(propertyListStr.trim().split("\\s*,\\s*")).collect(Collectors.toList());
+    }
 }

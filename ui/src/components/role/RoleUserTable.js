@@ -24,32 +24,15 @@ const StyleTableSub = styled.table`
     border-color: grey;
 `;
 
-const TdStyledSub = styled.td`
-    colspan: '2';
-    padding: 30px 20px;
-`;
-
-const TdStyledSubNoPadd = styled.td`
-    colspan: '2';
-`;
-
 export default class RoleUserTable extends React.Component {
     constructor(props) {
         super(props);
     }
     render() {
-        if (this.props.showTable === false) {
-            return (
-                <TdStyledSubNoPadd colSpan={3} data-testid='roleusertable'>
-                    <StyleTableSub>{this.props.children}</StyleTableSub>
-                </TdStyledSubNoPadd>
-            );
-        } else {
-            return (
-                <TdStyledSub colSpan={3} data-testid='roleusertable'>
-                    <StyleTableSub>{this.props.children}</StyleTableSub>
-                </TdStyledSub>
-            );
-        }
+        return (
+            <td colSpan={3} data-testid='roleusertable'>
+                <StyleTableSub>{this.props.children}</StyleTableSub>
+            </td>
+        );
     }
 }

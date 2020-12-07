@@ -35,6 +35,7 @@ clients/java/zpe/src/test/resources/pol_dir/sports.pol
 clients/java/zms/bin/
 clients/java/zpe/bin/
 clients/java/zts/bin/
+clients/java/zts/core/src/test/resources/test.domain/admin
 clients/nodejs/zts/node_modules/
 clients/nodejs/zts/artifacts/
 clients/nodejs/zts/.eslintcodecache
@@ -110,6 +111,8 @@ libs/go/ztsclientutil/pkg/
 libs/go/ztsclientutil/src/
 rdl/rdl-gen-athenz-server/rdl-gen-athenz-server
 rdl/rdl-gen-athenz-go-client/rdl-gen-athenz-go-client
+rdl/rdl-gen-athenz-go-model/rdl-gen-athenz-go-model
+rdl/rdl-gen-athenz-java-model/rdl-gen-athenz-java-model
 aws-setup/ui-setup/tars/
 aws-setup/zms-setup/tars/
 aws-setup/zts-setup/tars/
@@ -137,4 +140,3 @@ pids
 
 # Optional REPL history
 .node_repl_history
-

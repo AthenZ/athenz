@@ -59,24 +59,4 @@ public class ZTSAuthorizerTest {
             assertEquals(ex.getCode(), 404);
         }
     }
-
-    @Test
-    public void testCheckRoleMemberExpiration() {
-
-        RoleMember roleMember1 = new RoleMember();
-        roleMember1.setExpiration(Timestamp.fromMillis(1001));
-        roleMember1.setMemberName("user.athenz1");
-
-        RoleMember roleMember2 = new RoleMember();
-        roleMember2.setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + 10000));
-        roleMember2.setMemberName("user.athenz2");
-
-        List<RoleMember> members = new ArrayList<>();
-        members.add(roleMember1);
-        members.add(roleMember2);
-
-        ZTSAuthorizer authz = new ZTSAuthorizer(null);
-        assertTrue(authz.checkRoleMemberExpiration(members, "user.athenz2"));
-        assertFalse(authz.checkRoleMemberExpiration(members, "user.athenz1"));
-    }
 }

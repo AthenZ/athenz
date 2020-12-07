@@ -73,10 +73,33 @@ public class ConfigProperties {
             }
             
         } catch (NumberFormatException ex) {
-            LOGGER.info("invalid port: " + propValue + ". Using default port: " + defaultValue);
+            LOGGER.info("invalid port: {}. Using default port: {}", propValue, defaultValue);
             port = defaultValue;
         }
         
         return port;
+    }
+
+    public static int retrieveConfigSetting(String property, int defaultValue) {
+
+        int settingValue;
+        try {
+            String propValue = System.getProperty(property);
+            if (propValue == null) {
+                return defaultValue;
+            }
+
+            settingValue = Integer.parseInt(propValue);
+
+            if (settingValue <= 0) {
+                LOGGER.error("Invalid {} value: {}, defaulting to {}", property, propValue, defaultValue);
+                settingValue = defaultValue;
+            }
+        } catch (Exception ex) {
+            LOGGER.error("Invalid {} value, defaulting to {}: {}", property, defaultValue, ex.getMessage());
+            settingValue = defaultValue;
+        }
+
+        return settingValue;
     }
 }

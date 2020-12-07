@@ -69,7 +69,7 @@ func (cli Zms) ShowRole(dn string, rn string, auditLog, expand bool, pending boo
 	}
 	var buf bytes.Buffer
 	buf.WriteString("role:\n")
-	cli.dumpRole(&buf, *role, auditLog, indent_level1_dash, indent_level1_dash_lvl)
+	cli.dumpRole(&buf, *role, auditLog, indentLevel1Dash, indentLevel1DashLvl)
 	s := buf.String()
 	return &s, nil
 }
@@ -78,7 +78,7 @@ func (cli Zms) AddDelegatedRole(dn string, rn string, trusted string) (*string, 
 	fullResourceName := dn + ":role." + rn
 	_, err := cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), nil, nil, nil)
 	if err == nil {
-		return nil, fmt.Errorf("Role already exists: %v", fullResourceName)
+		return nil, fmt.Errorf("role already exists: %v", fullResourceName)
 	}
 	switch v := err.(type) {
 	case rdl.ResourceError:
@@ -87,7 +87,7 @@ func (cli Zms) AddDelegatedRole(dn string, rn string, trusted string) (*string, 
 		}
 	}
 	if rn == "admin" {
-		return nil, fmt.Errorf("Cannot replace reserved 'admin' role")
+		return nil, fmt.Errorf("cannot replace reserved 'admin' role")
 	}
 	var role zms.Role
 	role.Name = zms.ResourceName(fullResourceName)
@@ -116,7 +116,7 @@ func (cli Zms) AddGroupRole(dn string, rn string, roleMembers []*zms.RoleMember)
 	var role zms.Role
 	_, err := cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), nil, nil, nil)
 	if err == nil {
-		return nil, fmt.Errorf("Role already exists: %v", fullResourceName)
+		return nil, fmt.Errorf("role already exists: %v", fullResourceName)
 	}
 	switch v := err.(type) {
 	case rdl.ResourceError:
@@ -125,7 +125,7 @@ func (cli Zms) AddGroupRole(dn string, rn string, roleMembers []*zms.RoleMember)
 		}
 	}
 	if rn == "admin" {
-		return nil, fmt.Errorf("Cannot replace reserved 'admin' role")
+		return nil, fmt.Errorf("cannot replace reserved 'admin' role")
 	}
 	role.Name = zms.ResourceName(fullResourceName)
 	role.RoleMembers = roleMembers
@@ -151,7 +151,7 @@ func (cli Zms) AddGroupRole(dn string, rn string, roleMembers []*zms.RoleMember)
 
 func (cli Zms) DeleteRole(dn string, rn string) (*string, error) {
 	if rn == "admin" {
-		return nil, fmt.Errorf("Cannot delete 'admin' role")
+		return nil, fmt.Errorf("cannot delete 'admin' role")
 	}
 	err := cli.Zms.DeleteRole(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef)
 	if err != nil {
@@ -182,10 +182,10 @@ func (cli Zms) AddRoleMembers(dn string, rn string, members []*zms.RoleMember) (
 	var outputLine string
 	for idx, mbr := range members {
 		var member zms.Membership
-		member.MemberName = zms.MemberName(mbr.MemberName)
+		member.MemberName = mbr.MemberName
 		member.RoleName = zms.ResourceName(rn)
 		member.Expiration = mbr.Expiration
-		err := cli.Zms.PutMembership(zms.DomainName(dn), zms.EntityName(rn), zms.MemberName(mbr.MemberName), cli.AuditRef, &member)
+		err := cli.Zms.PutMembership(zms.DomainName(dn), zms.EntityName(rn), mbr.MemberName, cli.AuditRef, &member)
 		if err != nil {
 			return nil, err
 		}
@@ -317,11 +317,22 @@ func (cli Zms) ListDomainRoleMembers(dn string) (*string, error) {
 	return &s, nil
 }
 
+func (cli Zms) ShowRolesPrincipal(principal string, dn string) (*string, error) {
+	var buf bytes.Buffer
+	domainRoleMember, err := cli.Zms.GetPrincipalRoles(zms.ResourceName(principal), zms.DomainName(dn))
+	if err != nil {
+		return nil, err
+	}
+	cli.dumpRolesPrincipal(&buf, domainRoleMember)
+	s := buf.String()
+	return &s, nil
+}
+
 func (cli Zms) SetRoleAuditEnabled(dn string, rn string, auditEnabled bool) (*string, error) {
 	meta := zms.RoleSystemMeta{
 		AuditEnabled: &auditEnabled,
 	}
-	err := cli.Zms.PutRoleSystemMeta(zms.DomainName(dn), zms.EntityName(rn), zms.SimpleName("auditenabled"), cli.AuditRef, &meta)
+	err := cli.Zms.PutRoleSystemMeta(zms.DomainName(dn), zms.EntityName(rn), "auditenabled", cli.AuditRef, &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -355,10 +366,12 @@ func getRoleMetaObject(role *zms.Role) zms.RoleMeta {
 		ReviewEnabled:           role.ReviewEnabled,
 		NotifyRoles:             role.NotifyRoles,
 		ServiceExpiryDays:       role.ServiceExpiryDays,
+		GroupExpiryDays:         role.GroupExpiryDays,
 		MemberReviewDays:        role.MemberReviewDays,
 		ServiceReviewDays:       role.ServiceReviewDays,
 		UserAuthorityExpiration: role.UserAuthorityExpiration,
 		UserAuthorityFilter:     role.UserAuthorityFilter,
+		Tags:                    role.Tags,
 	}
 }
 
@@ -384,7 +397,7 @@ func (cli Zms) SetRoleUserAuthorityFilter(dn string, rn, filter string) (*string
 		return nil, err
 	}
 	meta := getRoleMetaObject(role)
-	meta.UserAuthorityFilter = zms.AuthorityKeywords(filter)
+	meta.UserAuthorityFilter = filter
 
 	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
 	if err != nil {
@@ -400,13 +413,102 @@ func (cli Zms) SetRoleUserAuthorityExpiration(dn string, rn, filter string) (*st
 		return nil, err
 	}
 	meta := getRoleMetaObject(role)
-	meta.UserAuthorityExpiration = zms.AuthorityKeyword(filter)
+	meta.UserAuthorityExpiration = filter
 
 	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
 	if err != nil {
 		return nil, err
 	}
 	s := "[domain " + dn + " role " + rn + " user-authority-expiration attribute successfully updated]\n"
+	return &s, nil
+}
+
+func (cli Zms) AddRoleTags(dn string, rn, tagKey string, tagValues []string) (*string, error) {
+	role, err := cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), nil, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	tagValueArr := make([]zms.CompoundName, 0)
+
+	if role.Tags == nil {
+		role.Tags = map[zms.CompoundName]*zms.StringList{}
+	} else {
+		// append current tags
+		currentTagValues := role.Tags[zms.CompoundName(tagKey)]
+		if currentTagValues != nil {
+			tagValueArr = append(tagValueArr, currentTagValues.List...)
+		}
+	}
+
+	for _, tagValue := range tagValues {
+		tagValueArr = append(tagValueArr, zms.CompoundName(tagValue))
+	}
+
+	role.Tags[zms.CompoundName(tagKey)] = &zms.StringList{List: tagValueArr}
+
+	err = cli.Zms.PutRole(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, role)
+	if err != nil {
+		return nil, err
+	}
+
+	output, err := cli.ShowRole(dn, rn, false, false, false)
+	if err != nil {
+		// due to mysql read after write issue it's possible that
+		// we'll get 404 after writing our object so in that
+		// case we're going to do a quick sleep and retry request
+		time.Sleep(500 * time.Millisecond)
+		output, err = cli.ShowRole(dn, rn, false, false, false)
+	}
+	return output, err
+}
+
+func (cli Zms) DeleteRoleTags(dn string, rn, tagKey string, tagValue string) (*string, error) {
+	role, err := cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), nil, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	tagValueArr := make([]zms.CompoundName, 0)
+
+	if role.Tags == nil {
+		role.Tags = map[zms.CompoundName]*zms.StringList{}
+	}
+
+	// except given tagValue, set the same tags map
+	if tagValue != "" && role.Tags != nil {
+		currentTagValues := role.Tags[zms.CompoundName(tagKey)]
+		if currentTagValues != nil {
+			for _, curTagValue := range currentTagValues.List {
+				if tagValue != string(curTagValue) {
+					tagValueArr = append(tagValueArr, curTagValue)
+				}
+			}
+		}
+	}
+
+	role.Tags[zms.CompoundName(tagKey)] = &zms.StringList{List: tagValueArr}
+
+	err = cli.Zms.PutRole(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, role)
+	if err != nil {
+		return nil, err
+	}
+
+	output, err := cli.ShowRole(dn, rn, false, false, false)
+	if err != nil {
+		// due to mysql read after write issue it's possible that
+		// we'll get 404 after writing our object so in that
+		// case we're going to do a quick sleep and retry request
+		time.Sleep(500 * time.Millisecond)
+		output, err = cli.ShowRole(dn, rn, false, false, false)
+	}
+	return output, err
+}
+
+func (cli Zms) ShowRoles(dn string, tagKey string, tagValue string) (*string, error) {
+	var buf bytes.Buffer
+	cli.dumpRoles(&buf, dn, tagKey, tagValue)
+	s := buf.String()
 	return &s, nil
 }
 
@@ -439,6 +541,22 @@ func (cli Zms) SetRoleServiceExpiryDays(dn string, rn string, days int32) (*stri
 		return nil, err
 	}
 	s := "[domain " + dn + " role " + rn + " service-expiry-days attribute successfully updated]\n"
+	return &s, nil
+}
+
+func (cli Zms) SetRoleGroupExpiryDays(dn string, rn string, days int32) (*string, error) {
+	role, err := cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), nil, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	meta := getRoleMetaObject(role)
+	meta.GroupExpiryDays = &days
+
+	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " role " + rn + " group-expiry-days attribute successfully updated]\n"
 	return &s, nil
 }
 
@@ -528,7 +646,7 @@ func (cli Zms) SetRoleNotifyRoles(dn string, rn string, notifyRoles string) (*st
 		return nil, err
 	}
 	meta := getRoleMetaObject(role)
-	meta.NotifyRoles = zms.ResourceNames(notifyRoles)
+	meta.NotifyRoles = notifyRoles
 
 	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
 	if err != nil {

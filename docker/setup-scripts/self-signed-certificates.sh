@@ -46,6 +46,8 @@ sh "${DEV_ZMS_DIR}/create-self-signed-certs.sh"
 echo '5. create ZTS server certificates' | colored_cat g
 sh "${DEV_ZTS_DIR}/create-self-signed-certs.sh"
 
+echo '6. create UI server certificates' | colored_cat g
+sh "${DEV_UI_DIR}/create-self-signed-certs.sh"
 
 
 ### ----------------------------------------------------------------
@@ -79,6 +81,11 @@ export ZTS_SIGNER_CERT_PATH="${DEV_ZTS_SIGNER_CERT_PATH}"
 export ZMS_CLIENT_CERT_KEY_PATH="${DEV_ZMS_CLIENT_CERT_KEY_PATH}"
 # export ZMS_CLIENT_CERT_PATH="${DEV_ZMS_CLIENT_CERT_PATH}"
 export ZMS_CLIENT_CERT_PATH="${DEV_ZMS_CLIENT_CERT_BUNDLE_PATH}"
+
+# UI
+export PROD_UI_DIR="${DEV_UI_DIR}"
+export UI_CERT_KEY_PATH="${DEV_UI_CERT_KEY_PATH}"
+export UI_CERT_PATH="${DEV_UI_CERT_PATH}"
 EOF
 echo 'As shell script cannot update the env. in parent shell X_X' | colored_cat p
 echo 'You will need to run the following command...' | colored_cat p

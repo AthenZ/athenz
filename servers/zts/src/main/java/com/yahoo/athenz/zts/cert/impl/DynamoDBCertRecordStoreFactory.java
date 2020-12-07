@@ -16,28 +16,47 @@
 package com.yahoo.athenz.zts.cert.impl;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.common.server.cert.CertRecordStore;
 import com.yahoo.athenz.common.server.cert.CertRecordStoreFactory;
 import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.ZTSConsts;
+import com.yahoo.athenz.zts.notification.ZTSClientNotificationSenderImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DynamoDBCertRecordStoreFactory implements CertRecordStoreFactory {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DynamoDBCertRecordStoreFactory.class);
 
     @Override
     public CertRecordStore create(PrivateKeyStore keyStore) {
 
         final String tableName = System.getProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_TABLE_NAME);
         if (tableName == null || tableName.isEmpty()) {
+            LOGGER.error("Cert Store DynamoDB table name not specified");
             throw new ResourceException(ResourceException.SERVICE_UNAVAILABLE, "DynamoDB table name not specified");
         }
 
-        AmazonDynamoDB client = getDynamoDBClient();
-        return new DynamoDBCertRecordStore(client, tableName);
+        final String currentTimeIndexName = System.getProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_INDEX_CURRENT_TIME_NAME);
+        if (currentTimeIndexName == null || currentTimeIndexName.isEmpty()) {
+            LOGGER.error("Cert Store DynamoDB index current-time not specified");
+            throw new ResourceException(ResourceException.SERVICE_UNAVAILABLE, "DynamoDB index current-time not specified");
+        }
+
+        final String hostNameIndex = System.getProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_INDEX_HOST_NAME);
+        if (hostNameIndex == null || hostNameIndex.isEmpty()) {
+            LOGGER.error("Cert Store DynamoDB index host-name not specified");
+            throw new ResourceException(ResourceException.SERVICE_UNAVAILABLE, "DynamoDB index host-name not specified");
+        }
+
+
+        ZTSClientNotificationSenderImpl ztsClientNotificationSender = new ZTSClientNotificationSenderImpl();
+        AmazonDynamoDB client = getDynamoDBClient(ztsClientNotificationSender, keyStore);
+        return new DynamoDBCertRecordStore(client, tableName, currentTimeIndexName, hostNameIndex, ztsClientNotificationSender);
     }
 
-    AmazonDynamoDB getDynamoDBClient() {
-        return AmazonDynamoDBClientBuilder.standard().build();
+    AmazonDynamoDB getDynamoDBClient(ZTSClientNotificationSenderImpl ztsClientNotificationSender, PrivateKeyStore keyStore) {
+        DynamoDBClientFetcher dynamoDBClientFetcher = DynamoDBClientFetcherFactory.getDynamoDBClientFetcher();
+        return dynamoDBClientFetcher.getDynamoDBClient(ztsClientNotificationSender, keyStore).getAmazonDynamoDB();
     }
 }

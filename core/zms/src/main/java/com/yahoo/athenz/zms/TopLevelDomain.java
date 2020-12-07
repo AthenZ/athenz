@@ -3,6 +3,7 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;
 import com.yahoo.rdl.*;
@@ -11,6 +12,7 @@ import com.yahoo.rdl.*;
 // TopLevelDomain - Top Level Domain object. The required attributes include
 // the name of the domain and list of domain administrators.
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class TopLevelDomain {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -54,6 +56,15 @@ public class TopLevelDomain {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Integer serviceExpiryDays;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer groupExpiryDays;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String userAuthorityFilter;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String azureSubscription;
     public String name;
     public List<String> adminUsers;
     @RdlOptional
@@ -158,6 +169,27 @@ public class TopLevelDomain {
     public Integer getServiceExpiryDays() {
         return serviceExpiryDays;
     }
+    public TopLevelDomain setGroupExpiryDays(Integer groupExpiryDays) {
+        this.groupExpiryDays = groupExpiryDays;
+        return this;
+    }
+    public Integer getGroupExpiryDays() {
+        return groupExpiryDays;
+    }
+    public TopLevelDomain setUserAuthorityFilter(String userAuthorityFilter) {
+        this.userAuthorityFilter = userAuthorityFilter;
+        return this;
+    }
+    public String getUserAuthorityFilter() {
+        return userAuthorityFilter;
+    }
+    public TopLevelDomain setAzureSubscription(String azureSubscription) {
+        this.azureSubscription = azureSubscription;
+        return this;
+    }
+    public String getAzureSubscription() {
+        return azureSubscription;
+    }
     public TopLevelDomain setName(String name) {
         this.name = name;
         return this;
@@ -227,6 +259,15 @@ public class TopLevelDomain {
                 return false;
             }
             if (serviceExpiryDays == null ? a.serviceExpiryDays != null : !serviceExpiryDays.equals(a.serviceExpiryDays)) {
+                return false;
+            }
+            if (groupExpiryDays == null ? a.groupExpiryDays != null : !groupExpiryDays.equals(a.groupExpiryDays)) {
+                return false;
+            }
+            if (userAuthorityFilter == null ? a.userAuthorityFilter != null : !userAuthorityFilter.equals(a.userAuthorityFilter)) {
+                return false;
+            }
+            if (azureSubscription == null ? a.azureSubscription != null : !azureSubscription.equals(a.azureSubscription)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

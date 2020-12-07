@@ -58,19 +58,26 @@ public class X509CertRequestTest {
         }
         assertNull(certReq);
     }
-    
+
     @Test
-    public void testParseCertRequest() throws IOException {
-        Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
+    public void testConstructorValidUriHostname() throws IOException {
+        Path path = Paths.get("src/test/resources/athenz.examples.uri-instanceid-hostname.csr");
         String csr = new String(Files.readAllBytes(path));
-        
-        X509CertRequest certReq = new X509CertRequest(csr);
+
+        X509CertRequest certReq = new X509CertRequest(new String(Files.readAllBytes(path)));
         assertNotNull(certReq);
 
         StringBuilder errorMsg = new StringBuilder(256);
-        assertTrue(certReq.parseCertRequest(errorMsg));
+        assertEquals(certReq.getUriHostname(), "abc.athenz.com");
+
+        path = Paths.get("src/test/resources/athenz.examples.uri-hostname-only.csr");
+        csr = new String(Files.readAllBytes(path));
+
+        certReq = new X509CertRequest(csr);
+        assertNotNull(certReq);
+        assertEquals(certReq.getUriHostname(), "abc.athenz.com");
     }
-    
+
     @Test
     public void testParseCertRequestIPs() throws IOException {
         Path path = Paths.get("src/test/resources/multiple_ips.csr");
@@ -79,9 +86,6 @@ public class X509CertRequestTest {
         X509CertRequest certReq = new X509CertRequest(csr);
         assertNotNull(certReq);
 
-        StringBuilder errorMsg = new StringBuilder(256);
-        assertTrue(certReq.parseCertRequest(errorMsg));
-        
         List<String> values = certReq.getDnsNames();
         assertEquals(values.size(), 2);
         assertTrue(values.contains("production.athenz.ostk.athenz.cloud"));
@@ -101,7 +105,6 @@ public class X509CertRequestTest {
         StringBuilder errorMsg = new StringBuilder(256);
         X509CertRequest certReq = new X509CertRequest(csr);
         assertNotNull(certReq);
-        assertFalse(certReq.parseCertRequest(errorMsg));
     }
     
     @Test
@@ -109,10 +112,8 @@ public class X509CertRequestTest {
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String csr = new String(Files.readAllBytes(path));
         
-        StringBuilder errorMsg = new StringBuilder(256);
         X509CertRequest certReq = new X509CertRequest(csr);
         assertNotNull(certReq);
-        certReq.parseCertRequest(errorMsg);
 
         assertTrue(certReq.validateCommonName("athenz.production"));
         assertEquals(certReq.getCommonName(), "athenz.production");
@@ -120,16 +121,37 @@ public class X509CertRequestTest {
         assertFalse(certReq.validateCommonName("sys.production"));
         assertFalse(certReq.validateCommonName("athenz.storage"));
     }
-    
+
+    @Test
+    public void testValidateUriHostname() throws IOException {
+        Path path = Paths.get("src/test/resources/athenz.examples.uri-instanceid-hostname.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509CertRequest certReq = new X509CertRequest(csr);
+        assertNotNull(certReq);
+
+        assertTrue(certReq.validateUriHostname("abc.athenz.com"));
+
+        assertFalse(certReq.validateUriHostname(null));
+        assertFalse(certReq.validateUriHostname(""));
+        assertFalse(certReq.validateUriHostname("def.athenz.com"));
+
+
+        path = Paths.get("src/test/resources/athenz.examples.uri-hostname-empty.csr");
+        csr = new String(Files.readAllBytes(path));
+
+        certReq = new X509CertRequest(csr);
+        assertNotNull(certReq);
+        assertTrue(certReq.validateUriHostname("abc.athenz.com"));
+    }
+
     @Test
     public void testInstanceId() throws IOException {
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String csr = new String(Files.readAllBytes(path));
         
-        StringBuilder errorMsg = new StringBuilder(256);
         X509CertRequest certReq = new X509CertRequest(csr);
         assertNotNull(certReq);
-        certReq.parseCertRequest(errorMsg);
 
         assertEquals(certReq.getInstanceId(), "1001");
     }
@@ -140,11 +162,9 @@ public class X509CertRequestTest {
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String csr = new String(Files.readAllBytes(path));
         
-        StringBuilder errorMsg = new StringBuilder(256);
         X509CertRequest certReq = new X509CertRequest(csr);
         assertNotNull(certReq);
-        certReq.parseCertRequest(errorMsg);
-        
+
         path = Paths.get("src/test/resources/athenz.instanceid.pem");
         String pem = new String(Files.readAllBytes(path));
         X509Certificate cert = Crypto.loadX509Certificate(pem);
@@ -158,10 +178,8 @@ public class X509CertRequestTest {
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        StringBuilder errorMsg = new StringBuilder(256);
         X509CertRequest certReq = new X509CertRequest(csr);
         assertNotNull(certReq);
-        certReq.parseCertRequest(errorMsg);
 
         List<String> providerDnsSuffixList = new ArrayList<>();
 
@@ -216,11 +234,10 @@ public class X509CertRequestTest {
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.cname.csr");
         String csr = new String(Files.readAllBytes(path));
+        String service = "athenz.production";
 
-        StringBuilder errorMsg = new StringBuilder(256);
         X509CertRequest certReq = new X509CertRequest(csr);
         assertNotNull(certReq);
-        certReq.parseCertRequest(errorMsg);
 
         DataCache athenzSysDomainCache = Mockito.mock(DataCache.class);
         Mockito.when(athenzSysDomainCache.getProviderDnsSuffixList("provider"))
@@ -238,7 +255,7 @@ public class X509CertRequestTest {
         cnameList.add("cname1.athenz.info");
         cnameList.add("cname2.athenz.info");
         HostnameResolver resolver = Mockito.mock(HostnameResolver.class);
-        Mockito.when(resolver.isValidHostCnameList("host1.athenz.cloud", cnameList, CertType.X509))
+        Mockito.when(resolver.isValidHostCnameList(service, "host1.athenz.cloud", cnameList, CertType.X509))
                 .thenReturn(false)
                 .thenReturn(true);
         Mockito.when(resolver.isValidHostname("host1.athenz.cloud")).thenReturn(true);
@@ -259,11 +276,10 @@ public class X509CertRequestTest {
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.cname.suffix.csr");
         String csr = new String(Files.readAllBytes(path));
+        String service = "athenz.production";
 
-        StringBuilder errorMsg = new StringBuilder(256);
         X509CertRequest certReq = new X509CertRequest(csr);
         assertNotNull(certReq);
-        certReq.parseCertRequest(errorMsg);
 
         DataCache athenzSysDomainCache = Mockito.mock(DataCache.class);
         Mockito.when(athenzSysDomainCache.getProviderDnsSuffixList("provider"))
@@ -281,7 +297,7 @@ public class X509CertRequestTest {
         cnameList.add("cname1.ostk.athenz.cloud");
         cnameList.add("cname2.athenz.info");
         HostnameResolver resolver = Mockito.mock(HostnameResolver.class);
-        Mockito.when(resolver.isValidHostCnameList("host1.athenz.cloud", cnameList, CertType.X509))
+        Mockito.when(resolver.isValidHostCnameList(service, "host1.athenz.cloud", cnameList, CertType.X509))
                 .thenReturn(true);
         Mockito.when(resolver.isValidHostname("host1.athenz.cloud")).thenReturn(true);
 
@@ -295,10 +311,8 @@ public class X509CertRequestTest {
         Path path = Paths.get("src/test/resources/multi_dns_domain.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        StringBuilder errorMsg = new StringBuilder(256);
         X509CertRequest certReq = new X509CertRequest(csr);
         assertNotNull(certReq);
-        certReq.parseCertRequest(errorMsg);
 
         List<String> providerDnsSuffixList = new ArrayList<>();
 
@@ -362,16 +376,45 @@ public class X509CertRequestTest {
                 "zts.athenz.info", "api.athenz.ostk.athenz.info", null, resolver));
     }
 
+
+    @Test
+    public void testValidateUri() throws IOException {
+
+        Path path = Paths.get("src/test/resources/multi_dns_domain.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509CertRequest certReq = new X509CertRequest(csr);
+        assertNotNull(certReq);
+
+        List<String> providerDnsSuffixList = new ArrayList<>();
+        providerDnsSuffixList.add("ostk.athenz.cloud");
+
+        DataCache athenzSysDomainCache = Mockito.mock(DataCache.class);
+        Mockito.when(athenzSysDomainCache.getProviderDnsSuffixList("provider"))
+                .thenReturn(providerDnsSuffixList);
+
+        // both of our lists are null
+
+        Mockito.when(athenzSysDomainCache.getProviderHostnameAllowedSuffixList("provider"))
+                .thenReturn(null);
+        Mockito.when(athenzSysDomainCache.getProviderHostnameDeniedSuffixList("provider"))
+                .thenReturn(null);
+
+        // we should get false since we're not allowed
+
+        assertFalse(certReq.validateDnsNames("athenz", "api", "provider", athenzSysDomainCache,
+                "zts.athenz.info", "api.athenz.ostk.athenz.info", null, null));
+    }
+
+
     @Test
     public void testValidateDnsNamesHostnameNullLists() throws IOException {
 
         Path path = Paths.get("src/test/resources/multi_dns_domain.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        StringBuilder errorMsg = new StringBuilder(256);
         X509CertRequest certReq = new X509CertRequest(csr);
         assertNotNull(certReq);
-        certReq.parseCertRequest(errorMsg);
 
         List<String> providerDnsSuffixList = new ArrayList<>();
         providerDnsSuffixList.add("ostk.athenz.cloud");
@@ -399,10 +442,8 @@ public class X509CertRequestTest {
         Path path = Paths.get("src/test/resources/multi_dns_domain.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        StringBuilder errorMsg = new StringBuilder(256);
         X509CertRequest certReq = new X509CertRequest(csr);
         assertNotNull(certReq);
-        certReq.parseCertRequest(errorMsg);
 
         List<String> providerDnsSuffixList = new ArrayList<>();
         providerDnsSuffixList.add("ostk.athenz.cloud");
@@ -457,10 +498,8 @@ public class X509CertRequestTest {
         Path path = Paths.get("src/test/resources/multi_dns_domain.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        StringBuilder errorMsg = new StringBuilder(256);
         X509CertRequest certReq = new X509CertRequest(csr);
         assertNotNull(certReq);
-        certReq.parseCertRequest(errorMsg);
 
         // now add the hostname to the list
 
@@ -491,10 +530,8 @@ public class X509CertRequestTest {
         Path path = Paths.get("src/test/resources/multi_dns_domain_wildcard.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        StringBuilder errorMsg = new StringBuilder(256);
         X509CertRequest certReq = new X509CertRequest(csr);
         assertNotNull(certReq);
-        certReq.parseCertRequest(errorMsg);
 
         // now add the hostname to the list
 
@@ -523,10 +560,8 @@ public class X509CertRequestTest {
         Path path = Paths.get("src/test/resources/multi_dns_domain_wildcard_mismatch.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        StringBuilder errorMsg = new StringBuilder(256);
         X509CertRequest certReq = new X509CertRequest(csr);
         assertNotNull(certReq);
-        certReq.parseCertRequest(errorMsg);
 
         // now add the hostname to the list
 
@@ -557,10 +592,8 @@ public class X509CertRequestTest {
         Path path = Paths.get("src/test/resources/valid_cn_only.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        StringBuilder errorMsg = new StringBuilder(256);
         X509CertRequest certReq = new X509CertRequest(csr);
         assertNotNull(certReq);
-        certReq.parseCertRequest(errorMsg);
 
         DataCache athenzSysDomainCache = Mockito.mock(DataCache.class);
         Mockito.when(athenzSysDomainCache.getProviderDnsSuffixList("provider"))
@@ -895,8 +928,6 @@ public class X509CertRequestTest {
         X509CertRequest certReq = new X509CertRequest(csr);
         assertNotNull(certReq);
 
-        StringBuilder errMsg = new StringBuilder();
-        assertTrue(certReq.parseCertRequest(errMsg));
         assertEquals(certReq.getInstanceId(), "id-001");
     }
 
@@ -905,20 +936,21 @@ public class X509CertRequestTest {
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.uri.csr");
         String csr = new String(Files.readAllBytes(path));
+        String service = "athenz.api";
 
         X509CertRequest certReq = new X509CertRequest(csr);
         assertNotNull(certReq);
 
         // cnames null and empty is always true
 
-        assertTrue(certReq.validateInstanceCnames(null, null, null, null, null));
-        assertTrue(certReq.validateInstanceCnames(null, null, null, Collections.emptyList(), null));
+        assertTrue(certReq.validateInstanceCnames(null, null, service, null, null, null));
+        assertTrue(certReq.validateInstanceCnames(null, null, service, null, Collections.emptyList(), null));
 
         // if the name is empty or null, then it's failure
 
-        assertFalse(certReq.validateInstanceCnames(null, null, null,
+        assertFalse(certReq.validateInstanceCnames(null, null, service, null,
                 Collections.singletonList("host1.athenz.cloud"), null));
-        assertFalse(certReq.validateInstanceCnames(null, null, "",
+        assertFalse(certReq.validateInstanceCnames(null, null, service, "",
                 Collections.singletonList("host1.athenz.cloud"), null));
 
         DataCache athenzSysDomainCache = Mockito.mock(DataCache.class);
@@ -931,43 +963,43 @@ public class X509CertRequestTest {
 
         // cname does not match allowed suffix list thus denied
 
-        assertFalse(certReq.validateInstanceCnames("provider", athenzSysDomainCache, "hostname.athenz.cloud",
+        assertFalse(certReq.validateInstanceCnames("provider", athenzSysDomainCache, service, "hostname.athenz.cloud",
                 Collections.singletonList("host1.athenz.data"), null));
 
         List<String> cnameList = new ArrayList<>();
         cnameList.add("host1.athenz.cloud");
         cnameList.add("host1.athenz.data");
 
-        assertFalse(certReq.validateInstanceCnames("provider", athenzSysDomainCache, "hostname.athenz.cloud",
+        assertFalse(certReq.validateInstanceCnames("provider", athenzSysDomainCache, service, "hostname.athenz.cloud",
                 cnameList, null));
 
         // cname is explicitly denied
 
-        assertFalse(certReq.validateInstanceCnames("provider", athenzSysDomainCache, "hostname.athenz.cloud",
+        assertFalse(certReq.validateInstanceCnames("provider", athenzSysDomainCache, service, "hostname.athenz.cloud",
                 Collections.singletonList("host1.athenz.info"), null));
 
         cnameList.add("host1.athenz.info");
-        assertFalse(certReq.validateInstanceCnames("provider", athenzSysDomainCache, "hostname.athenz.cloud",
+        assertFalse(certReq.validateInstanceCnames("provider", athenzSysDomainCache, service, "hostname.athenz.cloud",
                 cnameList, null));
 
         // no hostname resolver thus denied
 
-        assertFalse(certReq.validateInstanceCnames("provider", athenzSysDomainCache, "hostname.athenz.cloud",
+        assertFalse(certReq.validateInstanceCnames("provider", athenzSysDomainCache, service, "hostname.athenz.cloud",
                 Collections.singletonList("host1.athenz.cloud"), null));
 
         HostnameResolver resolver = Mockito.mock(HostnameResolver.class);
-        Mockito.when(resolver.isValidHostCnameList("hostname.athenz.cloud", Collections.singletonList("host1.athenz.cloud"), CertType.X509))
+        Mockito.when(resolver.isValidHostCnameList(service, "hostname.athenz.cloud", Collections.singletonList("host1.athenz.cloud"), CertType.X509))
                 .thenReturn(false);
 
-        assertFalse(certReq.validateInstanceCnames("provider", athenzSysDomainCache, "hostname.athenz.cloud",
+        assertFalse(certReq.validateInstanceCnames("provider", athenzSysDomainCache, service, "hostname.athenz.cloud",
                 Collections.singletonList("host1.athenz.cloud"), resolver));
 
         // set resolver to return true for host2
 
-        Mockito.when(resolver.isValidHostCnameList("hostname.athenz.cloud", Collections.singletonList("host2.athenz.cloud"), CertType.X509))
+        Mockito.when(resolver.isValidHostCnameList(service, "hostname.athenz.cloud", Collections.singletonList("host2.athenz.cloud"), CertType.X509))
                 .thenReturn(true);
 
-        assertTrue(certReq.validateInstanceCnames("provider", athenzSysDomainCache, "hostname.athenz.cloud",
+        assertTrue(certReq.validateInstanceCnames("provider", athenzSysDomainCache, service, "hostname.athenz.cloud",
                 Collections.singletonList("host2.athenz.cloud"), resolver));
     }
 }

@@ -15,27 +15,35 @@
  */
 package com.yahoo.athenz.zts;
 
+import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.common.ServerCommonConsts;
 import com.yahoo.athenz.common.server.rest.Http;
 import com.yahoo.athenz.common.metrics.Metric;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 public class RsrcCtxWrapper implements ResourceContext {
 
-    private static final String ZTS_REQUEST_PRINCIPAL   = "com.yahoo.athenz.auth.principal";
+    private static final Logger LOG = LoggerFactory.getLogger(RsrcCtxWrapper.class);
 
     com.yahoo.athenz.common.server.rest.ResourceContext ctx;
     boolean optionalAuth;
     Metric metric;
+    private Object timerMetric;
+    private String apiName;
 
     public RsrcCtxWrapper(HttpServletRequest request, HttpServletResponse response,
             Http.AuthorityList authList,  boolean optionalAuth, Authorizer authorizer,
-            Metric metric) {
+            Metric metric, Object timerMetric, String apiName) {
         this.optionalAuth = optionalAuth;
         this.metric = metric;
+        this.timerMetric = timerMetric;
+        this.apiName = apiName.toLowerCase();
         ctx = new com.yahoo.athenz.common.server.rest.ResourceContext(request, response,
                 authList, authorizer);
     }
@@ -46,6 +54,18 @@ public class RsrcCtxWrapper implements ResourceContext {
 
     public Principal principal() {
         return ctx.principal();
+    }
+
+    public String getRequestDomain() {
+        return ctx.getRequestDomain();
+    }
+
+    public Object getTimerMetric() {
+        return timerMetric;
+    }
+
+    public void setRequestDomain(String requestDomain) {
+        ctx.setRequestDomain(requestDomain);
     }
 
     @Override
@@ -59,9 +79,25 @@ public class RsrcCtxWrapper implements ResourceContext {
     }
 
     @Override
+    public String getApiName() {
+        return apiName;
+    }
+
+    @Override
+    public String getHttpMethod() {
+        return ctx.request().getMethod();
+    }
+
+    @Override
     public void authenticate() {
         try {
             ctx.authenticate(optionalAuth);
+            // For ZTS, prevent authentication with mTLS restricted certs
+            final Principal principal = principal();
+            if (principal != null && principal.getMtlsRestricted()) {
+                LOG.error("authenticate: certificate is mTLS restricted");
+                throw new com.yahoo.athenz.common.server.rest.ResourceException(com.yahoo.athenz.common.server.rest.ResourceException.UNAUTHORIZED, "certificate is mTLS restricted");
+            }
         } catch (com.yahoo.athenz.common.server.rest.ResourceException restExc) {
             throwZtsException(restExc);
         }
@@ -82,15 +118,23 @@ public class RsrcCtxWrapper implements ResourceContext {
             return;
         }
         logPrincipal(principal.getFullName());
+        logAuthorityId(principal.getAuthority());
     }
     
     public void logPrincipal(final String principal) {
         if (principal == null) {
             return;
         }
-        ctx.request().setAttribute(ZTS_REQUEST_PRINCIPAL, principal);
+        ctx.request().setAttribute(ServerCommonConsts.REQUEST_PRINCIPAL, principal);
     }
-    
+
+    public void logAuthorityId(Authority authority) {
+        if (authority == null) {
+            return;
+        }
+        ctx.request().setAttribute(ServerCommonConsts.REQUEST_AUTHORITY_ID, authority.getID());
+    }
+
     public void throwZtsException(com.yahoo.athenz.common.server.rest.ResourceException restExc) {
 
         metric.increment("authfailure");

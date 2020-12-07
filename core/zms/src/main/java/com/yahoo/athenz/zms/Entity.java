@@ -3,6 +3,7 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.yahoo.rdl.*;
 
 //
@@ -10,6 +11,7 @@ import com.yahoo.rdl.*;
 // names/prefixes are reserved (i.e. "role",  "policy", "meta", "domain",
 // "service")
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Entity {
     public String name;
     public Struct value;

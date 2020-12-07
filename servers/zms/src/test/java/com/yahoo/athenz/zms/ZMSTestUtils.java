@@ -15,13 +15,60 @@
  */
 package com.yahoo.athenz.zms;
 
+import com.wix.mysql.EmbeddedMysql;
+import com.wix.mysql.Sources;
+import com.wix.mysql.SqlScriptSource;
+import com.wix.mysql.config.MysqldConfig;
 import com.yahoo.rdl.Timestamp;
 import com.yahoo.rdl.UUID;
+import org.testng.internal.junit.ArrayAsserts;
 
+import java.io.File;
+import java.util.Calendar;
 import java.util.List;
 import java.util.function.Function;
 
+import static com.wix.mysql.EmbeddedMysql.anEmbeddedMysql;
+import static com.wix.mysql.ScriptResolver.classPathScript;
+import static com.wix.mysql.config.MysqldConfig.aMysqldConfig;
+import static com.wix.mysql.distribution.Version.v5_7_latest;
+import static org.testng.AssertJUnit.assertEquals;
+
 public class ZMSTestUtils {
+
+    public static EmbeddedMysql startMemoryMySQL(final String userName, final String password) {
+
+        System.out.println("Starting Embedded MySQL server...");
+
+        final MysqldConfig config = aMysqldConfig(v5_7_latest)
+                .withPort(3310)
+                .withUser(userName, password)
+                .build();
+
+        File sqlSchemaFile = new File("schema/zms_server.sql");
+        return anEmbeddedMysql(config)
+                .addSchema("zms_server", Sources.fromFile(sqlSchemaFile))
+                .start();
+    }
+
+    public static void stopMemoryMySQL(EmbeddedMysql mysqld) {
+        System.out.println("Stopping Embedded MySQL server...");
+        mysqld.stop();
+    }
+
+    public static void setDatabaseReadOnlyMode(EmbeddedMysql mysqld, boolean readOnly) {
+        final String scriptName = readOnly ? "mysql/set-read-only.sql" : "mysql/unset-read-only.sql";
+        mysqld.executeScripts("zms_server", classPathScript(scriptName));
+    }
+
+    public static boolean verifyDomainRoleMember(DomainRoleMember domainRoleMember, MemberRole memberRole) {
+        for (MemberRole mbrRole : domainRoleMember.getMemberRoles()) {
+            if (mbrRole.equals(memberRole)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     public static boolean verifyDomainRoleMember(List<DomainRoleMember> members, String memberName,
             String... roles) {
@@ -33,7 +80,7 @@ public class ZMSTestUtils {
                     return false;
                 }
                 for (String role : roles) {
-                    Boolean bMatchFound = false;
+                    boolean bMatchFound = false;
                     for (MemberRole memberRole : memberRoles) {
                         if (memberRole.getRoleName().equals(role)) {
                             bMatchFound = true;
@@ -87,5 +134,27 @@ public class ZMSTestUtils {
                 .setAuditEnabled(auditEnabled).setAccount(account).setYpmId(productId)
                 .setApplicationId(applicationId).setMemberExpiryDays(expiryDays)
                 .setId(UUID.fromCurrentTime()).setModified(Timestamp.fromCurrentTime());
+    }
+
+    public static void cleanupNotAdminUsers(ZMSImpl zms, final String adminUser, ResourceContext ctx) {
+
+        UserList userList = zms.getUserList(ctx);
+        List<String> users = userList.getNames();
+        for (String user : users) {
+            if (user.equals(adminUser)) {
+                continue;
+            }
+            if (!user.startsWith("user.") || user.contains("*")) {
+                continue;
+            }
+            zms.deleteUser(ctx, user.substring(5), "audit-ref");
+        }
+    }
+
+    public static Timestamp addDays(Timestamp date, int days) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(date.millis());
+        cal.add(Calendar.DATE, days);
+        return Timestamp.fromMillis(cal.getTime().getTime());
     }
 }

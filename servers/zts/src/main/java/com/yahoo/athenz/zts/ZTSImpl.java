@@ -32,15 +32,24 @@ import javax.ws.rs.core.Response;
 
 import com.yahoo.athenz.auth.token.AccessToken;
 import com.yahoo.athenz.auth.token.IdToken;
+import com.yahoo.athenz.auth.util.StringUtils;
 import com.yahoo.athenz.common.server.cert.X509CertRecord;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.dns.HostnameResolverFactory;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
 import com.yahoo.athenz.common.server.ssh.SSHCertRecord;
+import com.yahoo.athenz.common.server.status.StatusCheckException;
+import com.yahoo.athenz.common.server.status.StatusChecker;
+import com.yahoo.athenz.common.server.status.StatusCheckerFactory;
+import com.yahoo.athenz.common.server.store.ChangeLogStore;
+import com.yahoo.athenz.common.server.store.ChangeLogStoreFactory;
+import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.zms.RoleMeta;
 import com.yahoo.athenz.zts.cert.*;
 import com.yahoo.athenz.zts.notification.ZTSNotificationTaskFactory;
+import com.yahoo.athenz.zts.store.CloudStore;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,21 +75,19 @@ import com.yahoo.athenz.common.server.rest.Http;
 import com.yahoo.athenz.common.server.rest.Http.AuthorityList;
 import com.yahoo.athenz.common.server.util.ConfigProperties;
 import com.yahoo.athenz.common.server.util.ServletRequestUtil;
-import com.yahoo.athenz.common.server.util.StringUtils;
 import com.yahoo.athenz.common.utils.SignUtils;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
 import com.yahoo.athenz.zms.DomainData;
 import com.yahoo.athenz.zts.cache.DataCache;
-import com.yahoo.athenz.zts.store.ChangeLogStore;
-import com.yahoo.athenz.zts.store.ChangeLogStoreFactory;
-import com.yahoo.athenz.zts.store.CloudStore;
 import com.yahoo.athenz.zts.store.DataStore;
 import com.yahoo.athenz.zts.utils.ZTSUtils;
 import com.yahoo.rdl.Schema;
 import com.yahoo.rdl.Timestamp;
 import com.yahoo.rdl.Validator;
 import com.yahoo.rdl.Validator.Result;
+
+import static com.yahoo.athenz.common.ServerCommonConsts.*;
 
 /**
  * An implementation of ZTS.
@@ -106,8 +113,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected long x509CertRefreshResetTime;
     protected long signedPolicyTimeout;
     protected static String serverHostName = null;
-    protected String ostkHostSignerDomain = null;
-    protected String ostkHostSignerService = null;
     protected AuditLogger auditLogger = null;
     protected String serverRegion = null;
     protected String userDomain;
@@ -119,6 +124,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected Set<String> authorizedProxyUsers = null;
     protected Set<String> validCertSubjectOrgValues = null;
     protected Set<String> validCertSubjectOrgUnitValues = null;
+    protected Set<String> validateServiceSkipDomains;
     protected boolean secureRequestsOnly = true;
     protected int svcTokenTimeout = 86400;
     protected Set<String> authFreeUriSet = null;
@@ -143,7 +149,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     private static final String TYPE_INSTANCE_REGISTER_INFO = "InstanceRegisterInformation";
     private static final String TYPE_INSTANCE_REFRESH_INFO = "InstanceRefreshInformation";
     private static final String TYPE_INSTANCE_REFRESH_REQUEST = "InstanceRefreshRequest";
-    private static final String TYPE_OSTK_INSTANCE_REFRESH_REQUEST = "OSTKInstanceRefreshRequest";
     private static final String TYPE_DOMAIN_METRICS = "DomainMetrics";
     private static final String TYPE_ROLE_CERTIFICATE_REQUEST = "RoleCertificateRequest";
     private static final String TYPE_SSH_CERT_REQUEST = "SSHCertRequest";
@@ -171,6 +176,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     private static final String OAUTH_GRANT_CREDENTIALS = "client_credentials";
     private static final String OAUTH_BEARER_TOKEN = "Bearer";
 
+    private static final String USER_AGENT_HDR = "User-Agent";
+
     // domain metrics prefix
     private static final String DOM_METRIX_PREFIX = "dom_metric_";
 
@@ -182,7 +189,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected ZTSAuthorizer authorizer;
     protected static Validator validator;
     protected NotificationManager notificationManager = null;
-    
+    protected StatusChecker statusChecker = null;
+
     enum AthenzObject {
         DOMAIN_METRICS {
             void convertToLowerCase(Object obj) {
@@ -312,6 +320,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         setAuthorityKeyStore();
 
         setNotificationManager();
+
+        // load the StatusChecker
+
+        loadStatusChecker();
     }
 
     private void setNotificationManager() {
@@ -320,13 +332,18 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 dataStore,
                 hostnameResolver,
                 userDomainPrefix,
-                serverHostName);
+                serverHostName,
+                httpsPort);
 
         notificationManager = new NotificationManager(ztsNotificationTaskFactory.getNotificationTasks());
+
+        // Enable notifications for instanceCertManager
+        instanceCertManager.enableCertStoreNotifications(notificationManager, dataStore, serverHostName);
+        instanceCertManager.enableSSHStoreNotifications(notificationManager, dataStore, serverHostName);
     }
 
     void loadSystemProperties() {
-        String propFile = System.getProperty(ZTSConsts.ZTS_PROP_FILE_NAME,
+        String propFile = System.getProperty(ZTS_PROP_FILE_NAME,
                 getRootDir() + "/conf/zts_server/zts.properties");
         ConfigProperties.loadProperties(propFile);
     }
@@ -402,25 +419,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             authorizedProxyUsers = new HashSet<>(Arrays.asList(authorizedProxyUserList.split(",")));
         }
         
-        userDomain = System.getProperty(ZTSConsts.ZTS_PROP_USER_DOMAIN, ZTSConsts.ATHENZ_USER_DOMAIN);
+        userDomain = System.getProperty(PROP_USER_DOMAIN, ZTSConsts.ATHENZ_USER_DOMAIN);
         userDomainPrefix = userDomain + ".";
         
         userDomainAlias = System.getProperty(ZTSConsts.ZTS_PROP_USER_DOMAIN_ALIAS);
         if (userDomainAlias != null) {
             userDomainAliasPrefix = userDomainAlias + ".";
-        }
-
-        // retrieve our temporary ostk host signer domain/service name
-        
-        final String hostSignerService = System.getProperty(ZTSConsts.ZTS_PROP_OSTK_HOST_SIGNER_SERVICE);
-        if (hostSignerService != null) {
-            int idx = hostSignerService.lastIndexOf('.');
-            if (idx == -1) {
-                LOGGER.error("ZTSImpl: invalid singer service name: " + hostSignerService);
-            } else {
-                ostkHostSignerService = hostSignerService.substring(idx + 1);
-                ostkHostSignerDomain = hostSignerService.substring(0, idx);
-            }
         }
         
         // get the list of uris that we want to allow an-authenticated access
@@ -492,6 +496,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // get server region
 
         serverRegion = System.getProperty(ZTSConsts.ZTS_PROP_SERVER_REGION);
+
+        // list of domains to be skipped when validating services for instance
+        // register/refresh operations since the services in these domains are
+        // dynamic - e.g. screwdriver projects
+
+        final String skipDomains = System.getProperty(ZTSConsts.ZTS_PROP_VALIDATE_SERVICE_SKIP_DOMAINS, "");
+        validateServiceSkipDomains = new HashSet<>(Arrays.asList(skipDomains.split(",")));
     }
     
     static String getServerHostName() {
@@ -537,14 +548,15 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
         
         // create our struct store
-        
-        return clogFactory.create(homeDir, privateKey.getKey(), privateKey.getId(), cloudStore);
+
+        clogFactory.setPrivateKeyStore(privateKeyStore);
+        return clogFactory.create(homeDir, privateKey.getKey(), privateKey.getId());
     }
     
     void loadMetricObject() {
         
         final String metricFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_METRIC_FACTORY_CLASS,
-                ZTSConsts.ZTS_METRIC_FACTORY_CLASS);
+                METRIC_DEFAULT_FACTORY_CLASS);
 
         MetricFactory metricFactory;
         try {
@@ -659,7 +671,27 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         auditLogger = auditLogFactory.create();
     }
-    
+
+    void loadStatusChecker() {
+        final String statusCheckerFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_STATUS_CHECKER_FACTORY_CLASS);
+        StatusCheckerFactory statusCheckerFactory;
+
+        if (statusCheckerFactoryClass != null && !statusCheckerFactoryClass.isEmpty()) {
+
+            try {
+                statusCheckerFactory = (StatusCheckerFactory) Class.forName(statusCheckerFactoryClass).newInstance();
+            } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+                LOGGER.error("Invalid StatusCheckerFactory class: " + statusCheckerFactoryClass
+                        + " error: " + e.getMessage());
+                throw new IllegalArgumentException("Invalid status checker factory class");
+            }
+
+            // create our status checker
+
+            statusChecker = statusCheckerFactory.create();
+        }
+    }
+
     AuditLogMsgBuilder getAuditLogMsgBuilder(ResourceContext ctx, String domainName,
             String caller, String method) {
         
@@ -759,10 +791,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     // ----------------- the ServiceIdentity interface
 
     public ServiceIdentity getServiceIdentity(ResourceContext ctx, String domainName, String serviceName) {
-        
-        final String caller = "getserviceidentity";
-        final String callerTiming = "getserviceidentity_timing";
-        metric.increment(HTTP_GET);
+
+        final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
         validateRequest(ctx.request(), principalDomain, caller);
@@ -774,13 +804,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // saves all of its object names in lower case
         
         domainName = domainName.toLowerCase();
+        setRequestDomain(ctx, domainName);
         serviceName = serviceName.toLowerCase();
 
-        Object timerMetric = metric.startTiming(callerTiming, domainName, principalDomain);
         DomainData domainData = dataStore.getDomainData(domainName);
         if (domainData == null) {
-            metric.increment(HTTP_REQUEST, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
-            metric.increment(caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+            setRequestDomain(ctx, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
             throw notFoundError("Domain not found: '" + domainName + "'", caller,
                     ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
@@ -789,9 +818,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // after the domain name has been confirmed as valid since with
         // dimensions we get stuck with persistent indexes so we only want
         // to create them for valid domain names
-
-        metric.increment(HTTP_REQUEST, domainName, principalDomain);
-        metric.increment(caller, domainName, principalDomain);
         
         String cnService = generateServiceIdentityName(domainName, serviceName);
         ServiceIdentity ztsService = lookupServiceIdentity(domainData, cnService);
@@ -800,16 +826,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw notFoundError("Service not found: '" + cnService + "'", caller, domainName, principalDomain);
         }
         
-        metric.stopTiming(timerMetric, domainName, principalDomain);
         return ztsService;
     }
 
     public PublicKeyEntry getPublicKeyEntry(ResourceContext ctx, String domainName,
             String serviceName, String keyId) {
-        
-        final String caller = "getpublickeyentry";
-        final String callerTiming = "getpublickeyentry_timing";
-        metric.increment(HTTP_GET);
+
+        final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
         validateRequest(ctx.request(), principalDomain, caller);
@@ -825,28 +848,22 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // policy, service, etc name)
         
         domainName = domainName.toLowerCase();
+        setRequestDomain(ctx, domainName);
         serviceName = serviceName.toLowerCase();
         keyId = keyId.toLowerCase();
 
-        Object timerMetric = metric.startTiming(callerTiming, domainName, principalDomain);
-        metric.increment(HTTP_REQUEST, domainName, principalDomain);
-        metric.increment(caller, domainName, principalDomain);
         String publicKey = dataStore.getPublicKey(domainName, serviceName, keyId);
         if (publicKey == null) {
             throw notFoundError("Public Key not found", caller, domainName, principalDomain);
         }
 
-        PublicKeyEntry entry = new PublicKeyEntry().setId(keyId)
+        return new PublicKeyEntry().setId(keyId)
                 .setKey(Crypto.ybase64(publicKey.getBytes(StandardCharsets.UTF_8)));
-        metric.stopTiming(timerMetric, domainName, principalDomain);
-        return entry;
     }
     
     public ServiceIdentityList getServiceIdentityList(ResourceContext ctx, String domainName) {
-        
-        final String caller = "getserviceidentitylist";
-        final String callerTiming = "getserviceidentitylist_timing";
-        metric.increment(HTTP_GET);
+
+        final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
         validateRequest(ctx.request(), principalDomain, caller);
@@ -857,27 +874,16 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // saves all of its object names in lower case
         
         domainName = domainName.toLowerCase();
-        Object timerMetric = metric.startTiming(callerTiming, domainName, principalDomain);
+        setRequestDomain(ctx, domainName);
 
         DomainData domainData = dataStore.getDomainData(domainName);
         if (domainData == null) {
-            metric.increment(HTTP_REQUEST, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
-            metric.increment(caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+            setRequestDomain(ctx, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
             throw notFoundError("Domain not found: '" + domainName + "'", caller,
                     ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
         
-        // update our metric with dimension. we're moving the metric here
-        // after the domain name has been confirmed as valid since with
-        // dimensions we get stuck with persistent indexes so we only want
-        // to create them for valid domain names
-
-        metric.increment(HTTP_REQUEST, domainName, principalDomain);
-        metric.increment(caller, domainName, principalDomain);
-        
-        ServiceIdentityList result = generateServiceIdentityList(domainName, domainData.getServices());
-        metric.stopTiming(timerMetric, domainName, principalDomain);
-        return result;
+        return generateServiceIdentityList(domainName, domainData.getServices());
     }
 
     ServiceIdentityList generateServiceIdentityList(final String domainName, List<com.yahoo.athenz.zms.ServiceIdentity> services) {
@@ -901,15 +907,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
 
     public HostServices getHostServices(ResourceContext ctx, String host) {
-        
-        final String caller = "gethostservices";
-        final String callerTiming = "gethostservices_timing";
-        metric.increment(HTTP_GET);
-        metric.increment(HTTP_REQUEST);
-        metric.increment(caller);
+
+        final String caller = ctx.getApiName();
 
         final String principalDomain = logPrincipalAndGetDomain(ctx);
-        Object timerMetric = metric.startTiming(callerTiming, null, principalDomain);
         validateRequest(ctx.request(), principalDomain, caller);
 
         // for consistent handling of all requests, we're going to convert
@@ -917,10 +918,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // saves all of its object names in lower case
         
         host = host.toLowerCase();
-        HostServices result = dataStore.getHostServices(host);
-        
-        metric.stopTiming(timerMetric, null, principalDomain);
-        return result;
+        return dataStore.getHostServices(host);
     }
 
     List<Policy> getPolicyList(DomainData domainData) {
@@ -967,7 +965,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
 
     AssertionEffect getAssertionEffect(com.yahoo.athenz.zms.AssertionEffect effect) {
-        if (effect != null && effect == com.yahoo.athenz.zms.AssertionEffect.DENY) {
+        if (effect == com.yahoo.athenz.zms.AssertionEffect.DENY) {
             return AssertionEffect.DENY;
         } else {
             return AssertionEffect.ALLOW;
@@ -975,10 +973,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
 
     public Response getDomainSignedPolicyData(ResourceContext ctx, String domainName, String matchingTag) {
-        
-        final String caller = "getdomainsignedpolicydata";
-        final String callerTiming = "getdomainsignedpolicydata_timing";
-        metric.increment(HTTP_GET);
+
+        final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
         validateRequest(ctx.request(), principalDomain, caller);
@@ -989,23 +985,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // saves all of its object names in lower case
         
         domainName = domainName.toLowerCase();
-        Object timerMetric = metric.startTiming(callerTiming, domainName, principalDomain);
+        setRequestDomain(ctx, domainName);
 
         DomainData domainData = dataStore.getDomainData(domainName);
         if (domainData == null) {
-            metric.increment(HTTP_REQUEST, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
-            metric.increment(caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+            setRequestDomain(ctx, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
             throw notFoundError("Domain not found: '" + domainName + "'", caller,
                     ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
-        
-        // update our metric with dimension. we're moving the metric here
-        // after the domain name has been confirmed as valid since with
-        // dimensions we get stuck with persistent indexes so we only want
-        // to create them for valid domain names
-
-        metric.increment(HTTP_REQUEST, domainName, principalDomain);
-        metric.increment(caller, domainName, principalDomain);
         
         Timestamp modified = domainData.getModified();
         EntityTag eTag = new EntityTag(modified.toString());
@@ -1042,7 +1029,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             .setSignature(signature)
             .setKeyId(privateKey.getId());
         
-        metric.stopTiming(timerMetric, domainName, principalDomain);
         return Response.status(ResourceException.OK).entity(result).header("ETag", tag).build();
     }
 
@@ -1141,10 +1127,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
     public TenantDomains getTenantDomains(ResourceContext ctx, String providerDomainName,
             String userName, String roleName, String serviceName) {
-        
-        final String caller = "gettenantdomains";
-        final String callerTiming = "gettenantdomains_timing";
-        metric.increment(HTTP_GET);
+
+        final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
         validateRequest(ctx.request(), principalDomain, caller);
@@ -1162,6 +1146,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // saves all of its object names in lower case
         
         providerDomainName = providerDomainName.toLowerCase();
+        setRequestDomain(ctx, providerDomainName);
         if (roleName != null) {
             roleName = roleName.toLowerCase();
         }
@@ -1172,26 +1157,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // first retrieve our domain data object from the cache
 
-        Object timerMetric = metric.startTiming(callerTiming, providerDomainName, principalDomain);
         DataCache data = dataStore.getDataCache(providerDomainName);
         if (data == null) {
-            // just increment the request counter without any dimension
-            // we don't want to get persistent indexes for invalid domains
-
-            metric.increment(HTTP_REQUEST, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
-            metric.increment(caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+            setRequestDomain(ctx, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
             throw notFoundError("getTenantDomains: No such provider domain: " + providerDomainName,
                     caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
-        
-        // update our metric with dimension. we're moving the metric here
-        // after the domain name has been confirmed as valid since with
-        // dimensions we get stuck with persistent indexes so we only want
-        // to create them for valid domain names
 
-        metric.increment(HTTP_REQUEST, providerDomainName, principalDomain);
-        metric.increment(caller, providerDomainName, principalDomain);
-        
         // if the username does not contain a domain then we'll assume
         // user domain and handle accordingly
         
@@ -1228,7 +1200,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         TenantDomains tenantDomains = new TenantDomains();
         tenantDomains.setTenantDomainNames(new ArrayList<>(domainNames));
 
-        metric.stopTiming(timerMetric, providerDomainName, principalDomain);
         return tenantDomains;
     }
 
@@ -1339,10 +1310,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     @Override
     public RoleToken getRoleToken(ResourceContext ctx, String domainName, String roleNames,
             Integer minExpiryTime, Integer maxExpiryTime, String proxyForPrincipal) {
-        
-        final String caller = "getroletoken";
-        final String callerTiming = "getroletoken_timing";
-        metric.increment(HTTP_GET);
+
+        final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
         validateRequest(ctx.request(), principalDomain, caller);
@@ -1359,6 +1328,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // saves all of its object names in lower case
         
         domainName = domainName.toLowerCase();
+        setRequestDomain(ctx, domainName);
         if (roleNames != null) {
             roleNames = roleNames.toLowerCase();
         }
@@ -1366,8 +1336,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             proxyForPrincipal = normalizeDomainAliasUser(proxyForPrincipal.toLowerCase());
         }
 
-        Object timerMetric = metric.startTiming(callerTiming, domainName, principalDomain);
-        
         // get our principal's name
 
         final Principal principal = ((RsrcCtxWrapper) ctx).principal();
@@ -1402,23 +1370,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         DataCache data = dataStore.getDataCache(domainName);
         if (data == null) {
-            // just increment the request counter without any dimension
-            // we don't want to get persistent indexes for invalid domains
-
-            metric.increment(HTTP_REQUEST, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
-            metric.increment(caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
-            
+            setRequestDomain(ctx, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
             throw notFoundError("getRoleToken: No such domain: " + domainName, caller,
                     ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
-        
-        // update our metric with dimension. we're moving the metric here
-        // after the domain name has been confirmed as valid since with
-        // dimensions we get stuck with persistent indexes so we only want
-        // to create them for valid domain names
-
-        metric.increment(HTTP_REQUEST, domainName, principalDomain);
-        metric.increment(caller, domainName, principalDomain);
         
         // check if the authorized service domain matches to the
         // requested domain name
@@ -1440,8 +1395,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 roles, false);
         
         if (roles.isEmpty()) {
-            throw forbiddenError("getRoleToken: No access to any roles in domain: "
-                    + domainName, caller, domainName, principalDomain);
+            throw forbiddenError(tokenErrorMessage(caller, principalName, domainName, requestedRoleList),
+                    caller, domainName, principalDomain);
         }
         
         // if this is proxy for operation then we want to make sure that
@@ -1459,7 +1414,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             // with an empty set
             
             if (roles.isEmpty()) {
-                throw forbiddenError("getRoleToken: No access to any roles by User and Proxy Principals",
+                throw forbiddenError(tokenErrorMessage(caller, proxyForPrincipal, domainName, requestedRoleList),
                         caller, domainName, principalDomain);
             }
             
@@ -1493,8 +1448,15 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         roleToken.setToken(token.getSignedToken());
         roleToken.setExpiryTime(token.getExpiryTime());
 
-        metric.stopTiming(timerMetric, domainName, principalDomain);
         return roleToken;
+    }
+
+    String tokenErrorMessage(final String caller, final String principalName, final String domainName,
+                             String[] requestedRoleList) {
+
+        final String roleComment = requestedRoleList == null ? "any role" : "the requested role(s)";
+        return caller + ": principal " + principalName + " is not included in "
+                + roleComment + " in domain " + domainName;
     }
 
     String decodeString(final String encodedString) {
@@ -1531,15 +1493,18 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return proxyName;
     }
 
+    String getQueryLogData(final String request) {
+        // make sure any CRLFs are not set to the logger
+        final String clean = request.replace('\n', '_').replace('\r', '_');
+        return (clean.length() > 1024) ? clean.substring(0, 1024) : clean;
+    }
+
     @Override
     public AccessTokenResponse postAccessTokenRequest(ResourceContext ctx, String request) {
 
-        final String caller = "postaccesstokenrequest";
-        final String callerTiming = "postaccesstokenrequest_timing";
+        final String caller = ctx.getApiName();
 
-        metric.increment(HTTP_POST);
         final String principalDomain = logPrincipalAndGetDomain(ctx);
-
         validateRequest(ctx.request(), principalDomain, caller);
 
         // get our principal's name
@@ -1555,15 +1520,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // we know what is the client asking for but we'll just
         // limit the request up to 1K
 
-        final String queryLog = (request.length() > 1024) ? request.substring(0, 1024) : request;
-        ctx.request().setAttribute(ACCESS_LOG_ADDL_QUERY, queryLog);
-
-        // update our metric with dimension
-
-        metric.increment(HTTP_REQUEST, principalDomain, principalDomain);
-        metric.increment(caller, principalDomain, principalDomain);
-
-        Object timerMetric = metric.startTiming(callerTiming, principalDomain, principalDomain);
+        ctx.request().setAttribute(ACCESS_LOG_ADDL_QUERY, getQueryLogData(request));
 
         // decode and store the attributes that could exist in our
         // request body
@@ -1638,6 +1595,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // match our schema
 
         final String domainName = tokenRequest.getDomainName();
+        setRequestDomain(ctx, domainName);
         validate(domainName, TYPE_DOMAIN_NAME, principalDomain, caller);
 
         String[] requestedRoles = tokenRequest.getRoleNames();
@@ -1651,23 +1609,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         DataCache data = dataStore.getDataCache(domainName);
         if (data == null) {
-            // just increment the request counter without any dimension
-            // we don't want to get persistent indexes for invalid domains
-
-            metric.increment(HTTP_REQUEST, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
-            metric.increment(caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
-
+            setRequestDomain(ctx, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
             throw notFoundError("No such domain: " + domainName, caller,
                     ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
-
-        // update our metric with dimension. we're moving the metric here
-        // after the domain name has been confirmed as valid since with
-        // dimensions we get stuck with persistent indexes so we only want
-        // to create them for valid domain names
-
-        metric.increment(HTTP_REQUEST, domainName, principalDomain);
-        metric.increment(caller, domainName, principalDomain);
 
         // check if the authorized service domain matches to the
         // requested domain name
@@ -1682,8 +1627,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // we return failure if we don't have access to any roles
 
         if (roles.isEmpty()) {
-            throw forbiddenError("No access to any roles in domain: " + domainName, caller,
-                    domainName, principalDomain);
+            throw forbiddenError(tokenErrorMessage(caller, principalName, domainName, requestedRoles),
+                    caller, domainName, principalDomain);
         }
 
         // if this is proxy for operation then we want to make sure that
@@ -1711,7 +1656,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             // with an empty set
 
             if (roles.isEmpty()) {
-                throw forbiddenError("No access to any roles by User and Proxy Principals",
+                throw forbiddenError(tokenErrorMessage(caller, proxyForPrincipal, domainName, requestedRoles),
                         caller, domainName, principalDomain);
             }
 
@@ -1799,7 +1744,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             response.setScope(String.join(" ", domainRoles));
         }
 
-        metric.stopTiming(timerMetric, domainName, principalDomain);
         return response;
     }
 
@@ -1820,10 +1764,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
 
     public RoleAccess getRoleAccess(ResourceContext ctx, String domainName, String principal) {
-        
-        final String caller = "getroleaccess";
-        final String callerTiming = "getroleaccess_timing";
-        metric.increment(HTTP_GET);
+
+        final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
         validateRequest(ctx.request(), principalDomain, caller);
@@ -1833,12 +1775,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case since ZMS Server
         // saves all of its object names in lower case
-        
+
         domainName = domainName.toLowerCase();
+        setRequestDomain(ctx, domainName);
         principal = normalizeDomainAliasUser(principal.toLowerCase());
 
-        Object timerMetric = metric.startTiming(callerTiming, domainName, principalDomain);
-        
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("getRoleAccess(domain: " + domainName + ", principal: " + principal + ")");
         }
@@ -1847,23 +1788,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         DataCache data = dataStore.getDataCache(domainName);
         if (data == null) {
-            // just increment the request counter without any dimension
-            // we don't want to get persistent indexes for invalid domains
-
-            metric.increment(HTTP_REQUEST, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
-            metric.increment(caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
-
+            setRequestDomain(ctx, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
             throw notFoundError("getRoleAccess: No such domain: " + domainName,
                     caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
-        
-        // update our metric with dimension. we're moving the metric here
-        // after the domain name has been confirmed as valid since with
-        // dimensions we get stuck with persistent indexes so we only want
-        // to create them for valid domain names
-
-        metric.increment(HTTP_REQUEST, domainName, principalDomain);
-        metric.increment(caller, domainName, principalDomain);
         
         // process our request and retrieve the roles for the principal
         
@@ -1871,18 +1799,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         dataStore.getAccessibleRoles(data, domainName, principal, null,
                 roles, false);
         
-        RoleAccess roleAccess = new RoleAccess().setRoles(new ArrayList<>(roles));
-        metric.stopTiming(timerMetric, domainName, principalDomain);
-        return roleAccess;
+        return new RoleAccess().setRoles(new ArrayList<>(roles));
     }
     
     @Override
     public RoleToken postRoleCertificateRequest(ResourceContext ctx, String domainName,
             String roleName, RoleCertificateRequest req) {
-        
-        final String caller = "postrolecertificaterequest";
-        final String callerTiming = "postrolecertificaterequest_timing";
-        metric.increment(HTTP_POST);
+
+        final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
         if (readOnlyMode) {
@@ -1917,9 +1841,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // saves all of its object names in lower case
         
         domainName = domainName.toLowerCase();
+        setRequestDomain(ctx, domainName);
         roleName = roleName.toLowerCase();
-
-        Object timerMetric = metric.startTiming(callerTiming, domainName, principalDomain);
 
         // verify that this is not an authorized service principal
         // which is only supported for get role token operations
@@ -1953,23 +1876,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         DataCache data = dataStore.getDataCache(domainName);
         if (data == null) {
-            // just increment the request counter without any dimension
-            // we don't want to get persistent indexes for invalid domains
-
-            metric.increment(HTTP_REQUEST, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
-            metric.increment(caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
-
+            setRequestDomain(ctx, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
             throw notFoundError("postRoleCertificateRequest: No such domain: " + domainName,
                     caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
-        
-        // update our metric with dimension. we're moving the metric here
-        // after the domain name has been confirmed as valid since with
-        // dimensions we get stuck with persistent indexes so we only want
-        // to create them for valid domain names
-
-        metric.increment(HTTP_REQUEST, domainName, principalDomain);
-        metric.increment(caller, domainName, principalDomain);
         
         // process our request and retrieve the roles for the principal
         
@@ -2036,7 +1946,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         instanceCertManager.logX509Cert(principal, ipAddress, ZTSConsts.ZTS_SERVICE, null, roleCert);
 
-        metric.stopTiming(timerMetric, domainName, principalDomain);
         return roleToken;
     }
 
@@ -2152,9 +2061,20 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             return false;
         }
 
+        // validate uriHostname in request matches the uriHostname in cert
+        if (!validateUriHostname(certReq.getUriHostname(), cert)) {
+            return false;
+        }
+
+        // validate InstanceID in request matches the instanceid in the cert
+        if (!validateInstanceId(certReq.getInstanceId(), cert)) {
+            // Todo: minitor the logs, and make this a hard failure in later iteration
+            LOGGER.error("unable to match request id: {} with cert id: {}", certReq.getInstanceId(), X509CertUtils.extractRequestInstanceId(cert));
+        }
+
         // validate the ip address if any provided
 
-        return verifyCertRequestIP ? certReq.validateIPAddress(cert, ip) : true;
+        return !verifyCertRequestIP || certReq.validateIPAddress(cert, ip);
     }
 
     boolean validateRoleCertSubjectOU(X509RoleCertRequest certReq, X509Certificate cert) {
@@ -2173,12 +2093,41 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return certReq.validateSubjectOUField(null, certOU, validCertSubjectOrgUnitValues);
     }
 
+    /**
+     * validateUriHostname verifies that a non-empty uriHostname (typically found in SanURI of the CSR) matches
+     * the hostname present in SanURI of the certificate of the request
+     * @param uriHostname hostname present in SanURI of the request CSR
+     * @param cert incoming request certificate
+     * @return true or false
+     */
+    boolean validateUriHostname(String uriHostname, X509Certificate cert) {
+        // if there is no hostname in SanURI, there is nothing to do
+        if (uriHostname == null || uriHostname.isEmpty()) {
+            return true;
+        }
+
+        return uriHostname.equals(X509CertUtils.extractItemFromURI(Crypto.extractX509CertURIs(cert), ZTSConsts.ZTS_CERT_HOSTNAME_URI));
+    }
+
+    /**
+     * validateInstanceId verifies that when non-empty instanceId (found in SanURI of the CSR) matches the instanceId
+     * present in the certificate of the request
+     * @param instanceId id present in the CSR
+     * @param cert incoming request certificate
+     * @return true or false
+     */
+    boolean validateInstanceId(String instanceId, X509Certificate cert) {
+        if (instanceId == null || instanceId.isEmpty()) {
+            return true;
+        }
+
+        return instanceId.equals(X509CertUtils.extractRequestInstanceId(cert));
+    }
+
     @Override
     public RoleCertificate postRoleCertificateRequestExt(ResourceContext ctx, RoleCertificateRequest req) {
 
-        final String caller = "postrolecertificaterequestext";
-        final String callerTiming = "postrolecertificaterequestext_timing";
-        metric.increment(HTTP_POST);
+        final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
         if (readOnlyMode) {
@@ -2207,10 +2156,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
 
         final String domainName = principal.getDomain();
-
-        metric.increment(HTTP_REQUEST, domainName, domainName);
-        metric.increment(caller, domainName, domainName);
-        Object timerMetric = metric.startTiming(callerTiming, domainName, domainName);
+        setRequestDomain(ctx, principalDomain);
 
         // verify that this is not an authorized service principal
         // which is only supported for get role token operations
@@ -2307,7 +2253,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         instanceCertManager.logX509Cert(principal, ipAddress, ZTSConsts.ZTS_SERVICE,
                 null, Crypto.loadX509Certificate(x509Cert));
 
-        metric.stopTiming(timerMetric, domainName, domainName);
         return roleCertificate;
     }
 
@@ -2355,7 +2300,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // validate the ip address if any provided
 
-        return verifyCertRequestIP ? certReq.validateIPAddress(cert, ip) : true;
+        return !verifyCertRequestIP || certReq.validateIPAddress(cert, ip);
     }
 
     boolean isAuthorizedServicePrincipal(final Principal principal) {
@@ -2366,9 +2311,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     public AWSTemporaryCredentials getAWSTemporaryCredentials(ResourceContext ctx, String domainName,
             String roleName, Integer durationSeconds, String externalId) {
 
-        final String caller = "getawstemporarycredentials";
-        final String callerTiming = "getawstemporarycredentials_timing";
-        metric.increment(HTTP_GET);
+        final String caller = ctx.getApiName();
 
         // we need to make sure we don't log the external id in
         // our access log files so we're going to set the attribute
@@ -2413,10 +2356,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // convert here instead only for the authz check
         
         domainName = domainName.toLowerCase();
-
-        Object timerMetric = metric.startTiming(callerTiming, domainName, principalDomain);
-        metric.increment(HTTP_REQUEST, domainName, principalDomain);
-        metric.increment(caller, domainName, principalDomain);
+        setRequestDomain(ctx, domainName);
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("getAWSTemporaryCredentials(domain: {}, role: {}, duration {}",
@@ -2432,7 +2372,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         final String principalName = principal.getFullName();
         final String roleResource = domainName + ":" + roleName.toLowerCase();
-        
+
         // we need to first verify that our principal is indeed configured
         // with aws assume role assertion for the specified role and domain
         
@@ -2443,7 +2383,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // now need to get the associated cloud account for the domain name
         
-        String account = cloudStore.getCloudAccount(domainName);
+        String account = cloudStore.getAwsAccount(domainName);
         if (account == null) {
             throw requestError("getAWSTemporaryCredentials: unable to retrieve AWS account for: "
                     + domainName, caller, domainName, principalDomain);
@@ -2459,7 +2399,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     caller, domainName, principalDomain);
         }
         
-        metric.stopTiming(timerMetric, domainName, principalDomain);
         return creds;
     }
 
@@ -2519,6 +2458,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         x509CertRecord.setClientCert(certUsage);
         x509CertRecord.setExpiryTime(expirationDate);
         x509CertRecord.setHostName(hostName);
+        x509CertRecord.setSvcDataUpdateTime(new Date());
 
         // we must be able to update our database otherwise we will not be
         // able to validate the certificate during refresh operations
@@ -2530,12 +2470,35 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return x509CertRecord;
     }
 
+    void validateInstanceServiceIdentity(DomainData domainData, final String serviceName, final String caller) {
+
+        // if the domain is one of the skip domains then we have no
+        // need to check anything
+
+        if (validateServiceSkipDomains.contains(domainData.getName())) {
+            return;
+        }
+
+        List<com.yahoo.athenz.zms.ServiceIdentity> services = domainData.getServices();
+        if (services != null) {
+            for (com.yahoo.athenz.zms.ServiceIdentity service : services) {
+                if (service.getName().equalsIgnoreCase(serviceName)) {
+                    return;
+                }
+            }
+        }
+
+        // eventually we'll reject these requests but first we want to see
+        // how many of these services are still running
+
+        //throw requestError("Service not registered in domain", caller, domainData.getName(), domainData.getName());
+        LOGGER.error("validateInstanceServiceIdentity: {} not registered for caller {}", serviceName, caller);
+    }
+
     @Override
     public Response postInstanceRegisterInformation(ResourceContext ctx, InstanceRegisterInformation info) {
-        
-        final String caller = "postinstanceregisterinformation";
-        final String callerTiming = "postinstanceregisterinformation_timing";
-        metric.increment(HTTP_POST);
+
+        final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
         if (readOnlyMode) {
@@ -2552,14 +2515,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         AthenzObject.INSTANCE_REGISTER_INFO.convertToLowerCase(info);
 
-        final String domain = info.getDomain();
-        final String service = info.getService();
-        final String cn = domain + "." + service;
+        final String domain = info.getDomain().toLowerCase();
+        setRequestDomain(ctx, domain);
+        final String service = info.getService().toLowerCase();
+        final String cn = ResourceUtils.serviceResourceName(domain, service);
         ((RsrcCtxWrapper) ctx).logPrincipal(cn);
-
-        Object timerMetric = metric.startTiming(callerTiming, domain, principalDomain);
-        metric.increment(HTTP_REQUEST, domain, principalDomain);
-        metric.increment(caller, domain, principalDomain);
 
         // before running any checks make sure it's coming from
         // an authorized ip address
@@ -2570,7 +2530,17 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw forbiddenError("Unknown IP: " + ipAddress + " for Provider: " + provider,
                     caller, domain, principalDomain);
         }
-        
+
+        // get our domain object and validate the service is correctly registered
+
+        DomainData domainData = dataStore.getDomainData(domain);
+        if (domainData == null) {
+            setRequestDomain(ctx, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
+            throw notFoundError("Domain not found: " + domain, caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+        }
+
+        validateInstanceServiceIdentity(domainData, cn, caller);
+
         // run the authorization checks to make sure the provider has been
         // authorized to launch instances in Athenz and the service has
         // authorized this provider to launch its instances
@@ -2592,8 +2562,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     caller, domain, principalDomain);
         }
 
-        final String serviceDnsSuffix = dataStore.getDomainData(domain).getCertDnsDomain();
-        final DataCache athenzSysDomainCache = dataStore.getDataCache(ZTSConsts.ATHENZ_SYS_DOMAIN);
+        final String serviceDnsSuffix = domainData.getCertDnsDomain();
+        final DataCache athenzSysDomainCache = dataStore.getDataCache(ATHENZ_SYS_DOMAIN);
 
         if (!certReq.validate(domain, service, provider, validCertSubjectOrgValues, athenzSysDomainCache,
                 serviceDnsSuffix, info.getHostname(), info.getHostCnames(), hostnameResolver, errorMsg)) {
@@ -2605,7 +2575,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // validate attestation data is included in the request
         
-        InstanceProvider instanceProvider = instanceProviderManager.getProvider(provider);
+        InstanceProvider instanceProvider = instanceProviderManager.getProvider(provider, hostnameResolver);
         if (instanceProvider == null) {
             throw requestError("unable to get instance for provider: " + provider,
                     caller, domain, principalDomain);
@@ -2630,11 +2600,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             metric.increment("providerconfirm_failure", domain, provider);
             int code = (ex.getCode() == ResourceException.GATEWAY_TIMEOUT) ?
                     ResourceException.GATEWAY_TIMEOUT : ResourceException.FORBIDDEN;
-            throw error(code, "unable to verify attestation data: " + ex.getMessage(),
+            throw error(code, getExceptionMsg("unable to verify attestation data: ", ctx, ex, info.getHostname()),
                     caller, domain, principalDomain);
         } catch (Exception ex) {
             metric.increment("providerconfirm_failure", domain, provider);
-            throw forbiddenError("unable to verify attestation data: " + ex.getMessage(),
+            throw forbiddenError(getExceptionMsg("unable to verify attestation data: ", ctx, ex, info.getHostname()),
                     caller, domain, principalDomain);
         } finally {
             metric.stopTiming(timerProviderMetric, provider, principalDomain);
@@ -2747,7 +2717,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         final String location = "/zts/v1/instance/" + provider + "/" + domain
                 + "/" + service + "/" + certReqInstanceId;
-        metric.stopTiming(timerMetric, domain, principalDomain);
         return Response.status(ResourceException.CREATED).entity(identity)
                 .header("Location", location).build();
     }
@@ -2765,7 +2734,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             queryLog.append("&hostname=");
             queryLog.append(hostname);
         }
-        return (queryLog.length() < 1024) ? queryLog.toString() : queryLog.toString().substring(0, 1024);
+        return (queryLog.length() < 1024) ? queryLog.toString() : queryLog.substring(0, 1024);
     }
 
     SSHCertRecord generateSSHCertRecord(ResourceContext ctx, final String service, final String instanceId,
@@ -2777,7 +2746,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         certRecord.setService(service);
         certRecord.setInstanceId(instanceId);
         certRecord.setClientIP(ServletRequestUtil.getRemoteAddress(ctx.request()));
-        certRecord.setPrivateIP(privateIp);
+        if (StringUtil.isEmpty(privateIp)) {
+            certRecord.setPrivateIP(certRecord.getClientIP());
+        } else {
+            certRecord.setPrivateIP(privateIp);
+        }
         return certRecord;
     }
 
@@ -2815,9 +2788,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // if we have a cloud account setup for this domain, we're going
         // to include it in the optional attributes
         
-        final String account = cloudStore.getCloudAccount(domain);
-        if (account != null) {
-            attributes.put(InstanceProvider.ZTS_INSTANCE_CLOUD_ACCOUNT, account);
+        final String awsAccount = cloudStore.getAwsAccount(domain);
+        if (awsAccount != null) {
+            attributes.put(InstanceProvider.ZTS_INSTANCE_AWS_ACCOUNT, awsAccount);
+        }
+        final String azureSubscription = cloudStore.getAzureSubscription(domain);
+        if (azureSubscription != null) {
+            attributes.put(InstanceProvider.ZTS_INSTANCE_AZURE_SUBSCRIPTION, azureSubscription);
         }
 
         // if this is a class based provider then we're also going
@@ -2848,10 +2825,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     public InstanceIdentity postInstanceRefreshInformation(ResourceContext ctx, String provider,
             String domain, String service, String instanceId, InstanceRefreshInformation info) {
 
-        final String caller = "postinstancerefreshinformation";
-        final String callerTiming = "postinstancerefreshinformation_timing";
-
-        metric.increment(HTTP_POST);
+        final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
         if (readOnlyMode) {
@@ -2872,11 +2846,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         provider = provider.toLowerCase();
         domain = domain.toLowerCase();
+        setRequestDomain(ctx, domain);
         service = service.toLowerCase();
-
-        Object timerMetric = metric.startTiming(callerTiming, domain, principalDomain);
-        metric.increment(HTTP_REQUEST, domain, principalDomain);
-        metric.increment(caller, domain, principalDomain);
         
         // before running any checks make sure it's coming from
         // an authorized ip address
@@ -2886,7 +2857,17 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw forbiddenError("Unknown IP: " + ipAddress + " for Provider: " + provider,
                     caller, domain, principalDomain);
         }
-        
+
+        // get our domain object and validate the service is correctly registered
+
+        DomainData domainData = dataStore.getDomainData(domain);
+        if (domainData == null) {
+            setRequestDomain(ctx, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
+            throw notFoundError("Domain not found: " + domain, caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+        }
+
+        validateInstanceServiceIdentity(domainData, ResourceUtils.serviceResourceName(domain, service), caller);
+
         // we are going to get two use cases here. client asking for:
         // * x509 cert (optionally with ssh certificate)
         // * only ssh certificate
@@ -2934,21 +2915,18 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         InstanceIdentity identity;
         if (x509Csr != null) {
-            identity = processProviderX509RefreshRequest(ctx, principal, domain, service, provider,
-                    instanceId, info, cert, caller);
+            identity = processProviderX509RefreshRequest(ctx, domainData, principal, domain, service,
+                    provider, instanceId, info, cert, caller);
         } else {
-            identity = processProviderSSHRefreshRequest(ctx, principal, domain, service, provider,
-                    instanceId, sshCsr, caller);
+            identity = processProviderSSHRefreshRequest(principal, domain, provider, instanceId, sshCsr, caller);
         }
         
-        metric.stopTiming(timerMetric, domain, principalDomain);
         return identity;
     }
     
-    InstanceIdentity processProviderX509RefreshRequest(ResourceContext ctx, final Principal principal,
-            final String domain, final String service, final String provider,
-            final String instanceId, InstanceRefreshInformation info, X509Certificate cert,
-            final String caller) {
+    InstanceIdentity processProviderX509RefreshRequest(ResourceContext ctx, DomainData domainData,
+            final Principal principal, final String domain, final String service, final String provider,
+            final String instanceId, InstanceRefreshInformation info, X509Certificate cert, final String caller) {
 
         // parse and validate our CSR
 
@@ -2960,8 +2938,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw requestError("unable to parse PKCS10 CSR", caller, domain, principalDomain);
         }
 
-        final String serviceDnsSuffix = dataStore.getDomainData(domain).getCertDnsDomain();
-        final DataCache athenzSysDomainCache = dataStore.getDataCache(ZTSConsts.ATHENZ_SYS_DOMAIN);
+        final String serviceDnsSuffix = domainData.getCertDnsDomain();
+        final DataCache athenzSysDomainCache = dataStore.getDataCache(ATHENZ_SYS_DOMAIN);
 
         StringBuilder errorMsg = new StringBuilder(256);
         if (!certReq.validate(domain, service, provider, validCertSubjectOrgValues, athenzSysDomainCache,
@@ -2980,7 +2958,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // validate attestation data is included in the request
         
-        InstanceProvider instanceProvider = instanceProviderManager.getProvider(provider);
+        InstanceProvider instanceProvider = instanceProviderManager.getProvider(provider, hostnameResolver);
         if (instanceProvider == null) {
             throw requestError("unable to get instance for provider: " + provider,
                     caller, domain, principalDomain);
@@ -2999,11 +2977,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             metric.increment("providerconfirm_failure", domain, provider);
             int code = (ex.getCode() == ResourceException.GATEWAY_TIMEOUT) ?
                     ResourceException.GATEWAY_TIMEOUT : ResourceException.FORBIDDEN;
-            throw error(code, "unable to verify attestation data: " + ex.getMessage(),
+            throw error(code, getExceptionMsg("unable to verify attestation data: ", ctx, ex, info.getHostname()),
                     caller, domain, principalDomain);
         } catch (Exception ex) {
             metric.increment("providerconfirm_failure", domain, provider);
-            throw forbiddenError("unable to verify attestation data: " + ex.getMessage(),
+            throw forbiddenError(getExceptionMsg("unable to verify attestation data: ", ctx, ex, info.getHostname()),
                     caller, domain, principalDomain);
         } finally {
             metric.stopTiming(timerProviderMetric, provider, principalDomain);
@@ -3107,10 +3085,19 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         final String reqIp = ServletRequestUtil.getRemoteAddress(ctx.request());
 
         if (x509CertRecord != null) {
+
+            // if our current IP or hostname has changed, we'll mark
+            // the record as svc data updated
+
+            processCertRecordChange(x509CertRecord, reqIp, info.getHostname());
+
+            // now let's update our record
+
             x509CertRecord.setCurrentSerial(certSerialNumber);
             x509CertRecord.setCurrentIP(reqIp);
             x509CertRecord.setCurrentTime(new Date());
             x509CertRecord.setExpiryTime(newCert.getNotAfter());
+            x509CertRecord.setHostName(info.getHostname());
 
             // we must be able to update our record db otherwise we will
             // not be able to validate the refresh request next time
@@ -3139,9 +3126,18 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return identity;
     }
 
-    InstanceIdentity processProviderSSHRefreshRequest(ResourceContext ctx, final Principal principal,
-            final String domain, final String service, final String provider,
-            final String instanceId, final String sshCsr, final String caller) {
+    void processCertRecordChange(X509CertRecord x509CertRecord, final String reqIp, final String hostname) {
+        if (certRecordChanged(x509CertRecord.getCurrentIP(), reqIp) || certRecordChanged(x509CertRecord.getHostName(), hostname)) {
+            x509CertRecord.setSvcDataUpdateTime(new Date());
+        }
+    }
+
+    boolean certRecordChanged(final String value1, final String value2) {
+        return ((value1 == null && value2 != null) || (value1 != null && !value1.equals(value2)));
+    }
+
+    InstanceIdentity processProviderSSHRefreshRequest(final Principal principal, final String domain,
+            final String provider, final String instanceId, final String sshCsr, final String caller) {
 
         LOGGER.info("User ssh certificate request from {}", principal.getFullName());
 
@@ -3231,8 +3227,17 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         } else if (!x509CertRecord.getPrevSerial().equals(serialNumber)) {
 
-            revokeCertificateRefresh(principalName, serialNumber, x509CertRecord);
-            throw forbiddenError("Certificate revoked", caller, requestDomain, principalDomain);
+            // check to see if we're in recovery/migration mode in which
+            // case the instance refreshed multiple times in a short period
+            // and hit both old and new systems thus the sequence is no longer
+            // valid - in this case we're going to not revoke since when
+            // refreshed again next time, if this is truly invalid, we'll
+            // revoke it at that time
+
+            if (cert.getNotBefore().getTime() > x509CertRefreshResetTime) {
+                revokeCertificateRefresh(principalName, serialNumber, x509CertRecord);
+                throw forbiddenError("Certificate revoked", caller, requestDomain, principalDomain);
+            }
         }
 
         return x509CertRecord;
@@ -3257,10 +3262,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     @Override
     public void deleteInstanceIdentity(ResourceContext ctx, String provider,
             String domain, String service, String instanceId) {
-        
-        final String caller = "deleteinstanceidentity";
-        final String callerTiming = "deleteinstanceidentity_timing";
-        metric.increment(HTTP_POST);
+
+        final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
         if (readOnlyMode) {
@@ -3287,16 +3290,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         provider = provider.toLowerCase();
         domain = domain.toLowerCase();
+        setRequestDomain(ctx, domain);
         service = service.toLowerCase();
-
-        Object timerMetric = metric.startTiming(callerTiming, domain, principalDomain);
-        metric.increment(HTTP_REQUEST, domain, principalDomain);
-        metric.increment(caller, domain, principalDomain);
         
         // remove the cert record for this instance
 
         instanceCertManager.deleteX509CertRecord(provider, instanceId, domain + "." + service);
-        metric.stopTiming(timerMetric, domain, principalDomain);
     }
 
     @Deprecated
@@ -3304,9 +3303,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     public Identity postInstanceRefreshRequest(ResourceContext ctx, String domain,
             String service, InstanceRefreshRequest req) {
 
-        final String caller = "postinstancerefreshrequest";
-        final String callerTiming = "postinstancerefreshrequest_timing";
-        metric.increment(HTTP_POST);
+        final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
         if (readOnlyMode) {
@@ -3331,18 +3328,15 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // policy, service, etc name)
         
         domain = domain.toLowerCase();
+        setRequestDomain(ctx, domain);
         service = service.toLowerCase();
-
-        Object timerMetric = metric.startTiming(callerTiming, domain, principalDomain);
-        metric.increment(HTTP_REQUEST, domain, principalDomain);
-        metric.increment(caller, domain, principalDomain);
 
         // make sure the credentials match to whatever the request is
 
         String fullServiceName = domain + "." + service;
         final String principalName = principal.getFullName();
         boolean userRequest = false;
-        
+
         if (!fullServiceName.equals(principalName)) {
             
             // if this not a match then we're going to allow the operation
@@ -3462,7 +3456,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 ZTSUtils.extractCertReqInstanceId(certReq),
                 Crypto.loadX509Certificate(identity.getCertificate()));
 
-        metric.stopTiming(timerMetric, domain, principalDomain);
         return identity;
     }
     
@@ -3497,9 +3490,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     @Override
     public Response postSSHCertRequest(ResourceContext ctx, SSHCertRequest certRequest) {
 
-        final String caller = "postsshcertrequest";
-        final String callerTiming = "postsshcertrequest_timing";
-        metric.increment(HTTP_POST);
+        final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
         if (readOnlyMode) {
@@ -3520,10 +3511,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         final Principal principal = ((RsrcCtxWrapper) ctx).principal();
         final String domainName = principal.getDomain();
-
-        Object timerMetric = metric.startTiming(callerTiming, domainName, principalDomain);
-        metric.increment(HTTP_REQUEST);
-        metric.increment(caller, domainName, principalDomain);
+        setRequestDomain(ctx, domainName);
 
         // generate our certificate. the ssh signer interface throws
         // rest ResourceExceptions so we'll catch and log those
@@ -3535,171 +3523,19 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw error(ex.getCode(), ex.getMessage(), caller, domainName, principalDomain);
         }
 
-        metric.stopTiming(timerMetric, domainName, principalDomain);
         return Response.status(ResourceException.CREATED).entity(certs).build();
     }
 
     @Override
     public JWKList getJWKList(ResourceContext ctx, Boolean rfc) {
 
-        final String caller = "getjwklist";
-        final String callerTiming = "getjwklist_timing";
+        final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
-
-        metric.increment(HTTP_GET);
-        metric.increment(HTTP_REQUEST);
-        metric.increment(caller);
-
-        Object timerMetric = metric.startTiming(callerTiming, null, principalDomain);
 
         validateRequest(ctx.request(), principalDomain, caller);
 
-        final JWKList jwkList = dataStore.getZtsJWKList(rfc);
-
-        metric.stopTiming(timerMetric, null, principalDomain);
-        return jwkList;
+        return dataStore.getZtsJWKList(rfc);
     }
-
-    /// CLOVER:OFF
-    // this method will be removed and replaced with call to postInstanceRefreshInformation
-    @Deprecated
-    @Override
-    public Identity postOSTKInstanceRefreshRequest(ResourceContext ctx, String domain,
-            String service, OSTKInstanceRefreshRequest req) {
-
-        final String caller = "postostkinstancerefreshrequest";
-        final String callerTiming = "postostkinstancerefreshrequest_timing";
-        metric.increment(HTTP_POST);
-        final String principalDomain = logPrincipalAndGetDomain(ctx);
-
-        if (readOnlyMode) {
-            throw requestError("Server in Maintenance Read-Only mode. Please try your request later",
-                    caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
-        }
-        
-        validateRequest(ctx.request(), principalDomain, caller);
-        validate(domain, TYPE_DOMAIN_NAME, principalDomain, caller);
-        validate(service, TYPE_SIMPLE_NAME, principalDomain, caller);
-        validate(req, TYPE_OSTK_INSTANCE_REFRESH_REQUEST, principalDomain, caller);
-
-        // for consistent handling of all requests, we're going to convert
-        // all incoming object values into lower case (e.g. domain, role,
-        // policy, service, etc name)
-        
-        domain = domain.toLowerCase();
-        service = service.toLowerCase();
-
-        Object timerMetric = metric.startTiming(callerTiming, domain, principalDomain);
-        metric.increment(HTTP_REQUEST, domain, principalDomain);
-        metric.increment(caller, domain, principalDomain);
-
-        // make sure the credentials match to whatever the request is
-
-        Principal principal = ((RsrcCtxWrapper) ctx).principal();
-        String principalName = domain + "." + service;
-        if (!principalName.equals(principal.getFullName())) {
-            throw requestError("postOSTKInstanceRefreshRequest: Principal mismatch: "
-                    + principalName + " vs. " + principal.getFullName(), caller, domain, principalDomain);
-        }
-
-        Authority authority = principal.getAuthority();
-        
-        // currently we only support services that already have certificates
-        
-        if (!(authority instanceof CertificateAuthority)) {
-            throw requestError("postOSTKInstanceRefreshRequest: Unsupported authority for TLS Certs: " +
-                    authority.toString(), caller, domain, principalDomain);
-        }
-        
-        X509Certificate cert = principal.getX509Certificate();
-        X509CertRecord x509CertRecord = instanceCertManager.getX509CertRecord("ostk", cert);
-        if (x509CertRecord == null) {
-            throw forbiddenError("postOSTKInstanceRefreshRequest: Unable to find certificate record",
-                    caller, domain, principalDomain);
-        }
-
-        // validate that the cn and public key (if required) match to
-        // the provided details
-        
-        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(req.getCsr());
-        if (certReq == null) {
-            throw requestError("postOSTKInstanceRefreshRequest: unable to parse PKCS10 certificate request",
-                    caller, domain, principalDomain);
-        }
-        
-        if (!ZTSUtils.verifyCertificateRequest(certReq, domain, service, x509CertRecord)) {
-            throw requestError("postOSTKInstanceRefreshRequest: invalid CSR - cn mismatch",
-                    caller, domain, principalDomain);
-        }
-        
-        // now we need to make sure the serial number for the certificate
-        // matches to what we had issued previously. If we have a mismatch
-        // then we're going to revoke this instance as it has been possibly
-        // compromised
-        
-        String serialNumber = cert.getSerialNumber().toString();
-        if (x509CertRecord.getCurrentSerial().equals(serialNumber)) {
-            
-            // update the record to mark current as previous
-            // and we'll update the current set with our existing
-            // details
-            
-            x509CertRecord.setPrevIP(x509CertRecord.getCurrentIP());
-            x509CertRecord.setPrevTime(x509CertRecord.getCurrentTime());
-            x509CertRecord.setPrevSerial(x509CertRecord.getCurrentSerial());
-
-        } else if (!x509CertRecord.getPrevSerial().equals(serialNumber)) {
-            
-            // we have a mismatch for both current and previous serial
-            // numbers so we're going to revoke it
-            
-            LOGGER.error("postOSTKInstanceRefreshRequest: Revoking certificate refresh for cn: {} " +
-                    "instance id: {}, current serial: {}, previous serial: {}, cert serial: {}",
-                    principalName, x509CertRecord.getInstanceId(), x509CertRecord.getCurrentSerial(),
-                    x509CertRecord.getPrevSerial(), serialNumber);
-            
-            x509CertRecord.setPrevSerial("-1");
-            x509CertRecord.setCurrentSerial("-1");
-            
-            instanceCertManager.updateX509CertRecord(x509CertRecord);
-            throw forbiddenError("postOSTKInstanceRefreshRequest: Certificate revoked",
-                    caller, domain, principalDomain);
-        }
-        
-        // generate identity with the certificate
-        
-        Identity identity = ZTSUtils.generateIdentity(instanceCertManager, req.getCsr(),
-                principalName, null, 0);
-        if (identity == null) {
-            throw serverError("Unable to generate identity", caller, domain, principalDomain);
-        }
-        identity.setCaCertBundle(instanceCertManager.getX509CertificateSigner());
-
-        // need to update our cert record with new certificate details
-
-        final String ipAddress = ServletRequestUtil.getRemoteAddress(ctx.request());
-
-        X509Certificate newCert = Crypto.loadX509Certificate(identity.getCertificate());
-        x509CertRecord.setCurrentSerial(newCert.getSerialNumber().toString());
-        x509CertRecord.setCurrentIP(ipAddress);
-        x509CertRecord.setCurrentTime(new Date());
-        
-        // we must be able to update our record db otherwise we will
-        // not be able to validate the refresh request next time
-        
-        if (!instanceCertManager.updateX509CertRecord(x509CertRecord)) {
-            throw serverError("postOSTKInstanceRefreshRequest: unable to update cert db",
-                    caller, domain, principalDomain);
-        }
-
-        // log our certificate
-
-        instanceCertManager.logX509Cert(principal, ipAddress, "ostk", x509CertRecord.getInstanceId(), newCert);
-
-        metric.stopTiming(timerMetric, domain, principalDomain);
-        return identity;
-    }
-    ///CLOVER:ON
 
     long getSvcTokenExpiryTime(Integer expiryTime) {
         
@@ -3739,15 +3575,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     @Override
     public ResourceAccess getResourceAccessExt(ResourceContext ctx, String action, String resource,
             String trustDomain, String checkPrincipal) {
-        
-        final String caller = "getaccessext";
-        metric.increment(HTTP_GET);
+
+        final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
         validateRequest(ctx.request(), principalDomain, caller);
         validate(action, TYPE_COMPOUND_NAME, principalDomain, caller);
         
-        return getResourceAccessCheck(((RsrcCtxWrapper) ctx).principal(), action, resource,
+        return getResourceAccessCheck(ctx, ((RsrcCtxWrapper) ctx).principal(), action, resource,
                 trustDomain, checkPrincipal);
     }
     
@@ -3755,25 +3590,22 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     public ResourceAccess getResourceAccess(ResourceContext ctx, String action, String resource,
             String trustDomain, String checkPrincipal) {
 
-        final String caller = "getresourceaccess";
-        metric.increment(HTTP_GET);
+        final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
         validateRequest(ctx.request(), principalDomain, caller);
         validate(action, TYPE_COMPOUND_NAME, principalDomain, caller);
         validate(resource, TYPE_RESOURCE_NAME, principalDomain, caller);
 
-        return getResourceAccessCheck(((RsrcCtxWrapper) ctx).principal(), action, resource,
+        return getResourceAccessCheck(ctx, ((RsrcCtxWrapper) ctx).principal(), action, resource,
                 trustDomain, checkPrincipal);
     }
     
-    ResourceAccess getResourceAccessCheck(Principal principal, String action, String resource,
+    ResourceAccess getResourceAccessCheck(ResourceContext ctx, Principal principal, String action, String resource,
             String trustDomain, String checkPrincipal) {
 
-        final String callerTiming = "getresourceaccess_timing";
-
         final String domainName = principal.getDomain();
-        Object timerMetric = metric.startTiming(callerTiming, domainName, domainName);
+        setRequestDomain(ctx, domainName);
 
         // if the check principal is given then we need to carry out the access
         // check against that principal
@@ -3788,17 +3620,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         ResourceAccess access = new ResourceAccess();
         access.setGranted(authorizer.access(action, resource, principal, trustDomain));
         
-        metric.stopTiming(timerMetric, domainName, domainName);
         return access;
     }
     
     @Override
     public Access getAccess(ResourceContext ctx, String domainName, String roleName,
             String principal) {
-        
-        final String caller = "getaccess";
-        final String callerTiming = "getaccess_timing";
-        metric.increment(HTTP_GET);
+
+        final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
         
         validateRequest(ctx.request(), principalDomain, caller);
@@ -3811,11 +3640,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // saves all of its object names in lower case
         
         domainName = domainName.toLowerCase();
+        setRequestDomain(ctx, domainName);
         roleName = roleName.toLowerCase();
         principal = normalizeDomainAliasUser(principal.toLowerCase());
 
-        Object timerMetric = metric.startTiming(callerTiming, domainName, principalDomain);
-        
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("getAccess(domain: " + domainName + ", principal: " + principal +
                     ", role: " + roleName + ")");
@@ -3825,23 +3653,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         DataCache data = dataStore.getDataCache(domainName);
         if (data == null) {
-            // just increment the request counter without any dimension
-            // we don't want to get persistent indexes for invalid domains
-
-            metric.increment(HTTP_REQUEST, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
-            metric.increment(caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
-
+            setRequestDomain(ctx, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
             throw notFoundError("getAccess: No such domain: " + domainName, caller,
                     ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
-        
-        // update our metric with dimension. we're moving the metric here
-        // after the domain name has been confirmed as valid since with
-        // dimensions we get stuck with persistent indexes so we only want
-        // to create them for valid domain names
-
-        metric.increment(HTTP_REQUEST, domainName, principalDomain);
-        metric.increment(caller, domainName, principalDomain);
         
         // process our request and retrieve the roles for the principal
         
@@ -3855,19 +3670,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         Access access = new Access();
         access.setGranted(roles.contains(roleName));
         
-        metric.stopTiming(timerMetric, domainName, principalDomain);
         return access;
     }
 
     public CertificateAuthorityBundle getCertificateAuthorityBundle(ResourceContext ctx, String name) {
 
-        final String caller = "getcertificateauthoritybundle";
-        final String callerTiming = "getcertificateauthoritybundle_timing";
+        final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
-
-        metric.increment(HTTP_GET);
-        metric.increment(HTTP_REQUEST);
-        metric.increment(caller);
 
         validateRequest(ctx.request(), name, caller);
         validate(name, TYPE_SIMPLE_NAME, principalDomain, caller);
@@ -3877,7 +3686,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // saves all of its object names in lower case
 
         name = name.toLowerCase();
-        Object timerMetric = metric.startTiming(callerTiming, name, principalDomain);
+        setRequestDomain(ctx, name);
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("getCertificateAuthorityBundle(name: {})", name);
@@ -3891,7 +3700,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
 
-        metric.stopTiming(timerMetric, name, principalDomain);
         return bundle;
     }
 
@@ -3902,9 +3710,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     public DomainMetrics postDomainMetrics(ResourceContext ctx, String domainName,
             DomainMetrics domainMetrics) {
 
-        final String caller = "postdomainmetrics";
-        final String callerTiming = "postdomainmetrics_timing";
-        metric.increment(HTTP_POST);
+        final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
         if (readOnlyMode) {
@@ -3916,14 +3722,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         validate(domainName, TYPE_DOMAIN_NAME, principalDomain, caller);
         validate(domainMetrics, TYPE_DOMAIN_METRICS, principalDomain, caller);
         domainName = domainName.toLowerCase();
+        setRequestDomain(ctx, domainName);
  
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case (e.g. domain, role,
         // policy, service, etc name)
         
         AthenzObject.DOMAIN_METRICS.convertToLowerCase(domainMetrics);
-
-        Object timerMetric = metric.startTiming(callerTiming, domainName, principalDomain);
 
         // verify valid domain specified
         DataCache data = dataStore.getDataCache(domainName);
@@ -3964,26 +3769,19 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             metric.increment(metricName, domainName, principalDomain, count);
         }
 
-        metric.stopTiming(timerMetric, domainName, principalDomain);
         return domainMetrics;
     }
     
     @Override
     public Status getStatus(ResourceContext ctx) {
-        
-        final String caller = "getstatus";
-        metric.increment(HTTP_GET);
+
+        final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
         // validate our request as status request
         
         validateRequest(ctx.request(), principalDomain, caller, true);
-        
-        // create our timer object
-        
-        metric.increment(caller);
-        Object timerMetric = metric.startTiming("getstatus_timing", null, principalDomain);
-        
+
         // for now we're going to verify our certsigner connectivity
         // only if the administrator has configured it. without certsigner
         // we can still issue role tokens and temporary credentials
@@ -4003,7 +3801,17 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
 
-        metric.stopTiming(timerMetric, null, principalDomain);
+        // if the statusChecker is set, check the status
+
+        if (statusChecker != null) {
+            try {
+                statusChecker.check();
+            } catch (StatusCheckException e) {
+                throw error(e.getCode(), e.getMsg(), caller,
+                        ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+            }
+        }
+
         return successServerStatus;
     }
     
@@ -4052,10 +3860,16 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw requestError("Missing or malformed " + type, caller,
                     ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
-        
-        Result result = validator.validate(val, type);
-        if (!result.valid) {
-            throw requestError("Invalid " + type  + " error: " + result.error, caller,
+
+        try {
+            Result result = validator.validate(val, type);
+            if (!result.valid) {
+                throw requestError("Invalid " + type + " error: " + result.error, caller,
+                        ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+            }
+        } catch (Exception ex) {
+            LOGGER.error("Object validation exception", ex);
+            throw requestError("Invalid " + type + " error: " + ex.getMessage(), caller,
                     ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
     }
@@ -4081,16 +3895,42 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
         return null;
     }
-    
+
+    String getPrincipalDomain(ResourceContext ctx) {
+        if (ctx == null) {
+            return null;
+        }
+        final Principal ctxPrincipal = ((RsrcCtxWrapper) ctx).principal();
+        return ctxPrincipal == null ? null : ctxPrincipal.getDomain();
+    }
+
+    void setRequestDomain(ResourceContext ctx, String requestDomainName) {
+        ((RsrcCtxWrapper) ctx).setRequestDomain(requestDomainName);
+    }
+
+    String getRequestDomainName(ResourceContext ctx) {
+        if (ctx == null) {
+            return null;
+        }
+        return ((RsrcCtxWrapper) ctx).getRequestDomain();
+    }
+
+    Object getTimerMetric(ResourceContext ctx) {
+        if (ctx == null) {
+            return null;
+        }
+        return ((RsrcCtxWrapper) ctx).getTimerMetric();
+    }
+
     protected RuntimeException error(int code, final String msg, final String caller,
                                      final String requestDomain, final String principalDomain) {
-        
+
         LOGGER.error("Error: {} request-domain: {} principal-domain: {} code: {} message: {}",
                 caller, requestDomain, principalDomain, code, msg);
-        
+
         // emit our metrics if configured. the method will automatically
         // return from the caller if caller is null
-        
+
         ZTSUtils.emitMonmetricError(code, caller, requestDomain, principalDomain, this.metric);
         return new ResourceException(code, new ResourceError().code(code).message(msg));
     }
@@ -4115,16 +3955,25 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return error(ResourceException.INTERNAL_SERVER_ERROR, msg, caller, requestDomain, principalDomain);
     }
 
-    public ResourceContext newResourceContext(HttpServletRequest request, HttpServletResponse response) {
-        
+    public ResourceContext newResourceContext(HttpServletRequest request,
+                                              HttpServletResponse response,
+                                              String apiName) {
+        Object timerMetric = metric.startTiming("zts_api_latency", null, null, request.getMethod(), apiName.toLowerCase());
         // check to see if we want to allow this URI to be available
         // with optional authentication support
-        
+
         boolean optionalAuth = StringUtils.requestUriMatch(request.getRequestURI(),
                 authFreeUriSet, authFreeUriList);
-        return new RsrcCtxWrapper(request, response, authorities, optionalAuth, authorizer, metric);
+        return new RsrcCtxWrapper(request, response, authorities, optionalAuth, authorizer, metric, timerMetric, apiName);
     }
-    
+
+    String getExceptionMsg(String prefix, ResourceContext ctx, Exception ex, String hostname) {
+        return prefix + ex.getMessage() +
+                " client: " + ctx.request().getHeader(USER_AGENT_HDR) +
+                " clientIP: " + ctx.request().getRemoteAddr() +
+                " clientHost: " + hostname;
+    }
+
     Authority getAuthority(String className) {
         
         LOGGER.debug("Loading authority {}...", className);
@@ -4180,5 +4029,16 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             }
         }
         return true;
+    }
+
+    public void recordMetrics(ResourceContext ctx, int httpStatus) {
+        final String principalDomainName = getPrincipalDomain(ctx);
+        final String domainName = getRequestDomainName(ctx);
+        final Object timerMetric = getTimerMetric(ctx);
+        final String httpMethod = (ctx != null) ? ctx.getHttpMethod() : null;
+        final String apiName = (ctx != null) ? ctx.getApiName() : null;
+        final String timerName = (apiName != null) ? apiName + "_timing" : null;
+        metric.increment("zts_api", domainName, principalDomainName, httpMethod, httpStatus, apiName);
+        metric.stopTiming(timerMetric, domainName, principalDomainName, httpMethod, httpStatus, timerName);
     }
 }

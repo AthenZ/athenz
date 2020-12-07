@@ -217,6 +217,12 @@ public class PrincipalAuthorityTest {
     }
 
     @Test
+    public void testGetID() {
+        PrincipalAuthority authority = new PrincipalAuthority();
+        assertEquals("Auth-NTOKEN", authority.getID());
+    }
+
+    @Test
     public void testPrincipalAuthorityWithAuthorizedServiceInvalid() throws IOException, CryptoException {
         PrincipalAuthority serviceAuthority = new PrincipalAuthority();
         KeyStore keyStore = new KeyStoreMock();

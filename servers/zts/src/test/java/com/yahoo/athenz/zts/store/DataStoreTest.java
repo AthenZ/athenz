@@ -15,6 +15,8 @@
  */
 package com.yahoo.athenz.zts.store;
 
+import static com.yahoo.athenz.common.ServerCommonConsts.PROP_ATHENZ_CONF;
+import static com.yahoo.athenz.common.ServerCommonConsts.PROP_USER_DOMAIN;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.*;
@@ -32,6 +34,9 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.*;
 
+import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.auth.util.StringUtils;
+import com.yahoo.athenz.common.server.store.ChangeLogStore;
 import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.ZTSTestUtils;
@@ -51,7 +56,6 @@ import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.cache.DataCache;
 import com.yahoo.athenz.zts.cache.MemberRole;
 import com.yahoo.athenz.zts.store.DataStore.DataUpdater;
-import com.yahoo.athenz.zts.store.impl.MockZMSFileChangeLogStore;
 import com.yahoo.rdl.JSON;
 
 public class DataStoreTest {
@@ -112,7 +116,7 @@ public class DataStoreTest {
                 "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory");
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY,
                 "src/test/resources/unit_test_zts_private.pem");
-        System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF,  "src/test/resources/athenz.conf");
+        System.setProperty(PROP_ATHENZ_CONF,  "src/test/resources/athenz.conf");
     }
     
     @BeforeMethod
@@ -128,7 +132,7 @@ public class DataStoreTest {
         
         pkey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
         
-        userDomain = System.getProperty(ZTSConsts.ZTS_PROP_USER_DOMAIN, "user");
+        userDomain = System.getProperty(PROP_USER_DOMAIN, "user");
     }
     
     @AfterMethod
@@ -174,7 +178,7 @@ public class DataStoreTest {
         ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 pkey, "0");
 
-        System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF, "src/test/resources/athenz_no_zms_publickeys.conf");
+        System.setProperty(PROP_ATHENZ_CONF, "src/test/resources/athenz_no_zms_publickeys.conf");
         try {
             new DataStore(clogStore, null);
             fail();
@@ -182,7 +186,7 @@ public class DataStoreTest {
             assertTrue(ex.getMessage().contains("Unable to initialize public keys"));
         }
 
-        System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF, "src/test/resources/athenz_no_zts_publickeys.conf");
+        System.setProperty(PROP_ATHENZ_CONF, "src/test/resources/athenz_no_zts_publickeys.conf");
         try {
             new DataStore(clogStore, null);
             fail();
@@ -190,7 +194,7 @@ public class DataStoreTest {
             assertTrue(ex.getMessage().contains("Unable to initialize public keys"));
         }
 
-        System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF, "src/test/resources/athenz_zms_invalid_publickeys.conf");
+        System.setProperty(PROP_ATHENZ_CONF, "src/test/resources/athenz_zms_invalid_publickeys.conf");
         try {
             new DataStore(clogStore, null);
             fail();
@@ -198,7 +202,7 @@ public class DataStoreTest {
             assertTrue(ex.getMessage().contains("Unable to initialize public keys"));
         }
 
-        System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF, "src/test/resources/athenz_zts_invalid_publickeys.conf");
+        System.setProperty(PROP_ATHENZ_CONF, "src/test/resources/athenz_zts_invalid_publickeys.conf");
         try {
             new DataStore(clogStore, null);
             fail();
@@ -206,7 +210,7 @@ public class DataStoreTest {
             assertTrue(ex.getMessage().contains("Unable to initialize public keys"));
         }
 
-        System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF, "src/test/resources/athenz_invalid.conf");
+        System.setProperty(PROP_ATHENZ_CONF, "src/test/resources/athenz_invalid.conf");
         try {
             new DataStore(clogStore, null);
             fail();
@@ -214,7 +218,7 @@ public class DataStoreTest {
             assertTrue(ex.getMessage().contains("Unable to initialize public keys"));
         }
 
-        System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF, "src/test/resources/athenz_invalid_zts_pem_publickey.conf");
+        System.setProperty(PROP_ATHENZ_CONF, "src/test/resources/athenz_invalid_zts_pem_publickey.conf");
         try {
             new DataStore(clogStore, null);
             fail();
@@ -222,7 +226,7 @@ public class DataStoreTest {
             assertTrue(ex.getMessage().contains("Unable to initialize public keys"));
         }
 
-        System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
+        System.setProperty(PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
     }
 
     @Test
@@ -274,7 +278,7 @@ public class DataStoreTest {
     @Test
     public void testLoadZMSPublicKeys() {
         
-        System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
+        System.setProperty(PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
         ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 pkey, "0");
         DataStore store = new DataStore(clogStore, null);
@@ -282,32 +286,6 @@ public class DataStoreTest {
         PublicKey zmsKey = store.zmsPublicKeyCache.getIfPresent("0");
         assertNotNull(zmsKey);
         assertNull(store.zmsPublicKeyCache.getIfPresent("1"));
-    }
-    
-    @Test
-    public void testRetrieveLastModificationTime() {
-        
-        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
-                pkey, "0");
-        DataStore store = new DataStore(clogStore, null);
-        
-        try (PrintWriter out = new PrintWriter("/tmp/zts_server_unit_tests/zts_root/.lastModTime")) {
-            out.write("{\"lastModTime\":\"12345\"}");
-        } catch (FileNotFoundException e) {
-            fail();
-        }
-        
-        assertEquals(((MockZMSFileChangeLogStore) store.changeLogStore).retrieveLastModificationTime(), "12345");
-    }
-    
-    @Test
-    public void testRetrieveLastModificationTimeNotValid() {
-        
-        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
-                pkey, "0");
-        DataStore store = new DataStore(clogStore, null);
-        ((MockZMSFileChangeLogStore) store.changeLogStore).retrieveLastModificationTime();
-        assertNull(((MockZMSFileChangeLogStore) store.changeLogStore).lastModTime);
     }
     
     @Test
@@ -327,20 +305,6 @@ public class DataStoreTest {
         }
         
         assertEquals(data, "{\"lastModTime\":\"23456\"}");
-    }
-    
-    @Test
-    public void testResetLastModificationTime() {
-
-        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
-                pkey, "0");
-        DataStore store = new DataStore(clogStore, null);
-        store.changeLogStore.setLastModificationTimestamp("34567");
-        store.changeLogStore.setLastModificationTimestamp(null);
-        
-        assertNull(((MockZMSFileChangeLogStore) store.changeLogStore).lastModTime);
-        File f = new File("/tmp/zts_server_unit_tests/zts_root/.lastModTime");
-        assertFalse(f.exists());
     }
     
     @Test
@@ -1583,7 +1547,7 @@ public class DataStoreTest {
         
         signedDomain.setDomain(domainData);
         signedDomain.setKeyId("0");
-        ((MockZMSFileChangeLogStore) store.changeLogStore).put("coretech", JSON.bytes(signedDomain));
+        store.changeLogStore.saveLocalDomain("coretech", signedDomain);
 
         DataCache dataCache = new DataCache();
         dataCache.setDomainData(domainData);
@@ -1667,48 +1631,6 @@ public class DataStoreTest {
         assertNull(store.getPublicKey("coretech", "storage", "0"));
         assertNull(store.getPublicKey("coretech", "storage", "1"));
         assertNull(store.getPublicKey("coretech", "storage", "2"));
-    }
-
-    @Test
-    public void testRetrieveTagHeadersEmptyList() {
-        
-        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
-                pkey, "0");
-        DataStore store = new DataStore(clogStore, null);
-        ((MockZMSFileChangeLogStore) store.changeLogStore).setTagHeader(null);
-
-        Map<String, List<String>> responseHeaders = new HashMap<>();
-        assertNull(((MockZMSFileChangeLogStore) store.changeLogStore).retrieveTagHeader(responseHeaders));
-    }
-    
-    @Test
-    public void testRetrieveTagHeadersValueNotFound() {
-        
-        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
-                pkey, "0");
-        DataStore store = new DataStore(clogStore, null);
-        ((MockZMSFileChangeLogStore) store.changeLogStore).setTagHeader(null);
-
-        Map<String, List<String>> responseHeaders = new HashMap<>();
-        List<String> values = new ArrayList<>();
-        values.add("Unit-Test");
-        responseHeaders.put("User-Agent", values);
-        assertNull(((MockZMSFileChangeLogStore) store.changeLogStore).retrieveTagHeader(responseHeaders));
-    }
-    
-    @Test
-    public void testRetrieveTagHeadersValidValue() {
-        
-        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
-                pkey, "0");
-        DataStore store = new DataStore(clogStore, null);
-        ((MockZMSFileChangeLogStore) store.changeLogStore).setTagHeader(null);
-
-        Map<String, List<String>> responseHeaders = new HashMap<>();
-        List<String> values = new ArrayList<>();
-        values.add("Unit-Test");
-        responseHeaders.put("tag", values);
-        assertEquals(((MockZMSFileChangeLogStore) store.changeLogStore).retrieveTagHeader(responseHeaders), "Unit-Test");
     }
     
     @Test
@@ -1838,7 +1760,7 @@ public class DataStoreTest {
         
         signedDomain.setDomain(domainData);
         signedDomain.setKeyId("0");
-        ((MockZMSFileChangeLogStore) store.changeLogStore).put(domainName, JSON.bytes(signedDomain));
+        store.changeLogStore.saveLocalDomain(domainName, signedDomain);
         
         DataCache dataCache = new DataCache();
         dataCache.setDomainData(domainData);
@@ -2078,10 +2000,10 @@ public class DataStoreTest {
     @Test
     public void testStoreInitNoLocalDomains() {
 
-        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+        MockZMSFileChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 pkey, "0");
+
         DataStore store = new DataStore(clogStore, null);
-        ((MockZMSFileChangeLogStore) store.changeLogStore).setTagHeader("2014-01-01T12:00:00");
         store.changeLogStore.setLastModificationTimestamp(null);
         
         List<SignedDomain> domains = new ArrayList<>();
@@ -2120,13 +2042,14 @@ public class DataStoreTest {
     @Test
     public void testStoreInitNoLastModTimeDomainUpdateFailure() {
 
-        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+        MockZMSFileChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 pkey, "0");
+        clogStore.getClogStoreCommon().setTagHeader(null);
+
         DataStore store = new DataStore(clogStore, null);
         addDomainToDataStore(store, "coretech");
         ((MockZMSFileChangeLogStore) store.changeLogStore).setDomainList(null);
-        ((MockZMSFileChangeLogStore) store.changeLogStore).setTagHeader(null);
-        
+
         /* our mock is going to throw an exception for domain list so failure */
         
         try {
@@ -2139,8 +2062,9 @@ public class DataStoreTest {
     
     @Test
     public void testStoreInitLocalDomainUpdated() {
-        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+        MockZMSFileChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 pkey, "0");
+
         DataStore setupStore = new DataStore(clogStore, null);
         setupStore.loadAthenzPublicKeys();
 
@@ -2150,8 +2074,7 @@ public class DataStoreTest {
         /* create a new store instance */
         
         DataStore store = new DataStore(clogStore, null);
-        ((MockZMSFileChangeLogStore) store.changeLogStore).setTagHeader("2014-01-01T12:00:00");
-        
+
         List<SignedDomain> domains = new ArrayList<>();
 
         /* we're going to create a new domain */
@@ -2207,19 +2130,19 @@ public class DataStoreTest {
     @Test
     public void testStoreInitLastModTimeDomainCorrupted() {
 
-        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+        MockZMSFileChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 pkey, "0");
+
         DataStore store = new DataStore(clogStore, null);
         store.changeLogStore.setLastModificationTimestamp("2014-01-01T12:00:00");
         
         SignedDomain signedDomain = createSignedDomain("coretech", "weather");
         signedDomain.setSignature("ABCD"); /* invalid signature which will cause domain to be deleted */
         
-        ((MockZMSFileChangeLogStore) store.changeLogStore).put("coretech", JSON.bytes(signedDomain));
+        store.changeLogStore.saveLocalDomain("coretech", signedDomain);
         
         store = new DataStore(clogStore, null);
-        ((MockZMSFileChangeLogStore) store.changeLogStore).setTagHeader("2014-01-01T12:00:00");
-        
+
         List<String> list = new ArrayList<>();
         list.add("coretech");
         list.add("sports");
@@ -2787,7 +2710,7 @@ public class DataStoreTest {
     @Test
     public void testProcessLocalDomainsOneBadDomain() throws FileNotFoundException {
 
-        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+        MockZMSFileChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 pkey, "0");
 
         DataStore setupStore = new DataStore(clogStore, null);
@@ -2825,7 +2748,7 @@ public class DataStoreTest {
 
         List<String> list = Arrays.asList("coretech", "sports", "finance", "news", "fantasy",
                 "ads", "platforms", "dev", "athenz");
-        ((MockZMSFileChangeLogStore) store.changeLogStore).setDomainList(list);
+        clogStore.setDomainList(list);
 
         store.init();
 
@@ -3357,7 +3280,7 @@ public class DataStoreTest {
         Set<String> accessibleRoles = new HashSet<>();
         String prefix = "coretech" + ROLE_POSTFIX;
         
-        store.processStandardMembership(null, prefix, null, accessibleRoles, false);
+        store.processStandardMembership(null, prefix, null, null, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 0);
     }
     
@@ -3374,7 +3297,7 @@ public class DataStoreTest {
         memberRoles.add(new MemberRole("coretech:role.admin", 0));
         memberRoles.add(new MemberRole("coretech:role.readers", 0));
         
-        store.processStandardMembership(memberRoles, prefix, null, accessibleRoles, false);
+        store.processStandardMembership(memberRoles, prefix, null, null, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 2);
         assertTrue(accessibleRoles.contains("admin"));
         assertTrue(accessibleRoles.contains("readers"));
@@ -3395,7 +3318,7 @@ public class DataStoreTest {
         memberRoles.add(new MemberRole("coretech:role.admin", 0));
         memberRoles.add(new MemberRole("coretech:role.readers", 0));
         
-        store.processStandardMembership(memberRoles, prefix, requestedRoleList, accessibleRoles, false);
+        store.processStandardMembership(memberRoles, prefix, null, requestedRoleList, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 1);
     }
     
@@ -3414,7 +3337,7 @@ public class DataStoreTest {
         memberRoles.add(new MemberRole("coretech:role.admin", System.currentTimeMillis() - 1000));
         memberRoles.add(new MemberRole("coretech:role.readers", 0));
         
-        store.processStandardMembership(memberRoles, prefix, requestedRoleList, accessibleRoles, false);
+        store.processStandardMembership(memberRoles, prefix, null, requestedRoleList, accessibleRoles, false);
         assertTrue(accessibleRoles.isEmpty());
     }
     
@@ -3433,7 +3356,7 @@ public class DataStoreTest {
         memberRoles.add(new MemberRole("coretech:role.admin", 0));
         memberRoles.add(new MemberRole("coretech:role.readers", 0));
         
-        store.processStandardMembership(memberRoles, prefix, requestedRoleList, accessibleRoles, false);
+        store.processStandardMembership(memberRoles, prefix, null, requestedRoleList, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 1);
     }
     
@@ -3451,7 +3374,7 @@ public class DataStoreTest {
         memberRoles.add(new MemberRole("coretech:role.admin", 0));
         memberRoles.add(new MemberRole("coretech:role.readers", 0));
         
-        store.processStandardMembership(memberRoles, prefix, requestedRoleList, accessibleRoles, false);
+        store.processStandardMembership(memberRoles, prefix, null, requestedRoleList, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 0);
     }
     
@@ -3470,7 +3393,7 @@ public class DataStoreTest {
         memberRoles.add(new MemberRole("coretech:role.admin", 0));
         memberRoles.add(new MemberRole("coretech:role.readers", 0));
         
-        store.processStandardMembership(memberRoles, prefix, requestedRoleList, accessibleRoles, false);
+        store.processStandardMembership(memberRoles, prefix, null, requestedRoleList, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 0);
     }
     
@@ -3545,24 +3468,12 @@ public class DataStoreTest {
     }
     
     @Test
-    public void testProcessDomainUpdatesFromZMSFailure() {
-        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
-                pkey, "0");
-        DataStore store = new DataStore(clogStore, null);
-        ((MockZMSFileChangeLogStore) store.changeLogStore).lastModTime = "2014-01-01T12:00:00";
-        ((MockZMSFileChangeLogStore) store.changeLogStore).setSignedDomainsExc();
-        
-        boolean result = store.processDomainUpdates();
-        assertFalse(result);
-    }
-    
-    @Test
     public void testProcessDomainUpdatesFromZMSNoTagHeader() {
-        
-        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+
+        MockZMSFileChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 pkey, "0");
+        clogStore.getClogStoreCommon().setTagHeader(null);
         DataStore store = new DataStore(clogStore, null);
-        ((MockZMSFileChangeLogStore) store.changeLogStore).setTagHeader(null);
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather");
         
@@ -3582,9 +3493,9 @@ public class DataStoreTest {
     public void testProcessDomainUpdatesFromZMSInvalidSignedDomain() {
         ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 pkey, "0");
+
         DataStore store = new DataStore(clogStore, null);
-        ((MockZMSFileChangeLogStore) store.changeLogStore).setTagHeader("2014-01-01T12:00:00");
-        
+
         SignedDomain signedDomain = createSignedDomain("coretech", "weather");
         signedDomain.setSignature("ABCD"); /* invalidate the signature */
         
@@ -3605,8 +3516,8 @@ public class DataStoreTest {
         
         ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 pkey, "0");
+
         DataStore store = new DataStore(clogStore, null);
-        ((MockZMSFileChangeLogStore) store.changeLogStore).setTagHeader("2014-01-01T12:00:00");
         store.loadAthenzPublicKeys();
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather");
@@ -3667,7 +3578,6 @@ public class DataStoreTest {
         ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 pkey, "0");
         DataStore store = new DataStore(clogStore, null);
-        ((MockZMSFileChangeLogStore) store.changeLogStore).setTagHeader("2014-01-01T12:00:00");
         store.loadAthenzPublicKeys();
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather");
@@ -4077,5 +3987,465 @@ public class DataStoreTest {
                         + "53542091716518238707344493641683483917");
 
         assertEquals(encodedInt4, new String(encoder.encode(store.toIntegerBytes(bigInt4, true))));
+    }
+
+    @Test
+    public void testGetRolesByDomain() {
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                pkey, "0");
+        DataStore store = new DataStore(clogStore, null);
+
+        DataCache dataCache = new DataCache();
+
+        Role role = new Role();
+        role.setName("coretech:role.admin");
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user_domain.user"));
+        role.setRoleMembers(members);
+
+        List<Role> roles = new ArrayList<>();
+        roles.add(role);
+
+        DomainData domainData = new DomainData();
+        domainData.setRoles(roles);
+        dataCache.setDomainData(domainData);
+
+        store.addDomainToCache("coretech", dataCache);
+        List<Role> fetchedRoles = store.getRolesByDomain("coretech");
+
+        assertEquals(fetchedRoles.size(), 1);
+        assertEquals(fetchedRoles.get(0).getName(), "coretech:role.admin");
+
+        fetchedRoles = store.getRolesByDomain("unknownDomain");
+        assertEquals(fetchedRoles.size(), 0);
+    }
+
+    @Test
+    public void testProcessGroup() {
+
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root", pkey, "0");
+        DataStore store = new DataStore(clogStore, null);
+
+        // we have no group
+
+        assertNull(store.principalGroupCache.getIfPresent("user.user1"));
+        assertNull(store.groupMemberCache.getIfPresent("coretech:group.dev-team"));
+
+        // process a group with no members
+
+        Group group = new Group().setName("coretech:group.dev-team");
+        store.processGroup(group);
+
+        assertTrue(store.groupMemberCache.getIfPresent("coretech:group.dev-team").isEmpty());
+        assertNull(store.principalGroupCache.getIfPresent("user.user1"));
+
+        // update the group and add a two new members
+
+        List<GroupMember> members = new ArrayList<>();
+        members.add(new GroupMember().setMemberName("user.user1")
+                .setPrincipalType(Principal.Type.USER.getValue())
+                .setGroupName("coretech:group.dev-team"));
+        members.add(new GroupMember().setMemberName("user.user2")
+                .setPrincipalType(Principal.Type.USER.getValue())
+                .setGroupName("coretech:group.dev-team"));
+        group.setGroupMembers(members);
+        store.processGroup(group);
+
+        // create and process another group
+
+        group = new Group().setName("coretech:group.pe-team");
+        members = new ArrayList<>();
+        members.add(new GroupMember().setMemberName("user.user1")
+                .setPrincipalType(Principal.Type.USER.getValue())
+                .setGroupName("coretech:group.pe-team"));
+        members.add(new GroupMember().setMemberName("coretech.api")
+                .setPrincipalType(Principal.Type.SERVICE.getValue())
+                .setGroupName("coretech:group.pe-team"));
+        group.setGroupMembers(members);
+        store.processGroup(group);
+
+        // verify our groups now
+
+        members = store.groupMemberCache.getIfPresent("coretech:group.dev-team");
+        assertNotNull(members);
+        assertEquals(members.size(), 2);
+        assertTrue(ZTSTestUtils.verifyGroupMemberName(members, "user.user1"));
+        assertTrue(ZTSTestUtils.verifyGroupMemberName(members, "user.user2"));
+
+        members = store.groupMemberCache.getIfPresent("coretech:group.pe-team");
+        assertNotNull(members);
+        assertEquals(members.size(), 2);
+        assertTrue(ZTSTestUtils.verifyGroupMemberName(members, "user.user1"));
+        assertTrue(ZTSTestUtils.verifyGroupMemberName(members, "coretech.api"));
+
+        members = store.principalGroupCache.getIfPresent("user.user1");
+        assertNotNull(members);
+        assertEquals(members.size(), 2);
+        assertTrue(ZTSTestUtils.verifyGroupMemberGroup(members, "coretech:group.dev-team"));
+        assertTrue(ZTSTestUtils.verifyGroupMemberGroup(members, "coretech:group.pe-team"));
+
+        members = store.principalGroupCache.getIfPresent("user.user2");
+        assertNotNull(members);
+        assertEquals(members.size(), 1);
+        assertTrue(ZTSTestUtils.verifyGroupMemberGroup(members, "coretech:group.dev-team"));
+
+        members = store.principalGroupCache.getIfPresent("coretech.api");
+        assertNotNull(members);
+        assertEquals(members.size(), 1);
+        assertTrue(ZTSTestUtils.verifyGroupMemberGroup(members, "coretech:group.pe-team"));
+
+        // delete user2 and add user3
+
+        group = new Group().setName("coretech:group.dev-team");
+        members = new ArrayList<>();
+        members.add(new GroupMember().setMemberName("user.user1")
+                .setPrincipalType(Principal.Type.USER.getValue())
+                .setGroupName("coretech:group.dev-team"));
+        members.add(new GroupMember().setMemberName("user.user3")
+                .setPrincipalType(Principal.Type.USER.getValue())
+                .setGroupName("coretech:group.dev-team"));
+        group.setGroupMembers(members);
+        store.processGroup(group);
+
+        members = store.groupMemberCache.getIfPresent("coretech:group.dev-team");
+        assertNotNull(members);
+        assertEquals(members.size(), 2);
+        assertTrue(ZTSTestUtils.verifyGroupMemberName(members, "user.user1"));
+        assertTrue(ZTSTestUtils.verifyGroupMemberName(members, "user.user3"));
+
+        members = store.principalGroupCache.getIfPresent("user.user1");
+        assertNotNull(members);
+        assertEquals(members.size(), 2);
+        assertTrue(ZTSTestUtils.verifyGroupMemberGroup(members, "coretech:group.dev-team"));
+        assertTrue(ZTSTestUtils.verifyGroupMemberGroup(members, "coretech:group.pe-team"));
+
+        members = store.principalGroupCache.getIfPresent("user.user2");
+        assertNotNull(members);
+        assertTrue(members.isEmpty());
+
+        members = store.principalGroupCache.getIfPresent("user.user3");
+        assertNotNull(members);
+        assertEquals(members.size(), 1);
+        assertTrue(ZTSTestUtils.verifyGroupMemberGroup(members, "coretech:group.dev-team"));
+
+        // add new members that are disabled and expired
+
+        group = new Group().setName("coretech:group.dev-team");
+        members = new ArrayList<>();
+        members.add(new GroupMember().setMemberName("user.user1")
+                .setPrincipalType(Principal.Type.USER.getValue())
+                .setGroupName("coretech:group.dev-team")
+                .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + 100000)));
+        members.add(new GroupMember().setMemberName("user.user3")
+                .setPrincipalType(Principal.Type.USER.getValue())
+                .setGroupName("coretech:group.dev-team"));
+        members.add(new GroupMember().setMemberName("user.user4")
+                .setPrincipalType(Principal.Type.USER.getValue())
+                .setGroupName("coretech:group.dev-team")
+                .setSystemDisabled(1));
+        members.add(new GroupMember().setMemberName("user.user5")
+                .setPrincipalType(Principal.Type.USER.getValue())
+                .setGroupName("coretech:group.dev-team")
+                .setExpiration(Timestamp.fromMillis(1000)));
+        members.add(new GroupMember().setMemberName("user.user6")
+                .setPrincipalType(Principal.Type.USER.getValue())
+                .setGroupName("coretech:group.dev-team")
+                .setExpiration(Timestamp.fromMillis(1000)));
+        group.setGroupMembers(members);
+        store.processGroup(group);
+
+        members = store.groupMemberCache.getIfPresent("coretech:group.dev-team");
+        assertNotNull(members);
+        assertEquals(members.size(), 5);
+        assertTrue(ZTSTestUtils.verifyGroupMemberName(members, "user.user1"));
+        assertTrue(ZTSTestUtils.verifyGroupMemberName(members, "user.user3"));
+        assertTrue(ZTSTestUtils.verifyGroupMemberName(members, "user.user4"));
+        assertTrue(ZTSTestUtils.verifyGroupMemberName(members, "user.user5"));
+        assertTrue(ZTSTestUtils.verifyGroupMemberName(members, "user.user6"));
+
+        members = store.principalGroupCache.getIfPresent("user.user1");
+        assertNotNull(members);
+        assertEquals(members.size(), 2);
+        assertTrue(ZTSTestUtils.verifyGroupMemberGroup(members, "coretech:group.dev-team"));
+        assertTrue(ZTSTestUtils.verifyGroupMemberGroup(members, "coretech:group.pe-team"));
+
+        members = store.principalGroupCache.getIfPresent("user.user3");
+        assertNotNull(members);
+        assertEquals(members.size(), 1);
+        assertTrue(ZTSTestUtils.verifyGroupMemberGroup(members, "coretech:group.dev-team"));
+
+        // expired and disabled users are not present
+
+        assertNull(store.principalGroupCache.getIfPresent("user.user4"));
+        assertNull(store.principalGroupCache.getIfPresent("user.user5"));
+        assertNull(store.principalGroupCache.getIfPresent("user.user6"));
+
+        // now make user4 as enabled, expire user 3 and delete user6
+
+        group = new Group().setName("coretech:group.dev-team");
+        members = new ArrayList<>();
+        members.add(new GroupMember().setMemberName("user.user1")
+                .setPrincipalType(Principal.Type.USER.getValue())
+                .setGroupName("coretech:group.dev-team")
+                .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + 100000)));
+        members.add(new GroupMember().setMemberName("user.user3")
+                .setPrincipalType(Principal.Type.USER.getValue())
+                .setGroupName("coretech:group.dev-team")
+                .setExpiration(Timestamp.fromMillis(1000)));
+        members.add(new GroupMember().setMemberName("user.user4")
+                .setPrincipalType(Principal.Type.USER.getValue())
+                .setGroupName("coretech:group.dev-team")
+                .setSystemDisabled(0));
+        members.add(new GroupMember().setMemberName("user.user5")
+                .setPrincipalType(Principal.Type.USER.getValue())
+                .setGroupName("coretech:group.dev-team")
+                .setExpiration(Timestamp.fromMillis(1000)));
+        group.setGroupMembers(members);
+        store.processGroup(group);
+
+        members = store.groupMemberCache.getIfPresent("coretech:group.dev-team");
+        assertNotNull(members);
+        assertEquals(members.size(), 4);
+        assertTrue(ZTSTestUtils.verifyGroupMemberName(members, "user.user1"));
+        assertTrue(ZTSTestUtils.verifyGroupMemberName(members, "user.user3"));
+        assertTrue(ZTSTestUtils.verifyGroupMemberName(members, "user.user4"));
+        assertTrue(ZTSTestUtils.verifyGroupMemberName(members, "user.user5"));
+
+        members = store.principalGroupCache.getIfPresent("user.user1");
+        assertNotNull(members);
+        assertEquals(members.size(), 2);
+        assertTrue(ZTSTestUtils.verifyGroupMemberGroup(members, "coretech:group.dev-team"));
+        assertTrue(ZTSTestUtils.verifyGroupMemberGroup(members, "coretech:group.pe-team"));
+
+        members = store.principalGroupCache.getIfPresent("user.user3");
+        assertNotNull(members);
+        assertTrue(members.isEmpty());
+
+        members = store.principalGroupCache.getIfPresent("user.user4");
+        assertNotNull(members);
+        assertEquals(members.size(), 1);
+        assertTrue(ZTSTestUtils.verifyGroupMemberGroup(members, "coretech:group.dev-team"));
+
+        assertNull(store.principalGroupCache.getIfPresent("user.user5"));
+        assertNull(store.principalGroupCache.getIfPresent("user.user6"));
+
+        // now make user5 as valid as well
+
+        group = new Group().setName("coretech:group.dev-team");
+        members = new ArrayList<>();
+        members.add(new GroupMember().setMemberName("user.user1")
+                .setPrincipalType(Principal.Type.USER.getValue())
+                .setGroupName("coretech:group.dev-team")
+                .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + 100000)));
+        members.add(new GroupMember().setMemberName("user.user3")
+                .setPrincipalType(Principal.Type.USER.getValue())
+                .setGroupName("coretech:group.dev-team")
+                .setExpiration(Timestamp.fromMillis(1000)));
+        members.add(new GroupMember().setMemberName("user.user4")
+                .setPrincipalType(Principal.Type.USER.getValue())
+                .setGroupName("coretech:group.dev-team")
+                .setSystemDisabled(0));
+        members.add(new GroupMember().setMemberName("user.user5")
+                .setPrincipalType(Principal.Type.USER.getValue())
+                .setGroupName("coretech:group.dev-team")
+                .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + 100000)));
+        group.setGroupMembers(members);
+        store.processGroup(group);
+
+        members = store.groupMemberCache.getIfPresent("coretech:group.dev-team");
+        assertNotNull(members);
+        assertEquals(members.size(), 4);
+        assertTrue(ZTSTestUtils.verifyGroupMemberName(members, "user.user1"));
+        assertTrue(ZTSTestUtils.verifyGroupMemberName(members, "user.user3"));
+        assertTrue(ZTSTestUtils.verifyGroupMemberName(members, "user.user4"));
+        assertTrue(ZTSTestUtils.verifyGroupMemberName(members, "user.user5"));
+
+        members = store.principalGroupCache.getIfPresent("user.user1");
+        assertNotNull(members);
+        assertEquals(members.size(), 2);
+        assertTrue(ZTSTestUtils.verifyGroupMemberGroup(members, "coretech:group.dev-team"));
+        assertTrue(ZTSTestUtils.verifyGroupMemberGroup(members, "coretech:group.pe-team"));
+
+        members = store.principalGroupCache.getIfPresent("user.user3");
+        assertNotNull(members);
+        assertTrue(members.isEmpty());
+
+        members = store.principalGroupCache.getIfPresent("user.user4");
+        assertNotNull(members);
+        assertEquals(members.size(), 1);
+        assertTrue(ZTSTestUtils.verifyGroupMemberGroup(members, "coretech:group.dev-team"));
+
+        members = store.principalGroupCache.getIfPresent("user.user5");
+        assertNotNull(members);
+        assertEquals(members.size(), 1);
+        assertTrue(ZTSTestUtils.verifyGroupMemberGroup(members, "coretech:group.dev-team"));
+
+        // update the pe-team with no changes
+
+        group = new Group().setName("coretech:group.pe-team");
+        members = new ArrayList<>();
+        members.add(new GroupMember().setMemberName("user.user1")
+                .setPrincipalType(Principal.Type.USER.getValue())
+                .setGroupName("coretech:group.pe-team"));
+        members.add(new GroupMember().setMemberName("coretech.api")
+                .setPrincipalType(Principal.Type.SERVICE.getValue())
+                .setGroupName("coretech:group.pe-team"));
+        group.setGroupMembers(members);
+        store.processGroup(group);
+
+        members = store.groupMemberCache.getIfPresent("coretech:group.pe-team");
+        assertNotNull(members);
+        assertEquals(members.size(), 2);
+        assertTrue(ZTSTestUtils.verifyGroupMemberName(members, "user.user1"));
+        assertTrue(ZTSTestUtils.verifyGroupMemberName(members, "coretech.api"));
+
+        members = store.principalGroupCache.getIfPresent("user.user1");
+        assertNotNull(members);
+        assertEquals(members.size(), 2);
+        assertTrue(ZTSTestUtils.verifyGroupMemberGroup(members, "coretech:group.dev-team"));
+        assertTrue(ZTSTestUtils.verifyGroupMemberGroup(members, "coretech:group.pe-team"));
+
+        members = store.principalGroupCache.getIfPresent("coretech.api");
+        assertNotNull(members);
+        assertEquals(members.size(), 1);
+        assertTrue(ZTSTestUtils.verifyGroupMemberGroup(members, "coretech:group.pe-team"));
+    }
+
+    @Test
+    public void testGetAccessibleRolesWithGroups() {
+
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root", pkey, "0");
+        DataStore store = new DataStore(clogStore, null);
+        store.loadAthenzPublicKeys();
+
+        final String domainName = "access-domain";
+        ZTSTestUtils.setupDomainsWithGroups(store, pkey, domainName, Collections.emptyList());
+
+        Set<String> accessibleRoles = new HashSet<>();
+        DataCache data = store.getDataCache("access-domain1");
+        store.getAccessibleRoles(data, "access-domain1", "user.user1", null, accessibleRoles, false);
+
+        assertEquals(accessibleRoles.size(), 2);
+        assertTrue(accessibleRoles.contains("role1"));
+        assertTrue(accessibleRoles.contains("role2"));
+
+        accessibleRoles.clear();
+        store.getAccessibleRoles(data, "access-domain1", "user.user2", null, accessibleRoles, false);
+
+        assertEquals(accessibleRoles.size(), 4);
+        assertTrue(accessibleRoles.contains("role1"));
+        assertTrue(accessibleRoles.contains("role2"));
+        assertTrue(accessibleRoles.contains("role3"));
+        assertTrue(accessibleRoles.contains("role4"));
+
+        accessibleRoles.clear();
+        store.getAccessibleRoles(data, "access-domain1", "user.user3", null, accessibleRoles, false);
+
+        assertEquals(accessibleRoles.size(), 4);
+        assertTrue(accessibleRoles.contains("role1"));
+        assertTrue(accessibleRoles.contains("role2"));
+        assertTrue(accessibleRoles.contains("role3"));
+        assertTrue(accessibleRoles.contains("role4"));
+
+        data = store.getDataCache("access-domain3");
+        accessibleRoles.clear();
+        store.getAccessibleRoles(data, "access-domain3", "user.user4", null, accessibleRoles, false);
+
+        assertEquals(accessibleRoles.size(), 1);
+        assertTrue(accessibleRoles.contains("role5"));
+
+        accessibleRoles.clear();
+        store.getAccessibleRoles(data, "access-domain3", "user.user5", null, accessibleRoles, false);
+        assertTrue(accessibleRoles.isEmpty());
+
+        // sleep for a second so user6 becomes expired
+
+        ZTSTestUtils.sleep(1000);
+
+        accessibleRoles.clear();
+        store.getAccessibleRoles(data, "access-domain3", "user.user6", null, accessibleRoles, false);
+        assertTrue(accessibleRoles.isEmpty());
+
+        // now we're going to delete group1, group4 and group6 so user1 will no longer have access to role1
+        // and role2 so we'll have an empty result and user3 will no longer be in role4
+
+        ZTSTestUtils.setupDomainsWithGroups(store, pkey, domainName,
+                Arrays.asList("access-domain1:group.group1", "access-domain3:group.group6", "access-domain2:group.group4"));
+
+        data = store.getDataCache("access-domain1");
+
+        accessibleRoles.clear();
+        store.getAccessibleRoles(data, "access-domain1", "user.user1", null, accessibleRoles, false);
+        assertTrue(accessibleRoles.isEmpty());
+
+        accessibleRoles.clear();
+        store.getAccessibleRoles(data, "access-domain1", "user.user3", null, accessibleRoles, false);
+
+        assertEquals(accessibleRoles.size(), 3);
+        assertTrue(accessibleRoles.contains("role1"));
+        assertTrue(accessibleRoles.contains("role2"));
+        assertTrue(accessibleRoles.contains("role3"));
+    }
+
+    @Test
+    public void testDomainDeleteWithGroups() {
+
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root", pkey, "0");
+        DataStore store = new DataStore(clogStore, null);
+        store.loadAthenzPublicKeys();
+
+        final String domainName = "access-domain";
+        ZTSTestUtils.setupDomainsWithGroups(store, pkey, domainName, Collections.emptyList());
+
+        List<GroupMember> groupMembers = store.principalGroupCache.getIfPresent("user.user1");
+        assertEquals(groupMembers.size(), 2);
+        assertTrue(ZTSTestUtils.verifyGroupMemberGroup(groupMembers, "access-domain1:group.group1"));
+        assertTrue(ZTSTestUtils.verifyGroupMemberGroup(groupMembers, "access-domain3:group.group3"));
+
+        store.deleteDomain("access-domain1");
+
+        groupMembers = store.principalGroupCache.getIfPresent("user.user1");
+        assertEquals(groupMembers.size(), 1);
+        assertTrue(ZTSTestUtils.verifyGroupMemberGroup(groupMembers, "access-domain3:group.group3"));
+
+        store.deleteDomain("access-domain2");
+        store.deleteDomain("access-domain3");
+
+        groupMembers = store.principalGroupCache.getIfPresent("user.user1");
+        assertTrue(groupMembers.isEmpty());
+    }
+
+    @Test
+    public void testProcessGroupDeletedMembersNull() {
+
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root", pkey, "0");
+        DataStore store = new DataStore(clogStore, null);
+        store.loadAthenzPublicKeys();
+
+        // if we pass null for the members then we return right
+        // away so sno exceptions even if we pass null for the group name
+
+        store.processGroupDeletedMembers(null, null);
+    }
+
+    @Test
+    public void testRoleMatchInTrustSet() {
+
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root", pkey, "0");
+        DataStore store = new DataStore(clogStore, null);
+
+        Set<String> memberRoles = new HashSet<>();
+        memberRoles.add("athenz:role.readers");
+        memberRoles.add("sports:role.writers");
+        memberRoles.add("*:role.testers");
+
+        assertTrue(store.roleMatchInTrustSet("athenz:role.readers", memberRoles));
+        assertTrue(store.roleMatchInTrustSet("sports:role.writers", memberRoles));
+
+        assertFalse(store.roleMatchInTrustSet("athenz:role.poets", memberRoles));
+        assertFalse(store.roleMatchInTrustSet("sports:role.readers", memberRoles));
+
+        assertTrue(store.roleMatchInTrustSet("athenz:role.testers", memberRoles));
+        assertTrue(store.roleMatchInTrustSet("sports:role.testers", memberRoles));
     }
 }

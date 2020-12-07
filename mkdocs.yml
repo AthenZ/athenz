@@ -3,7 +3,10 @@ repo_url: https://github.com/yahoo/athenz
 repo_name: GitHub
 site_description: Athenz User Guide
 strict: true
-theme: material
+theme:
+    name: material
+    favicon: 'images/favicon.ico'
+    logo: 'images/athenz-icon.png'
 extra_css: [extra.css]
 markdown_extensions:
   - codehilite
@@ -20,7 +23,30 @@ nav:
         - ZMS Server: setup_zms_prod.md
         - ZTS Server: setup_zts_prod.md
         - UI Server: setup_ui_prod.md
+    - Service Identity Registration:
+        - Using X.509 Certificates: service_x509_credentials.md
+        - Using Public/Private Key Pairs: reg_service_guide.md
+- Management:
+    - Role Delegation: role_delegation.md
+    - Access token Limit Expiry Support: token_expiration.md
+    - Role Certificate Limit Expiry Support: role_cert_expiration.md
+    - Review Enabled Roles: review_enabled_roles.md
+    - Email Notifications: email_notifications.md
+    - Events Monitoring: events_monitoring.md
+    - Role Member Auto Expiry and Notification Support: member_expiration.md
+    - Role Member Review Reminder Support: member_soft_expiration.md
+    - Self-Served Roles: self_serve_roles.md
+    - Athenz Templates: athenz_templates.md
+    - Principal Groups: principal_groups.md
+- Authentication:
+    - Athenz Service Identity X.509 Certificate for AWS EC2 instances: service_x509_credentials_aws.md
+    - Athenz Service Identity X.509 Certificate for AWS ECS containers: service_x509_credentials_aws_ecs.md
+    - Athenz Service Identity X.509 Certificate for AWS Fargate tasks: service_x509_credentials_aws_fargate.md
+    - Athenz Service Identity X.509 Certificate for AWS EKS pods: service_x509_credentials_aws_eks.md
+    - Athenz Service Identity X.509 Certificate for AWS Lambda functions: service_x509_credentials_aws_lambda.md
+    - Obtaining OAuth2 Access Tokens from ZTS: zts_access_token_guide.md
 - AWS Setup:
+    - AWS Temp Credentials: aws_temp_creds.md
     - Introduction: aws_athenz_setup.md
     - ZMS Server : aws_zms_setup.md
     - ZTS Server: aws_zts_setup.md
@@ -31,12 +57,15 @@ nav:
     - Authorization Flow: auth_flow.md
 - Features:
     - Service Identity X.509 Certificates - Copper Argos: copper_argos.md
+    - Athenz Capabilities: capabilities.md
 - Developer Guide:
-    - Centralized Access Control: dev_centralized_access.md
-    - Java Client/Servlet Example: example_java_centralized_access.md
+    - Centralized Authorization Flow: cent_authz_flow.md
+    - Decentralized Authorization Flow: decent_authz_flow.md
+    - Client Side Service Identity Authentication: client_side_x509_credentials.md
+    - Server Side Service Identity Authentication: server_side_x509_credentials.md
+    - Java Client/Servlet Centralized Example: example_java_centralized_access.md
     - Go Client/Server Example: example_go_centralized_access.md
-    - Decentralized Access Control: dev_decentralized_access.md
-    - Java Client/Servlet Example: example_java_decentralized_access.md
+    - Java Client/Servlet Decentralized Example: example_java_decentralized_access.md
 - Customizing Athenz:
     - Principal Authentication: principal_authentication.md
     - Private Key Store: private_key_store.md
@@ -45,6 +74,9 @@ nav:
 - User Guide:
     - ZMS Client Utility: zms_client.md
     - ZPU Utility: setup_zpu.md
+    - ZTS Role Certificate Client Utility: zts_rolecert.md
+    - ZTS OAuth2 Access Token Client: zts_accesstoken.md
     - Registering ZMS Service Identity: reg_service_guide.md
-
-
+- References:
+      - ZMS REST API: zms_api.md
+      - ZTS REST API: zts_api.md

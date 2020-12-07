@@ -6,6 +6,7 @@ package zmscli
 import (
 	"bytes"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -44,16 +45,16 @@ func (cli Zms) ShowPolicy(dn string, name string) (*string, error) {
 	}
 	var buf bytes.Buffer
 	buf.WriteString("policy:\n")
-	cli.dumpPolicy(&buf, *policy, indent_level1_dash, indent_level1_dash_lvl)
+	cli.dumpPolicy(&buf, *policy, indentLevel1Dash, indentLevel1DashLvl)
 	s := buf.String()
 	return &s, nil
 }
 
 func parseAssertion(dn string, lst []string) (*zms.Assertion, error) {
-	err := fmt.Errorf("Bad assertion syntax. Should be '<effect> <action> to <role> on <resource>'")
+	err := fmt.Errorf("bad assertion syntax. should be '<effect> <action> to <role> on <resource>'")
 	n := len(lst)
 	var assertion zms.Assertion
-	if n != 6 {
+	if n != 6 && n != 7 {
 		return nil, err
 	}
 	if strings.ToLower(lst[2]) != "to" {
@@ -85,6 +86,13 @@ func parseAssertion(dn string, lst []string) (*zms.Assertion, error) {
 		resource = dn + ":" + resource
 	}
 	assertion.Resource = resource
+
+	if n == 7 {
+		isCaseSensitive, err := strconv.ParseBool(lst[6])
+		if err == nil {
+			assertion.CaseSensitive = &isCaseSensitive
+		}
+	}
 	return &assertion, nil
 }
 
@@ -118,7 +126,7 @@ func (cli Zms) AddPolicy(dn string, pn string, assertion []string) (*string, err
 	fullResourceName := dn + ":policy." + pn
 	_, err := cli.Zms.GetPolicy(zms.DomainName(dn), zms.EntityName(pn))
 	if err == nil {
-		return nil, fmt.Errorf("Policy already exists: %v", fullResourceName)
+		return nil, fmt.Errorf("policy already exists: %v", fullResourceName)
 	}
 	switch v := err.(type) {
 	case rdl.ResourceError:
@@ -137,6 +145,7 @@ func (cli Zms) AddPolicy(dn string, pn string, assertion []string) (*string, err
 		}
 		tmp := [1]*zms.Assertion{newAssertion}
 		policy.Assertions = tmp[:]
+		policy.CaseSensitive = newAssertion.CaseSensitive
 	}
 	err = cli.Zms.PutPolicy(zms.DomainName(dn), zms.EntityName(pn), cli.AuditRef, &policy)
 	if err != nil {
@@ -198,17 +207,17 @@ func (cli Zms) assertionMatch(assertion1 *zms.Assertion, assertion2 *zms.Asserti
 }
 
 func (cli Zms) removeAssertion(policy *zms.Policy, deleteAssertion *zms.Assertion) error {
-	match_index := -1
+	matchIndex := -1
 	for index, assertion := range policy.Assertions {
 		if cli.assertionMatch(assertion, deleteAssertion) {
-			match_index = index
+			matchIndex = index
 			break
 		}
 	}
-	if match_index == -1 {
-		return fmt.Errorf("Policy does not have the specified assertion")
+	if matchIndex == -1 {
+		return fmt.Errorf("policy does not have the specified assertion")
 	}
-	policy.Assertions = append(policy.Assertions[:match_index], policy.Assertions[match_index+1:]...)
+	policy.Assertions = append(policy.Assertions[:matchIndex], policy.Assertions[matchIndex+1:]...)
 	return nil
 }
 

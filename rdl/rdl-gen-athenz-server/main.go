@@ -256,7 +256,8 @@ import javax.servlet.http.HttpServletResponse;
 //
 public interface {{cName}}Handler {{openBrace}} {{range .Resources}}
     {{methodSig .}};{{end}}
-    ResourceContext newResourceContext(HttpServletRequest request, HttpServletResponse response);
+    ResourceContext newResourceContext(HttpServletRequest request, HttpServletResponse response, String apiName);
+    void recordMetrics(ResourceContext ctx, int httpStatus);
 }
 `
 
@@ -271,6 +272,8 @@ import javax.servlet.http.HttpServletResponse;
 public interface ResourceContext {
     HttpServletRequest request();
     HttpServletResponse response();
+    String getApiName();
+    String getHttpMethod();
     void authenticate();
     void authorize(String action, String resource, String trustedDomain);
 }
@@ -284,6 +287,8 @@ import javax.ws.rs.core.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.inject.Inject;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 
 @Path("{{rootPath}}")
 public class {{cName}}Resources {
@@ -406,9 +411,12 @@ func (gen *javaServerGenerator) resourcePath(r *rdl.Resource) string {
 }
 
 func (gen *javaServerGenerator) handlerBody(r *rdl.Resource) string {
+	methName, _ := javaMethodName(gen.registry, r)
 	noContent := r.Expected == "NO_CONTENT" && r.Alternatives == nil
-	s := "        try {\n"
-	s += "            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);\n"
+	s := "        int code = ResourceException.OK;\n"
+	s += "        ResourceContext context = null;\n"
+	s += "        try {\n"
+	s += "            context = this.delegate.newResourceContext(this.request, this.response, \"" + methName + "\");\n"
 	var fargs []string
 	bodyName := ""
 	if r.Auth != nil {
@@ -446,7 +454,6 @@ func (gen *javaServerGenerator) handlerBody(r *rdl.Resource) string {
 			fargs = append(fargs, bodyName)
 		}
 	}
-	methName, _ := javaMethodName(gen.registry, r)
 	sargs := ""
 	if len(fargs) > 0 {
 		sargs = ", " + strings.Join(fargs, ", ")
@@ -457,7 +464,7 @@ func (gen *javaServerGenerator) handlerBody(r *rdl.Resource) string {
 		s += "            return this.delegate." + methName + "(context" + sargs + ");\n"
 	}
 	s += "        } catch (ResourceException e) {\n"
-	s += "            int code = e.getCode();\n"
+	s += "            code = e.getCode();\n"
 	s += "            switch (code) {\n"
 	if r.Exceptions != nil && len(r.Exceptions) > 0 {
 		keys := sortedExceptionKeys(r.Exceptions)
@@ -471,6 +478,8 @@ func (gen *javaServerGenerator) handlerBody(r *rdl.Resource) string {
 	s += "                System.err.println(\"*** Warning: undeclared exception (\" + code + \") for resource " + methName + "\");\n"
 	s += "                throw typedException(code, e, ResourceError.class);\n" //? really
 	s += "            }\n"
+	s += "        } finally {\n"
+	s += "            this.delegate.recordMetrics(context, code);\n"
 	s += "        }\n"
 	return s
 }
@@ -528,13 +537,19 @@ func (gen *javaServerGenerator) handlerSignature(r *rdl.Resource) string {
 			continue
 		}
 		k := v.Name
+		required := "true"
+		if (v.Optional) {
+			required = "false"
+		}
+		escapedComment := strings.Replace(v.Comment ,`"`, `\"`, -1)
 		pdecl := ""
+		pdecl += "@Parameter(description = \"" + escapedComment + "\", required = " + required + ") "
 		if v.QueryParam != "" {
-			pdecl = fmt.Sprintf("@QueryParam(%q) ", v.QueryParam) + defaultValueAnnotation(v.Default)
+			pdecl += fmt.Sprintf("@QueryParam(%q) ", v.QueryParam) + defaultValueAnnotation(v.Default)
 		} else if v.PathParam {
-			pdecl = fmt.Sprintf("@PathParam(%q) ", k)
+			pdecl += fmt.Sprintf("@PathParam(%q) ", k)
 		} else if v.Header != "" {
-			pdecl = fmt.Sprintf("@HeaderParam(%q) ", v.Header)
+			pdecl += fmt.Sprintf("@HeaderParam(%q) ", v.Header)
 		}
 		ptype := javaType(reg, v.Type, true, "", "")
 		params = append(params, pdecl+ptype+" "+javaName(k))
@@ -557,9 +572,10 @@ func (gen *javaServerGenerator) handlerSignature(r *rdl.Resource) string {
 	default:
 		spec += "@Produces(MediaType.APPLICATION_JSON)\n    "
 	}
-
+	escapedComment := strings.Replace(r.Comment ,`"`, `\"`, -1)
+	spec += "@Operation(description = \"" + escapedComment + "\")\n    "
 	methName, _ := javaMethodName(reg, r)
-	return spec + "public " + returnType + " " + methName + "(" + strings.Join(params, ", ") + ")"
+	return spec + "public " + returnType + " " + methName + "(\n        " + strings.Join(params, ",\n        ") + ")"
 }
 
 func defaultValueAnnotation(val interface{}) string {

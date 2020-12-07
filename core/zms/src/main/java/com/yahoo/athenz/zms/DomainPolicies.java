@@ -3,6 +3,7 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.List;
 import com.yahoo.rdl.*;
 
@@ -12,6 +13,7 @@ import com.yahoo.rdl.*;
 // only the list of policies but also the corresponding domain name that the
 // policies belong to.
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class DomainPolicies {
     public String domain;
     public List<Policy> policies;

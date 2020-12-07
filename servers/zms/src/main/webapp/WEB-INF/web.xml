@@ -17,4 +17,60 @@
         <servlet-name>zms-server</servlet-name>
         <url-pattern>/*</url-pattern>
     </servlet-mapping>
+
+    <!-- Swagger Servlet -->
+    <servlet>
+        <servlet-name>swagger-servlet</servlet-name>
+        <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
+        <init-param>
+            <param-name>jersey.config.server.provider.packages</param-name>
+            <param-value>
+                io.swagger.v3.jaxrs2.integration.resources,
+                com.yahoo.athenz.zms
+            </param-value>
+        </init-param>
+        <load-on-startup>2</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>swagger-servlet</servlet-name>
+        <url-pattern>/v1/api/*</url-pattern>
+    </servlet-mapping>
+
+    <!-- Authentication filter for swagger -->
+    <filter>
+        <filter-name>swagger-filter</filter-name>
+        <filter-class>com.yahoo.athenz.zms.servlet.SwaggerFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>swagger-filter</filter-name>
+        <servlet-name>swagger-servlet</servlet-name>
+        <dispatcher>REQUEST</dispatcher>
+    </filter-mapping>
+    <!-- ==================================================================== -->
+    <!-- Disable OPTIONS and TRACE methods with security constraint           -->
+    <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  -->
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>Disable TRACE</web-resource-name>
+            <url-pattern>/*</url-pattern>
+            <http-method>TRACE</http-method>
+        </web-resource-collection>
+        <auth-constraint/>
+    </security-constraint>
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>Enable OPTIONS for /zms/v1</web-resource-name>
+            <url-pattern>/v1/*</url-pattern>
+            <http-method>OPTIONS</http-method>
+            <!-- no auth-constraint -->
+        </web-resource-collection>
+    </security-constraint>
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>Disable OPTIONS</web-resource-name>
+            <url-pattern>/*</url-pattern>
+            <http-method>OPTIONS</http-method>
+        </web-resource-collection>
+        <auth-constraint/>
+    </security-constraint>
 </web-app>

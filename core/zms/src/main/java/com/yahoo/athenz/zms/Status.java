@@ -3,11 +3,13 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.yahoo.rdl.*;
 
 //
 // Status - The representation for a status object
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Status {
     public int code;
     public String message;

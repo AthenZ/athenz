@@ -373,7 +373,7 @@ exports[`PendingApprovalTable should render 1`] = `
       class="emotion-12"
     >
       <div
-        class="abc"
+        class="fp-abc"
       >
         <input
           class="flatpickr-input"
@@ -384,7 +384,7 @@ exports[`PendingApprovalTable should render 1`] = `
           value=""
         />
         <input
-          class="abc form-control input"
+          class="fp-abc form-control input"
           placeholder="Expiration (Optional)"
           readonly="readonly"
           tabindex="0"

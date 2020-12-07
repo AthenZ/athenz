@@ -1,0 +1,259 @@
+// Copyright 2020 Verizon Media
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+//Group API
+include "Group.tdl";
+
+// Get the list of all groups in a domain with optional flag
+// whether or not include members
+resource Groups GET "/domain/{domainName}/groups?members={members}" {
+    DomainName domainName; // name of the domain
+    Bool members (optional, default=false); // return list of members in the group
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+//Get the specified group in the domain.
+resource Group GET "/domain/{domainName}/group/{groupName}?auditLog={auditLog}&pending={pending}" {
+    DomainName domainName; //name of the domain
+    EntityName groupName; //name of the group to be retrieved
+    Bool auditLog (optional, default=false); //flag to indicate whether or not to return group audit log
+    Bool pending (optional, default=false); // include pending members
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+//Create/update the specified group.
+resource Group PUT "/domain/{domainName}/group/{groupName}" {
+    DomainName domainName; //name of the domain
+    EntityName groupName; //name of the group to be added/updated
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    Group group; //Group object to be added/updated in the domain
+    authorize ("update", "{domainName}:group.{groupName}");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+//Delete the specified group. Upon successful completion of this delete
+//request, the server will return NO_CONTENT status code without any
+//data (no object will be returned).
+resource Group DELETE "/domain/{domainName}/group/{groupName}" {
+    DomainName domainName; //name of the domain
+    EntityName groupName; //name of the group to be deleted
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    authorize ("delete", "{domainName}:group.{groupName}");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+//Get the membership status for a specified user in a group.
+resource GroupMembership GET "/domain/{domainName}/group/{groupName}/member/{memberName}?expiration={expiration}" {
+    DomainName domainName; //name of the domain
+    EntityName groupName; //name of the group
+    GroupMemberName memberName; //user name to be checked for membership
+    String expiration (optional); //the expiration timestamp
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+// Fetch all the groups across domains by either calling or specified principal
+resource DomainGroupMember GET "/group?principal={principal}&domain={domainName}" (name=getPrincipalGroups) {
+    EntityName principal (optional); //If not present, will return groups for the user making the call
+    DomainName domainName (optional); //If not present, will return groups from all domains
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+//Add the specified user to the group's member list.
+//If the group is neither auditEnabled nor selfserve, then it will use authorize ("update", "{domainName}:group.{groupName}")
+//otherwise membership will be sent for approval to either designated delegates ( in case of auditEnabled groups ) or to
+//domain admins ( in case of selfserve groups )
+resource GroupMembership PUT "/domain/{domainName}/group/{groupName}/member/{memberName}" {
+    DomainName domainName; //name of the domain
+    EntityName groupName; //name of the group
+    GroupMemberName memberName; //name of the user to be added as a member
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    GroupMembership membership; //Membership object (must contain group/member names as specified in the URI)
+    authenticate;
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+//Delete the specified group membership. Upon successful completion of this delete
+//request, the server will return NO_CONTENT status code without any data (no 
+//object will be returned).
+resource GroupMembership DELETE "/domain/{domainName}/group/{groupName}/member/{memberName}" {
+    DomainName domainName; //name of the domain
+    EntityName groupName; //name of the group
+    GroupMemberName memberName; //name of the user to be removed as a member
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    authorize ("update", "{domainName}:group.{groupName}");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+//Delete the specified pending group membership. Upon successful completion of this delete
+//request, the server will return NO_CONTENT status code without any data (no
+//object will be returned). Authorization will be completed within the server itself
+//since there are two possibilities: 1) The domain admins can delete any pending requests
+//2) the requestor can also delete his/her own pending request.
+resource GroupMembership DELETE "/domain/{domainName}/group/{groupName}/pendingmember/{memberName}" (name=DeletePendingGroupMembership) {
+    DomainName domainName; //name of the domain
+    EntityName groupName; //name of the group
+    GroupMemberName memberName; //name of the user to be removed as a pending member
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    authenticate;
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+//Set the specified group metadata. Caller must have update privileges on the sys.auth domain.
+//If the system attribute is one of the string attributes, then the caller
+//must also have delete action on the same resource in order to reset the configured value
+resource Group PUT "/domain/{domainName}/group/{groupName}/meta/system/{attribute}" {
+    DomainName domainName; //name of the domain
+    EntityName groupName; //name of the group
+    SimpleName attribute; //name of the system attribute to be modified
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    GroupSystemMeta detail; //GroupSystemMeta object with updated attribute values
+    authorize ("update", "sys.auth:meta.group.{attribute}.{domainName}");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+//Update the specified group metadata. Caller must have update privileges on the domain itself.
+resource Group PUT "/domain/{domainName}/group/{groupName}/meta" {
+    DomainName domainName; //name of the domain to be updated
+    EntityName groupName; //name of the group
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    GroupMeta detail; //GroupMeta object with updated attribute values
+    authorize ("update", "{domainName}:group.{groupName}");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+//Approve or Reject the request to add specified user to group membership.
+// This endpoint will be used by 2 use cases:
+// 1. Audit enabled groups with authorize ("update", "sys.auth:meta.group.{attribute}.{domainName}")
+// 2. Selfserve groups in any domain with authorize ("update", "{domainName}:")
+resource GroupMembership PUT "/domain/{domainName}/group/{groupName}/member/{memberName}/decision" (name=PutGroupMembershipDecision) {
+    DomainName domainName; //name of the domain
+    EntityName groupName; //name of the group
+    GroupMemberName memberName; //name of the user to be added as a member
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    GroupMembership membership; //GroupMembership object (must contain group/member names as specified in the URI)
+    authenticate;
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+// Review group membership and take action to either extend and/or delete existing members.
+resource Group PUT "/domain/{domainName}/group/{groupName}/review" (name=PutGroupReview) {
+    DomainName domainName; //name of the domain
+    EntityName groupName; //name of the group
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    Group group; // Group object with updated and/or deleted members
+    authorize ("update", "{domainName}:group.{groupName}");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+//List of domains containing groups and corresponding members to be approved by either
+//calling or specified principal
+resource DomainGroupMembership GET "/pending_group_members?principal={principal}" (name=getPendingDomainGroupMembersList) {
+    EntityName principal (optional); //If present, return pending list for this principal
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}

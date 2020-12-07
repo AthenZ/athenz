@@ -143,7 +143,7 @@ export default class PageLogin extends React.Component {
             this.state.username + ':' + this.state.password
         ).toString('base64');
         fetch(
-            `${this.props.options.zms}user/_self_/token?services=${this.props.options.athenzDomainService}`,
+            `${this.props.options.zmsLoginUrl}user/_self_/token?services=${this.props.options.athenzDomainService}`,
             {
                 headers: {
                     Authorization: 'Basic ' + cred,

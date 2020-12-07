@@ -159,7 +159,7 @@ public class InstanceAWSProviderTest {
                 .setAttestationData("{\"document\": \"document\",\"signature\": \"signature\",\"role\": \"athenz.service\"}")
                 .setDomain("athenz").setProvider("provider").setService("service");
         HashMap<String, String> attributes = new HashMap<>();
-        attributes.put("cloudAccount", "1234");
+        attributes.put("awsAccount", "1234");
         attributes.put("sanDNS", "service.athenz.athenz.cloud,i-1234.instanceid.athenz.athenz.cloud");
         confirmation.setAttributes(attributes);
         
@@ -181,7 +181,7 @@ public class InstanceAWSProviderTest {
                 .setAttestationData("{\"document\": \"document\",\"signature\": \"signature\",\"role\": \"athenz.service\"}")
                 .setDomain("athenz").setProvider("provider").setService("service");
         HashMap<String, String> attributes = new HashMap<>();
-        attributes.put("cloudAccount", "1234");
+        attributes.put("awsAccount", "1234");
         confirmation.setAttributes(attributes);
         
         try {
@@ -220,7 +220,7 @@ public class InstanceAWSProviderTest {
                 .setAttestationData("{\"document\": \"document\",\"signature\": \"signature\",\"role\": \"athenz2.service\"}")
                 .setDomain("athenz").setProvider("provider").setService("service");
         HashMap<String, String> attributes = new HashMap<>();
-        attributes.put("cloudAccount", "1234");
+        attributes.put("awsAccount", "1234");
         confirmation.setAttributes(attributes);
         
         try {
@@ -334,7 +334,7 @@ public class InstanceAWSProviderTest {
                         + "\"signature\": \"signature\",\"role\": \"athenz.service\"}")
                 .setDomain("athenz").setProvider("athenz.aws.us-west-2").setService("service");
         HashMap<String, String> attributes = new HashMap<>();
-        attributes.put("cloudAccount", "1234");
+        attributes.put("awsAccount", "1234");
         attributes.put("sanDNS", "service.athenz.athenz.cloud,i-1234.instanceid.athenz.athenz.cloud");
         confirmation.setAttributes(attributes);
         
@@ -362,7 +362,7 @@ public class InstanceAWSProviderTest {
                         + "\"signature\": \"signature\",\"role\": \"athenz.service\"}")
                 .setDomain("athenz").setProvider("athenz.aws.us-west-2").setService("service");
         HashMap<String, String> attributes = new HashMap<>();
-        attributes.put("cloudAccount", "1234");
+        attributes.put("awsAccount", "1234");
         attributes.put("sanDNS", "service.athenz.athenz.cloud,i-1234.instanceid.athenz.athenz.cloud");
         confirmation.setAttributes(attributes);
         
@@ -388,7 +388,7 @@ public class InstanceAWSProviderTest {
                 .setAttestationData("{\"document\": \"\",\"signature\": \"signature\",\"role\": \"athenz.service\"}")
                 .setDomain("athenz").setProvider("provider").setService("service");
         HashMap<String, String> attributes = new HashMap<>();
-        attributes.put("cloudAccount", "1234");
+        attributes.put("awsAccount", "1234");
         attributes.put("sanDNS", "service.athenz.athenz.cloud,i-1234.instanceid.athenz.athenz.cloud");
         confirmation.setAttributes(attributes);
         
@@ -413,7 +413,7 @@ public class InstanceAWSProviderTest {
                 .setAttestationData("{\"signature\": \"signature\",\"role\": \"athenz.service\"}")
                 .setDomain("athenz").setProvider("provider").setService("service");
         HashMap<String, String> attributes = new HashMap<>();
-        attributes.put("cloudAccount", "1234");
+        attributes.put("awsAccount", "1234");
         attributes.put("sanDNS", "service.athenz.athenz.cloud,i-1234.instanceid.athenz.athenz.cloud");
         confirmation.setAttributes(attributes);
         
@@ -480,14 +480,14 @@ public class InstanceAWSProviderTest {
         data.setDocument("document");
         data.setSignature(null);
         assertFalse(provider.validateAWSDocument("athenz.aws.us-west-2", data,
-                "cloudAccount", "instanceId", true, privateIp, errMsg));
+                "awsAccount", "instanceId", true, privateIp, errMsg));
         
         // unable to parse
         
         data.setDocument("document");
         data.setSignature("signature");
         assertFalse(provider.validateAWSDocument("athenz.aws.us-west-2", data,
-                "cloudAccount", "instanceId", true, privateIp, errMsg));
+                "awsAccount", "instanceId", true, privateIp, errMsg));
     }
     
     @Test
@@ -615,7 +615,7 @@ public class InstanceAWSProviderTest {
                         + "\"signature\": \"signature\",\"role\": \"athenz.service\"}")
                 .setDomain("athenz").setProvider("athenz.aws.us-west-2").setService("service");
         HashMap<String, String> attributes = new HashMap<>();
-        attributes.put("cloudAccount", "1234");
+        attributes.put("awsAccount", "1234");
         attributes.put("sanDNS", "service.athenz.athenz.cloud,i-1234.instanceid.athenz.athenz.cloud");
         attributes.put("instanceId", "i-1234");
         confirmation.setAttributes(attributes);
@@ -643,7 +643,7 @@ public class InstanceAWSProviderTest {
                         + "\"signature\": \"signature\",\"role\": \"athenz.service\"}")
                 .setDomain("athenz").setProvider("athenz.aws.us-west-2").setService("service");
         HashMap<String, String> attributes = new HashMap<>();
-        attributes.put("cloudAccount", "1234");
+        attributes.put("awsAccount", "1234");
         attributes.put("sanDNS", "service.athenz.athenz.cloud,i-1234.instanceid.athenz.athenz.cloud");
         attributes.put("instanceId", "i-1234");
         confirmation.setAttributes(attributes);
@@ -671,7 +671,7 @@ public class InstanceAWSProviderTest {
                 .setAttestationData("{\"role\": \"athenz.service\"}")
                 .setDomain("athenz").setProvider("athenz.aws.us-west-2").setService("service");
         HashMap<String, String> attributes = new HashMap<>();
-        attributes.put("cloudAccount", "1234");
+        attributes.put("awsAccount", "1234");
         attributes.put("sanDNS", "service.athenz.athenz.cloud,i-1234.instanceid.athenz.athenz.cloud");
         attributes.put("instanceId", "i-1234");
         confirmation.setAttributes(attributes);
@@ -712,7 +712,7 @@ public class InstanceAWSProviderTest {
                 .setAttestationData("{\"document\": \"document\",\"signature\": \"signature\",\"role\": \"athenz2.service\"}")
                 .setDomain("athenz").setProvider("provider").setService("service");
         HashMap<String, String> attributes = new HashMap<>();
-        attributes.put("cloudAccount", "1234");
+        attributes.put("awsAccount", "1234");
         attributes.put("instanceId", "i-1234");
         confirmation.setAttributes(attributes);
         
@@ -738,7 +738,7 @@ public class InstanceAWSProviderTest {
                         + "\"signature\": \"signature\",\"role\": \"athenz.service\"}")
                 .setDomain("athenz").setProvider("athenz.aws.us-west-2").setService("service");
         HashMap<String, String> attributes = new HashMap<>();
-        attributes.put("cloudAccount", "1234");
+        attributes.put("awsAccount", "1234");
         attributes.put("sanDNS", "service.athenz.athenz.cloud,i-1234.instanceid.athenz.athenz.cloud");
         confirmation.setAttributes(attributes);
 
@@ -765,7 +765,7 @@ public class InstanceAWSProviderTest {
                         + "\"signature\": \"signature\",\"role\": \"athenz.service\"}")
                 .setDomain("athenz").setProvider("athenz.aws.us-west-2").setService("service");
         HashMap<String, String> attributes = new HashMap<>();
-        attributes.put("cloudAccount", "1234");
+        attributes.put("awsAccount", "1234");
         attributes.put("instanceId", "i-1234");
         attributes.put("sanDNS", "service.athenz.athenz.cloud,i-1234.instanceid.athenz.athenz.cloud");
         confirmation.setAttributes(attributes);

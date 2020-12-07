@@ -3,6 +3,7 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.yahoo.rdl.*;
 
@@ -10,6 +11,7 @@ import com.yahoo.rdl.*;
 // Assertion - A representation for the encapsulation of an action to be
 // performed on a resource by a principal.
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Assertion {
     public String role;
     public String resource;
@@ -20,6 +22,9 @@ public class Assertion {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Long id;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Boolean caseSensitive;
 
     public Assertion setRole(String role) {
         this.role = role;
@@ -56,6 +61,13 @@ public class Assertion {
     public Long getId() {
         return id;
     }
+    public Assertion setCaseSensitive(Boolean caseSensitive) {
+        this.caseSensitive = caseSensitive;
+        return this;
+    }
+    public Boolean getCaseSensitive() {
+        return caseSensitive;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -77,6 +89,9 @@ public class Assertion {
                 return false;
             }
             if (id == null ? a.id != null : !id.equals(a.id)) {
+                return false;
+            }
+            if (caseSensitive == null ? a.caseSensitive != null : !caseSensitive.equals(a.caseSensitive)) {
                 return false;
             }
         }

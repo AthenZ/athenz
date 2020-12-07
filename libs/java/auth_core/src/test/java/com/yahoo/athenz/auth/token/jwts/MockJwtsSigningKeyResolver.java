@@ -15,19 +15,11 @@
  */
 package com.yahoo.athenz.auth.token.jwts;
 
-import org.mockito.Mockito;
-
-import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 
 public class MockJwtsSigningKeyResolver extends JwtsSigningKeyResolver {
 
     private static String responseBody;
-    private static int responseCode;
 
     public MockJwtsSigningKeyResolver(final String serverUrl, final SSLContext sslContext) {
         super(serverUrl, sslContext);
@@ -37,21 +29,8 @@ public class MockJwtsSigningKeyResolver extends JwtsSigningKeyResolver {
         responseBody = body;
     }
 
-    public static void setResponseCode(int code) {
-        responseCode = code;
-    }
-
     @Override
-    public HttpsURLConnection getConnection(final String serverUrl) throws IOException {
-        HttpsURLConnection mock = Mockito.mock(HttpsURLConnection.class);
-        Mockito.when(mock.getResponseCode()).thenReturn(responseCode);
-        Mockito.when(mock.getInputStream()).thenReturn(
-                new ByteArrayInputStream(responseBody.getBytes(StandardCharsets.UTF_8)));
-        return mock;
-    }
-
-    @Override
-    public SSLSocketFactory getSocketFactory(SSLContext sslContext) {
-        return (sslContext == null) ? null : Mockito.mock(SSLSocketFactory.class);
+    String getHttpData(String jwksUri, SSLContext sslContext) {
+        return responseBody;
     }
 }

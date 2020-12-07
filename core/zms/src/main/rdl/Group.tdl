@@ -1,0 +1,85 @@
+// Copyright 2020 Verizon Media
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+include "Names.tdl";
+
+//An audit log entry for group membership change.
+type GroupAuditLog Struct {
+    GroupMemberName member; //name of the group member
+    ResourceName admin; //name of the principal executing the change
+    Timestamp created; //timestamp of the entry
+    String action; //log action - e.g. add, delete, approve, etc
+    String auditRef (optional); //audit reference string for the change as supplied by admin
+}
+
+type GroupMember Struct {
+    GroupMemberName memberName (optional); //name of the member
+    ResourceName groupName (optional); //name of the group
+    DomainName domainName (optional); //name of the domain
+    Timestamp expiration (optional); //the expiration timestamp
+    Bool active (optional, default=true); //Flag to indicate whether membership is active
+    Bool approved (optional, default=true); //Flag to indicate whether membership is approved either by delegates ( in case of auditEnabled groups ) or by domain admins ( in case of selfserve groups )
+    String auditRef (optional); //audit reference string for the change as supplied by admin
+    Timestamp requestTime (optional); //for pending membership requests, the request time
+    Timestamp lastNotifiedTime (optional); //for pending membership requests, time when last notification was sent
+    ResourceName requestPrincipal (optional); //pending members only - name of the principal requesting the change
+    Timestamp reviewLastNotifiedTime (optional); //for pending membership requests, time when last notification was sent (for file store)
+    Int32 systemDisabled (optional); //user disabled by system based on configured group setting
+    Int32 principalType (optional); //server use only - principal type: unknown(0), user(1) or service(2)
+}
+
+//The representation for a group membership.
+type GroupMembership Struct {
+    GroupMemberName memberName; //name of the member
+    Bool isMember (optional, default=true); //flag to indicate whether or the user is a member or not
+    ResourceName groupName (optional); //name of the group
+    Timestamp expiration (optional); //the expiration timestamp
+    Bool active (optional, default=true); //Flag to indicate whether membership is active
+    Bool approved (optional, default=true); //Flag to indicate whether membership is approved either by delegates ( in case of auditEnabled groups ) or by domain admins ( in case of selfserve groups )
+    String auditRef (optional); //audit reference string for the change as supplied by admin
+    ResourceName requestPrincipal (optional); //pending members only - name of the principal requesting the change
+    Int32 systemDisabled (optional); //user disabled by system based on configured group setting
+}
+
+//Set of metadata attributes that all groups may have and can be changed by domain admins.
+type GroupMeta Struct {
+    Bool selfServe (optional, default=false); //Flag indicates whether or not group allows self service. Users can add themselves in the group, but it has to be approved by domain admins to be effective.
+    Bool reviewEnabled (optional, default=false); //Flag indicates whether or not group updates require another review and approval
+    String notifyRoles (optional); //list of roles whose members should be notified for member review/approval
+    String userAuthorityFilter (optional); //membership filtered based on user authority configured attributes
+    String userAuthorityExpiration (optional); //expiration enforced by a user authority configured attribute
+}
+
+//The representation for a Group with set of members.
+type Group GroupMeta {
+    ResourceName name; //name of the group
+    Timestamp modified (optional); //last modification timestamp of the group
+    Array<GroupMember> groupMembers (optional);  //members with expiration
+    Array<GroupAuditLog> auditLog (optional); //an audit log for group membership changes
+    Bool auditEnabled (optional, default=false); //Flag indicates whether or not group updates should require GRC approval. If true, the auditRef parameter must be supplied(not empty) for any API defining it
+    Timestamp lastReviewedDate (optional); //last review timestamp of the group
+}
+
+//The representation for a list of groups with full details
+type Groups Struct {
+    Array<Group> list; // list of group objects
+}
+
+type DomainGroupMember Struct {
+    GroupMemberName memberName; //name of the member
+    Array<GroupMember> memberGroups; // groups for this member
+}
+
+type DomainGroupMembers Struct {
+    DomainName domainName; //name of the domain
+    Array<DomainGroupMember> members; //group members
+}
+
+type DomainGroupMembership Struct {
+    Array<DomainGroupMembers> domainGroupMembersList;
+}
+
+//Set of system metadata attributes that all groups may have and can be changed by system admins.
+type GroupSystemMeta Struct {
+    Bool auditEnabled (optional, default=false); //Flag indicates whether or not group updates should be approved by GRC. If true, the auditRef parameter must be supplied(not empty) for any API defining it.
+}

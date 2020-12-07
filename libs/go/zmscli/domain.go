@@ -63,7 +63,7 @@ func (cli Zms) ImportDomain(dn string, filename string, admins []string) (*strin
 	if val, ok := dnSpec["product_id"]; ok {
 		productID = val.(int)
 	} else if cli.ProductIdSupport && strings.LastIndex(dn, ".") < 0 {
-		return nil, fmt.Errorf("Top Level Domains require an integer number specified for the Product ID")
+		return nil, fmt.Errorf("top level domains require an integer number specified for the Product ID")
 	}
 	productID32 := int32(productID)
 	_, err = cli.AddDomain(dn, &productID32, true, admins)
@@ -106,7 +106,7 @@ func (cli Zms) ImportDomain(dn string, filename string, admins []string) (*strin
 		return nil, err
 	}
 	if lstServices, ok := dnSpec["services"].([]interface{}); ok {
-		err = cli.importServices(dn, lstServices, false)
+		err = cli.importServices(dn, lstServices)
 		if err != nil {
 			return nil, err
 		}
@@ -168,7 +168,7 @@ func (cli Zms) UpdateDomain(dn string, filename string) (*string, error) {
 		}
 	}
 	if lstServices, ok := dnSpec["services"].([]interface{}); ok {
-		err = cli.importServices(dn, lstServices, true)
+		err = cli.importServices(dn, lstServices)
 		if err != nil {
 			return nil, err
 		}
@@ -180,7 +180,7 @@ func (cli Zms) UpdateDomain(dn string, filename string) (*string, error) {
 func (cli Zms) ExportDomain(dn string, filename string) (*string, error) {
 	verbose := cli.Verbose
 	cli.Verbose = false
-	data, err := cli.showDomain(dn, true)
+	data, err := cli.showDomain(dn)
 	cli.Verbose = verbose
 	if err == nil && data != nil {
 		s := *data
@@ -194,16 +194,16 @@ func (cli Zms) ExportDomain(dn string, filename string) (*string, error) {
 }
 
 func (cli Zms) SystemBackup(dir string) (*string, error) {
-	res, err := cli.Zms.GetDomainList(nil, "", "", nil, "", nil, "", "", "")
+	res, err := cli.Zms.GetDomainList(nil, "", "", nil, "", nil, "", "", "", "")
 	if err != nil {
 		return nil, err
 	}
 	verbose := cli.Verbose
 	cli.Verbose = false
 	for _, name := range res.Names {
-		fmt.Fprintf(os.Stdout, "Processing domain "+string(name)+"...\n")
+		_, _ = fmt.Fprintf(os.Stdout, "Processing domain "+string(name)+"...\n")
 		filename := dir + "/" + string(name)
-		data, err := cli.showDomain(string(name), true)
+		data, err := cli.showDomain(string(name))
 		if err == nil && data != nil {
 			s := *data
 			err = ioutil.WriteFile(filename, []byte(s), 0644)
@@ -276,11 +276,11 @@ func (cli Zms) createDomain(dn string, productID *int32, admins []string) (*stri
 
 func (cli Zms) LookupDomainByRole(roleMember string, roleName string) (*string, error) {
 	var buf bytes.Buffer
-	res, err := cli.Zms.GetDomainList(nil, "", "", nil, "", nil, zms.ResourceName(roleMember), zms.ResourceName(roleName), "")
+	res, err := cli.Zms.GetDomainList(nil, "", "", nil, "", nil, zms.ResourceName(roleMember), zms.ResourceName(roleName), "", "")
 	if err == nil {
 		buf.WriteString("domains:\n")
 		for _, name := range res.Names {
-			buf.WriteString(indent_level1_dash + string(name) + "\n")
+			buf.WriteString(indentLevel1Dash + string(name) + "\n")
 		}
 		s := buf.String()
 		return &s, nil
@@ -288,13 +288,13 @@ func (cli Zms) LookupDomainByRole(roleMember string, roleName string) (*string, 
 	return nil, err
 }
 
-func (cli Zms) LookupDomainById(account string, productID *int32) (*string, error) {
+func (cli Zms) LookupDomainById(account, subscription string, productID *int32) (*string, error) {
 	var buf bytes.Buffer
-	res, err := cli.Zms.GetDomainList(nil, "", "", nil, account, productID, "", "", "")
+	res, err := cli.Zms.GetDomainList(nil, "", "", nil, account, productID, "", "", "", subscription)
 	if err == nil {
 		buf.WriteString("domain:\n")
 		for _, name := range res.Names {
-			buf.WriteString(indent_level1_dash + string(name) + "\n")
+			buf.WriteString(indentLevel1Dash + string(name) + "\n")
 		}
 		s := buf.String()
 		return &s, nil
@@ -304,11 +304,11 @@ func (cli Zms) LookupDomainById(account string, productID *int32) (*string, erro
 
 func (cli Zms) ListDomains(limit *int32, skip string, prefix string, depth *int32) (*string, error) {
 	var buf bytes.Buffer
-	res, err := cli.Zms.GetDomainList(limit, skip, prefix, depth, "", nil, "", "", "")
+	res, err := cli.Zms.GetDomainList(limit, skip, prefix, depth, "", nil, "", "", "", "")
 	if err == nil {
 		buf.WriteString("domains:\n")
 		for _, name := range res.Names {
-			buf.WriteString(indent_level1_dash + string(name) + "\n")
+			buf.WriteString(indentLevel1Dash + string(name) + "\n")
 		}
 		s := buf.String()
 		return &s, nil
@@ -389,7 +389,7 @@ func (cli Zms) CheckDomain(dn string) (*string, error) {
 	return &s, nil
 }
 
-func (cli Zms) showDomain(dn string, export bool) (*string, error) {
+func (cli Zms) showDomain(dn string) (*string, error) {
 
 	domain, err := cli.Zms.GetDomain(zms.DomainName(dn))
 	if err != nil {
@@ -398,7 +398,7 @@ func (cli Zms) showDomain(dn string, export bool) (*string, error) {
 
 	var buf bytes.Buffer
 	cli.dumpDomain(&buf, domain)
-	cli.dumpRoles(&buf, dn)
+	cli.dumpRoles(&buf, dn, "", "")
 	cli.dumpPolicies(&buf, dn)
 	cli.dumpServices(&buf, dn)
 
@@ -422,6 +422,8 @@ func getDomainMetaObject(domain *zms.Domain) zms.DomainMeta {
 		RoleCertExpiryMins:    domain.RoleCertExpiryMins,
 		SignAlgorithm:         domain.SignAlgorithm,
 		MemberExpiryDays:      domain.MemberExpiryDays,
+		ServiceExpiryDays:     domain.ServiceExpiryDays,
+		GroupExpiryDays:       domain.GroupExpiryDays,
 	}
 }
 
@@ -456,7 +458,19 @@ func (cli Zms) SetDomainAuditEnabled(dn string, auditEnabled bool) (*string, err
 	meta := zms.DomainMeta{
 		AuditEnabled: &auditEnabled,
 	}
-	err := cli.Zms.PutDomainSystemMeta(zms.DomainName(dn), zms.SimpleName("auditenabled"), cli.AuditRef, &meta)
+	err := cli.Zms.PutDomainSystemMeta(zms.DomainName(dn), "auditenabled", cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " metadata successfully updated]\n"
+	return &s, nil
+}
+
+func (cli Zms) SetDomainUserAuthorityFilter(dn, filter string) (*string, error) {
+	meta := zms.DomainMeta{
+		UserAuthorityFilter: filter,
+	}
+	err := cli.Zms.PutDomainSystemMeta(zms.DomainName(dn), "userauthorityfilter", cli.AuditRef, &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -487,6 +501,22 @@ func (cli Zms) SetDomainServiceExpiryDays(dn string, days int32) (*string, error
 	}
 	meta := getDomainMetaObject(domain)
 	meta.ServiceExpiryDays = &days
+
+	err = cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " metadata successfully updated]\n"
+	return &s, nil
+}
+
+func (cli Zms) SetDomainGroupExpiryDays(dn string, days int32) (*string, error) {
+	domain, err := cli.Zms.GetDomain(zms.DomainName(dn))
+	if err != nil {
+		return nil, err
+	}
+	meta := getDomainMetaObject(domain)
+	meta.GroupExpiryDays = &days
 
 	err = cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, &meta)
 	if err != nil {
@@ -564,7 +594,7 @@ func (cli Zms) SetDomainAccount(dn string, account string) (*string, error) {
 	meta := zms.DomainMeta{
 		Account: account,
 	}
-	err := cli.Zms.PutDomainSystemMeta(zms.DomainName(dn), zms.SimpleName("account"), cli.AuditRef, &meta)
+	err := cli.Zms.PutDomainSystemMeta(zms.DomainName(dn), "account", cli.AuditRef, &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -572,11 +602,23 @@ func (cli Zms) SetDomainAccount(dn string, account string) (*string, error) {
 	return &s, nil
 }
 
+func (cli Zms) SetDomainSubscription(dn string, subscription string) (*string, error) {
+	meta := zms.DomainMeta{
+		AzureSubscription: subscription,
+	}
+	err := cli.Zms.PutDomainSystemMeta(zms.DomainName(dn), "azuresubscription", cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " subscription successfully updated]\n"
+	return &s, nil
+}
+
 func (cli Zms) SetDomainOrgName(dn string, org string) (*string, error) {
 	meta := zms.DomainMeta{
 		Org: zms.ResourceName(org),
 	}
-	err := cli.Zms.PutDomainSystemMeta(zms.DomainName(dn), zms.SimpleName("org"), cli.AuditRef, &meta)
+	err := cli.Zms.PutDomainSystemMeta(zms.DomainName(dn), "org", cli.AuditRef, &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -588,7 +630,7 @@ func (cli Zms) SetDomainProductId(dn string, productID int32) (*string, error) {
 	meta := zms.DomainMeta{
 		YpmId: &productID,
 	}
-	err := cli.Zms.PutDomainSystemMeta(zms.DomainName(dn), zms.SimpleName("productid"), cli.AuditRef, &meta)
+	err := cli.Zms.PutDomainSystemMeta(zms.DomainName(dn), "productid", cli.AuditRef, &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -613,7 +655,7 @@ func (cli Zms) SetDomainCertDnsDomain(dn string, dnsDomain string) (*string, err
 	meta := zms.DomainMeta{
 		CertDnsDomain: dnsDomain,
 	}
-	err := cli.Zms.PutDomainSystemMeta(zms.DomainName(dn), zms.SimpleName("certdnsdomain"), cli.AuditRef, &meta)
+	err := cli.Zms.PutDomainSystemMeta(zms.DomainName(dn), "certdnsdomain", cli.AuditRef, &meta)
 	if err != nil {
 		return nil, err
 	}

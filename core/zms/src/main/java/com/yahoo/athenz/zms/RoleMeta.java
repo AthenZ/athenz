@@ -3,13 +3,16 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import java.util.Map;
 import com.yahoo.rdl.*;
 
 //
 // RoleMeta - Set of metadata attributes that all roles may have and can be
 // changed by domain admins.
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class RoleMeta {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -47,6 +50,12 @@ public class RoleMeta {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String userAuthorityExpiration;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer groupExpiryDays;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Map<String, StringList> tags;
 
     public RoleMeta setSelfServe(Boolean selfServe) {
         this.selfServe = selfServe;
@@ -132,6 +141,20 @@ public class RoleMeta {
     public String getUserAuthorityExpiration() {
         return userAuthorityExpiration;
     }
+    public RoleMeta setGroupExpiryDays(Integer groupExpiryDays) {
+        this.groupExpiryDays = groupExpiryDays;
+        return this;
+    }
+    public Integer getGroupExpiryDays() {
+        return groupExpiryDays;
+    }
+    public RoleMeta setTags(Map<String, StringList> tags) {
+        this.tags = tags;
+        return this;
+    }
+    public Map<String, StringList> getTags() {
+        return tags;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -174,6 +197,12 @@ public class RoleMeta {
                 return false;
             }
             if (userAuthorityExpiration == null ? a.userAuthorityExpiration != null : !userAuthorityExpiration.equals(a.userAuthorityExpiration)) {
+                return false;
+            }
+            if (groupExpiryDays == null ? a.groupExpiryDays != null : !groupExpiryDays.equals(a.groupExpiryDays)) {
+                return false;
+            }
+            if (tags == null ? a.tags != null : !tags.equals(a.tags)) {
                 return false;
             }
         }

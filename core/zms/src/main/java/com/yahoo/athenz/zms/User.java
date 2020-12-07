@@ -3,11 +3,13 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.yahoo.rdl.*;
 
 //
 // User - The representation for a user
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class User {
     public String name;
 

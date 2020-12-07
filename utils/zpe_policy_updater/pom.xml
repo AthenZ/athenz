@@ -17,7 +17,7 @@
   <parent>
     <groupId>com.yahoo.athenz</groupId>
     <artifactId>athenz</artifactId>
-    <version>1.9.6</version>
+    <version>1.9.26-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
@@ -25,6 +25,10 @@
   <packaging>jar</packaging>
   <name>athenz-zpe-policy-updater</name>
   <description>ZPE Policy Updater</description>
+
+  <properties>
+    <code.coverage.min>0.72</code.coverage.min>
+  </properties>
 
   <dependencies>
     <dependency>

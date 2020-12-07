@@ -16,7 +16,9 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import { colors } from '../denali/styles';
+import Button from '../denali/Button';
 import AddPolicy from './AddPolicy';
+import AddPolicyToRole from './AddPolicyToRole';
 import PolicyRow from './PolicyRow';
 import Alert from '../denali/Alert';
 import DeleteModal from '../modal/DeleteModal';
@@ -30,12 +32,11 @@ const PolicySectionDiv = styled.div`
 
 const AddContainerDiv = styled.div`
     padding-bottom: 20px;
-`;
-
-const StyledAnchor = styled.a`
-    color: #3570f4;
-    text-decoration: none;
-    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-flow: row nowrap;
+    float: right;
 `;
 
 const PolicyTable = styled.table`
@@ -109,11 +110,31 @@ export default class PolicyList extends React.Component {
     }
 
     reloadPolicies(successMessage) {
+        let role = this.props.role;
+
         this.api
-            .getPolicies(this.props.domain)
+            .getPolicies(this.props.domain, true)
             .then((data) => {
+                let filteredPolicies = data;
+                if (role) {
+                    filteredPolicies = data.filter((policy) => {
+                        let included = false;
+                        policy.assertions.forEach((element) => {
+                            if (
+                                NameUtils.getShortName(
+                                    ':role.',
+                                    element.role
+                                ) === role
+                            ) {
+                                included = true;
+                            }
+                        });
+                        return included;
+                    });
+                }
+
                 this.setState({
-                    list: data,
+                    list: filteredPolicies,
                     showAddPolicy: false,
                     showSuccess: true,
                     successMessage,
@@ -146,7 +167,7 @@ export default class PolicyList extends React.Component {
     }
 
     render() {
-        const { domain } = this.props;
+        const { domain, role } = this.props;
         const left = 'left';
         const center = 'center';
         const rows = this.state.list.map((item, i) => {
@@ -160,6 +181,7 @@ export default class PolicyList extends React.Component {
                 <PolicyRow
                     name={name}
                     domain={domain}
+                    role={role}
                     modified={item.modified}
                     color={color}
                     api={this.api}
@@ -170,24 +192,38 @@ export default class PolicyList extends React.Component {
             );
         });
         let addPolicy = this.state.showAddPolicy ? (
-            <AddPolicy
-                showAddPolicy={this.state.showAddPolicy}
-                onCancel={this.toggleAddPolicy}
-                onSubmit={this.reloadPolicies}
-                domain={domain}
-                api={this.api}
-                _csrf={this.props._csrf}
-            />
+            this.props.role ? (
+                <AddPolicyToRole
+                    showAddPolicy={this.state.showAddPolicy}
+                    onCancel={this.toggleAddPolicy}
+                    onSubmit={this.reloadPolicies}
+                    domain={domain}
+                    role={role}
+                    api={this.api}
+                    _csrf={this.props._csrf}
+                />
+            ) : (
+                <AddPolicy
+                    showAddPolicy={this.state.showAddPolicy}
+                    onCancel={this.toggleAddPolicy}
+                    onSubmit={this.reloadPolicies}
+                    domain={domain}
+                    api={this.api}
+                    _csrf={this.props._csrf}
+                />
+            )
         ) : (
             ''
         );
         return (
             <PolicySectionDiv data-testid='policylist'>
                 <AddContainerDiv>
-                    <StyledAnchor onClick={this.toggleAddPolicy}>
-                        Add Policy
-                    </StyledAnchor>
-                    {addPolicy}
+                    <div>
+                        <Button secondary onClick={this.toggleAddPolicy}>
+                            Add Policy
+                        </Button>
+                        {addPolicy}
+                    </div>
                 </AddContainerDiv>
                 <PolicyTable>
                     <thead>

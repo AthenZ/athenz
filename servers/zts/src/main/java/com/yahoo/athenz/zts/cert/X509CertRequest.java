@@ -42,6 +42,7 @@ public class X509CertRequest {
 
     protected PKCS10CertificationRequest certReq;
     protected String instanceId = null;
+    protected String uriHostname = null;
     protected String spiffeUri = null;
     protected String normCsrPublicKey = null;
 
@@ -86,43 +87,31 @@ public class X509CertRequest {
         if (!extractSpiffeURI()) {
             throw new CryptoException("Invalid SPIFFE URI present in CSR");
         }
-    }
-    
-    public PKCS10CertificationRequest getCertReq() {
-        return certReq;
-    }
-    
-    public void setCertReq(PKCS10CertificationRequest certReq) {
-        this.certReq = certReq;
-    }
 
-    public boolean parseCertRequest(StringBuilder errorMsg) {
-        
-        // first we need to determine our instance id and dns suffix
+        // extract and set uriHostname, if present
+        uriHostname = X509CertUtils.extractItemFromURI(uris, ZTSConsts.ZTS_CERT_HOSTNAME_URI);
 
-        if (!extractInstanceId()) {
-            errorMsg.append("CSR does not include required instance id entry");
-            return false;
-        }
-
-        return true;
-    }
-
-    boolean extractInstanceId() {
+        // extract instanceId
 
         // first check to see if we have the instance id is provided
         // in the athenz uri field
 
-        instanceId = X509CertUtils.extractReqeustInstanceIdFromURI(uris);
+        instanceId = X509CertUtils.extractRequestInstanceIdFromURI(uris);
 
         // if we have no instance id from the URI, then we're going
         // to fetch it from the dns list
 
         if (instanceId == null) {
-            instanceId = X509CertUtils.extractReqeustInstanceIdFromDnsNames(dnsNames);
+            instanceId = X509CertUtils.extractRequestInstanceIdFromDnsNames(dnsNames);
         }
+    }
 
-        return instanceId != null && !instanceId.isEmpty();
+    public PKCS10CertificationRequest getCertReq() {
+        return certReq;
+    }
+
+    public void setCertReq(PKCS10CertificationRequest certReq) {
+        this.certReq = certReq;
     }
 
     /**
@@ -157,8 +146,8 @@ public class X509CertRequest {
             return false;
         }
 
-        if (!validateInstanceCnames(provider, athenzSysDomainCache, instanceHostname,
-                instanceHostCnames, hostnameResolver)) {
+        if (!validateInstanceCnames(provider, athenzSysDomainCache, domainName + "." + serviceName,
+                instanceHostname, instanceHostCnames, hostnameResolver)) {
             return false;
         }
 
@@ -213,6 +202,20 @@ public class X509CertRequest {
         return hostnameResolver == null ? true : hostnameResolver.isValidHostname(instanceHostname);
     }
 
+    /**
+     * validateUriHostname ensures that the instanceHostname passed in request matches the hostname in SanURI
+     * @param instanceHostname hostname set in the input request
+     * @return true or false
+     */
+    boolean validateUriHostname(final String instanceHostname) {
+        // If there is no hostname in SanURI, there is nothing to validate against input hostname
+        if (uriHostname == null || uriHostname.isEmpty()) {
+            return true;
+        }
+
+        return uriHostname.equals(instanceHostname);
+    }
+
     boolean isHostnameAllowed(final String provider, final DataCache athenzSysDomainCache,
             final String instanceHostname) {
 
@@ -257,7 +260,7 @@ public class X509CertRequest {
     }
 
     boolean validateInstanceCnames(final String provider, final DataCache athenzSysDomainCache,
-            final String instanceHostname, List<String> instanceHostCnames, HostnameResolver hostnameResolver) {
+            final String serviceFqn, final String instanceHostname, List<String> instanceHostCnames, HostnameResolver hostnameResolver) {
 
         // if we have no cname list provided then nothing to check
 
@@ -284,7 +287,7 @@ public class X509CertRequest {
         // we must also have a resolver present and configured
 
         if (hostnameResolver != null) {
-            if (!hostnameResolver.isValidHostCnameList(instanceHostname, instanceHostCnames, CertType.X509)) {
+            if (!hostnameResolver.isValidHostCnameList(serviceFqn, instanceHostname, instanceHostCnames, CertType.X509)) {
                 LOGGER.error("{} does not have all hosts in {} as configured CNAMEs", instanceHostname,
                         String.join(",", instanceHostCnames));
                 return false;
@@ -663,7 +666,11 @@ public class X509CertRequest {
     public String getInstanceId() {
         return instanceId;
     }
-    
+
+    public String getUriHostname() {
+        return uriHostname;
+    }
+
     public List<String> getDnsNames() {
         return dnsNames;
     }

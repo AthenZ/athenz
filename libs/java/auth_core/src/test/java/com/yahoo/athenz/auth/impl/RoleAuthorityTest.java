@@ -176,6 +176,13 @@ public class RoleAuthorityTest {
     }
 
     @Test
+    public void testGetID() {
+        RoleAuthority authority = new RoleAuthority();
+        authority.initialize();
+        assertEquals("Auth-ROLE", authority.getID());
+    }
+
+    @Test
     public void testRoleAuthority_TamperedToken() throws IOException,
             CryptoException {
         RoleAuthority rollAuthority = new RoleAuthority();

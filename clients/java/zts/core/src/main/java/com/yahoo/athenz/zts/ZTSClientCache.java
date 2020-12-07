@@ -57,7 +57,7 @@ import java.util.function.Consumer;
  *  to an ehcache config XML file like this example: <pre>{@code
  *      <config xmlns="http://www.ehcache.org/v3">
  *          <cache-template name="role-access">
- *              <expiry><tti unit="minutes">10</tti></expiry>
+ *              <expiry><ttl unit="minutes">10</ttl></expiry>
  *              <heap unit="entries">10000</heap>
  *          </cache-template>
  *      </config>

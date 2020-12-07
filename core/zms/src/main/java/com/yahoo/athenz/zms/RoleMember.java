@@ -3,12 +3,14 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.yahoo.rdl.*;
 
 //
 // RoleMember -
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class RoleMember {
     public String memberName;
     @RdlOptional
@@ -38,6 +40,12 @@ public class RoleMember {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Timestamp reviewLastNotifiedTime;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer systemDisabled;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer principalType;
 
     public RoleMember setMemberName(String memberName) {
         this.memberName = memberName;
@@ -109,6 +117,20 @@ public class RoleMember {
     public Timestamp getReviewLastNotifiedTime() {
         return reviewLastNotifiedTime;
     }
+    public RoleMember setSystemDisabled(Integer systemDisabled) {
+        this.systemDisabled = systemDisabled;
+        return this;
+    }
+    public Integer getSystemDisabled() {
+        return systemDisabled;
+    }
+    public RoleMember setPrincipalType(Integer principalType) {
+        this.principalType = principalType;
+        return this;
+    }
+    public Integer getPrincipalType() {
+        return principalType;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -145,6 +167,12 @@ public class RoleMember {
                 return false;
             }
             if (reviewLastNotifiedTime == null ? a.reviewLastNotifiedTime != null : !reviewLastNotifiedTime.equals(a.reviewLastNotifiedTime)) {
+                return false;
+            }
+            if (systemDisabled == null ? a.systemDisabled != null : !systemDisabled.equals(a.systemDisabled)) {
+                return false;
+            }
+            if (principalType == null ? a.principalType != null : !principalType.equals(a.principalType)) {
                 return false;
             }
         }

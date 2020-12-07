@@ -3,6 +3,7 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.List;
 import com.yahoo.rdl.*;
 
@@ -10,6 +11,7 @@ import com.yahoo.rdl.*;
 // EntityList - The representation for an enumeration of entities in the
 // namespace
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class EntityList {
     public List<String> names;
 

@@ -24,6 +24,7 @@ import java.sql.SQLException;
 import java.sql.SQLTimeoutException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -39,7 +40,6 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
-import static org.testng.AssertJUnit.assertFalse;
 
 import com.yahoo.athenz.common.server.db.PoolableDataSource;
 import com.yahoo.athenz.common.server.cert.X509CertRecord;
@@ -221,9 +221,10 @@ public class JDBCCertRecordStoreConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(6, "prev-ip");
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(7, new java.sql.Timestamp(now.getTime()));
         Mockito.verify(mockPrepStmt, times(1)).setString(8, "hostname");
-        Mockito.verify(mockPrepStmt, times(1)).setString(9, "ostk");
-        Mockito.verify(mockPrepStmt, times(1)).setString(10, "instance-id");
-        Mockito.verify(mockPrepStmt, times(1)).setString(11, "cn");
+        Mockito.verify(mockPrepStmt, times(1)).setBoolean(9, false);
+        Mockito.verify(mockPrepStmt, times(1)).setString(10, "ostk");
+        Mockito.verify(mockPrepStmt, times(1)).setString(11, "instance-id");
+        Mockito.verify(mockPrepStmt, times(1)).setString(12, "cn");
 
         // common between insert/update so count is 2 times
         Mockito.verify(mockPrepStmt, times(2)).setTimestamp(5, new java.sql.Timestamp(now.getTime()));
@@ -307,9 +308,11 @@ public class JDBCCertRecordStoreConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(4, "prev-serial");
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(5, new Timestamp(now.getTime()));
         Mockito.verify(mockPrepStmt, times(1)).setString(6, "prev-ip");
-        Mockito.verify(mockPrepStmt, times(1)).setString(9, "ostk");
-        Mockito.verify(mockPrepStmt, times(1)).setString(10, "instance-id");
-        Mockito.verify(mockPrepStmt, times(1)).setString(11, "cn");
+        Mockito.verify(mockPrepStmt, times(1)).setBoolean(9, false);
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(10, "ostk");
+        Mockito.verify(mockPrepStmt, times(1)).setString(11, "instance-id");
+        Mockito.verify(mockPrepStmt, times(1)).setString(12, "cn");
     }
 
     @Test
@@ -444,40 +447,8 @@ public class JDBCCertRecordStoreConnectionTest {
         Mockito.when(mockPrepStmt.executeUpdate())
                 .thenReturn(3) // 3 members updated
                 .thenReturn(0); // On second call, no members were updated
-        long timestamp = System.currentTimeMillis();
-        boolean result = jdbcConn.updateUnrefreshedCertificatesNotificationTimestamp("localhost", timestamp, "provider");
-        java.sql.Timestamp ts = new java.sql.Timestamp(timestamp);
-        Mockito.verify(mockPrepStmt, times(1)).setTimestamp(1, ts);
-        Mockito.verify(mockPrepStmt, times(1)).setString(2, "localhost");
-        Mockito.verify(mockPrepStmt, times(1)).setString(3, "provider");
-        assertTrue(result);
-        result = jdbcConn.updateUnrefreshedCertificatesNotificationTimestamp("localhost", timestamp, "provider");
-        assertFalse(result);
-        jdbcConn.close();
-    }
-
-    @Test
-    public void testUpdateUnrefreshedCertificatesNotificationTimestampError() throws Exception {
-        JDBCCertRecordStoreConnection jdbcConn = new JDBCCertRecordStoreConnection(mockConn);
-        Mockito.when(mockPrepStmt.executeUpdate())
-                .thenThrow(new SQLException("sql error"));
-        try {
-            jdbcConn.updateUnrefreshedCertificatesNotificationTimestamp(
-                    "localhost",
-                    System.currentTimeMillis(),
-                    "provider");
-            fail();
-        } catch (RuntimeException ex) {
-            assertTrue(ex.getMessage().contains("sql error"));
-        }
-        jdbcConn.close();
-    }
-
-    @Test
-    public void testGetNotifyUnrefreshedCertificates() throws SQLException {
-        JDBCCertRecordStoreConnection jdbcConn = new JDBCCertRecordStoreConnection(mockConn);
-        Date now = new Date();
-        Timestamp ts = new Timestamp(now.getTime());
+        long currentTime = System.currentTimeMillis();
+        Timestamp ts = new Timestamp(currentTime);
 
         Mockito.when(mockResultSet.getTimestamp(JDBCCertRecordStoreConnection.DB_COLUMN_LAST_NOTIFIED_TIME))
                 .thenReturn(ts)
@@ -500,25 +471,76 @@ public class JDBCCertRecordStoreConnectionTest {
         Mockito.when(mockResultSet.getTimestamp(JDBCCertRecordStoreConnection.DB_COLUMN_CURRENT_TIME)).thenReturn(ts);
         Mockito.when(mockResultSet.getTimestamp(JDBCCertRecordStoreConnection.DB_COLUMN_PREV_TIME)).thenReturn(ts);
 
-
-        List<X509CertRecord> unrefreshedCertificateRecords = jdbcConn.getNotifyUnrefreshedCertificates("localHost", ts.getTime());
+        List<X509CertRecord> unrefreshedCertificateRecords = jdbcConn.updateUnrefreshedCertificatesNotificationTimestamp("localhost", currentTime, "provider");
         assertNotNull(unrefreshedCertificateRecords);
         assertEquals(unrefreshedCertificateRecords.size(), 3);
         for (int i = 0; i < unrefreshedCertificateRecords.size(); ++i) {
             assertEquals(unrefreshedCertificateRecords.get(i).getLastNotifiedServer(), "server" + i);
-            assertEquals(unrefreshedCertificateRecords.get(i).getLastNotifiedTime(), now);
+            assertEquals(unrefreshedCertificateRecords.get(i).getLastNotifiedTime(), new Date(currentTime));
         }
 
         jdbcConn.close();
     }
 
     @Test
-    public void testGetNotifyUnrefreshedCertificatesError() throws Exception {
+    public void testUpdateUnrefreshedCertificatesNotificationTimestampNoAffectedRows() throws Exception {
         JDBCCertRecordStoreConnection jdbcConn = new JDBCCertRecordStoreConnection(mockConn);
-        Mockito.when(mockPrepStmt.executeQuery())
+        Mockito.when(mockPrepStmt.executeUpdate())
+                .thenReturn(0); // no members were updated
+        long currentTime = System.currentTimeMillis();
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(false);
+
+        List<X509CertRecord> unrefreshedCertificateRecords = jdbcConn.updateUnrefreshedCertificatesNotificationTimestamp("localhost", currentTime, "provider");
+        assertEquals(unrefreshedCertificateRecords, new ArrayList<>());
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testUpdateUnrefreshedCertificatesNotificationTimestampErrorInUpdate() throws Exception {
+        JDBCCertRecordStoreConnection jdbcConn = new JDBCCertRecordStoreConnection(mockConn);
+        Mockito.when(mockPrepStmt.executeUpdate())
                 .thenThrow(new SQLException("sql error"));
         try {
-            jdbcConn.getNotifyUnrefreshedCertificates("localhost", System.currentTimeMillis());
+            jdbcConn.updateUnrefreshedCertificatesNotificationTimestamp(
+                    "localhost",
+                    System.currentTimeMillis(),
+                    "provider");
+            fail();
+        } catch (RuntimeException ex) {
+            assertTrue(ex.getMessage().contains("sql error"));
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testUpdateUnrefreshedCertificatesNotificationTimestampErrorInGet() throws Exception {
+        JDBCCertRecordStoreConnection jdbcConn = new JDBCCertRecordStoreConnection(mockConn);
+        Mockito.when(mockPrepStmt.executeUpdate())
+                .thenReturn(3) // 3 members updated
+                .thenReturn(0); // On second call, no members were updated
+        long currentTime = System.currentTimeMillis();
+        Timestamp ts = new Timestamp(currentTime);
+
+        Mockito.when(mockResultSet.getTimestamp(JDBCCertRecordStoreConnection.DB_COLUMN_LAST_NOTIFIED_TIME))
+                .thenReturn(ts)
+                .thenReturn(ts)
+                .thenReturn(ts);
+        Mockito.when(mockResultSet.getString(JDBCCertRecordStoreConnection.DB_COLUMN_LAST_NOTIFIED_SERVER))
+                .thenReturn("server0")
+                .thenReturn("server1")
+                .thenReturn("server2");
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for server1
+                .thenThrow(new SQLException("sql error")); // Simulate sql exception on get
+
+        try {
+            jdbcConn.updateUnrefreshedCertificatesNotificationTimestamp(
+                    "localhost",
+                    System.currentTimeMillis(),
+                    "provider");
             fail();
         } catch (RuntimeException ex) {
             assertTrue(ex.getMessage().contains("sql error"));

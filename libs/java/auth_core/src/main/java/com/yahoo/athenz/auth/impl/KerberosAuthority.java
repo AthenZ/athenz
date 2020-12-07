@@ -118,6 +118,11 @@ public class KerberosAuthority implements Authority {
         login(false);
     }
 
+    @Override
+    public String getID() {
+        return "Auth-KERB";
+    }
+
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public synchronized void login(boolean logoutFirst) {
 

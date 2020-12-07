@@ -317,12 +317,12 @@ func (client ZMSClient) GetDomain(domain DomainName) (*Domain, error) {
 	}
 }
 
-func (client ZMSClient) GetDomainList(limit *int32, skip string, prefix string, depth *int32, account string, productId *int32, roleMember ResourceName, roleName ResourceName, modifiedSince string) (*DomainList, error) {
+func (client ZMSClient) GetDomainList(limit *int32, skip string, prefix string, depth *int32, account string, productId *int32, roleMember ResourceName, roleName ResourceName, subscription string, modifiedSince string) (*DomainList, error) {
 	var data *DomainList
 	headers := map[string]string{
 		"If-Modified-Since": modifiedSince,
 	}
-	url := client.URL + "/domain" + encodeParams(encodeOptionalInt32Param("limit", limit), encodeStringParam("skip", string(skip), ""), encodeStringParam("prefix", string(prefix), ""), encodeOptionalInt32Param("depth", depth), encodeStringParam("account", string(account), ""), encodeOptionalInt32Param("ypmid", productId), encodeStringParam("member", string(roleMember), ""), encodeStringParam("role", string(roleName), ""))
+	url := client.URL + "/domain" + encodeParams(encodeOptionalInt32Param("limit", limit), encodeStringParam("skip", string(skip), ""), encodeStringParam("prefix", string(prefix), ""), encodeOptionalInt32Param("depth", depth), encodeStringParam("account", string(account), ""), encodeOptionalInt32Param("ypmid", productId), encodeStringParam("member", string(roleMember), ""), encodeStringParam("role", string(roleName), ""), encodeStringParam("azure", string(subscription), ""))
 	resp, err := client.httpGet(url, headers)
 	if err != nil {
 		return data, err
@@ -949,9 +949,9 @@ func (client ZMSClient) GetRoleList(domainName DomainName, limit *int32, skip st
 	}
 }
 
-func (client ZMSClient) GetRoles(domainName DomainName, members *bool) (*Roles, error) {
+func (client ZMSClient) GetRoles(domainName DomainName, members *bool, tagKey CompoundName, tagValue CompoundName) (*Roles, error) {
 	var data *Roles
-	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/roles" + encodeParams(encodeOptionalBoolParam("members", members))
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/roles" + encodeParams(encodeOptionalBoolParam("members", members), encodeStringParam("tagKey", string(tagKey), ""), encodeStringParam("tagValue", string(tagValue), ""))
 	resp, err := client.httpGet(url, nil)
 	if err != nil {
 		return data, err
@@ -1144,6 +1144,38 @@ func (client ZMSClient) GetOverdueReview(domainName DomainName) (*DomainRoleMemb
 func (client ZMSClient) GetDomainRoleMembers(domainName DomainName) (*DomainRoleMembers, error) {
 	var data *DomainRoleMembers
 	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/member"
+	resp, err := client.httpGet(url, nil)
+	if err != nil {
+		return data, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 200:
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		if err != nil {
+			return data, err
+		}
+		return data, nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return data, err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return data, errobj
+	}
+}
+
+func (client ZMSClient) GetPrincipalRoles(principal ResourceName, domainName DomainName) (*DomainRoleMember, error) {
+	var data *DomainRoleMember
+	url := client.URL + "/role" + encodeParams(encodeStringParam("principal", string(principal), ""), encodeStringParam("domain", string(domainName), ""))
 	resp, err := client.httpGet(url, nil)
 	if err != nil {
 		return data, err
@@ -1434,6 +1466,460 @@ func (client ZMSClient) PutRoleReview(domainName DomainName, roleName EntityName
 			errobj.Message = string(contentBytes)
 		}
 		return errobj
+	}
+}
+
+func (client ZMSClient) GetGroups(domainName DomainName, members *bool) (*Groups, error) {
+	var data *Groups
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/groups" + encodeParams(encodeOptionalBoolParam("members", members))
+	resp, err := client.httpGet(url, nil)
+	if err != nil {
+		return data, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 200:
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		if err != nil {
+			return data, err
+		}
+		return data, nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return data, err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return data, errobj
+	}
+}
+
+func (client ZMSClient) GetGroup(domainName DomainName, groupName EntityName, auditLog *bool, pending *bool) (*Group, error) {
+	var data *Group
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/group/" + fmt.Sprint(groupName) + encodeParams(encodeOptionalBoolParam("auditLog", auditLog), encodeOptionalBoolParam("pending", pending))
+	resp, err := client.httpGet(url, nil)
+	if err != nil {
+		return data, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 200:
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		if err != nil {
+			return data, err
+		}
+		return data, nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return data, err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return data, errobj
+	}
+}
+
+func (client ZMSClient) PutGroup(domainName DomainName, groupName EntityName, auditRef string, group *Group) error {
+	headers := map[string]string{
+		"Y-Audit-Ref": auditRef,
+	}
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/group/" + fmt.Sprint(groupName)
+	contentBytes, err := json.Marshal(group)
+	if err != nil {
+		return err
+	}
+	resp, err := client.httpPut(url, headers, contentBytes)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 204:
+		return nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err = ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return errobj
+	}
+}
+
+func (client ZMSClient) DeleteGroup(domainName DomainName, groupName EntityName, auditRef string) error {
+	headers := map[string]string{
+		"Y-Audit-Ref": auditRef,
+	}
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/group/" + fmt.Sprint(groupName)
+	resp, err := client.httpDelete(url, headers)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 204:
+		return nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return errobj
+	}
+}
+
+func (client ZMSClient) GetGroupMembership(domainName DomainName, groupName EntityName, memberName GroupMemberName, expiration string) (*GroupMembership, error) {
+	var data *GroupMembership
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/group/" + fmt.Sprint(groupName) + "/member/" + fmt.Sprint(memberName) + encodeParams(encodeStringParam("expiration", string(expiration), ""))
+	resp, err := client.httpGet(url, nil)
+	if err != nil {
+		return data, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 200:
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		if err != nil {
+			return data, err
+		}
+		return data, nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return data, err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return data, errobj
+	}
+}
+
+func (client ZMSClient) GetPrincipalGroups(principal EntityName, domainName DomainName) (*DomainGroupMember, error) {
+	var data *DomainGroupMember
+	url := client.URL + "/group" + encodeParams(encodeStringParam("principal", string(principal), ""), encodeStringParam("domain", string(domainName), ""))
+	resp, err := client.httpGet(url, nil)
+	if err != nil {
+		return data, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 200:
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		if err != nil {
+			return data, err
+		}
+		return data, nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return data, err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return data, errobj
+	}
+}
+
+func (client ZMSClient) PutGroupMembership(domainName DomainName, groupName EntityName, memberName GroupMemberName, auditRef string, membership *GroupMembership) error {
+	headers := map[string]string{
+		"Y-Audit-Ref": auditRef,
+	}
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/group/" + fmt.Sprint(groupName) + "/member/" + fmt.Sprint(memberName)
+	contentBytes, err := json.Marshal(membership)
+	if err != nil {
+		return err
+	}
+	resp, err := client.httpPut(url, headers, contentBytes)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 204:
+		return nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err = ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return errobj
+	}
+}
+
+func (client ZMSClient) DeleteGroupMembership(domainName DomainName, groupName EntityName, memberName GroupMemberName, auditRef string) error {
+	headers := map[string]string{
+		"Y-Audit-Ref": auditRef,
+	}
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/group/" + fmt.Sprint(groupName) + "/member/" + fmt.Sprint(memberName)
+	resp, err := client.httpDelete(url, headers)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 204:
+		return nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return errobj
+	}
+}
+
+func (client ZMSClient) DeletePendingGroupMembership(domainName DomainName, groupName EntityName, memberName GroupMemberName, auditRef string) error {
+	headers := map[string]string{
+		"Y-Audit-Ref": auditRef,
+	}
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/group/" + fmt.Sprint(groupName) + "/pendingmember/" + fmt.Sprint(memberName)
+	resp, err := client.httpDelete(url, headers)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 204:
+		return nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return errobj
+	}
+}
+
+func (client ZMSClient) PutGroupSystemMeta(domainName DomainName, groupName EntityName, attribute SimpleName, auditRef string, detail *GroupSystemMeta) error {
+	headers := map[string]string{
+		"Y-Audit-Ref": auditRef,
+	}
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/group/" + fmt.Sprint(groupName) + "/meta/system/" + fmt.Sprint(attribute)
+	contentBytes, err := json.Marshal(detail)
+	if err != nil {
+		return err
+	}
+	resp, err := client.httpPut(url, headers, contentBytes)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 204:
+		return nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err = ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return errobj
+	}
+}
+
+func (client ZMSClient) PutGroupMeta(domainName DomainName, groupName EntityName, auditRef string, detail *GroupMeta) error {
+	headers := map[string]string{
+		"Y-Audit-Ref": auditRef,
+	}
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/group/" + fmt.Sprint(groupName) + "/meta"
+	contentBytes, err := json.Marshal(detail)
+	if err != nil {
+		return err
+	}
+	resp, err := client.httpPut(url, headers, contentBytes)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 204:
+		return nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err = ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return errobj
+	}
+}
+
+func (client ZMSClient) PutGroupMembershipDecision(domainName DomainName, groupName EntityName, memberName GroupMemberName, auditRef string, membership *GroupMembership) error {
+	headers := map[string]string{
+		"Y-Audit-Ref": auditRef,
+	}
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/group/" + fmt.Sprint(groupName) + "/member/" + fmt.Sprint(memberName) + "/decision"
+	contentBytes, err := json.Marshal(membership)
+	if err != nil {
+		return err
+	}
+	resp, err := client.httpPut(url, headers, contentBytes)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 204:
+		return nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err = ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return errobj
+	}
+}
+
+func (client ZMSClient) PutGroupReview(domainName DomainName, groupName EntityName, auditRef string, group *Group) error {
+	headers := map[string]string{
+		"Y-Audit-Ref": auditRef,
+	}
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/group/" + fmt.Sprint(groupName) + "/review"
+	contentBytes, err := json.Marshal(group)
+	if err != nil {
+		return err
+	}
+	resp, err := client.httpPut(url, headers, contentBytes)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 204:
+		return nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err = ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return errobj
+	}
+}
+
+func (client ZMSClient) GetPendingDomainGroupMembersList(principal EntityName) (*DomainGroupMembership, error) {
+	var data *DomainGroupMembership
+	url := client.URL + "/pending_group_members" + encodeParams(encodeStringParam("principal", string(principal), ""))
+	resp, err := client.httpGet(url, nil)
+	if err != nil {
+		return data, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 200:
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		if err != nil {
+			return data, err
+		}
+		return data, nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return data, err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return data, errobj
 	}
 }
 
@@ -2382,7 +2868,7 @@ func (client ZMSClient) GetAccessExt(action ActionName, resource string, domain 
 	}
 }
 
-func (client ZMSClient) GetResourceAccessList(principal EntityName, action ActionName) (*ResourceAccessList, error) {
+func (client ZMSClient) GetResourceAccessList(principal ResourceName, action ActionName) (*ResourceAccessList, error) {
 	var data *ResourceAccessList
 	url := client.URL + "/resource" + encodeParams(encodeStringParam("principal", string(principal), ""), encodeStringParam("action", string(action), ""))
 	resp, err := client.httpGet(url, nil)

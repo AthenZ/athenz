@@ -16,6 +16,8 @@
 package com.yahoo.athenz.common.server.cert;
 
 import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.common.server.db.RolesProvider;
+import com.yahoo.athenz.common.server.notification.NotificationManager;
 
 import java.security.cert.X509Certificate;
 
@@ -54,4 +56,14 @@ public interface CertRecordStore {
      */
     void log(final Principal principal, final String ip, final String provider,
              final String instanceId, final X509Certificate x509Cert);
+
+    /**
+     * Enable notifications to be sent regarding the store health (by supported implementers)
+     * All arguments must be provided (non-null)
+     * @param notificationManager
+     * @param rolesProvider
+     * @param serverName
+     * @return true if notifications were enabled successfully
+     */
+    boolean enableNotifications(NotificationManager notificationManager, RolesProvider rolesProvider, final String serverName);
 }

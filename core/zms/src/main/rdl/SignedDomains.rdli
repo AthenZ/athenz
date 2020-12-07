@@ -31,6 +31,7 @@ type DomainData DomainMeta {
     SignedPolicies policies; //list of policies in the domain signed with ZMS private key
     Array<ServiceIdentity> services; //list of services in the domain
     Array<Entity> entities; //list of entities in the domain
+    Array<Group> groups; //list of groups in the domain
     Timestamp modified; //last modification timestamp
 }
 
@@ -74,7 +75,7 @@ resource SignedDomains GET "/sys/modified_domains?domain={domain}&metaonly={meta
 //https://tools.ietf.org/html/rfc7515#section-7.2.2
 type JWSDomain Struct {
     String payload;
-    String protectedHeader;
+    String protected;
     Map<String, String> header;
     String signature;
 }

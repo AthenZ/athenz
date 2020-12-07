@@ -53,7 +53,7 @@ resource Access GET "/access/{action}?resource={resource}&domain={domain}&princi
 }
 
 type ResourceAccess Struct {
-    EntityName principal;
+    ResourceName principal;
     Array<Assertion> assertions;
 }
 
@@ -65,7 +65,7 @@ type ResourceAccessList Struct {
 //is marked as optional, it must be specified unless the caller has authorization from sys.auth
 //domain to check access for all user principals. (action: access, resource: resource-lookup-all)
 resource ResourceAccessList GET "/resource?principal={principal}&action={action}" {
-    EntityName principal (optional); //specifies principal to query the resource list for
+    ResourceName principal (optional); //specifies principal to query the resource list for
     ActionName action (optional); //action as specified in the policy assertion
     authenticate;
     expected OK;

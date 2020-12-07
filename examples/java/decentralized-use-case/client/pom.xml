@@ -18,22 +18,22 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.yahoo.athenz</groupId>
-  <artifactId>example-java-client-ztoken</artifactId>
+  <artifactId>example-java-client-access-token</artifactId>
   <packaging>jar</packaging>
   <version>1.0</version>
-  <name>athenz_example_java_client_ztoken</name>
+  <name>athenz_example_java_client_access_token</name>
   <description>Athenz Decentralized Authorization Java Client Example</description>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <athenz.version>1.8.37</athenz.version>
+    <athenz.version>1.9.24</athenz.version>
   </properties>
 
   <dependencies>
     <dependency>
       <groupId>com.yahoo.athenz</groupId>
-      <artifactId>athenz-auth-core</artifactId>
+      <artifactId>athenz-cert-refresher</artifactId>
       <version>${athenz.version}</version>
     </dependency>
     <dependency>

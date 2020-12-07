@@ -45,7 +45,16 @@
         </table>
         <hr>
         <div class="bt unrefreshedcerts">
-            <br>Please review this list and, if necessary, login to the hosts and verify sia runs on schedule.
+            <br>Please review this list and take one of the following actions:
+            <br>
+            <p> 1. Login to the host and verify that sia is able to successfully refresh identity certificates.
+            Address any issues that are reported during the certificate refresh request.</p>
+            <p> 2. After verifying that if the host certificate record is no longer valid due to this
+            instance being re-bootstrapped or changed identity, please delete the
+            certificate record by running the following command (using your domain administrator credentials):</p>
+            <b>curl --key &lt;KEY&gt; --cert &lt;CERT&gt; -X DELETE https://{4}/zts/v1/instance/{5}/{6}/{7}/{8} </b>
+            <p>Important: Once the certificate record is deleted, the instance will not be able to
+            refresh its certificates so make sure the record is no longer needed.</p>
             <br>For additional support, please contact <a href="{2}">{3}</a>
         </div>
     </div>

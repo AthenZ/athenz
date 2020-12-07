@@ -11,7 +11,7 @@ Athenz servers (both ZMS and ZTS) require a unique private key
 to sign their respective tokens. There are 2 distinct operations
 that require the use of signatures:
 
-* NToken/ZToken signatures
+* X509 Certificates / Access Token signatures
 * Policy Document signatures
 
 The private key could be unique per host (if you have multiple
@@ -58,7 +58,7 @@ then the server will continue to run. This is necessary since it's
 possible that an environment may choose to run only ZMS Servers
 for centralized authorization thus no need to sign and distribute
 policy documents and only supports TLS certificates for principal
-authentication thus no need to sign and issue NTokens.
+authentication.
 
 ## Configuration
 ----------------

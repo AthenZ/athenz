@@ -17,7 +17,7 @@
   <parent>
     <groupId>com.yahoo.athenz</groupId>
     <artifactId>athenz</artifactId>
-    <version>1.9.6</version>
+    <version>1.9.26-SNAPSHOT</version>
     <relativePath>../../../pom.xml</relativePath>
   </parent>
 
@@ -25,6 +25,10 @@
   <name>athenz-server-common</name>
   <description>Athenz Server Common Packages</description>
   <packaging>jar</packaging>
+
+  <properties>
+    <code.coverage.min>0.90</code.coverage.min>
+  </properties>
 
   <dependencies>
     <dependency>
@@ -126,12 +130,12 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-dbcp2</artifactId>
-      <version>2.7.0</version>
+      <version>2.8.0</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-pool2</artifactId>
-      <version>2.8.0</version>
+      <version>2.9.0</version>
     </dependency>
     <dependency>
       <groupId>commons-logging</groupId>
@@ -161,13 +165,18 @@
     <dependency>
       <groupId>com.sun.mail</groupId>
       <artifactId>jakarta.mail</artifactId>
-      <version>1.6.4</version>
+      <version>1.6.5</version>
     </dependency>
     <dependency>
       <groupId>com.yahoo.athenz</groupId>
       <artifactId>athenz-zms-core</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
+      <dependency>
+          <groupId>com.yahoo.athenz</groupId>
+          <artifactId>athenz-zms-java-client</artifactId>
+          <version>${project.parent.version}</version>
+      </dependency>
   </dependencies>
 
   <distributionManagement>

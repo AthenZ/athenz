@@ -26,7 +26,7 @@ import java.util.List;
 
 import com.yahoo.athenz.common.server.cert.CertRecordStoreConnection;
 import com.yahoo.athenz.common.server.cert.X509CertRecord;
-import com.yahoo.athenz.zts.utils.FilesHelper;
+import com.yahoo.athenz.common.server.util.FilesHelper;
 import com.yahoo.rdl.JSON;
 
 public class FileCertRecordStoreConnection implements CertRecordStoreConnection {
@@ -99,16 +99,9 @@ public class FileCertRecordStoreConnection implements CertRecordStoreConnection 
     }
 
     @Override
-    public boolean updateUnrefreshedCertificatesNotificationTimestamp(String lastNotifiedServer,
-                                                                      long lastNotifiedTime,
-                                                                      String provider) {
-        // Currently unimplemented for File
-        return false;
-    }
-
-    @Override
-    public List<X509CertRecord> getNotifyUnrefreshedCertificates(String lastNotifiedServer,
-                                                                 long lastNotifiedTime) {
+    public List<X509CertRecord> updateUnrefreshedCertificatesNotificationTimestamp(String lastNotifiedServer,
+                                                                                   long lastNotifiedTime,
+                                                                                   String provider) {
         // Currently unimplemented for File
         return new ArrayList<>();
     }

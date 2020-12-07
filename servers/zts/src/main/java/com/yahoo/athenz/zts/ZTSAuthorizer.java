@@ -15,15 +15,14 @@
  */
 package com.yahoo.athenz.zts;
 
-import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.Principal;
-import com.yahoo.athenz.common.server.util.StringUtils;
+import com.yahoo.athenz.auth.util.StringUtils;
+import com.yahoo.athenz.common.server.util.AuthzHelper;
+import com.yahoo.athenz.zms.GroupMember;
 import com.yahoo.athenz.zms.Role;
-import com.yahoo.athenz.zms.RoleMember;
 import com.yahoo.athenz.zts.cache.DataCache;
 import com.yahoo.athenz.zts.store.DataStore;
-import com.yahoo.rdl.Timestamp;
 
 import java.util.List;
 import org.slf4j.Logger;
@@ -32,8 +31,8 @@ import org.slf4j.LoggerFactory;
 public class ZTSAuthorizer implements Authorizer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ZTSAuthorizer.class);
-    private static final String ASSUME_ROLE = "assume_role";
     final protected DataStore dataStore;
+    final protected ZTSGroupMembersFetcher groupMembersFetcher;
     
     // enum to represent our access response since in some cases we want to
     // handle domain not founds differently instead of just returning failure
@@ -47,6 +46,7 @@ public class ZTSAuthorizer implements Authorizer {
     
     public ZTSAuthorizer(final DataStore dataStore) {
         this.dataStore = dataStore;
+        groupMembersFetcher = new ZTSGroupMembersFetcher(dataStore);
     }
 
     @Override
@@ -63,7 +63,7 @@ public class ZTSAuthorizer implements Authorizer {
         op = op.toLowerCase();
         
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("access:(" + op + ", " + resource + ", " + principal + ", " + trustDomain + ")");
+            LOGGER.debug("access:({}, {}, {}, {})", op, resource, principal, trustDomain);
         }
         
         // check to see if the authority is allowed to be processed in
@@ -71,7 +71,7 @@ public class ZTSAuthorizer implements Authorizer {
         // must get a usertoken from ZMS first and the submit the request
         // with that token
         
-        if (!authorityAuthorizationAllowed(principal)) {
+        if (!AuthzHelper.authorityAuthorizationAllowed(principal)) {
             LOGGER.error("Authority is not allowed to support authorization checks");
             return false;
         }
@@ -85,7 +85,7 @@ public class ZTSAuthorizer implements Authorizer {
         // for rest.ResourceExceptions so we'll throw that exception in this
         // special case of not found domains.
         
-        String domainName = retrieveResourceDomain(resource, op, trustDomain);
+        String domainName = AuthzHelper.retrieveResourceDomain(resource, op, trustDomain);
         if (domainName == null) {
             throw new ResourceException(ResourceException.NOT_FOUND,
                     new ResourceError().code(ResourceException.NOT_FOUND).message("Domain not found"));
@@ -98,34 +98,6 @@ public class ZTSAuthorizer implements Authorizer {
         
         AccessStatus accessStatus = evaluateAccess(domain, principal.getFullName(), op, resource, trustDomain);
         return accessStatus == AccessStatus.ALLOWED;
-    }
-    
-    boolean authorityAuthorizationAllowed(Principal principal) {
-        
-        Authority authority = principal.getAuthority();
-        if (authority == null) {
-            return true;
-        }
-        
-        return authority.allowAuthorization();
-    }
-
-    String retrieveResourceDomain(String resource, String op, String trustDomain) {
-        
-        // special handling for ASSUME_ROLE assertions. Since any assertion with
-        // that action refers to a resource in another domain, there is no point
-        // to retrieve the domain name from the resource. In these cases the caller
-        // must specify the trust domain attribute so we'll use that instead and
-        // if one is not specified then we'll fall back to using the domain name
-        // from the resource
-        
-        String domainName;
-        if (ASSUME_ROLE.equalsIgnoreCase(op) && trustDomain != null) {
-            domainName = trustDomain;
-        } else {
-            domainName = extractDomainName(resource);
-        }
-        return domainName;
     }
     
     AccessStatus evaluateAccess(DataCache domain, String identity, String op, String resource,
@@ -197,7 +169,11 @@ public class ZTSAuthorizer implements Authorizer {
     
     boolean assertionMatch(com.yahoo.athenz.zms.Assertion assertion, String identity, String op,
             String resource, List<Role> roles, String trustDomain) {
-        
+
+        // Lowercase action and resource as it is possible to store them case-sensitive
+        assertion.setResource(assertion.getResource().toLowerCase());
+        assertion.setAction(assertion.getAction().toLowerCase());
+
         String opPattern = StringUtils.patternFromGlob(assertion.getAction());
         if (!op.matches(opPattern)) {
             return false;
@@ -248,13 +224,13 @@ public class ZTSAuthorizer implements Authorizer {
         // against that list only
         
         if (role.getRoleMembers() != null) {
-            return isMemberOfRole(role, fullUser);
+            return AuthzHelper.isMemberOfRole(role, fullUser, groupMembersFetcher);
         }
         
         // no members so let's check if this is a trust domain
         
         String trust = role.getTrust();
-        if (!shouldRunDelegatedTrustCheck(trust, trustDomain)) {
+        if (!AuthzHelper.shouldRunDelegatedTrustCheck(trust, trustDomain)) {
             return false;
         }
 
@@ -266,90 +242,6 @@ public class ZTSAuthorizer implements Authorizer {
         
         return delegatedTrust(trust, roleName, fullUser);
     }
-
-    boolean isMemberOfRole(Role role, String member) {
-        
-        final List<RoleMember> members = role.getRoleMembers();
-        if (members == null) {
-            return false;
-        }
-        
-        return checkRoleMemberExpiration(members, member);
-    }
-    
-    boolean memberNameMatch(String memberName, String matchName) {
-        // we are supporting 3 formats for role members
-        // *, <domain>.[user]* and <domain>.<user>
-        if (memberName.equals("*")) {
-            return true;
-        } else if (memberName.endsWith("*")) {
-            return matchName.startsWith(memberName.substring(0, memberName.length() - 1));
-        } else {
-            return memberName.equals(matchName);
-        }
-    }
-    
-    boolean checkRoleMemberExpiration(List<RoleMember> roleMembers, String member) {
-        
-        boolean isMember = false;
-        for (RoleMember memberInfo: roleMembers) {
-            final String memberName = memberInfo.getMemberName();
-            if (memberNameMatch(memberName, member)) {
-                // check expiration, if it's not defined, it's not expired.
-                Timestamp expiration = memberInfo.getExpiration();
-                if (expiration != null) {
-                    isMember = !(expiration.millis() < System.currentTimeMillis());
-                } else {
-                    isMember = true;
-                }
-                break;
-            }
-        }
-        return isMember;
-    }
-    
-    boolean matchDelegatedTrustAssertion(com.yahoo.athenz.zms.Assertion assertion, String roleName,
-            String roleMember, List<Role> roles) {
-        
-        if (!ASSUME_ROLE.equalsIgnoreCase(assertion.getAction())) {
-            return false;
-        }
-        
-        String rezPattern = StringUtils.patternFromGlob(assertion.getResource());
-        if (!roleName.matches(rezPattern)) {
-            return false;
-        }
-        
-        String rolePattern = StringUtils.patternFromGlob(assertion.getRole());
-        for (Role role : roles) {
-            String name = role.getName();
-            if (!name.matches(rolePattern)) {
-                continue;
-            }
-            
-            if (isMemberOfRole(role, roleMember)) {
-                return true;
-            }
-        }
-        
-        return false;
-    }
-    
-    boolean matchDelegatedTrustPolicy(com.yahoo.athenz.zms.Policy policy, String roleName, String roleMember, List<Role> roles) {
-        
-        List<com.yahoo.athenz.zms.Assertion> assertions = policy.getAssertions();
-        if (assertions == null) {
-            return false;
-        }
-        
-        for (com.yahoo.athenz.zms.Assertion assertion : assertions) {
-            if (matchDelegatedTrustAssertion(assertion, roleName, roleMember, roles)) {
-                return true;
-            }
-        }
-        
-        return false;
-    }
     
     boolean delegatedTrust(String domainName, String roleName, String roleMember) {
         
@@ -359,7 +251,8 @@ public class ZTSAuthorizer implements Authorizer {
         }
         
         for (com.yahoo.athenz.zms.Policy policy : domain.getDomainData().getPolicies().getContents().getPolicies()) {
-            if (matchDelegatedTrustPolicy(policy, roleName, roleMember, domain.getDomainData().getRoles())) {
+            if (AuthzHelper.matchDelegatedTrustPolicy(policy, roleName, roleMember,
+                    domain.getDomainData().getRoles(), groupMembersFetcher)) {
                 return true;
             }
         }
@@ -367,35 +260,16 @@ public class ZTSAuthorizer implements Authorizer {
         return false;
     }
 
-    boolean shouldRunDelegatedTrustCheck(String trust, String trustDomain) {
-        
-        // if no trust field field then no delegated trust check
-        
-        if (trust == null) {
-            return false;
+    static class ZTSGroupMembersFetcher implements AuthzHelper.GroupMembersFetcher {
+
+        DataStore dataStore;
+        ZTSGroupMembersFetcher(DataStore dataStore) {
+            this.dataStore = dataStore;
         }
-        
-        // if no specific trust domain specifies then we need
-        // run the delegated trust check for this domain
-        
-        if (trustDomain == null) {
-            return true;
+
+        @Override
+        public List<GroupMember> getGroupMembers(String groupName) {
+            return dataStore.getGroupMembers(groupName);
         }
-        
-        // otherwise we'll run the delegated trust check only if
-        // domain name matches
-        
-        return trust.equalsIgnoreCase(trustDomain);
-    }
-    
-    String extractDomainName(String resource) {
-        int idx = resource.indexOf(':');
-        if (idx == -1) {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("extractDomainName: missing domain name: " + resource);
-            }
-            return null;
-        }
-        return resource.substring(0, idx);
     }
 }

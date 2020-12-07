@@ -3,11 +3,13 @@
 //
 
 package com.yahoo.athenz.zts;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.yahoo.rdl.*;
 
 //
 // RoleToken - A representation of a signed RoleToken
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class RoleToken {
     public String token;
     public long expiryTime;

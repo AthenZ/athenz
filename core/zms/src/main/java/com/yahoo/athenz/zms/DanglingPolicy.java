@@ -3,12 +3,14 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.yahoo.rdl.*;
 
 //
 // DanglingPolicy - A dangling policy where the assertion is referencing a role
 // name that doesn't exist in the domain
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class DanglingPolicy {
     public String policyName;
     public String roleName;

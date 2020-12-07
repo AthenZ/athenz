@@ -3,12 +3,14 @@
 //
 
 package com.yahoo.athenz.zts;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.yahoo.rdl.*;
 
 //
 // AccessTokenResponse -
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class AccessTokenResponse {
     public String access_token;
     public String token_type;

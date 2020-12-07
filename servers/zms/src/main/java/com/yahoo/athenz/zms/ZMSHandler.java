@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 //
 public interface ZMSHandler { 
     Domain getDomain(ResourceContext context, String domain);
-    DomainList getDomainList(ResourceContext context, Integer limit, String skip, String prefix, Integer depth, String account, Integer productId, String roleMember, String roleName, String modifiedSince);
+    DomainList getDomainList(ResourceContext context, Integer limit, String skip, String prefix, Integer depth, String account, Integer productId, String roleMember, String roleName, String subscription, String modifiedSince);
     Domain postTopLevelDomain(ResourceContext context, String auditRef, TopLevelDomain detail);
     Domain postSubDomain(ResourceContext context, String parent, String auditRef, SubDomain detail);
     Domain postUserDomain(ResourceContext context, String name, String auditRef, UserDomain detail);
@@ -32,13 +32,14 @@ public interface ZMSHandler {
     void deleteEntity(ResourceContext context, String domainName, String entityName, String auditRef);
     EntityList getEntityList(ResourceContext context, String domainName);
     RoleList getRoleList(ResourceContext context, String domainName, Integer limit, String skip);
-    Roles getRoles(ResourceContext context, String domainName, Boolean members);
+    Roles getRoles(ResourceContext context, String domainName, Boolean members, String tagKey, String tagValue);
     Role getRole(ResourceContext context, String domainName, String roleName, Boolean auditLog, Boolean expand, Boolean pending);
     void putRole(ResourceContext context, String domainName, String roleName, String auditRef, Role role);
     void deleteRole(ResourceContext context, String domainName, String roleName, String auditRef);
     Membership getMembership(ResourceContext context, String domainName, String roleName, String memberName, String expiration);
     DomainRoleMembers getOverdueReview(ResourceContext context, String domainName);
     DomainRoleMembers getDomainRoleMembers(ResourceContext context, String domainName);
+    DomainRoleMember getPrincipalRoles(ResourceContext context, String principal, String domainName);
     void putMembership(ResourceContext context, String domainName, String roleName, String memberName, String auditRef, Membership membership);
     void deleteMembership(ResourceContext context, String domainName, String roleName, String memberName, String auditRef);
     void deletePendingMembership(ResourceContext context, String domainName, String roleName, String memberName, String auditRef);
@@ -47,6 +48,20 @@ public interface ZMSHandler {
     void putRoleMeta(ResourceContext context, String domainName, String roleName, String auditRef, RoleMeta detail);
     void putMembershipDecision(ResourceContext context, String domainName, String roleName, String memberName, String auditRef, Membership membership);
     void putRoleReview(ResourceContext context, String domainName, String roleName, String auditRef, Role role);
+    Groups getGroups(ResourceContext context, String domainName, Boolean members);
+    Group getGroup(ResourceContext context, String domainName, String groupName, Boolean auditLog, Boolean pending);
+    void putGroup(ResourceContext context, String domainName, String groupName, String auditRef, Group group);
+    void deleteGroup(ResourceContext context, String domainName, String groupName, String auditRef);
+    GroupMembership getGroupMembership(ResourceContext context, String domainName, String groupName, String memberName, String expiration);
+    DomainGroupMember getPrincipalGroups(ResourceContext context, String principal, String domainName);
+    void putGroupMembership(ResourceContext context, String domainName, String groupName, String memberName, String auditRef, GroupMembership membership);
+    void deleteGroupMembership(ResourceContext context, String domainName, String groupName, String memberName, String auditRef);
+    void deletePendingGroupMembership(ResourceContext context, String domainName, String groupName, String memberName, String auditRef);
+    void putGroupSystemMeta(ResourceContext context, String domainName, String groupName, String attribute, String auditRef, GroupSystemMeta detail);
+    void putGroupMeta(ResourceContext context, String domainName, String groupName, String auditRef, GroupMeta detail);
+    void putGroupMembershipDecision(ResourceContext context, String domainName, String groupName, String memberName, String auditRef, GroupMembership membership);
+    void putGroupReview(ResourceContext context, String domainName, String groupName, String auditRef, Group group);
+    DomainGroupMembership getPendingDomainGroupMembersList(ResourceContext context, String principal);
     PolicyList getPolicyList(ResourceContext context, String domainName, Integer limit, String skip);
     Policies getPolicies(ResourceContext context, String domainName, Boolean assertions);
     Policy getPolicy(ResourceContext context, String domainName, String policyName);
@@ -94,5 +109,6 @@ public interface ZMSHandler {
     Status getStatus(ResourceContext context);
     DomainRoleMembership getPendingDomainRoleMembersList(ResourceContext context, String principal);
     Schema getRdlSchema(ResourceContext context);
-    ResourceContext newResourceContext(HttpServletRequest request, HttpServletResponse response);
+    ResourceContext newResourceContext(HttpServletRequest request, HttpServletResponse response, String apiName);
+    void recordMetrics(ResourceContext ctx, int httpStatus);
 }

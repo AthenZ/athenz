@@ -3,6 +3,7 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.yahoo.rdl.*;
 
@@ -10,6 +11,7 @@ import com.yahoo.rdl.*;
 // DomainMeta - Set of metadata attributes that all domains may have and can be
 // changed.
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class DomainMeta {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -53,6 +55,15 @@ public class DomainMeta {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Integer serviceExpiryDays;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer groupExpiryDays;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String userAuthorityFilter;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String azureSubscription;
 
     public DomainMeta setDescription(String description) {
         this.description = description;
@@ -152,6 +163,27 @@ public class DomainMeta {
     public Integer getServiceExpiryDays() {
         return serviceExpiryDays;
     }
+    public DomainMeta setGroupExpiryDays(Integer groupExpiryDays) {
+        this.groupExpiryDays = groupExpiryDays;
+        return this;
+    }
+    public Integer getGroupExpiryDays() {
+        return groupExpiryDays;
+    }
+    public DomainMeta setUserAuthorityFilter(String userAuthorityFilter) {
+        this.userAuthorityFilter = userAuthorityFilter;
+        return this;
+    }
+    public String getUserAuthorityFilter() {
+        return userAuthorityFilter;
+    }
+    public DomainMeta setAzureSubscription(String azureSubscription) {
+        this.azureSubscription = azureSubscription;
+        return this;
+    }
+    public String getAzureSubscription() {
+        return azureSubscription;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -200,6 +232,15 @@ public class DomainMeta {
                 return false;
             }
             if (serviceExpiryDays == null ? a.serviceExpiryDays != null : !serviceExpiryDays.equals(a.serviceExpiryDays)) {
+                return false;
+            }
+            if (groupExpiryDays == null ? a.groupExpiryDays != null : !groupExpiryDays.equals(a.groupExpiryDays)) {
+                return false;
+            }
+            if (userAuthorityFilter == null ? a.userAuthorityFilter != null : !userAuthorityFilter.equals(a.userAuthorityFilter)) {
+                return false;
+            }
+            if (azureSubscription == null ? a.azureSubscription != null : !azureSubscription.equals(a.azureSubscription)) {
                 return false;
             }
         }

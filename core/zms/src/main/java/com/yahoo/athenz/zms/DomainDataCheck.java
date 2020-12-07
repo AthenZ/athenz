@@ -3,6 +3,7 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;
 import com.yahoo.rdl.*;
@@ -12,6 +13,7 @@ import com.yahoo.rdl.*;
 // operation looking for dangling roles, policies and trust relationships that
 // are set either on tenant or provider side only
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class DomainDataCheck {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)

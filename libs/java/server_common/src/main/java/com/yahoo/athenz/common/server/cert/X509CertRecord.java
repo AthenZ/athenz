@@ -33,6 +33,7 @@ public class X509CertRecord {
     private String lastNotifiedServer;
     private Date expiryTime;
     private String hostName;
+    private Date svcDataUpdateTime;
 
     public X509CertRecord() {
     }
@@ -147,5 +148,34 @@ public class X509CertRecord {
 
     public void setHostName(String hostName) {
         this.hostName = hostName;
+    }
+
+    public Date getSvcDataUpdateTime() {
+        return svcDataUpdateTime;
+    }
+
+    public void setSvcDataUpdateTime(Date svcDataUpdateTime) {
+        this.svcDataUpdateTime = svcDataUpdateTime;
+    }
+
+    @Override
+    public String toString() {
+        return "X509CertRecord{" +
+                "provider='" + provider + '\'' +
+                ", instanceId='" + instanceId + '\'' +
+                ", service='" + service + '\'' +
+                ", currentSerial='" + currentSerial + '\'' +
+                ", currentTime=" + currentTime +
+                ", currentIP='" + currentIP + '\'' +
+                ", prevSerial='" + prevSerial + '\'' +
+                ", prevTime=" + prevTime +
+                ", prevIP='" + prevIP + '\'' +
+                ", clientCert=" + clientCert +
+                ", lastNotifiedTime=" + lastNotifiedTime +
+                ", lastNotifiedServer='" + lastNotifiedServer + '\'' +
+                ", expiryTime=" + expiryTime +
+                ", hostName='" + hostName + '\'' +
+                ", svcDataUpdateTime=" + svcDataUpdateTime +
+                '}';
     }
 }

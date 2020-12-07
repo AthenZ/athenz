@@ -3,11 +3,13 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.yahoo.rdl.*;
 
 //
 // TemplateParam -
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class TemplateParam {
     public String name;
     public String value;

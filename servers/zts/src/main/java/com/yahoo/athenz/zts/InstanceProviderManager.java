@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,7 +67,7 @@ public class InstanceProviderManager {
         }
     }
     
-    InstanceProvider getProvider(String provider) {
+    InstanceProvider getProvider(String provider, HostnameResolver hostnameResolver) {
         int idx = provider.lastIndexOf('.');
         if (idx == -1) {
             LOGGER.error("getProviderClient: Invalid provider service name: {}", provider);
@@ -129,7 +130,7 @@ public class InstanceProviderManager {
             instanceProvider.initialize(provider, providerEndpoint, sslContext, keyStore);
             break;
         case CLASS:
-            instanceProvider = getClassProvider(uri.getHost(), provider);
+            instanceProvider = getClassProvider(uri.getHost(), provider, hostnameResolver);
             break;
         default:
             break;
@@ -138,7 +139,7 @@ public class InstanceProviderManager {
         return instanceProvider;
     }
     
-    InstanceProvider getClassProvider(String className, String providerName) {
+    InstanceProvider getClassProvider(String className, String providerName, HostnameResolver hostnameResolver) {
         final String classKey = className + "-" + providerName;
         InstanceProvider provider = providerMap.get(classKey);
         if (provider != null) {
@@ -159,6 +160,8 @@ public class InstanceProviderManager {
             return null;
         }
         provider.initialize(providerName, className, sslContext, keyStore);
+        provider.setHostnameResolver(hostnameResolver);
+
         providerMap.put(classKey, provider);
         return provider;
     }

@@ -23,6 +23,9 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.testng.annotations.Test;
 
 public class AthenzUtilsTest {
@@ -200,4 +203,20 @@ public class AthenzUtilsTest {
         constructor.newInstance();
     }
 
+    @Test
+    public void testSplitCommaSeperatedSystemProperty() {
+        String systemProperty = "athenz.zts.notification_cert_fail_ignored_services_list";
+        System.setProperty(systemProperty, "aaa, bbb, ccc");
+
+        List<String> values = AthenzUtils.splitCommaSeparatedSystemProperty(systemProperty);
+        assertEquals(3, values.size());
+        assertEquals("aaa", values.get(0));
+        assertEquals("bbb", values.get(1));
+        assertEquals("ccc", values.get(2));
+
+        List<String> values2 = AthenzUtils.splitCommaSeparatedSystemProperty("unset.property");
+        assertEquals(new ArrayList<>(), values2);
+
+        System.clearProperty(systemProperty);
+    }
 }

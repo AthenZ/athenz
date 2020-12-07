@@ -1,9 +1,0 @@
-.app-container .take-ownership-container--new,
-.app-container .take-ownership-container {
-  @mixin review-field;
-  @mixin generic-form ownership {
-    &.transit {
-      margin-top: 5px;
-    }
-  }
-}

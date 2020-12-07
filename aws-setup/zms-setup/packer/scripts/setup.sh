@@ -22,6 +22,10 @@ sudo yum -y install java-1.8.0-openjdk
 sudo groupadd athenz
 sudo useradd -g athenz athenz-zms
 
+# move our files out of temp
+
+sudo mv /tmp/zms /opt/
+
 # Copying jars, war and webdefault.xml files
 sudo tar -xzf /opt/zms/tars/athenz-zms-bin.tar.gz -C /opt/zms/tars/
 sudo ls -ltr /opt/zms/tars/

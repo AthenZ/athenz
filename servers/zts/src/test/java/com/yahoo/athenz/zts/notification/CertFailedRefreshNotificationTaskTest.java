@@ -20,18 +20,20 @@ import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.cert.X509CertRecord;
 import com.yahoo.athenz.common.server.notification.NotificationEmail;
-import com.yahoo.athenz.zms.DomainData;
+import com.yahoo.athenz.common.server.notification.NotificationMetric;
+import com.yahoo.athenz.zts.ZTSTestUtils;
 import com.yahoo.athenz.zts.cert.InstanceCertManager;
 import com.yahoo.athenz.zts.store.DataStore;
+import com.yahoo.rdl.Timestamp;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import java.sql.Timestamp;
 import java.util.*;
 
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
+import static com.yahoo.athenz.common.server.notification.impl.MetricNotificationService.*;
 import static com.yahoo.athenz.zts.ZTSConsts.ZTS_PROP_NOTIFICATION_CERT_FAIL_IGNORED_SERVICES_LIST;
 import static com.yahoo.athenz.zts.ZTSConsts.ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST;
 import static org.mockito.ArgumentMatchers.*;
@@ -45,6 +47,96 @@ public class CertFailedRefreshNotificationTaskTest {
     private HostnameResolver hostnameResolver;
     private final String userDomainPrefix = "user.";
     private final String serverName = "testServer";
+    private final int httpsPort = 4443;
+    private final String htmlSeveralRecords =
+            "<div class=\"athenz-wrapper\">\n" +
+                    "    <div class=\"mbrapproval unrefreshedcerts\">\n" +
+                    "        <div class=\"logo\">\n" +
+                    "            <img src=\"cid:logo\" class=\"athenzlogowhite\" alt=\"Athenz logo\"/>\n" +
+                    "        </div>\n" +
+                    "        <div class=\"hdr\">Unrefreshed Certificates Details</div>\n" +
+                    "        <div class=\"bt\">You have one or more certificates that failed to refresh in your Athenz domain <b>dom1</b>:</div>\n" +
+                    "        <hr>\n" +
+                    "        <table id=\"t02\">\n" +
+                    "            <thead>\n" +
+                    "                <tr>\n" +
+                    "                    <th class=\"ch\">SERVICE</th>\n" +
+                    "                    <th class=\"ch\">PROVIDER</th>\n" +
+                    "                    <th class=\"ch\">INSTANCE ID</th>\n" +
+                    "                    <th class=\"ch\">UPDATE TIME</th>\n" +
+                    "                    <th class=\"ch\">EXPIRATION TIME</th>\n" +
+                    "                    <th class=\"ch\">HOSTNAME</th>\n" +
+                    "                </tr>\n" +
+                    "            </thead>\n" +
+                    "            <tbody><tr><td class=\"cv\">service0</td><td class=\"cv\">provider</td><td class=\"cv\">instanceID0</td><td class=\"cv\">Sun Mar 15 15:08:07 IST 2020</td><td class=\"cv\"></td><td class=\"cv\">hostName0</td></tr>\n" +
+                    "<tr><td class=\"cv\">service0</td><td class=\"cv\">provider</td><td class=\"cv\">instanceID0</td><td class=\"cv\">Sun Mar 15 15:08:07 IST 2020</td><td class=\"cv\"></td><td class=\"cv\">secondHostName0</td></tr>\n" +
+                    "</tbody>\n" +
+                    "        </table>\n" +
+                    "        <hr>\n" +
+                    "        <div class=\"bt unrefreshedcerts\">\n" +
+                    "            <br>Please review this list and take one of the following actions:\n" +
+                    "            <br>\n" +
+                    "            <p> 1. Login to the host and verify that sia is able to successfully refresh identity certificates.\n" +
+                    "            Address any issues that are reported during the certificate refresh request.</p>\n" +
+                    "            <p> 2. After verifying that if the host certificate record is no longer valid due to this\n" +
+                    "            instance being re-bootstrapped or changed identity, please delete the\n" +
+                    "            certificate record by running the following command (using your domain administrator credentials):</p>\n" +
+                    "            <b>curl --key &lt;KEY&gt; --cert &lt;CERT&gt; -X DELETE https://testServer:4443/zts/v1/instance/&lt;PROVIDER&gt;/dom1/&lt;SERVICE&gt;/&lt;INSTANCE-ID&gt; </b>\n" +
+                    "            <p>Important: Once the certificate record is deleted, the instance will not be able to\n" +
+                    "            refresh its certificates so make sure the record is no longer needed.</p>\n" +
+                    "            <br>For additional support, please contact <a href=\"https://link.to.athenz.channel.com\">#Athenz slack channel</a>\n" +
+                    "        </div>\n" +
+                    "    </div>\n" +
+                    "    <div class=\"footer-container\">\n" +
+                    "        <div class=\"footer\">This is a generated email from <a href=\"https://ui-athenz.example.com/\">Athenz</a>. Please do not respond.</div>\n" +
+                    "    </div>\n" +
+                    "</div>\n" +
+                    "</body>\n" +
+                    "</html>";
+    private final String htmlSingleRecord =
+            "<div class=\"athenz-wrapper\">\n" +
+                    "    <div class=\"mbrapproval unrefreshedcerts\">\n" +
+                    "        <div class=\"logo\">\n" +
+                    "            <img src=\"cid:logo\" class=\"athenzlogowhite\" alt=\"Athenz logo\"/>\n" +
+                    "        </div>\n" +
+                    "        <div class=\"hdr\">Unrefreshed Certificates Details</div>\n" +
+                    "        <div class=\"bt\">You have one or more certificates that failed to refresh in your Athenz domain <b>dom1</b>:</div>\n" +
+                    "        <hr>\n" +
+                    "        <table id=\"t02\">\n" +
+                    "            <thead>\n" +
+                    "                <tr>\n" +
+                    "                    <th class=\"ch\">SERVICE</th>\n" +
+                    "                    <th class=\"ch\">PROVIDER</th>\n" +
+                    "                    <th class=\"ch\">INSTANCE ID</th>\n" +
+                    "                    <th class=\"ch\">UPDATE TIME</th>\n" +
+                    "                    <th class=\"ch\">EXPIRATION TIME</th>\n" +
+                    "                    <th class=\"ch\">HOSTNAME</th>\n" +
+                    "                </tr>\n" +
+                    "            </thead>\n" +
+                    "            <tbody><tr><td class=\"cv\">service1</td><td class=\"cv\">provider1</td><td class=\"cv\">instanceid1</td><td class=\"cv\">Sun Mar 15 15:08:07 IST 2020</td><td class=\"cv\"></td><td class=\"cv\">hostName1</td></tr>\n" +
+                    "</tbody>\n" +
+                    "        </table>\n" +
+                    "        <hr>\n" +
+                    "        <div class=\"bt unrefreshedcerts\">\n" +
+                    "            <br>Please review this list and take one of the following actions:\n" +
+                    "            <br>\n" +
+                    "            <p> 1. Login to the host and verify that sia is able to successfully refresh identity certificates.\n" +
+                    "            Address any issues that are reported during the certificate refresh request.</p>\n" +
+                    "            <p> 2. After verifying that if the host certificate record is no longer valid due to this\n" +
+                    "            instance being re-bootstrapped or changed identity, please delete the\n" +
+                    "            certificate record by running the following command (using your domain administrator credentials):</p>\n" +
+                    "            <b>curl --key &lt;KEY&gt; --cert &lt;CERT&gt; -X DELETE https://testServer:4443/zts/v1/instance/provider1/dom1/service1/instanceid1 </b>\n" +
+                    "            <p>Important: Once the certificate record is deleted, the instance will not be able to\n" +
+                    "            refresh its certificates so make sure the record is no longer needed.</p>\n" +
+                    "            <br>For additional support, please contact <a href=\"https://link.to.athenz.channel.com\">#Athenz slack channel</a>\n" +
+                    "        </div>\n" +
+                    "    </div>\n" +
+                    "    <div class=\"footer-container\">\n" +
+                    "        <div class=\"footer\">This is a generated email from <a href=\"https://ui-athenz.example.com/\">Athenz</a>. Please do not respond.</div>\n" +
+                    "    </div>\n" +
+                    "</div>\n" +
+                    "</body>\n" +
+                    "</html>\n";
 
     @BeforeClass
     public void setup() {
@@ -71,7 +163,8 @@ public class CertFailedRefreshNotificationTaskTest {
                 dataStore,
                 hostnameResolver,
                 userDomainPrefix,
-                serverName);
+                serverName,
+                httpsPort);
 
         List<Notification> notifications = certFailedRefreshNotificationTask.getNotifications();
         assertEquals(0, notifications.size());
@@ -119,30 +212,31 @@ public class CertFailedRefreshNotificationTaskTest {
                 dataStore,
                 hostnameResolver,
                 userDomainPrefix,
-                serverName);
+                serverName,
+                httpsPort);
 
         List<Notification> notifications = certFailedRefreshNotificationTask.getNotifications();
         assertEquals(6, notifications.size());
         notifications.sort(Comparator.comparing(notif -> notif.getDetails().get(NOTIFICATION_DETAILS_UNREFRESHED_CERTS)));
         // Assert one records for provider1:
-        String expectedDetail = "domain0.service0;provider1;instanceID0;" + new Timestamp(currentDate.getTime()) + ";;hostName0";
+        String expectedDetail = "service0;provider1;instanceID0;" + Timestamp.fromMillis(currentDate.getTime()) + ";;hostName0";
         assertEquals(expectedDetail, notifications.get(0).getDetails().get(NOTIFICATION_DETAILS_UNREFRESHED_CERTS));
 
         // Assert two records for provider2:
-        expectedDetail = "domain1.service1;provider2;instanceID1;" + new Timestamp(currentDate.getTime()) + ";;hostName1";
+        expectedDetail = "service1;provider2;instanceID1;" + Timestamp.fromMillis(currentDate.getTime()) + ";;hostName1";
         assertEquals(expectedDetail, notifications.get(1).getDetails().get(NOTIFICATION_DETAILS_UNREFRESHED_CERTS));
 
-        expectedDetail = "domain2.service2;provider2;instanceID2;" + new Timestamp(currentDate.getTime()) + ";;hostName2";
+        expectedDetail = "service2;provider2;instanceID2;" + Timestamp.fromMillis(currentDate.getTime()) + ";;hostName2";
         assertEquals(expectedDetail, notifications.get(2).getDetails().get(NOTIFICATION_DETAILS_UNREFRESHED_CERTS));
 
         // Assert three records for provider3:
-        expectedDetail = "domain3.service3;provider3;instanceID3;" + new Timestamp(currentDate.getTime()) + ";;hostName3";
+        expectedDetail = "service3;provider3;instanceID3;" + Timestamp.fromMillis(currentDate.getTime()) + ";;hostName3";
         assertEquals(expectedDetail, notifications.get(3).getDetails().get(NOTIFICATION_DETAILS_UNREFRESHED_CERTS));
 
-        expectedDetail = "domain4.service4;provider3;instanceID4;" + new Timestamp(currentDate.getTime()) + ";;hostName4";
+        expectedDetail = "service4;provider3;instanceID4;" + Timestamp.fromMillis(currentDate.getTime()) + ";;hostName4";
         assertEquals(expectedDetail, notifications.get(4).getDetails().get(NOTIFICATION_DETAILS_UNREFRESHED_CERTS));
 
-        expectedDetail = "domain5.service5;provider3;instanceID5;" + new Timestamp(currentDate.getTime()) + ";;hostName5";
+        expectedDetail = "service5;provider3;instanceID5;" + Timestamp.fromMillis(currentDate.getTime()) + ";;hostName5";
         assertEquals(expectedDetail, notifications.get(5).getDetails().get(NOTIFICATION_DETAILS_UNREFRESHED_CERTS));
 
         System.clearProperty(ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST);
@@ -164,7 +258,7 @@ public class CertFailedRefreshNotificationTaskTest {
             isValidHost = !isValidHost;
         }
 
-        // Make a 7th record with no host (but make it valid)
+        // Make a 7th record with no host (but make it valid). It shouldn't return
         X509CertRecord record = getMockX509CertRecord(currentDate, 7);
         record.setHostName(null);
         records.add(record);
@@ -177,14 +271,44 @@ public class CertFailedRefreshNotificationTaskTest {
                 dataStore,
                 hostnameResolver,
                 userDomainPrefix,
-                serverName);
+                serverName,
+                httpsPort);
 
         List<Notification> notifications = certFailedRefreshNotificationTask.getNotifications();
-        assertEquals(4, notifications.size());
-        assertEquals("domain7", notifications.get(0).getDetails().get("domain"));
-        assertEquals("domain4", notifications.get(1).getDetails().get("domain"));
-        assertEquals("domain2", notifications.get(2).getDetails().get("domain"));
-        assertEquals("domain0", notifications.get(3).getDetails().get("domain"));
+        assertEquals(3, notifications.size());
+        assertEquals("domain4", notifications.get(0).getDetails().get("domain"));
+        assertEquals("domain2", notifications.get(1).getDetails().get("domain"));
+        assertEquals("domain0", notifications.get(2).getDetails().get("domain"));
+
+        System.clearProperty(ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST);
+    }
+
+    @Test
+    public void testNoValidHosts() {
+        Date currentDate = new Date();
+        List<X509CertRecord> records = new ArrayList<>();
+        System.setProperty(ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST, "provider");
+
+        // Create 6 mock records. None of them valid
+        boolean isValidHost = true;
+        for (int i = 0; i < 6; ++i) {
+            X509CertRecord record = getMockX509CertRecord(currentDate, i);
+            records.add(record);
+            NotificationTestsCommon.mockDomainData(i, dataStore);
+            Mockito.when(hostnameResolver.isValidHostname(eq("hostName" + i))).thenReturn(false);
+        }
+
+        Mockito.when(instanceCertManager.getUnrefreshedCertsNotifications(eq(serverName), anyString())).thenReturn(records);
+        CertFailedRefreshNotificationTask certFailedRefreshNotificationTask = new CertFailedRefreshNotificationTask(
+                instanceCertManager,
+                dataStore,
+                hostnameResolver,
+                userDomainPrefix,
+                serverName,
+                httpsPort);
+
+        List<Notification> notifications = certFailedRefreshNotificationTask.getNotifications();
+        assertEquals(new ArrayList<>(), notifications);
 
         System.clearProperty(ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST);
     }
@@ -199,7 +323,7 @@ public class CertFailedRefreshNotificationTaskTest {
         records.add(record);
 
         String domainName = "domain1";
-        Mockito.when(dataStore.getDomainData(eq(domainName))).thenReturn(new DomainData());
+        Mockito.when(dataStore.getRolesByDomain(eq(domainName))).thenReturn(new ArrayList<>());
         Mockito.when(hostnameResolver.isValidHostname(eq("hostName1"))).thenReturn(true);
 
         Mockito.when(instanceCertManager.getUnrefreshedCertsNotifications(eq(serverName), anyString())).thenReturn(records);
@@ -208,7 +332,8 @@ public class CertFailedRefreshNotificationTaskTest {
                 dataStore,
                 hostnameResolver,
                 userDomainPrefix,
-                serverName);
+                serverName,
+                httpsPort);
 
         List<Notification> notifications = certFailedRefreshNotificationTask.getNotifications();
         assertEquals(new ArrayList<>(), notifications);
@@ -242,7 +367,8 @@ public class CertFailedRefreshNotificationTaskTest {
                 dataStore,
                 hostnameResolver,
                 userDomainPrefix,
-                serverName);
+                serverName,
+                httpsPort);
 
         List<Notification> notifications = certFailedRefreshNotificationTask.getNotifications();
         assertEquals(3, notifications.size());
@@ -252,18 +378,54 @@ public class CertFailedRefreshNotificationTaskTest {
 
         System.clearProperty(ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST);
         System.clearProperty(ZTS_PROP_NOTIFICATION_CERT_FAIL_IGNORED_SERVICES_LIST);
-
     }
 
     @Test
-    public void testNoUnrefreshedCerts() {
+    public void testNoValidServices() {
+        String globStrings = "*";
+
+        System.setProperty(ZTS_PROP_NOTIFICATION_CERT_FAIL_IGNORED_SERVICES_LIST, globStrings);
+
+        Date currentDate = new Date();
+        List<X509CertRecord> records = new ArrayList<>();
+        System.setProperty(ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST, "provider");
+
+        for (int i = 0; i < 6; ++i) {
+            X509CertRecord record = getMockX509CertRecord(currentDate, i);
+            records.add(record);
+            NotificationTestsCommon.mockDomainData(i, dataStore);
+            Mockito.when(hostnameResolver.isValidHostname(eq("hostName" + i))).thenReturn(true);
+        }
+
+        Mockito.when(instanceCertManager.getUnrefreshedCertsNotifications(eq(serverName), anyString())).thenReturn(records);
+        CertFailedRefreshNotificationTask certFailedRefreshNotificationTask = new CertFailedRefreshNotificationTask(
+                instanceCertManager,
+                dataStore,
+                hostnameResolver,
+                userDomainPrefix,
+                serverName,
+                httpsPort);
+
+        List<Notification> notifications = certFailedRefreshNotificationTask.getNotifications();
+        assertEquals(new ArrayList<>(), notifications);
+
+
+        System.clearProperty(ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST);
+        System.clearProperty(ZTS_PROP_NOTIFICATION_CERT_FAIL_IGNORED_SERVICES_LIST);
+    }
+
+    @Test
+    public void testValidProvidersNoUnrefreshedCerts() {
+        // Configure 3 providers in property
+        System.setProperty(ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST, "provider1, provider2, provider3");
         Mockito.when(instanceCertManager.getUnrefreshedCertsNotifications(eq(serverName), anyString())).thenReturn(new ArrayList<>());
         CertFailedRefreshNotificationTask certFailedRefreshNotificationTask = new CertFailedRefreshNotificationTask(
                 instanceCertManager,
                 dataStore,
                 hostnameResolver,
                 userDomainPrefix,
-                serverName);
+                serverName,
+                httpsPort);
         List<Notification> notifications = certFailedRefreshNotificationTask.getNotifications();
         assertEquals(new ArrayList<>(), notifications);
     }
@@ -296,20 +458,21 @@ public class CertFailedRefreshNotificationTaskTest {
                 dataStore,
                 hostnameResolver,
                 userDomainPrefix,
-                serverName);
+                serverName,
+                httpsPort);
 
         List<Notification> notifications = certFailedRefreshNotificationTask.getNotifications();
         assertEquals(6, notifications.size());
         // Assert 2 records for domain5 and domain0:
-        String twoRecordsDomain5 = "domain5.service5;provider;instanceID5;" + new Timestamp(currentDate.getTime()) + ";;hostName5|" +
-                "domain5.service5;provider;instanceID5;" + new Timestamp(currentDate.getTime()) + ";;secondHostName5";
+        String twoRecordsDomain5 = "service5;provider;instanceID5;" + Timestamp.fromMillis(currentDate.getTime()) + ";;hostName5|" +
+                "service5;provider;instanceID5;" + Timestamp.fromMillis(currentDate.getTime()) + ";;secondHostName5";
         assertEquals(twoRecordsDomain5, notifications.get(1).getDetails().get(NOTIFICATION_DETAILS_UNREFRESHED_CERTS));
-        String twoRecordsDomain0 = "domain0.service0;provider;instanceID0;" + new Timestamp(currentDate.getTime()) + ";;hostName0|" +
-                "domain0.service0;provider;instanceID0;" + new Timestamp(currentDate.getTime()) + ";;secondHostName0";
+        String twoRecordsDomain0 = "service0;provider;instanceID0;" + Timestamp.fromMillis(currentDate.getTime()) + ";;hostName0|" +
+                "service0;provider;instanceID0;" + Timestamp.fromMillis(currentDate.getTime()) + ";;secondHostName0";
         assertEquals(twoRecordsDomain0, notifications.get(4).getDetails().get(NOTIFICATION_DETAILS_UNREFRESHED_CERTS));
 
         // Assert other domains only have 1 record:
-        String oneRecordDomain1 = "domain1.service1;provider;instanceID1;" + new Timestamp(currentDate.getTime()) + ";;hostName1";
+        String oneRecordDomain1 = "service1;provider;instanceID1;" + Timestamp.fromMillis(currentDate.getTime()) + ";;hostName1";
         assertEquals(oneRecordDomain1, notifications.get(5).getDetails().get(NOTIFICATION_DETAILS_UNREFRESHED_CERTS));
 
         System.clearProperty(ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST);
@@ -332,62 +495,126 @@ public class CertFailedRefreshNotificationTaskTest {
                 dataStore,
                 hostnameResolver,
                 userDomainPrefix,
-                serverName);
+                serverName,
+                httpsPort);
 
         String description = certFailedRefreshNotificationTask.getDescription();
         assertEquals("certificate failed refresh notification", description);
     }
 
     @Test
-    public void testGetEmailBody() {
+    public void testGetEmailBodyMultipleRecords() {
         System.setProperty("athenz.notification_workflow_url", "https://athenz.example.com/workflow");
         System.setProperty("athenz.notification_support_text", "#Athenz slack channel");
         System.setProperty("athenz.notification_support_url", "https://link.to.athenz.channel.com");
+        System.setProperty("athenz.notification_athenz_ui_url", "https://ui-athenz.example.com/");
+
 
         Map<String, String> details = new HashMap<>();
         details.put("domain", "dom1");
-        details.put("role", "role1");
-        details.put("member", "user.member1");
-        details.put("reason", "test reason");
-        details.put("requester", "user.requester");
         details.put(NOTIFICATION_DETAILS_UNREFRESHED_CERTS,
-                "domain0.service0;provider;instanceID0;Sun Mar 15 15:08:07 IST 2020;;hostName0|" +
-                        "domain.bad;instanceID0;Sun Mar 15 15:08:07 IST 2020;;hostBad|" + // bad entry with missing provider
-                        "domain0.service0;provider;instanceID0;Sun Mar 15 15:08:07 IST 2020;;secondHostName0");
+                "service0;provider;instanceID0;Sun Mar 15 15:08:07 IST 2020;;hostName0|" +
+                        "bad;instanceID0;Sun Mar 15 15:08:07 IST 2020;;hostBad|" + // bad entry with missing provider
+                        "service0;provider;instanceID0;Sun Mar 15 15:08:07 IST 2020;;secondHostName0");
 
         Notification notification = new Notification();
         notification.setDetails(details);
-        CertFailedRefreshNotificationTask.CertFailedRefreshNotificationToEmailConverter converter = new CertFailedRefreshNotificationTask.CertFailedRefreshNotificationToEmailConverter();
+        CertFailedRefreshNotificationTask.CertFailedRefreshNotificationToEmailConverter converter =
+                new CertFailedRefreshNotificationTask.CertFailedRefreshNotificationToEmailConverter(serverName, httpsPort);
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
 
         String body = notificationAsEmail.getBody();
         assertNotNull(body);
-        assertTrue(body.contains("domain0.service0"));
-        assertTrue(body.contains("hostName0"));
-        assertTrue(body.contains("secondHostName0"));
-        assertTrue(body.contains("instanceID0"));
-        assertTrue(body.contains("Sun Mar 15 15:08:07 IST 2020"));
+        assertTrue(body.contains(htmlSeveralRecords));
 
         // make sure the bad entries are not included
-        assertFalse(body.contains("domain.bad"));
+        assertFalse(body.contains("bad"));
         assertFalse(body.contains("hostBad"));
-
-        // Make sure support text and url do appear
-
-        assertTrue(body.contains("slack"));
-        assertTrue(body.contains("link.to.athenz.channel.com"));
 
         System.clearProperty("athenz.notification_workflow_url");
         System.clearProperty("notification_support_text");
         System.clearProperty("notification_support_url");
+        System.clearProperty("athenz.notification_athenz_ui_url");
+    }
+
+    @Test
+    public void testGetEmailBodySingleRecord() {
+        System.setProperty("athenz.notification_workflow_url", "https://athenz.example.com/workflow");
+        System.setProperty("athenz.notification_support_text", "#Athenz slack channel");
+        System.setProperty("athenz.notification_support_url", "https://link.to.athenz.channel.com");
+        System.setProperty("athenz.notification_athenz_ui_url", "https://ui-athenz.example.com/");
+
+        Map<String, String> details = new HashMap<>();
+        details.put("domain", "dom1");
+        details.put(NOTIFICATION_DETAILS_UNREFRESHED_CERTS,
+                "service1;provider1;instanceid1;Sun Mar 15 15:08:07 IST 2020;;hostName1");
+
+        Notification notification = new Notification();
+        notification.setDetails(details);
+        CertFailedRefreshNotificationTask.CertFailedRefreshNotificationToEmailConverter converter = new CertFailedRefreshNotificationTask.CertFailedRefreshNotificationToEmailConverter(serverName, httpsPort);
+        NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
+
+        String body = notificationAsEmail.getBody();
+        assertNotNull(body);
+        assertTrue(body.contains(htmlSingleRecord));
+
+        System.clearProperty("athenz.notification_workflow_url");
+        System.clearProperty("notification_support_text");
+        System.clearProperty("notification_support_url");
+        System.clearProperty("athenz.notification_athenz_ui_url");
     }
 
     @Test
     public void getEmailSubject() {
         Notification notification = new Notification();
-        CertFailedRefreshNotificationTask.CertFailedRefreshNotificationToEmailConverter converter = new CertFailedRefreshNotificationTask.CertFailedRefreshNotificationToEmailConverter();
+        CertFailedRefreshNotificationTask.CertFailedRefreshNotificationToEmailConverter converter = new CertFailedRefreshNotificationTask.CertFailedRefreshNotificationToEmailConverter(serverName, httpsPort);
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
         String subject = notificationAsEmail.getSubject();
         Assert.assertEquals(subject, "Athenz Unrefreshed Certificates Notification");
+    }
+
+    @Test
+    public void testGetNotificationAsMetric() {
+        Timestamp currentTimeStamp = Timestamp.fromMillis(System.currentTimeMillis());
+        Timestamp fiveDaysAgo = ZTSTestUtils.addDays(currentTimeStamp, -5);
+        Timestamp twentyFiveDaysFromNow = ZTSTestUtils.addDays(currentTimeStamp, 25);
+
+        Map<String, String> details = new HashMap<>();
+        details.put("domain", "dom1");
+        details.put(NOTIFICATION_DETAILS_UNREFRESHED_CERTS,
+                        "service0;provider0;instanceID0;" + fiveDaysAgo.toString() + ";" + twentyFiveDaysFromNow + ";hostName1|" +
+                        "service1;provider1;instanceID1;" + fiveDaysAgo.toString() + ";" + twentyFiveDaysFromNow + ";hostName2");
+
+        Notification notification = new Notification();
+        notification.setDetails(details);
+
+        CertFailedRefreshNotificationTask.CertFailedRefreshNotificationToMetricConverter converter = new CertFailedRefreshNotificationTask.CertFailedRefreshNotificationToMetricConverter();
+        NotificationMetric notificationAsMetrics = converter.getNotificationAsMetrics(notification, currentTimeStamp);
+
+        String[] expectedRecord1 = new String[]{
+                METRIC_NOTIFICATION_TYPE_KEY, "cert_fail_refresh",
+                METRIC_NOTIFICATION_DOMAIN_KEY, "dom1",
+                METRIC_NOTIFICATION_SERVICE_KEY, "service0",
+                METRIC_NOTIFICATION_PROVIDER_KEY, "provider0",
+                METRIC_NOTIFICATION_INSTANCE_ID_KEY, "instanceID0",
+                METRIC_NOTIFICATION_UPDATE_DAYS_KEY, "-5",
+                METRIC_NOTIFICATION_EXPIRY_DAYS_KEY, "25"
+        };
+
+        String[] expectedRecord2 = new String[]{
+                METRIC_NOTIFICATION_TYPE_KEY, "cert_fail_refresh",
+                METRIC_NOTIFICATION_DOMAIN_KEY, "dom1",
+                METRIC_NOTIFICATION_SERVICE_KEY, "service1",
+                METRIC_NOTIFICATION_PROVIDER_KEY, "provider1",
+                METRIC_NOTIFICATION_INSTANCE_ID_KEY, "instanceID1",
+                METRIC_NOTIFICATION_UPDATE_DAYS_KEY, "-5",
+                METRIC_NOTIFICATION_EXPIRY_DAYS_KEY, "25"
+        };
+
+        List<String[]> expectedAttributes = new ArrayList<>();
+        expectedAttributes.add(expectedRecord1);
+        expectedAttributes.add(expectedRecord2);
+
+        assertEquals(new NotificationMetric(expectedAttributes), notificationAsMetrics);
     }
 }

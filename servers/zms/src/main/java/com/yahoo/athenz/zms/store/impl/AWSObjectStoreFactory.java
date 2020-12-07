@@ -34,7 +34,7 @@ import com.yahoo.athenz.common.server.db.PoolableDataSource;
 import com.yahoo.athenz.zms.ZMSConsts;
 import com.yahoo.athenz.zms.store.ObjectStore;
 import com.yahoo.athenz.zms.store.ObjectStoreFactory;
-import com.yahoo.athenz.zms.store.jdbc.JDBCObjectStore;
+import com.yahoo.athenz.zms.store.impl.jdbc.JDBCObjectStore;
 
 public class AWSObjectStoreFactory implements ObjectStoreFactory {
 
@@ -111,28 +111,41 @@ public class AWSObjectStoreFactory implements ObjectStoreFactory {
         
         return new JDBCObjectStore(dataMasterSource, dataReplicaSource);
     }
-    
+
+    InstanceProfileCredentialsProvider getNewInstanceCredentialsProvider() {
+        return new InstanceProfileCredentialsProvider(true);
+    }
+
+    String getRegion() {
+        return EC2MetadataUtils.getEC2InstanceRegion();
+    }
+
+    String getGeneratorAuthToken(RdsIamAuthTokenGenerator generator, final String hostname,
+                                 int port, final String rdsUser) {
+        return generator.getAuthToken(GetIamAuthTokenRequest.builder()
+                .hostname(hostname).port(port).userName(rdsUser)
+                .build());
+    }
+
     String getAuthToken(String hostname, int port, String rdsUser, String rdsIamRole) {
+
+        InstanceProfileCredentialsProvider awsCredProvider = getNewInstanceCredentialsProvider();
         
-        InstanceProfileCredentialsProvider awsCredProvider = new InstanceProfileCredentialsProvider(true);
-        
-          if (LOG.isDebugEnabled()) {
-              LOG.debug("getAuthToken: Access key id: {}", awsCredProvider.getCredentials().getAWSAccessKeyId());
-          }
-          
-          RdsIamAuthTokenGenerator generator = RdsIamAuthTokenGenerator.builder()
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("getAuthToken: Access key id: {}", awsCredProvider.getCredentials().getAWSAccessKeyId());
+        }
+
+        RdsIamAuthTokenGenerator generator = RdsIamAuthTokenGenerator.builder()
                 .credentials(awsCredProvider)
-                .region(EC2MetadataUtils.getEC2InstanceRegion())
+                .region(getRegion())
                 .build();
         
         if (LOG.isDebugEnabled()) {
             LOG.debug("Instance {} Port {} User {} Region: {} Role: {}", hostname, port, rdsUser,
-                    EC2MetadataUtils.getEC2InstanceRegion(), rdsIamRole);
+                    getRegion(), rdsIamRole);
         }
         
-        return generator.getAuthToken(GetIamAuthTokenRequest.builder()
-               .hostname(hostname).port(port).userName(rdsUser)
-               .build());
+        return getGeneratorAuthToken(generator, hostname, port, rdsUser);
     }
     
     void updateCredentials(String hostname, Properties mysqlProperties) {

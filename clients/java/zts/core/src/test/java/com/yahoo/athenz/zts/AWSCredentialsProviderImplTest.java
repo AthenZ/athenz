@@ -15,16 +15,20 @@
  */
 package com.yahoo.athenz.zts;
 
+import com.yahoo.athenz.auth.Authority;
+import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.auth.impl.PrincipalAuthority;
+import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.rdl.Timestamp;
 import org.mockito.Mockito;
-import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import javax.net.ssl.SSLContext;
 
 import static org.testng.Assert.*;
 
 public class AWSCredentialsProviderImplTest {
+
+    final private Authority PRINCIPAL_AUTHORITY = new PrincipalAuthority();
 
     @BeforeClass
     public void init() {
@@ -32,6 +36,7 @@ public class AWSCredentialsProviderImplTest {
         System.setProperty(ZTSClient.ZTS_CLIENT_PROP_PREFETCH_AUTO_ENABLE, "false");
         System.setProperty(ZTSClient.ZTS_CLIENT_PROP_X509CSR_DN, "ou=eng,o=athenz,c=us");
         System.setProperty(ZTSClient.ZTS_CLIENT_PROP_X509CSR_DOMAIN, "athenz.cloud");
+        System.setProperty(ZTSClient.ZTS_CLIENT_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
     }
 
     @Test
@@ -78,8 +83,10 @@ public class AWSCredentialsProviderImplTest {
         ZTSClient.setPrefetchAutoEnable(true);
         ZTSClient.AWS_CREDS_CACHE.clear();
 
-        SSLContext sslContext = Mockito.mock(SSLContext.class);
-        ZTSClient ztsClient = new ZTSClientMock("https://zts.athenz", sslContext);
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=S1;d=user_domain;n=user;s=sig", PRINCIPAL_AUTHORITY);
+
+        ZTSClient ztsClient = new ZTSClientMock("https://zts.athenz", principal);
         ztsClient.setEnablePrefetch(true);
 
         AWSCredentialsProviderImpl.setAwsAutoRefreshEnable(true);

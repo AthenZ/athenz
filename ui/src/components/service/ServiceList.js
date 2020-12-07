@@ -16,6 +16,7 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import { colors } from '../denali/styles';
+import Button from '../denali/Button';
 import NameUtils from '../utils/NameUtils';
 import ServiceRow from './ServiceRow';
 import Alert from '../denali/Alert';
@@ -30,6 +31,11 @@ const ServicesSectionDiv = styled.div`
 
 const AddContainerDiv = styled.div`
     padding-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-flow: row nowrap;
+    float: right;
 `;
 
 const ServiceTable = styled.table`
@@ -82,7 +88,8 @@ export default class ServiceList extends React.Component {
             )
             .then(() => {
                 this.reloadServices(
-                    `Successfully deleted service ${this.state.deleteServiceName}`
+                    `Successfully deleted service ${this.state.deleteServiceName}`,
+                    true
                 );
             })
             .catch((err) => {
@@ -106,19 +113,18 @@ export default class ServiceList extends React.Component {
             errorMessage: null,
         });
     }
-
-    reloadServices(successMessage) {
+    //successMessage is only name of new service when adding a service
+    reloadServices(successMessage, showSuccess) {
         this.api
             .getServices(this.props.domain)
             .then((data) => {
                 this.setState({
                     list: data,
                     showAddService: false,
-                    showSuccess: true,
+                    showSuccess,
                     successMessage,
                     showDelete: false,
                 });
-                // this is to close the success alert
                 setTimeout(
                     () =>
                         this.setState({
@@ -134,14 +140,14 @@ export default class ServiceList extends React.Component {
             });
     }
 
+    closeModal() {
+        this.setState({ showSuccess: false });
+    }
+
     toggleAddService() {
         this.setState({
             showAddService: !this.state.showAddService,
         });
-    }
-
-    closeModal() {
-        this.setState({ successService: null });
     }
 
     render() {
@@ -150,6 +156,7 @@ export default class ServiceList extends React.Component {
         const center = 'center';
         const rows = this.state.list.map((item, i) => {
             const serviceName = NameUtils.getShortName('.', item.name);
+            let newService = serviceName === this.state.successMessage;
             let onClickDeleteService = this.onClickDeleteService.bind(
                 this,
                 serviceName
@@ -164,6 +171,7 @@ export default class ServiceList extends React.Component {
                     serviceName={serviceName}
                     domainName={domain}
                     modified={item.modified}
+                    newService={newService}
                     color={color}
                     api={this.api}
                     key={item.name}
@@ -189,10 +197,12 @@ export default class ServiceList extends React.Component {
         return (
             <ServicesSectionDiv data-testid='service-list'>
                 <AddContainerDiv>
-                    <StyledAnchor onClick={this.toggleAddService}>
-                        Add Service
-                    </StyledAnchor>
-                    {addService}
+                    <div>
+                        <Button secondary onClick={this.toggleAddService}>
+                            Add Service
+                        </Button>
+                        {addService}
+                    </div>
                 </AddContainerDiv>
                 <ServiceTable>
                     <thead>

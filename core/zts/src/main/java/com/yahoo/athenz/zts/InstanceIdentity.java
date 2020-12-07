@@ -3,6 +3,7 @@
 //
 
 package com.yahoo.athenz.zts;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.Map;
 import com.yahoo.rdl.*;
@@ -10,6 +11,7 @@ import com.yahoo.rdl.*;
 //
 // InstanceIdentity -
 //
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class InstanceIdentity {
     public String provider;
     public String name;

@@ -7,7 +7,7 @@
                 "timestamp": "2020-04-28T00:00:00.000Z",
                 "description": "Vipng template",
                 "keywordsToReplace": "",
-                "autoUpdate": "false"
+                "autoUpdate": false
             },
         "roles": [
             {
@@ -52,7 +52,7 @@
                 "timestamp": "2020-04-28T00:00:00.000Z",
                 "description": "platforms template",
                 "keywordsToReplace": "",
-                "autoUpdate": "false"
+                "autoUpdate": true
             },
         "roles": [
             {
@@ -110,8 +110,8 @@
                 "latestVersion": 10,
                 "timestamp": "2020-04-28T00:00:00.000Z",
                 "description": "User provisioning template ",
-                "keywordsToReplace": "",
-                "autoUpdate": "false"
+                "keywordsToReplace": "_track_,_input_",
+                "autoUpdate": true
             },
         "roles": [
             {
@@ -183,7 +183,7 @@
                 "timestamp": "2020-04-28T00:00:00.000Z",
                 "description": "sports template",
                 "keywordsToReplace": "",
-                "autoUpdate": "false"
+                "autoUpdate": false
             },
         "roles": [
             {
@@ -213,7 +213,7 @@
                 "timestamp": "2020-04-28T00:00:00.000Z",
                 "description": "network template",
                 "keywordsToReplace": "",
-                "autoUpdate": "false"
+                "autoUpdate": false
             },
         "roles": [
             {
@@ -284,7 +284,7 @@
                 "timestamp": "2020-04-28T00:00:00.000Z",
                 "description": "templateWithService template",
                 "keywordsToReplace": "",
-                "autoUpdate": "false"
+                "autoUpdate": false
             },
         "roles": [
             {
@@ -319,7 +319,7 @@
             "timestamp": "2020-04-28T00:00:00.000Z",
             "description": "templateWithMultipleServices template",
             "keywordsToReplace": "",
-            "autoUpdate": "false"
+            "autoUpdate": false
         },
         "roles": [
             {
@@ -358,7 +358,7 @@
                 "timestamp": "2020-04-28T00:00:00.000Z",
                 "description": "templateWithServiceWithKey template",
                 "keywordsToReplace": "",
-                "autoUpdate": "false"
+                "autoUpdate": false
             },
         "roles": [
             {
@@ -391,6 +391,79 @@
                 ]
             }
         ]
-    }
+    },
+      "templateWithRoleMeta" : {
+          "metadata":
+          {
+              "latestVersion": 10,
+              "timestamp": "2020-04-28T00:00:00.000Z",
+              "description": "templateWithRoleMeta template",
+              "keywordsToReplace": "",
+              "autoUpdate": false
+          },
+          "roles": [
+              {
+                  "name": "_domain_:role.vip_admin",
+                  "modified": "1970-01-01T00:00:00.000Z",
+                  "selfServe": "false",
+                  "memberExpiryDays": 90,
+                  "tokenExpiryMins": 30,
+                  "certExpiryMins": 10,
+                  "signAlgorithm": "test",
+                  "serviceExpiryDays": 50,
+                  "memberReviewDays": 65,
+                  "serviceReviewDays": 15,
+                  "reviewEnabled": true,
+                  "notifyRoles": "testnotify-role",
+                  "userAuthorityFilter": "none",
+                  "userAuthorityExpiration": ""
+              }
+          ],
+          "policies": [
+              {
+                  "name": "_domain_:policy.vip_admin",
+                  "modified": "1970-01-01T00:00:00.000Z",
+                  "assertions": [
+                      {
+                          "resource": "_domain_:vip*",
+                          "role": "_domain_:role.vip_admin",
+                          "action": "*"
+                      }
+                  ]
+              }
+          ]
+      },
+      "templateWithExistingRoleMeta" : {
+          "metadata":
+          {
+              "latestVersion": 10,
+              "timestamp": "2020-04-28T00:00:00.000Z",
+              "description": "templateWithExistingRoleMeta template",
+              "keywordsToReplace": "",
+              "autoUpdate": false
+          },
+          "roles": [
+              {
+                  "name": "_domain_:role.vip_admin",
+                  "modified": "1970-01-01T00:00:00.000Z",
+                  "selfServe": "true",
+                  "memberExpiryDays": 999,
+                  "userAuthorityExpiration": "newValue"
+              }
+          ],
+          "policies": [
+              {
+                  "name": "_domain_:policy.vip_admin",
+                  "modified": "1970-01-01T00:00:00.000Z",
+                  "assertions": [
+                      {
+                          "resource": "_domain_:vip*",
+                          "role": "_domain_:role.vip_admin",
+                          "action": "*"
+                      }
+                  ]
+              }
+          ]
+      }
   }
 }

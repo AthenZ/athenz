@@ -30,7 +30,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.net.InetAddresses;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.CryptoException;
+import com.yahoo.athenz.common.server.db.RolesProvider;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
+import com.yahoo.athenz.common.server.notification.NotificationManager;
 import com.yahoo.athenz.common.server.ssh.SSHSigner;
 import com.yahoo.athenz.common.server.ssh.SSHSignerFactory;
 import com.yahoo.athenz.common.server.ssh.SSHCertRecord;
@@ -518,12 +520,8 @@ public class InstanceCertManager {
 
         try (CertRecordStoreConnection storeConnection = certStore.getConnection()) {
             long updateTs = System.currentTimeMillis();
-            if (storeConnection.updateUnrefreshedCertificatesNotificationTimestamp(serverHostName, updateTs, provider)) {
-                return storeConnection.getNotifyUnrefreshedCertificates(serverHostName, updateTs);
-            }
+            return storeConnection.updateUnrefreshedCertificatesNotificationTimestamp(serverHostName, updateTs, provider);
         }
-
-        return new ArrayList<>();
     }
 
     public X509CertRecord getX509CertRecord(final String provider, X509Certificate cert) {
@@ -567,7 +565,7 @@ public class InstanceCertManager {
         if (certStore == null) {
             return false;
         }
-        
+
         boolean result;
         try (CertRecordStoreConnection storeConnection = certStore.getConnection()) {
             result = storeConnection.updateX509CertRecord(certRecord);
@@ -736,7 +734,7 @@ public class InstanceCertManager {
 
             SshHostCsr sshHostCsr = parseSshHostCsr(csr);
             if (hostname != null && !hostname.isEmpty() && hostnameResolver != null) {
-                if (!validPrincipals(hostname, sshHostCsr)) {
+                if (!validPrincipals(hostname, sshCertRecord, sshHostCsr)) {
                     LOGGER.error("SSH Host CSR validation failed, principal: {}, hostname: {}, csr: {}", principal, hostname, csr);
                     return false;
                 }
@@ -873,7 +871,7 @@ public class InstanceCertManager {
      * @param sshHostCsr ssh host csr from the sia
      * @return boolean true or false
      */
-    public boolean validPrincipals(final String hostname, SshHostCsr sshHostCsr) {
+    public boolean validPrincipals(final String hostname, SSHCertRecord sshCertRecord, SshHostCsr sshHostCsr) {
 
         if (sshHostCsr == null) {
             return false;
@@ -915,7 +913,7 @@ public class InstanceCertManager {
         }
 
         LOGGER.debug("validating xPrincipals in the csr: {}", cnames);
-        if (hostnameResolver.isValidHostCnameList(hostname, cnames, CertType.SSH_HOST)) {
+        if (hostnameResolver.isValidHostCnameList(sshCertRecord.getService(), hostname, cnames, CertType.SSH_HOST)) {
             return true;
         }
 
@@ -1002,6 +1000,26 @@ public class InstanceCertManager {
         }
 
         return result;
+    }
+
+    public boolean enableCertStoreNotifications(NotificationManager notificationManager, RolesProvider rolesProvider, String serverName) {
+        boolean notificationsEnabled = false;
+        if (certStore != null) {
+            notificationsEnabled = certStore.enableNotifications(notificationManager, rolesProvider, serverName);
+        }
+
+        LOGGER.info("certStore Notifications " + (notificationsEnabled ? "enabled" : "disabled"));
+        return notificationsEnabled;
+    }
+
+    public boolean enableSSHStoreNotifications(NotificationManager notificationManager, RolesProvider rolesProvider, String serverName) {
+        boolean notificationsEnabled = false;
+        if (sshStore != null) {
+            notificationsEnabled = sshStore.enableNotifications(notificationManager, rolesProvider, serverName);
+        }
+
+        LOGGER.info("sshStore Notifications " + (notificationsEnabled ? "enabled" : "disabled"));
+        return notificationsEnabled;
     }
 
     class ExpiredX509CertRecordCleaner implements Runnable {

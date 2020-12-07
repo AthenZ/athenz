@@ -26,8 +26,8 @@ all:
 	@echo "Please install 1.11.x or newer version of golang"
 else
 
-.PHONY: vet fmt linux darwin
-all: vet fmt linux darwin
+.PHONY: vet fmt linux darwin windows
+all: vet fmt linux darwin windows
 
 endif
 
@@ -51,6 +51,10 @@ darwin:
 linux:
 	@echo "Building linux client..."
 	GOOS=linux go build -ldflags "-X main.VERSION=$(PKG_VERSION) -X main.BUILD_DATE=$(PKG_DATE)" -o target/linux/$(BINARY) $(SRC)
+
+windows:
+	@echo "Building windows client..."
+	GOOS=windows go build -ldflags "-X main.VERSION=$(PKG_VERSION) -X main.BUILD_DATE=$(PKG_DATE)" -o target/windows/$(BINARY) $(SRC)
 
 clean:
 	rm -rf target
