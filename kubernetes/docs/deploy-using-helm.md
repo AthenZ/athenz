@@ -83,7 +83,7 @@ export ZTS_HOST="${ZTS_RELEASE_NAME}-athenz-zts.default.svc.cluster.local"
 <a id="markdown-11-build-the-athenz-docker-images" name="11-build-the-athenz-docker-images"></a>
 #### 1.1. build the Athenz docker images
 
-To build the Athenz docker image, plx refer to [build-athenz](../docker/README.md#build-athenz).
+To build the Athenz docker image, plx refer to [build-athenz](../../docker/README.md#build-athenz).
 
 <a id="markdown-12-push-the-athenz-docker-images-to-your-own-repo" name="12-push-the-athenz-docker-images-to-your-own-repo"></a>
 #### 1.2. push the Athenz docker images to your own repo
