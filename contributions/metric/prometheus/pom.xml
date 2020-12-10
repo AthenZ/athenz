@@ -49,12 +49,7 @@
       <groupId>com.yahoo.athenz</groupId>
       <artifactId>athenz-server-common</artifactId>
       <version>${athenz.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-api</artifactId>
-        </exclusion>
-      </exclusions>
+      <scope>provided</scope>
     </dependency>
 
     <!-- Prometheus -->
@@ -76,11 +71,6 @@
       <version>${prometheus.version}</version>
     </dependency>
 
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>${slf4j.version}</version>
-    </dependency>
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
