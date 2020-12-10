@@ -142,7 +142,7 @@ export default class RolePolicyPage extends React.Component {
             return <Error err={this.props.error} />;
         }
         return (
-            <div data-testid='policy'>
+            <div data-testid='role-policy'>
                 <Head>
                     <title>Athenz</title>
                 </Head>

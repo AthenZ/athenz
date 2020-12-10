@@ -20,9 +20,7 @@ import { colors } from '../denali/styles';
 import Input from '../denali/Input';
 import InputLabel from '../denali/InputLabel';
 import styled from '@emotion/styled';
-import Checkbox from '../denali/CheckBox';
 import DateUtils from '../utils/DateUtils';
-import NameUtils from '../utils/NameUtils';
 import RequestUtils from '../utils/RequestUtils';
 
 const SectionsDiv = styled.div`
@@ -83,16 +81,6 @@ const FlatPickrInputDiv = styled.div`
             color 0.2s ease-in-out 0s, border 0.2s ease-in-out 0s;
         width: 80%;
     }
-`;
-
-const StyledRoleContainer = styled.div`
-    width: 100%;
-`;
-
-const StyledRole = styled.div`
-    background-color: rgba(53, 112, 244, 0.06);
-    padding: 10px;
-    width: calc(100% - 10px);
 `;
 
 const StyledJustification = styled(Input)`
@@ -180,7 +168,7 @@ export default class AddMember extends React.Component {
 
     render() {
         let sections = (
-            <SectionsDiv autoComplete={'off'} data-testid='add-member-form'>
+            <SectionsDiv autoComplete={'off'}>
                 <SectionDiv>
                     <StyledInputLabel htmlFor='member-name'>
                         Member
@@ -234,14 +222,16 @@ export default class AddMember extends React.Component {
         );
 
         return (
-            <AddModal
-                isOpen={this.state.showModal}
-                cancel={this.props.onCancel}
-                submit={this.onSubmit}
-                title={'Add Member to Role: ' + this.props.role}
-                errorMessage={this.state.errorMessage}
-                sections={sections}
-            />
+            <div data-testid='add-member'>
+                <AddModal
+                    isOpen={this.state.showModal}
+                    cancel={this.props.onCancel}
+                    submit={this.onSubmit}
+                    title={'Add Member to Role: ' + this.props.role}
+                    errorMessage={this.state.errorMessage}
+                    sections={sections}
+                />
+            </div>
         );
     }
 }

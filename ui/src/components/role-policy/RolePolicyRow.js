@@ -43,7 +43,7 @@ const TrStyled = styled.tr`
 
 const LeftMarginSpan = styled.span`
     margin-right: 10px;
-    verticalAlign：bottom；
+    vertical-align: bottom;
 `;
 
 const StyledDiv = styled.div`

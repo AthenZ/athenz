@@ -91,7 +91,7 @@ export default class RoleNameHeader extends React.Component {
         if (roleDetails.trust) {
             let deDomain = roleDetails.trust;
             return (
-                <TitleDiv>
+                <TitleDiv data-testid='role-name-header'>
                     {roleTypeIcon}
                     {roleAuditIcon}
                     <Link route='role' params={{ domain: domain }}>
@@ -108,7 +108,7 @@ export default class RoleNameHeader extends React.Component {
         }
 
         return (
-            <TitleDiv>
+            <TitleDiv data-testid='role-name-header'>
                 {roleTypeIcon}
                 {roleAuditIcon}
                 <Link route='role' params={{ domain: domain }}>

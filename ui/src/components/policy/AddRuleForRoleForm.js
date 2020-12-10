@@ -54,10 +54,6 @@ const StyledRadioButtonGroup = styled(RadioButtonGroup)`
     margin-top: 8px;
 `;
 
-const StyledInputDropDown = styled(InputDropdown)`
-    width: 500px;
-`;
-
 const ErrorDiv = styled.div`
     margin-left: 155px;
 `;
