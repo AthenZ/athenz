@@ -195,7 +195,7 @@ export default class RolePolicyList extends React.Component {
         );
 
         return (
-            <PolicySectionDiv data-testid='policylist'>
+            <PolicySectionDiv data-testid='role-policy-list'>
                 <AddContainerDiv>
                     <div>
                         <Button secondary onClick={this.toggleAddPolicy}>

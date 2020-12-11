@@ -46,7 +46,7 @@ const TableHeadStyled = styled.th`
 
 const LeftMarginSpan = styled.span`
     margin-right: 10px;
-    verticalAlign：bottom；
+    vertical-align: bottom;
 `;
 
 const TDStyled = styled.td`

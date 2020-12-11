@@ -167,7 +167,6 @@ export default class RoleSectionRow extends React.Component {
         let center = 'center';
         let role = this.props.details;
         let color = this.props.color;
-        let idx = this.props.idx;
 
         let clickMembers = this.onClickFunction.bind(
             this,
@@ -249,7 +248,7 @@ export default class RoleSectionRow extends React.Component {
             );
 
         rows.push(
-            <TrStyled key={this.state.name} data-testid='role-row'>
+            <TrStyled key={this.state.name} data-testid='role-section-row'>
                 <TDName color={color} align={left}>
                     {roleTypeIcon}
                     {roleAuditIcon}

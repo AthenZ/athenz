@@ -438,7 +438,7 @@ export default class ReviewTable extends React.Component {
             return (
                 <ReviewMembersContainerDiv>
                     <TitleDiv>REVIEW EXPIRING MEMBERS</TitleDiv>
-                    <ReviewMembersSectionDiv data-testid='review-member-list'>
+                    <ReviewMembersSectionDiv data-testid='review-table'>
                         <ReviewMembersTable>
                             <thead>
                                 <tr>
@@ -512,7 +512,7 @@ export default class ReviewTable extends React.Component {
             );
         } else {
             return (
-                <ReviewMembersContainerDiv>
+                <ReviewMembersContainerDiv data-testid='review-invalid-table'>
                     User principal and/or Service principal expiry days are
                     required before a role can be reviewed. Please go to
                     <StyledAnchor onClick={this.onClickSettings}>

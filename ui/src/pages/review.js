@@ -136,7 +136,7 @@ export default class ReviewPage extends React.Component {
         let roleMembers = roleDetails.trust ? expandMembers : members;
 
         return (
-            <div data-testid='member'>
+            <div data-testid='review'>
                 <Head>
                     <title>Athenz</title>
                 </Head>

@@ -1,0 +1,265 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`RoleHistoryList should render 1`] = `
+.emotion-2 {
+  border: none;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  font-family: Helvetica,Arial,sans-serif;
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 1;
+  margin: 5px;
+  outline: 0;
+  padding: 10px 24px;
+  text-align: center;
+  text-shadow: none;
+  text-transform: none;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  vertical-align: baseline;
+  white-space: nowrap;
+  background: linear-gradient( to right, #3697f2, #3570f4 );
+  color: #fff;
+}
+
+.emotion-2:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-2:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
+.emotion-2:hover:not(:disabled) {
+  background: linear-gradient( to right, #3570f4, #3448f7 );
+}
+
+.emotion-5 {
+  border: none;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  font-family: Helvetica,Arial,sans-serif;
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 1;
+  margin: 5px;
+  outline: 0;
+  padding: 10px 24px;
+  text-align: center;
+  text-shadow: none;
+  text-transform: none;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  vertical-align: baseline;
+  white-space: nowrap;
+  background: transparent;
+  box-shadow: 0 0 0 1px #3697f2 inset;
+  color: #3697f2;
+}
+
+.emotion-5:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-5:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
+.emotion-5:disabled {
+  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
+}
+
+.emotion-5:hover:not(:disabled) {
+  background: #d7e2fd;
+}
+
+.emotion-13 {
+  margin: 20px;
+}
+
+.emotion-6 {
+  display: grid;
+  grid-template-columns: 55% 15% 15% 15%;
+  grid-gap: 10px;
+}
+
+.emotion-0 {
+  font-weight: bold;
+}
+
+.emotion-3 > div input {
+  position: relative;
+  font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
+  background-color: rgba(53,112,244,0.05);
+  box-shadow: none;
+  color: rgb(48,48,48);
+  height: 16px;
+  min-width: 50px;
+  text-align: left;
+  border-width: 2px;
+  border-style: solid;
+  border-color: transparent;
+  border-image: initial;
+  border-radius: 2px;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  margin: 0px;
+  margin-top: 5px;
+  outline: none;
+  padding: 0.6em 12px;
+  -webkit-transition: background-color 0.2s ease-in-out 0s, color 0.2s ease-in-out 0s,border 0.2s ease-in-out 0s;
+  transition: background-color 0.2s ease-in-out 0s, color 0.2s ease-in-out 0s,border 0.2s ease-in-out 0s;
+  width: 80%;
+}
+
+.emotion-12 {
+  width: 100%;
+  border-spacing: 0;
+  display: table;
+  border-collapse: separate;
+  border-color: grey;
+  table-layout: fixed;
+  padding-top: 20px;
+}
+
+.emotion-7 {
+  text-align: left;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
+<div
+  class="emotion-13"
+  data-testid="role-history-list"
+>
+  <div
+    class="emotion-6"
+  >
+    <div />
+    <div
+      class="emotion-0"
+    >
+      Start Date
+    </div>
+    <div
+      class="emotion-0"
+    >
+      End Date
+    </div>
+    <div />
+    <div>
+      <button
+        class="emotion-2 denali-button"
+      >
+        Export to CSV
+      </button>
+    </div>
+    <div
+      class="emotion-3"
+    >
+      <div
+        class="fp-startDate"
+      >
+        <input
+          class="flatpickr-input"
+          data-input=""
+          data-testid="flatPicker"
+          placeholder="Start Date (Optional)"
+          type="hidden"
+          value="2019-10-20 07:51"
+        />
+        <input
+          class="fp-startDate form-control input"
+          placeholder="Start Date (Optional)"
+          readonly="readonly"
+          tabindex="0"
+          type="text"
+        />
+      </div>
+    </div>
+    <div
+      class="emotion-3"
+    >
+      <div
+        class="fp-endDate"
+      >
+        <input
+          class="flatpickr-input"
+          data-input=""
+          data-testid="flatPicker"
+          placeholder="End Date (Optional)"
+          type="hidden"
+          value="2020-01-20 07:55"
+        />
+        <input
+          class="fp-endDate form-control input"
+          placeholder="End Date (Optional)"
+          readonly="readonly"
+          tabindex="0"
+          type="text"
+        />
+      </div>
+    </div>
+    <div>
+      <button
+        class="emotion-5 denali-button"
+      >
+        Submit
+      </button>
+    </div>
+  </div>
+  <table
+    class="emotion-12"
+  >
+    <thead>
+      <tr>
+        <th
+          class="emotion-7"
+        >
+          ACTION
+        </th>
+        <th
+          class="emotion-7"
+        >
+          EXECUTED BY
+        </th>
+        <th
+          class="emotion-7"
+        >
+          MODIFIED DATE
+        </th>
+        <th
+          class="emotion-7"
+        >
+          MEMBERS
+        </th>
+        <th
+          class="emotion-7"
+        >
+          AUDIT REFERENCE
+        </th>
+      </tr>
+    </thead>
+    <tbody />
+  </table>
+</div>
+`;

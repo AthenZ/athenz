@@ -20,7 +20,6 @@ import Input from '../denali/Input';
 import InputDropdown from '../denali/InputDropdown';
 import RadioButtonGroup from '../denali/RadioButtonGroup';
 import { colors } from '../denali/styles';
-import RequestUtils from '../utils/RequestUtils';
 import Color from '../denali/Color';
 
 const SectionsDiv = styled.div`
@@ -121,7 +120,10 @@ export default class AddRuleFormForRole extends React.Component {
             );
         }
         return (
-            <SectionsDiv autoComplete={'off'} data-testid='add-rule-form'>
+            <SectionsDiv
+                autoComplete={'off'}
+                data-testid='add-rule-form-for-role'
+            >
                 {this.state.errorMessage && (
                     <ErrorDiv>
                         <Color name={'red600'}>{this.state.errorMessage}</Color>

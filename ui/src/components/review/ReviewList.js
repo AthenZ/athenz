@@ -63,7 +63,7 @@ export default class ReviewList extends React.Component {
         const { domain, role, roleDetails } = this.props;
 
         return (
-            <RolesSectionDiv data-testid='member-list'>
+            <RolesSectionDiv data-testid='review-list'>
                 <ReviewTable
                     domain={domain}
                     role={role}

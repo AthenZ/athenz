@@ -21,7 +21,7 @@ import { colors } from '../denali/styles';
 
 const LeftMarginSpan = styled.span`
     margin-right: 10px;
-    verticalAlign：bottom；
+    vertical-align: bottom;
 `;
 
 const TDStyled = styled.td`
@@ -122,7 +122,7 @@ export default class RoleGroup extends React.Component {
                 });
 
                 rows.push(
-                    <TrStyled key='aws-role-section'>
+                    <TrStyled key='aws-role-section' data-testid='role-group'>
                         <TDStyled align={left} colSpan='8'>
                             <StyledDiv>
                                 <LeftMarginSpan>
@@ -149,7 +149,7 @@ export default class RoleGroup extends React.Component {
                 );
             } else {
                 rows.push(
-                    <TrStyled key='aws-role-section'>
+                    <TrStyled key='aws-role-section' data-testid='role-group'>
                         <TDStyled align={left}>
                             <LeftMarginSpan>
                                 <Icon

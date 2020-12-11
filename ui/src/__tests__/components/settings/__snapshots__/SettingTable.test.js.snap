@@ -1,0 +1,561 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SettingTable should render setting table 1`] = `
+.emotion-1 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  height: 18px;
+  outline: 0;
+  position: relative;
+}
+
+.emotion-1 > input[type='checkbox'] {
+  box-sizing: border-box;
+  cursor: pointer;
+  position: absolute;
+  top: 0;
+  visibility: hidden;
+}
+
+.emotion-1 > input[type='checkbox'] + label {
+  box-sizing: border-box;
+  cursor: pointer;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  height: 18px;
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+.emotion-1 > input[type='checkbox'] + label .label-content {
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  margin-left: 6px;
+}
+
+@-moz-document url-prefix()  {
+  .emotion-1 > input[type='checkbox'] + label .label-content {
+    margin-top: 1px;
+  }
+}
+
+.emotion-1 > input[type='checkbox'] + label:before {
+  background: #d5d5d5;
+  border-radius: 9px;
+  box-sizing: border-box;
+  content: '';
+  cursor: pointer;
+  display: inline-block;
+  height: 4px;
+  line-height: 16px;
+  margin: 7px 0 0 0;
+  -webkit-transition: all 0.25s;
+  transition: all 0.25s;
+  vertical-align: top;
+  width: 34px;
+}
+
+.emotion-1 > input[type='checkbox'] + label::after {
+  background-color: #fff;
+  border: 2px solid rgba(54,151,242,0.5);
+  border-radius: 50%;
+  box-sizing: border-box;
+  content: ' ';
+  cursor: pointer;
+  display: block;
+  height: 18px;
+  left: 0;
+  position: absolute;
+  -webkit-transition: all 0.25s ease;
+  transition: all 0.25s ease;
+  top: 0;
+  width: 18px;
+}
+
+.emotion-1 > input[type='checkbox']:checked + label::before {
+  background-color: rgba(21,192,70,0.45);
+}
+
+.emotion-1 > input[type='checkbox']:checked + label::after {
+  background-color: #15c046;
+  border-color: #15c046;
+  left: 16px;
+}
+
+.emotion-1 > input[type='checkbox']:disabled + label {
+  color: #9a9a9a;
+  cursor: not-allowed;
+}
+
+.emotion-1 > input[type='checkbox']:disabled + label::before {
+  background-color: #e8e8e8;
+  cursor: not-allowed;
+}
+
+.emotion-1 > input[type='checkbox']:disabled + label::after {
+  border-color: #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-1 > input[type='checkbox']:checked:disabled + label::after {
+  background: #d5d5d5;
+}
+
+.emotion-11 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 100%;
+}
+
+.emotion-11 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-11.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
+}
+
+.emotion-11 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-11 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-11 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-11 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-11 input.focused,
+.emotion-11 input:active,
+.emotion-11 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-11 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-11 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-11.error input,
+.emotion-11.error input.focused,
+.emotion-11.error input:active,
+.emotion-11.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-11.error .message {
+  color: #d01111;
+}
+
+.emotion-38 {
+  border: none;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  font-family: Helvetica,Arial,sans-serif;
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 1;
+  margin: 5px;
+  outline: 0;
+  padding: 10px 24px;
+  text-align: center;
+  text-shadow: none;
+  text-transform: none;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  vertical-align: baseline;
+  white-space: nowrap;
+  background: transparent;
+  box-shadow: 0 0 0 1px #3697f2 inset;
+  color: #3697f2;
+}
+
+.emotion-38:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-38:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
+.emotion-38:disabled {
+  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
+}
+
+.emotion-38:hover:not(:disabled) {
+  background: #d7e2fd;
+}
+
+.emotion-41 {
+  width: 100%;
+  border-spacing: 0 20px;
+  display: table;
+  border-collapse: separate;
+  border-color: grey;
+}
+
+.emotion-4 {
+  box-sizing: border-box;
+  margin-top: 10px;
+  box-shadow: 0 1px 4px #d9d9d9;
+  border: 1px solid #fff;
+  -webkit-border-image: none;
+  border-image: none;
+  -webkit-border-image: initial;
+  border-image: initial;
+  height: 50px;
+}
+
+.emotion-0 {
+  text-align: left;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+.emotion-13 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+}
+
+.emotion-12 {
+  margin-top: 5px;
+}
+
+.emotion-40 {
+  padding-bottom: 20px;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+}
+
+<table
+  class="emotion-41"
+  data-testid="setting-table"
+>
+  <tr
+    class="emotion-4"
+    data-testid="setting-row"
+  >
+    <td
+      class="emotion-0"
+    >
+      Review
+    </td>
+    <td
+      class="emotion-0"
+    >
+      <div
+        class="emotion-1 denali-switch"
+        data-testid="switch-wrapper"
+      >
+        <input
+          checked=""
+          id="switch-settingreviewEnabled"
+          name="settingreviewEnabled"
+          type="checkbox"
+          value="true"
+        />
+        <label
+          for="switch-settingreviewEnabled"
+        />
+      </div>
+    </td>
+    <td
+      class="emotion-0"
+    >
+      Flag indicates whether or not role updates require another review and approval
+    </td>
+  </tr>
+  <tr
+    class="emotion-4"
+    data-testid="setting-row"
+  >
+    <td
+      class="emotion-0"
+    >
+      Self-Service
+    </td>
+    <td
+      class="emotion-0"
+    >
+      <div
+        class="emotion-1 denali-switch"
+        data-testid="switch-wrapper"
+      >
+        <input
+          id="switch-settingselfServe"
+          name="settingselfServe"
+          type="checkbox"
+          value="false"
+        />
+        <label
+          for="switch-settingselfServe"
+        />
+      </div>
+    </td>
+    <td
+      class="emotion-0"
+    >
+      Flag indicates whether or not role allows self service
+    </td>
+  </tr>
+  <tr
+    class="emotion-4"
+    data-testid="setting-row"
+  >
+    <td
+      class="emotion-0"
+    >
+      Member Expiry (Days)
+    </td>
+    <td
+      class="emotion-0"
+    >
+      <div
+        class="emotion-13"
+      >
+        <div
+          class="emotion-11 denali-input animated emotion-12"
+          data-testid="input-wrapper"
+        >
+          <input
+            autocomplete="off"
+            data-testid="input-node"
+            id="setting-memberExpiryDays"
+            pattern="[0-9]*"
+            placeholder="Days"
+            value="3"
+          />
+          <div
+            class="message"
+            data-testid="message"
+          />
+        </div>
+      </div>
+    </td>
+    <td
+      class="emotion-0"
+    >
+      All user members in the role will have specified max expiry days
+    </td>
+  </tr>
+  <tr
+    class="emotion-4"
+    data-testid="setting-row"
+  >
+    <td
+      class="emotion-0"
+    >
+      Service Expiry (Days)
+    </td>
+    <td
+      class="emotion-0"
+    >
+      <div
+        class="emotion-13"
+      >
+        <div
+          class="emotion-11 denali-input animated emotion-12"
+          data-testid="input-wrapper"
+        >
+          <input
+            autocomplete="off"
+            data-testid="input-node"
+            id="setting-serviceExpiryDays"
+            pattern="[0-9]*"
+            placeholder="Days"
+            value="3"
+          />
+          <div
+            class="message"
+            data-testid="message"
+          />
+        </div>
+      </div>
+    </td>
+    <td
+      class="emotion-0"
+    >
+      All services in the role will have specified max expiry days
+    </td>
+  </tr>
+  <tr
+    class="emotion-4"
+    data-testid="setting-row"
+  >
+    <td
+      class="emotion-0"
+    >
+      Token Expiry (Mins)
+    </td>
+    <td
+      class="emotion-0"
+    >
+      <div
+        class="emotion-13"
+      >
+        <div
+          class="emotion-11 denali-input animated emotion-12"
+          data-testid="input-wrapper"
+        >
+          <input
+            autocomplete="off"
+            data-testid="input-node"
+            id="setting-tokenExpiryMins"
+            pattern="[0-9]*"
+            placeholder="Mins"
+            value="15"
+          />
+          <div
+            class="message"
+            data-testid="message"
+          />
+        </div>
+      </div>
+    </td>
+    <td
+      class="emotion-0"
+    >
+      Tokens issued for this role will have specified max timeout in mins
+    </td>
+  </tr>
+  <tr
+    class="emotion-4"
+    data-testid="setting-row"
+  >
+    <td
+      class="emotion-0"
+    >
+      Certificate Expiry (Mins)
+    </td>
+    <td
+      class="emotion-0"
+    >
+      <div
+        class="emotion-13"
+      >
+        <div
+          class="emotion-11 denali-input animated emotion-12"
+          data-testid="input-wrapper"
+        >
+          <input
+            autocomplete="off"
+            data-testid="input-node"
+            id="setting-certExpiryMins"
+            pattern="[0-9]*"
+            placeholder="Mins"
+            value="15"
+          />
+          <div
+            class="message"
+            data-testid="message"
+          />
+        </div>
+      </div>
+    </td>
+    <td
+      class="emotion-0"
+    >
+      Certs issued for this role will have specified max timeout in mins
+    </td>
+  </tr>
+  <div
+    class="emotion-40"
+  >
+    <div>
+      <button
+        class="emotion-38 denali-button"
+      >
+        Submit
+      </button>
+      
+      <button
+        class="emotion-38 denali-button"
+      >
+        Reset
+      </button>
+    </div>
+  </div>
+</table>
+`;

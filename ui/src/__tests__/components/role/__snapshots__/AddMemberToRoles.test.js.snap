@@ -1,0 +1,7 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AddMemberToRoles should render 1`] = `
+<div
+  data-testid="add-member-to-roles-form"
+/>
+`;
