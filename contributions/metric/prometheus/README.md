@@ -1,7 +1,7 @@
 # Athenz metric for Prometheus
 Athenz Yahoo Server metrics interface implementation for Prometheus
 
-<!-- TOC -->
+<!-- TOC depthFrom:2 updateOnSave:true -->
 
 - [Usage](#usage)
     - [Build](#build)
