@@ -185,60 +185,7 @@ create_rel_link "${ZTS_PRIVATE_KEY_PATH}" "${ZTS_HELM_FILE}/secrets"
 
 <a id="markdown-5-deploy-zms-db" name="5-deploy-zms-db"></a>
 ### 5. Deploy ZMS DB
-
-```bash
-# helm repo add bitnami https://charts.bitnami.com/bitnami
-helm install dev-zms-db bitnami/mariadb \
-  --set "rootUser.password=${ZMS_DB_ROOT_PASS}" \
-  --set "db.password=${ZMS_DB_ADMIN_PASS}" \
-  --set-file "initdbScripts.zms_server\.sql=${BASE_DIR}/servers/zms/schema/zms_server.sql" \
-  -f "${BASE_DIR}/kubernetes/docs/sample/dev-zms-db-values.yaml"
-```
-
-```bash
-# run mysql client
-kubectl run dev-zms-db-mariadb-client --rm --tty -i --restart='Never' \
-  --image docker.io/bitnami/mariadb:10.3.22-debian-10-r60 \
-  --env "ZMS_DB_ROOT_PASS=${ZMS_DB_ROOT_PASS}" \
-  --env "ZMS_DB_ADMIN_PASS=${ZMS_DB_ADMIN_PASS}" \
-  --command -- bash
-# prepare test SQLs
-cat > /tmp/root_test.sql << 'EOF'
--- show users
-SELECT user, host FROM mysql.user;
-
--- show grants
-show grants;
-EOF
-cat > /tmp/zms_admin_test.sql << 'EOF'
--- show all tables
-select table_schema as database_name, table_name
-from information_schema.tables
-where table_type = 'BASE TABLE'
-and table_schema not in ('information_schema','mysql', 'performance_schema','sys')
-order by database_name, table_name;
-
--- show grants
-show grants;
-EOF
-# test as root user
-mysql -h dev-zms-db-mariadb.default.svc.cluster.local -uroot -p"${ZMS_DB_ROOT_PASS}" < /tmp/root_test.sql
-# test as zms_admin in master
-mysql -h dev-zms-db-mariadb.default.svc.cluster.local -uzms_admin -p"${ZMS_DB_ADMIN_PASS}" < /tmp/zms_admin_test.sql
-# test as zms_admin in slave
-mysql -h dev-zms-db-mariadb-slave.default.svc.cluster.local -uzms_admin -p"${ZMS_DB_ADMIN_PASS}" < /tmp/zms_admin_test.sql
-```
-
-```bash
-# debug
-kubectl logs dev-zms-db-mariadb-master-0
-kubectl describe pod dev-zms-db-mariadb-master-0
-```
-
-```bash
-# reset
-helm uninstall dev-zms-db
-```
+To build a database, please refer to [this page](https://yahoo.github.io/athenz/setup_zms_prod/#mysql-server).
 
 <a id="markdown-6-deploy-zms" name="6-deploy-zms"></a>
 ### 6. Deploy ZMS
