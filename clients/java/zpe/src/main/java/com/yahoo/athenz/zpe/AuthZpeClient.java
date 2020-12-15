@@ -92,17 +92,17 @@ public class AuthZpeClient {
         },
         DENY_ROLETOKEN_EXPIRED {
             public String toString() {
-                return "Access denied due to expired RoleToken";
+                return "Access denied due to expired Token";
             }
         },
         DENY_ROLETOKEN_INVALID {
             public String toString() {
-                return "Access denied due to invalid RoleToken";
+                return "Access denied due to invalid Token";
             }
         },
         DENY_DOMAIN_MISMATCH {
             public String toString() {
-                return "Access denied due to domain mismatch between Resource and RoleToken";
+                return "Access denied due to domain mismatch between Resource and Token";
             }
         },
         DENY_DOMAIN_NOT_FOUND {
