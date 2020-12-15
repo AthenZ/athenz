@@ -2,23 +2,22 @@
 
 <!-- TOC depthFrom:2 updateOnSave:true -->
 
-- [Deploy Athenz servers using Helm](#deploy-athenz-servers-using-helm)
-  - [NOTE](#note)
-  - [Prerequisites](#prerequisites)
-  - [Steps](#steps)
-    - [0. Set up ENV for the following steps](#0-set-up-env-for-the-following-steps)
-    - [1. Prepare the docker images](#1-prepare-the-docker-images)
-      - [1.1. build the Athenz docker images](#11-build-the-athenz-docker-images)
-      - [1.2. push the Athenz docker images to your own repo](#12-push-the-athenz-docker-images-to-your-own-repo)
-    - [2. Define trust of your deployment](#2-define-trust-of-your-deployment)
-    - [3. Prepare ZMS credentials](#3-prepare-zms-credentials)
-    - [4. Prepare ZTS credentials](#4-prepare-zts-credentials)
-    - [5. Setup ZMS DB](#5-setup-zms-db)
-    - [6. Deploy ZMS](#6-deploy-zms)
-    - [7. Register ZTS service's key to ZMS](#7-register-zts-services-key-to-zms)
-    - [8. Generate athenz_conf.json](#8-generate-athenz_confjson)
-    - [9. Setup ZTS DB](#9-setup-zts-db)
-    - [10. Deploy ZTS](#10-deploy-zts)
+- [NOTE](#note)
+- [Prerequisites](#prerequisites)
+- [Steps](#steps)
+  - [0. Set up ENV for the following steps](#0-set-up-env-for-the-following-steps)
+  - [1. Prepare the docker images](#1-prepare-the-docker-images)
+    - [1.1. build the Athenz docker images](#11-build-the-athenz-docker-images)
+    - [1.2. push the Athenz docker images to your own repo](#12-push-the-athenz-docker-images-to-your-own-repo)
+  - [2. Define trust of your deployment](#2-define-trust-of-your-deployment)
+  - [3. Prepare ZMS credentials](#3-prepare-zms-credentials)
+  - [4. Prepare ZTS credentials](#4-prepare-zts-credentials)
+  - [5. Setup ZMS DB](#5-setup-zms-db)
+  - [6. Deploy ZMS](#6-deploy-zms)
+  - [7. Register ZTS service's key to ZMS](#7-register-zts-services-key-to-zms)
+  - [8. Generate athenz_conf.json](#8-generate-athenz_confjson)
+  - [9. Setup ZTS DB](#9-setup-zts-db)
+  - [10. Deploy ZTS](#10-deploy-zts)
 
 <!-- /TOC -->
 
@@ -77,11 +76,6 @@ export ZTS_HOST="${ZTS_RELEASE_NAME}-athenz-zts.default.svc.cluster.local"
 export ZMS_DB_ADMIN_PASS=<your-password>
 export ZMS_RODB_ADMIN_PASS=<your-password>
 export ZTS_DB_ADMIN_PASS=<your-password>
-
-export ZMS_PRIVATE_KEY_PATH="${ZMS_HELM_FILE}/secrets/zms_private.pem"
-export ZMS_PUBLIC_KEY_PATH="${ZMS_HELM_FILE}/secrets/zms_public.pem"
-export ZTS_PRIVATE_KEY_PATH="${ZTS_HELM_FILE}/secrets/zts_private.pem"
-export ZTS_PUBLIC_KEY_PATH="${ZTS_HELM_FILE}/secrets/zts_public.pem"
 ```
 
 <a id="markdown-1-prepare-the-docker-images" name="1-prepare-the-docker-images"></a>
@@ -192,6 +186,7 @@ create_rel_link "${ZTS_PRIVATE_KEY_PATH}" "${ZTS_HELM_FILE}/secrets"
 
 <a id="markdown-5-setup-zms-db" name="5-setup-zms-db"></a>
 ### 5. Setup ZMS DB
+
 To setup a database, please refer to [this page](https://yahoo.github.io/athenz/setup_zms_prod/#mysql-server).
 
 ```bash
@@ -206,6 +201,16 @@ mysql -u zms_admin
 # mysql> show tables in zms_server;
 ```
 
+Update corresponding ZMS properties
+
+```bash
+vi "${WORKSPACE}/athenz-zms/files/conf/zms.properties"
+
+# update the following property
+# athenz.zms.jdbc_store=jdbc:mysql://<your_db_host>:3306/zms_server
+# athenz.zms.jdbc_ro_store=jdbc:mysql://<your_rodb_host>:3306/zms_server
+```
+
 <a id="markdown-6-deploy-zms" name="6-deploy-zms"></a>
 ### 6. Deploy ZMS
 
@@ -216,6 +221,9 @@ helm pull athenz-zms -d "${WORKSPACE}" --untar \
 
 # create symbolic links
 ln -sf "${ZMS_HELM_FILE}/secrets" "${WORKSPACE}/athenz-zms/files/"
+
+# confirm your docker image repository, you may need to update this value to your own repository
+grep -B 1 -A 6 'registry: docker.io' "${BASE_DIR}/kubernetes/docs/sample/dev-zms-values.yaml"
 
 # deploy ZMS
 # helm upgrade --install "${ZMS_RELEASE_NAME}" "${BASE_DIR}/kubernetes/charts/athenz-zms" \
@@ -303,7 +311,7 @@ admin_curl --request PUT -D - --url "${ZMS_URL}/zms/v1/domain/sys.auth/service/z
 admin_curl --request GET --url "${ZMS_URL}/zms/v1/domain/sys.auth/service/zms" | jq
 ```
 
-<a id="markdown-8-download-athenz_confjson" name="8-download-athenz_confjson"></a>
+<a id="markdown-8-generate-athenz_confjson" name="8-generate-athenz_confjson"></a>
 ### 8. Generate athenz_conf.json
 Download athenz-utils-${ATHENZ_TAG}-bin.tar.gz [this page](https://bintray.com/yahoo/maven/athenz-utils/_latestVersion#files).
 ```bash
@@ -341,6 +349,15 @@ mysql -u zts_admin
 # mysql> show tables in zts_store;
 ```
 
+Update corresponding ZTS properties
+
+```bash
+vi "${WORKSPACE}/athenz-zts/files/conf/zts.properties"
+
+# update the following property
+# athenz.zts.cert_jdbc_store=jdbc:mysql://<your_db_host>:3306/zts_store
+```
+
 <a id="markdown-10-deploy-zts" name="10-deploy-zts"></a>
 ### 10. Deploy ZTS
 
@@ -352,6 +369,9 @@ helm pull athenz-zts -d "${WORKSPACE}" --untar \
 # create symbolic links
 ln -sf "${ZTS_HELM_FILE}/conf/athenz_conf.json" "${WORKSPACE}/athenz-zts/files/conf/"
 ln -sf "${ZTS_HELM_FILE}/secrets" "${WORKSPACE}/athenz-zts/files/"
+
+# confirm your docker image repository, you may need to update this value to your own repository
+grep -B 1 -A 6 'registry: docker.io' "${BASE_DIR}/kubernetes/docs/sample/dev-zts-values.yaml"
 
 # deploy ZTS
 # helm upgrade --install "${ZTS_RELEASE_NAME}" "${BASE_DIR}/kubernetes/charts/athenz-zts" \
