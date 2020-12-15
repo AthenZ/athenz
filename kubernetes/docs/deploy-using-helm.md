@@ -1,26 +1,23 @@
-<a id="markdown-deploy-athenz-servers-using-helm" name="deploy-athenz-servers-using-helm"></a>
 # Deploy Athenz servers using Helm
 
-<!-- TOC -->
+<!-- TOC depthFrom:2 updateOnSave:true -->
 
-- [Deploy Athenz servers using Helm](#deploy-athenz-servers-using-helm)
-  - [NOTE](#note)
-  - [Prerequisites](#prerequisites)
-  - [Steps](#steps)
-    - [0. Set up ENV for the following steps](#0-set-up-env-for-the-following-steps)
-    - [1. Prepare the docker images](#1-prepare-the-docker-images)
-      - [1.1. build the Athenz docker images](#11-build-the-athenz-docker-images)
-      - [1.2. push the Athenz docker images to your own repo](#12-push-the-athenz-docker-images-to-your-own-repo)
-    - [2. Define trust of your deployment](#2-define-trust-of-your-deployment)
-    - [3. Prepare ZMS credentials](#3-prepare-zms-credentials)
-    - [4. Prepare ZTS credentials](#4-prepare-zts-credentials)
-    - [5. Deploy ZMS DB](#5-deploy-zms-db)
-    - [6. Deploy ZMS](#6-deploy-zms)
-    - [7. Register ZTS service's key to ZMS](#7-register-zts-services-key-to-zms)
-    - [8. Download athenz_conf.json](#8-download-athenz_confjson)
-    - [9. Deploy ZTS DB](#9-deploy-zts-db)
-    - [10. Deploy ZTS](#10-deploy-zts)
-  - [Metrics](#metrics)
+- [NOTE](#note)
+- [Prerequisites](#prerequisites)
+- [Steps](#steps)
+  - [0. Set up ENV for the following steps](#0-set-up-env-for-the-following-steps)
+  - [1. Prepare the docker images](#1-prepare-the-docker-images)
+    - [1.1. build the Athenz docker images](#11-build-the-athenz-docker-images)
+    - [1.2. push the Athenz docker images to your own repo](#12-push-the-athenz-docker-images-to-your-own-repo)
+  - [2. Define trust of your deployment](#2-define-trust-of-your-deployment)
+  - [3. Prepare ZMS credentials](#3-prepare-zms-credentials)
+  - [4. Prepare ZTS credentials](#4-prepare-zts-credentials)
+  - [5. Setup ZMS DB](#5-setup-zms-db)
+  - [6. Deploy ZMS](#6-deploy-zms)
+  - [7. Register ZTS service's key to ZMS](#7-register-zts-services-key-to-zms)
+  - [8. Download athenz_conf.json](#8-download-athenz_confjson)
+  - [9. Setup ZTS DB](#9-setup-zts-db)
+  - [10. Deploy ZTS](#10-deploy-zts)
 
 <!-- /TOC -->
 
@@ -183,9 +180,21 @@ create_rel_link "${DEV_ZMS_CLIENT_CERT_KEY_PATH}" "${ZTS_HELM_FILE}/secrets/zms-
 create_rel_link "${ZTS_PRIVATE_KEY_PATH}" "${ZTS_HELM_FILE}/secrets"
 ```
 
-<a id="markdown-5-deploy-zms-db" name="5-deploy-zms-db"></a>
+<a id="markdown-5-setup-zms-db" name="5-setup-zms-db"></a>
 ### 5. Setup ZMS DB
 To setup a database, please refer to [this page](https://yahoo.github.io/athenz/setup_zms_prod/#mysql-server).
+
+```bash
+# verify DB setup
+
+mysql -u root
+# mysql> show grants;
+# mysql> select user, host from mysql.user;
+
+mysql -u zms_admin
+# mysql> show grants;
+# mysql> show tables in zms_server;
+```
 
 <a id="markdown-6-deploy-zms" name="6-deploy-zms"></a>
 ### 6. Deploy ZMS
@@ -295,7 +304,7 @@ sed -i '' "s,${ZMS_URL},https://${ZMS_HOST}:4443," "${ZTS_HELM_FILE}/conf/athenz
 less "${ZTS_HELM_FILE}/conf/athenz_conf.json"
 ```
 
-<a id="markdown-9-deploy-zts-db" name="9-deploy-zts-db"></a>
+<a id="markdown-9-setup-zts-db" name="9-setup-zts-db"></a>
 ### 9. Setup ZTS DB
 To setup a database, please refer to [this page](https://yahoo.github.io/athenz/setup_zms_prod/#mysql-server).  The differences between ZMS and ZTS are:
 - Schema SQL file: [servers/zts/schema/zts_server.sql]()
@@ -303,57 +312,15 @@ To setup a database, please refer to [this page](https://yahoo.github.io/athenz/
 - Database user: `zts_admin`
 
 ```bash
-# helm repo add bitnami https://charts.bitnami.com/bitnami
-helm install dev-zts-db bitnami/mariadb \
-  --set "rootUser.password=${ZTS_DB_ROOT_PASS}" \
-  --set "db.password=${ZTS_DB_ADMIN_PASS}" \
-  --set-file "initdbScripts.zts_server\.sql=${BASE_DIR}/servers/zts/schema/zts_server.sql" \
-  -f "${BASE_DIR}/kubernetes/docs/sample/dev-zts-db-values.yaml"
-```
+# verify DB setup
 
-```bash
-# run mysql client
-kubectl run dev-zts-db-mariadb-client --rm --tty -i --restart='Never' \
-  --image docker.io/bitnami/mariadb:10.3.22-debian-10-r60 \
-  --env "ZTS_DB_ROOT_PASS=${ZTS_DB_ROOT_PASS}" \
-  --env "ZTS_DB_ADMIN_PASS=${ZTS_DB_ADMIN_PASS}" \
-  --command -- bash
-# prepare test SQLs
-cat > /tmp/root_test.sql << 'EOF'
--- show users
-SELECT user, host FROM mysql.user;
+mysql -u root
+# mysql> show grants;
+# mysql> select user, host from mysql.user;
 
--- show grants
-show grants;
-EOF
-cat > /tmp/zts_admin_test.sql << 'EOF'
--- show all tables
-select table_schema as database_name, table_name
-from information_schema.tables
-where table_type = 'BASE TABLE'
-and table_schema not in ('information_schema','mysql', 'performance_schema','sys')
-order by database_name, table_name;
-
--- show grants
-show grants;
-EOF
-# test as root user
-mysql -h dev-zts-db-mariadb.default.svc.cluster.local -uroot -p"${ZTS_DB_ROOT_PASS}" < /tmp/root_test.sql
-# test as zts_admin in master
-mysql -h dev-zts-db-mariadb.default.svc.cluster.local -uzts_admin -p"${ZTS_DB_ADMIN_PASS}" < /tmp/zts_admin_test.sql
-# test as zts_admin in slave
-mysql -h dev-zts-db-mariadb-slave.default.svc.cluster.local -uzts_admin -p"${ZTS_DB_ADMIN_PASS}" < /tmp/zts_admin_test.sql
-```
-
-```bash
-# debug
-kubectl logs dev-zts-db-mariadb-master-0
-kubectl describe pod dev-zts-db-mariadb-master-0
-```
-
-```bash
-# reset
-helm uninstall dev-zts-db
+mysql -u zts_admin
+# mysql> show grants;
+# mysql> show tables in zts_store;
 ```
 
 <a id="markdown-10-deploy-zts" name="10-deploy-zts"></a>
@@ -410,4 +377,3 @@ less /opt/athenz/zts/logs/zts_server/server.log
 rm -rf "${WORKSPACE}/athenz-zts"*
 helm uninstall "${ZTS_RELEASE_NAME}"
 ```
-
