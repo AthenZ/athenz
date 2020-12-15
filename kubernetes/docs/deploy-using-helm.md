@@ -184,8 +184,8 @@ create_rel_link "${ZTS_PRIVATE_KEY_PATH}" "${ZTS_HELM_FILE}/secrets"
 ```
 
 <a id="markdown-5-deploy-zms-db" name="5-deploy-zms-db"></a>
-### 5. Deploy ZMS DB
-To build a database, please refer to [this page](https://yahoo.github.io/athenz/setup_zms_prod/#mysql-server).
+### 5. Setup ZMS DB
+To setup a database, please refer to [this page](https://yahoo.github.io/athenz/setup_zms_prod/#mysql-server).
 
 <a id="markdown-6-deploy-zms" name="6-deploy-zms"></a>
 ### 6. Deploy ZMS
@@ -296,7 +296,11 @@ less "${ZTS_HELM_FILE}/conf/athenz_conf.json"
 ```
 
 <a id="markdown-9-deploy-zts-db" name="9-deploy-zts-db"></a>
-### 9. Deploy ZTS DB
+### 9. Setup ZTS DB
+To setup a database, please refer to [this page](https://yahoo.github.io/athenz/setup_zms_prod/#mysql-server).  The differences between ZMS and ZTS are:
+- Schema SQL file: [servers/zts/schema/zts_server.sql]()
+- Database name: `zts_store`
+- Database user: `zts_admin`
 
 ```bash
 # helm repo add bitnami https://charts.bitnami.com/bitnami
