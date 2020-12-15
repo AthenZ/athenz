@@ -2,22 +2,23 @@
 
 <!-- TOC depthFrom:2 updateOnSave:true -->
 
-- [NOTE](#note)
-- [Prerequisites](#prerequisites)
-- [Steps](#steps)
-  - [0. Set up ENV for the following steps](#0-set-up-env-for-the-following-steps)
-  - [1. Prepare the docker images](#1-prepare-the-docker-images)
-    - [1.1. build the Athenz docker images](#11-build-the-athenz-docker-images)
-    - [1.2. push the Athenz docker images to your own repo](#12-push-the-athenz-docker-images-to-your-own-repo)
-  - [2. Define trust of your deployment](#2-define-trust-of-your-deployment)
-  - [3. Prepare ZMS credentials](#3-prepare-zms-credentials)
-  - [4. Prepare ZTS credentials](#4-prepare-zts-credentials)
-  - [5. Setup ZMS DB](#5-setup-zms-db)
-  - [6. Deploy ZMS](#6-deploy-zms)
-  - [7. Register ZTS service's key to ZMS](#7-register-zts-services-key-to-zms)
-  - [8. Generate athenz_conf.json](#8-generate-athenz_confjson)
-  - [9. Setup ZTS DB](#9-setup-zts-db)
-  - [10. Deploy ZTS](#10-deploy-zts)
+- [Deploy Athenz servers using Helm](#deploy-athenz-servers-using-helm)
+  - [NOTE](#note)
+  - [Prerequisites](#prerequisites)
+  - [Steps](#steps)
+    - [0. Set up ENV for the following steps](#0-set-up-env-for-the-following-steps)
+    - [1. Prepare the docker images](#1-prepare-the-docker-images)
+      - [1.1. build the Athenz docker images](#11-build-the-athenz-docker-images)
+      - [1.2. push the Athenz docker images to your own repo](#12-push-the-athenz-docker-images-to-your-own-repo)
+    - [2. Define trust of your deployment](#2-define-trust-of-your-deployment)
+    - [3. Prepare ZMS credentials](#3-prepare-zms-credentials)
+    - [4. Prepare ZTS credentials](#4-prepare-zts-credentials)
+    - [5. Setup ZMS DB](#5-setup-zms-db)
+    - [6. Deploy ZMS](#6-deploy-zms)
+    - [7. Register ZTS service's key to ZMS](#7-register-zts-services-key-to-zms)
+    - [8. Generate athenz_conf.json](#8-generate-athenz_confjson)
+    - [9. Setup ZTS DB](#9-setup-zts-db)
+    - [10. Deploy ZTS](#10-deploy-zts)
 
 <!-- /TOC -->
 
@@ -188,6 +189,9 @@ create_rel_link "${ZTS_PRIVATE_KEY_PATH}" "${ZTS_HELM_FILE}/secrets"
 ### 5. Setup ZMS DB
 
 To setup a database, please refer to [this page](https://yahoo.github.io/athenz/setup_zms_prod/#mysql-server).
+- Schema SQL file: `curl "https://raw.githubusercontent.com/yahoo/athenz/v${ATHENZ_TAG}/servers/zms/schema/zms_server.sql"`
+- Database name: `zms_server`
+- Database user: `zms_admin`
 
 ```bash
 # verify DB setup
@@ -332,8 +336,8 @@ less "${ZTS_HELM_FILE}/conf/athenz_conf.json"
 
 <a id="markdown-9-setup-zts-db" name="9-setup-zts-db"></a>
 ### 9. Setup ZTS DB
-To setup a database, please refer to [this page](https://yahoo.github.io/athenz/setup_zms_prod/#mysql-server).  The differences between ZMS and ZTS are:
-- Schema SQL file: [servers/zts/schema/zts_server.sql](https://github.com/yahoo/athenz/blob/v1.9.26/servers/zts/schema/zts_server.sql)
+To setup a database, please refer to [this page](https://yahoo.github.io/athenz/setup_zms_prod/#mysql-server). The differences between ZMS and ZTS are:
+- Schema SQL file: `curl "https://raw.githubusercontent.com/yahoo/athenz/v${ATHENZ_TAG}/servers/zts/schema/zts_server.sql"`
 - Database name: `zts_store`
 - Database user: `zts_admin`
 
