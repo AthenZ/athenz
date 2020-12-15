@@ -65,7 +65,7 @@ alias admin_curl="curl --silent --fail --show-error --cacert ${DEV_ATHENZ_CA_PAT
 ```bash
 # variables
 export DEV_DOMAIN_ADMIN='user.github-1234567'
-export HOST_EXTERNAL_IP='localhost'
+export HOST_EXTERNAL_IP='127.0.0.1'
 export ZMS_RELEASE_NAME='dev-zms'
 export ZTS_RELEASE_NAME='dev-zts'
 
