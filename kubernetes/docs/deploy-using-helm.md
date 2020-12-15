@@ -217,7 +217,7 @@ vi "${WORKSPACE}/athenz-zms/files/conf/zms.properties"
 ```bash
 # download chart
 helm pull athenz-zms -d "${WORKSPACE}" --untar \
-  --repo https://raw.githubusercontent.com/yahoo/athenz/v1.9.26/kubernetes/charts
+  --repo "https://raw.githubusercontent.com/yahoo/athenz/v${ATHENZ_TAG}/kubernetes/charts"
 
 # create symbolic links
 ln -sf "${ZMS_HELM_FILE}/secrets" "${WORKSPACE}/athenz-zms/files/"
@@ -364,7 +364,7 @@ vi "${WORKSPACE}/athenz-zts/files/conf/zts.properties"
 ```bash
 # download chart
 helm pull athenz-zts -d "${WORKSPACE}" --untar \
-  --repo https://raw.githubusercontent.com/yahoo/athenz/v1.9.26/kubernetes/charts
+  --repo "https://raw.githubusercontent.com/yahoo/athenz/v${ATHENZ_TAG}/kubernetes/charts"
 
 # create symbolic links
 ln -sf "${ZTS_HELM_FILE}/conf/athenz_conf.json" "${WORKSPACE}/athenz-zts/files/conf/"
