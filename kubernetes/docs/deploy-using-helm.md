@@ -407,26 +407,3 @@ rm -rf "${WORKSPACE}/athenz-zts"*
 helm uninstall "${ZTS_RELEASE_NAME}"
 ```
 
-<a id="markdown-metrics" name="metrics"></a>
-## Metrics
-
-ZMS and ZTS report Prometheus by default. You can deploy Prometheus and query their metrics as below.
-
-```bash
-helm repo add stable https://kubernetes-charts.storage.googleapis.com/
-helm repo update
-
-helm install prometheus stable/prometheus \
-  --set 'alertmanager.persistentVolume.enabled=false' \
-  --set 'pushgateway.persistentVolume.enabled=false' \
-  --set 'server.persistentVolume.enabled=false'
-
-kubectl get service
-
-export POD_NAME=$(kubectl get pods --namespace default -l "app=prometheus,component=server" -o jsonpath="{.items[0].metadata.name}")
-kubectl --namespace default port-forward $POD_NAME 9090
-
-open 127.0.0.1:9090
-
-helm delete prometheus
-```
