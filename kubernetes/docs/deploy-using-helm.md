@@ -65,7 +65,7 @@ alias admin_curl="curl --silent --fail --show-error --cacert ${DEV_ATHENZ_CA_PAT
 ```bash
 # variables
 export DEV_DOMAIN_ADMIN='user.github-1234567'
-export HOST_EXTERNAL_IP='172.21.97.103'
+export HOST_EXTERNAL_IP='localhost'
 export ZMS_RELEASE_NAME='dev-zms'
 export ZTS_RELEASE_NAME='dev-zts'
 
@@ -73,6 +73,15 @@ export ZMS_URL="https://${HOST_EXTERNAL_IP}:30007"
 export ZTS_URL="https://${HOST_EXTERNAL_IP}:30008"
 export ZMS_HOST="${ZMS_RELEASE_NAME}-athenz-zms.default.svc.cluster.local"
 export ZTS_HOST="${ZTS_RELEASE_NAME}-athenz-zts.default.svc.cluster.local"
+
+export ZMS_DB_ADMIN_PASS=<your-password>
+export ZMS_RODB_ADMIN_PASS=<your-password>
+export ZTS_DB_ADMIN_PASS=<your-password>
+
+export ZMS_PRIVATE_KEY_PATH="${ZMS_HELM_FILE}/secrets/zms_private.pem"
+export ZMS_PUBLIC_KEY_PATH="${ZMS_HELM_FILE}/secrets/zms_public.pem"
+export ZTS_PRIVATE_KEY_PATH="${ZTS_HELM_FILE}/secrets/zts_private.pem"
+export ZTS_PUBLIC_KEY_PATH="${ZTS_HELM_FILE}/secrets/zts_public.pem"
 ```
 
 <a id="markdown-1-prepare-the-docker-images" name="1-prepare-the-docker-images"></a>
@@ -203,7 +212,7 @@ mysql -u zms_admin
 ```bash
 # download chart
 helm pull athenz-zms -d "${WORKSPACE}" --untar \
-  --repo https://windzcuhk.github.io/athenz/kubernetes/charts
+  --repo https://raw.githubusercontent.com/yahoo/athenz/v1.9.26/kubernetes/charts
 
 # create symbolic links
 ln -sf "${ZMS_HELM_FILE}/secrets" "${WORKSPACE}/athenz-zms/files/"
@@ -216,6 +225,11 @@ helm upgrade --install "${ZMS_RELEASE_NAME}" "${WORKSPACE}/athenz-zms" \
   --set "password.keystore=${ZMS_KEYSTORE_PASS}" \
   --set "password.truststore=${ZMS_TRUSTSTORE_PASS}" \
   -f "${BASE_DIR}/kubernetes/docs/sample/dev-zms-values.yaml"
+```
+
+```bash
+# use kubectl to forward request to ZMS
+while true; do kubectl port-forward --address 0.0.0.0 "$(kubectl get pod -l app=athenz-zms -o jsonpath='{.items[0].metadata.name}')" 8000:4443; done
 ```
 
 ```bash
@@ -333,7 +347,7 @@ mysql -u zts_admin
 ```bash
 # download chart
 helm pull athenz-zts -d "${WORKSPACE}" --untar \
-  --repo https://windzcuhk.github.io/athenz/kubernetes/charts
+  --repo https://raw.githubusercontent.com/yahoo/athenz/v1.9.26/kubernetes/charts
 
 # create symbolic links
 ln -sf "${ZTS_HELM_FILE}/conf/athenz_conf.json" "${WORKSPACE}/athenz-zts/files/conf/"
@@ -350,6 +364,11 @@ helm upgrade --install "${ZTS_RELEASE_NAME}" "${WORKSPACE}/athenz-zts" \
   --set "password.zmsClientKeystore=${ZMS_CLIENT_KEYSTORE_PASS}" \
   --set "password.zmsClientTruststore=${ZMS_CLIENT_TRUSTSTORE_PASS}" \
   -f "${BASE_DIR}/kubernetes/docs/sample/dev-zts-values.yaml"
+```
+
+```bash
+# use kubectl to forward request to ZTS
+while true; do kubectl port-forward --address 0.0.0.0 "$(kubectl get pod -l app=athenz-zts -o jsonpath='{.items[0].metadata.name}')" 8001:8443; done
 ```
 
 ```bash
