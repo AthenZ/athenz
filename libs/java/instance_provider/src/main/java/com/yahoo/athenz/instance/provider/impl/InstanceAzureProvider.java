@@ -42,6 +42,7 @@ public class InstanceAzureProvider implements InstanceProvider {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InstanceAzureProvider.class);
 
+    static final String AZURE_PROP_PROVIDER                = "athenz.zts.azure_provider";
     static final String AZURE_PROP_ZTS_RESOURCE_URI        = "athenz.zts.azure_resource_uri";
     static final String AZURE_PROP_DNS_SUFFIX              = "athenz.zts.azure_dns_suffix";
     static final String AZURE_PROP_OPENID_CONFIG_URI       = "athenz.zts.azure_openid_config_uri";
@@ -58,6 +59,7 @@ public class InstanceAzureProvider implements InstanceProvider {
 
     static final String AZURE_OPENID_CONFIG_URI = "https://login.microsoftonline.com/common/.well-known/openid-configuration";
 
+    String azureProvider = null;
     String dnsSuffix = null;
     String azureJwksUri = null;
     HttpDriver httpDriver = null;
@@ -78,6 +80,7 @@ public class InstanceAzureProvider implements InstanceProvider {
     public void initialize(String provider, String providerEndpoint, SSLContext sslContext,
             KeyStore keyStore) {
 
+        azureProvider = System.getProperty(AZURE_PROP_PROVIDER);
         azureMgmtBaseUri = System.getProperty(AZURE_PROP_MGMT_BASE_URI, "https://management.azure.com");
         azureMetaBaseUri = System.getProperty(AZURE_PROP_META_BASE_URI, "http://169.254.169.254");
 
@@ -278,7 +281,8 @@ public class InstanceAzureProvider implements InstanceProvider {
             return false;
         }
 
-        final String vmProvider = "athenz.azure." + vmDetails.getLocation();
+        final String vmProvider = StringUtil.isEmpty(azureProvider) ?
+                "athenz.azure." + vmDetails.getLocation() : azureProvider;
         if (!provider.equals(vmProvider)) {
             LOGGER.error("Azure Provider {}/{}", provider, vmProvider);
             return false;
