@@ -59,7 +59,7 @@ func TestOptionsNoConfig(t *testing.T) {
 		Document:          nil,
 	}
 
-	opts, e := NewOptions([]byte{}, &identityDocument, "/tmp", "1.0.0", "", "", "zts-azure-domain", "US", os.Stdout)
+	opts, e := NewOptions([]byte{}, &identityDocument, "/tmp", "1.0.0", "", "", "zts-azure-domain", "US", "azure.provider", os.Stdout)
 	require.Nilf(t, e, "error should be empty, error: %v", e)
 	require.NotNil(t, opts, "should be able to get Options")
 
@@ -105,7 +105,7 @@ func TestOptionsWithConfig(t *testing.T) {
 		Document:          nil,
 	}
 
-	opts, e := NewOptions([]byte(config), &identityDocument, "/tmp", "1.0.0", "", "", "zts-azure-domain", "US", os.Stdout)
+	opts, e := NewOptions([]byte(config), &identityDocument, "/tmp", "1.0.0", "", "", "zts-azure-domain", "US", "azure.provider", os.Stdout)
 	require.Nilf(t, e, "error should be empty, error: %v", e)
 	require.NotNil(t, opts, "should be able to get Options")
 
@@ -150,7 +150,7 @@ func TestOptionsNoService(t *testing.T) {
 		Document:          nil,
 	}
 
-	_, e := NewOptions([]byte(config), &identityDocument, "/tmp", "1.0.0", "", "", "zts-azure-domain", "US", os.Stdout)
+	_, e := NewOptions([]byte(config), &identityDocument, "/tmp", "1.0.0", "", "", "zts-azure-domain", "US", "azure.provider", os.Stdout)
 	require.NotNilf(t, e, "error should be thrown, error: %v", e)
 
 	config = `{
@@ -168,7 +168,7 @@ func TestOptionsNoService(t *testing.T) {
   		]
 	}`
 
-	_, e = NewOptions([]byte(config), &identityDocument, "/tmp", "1.0.0", "", "", "zts-azure-domain", "US", os.Stdout)
+	_, e = NewOptions([]byte(config), &identityDocument, "/tmp", "1.0.0", "", "", "zts-azure-domain", "US", "azure.provider", os.Stdout)
 	require.NotNilf(t, e, "error should be thrown, error: %v", e)
 }
 
@@ -199,7 +199,7 @@ func TestOptionsNoServices(t *testing.T) {
 		Document:          nil,
 	}
 
-	opts, e := NewOptions([]byte(config), &identityDocument, "/tmp", "1.0.0", "", "", "zts-azure-domain", "US", os.Stdout)
+	opts, e := NewOptions([]byte(config), &identityDocument, "/tmp", "1.0.0", "", "", "zts-azure-domain", "US", "azure.provider", os.Stdout)
 	require.Nilf(t, e, "error should not be thrown, error: %v", e)
 
 	// Make sure one service is set
