@@ -155,7 +155,7 @@ func initFileConfig(bytes []byte, identityDocument *attestation.IdentityDocument
 
 // NewOptions takes in sia_config bytes and returns a pointer to Options after parsing and initializing the defaults
 // It uses identity document defaults when sia_config is empty or non-parsable. It populates "services" array
-func NewOptions(bytes []byte, identityDocument *attestation.IdentityDocument, siaDir, version, ztsCaCert, ztsServerName, ztsAzureDomain, countryName string, sysLogger io.Writer) (*Options, error) {
+func NewOptions(bytes []byte, identityDocument *attestation.IdentityDocument, siaDir, version, ztsCaCert, ztsServerName, ztsAzureDomain, countryName, azureProvider string, sysLogger io.Writer) (*Options, error) {
 	// Parse config bytes first, and if that fails, load values from Identity document
 	config, account, err := initFileConfig(bytes, identityDocument)
 	if err != nil {
@@ -224,7 +224,7 @@ func NewOptions(bytes []byte, identityDocument *attestation.IdentityDocument, si
 	}
 
 	return &Options{
-		Provider:         account.Provider,
+		Provider:         azureProvider,
 		Name:             account.Name,
 		User:             account.User,
 		Group:            account.Group,
