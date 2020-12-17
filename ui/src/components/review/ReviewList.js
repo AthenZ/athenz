@@ -15,6 +15,7 @@
  */
 import React from 'react';
 import styled from '@emotion/styled';
+import GroupReviewTable from '../group/GroupReviewTable';
 import ReviewTable from './ReviewTable';
 import Alert from '../denali/Alert';
 
@@ -37,7 +38,7 @@ export default class ReviewList extends React.Component {
 
     componentDidUpdate = (prevProps) => {
         if (
-            prevProps.role !== this.props.role ||
+            prevProps.collection !== this.props.collection ||
             prevProps.domain !== this.props.domain
         ) {
             this.setState({
@@ -60,21 +61,36 @@ export default class ReviewList extends React.Component {
     }
 
     render() {
-        const { domain, role, roleDetails } = this.props;
+        const { domain, collection, collectionDetails } = this.props;
 
         return (
             <RolesSectionDiv data-testid='review-list'>
-                <ReviewTable
-                    domain={domain}
-                    role={role}
-                    roleDetails={roleDetails}
-                    members={this.state.members}
-                    api={this.api}
-                    _csrf={this.props._csrf}
-                    onUpdateSuccess={this.submitSuccess}
-                    justificationRequired={this.props.isDomainAuditEnabled}
-                    userProfileLink={this.props.userProfileLink}
-                />
+                {this.props.category === 'group' && (
+                    <GroupReviewTable
+                        domain={domain}
+                        group={collection}
+                        groupDetails={collectionDetails}
+                        members={this.state.members}
+                        api={this.api}
+                        _csrf={this.props._csrf}
+                        onUpdateSuccess={this.submitSuccess}
+                        justificationRequired={this.props.isDomainAuditEnabled}
+                        userProfileLink={this.props.userProfileLink}
+                    />
+                )}
+                {this.props.category === 'role' && (
+                    <ReviewTable
+                        domain={domain}
+                        role={collection}
+                        roleDetails={collectionDetails}
+                        members={this.state.members}
+                        api={this.api}
+                        _csrf={this.props._csrf}
+                        onUpdateSuccess={this.submitSuccess}
+                        justificationRequired={this.props.isDomainAuditEnabled}
+                        userProfileLink={this.props.userProfileLink}
+                    />
+                )}
                 {this.state.showSuccess ? (
                     <Alert
                         isOpen={this.state.showSuccess}

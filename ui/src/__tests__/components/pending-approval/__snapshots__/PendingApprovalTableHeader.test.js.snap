@@ -14,39 +14,8 @@ exports[`PendingApprovalTableHeader should render 1`] = `
   width: 1%;
 }
 
-.emotion-2 {
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  box-sizing: border-box;
-  display: inline-block;
-  height: 16px;
-  line-height: 16px;
-  margin: 3px;
-  outline: 0;
-  position: relative;
-  vertical-align: middle;
-}
-
-.emotion-2>input[type='checkbox'] {
-  box-sizing: border-box;
-  cursor: pointer;
-  display: inline-block;
-  position: absolute;
-  top: 0;
-  visibility: hidden;
-}
-
-.emotion-2>input[type='checkbox']+label {
-  box-sizing: border-box;
-  cursor: pointer;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  height: 16px;
-  line-height: 16px;
-  padding: 0 10px 0 0;
-  vertical-align: bottom;
-  white-space: nowrap;
+.emotion-2>input[type='checkbox']:checked:not([data-partial='true'])+label:before {
+  background: #3697f2;
 }
 
 .emotion-2>input[type='checkbox']+label:before {
@@ -87,8 +56,17 @@ exports[`PendingApprovalTableHeader should render 1`] = `
   border: 2px solid #d5d5d5;
 }
 
-.emotion-2>input[type='checkbox']:checked:not([data-partial='true'])+label:before {
-  background: #3697f2;
+.emotion-2>input[type='checkbox']+label {
+  box-sizing: border-box;
+  cursor: pointer;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  height: 16px;
+  line-height: 16px;
+  padding: 0 10px 0 0;
+  vertical-align: bottom;
+  white-space: nowrap;
 }
 
 .emotion-2>input[type='checkbox'][data-partial='true']+label:after {
@@ -126,6 +104,28 @@ exports[`PendingApprovalTableHeader should render 1`] = `
   width: 4.5px;
 }
 
+.emotion-2>input[type='checkbox'] {
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  position: absolute;
+  top: 0;
+  visibility: hidden;
+}
+
+.emotion-2 {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  display: inline-block;
+  height: 16px;
+  line-height: 16px;
+  margin: 3px;
+  outline: 0;
+  position: relative;
+  vertical-align: middle;
+}
+
 .emotion-3 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -158,6 +158,43 @@ exports[`PendingApprovalTableHeader should render 1`] = `
   vertical-align: bottom;
   padding: 5px 0 5px 15px;
   text-align: left;
+}
+
+.emotion-17>textarea:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-17>textarea::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-17>textarea:active,
+.emotion-17>textarea:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-17>textarea:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-17>textarea[disabled] {
+  background: rgba(48,48,48,0.05);
+  border-bottom: 2px solid rgba(48,48,48,0.05);
+  color: rgba(48,48,48,0.25);
+  cursor: not-allowed;
+}
+
+.emotion-17 .message {
+  font-size: 12px;
+  color: #303030;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
 }
 
 .emotion-17 {
@@ -212,43 +249,6 @@ exports[`PendingApprovalTableHeader should render 1`] = `
 
 .emotion-17>textarea::-moz-placeholder {
   color: rgba(48,48,48,0.6);
-}
-
-.emotion-17>textarea:-ms-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-17>textarea::placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-17>textarea:active,
-.emotion-17>textarea:focus {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #3570f4;
-  color: #303030;
-}
-
-.emotion-17>textarea:invalid {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #d01111;
-  color: #303030;
-}
-
-.emotion-17>textarea[disabled] {
-  background: rgba(48,48,48,0.05);
-  border-bottom: 2px solid rgba(48,48,48,0.05);
-  color: rgba(48,48,48,0.25);
-  cursor: not-allowed;
-}
-
-.emotion-17 .message {
-  font-size: 12px;
-  color: #303030;
-  left: 0;
-  line-height: 1.8;
-  position: absolute;
-  top: 2.571rem;
 }
 
 .emotion-18>textarea {
@@ -352,7 +352,7 @@ exports[`PendingApprovalTableHeader should render 1`] = `
   />
   <th
     class="emotion-5 emotion-6"
-    colspan="2"
+    colspan="3"
   />
   <th
     class="emotion-5 emotion-6"

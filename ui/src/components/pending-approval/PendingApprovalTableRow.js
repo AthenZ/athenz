@@ -32,6 +32,10 @@ const TableTd = styled.td`
     padding: 5px 0px 5px 15px;
 `;
 
+const StyledText = styled.p`
+    color: #3570f4;
+`;
+
 const TableTdText = styled.td`
     text-align: left;
     vertical-align: middle;
@@ -144,6 +148,7 @@ export default class PendingApprovalTableRow extends React.Component {
                     />
                 </TableTd>
                 <TableTdDomain>{this.props.domainName}</TableTdDomain>
+                <TableTd>{this.props.category}</TableTd>
                 <TableTd>{this.props.roleName}</TableTd>
                 <TableTdText>
                     <p>{this.props.memberNameFull}</p>
@@ -185,18 +190,20 @@ export default class PendingApprovalTableRow extends React.Component {
                     ) : null}
                 </TableTd>
                 <TableTd>
-                    <FlatPickrInputDiv disabled={this.props.checked}>
-                        <FlatPicker
-                            id={fpkey}
-                            onChange={(date) => {
-                                this.props.dateChange(key, date);
-                            }}
-                            disabled={this.props.checked}
-                            clear={this.props.clear}
-                            value={this.props.requestedExpiry}
-                            nomargin={true}
-                        />
-                    </FlatPickrInputDiv>
+                    {this.props.category !== 'group' && (
+                        <FlatPickrInputDiv disabled={this.props.checked}>
+                            <FlatPicker
+                                id={fpkey}
+                                onChange={(date) => {
+                                    this.props.dateChange(key, date);
+                                }}
+                                disabled={this.props.checked}
+                                clear={this.props.clear}
+                                value={this.props.requestedExpiry}
+                                nomargin={true}
+                            />
+                        </FlatPickrInputDiv>
+                    )}
                 </TableTd>
                 <ApproveTd>
                     <Icon

@@ -45,6 +45,12 @@ exports[`AddRuleForm should render 1`] = `
   margin-right: 10px;
 }
 
+.emotion-9>* {
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+}
+
 .emotion-9 {
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -56,27 +62,13 @@ exports[`AddRuleForm should render 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-9>* {
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-}
-
 .emotion-10 {
   margin-top: 8px;
 }
 
-.emotion-12 {
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  box-sizing: border-box;
-  display: inline-block;
-  height: 16px;
-  line-height: 16px;
-  margin: 3px;
-  outline: 0px;
-  position: relative;
-  vertical-align: bottom;
+.emotion-12>input[type='radio']:disabled+label:before {
+  border: 2px solid #d5d5d5;
+  cursor: not-allowed;
 }
 
 .emotion-12>input[type='radio'] {
@@ -99,6 +91,21 @@ exports[`AddRuleForm should render 1`] = `
   padding: 0 10px 0 0;
   vertical-align: bottom;
   white-space: nowrap;
+}
+
+.emotion-12>input[type='radio']:checked+label:after {
+  background-color: #3697f2;
+  border-radius: 50%;
+  box-sizing: border-box;
+  content: '';
+  height: 8px;
+  line-height: 8px;
+  left: 4px;
+  position: absolute;
+  top: 4px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  width: 8px;
 }
 
 .emotion-12>input[type='radio']+label:before {
@@ -129,29 +136,63 @@ exports[`AddRuleForm should render 1`] = `
   border: 2px solid #3697f2;
 }
 
+.emotion-12 {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  display: inline-block;
+  height: 16px;
+  line-height: 16px;
+  margin: 3px;
+  outline: 0px;
+  position: relative;
+  vertical-align: bottom;
+}
+
 .emotion-12>input[type='radio']:disabled+label {
   color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-12>input[type='radio']:disabled+label:before {
-  border: 2px solid #d5d5d5;
-  cursor: not-allowed;
+.emotion-21 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
 }
 
-.emotion-12>input[type='radio']:checked+label:after {
-  background-color: #3697f2;
-  border-radius: 50%;
-  box-sizing: border-box;
-  content: '';
-  height: 8px;
-  line-height: 8px;
-  left: 4px;
+.emotion-21 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-21 input.focused,
+.emotion-21 input:active,
+.emotion-21 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-21 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-21 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
   position: absolute;
-  top: 4px;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-  width: 8px;
+  top: 2.571rem;
+}
+
+.emotion-21.error input,
+.emotion-21.error input.focused,
+.emotion-21.error input:active,
+.emotion-21.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-21.error .message {
+  color: #d01111;
 }
 
 .emotion-21 {
@@ -210,49 +251,12 @@ exports[`AddRuleForm should render 1`] = `
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-21 input:-ms-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-21 input::placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-21 input.focused,
-.emotion-21 input:active,
-.emotion-21 input:focus {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #3570f4;
-  color: #303030;
-}
-
-.emotion-21 input:invalid {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #d01111;
-  color: #303030;
-}
-
-.emotion-21 .message {
-  font-size: 12px;
-  left: 0;
-  line-height: 1.8;
-  position: absolute;
-  top: 2.571rem;
-}
-
-.emotion-21.error input,
-.emotion-21.error input.focused,
-.emotion-21.error input:active,
-.emotion-21.error input:focus {
-  border-bottom: 2px solid #d01111;
-}
-
-.emotion-21.error .message {
-  color: #d01111;
-}
-
 .emotion-22 {
   width: 500px;
+}
+
+.emotion-31 input {
+  cursor: inherit;
 }
 
 .emotion-31 {
@@ -260,76 +264,8 @@ exports[`AddRuleForm should render 1`] = `
   width: 100%;
 }
 
-.emotion-31 input {
-  cursor: inherit;
-}
-
 .emotion-32 {
   width: 500px;
-}
-
-.emotion-34 {
-  box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  -webkit-box-flex-flow: row nowrap;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  position: relative;
-  width: 100%;
-}
-
-.emotion-34 input {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  -ms-appearance: none;
-  appearance: none;
-  background: rgba(53,112,244,0.05);
-  border-top: 2px solid transparent;
-  border-bottom: 2px solid transparent;
-  border-right: transparent;
-  border-left: transparent;
-  border-radius: 2px;
-  box-shadow: none;
-  box-sizing: border-box;
-  color: #303030;
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-  font: inherit;
-  height: 36px;
-  margin: 0;
-  outline: none;
-  padding: 0 1rem;
-  text-align: left;
-  width: 100%;
-}
-
-.emotion-34.animated input {
-  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-}
-
-.emotion-34 input::-webkit-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-34 input::-moz-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-34 input:-ms-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-34 input::placeholder {
-  color: rgba(48,48,48,0.6);
 }
 
 .emotion-34 input.focused,
@@ -365,8 +301,8 @@ exports[`AddRuleForm should render 1`] = `
   color: #d01111;
 }
 
-.emotion-34 input {
-  padding-right: 36px;
+.emotion-34 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
 }
 
 .emotion-34 .input-icon {
@@ -381,6 +317,70 @@ exports[`AddRuleForm should render 1`] = `
   height: 36px;
   position: absolute;
   right: 6px;
+}
+
+.emotion-34 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-34.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-34 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-34 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 100%;
+}
+
+.emotion-34 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-34 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-34 input {
+  padding-right: 36px;
 }
 
 .emotion-35 {
@@ -619,6 +619,12 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
   margin-right: 10px;
 }
 
+.emotion-9>* {
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+}
+
 .emotion-9 {
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -630,27 +636,13 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-9>* {
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-}
-
 .emotion-10 {
   margin-top: 8px;
 }
 
-.emotion-12 {
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  box-sizing: border-box;
-  display: inline-block;
-  height: 16px;
-  line-height: 16px;
-  margin: 3px;
-  outline: 0px;
-  position: relative;
-  vertical-align: bottom;
+.emotion-12>input[type='radio']:disabled+label:before {
+  border: 2px solid #d5d5d5;
+  cursor: not-allowed;
 }
 
 .emotion-12>input[type='radio'] {
@@ -673,6 +665,21 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
   padding: 0 10px 0 0;
   vertical-align: bottom;
   white-space: nowrap;
+}
+
+.emotion-12>input[type='radio']:checked+label:after {
+  background-color: #3697f2;
+  border-radius: 50%;
+  box-sizing: border-box;
+  content: '';
+  height: 8px;
+  line-height: 8px;
+  left: 4px;
+  position: absolute;
+  top: 4px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  width: 8px;
 }
 
 .emotion-12>input[type='radio']+label:before {
@@ -703,29 +710,63 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
   border: 2px solid #3697f2;
 }
 
+.emotion-12 {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  display: inline-block;
+  height: 16px;
+  line-height: 16px;
+  margin: 3px;
+  outline: 0px;
+  position: relative;
+  vertical-align: bottom;
+}
+
 .emotion-12>input[type='radio']:disabled+label {
   color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-12>input[type='radio']:disabled+label:before {
-  border: 2px solid #d5d5d5;
-  cursor: not-allowed;
+.emotion-21 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
 }
 
-.emotion-12>input[type='radio']:checked+label:after {
-  background-color: #3697f2;
-  border-radius: 50%;
-  box-sizing: border-box;
-  content: '';
-  height: 8px;
-  line-height: 8px;
-  left: 4px;
+.emotion-21 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-21 input.focused,
+.emotion-21 input:active,
+.emotion-21 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-21 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-21 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
   position: absolute;
-  top: 4px;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-  width: 8px;
+  top: 2.571rem;
+}
+
+.emotion-21.error input,
+.emotion-21.error input.focused,
+.emotion-21.error input:active,
+.emotion-21.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-21.error .message {
+  color: #d01111;
 }
 
 .emotion-21 {
@@ -784,49 +825,12 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-21 input:-ms-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-21 input::placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-21 input.focused,
-.emotion-21 input:active,
-.emotion-21 input:focus {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #3570f4;
-  color: #303030;
-}
-
-.emotion-21 input:invalid {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #d01111;
-  color: #303030;
-}
-
-.emotion-21 .message {
-  font-size: 12px;
-  left: 0;
-  line-height: 1.8;
-  position: absolute;
-  top: 2.571rem;
-}
-
-.emotion-21.error input,
-.emotion-21.error input.focused,
-.emotion-21.error input:active,
-.emotion-21.error input:focus {
-  border-bottom: 2px solid #d01111;
-}
-
-.emotion-21.error .message {
-  color: #d01111;
-}
-
 .emotion-22 {
   width: 500px;
+}
+
+.emotion-31 input {
+  cursor: inherit;
 }
 
 .emotion-31 {
@@ -834,76 +838,8 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
   width: 100%;
 }
 
-.emotion-31 input {
-  cursor: inherit;
-}
-
 .emotion-32 {
   width: 500px;
-}
-
-.emotion-34 {
-  box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  -webkit-box-flex-flow: row nowrap;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  position: relative;
-  width: 100%;
-}
-
-.emotion-34 input {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  -ms-appearance: none;
-  appearance: none;
-  background: rgba(53,112,244,0.05);
-  border-top: 2px solid transparent;
-  border-bottom: 2px solid transparent;
-  border-right: transparent;
-  border-left: transparent;
-  border-radius: 2px;
-  box-shadow: none;
-  box-sizing: border-box;
-  color: #303030;
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-  font: inherit;
-  height: 36px;
-  margin: 0;
-  outline: none;
-  padding: 0 1rem;
-  text-align: left;
-  width: 100%;
-}
-
-.emotion-34.animated input {
-  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-}
-
-.emotion-34 input::-webkit-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-34 input::-moz-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-34 input:-ms-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-34 input::placeholder {
-  color: rgba(48,48,48,0.6);
 }
 
 .emotion-34 input.focused,
@@ -939,8 +875,8 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
   color: #d01111;
 }
 
-.emotion-34 input {
-  padding-right: 36px;
+.emotion-34 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
 }
 
 .emotion-34 .input-icon {
@@ -955,6 +891,70 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
   height: 36px;
   position: absolute;
   right: 6px;
+}
+
+.emotion-34 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-34.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-34 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-34 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 100%;
+}
+
+.emotion-34 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-34 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-34 input {
+  padding-right: 36px;
 }
 
 .emotion-35 {

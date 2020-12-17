@@ -51,23 +51,6 @@ exports[`AddPolicy should render 1`] = `
   margin-right: 10px;
 }
 
-.emotion-11 {
-  box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  -webkit-box-flex-flow: row nowrap;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  position: relative;
-  width: 250px;
-}
-
 .emotion-11 input {
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -92,35 +75,6 @@ exports[`AddPolicy should render 1`] = `
   padding: 0 1rem;
   text-align: left;
   width: 100%;
-}
-
-.emotion-11.animated input {
-  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-}
-
-.emotion-11 input::-webkit-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-11 input::-moz-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-11 input:-ms-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-11 input::placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-11 input.focused,
-.emotion-11 input:active,
-.emotion-11 input:focus {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #3570f4;
-  color: #303030;
 }
 
 .emotion-11 input:invalid {
@@ -148,8 +102,60 @@ exports[`AddPolicy should render 1`] = `
   color: #d01111;
 }
 
+.emotion-11 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-11 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-11 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-11 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-11 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 250px;
+}
+
+.emotion-11 input.focused,
+.emotion-11 input:active,
+.emotion-11 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-11.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
 .emotion-12 {
   width: 500px;
+}
+
+.emotion-21>* {
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
 }
 
 .emotion-21 {
@@ -163,27 +169,28 @@ exports[`AddPolicy should render 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-21>* {
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-}
-
 .emotion-22 {
   margin-top: 8px;
 }
 
-.emotion-24 {
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
+.emotion-24>input[type='radio']:disabled+label:before {
+  border: 2px solid #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-24>input[type='radio']:checked+label:after {
+  background-color: #3697f2;
+  border-radius: 50%;
   box-sizing: border-box;
-  display: inline-block;
-  height: 16px;
-  line-height: 16px;
-  margin: 3px;
-  outline: 0px;
-  position: relative;
-  vertical-align: bottom;
+  content: '';
+  height: 8px;
+  line-height: 8px;
+  left: 4px;
+  position: absolute;
+  top: 4px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  width: 8px;
 }
 
 .emotion-24>input[type='radio'] {
@@ -224,8 +231,17 @@ exports[`AddPolicy should render 1`] = `
   width: 16px;
 }
 
-.emotion-24>input[type='radio']:hover+label:before {
-  border: 2px solid #3697f2;
+.emotion-24 {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  display: inline-block;
+  height: 16px;
+  line-height: 16px;
+  margin: 3px;
+  outline: 0px;
+  position: relative;
+  vertical-align: bottom;
 }
 
 .emotion-24>input[type='radio']:focus+label:before {
@@ -241,24 +257,12 @@ exports[`AddPolicy should render 1`] = `
   cursor: not-allowed;
 }
 
-.emotion-24>input[type='radio']:disabled+label:before {
-  border: 2px solid #d5d5d5;
-  cursor: not-allowed;
+.emotion-24>input[type='radio']:hover+label:before {
+  border: 2px solid #3697f2;
 }
 
-.emotion-24>input[type='radio']:checked+label:after {
-  background-color: #3697f2;
-  border-radius: 50%;
-  box-sizing: border-box;
-  content: '';
-  height: 8px;
-  line-height: 8px;
-  left: 4px;
-  position: absolute;
-  top: 4px;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-  width: 8px;
+.emotion-43 input {
+  cursor: inherit;
 }
 
 .emotion-43 {
@@ -266,76 +270,8 @@ exports[`AddPolicy should render 1`] = `
   width: 100%;
 }
 
-.emotion-43 input {
-  cursor: inherit;
-}
-
 .emotion-44 {
   width: 500px;
-}
-
-.emotion-46 {
-  box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  -webkit-box-flex-flow: row nowrap;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  position: relative;
-  width: 100%;
-}
-
-.emotion-46 input {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  -ms-appearance: none;
-  appearance: none;
-  background: rgba(53,112,244,0.05);
-  border-top: 2px solid transparent;
-  border-bottom: 2px solid transparent;
-  border-right: transparent;
-  border-left: transparent;
-  border-radius: 2px;
-  box-shadow: none;
-  box-sizing: border-box;
-  color: #303030;
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-  font: inherit;
-  height: 36px;
-  margin: 0;
-  outline: none;
-  padding: 0 1rem;
-  text-align: left;
-  width: 100%;
-}
-
-.emotion-46.animated input {
-  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-}
-
-.emotion-46 input::-webkit-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-46 input::-moz-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-46 input:-ms-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-46 input::placeholder {
-  color: rgba(48,48,48,0.6);
 }
 
 .emotion-46 input.focused,
@@ -343,12 +279,6 @@ exports[`AddPolicy should render 1`] = `
 .emotion-46 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
-  color: #303030;
-}
-
-.emotion-46 input:invalid {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
@@ -387,6 +317,76 @@ exports[`AddPolicy should render 1`] = `
   height: 36px;
   position: absolute;
   right: 6px;
+}
+
+.emotion-46 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 100%;
+}
+
+.emotion-46 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-46 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-46 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-46 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-46.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-46 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-46 input::placeholder {
+  color: rgba(48,48,48,0.6);
 }
 
 .emotion-47 {
@@ -666,23 +666,6 @@ exports[`AddPolicy should render fail to submit policy name is required 1`] = `
   margin-right: 10px;
 }
 
-.emotion-11 {
-  box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  -webkit-box-flex-flow: row nowrap;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  position: relative;
-  width: 250px;
-}
-
 .emotion-11 input {
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -707,35 +690,6 @@ exports[`AddPolicy should render fail to submit policy name is required 1`] = `
   padding: 0 1rem;
   text-align: left;
   width: 100%;
-}
-
-.emotion-11.animated input {
-  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-}
-
-.emotion-11 input::-webkit-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-11 input::-moz-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-11 input:-ms-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-11 input::placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-11 input.focused,
-.emotion-11 input:active,
-.emotion-11 input:focus {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #3570f4;
-  color: #303030;
 }
 
 .emotion-11 input:invalid {
@@ -763,8 +717,60 @@ exports[`AddPolicy should render fail to submit policy name is required 1`] = `
   color: #d01111;
 }
 
+.emotion-11 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-11 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-11 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-11 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-11 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 250px;
+}
+
+.emotion-11 input.focused,
+.emotion-11 input:active,
+.emotion-11 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-11.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
 .emotion-12 {
   width: 500px;
+}
+
+.emotion-21>* {
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
 }
 
 .emotion-21 {
@@ -778,27 +784,28 @@ exports[`AddPolicy should render fail to submit policy name is required 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-21>* {
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-}
-
 .emotion-22 {
   margin-top: 8px;
 }
 
-.emotion-24 {
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
+.emotion-24>input[type='radio']:disabled+label:before {
+  border: 2px solid #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-24>input[type='radio']:checked+label:after {
+  background-color: #3697f2;
+  border-radius: 50%;
   box-sizing: border-box;
-  display: inline-block;
-  height: 16px;
-  line-height: 16px;
-  margin: 3px;
-  outline: 0px;
-  position: relative;
-  vertical-align: bottom;
+  content: '';
+  height: 8px;
+  line-height: 8px;
+  left: 4px;
+  position: absolute;
+  top: 4px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  width: 8px;
 }
 
 .emotion-24>input[type='radio'] {
@@ -839,8 +846,17 @@ exports[`AddPolicy should render fail to submit policy name is required 1`] = `
   width: 16px;
 }
 
-.emotion-24>input[type='radio']:hover+label:before {
-  border: 2px solid #3697f2;
+.emotion-24 {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  display: inline-block;
+  height: 16px;
+  line-height: 16px;
+  margin: 3px;
+  outline: 0px;
+  position: relative;
+  vertical-align: bottom;
 }
 
 .emotion-24>input[type='radio']:focus+label:before {
@@ -856,24 +872,12 @@ exports[`AddPolicy should render fail to submit policy name is required 1`] = `
   cursor: not-allowed;
 }
 
-.emotion-24>input[type='radio']:disabled+label:before {
-  border: 2px solid #d5d5d5;
-  cursor: not-allowed;
+.emotion-24>input[type='radio']:hover+label:before {
+  border: 2px solid #3697f2;
 }
 
-.emotion-24>input[type='radio']:checked+label:after {
-  background-color: #3697f2;
-  border-radius: 50%;
-  box-sizing: border-box;
-  content: '';
-  height: 8px;
-  line-height: 8px;
-  left: 4px;
-  position: absolute;
-  top: 4px;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-  width: 8px;
+.emotion-43 input {
+  cursor: inherit;
 }
 
 .emotion-43 {
@@ -881,76 +885,8 @@ exports[`AddPolicy should render fail to submit policy name is required 1`] = `
   width: 100%;
 }
 
-.emotion-43 input {
-  cursor: inherit;
-}
-
 .emotion-44 {
   width: 500px;
-}
-
-.emotion-46 {
-  box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  -webkit-box-flex-flow: row nowrap;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  position: relative;
-  width: 100%;
-}
-
-.emotion-46 input {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  -ms-appearance: none;
-  appearance: none;
-  background: rgba(53,112,244,0.05);
-  border-top: 2px solid transparent;
-  border-bottom: 2px solid transparent;
-  border-right: transparent;
-  border-left: transparent;
-  border-radius: 2px;
-  box-shadow: none;
-  box-sizing: border-box;
-  color: #303030;
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-  font: inherit;
-  height: 36px;
-  margin: 0;
-  outline: none;
-  padding: 0 1rem;
-  text-align: left;
-  width: 100%;
-}
-
-.emotion-46.animated input {
-  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-}
-
-.emotion-46 input::-webkit-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-46 input::-moz-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-46 input:-ms-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-46 input::placeholder {
-  color: rgba(48,48,48,0.6);
 }
 
 .emotion-46 input.focused,
@@ -958,12 +894,6 @@ exports[`AddPolicy should render fail to submit policy name is required 1`] = `
 .emotion-46 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
-  color: #303030;
-}
-
-.emotion-46 input:invalid {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
@@ -1002,6 +932,76 @@ exports[`AddPolicy should render fail to submit policy name is required 1`] = `
   height: 36px;
   position: absolute;
   right: 6px;
+}
+
+.emotion-46 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 100%;
+}
+
+.emotion-46 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-46 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-46 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-46 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-46.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-46 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-46 input::placeholder {
+  color: rgba(48,48,48,0.6);
 }
 
 .emotion-47 {
@@ -1281,23 +1281,6 @@ exports[`AddPolicy should render failed to submit action is required 1`] = `
   margin-right: 10px;
 }
 
-.emotion-11 {
-  box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  -webkit-box-flex-flow: row nowrap;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  position: relative;
-  width: 250px;
-}
-
 .emotion-11 input {
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -1322,35 +1305,6 @@ exports[`AddPolicy should render failed to submit action is required 1`] = `
   padding: 0 1rem;
   text-align: left;
   width: 100%;
-}
-
-.emotion-11.animated input {
-  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-}
-
-.emotion-11 input::-webkit-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-11 input::-moz-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-11 input:-ms-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-11 input::placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-11 input.focused,
-.emotion-11 input:active,
-.emotion-11 input:focus {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #3570f4;
-  color: #303030;
 }
 
 .emotion-11 input:invalid {
@@ -1378,8 +1332,60 @@ exports[`AddPolicy should render failed to submit action is required 1`] = `
   color: #d01111;
 }
 
+.emotion-11 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-11 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-11 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-11 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-11 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 250px;
+}
+
+.emotion-11 input.focused,
+.emotion-11 input:active,
+.emotion-11 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-11.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
 .emotion-12 {
   width: 500px;
+}
+
+.emotion-21>* {
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
 }
 
 .emotion-21 {
@@ -1393,27 +1399,28 @@ exports[`AddPolicy should render failed to submit action is required 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-21>* {
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-}
-
 .emotion-22 {
   margin-top: 8px;
 }
 
-.emotion-24 {
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
+.emotion-24>input[type='radio']:disabled+label:before {
+  border: 2px solid #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-24>input[type='radio']:checked+label:after {
+  background-color: #3697f2;
+  border-radius: 50%;
   box-sizing: border-box;
-  display: inline-block;
-  height: 16px;
-  line-height: 16px;
-  margin: 3px;
-  outline: 0px;
-  position: relative;
-  vertical-align: bottom;
+  content: '';
+  height: 8px;
+  line-height: 8px;
+  left: 4px;
+  position: absolute;
+  top: 4px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  width: 8px;
 }
 
 .emotion-24>input[type='radio'] {
@@ -1454,8 +1461,17 @@ exports[`AddPolicy should render failed to submit action is required 1`] = `
   width: 16px;
 }
 
-.emotion-24>input[type='radio']:hover+label:before {
-  border: 2px solid #3697f2;
+.emotion-24 {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  display: inline-block;
+  height: 16px;
+  line-height: 16px;
+  margin: 3px;
+  outline: 0px;
+  position: relative;
+  vertical-align: bottom;
 }
 
 .emotion-24>input[type='radio']:focus+label:before {
@@ -1471,24 +1487,12 @@ exports[`AddPolicy should render failed to submit action is required 1`] = `
   cursor: not-allowed;
 }
 
-.emotion-24>input[type='radio']:disabled+label:before {
-  border: 2px solid #d5d5d5;
-  cursor: not-allowed;
+.emotion-24>input[type='radio']:hover+label:before {
+  border: 2px solid #3697f2;
 }
 
-.emotion-24>input[type='radio']:checked+label:after {
-  background-color: #3697f2;
-  border-radius: 50%;
-  box-sizing: border-box;
-  content: '';
-  height: 8px;
-  line-height: 8px;
-  left: 4px;
-  position: absolute;
-  top: 4px;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-  width: 8px;
+.emotion-43 input {
+  cursor: inherit;
 }
 
 .emotion-43 {
@@ -1496,76 +1500,8 @@ exports[`AddPolicy should render failed to submit action is required 1`] = `
   width: 100%;
 }
 
-.emotion-43 input {
-  cursor: inherit;
-}
-
 .emotion-44 {
   width: 500px;
-}
-
-.emotion-46 {
-  box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  -webkit-box-flex-flow: row nowrap;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  position: relative;
-  width: 100%;
-}
-
-.emotion-46 input {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  -ms-appearance: none;
-  appearance: none;
-  background: rgba(53,112,244,0.05);
-  border-top: 2px solid transparent;
-  border-bottom: 2px solid transparent;
-  border-right: transparent;
-  border-left: transparent;
-  border-radius: 2px;
-  box-shadow: none;
-  box-sizing: border-box;
-  color: #303030;
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-  font: inherit;
-  height: 36px;
-  margin: 0;
-  outline: none;
-  padding: 0 1rem;
-  text-align: left;
-  width: 100%;
-}
-
-.emotion-46.animated input {
-  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-}
-
-.emotion-46 input::-webkit-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-46 input::-moz-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-46 input:-ms-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-46 input::placeholder {
-  color: rgba(48,48,48,0.6);
 }
 
 .emotion-46 input.focused,
@@ -1573,12 +1509,6 @@ exports[`AddPolicy should render failed to submit action is required 1`] = `
 .emotion-46 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
-  color: #303030;
-}
-
-.emotion-46 input:invalid {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
@@ -1617,6 +1547,76 @@ exports[`AddPolicy should render failed to submit action is required 1`] = `
   height: 36px;
   position: absolute;
   right: 6px;
+}
+
+.emotion-46 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 100%;
+}
+
+.emotion-46 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-46 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-46 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-46 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-46.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-46 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-46 input::placeholder {
+  color: rgba(48,48,48,0.6);
 }
 
 .emotion-47 {
@@ -1896,23 +1896,6 @@ exports[`AddPolicy should render failed to submit role name is required 1`] = `
   margin-right: 10px;
 }
 
-.emotion-11 {
-  box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  -webkit-box-flex-flow: row nowrap;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  position: relative;
-  width: 250px;
-}
-
 .emotion-11 input {
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -1937,35 +1920,6 @@ exports[`AddPolicy should render failed to submit role name is required 1`] = `
   padding: 0 1rem;
   text-align: left;
   width: 100%;
-}
-
-.emotion-11.animated input {
-  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-}
-
-.emotion-11 input::-webkit-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-11 input::-moz-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-11 input:-ms-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-11 input::placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-11 input.focused,
-.emotion-11 input:active,
-.emotion-11 input:focus {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #3570f4;
-  color: #303030;
 }
 
 .emotion-11 input:invalid {
@@ -1993,8 +1947,60 @@ exports[`AddPolicy should render failed to submit role name is required 1`] = `
   color: #d01111;
 }
 
+.emotion-11 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-11 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-11 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-11 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-11 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 250px;
+}
+
+.emotion-11 input.focused,
+.emotion-11 input:active,
+.emotion-11 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-11.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
 .emotion-12 {
   width: 500px;
+}
+
+.emotion-21>* {
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
 }
 
 .emotion-21 {
@@ -2008,27 +2014,28 @@ exports[`AddPolicy should render failed to submit role name is required 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-21>* {
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-}
-
 .emotion-22 {
   margin-top: 8px;
 }
 
-.emotion-24 {
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
+.emotion-24>input[type='radio']:disabled+label:before {
+  border: 2px solid #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-24>input[type='radio']:checked+label:after {
+  background-color: #3697f2;
+  border-radius: 50%;
   box-sizing: border-box;
-  display: inline-block;
-  height: 16px;
-  line-height: 16px;
-  margin: 3px;
-  outline: 0px;
-  position: relative;
-  vertical-align: bottom;
+  content: '';
+  height: 8px;
+  line-height: 8px;
+  left: 4px;
+  position: absolute;
+  top: 4px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  width: 8px;
 }
 
 .emotion-24>input[type='radio'] {
@@ -2069,8 +2076,17 @@ exports[`AddPolicy should render failed to submit role name is required 1`] = `
   width: 16px;
 }
 
-.emotion-24>input[type='radio']:hover+label:before {
-  border: 2px solid #3697f2;
+.emotion-24 {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  display: inline-block;
+  height: 16px;
+  line-height: 16px;
+  margin: 3px;
+  outline: 0px;
+  position: relative;
+  vertical-align: bottom;
 }
 
 .emotion-24>input[type='radio']:focus+label:before {
@@ -2086,24 +2102,12 @@ exports[`AddPolicy should render failed to submit role name is required 1`] = `
   cursor: not-allowed;
 }
 
-.emotion-24>input[type='radio']:disabled+label:before {
-  border: 2px solid #d5d5d5;
-  cursor: not-allowed;
+.emotion-24>input[type='radio']:hover+label:before {
+  border: 2px solid #3697f2;
 }
 
-.emotion-24>input[type='radio']:checked+label:after {
-  background-color: #3697f2;
-  border-radius: 50%;
-  box-sizing: border-box;
-  content: '';
-  height: 8px;
-  line-height: 8px;
-  left: 4px;
-  position: absolute;
-  top: 4px;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-  width: 8px;
+.emotion-43 input {
+  cursor: inherit;
 }
 
 .emotion-43 {
@@ -2111,76 +2115,8 @@ exports[`AddPolicy should render failed to submit role name is required 1`] = `
   width: 100%;
 }
 
-.emotion-43 input {
-  cursor: inherit;
-}
-
 .emotion-44 {
   width: 500px;
-}
-
-.emotion-46 {
-  box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  -webkit-box-flex-flow: row nowrap;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  position: relative;
-  width: 100%;
-}
-
-.emotion-46 input {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  -ms-appearance: none;
-  appearance: none;
-  background: rgba(53,112,244,0.05);
-  border-top: 2px solid transparent;
-  border-bottom: 2px solid transparent;
-  border-right: transparent;
-  border-left: transparent;
-  border-radius: 2px;
-  box-shadow: none;
-  box-sizing: border-box;
-  color: #303030;
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-  font: inherit;
-  height: 36px;
-  margin: 0;
-  outline: none;
-  padding: 0 1rem;
-  text-align: left;
-  width: 100%;
-}
-
-.emotion-46.animated input {
-  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-}
-
-.emotion-46 input::-webkit-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-46 input::-moz-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-46 input:-ms-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-46 input::placeholder {
-  color: rgba(48,48,48,0.6);
 }
 
 .emotion-46 input.focused,
@@ -2188,12 +2124,6 @@ exports[`AddPolicy should render failed to submit role name is required 1`] = `
 .emotion-46 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
-  color: #303030;
-}
-
-.emotion-46 input:invalid {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
@@ -2232,6 +2162,76 @@ exports[`AddPolicy should render failed to submit role name is required 1`] = `
   height: 36px;
   position: absolute;
   right: 6px;
+}
+
+.emotion-46 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 100%;
+}
+
+.emotion-46 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-46 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-46 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-46 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-46.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-46 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-46 input::placeholder {
+  color: rgba(48,48,48,0.6);
 }
 
 .emotion-47 {

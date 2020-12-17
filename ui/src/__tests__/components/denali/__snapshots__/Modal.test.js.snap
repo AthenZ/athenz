@@ -12,17 +12,17 @@ exports[`Modal should render open state 1`] = `
   z-index: 5;
 }
 
-.emotion-0.animated {
-  -webkit-transition: all 0.2s ease-out;
-  transition: all 0.2s ease-out;
-}
-
 .emotion-0.ReactModal__Overlay--after-open {
   opacity: 1;
 }
 
 .emotion-0.ReactModal__Overlay--before-close {
   opacity: 0;
+}
+
+.emotion-0.animated {
+  -webkit-transition: all 0.2s ease-out;
+  transition: all 0.2s ease-out;
 }
 
 .emotion-1 {

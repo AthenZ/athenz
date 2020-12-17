@@ -223,7 +223,10 @@ export default class AddMemberToRoles extends React.Component {
         });
 
         let sections = (
-            <SectionsDiv autoComplete={'off'}>
+            <SectionsDiv
+                autoComplete={'off'}
+                data-testid='add-member-to-roles-form'
+            >
                 <SectionDiv>
                     <StyledInputLabel htmlFor='member-name'>
                         Member

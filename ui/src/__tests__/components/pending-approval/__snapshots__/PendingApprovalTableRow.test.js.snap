@@ -12,41 +12,6 @@ exports[`PendingApprovalTable should render 1`] = `
   padding: 5px 0px 5px 15px;
 }
 
-.emotion-4 {
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  box-sizing: border-box;
-  display: inline-block;
-  height: 16px;
-  line-height: 16px;
-  margin: 3px;
-  outline: 0;
-  position: relative;
-  vertical-align: middle;
-}
-
-.emotion-4>input[type='checkbox'] {
-  box-sizing: border-box;
-  cursor: pointer;
-  display: inline-block;
-  position: absolute;
-  top: 0;
-  visibility: hidden;
-}
-
-.emotion-4>input[type='checkbox']+label {
-  box-sizing: border-box;
-  cursor: pointer;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  height: 16px;
-  line-height: 16px;
-  padding: 0 10px 0 0;
-  vertical-align: bottom;
-  white-space: nowrap;
-}
-
 .emotion-4>input[type='checkbox']+label:before {
   background: #fff;
   border: 2px solid rgba(54,151,242,0.5);
@@ -85,8 +50,17 @@ exports[`PendingApprovalTable should render 1`] = `
   border: 2px solid #d5d5d5;
 }
 
-.emotion-4>input[type='checkbox']:checked:not([data-partial='true'])+label:before {
-  background: #3697f2;
+.emotion-4>input[type='checkbox']+label {
+  box-sizing: border-box;
+  cursor: pointer;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  height: 16px;
+  line-height: 16px;
+  padding: 0 10px 0 0;
+  vertical-align: bottom;
+  white-space: nowrap;
 }
 
 .emotion-4>input[type='checkbox'][data-partial='true']+label:after {
@@ -124,6 +98,32 @@ exports[`PendingApprovalTable should render 1`] = `
   width: 4.5px;
 }
 
+.emotion-4>input[type='checkbox'] {
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  position: absolute;
+  top: 0;
+  visibility: hidden;
+}
+
+.emotion-4 {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  display: inline-block;
+  height: 16px;
+  line-height: 16px;
+  margin: 3px;
+  outline: 0;
+  position: relative;
+  vertical-align: middle;
+}
+
+.emotion-4>input[type='checkbox']:checked:not([data-partial='true'])+label:before {
+  background: #3697f2;
+}
+
 .emotion-5 {
   text-align: left;
   vertical-align: middle;
@@ -131,13 +131,50 @@ exports[`PendingApprovalTable should render 1`] = `
   padding: 5px 0px 5px 0px;
 }
 
-.emotion-9 {
+.emotion-11 {
   text-align: left;
   vertical-align: middle;
   padding: 5px 0px 5px 15px;
 }
 
-.emotion-19 {
+.emotion-21>textarea:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-21>textarea::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-21>textarea:active,
+.emotion-21>textarea:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-21>textarea:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-21>textarea[disabled] {
+  background: rgba(48,48,48,0.05);
+  border-bottom: 2px solid rgba(48,48,48,0.05);
+  color: rgba(48,48,48,0.25);
+  cursor: not-allowed;
+}
+
+.emotion-21 .message {
+  font-size: 12px;
+  color: #303030;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-21 {
   font-family: Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 300;
@@ -154,7 +191,7 @@ exports[`PendingApprovalTable should render 1`] = `
   width: 100%;
 }
 
-.emotion-19>textarea {
+.emotion-21>textarea {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -183,56 +220,19 @@ exports[`PendingApprovalTable should render 1`] = `
   width: auto;
 }
 
-.emotion-19>textarea::-webkit-input-placeholder {
+.emotion-21>textarea::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-19>textarea::-moz-placeholder {
+.emotion-21>textarea::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-19>textarea:-ms-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-19>textarea::placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-19>textarea:active,
-.emotion-19>textarea:focus {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #3570f4;
-  color: #303030;
-}
-
-.emotion-19>textarea:invalid {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #d01111;
-  color: #303030;
-}
-
-.emotion-19>textarea[disabled] {
-  background: rgba(48,48,48,0.05);
-  border-bottom: 2px solid rgba(48,48,48,0.05);
-  color: rgba(48,48,48,0.25);
-  cursor: not-allowed;
-}
-
-.emotion-19 .message {
-  font-size: 12px;
-  color: #303030;
-  left: 0;
-  line-height: 1.8;
-  position: absolute;
-  top: 2.571rem;
-}
-
-.emotion-20>textarea {
+.emotion-22>textarea {
   resize: vertical;
 }
 
-.emotion-24>div input {
+.emotion-26>div input {
   position: relative;
   font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
   background-color: rgba(53, 112, 244, 0.05);
@@ -258,26 +258,26 @@ exports[`PendingApprovalTable should render 1`] = `
   width: 72%;
 }
 
-.emotion-26 {
+.emotion-28 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-27 {
+.emotion-29 {
   vertical-align: middle;
   word-break: break-all;
   padding: 5px 0px 5px 15px;
   text-align: center;
 }
 
-.emotion-29 {
+.emotion-31 {
   fill: #1dad51;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-30 {
+.emotion-32 {
   vertical-align: middle;
   word-break: break-all;
   padding: 5px 0px 5px 15px;
@@ -285,7 +285,7 @@ exports[`PendingApprovalTable should render 1`] = `
   border-right: none;
 }
 
-.emotion-32 {
+.emotion-34 {
   fill: #ea0000;
   cursor: pointer;
   vertical-align: text-bottom;
@@ -321,11 +321,14 @@ exports[`PendingApprovalTable should render 1`] = `
   </td>
   <td
     class="emotion-2 emotion-3"
+  />
+  <td
+    class="emotion-2 emotion-3"
   >
     c
   </td>
   <td
-    class="emotion-9 emotion-10"
+    class="emotion-11 emotion-12"
   >
     <p />
     <p>
@@ -335,13 +338,13 @@ exports[`PendingApprovalTable should render 1`] = `
     </p>
   </td>
   <td
-    class="emotion-9 emotion-10"
+    class="emotion-11 emotion-12"
     colspan="2"
   >
     d
   </td>
   <td
-    class="emotion-9 emotion-10"
+    class="emotion-11 emotion-12"
   >
     <p />
     <p>
@@ -358,7 +361,7 @@ exports[`PendingApprovalTable should render 1`] = `
     class="emotion-2 emotion-3"
   >
     <div
-      class="emotion-19 denali-textarea emotion-20 emotion-21"
+      class="emotion-21 denali-textarea emotion-22 emotion-23"
       data-testid="textarea-wrapper"
     >
       <textarea
@@ -373,7 +376,7 @@ exports[`PendingApprovalTable should render 1`] = `
     class="emotion-2 emotion-3"
   >
     <div
-      class="emotion-24 emotion-25"
+      class="emotion-26 emotion-27"
     >
       <div
         class="fp-abc"
@@ -397,7 +400,7 @@ exports[`PendingApprovalTable should render 1`] = `
           data-clear=""
         >
           <svg
-            class="emotion-26"
+            class="emotion-28"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -415,10 +418,10 @@ exports[`PendingApprovalTable should render 1`] = `
     </div>
   </td>
   <td
-    class="emotion-27 emotion-28"
+    class="emotion-29 emotion-30"
   >
     <svg
-      class="emotion-29"
+      class="emotion-31"
       data-testid="icon"
       height="1.25em"
       viewBox="0 0 1024 1024"
@@ -436,10 +439,10 @@ exports[`PendingApprovalTable should render 1`] = `
     </svg>
   </td>
   <td
-    class="emotion-30 emotion-31"
+    class="emotion-32 emotion-33"
   >
     <svg
-      class="emotion-32"
+      class="emotion-34"
       data-testid="icon"
       height="1.25em"
       viewBox="0 0 1024 1024"

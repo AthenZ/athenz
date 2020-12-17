@@ -76,7 +76,7 @@ export default class RolePage extends React.Component {
             api.getHeaderDetails(),
             api.getDomain(props.query.domain),
             api.getRoles(props.query.domain),
-            api.getPendingDomainRoleMembersList(),
+            api.getPendingDomainMembersList(),
             api.getForm(),
             api.isAWSTemplateApplied(props.query.domain),
             api.getRolePrefix(),

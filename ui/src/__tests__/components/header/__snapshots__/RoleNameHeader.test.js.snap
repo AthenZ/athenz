@@ -6,26 +6,14 @@ exports[`Header should render 1`] = `
   margin-bottom: 10px;
 }
 
-.emotion-2 {
-  color: #3570f4;
-  -webkit-text-decoration: none;
-  text-decoration: none;
-  cursor: pointer;
-}
-
 <div
   class="emotion-0 emotion-1"
-  data-testid="role-name-header"
+  data-testid="collection-name-header"
 >
   
   
-  <a
-    class="emotion-2 emotion-3"
-  >
-    home.mujibur
-     
-  </a>
-  / 
+  :
+  .
   admin
 </div>
 `;
@@ -42,16 +30,9 @@ exports[`Header should render audit enabled role 1`] = `
   vertical-align: text-bottom;
 }
 
-.emotion-3 {
-  color: #3570f4;
-  -webkit-text-decoration: none;
-  text-decoration: none;
-  cursor: pointer;
-}
-
 <div
   class="emotion-0 emotion-1"
-  data-testid="role-name-header"
+  data-testid="collection-name-header"
 >
   
   <span>
@@ -79,13 +60,8 @@ exports[`Header should render audit enabled role 1`] = `
       />
     </svg>
   </span>
-  <a
-    class="emotion-3 emotion-4"
-  >
-    home.mujibur
-     
-  </a>
-  / 
+  :
+  .
   audit.role
 </div>
 `;
@@ -111,7 +87,7 @@ exports[`Header should render delegated role 1`] = `
 
 <div
   class="emotion-0 emotion-1"
-  data-testid="role-name-header"
+  data-testid="collection-name-header"
 >
   <span>
     <svg
@@ -134,9 +110,8 @@ exports[`Header should render delegated role 1`] = `
     class="emotion-3 emotion-4"
   >
     home.mujibur
-     
   </a>
-  / 
+  :role.
   delegated.role
    (Delegated by 
   <a

@@ -76,7 +76,7 @@ export default class PolicyPage extends React.Component {
             api.getDomain(props.query.domain),
             api.getPolicies(props.query.domain),
             api.getForm(),
-            api.getPendingDomainRoleMembersList(),
+            api.getPendingDomainMembersList(),
             api.isAWSTemplateApplied(props.query.domain),
         ]).catch((err) => {
             let response = RequestUtils.errorCheckHelper(err);

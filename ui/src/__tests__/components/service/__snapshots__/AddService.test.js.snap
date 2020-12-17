@@ -45,62 +45,6 @@ exports[`AddService should render 1`] = `
   margin-right: 10px;
 }
 
-.emotion-9 {
-  box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  -webkit-box-flex-flow: row nowrap;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  position: relative;
-  width: 250px;
-}
-
-.emotion-9 input {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  -ms-appearance: none;
-  appearance: none;
-  background: rgba(53,112,244,0.05);
-  border-top: 2px solid transparent;
-  border-bottom: 2px solid transparent;
-  border-right: transparent;
-  border-left: transparent;
-  border-radius: 2px;
-  box-shadow: none;
-  box-sizing: border-box;
-  color: #303030;
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-  font: inherit;
-  height: 36px;
-  margin: 0;
-  outline: none;
-  padding: 0 1rem;
-  text-align: left;
-  width: 100%;
-}
-
-.emotion-9.animated input {
-  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-}
-
-.emotion-9 input::-webkit-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-9 input::-moz-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
 .emotion-9 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
@@ -131,6 +75,53 @@ exports[`AddService should render 1`] = `
   top: 2.571rem;
 }
 
+.emotion-9 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-9.error .message {
+  color: #d01111;
+}
+
+.emotion-9 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 250px;
+}
+
 .emotion-9.error input,
 .emotion-9.error input.focused,
 .emotion-9.error input:active,
@@ -138,8 +129,17 @@ exports[`AddService should render 1`] = `
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-9.error .message {
-  color: #d01111;
+.emotion-9.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-9 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-9 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
 }
 
 .emotion-10 {
@@ -167,6 +167,22 @@ exports[`AddService should render 1`] = `
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
+}
+
+.emotion-49>textarea[disabled] {
+  background: rgba(48,48,48,0.05);
+  border-bottom: 2px solid rgba(48,48,48,0.05);
+  color: rgba(48,48,48,0.25);
+  cursor: not-allowed;
+}
+
+.emotion-49 .message {
+  font-size: 12px;
+  color: #303030;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
 }
 
 .emotion-49 {
@@ -242,22 +258,6 @@ exports[`AddService should render 1`] = `
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
-}
-
-.emotion-49>textarea[disabled] {
-  background: rgba(48,48,48,0.05);
-  border-bottom: 2px solid rgba(48,48,48,0.05);
-  color: rgba(48,48,48,0.25);
-  cursor: not-allowed;
-}
-
-.emotion-49 .message {
-  font-size: 12px;
-  color: #303030;
-  left: 0;
-  line-height: 1.8;
-  position: absolute;
-  top: 2.571rem;
 }
 
 .emotion-50>textarea {

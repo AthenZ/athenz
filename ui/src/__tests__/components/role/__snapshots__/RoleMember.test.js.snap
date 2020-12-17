@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`RoleMember should render 1`] = `
+exports[`Member should render 1`] = `
 .emotion-0 {
   font-family: Helvetica,Arial,sans-serif;
   background: rgba(53, 112, 244, 0.08);
@@ -80,7 +80,6 @@ exports[`RoleMember should render 1`] = `
 .emotion-3 {
   -webkit-text-decoration: none;
   text-decoration: none;
-  cursor: pointer;
 }
 
 .emotion-5 {

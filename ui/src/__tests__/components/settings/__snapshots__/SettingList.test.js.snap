@@ -33,54 +33,9 @@ exports[`SettingList should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-10 {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  height: 18px;
-  outline: 0;
-  position: relative;
-}
-
-.emotion-10>input[type='checkbox'] {
-  box-sizing: border-box;
-  cursor: pointer;
-  position: absolute;
-  top: 0;
-  visibility: hidden;
-}
-
-.emotion-10>input[type='checkbox']+label {
-  box-sizing: border-box;
-  cursor: pointer;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  height: 18px;
-  line-height: 18px;
-  white-space: nowrap;
-}
-
-.emotion-10>input[type='checkbox']+label .label-content {
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  margin-left: 6px;
-}
-
-@-moz-document url-prefix() {
-  .emotion-10>input[type='checkbox']+label .label-content {
-    margin-top: 1px;
-  }
+.emotion-10>input[type='checkbox']:disabled+label::after {
+  border-color: #d5d5d5;
+  cursor: not-allowed;
 }
 
 .emotion-10>input[type='checkbox']+label:before {
@@ -136,124 +91,61 @@ exports[`SettingList should render 1`] = `
   cursor: not-allowed;
 }
 
-.emotion-10>input[type='checkbox']:disabled+label::after {
-  border-color: #d5d5d5;
-  cursor: not-allowed;
+.emotion-10>input[type='checkbox'] {
+  box-sizing: border-box;
+  cursor: pointer;
+  position: absolute;
+  top: 0;
+  visibility: hidden;
 }
 
 .emotion-10>input[type='checkbox']:checked:disabled+label::after {
   background: #d5d5d5;
 }
 
-.emotion-28 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-}
-
-.emotion-30 {
+.emotion-10 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
   display: -ms-inline-flexbox;
   display: inline-flex;
-  -webkit-box-flex-flow: row nowrap;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
+  height: 18px;
+  outline: 0;
+  position: relative;
+}
+
+.emotion-10>input[type='checkbox']+label {
+  box-sizing: border-box;
+  cursor: pointer;
   font-family: Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 300;
-  position: relative;
-  width: 100%;
+  height: 18px;
+  line-height: 18px;
+  white-space: nowrap;
 }
 
-.emotion-30 input {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  -ms-appearance: none;
-  appearance: none;
-  background: rgba(53,112,244,0.05);
-  border-top: 2px solid transparent;
-  border-bottom: 2px solid transparent;
-  border-right: transparent;
-  border-left: transparent;
-  border-radius: 2px;
-  box-shadow: none;
-  box-sizing: border-box;
-  color: #303030;
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-  font: inherit;
-  height: 36px;
-  margin: 0;
-  outline: none;
-  padding: 0 1rem;
-  text-align: left;
-  width: 100%;
+.emotion-10>input[type='checkbox']+label .label-content {
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  margin-left: 6px;
 }
 
-.emotion-30.animated input {
-  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+@-moz-document url-prefix() {
+  .emotion-10>input[type='checkbox']+label .label-content {
+    margin-top: 1px;
+  }
 }
 
-.emotion-30 input::-webkit-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-30 input::-moz-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-30 input:-ms-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-30 input::placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-30 input.focused,
-.emotion-30 input:active,
-.emotion-30 input:focus {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #3570f4;
-  color: #303030;
-}
-
-.emotion-30 input:invalid {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #d01111;
-  color: #303030;
-}
-
-.emotion-30 .message {
-  font-size: 12px;
-  left: 0;
-  line-height: 1.8;
-  position: absolute;
-  top: 2.571rem;
-}
-
-.emotion-30.error input,
-.emotion-30.error input.focused,
-.emotion-30.error input:active,
-.emotion-30.error input:focus {
-  border-bottom: 2px solid #d01111;
-}
-
-.emotion-30.error .message {
-  color: #d01111;
-}
-
-.emotion-31 {
-  margin-top: 5px;
-}
-
-.emotion-74 {
+.emotion-22 {
   padding-bottom: 20px;
   display: -webkit-box;
   display: -webkit-flex;
@@ -272,7 +164,25 @@ exports[`SettingList should render 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-76 {
+.emotion-24:hover:not(:disabled) {
+  background: #d7e2fd;
+}
+
+.emotion-24:disabled {
+  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
+}
+
+.emotion-24:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
+.emotion-24:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-24 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -297,24 +207,6 @@ exports[`SettingList should render 1`] = `
   background: transparent;
   box-shadow: 0 0 0 1px #3697f2 inset;
   color: #3697f2;
-}
-
-.emotion-76:first-of-type {
-  margin-left: 0;
-}
-
-.emotion-76:disabled {
-  background: rgba(48,48,48,0.1);
-  color: rgba(48,48,48,0.2);
-  cursor: not-allowed;
-}
-
-.emotion-76:disabled {
-  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
-}
-
-.emotion-76:hover:not(:disabled) {
-  background: #d7e2fd;
 }
 
 <div
@@ -393,178 +285,18 @@ exports[`SettingList should render 1`] = `
         Flag indicates whether or not role allows self service
       </td>
     </tr>
-    <tr
-      class="emotion-4 emotion-5"
-      data-testid="setting-row"
-    >
-      <td
-        class="emotion-6 emotion-7"
-      >
-        Member Expiry (Days)
-      </td>
-      <td
-        class="emotion-6 emotion-7"
-      >
-        <div
-          class="emotion-28 emotion-29"
-        >
-          <div
-            class="emotion-30 denali-input animated emotion-31 emotion-32"
-            data-testid="input-wrapper"
-          >
-            <input
-              autocomplete="off"
-              data-testid="input-node"
-              id="setting-memberExpiryDays"
-              pattern="[0-9]*"
-              placeholder="Days"
-              value=""
-            />
-            <div
-              class="message"
-              data-testid="message"
-            />
-          </div>
-        </div>
-      </td>
-      <td
-        class="emotion-6 emotion-7"
-      >
-        All user members in the role will have specified max expiry days
-      </td>
-    </tr>
-    <tr
-      class="emotion-4 emotion-5"
-      data-testid="setting-row"
-    >
-      <td
-        class="emotion-6 emotion-7"
-      >
-        Service Expiry (Days)
-      </td>
-      <td
-        class="emotion-6 emotion-7"
-      >
-        <div
-          class="emotion-28 emotion-29"
-        >
-          <div
-            class="emotion-30 denali-input animated emotion-31 emotion-32"
-            data-testid="input-wrapper"
-          >
-            <input
-              autocomplete="off"
-              data-testid="input-node"
-              id="setting-serviceExpiryDays"
-              pattern="[0-9]*"
-              placeholder="Days"
-              value=""
-            />
-            <div
-              class="message"
-              data-testid="message"
-            />
-          </div>
-        </div>
-      </td>
-      <td
-        class="emotion-6 emotion-7"
-      >
-        All services in the role will have specified max expiry days
-      </td>
-    </tr>
-    <tr
-      class="emotion-4 emotion-5"
-      data-testid="setting-row"
-    >
-      <td
-        class="emotion-6 emotion-7"
-      >
-        Token Expiry (Mins)
-      </td>
-      <td
-        class="emotion-6 emotion-7"
-      >
-        <div
-          class="emotion-28 emotion-29"
-        >
-          <div
-            class="emotion-30 denali-input animated emotion-31 emotion-32"
-            data-testid="input-wrapper"
-          >
-            <input
-              autocomplete="off"
-              data-testid="input-node"
-              id="setting-tokenExpiryMins"
-              pattern="[0-9]*"
-              placeholder="Mins"
-              value=""
-            />
-            <div
-              class="message"
-              data-testid="message"
-            />
-          </div>
-        </div>
-      </td>
-      <td
-        class="emotion-6 emotion-7"
-      >
-        Tokens issued for this role will have specified max timeout in mins
-      </td>
-    </tr>
-    <tr
-      class="emotion-4 emotion-5"
-      data-testid="setting-row"
-    >
-      <td
-        class="emotion-6 emotion-7"
-      >
-        Certificate Expiry (Mins)
-      </td>
-      <td
-        class="emotion-6 emotion-7"
-      >
-        <div
-          class="emotion-28 emotion-29"
-        >
-          <div
-            class="emotion-30 denali-input animated emotion-31 emotion-32"
-            data-testid="input-wrapper"
-          >
-            <input
-              autocomplete="off"
-              data-testid="input-node"
-              id="setting-certExpiryMins"
-              pattern="[0-9]*"
-              placeholder="Mins"
-              value=""
-            />
-            <div
-              class="message"
-              data-testid="message"
-            />
-          </div>
-        </div>
-      </td>
-      <td
-        class="emotion-6 emotion-7"
-      >
-        Certs issued for this role will have specified max timeout in mins
-      </td>
-    </tr>
     <div
-      class="emotion-74 emotion-75"
+      class="emotion-22 emotion-23"
     >
       <div>
         <button
-          class="emotion-76 denali-button"
+          class="emotion-24 denali-button"
         >
           Submit
         </button>
         
         <button
-          class="emotion-76 denali-button"
+          class="emotion-24 denali-button"
         >
           Reset
         </button>

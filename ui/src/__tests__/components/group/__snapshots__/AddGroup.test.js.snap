@@ -1,0 +1,7 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AddGroup should render 1`] = `
+<div
+  data-testid="add-group"
+/>
+`;

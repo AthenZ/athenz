@@ -17,6 +17,7 @@ import React from 'react';
 import styled from '@emotion/styled';
 import Switch from '../denali/Switch';
 import Input from '../denali/Input';
+import RadioButtonGroup from '../denali/RadioButtonGroup';
 
 const TDStyled = styled.td`
     background-color: ${(props) => props.color};
@@ -112,7 +113,6 @@ export default class SettingRow extends React.Component {
                         value={this.state.value}
                         checked={this.state.value}
                         onChange={this.toggleSwitchButton}
-                        disabled={this.props.disabled}
                     />
                 );
             case 'input':

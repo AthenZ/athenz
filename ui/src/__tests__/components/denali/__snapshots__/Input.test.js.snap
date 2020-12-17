@@ -1,6 +1,10 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Input should disable transitions 1`] = `
+.emotion-0 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
 .emotion-0 {
   box-sizing: border-box;
   display: -webkit-inline-box;
@@ -16,6 +20,23 @@ exports[`Input should disable transitions 1`] = `
   font-weight: 300;
   position: relative;
   width: 250px;
+}
+
+.emotion-0.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-0 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
 }
 
 .emotion-0 input {
@@ -42,27 +63,6 @@ exports[`Input should disable transitions 1`] = `
   padding: 0 1rem;
   text-align: left;
   width: 100%;
-}
-
-.emotion-0.animated input {
-  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-}
-
-.emotion-0 input::-webkit-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-0 input::-moz-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-0 input:-ms-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-0 input::placeholder {
-  color: rgba(48,48,48,0.6);
 }
 
 .emotion-0 input.focused,
@@ -117,6 +117,10 @@ exports[`Input should disable transitions 1`] = `
 `;
 
 exports[`Input should render 1`] = `
+.emotion-0 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
 .emotion-0 {
   box-sizing: border-box;
   display: -webkit-inline-box;
@@ -132,6 +136,23 @@ exports[`Input should render 1`] = `
   font-weight: 300;
   position: relative;
   width: 250px;
+}
+
+.emotion-0.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-0 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
 }
 
 .emotion-0 input {
@@ -158,27 +179,6 @@ exports[`Input should render 1`] = `
   padding: 0 1rem;
   text-align: left;
   width: 100%;
-}
-
-.emotion-0.animated input {
-  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-}
-
-.emotion-0 input::-webkit-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-0 input::-moz-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-0 input:-ms-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-0 input::placeholder {
-  color: rgba(48,48,48,0.6);
 }
 
 .emotion-0 input.focused,
@@ -233,6 +233,10 @@ exports[`Input should render 1`] = `
 `;
 
 exports[`Input should render a fluid input 1`] = `
+.emotion-0 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
 .emotion-0 {
   box-sizing: border-box;
   display: -webkit-inline-box;
@@ -248,6 +252,23 @@ exports[`Input should render a fluid input 1`] = `
   font-weight: 300;
   position: relative;
   width: 100%;
+}
+
+.emotion-0.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-0 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
 }
 
 .emotion-0 input {
@@ -274,27 +295,6 @@ exports[`Input should render a fluid input 1`] = `
   padding: 0 1rem;
   text-align: left;
   width: 100%;
-}
-
-.emotion-0.animated input {
-  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-}
-
-.emotion-0 input::-webkit-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-0 input::-moz-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-0 input:-ms-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-0 input::placeholder {
-  color: rgba(48,48,48,0.6);
 }
 
 .emotion-0 input.focused,
@@ -348,6 +348,10 @@ exports[`Input should render a fluid input 1`] = `
 `;
 
 exports[`Input should render a focused input 1`] = `
+.emotion-0 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
 .emotion-0 {
   box-sizing: border-box;
   display: -webkit-inline-box;
@@ -363,6 +367,23 @@ exports[`Input should render a focused input 1`] = `
   font-weight: 300;
   position: relative;
   width: 250px;
+}
+
+.emotion-0.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-0 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
 }
 
 .emotion-0 input {
@@ -389,27 +410,6 @@ exports[`Input should render a focused input 1`] = `
   padding: 0 1rem;
   text-align: left;
   width: 100%;
-}
-
-.emotion-0.animated input {
-  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-}
-
-.emotion-0 input::-webkit-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-0 input::-moz-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-0 input:-ms-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-0 input::placeholder {
-  color: rgba(48,48,48,0.6);
 }
 
 .emotion-0 input.focused,
@@ -465,6 +465,10 @@ exports[`Input should render a focused input 1`] = `
 `;
 
 exports[`Input should render a small input 1`] = `
+.emotion-0 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
 .emotion-0 {
   box-sizing: border-box;
   display: -webkit-inline-box;
@@ -480,6 +484,23 @@ exports[`Input should render a small input 1`] = `
   font-weight: 300;
   position: relative;
   width: 250px;
+}
+
+.emotion-0.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-0 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
 }
 
 .emotion-0 input {
@@ -506,27 +527,6 @@ exports[`Input should render a small input 1`] = `
   padding: 0 1rem;
   text-align: left;
   width: 100%;
-}
-
-.emotion-0.animated input {
-  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-}
-
-.emotion-0 input::-webkit-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-0 input::-moz-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-0 input:-ms-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-0 input::placeholder {
-  color: rgba(48,48,48,0.6);
 }
 
 .emotion-0 input.focused,
@@ -581,21 +581,22 @@ exports[`Input should render a small input 1`] = `
 `;
 
 exports[`Input should render a small input with an icon 1`] = `
-.emotion-0 {
-  box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  -webkit-box-flex-flow: row nowrap;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  position: relative;
-  width: 250px;
+.emotion-0 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 .input-icon {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 28px;
+  position: absolute;
+  right: 6px;
 }
 
 .emotion-0 input {
@@ -641,8 +642,21 @@ exports[`Input should render a small input with an icon 1`] = `
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-0 input::placeholder {
-  color: rgba(48,48,48,0.6);
+.emotion-0 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 250px;
 }
 
 .emotion-0 input.focused,
@@ -680,20 +694,6 @@ exports[`Input should render a small input with an icon 1`] = `
 
 .emotion-0 input {
   padding-right: 28px;
-}
-
-.emotion-0 .input-icon {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  height: 28px;
-  position: absolute;
-  right: 6px;
 }
 
 .emotion-1 {
@@ -738,6 +738,14 @@ exports[`Input should render a small input with an icon 1`] = `
 `;
 
 exports[`Input should render an input with a label 1`] = `
+.emotion-0 input.focused,
+.emotion-0 input:active,
+.emotion-0 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
 .emotion-0 {
   box-sizing: border-box;
   display: -webkit-inline-box;
@@ -753,6 +761,27 @@ exports[`Input should render an input with a label 1`] = `
   font-weight: 300;
   position: relative;
   width: 250px;
+}
+
+.emotion-0.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-0 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input::placeholder {
+  color: rgba(48,48,48,0.6);
 }
 
 .emotion-0 input {
@@ -779,35 +808,6 @@ exports[`Input should render an input with a label 1`] = `
   padding: 0 1rem;
   text-align: left;
   width: 100%;
-}
-
-.emotion-0.animated input {
-  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-}
-
-.emotion-0 input::-webkit-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-0 input::-moz-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-0 input:-ms-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-0 input::placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-0 input.focused,
-.emotion-0 input:active,
-.emotion-0 input:focus {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #3570f4;
-  color: #303030;
 }
 
 .emotion-0 input:invalid {
@@ -889,6 +889,14 @@ exports[`Input should render an input with a label 1`] = `
 `;
 
 exports[`Input should render an input with an icon 1`] = `
+.emotion-0 input.focused,
+.emotion-0 input:active,
+.emotion-0 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
 .emotion-0 {
   box-sizing: border-box;
   display: -webkit-inline-box;
@@ -904,6 +912,27 @@ exports[`Input should render an input with an icon 1`] = `
   font-weight: 300;
   position: relative;
   width: 250px;
+}
+
+.emotion-0.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-0 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input::placeholder {
+  color: rgba(48,48,48,0.6);
 }
 
 .emotion-0 input {
@@ -930,35 +959,6 @@ exports[`Input should render an input with an icon 1`] = `
   padding: 0 1rem;
   text-align: left;
   width: 100%;
-}
-
-.emotion-0.animated input {
-  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-}
-
-.emotion-0 input::-webkit-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-0 input::-moz-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-0 input:-ms-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-0 input::placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-0 input.focused,
-.emotion-0 input:active,
-.emotion-0 input:focus {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #3570f4;
-  color: #303030;
 }
 
 .emotion-0 input:invalid {
@@ -1046,6 +1046,10 @@ exports[`Input should render an input with an icon 1`] = `
 `;
 
 exports[`Input should render an input with error 1`] = `
+.emotion-0.error .message {
+  color: #d01111;
+}
+
 .emotion-0 {
   box-sizing: border-box;
   display: -webkit-inline-box;
@@ -1061,32 +1065,6 @@ exports[`Input should render an input with error 1`] = `
   font-weight: 300;
   position: relative;
   width: 250px;
-}
-
-.emotion-0 input {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  -ms-appearance: none;
-  appearance: none;
-  background: rgba(53,112,244,0.05);
-  border-top: 2px solid transparent;
-  border-bottom: 2px solid transparent;
-  border-right: transparent;
-  border-left: transparent;
-  border-radius: 2px;
-  box-shadow: none;
-  box-sizing: border-box;
-  color: #303030;
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-  font: inherit;
-  height: 36px;
-  margin: 0;
-  outline: none;
-  padding: 0 1rem;
-  text-align: left;
-  width: 100%;
 }
 
 .emotion-0.animated input {
@@ -1139,8 +1117,30 @@ exports[`Input should render an input with error 1`] = `
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-0.error .message {
-  color: #d01111;
+.emotion-0 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
 }
 
 .css-10vcieo-default-default-normal-default-input-subtitle-makeInputBaseClass.error input,
@@ -1218,6 +1218,14 @@ exports[`Input should render an input with error 1`] = `
 `;
 
 exports[`Input should render dark theme 1`] = `
+.emotion-0 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
 .emotion-0 {
   box-sizing: border-box;
   display: -webkit-inline-box;
@@ -1233,32 +1241,6 @@ exports[`Input should render dark theme 1`] = `
   font-weight: 300;
   position: relative;
   width: 250px;
-}
-
-.emotion-0 input {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  -ms-appearance: none;
-  appearance: none;
-  background: rgba(53,112,244,0.05);
-  border-top: 2px solid transparent;
-  border-bottom: 2px solid transparent;
-  border-right: transparent;
-  border-left: transparent;
-  border-radius: 2px;
-  box-shadow: none;
-  box-sizing: border-box;
-  color: #303030;
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-  font: inherit;
-  height: 36px;
-  margin: 0;
-  outline: none;
-  padding: 0 1rem;
-  text-align: left;
-  width: 100%;
 }
 
 .emotion-0.animated input {
@@ -1296,12 +1278,30 @@ exports[`Input should render dark theme 1`] = `
   color: #303030;
 }
 
-.emotion-0 .message {
-  font-size: 12px;
-  left: 0;
-  line-height: 1.8;
-  position: absolute;
-  top: 2.571rem;
+.emotion-0 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
 }
 
 .emotion-0.error input,
@@ -1362,6 +1362,12 @@ exports[`Input should render dark theme 1`] = `
 `;
 
 exports[`Input should render disabled dark theme 1`] = `
+.emotion-0 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
 .emotion-0 {
   box-sizing: border-box;
   display: -webkit-inline-box;
@@ -1377,32 +1383,6 @@ exports[`Input should render disabled dark theme 1`] = `
   font-weight: 300;
   position: relative;
   width: 250px;
-}
-
-.emotion-0 input {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  -ms-appearance: none;
-  appearance: none;
-  background: rgba(53,112,244,0.05);
-  border-top: 2px solid transparent;
-  border-bottom: 2px solid transparent;
-  border-right: transparent;
-  border-left: transparent;
-  border-radius: 2px;
-  box-shadow: none;
-  box-sizing: border-box;
-  color: #303030;
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-  font: inherit;
-  height: 36px;
-  margin: 0;
-  outline: none;
-  padding: 0 1rem;
-  text-align: left;
-  width: 100%;
 }
 
 .emotion-0.animated input {
@@ -1434,10 +1414,30 @@ exports[`Input should render disabled dark theme 1`] = `
   color: #303030;
 }
 
-.emotion-0 input:invalid {
+.emotion-0 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
   background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #d01111;
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
   color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
 }
 
 .emotion-0 .message {
@@ -1501,6 +1501,14 @@ exports[`Input should render disabled dark theme 1`] = `
 `;
 
 exports[`Input should render icon with renderIcon function  1`] = `
+.emotion-0 input.focused,
+.emotion-0 input:active,
+.emotion-0 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
 .emotion-0 {
   box-sizing: border-box;
   display: -webkit-inline-box;
@@ -1516,6 +1524,27 @@ exports[`Input should render icon with renderIcon function  1`] = `
   font-weight: 300;
   position: relative;
   width: 250px;
+}
+
+.emotion-0.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-0 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input::placeholder {
+  color: rgba(48,48,48,0.6);
 }
 
 .emotion-0 input {
@@ -1542,35 +1571,6 @@ exports[`Input should render icon with renderIcon function  1`] = `
   padding: 0 1rem;
   text-align: left;
   width: 100%;
-}
-
-.emotion-0.animated input {
-  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-}
-
-.emotion-0 input::-webkit-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-0 input::-moz-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-0 input:-ms-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-0 input::placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-0 input.focused,
-.emotion-0 input:active,
-.emotion-0 input:focus {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #3570f4;
-  color: #303030;
 }
 
 .emotion-0 input:invalid {

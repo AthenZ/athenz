@@ -15,16 +15,16 @@
  */
 import React from 'react';
 import { render } from '@testing-library/react';
-import RoleHistoryList from '../../../components/history/RoleHistoryList';
+import CollectionHistoryList from '../../../components/history/CollectionHistoryList';
 
 describe('RoleHistoryList', () => {
     it('should render', () => {
         const startDate = '2020-01-20 07:51';
         const endDate = '2020-01-20 07:55';
         const { getByTestId } = render(
-            <RoleHistoryList startDate={startDate} endDate={endDate} />
+            <CollectionHistoryList startDate={startDate} endDate={endDate} />
         );
-        const historyList = getByTestId('role-history-list');
+        const historyList = getByTestId('collection-history-list');
 
         expect(historyList).toMatchSnapshot();
     });

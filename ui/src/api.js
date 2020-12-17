@@ -178,6 +178,25 @@ const Api = (req) => {
             });
         },
 
+        getGroups(domainName) {
+            return new Promise((resolve, reject) => {
+                fetchr
+                    .read('groups')
+                    .params({ domainName })
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            if (data && data.list) {
+                                resolve(data.list);
+                            } else {
+                                resolve([]);
+                            }
+                        }
+                    });
+            });
+        },
+
         getRole(
             domainName,
             roleName,
@@ -199,7 +218,56 @@ const Api = (req) => {
             });
         },
 
-        getPendingDomainRoleMembersList() {
+        getCollection(
+            domainName,
+            collectionName,
+            category,
+            auditLog = true,
+            expand = false,
+            pending = false
+        ) {
+            if (category === 'group') {
+                return new Promise((resolve, reject) => {
+                    fetchr
+                        .read('group')
+                        .params({
+                            domainName,
+                            groupName: collectionName,
+                            auditLog,
+                            expand,
+                            pending,
+                        })
+                        .end((err, data) => {
+                            if (err) {
+                                reject(err);
+                            } else {
+                                resolve(data);
+                            }
+                        });
+                });
+            } else if (category === 'role') {
+                return new Promise((resolve, reject) => {
+                    fetchr
+                        .read('role')
+                        .params({
+                            domainName,
+                            roleName: collectionName,
+                            auditLog,
+                            expand,
+                            pending,
+                        })
+                        .end((err, data) => {
+                            if (err) {
+                                reject(err);
+                            } else {
+                                resolve(data);
+                            }
+                        });
+                });
+            }
+        },
+
+        getPendingDomainMembersList() {
             return new Promise((resolve, reject) => {
                 fetchr.read('pending-approval').end((err, data) => {
                     if (err) {
@@ -216,6 +284,7 @@ const Api = (req) => {
             roleName,
             memberName,
             auditRef,
+            category,
             membership,
             _csrf
         ) {
@@ -233,6 +302,7 @@ const Api = (req) => {
                         roleName,
                         memberName,
                         auditRef,
+                        category,
                         membership,
                     })
                     .end((err, data) => {
@@ -265,6 +335,26 @@ const Api = (req) => {
             });
         },
 
+        addGroup(domainName, groupName, group, auditRef, _csrf) {
+            return new Promise((resolve, reject) => {
+                fetchr.updateOptions({
+                    context: {
+                        _csrf: _csrf,
+                    },
+                });
+                fetchr
+                    .create('group')
+                    .params({ domainName, groupName, group, auditRef })
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
+            });
+        },
+
         deleteRole(domainName, roleName, auditRef, _csrf) {
             return new Promise((resolve, reject) => {
                 fetchr.updateOptions({
@@ -285,6 +375,26 @@ const Api = (req) => {
             });
         },
 
+        deleteGroup(domainName, groupName, auditRef, _csrf) {
+            return new Promise((resolve, reject) => {
+                fetchr.updateOptions({
+                    context: {
+                        _csrf: _csrf,
+                    },
+                });
+                fetchr
+                    .delete('group')
+                    .params({ domainName, groupName, auditRef })
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
+            });
+        },
+
         reviewRole(domainName, roleName, role, auditRef, _csrf) {
             return new Promise((resolve, reject) => {
                 fetchr.updateOptions({
@@ -295,6 +405,26 @@ const Api = (req) => {
                 fetchr
                     .update('role')
                     .params({ domainName, roleName, role, auditRef })
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
+            });
+        },
+
+        reviewGroup(domainName, groupName, group, auditRef, _csrf) {
+            return new Promise((resolve, reject) => {
+                fetchr.updateOptions({
+                    context: {
+                        _csrf: _csrf,
+                    },
+                });
+                fetchr
+                    .update('group')
+                    .params({ domainName, groupName, group, auditRef })
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -327,10 +457,11 @@ const Api = (req) => {
 
         addMember(
             domainName,
-            roleName,
+            collectionName,
             memberName,
             membership,
             auditRef,
+            category,
             _csrf
         ) {
             return new Promise((resolve, reject) => {
@@ -343,10 +474,11 @@ const Api = (req) => {
                     .create('member')
                     .params({
                         domainName,
-                        roleName,
+                        collectionName,
                         memberName,
                         auditRef,
                         membership,
+                        category,
                     })
                     .end((err, data) => {
                         if (err) {
@@ -391,7 +523,15 @@ const Api = (req) => {
             });
         },
 
-        deleteMember(domainName, roleName, memberName, auditRef, _csrf) {
+        deleteMember(
+            domainName,
+            principalName,
+            memberName,
+            auditRef,
+            pending,
+            category,
+            _csrf
+        ) {
             return new Promise((resolve, reject) => {
                 fetchr.updateOptions({
                     context: {
@@ -400,7 +540,14 @@ const Api = (req) => {
                 });
                 fetchr
                     .delete('member')
-                    .params({ domainName, roleName, memberName, auditRef })
+                    .params({
+                        domainName,
+                        principalName,
+                        memberName,
+                        auditRef,
+                        pending,
+                        category,
+                    })
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -920,7 +1067,7 @@ const Api = (req) => {
             });
         },
 
-        putRoleMeta(domainName, roleName, detail, auditRef, _csrf) {
+        putMeta(domainName, principalName, detail, auditRef, _csrf, category) {
             return new Promise((resolve, reject) => {
                 fetchr.updateOptions({
                     context: {
@@ -928,8 +1075,14 @@ const Api = (req) => {
                     },
                 });
                 fetchr
-                    .create('role-meta')
-                    .params({ domainName, roleName, detail, auditRef })
+                    .create('meta')
+                    .params({
+                        domainName,
+                        principalName,
+                        detail,
+                        auditRef,
+                        category,
+                    })
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -1051,6 +1204,56 @@ const Api = (req) => {
                 fetchr
                     .create('provider')
                     .params(params)
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
+            });
+        },
+
+        getGroup(domainName, groupName) {
+            return new Promise((resolve, reject) => {
+                fetchr
+                    .read('group')
+                    .params({
+                        domainName,
+                        groupName,
+                        auditLog: true,
+                        pending: true,
+                    })
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
+            });
+        },
+
+        getCollectionMembers(domainName, collectionName, category, trust) {
+            return new Promise((resolve, reject) => {
+                fetchr
+                    .read('collection-members')
+                    .params({ domainName, collectionName, category, trust })
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
+            });
+        },
+
+        getDomainRoleMembers(principal) {
+            return new Promise((resolve, reject) => {
+                fetchr
+                    .read('domain-role-member')
+                    .params({ principal })
                     .end((err, data) => {
                         if (err) {
                             reject(err);

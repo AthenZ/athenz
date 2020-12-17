@@ -100,13 +100,13 @@ const MenuDiv = styled.div`
     font-size: 12px;
 `;
 
-export default class RoleHistoryList extends React.Component {
+export default class CollectionHistoryList extends React.Component {
     constructor(props) {
         super(props);
         this.api = props.api;
         this.state = {
             list: props.historyrows || [],
-            role: props.role,
+            collection: props.collection,
             startDate: this.getDefaultStartDate(props.startDate),
             endDate: props.endDate ? new Date(props.endDate) : new Date(),
             showSuccess: false,
@@ -145,7 +145,12 @@ export default class RoleHistoryList extends React.Component {
         // Download CSV file
         this.downloadCSV(
             result,
-            this.props.domain + this.props.role + '-role-audit-history.csv'
+            this.props.domain +
+                '-' +
+                this.props.collection +
+                '-' +
+                this.props.category +
+                '-audit-history.csv'
         );
     }
 
@@ -205,12 +210,16 @@ export default class RoleHistoryList extends React.Component {
             return;
         }
         this.api
-            .getRole(this.props.domain, this.props.role, true, false, true)
+            .getCollection(
+                this.props.domain,
+                this.props.collection,
+                this.props.category
+            )
             .then((data) => {
-                let successMsg = `Filtered history records for role ${this.props.role} below. `;
+                let successMsg = `Filtered history records for role ${this.props.collection} below. `;
                 let alertType = 'success';
                 if (data.length === 0) {
-                    successMsg = `No history records for role ${this.props.role} found. `;
+                    successMsg = `No history records for role ${this.props.collection} found. `;
                     alertType = 'warning';
                 }
                 let historyRows = data.auditLog
@@ -300,7 +309,7 @@ export default class RoleHistoryList extends React.Component {
         });
 
         return (
-            <HistorySectionDiv data-testid='role-history-list'>
+            <HistorySectionDiv data-testid='collection-history-list'>
                 <HistoryFilterDiv>
                     <div />
                     <HistoryFilterTitleDiv>Start Date</HistoryFilterTitleDiv>

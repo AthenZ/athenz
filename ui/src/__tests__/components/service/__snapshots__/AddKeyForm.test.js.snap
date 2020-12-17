@@ -39,6 +39,22 @@ exports[`AddKeyForm should render 1`] = `
   margin-right: 10px;
 }
 
+.emotion-7 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-7 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-7 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-7 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
 .emotion-7 {
   box-sizing: border-box;
   display: -webkit-inline-box;
@@ -54,6 +70,39 @@ exports[`AddKeyForm should render 1`] = `
   font-weight: 300;
   position: relative;
   width: 250px;
+}
+
+.emotion-7 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-7 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-7.error input,
+.emotion-7.error input.focused,
+.emotion-7.error input:active,
+.emotion-7.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-7.error .message {
+  color: #d01111;
+}
+
+.emotion-7 input.focused,
+.emotion-7 input:active,
+.emotion-7 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
 }
 
 .emotion-7 input {
@@ -85,55 +134,6 @@ exports[`AddKeyForm should render 1`] = `
 .emotion-7.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-}
-
-.emotion-7 input::-webkit-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-7 input::-moz-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-7 input:-ms-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-7 input::placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-7 input.focused,
-.emotion-7 input:active,
-.emotion-7 input:focus {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #3570f4;
-  color: #303030;
-}
-
-.emotion-7 input:invalid {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #d01111;
-  color: #303030;
-}
-
-.emotion-7 .message {
-  font-size: 12px;
-  left: 0;
-  line-height: 1.8;
-  position: absolute;
-  top: 2.571rem;
-}
-
-.emotion-7.error input,
-.emotion-7.error input.focused,
-.emotion-7.error input:active,
-.emotion-7.error input:focus {
-  border-bottom: 2px solid #d01111;
-}
-
-.emotion-7.error .message {
-  color: #d01111;
 }
 
 .emotion-8 {
@@ -212,6 +212,25 @@ exports[`AddKeyForm should render 2`] = `
   margin-right: 10px;
 }
 
+.emotion-7>textarea::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-7>textarea:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-7>textarea::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-7>textarea:active,
+.emotion-7>textarea:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
 .emotion-7 {
   font-family: Helvetica,Arial,sans-serif;
   font-size: 14px;
@@ -227,6 +246,28 @@ exports[`AddKeyForm should render 2`] = `
   flex-flow: column nowrap;
   position: relative;
   width: 500px;
+}
+
+.emotion-7>textarea[disabled] {
+  background: rgba(48,48,48,0.05);
+  border-bottom: 2px solid rgba(48,48,48,0.05);
+  color: rgba(48,48,48,0.25);
+  cursor: not-allowed;
+}
+
+.emotion-7 .message {
+  font-size: 12px;
+  color: #303030;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-7>textarea:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
 }
 
 .emotion-7>textarea {
@@ -260,47 +301,6 @@ exports[`AddKeyForm should render 2`] = `
 
 .emotion-7>textarea::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
-}
-
-.emotion-7>textarea::-moz-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-7>textarea:-ms-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-7>textarea::placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-7>textarea:active,
-.emotion-7>textarea:focus {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #3570f4;
-  color: #303030;
-}
-
-.emotion-7>textarea:invalid {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #d01111;
-  color: #303030;
-}
-
-.emotion-7>textarea[disabled] {
-  background: rgba(48,48,48,0.05);
-  border-bottom: 2px solid rgba(48,48,48,0.05);
-  color: rgba(48,48,48,0.25);
-  cursor: not-allowed;
-}
-
-.emotion-7 .message {
-  font-size: 12px;
-  color: #303030;
-  left: 0;
-  line-height: 1.8;
-  position: absolute;
-  top: 2.571rem;
 }
 
 .emotion-8>textarea {

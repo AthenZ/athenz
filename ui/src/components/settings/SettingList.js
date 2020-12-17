@@ -15,7 +15,10 @@
  */
 import React from 'react';
 import styled from '@emotion/styled';
+import { colors } from '../denali/styles';
 import SettingTable from './SettingTable';
+import Alert from '../denali/Alert';
+import { MODAL_TIME_OUT } from '../constants/constants';
 import RequestUtils from '../utils/RequestUtils';
 
 const RolesSectionDiv = styled.div`
@@ -29,7 +32,7 @@ export default class SettingList extends React.Component {
         this.onSubmit = this.onSubmit.bind(this);
         this.reloadRole = this.reloadRole.bind(this);
         this.state = {
-            roleDetails: props.roleDetails,
+            collectionDetails: props.collectionDetails,
             errorMessage: null,
         };
     }
@@ -66,19 +69,20 @@ export default class SettingList extends React.Component {
     }
 
     render() {
-        const { domain, role } = this.props;
+        const { domain, collection } = this.props;
 
         return (
             <RolesSectionDiv data-testid='setting-list'>
                 <SettingTable
                     domain={domain}
-                    role={role}
-                    roleDetails={this.state.roleDetails}
+                    collection={collection}
+                    collectionDetails={this.state.collectionDetails}
                     onSubmit={this.onSubmit}
                     api={this.api}
                     _csrf={this.props._csrf}
                     justificationRequired={this.props.isDomainAuditEnabled}
                     userProfileLink={this.props.userProfileLink}
+                    category={this.props.category}
                 />
             </RolesSectionDiv>
         );

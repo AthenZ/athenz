@@ -21,14 +21,14 @@ import styled from '@emotion/styled';
 import Head from 'next/head';
 // there is an issue with next-link and next-css if the css is not present then it doesnt load so adding this
 import 'flatpickr/dist/themes/light.css';
-import RoleDetails from '../components/header/RoleDetails';
+import CollectionDetails from '../components/header/CollectionDetails';
 import SettingList from '../components/settings/SettingList';
 import RequestUtils from '../components/utils/RequestUtils';
 import RoleTabs from '../components/header/RoleTabs';
-import RoleNameHeader from '../components/header/RoleNameHeader';
+import NameHeader from '../components/header/NameHeader';
 import Error from './_error';
-import createCache from '@emotion/cache';
-import { CacheProvider } from '@emotion/react';
+import createCache from "@emotion/cache";
+import {CacheProvider} from "@emotion/react";
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -77,7 +77,7 @@ export default class SettingPage extends React.Component {
                 false,
                 false
             ),
-            api.getPendingDomainRoleMembersList(),
+            api.getPendingDomainMembersList(),
             api.getForm(),
         ]).catch((err) => {
             let response = RequestUtils.errorCheckHelper(err);
@@ -130,65 +130,65 @@ export default class SettingPage extends React.Component {
         }
         return (
             <CacheProvider value={this.cache}>
-                <div data-testid='setting'>
-                    <Head>
-                        <title>Athenz</title>
-                    </Head>
-                    <Header
-                        showSearch={true}
-                        headerDetails={this.props.headerDetails}
-                        pending={this.props.pending}
-                    />
-                    <MainContentDiv>
-                        <AppContainerDiv>
-                            <RolesContainerDiv>
-                                <RolesContentDiv>
-                                    <PageHeaderDiv>
-                                        <RoleNameHeader
-                                            domain={domain}
-                                            role={role}
-                                            roleDetails={roleDetails}
-                                        />
-                                        <RoleDetails
-                                            roleDetails={roleDetails}
-                                            api={this.api}
-                                            _csrf={_csrf}
-                                            productMasterLink={
-                                                this.props.headerDetails
-                                                    .productMasterLink
-                                            }
-                                        />
-                                        <RoleTabs
-                                            api={this.api}
-                                            domain={domain}
-                                            role={role}
-                                            selectedName={'settings'}
-                                        />
-                                    </PageHeaderDiv>
-                                    <SettingList
+            <div data-testid='setting'>
+                <Head>
+                    <title>Athenz</title>
+                </Head>
+                <Header
+                    showSearch={true}
+                    headerDetails={this.props.headerDetails}
+                    pending={this.props.pending}
+                />
+                <MainContentDiv>
+                    <AppContainerDiv>
+                        <RolesContainerDiv>
+                            <RolesContentDiv>
+                                <PageHeaderDiv>
+                                    <NameHeader
+                                        category={'role'}
+                                        domain={domain}
+                                        collection={role}
+                                        collectionDetails={roleDetails}
+                                    />
+                                    <CollectionDetails
+                                        collectionDetails={roleDetails}
+                                        api={this.api}
+                                        _csrf={_csrf}
+                                        productMasterLink={
+                                            this.props.headerDetails
+                                                .productMasterLink
+                                        }
+                                    />
+                                    <RoleTabs
                                         api={this.api}
                                         domain={domain}
                                         role={role}
-                                        roleDetails={roleDetails}
-                                        _csrf={_csrf}
-                                        isDomainAuditEnabled={
-                                            isDomainAuditEnabled
-                                        }
-                                        userProfileLink={
-                                            this.props.headerDetails.userData
-                                                .userLink
-                                        }
+                                        selectedName={'settings'}
                                     />
-                                </RolesContentDiv>
-                            </RolesContainerDiv>
-                            <UserDomains
-                                domains={this.props.domains}
-                                api={this.api}
-                                domain={domain}
-                            />
-                        </AppContainerDiv>
-                    </MainContentDiv>
-                </div>
+                                </PageHeaderDiv>
+                                <SettingList
+                                    api={this.api}
+                                    domain={domain}
+                                    collection={role}
+                                    collectionDetails={roleDetails}
+                                    _csrf={_csrf}
+                                    isDomainAuditEnabled={isDomainAuditEnabled}
+                                    userProfileLink={
+                                        this.props.headerDetails.userData
+                                            .userLink
+                                    }
+                                    category={'role'}
+                                />
+                            </RolesContentDiv>
+                        </RolesContainerDiv>
+                        <UserDomains
+                            domains={this.props.domains}
+                            api={this.api}
+                            domain={domain}
+                        />
+                    </AppContainerDiv>
+                </MainContentDiv>
+            </div>
             </CacheProvider>
         );
     }

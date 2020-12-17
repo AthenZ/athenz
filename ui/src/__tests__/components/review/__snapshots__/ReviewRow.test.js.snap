@@ -22,7 +22,7 @@ exports[`ReviewRow should render 1`] = `
   border-bottom: 1px solid #d5d5d5;
 }
 
-.emotion-8 {
+.emotion-6 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -31,42 +31,7 @@ exports[`ReviewRow should render 1`] = `
   border-bottom: 1px solid #d5d5d5;
 }
 
-.emotion-10 {
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  box-sizing: border-box;
-  display: inline-block;
-  height: 16px;
-  line-height: 16px;
-  margin: 3px;
-  outline: 0px;
-  position: relative;
-  vertical-align: bottom;
-}
-
-.emotion-10>input[type='radio'] {
-  box-sizing: border-box;
-  cursor: pointer;
-  display: inline-block;
-  position: absolute;
-  top: 0;
-  visibility: hidden;
-}
-
-.emotion-10>input[type='radio']+label {
-  box-sizing: border-box;
-  cursor: pointer;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  height: 16px;
-  line-height: 16px;
-  padding: 0 10px 0 0;
-  vertical-align: bottom;
-  white-space: nowrap;
-}
-
-.emotion-10>input[type='radio']+label:before {
+.emotion-8>input[type='radio']+label:before {
   background: #fff;
   border: 2px solid rgba(54,151,242,0.5);
   border-radius: 50%;
@@ -82,29 +47,34 @@ exports[`ReviewRow should render 1`] = `
   width: 16px;
 }
 
-.emotion-10>input[type='radio']:hover+label:before {
+.emotion-8>input[type='radio']:hover+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-10>input[type='radio']:focus+label:before {
+.emotion-8>input[type='radio']:focus+label:before {
   border: 2px solid rgba(54,151,242,0.5);
 }
 
-.emotion-10>input[type='radio']:checked+label:before {
-  border: 2px solid #3697f2;
+.emotion-8>input[type='radio'] {
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  position: absolute;
+  top: 0;
+  visibility: hidden;
 }
 
-.emotion-10>input[type='radio']:disabled+label {
+.emotion-8>input[type='radio']:disabled+label {
   color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-10>input[type='radio']:disabled+label:before {
+.emotion-8>input[type='radio']:disabled+label:before {
   border: 2px solid #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-10>input[type='radio']:checked+label:after {
+.emotion-8>input[type='radio']:checked+label:after {
   background-color: #3697f2;
   border-radius: 50%;
   box-sizing: border-box;
@@ -117,6 +87,36 @@ exports[`ReviewRow should render 1`] = `
   -webkit-transition: all 0.2s ease-in;
   transition: all 0.2s ease-in;
   width: 8px;
+}
+
+.emotion-8 {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  display: inline-block;
+  height: 16px;
+  line-height: 16px;
+  margin: 3px;
+  outline: 0px;
+  position: relative;
+  vertical-align: bottom;
+}
+
+.emotion-8>input[type='radio']+label {
+  box-sizing: border-box;
+  cursor: pointer;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  height: 16px;
+  line-height: 16px;
+  padding: 0 10px 0 0;
+  vertical-align: bottom;
+  white-space: nowrap;
+}
+
+.emotion-8>input[type='radio']:checked+label:before {
+  border: 2px solid #3697f2;
 }
 
 <tr
@@ -134,64 +134,40 @@ exports[`ReviewRow should render 1`] = `
     color="#3570f40D"
   />
   <td
-    class="emotion-2 emotion-3"
-    color="#3570f40D"
-  />
-  <td
-    class="emotion-8 emotion-3"
+    class="emotion-6 emotion-3"
     color="#3570f40D"
   >
     <div
-      class="emotion-10 denali-radiobutton"
+      class="emotion-8 denali-radiobutton"
       data-testid="radiobutton-wrapper"
     >
       <input
-        checked=""
-        id="radiobutton-roleName50-extend"
-        name="roleName50"
-        type="radio"
-        value="extend"
-      />
-      <label
-        for="radiobutton-roleName50-extend"
-      />
-    </div>
-  </td>
-  <td
-    class="emotion-8 emotion-3"
-    color="#3570f40D"
-  >
-    <div
-      class="emotion-10 denali-radiobutton"
-      data-testid="radiobutton-wrapper"
-    >
-      <input
-        id="radiobutton-roleName50-no-action"
-        name="roleName50"
+        id="radiobutton-undefined50-no-action"
+        name="undefined50"
         type="radio"
         value="no-action"
       />
       <label
-        for="radiobutton-roleName50-no-action"
+        for="radiobutton-undefined50-no-action"
       />
     </div>
   </td>
   <td
-    class="emotion-8 emotion-3"
+    class="emotion-6 emotion-3"
     color="#3570f40D"
   >
     <div
-      class="emotion-10 denali-radiobutton"
+      class="emotion-8 denali-radiobutton"
       data-testid="radiobutton-wrapper"
     >
       <input
-        id="radiobutton-roleName50-delete"
-        name="roleName50"
+        id="radiobutton-undefined50-delete"
+        name="undefined50"
         type="radio"
         value="delete"
       />
       <label
-        for="radiobutton-roleName50-delete"
+        for="radiobutton-undefined50-delete"
       />
     </div>
   </td>

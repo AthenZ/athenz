@@ -34,10 +34,14 @@ const ModifiedButton = styled(Button)`
     min-height: 1em;
 `;
 
+const StyledAddModal = styled(Modal)`
+    width: 800px;
+`;
+
 export default class AddModal extends React.Component {
     render() {
         return (
-            <Modal
+            <StyledAddModal
                 isOpen={this.props.isOpen}
                 noanim={true}
                 onClose={this.props.cancel}
@@ -63,7 +67,7 @@ export default class AddModal extends React.Component {
                         Cancel
                     </ModifiedButton>
                 </ButtonDiv>
-            </Modal>
+            </StyledAddModal>
         );
     }
 }

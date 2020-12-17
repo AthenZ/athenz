@@ -28,6 +28,10 @@ export default class Tabs extends React.Component {
             name: 'roles',
         },
         {
+            label: 'Groups',
+            name: 'groups',
+        },
+        {
             label: 'Services',
             name: 'services',
         },
@@ -65,6 +69,18 @@ export default class Tabs extends React.Component {
                     .getStatus()
                     .then(function () {
                         Router.pushRoute('service', { domain });
+                    })
+                    .catch((err) => {
+                        if (err.statusCode === 0) {
+                            window.location.reload();
+                        }
+                    });
+                break;
+            case 'groups':
+                this.props.api
+                    .getStatus()
+                    .then(function() {
+                        Router.pushRoute('group', { domain });
                     })
                     .catch((err) => {
                         if (err.statusCode === 0) {

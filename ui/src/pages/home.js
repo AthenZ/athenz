@@ -94,7 +94,7 @@ export default class PageHome extends React.Component {
         const domains = await Promise.all([
             api.listUserDomains(),
             api.getHeaderDetails(),
-            api.getPendingDomainRoleMembersList(),
+            api.getPendingDomainMembersList(),
         ]).catch((err) => {
             let response = RequestUtils.errorCheckHelper(err);
             reload = response.reload;

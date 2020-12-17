@@ -105,8 +105,6 @@ export default class ReviewTable extends React.Component {
         this.state = {
             roleObj: props.roleDetails,
             list: props.members || [],
-            memberExpiry: '',
-            serviceExpiry: '',
             memberExpiry: props.roleDetails.memberExpiryDays,
             serviceExpiry: props.roleDetails.serviceExpiryDays,
             submittedReview: false,
@@ -359,6 +357,13 @@ export default class ReviewTable extends React.Component {
                 this.state.roleObj.serviceExpiryDays +
                 ' days ';
         }
+        if (this.state.roleObj && this.state.roleObj.groupExpiryDays) {
+            text =
+                text +
+                'Group expiry: ' +
+                this.state.roleObj.groupExpiryDays +
+                ' days ';
+        }
 
         const changeText = 'To change it, please click ';
 
@@ -388,6 +393,7 @@ export default class ReviewTable extends React.Component {
                           let color = 'white';
                           return (
                               <ReviewRow
+                                  category={'role'}
                                   key={'role-review-' + i}
                                   idx={'role-review-' + i}
                                   details={item}

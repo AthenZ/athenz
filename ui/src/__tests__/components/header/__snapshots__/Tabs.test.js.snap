@@ -11,7 +11,7 @@ exports[`Tabs should render 1`] = `
   box-shadow: ;
   box-sizing: border-box;
   display: inline-grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   margin-top: 0;
   min-width: 80px;
   position: relative;
@@ -108,6 +108,12 @@ exports[`Tabs should render 1`] = `
     data-active="false"
   >
     Roles
+  </div>
+  <div
+    class="emotion-1 denali-tab"
+    data-active="false"
+  >
+    Groups
   </div>
   <div
     class="emotion-1 denali-tab"

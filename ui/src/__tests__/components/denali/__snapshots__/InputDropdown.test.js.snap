@@ -186,56 +186,13 @@ exports[`InputDropdown opens the dropdown 1`] = `
 `;
 
 exports[`InputDropdown renders a filterable dropdown 1`] = `
-.emotion-0 {
-  position: relative;
-  width: ;
-}
-
 .emotion-0 input {
   cursor: inherit;
 }
 
-.emotion-1 {
-  box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  -webkit-box-flex-flow: row nowrap;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
+.emotion-0 {
   position: relative;
-  width: 250px;
-}
-
-.emotion-1 input {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  -ms-appearance: none;
-  appearance: none;
-  background: rgba(53,112,244,0.05);
-  border-top: 2px solid transparent;
-  border-bottom: 2px solid transparent;
-  border-right: transparent;
-  border-left: transparent;
-  border-radius: 2px;
-  box-shadow: none;
-  box-sizing: border-box;
-  color: #303030;
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-  font: inherit;
-  height: 36px;
-  margin: 0;
-  outline: none;
-  padding: 0 1rem;
-  text-align: left;
-  width: 100%;
+  width: ;
 }
 
 .emotion-1.animated input {
@@ -267,10 +224,30 @@ exports[`InputDropdown renders a filterable dropdown 1`] = `
   color: #303030;
 }
 
-.emotion-1 input:invalid {
+.emotion-1 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
   background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #d01111;
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
   color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
 }
 
 .emotion-1 .message {
@@ -308,6 +285,29 @@ exports[`InputDropdown renders a filterable dropdown 1`] = `
   height: 36px;
   position: absolute;
   right: 6px;
+}
+
+.emotion-1 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 250px;
+}
+
+.emotion-1 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
 }
 
 .emotion-2 {
@@ -367,13 +367,17 @@ exports[`InputDropdown renders a filterable dropdown 1`] = `
 `;
 
 exports[`InputDropdown renders fluid dropdown 1`] = `
+.emotion-0 input {
+  cursor: pointer;
+}
+
 .emotion-0 {
   position: relative;
   width: 100%;
 }
 
-.emotion-0 input {
-  cursor: pointer;
+.emotion-1 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
 }
 
 .emotion-1 {
@@ -432,8 +436,18 @@ exports[`InputDropdown renders fluid dropdown 1`] = `
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-1 input:-ms-input-placeholder {
-  color: rgba(48,48,48,0.6);
+.emotion-1 .input-icon {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 36px;
+  position: absolute;
+  right: 6px;
 }
 
 .emotion-1 input::placeholder {
@@ -475,20 +489,6 @@ exports[`InputDropdown renders fluid dropdown 1`] = `
 
 .emotion-1 input {
   padding-right: 36px;
-}
-
-.emotion-1 .input-icon {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  height: 36px;
-  position: absolute;
-  right: 6px;
 }
 
 .emotion-2 {
@@ -731,56 +731,13 @@ exports[`InputDropdown renders initial (closed) state 1`] = `
 `;
 
 exports[`InputDropdown renders searchable input 1`] = `
-.emotion-0 {
-  position: relative;
-  width: ;
-}
-
 .emotion-0 input {
   cursor: inherit;
 }
 
-.emotion-1 {
-  box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  -webkit-box-flex-flow: row nowrap;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
+.emotion-0 {
   position: relative;
-  width: 250px;
-}
-
-.emotion-1 input {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  -ms-appearance: none;
-  appearance: none;
-  background: rgba(53,112,244,0.05);
-  border-top: 2px solid transparent;
-  border-bottom: 2px solid transparent;
-  border-right: transparent;
-  border-left: transparent;
-  border-radius: 2px;
-  box-shadow: none;
-  box-sizing: border-box;
-  color: #303030;
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-  font: inherit;
-  height: 36px;
-  margin: 0;
-  outline: none;
-  padding: 0 1rem;
-  text-align: left;
-  width: 100%;
+  width: ;
 }
 
 .emotion-1.animated input {
@@ -812,10 +769,30 @@ exports[`InputDropdown renders searchable input 1`] = `
   color: #303030;
 }
 
-.emotion-1 input:invalid {
+.emotion-1 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
   background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #d01111;
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
   color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
 }
 
 .emotion-1 .message {
@@ -853,6 +830,29 @@ exports[`InputDropdown renders searchable input 1`] = `
   height: 36px;
   position: absolute;
   right: 6px;
+}
+
+.emotion-1 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 250px;
+}
+
+.emotion-1 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
 }
 
 <div

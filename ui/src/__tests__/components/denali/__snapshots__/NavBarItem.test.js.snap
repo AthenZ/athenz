@@ -1,6 +1,11 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`NavBarItem should disable animations 1`] = `
+.emotion-0.active .nav-title,
+.emotion-0 .active.nav-title {
+  box-shadow: inset 0 -4px 0 #3697f2;
+}
+
 .emotion-0 {
   -webkit-align-items: center;
   -webkit-box-align: center;
@@ -14,15 +19,6 @@ exports[`NavBarItem should disable animations 1`] = `
   height: 60px;
   position: relative;
   width: ;
-}
-
-.emotion-0.simple {
-  color: #fff;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 16px;
-  padding: 0 12px;
-  -webkit-transition: ;
-  transition: ;
 }
 
 .emotion-0.simple.nav-link {
@@ -63,9 +59,13 @@ exports[`NavBarItem should disable animations 1`] = `
   cursor: pointer;
 }
 
-.emotion-0.active .nav-title,
-.emotion-0 .active.nav-title {
-  box-shadow: inset 0 -4px 0 #3697f2;
+.emotion-0.simple {
+  color: #fff;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  padding: 0 12px;
+  -webkit-transition: ;
+  transition: ;
 }
 
 .emotion-0 .nav-title:hover {
@@ -124,6 +124,11 @@ exports[`NavBarItem should disable animations 1`] = `
 `;
 
 exports[`NavBarItem should render a basic item 1`] = `
+.emotion-0.active .nav-title,
+.emotion-0 .active.nav-title {
+  box-shadow: inset 0 -4px 0 #3697f2;
+}
+
 .emotion-0 {
   -webkit-align-items: center;
   -webkit-box-align: center;
@@ -137,15 +142,6 @@ exports[`NavBarItem should render a basic item 1`] = `
   height: 60px;
   position: relative;
   width: ;
-}
-
-.emotion-0.simple {
-  color: #fff;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 16px;
-  padding: 0 12px;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
 }
 
 .emotion-0.simple.nav-link {
@@ -186,9 +182,13 @@ exports[`NavBarItem should render a basic item 1`] = `
   cursor: pointer;
 }
 
-.emotion-0.active .nav-title,
-.emotion-0 .active.nav-title {
-  box-shadow: inset 0 -4px 0 #3697f2;
+.emotion-0.simple {
+  color: #fff;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  padding: 0 12px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
 }
 
 .emotion-0 .nav-title:hover {
@@ -247,6 +247,11 @@ exports[`NavBarItem should render a basic item 1`] = `
 `;
 
 exports[`NavBarItem should render a complex active link item 1`] = `
+.emotion-0.active .nav-title,
+.emotion-0 .active.nav-title {
+  box-shadow: inset 0 -4px 0 #3697f2;
+}
+
 .emotion-0 {
   -webkit-align-items: center;
   -webkit-box-align: center;
@@ -260,15 +265,6 @@ exports[`NavBarItem should render a complex active link item 1`] = `
   height: 60px;
   position: relative;
   width: ;
-}
-
-.emotion-0.simple {
-  color: #fff;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 16px;
-  padding: 0 12px;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
 }
 
 .emotion-0.simple.nav-link {
@@ -309,9 +305,13 @@ exports[`NavBarItem should render a complex active link item 1`] = `
   cursor: pointer;
 }
 
-.emotion-0.active .nav-title,
-.emotion-0 .active.nav-title {
-  box-shadow: inset 0 -4px 0 #3697f2;
+.emotion-0.simple {
+  color: #fff;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  padding: 0 12px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
 }
 
 .emotion-0 .nav-title:hover {
@@ -379,6 +379,11 @@ exports[`NavBarItem should render a complex active link item 1`] = `
 `;
 
 exports[`NavBarItem should render a complex item 1`] = `
+.emotion-0.active .nav-title,
+.emotion-0 .active.nav-title {
+  box-shadow: inset 0 -4px 0 #3697f2;
+}
+
 .emotion-0 {
   -webkit-align-items: center;
   -webkit-box-align: center;
@@ -392,15 +397,6 @@ exports[`NavBarItem should render a complex item 1`] = `
   height: 60px;
   position: relative;
   width: ;
-}
-
-.emotion-0.simple {
-  color: #fff;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 16px;
-  padding: 0 12px;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
 }
 
 .emotion-0.simple.nav-link {
@@ -441,9 +437,13 @@ exports[`NavBarItem should render a complex item 1`] = `
   cursor: pointer;
 }
 
-.emotion-0.active .nav-title,
-.emotion-0 .active.nav-title {
-  box-shadow: inset 0 -4px 0 #3697f2;
+.emotion-0.simple {
+  color: #fff;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  padding: 0 12px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
 }
 
 .emotion-0 .nav-title:hover {
@@ -511,6 +511,11 @@ exports[`NavBarItem should render a complex item 1`] = `
 `;
 
 exports[`NavBarItem should render a link item 1`] = `
+.emotion-0.active .nav-title,
+.emotion-0 .active.nav-title {
+  box-shadow: inset 0 -4px 0 #3697f2;
+}
+
 .emotion-0 {
   -webkit-align-items: center;
   -webkit-box-align: center;
@@ -524,15 +529,6 @@ exports[`NavBarItem should render a link item 1`] = `
   height: 60px;
   position: relative;
   width: ;
-}
-
-.emotion-0.simple {
-  color: #fff;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 16px;
-  padding: 0 12px;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
 }
 
 .emotion-0.simple.nav-link {
@@ -573,9 +569,13 @@ exports[`NavBarItem should render a link item 1`] = `
   cursor: pointer;
 }
 
-.emotion-0.active .nav-title,
-.emotion-0 .active.nav-title {
-  box-shadow: inset 0 -4px 0 #3697f2;
+.emotion-0.simple {
+  color: #fff;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  padding: 0 12px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
 }
 
 .emotion-0 .nav-title:hover {
@@ -634,6 +634,11 @@ exports[`NavBarItem should render a link item 1`] = `
 `;
 
 exports[`NavBarItem should render a right-aligned item 1`] = `
+.emotion-0.active .nav-title,
+.emotion-0 .active.nav-title {
+  box-shadow: inset 0 -4px 0 #3697f2;
+}
+
 .emotion-0 {
   -webkit-align-items: center;
   -webkit-box-align: center;
@@ -647,15 +652,6 @@ exports[`NavBarItem should render a right-aligned item 1`] = `
   height: 60px;
   position: relative;
   width: ;
-}
-
-.emotion-0.simple {
-  color: #fff;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 16px;
-  padding: 0 12px;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
 }
 
 .emotion-0.simple.nav-link {
@@ -696,9 +692,13 @@ exports[`NavBarItem should render a right-aligned item 1`] = `
   cursor: pointer;
 }
 
-.emotion-0.active .nav-title,
-.emotion-0 .active.nav-title {
-  box-shadow: inset 0 -4px 0 #3697f2;
+.emotion-0.simple {
+  color: #fff;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  padding: 0 12px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
 }
 
 .emotion-0 .nav-title:hover {
@@ -757,6 +757,11 @@ exports[`NavBarItem should render a right-aligned item 1`] = `
 `;
 
 exports[`NavBarItem should render an active item 1`] = `
+.emotion-0.active .nav-title,
+.emotion-0 .active.nav-title {
+  box-shadow: inset 0 -4px 0 #3697f2;
+}
+
 .emotion-0 {
   -webkit-align-items: center;
   -webkit-box-align: center;
@@ -770,15 +775,6 @@ exports[`NavBarItem should render an active item 1`] = `
   height: 60px;
   position: relative;
   width: ;
-}
-
-.emotion-0.simple {
-  color: #fff;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 16px;
-  padding: 0 12px;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
 }
 
 .emotion-0.simple.nav-link {
@@ -819,9 +815,13 @@ exports[`NavBarItem should render an active item 1`] = `
   cursor: pointer;
 }
 
-.emotion-0.active .nav-title,
-.emotion-0 .active.nav-title {
-  box-shadow: inset 0 -4px 0 #3697f2;
+.emotion-0.simple {
+  color: #fff;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  padding: 0 12px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
 }
 
 .emotion-0 .nav-title:hover {
@@ -880,6 +880,11 @@ exports[`NavBarItem should render an active item 1`] = `
 `;
 
 exports[`NavBarItem should render an active link item 1`] = `
+.emotion-0.active .nav-title,
+.emotion-0 .active.nav-title {
+  box-shadow: inset 0 -4px 0 #3697f2;
+}
+
 .emotion-0 {
   -webkit-align-items: center;
   -webkit-box-align: center;
@@ -893,15 +898,6 @@ exports[`NavBarItem should render an active link item 1`] = `
   height: 60px;
   position: relative;
   width: ;
-}
-
-.emotion-0.simple {
-  color: #fff;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 16px;
-  padding: 0 12px;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
 }
 
 .emotion-0.simple.nav-link {
@@ -942,9 +938,13 @@ exports[`NavBarItem should render an active link item 1`] = `
   cursor: pointer;
 }
 
-.emotion-0.active .nav-title,
-.emotion-0 .active.nav-title {
-  box-shadow: inset 0 -4px 0 #3697f2;
+.emotion-0.simple {
+  color: #fff;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  padding: 0 12px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
 }
 
 .emotion-0 .nav-title:hover {
@@ -1003,6 +1003,11 @@ exports[`NavBarItem should render an active link item 1`] = `
 `;
 
 exports[`NavBarItem should render an item with width 1`] = `
+.emotion-0.active .nav-title,
+.emotion-0 .active.nav-title {
+  box-shadow: inset 0 -4px 0 #3697f2;
+}
+
 .emotion-0 {
   -webkit-align-items: center;
   -webkit-box-align: center;
@@ -1016,15 +1021,6 @@ exports[`NavBarItem should render an item with width 1`] = `
   height: 60px;
   position: relative;
   width: 100px;
-}
-
-.emotion-0.simple {
-  color: #fff;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 16px;
-  padding: 0 12px;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
 }
 
 .emotion-0.simple.nav-link {
@@ -1065,9 +1061,13 @@ exports[`NavBarItem should render an item with width 1`] = `
   cursor: pointer;
 }
 
-.emotion-0.active .nav-title,
-.emotion-0 .active.nav-title {
-  box-shadow: inset 0 -4px 0 #3697f2;
+.emotion-0.simple {
+  color: #fff;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  padding: 0 12px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
 }
 
 .emotion-0 .nav-title:hover {

@@ -48,40 +48,14 @@ exports[`SettingPage should render 1`] = `
   margin-left: auto;
 }
 
-.emotion-3 {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  box-sizing: border-box;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  height: 60px;
-  position: relative;
-  width: ;
-}
-
-.emotion-3.simple {
-  color: #fff;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 16px;
-  padding: 0 12px;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
+.emotion-3 .nav-icon,
+.emotion-3:hover .nav-icon {
+  width: 24px;
+  height: 24px;
 }
 
 .emotion-3.simple.nav-link {
   cursor: pointer;
-}
-
-.emotion-3.simple.nav-link:hover {
-  color: rgba(255,255,255,0.75);
-}
-
-.emotion-3.simple.active {
-  box-shadow: inset 0 -4px 0 #3697f2;
 }
 
 .emotion-3.simple.nav-link.active:hover {
@@ -136,10 +110,8 @@ exports[`SettingPage should render 1`] = `
   height: 34px;
 }
 
-.emotion-3 .nav-icon,
-.emotion-3:hover .nav-icon {
-  width: 24px;
-  height: 24px;
+.emotion-3.simple.active {
+  box-shadow: inset 0 -4px 0 #3697f2;
 }
 
 .emotion-3 .nav-icon path,
@@ -162,17 +134,20 @@ exports[`SettingPage should render 1`] = `
   fill: rgba(255,255,255,0.75);
 }
 
-.emotion-4 {
-  height: 36px;
-  cursor: pointer;
+.emotion-3.simple {
+  color: #fff;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  padding: 0 12px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
 }
 
-.emotion-6 {
-  margin-left: 10%;
-  width: 50%;
+.emotion-3.simple.nav-link:hover {
+  color: rgba(255,255,255,0.75);
 }
 
-.emotion-8 {
+.emotion-3 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -184,24 +159,17 @@ exports[`SettingPage should render 1`] = `
   display: flex;
   height: 60px;
   position: relative;
-  width: 100%;
+  width: ;
 }
 
-.emotion-8.simple {
-  color: #fff;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 16px;
-  padding: 0 12px;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-}
-
-.emotion-8.simple.nav-link {
+.emotion-4 {
+  height: 36px;
   cursor: pointer;
 }
 
-.emotion-8.simple.nav-link:hover {
-  color: rgba(255,255,255,0.75);
+.emotion-6 {
+  margin-left: 10%;
+  width: 50%;
 }
 
 .emotion-8.simple.active {
@@ -284,6 +252,89 @@ exports[`SettingPage should render 1`] = `
 .emotion-8.nav-link:hover .nav-icon rect,
 .emotion-8.nav-link:hover .nav-icon circle {
   fill: rgba(255,255,255,0.75);
+}
+
+.emotion-8.simple {
+  color: #fff;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  padding: 0 12px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-8.simple.nav-link {
+  cursor: pointer;
+}
+
+.emotion-8 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  box-sizing: border-box;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 60px;
+  position: relative;
+  width: 100%;
+}
+
+.emotion-8.simple.nav-link:hover {
+  color: rgba(255,255,255,0.75);
+}
+
+.emotion-9 .input-icon {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 36px;
+  position: absolute;
+  right: 6px;
+}
+
+.emotion-9 input {
+  padding-right: 36px;
+}
+
+.emotion-9 input.focused,
+.emotion-9 input:active,
+.emotion-9 input:focus {
+  background: rgba(242,242,242,0.1);
+  border-bottom: 2px solid #3570f4;
+  color: #fff;
+}
+
+.emotion-9 input::placeholder {
+  color: rgba(255,255,255,0.6);
+}
+
+.emotion-9 input:-ms-input-placeholder {
+  color: rgba(255,255,255,0.6);
+}
+
+.emotion-9 input::-moz-placeholder {
+  color: rgba(255,255,255,0.6);
+}
+
+.emotion-9 input::-webkit-input-placeholder {
+  color: rgba(255,255,255,0.6);
+}
+
+.emotion-9 input {
+  background: rgba(242,242,242,0.1);
+  color: #fff;
+}
+
+.emotion-9.error .message {
+  color: #d01111;
 }
 
 .emotion-9 {
@@ -377,57 +428,6 @@ exports[`SettingPage should render 1`] = `
 .emotion-9.error input:active,
 .emotion-9.error input:focus {
   border-bottom: 2px solid #d01111;
-}
-
-.emotion-9.error .message {
-  color: #d01111;
-}
-
-.emotion-9 input {
-  background: rgba(242,242,242,0.1);
-  color: #fff;
-}
-
-.emotion-9 input::-webkit-input-placeholder {
-  color: rgba(255,255,255,0.6);
-}
-
-.emotion-9 input::-moz-placeholder {
-  color: rgba(255,255,255,0.6);
-}
-
-.emotion-9 input:-ms-input-placeholder {
-  color: rgba(255,255,255,0.6);
-}
-
-.emotion-9 input::placeholder {
-  color: rgba(255,255,255,0.6);
-}
-
-.emotion-9 input.focused,
-.emotion-9 input:active,
-.emotion-9 input:focus {
-  background: rgba(242,242,242,0.1);
-  border-bottom: 2px solid #3570f4;
-  color: #fff;
-}
-
-.emotion-9 input {
-  padding-right: 36px;
-}
-
-.emotion-9 .input-icon {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  height: 36px;
-  position: absolute;
-  right: 6px;
 }
 
 .emotion-10 {
@@ -578,6 +578,33 @@ exports[`SettingPage should render 1`] = `
   width: 300px;
 }
 
+.emotion-49:hover {
+  color: #3570f4;
+}
+
+.emotion-49.vertical.active {
+  background: #fff;
+  border-left: solid 4px #3697f2;
+  color: #303030;
+}
+
+.emotion-49.active:hover {
+  color: #303030;
+}
+
+.emotion-49.active {
+  background: #fff;
+  border-bottom: ;
+  border-top-left-radius: 2px;
+  border-top-right-radius: 2px;
+  color: #303030;
+  cursor: initial;
+}
+
+.emotion-49.vertical.active:hover {
+  color: #303030;
+}
+
 .emotion-49 {
   font-family: Helvetica,Arial,sans-serif;
   font-size: 14px;
@@ -605,23 +632,6 @@ exports[`SettingPage should render 1`] = `
   z-index: 1;
 }
 
-.emotion-49:hover {
-  color: #3570f4;
-}
-
-.emotion-49.active {
-  background: #fff;
-  border-bottom: ;
-  border-top-left-radius: 2px;
-  border-top-right-radius: 2px;
-  color: #303030;
-  cursor: initial;
-}
-
-.emotion-49.active:hover {
-  color: #303030;
-}
-
 .emotion-49.vertical {
   background: #f5f8fe;
   border-left: solid 4px #f5f8fe;
@@ -632,16 +642,6 @@ exports[`SettingPage should render 1`] = `
   justify-content: flex-start;
   padding: 12px 0px 12px 26px;
   text-align: left;
-}
-
-.emotion-49.vertical.active {
-  background: #fff;
-  border-left: solid 4px #3697f2;
-  color: #303030;
-}
-
-.emotion-49.vertical.active:hover {
-  color: #303030;
 }
 
 .emotion-54 {
@@ -676,21 +676,13 @@ exports[`SettingPage should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-64 {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  height: 18px;
-  outline: 0;
-  position: relative;
+.emotion-64>input[type='checkbox']:disabled+label::after {
+  border-color: #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-64>input[type='checkbox']:checked:disabled+label::after {
+  background: #d5d5d5;
 }
 
 .emotion-64>input[type='checkbox'] {
@@ -712,12 +704,9 @@ exports[`SettingPage should render 1`] = `
   white-space: nowrap;
 }
 
-.emotion-64>input[type='checkbox']+label .label-content {
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  margin-left: 6px;
+.emotion-64>input[type='checkbox']:disabled+label {
+  color: #9a9a9a;
+  cursor: not-allowed;
 }
 
 @-moz-document url-prefix() {
@@ -769,9 +758,21 @@ exports[`SettingPage should render 1`] = `
   left: 16px;
 }
 
-.emotion-64>input[type='checkbox']:disabled+label {
-  color: #9a9a9a;
-  cursor: not-allowed;
+.emotion-64 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  height: 18px;
+  outline: 0;
+  position: relative;
 }
 
 .emotion-64>input[type='checkbox']:disabled+label::before {
@@ -779,13 +780,12 @@ exports[`SettingPage should render 1`] = `
   cursor: not-allowed;
 }
 
-.emotion-64>input[type='checkbox']:disabled+label::after {
-  border-color: #d5d5d5;
-  cursor: not-allowed;
-}
-
-.emotion-64>input[type='checkbox']:checked:disabled+label::after {
-  background: #d5d5d5;
+.emotion-64>input[type='checkbox']+label .label-content {
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  margin-left: 6px;
 }
 
 .emotion-82 {
@@ -793,6 +793,10 @@ exports[`SettingPage should render 1`] = `
   display: -webkit-flex;
   display: -ms-flexbox;
   display: flex;
+}
+
+.emotion-84 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
 }
 
 .emotion-84 {
@@ -810,6 +814,40 @@ exports[`SettingPage should render 1`] = `
   font-weight: 300;
   position: relative;
   width: 100%;
+}
+
+.emotion-84.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-84 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-84 input.focused,
+.emotion-84 input:active,
+.emotion-84 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-84.error input,
+.emotion-84.error input.focused,
+.emotion-84.error input:active,
+.emotion-84.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-84 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
 }
 
 .emotion-84 input {
@@ -838,15 +876,6 @@ exports[`SettingPage should render 1`] = `
   width: 100%;
 }
 
-.emotion-84.animated input {
-  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-}
-
-.emotion-84 input::-webkit-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
 .emotion-84 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
@@ -859,35 +888,6 @@ exports[`SettingPage should render 1`] = `
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-84 input.focused,
-.emotion-84 input:active,
-.emotion-84 input:focus {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #3570f4;
-  color: #303030;
-}
-
-.emotion-84 input:invalid {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #d01111;
-  color: #303030;
-}
-
-.emotion-84 .message {
-  font-size: 12px;
-  left: 0;
-  line-height: 1.8;
-  position: absolute;
-  top: 2.571rem;
-}
-
-.emotion-84.error input,
-.emotion-84.error input.focused,
-.emotion-84.error input:active,
-.emotion-84.error input:focus {
-  border-bottom: 2px solid #d01111;
-}
-
 .emotion-84.error .message {
   color: #d01111;
 }
@@ -896,7 +896,7 @@ exports[`SettingPage should render 1`] = `
   margin-top: 5px;
 }
 
-.emotion-128 {
+.emotion-141 {
   padding-bottom: 20px;
   display: -webkit-box;
   display: -webkit-flex;
@@ -915,7 +915,11 @@ exports[`SettingPage should render 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-130 {
+.emotion-143:hover:not(:disabled) {
+  background: #d7e2fd;
+}
+
+.emotion-143 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -942,25 +946,21 @@ exports[`SettingPage should render 1`] = `
   color: #3697f2;
 }
 
-.emotion-130:first-of-type {
+.emotion-143:first-of-type {
   margin-left: 0;
 }
 
-.emotion-130:disabled {
+.emotion-143:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-130:disabled {
+.emotion-143:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-130:hover:not(:disabled) {
-  background: #d7e2fd;
-}
-
-.emotion-132 {
+.emotion-145 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -986,13 +986,13 @@ exports[`SettingPage should render 1`] = `
   width: 20px;
 }
 
-.emotion-134 {
+.emotion-147 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-135 {
+.emotion-148 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -1007,7 +1007,7 @@ exports[`SettingPage should render 1`] = `
   width: 350px;
 }
 
-.emotion-137 {
+.emotion-150 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -1026,12 +1026,12 @@ exports[`SettingPage should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-139 {
+.emotion-152 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-141 {
+.emotion-154 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
@@ -1039,16 +1039,16 @@ exports[`SettingPage should render 1`] = `
   font-weight: ;
 }
 
-.emotion-143 {
+.emotion-156 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-147 {
+.emotion-160 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-149 {
+.emotion-162 {
   padding: 10px 0;
   display: -webkit-box;
   display: -webkit-flex;
@@ -1056,12 +1056,12 @@ exports[`SettingPage should render 1`] = `
   display: flex;
 }
 
-.emotion-151 {
+.emotion-164 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-153 {
+.emotion-166 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -1201,7 +1201,7 @@ exports[`SettingPage should render 1`] = `
           >
             <div
               class="emotion-28 emotion-29"
-              data-testid="role-name-header"
+              data-testid="collection-name-header"
             >
               
               
@@ -1209,14 +1209,15 @@ exports[`SettingPage should render 1`] = `
                 class="emotion-30 emotion-31"
               >
                 dom
-                 
               </a>
-              / 
+              :
+              role
+              .
               roleName
             </div>
             <div
               class="emotion-32 emotion-33"
-              data-testid="role-details"
+              data-testid="collection-details"
             >
               <div
                 class="emotion-34 emotion-35"
@@ -1368,7 +1369,7 @@ exports[`SettingPage should render 1`] = `
                 <td
                   class="emotion-60 emotion-61"
                 >
-                  Member Expiry (Days)
+                  User Expiry (Days)
                 </td>
                 <td
                   class="emotion-60 emotion-61"
@@ -1399,6 +1400,46 @@ exports[`SettingPage should render 1`] = `
                   class="emotion-60 emotion-61"
                 >
                   All user members in the role will have specified max expiry days
+                </td>
+              </tr>
+              <tr
+                class="emotion-58 emotion-59"
+                data-testid="setting-row"
+              >
+                <td
+                  class="emotion-60 emotion-61"
+                >
+                  Group Expiry (Days)
+                </td>
+                <td
+                  class="emotion-60 emotion-61"
+                >
+                  <div
+                    class="emotion-82 emotion-83"
+                  >
+                    <div
+                      class="emotion-84 denali-input animated emotion-85 emotion-86"
+                      data-testid="input-wrapper"
+                    >
+                      <input
+                        autocomplete="off"
+                        data-testid="input-node"
+                        id="setting-groupExpiryDays"
+                        pattern="[0-9]*"
+                        placeholder="Days"
+                        value=""
+                      />
+                      <div
+                        class="message"
+                        data-testid="message"
+                      />
+                    </div>
+                  </div>
+                </td>
+                <td
+                  class="emotion-60 emotion-61"
+                >
+                  All group members in the role will have specified max expiry days
                 </td>
               </tr>
               <tr
@@ -1522,17 +1563,17 @@ exports[`SettingPage should render 1`] = `
                 </td>
               </tr>
               <div
-                class="emotion-128 emotion-129"
+                class="emotion-141 emotion-142"
               >
                 <div>
                   <button
-                    class="emotion-130 denali-button"
+                    class="emotion-143 denali-button"
                   >
                     Submit
                   </button>
                   
                   <button
-                    class="emotion-130 denali-button"
+                    class="emotion-143 denali-button"
                   >
                     Reset
                   </button>
@@ -1546,11 +1587,11 @@ exports[`SettingPage should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-132 emotion-133"
+          class="emotion-145 emotion-146"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-134"
+            class="emotion-147"
             data-testid="icon"
             height="1em"
             viewBox="0 0 1024 1024"
@@ -1565,45 +1606,45 @@ exports[`SettingPage should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-135 emotion-136"
+          class="emotion-148 emotion-149"
         >
           <div
-            class="emotion-137 emotion-138"
+            class="emotion-150 emotion-151"
           >
             <div
-              class="emotion-139 emotion-140"
+              class="emotion-152 emotion-153"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-141 emotion-142"
+                class="emotion-154 emotion-155"
               >
                 Create
               </a>
               <span
-                class="emotion-143 emotion-144"
+                class="emotion-156 emotion-157"
               >
                  | 
               </span>
               <a
-                class="emotion-141 emotion-142"
+                class="emotion-154 emotion-155"
               >
                 Manage
               </a>
             </div>
           </div>
           <div
-            class="emotion-147 emotion-148"
+            class="emotion-160 emotion-161"
           >
             <div
-              class="emotion-149 emotion-150"
+              class="emotion-162 emotion-163"
             >
               <div
-                class="emotion-151 emotion-152"
+                class="emotion-164 emotion-165"
               >
                 <svg
-                  class="emotion-153"
+                  class="emotion-166"
                   data-testid="icon"
                   height="1em"
                   viewBox="0 0 1024 1024"
@@ -1624,19 +1665,19 @@ exports[`SettingPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-141 emotion-142"
+                class="emotion-154 emotion-155"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-149 emotion-150"
+              class="emotion-162 emotion-163"
             >
               <div
-                class="emotion-151 emotion-152"
+                class="emotion-164 emotion-165"
               >
                 <svg
-                  class="emotion-153"
+                  class="emotion-166"
                   data-testid="icon"
                   height="1em"
                   viewBox="0 0 1024 1024"
@@ -1657,7 +1698,7 @@ exports[`SettingPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-141 emotion-142"
+                class="emotion-154 emotion-155"
               >
                 athens.ci
               </a>

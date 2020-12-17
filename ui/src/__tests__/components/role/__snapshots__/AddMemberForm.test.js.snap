@@ -27,37 +27,6 @@ exports[`AddMemberForm should render 1`] = `
   width: 250px;
 }
 
-.emotion-2 input {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  -ms-appearance: none;
-  appearance: none;
-  background: rgba(53,112,244,0.05);
-  border-top: 2px solid transparent;
-  border-bottom: 2px solid transparent;
-  border-right: transparent;
-  border-left: transparent;
-  border-radius: 2px;
-  box-shadow: none;
-  box-sizing: border-box;
-  color: #303030;
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-  font: inherit;
-  height: 36px;
-  margin: 0;
-  outline: none;
-  padding: 0 1rem;
-  text-align: left;
-  width: 100%;
-}
-
-.emotion-2.animated input {
-  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-}
-
 .emotion-2 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
@@ -88,12 +57,9 @@ exports[`AddMemberForm should render 1`] = `
   color: #303030;
 }
 
-.emotion-2 .message {
-  font-size: 12px;
-  left: 0;
-  line-height: 1.8;
-  position: absolute;
-  top: 2.571rem;
+.emotion-2.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
 .emotion-2.error input,
@@ -105,6 +71,40 @@ exports[`AddMemberForm should render 1`] = `
 
 .emotion-2.error .message {
   color: #d01111;
+}
+
+.emotion-2 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-2 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
 }
 
 .emotion-3 {
@@ -159,6 +159,24 @@ exports[`AddMemberForm should render 1`] = `
   justify-self: end;
 }
 
+.emotion-20:hover:not(:disabled) {
+  background: linear-gradient(
+                  to right,
+                  #3570f4,
+                  #3448f7
+              );
+}
+
+.emotion-20:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
+.emotion-20:first-of-type {
+  margin-left: 0;
+}
+
 .emotion-20 {
   border: none;
   border-radius: 2px;
@@ -187,24 +205,6 @@ exports[`AddMemberForm should render 1`] = `
               #3570f4
           );
   color: #fff;
-}
-
-.emotion-20:first-of-type {
-  margin-left: 0;
-}
-
-.emotion-20:disabled {
-  background: rgba(48,48,48,0.1);
-  color: rgba(48,48,48,0.2);
-  cursor: not-allowed;
-}
-
-.emotion-20:hover:not(:disabled) {
-  background: linear-gradient(
-                  to right,
-                  #3570f4,
-                  #3448f7
-              );
 }
 
 .emotion-21 {

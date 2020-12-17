@@ -21,14 +21,15 @@ import styled from '@emotion/styled';
 import Head from 'next/head';
 // there is an issue with next-link and next-css if the css is not present then it doesnt load so adding this
 import 'flatpickr/dist/themes/light.css';
-import RoleDetails from '../components/header/RoleDetails';
+import CollectionDetails from '../components/header/CollectionDetails';
 import ReviewList from '../components/review/ReviewList';
 import RequestUtils from '../components/utils/RequestUtils';
 import RoleTabs from '../components/header/RoleTabs';
-import RoleNameHeader from '../components/header/RoleNameHeader';
+import NameHeader from '../components/header/NameHeader';
 import Error from './_error';
-import createCache from '@emotion/cache';
-import { CacheProvider } from '@emotion/react';
+import { MODAL_TIME_OUT } from '../components/constants/constants';
+import createCache from "@emotion/cache";
+import {CacheProvider} from "@emotion/react";
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -77,14 +78,7 @@ export default class ReviewPage extends React.Component {
                 false,
                 false
             ),
-            api.getRole(
-                props.query.domain,
-                props.query.role,
-                false,
-                true,
-                false
-            ),
-            api.getPendingDomainRoleMembersList(),
+            api.getPendingDomainMembersList(),
             api.getForm(),
         ]).catch((err) => {
             let response = RequestUtils.errorCheckHelper(err);
@@ -101,13 +95,12 @@ export default class ReviewPage extends React.Component {
             domain: props.query.domain,
             role: props.query.role,
             members: roles[3].roleMembers,
-            expandMembers: roles[4].roleMembers,
             headerDetails: roles[1],
             domainDeails: roles[2],
             auditEnabled: roles[2].auditEnabled,
             roleDetails: roles[3],
-            pending: roles[5],
-            _csrf: roles[6],
+            pending: roles[4],
+            _csrf: roles[5],
             nonce: props.req.headers.rid,
         };
     }
@@ -128,7 +121,6 @@ export default class ReviewPage extends React.Component {
             roleDetails,
             role,
             members,
-            expandMembers,
             isDomainAuditEnabled,
             _csrf,
         } = this.props;
@@ -139,71 +131,68 @@ export default class ReviewPage extends React.Component {
         if (this.props.error) {
             return <Error err={this.props.error} />;
         }
-
-        let roleMembers = roleDetails.trust ? expandMembers : members;
-
         return (
             <CacheProvider value={this.cache}>
-                <div data-testid='review'>
-                    <Head>
-                        <title>Athenz</title>
-                    </Head>
-                    <Header
-                        showSearch={true}
-                        headerDetails={this.props.headerDetails}
-                        pending={this.props.pending}
-                    />
-                    <MainContentDiv>
-                        <AppContainerDiv>
-                            <RolesContainerDiv>
-                                <RolesContentDiv>
-                                    <PageHeaderDiv>
-                                        <RoleNameHeader
-                                            domain={domain}
-                                            role={role}
-                                            roleDetails={roleDetails}
-                                        />
-                                        <RoleDetails
-                                            roleDetails={roleDetails}
-                                            api={this.api}
-                                            _csrf={_csrf}
-                                            productMasterLink={
-                                                this.props.headerDetails
-                                                    .productMasterLink
-                                            }
-                                        />
-                                        <RoleTabs
-                                            api={this.api}
-                                            domain={domain}
-                                            role={role}
-                                            selectedName={'review'}
-                                        />
-                                    </PageHeaderDiv>
-                                    <ReviewList
+            <div data-testid='review'>
+                <Head>
+                    <title>Athenz</title>
+                </Head>
+                <Header
+                    showSearch={true}
+                    headerDetails={this.props.headerDetails}
+                    pending={this.props.pending}
+                />
+                <MainContentDiv>
+                    <AppContainerDiv>
+                        <RolesContainerDiv>
+                            <RolesContentDiv>
+                                <PageHeaderDiv>
+                                    <NameHeader
+                                        category={'role'}
+                                        domain={domain}
+                                        collection={role}
+                                        collectionDetails={roleDetails}
+                                    />
+                                    <CollectionDetails
+                                        collectionDetails={roleDetails}
+                                        api={this.api}
+                                        _csrf={_csrf}
+                                        productMasterLink={
+                                            this.props.headerDetails
+                                                .productMasterLink
+                                        }
+                                    />
+                                    <RoleTabs
                                         api={this.api}
                                         domain={domain}
                                         role={role}
-                                        roleDetails={roleDetails}
-                                        members={roleMembers}
-                                        _csrf={_csrf}
-                                        isDomainAuditEnabled={
-                                            isDomainAuditEnabled
-                                        }
-                                        userProfileLink={
-                                            this.props.headerDetails.userData
-                                                .userLink
-                                        }
+                                        selectedName={'review'}
                                     />
-                                </RolesContentDiv>
-                            </RolesContainerDiv>
-                            <UserDomains
-                                domains={this.props.domains}
-                                api={this.api}
-                                domain={domain}
-                            />
-                        </AppContainerDiv>
-                    </MainContentDiv>
-                </div>
+                                </PageHeaderDiv>
+                                <ReviewList
+                                    api={this.api}
+                                    domain={domain}
+                                    collection={role}
+                                    collectionDetails={roleDetails}
+                                    members={members}
+                                    _csrf={_csrf}
+                                    isDomainAuditEnabled={isDomainAuditEnabled}
+                                    userProfileLink={
+                                        this.props.headerDetails.userData
+                                            .userLink
+                                    }
+                                    category={'role'}
+                                />
+                            </RolesContentDiv>
+                        </RolesContainerDiv>
+                        <UserDomains
+                            domains={this.props.domains}
+                            api={this.api}
+                            domain={domain}
+                        />
+                    </AppContainerDiv>
+                </MainContentDiv>
+            </div>
             </CacheProvider>
         );
     }

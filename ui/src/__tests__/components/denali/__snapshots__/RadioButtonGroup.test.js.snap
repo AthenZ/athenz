@@ -69,8 +69,19 @@ exports[`RadioButtonGroup should render 1`] = `
   width: 16px;
 }
 
-.emotion-1>input[type='radio']:hover+label:before {
-  border: 2px solid #3697f2;
+.emotion-1>input[type='radio']:checked+label:after {
+  background-color: #3697f2;
+  border-radius: 50%;
+  box-sizing: border-box;
+  content: '';
+  height: 8px;
+  line-height: 8px;
+  left: 4px;
+  position: absolute;
+  top: 4px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  width: 8px;
 }
 
 .emotion-1>input[type='radio']:focus+label:before {
@@ -91,19 +102,8 @@ exports[`RadioButtonGroup should render 1`] = `
   cursor: not-allowed;
 }
 
-.emotion-1>input[type='radio']:checked+label:after {
-  background-color: #3697f2;
-  border-radius: 50%;
-  box-sizing: border-box;
-  content: '';
-  height: 8px;
-  line-height: 8px;
-  left: 4px;
-  position: absolute;
-  top: 4px;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-  width: 8px;
+.emotion-1>input[type='radio']:hover+label:before {
+  border: 2px solid #3697f2;
 }
 
 <div
@@ -163,6 +163,12 @@ exports[`RadioButtonGroup should render 1`] = `
 `;
 
 exports[`RadioButtonGroup should render vertical radio button group 1`] = `
+.emotion-0>* {
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+}
+
 .emotion-0 {
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -172,34 +178,6 @@ exports[`RadioButtonGroup should render vertical radio button group 1`] = `
   -webkit-flex-flow: column nowrap;
   -ms-flex-flow: column nowrap;
   flex-flow: column nowrap;
-}
-
-.emotion-0>* {
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-}
-
-.emotion-1 {
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  box-sizing: border-box;
-  display: inline-block;
-  height: 16px;
-  line-height: 16px;
-  margin: 3px;
-  outline: 0px;
-  position: relative;
-  vertical-align: bottom;
-}
-
-.emotion-1>input[type='radio'] {
-  box-sizing: border-box;
-  cursor: pointer;
-  display: inline-block;
-  position: absolute;
-  top: 0;
-  visibility: hidden;
 }
 
 .emotion-1>input[type='radio']+label {
@@ -239,8 +217,13 @@ exports[`RadioButtonGroup should render vertical radio button group 1`] = `
   border: 2px solid rgba(54,151,242,0.5);
 }
 
-.emotion-1>input[type='radio']:checked+label:before {
-  border: 2px solid #3697f2;
+.emotion-1>input[type='radio'] {
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  position: absolute;
+  top: 0;
+  visibility: hidden;
 }
 
 .emotion-1>input[type='radio']:disabled+label {
@@ -266,6 +249,23 @@ exports[`RadioButtonGroup should render vertical radio button group 1`] = `
   -webkit-transition: all 0.2s ease-in;
   transition: all 0.2s ease-in;
   width: 8px;
+}
+
+.emotion-1 {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  display: inline-block;
+  height: 16px;
+  line-height: 16px;
+  margin: 3px;
+  outline: 0px;
+  position: relative;
+  vertical-align: bottom;
+}
+
+.emotion-1>input[type='radio']:checked+label:before {
+  border: 2px solid #3697f2;
 }
 
 <div
