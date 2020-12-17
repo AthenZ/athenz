@@ -226,7 +226,7 @@ helm pull athenz-zms -d "${WORKSPACE}" --untar \
 ln -sf "${ZMS_HELM_FILE}/secrets" "${WORKSPACE}/athenz-zms/files/"
 
 # confirm your docker image repository, you may need to update this value to your own repository
-grep -B 1 -A 6 'registry: docker.io' "${BASE_DIR}/kubernetes/docs/sample/dev-zms-values.yaml"
+grep -B 1 -A 6 'registry: ' "${BASE_DIR}/kubernetes/docs/sample/dev-zms-values.yaml"
 
 # deploy ZMS
 # helm upgrade --install "${ZMS_RELEASE_NAME}" "${BASE_DIR}/kubernetes/charts/athenz-zms" \
@@ -374,7 +374,7 @@ ln -sf "${ZTS_HELM_FILE}/conf/athenz_conf.json" "${WORKSPACE}/athenz-zts/files/c
 ln -sf "${ZTS_HELM_FILE}/secrets" "${WORKSPACE}/athenz-zts/files/"
 
 # confirm your docker image repository, you may need to update this value to your own repository
-grep -B 1 -A 6 'registry: docker.io' "${BASE_DIR}/kubernetes/docs/sample/dev-zts-values.yaml"
+grep -B 1 -A 6 'registry: ' "${BASE_DIR}/kubernetes/docs/sample/dev-zts-values.yaml"
 
 # deploy ZTS
 # helm upgrade --install "${ZTS_RELEASE_NAME}" "${BASE_DIR}/kubernetes/charts/athenz-zts" \
