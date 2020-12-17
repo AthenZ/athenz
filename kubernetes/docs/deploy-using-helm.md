@@ -2,23 +2,22 @@
 
 <!-- TOC depthFrom:2 updateOnSave:true -->
 
-- [Deploy Athenz servers using Helm](#deploy-athenz-servers-using-helm)
-  - [NOTE](#note)
-  - [Prerequisites](#prerequisites)
-  - [Steps](#steps)
-    - [0. Set up ENV for the following steps](#0-set-up-env-for-the-following-steps)
-    - [1. Prepare the docker images](#1-prepare-the-docker-images)
-      - [1.1. build the Athenz docker images](#11-build-the-athenz-docker-images)
-      - [1.2. push the Athenz docker images to your own repo](#12-push-the-athenz-docker-images-to-your-own-repo)
-    - [2. Define trust of your deployment](#2-define-trust-of-your-deployment)
-    - [3. Prepare ZMS credentials](#3-prepare-zms-credentials)
-    - [4. Prepare ZTS credentials](#4-prepare-zts-credentials)
-    - [5. Setup ZMS DB](#5-setup-zms-db)
-    - [6. Deploy ZMS](#6-deploy-zms)
-    - [7. Register ZTS service's key to ZMS](#7-register-zts-services-key-to-zms)
-    - [8. Generate athenz_conf.json](#8-generate-athenz_confjson)
-    - [9. Setup ZTS DB](#9-setup-zts-db)
-    - [10. Deploy ZTS](#10-deploy-zts)
+- [NOTE](#note)
+- [Prerequisites](#prerequisites)
+- [Steps](#steps)
+  - [0. Set up ENV for the following steps](#0-set-up-env-for-the-following-steps)
+  - [1. Prepare the docker images](#1-prepare-the-docker-images)
+    - [1.1. build the Athenz docker images](#11-build-the-athenz-docker-images)
+    - [1.2. push the Athenz docker images to your own repo](#12-push-the-athenz-docker-images-to-your-own-repo)
+  - [2. Define trust of your deployment](#2-define-trust-of-your-deployment)
+  - [3. Prepare ZMS credentials](#3-prepare-zms-credentials)
+  - [4. Prepare ZTS credentials](#4-prepare-zts-credentials)
+  - [5. Setup ZMS DB](#5-setup-zms-db)
+  - [6. Deploy ZMS](#6-deploy-zms)
+  - [7. Register ZTS service's key to ZMS](#7-register-zts-services-key-to-zms)
+  - [8. Generate athenz_conf.json](#8-generate-athenz_confjson)
+  - [9. Setup ZTS DB](#9-setup-zts-db)
+  - [10. Deploy ZTS](#10-deploy-zts)
 
 <!-- /TOC -->
 
@@ -69,8 +68,8 @@ export HOST_EXTERNAL_IP='127.0.0.1'
 export ZMS_RELEASE_NAME='dev-zms'
 export ZTS_RELEASE_NAME='dev-zts'
 
-export ZMS_URL="https://${HOST_EXTERNAL_IP}:30007"
-export ZTS_URL="https://${HOST_EXTERNAL_IP}:30008"
+export ZMS_URL="https://${HOST_EXTERNAL_IP}:8000"
+export ZTS_URL="https://${HOST_EXTERNAL_IP}:8001"
 export ZMS_HOST="${ZMS_RELEASE_NAME}-athenz-zms.default.svc.cluster.local"
 export ZTS_HOST="${ZTS_RELEASE_NAME}-athenz-zts.default.svc.cluster.local"
 
