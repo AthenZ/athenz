@@ -206,7 +206,7 @@ public abstract class AbstractHttpCertSigner implements CertSigner {
     }
 
     @Override
-    public String generateX509Certificate(String csr, String keyUsage, int expireMins) {
+    public String generateX509Certificate(String provider, String certIssuer, String csr, String keyUsage, int expireMins) {
 
         StringEntity entity;
         try {
@@ -275,7 +275,7 @@ public abstract class AbstractHttpCertSigner implements CertSigner {
     }
     
     @Override
-    public String getCACertificate() {
+    public String getCACertificate(String provider) {
         HttpGet httpGet = new HttpGet(x509CertUri);
         String data = null;
         try {

@@ -73,7 +73,7 @@ public class HttpCertSignerTest {
         certSigner.setHttpClient(httpClient);
         
         Mockito.when(httpClient.execute(Mockito.any(HttpPost.class))).thenThrow(new IOException());
-        assertNull(certSigner.generateX509Certificate("csr", null, 0));
+        assertNull(certSigner.generateX509Certificate("aws", null, "csr", null, 0));
         Mockito.verify(httpClient, times(3)).execute(Mockito.any(HttpPost.class));
         
         certSigner.close();
@@ -91,7 +91,7 @@ public class HttpCertSignerTest {
         CloseableHttpResponse response = mockRequest(400, null);
         Mockito.when(httpClient.execute(Mockito.any(HttpPost.class))).thenReturn(response);
 
-        assertNull(certSigner.generateX509Certificate("csr", null, 0));
+        assertNull(certSigner.generateX509Certificate("aws", null, "csr", null, 0));
         certSigner.close();
     }
 
@@ -107,7 +107,7 @@ public class HttpCertSignerTest {
         CloseableHttpResponse response = mockRequest(201, null);
         Mockito.when(httpClient.execute(Mockito.any(HttpPost.class))).thenReturn(response);
 
-        assertNull(certSigner.generateX509Certificate("csr", null, 0));
+        assertNull(certSigner.generateX509Certificate("aws", null, "csr", null, 0));
         certSigner.close();
     }
 
@@ -124,19 +124,19 @@ public class HttpCertSignerTest {
         CloseableHttpResponse response = mockRequest(201, pemResponse);
         Mockito.when(httpClient.execute(Mockito.any(HttpPost.class))).thenReturn(response);
 
-        String pem = certSigner.generateX509Certificate("csr", null, 0);
+        String pem = certSigner.generateX509Certificate("aws", null, "csr", null, 0);
         assertEquals(pem, "pem-value");
         Mockito.verify(httpClient, times(1)).execute(Mockito.any(HttpPost.class));
 
         response = mockRequest(201, pemResponse);
         Mockito.when(httpClient.execute(Mockito.any(HttpPost.class))).thenReturn(response);
-        pem = certSigner.generateX509Certificate("csr", InstanceProvider.ZTS_CERT_USAGE_CLIENT, 0);
+        pem = certSigner.generateX509Certificate("aws", null, "csr", InstanceProvider.ZTS_CERT_USAGE_CLIENT, 0);
         assertEquals(pem, "pem-value");
         Mockito.verify(httpClient, times(2)).execute(Mockito.any(HttpPost.class));
 
         response = mockRequest(201, pemResponse);
         Mockito.when(httpClient.execute(Mockito.any(HttpPost.class))).thenReturn(response);
-        pem = certSigner.generateX509Certificate("csr", InstanceProvider.ZTS_CERT_USAGE_CLIENT, 30);
+        pem = certSigner.generateX509Certificate("aws", null, "csr", InstanceProvider.ZTS_CERT_USAGE_CLIENT, 30);
         assertEquals(pem, "pem-value");
         Mockito.verify(httpClient, times(3)).execute(Mockito.any(HttpPost.class));
 
@@ -157,24 +157,24 @@ public class HttpCertSignerTest {
         String pemResponse = "{\"pem2\": \"pem-value\"}";
         CloseableHttpResponse response = mockRequest(201, pemResponse);
         Mockito.when(httpClient.execute(Mockito.any(HttpPost.class))).thenReturn(response);
-        assertNull(certSigner.generateX509Certificate("csr", null, 0));
+        assertNull(certSigner.generateX509Certificate("aws", null, "csr", null, 0));
 
         pemResponse = "invalid-json";
         response = mockRequest(201, pemResponse);
         Mockito.when(httpClient.execute(Mockito.any(HttpPost.class))).thenReturn(response);
-        assertNull(certSigner.generateX509Certificate("csr", null, 0));
+        assertNull(certSigner.generateX509Certificate("aws", null, "csr", null, 0));
 
         certSigner.close();
     }
     
     @Test
-    public void testGenerateX509CertificateInvalidCsr() throws Exception {
+    public void testGenerateX509CertificateInvalidCsr() {
        HttpCertSigner testHttpCertSigner = new HttpCertSigner() {
             public Object getX509CertSigningRequest(String csr, String keyUsage, int expireMins) {
                 throw new IllegalArgumentException();
             }
         };
-        assertNull(testHttpCertSigner.generateX509Certificate("csr", null, 0));
+        assertNull(testHttpCertSigner.generateX509Certificate("aws", null, "csr", null, 0));
         testHttpCertSigner.close();
     }
 
@@ -188,7 +188,7 @@ public class HttpCertSignerTest {
         certSigner.setHttpClient(httpClient);
 
         Mockito.when(httpClient.execute(Mockito.any(HttpGet.class))).thenThrow(new IOException());
-        assertNull(certSigner.getCACertificate());
+        assertNull(certSigner.getCACertificate("aws"));
         certSigner.close();
     }
 
@@ -204,7 +204,7 @@ public class HttpCertSignerTest {
         CloseableHttpResponse response = mockRequest(400, "invalid-status");
         Mockito.when(httpClient.execute(Mockito.any(HttpGet.class))).thenReturn(response);
         
-        assertNull(certSigner.getCACertificate());
+        assertNull(certSigner.getCACertificate("aws"));
         certSigner.close();
     }
 
@@ -220,7 +220,7 @@ public class HttpCertSignerTest {
         CloseableHttpResponse response = mockRequest(201, null);
         Mockito.when(httpClient.execute(Mockito.any(HttpGet.class))).thenReturn(response);
         
-        assertNull(certSigner.getCACertificate());
+        assertNull(certSigner.getCACertificate("aws"));
         certSigner.close();
     }
 
@@ -237,7 +237,7 @@ public class HttpCertSignerTest {
         CloseableHttpResponse response = mockRequest(200, pemResponse);
         Mockito.when(httpClient.execute(Mockito.any(HttpGet.class))).thenReturn(response);
         
-        String pem = certSigner.getCACertificate();
+        String pem = certSigner.getCACertificate("aws");
         assertEquals(pem, "pem-value");
         Mockito.verify(httpClient, times(1)).execute(Mockito.any(HttpGet.class));
 
@@ -257,13 +257,13 @@ public class HttpCertSignerTest {
         CloseableHttpResponse response = mockRequest(200, pemResponse);
         Mockito.when(httpClient.execute(Mockito.any(HttpGet.class))).thenReturn(response);
 
-        assertNull(certSigner.getCACertificate());
+        assertNull(certSigner.getCACertificate("aws"));
 
         pemResponse = "invalid-json";
         response = mockRequest(200, pemResponse);
         Mockito.when(httpClient.execute(Mockito.any(HttpGet.class))).thenReturn(response);
         
-        assertNull(certSigner.getCACertificate());
+        assertNull(certSigner.getCACertificate("aws"));
 
         certSigner.close();
     }
