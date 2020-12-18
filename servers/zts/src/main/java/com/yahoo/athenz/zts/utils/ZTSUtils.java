@@ -15,6 +15,9 @@
  */
 package com.yahoo.athenz.zts.utils;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
@@ -374,5 +377,19 @@ public class ZTSUtils {
             boolVal = Boolean.parseBoolean(value);
         }
         return boolVal;
+    }
+
+    public static byte[] readFileContents(final String filename) {
+
+        File file = new File(filename);
+
+        byte[] data = null;
+        try {
+            data = Files.readAllBytes(Paths.get(file.toURI()));
+        } catch (Exception ex) {
+            LOGGER.error("Unable to read {}", filename, ex);
+        }
+
+        return data;
     }
 }
