@@ -3672,24 +3672,30 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     void setRoleMemberExpiration(final AthenzDomain domain, final Role role, final RoleMember roleMember,
             final Membership membership, final String caller) {
 
-        boolean bUser = ZMSUtils.isUserDomainPrincipal(roleMember.getMemberName(), userDomainPrefix,
-                addlUserCheckDomainPrefixList);
-        boolean bGroup = roleMember.getMemberName().contains(AuthorityConsts.GROUP_SEP);
+        switch (Principal.Type.getType(roleMember.getPrincipalType())) {
 
-        if (bUser) {
-            Timestamp userAuthorityExpiry = getUserAuthorityExpiry(roleMember.memberName, role.getUserAuthorityExpiration(), caller);
-            if (userAuthorityExpiry != null) {
-                roleMember.setExpiration(userAuthorityExpiry);
-            } else {
-                roleMember.setExpiration(memberDueDateTimestamp(domain.getDomain().getMemberExpiryDays(),
-                        role.getMemberExpiryDays(), membership.getExpiration()));
-            }
-        } else if (bGroup) {
-            roleMember.setExpiration(memberDueDateTimestamp(domain.getDomain().getGroupExpiryDays(),
-                    role.getGroupExpiryDays(), membership.getExpiration()));
-        } else {
-            roleMember.setExpiration(memberDueDateTimestamp(domain.getDomain().getServiceExpiryDays(),
-                    role.getServiceExpiryDays(), membership.getExpiration()));
+            case USER:
+
+                Timestamp userAuthorityExpiry = getUserAuthorityExpiry(roleMember.memberName, role.getUserAuthorityExpiration(), caller);
+                if (userAuthorityExpiry != null) {
+                    roleMember.setExpiration(userAuthorityExpiry);
+                } else {
+                    roleMember.setExpiration(memberDueDateTimestamp(domain.getDomain().getMemberExpiryDays(),
+                            role.getMemberExpiryDays(), membership.getExpiration()));
+                }
+                break;
+
+            case SERVICE:
+
+                roleMember.setExpiration(memberDueDateTimestamp(domain.getDomain().getServiceExpiryDays(),
+                        role.getServiceExpiryDays(), membership.getExpiration()));
+                break;
+
+            case GROUP:
+
+                roleMember.setExpiration(memberDueDateTimestamp(domain.getDomain().getGroupExpiryDays(),
+                        role.getGroupExpiryDays(), membership.getExpiration()));
+                break;
         }
     }
 
