@@ -3674,6 +3674,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         boolean bUser = ZMSUtils.isUserDomainPrincipal(roleMember.getMemberName(), userDomainPrefix,
                 addlUserCheckDomainPrefixList);
+        boolean bGroup = roleMember.getMemberName().contains(AuthorityConsts.GROUP_SEP);
 
         if (bUser) {
             Timestamp userAuthorityExpiry = getUserAuthorityExpiry(roleMember.memberName, role.getUserAuthorityExpiration(), caller);
@@ -3683,6 +3684,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 roleMember.setExpiration(memberDueDateTimestamp(domain.getDomain().getMemberExpiryDays(),
                         role.getMemberExpiryDays(), membership.getExpiration()));
             }
+        } else if (bGroup) {
+            roleMember.setExpiration(memberDueDateTimestamp(domain.getDomain().getGroupExpiryDays(),
+                    role.getGroupExpiryDays(), membership.getExpiration()));
         } else {
             roleMember.setExpiration(memberDueDateTimestamp(domain.getDomain().getServiceExpiryDays(),
                     role.getServiceExpiryDays(), membership.getExpiration()));
