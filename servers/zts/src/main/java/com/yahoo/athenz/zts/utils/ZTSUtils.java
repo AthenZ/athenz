@@ -39,7 +39,6 @@ import javax.net.ssl.TrustManagerFactory;
 import java.security.KeyStore;
 import java.security.SecureRandom;
 
-import java.io.File;
 import java.io.FileInputStream;
 
 public class ZTSUtils {
@@ -288,12 +287,13 @@ public class ZTSUtils {
         return reqInstanceId.equals(instanceId);
     }
     
-    public static Identity generateIdentity(InstanceCertManager certManager, final String csr,
-            final String cn, final String certUsage, int expiryTime) {
+    public static Identity generateIdentity(InstanceCertManager certManager, final String provider,
+            final String certIssuer, final String csr, final String cn, final String certUsage,
+            int expiryTime) {
         
         // generate a certificate for this certificate request
 
-        String pemCert = certManager.generateX509Certificate(csr, certUsage, expiryTime);
+        String pemCert = certManager.generateX509Certificate(provider, certIssuer, csr, certUsage, expiryTime);
         if (pemCert == null || pemCert.isEmpty()) {
             return null;
         }
@@ -325,7 +325,7 @@ public class ZTSUtils {
         SSLContext sslcontext = null;
         try {
             TrustManagerFactory tmfactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-            try (FileInputStream instream = new FileInputStream(new File(trustStorePath))) {
+            try (FileInputStream instream = new FileInputStream(trustStorePath)) {
                 KeyStore trustStore = KeyStore.getInstance(trustStoreType);
                 final String password = getApplicationSecret(privateKeyStore, trustStorePasswordAppName, trustStorePassword);
                 trustStore.load(instream, getPasswordChars(password));
@@ -333,7 +333,7 @@ public class ZTSUtils {
             }
 
             KeyManagerFactory kmfactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-            try (FileInputStream instream = new FileInputStream(new File(keyStorePath))) {
+            try (FileInputStream instream = new FileInputStream(keyStorePath)) {
                 KeyStore keyStore = KeyStore.getInstance(keyStoreType);
                 final String password = getApplicationSecret(privateKeyStore, keyStorePasswordAppName, keyStorePassword);
                 keyStore.load(instream, getPasswordChars(password));

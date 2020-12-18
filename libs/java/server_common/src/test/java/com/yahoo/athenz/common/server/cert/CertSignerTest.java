@@ -40,7 +40,9 @@ public class CertSignerTest {
         };
 
         assertNull(signer.generateX509Certificate("csr", "client", 60));
+        assertNull(signer.generateX509Certificate("aws", "us-west-2", "csr", "client", 60));
         assertNull(signer.getCACertificate());
+        assertNull(signer.getCACertificate("aws"));
         assertEquals(signer.getMaxCertExpiryTimeMins(), 0);
         signer.close();
     }
@@ -50,7 +52,9 @@ public class CertSignerTest {
 
         CertSigner signer = Mockito.mock(CertSigner.class);
         Mockito.when(signer.generateX509Certificate("csr", "client", 100)).thenReturn("cert");
+        Mockito.when(signer.generateX509Certificate("aws", "us-west-2", "csr", "client", 100)).thenReturn("cert1");
         Mockito.when(signer.getCACertificate()).thenReturn("ca-cert");
+        Mockito.when(signer.getCACertificate("aws")).thenReturn("ca-cert1");
         Mockito.when(signer.getMaxCertExpiryTimeMins()).thenReturn(60);
 
         CertSignerFactory factory = () -> signer;
@@ -58,7 +62,9 @@ public class CertSignerTest {
         CertSigner testSigner = factory.create();
         assertNotNull(testSigner);
         assertEquals("cert", testSigner.generateX509Certificate("csr", "client", 100));
+        assertEquals("cert1", testSigner.generateX509Certificate("aws", "us-west-2", "csr", "client", 100));
         assertEquals("ca-cert", testSigner.getCACertificate());
+        assertEquals("ca-cert1", testSigner.getCACertificate("aws"));
         assertEquals(60, testSigner.getMaxCertExpiryTimeMins());
 
         testSigner.close();

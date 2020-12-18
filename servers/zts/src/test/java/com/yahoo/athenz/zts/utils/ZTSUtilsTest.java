@@ -168,12 +168,12 @@ public class ZTSUtilsTest {
         
         InstanceCertManager certManager = Mockito.mock(InstanceCertManager.class);
         Mockito.when(certManager.generateX509Certificate(Mockito.any(), Mockito.any(),
-                Mockito.anyInt())).thenReturn(null);
+                Mockito.any(), Mockito.any(), Mockito.anyInt())).thenReturn(null);
         
         Path path = Paths.get("src/test/resources/valid.csr");
         String csr = new String(Files.readAllBytes(path));
         
-        Identity identity = ZTSUtils.generateIdentity(certManager, csr, "unknown.syncer", null, 0);
+        Identity identity = ZTSUtils.generateIdentity(certManager, "aws", "us-west-2", csr, "unknown.syncer", null, 0);
         assertNull(identity);
     }
     
@@ -483,12 +483,12 @@ public class ZTSUtilsTest {
 
     @Test
     public void testParseBoolean() {
-        assertEquals(true, ZTSUtils.parseBoolean(null, true));
-        assertEquals(false, ZTSUtils.parseBoolean(null, false));
-        assertEquals(true, ZTSUtils.parseBoolean("", true));
-        assertEquals(false, ZTSUtils.parseBoolean("", false));
-        assertEquals(true, ZTSUtils.parseBoolean("true", false));
-        assertEquals(false, ZTSUtils.parseBoolean("false", true));
-        assertEquals(false, ZTSUtils.parseBoolean("unknown", false));
+        assertTrue(ZTSUtils.parseBoolean(null, true));
+        assertFalse(ZTSUtils.parseBoolean(null, false));
+        assertTrue(ZTSUtils.parseBoolean("", true));
+        assertFalse(ZTSUtils.parseBoolean("", false));
+        assertTrue(ZTSUtils.parseBoolean("true", false));
+        assertFalse(ZTSUtils.parseBoolean("false", true));
+        assertFalse(ZTSUtils.parseBoolean("unknown", false));
     }
 }

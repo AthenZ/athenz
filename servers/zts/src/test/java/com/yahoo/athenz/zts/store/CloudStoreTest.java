@@ -1043,6 +1043,7 @@ public class CloudStoreTest {
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 500);
         }
+        cloudStore.close();
     }
 
     @Test
@@ -1079,5 +1080,14 @@ public class CloudStoreTest {
         updater.run();
         updater.run();
         updater.run();
+    }
+
+    @Test
+    public void testGetAzureSubscription() {
+        CloudStore cloudStore = new CloudStore();
+        assertNull(cloudStore.getAzureSubscription("athenz"));
+        cloudStore.updateAzureSubscription("athenz", "12345");
+        assertEquals("12345", cloudStore.getAzureSubscription("athenz"));
+        cloudStore.close();
     }
 }

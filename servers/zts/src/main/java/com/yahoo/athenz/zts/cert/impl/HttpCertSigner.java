@@ -172,7 +172,7 @@ public class HttpCertSigner implements CertSigner {
     }
     
     @Override
-    public String generateX509Certificate(String csr, String keyUsage, int expireMins) {
+    public String generateX509Certificate(String provider, String certIssuer, String csr, String keyUsage, int expireMins) {
         
         // Key Usage value used in Go - https://golang.org/src/crypto/x509/x509.go?s=18153:18173#L558
         // we're only interested in ExtKeyUsageClientAuth - with value of 2
@@ -212,7 +212,7 @@ public class HttpCertSigner implements CertSigner {
     }
     
     @Override
-    public String getCACertificate() {
+    public String getCACertificate(String provider) {
 
         ContentResponse response;
         try {
