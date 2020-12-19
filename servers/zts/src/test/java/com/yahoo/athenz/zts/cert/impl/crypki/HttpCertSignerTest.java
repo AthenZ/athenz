@@ -74,7 +74,7 @@ public class HttpCertSignerTest {
         
         Mockito.when(httpClient.execute(Mockito.any(HttpPost.class))).thenThrow(new IOException());
         assertNull(certSigner.generateX509Certificate("aws", null, "csr", null, 0));
-        Mockito.verify(httpClient, times(3)).execute(Mockito.any(HttpPost.class));
+        Mockito.verify(httpClient, times(2)).execute(Mockito.any(HttpPost.class));
         
         certSigner.close();
     }
@@ -142,8 +142,6 @@ public class HttpCertSignerTest {
 
         certSigner.close();
     }
-    
-
 
     @Test
     public void testGenerateX509CertificateInvalidData() throws Exception {
@@ -170,7 +168,7 @@ public class HttpCertSignerTest {
     @Test
     public void testGenerateX509CertificateInvalidCsr() {
        HttpCertSigner testHttpCertSigner = new HttpCertSigner() {
-            public Object getX509CertSigningRequest(String csr, String keyUsage, int expireMins) {
+            public Object getX509CertSigningRequest(String provider, String csr, String keyUsage, int expireMins) {
                 throw new IllegalArgumentException();
             }
         };
@@ -337,6 +335,108 @@ public class HttpCertSignerTest {
         Assert.assertEquals(keyMeta.getIdentifier(), "keymeta");
         keyMeta.setIdentifier("");
         Assert.assertEquals(keyMeta.getIdentifier(), "");
+    }
+
+    @Test
+    public void testProviderKeyLookup() {
+        System.setProperty(ZTSConsts.ZTS_PROP_CERTSIGN_PROVIDER_KEYS_FNAME, "src/test/resources/crypki_key_providers.json");
+        HttpCertSignerFactory certFactory = new HttpCertSignerFactory();
+        HttpCertSigner certSigner = (HttpCertSigner) certFactory.create();
+
+        assertEquals("x509-key-data", certSigner.getProviderKeyId("unknown"));
+        assertEquals("x509-key-data", certSigner.getProviderKeyId(null));
+        assertEquals("x509-key-data", certSigner.getProviderKeyId(""));
+
+        assertEquals("x509-aws-key", certSigner.getProviderKeyId("athenz.aws.us-east-1"));
+        assertEquals("x509-aws-key", certSigner.getProviderKeyId("athenz.aws.us-east-2"));
+        assertEquals("x509-aws-key", certSigner.getProviderKeyId("athenz.aws.us-west-1"));
+        assertEquals("x509-aws-key", certSigner.getProviderKeyId("athenz.aws.us-west-2"));
+
+        assertEquals("x509-key-data", certSigner.getProviderKeyId("athenz.aws.us-west-3"));
+
+        assertEquals("x509-azure-key", certSigner.getProviderKeyId("athenz.azure.eastus"));
+        assertEquals("x509-azure-key", certSigner.getProviderKeyId("athenz.azure.westus"));
+
+        assertEquals("x509-key-data", certSigner.getProviderKeyId("athenz.azure.eastus2"));
+
+        certSigner.close();
+        System.clearProperty(ZTSConsts.ZTS_PROP_CERTSIGN_PROVIDER_KEYS_FNAME);
+    }
+
+    @Test
+    public void testProviderKeyLookupNoConfig() {
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_CERTSIGN_PROVIDER_KEYS_FNAME);
+        HttpCertSignerFactory certFactory = new HttpCertSignerFactory();
+        HttpCertSigner certSigner = (HttpCertSigner) certFactory.create();
+
+        assertEquals("x509-key", certSigner.getProviderKeyId("unknown"));
+        assertEquals("x509-key", certSigner.getProviderKeyId(null));
+        assertEquals("x509-key", certSigner.getProviderKeyId(""));
+
+        assertEquals("x509-key", certSigner.getProviderKeyId("athenz.aws.us-east-1"));
+        assertEquals("x509-key", certSigner.getProviderKeyId("athenz.aws.us-east-2"));
+        assertEquals("x509-key", certSigner.getProviderKeyId("athenz.azure.eastus"));
+        assertEquals("x509-key", certSigner.getProviderKeyId("athenz.azure.westus"));
+        certSigner.close();
+    }
+
+    @Test
+    public void testProviderKeyLookupInvalidFields() {
+        System.setProperty(ZTSConsts.ZTS_PROP_CERTSIGN_PROVIDER_KEYS_FNAME, "src/test/resources/crypki_key_providers_missing_fields.json");
+        HttpCertSignerFactory certFactory = new HttpCertSignerFactory();
+        HttpCertSigner certSigner = (HttpCertSigner) certFactory.create();
+
+        assertEquals("x509-key", certSigner.getProviderKeyId("unknown"));
+        assertEquals("x509-key", certSigner.getProviderKeyId(null));
+        assertEquals("x509-key", certSigner.getProviderKeyId(""));
+
+        assertEquals("x509-aws-key", certSigner.getProviderKeyId("athenz.aws.us-west-1"));
+        assertEquals("x509-aws-key", certSigner.getProviderKeyId("athenz.aws.us-west-2"));
+
+        assertEquals("x509-key", certSigner.getProviderKeyId("athenz.aws.us-east-1"));
+        assertEquals("x509-key", certSigner.getProviderKeyId("athenz.aws.us-east-2"));
+        assertEquals("x509-key", certSigner.getProviderKeyId("athenz.aws.us-west-3"));
+
+        assertEquals("x509-azure-key", certSigner.getProviderKeyId("athenz.azure.eastus"));
+        assertEquals("x509-azure-key", certSigner.getProviderKeyId("athenz.azure.westus"));
+
+        assertEquals("x509-key", certSigner.getProviderKeyId("athenz.azure.eastus2"));
+
+        certSigner.close();
+        System.clearProperty(ZTSConsts.ZTS_PROP_CERTSIGN_PROVIDER_KEYS_FNAME);
+    }
+
+    @Test
+    public void testProviderKeyLookupInvalidJson() {
+
+        System.setProperty(ZTSConsts.ZTS_PROP_CERTSIGN_PROVIDER_KEYS_FNAME, "src/test/resources/crypki_key_providers_invalid.json");
+
+        try {
+            HttpCertSignerFactory certFactory = new HttpCertSignerFactory();
+            certFactory.create();
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(500, ex.getCode());
+        }
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_CERTSIGN_PROVIDER_KEYS_FNAME);
+    }
+
+    @Test
+    public void testProviderKeyLookupInvalidFile() {
+
+        System.setProperty(ZTSConsts.ZTS_PROP_CERTSIGN_PROVIDER_KEYS_FNAME, "invalid-json-file");
+
+        try {
+            HttpCertSignerFactory certFactory = new HttpCertSignerFactory();
+            certFactory.create();
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(500, ex.getCode());
+        }
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_CERTSIGN_PROVIDER_KEYS_FNAME);
     }
 }
 

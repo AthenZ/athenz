@@ -1161,19 +1161,6 @@ public class InstanceCertManagerTest {
     }
 
     @Test
-    public void testReadFileContentsException() {
-
-        InstanceCertManager instance = new InstanceCertManager(null, null, null, true);
-        File file = new File("src/test/resources/athenz.conf");
-
-        InstanceCertManager instanceManager = Mockito.spy(instance);
-        when(instanceManager.getFilePath(file))
-                .thenThrow(new RuntimeException("invalid file"));
-
-        assertNull(instanceManager.readFileContents("src/test/resources/athenz.conf"));
-    }
-
-    @Test
     public void testLogNoCertStore() {
         InstanceCertManager instance = new InstanceCertManager(null, null, null, true);
         instance.setCertStore(null);
