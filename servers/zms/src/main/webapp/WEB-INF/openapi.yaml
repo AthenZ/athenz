@@ -4,9 +4,4 @@ openAPI:
     version: '1.0.0'
     title: 'ZMS Swagger'
   servers:
-    - url: /devapi
-      description: Development ZMS server
-    - url: /stageapi
-      description: Staging ZMS server
-    - url: /prodapi
-      description: Production ZMS server
+    - url: '/v1/api'
