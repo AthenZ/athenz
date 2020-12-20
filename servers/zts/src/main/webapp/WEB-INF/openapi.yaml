@@ -4,9 +4,4 @@ openAPI:
     version: '1.0.0'
     title: 'ZTS Swagger'
   servers:
-    - url: /devapi
-      description: Development ZTS server
-    - url: /stageapi
-      description: Staging ZTS server
-    - url: /prodapi
-      description: Production ZTS server
+    - url: '/v1/api'
