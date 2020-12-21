@@ -65,7 +65,7 @@ ls ./target/athenz_metrics_prometheus-*.jar
 <a id="markdown-note" name="note"></a>
 ## Note
 
-1. The current implementation is based on specific [athenz version](./pom.xml#L31). As the athenz dependency is using the [provider scope](./pom.xml#L51), this class may throw error if non-compatible athenz JARs are include during runtime.
+1. The current implementation is based on specific [athenz version](./pom.xml#L31). As the athenz dependency is using the [provided scope](./pom.xml#L51), this class may throw error if non-compatible athenz JARs are included during runtime.
 
 <a id="markdown-for-developer" name="for-developer"></a>
 ## For developer
