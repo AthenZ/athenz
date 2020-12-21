@@ -127,48 +127,6 @@ Return the name of the Secret storing the trusted CA certificates
 {{- end -}}
 
 {{/*
-Return the JDBC host and port in conf
-*/}}
-{{- define "athenz-zms.jdbc.userHostPort" -}}
-{{- $file := .Files -}}
-{{- $return := dict "user" "" "jdbc" "" -}}
-{{- range $path, $byte := .Files.Glob .Values.files.conf -}}
-    {{- range $line := $file.Lines $path }}
-        {{- $found := regexFind "^athenz\\.zms\\.jdbc_user=(.+)$" $line }}
-        {{- if $found }}
-            {{- $_ := ($found | trimPrefix "athenz.zms.jdbc_user=" | set $return "user") }}
-        {{- end }}
-        {{- $found := regexFind "^athenz\\.zms\\.jdbc_store=jdbc:mysql:\\/\\/([^:]+):(\\d+)" $line }}
-        {{- if $found }}
-            {{- $_ := ($found | trimPrefix "athenz.zms.jdbc_store=jdbc:mysql://" | set $return "jdbc") }}
-        {{- end }}
-    {{- end }}
-{{- end -}}
-{{- printf "%s:%s" (get $return "user") (get $return "jdbc") -}}
-{{- end -}}
-
-{{/*
-Return the JDBC RO host and port in conf
-*/}}
-{{- define "athenz-zms.jdbc.ro.userHostPort" -}}
-{{- $file := .Files -}}
-{{- $return := dict "user" "" "jdbc" "" -}}
-{{- range $path, $byte := .Files.Glob .Values.files.conf -}}
-    {{- range $line := $file.Lines $path }}
-        {{- $found := regexFind "^athenz\\.zms\\.jdbc_ro_user=(.+)$" $line }}
-        {{- if $found }}
-            {{- $_ := ($found | trimPrefix "athenz.zms.jdbc_ro_user=" | set $return "user") }}
-        {{- end }}
-        {{- $found := regexFind "^athenz\\.zms\\.jdbc_ro_store=jdbc:mysql:\\/\\/([^:]+):(\\d+)" $line }}
-        {{- if $found }}
-            {{- $_ := ($found | trimPrefix "athenz.zms.jdbc_ro_store=jdbc:mysql://" | set $return "jdbc") }}
-        {{- end }}
-    {{- end }}
-{{- end -}}
-{{- printf "%s:%s" (get $return "user") (get $return "jdbc") -}}
-{{- end -}}
-
-{{/*
 Return the metrics port, empty string if disable
 */}}
 {{- define "athenz-zms.metrics.port" -}}

@@ -106,52 +106,6 @@ spec:
             - name: tls-stores
               mountPath: /opt/athenz/zms/var/certs
         {{- end }}
-        {{- $jdbcURP := (include "athenz-zms.jdbc.userHostPort" .) }}
-        {{- if not (hasSuffix ":" $jdbcURP) }}
-        {{- $jdbcURPList := (splitList ":" $jdbcURP) }}
-        - name: wait-for-jdbc-db
-          image: {{ template "athenz-zms.mysql.image" . }}
-          imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
-          command:
-            - "/bin/sh"
-            - "/bin/wait-for-mysql.sh"
-            - {{ printf "--user=%s" (index $jdbcURPList 0) }}
-            - {{ printf "--host=%s" (index $jdbcURPList 1) }}
-            - {{ printf "--port=%s" (index $jdbcURPList 2) }}
-          env:
-            - name: MYSQL_PWD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ template "athenz-zms.secretName" . }}
-                  key: jdbc
-          volumeMounts:
-            - name: script
-              mountPath: /bin/wait-for-mysql.sh
-              subPath: wait-for-mysql.sh
-        {{- end }}
-        {{- $jdbcRoUHP := (include "athenz-zms.jdbc.ro.userHostPort" .) }}
-        {{- if not (hasSuffix ":" $jdbcRoUHP) }}
-        {{- $jdbcRoUHPList := (splitList ":" $jdbcRoUHP) }}
-        - name: wait-for-jdbc-ro-db
-          image: {{ template "athenz-zms.mysql.image" . }}
-          imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
-          command:
-            - "/bin/sh"
-            - "/bin/wait-for-mysql.sh"
-            - {{ printf "--user=%s" (index $jdbcRoUHPList 0) }}
-            - {{ printf "--host=%s" (index $jdbcRoUHPList 1) }}
-            - {{ printf "--port=%s" (index $jdbcRoUHPList 2) }}
-          env:
-            - name: MYSQL_PWD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ template "athenz-zms.secretName" . }}
-                  key: jdbcRo
-          volumeMounts:
-            - name: script
-              mountPath: /bin/wait-for-mysql.sh
-              subPath: wait-for-mysql.sh
-        {{- end }}
         {{- if .Values.extraInitContainers }}
 {{ tpl .Values.extraInitContainers . | indent 8 }}
         {{- end }}
