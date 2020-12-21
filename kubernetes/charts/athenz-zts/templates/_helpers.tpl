@@ -171,27 +171,6 @@ Return the name of the Secret storing the ZTS HTTP client trusted CA certificate
 {{- end -}}
 
 {{/*
-Return the JDBC host and port in conf
-*/}}
-{{- define "athenz-zts.jdbc.userHostPort" -}}
-{{- $file := .Files -}}
-{{- $return := dict "user" "" "jdbc" "" -}}
-{{- range $path, $byte := .Files.Glob .Values.files.conf -}}
-    {{- range $line := $file.Lines $path }}
-        {{- $found := regexFind "^athenz\\.zts\\.cert_jdbc_user=(.+)$" $line }}
-        {{- if $found }}
-            {{- $_ := ($found | trimPrefix "athenz.zts.cert_jdbc_user=" | set $return "user") }}
-        {{- end }}
-        {{- $found := regexFind "^athenz\\.zts\\.cert_jdbc_store=jdbc:mysql:\\/\\/([^:]+):(\\d+)" $line }}
-        {{- if $found }}
-            {{- $_ := ($found | trimPrefix "athenz.zts.cert_jdbc_store=jdbc:mysql://" | set $return "jdbc") }}
-        {{- end }}
-    {{- end }}
-{{- end -}}
-{{- printf "%s:%s" (get $return "user") (get $return "jdbc") -}}
-{{- end -}}
-
-{{/*
 Return the metrics port, empty string if disable
 */}}
 {{- define "athenz-zts.metrics.port" -}}
