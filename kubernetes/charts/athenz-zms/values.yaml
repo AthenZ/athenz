@@ -11,19 +11,14 @@
 ##
 image:
   registry: docker.io
-  repository: "_your_repo_/athenz-zms-server"
+  repository: "athenz/athenz-zms-server"
   tag: latest
   ## Init. container image for creating keystore/truststore
   ## Setting `existingTLSStoreSecret` will skip the init. containers
   ##
   setup:
-    repository: "_your_repo_/athenz-setup-env"
+    repository: "athenz/athenz-setup-env"
     tag: latest
-  ## Init. container image for verifying MySQL DB connection
-  ##
-  mysql:
-    repository: mariadb
-    tag: '10.5.2'
   ## Specify a imagePullPolicy
   ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
   ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images

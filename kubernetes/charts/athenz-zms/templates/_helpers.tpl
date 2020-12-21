@@ -57,24 +57,6 @@ Return the proper ZMS setup image name
 {{- end -}}
 
 {{/*
-Return the proper ZMS mysql image name
-*/}}
-{{- define "athenz-zms.mysql.image" -}}
-{{- $registryName := .Values.image.registry -}}
-{{- $repositoryName := .Values.image.mysql.repository -}}
-{{- $tag := .Values.image.mysql.tag | toString -}}
-{{- if .Values.global }}
-    {{- if .Values.global.imageRegistry }}
-        {{- printf "%s/%s:%s" .Values.global.imageRegistry $repositoryName $tag -}}
-    {{- else -}}
-        {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
-    {{- end -}}
-{{- else -}}
-    {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
 Return the proper Docker Image Registry Secret Names
 */}}
 {{- define "athenz-zms.imagePullSecrets" -}}
