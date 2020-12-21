@@ -347,9 +347,6 @@ spec:
           resources: {{ toYaml .Values.resources | nindent 12 }}
           {{- end }}
       volumes:
-        - name: script
-          configMap:
-            name: {{ template "athenz-zts.fullname" . }}-script
         - name: config
           configMap:
             name: {{ template "athenz-zts.fullname" . }}-config
