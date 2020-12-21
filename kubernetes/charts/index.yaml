@@ -3,11 +3,11 @@ entries:
   athenz-zms:
   - apiVersion: v2
     appVersion: 1.9.26
-    created: "2020-12-15T15:54:55.701615+09:00"
+    created: "2020-12-21T13:54:13.074287+09:00"
     description: Athenz is a role-based authorization (RBAC) system for provisioning
       and configuration (centralized authorization) use cases as well as serving/runtime
       (decentralized authorization) use cases.
-    digest: fd21c989b6a65d8fd2c4022bb20ddf2f87b44da33232b04aaf0c7200d77b312d
+    digest: f2055835e581fba6de45910772017a14166e5517721ffc65eca6d1d2ad0dd95f
     home: https://www.athenz.io
     icon: https://raw.githubusercontent.com/yahoo/athenz/master/docs/images/athenz-logo-line.svg
     keywords:
@@ -23,16 +23,16 @@ entries:
     sources:
     - https://github.com/yahoo/athenz
     urls:
-    - https://windzcuhk.github.io/athenz/kubernetes/charts/athenz-zms-1.0.0.tgz
+    - https://raw.githubusercontent.com/yahoo/athenz/master/kubernetes/charts/athenz-zms-1.0.0.tgz
     version: 1.0.0
   athenz-zts:
   - apiVersion: v2
     appVersion: 1.9.26
-    created: "2020-12-15T15:54:55.705377+09:00"
+    created: "2020-12-21T13:54:13.077137+09:00"
     description: Athenz is a role-based authorization (RBAC) system for provisioning
       and configuration (centralized authorization) use cases as well as serving/runtime
       (decentralized authorization) use cases.
-    digest: eb1c3cfeded3051fce6dc51c79796b72dd6bf98c872919e54939b91b737631aa
+    digest: 8c75cba9da372c711ec1aee40e0465256aa8e66ce33311a499887e535e93bc12
     home: https://www.athenz.io
     icon: https://raw.githubusercontent.com/yahoo/athenz/master/docs/images/athenz-logo-line.svg
     keywords:
@@ -48,6 +48,6 @@ entries:
     sources:
     - https://github.com/yahoo/athenz
     urls:
-    - https://windzcuhk.github.io/athenz/kubernetes/charts/athenz-zts-1.0.0.tgz
+    - https://raw.githubusercontent.com/yahoo/athenz/master/kubernetes/charts/athenz-zts-1.0.0.tgz
     version: 1.0.0
-generated: "2020-12-15T15:54:55.697913+09:00"
+generated: "2020-12-21T13:54:13.071689+09:00"
