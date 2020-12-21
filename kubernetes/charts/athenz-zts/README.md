@@ -1,28 +1,26 @@
-<a id="markdown-athenz-zts-authz-token-system" name="athenz-zts-authz-token-system"></a>
 # Athenz ZTS (authZ Token System)
 
 Server for caching Athenz policy from ZMS and issuing service identity.
 
 <!-- TOC -->
 
-- [Athenz ZTS (authZ Token System)](#athenz-zts-authz-token-system)
-    - [Getting Started](#getting-started)
-    - [Introduction](#introduction)
-        - [Prerequisites](#prerequisites)
-        - [Usage](#usage)
-            - [install/deploy](#installdeploy)
-            - [uninstall/delete](#uninstalldelete)
-    - [Parameters](#parameters)
-        - [Global parameters](#global-parameters)
-        - [ZTS parameters](#zts-parameters)
-        - [Values read from properties files](#values-read-from-properties-files)
-    - [Points to Note](#points-to-note)
-        - [Using `helm upgrade`](#using-helm-upgrade)
-        - [About ZTS passwords](#about-zts-passwords)
-        - [About `chmod` initContainers](#about-chmod-initcontainers)
-    - [Authors](#authors)
-    - [License](#license)
-    - [Acknowledgments](#acknowledgments)
+- [Getting Started](#getting-started)
+- [Introduction](#introduction)
+    - [Prerequisites](#prerequisites)
+    - [Usage](#usage)
+        - [install/deploy](#installdeploy)
+        - [uninstall/delete](#uninstalldelete)
+- [Parameters](#parameters)
+    - [Global parameters](#global-parameters)
+    - [ZTS parameters](#zts-parameters)
+    - [Values read from properties files](#values-read-from-properties-files)
+- [Points to Note](#points-to-note)
+    - [Using `helm upgrade`](#using-helm-upgrade)
+    - [About ZTS passwords](#about-zts-passwords)
+    - [About `chmod` initContainers](#about-chmod-initcontainers)
+- [Authors](#authors)
+- [License](#license)
+- [Acknowledgments](#acknowledgments)
 
 <!-- /TOC -->
 
@@ -192,7 +190,7 @@ The command removes all the Kubernetes components associated with the chart and 
 **athenz_conf.json**
 | **Parameter** | **Description** | **Default**                                                  |
 | ------------- | --------------- | ------------------------------------------------------------ |
-| `zmsUrl`      | ZMS URL         | `https://dev-zms-athenz-zms.default.svc.cluster.local:4443/` |
+| `zmsUrl`      | ZMS URL         | `https://my-release-athenz-zms.default.svc.cluster.local:4443/` |
 
 <a id="markdown-points-to-note" name="points-to-note"></a>
 ## Points to Note

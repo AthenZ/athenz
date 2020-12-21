@@ -8,6 +8,7 @@
 #     - name: myRegistryKeySecretName
 
 ## Athenz ZMS image version
+## ref: https://hub.docker.com/r/athenz/athenz-zms-server/tags
 ##
 image:
   registry: docker.io

@@ -1,6 +1,6 @@
 {
-  "zmsUrl": "https://dev-zms-athenz-zms.default.svc.cluster.local:4443/",
-  "ztsUrl": "https://dev-zts-athenz-zts.default.svc.cluster.local:8443/",
+  "zmsUrl": "https://my-release-athenz-zms.default.svc.cluster.local:4443/",
+  "ztsUrl": "https://my-release-athenz-zts.default.svc.cluster.local:8443/",
   "zmsPublicKeys": [
     {
       "id": "0",
