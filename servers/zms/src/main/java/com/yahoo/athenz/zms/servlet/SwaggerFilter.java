@@ -29,7 +29,15 @@ import java.io.IOException;
 @Provider
 public class SwaggerFilter implements javax.servlet.Filter {
 
-    private final ZMSHandler zmsHandler = ZMSImplFactory.getZmsInstance();
+    private final ZMSHandler zmsHandler;
+
+    public SwaggerFilter() {
+        this.zmsHandler = ZMSImplFactory.getZmsInstance();
+    }
+
+    public SwaggerFilter(ZMSHandler zmsHandler) {
+        this.zmsHandler = zmsHandler;
+    }
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
