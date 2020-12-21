@@ -2,7 +2,7 @@
 
 Server for caching Athenz policy from ZMS and issuing service identity.
 
-<!-- TOC -->
+<!-- TOC depthFrom:2 updateOnSave:true -->
 
 - [Getting Started](#getting-started)
 - [Introduction](#introduction)

@@ -1,27 +1,25 @@
-<a id="markdown-athenz-zms-authz-management-system" name="athenz-zms-authz-management-system"></a>
 # Athenz ZMS (authZ Management System)
 
 Server for managing Athenz RBAC policy and performing centralized authorization.
 
-<!-- TOC -->
+<!-- TOC depthFrom:2 updateOnSave:true -->
 
-- [Athenz ZMS (authZ Management System)](#athenz-zms-authz-management-system)
-    - [Getting Started](#getting-started)
-    - [Introduction](#introduction)
-        - [Prerequisites](#prerequisites)
-        - [Usage](#usage)
-            - [install/deploy](#installdeploy)
-            - [uninstall/delete](#uninstalldelete)
-    - [Parameters](#parameters)
-        - [Global parameters](#global-parameters)
-        - [ZMS parameters](#zms-parameters)
-        - [Values read from properties files](#values-read-from-properties-files)
-    - [Points to Note](#points-to-note)
-        - [Using `helm upgrade`](#using-helm-upgrade)
-        - [About ZMS passwords](#about-zms-passwords)
-    - [Authors](#authors)
-    - [License](#license)
-    - [Acknowledgments](#acknowledgments)
+- [Getting Started](#getting-started)
+- [Introduction](#introduction)
+    - [Prerequisites](#prerequisites)
+    - [Usage](#usage)
+        - [install/deploy](#installdeploy)
+        - [uninstall/delete](#uninstalldelete)
+- [Parameters](#parameters)
+    - [Global parameters](#global-parameters)
+    - [ZMS parameters](#zms-parameters)
+    - [Values read from properties files](#values-read-from-properties-files)
+- [Points to Note](#points-to-note)
+    - [Using `helm upgrade`](#using-helm-upgrade)
+    - [About ZMS passwords](#about-zms-passwords)
+- [Authors](#authors)
+- [License](#license)
+- [Acknowledgments](#acknowledgments)
 
 <!-- /TOC -->
 
