@@ -2,7 +2,7 @@ apiVersion: v1
 entries:
   athenz-zms:
   - apiVersion: v2
-    appVersion: 1.9.26
+    appVersion: 1.9.27
     created: "2020-12-21T14:00:27.103511+09:00"
     description: Athenz is a role-based authorization (RBAC) system for provisioning
       and configuration (centralized authorization) use cases as well as serving/runtime
@@ -27,7 +27,7 @@ entries:
     version: 1.0.0
   athenz-zts:
   - apiVersion: v2
-    appVersion: 1.9.26
+    appVersion: 1.9.27
     created: "2020-12-21T14:00:27.107313+09:00"
     description: Athenz is a role-based authorization (RBAC) system for provisioning
       and configuration (centralized authorization) use cases as well as serving/runtime
