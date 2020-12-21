@@ -38,8 +38,8 @@ cd "$(git rev-parse --show-toplevel)/docker"
 # it takes about 15-30 mins
 make build
 
-# P.S. the latest code may cause docker build to fail, please use older version by specifying the tag version (< v1.9.26) or post an issue
-# make build TAG=v1.9.26
+# P.S. the latest code may cause docker build to fail, please use older version by specifying the tag version (< v1.9.27) or post an issue
+# make build TAG=v1.9.27
 ```
 
 <a id="markdown-deploy-athenz" name="deploy-athenz"></a>
