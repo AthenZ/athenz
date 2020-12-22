@@ -5255,50 +5255,41 @@ public class DBService implements RolesProvider {
             Timestamp reviewDate = roleMember.getReviewReminder();
             boolean dueDateUpdated = false;
 
-            switch (Principal.Type.getType(roleMember.getPrincipalType())) {
+            boolean bUser = ZMSUtils.isUserDomainPrincipal(roleMember.getMemberName(), zmsConfig.getUserDomainPrefix(),
+                    zmsConfig.getAddlUserCheckDomainPrefixList());
+            boolean bGroup = roleMember.getMemberName().contains(AuthorityConsts.GROUP_SEP);
 
-                case USER:
+            if (bUser) {
+                if (isEarlierDueDate(userExpiryMillis, expiration)) {
+                    roleMember.setExpiration(userExpiration);
+                    dueDateUpdated = true;
+                }
+                if (isEarlierDueDate(userReviewMillis, reviewDate)) {
+                    roleMember.setReviewReminder(userReview);
+                    dueDateUpdated = true;
+                }
 
-                    if (isEarlierDueDate(userExpiryMillis, expiration)) {
-                        roleMember.setExpiration(userExpiration);
-                        dueDateUpdated = true;
-                    }
-                    if (isEarlierDueDate(userReviewMillis, reviewDate)) {
-                        roleMember.setReviewReminder(userReview);
-                        dueDateUpdated = true;
-                    }
+                // if we have a user filter and/or expiry configured we need
+                // to make sure that the user still satisfies the filter
+                // otherwise we'll just expire the user right away
 
-                    // if we have a user filter and/or expiry configured we need
-                    // to make sure that the user still satisfies the filter
-                    // otherwise we'll just expire the user right away
-
-                    if (userAuthorityExpiry != null && updateUserAuthorityExpiry(roleMember, userAuthorityExpiry)) {
-                        dueDateUpdated = true;
-                    }
-
-                    break;
-
-                case GROUP:
-
-                    if (isEarlierDueDate(groupExpiryMillis, expiration)) {
-                        roleMember.setExpiration(groupExpiration);
-                        dueDateUpdated = true;
-                    }
-
-                    break;
-
-                case SERVICE:
-
-                    if (isEarlierDueDate(serviceExpiryMillis, expiration)) {
-                        roleMember.setExpiration(serviceExpiration);
-                        dueDateUpdated = true;
-                    }
-                    if (isEarlierDueDate(serviceReviewMillis, reviewDate)) {
-                        roleMember.setReviewReminder(serviceReview);
-                        dueDateUpdated = true;
-                    }
-
-                    break;
+                if (userAuthorityExpiry != null && updateUserAuthorityExpiry(roleMember, userAuthorityExpiry)) {
+                    dueDateUpdated = true;
+                }
+            } else if (bGroup) {
+                if (isEarlierDueDate(groupExpiryMillis, expiration)) {
+                    roleMember.setExpiration(groupExpiration);
+                    dueDateUpdated = true;
+                }
+            } else {
+                if (isEarlierDueDate(serviceExpiryMillis, expiration)) {
+                    roleMember.setExpiration(serviceExpiration);
+                    dueDateUpdated = true;
+                }
+                if (isEarlierDueDate(serviceReviewMillis, reviewDate)) {
+                    roleMember.setReviewReminder(serviceReview);
+                    dueDateUpdated = true;
+                }
             }
 
             if (dueDateUpdated) {
