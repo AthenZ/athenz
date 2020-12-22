@@ -3,7 +3,7 @@ entries:
   athenz-zms:
   - apiVersion: v2
     appVersion: 1.9.27
-    created: "2020-12-22T16:28:51.575749+09:00"
+    created: "2020-12-22T16:51:36.858965+09:00"
     description: Athenz is a role-based authorization (RBAC) system for provisioning
       and configuration (centralized authorization) use cases as well as serving/runtime
       (decentralized authorization) use cases.
@@ -23,12 +23,12 @@ entries:
     sources:
     - https://github.com/yahoo/athenz
     urls:
-    - https://raw.githubusercontent.com/yahoo/athenz/master/kubernetes/charts/athenz-zms-1.0.0.tgz
+    - https://raw.githubusercontent.com/WindzCUHK/athenz/helm-charts/kubernetes/charts/athenz-zms-1.0.0.tgz
     version: 1.0.0
   athenz-zts:
   - apiVersion: v2
     appVersion: 1.9.27
-    created: "2020-12-22T16:28:51.577948+09:00"
+    created: "2020-12-22T16:51:36.861866+09:00"
     description: Athenz is a role-based authorization (RBAC) system for provisioning
       and configuration (centralized authorization) use cases as well as serving/runtime
       (decentralized authorization) use cases.
@@ -48,6 +48,6 @@ entries:
     sources:
     - https://github.com/yahoo/athenz
     urls:
-    - https://raw.githubusercontent.com/yahoo/athenz/master/kubernetes/charts/athenz-zts-1.0.0.tgz
+    - https://raw.githubusercontent.com/WindzCUHK/athenz/helm-charts/kubernetes/charts/athenz-zts-1.0.0.tgz
     version: 1.0.0
-generated: "2020-12-22T16:28:51.573754+09:00"
+generated: "2020-12-22T16:51:36.856588+09:00"
