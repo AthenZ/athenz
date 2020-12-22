@@ -29,7 +29,16 @@ import java.io.IOException;
 @Provider
 public class SwaggerFilter implements Filter {
 
-    private final ZTSHandler ztsHandler = ZTSImplFactory.getZtsInstance();
+    private final ZTSHandler ztsHandler;
+
+    public SwaggerFilter() {
+        this.ztsHandler = ZTSImplFactory.getZtsInstance();
+    }
+
+    public SwaggerFilter(ZTSHandler ztsHandler) {
+        this.ztsHandler = ztsHandler;
+    }
+
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
