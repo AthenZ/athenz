@@ -204,15 +204,7 @@ mysql -u zms_admin
 # mysql> show tables in zms_server;
 ```
 
-Update corresponding ZMS properties
-
-```bash
-vi "${WORKSPACE}/athenz-zms/files/conf/zms.properties"
-
-# update the following property
-# athenz.zms.jdbc_store=jdbc:mysql://<your_db_host>:3306/zms_server
-# athenz.zms.jdbc_ro_store=jdbc:mysql://<your_rodb_host>:3306/zms_server
-```
+Update corresponding ZMS properties: update after `helm pull` (see below)
 
 <a id="markdown-6-deploy-zms" name="6-deploy-zms"></a>
 ### 6. Deploy ZMS
@@ -221,6 +213,13 @@ vi "${WORKSPACE}/athenz-zms/files/conf/zms.properties"
 # download chart
 helm pull athenz-zms -d "${WORKSPACE}" --untar \
   --repo "https://raw.githubusercontent.com/yahoo/athenz/v${ATHENZ_TAG}/kubernetes/charts"
+
+# update corresponding ZMS properties
+vi "${WORKSPACE}/athenz-zms/files/conf/zms.properties"
+
+# update the following property
+# athenz.zms.jdbc_store=jdbc:mysql://<your_db_host>:3306/zms_server
+# athenz.zms.jdbc_ro_store=jdbc:mysql://<your_rodb_host>:3306/zms_server
 
 # create symbolic links
 ln -sf "${ZMS_HELM_FILE}/secrets" "${WORKSPACE}/athenz-zms/files/"
@@ -352,14 +351,7 @@ mysql -u zts_admin
 # mysql> show tables in zts_store;
 ```
 
-Update corresponding ZTS properties
-
-```bash
-vi "${WORKSPACE}/athenz-zts/files/conf/zts.properties"
-
-# update the following property
-# athenz.zts.cert_jdbc_store=jdbc:mysql://<your_db_host>:3306/zts_store
-```
+Update corresponding ZTS properties: update after `helm pull` (see below)
 
 <a id="markdown-10-deploy-zts" name="10-deploy-zts"></a>
 ### 10. Deploy ZTS
@@ -368,6 +360,12 @@ vi "${WORKSPACE}/athenz-zts/files/conf/zts.properties"
 # download chart
 helm pull athenz-zts -d "${WORKSPACE}" --untar \
   --repo "https://raw.githubusercontent.com/yahoo/athenz/v${ATHENZ_TAG}/kubernetes/charts"
+
+# update corresponding ZTS properties
+vi "${WORKSPACE}/athenz-zts/files/conf/zts.properties"
+
+# update the following property
+# athenz.zts.cert_jdbc_store=jdbc:mysql://<your_db_host>:3306/zts_store
 
 # create symbolic links
 ln -sf "${ZTS_HELM_FILE}/conf/athenz_conf.json" "${WORKSPACE}/athenz-zts/files/conf/"
