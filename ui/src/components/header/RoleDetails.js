@@ -16,7 +16,6 @@
 import styled from '@emotion/styled';
 import DateUtils from '../utils/DateUtils';
 import React from 'react';
-import { MODAL_TIME_OUT } from '../constants/constants';
 
 const DomainSectionDiv = styled.div`
     margin: 20px 0;

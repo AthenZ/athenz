@@ -103,7 +103,7 @@ export default class CreateDomainPage extends React.Component {
             return <Error err={this.props.error} />;
         }
         return (
-            <div data-testid='create-domain-page'>
+            <div data-testid='create-domain'>
                 <Head>
                     <title>Athenz</title>
                 </Head>

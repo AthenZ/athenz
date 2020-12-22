@@ -62,7 +62,7 @@ export default class UpdateModal extends React.Component {
                 onClose={this.props.cancel}
                 title={'This update is permanent'}
             >
-                <MessageDiv data-testid='delete-modal-message'>
+                <MessageDiv data-testid='update-modal-message'>
                     {this.props.message}
                     <b>{this.props.name}</b> ?
                 </MessageDiv>

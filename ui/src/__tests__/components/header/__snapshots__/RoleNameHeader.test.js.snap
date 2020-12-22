@@ -1,0 +1,149 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Header should render 1`] = `
+.emotion-1 {
+  font: 600 20px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
+  margin-bottom: 10px;
+}
+
+.emotion-0 {
+  color: #3570f4;
+  -webkit-text-decoration: none;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+<div
+  class="emotion-1"
+  data-testid="role-name-header"
+>
+  
+  
+  <a
+    class="emotion-0"
+  >
+    home.mujibur
+     
+  </a>
+  / 
+  admin
+</div>
+`;
+
+exports[`Header should render audit enabled role 1`] = `
+.emotion-0 {
+  fill: #188fff;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+.emotion-2 {
+  font: 600 20px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
+  margin-bottom: 10px;
+}
+
+.emotion-1 {
+  color: #3570f4;
+  -webkit-text-decoration: none;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+<div
+  class="emotion-2"
+  data-testid="role-name-header"
+>
+  
+  <span>
+    <svg
+      class="emotion-0"
+      data-testid="icon"
+      height="1.25em"
+      viewBox="0 0 1024 1024"
+      width="1.25em"
+    >
+      <title>
+        file-search
+      </title>
+      <path
+        d="M682.667 533.333c0-23.564-19.103-42.667-42.667-42.667v0h-341.333c-23.564 0-42.667 19.103-42.667 42.667s19.103 42.667 42.667 42.667v0h341.333c23.564 0 42.667-19.103 42.667-42.667v0z"
+      />
+      <path
+        d="M298.667 661.333c-23.564 0-42.667 19.103-42.667 42.667s19.103 42.667 42.667 42.667v0h170.667c23.564 0 42.667-19.103 42.667-42.667s-19.103-42.667-42.667-42.667v0z"
+      />
+      <path
+        d="M768 896h-597.333v-725.333h213.333c23.564 0 42.667-19.103 42.667-42.667v0 0c0-23.564-19.103-42.667-42.667-42.667v0h-256c-23.564 0-42.667 19.103-42.667 42.667v0 810.667c0 23.564 19.103 42.667 42.667 42.667v0h682.667c23.564 0 42.667-19.103 42.667-42.667v0-341.333c0-23.564-19.103-42.667-42.667-42.667v0 0c-23.564 0-42.667 19.103-42.667 42.667v0z"
+      />
+      <path
+        d="M968.533 482.133l-108.8-108.8c22.702-32.73 36.267-73.292 36.267-117.023 0-0.109-0-0.218-0-0.328l0 0.017c0-117.821-95.513-213.333-213.333-213.333s-213.333 95.513-213.333 213.333v0c0.259 22.965 4.143 44.937 11.104 65.488l-0.438-1.488h-181.333c-23.564 0-42.667 19.103-42.667 42.667s19.103 42.667 42.667 42.667v0h232.533c38.67 39.114 92.173 63.493 151.371 63.999l0.096 0.001c0.092 0 0.201 0 0.31 0 43.731 0 84.293-13.565 117.709-36.717l-0.686 0.45 108.8 108.8c7.434 8.083 18.061 13.13 29.867 13.13s22.432-5.047 29.84-13.101l0.026-0.029c8.083-7.434 13.13-18.061 13.13-29.867s-5.047-22.432-13.101-29.84l-0.029-0.026zM554.667 256c0-70.692 57.308-128 128-128s128 57.308 128 128c0 70.692-57.308 128-128 128v0c-70.692 0-128-57.308-128-128v0z"
+      />
+    </svg>
+  </span>
+  <a
+    class="emotion-1"
+  >
+    home.mujibur
+     
+  </a>
+  / 
+  audit.role
+</div>
+`;
+
+exports[`Header should render delegated role 1`] = `
+.emotion-0 {
+  fill: #188fff;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+.emotion-3 {
+  font: 600 20px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
+  margin-bottom: 10px;
+}
+
+.emotion-1 {
+  color: #3570f4;
+  -webkit-text-decoration: none;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+<div
+  class="emotion-3"
+  data-testid="role-name-header"
+>
+  <span>
+    <svg
+      class="emotion-0"
+      data-testid="icon"
+      height="1.25em"
+      viewBox="0 0 1024 1024"
+      width="1.25em"
+    >
+      <title>
+        network
+      </title>
+      <path
+        d="M938.667 682.667h-42.667v-170.667c0-23.564-19.103-42.667-42.667-42.667v0h-298.667v-128h42.667c23.564 0 42.667-19.103 42.667-42.667v0-170.667c0-23.564-19.103-42.667-42.667-42.667v0h-170.667c-23.564 0-42.667 19.103-42.667 42.667v0 170.667c0 23.564 19.103 42.667 42.667 42.667v0h42.667v128h-298.667c-23.564 0-42.667 19.103-42.667 42.667v0 170.667h-42.667c-23.564 0-42.667 19.103-42.667 42.667v0 170.667c0 23.564 19.103 42.667 42.667 42.667v0h170.667c23.564 0 42.667-19.103 42.667-42.667v0-170.667c0-23.564-19.103-42.667-42.667-42.667v0h-42.667v-128h256v128h-42.667c-23.564 0-42.667 19.103-42.667 42.667v0 170.667c0 23.564 19.103 42.667 42.667 42.667v0h170.667c23.564 0 42.667-19.103 42.667-42.667v0-170.667c0-23.564-19.103-42.667-42.667-42.667v0h-42.667v-128h256v128h-42.667c-23.564 0-42.667 19.103-42.667 42.667v0 170.667c0 23.564 19.103 42.667 42.667 42.667v0h170.667c23.564 0 42.667-19.103 42.667-42.667v0-170.667c0-23.564-19.103-42.667-42.667-42.667v0zM213.333 853.333h-85.333v-85.333h85.333zM469.333 170.667h85.333v85.333h-85.333zM554.667 853.333h-85.333v-85.333h85.333zM896 853.333h-85.333v-85.333h85.333z"
+      />
+    </svg>
+  </span>
+  
+  <a
+    class="emotion-1"
+  >
+    home.mujibur
+     
+  </a>
+  / 
+  delegated.role
+   (Delegated by 
+  <a
+    class="emotion-1"
+  >
+    home.hga
+  </a>
+   )
+</div>
+`;

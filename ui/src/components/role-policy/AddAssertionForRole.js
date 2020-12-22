@@ -90,7 +90,7 @@ export default class AddAssertionForRole extends React.Component {
 
     render() {
         return (
-            <StyledDiv data-testid='add-assertion'>
+            <StyledDiv data-testid='add-assertion-for-role'>
                 <AddRuleFormForRole
                     id={this.props.id}
                     api={this.api}

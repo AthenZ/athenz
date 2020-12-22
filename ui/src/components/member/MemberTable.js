@@ -36,23 +36,6 @@ const StyleTable = styled.table`
     height: 50px;
 `;
 
-const StyleDiv = styled.table`
-    width: 100%;
-    border-spacing: 0;
-    display: table;
-    border-collapse: separate;
-    border-color: grey;
-    box-sizing: border-box;
-    margin-top: 5px;
-    box-shadow: 0 1px 4px #d9d9d9;
-    border: 1px solid #fff;
-    -webkit-border-image: none;
-    border-image: none;
-    -webkit-border-image: initial;
-    border-image: initial;
-    height: 50px;
-`;
-
 const TableHeadStyled = styled.th`
     text-align: ${(props) => props.align};
     border-bottom: 2px solid #d5d5d5;
@@ -92,7 +75,7 @@ const TableCaptionStyled = styled.caption`
 
 const LeftMarginSpan = styled.span`
     margin-right: 10px;
-    verticalAlign：bottom；
+    vertical-align: bottom;
 `;
 
 export default class MemberTable extends React.Component {

@@ -123,7 +123,7 @@ export default class RoleHistoryPage extends React.Component {
             return <Error err={this.props.error} />;
         }
         return (
-            <div data-testid='member'>
+            <div data-testid='role-history'>
                 <Head>
                     <title>Athenz</title>
                 </Head>

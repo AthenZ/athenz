@@ -223,10 +223,7 @@ export default class AddMemberToRoles extends React.Component {
         });
 
         let sections = (
-            <SectionsDiv
-                autoComplete={'off'}
-                data-testid='add-member-to-roles-form'
-            >
+            <SectionsDiv autoComplete={'off'}>
                 <SectionDiv>
                     <StyledInputLabel htmlFor='member-name'>
                         Member
@@ -288,14 +285,16 @@ export default class AddMemberToRoles extends React.Component {
         );
 
         return (
-            <AddModal
-                isOpen={this.state.showModal}
-                cancel={this.props.onCancel}
-                submit={this.onSubmit}
-                title={'Add Member to Roles:'}
-                errorMessage={this.state.errorMessage}
-                sections={sections}
-            />
+            <div data-testid='add-member-to-roles-form'>
+                <AddModal
+                    isOpen={this.state.showModal}
+                    cancel={this.props.onCancel}
+                    submit={this.onSubmit}
+                    title={'Add Member to Roles:'}
+                    errorMessage={this.state.errorMessage}
+                    sections={sections}
+                />
+            </div>
         );
     }
 }

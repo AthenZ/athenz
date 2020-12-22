@@ -1,0 +1,137 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`RoleDetails should render 1`] = `
+.emotion-7 {
+  margin: 20px 0;
+}
+
+.emotion-6 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+}
+
+.emotion-2 {
+  padding-right: 50px;
+}
+
+.emotion-0 {
+  font-weight: 600;
+}
+
+.emotion-1 {
+  color: #9a9a9a;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+<div
+  class="emotion-7"
+  data-testid="role-details"
+>
+  <div
+    class="emotion-6"
+  >
+    <div
+      class="emotion-2"
+    >
+      <div
+        class="emotion-0"
+      >
+        2020-02-12 21:44 UTC
+      </div>
+      <div
+        class="emotion-1"
+      >
+        MODIFIED DATE
+      </div>
+    </div>
+    <div
+      class="emotion-2"
+    >
+      <div
+        class="emotion-0"
+      >
+        N/A
+      </div>
+      <div
+        class="emotion-1"
+      >
+        REVIEWED DATE
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`RoleDetails should render with mock data 1`] = `
+.emotion-7 {
+  margin: 20px 0;
+}
+
+.emotion-6 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+}
+
+.emotion-2 {
+  padding-right: 50px;
+}
+
+.emotion-0 {
+  font-weight: 600;
+}
+
+.emotion-1 {
+  color: #9a9a9a;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+<div
+  class="emotion-7"
+  data-testid="role-details"
+>
+  <div
+    class="emotion-6"
+  >
+    <div
+      class="emotion-2"
+    >
+      <div
+        class="emotion-0"
+      >
+        2020-12-01 21:44 UTC
+      </div>
+      <div
+        class="emotion-1"
+      >
+        MODIFIED DATE
+      </div>
+    </div>
+    <div
+      class="emotion-2"
+    >
+      <div
+        class="emotion-0"
+      >
+        2020-12-01 21:44 UTC
+      </div>
+      <div
+        class="emotion-1"
+      >
+        REVIEWED DATE
+      </div>
+    </div>
+  </div>
+</div>
+`;

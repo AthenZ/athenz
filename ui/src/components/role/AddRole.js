@@ -455,14 +455,16 @@ export default class AddRole extends React.Component {
             </SectionsDiv>
         );
         return (
-            <AddModal
-                isOpen={this.props.showAddRole}
-                cancel={this.props.onCancel}
-                submit={this.onSubmit}
-                title={`Add Role to ${this.props.domain}`}
-                errorMessage={this.state.errorMessage}
-                sections={sections}
-            />
+            <div data-testid='add-role'>
+                <AddModal
+                    isOpen={this.props.showAddRole}
+                    cancel={this.props.onCancel}
+                    submit={this.onSubmit}
+                    title={`Add Role to ${this.props.domain}`}
+                    errorMessage={this.state.errorMessage}
+                    sections={sections}
+                />
+            </div>
         );
     }
 }

@@ -89,7 +89,7 @@ export default class ReviewRow extends React.Component {
         }
 
         rows.push(
-            <TrStyled key={this.props.idx} data-testid='role-review-row'>
+            <TrStyled key={this.props.idx} data-testid='review-row'>
                 <TDStyled color={color} align={left}>
                     {member.memberName}
                 </TDStyled>

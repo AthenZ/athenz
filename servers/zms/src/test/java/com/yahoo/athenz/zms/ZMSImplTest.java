@@ -27,6 +27,8 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.base.Strings;
@@ -24785,6 +24787,63 @@ public class ZMSImplTest {
         roleList = zms.getRoles(mockDomRsrcCtx, domainName, Boolean.TRUE, tagKey, null);
         hasRoleWithTags(roleList, noTagsRole, newTagKey, newTagValues, 3);
         assertEquals(roleList.getList().size(), 1);
+    }
+
+    @Test
+    public void testUpdateRoleMetaWithoutTags() {
+        final String domainName = "sys.auth";
+        final String updateRoleMetaTag = "tag-key-update-role-meta";
+        final List<String> updateRoleMetaTagValues = Collections.singletonList("update-meta-value");
+
+        // put role without tags
+        final String roleName = "roleTagsUpdateMeta";
+        Role role = createRoleObject(domainName, roleName, null);
+        zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, role);
+
+        // no tags should be presented
+        Roles roleList = zms.getRoles(mockDomRsrcCtx, domainName, Boolean.TRUE, updateRoleMetaTag, null);
+        assertTrue(roleList.getList().isEmpty());
+
+        RoleMeta rm = new RoleMeta()
+            .setTags(Collections.singletonMap(updateRoleMetaTag,
+                new StringList().setList(updateRoleMetaTagValues)));
+
+        // update role tags using role meta
+        zms.putRoleMeta(mockDomRsrcCtx, domainName, roleName, auditRef, rm);
+
+        // assert that updateRoleMetaTag is in role tags
+        roleList = zms.getRoles(mockDomRsrcCtx, domainName, Boolean.TRUE, updateRoleMetaTag, null);
+        hasRoleWithTags(roleList, roleName, updateRoleMetaTag, updateRoleMetaTagValues, 1);
+    }
+
+    @Test
+    public void testUpdateRoleMetaWithExistingTag() {
+        final String domainName = "sys.auth";
+        final String tagKey = "tag-key";
+        final String updateRoleMetaTag = "tag-key-update-role-meta-exist-tag";
+        final List<String> updateRoleMetaTagValues = Collections.singletonList("update-meta-value");
+
+        // put role with tag
+        final String roleName = "roleWithTagUpdateMeta";
+        List<String> singleTagValue = Collections.singletonList("val1");
+        Role role = createRoleObject(domainName, roleName, null);
+        role.setTags(Collections.singletonMap(tagKey, new StringList().setList(singleTagValue)));
+        zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, role);
+
+        // tag tagKey should be presented
+        Roles roleList = zms.getRoles(mockDomRsrcCtx, domainName, Boolean.TRUE, tagKey, null);
+        hasRoleWithTags(roleList, roleName, tagKey, singleTagValue, 1);
+
+        RoleMeta rm = new RoleMeta()
+            .setTags(Collections.singletonMap(updateRoleMetaTag,
+                new StringList().setList(updateRoleMetaTagValues)));
+
+        // update role tags using role meta
+        zms.putRoleMeta(mockDomRsrcCtx, domainName, roleName, auditRef, rm);
+
+        // role should contain only the new tag
+        roleList = zms.getRoles(mockDomRsrcCtx, domainName, Boolean.TRUE, updateRoleMetaTag, null);
+        hasRoleWithTags(roleList, roleName, updateRoleMetaTag, updateRoleMetaTagValues, 1);
     }
 
     private void hasRoleWithTags(Roles roleList, String roleName, String tagKey, List<String> tagValues, int tagValuesLength) {

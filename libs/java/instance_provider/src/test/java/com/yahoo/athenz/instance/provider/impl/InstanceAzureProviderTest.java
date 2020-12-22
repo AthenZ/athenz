@@ -142,6 +142,57 @@ public class InstanceAzureProviderTest {
     }
 
     @Test
+    public void testConfirmInstanceProviderConfig() throws IOException {
+
+        File configFile = new File("./src/test/resources/azure-openid.json");
+        File jwksUri = new File("./src/test/resources/azure-jwks.json");
+        createOpenIdConfigFile(configFile, jwksUri, true);
+
+        System.setProperty(InstanceAzureProvider.AZURE_PROP_PROVIDER, "athenz.azure.provider");
+        System.setProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI, "https://azure-zts");
+        System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI, "file://" + configFile.getCanonicalPath());
+        InstanceAzureProvider provider = new InstanceAzureProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAzureProvider", null, null);
+
+        InstanceConfirmation confirmation = new InstanceConfirmation();
+        confirmation.setDomain("athenz");
+        confirmation.setService("backend");
+        confirmation.setProvider("athenz.azure.provider");
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(InstanceProvider.ZTS_INSTANCE_AZURE_SUBSCRIPTION, "1111-2222");
+        attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_DNS, "backend.athenz.azure.cloud");
+        attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_URI, "athenz://instanceid/athenz.azure.uswest2/2222-3333");
+        confirmation.setAttributes(attributes);
+
+        AzureAttestationData data = new AzureAttestationData();
+        data.setVmId("2222-3333");
+        data.setSubscriptionId("1111-2222");
+        data.setResourceGroupName("prod");
+        data.setName("athenz-client");
+        data.setLocation("westus2");
+        data.setToken(createAccessToken());
+
+        confirmation.setAttestationData(provider.jsonMapper.writeValueAsString(data));
+
+        PublicKey publicKey = Crypto.loadPublicKey(ecPublicKey);
+        provider.signingKeyResolver.addPublicKey("eckey1", publicKey);
+
+        provider.httpDriver = setupHttpDriver();
+        InstanceAzureProvider.AzureCredentialsUpdater updater = provider.new AzureCredentialsUpdater();
+        updater.run();
+
+        InstanceConfirmation providerConfirm = provider.confirmInstance(confirmation);
+        assertNotNull(providerConfirm);
+
+        provider.close();
+
+        System.clearProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI);
+        System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI);
+        System.clearProperty(InstanceAzureProvider.AZURE_PROP_PROVIDER);
+        removeOpenIdConfigFile(configFile, jwksUri);
+    }
+
+    @Test
     public void testRefreshInstance() throws IOException {
 
         File configFile = new File("./src/test/resources/azure-openid.json");

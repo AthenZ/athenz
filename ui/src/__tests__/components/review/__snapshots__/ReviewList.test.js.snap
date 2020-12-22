@@ -1,0 +1,75 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ReviewList should render 1`] = `
+.emotion-2 {
+  margin: 20px;
+}
+
+.emotion-1 {
+  margin: 0;
+}
+
+.emotion-0 {
+  color: #3570f4;
+  -webkit-text-decoration: none;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+<div
+  class="emotion-2"
+  data-testid="review-list"
+>
+  <div
+    class="emotion-1"
+    data-testid="review-invalid-table"
+  >
+    User principal and/or Service principal expiry days are required before a role can be reviewed. Please go to
+    <a
+      class="emotion-0"
+    >
+       
+      Settings
+       
+    </a>
+    tab to set those up.
+  </div>
+</div>
+`;
+
+exports[`ReviewList should render delegated role 1`] = `
+.emotion-2 {
+  margin: 20px;
+}
+
+.emotion-1 {
+  margin: 0;
+}
+
+.emotion-0 {
+  color: #3570f4;
+  -webkit-text-decoration: none;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+<div
+  class="emotion-2"
+  data-testid="review-list"
+>
+  <div
+    class="emotion-1"
+    data-testid="review-invalid-table"
+  >
+    User principal and/or Service principal expiry days are required before a role can be reviewed. Please go to
+    <a
+      class="emotion-0"
+    >
+       
+      Settings
+       
+    </a>
+    tab to set those up.
+  </div>
+</div>
+`;

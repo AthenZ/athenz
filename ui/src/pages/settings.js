@@ -122,7 +122,7 @@ export default class SettingPage extends React.Component {
             return <Error err={this.props.error} />;
         }
         return (
-            <div data-testid='member'>
+            <div data-testid='setting'>
                 <Head>
                     <title>Athenz</title>
                 </Head>

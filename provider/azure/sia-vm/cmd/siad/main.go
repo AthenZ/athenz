@@ -50,6 +50,7 @@ func main() {
 	ztsCACert := flag.String("ztscacert", "", "zts CA certificate file")
 	ztsAzureDomain := flag.String("ztsazuredomain", "", "ZTS Azure Domain")
 	ztsResourceUri := flag.String("ztsresourceuri", "", "ZTS AD App Resource URI")
+	azureProvider := flag.String("azureProvider", "", "Azure Provider Service Name")
 	countryName := flag.String("countryname", "US", "X.509 Certificate Country Value")
 	pConf := flag.String("config", "/etc/sia/sia_config", "The config file to run against")
 	noSysLog := flag.Bool("nosyslog", false, "turn off syslog, log to stdout")
@@ -87,7 +88,7 @@ func main() {
 	}
 
 	confBytes, _ := ioutil.ReadFile(*pConf)
-	opts, err := options.NewOptions(confBytes, identityDocument, siaMainDir, siaVersion, *ztsCACert, *ztsServerName, *ztsAzureDomain, *countryName, sysLogger)
+	opts, err := options.NewOptions(confBytes, identityDocument, siaMainDir, siaVersion, *ztsCACert, *ztsServerName, *ztsAzureDomain, *countryName, *azureProvider, sysLogger)
 	if err != nil {
 		logutil.LogFatal(sysLogger, "Unable to formulate options, error: %v\n", err)
 	}

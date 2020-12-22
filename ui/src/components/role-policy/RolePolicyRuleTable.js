@@ -236,7 +236,7 @@ export default class RolePolicyRuleTable extends React.Component {
         return (
             <StyleTable
                 key={this.props.name + '-info-' + id}
-                data-testid='ruledetailstable'
+                data-testid='role-policy-rule-table'
             >
                 <tbody>
                     <tr>
