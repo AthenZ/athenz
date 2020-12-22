@@ -1,10 +1,10 @@
 image:
-  registry: docker.io
-  repository: wzyahoo/athenz-zms-server
-  tag: '1.9.6'
+  registry: your-registry
+  repository: athenz/athenz-zms-server
+  tag: '1.9.27'
   setup:
-    repository: wzyahoo/athenz-setup-env
-    tag: '1.9.6'
+    repository: athenz/athenz-setup-env
+    tag: '1.9.27'
 
 # password:
   # jdbc: "mariadbmariadb"
