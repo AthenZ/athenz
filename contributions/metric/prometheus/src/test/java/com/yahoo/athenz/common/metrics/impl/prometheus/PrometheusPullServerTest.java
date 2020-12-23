@@ -73,7 +73,7 @@ public class PrometheusPullServerTest {
         }
     }
 
-    @Test(expectedExceptions = { HttpHostConnectException.class }, expectedExceptionsMessageRegExp = ".* failed: Connection refused \\(Connection refused\\)")
+    @Test(expectedExceptions = { HttpHostConnectException.class }, expectedExceptionsMessageRegExp = ".* failed: Connection refused.*")
     public void testQuit() throws IOException {
         int port = 8181;
         CollectorRegistry registry = new CollectorRegistry();

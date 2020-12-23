@@ -28,11 +28,10 @@
   <description>Athenz Yahoo Server Metrics Interface implementation for Prometheus</description>
 
   <properties>
-    <athenz.version>1.9.20</athenz.version>
+    <athenz.version>1.9.25</athenz.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <prometheus.version>0.6.0</prometheus.version>
-    <slf4j.version>1.7.28</slf4j.version>
+    <prometheus.version>0.9.0</prometheus.version>
     <logback.version>1.2.3</logback.version>
     <testng.version>6.14.3</testng.version>
     <mockito.version>1.9.5</mockito.version>
@@ -49,12 +48,7 @@
       <groupId>com.yahoo.athenz</groupId>
       <artifactId>athenz-server-common</artifactId>
       <version>${athenz.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-api</artifactId>
-        </exclusion>
-      </exclusions>
+      <scope>provided</scope>
     </dependency>
 
     <!-- Prometheus -->
@@ -76,11 +70,6 @@
       <version>${prometheus.version}</version>
     </dependency>
 
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>${slf4j.version}</version>
-    </dependency>
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>

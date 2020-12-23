@@ -81,7 +81,7 @@ public class PrometheusMetricFactoryTest {
         Assert.assertNotNull(registry.getSampleValue("process_cpu_seconds_total"));
     }
 
-    @Test(expectedExceptions = { RuntimeException.class, BindException.class }, expectedExceptionsMessageRegExp = ".* Address already in use.*")
+    @Test(expectedExceptions = { RuntimeException.class, BindException.class }, expectedExceptionsMessageRegExp = ".* Address.* in use.*")
     public void testCreateErrorUsedPort() throws IOException {
         int port = 18181;
         try (Socket socket = new Socket()) {

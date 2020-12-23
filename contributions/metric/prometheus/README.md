@@ -1,18 +1,17 @@
-<a id="markdown-athenz-metric-for-prometheus" name="athenz-metric-for-prometheus"></a>
 # Athenz metric for Prometheus
 Athenz Yahoo Server metrics interface implementation for Prometheus
 
-<!-- TOC -->
+<!-- TOC depthFrom:2 updateOnSave:true -->
 
-- [Athenz metric for Prometheus](#athenz-metric-for-prometheus)
-    - [Usage](#usage)
-        - [Build](#build)
-        - [Integrate with Athenz](#integrate-with-athenz)
-    - [For developer](#for-developer)
-        - [Test coverage](#test-coverage)
-        - [Performance test result](#performance-test-result)
-        - [Design concerns](#design-concerns)
-        - [example main for integration test](#example-main-for-integration-test)
+- [Usage](#usage)
+    - [Build](#build)
+    - [Integrate with Athenz](#integrate-with-athenz)
+- [Note](#note)
+- [For developer](#for-developer)
+    - [Test coverage](#test-coverage)
+    - [Performance test result](#performance-test-result)
+    - [Design concerns](#design-concerns)
+    - [example main for integration test](#example-main-for-integration-test)
 
 <!-- /TOC -->
 
@@ -62,6 +61,11 @@ ls ./target/athenz_metrics_prometheus-*.jar
             static_configs:
                 - targets: ['athenz.server.domain:8181']
     ```
+
+<a id="markdown-note" name="note"></a>
+## Note
+
+1. The current implementation is based on specific [athenz version](./pom.xml#L31). As the athenz dependency is using the [provided scope](./pom.xml#L51), this class may throw error if non-compatible athenz JARs are included during runtime.
 
 <a id="markdown-for-developer" name="for-developer"></a>
 ## For developer

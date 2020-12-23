@@ -102,7 +102,7 @@
     DOMAIN='testing-domain'
     SERVICE='My-Athenz-SPA'
 
-    PRINCIPAL=`echo "${DOMAIN}.${SERVICE}" | tr '[:upper:]' '[:lower:]'`
+    PRINCIPAL="$(echo "${DOMAIN}.${SERVICE}" | tr '[:upper:]' '[:lower:]')"
     cat >> "${DOCKER_DIR}/zms/conf/authorized_client_ids.txt" <<EOF
     ${CLIENT_ID}:${PRINCIPAL}:${PRINCIPAL}
     EOF
@@ -238,8 +238,8 @@
         # variables
         DOMAIN='testing-domain'
         SERVICE='My-Athenz-SPA'
-        SERVICE_LOWER=`echo "${SERVICE}" | tr '[:upper:]' '[:lower:]'`
-        PRINCIPAL=`echo "${DOMAIN}.${SERVICE}" | tr '[:upper:]' '[:lower:]'`
+        SERVICE_LOWER="$(echo "${SERVICE}" | tr '[:upper:]' '[:lower:]')"
+        PRINCIPAL="$(echo "${DOMAIN}.${SERVICE}" | tr '[:upper:]' '[:lower:]')"
         KEY_ID='test_public_key'
         ```
 1. Get service certificate from ZTS
@@ -266,7 +266,7 @@
             --header 'content-type: application/json' \
             --data '{"name": "'"${DOMAIN}"'","adminUsers": ["'"${DOMAIN_ADMIN}"'"]}'
         # create My-Athenz-SPA service
-        PUBLIC_KEY=`base64 -w 0 "${WORKSPACE_DIR}/public.pem" | tr '\+\=\/' '\.\-\_'; echo '';`
+        PUBLIC_KEY="$(base64 -w 0 "${WORKSPACE_DIR}/public.pem" | tr '\+\=\/' '\.\-\_'; echo '';)"
         admin_curl --request PUT \
             --url "https://${ZMS_HOST}:${ZMS_PORT}/zms/v1/domain/${DOMAIN}/service/${SERVICE}" \
             --header 'content-type: application/json' \
