@@ -21141,6 +21141,15 @@ public class ZMSImplTest {
         assertNotNull(mbrResult.getExpiration());
         assertEquals(days, groupExpiryDays);
 
+        RoleMeta rm = new RoleMeta().setGroupExpiryDays(1);
+        zms.putRoleMeta(mockDomRsrcCtx, domainName, roleName1, auditRef, rm);
+        mbrResult = zms.getMembership(mockDomRsrcCtx, domainName, roleName1, group1.name, null);
+        days = ((mbrResult.getExpiration().millis() - testDate.getTime()) / (60*60*24*1000));
+        assertNotNull(mbrResult);
+        assertEquals(mbrResult.getMemberName(), group1.name);
+        assertNotNull(mbrResult.getExpiration());
+        assertEquals(days, 1);
+
         zms.userAuthority = savedAuthority;
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
 
