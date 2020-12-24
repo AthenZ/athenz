@@ -36,27 +36,31 @@ module.exports = function(expressApp, config, secrets) {
             styleSrc.push(`'nonce-${req.headers.rid}'`);
         }
         let cspOptions = {
-            contentSecurityPolicy: {
-                directives: {
-                    defaultSrc: [`'self'`],
-                    baseUri: [`'none'`],
-                    imgSrc: [`'self'`],
-                    // next.js sets up style-src for us
-                    styleSrc,
-                    scriptSrc,
-                },
+            directives: {
+                defaultSrc: [`'self'`],
+                baseUri: [`'none'`],
+                imgSrc: [`'self'`],
+                styleSrc,
+                scriptSrc,
             },
         };
+        //adding connectSrc only for local
+        if (config.env === 'local') {
+            const connectSrc = [`'self'`];
+            // to be used by local ZMS for ntoken based auth
+            connectSrc.push(`https://localhost:4443`);
+            cspOptions.directives.connectSrc = connectSrc;
+        }
         if (config.cspImgSrc && config.cspImgSrc !== '') {
-            cspOptions.contentSecurityPolicy.directives.imgSrc.push(
+            cspOptions.directives.imgSrc.push(
                 config.cspImgSrc
             );
         }
         if (config.cspReportUri && config.cspReportUri !== '') {
-            cspOptions.contentSecurityPolicy.directives.reportUri =
+            cspOptions.directives.reportUri =
                 config.cspReportUri;
         }
-        helmet(cspOptions)(req, res, next);
+        helmet.contentSecurityPolicy(cspOptions)(req, res, next);
     });
 
     // helmet disables the X-Powered-By response header, but next.js adds it again
