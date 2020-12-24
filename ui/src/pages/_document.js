@@ -1,4 +1,4 @@
-/*
+    /*
  * Copyright 2020 Verizon Media
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import Document, { Head, Main, NextScript } from 'next/document';
-import 'denali-css/css/denali.css';
+import Document, { Html, Head, Main, NextScript } from 'next/document';
 
 export default class MyDocument extends Document {
     static async getInitialProps(ctx) {
@@ -24,7 +23,7 @@ export default class MyDocument extends Document {
 
     render() {
         return (
-            <html>
+            <Html>
                 <Head>
                     <link
                         rel='stylesheet'
@@ -41,7 +40,7 @@ export default class MyDocument extends Document {
                     <Main />
                     <NextScript />
                 </body>
-            </html>
+            </Html>
         );
     }
 }

@@ -17,7 +17,7 @@ import Fetchr from 'fetchr';
 import 'setimmediate';
 import NameUtils from './components/utils/NameUtils';
 
-export default (req) => {
+const Api = (req) => {
     const fetchr = new Fetchr({
         xhrPath: '/api/v1',
         xhrTimeout: 10000,
@@ -1062,3 +1062,5 @@ export default (req) => {
         },
     };
 };
+
+export default Api;
