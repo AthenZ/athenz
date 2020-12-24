@@ -62,7 +62,7 @@ public class HttpCertSignerTest {
         Mockito.when(httpClient.POST("https://localhost:443/certsign/v2/x509")).thenReturn(request);
         Mockito.when(request.send()).thenThrow(new TimeoutException());
 
-        assertNull(certSigner.generateX509Certificate("csr", null, 0));
+        assertNull(certSigner.generateX509Certificate("aws", "us-west-2", "csr", null, 0));
         certSigner.close();
     }
 
@@ -82,7 +82,7 @@ public class HttpCertSignerTest {
         Mockito.when(request.send()).thenReturn(response);
         Mockito.when(response.getStatus()).thenReturn(400);
 
-        assertNull(certSigner.generateX509Certificate("csr", null, 0));
+        assertNull(certSigner.generateX509Certificate("aws", "us-west-2", "csr", null, 0));
         certSigner.close();
     }
 
@@ -103,7 +103,7 @@ public class HttpCertSignerTest {
         Mockito.when(response.getStatus()).thenReturn(201);
         Mockito.when(response.getContentAsString()).thenReturn(null);
 
-        assertNull(certSigner.generateX509Certificate("csr", null, 0));
+        assertNull(certSigner.generateX509Certificate("aws", "us-west-2", "csr", null, 0));
         certSigner.close();
     }
 
@@ -124,7 +124,7 @@ public class HttpCertSignerTest {
         Mockito.when(response.getStatus()).thenReturn(201);
         Mockito.when(response.getContentAsString()).thenReturn("");
 
-        assertNull(certSigner.generateX509Certificate("csr", null, 0));
+        assertNull(certSigner.generateX509Certificate("aws", "us-west-2", "csr", null, 0));
         certSigner.close();
     }
 
@@ -145,17 +145,17 @@ public class HttpCertSignerTest {
         Mockito.when(response.getStatus()).thenReturn(201);
         Mockito.when(response.getContentAsString()).thenReturn("{\"pem\": \"pem-value\"}");
 
-        String pem = certSigner.generateX509Certificate("csr", null, 0);
+        String pem = certSigner.generateX509Certificate("aws", "us-west-2", "csr", null, 0);
         assertEquals(pem, "pem-value");
 
-        pem = certSigner.generateX509Certificate("csr", InstanceProvider.ZTS_CERT_USAGE_CLIENT, 0);
+        pem = certSigner.generateX509Certificate("aws", "us-west-2", "csr", InstanceProvider.ZTS_CERT_USAGE_CLIENT, 0);
         assertEquals(pem, "pem-value");
 
-        pem = certSigner.generateX509Certificate("csr", InstanceProvider.ZTS_CERT_USAGE_CLIENT, 30);
+        pem = certSigner.generateX509Certificate("aws", "us-west-2", "csr", InstanceProvider.ZTS_CERT_USAGE_CLIENT, 30);
         assertEquals(pem, "pem-value");
 
         certSigner.requestTimeout = 120;
-        pem = certSigner.generateX509Certificate("csr", InstanceProvider.ZTS_CERT_USAGE_CLIENT, 30);
+        pem = certSigner.generateX509Certificate("aws", "us-west-2", "csr", InstanceProvider.ZTS_CERT_USAGE_CLIENT, 30);
         assertEquals(pem, "pem-value");
 
         certSigner.close();
@@ -178,10 +178,10 @@ public class HttpCertSignerTest {
         Mockito.when(response.getStatus()).thenReturn(201);
         Mockito.when(response.getContentAsString()).thenReturn("{\"pem2\": \"pem-value\"}");
 
-        assertNull(certSigner.generateX509Certificate("csr", null, 0));
+        assertNull(certSigner.generateX509Certificate("aws", "us-west-2", "csr", null, 0));
 
         Mockito.when(response.getContentAsString()).thenReturn("invalid-json");
-        assertNull(certSigner.generateX509Certificate("csr", null, 0));
+        assertNull(certSigner.generateX509Certificate("aws", "us-west-2", "csr", null, 0));
         certSigner.close();
     }
 
@@ -196,7 +196,7 @@ public class HttpCertSignerTest {
 
         Mockito.when(httpClient.GET("https://localhost:443/certsign/v2/x509")).thenThrow(new TimeoutException());
 
-        assertNull(certSigner.getCACertificate());
+        assertNull(certSigner.getCACertificate("aws"));
         certSigner.close();
     }
 
@@ -213,7 +213,7 @@ public class HttpCertSignerTest {
         Mockito.when(httpClient.GET("https://localhost:443/certsign/v2/x509")).thenReturn(response);
         Mockito.when(response.getStatus()).thenReturn(400);
 
-        assertNull(certSigner.getCACertificate());
+        assertNull(certSigner.getCACertificate("aws"));
         certSigner.close();
     }
 
@@ -231,7 +231,7 @@ public class HttpCertSignerTest {
         Mockito.when(response.getStatus()).thenReturn(200);
         Mockito.when(response.getContentAsString()).thenReturn(null);
 
-        assertNull(certSigner.getCACertificate());
+        assertNull(certSigner.getCACertificate("aws"));
         certSigner.close();
     }
 
@@ -249,7 +249,7 @@ public class HttpCertSignerTest {
         Mockito.when(response.getStatus()).thenReturn(200);
         Mockito.when(response.getContentAsString()).thenReturn("");
 
-        assertNull(certSigner.getCACertificate());
+        assertNull(certSigner.getCACertificate("aws"));
         certSigner.close();
     }
 
@@ -267,7 +267,7 @@ public class HttpCertSignerTest {
         Mockito.when(response.getStatus()).thenReturn(200);
         Mockito.when(response.getContentAsString()).thenReturn("{\"pem\": \"pem-value\"}");
 
-        String pem = certSigner.getCACertificate();
+        String pem = certSigner.getCACertificate("aws");
         assertEquals(pem, "pem-value");
         certSigner.close();
     }
@@ -286,10 +286,10 @@ public class HttpCertSignerTest {
         Mockito.when(response.getStatus()).thenReturn(200);
         Mockito.when(response.getContentAsString()).thenReturn("{\"pem2\": \"pem-value\"}");
 
-        assertNull(certSigner.getCACertificate());
+        assertNull(certSigner.getCACertificate("aws"));
 
         Mockito.when(response.getContentAsString()).thenReturn("invalid-json");
-        assertNull(certSigner.getCACertificate());
+        assertNull(certSigner.getCACertificate("aws"));
         certSigner.close();
     }
     
@@ -346,7 +346,7 @@ public class HttpCertSignerTest {
     }
 
     @Test
-    public void testStopNullHttpClient() throws Exception {
+    public void testStopNullHttpClient() {
 
         HttpCertSignerFactory certFactory = new HttpCertSignerFactory();
         HttpCertSigner certSigner = (HttpCertSigner) certFactory.create();

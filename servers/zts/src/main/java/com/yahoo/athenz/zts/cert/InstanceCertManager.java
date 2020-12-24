@@ -15,12 +15,9 @@
  */
 package com.yahoo.athenz.zts.cert;
 
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.cert.X509Certificate;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -71,6 +68,7 @@ public class InstanceCertManager {
     private List<IPBlock> certRefreshIPBlocks;
     private Map<String, List<IPBlock>> instanceCertIPBlocks;
     private String caX509CertificateSigner = null;
+    private Map<String, String> caX509ProviderCertificateSigners = null;
     private String sshUserCertificateSigner = null;
     private String sshHostCertificateSigner = null;
     private boolean responseSendSSHSignerCerts;
@@ -175,6 +173,7 @@ public class InstanceCertManager {
 
         if (responseSendX509SignerCerts) {
             caX509CertificateSigner = loadCertificateBundle(ZTSConsts.ZTS_PROP_X509_CA_CERT_FNAME);
+            caX509ProviderCertificateSigners = new ConcurrentHashMap<>();
         }
         if (responseSendSSHSignerCerts) {
             sshUserCertificateSigner = loadCertificateBundle(ZTSConsts.ZTS_PROP_SSH_USER_CA_CERT_FNAME);
@@ -190,7 +189,7 @@ public class InstanceCertManager {
             return true;
         }
 
-        byte[] data = readFileContents(caBundleFile);
+        byte[] data = ZTSUtils.readFileContents(caBundleFile);
         if (data == null) {
             return false;
         }
@@ -239,7 +238,7 @@ public class InstanceCertManager {
         if (CA_TYPE_X509.equalsIgnoreCase(bundle.getType())) {
             bundleData = extractX509CertificateBundle(fileName);
         } else {
-            byte[] data = readFileContents(fileName);
+            byte[] data = ZTSUtils.readFileContents(fileName);
             if (data != null) {
                 bundleData = new String(data);
             }
@@ -290,7 +289,7 @@ public class InstanceCertManager {
             return true;
         }
 
-        byte[] data = readFileContents(providerIPMapFile);
+        byte[] data = ZTSUtils.readFileContents(providerIPMapFile);
         if (data == null) {
             return false;
         }
@@ -375,28 +374,6 @@ public class InstanceCertManager {
         this.certSigner = certSigner;
     }
 
-    Path getFilePath(File file) {
-        return Paths.get(file.toURI());
-    }
-
-    byte[] readFileContents(final String filename) {
-
-        File caFile = new File(filename);
-        if (!caFile.exists()) {
-            LOGGER.error("Configured file {} does not exist", filename);
-            return null;
-        }
-
-        byte[] data = null;
-        try {
-            data = Files.readAllBytes(getFilePath(caFile));
-        } catch (Exception ex) {
-            LOGGER.error("Unable to read {}: {}", filename, ex.getMessage());
-        }
-
-        return data;
-    }
-
     String loadCertificateBundle(final String propertyName) {
 
         final String caFileName = System.getProperty(propertyName);
@@ -404,7 +381,7 @@ public class InstanceCertManager {
             return null;
         }
 
-        byte[] data = readFileContents(caFileName);
+        byte[] data = ZTSUtils.readFileContents(caFileName);
         if (data == null) {
             throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR,
                     "Unable to load Certificate bundle from: " + caFileName);
@@ -419,7 +396,7 @@ public class InstanceCertManager {
             return true;
         }
 
-        byte[] data = readFileContents(ipAddressFileName);
+        byte[] data = ZTSUtils.readFileContents(ipAddressFileName);
         if (data == null) {
             return false;
         }
@@ -601,40 +578,35 @@ public class InstanceCertManager {
         return result;
     }
 
-    public String generateX509Certificate(final String csr, final String keyUsage, int expiryTime) {
+    public String generateX509Certificate(final String provider, final String certIssuer,
+            final String csr, final String keyUsage, int expiryTime) {
 
-        String pemCert = certSigner.generateX509Certificate(csr, keyUsage, expiryTime);
+        String pemCert = certSigner.generateX509Certificate(provider, certIssuer, csr, keyUsage, expiryTime);
         if (pemCert == null || pemCert.isEmpty()) {
             LOGGER.error("generateX509Certificate: CertSigner was unable to generate X509 certificate");
         }
         return pemCert;
     }
 
-    public String getCACertificate() {
-        return certSigner.getCACertificate();
+    public String getCACertificate(final String provider) {
+        return certSigner.getCACertificate(provider);
     }
 
-    public InstanceIdentity generateIdentity(String csr, String cn, String keyUsage,
-            int expiryTime) {
+    public InstanceIdentity generateIdentity(final String provider, final String certIssuer,
+            final String csr, final String cn, final String keyUsage, int expiryTime) {
         
         // generate a certificate for this certificate request
 
-        final String pemCert = generateX509Certificate(csr, keyUsage, expiryTime);
+        final String pemCert = generateX509Certificate(provider, certIssuer, csr, keyUsage, expiryTime);
         if (pemCert == null || pemCert.isEmpty()) {
             return null;
         }
         
         return new InstanceIdentity().setName(cn).setX509Certificate(pemCert)
-                .setX509CertificateSigner(getX509CertificateSigner());
+                .setX509CertificateSigner(getX509CertificateSigner(provider));
     }
 
-    void updateX509CertificateSigner() {
-        if (caX509CertificateSigner == null) {
-            caX509CertificateSigner = getCACertificate();
-        }
-    }
-
-    public String getX509CertificateSigner() {
+    public String getX509CertificateSigner(final String provider) {
 
         // if configured not to send x.509 signer certs
         // then we'll return right away as null
@@ -643,12 +615,22 @@ public class InstanceCertManager {
             return null;
         }
 
-        if (caX509CertificateSigner == null) {
-            synchronized (InstanceCertManager.class) {
-                updateX509CertificateSigner();
-            }
+        if (caX509CertificateSigner != null) {
+            return caX509CertificateSigner;
         }
-        return caX509CertificateSigner;
+
+        final String providerKeyName = provider == null ? "default" : provider;
+        String certificateSigner = caX509ProviderCertificateSigners.get(providerKeyName);
+        if (certificateSigner != null) {
+            return certificateSigner;
+        }
+
+        certificateSigner = getCACertificate(provider);
+        if (certificateSigner != null) {
+            caX509ProviderCertificateSigners.put(providerKeyName, certificateSigner);
+        }
+
+        return certificateSigner;
     }
 
     void resetX509CertificateSigner() {

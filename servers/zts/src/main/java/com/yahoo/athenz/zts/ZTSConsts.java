@@ -65,11 +65,12 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_OAUTH_ISSUER           = "athenz.zts.oauth_issuer";
     public static final String ZTS_PROP_OAUTH_OPENID_SCOPE     = "athenz.zts.oauth_openid_scope";
 
-    public static final String ZTS_PROP_CERTSIGN_BASE_URI        = "athenz.zts.certsign_base_uri";
-    public static final String ZTS_PROP_CERTSIGN_REQUEST_TIMEOUT = "athenz.zts.certsign_request_timeout";
-    public static final String ZTS_PROP_CERTSIGN_CONNECT_TIMEOUT = "athenz.zts.certsign_connect_timeout";
-    public static final String ZTS_PROP_CERTSIGN_RETRY_COUNT     = "athenz.zts.certsign_retry_count";
-    public static final String ZTS_PROP_CERTSIGN_MAX_EXPIRY_TIME = "athenz.zts.certsign_max_expiry_time";
+    public static final String ZTS_PROP_CERTSIGN_BASE_URI            = "athenz.zts.certsign_base_uri";
+    public static final String ZTS_PROP_CERTSIGN_REQUEST_TIMEOUT     = "athenz.zts.certsign_request_timeout";
+    public static final String ZTS_PROP_CERTSIGN_CONNECT_TIMEOUT     = "athenz.zts.certsign_connect_timeout";
+    public static final String ZTS_PROP_CERTSIGN_RETRY_COUNT         = "athenz.zts.certsign_retry_count";
+    public static final String ZTS_PROP_CERTSIGN_MAX_EXPIRY_TIME     = "athenz.zts.certsign_max_expiry_time";
+    public static final String ZTS_PROP_CERTSIGN_PROVIDER_KEYS_FNAME = "athenz.zts.certsign_provider_keys_fname";
 
     public static final String ZTS_PROP_LEAST_PRIVILEGE_PRINCIPLE  = "athenz.zts.least_privilege_principle";
     public static final String ZTS_PROP_ROLE_TOKEN_MAX_TIMEOUT     = "athenz.zts.role_token_max_timeout";

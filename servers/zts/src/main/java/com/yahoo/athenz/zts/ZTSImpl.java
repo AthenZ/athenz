@@ -1931,7 +1931,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
 
         int expiryTime = determineRoleCertTimeout(data, roles, (int) req.getExpiryTime());
-        final String x509Cert = instanceCertManager.generateX509Certificate(req.getCsr(),
+        final String x509Cert = instanceCertManager.generateX509Certificate(null, null, req.getCsr(),
                 InstanceProvider.ZTS_CERT_USAGE_CLIENT, expiryTime);
         if (null == x509Cert || x509Cert.isEmpty()) {
             throw serverError("postRoleCertificateRequest: Unable to create certificate from the cert signer",
@@ -2240,7 +2240,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
 
         int expiryTime = determineRoleCertTimeout(requestedRoleList, (int) req.getExpiryTime());
-        final String x509Cert = instanceCertManager.generateX509Certificate(req.getCsr(),
+        final String x509Cert = instanceCertManager.generateX509Certificate(null, null, req.getCsr(),
                 InstanceProvider.ZTS_CERT_USAGE_CLIENT, expiryTime);
         if (null == x509Cert || x509Cert.isEmpty()) {
             throw serverError("postRoleCertificateRequest: Unable to create certificate from the cert signer",
@@ -2654,8 +2654,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // generate certificate for the instance
 
         Object timerX509CertMetric = metric.startTiming("certsignx509_timing", null, principalDomain);
-        InstanceIdentity identity = instanceCertManager.generateIdentity(info.getCsr(), cn,
-                certUsage, certExpiryTime);
+        InstanceIdentity identity = instanceCertManager.generateIdentity(provider, null, info.getCsr(),
+                cn, certUsage, certExpiryTime);
         metric.stopTiming(timerX509CertMetric, null, principalDomain);
 
         if (identity == null) {
@@ -3049,8 +3049,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // generate identity with the certificate
 
         Object timerX509CertMetric = metric.startTiming("certsignx509_timing", null, principalDomain);
-        InstanceIdentity identity = instanceCertManager.generateIdentity(info.getCsr(), principalName,
-                certUsage, certExpiryTime);
+        InstanceIdentity identity = instanceCertManager.generateIdentity(provider, null, info.getCsr(),
+                principalName, certUsage, certExpiryTime);
         metric.stopTiming(timerX509CertMetric, null, principalDomain);
 
         if (identity == null) {
@@ -3443,12 +3443,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // generate identity with the certificate
         
         int expiryTime = req.getExpiryTime() != null ? req.getExpiryTime() : 0;
-        Identity identity = ZTSUtils.generateIdentity(instanceCertManager, req.getCsr(),
+        Identity identity = ZTSUtils.generateIdentity(instanceCertManager, null, null, req.getCsr(),
                 fullServiceName, null, expiryTime);
         if (identity == null) {
             throw serverError("Unable to generate identity", caller, domain, principalDomain);
         }
-        identity.setCaCertBundle(instanceCertManager.getX509CertificateSigner());
+        identity.setCaCertBundle(instanceCertManager.getX509CertificateSigner(null));
 
         // log our certificate
 
@@ -3788,7 +3788,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // in case of failure we're going to return not found
 
         if (statusCertSigner) {
-            if (instanceCertManager.getCACertificate() == null) {
+            if (instanceCertManager.getCACertificate(null) == null) {
                 throw notFoundError("Unable to communicate with cert signer", caller,
                         ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
             }

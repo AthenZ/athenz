@@ -21119,8 +21119,40 @@ public class ZMSImplTest {
         mbrResult = zms.getMembership(mockDomRsrcCtx, domainName, roleName, "userexpirydomain.api", null);
         assertNotNull(mbrResult);
 
+
+
+        // add a role with group expiry days set
+
+        Group group1 = createGroupObject(domainName, "group1", null);
+        zms.putGroup(mockDomRsrcCtx, domainName, "group1", auditRef, group1);
+        final int groupExpiryDays = 10;
+        final String roleName1 = "role-group-member-expiry";
+        Role role1 = createRoleObject(domainName, roleName1, null, null);
+        role1.setGroupExpiryDays(groupExpiryDays);
+        zms.putRole(mockDomRsrcCtx, domainName, roleName1, auditRef, role1);
+
+        Membership mbr1 = new Membership().setMemberName(group1.name);
+        zms.putMembership(mockDomRsrcCtx, domainName, roleName1, group1.name, auditRef, mbr1);
+
+        mbrResult = zms.getMembership(mockDomRsrcCtx, domainName, roleName1, group1.name, null);
+        long days = ((mbrResult.getExpiration().millis() - testDate.getTime()) / (60*60*24*1000));
+        assertNotNull(mbrResult);
+        assertEquals(mbrResult.getMemberName(), group1.name);
+        assertNotNull(mbrResult.getExpiration());
+        assertEquals(days, groupExpiryDays);
+
+        RoleMeta rm = new RoleMeta().setGroupExpiryDays(1);
+        zms.putRoleMeta(mockDomRsrcCtx, domainName, roleName1, auditRef, rm);
+        mbrResult = zms.getMembership(mockDomRsrcCtx, domainName, roleName1, group1.name, null);
+        days = ((mbrResult.getExpiration().millis() - testDate.getTime()) / (60*60*24*1000));
+        assertNotNull(mbrResult);
+        assertEquals(mbrResult.getMemberName(), group1.name);
+        assertNotNull(mbrResult.getExpiration());
+        assertEquals(days, 1);
+
         zms.userAuthority = savedAuthority;
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+
     }
 
     @DataProvider(name = "delegatedRoles")

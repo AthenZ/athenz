@@ -8,7 +8,6 @@ import java.nio.file.Paths;
 import java.security.cert.X509Certificate;
 import java.util.*;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.athenz.common.server.cert.CertRecordStore;
 import com.yahoo.athenz.common.server.cert.CertRecordStoreConnection;
@@ -60,12 +59,12 @@ public class InstanceCertManagerTest {
         final String cert = "cert";
         final String caCert = "caCert";
         CertSigner certSigner = Mockito.mock(com.yahoo.athenz.common.server.cert.CertSigner.class);
-        when(certSigner.generateX509Certificate(any(), any(), Mockito.anyInt())).thenReturn(cert);
-        when(certSigner.getCACertificate()).thenReturn(caCert);
+        when(certSigner.generateX509Certificate(any(), any(), any(), any(), Mockito.anyInt())).thenReturn(cert);
+        when(certSigner.getCACertificate(any())).thenReturn(caCert);
         
         InstanceCertManager instanceManager = new InstanceCertManager(null, null, null, false);
         instanceManager.setCertSigner(certSigner);
-        InstanceIdentity identity = instanceManager.generateIdentity("csr", "cn", null, 0);
+        InstanceIdentity identity = instanceManager.generateIdentity("aws", "us-west-2", "csr", "cn", null, 0);
         
         assertNotNull(identity);
         assertEquals(identity.getName(), "cn");
@@ -80,19 +79,35 @@ public class InstanceCertManagerTest {
         final String caCert = "caCert";
         System.clearProperty(ZTSConsts.ZTS_PROP_X509_CA_CERT_FNAME);
         CertSigner certSigner = Mockito.mock(com.yahoo.athenz.common.server.cert.CertSigner.class);
-        when(certSigner.getCACertificate()).thenReturn(caCert);
+        when(certSigner.getCACertificate("aws")).thenReturn(caCert);
 
         InstanceCertManager instanceManager = new InstanceCertManager(null, null, null, false);
         instanceManager.setCertSigner(certSigner);
 
         // first time our signer was null and we should get back the cert
         instanceManager.resetX509CertificateSigner();
-        instanceManager.updateX509CertificateSigner();
-        assertEquals("caCert", instanceManager.getX509CertificateSigner());
+        assertEquals("caCert", instanceManager.getX509CertificateSigner("aws"));
 
         // second time it should be a no-op
-        instanceManager.updateX509CertificateSigner();
-        assertEquals("caCert", instanceManager.getX509CertificateSigner());
+        assertEquals("caCert", instanceManager.getX509CertificateSigner("aws"));
+
+        instanceManager.shutdown();
+    }
+
+    @Test
+    public void testUpdateX509CertificateSignerNullReturn() {
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_X509_CA_CERT_FNAME);
+        CertSigner certSigner = Mockito.mock(com.yahoo.athenz.common.server.cert.CertSigner.class);
+        when(certSigner.getCACertificate("aws")).thenReturn(null);
+
+        InstanceCertManager instanceManager = new InstanceCertManager(null, null, null, false);
+        instanceManager.setCertSigner(certSigner);
+
+        assertNull(instanceManager.getX509CertificateSigner("aws"));
+
+        // second time it should be null again
+        assertNull(instanceManager.getX509CertificateSigner("aws"));
 
         instanceManager.shutdown();
     }
@@ -110,10 +125,10 @@ public class InstanceCertManagerTest {
 
         // first time our signer was null and we should get back the cert
         instanceManager.resetX509CertificateSigner();
-        assertNotNull(instanceManager.getX509CertificateSigner());
+        assertNotNull(instanceManager.getX509CertificateSigner("aws"));
 
         // second time it should be a no-op
-        assertNotNull(instanceManager.getX509CertificateSigner());
+        assertNotNull(instanceManager.getX509CertificateSigner("aws"));
 
         instanceManager.shutdown();
 
@@ -135,7 +150,7 @@ public class InstanceCertManagerTest {
         InstanceCertManager instanceManager = new InstanceCertManager(null, null, null, false);
 
         instanceManager.resetX509CertificateSigner();
-        assertNull(instanceManager.getX509CertificateSigner());
+        assertNull(instanceManager.getX509CertificateSigner("aws"));
 
         instanceManager.shutdown();
 
@@ -149,11 +164,11 @@ public class InstanceCertManagerTest {
     public void testGenerateIdentityNullCert() {
         
         CertSigner certSigner = Mockito.mock(com.yahoo.athenz.common.server.cert.CertSigner.class);
-        when(certSigner.generateX509Certificate(any(), any(), Mockito.anyInt())).thenReturn(null);
+        when(certSigner.generateX509Certificate(any(), any(), any(), any(), Mockito.anyInt())).thenReturn(null);
 
         InstanceCertManager instanceManager = new InstanceCertManager(null, null, null, false);
         instanceManager.setCertSigner(certSigner);
-        InstanceIdentity identity = instanceManager.generateIdentity("csr", "cn", null, 0);
+        InstanceIdentity identity = instanceManager.generateIdentity("aws", "us-west-2", "csr", "cn", null, 0);
         assertNull(identity);
         instanceManager.shutdown();
     }
@@ -162,11 +177,11 @@ public class InstanceCertManagerTest {
     public void testGenerateIdentityEmptyCert() {
         
         CertSigner certSigner = Mockito.mock(com.yahoo.athenz.common.server.cert.CertSigner.class);
-        when(certSigner.generateX509Certificate(any(), any(), Mockito.anyInt())).thenReturn("");
+        when(certSigner.generateX509Certificate(any(), any(), any(), any(), Mockito.anyInt())).thenReturn("");
 
         InstanceCertManager instanceManager = new InstanceCertManager(null, null, null, false);
         instanceManager.setCertSigner(certSigner);
-        InstanceIdentity identity = instanceManager.generateIdentity("csr", "cn", null, 0);
+        InstanceIdentity identity = instanceManager.generateIdentity("aws", "us-west-2", "csr", "cn", null, 0);
         assertNull(identity);
         instanceManager.shutdown();
     }
@@ -507,7 +522,6 @@ public class InstanceCertManagerTest {
         SSHSigner sshSigner = Mockito.mock(SSHSigner.class);
         SSHCertRequest sshRequest = new SSHCertRequest();
         sshRequest.setCsr(sshCsr);
-        SSHCertificates certs = new SSHCertificates();
         SSHCertificate cert = new SSHCertificate();
         cert.setCertificate("ssh-cert");
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.service");
@@ -640,7 +654,7 @@ public class InstanceCertManagerTest {
 
         InstanceCertManager instanceManager = new InstanceCertManager(null, null,
                 hostnameResolver, true);
-        SSHSigner signer = Mockito.mock(SSHSigner.class);;
+        SSHSigner signer = Mockito.mock(SSHSigner.class);
         instanceManager.setSSHSigner(signer);
 
         String sshCsr = "{\"pubkey\":\"key\",\"certtype\":\"host\"";
@@ -714,7 +728,7 @@ public class InstanceCertManagerTest {
     }
 
     @Test
-    public void testValidPrincipalsHostnameAlone() throws JsonProcessingException {
+    public void testValidPrincipalsHostnameAlone() {
         String hostname = "host1.athenz.cloud";
         SshHostCsr sshHostCsr = new SshHostCsr();
         sshHostCsr.setXPrincipals(new String[]{hostname});
@@ -734,7 +748,7 @@ public class InstanceCertManagerTest {
     }
 
     @Test
-    public void testValidPrincipalsIpAlone() throws JsonProcessingException {
+    public void testValidPrincipalsIpAlone() {
         String hostname = "host1.athenz.cloud";
         SshHostCsr sshHostCsr = new SshHostCsr();
         sshHostCsr.setXPrincipals(new String[]{"10.1.2.3"});
@@ -1144,19 +1158,6 @@ public class InstanceCertManagerTest {
         // make sure no exceptions are thrown
 
         cleaner.run();
-    }
-
-    @Test
-    public void testReadFileContentsException() {
-
-        InstanceCertManager instance = new InstanceCertManager(null, null, null, true);
-        File file = new File("src/test/resources/athenz.conf");
-
-        InstanceCertManager instanceManager = Mockito.spy(instance);
-        when(instanceManager.getFilePath(file))
-                .thenThrow(new RuntimeException("invalid file"));
-
-        assertNull(instanceManager.readFileContents("src/test/resources/athenz.conf"));
     }
 
     @Test

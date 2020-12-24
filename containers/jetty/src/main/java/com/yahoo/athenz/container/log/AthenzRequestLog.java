@@ -24,12 +24,15 @@ import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.DateCache;
 import org.eclipse.jetty.http.HttpHeader;
 
+import javax.net.ssl.SSLSession;
+
 public class AthenzRequestLog extends NCSARequestLog {
 
     private static final String REQUEST_PRINCIPAL      = "com.yahoo.athenz.auth.principal";
     private static final String REQUEST_AUTHORITY_ID   = "com.yahoo.athenz.auth.authority_id";
     private static final String REQUEST_URI_SKIP_QUERY = "com.yahoo.athenz.uri.skip_query";
     private static final String REQUEST_URI_ADDL_QUERY = "com.yahoo.athenz.uri.addl_query";
+    private static final String REQUEST_SSL_SESSION    = "org.eclipse.jetty.servlet.request.ssl_session";
 
     private static final ThreadLocal<StringBuilder> TLS_BUILDER = ThreadLocal.withInitial(() -> new StringBuilder(256));
 
@@ -101,6 +104,11 @@ public class AthenzRequestLog extends NCSARequestLog {
         append(buf, (authId == null) ? "Auth-None" : authId.toString());
     }
 
+    private void logTLSProtocol(StringBuilder buf, Request request) {
+        SSLSession sslSession = (SSLSession) request.getAttribute(REQUEST_SSL_SESSION);
+        append(buf, (sslSession == null) ? "-" : sslSession.getProtocol());
+    }
+
     private void append(StringBuilder buf, String str) {
         if (str != null && !str.isEmpty()) {
             buf.append(str);
@@ -156,6 +164,9 @@ public class AthenzRequestLog extends NCSARequestLog {
 
             buf.append(' ');
             logAuthorityId(buf, request);
+
+            buf.append(' ');
+            logTLSProtocol(buf, request);
 
             write(buf.toString());
 
