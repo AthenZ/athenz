@@ -30,7 +30,7 @@ try {
     }
 }
 
-const responseHandler = function(err, data) {
+const responseHandler = function (err, data) {
     if (err) {
         debug(
             `principal: ${this.req.session.shortId} rid: ${
@@ -172,18 +172,18 @@ Fetchr.registerService({
     name: 'templates',
     read(req, resource, params, config, callback) {
         new Promise((resolve, reject) => {
-            req.clients.zms.getDomainTemplateDetailsList(params, function(
-                err,
-                json
-            ) {
-                if (err) {
-                    return reject(err);
+            req.clients.zms.getDomainTemplateDetailsList(
+                params,
+                function (err, json) {
+                    if (err) {
+                        return reject(err);
+                    }
+                    if (!err && Array.isArray(json.metaData)) {
+                        return resolve(json.metaData);
+                    }
+                    return resolve([]);
                 }
-                if (!err && Array.isArray(json.metaData)) {
-                    return resolve(json.metaData);
-                }
-                return resolve([]);
-            });
+            );
         })
             .then((data) => {
                 return callback(null, data);
@@ -216,23 +216,23 @@ Fetchr.registerService({
         const adminReqParams = { roleMember: username, roleName: 'admin' };
         Promise.all([
             new Promise((resolve, reject) => {
-                req.clients.zms.getDomainList(adminReqParams, function(
-                    err,
-                    json
-                ) {
-                    if (err) {
-                        return reject(err);
+                req.clients.zms.getDomainList(
+                    adminReqParams,
+                    function (err, json) {
+                        if (err) {
+                            return reject(err);
+                        }
+                        if (!err && Array.isArray(json.names)) {
+                            return resolve(json.names);
+                        }
+                        return resolve([]);
                     }
-                    if (!err && Array.isArray(json.names)) {
-                        return resolve(json.names);
-                    }
-                    return resolve([]);
-                });
+                );
             }),
             new Promise((resolve, reject) => {
                 req.clients.zms.getSignedDomains(
                     { metaOnly: 'true', metaAttr: 'all' },
-                    function(err, json) {
+                    function (err, json) {
                         if (err) {
                             return reject(err);
                         }
@@ -279,18 +279,18 @@ Fetchr.registerService({
         let promises = [];
         promises.push(
             new Promise((resolve, reject) => {
-                req.clients.zms.getDomainList(userReqParams, function(
-                    err,
-                    json
-                ) {
-                    if (err) {
-                        return reject(err);
+                req.clients.zms.getDomainList(
+                    userReqParams,
+                    function (err, json) {
+                        if (err) {
+                            return reject(err);
+                        }
+                        if (Array.isArray(json.names)) {
+                            return resolve(json.names);
+                        }
+                        return resolve([]);
                     }
-                    if (Array.isArray(json.names)) {
-                        return resolve(json.names);
-                    }
-                    return resolve([]);
-                });
+                );
             })
         );
 
@@ -299,18 +299,18 @@ Fetchr.registerService({
 
         promises.push(
             new Promise((resolve, reject) => {
-                req.clients.zms.getDomainList(adminReqParams, function(
-                    err,
-                    json
-                ) {
-                    if (err) {
-                        return reject(err);
+                req.clients.zms.getDomainList(
+                    adminReqParams,
+                    function (err, json) {
+                        if (err) {
+                            return reject(err);
+                        }
+                        if (Array.isArray(json.names)) {
+                            return resolve(json.names);
+                        }
+                        return resolve([]);
                     }
-                    if (Array.isArray(json.names)) {
-                        return resolve(json.names);
-                    }
-                    return resolve([]);
-                });
+                );
             })
         );
 
@@ -407,15 +407,15 @@ Fetchr.registerService({
             };
             promises.push(
                 new Promise((resolve, reject) => {
-                    req.clients.zms.putMembership(reqParams, function(
-                        err,
-                        json
-                    ) {
-                        if (err) {
-                            return reject(err);
+                    req.clients.zms.putMembership(
+                        reqParams,
+                        function (err, json) {
+                            if (err) {
+                                return reject(err);
+                            }
+                            return resolve(json);
                         }
-                        return resolve(json);
-                    });
+                    );
                 })
             );
         });
@@ -440,7 +440,7 @@ Fetchr.registerService({
 Fetchr.registerService({
     name: 'role-members',
     read(req, resource, params, config, callback) {
-        req.clients.zms.getDomainRoleMembers(params, function(err, data) {
+        req.clients.zms.getDomainRoleMembers(params, function (err, data) {
             if (err) {
                 debug(
                     `principal: ${req.session.shortId} rid: ${
@@ -477,7 +477,7 @@ Fetchr.registerService({
 Fetchr.registerService({
     name: 'policies',
     read(req, resource, params, config, callback) {
-        req.clients.zms.getPolicies(params, function(err, data) {
+        req.clients.zms.getPolicies(params, function (err, data) {
             if (!err && Array.isArray(data.list)) {
                 return callback(
                     null,
@@ -539,7 +539,7 @@ Fetchr.registerService({
         });
     },
     delete(req, resource, params, config, callback) {
-        req.clients.zms.deletePolicy(params, function(err, data) {
+        req.clients.zms.deletePolicy(params, function (err, data) {
             if (err) {
                 return callback(errorHandler.fetcherError(err));
             } else {
@@ -649,7 +649,7 @@ Fetchr.registerService({
 Fetchr.registerService({
     name: 'role',
     read(req, resource, params, config, callback) {
-        req.clients.zms.getRole(params, function(err, data) {
+        req.clients.zms.getRole(params, function (err, data) {
             if (err) {
                 debug(
                     `principal: ${req.session.shortId} rid: ${
@@ -806,7 +806,7 @@ Fetchr.registerService({
 Fetchr.registerService({
     name: 'services',
     read(req, resource, params, config, callback) {
-        req.clients.zms.getServiceIdentities(params, function(err, data) {
+        req.clients.zms.getServiceIdentities(params, function (err, data) {
             if (!err && Array.isArray(data.list)) {
                 return callback(
                     null,
@@ -841,7 +841,7 @@ Fetchr.registerService({
         }
         Promise.all([
             new Promise((resolve, reject) => {
-                req.clients.zms.getDomainList({}, function(err, json) {
+                req.clients.zms.getDomainList({}, function (err, json) {
                     if (err) {
                         return reject(err);
                     }
@@ -856,7 +856,7 @@ Fetchr.registerService({
                     {
                         roleMember: username,
                     },
-                    function(err, json) {
+                    function (err, json) {
                         if (err) {
                             return reject(err);
                         }
@@ -873,7 +873,7 @@ Fetchr.registerService({
                         roleName: 'admin',
                         roleMember: username,
                     },
-                    function(err, json) {
+                    function (err, json) {
                         if (err) {
                             return reject(err);
                         }
@@ -885,11 +885,11 @@ Fetchr.registerService({
                 );
             }),
         ])
-            .then(function(values) {
+            .then(function (values) {
                 allDomains = values[0];
                 memberDomains = values[1];
                 adminDomains = values[2];
-                allDomains.forEach(function(domainName) {
+                allDomains.forEach(function (domainName) {
                     if (domainName.includes(params.domainName)) {
                         let searchData = { name: domainName };
                         let userDomain = memberDomains.find(
@@ -1034,7 +1034,7 @@ Fetchr.registerService({
     },
 });
 
-module.exports.load = function(config, secrets) {
+module.exports.load = function (config, secrets) {
     appConfig = {
         zms: config.zms,
         athenzDomainService: config.athenzDomainService,
@@ -1050,7 +1050,7 @@ module.exports.load = function(config, secrets) {
     return CLIENTS.load(config, secrets);
 };
 
-module.exports.route = function(expressApp) {
+module.exports.route = function (expressApp) {
     // TODO fetchr statsCollector
     expressApp.use(CLIENTS.middleware());
     expressApp.use('/api/v1', Fetchr.middleware());

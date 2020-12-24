@@ -24,7 +24,7 @@ var clone = require('lodash.clone');
 
 // Normalize the method name from the rdl name
 // getFoo putBar deleteBaz, etc
-var _normalizeMethod = function(route, proto) {
+var _normalizeMethod = function (route, proto) {
     var name = route.type.charAt(0).toUpperCase() + route.type.substr(1);
     var method = route.method.toLowerCase();
     // check if the method name is specified to be overridden
@@ -33,7 +33,7 @@ var _normalizeMethod = function(route, proto) {
         method = '';
     }
     if (proto[method + name] && route.inputs) {
-        var item = route.inputs.filter(function(o) {
+        var item = route.inputs.filter(function (o) {
             return o.name === 'detail';
         })[0];
         /*istanbul ignore next*/
@@ -55,11 +55,11 @@ var forwardHeaders = [
     'bucket',
 ];
 
-var _isSuccessResponseCode = function(responseCode) {
+var _isSuccessResponseCode = function (responseCode) {
     return responseCode && responseCode >= 200 && responseCode < 300;
 };
 
-var _isJsonResponse = function(response) {
+var _isJsonResponse = function (response) {
     return typeof response === 'object';
 };
 
@@ -67,12 +67,12 @@ var _isJsonResponse = function(response) {
 // Defaults to content-type unless scoped to a request
 // then it forwards the defined headers across
 // then it adds the referer as the host calling it
-var _setHeaders = function(headers) {
+var _setHeaders = function (headers) {
     headers = headers || {};
     if (this.request) {
         //Forward the headers from the request
         forwardHeaders.forEach(
-            function(name) {
+            function (name) {
                 if (this.request.headers[name]) {
                     headers[name] = this.request.headers[name];
                 }
@@ -94,7 +94,7 @@ var _setHeaders = function(headers) {
             headers = this.headers(headers, this.request);
         } else {
             Object.keys(this.headers).forEach(
-                function(name) {
+                function (name) {
                     var value = this.headers[name];
                     if (typeof value === 'function') {
                         value = value(this.request);
@@ -107,7 +107,7 @@ var _setHeaders = function(headers) {
     return headers;
 };
 
-var _normalizeParts = function(route, data) {
+var _normalizeParts = function (route, data) {
     var parts = url.parse(this.apiHost, true);
 
     var options = clone(this.requestOpts);
@@ -126,7 +126,7 @@ var _normalizeParts = function(route, data) {
         parts.query.requestId = this.request.requestId;
     }
     route.inputs &&
-        route.inputs.forEach(function(item) {
+        route.inputs.forEach(function (item) {
             var name = item.name;
             var value = data[name];
             if (value) {
@@ -161,11 +161,11 @@ var _normalizeParts = function(route, data) {
     return options;
 };
 
-var _normalizeData = function(route, data) {
+var _normalizeData = function (route, data) {
     var out = {},
         extra;
     var bodyItem = route.inputs
-        ? route.inputs.filter(function(item) {
+        ? route.inputs.filter(function (item) {
               if (!item.pathParam && !item.header && !item.queryParam) {
                   return true;
               }
@@ -189,11 +189,11 @@ var _normalizeData = function(route, data) {
     return out;
 };
 
-var _methodCb = function(data, callback, route) {
+var _methodCb = function (data, callback, route) {
     var parts = this._normalizeParts(route, data);
     var start = Date.now();
     var req = this.request;
-    var done = function(err, json, res) {
+    var done = function (err, json, res) {
         var time = Date.now() - start + 'ms';
         if (err && req && req.error) {
             req.error('rdl-rest', time, err);
@@ -202,7 +202,7 @@ var _methodCb = function(data, callback, route) {
         }
         callback(err, json, res);
     };
-    return request(parts, function(err, res, json) {
+    return request(parts, function (err, res, json) {
         var isJson = _isJsonResponse(json);
         var isSuccessResponse = _isSuccessResponseCode(res && res.statusCode);
 
@@ -228,8 +228,8 @@ var _methodCb = function(data, callback, route) {
     });
 };
 
-var generate = function(rdl, apiHost, mHeaders, requestOpts) {
-    var RDLRest = function(req, headers) {
+var generate = function (rdl, apiHost, mHeaders, requestOpts) {
+    var RDLRest = function (req, headers) {
         if (!(this instanceof RDLRest)) {
             return new RDLRest(req, headers);
         }
@@ -247,7 +247,7 @@ var generate = function(rdl, apiHost, mHeaders, requestOpts) {
     RDLRest.prototype._normalizeData = _normalizeData;
     RDLRest.prototype._setHeaders = _setHeaders;
 
-    rdl.resources.forEach(function(route) {
+    rdl.resources.forEach(function (route) {
         var method = _normalizeMethod(route, RDLRest.prototype);
 
         if (methodRouteMapping[method]) {
@@ -256,7 +256,7 @@ var generate = function(rdl, apiHost, mHeaders, requestOpts) {
             methodRouteMapping[method] = [route];
         }
 
-        RDLRest.prototype[method] = function(data, callback) {
+        RDLRest.prototype[method] = function (data, callback) {
             if (typeof data === 'function') {
                 callback = data;
                 data = {};
@@ -270,11 +270,11 @@ var generate = function(rdl, apiHost, mHeaders, requestOpts) {
             var matchedRoutes = methodRouteMapping[method];
             if (matchedRoutes.length > 1) {
                 var inputParams = Object.keys(data);
-                matchedRoutes = matchedRoutes.filter(function(methodRoute) {
-                    var routeParams = methodRoute.inputs.map(function(input) {
+                matchedRoutes = matchedRoutes.filter(function (methodRoute) {
+                    var routeParams = methodRoute.inputs.map(function (input) {
                         return input.name;
                     });
-                    var matchedParams = inputParams.filter(function(name) {
+                    var matchedParams = inputParams.filter(function (name) {
                         return routeParams.indexOf(name) > -1;
                     });
                     return matchedParams.length === inputParams.length;
@@ -296,7 +296,7 @@ var generate = function(rdl, apiHost, mHeaders, requestOpts) {
     return RDLRest;
 };
 
-module.exports = function(config) {
+module.exports = function (config) {
     config = config || {};
     if (!config.rdl) {
         throw new Error('RDL spec not provided');
@@ -312,7 +312,7 @@ module.exports = function(config) {
         config.requestOpts
     );
 
-    var factory = function(req, headers, cb) {
+    var factory = function (req, headers, cb) {
         var client = new Client(req, headers);
         if (cb) {
             cb(client);

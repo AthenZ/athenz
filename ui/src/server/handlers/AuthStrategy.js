@@ -78,7 +78,7 @@ util.inherits(Strategy, passport.Strategy);
  * @param {Object} options
  * @api protected
  */
-Strategy.prototype.authenticate = function(req, options) {
+Strategy.prototype.authenticate = function (req, options) {
     // check for the cookie first for auth secure cookie, if found set the
     // auth service token
     if (req.cookies[this.cookieName]) {
@@ -136,7 +136,7 @@ Strategy.prototype.authenticate = function(req, options) {
  * @param identifier
  * @param done
  */
-Strategy.prototype.configure = function(identifier, done) {
+Strategy.prototype.configure = function (identifier, done) {
     done();
 };
 

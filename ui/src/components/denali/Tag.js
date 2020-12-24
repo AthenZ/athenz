@@ -158,7 +158,7 @@ Tag.propTypes = {
      * Validator to ensure only one of `onClick()` / `onClickRemove()` is defined
      * @ignore
      */
-    xorOnClick: function(props, propName, componentName) {
+    xorOnClick: function (props, propName, componentName) {
         if (props.onClick && props.onClickRemove) {
             return new Error(
                 'Only one of `onClick` | `onClickRemove` canbe defined in `' +

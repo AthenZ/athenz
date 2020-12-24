@@ -20,7 +20,7 @@ const cookieSession = require('cookie-session');
 const csrf = require('csurf');
 const multer = require('multer');
 
-module.exports = function(expressApp, config, secrets) {
+module.exports = function (expressApp, config, secrets) {
     expressApp.use((req, res, next) => {
         const scriptSrc = [`'self'`];
         const styleSrc = [`'self'`];
@@ -52,13 +52,10 @@ module.exports = function(expressApp, config, secrets) {
             cspOptions.directives.connectSrc = connectSrc;
         }
         if (config.cspImgSrc && config.cspImgSrc !== '') {
-            cspOptions.directives.imgSrc.push(
-                config.cspImgSrc
-            );
+            cspOptions.directives.imgSrc.push(config.cspImgSrc);
         }
         if (config.cspReportUri && config.cspReportUri !== '') {
-            cspOptions.directives.reportUri =
-                config.cspReportUri;
+            cspOptions.directives.reportUri = config.cspReportUri;
         }
         helmet.contentSecurityPolicy(cspOptions)(req, res, next);
     });
@@ -87,7 +84,7 @@ module.exports = function(expressApp, config, secrets) {
 
     expressApp.use(csrf());
 
-    expressApp.use(function(err, req, res, next) {
+    expressApp.use(function (err, req, res, next) {
         if (err.code !== 'EBADCSRFTOKEN') {
             return next(err);
         }

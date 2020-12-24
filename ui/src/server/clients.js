@@ -40,14 +40,14 @@ function refreshCertClients(config, options) {
 function setCookieinClients(req) {
     req.cookiesForwardCheck = {};
     return {
-        cookie: function(currentReq) {
+        cookie: function (currentReq) {
             /*jshint sub: true */
             if (currentReq.cookiesForwardCheck[currentReq.currentMethod]) {
                 return currentReq.headers.cookie;
             }
             return null;
         },
-        [req.authHeader]: function(currentReq) {
+        [req.authHeader]: function (currentReq) {
             if (currentReq.authSvcToken) {
                 return currentReq.authSvcToken;
             }

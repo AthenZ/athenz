@@ -35,7 +35,7 @@ const capabilities = !SCREWDRIVER
               },
           },
       ]
-    : browsers.map(function(name) {
+    : browsers.map(function (name) {
           const tunnelIdentifier = TUNNEL_IDENTIFIER
               ? `${TUNNEL_IDENTIFIER}-${(Math.random() * 9 + 21) | 0}`
               : undefined;

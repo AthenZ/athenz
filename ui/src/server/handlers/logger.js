@@ -16,7 +16,7 @@
 const { v4: uuid } = require('uuid');
 const debug = require('debug')('AthenzUI:server:handlers:logger');
 
-module.exports = function(expressApp, config) {
+module.exports = function (expressApp, config) {
     expressApp.use((req, res, next) => {
         req.headers.rid = uuid();
         res.on('finish', () => {

@@ -109,10 +109,10 @@ export default class UserDomains extends React.Component {
     manageDomainHandler() {
         this.api
             .getStatus()
-            .then(function() {
+            .then(function () {
                 Router.pushRoute('manage-domains');
             })
-            .catch(function(err) {
+            .catch(function (err) {
                 if (err.statusCode === 0) {
                     window.location.reload();
                 }
@@ -122,10 +122,10 @@ export default class UserDomains extends React.Component {
     createDomainHandler() {
         this.api
             .getStatus()
-            .then(function() {
+            .then(function () {
                 Router.pushRoute('create-domain');
             })
-            .catch(function(err) {
+            .catch(function (err) {
                 if (err.statusCode === 0) {
                     window.location.reload();
                 }

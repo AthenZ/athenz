@@ -15,7 +15,7 @@
  */
 const api = require('./api');
 
-module.exports.route = function(expressApp, config, secrets) {
+module.exports.route = function (expressApp, config, secrets) {
     // client and api routes
     api.route(expressApp);
 };

@@ -193,7 +193,7 @@ Switch.propTypes = {
      * Validator to ensure `labelOn` & `labelOff` are both defined or both undefined
      * @ignore
      */
-    labelOnAndOff: function(props, propName, componentName) {
+    labelOnAndOff: function (props, propName, componentName) {
         if (props.labelOff && !props.labelOn) {
             return new Error(
                 'Prop `labelOff` requires `labelOn` to also be defined in `' +

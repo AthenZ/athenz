@@ -51,7 +51,7 @@ export default class Tabs extends React.Component {
             case 'roles':
                 this.props.api
                     .getStatus()
-                    .then(function() {
+                    .then(function () {
                         Router.pushRoute('role', { domain });
                     })
                     .catch((err) => {
@@ -63,7 +63,7 @@ export default class Tabs extends React.Component {
             case 'services':
                 this.props.api
                     .getStatus()
-                    .then(function() {
+                    .then(function () {
                         Router.pushRoute('service', { domain });
                     })
                     .catch((err) => {
@@ -75,7 +75,7 @@ export default class Tabs extends React.Component {
             case 'policies':
                 this.props.api
                     .getStatus()
-                    .then(function() {
+                    .then(function () {
                         Router.pushRoute('policy', { domain });
                     })
                     .catch((err) => {
@@ -87,7 +87,7 @@ export default class Tabs extends React.Component {
             case 'history':
                 this.props.api
                     .getStatus()
-                    .then(function() {
+                    .then(function () {
                         Router.pushRoute('history', { domain });
                     })
                     .catch((err) => {
@@ -99,7 +99,7 @@ export default class Tabs extends React.Component {
             case 'templates':
                 this.props.api
                     .getStatus()
-                    .then(function() {
+                    .then(function () {
                         Router.pushRoute('template', { domain });
                     })
                     .catch((err) => {
