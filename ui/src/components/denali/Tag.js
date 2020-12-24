@@ -15,7 +15,7 @@
  */
 import React from 'react';
 import PropTypes from 'prop-types';
-import { css, cx } from 'emotion';
+import { css, cx } from '@emotion/css';
 import { colors } from './styles/colors';
 import { cssFontFamilies } from './styles/fonts';
 import { rgba } from 'polished';
@@ -158,7 +158,7 @@ Tag.propTypes = {
      * Validator to ensure only one of `onClick()` / `onClickRemove()` is defined
      * @ignore
      */
-    xorOnClick: function(props, propName, componentName) {
+    xorOnClick: function (props, propName, componentName) {
         if (props.onClick && props.onClickRemove) {
             return new Error(
                 'Only one of `onClick` | `onClickRemove` canbe defined in `' +

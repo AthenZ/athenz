@@ -39,7 +39,7 @@ const NavBarItemDiv = styled.div`
     width: 50%;
 `;
 
-export default (props) => {
+const Header = (props) => {
     let search = '';
     if (props.showSearch) {
         search = <Search isHeader={true} searchData={props.searchData} />;
@@ -67,3 +67,5 @@ export default (props) => {
         </NavBarDiv>
     );
 };
+
+export default Header;

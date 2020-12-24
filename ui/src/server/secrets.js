@@ -30,7 +30,7 @@ function loadFile(key, path) {
     });
 }
 
-module.exports.load = function(config) {
+module.exports.load = function (config) {
     let promises = [];
     promises.push(loadFile('serverKey', config.uiKeyPath));
     promises.push(loadFile('serverCert', config.uiCertPath));

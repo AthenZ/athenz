@@ -15,7 +15,7 @@
  */
 const bodyParser = require('body-parser');
 
-module.exports = function(expressApp) {
+module.exports = function (expressApp) {
     expressApp.use(bodyParser.urlencoded({ extended: false }));
     expressApp.use(bodyParser.json());
 };

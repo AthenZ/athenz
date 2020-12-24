@@ -127,7 +127,7 @@ const config = {
     },
 };
 
-module.exports = function() {
+module.exports = function () {
     let env = process.env.APP_ENV ? process.env.APP_ENV : 'local';
     const c = config[env];
     c.env = env;

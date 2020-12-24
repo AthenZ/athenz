@@ -1,26 +1,14 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Header should render 1`] = `
-.emotion-1 {
-  font: 600 20px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
-  margin-bottom: 10px;
-}
-
-.emotion-0 {
-  color: #3570f4;
-  -webkit-text-decoration: none;
-  text-decoration: none;
-  cursor: pointer;
-}
-
 <div
-  class="emotion-1"
+  class="css-btnvty"
   data-testid="role-name-header"
 >
   
   
   <a
-    class="emotion-0"
+    class="css-4c0528"
   >
     home.mujibur
      
@@ -31,32 +19,14 @@ exports[`Header should render 1`] = `
 `;
 
 exports[`Header should render audit enabled role 1`] = `
-.emotion-0 {
-  fill: #188fff;
-  cursor: pointer;
-  vertical-align: text-bottom;
-}
-
-.emotion-2 {
-  font: 600 20px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
-  margin-bottom: 10px;
-}
-
-.emotion-1 {
-  color: #3570f4;
-  -webkit-text-decoration: none;
-  text-decoration: none;
-  cursor: pointer;
-}
-
 <div
-  class="emotion-2"
+  class="css-btnvty"
   data-testid="role-name-header"
 >
   
   <span>
     <svg
-      class="emotion-0"
+      class="css-u87f64"
       data-testid="icon"
       height="1.25em"
       viewBox="0 0 1024 1024"
@@ -80,7 +50,7 @@ exports[`Header should render audit enabled role 1`] = `
     </svg>
   </span>
   <a
-    class="emotion-1"
+    class="css-4c0528"
   >
     home.mujibur
      
@@ -91,31 +61,13 @@ exports[`Header should render audit enabled role 1`] = `
 `;
 
 exports[`Header should render delegated role 1`] = `
-.emotion-0 {
-  fill: #188fff;
-  cursor: pointer;
-  vertical-align: text-bottom;
-}
-
-.emotion-3 {
-  font: 600 20px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
-  margin-bottom: 10px;
-}
-
-.emotion-1 {
-  color: #3570f4;
-  -webkit-text-decoration: none;
-  text-decoration: none;
-  cursor: pointer;
-}
-
 <div
-  class="emotion-3"
+  class="css-btnvty"
   data-testid="role-name-header"
 >
   <span>
     <svg
-      class="emotion-0"
+      class="css-u87f64"
       data-testid="icon"
       height="1.25em"
       viewBox="0 0 1024 1024"
@@ -131,7 +83,7 @@ exports[`Header should render delegated role 1`] = `
   </span>
   
   <a
-    class="emotion-1"
+    class="css-4c0528"
   >
     home.mujibur
      
@@ -140,7 +92,7 @@ exports[`Header should render delegated role 1`] = `
   delegated.role
    (Delegated by 
   <a
-    class="emotion-1"
+    class="css-4c0528"
   >
     home.hga
   </a>

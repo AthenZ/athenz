@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const nonce = require('uuid/v4')();
+const { v4: uuid } = require('uuid');
 const debug = require('debug')('AthenzUI:server:handlers:logger');
 
-module.exports = function(expressApp, config) {
+module.exports = function (expressApp, config) {
     expressApp.use((req, res, next) => {
-        req.headers.rid = nonce;
+        req.headers.rid = uuid();
         res.on('finish', () => {
             req.connection.lastBytesWritten = req.connection.bytesWritten;
             if (req.body && req.body.requests) {

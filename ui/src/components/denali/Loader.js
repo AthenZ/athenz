@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 import React from 'react';
-import { css, cx } from 'emotion';
+import { css, cx } from '@emotion/css';
 import PropTypes from 'prop-types';
-import uuid from 'uuid/v4';
+const { v4: uuid } = require('uuid');
 
 const makeCssLoader = (props) => css`
     display: inline-block;

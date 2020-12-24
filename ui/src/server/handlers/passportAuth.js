@@ -18,7 +18,7 @@ const passport = require('passport');
 const AuthStrategy = require('./AuthStrategy');
 const authUtils = require('../utils/authUtils');
 
-module.exports.auth = function(expressApp, config, secrets) {
+module.exports.auth = function (expressApp, config, secrets) {
     debug('[Startup] initializing passport');
     expressApp.use(passport.initialize({}));
 

@@ -19,5 +19,5 @@ printf 'security delete-certificate -c "Sample Self Signed Athenz CA" -t'
 printf '\n'
 printf 'If you want to clean up docker images please run the following command' | colored_cat y
 printf '\n'
-printf 'cd docker && make remove-local-images && cd..'
+printf 'cd docker && make remove-local-images && cd ..'
 printf '\n'

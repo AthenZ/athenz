@@ -172,7 +172,7 @@ class PageSearchDetails extends React.Component {
 
     displayDomainResults() {
         let items = [];
-        this.state.domainResults.forEach(function(currentDomain) {
+        this.state.domainResults.forEach(function (currentDomain) {
             let domain = currentDomain.name;
             let showIcon =
                 currentDomain.adminDomain || currentDomain.userDomain;

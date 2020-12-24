@@ -16,7 +16,7 @@
 import React from 'react';
 import P, { PropTypes } from 'prop-types';
 import { ICONS } from './Icons';
-import { css } from 'emotion';
+import { css } from '@emotion/css';
 
 const Icon = (props) => {
     const icon = ICONS[props.icon];

@@ -19,7 +19,7 @@
 class DummyAuthority {
     authenticate(signedToken, remoteAddr, httpMethod) {
         return {
-            getName: function() {
+            getName: function () {
                 return 'dummyUser';
             },
         };

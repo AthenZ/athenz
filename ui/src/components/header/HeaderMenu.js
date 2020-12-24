@@ -80,7 +80,7 @@ const HeaderMenuUserDiv = styled.div`
     margin-left: 15px;
 `;
 
-export default (props) => {
+const HeaderMenu = (props) => {
     let icon = 'notification';
     if (props.pending) {
         if (Object.keys(props.pending).length !== 0) {
@@ -184,3 +184,5 @@ export default (props) => {
         </HeaderMenuDiv>
     );
 };
+
+export default HeaderMenu;

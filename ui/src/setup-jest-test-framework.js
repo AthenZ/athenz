@@ -15,8 +15,9 @@
  */
 // Add some helpful assertions for `react-testing-library`
 import '@testing-library/jest-dom/extend-expect';
-import * as emotion from 'emotion';
-import { createSerializer } from 'jest-emotion';
+// import { emotion } from 'emotion';
+import { css } from '@emotion/css';
+import { createSerializer } from '@emotion/jest';
 import jsdom from 'jsdom';
 
 const dom = new jsdom.JSDOM('<!doctype html><html><body></body></html>');
@@ -37,6 +38,6 @@ global.MutationObserver = global.window.MutationObserver;
 // NOTE: To extend 'expect', this must be used under jest's
 // 'setupTestFrameworkScriptFile', as explained here:
 // https://github.com/FormidableLabs/enzyme-matchers/issues/96
-expect.addSnapshotSerializer(createSerializer(emotion));
+// expect.addSnapshotSerializer(createSerializer(emotion));
 
 process.env.APP_ENV = 'unittest';

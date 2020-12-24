@@ -54,7 +54,7 @@ describe('TabGroup', () => {
         expect(tabs[0]).toHaveAttribute('data-active', 'true');
         expect(tabs[1]).toHaveAttribute('data-active', 'false');
         expect(tabs[2]).toHaveAttribute('data-active', 'false');
-        expect(tabgroup).toHaveStyle(`grid-template-columns: repeat(3,1fr)`);
+        expect(tabgroup).toHaveStyle(`grid-template-columns: repeat(3, 1fr)`);
     });
 
     it('should not render with empty tabs array', () => {
@@ -121,7 +121,7 @@ describe('TabGroup', () => {
         );
         const tabgroup = getByTestId('tabgroup');
 
-        expect(tabgroup).toHaveStyle(`grid-template-columns: repeat(3,auto)`);
+        expect(tabgroup).toHaveStyle(`grid-template-columns: repeat(3, auto)`);
     });
 
     it('should render with an additional class name', () => {

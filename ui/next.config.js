@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const withCSS = require('@zeit/next-css');
 const withPlugins = require('next-compose-plugins');
 
 module.exports = withPlugins([
-    [withCSS],
     {
         useFileSystemPublicRoutes: false,
     },

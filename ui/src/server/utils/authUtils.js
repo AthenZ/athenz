@@ -15,7 +15,7 @@
  */
 const debug = require('debug')('AthenzUI:server:utils:authUtils');
 
-module.exports.postAuth = function(req, res, config, err) {
+module.exports.postAuth = function (req, res, config, err) {
     if (err) {
         debug('auth unsuccessful');
         return res.redirect('/autherror');

@@ -17,7 +17,7 @@
 
 let fs = require('fs');
 const debug = require('debug')('AthenzUI:server:config');
-module.exports = function() {
+module.exports = function () {
     let defaultConfig = {};
     try {
         defaultConfig = require(process.cwd() +

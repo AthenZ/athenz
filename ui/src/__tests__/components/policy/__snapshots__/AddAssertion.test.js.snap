@@ -1,508 +1,34 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AddAssertion should render 1`] = `
-.emotion-0 {
-  font-size: 14px;
-  font-weight: 600;
-  color: #303030;
-  line-height: 36px;
-  white-space: nowrap;
-}
-
-.emotion-4 {
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-}
-
-.emotion-4 > * {
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-}
-
-.emotion-2 {
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  box-sizing: border-box;
-  display: inline-block;
-  height: 16px;
-  line-height: 16px;
-  margin: 3px;
-  outline: 0px;
-  position: relative;
-  vertical-align: bottom;
-}
-
-.emotion-2 > input[type='radio'] {
-  box-sizing: border-box;
-  cursor: pointer;
-  display: inline-block;
-  position: absolute;
-  top: 0;
-  visibility: hidden;
-}
-
-.emotion-2 > input[type='radio'] + label {
-  box-sizing: border-box;
-  cursor: pointer;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  height: 16px;
-  line-height: 16px;
-  padding: 0 10px 0 0;
-  vertical-align: bottom;
-  white-space: nowrap;
-}
-
-.emotion-2 > input[type='radio'] + label:before {
-  background: #fff;
-  border: 2px solid rgba(54,151,242,0.5);
-  border-radius: 50%;
-  box-sizing: border-box;
-  content: '';
-  cursor: pointer;
-  display: inline-block;
-  height: 16px;
-  line-height: 16px;
-  margin: 0px 3px -3px 0px;
-  -webkit-transition: all 0.25s ease-in;
-  transition: all 0.25s ease-in;
-  width: 16px;
-}
-
-.emotion-2 > input[type='radio']:hover + label:before {
-  border: 2px solid #3697f2;
-}
-
-.emotion-2 > input[type='radio']:focus + label:before {
-  border: 2px solid rgba(54,151,242,0.5);
-}
-
-.emotion-2 > input[type='radio']:checked + label:before {
-  border: 2px solid #3697f2;
-}
-
-.emotion-2 > input[type='radio']:disabled + label {
-  color: #d5d5d5;
-  cursor: not-allowed;
-}
-
-.emotion-2 > input[type='radio']:disabled + label:before {
-  border: 2px solid #d5d5d5;
-  cursor: not-allowed;
-}
-
-.emotion-2 > input[type='radio']:checked + label:after {
-  background-color: #3697f2;
-  border-radius: 50%;
-  box-sizing: border-box;
-  content: '';
-  height: 8px;
-  line-height: 8px;
-  left: 4px;
-  position: absolute;
-  top: 4px;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-  width: 8px;
-}
-
-.emotion-10 {
-  box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  position: relative;
-  width: 250px;
-}
-
-.emotion-10 input {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  background: rgba(53,112,244,0.05);
-  border-top: 2px solid transparent;
-  border-bottom: 2px solid transparent;
-  border-right: transparent;
-  border-left: transparent;
-  border-radius: 2px;
-  box-shadow: none;
-  box-sizing: border-box;
-  color: #303030;
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-  font: inherit;
-  height: 36px;
-  margin: 0;
-  outline: none;
-  padding: 0 1rem;
-  text-align: left;
-  width: 100%;
-}
-
-.emotion-10.animated input {
-  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
-  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
-}
-
-.emotion-10 input::-webkit-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-10 input::-moz-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-10 input:-ms-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-10 input::placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-10 input.focused,
-.emotion-10 input:active,
-.emotion-10 input:focus {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #3570f4;
-  color: #303030;
-}
-
-.emotion-10 input:invalid {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #d01111;
-  color: #303030;
-}
-
-.emotion-10 .message {
-  font-size: 12px;
-  left: 0;
-  line-height: 1.8;
-  position: absolute;
-  top: 2.571rem;
-}
-
-.emotion-10.error input,
-.emotion-10.error input.focused,
-.emotion-10.error input:active,
-.emotion-10.error input:focus {
-  border-bottom: 2px solid #d01111;
-}
-
-.emotion-10.error .message {
-  color: #d01111;
-}
-
-.emotion-18 {
-  position: relative;
-  width: 100%;
-}
-
-.emotion-18 input {
-  cursor: inherit;
-}
-
-.emotion-17 {
-  box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  position: relative;
-  width: 100%;
-}
-
-.emotion-17 input {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  background: rgba(53,112,244,0.05);
-  border-top: 2px solid transparent;
-  border-bottom: 2px solid transparent;
-  border-right: transparent;
-  border-left: transparent;
-  border-radius: 2px;
-  box-shadow: none;
-  box-sizing: border-box;
-  color: #303030;
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-  font: inherit;
-  height: 36px;
-  margin: 0;
-  outline: none;
-  padding: 0 1rem;
-  text-align: left;
-  width: 100%;
-}
-
-.emotion-17.animated input {
-  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
-  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
-}
-
-.emotion-17 input::-webkit-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-17 input::-moz-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-17 input:-ms-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-17 input::placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-17 input.focused,
-.emotion-17 input:active,
-.emotion-17 input:focus {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #3570f4;
-  color: #303030;
-}
-
-.emotion-17 input:invalid {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #d01111;
-  color: #303030;
-}
-
-.emotion-17 .message {
-  font-size: 12px;
-  left: 0;
-  line-height: 1.8;
-  position: absolute;
-  top: 2.571rem;
-}
-
-.emotion-17.error input,
-.emotion-17.error input.focused,
-.emotion-17.error input:active,
-.emotion-17.error input:focus {
-  border-bottom: 2px solid #d01111;
-}
-
-.emotion-17.error .message {
-  color: #d01111;
-}
-
-.emotion-17 input {
-  padding-right: 36px;
-}
-
-.emotion-17 .input-icon {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  height: 36px;
-  position: absolute;
-  right: 6px;
-}
-
-.emotion-16 {
-  fill: #d5d5d5;
-  cursor: pointer;
-  vertical-align: text-bottom;
-}
-
-.emotion-29 {
-  border: none;
-  border-radius: 2px;
-  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
-  box-sizing: border-box;
-  cursor: pointer;
-  display: inline-block;
-  font-family: Helvetica,Arial,sans-serif;
-  font-weight: 300;
-  font-size: 14px;
-  line-height: 1;
-  margin: 5px;
-  outline: 0;
-  padding: 10px 24px;
-  text-align: center;
-  text-shadow: none;
-  text-transform: none;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-  vertical-align: baseline;
-  white-space: nowrap;
-  background: linear-gradient( to right, #3697f2, #3570f4 );
-  color: #fff;
-}
-
-.emotion-29:first-of-type {
-  margin-left: 0;
-}
-
-.emotion-29:disabled {
-  background: rgba(48,48,48,0.1);
-  color: rgba(48,48,48,0.2);
-  cursor: not-allowed;
-}
-
-.emotion-29:hover:not(:disabled) {
-  background: linear-gradient( to right, #3570f4, #3448f7 );
-}
-
-.emotion-31 {
-  border: none;
-  border-radius: 2px;
-  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
-  box-sizing: border-box;
-  cursor: pointer;
-  display: inline-block;
-  font-family: Helvetica,Arial,sans-serif;
-  font-weight: 300;
-  font-size: 14px;
-  line-height: 1;
-  margin: 5px;
-  outline: 0;
-  padding: 10px 24px;
-  text-align: center;
-  text-shadow: none;
-  text-transform: none;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-  vertical-align: baseline;
-  white-space: nowrap;
-  background: transparent;
-  box-shadow: 0 0 0 1px #3697f2 inset;
-  color: #3697f2;
-}
-
-.emotion-31:first-of-type {
-  margin-left: 0;
-}
-
-.emotion-31:disabled {
-  background: rgba(48,48,48,0.1);
-  color: rgba(48,48,48,0.2);
-  cursor: not-allowed;
-}
-
-.emotion-31:disabled {
-  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
-}
-
-.emotion-31:hover:not(:disabled) {
-  background: #d7e2fd;
-}
-
-.emotion-34 {
-  background-color: #fff;
-}
-
-.emotion-28 {
-  width: 100%;
-  text-align: left;
-  background-color: #fff;
-}
-
-.emotion-7 {
-  -webkit-align-items: flex-start;
-  -webkit-box-align: flex-start;
-  -ms-flex-align: flex-start;
-  align-items: flex-start;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  padding: 10px 30px;
-}
-
-.emotion-1 {
-  -webkit-flex: 0 0 100px;
-  -ms-flex: 0 0 100px;
-  flex: 0 0 100px;
-  margin-right: 2%;
-}
-
-.emotion-6 {
-  -webkit-flex: 1 1;
-  -ms-flex: 1 1;
-  flex: 1 1;
-  margin-right: 10px;
-}
-
-.emotion-5 {
-  margin-top: 8px;
-}
-
-.emotion-11 {
-  width: 500px;
-}
-
-.emotion-33 {
-  margin-left: 155px;
-}
-
-.emotion-30 {
-  min-width: 8.5em;
-  min-height: 1em;
-}
-
 <div
-  class="emotion-34"
+  class="css-15tqd4u"
   data-testid="add-assertion"
 >
   <div
     autocomplete="off"
-    class="emotion-28"
+    class="css-vcd2ur"
     data-testid="add-rule-form"
   >
     
     <div
-      class="emotion-7"
+      class="css-y97ykc"
     >
       <label
-        class="emotion-0 denali-input-label emotion-1"
+        class="css-fc0mv0-input-label denali-input-label css-9xcde0"
         for="rule-effect"
       >
         Rule Effect
       </label>
       <div
-        class="emotion-6"
+        class="css-1xqce5"
       >
         <div
-          class="emotion-4 denali-radiobutton-group emotion-5"
+          class="css-9o2u2w-button-group denali-radiobutton-group css-1ldveyy"
           data-testid="radiobuttongroup"
         >
           <div
-            class="emotion-2 denali-radiobutton"
+            class="css-fe5os4-radiobutton denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -519,7 +45,7 @@ exports[`AddAssertion should render 1`] = `
             </label>
           </div>
           <div
-            class="emotion-2 denali-radiobutton"
+            class="css-fe5os4-radiobutton denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -538,19 +64,19 @@ exports[`AddAssertion should render 1`] = `
       </div>
     </div>
     <div
-      class="emotion-7"
+      class="css-y97ykc"
     >
       <label
-        class="emotion-0 denali-input-label emotion-1"
+        class="css-fc0mv0-input-label denali-input-label css-9xcde0"
         for="rule-action"
       >
         Rule Action
       </label>
       <div
-        class="emotion-6"
+        class="css-1xqce5"
       >
         <div
-          class="emotion-10 denali-input animated emotion-11"
+          class="css-dqae60-input denali-input animated css-fvi5z5"
           data-testid="input-wrapper"
         >
           <input
@@ -569,27 +95,27 @@ exports[`AddAssertion should render 1`] = `
       </div>
     </div>
     <div
-      class="emotion-7"
+      class="css-y97ykc"
     >
       <label
-        class="emotion-0 denali-input-label emotion-1"
+        class="css-fc0mv0-input-label denali-input-label css-9xcde0"
         for="rule-role"
       >
         Rule Role
       </label>
       <div
-        class="emotion-6"
+        class="css-1xqce5"
       >
         <div
           aria-expanded="false"
           aria-haspopup="listbox"
           aria-labelledby="downshift-0-label"
-          class="emotion-18 denali-input-dropdown emotion-11"
+          class="css-15vmjxv-input-dropdown denali-input-dropdown css-fvi5z5"
           data-testid="input-dropdown"
           role="combobox"
         >
           <div
-            class="emotion-17 denali-input animated"
+            class="css-1u6oono-input denali-input animated"
             data-testid="input-wrapper"
           >
             <input
@@ -609,7 +135,7 @@ exports[`AddAssertion should render 1`] = `
             >
               
               <svg
-                class="emotion-16"
+                class="css-124cf9y"
                 data-testid="icon"
                 height="24px"
                 viewBox="0 0 1024 1024"
@@ -632,19 +158,19 @@ exports[`AddAssertion should render 1`] = `
       </div>
     </div>
     <div
-      class="emotion-7"
+      class="css-y97ykc"
     >
       <label
-        class="emotion-0 denali-input-label emotion-1"
+        class="css-fc0mv0-input-label denali-input-label css-9xcde0"
         for="rule-resource"
       >
         Rule Resource
       </label>
       <div
-        class="emotion-6"
+        class="css-1xqce5"
       >
         <div
-          class="emotion-10 denali-input animated emotion-11"
+          class="css-dqae60-input denali-input animated css-fvi5z5"
           data-testid="input-wrapper"
         >
           <input
@@ -663,15 +189,15 @@ exports[`AddAssertion should render 1`] = `
     </div>
   </div>
   <div
-    class="emotion-33"
+    class="css-8y931m"
   >
     <button
-      class="emotion-29 denali-button emotion-30"
+      class="css-1iukreu-button denali-button css-7y8rgk"
     >
       Submit
     </button>
     <button
-      class="emotion-31 denali-button emotion-30"
+      class="css-1pobclq-button denali-button css-7y8rgk"
     >
       Cancel
     </button>
@@ -680,508 +206,34 @@ exports[`AddAssertion should render 1`] = `
 `;
 
 exports[`AddAssertion should render failed to submit action is required 1`] = `
-.emotion-0 {
-  font-size: 14px;
-  font-weight: 600;
-  color: #303030;
-  line-height: 36px;
-  white-space: nowrap;
-}
-
-.emotion-4 {
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-}
-
-.emotion-4 > * {
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-}
-
-.emotion-2 {
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  box-sizing: border-box;
-  display: inline-block;
-  height: 16px;
-  line-height: 16px;
-  margin: 3px;
-  outline: 0px;
-  position: relative;
-  vertical-align: bottom;
-}
-
-.emotion-2 > input[type='radio'] {
-  box-sizing: border-box;
-  cursor: pointer;
-  display: inline-block;
-  position: absolute;
-  top: 0;
-  visibility: hidden;
-}
-
-.emotion-2 > input[type='radio'] + label {
-  box-sizing: border-box;
-  cursor: pointer;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  height: 16px;
-  line-height: 16px;
-  padding: 0 10px 0 0;
-  vertical-align: bottom;
-  white-space: nowrap;
-}
-
-.emotion-2 > input[type='radio'] + label:before {
-  background: #fff;
-  border: 2px solid rgba(54,151,242,0.5);
-  border-radius: 50%;
-  box-sizing: border-box;
-  content: '';
-  cursor: pointer;
-  display: inline-block;
-  height: 16px;
-  line-height: 16px;
-  margin: 0px 3px -3px 0px;
-  -webkit-transition: all 0.25s ease-in;
-  transition: all 0.25s ease-in;
-  width: 16px;
-}
-
-.emotion-2 > input[type='radio']:hover + label:before {
-  border: 2px solid #3697f2;
-}
-
-.emotion-2 > input[type='radio']:focus + label:before {
-  border: 2px solid rgba(54,151,242,0.5);
-}
-
-.emotion-2 > input[type='radio']:checked + label:before {
-  border: 2px solid #3697f2;
-}
-
-.emotion-2 > input[type='radio']:disabled + label {
-  color: #d5d5d5;
-  cursor: not-allowed;
-}
-
-.emotion-2 > input[type='radio']:disabled + label:before {
-  border: 2px solid #d5d5d5;
-  cursor: not-allowed;
-}
-
-.emotion-2 > input[type='radio']:checked + label:after {
-  background-color: #3697f2;
-  border-radius: 50%;
-  box-sizing: border-box;
-  content: '';
-  height: 8px;
-  line-height: 8px;
-  left: 4px;
-  position: absolute;
-  top: 4px;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-  width: 8px;
-}
-
-.emotion-10 {
-  box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  position: relative;
-  width: 250px;
-}
-
-.emotion-10 input {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  background: rgba(53,112,244,0.05);
-  border-top: 2px solid transparent;
-  border-bottom: 2px solid transparent;
-  border-right: transparent;
-  border-left: transparent;
-  border-radius: 2px;
-  box-shadow: none;
-  box-sizing: border-box;
-  color: #303030;
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-  font: inherit;
-  height: 36px;
-  margin: 0;
-  outline: none;
-  padding: 0 1rem;
-  text-align: left;
-  width: 100%;
-}
-
-.emotion-10.animated input {
-  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
-  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
-}
-
-.emotion-10 input::-webkit-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-10 input::-moz-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-10 input:-ms-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-10 input::placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-10 input.focused,
-.emotion-10 input:active,
-.emotion-10 input:focus {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #3570f4;
-  color: #303030;
-}
-
-.emotion-10 input:invalid {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #d01111;
-  color: #303030;
-}
-
-.emotion-10 .message {
-  font-size: 12px;
-  left: 0;
-  line-height: 1.8;
-  position: absolute;
-  top: 2.571rem;
-}
-
-.emotion-10.error input,
-.emotion-10.error input.focused,
-.emotion-10.error input:active,
-.emotion-10.error input:focus {
-  border-bottom: 2px solid #d01111;
-}
-
-.emotion-10.error .message {
-  color: #d01111;
-}
-
-.emotion-18 {
-  position: relative;
-  width: 100%;
-}
-
-.emotion-18 input {
-  cursor: inherit;
-}
-
-.emotion-17 {
-  box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  position: relative;
-  width: 100%;
-}
-
-.emotion-17 input {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  background: rgba(53,112,244,0.05);
-  border-top: 2px solid transparent;
-  border-bottom: 2px solid transparent;
-  border-right: transparent;
-  border-left: transparent;
-  border-radius: 2px;
-  box-shadow: none;
-  box-sizing: border-box;
-  color: #303030;
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-  font: inherit;
-  height: 36px;
-  margin: 0;
-  outline: none;
-  padding: 0 1rem;
-  text-align: left;
-  width: 100%;
-}
-
-.emotion-17.animated input {
-  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
-  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
-}
-
-.emotion-17 input::-webkit-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-17 input::-moz-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-17 input:-ms-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-17 input::placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-17 input.focused,
-.emotion-17 input:active,
-.emotion-17 input:focus {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #3570f4;
-  color: #303030;
-}
-
-.emotion-17 input:invalid {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #d01111;
-  color: #303030;
-}
-
-.emotion-17 .message {
-  font-size: 12px;
-  left: 0;
-  line-height: 1.8;
-  position: absolute;
-  top: 2.571rem;
-}
-
-.emotion-17.error input,
-.emotion-17.error input.focused,
-.emotion-17.error input:active,
-.emotion-17.error input:focus {
-  border-bottom: 2px solid #d01111;
-}
-
-.emotion-17.error .message {
-  color: #d01111;
-}
-
-.emotion-17 input {
-  padding-right: 36px;
-}
-
-.emotion-17 .input-icon {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  height: 36px;
-  position: absolute;
-  right: 6px;
-}
-
-.emotion-16 {
-  fill: #d5d5d5;
-  cursor: pointer;
-  vertical-align: text-bottom;
-}
-
-.emotion-29 {
-  border: none;
-  border-radius: 2px;
-  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
-  box-sizing: border-box;
-  cursor: pointer;
-  display: inline-block;
-  font-family: Helvetica,Arial,sans-serif;
-  font-weight: 300;
-  font-size: 14px;
-  line-height: 1;
-  margin: 5px;
-  outline: 0;
-  padding: 10px 24px;
-  text-align: center;
-  text-shadow: none;
-  text-transform: none;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-  vertical-align: baseline;
-  white-space: nowrap;
-  background: linear-gradient( to right, #3697f2, #3570f4 );
-  color: #fff;
-}
-
-.emotion-29:first-of-type {
-  margin-left: 0;
-}
-
-.emotion-29:disabled {
-  background: rgba(48,48,48,0.1);
-  color: rgba(48,48,48,0.2);
-  cursor: not-allowed;
-}
-
-.emotion-29:hover:not(:disabled) {
-  background: linear-gradient( to right, #3570f4, #3448f7 );
-}
-
-.emotion-31 {
-  border: none;
-  border-radius: 2px;
-  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
-  box-sizing: border-box;
-  cursor: pointer;
-  display: inline-block;
-  font-family: Helvetica,Arial,sans-serif;
-  font-weight: 300;
-  font-size: 14px;
-  line-height: 1;
-  margin: 5px;
-  outline: 0;
-  padding: 10px 24px;
-  text-align: center;
-  text-shadow: none;
-  text-transform: none;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-  vertical-align: baseline;
-  white-space: nowrap;
-  background: transparent;
-  box-shadow: 0 0 0 1px #3697f2 inset;
-  color: #3697f2;
-}
-
-.emotion-31:first-of-type {
-  margin-left: 0;
-}
-
-.emotion-31:disabled {
-  background: rgba(48,48,48,0.1);
-  color: rgba(48,48,48,0.2);
-  cursor: not-allowed;
-}
-
-.emotion-31:disabled {
-  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
-}
-
-.emotion-31:hover:not(:disabled) {
-  background: #d7e2fd;
-}
-
-.emotion-34 {
-  background-color: #fff;
-}
-
-.emotion-28 {
-  width: 100%;
-  text-align: left;
-  background-color: #fff;
-}
-
-.emotion-7 {
-  -webkit-align-items: flex-start;
-  -webkit-box-align: flex-start;
-  -ms-flex-align: flex-start;
-  align-items: flex-start;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  padding: 10px 30px;
-}
-
-.emotion-1 {
-  -webkit-flex: 0 0 100px;
-  -ms-flex: 0 0 100px;
-  flex: 0 0 100px;
-  margin-right: 2%;
-}
-
-.emotion-6 {
-  -webkit-flex: 1 1;
-  -ms-flex: 1 1;
-  flex: 1 1;
-  margin-right: 10px;
-}
-
-.emotion-5 {
-  margin-top: 8px;
-}
-
-.emotion-11 {
-  width: 500px;
-}
-
-.emotion-33 {
-  margin-left: 155px;
-}
-
-.emotion-30 {
-  min-width: 8.5em;
-  min-height: 1em;
-}
-
 <div
-  class="emotion-34"
+  class="css-15tqd4u"
   data-testid="add-assertion"
 >
   <div
     autocomplete="off"
-    class="emotion-28"
+    class="css-vcd2ur"
     data-testid="add-rule-form"
   >
     
     <div
-      class="emotion-7"
+      class="css-y97ykc"
     >
       <label
-        class="emotion-0 denali-input-label emotion-1"
+        class="css-fc0mv0-input-label denali-input-label css-9xcde0"
         for="rule-effect"
       >
         Rule Effect
       </label>
       <div
-        class="emotion-6"
+        class="css-1xqce5"
       >
         <div
-          class="emotion-4 denali-radiobutton-group emotion-5"
+          class="css-9o2u2w-button-group denali-radiobutton-group css-1ldveyy"
           data-testid="radiobuttongroup"
         >
           <div
-            class="emotion-2 denali-radiobutton"
+            class="css-fe5os4-radiobutton denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -1198,7 +250,7 @@ exports[`AddAssertion should render failed to submit action is required 1`] = `
             </label>
           </div>
           <div
-            class="emotion-2 denali-radiobutton"
+            class="css-fe5os4-radiobutton denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -1217,19 +269,19 @@ exports[`AddAssertion should render failed to submit action is required 1`] = `
       </div>
     </div>
     <div
-      class="emotion-7"
+      class="css-y97ykc"
     >
       <label
-        class="emotion-0 denali-input-label emotion-1"
+        class="css-fc0mv0-input-label denali-input-label css-9xcde0"
         for="rule-action"
       >
         Rule Action
       </label>
       <div
-        class="emotion-6"
+        class="css-1xqce5"
       >
         <div
-          class="emotion-10 denali-input animated emotion-11"
+          class="css-dqae60-input denali-input animated css-fvi5z5"
           data-testid="input-wrapper"
         >
           <input
@@ -1248,27 +300,27 @@ exports[`AddAssertion should render failed to submit action is required 1`] = `
       </div>
     </div>
     <div
-      class="emotion-7"
+      class="css-y97ykc"
     >
       <label
-        class="emotion-0 denali-input-label emotion-1"
+        class="css-fc0mv0-input-label denali-input-label css-9xcde0"
         for="rule-role"
       >
         Rule Role
       </label>
       <div
-        class="emotion-6"
+        class="css-1xqce5"
       >
         <div
           aria-expanded="false"
           aria-haspopup="listbox"
           aria-labelledby="downshift-1-label"
-          class="emotion-18 denali-input-dropdown emotion-11"
+          class="css-15vmjxv-input-dropdown denali-input-dropdown css-fvi5z5"
           data-testid="input-dropdown"
           role="combobox"
         >
           <div
-            class="emotion-17 denali-input animated"
+            class="css-1u6oono-input denali-input animated"
             data-testid="input-wrapper"
           >
             <input
@@ -1288,7 +340,7 @@ exports[`AddAssertion should render failed to submit action is required 1`] = `
             >
               
               <svg
-                class="emotion-16"
+                class="css-124cf9y"
                 data-testid="icon"
                 height="24px"
                 viewBox="0 0 1024 1024"
@@ -1311,19 +363,19 @@ exports[`AddAssertion should render failed to submit action is required 1`] = `
       </div>
     </div>
     <div
-      class="emotion-7"
+      class="css-y97ykc"
     >
       <label
-        class="emotion-0 denali-input-label emotion-1"
+        class="css-fc0mv0-input-label denali-input-label css-9xcde0"
         for="rule-resource"
       >
         Rule Resource
       </label>
       <div
-        class="emotion-6"
+        class="css-1xqce5"
       >
         <div
-          class="emotion-10 denali-input animated emotion-11"
+          class="css-dqae60-input denali-input animated css-fvi5z5"
           data-testid="input-wrapper"
         >
           <input
@@ -1342,15 +394,15 @@ exports[`AddAssertion should render failed to submit action is required 1`] = `
     </div>
   </div>
   <div
-    class="emotion-33"
+    class="css-8y931m"
   >
     <button
-      class="emotion-29 denali-button emotion-30"
+      class="css-1iukreu-button denali-button css-7y8rgk"
     >
       Submit
     </button>
     <button
-      class="emotion-31 denali-button emotion-30"
+      class="css-1pobclq-button denali-button css-7y8rgk"
     >
       Cancel
     </button>
@@ -1359,508 +411,34 @@ exports[`AddAssertion should render failed to submit action is required 1`] = `
 `;
 
 exports[`AddAssertion should render failed to submit role name is required 1`] = `
-.emotion-0 {
-  font-size: 14px;
-  font-weight: 600;
-  color: #303030;
-  line-height: 36px;
-  white-space: nowrap;
-}
-
-.emotion-4 {
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-}
-
-.emotion-4 > * {
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-}
-
-.emotion-2 {
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  box-sizing: border-box;
-  display: inline-block;
-  height: 16px;
-  line-height: 16px;
-  margin: 3px;
-  outline: 0px;
-  position: relative;
-  vertical-align: bottom;
-}
-
-.emotion-2 > input[type='radio'] {
-  box-sizing: border-box;
-  cursor: pointer;
-  display: inline-block;
-  position: absolute;
-  top: 0;
-  visibility: hidden;
-}
-
-.emotion-2 > input[type='radio'] + label {
-  box-sizing: border-box;
-  cursor: pointer;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  height: 16px;
-  line-height: 16px;
-  padding: 0 10px 0 0;
-  vertical-align: bottom;
-  white-space: nowrap;
-}
-
-.emotion-2 > input[type='radio'] + label:before {
-  background: #fff;
-  border: 2px solid rgba(54,151,242,0.5);
-  border-radius: 50%;
-  box-sizing: border-box;
-  content: '';
-  cursor: pointer;
-  display: inline-block;
-  height: 16px;
-  line-height: 16px;
-  margin: 0px 3px -3px 0px;
-  -webkit-transition: all 0.25s ease-in;
-  transition: all 0.25s ease-in;
-  width: 16px;
-}
-
-.emotion-2 > input[type='radio']:hover + label:before {
-  border: 2px solid #3697f2;
-}
-
-.emotion-2 > input[type='radio']:focus + label:before {
-  border: 2px solid rgba(54,151,242,0.5);
-}
-
-.emotion-2 > input[type='radio']:checked + label:before {
-  border: 2px solid #3697f2;
-}
-
-.emotion-2 > input[type='radio']:disabled + label {
-  color: #d5d5d5;
-  cursor: not-allowed;
-}
-
-.emotion-2 > input[type='radio']:disabled + label:before {
-  border: 2px solid #d5d5d5;
-  cursor: not-allowed;
-}
-
-.emotion-2 > input[type='radio']:checked + label:after {
-  background-color: #3697f2;
-  border-radius: 50%;
-  box-sizing: border-box;
-  content: '';
-  height: 8px;
-  line-height: 8px;
-  left: 4px;
-  position: absolute;
-  top: 4px;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-  width: 8px;
-}
-
-.emotion-10 {
-  box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  position: relative;
-  width: 250px;
-}
-
-.emotion-10 input {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  background: rgba(53,112,244,0.05);
-  border-top: 2px solid transparent;
-  border-bottom: 2px solid transparent;
-  border-right: transparent;
-  border-left: transparent;
-  border-radius: 2px;
-  box-shadow: none;
-  box-sizing: border-box;
-  color: #303030;
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-  font: inherit;
-  height: 36px;
-  margin: 0;
-  outline: none;
-  padding: 0 1rem;
-  text-align: left;
-  width: 100%;
-}
-
-.emotion-10.animated input {
-  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
-  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
-}
-
-.emotion-10 input::-webkit-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-10 input::-moz-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-10 input:-ms-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-10 input::placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-10 input.focused,
-.emotion-10 input:active,
-.emotion-10 input:focus {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #3570f4;
-  color: #303030;
-}
-
-.emotion-10 input:invalid {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #d01111;
-  color: #303030;
-}
-
-.emotion-10 .message {
-  font-size: 12px;
-  left: 0;
-  line-height: 1.8;
-  position: absolute;
-  top: 2.571rem;
-}
-
-.emotion-10.error input,
-.emotion-10.error input.focused,
-.emotion-10.error input:active,
-.emotion-10.error input:focus {
-  border-bottom: 2px solid #d01111;
-}
-
-.emotion-10.error .message {
-  color: #d01111;
-}
-
-.emotion-18 {
-  position: relative;
-  width: 100%;
-}
-
-.emotion-18 input {
-  cursor: inherit;
-}
-
-.emotion-17 {
-  box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  position: relative;
-  width: 100%;
-}
-
-.emotion-17 input {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  background: rgba(53,112,244,0.05);
-  border-top: 2px solid transparent;
-  border-bottom: 2px solid transparent;
-  border-right: transparent;
-  border-left: transparent;
-  border-radius: 2px;
-  box-shadow: none;
-  box-sizing: border-box;
-  color: #303030;
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-  font: inherit;
-  height: 36px;
-  margin: 0;
-  outline: none;
-  padding: 0 1rem;
-  text-align: left;
-  width: 100%;
-}
-
-.emotion-17.animated input {
-  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
-  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
-}
-
-.emotion-17 input::-webkit-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-17 input::-moz-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-17 input:-ms-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-17 input::placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-17 input.focused,
-.emotion-17 input:active,
-.emotion-17 input:focus {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #3570f4;
-  color: #303030;
-}
-
-.emotion-17 input:invalid {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #d01111;
-  color: #303030;
-}
-
-.emotion-17 .message {
-  font-size: 12px;
-  left: 0;
-  line-height: 1.8;
-  position: absolute;
-  top: 2.571rem;
-}
-
-.emotion-17.error input,
-.emotion-17.error input.focused,
-.emotion-17.error input:active,
-.emotion-17.error input:focus {
-  border-bottom: 2px solid #d01111;
-}
-
-.emotion-17.error .message {
-  color: #d01111;
-}
-
-.emotion-17 input {
-  padding-right: 36px;
-}
-
-.emotion-17 .input-icon {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  height: 36px;
-  position: absolute;
-  right: 6px;
-}
-
-.emotion-16 {
-  fill: #d5d5d5;
-  cursor: pointer;
-  vertical-align: text-bottom;
-}
-
-.emotion-29 {
-  border: none;
-  border-radius: 2px;
-  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
-  box-sizing: border-box;
-  cursor: pointer;
-  display: inline-block;
-  font-family: Helvetica,Arial,sans-serif;
-  font-weight: 300;
-  font-size: 14px;
-  line-height: 1;
-  margin: 5px;
-  outline: 0;
-  padding: 10px 24px;
-  text-align: center;
-  text-shadow: none;
-  text-transform: none;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-  vertical-align: baseline;
-  white-space: nowrap;
-  background: linear-gradient( to right, #3697f2, #3570f4 );
-  color: #fff;
-}
-
-.emotion-29:first-of-type {
-  margin-left: 0;
-}
-
-.emotion-29:disabled {
-  background: rgba(48,48,48,0.1);
-  color: rgba(48,48,48,0.2);
-  cursor: not-allowed;
-}
-
-.emotion-29:hover:not(:disabled) {
-  background: linear-gradient( to right, #3570f4, #3448f7 );
-}
-
-.emotion-31 {
-  border: none;
-  border-radius: 2px;
-  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
-  box-sizing: border-box;
-  cursor: pointer;
-  display: inline-block;
-  font-family: Helvetica,Arial,sans-serif;
-  font-weight: 300;
-  font-size: 14px;
-  line-height: 1;
-  margin: 5px;
-  outline: 0;
-  padding: 10px 24px;
-  text-align: center;
-  text-shadow: none;
-  text-transform: none;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-  vertical-align: baseline;
-  white-space: nowrap;
-  background: transparent;
-  box-shadow: 0 0 0 1px #3697f2 inset;
-  color: #3697f2;
-}
-
-.emotion-31:first-of-type {
-  margin-left: 0;
-}
-
-.emotion-31:disabled {
-  background: rgba(48,48,48,0.1);
-  color: rgba(48,48,48,0.2);
-  cursor: not-allowed;
-}
-
-.emotion-31:disabled {
-  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
-}
-
-.emotion-31:hover:not(:disabled) {
-  background: #d7e2fd;
-}
-
-.emotion-34 {
-  background-color: #fff;
-}
-
-.emotion-28 {
-  width: 100%;
-  text-align: left;
-  background-color: #fff;
-}
-
-.emotion-7 {
-  -webkit-align-items: flex-start;
-  -webkit-box-align: flex-start;
-  -ms-flex-align: flex-start;
-  align-items: flex-start;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  padding: 10px 30px;
-}
-
-.emotion-1 {
-  -webkit-flex: 0 0 100px;
-  -ms-flex: 0 0 100px;
-  flex: 0 0 100px;
-  margin-right: 2%;
-}
-
-.emotion-6 {
-  -webkit-flex: 1 1;
-  -ms-flex: 1 1;
-  flex: 1 1;
-  margin-right: 10px;
-}
-
-.emotion-5 {
-  margin-top: 8px;
-}
-
-.emotion-11 {
-  width: 500px;
-}
-
-.emotion-33 {
-  margin-left: 155px;
-}
-
-.emotion-30 {
-  min-width: 8.5em;
-  min-height: 1em;
-}
-
 <div
-  class="emotion-34"
+  class="css-15tqd4u"
   data-testid="add-assertion"
 >
   <div
     autocomplete="off"
-    class="emotion-28"
+    class="css-vcd2ur"
     data-testid="add-rule-form"
   >
     
     <div
-      class="emotion-7"
+      class="css-y97ykc"
     >
       <label
-        class="emotion-0 denali-input-label emotion-1"
+        class="css-fc0mv0-input-label denali-input-label css-9xcde0"
         for="rule-effect"
       >
         Rule Effect
       </label>
       <div
-        class="emotion-6"
+        class="css-1xqce5"
       >
         <div
-          class="emotion-4 denali-radiobutton-group emotion-5"
+          class="css-9o2u2w-button-group denali-radiobutton-group css-1ldveyy"
           data-testid="radiobuttongroup"
         >
           <div
-            class="emotion-2 denali-radiobutton"
+            class="css-fe5os4-radiobutton denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -1877,7 +455,7 @@ exports[`AddAssertion should render failed to submit role name is required 1`] =
             </label>
           </div>
           <div
-            class="emotion-2 denali-radiobutton"
+            class="css-fe5os4-radiobutton denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -1896,19 +474,19 @@ exports[`AddAssertion should render failed to submit role name is required 1`] =
       </div>
     </div>
     <div
-      class="emotion-7"
+      class="css-y97ykc"
     >
       <label
-        class="emotion-0 denali-input-label emotion-1"
+        class="css-fc0mv0-input-label denali-input-label css-9xcde0"
         for="rule-action"
       >
         Rule Action
       </label>
       <div
-        class="emotion-6"
+        class="css-1xqce5"
       >
         <div
-          class="emotion-10 denali-input animated emotion-11"
+          class="css-dqae60-input denali-input animated css-fvi5z5"
           data-testid="input-wrapper"
         >
           <input
@@ -1927,27 +505,27 @@ exports[`AddAssertion should render failed to submit role name is required 1`] =
       </div>
     </div>
     <div
-      class="emotion-7"
+      class="css-y97ykc"
     >
       <label
-        class="emotion-0 denali-input-label emotion-1"
+        class="css-fc0mv0-input-label denali-input-label css-9xcde0"
         for="rule-role"
       >
         Rule Role
       </label>
       <div
-        class="emotion-6"
+        class="css-1xqce5"
       >
         <div
           aria-expanded="false"
           aria-haspopup="listbox"
           aria-labelledby="downshift-2-label"
-          class="emotion-18 denali-input-dropdown emotion-11"
+          class="css-15vmjxv-input-dropdown denali-input-dropdown css-fvi5z5"
           data-testid="input-dropdown"
           role="combobox"
         >
           <div
-            class="emotion-17 denali-input animated"
+            class="css-1u6oono-input denali-input animated"
             data-testid="input-wrapper"
           >
             <input
@@ -1967,7 +545,7 @@ exports[`AddAssertion should render failed to submit role name is required 1`] =
             >
               
               <svg
-                class="emotion-16"
+                class="css-124cf9y"
                 data-testid="icon"
                 height="24px"
                 viewBox="0 0 1024 1024"
@@ -1990,19 +568,19 @@ exports[`AddAssertion should render failed to submit role name is required 1`] =
       </div>
     </div>
     <div
-      class="emotion-7"
+      class="css-y97ykc"
     >
       <label
-        class="emotion-0 denali-input-label emotion-1"
+        class="css-fc0mv0-input-label denali-input-label css-9xcde0"
         for="rule-resource"
       >
         Rule Resource
       </label>
       <div
-        class="emotion-6"
+        class="css-1xqce5"
       >
         <div
-          class="emotion-10 denali-input animated emotion-11"
+          class="css-dqae60-input denali-input animated css-fvi5z5"
           data-testid="input-wrapper"
         >
           <input
@@ -2021,15 +599,15 @@ exports[`AddAssertion should render failed to submit role name is required 1`] =
     </div>
   </div>
   <div
-    class="emotion-33"
+    class="css-8y931m"
   >
     <button
-      class="emotion-29 denali-button emotion-30"
+      class="css-1iukreu-button denali-button css-7y8rgk"
     >
       Submit
     </button>
     <button
-      class="emotion-31 denali-button emotion-30"
+      class="css-1pobclq-button denali-button css-7y8rgk"
     >
       Cancel
     </button>

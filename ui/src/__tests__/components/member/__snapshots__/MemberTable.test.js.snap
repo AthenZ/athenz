@@ -1,127 +1,19 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`MemberTable should render member table 1`] = `
-.emotion-0 {
-  fill: #188fff;
-  cursor: pointer;
-  vertical-align: text-bottom;
-}
-
-.emotion-32 {
-  width: 100%;
-  border-spacing: 0;
-  display: table;
-  border-collapse: separate;
-  border-color: grey;
-  box-sizing: border-box;
-  margin-top: 5px;
-  box-shadow: 0 1px 4px #d9d9d9;
-  border: 1px solid #fff;
-  -webkit-border-image: none;
-  border-image: none;
-  -webkit-border-image: initial;
-  border-image: initial;
-  height: 50px;
-}
-
-.emotion-2 {
-  height: 25px;
-  margin-left: 10px;
-  margin-top: 10px;
-  text-align: left;
-  padding: 5px 0 5px 15px;
-  vertical-align: middle;
-  word-break: break-all;
-  display: block;
-}
-
-.emotion-1 {
-  margin-right: 10px;
-  vertical-align: bottom;
-}
-
-.emotion-3 {
-  text-align: left;
-  border-bottom: 2px solid #d5d5d5;
-  color: #9a9a9a;
-  font-weight: 600;
-  font-size: 0.8rem;
-  padding-bottom: 5px;
-  vertical-align: top;
-  text-transform: uppercase;
-  padding: 5px 0 5px 35px;
-  word-break: break-all;
-}
-
-.emotion-4 {
-  text-align: left;
-  border-bottom: 2px solid #d5d5d5;
-  color: #9a9a9a;
-  font-weight: 600;
-  font-size: 0.8rem;
-  padding-bottom: 5px;
-  vertical-align: top;
-  text-transform: uppercase;
-  padding: 5px 0 5px 15px;
-  word-break: break-all;
-}
-
-.emotion-7 {
-  text-align: center;
-  border-bottom: 2px solid #d5d5d5;
-  color: #9a9a9a;
-  font-weight: 600;
-  font-size: 0.8rem;
-  padding-bottom: 5px;
-  vertical-align: top;
-  text-transform: uppercase;
-  padding: 5px 0 5px 15px;
-  word-break: break-all;
-}
-
-.emotion-8 {
-  background-color: #3570f40D;
-  text-align: left;
-  padding: 5px 0 5px 15px;
-  vertical-align: middle;
-  word-break: break-all;
-}
-
-.emotion-13 {
-  background-color: #3570f40D;
-  text-align: center;
-  padding: 5px 0 5px 15px;
-  vertical-align: middle;
-  word-break: break-all;
-}
-
-.emotion-14 {
-  text-align: left;
-  padding: 5px 0 5px 15px;
-  vertical-align: middle;
-  word-break: break-all;
-}
-
-.emotion-19 {
-  text-align: center;
-  padding: 5px 0 5px 15px;
-  vertical-align: middle;
-  word-break: break-all;
-}
-
 <table
-  class="emotion-32"
+  class="css-ruhbar"
   data-testid="member-table"
 >
   <thead>
     <caption
-      class="emotion-2"
+      class="css-qe5aiu"
     >
       <span
-        class="emotion-1"
+        class="css-o4rgjs"
       >
         <svg
-          class="emotion-0"
+          class="css-u87f64"
           data-testid="icon"
           height="1.25em"
           viewBox="0 0 1024 1024"
@@ -139,27 +31,27 @@ exports[`MemberTable should render member table 1`] = `
     </caption>
     <tr>
       <th
-        class="emotion-3"
+        class="css-ld9wv4"
       >
         User Name
       </th>
       <th
-        class="emotion-4"
+        class="css-c37hkt"
       >
         Name of User
       </th>
       <th
-        class="emotion-4"
+        class="css-c37hkt"
       >
         Expiration Date
       </th>
       <th
-        class="emotion-4"
+        class="css-c37hkt"
       >
         Review Reminder Date
       </th>
       <th
-        class="emotion-7"
+        class="css-19r8pbt"
       >
         Delete
       </th>
@@ -170,34 +62,34 @@ exports[`MemberTable should render member table 1`] = `
       data-testid="member-row"
     >
       <td
-        class="emotion-8"
+        class="css-18djig3"
         color="#3570f40D"
       >
         user1
       </td>
       <td
-        class="emotion-8"
+        class="css-18djig3"
         color="#3570f40D"
       />
       <td
-        class="emotion-8"
+        class="css-18djig3"
         color="#3570f40D"
       >
         N/A
       </td>
       <td
-        class="emotion-8"
+        class="css-18djig3"
         color="#3570f40D"
       >
         N/A
       </td>
       <td
-        class="emotion-13"
+        class="css-1s8u38g"
         color="#3570f40D"
       >
         <span>
           <svg
-            class="emotion-0"
+            class="css-u87f64"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -220,34 +112,34 @@ exports[`MemberTable should render member table 1`] = `
       data-testid="member-row"
     >
       <td
-        class="emotion-14"
+        class="css-1vs2r4p"
         color=""
       >
         user2
       </td>
       <td
-        class="emotion-14"
+        class="css-1vs2r4p"
         color=""
       />
       <td
-        class="emotion-14"
+        class="css-1vs2r4p"
         color=""
       >
         N/A
       </td>
       <td
-        class="emotion-14"
+        class="css-1vs2r4p"
         color=""
       >
         N/A
       </td>
       <td
-        class="emotion-19"
+        class="css-84znvz"
         color=""
       >
         <span>
           <svg
-            class="emotion-0"
+            class="css-u87f64"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -270,34 +162,34 @@ exports[`MemberTable should render member table 1`] = `
       data-testid="member-row"
     >
       <td
-        class="emotion-8"
+        class="css-18djig3"
         color="#3570f40D"
       >
         user3
       </td>
       <td
-        class="emotion-8"
+        class="css-18djig3"
         color="#3570f40D"
       />
       <td
-        class="emotion-8"
+        class="css-18djig3"
         color="#3570f40D"
       >
         N/A
       </td>
       <td
-        class="emotion-8"
+        class="css-18djig3"
         color="#3570f40D"
       >
         N/A
       </td>
       <td
-        class="emotion-13"
+        class="css-1s8u38g"
         color="#3570f40D"
       >
         <span>
           <svg
-            class="emotion-0"
+            class="css-u87f64"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -320,34 +212,34 @@ exports[`MemberTable should render member table 1`] = `
       data-testid="member-row"
     >
       <td
-        class="emotion-14"
+        class="css-1vs2r4p"
         color=""
       >
         user4
       </td>
       <td
-        class="emotion-14"
+        class="css-1vs2r4p"
         color=""
       />
       <td
-        class="emotion-14"
+        class="css-1vs2r4p"
         color=""
       >
         N/A
       </td>
       <td
-        class="emotion-14"
+        class="css-1vs2r4p"
         color=""
       >
         N/A
       </td>
       <td
-        class="emotion-19"
+        class="css-84znvz"
         color=""
       >
         <span>
           <svg
-            class="emotion-0"
+            class="css-u87f64"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"

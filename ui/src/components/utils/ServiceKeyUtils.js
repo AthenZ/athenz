@@ -15,10 +15,7 @@
  */
 class ServiceKeyUtils {
     static y64Decode(key) {
-        let b64 = key
-            .replace(/\./g, '+')
-            .replace(/_/g, '/')
-            .replace(/-/g, '=');
+        let b64 = key.replace(/\./g, '+').replace(/_/g, '/').replace(/-/g, '=');
         return Buffer.from(b64, 'base64').toString();
     }
 

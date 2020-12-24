@@ -15,7 +15,7 @@
  */
 import React from 'react';
 import PropTypes from 'prop-types';
-import { css, cx } from 'emotion';
+import { css, cx } from '@emotion/css';
 import { rgba } from 'polished';
 import { colors } from './styles/colors';
 import { cssFontStyles } from './styles/fonts';
@@ -193,7 +193,7 @@ Switch.propTypes = {
      * Validator to ensure `labelOn` & `labelOff` are both defined or both undefined
      * @ignore
      */
-    labelOnAndOff: function(props, propName, componentName) {
+    labelOnAndOff: function (props, propName, componentName) {
         if (props.labelOff && !props.labelOn) {
             return new Error(
                 'Prop `labelOff` requires `labelOn` to also be defined in `' +

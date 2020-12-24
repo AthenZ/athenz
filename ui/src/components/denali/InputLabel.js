@@ -15,7 +15,7 @@
  */
 import React from 'react';
 import PropTypes from 'prop-types';
-import { css, cx } from 'emotion';
+import { css, cx } from '@emotion/css';
 import { colors, cssFontSizes, cssFontWeights } from './styles/index';
 
 const makeCssInputLabel = (props) => css`

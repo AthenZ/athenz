@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { css } from 'emotion';
+import { css } from '@emotion/css';
 import { cssFontStyles } from '../styles/fonts';
 import { colors } from '../styles/colors';
 import { cssDropShadow } from '../styles/drop-shadow';

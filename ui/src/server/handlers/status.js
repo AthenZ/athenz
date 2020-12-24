@@ -15,7 +15,7 @@
  */
 const fs = require('fs');
 
-module.exports = function(expressApp, config) {
+module.exports = function (expressApp, config) {
     expressApp.get('/akamai', (req, res) => {
         fs.access(config.akamaiPath, fs.constants.F_OK, (err) => {
             if (err) {

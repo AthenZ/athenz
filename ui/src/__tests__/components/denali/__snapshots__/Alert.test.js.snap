@@ -1,144 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Alert should disable animations 1`] = `
-.emotion-3 {
-  background-color: transparent;
-  bottom: 0;
-  left: 0;
-  position: fixed;
-  right: 0;
-  top: 0;
-  z-index: 5;
-}
-
-.emotion-2 {
-  box-shadow: 0px 4px 8px rgba(0,0,0,0.16);
-  -webkit-align-items: flex-start;
-  -webkit-box-align: flex-start;
-  -ms-flex-align: flex-start;
-  align-items: flex-start;
-  background: #fff;
-  border-radius: 4px;
-  border-top: 4px solid #0066df;
-  box-sizing: border-box;
-  color: #303030;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  left: 50%;
-  max-height: calc(100vh - 160px);
-  min-width: 400px;
-  outline: none;
-  position: fixed;
-  -webkit-transform: translate(-50%,0);
-  -ms-transform: translate(-50%,0);
-  transform: translate(-50%,0);
-  width: 400px;
-}
-
-.emotion-2.ReactModal__Content {
-  opacity: 0;
-  top: 0;
-}
-
-.emotion-2.animated {
-  -webkit-transition: opacity 0.2s ease-out, top 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
-  transition: opacity 0.2s ease-out, top 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
-}
-
-.emotion-2.ReactModal__Content--after-open {
-  top: 80px;
-  opacity: 1;
-}
-
-.emotion-2.ReactModal__Content--before-close {
-  opacity: 0;
-}
-
-.emotion-2 .left-section {
-  -webkit-flex: 0 0 28px;
-  -ms-flex: 0 0 28px;
-  flex: 0 0 28px;
-  padding: 14px;
-}
-
-.emotion-2 .left-section .alert-icon {
-  -webkit-align-items: flex-start;
-  -webkit-box-align: flex-start;
-  -ms-flex-align: flex-start;
-  align-items: flex-start;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-pack: center;
-  -webkit-justify-content: center;
-  -ms-flex-pack: center;
-  justify-content: center;
-}
-
-.emotion-2 .right-section {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex: 1 1 auto;
-  -ms-flex: 1 1 auto;
-  flex: 1 1 auto;
-  -webkit-flex-flow: column nowrap;
-  -ms-flex-flow: column nowrap;
-  flex-flow: column nowrap;
-}
-
-.emotion-2 .right-section .title-row {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  height: initial;
-  -webkit-box-pack: justify;
-  -webkit-justify-content: space-between;
-  -ms-flex-pack: justify;
-  justify-content: space-between;
-  padding: 14px 14px 14px 0;
-}
-
-.emotion-2 .right-section .title-row .title {
-  font-weight: 600;
-}
-
-.emotion-2 .right-section .description {
-  font-size: 14px;
-  font-weight: 300;
-  padding: 0 14px 14px 0;
-}
-
-.emotion-0 {
-  fill: #0066df;
-  cursor: inherit;
-  vertical-align: middle;
-}
-
-.emotion-1 {
-  fill: rgba(48,48,48,0.4);
-  cursor: pointer;
-  vertical-align: text-bottom;
-}
-
 <body
   aria-hidden="true"
   class="ReactModal__Body--open"
@@ -164,13 +26,13 @@ exports[`Alert should disable animations 1`] = `
     class="ReactModalPortal"
   >
     <div
-      class="ReactModal__Overlay ReactModal__Overlay--after-open emotion-3"
+      class="ReactModal__Overlay ReactModal__Overlay--after-open css-nx0pvz-modal-overlay"
     >
       <div
         aria-describedby="alert-description"
         aria-labelledby="alert-title"
         aria-modal="true"
-        class="ReactModal__Content ReactModal__Content--after-open emotion-2 denali-alert denali-alert-info"
+        class="ReactModal__Content ReactModal__Content--after-open css-pr8fc2-alert denali-alert denali-alert-info"
         role="dialog"
         tabindex="-1"
       >
@@ -182,7 +44,7 @@ exports[`Alert should disable animations 1`] = `
             data-testid="alert-icon"
           >
             <svg
-              class="emotion-0"
+              class="css-1hsntjd"
               data-testid="icon"
               height="28px"
               viewBox="0 0 1024 1024"
@@ -217,7 +79,7 @@ exports[`Alert should disable animations 1`] = `
               class="close-button"
             >
               <svg
-                class="emotion-1"
+                class="css-180out3"
                 data-testid="icon"
                 height="28px"
                 viewBox="0 0 1024 1024"
@@ -247,144 +109,6 @@ exports[`Alert should disable animations 1`] = `
 `;
 
 exports[`Alert should render all alert types 1`] = `
-.emotion-3 {
-  background-color: transparent;
-  bottom: 0;
-  left: 0;
-  position: fixed;
-  right: 0;
-  top: 0;
-  z-index: 5;
-}
-
-.emotion-1 {
-  fill: rgba(48,48,48,0.4);
-  cursor: pointer;
-  vertical-align: text-bottom;
-}
-
-.emotion-2 {
-  box-shadow: 0px 4px 8px rgba(0,0,0,0.16);
-  -webkit-align-items: flex-start;
-  -webkit-box-align: flex-start;
-  -ms-flex-align: flex-start;
-  align-items: flex-start;
-  background: #fff;
-  border-radius: 4px;
-  border-top: 4px solid #ea0000;
-  box-sizing: border-box;
-  color: #303030;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  left: 50%;
-  max-height: calc(100vh - 160px);
-  min-width: 400px;
-  outline: none;
-  position: fixed;
-  -webkit-transform: translate(-50%,0);
-  -ms-transform: translate(-50%,0);
-  transform: translate(-50%,0);
-  width: 400px;
-}
-
-.emotion-2.ReactModal__Content {
-  opacity: 0;
-  top: 0;
-}
-
-.emotion-2.animated {
-  -webkit-transition: opacity 0.2s ease-out, top 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
-  transition: opacity 0.2s ease-out, top 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
-}
-
-.emotion-2.ReactModal__Content--after-open {
-  top: 80px;
-  opacity: 1;
-}
-
-.emotion-2.ReactModal__Content--before-close {
-  opacity: 0;
-}
-
-.emotion-2 .left-section {
-  -webkit-flex: 0 0 28px;
-  -ms-flex: 0 0 28px;
-  flex: 0 0 28px;
-  padding: 14px;
-}
-
-.emotion-2 .left-section .alert-icon {
-  -webkit-align-items: flex-start;
-  -webkit-box-align: flex-start;
-  -ms-flex-align: flex-start;
-  align-items: flex-start;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-pack: center;
-  -webkit-justify-content: center;
-  -ms-flex-pack: center;
-  justify-content: center;
-}
-
-.emotion-2 .right-section {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex: 1 1 auto;
-  -ms-flex: 1 1 auto;
-  flex: 1 1 auto;
-  -webkit-flex-flow: column nowrap;
-  -ms-flex-flow: column nowrap;
-  flex-flow: column nowrap;
-}
-
-.emotion-2 .right-section .title-row {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  height: initial;
-  -webkit-box-pack: justify;
-  -webkit-justify-content: space-between;
-  -ms-flex-pack: justify;
-  justify-content: space-between;
-  padding: 14px 14px 14px 0;
-}
-
-.emotion-2 .right-section .title-row .title {
-  font-weight: 600;
-}
-
-.emotion-2 .right-section .description {
-  font-size: 14px;
-  font-weight: 300;
-  padding: 0 14px 14px 0;
-}
-
-.emotion-0 {
-  fill: #ea0000;
-  cursor: inherit;
-  vertical-align: middle;
-}
-
 <body
   aria-hidden="true"
   class="ReactModal__Body--open"
@@ -407,13 +131,13 @@ exports[`Alert should render all alert types 1`] = `
     class="ReactModalPortal"
   >
     <div
-      class="ReactModal__Overlay ReactModal__Overlay--after-open emotion-3"
+      class="ReactModal__Overlay ReactModal__Overlay--after-open css-nx0pvz-modal-overlay"
     >
       <div
         aria-describedby="alert-description"
         aria-labelledby="alert-title"
         aria-modal="true"
-        class="ReactModal__Content ReactModal__Content--after-open emotion-2 denali-alert denali-alert-danger animated"
+        class="ReactModal__Content ReactModal__Content--after-open css-1e38fvc-alert denali-alert denali-alert-danger animated"
         role="dialog"
         tabindex="-1"
       >
@@ -425,7 +149,7 @@ exports[`Alert should render all alert types 1`] = `
             data-testid="alert-icon"
           >
             <svg
-              class="emotion-0"
+              class="css-1wtutiy"
               data-testid="icon"
               height="28px"
               viewBox="0 0 1024 1024"
@@ -460,7 +184,7 @@ exports[`Alert should render all alert types 1`] = `
               class="close-button"
             >
               <svg
-                class="emotion-1"
+                class="css-180out3"
                 data-testid="icon"
                 height="28px"
                 viewBox="0 0 1024 1024"
@@ -483,144 +207,6 @@ exports[`Alert should render all alert types 1`] = `
 `;
 
 exports[`Alert should render all alert types 2`] = `
-.emotion-3 {
-  background-color: transparent;
-  bottom: 0;
-  left: 0;
-  position: fixed;
-  right: 0;
-  top: 0;
-  z-index: 5;
-}
-
-.emotion-2 {
-  box-shadow: 0px 4px 8px rgba(0,0,0,0.16);
-  -webkit-align-items: flex-start;
-  -webkit-box-align: flex-start;
-  -ms-flex-align: flex-start;
-  align-items: flex-start;
-  background: #fff;
-  border-radius: 4px;
-  border-top: 4px solid #0066df;
-  box-sizing: border-box;
-  color: #303030;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  left: 50%;
-  max-height: calc(100vh - 160px);
-  min-width: 400px;
-  outline: none;
-  position: fixed;
-  -webkit-transform: translate(-50%,0);
-  -ms-transform: translate(-50%,0);
-  transform: translate(-50%,0);
-  width: 400px;
-}
-
-.emotion-2.ReactModal__Content {
-  opacity: 0;
-  top: 0;
-}
-
-.emotion-2.animated {
-  -webkit-transition: opacity 0.2s ease-out, top 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
-  transition: opacity 0.2s ease-out, top 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
-}
-
-.emotion-2.ReactModal__Content--after-open {
-  top: 80px;
-  opacity: 1;
-}
-
-.emotion-2.ReactModal__Content--before-close {
-  opacity: 0;
-}
-
-.emotion-2 .left-section {
-  -webkit-flex: 0 0 28px;
-  -ms-flex: 0 0 28px;
-  flex: 0 0 28px;
-  padding: 14px;
-}
-
-.emotion-2 .left-section .alert-icon {
-  -webkit-align-items: flex-start;
-  -webkit-box-align: flex-start;
-  -ms-flex-align: flex-start;
-  align-items: flex-start;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-pack: center;
-  -webkit-justify-content: center;
-  -ms-flex-pack: center;
-  justify-content: center;
-}
-
-.emotion-2 .right-section {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex: 1 1 auto;
-  -ms-flex: 1 1 auto;
-  flex: 1 1 auto;
-  -webkit-flex-flow: column nowrap;
-  -ms-flex-flow: column nowrap;
-  flex-flow: column nowrap;
-}
-
-.emotion-2 .right-section .title-row {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  height: initial;
-  -webkit-box-pack: justify;
-  -webkit-justify-content: space-between;
-  -ms-flex-pack: justify;
-  justify-content: space-between;
-  padding: 14px 14px 14px 0;
-}
-
-.emotion-2 .right-section .title-row .title {
-  font-weight: 600;
-}
-
-.emotion-2 .right-section .description {
-  font-size: 14px;
-  font-weight: 300;
-  padding: 0 14px 14px 0;
-}
-
-.emotion-0 {
-  fill: #0066df;
-  cursor: inherit;
-  vertical-align: middle;
-}
-
-.emotion-1 {
-  fill: rgba(48,48,48,0.4);
-  cursor: pointer;
-  vertical-align: text-bottom;
-}
-
 <body
   aria-hidden="true"
   class="ReactModal__Body--open"
@@ -643,13 +229,13 @@ exports[`Alert should render all alert types 2`] = `
     class="ReactModalPortal"
   >
     <div
-      class="ReactModal__Overlay ReactModal__Overlay--after-open emotion-3"
+      class="ReactModal__Overlay ReactModal__Overlay--after-open css-nx0pvz-modal-overlay"
     >
       <div
         aria-describedby="alert-description"
         aria-labelledby="alert-title"
         aria-modal="true"
-        class="ReactModal__Content ReactModal__Content--after-open emotion-2 denali-alert denali-alert-info animated"
+        class="ReactModal__Content ReactModal__Content--after-open css-pr8fc2-alert denali-alert denali-alert-info animated"
         role="dialog"
         tabindex="-1"
       >
@@ -661,7 +247,7 @@ exports[`Alert should render all alert types 2`] = `
             data-testid="alert-icon"
           >
             <svg
-              class="emotion-0"
+              class="css-1hsntjd"
               data-testid="icon"
               height="28px"
               viewBox="0 0 1024 1024"
@@ -696,7 +282,7 @@ exports[`Alert should render all alert types 2`] = `
               class="close-button"
             >
               <svg
-                class="emotion-1"
+                class="css-180out3"
                 data-testid="icon"
                 height="28px"
                 viewBox="0 0 1024 1024"
@@ -719,144 +305,6 @@ exports[`Alert should render all alert types 2`] = `
 `;
 
 exports[`Alert should render all alert types 3`] = `
-.emotion-3 {
-  background-color: transparent;
-  bottom: 0;
-  left: 0;
-  position: fixed;
-  right: 0;
-  top: 0;
-  z-index: 5;
-}
-
-.emotion-1 {
-  fill: rgba(48,48,48,0.4);
-  cursor: pointer;
-  vertical-align: text-bottom;
-}
-
-.emotion-2 {
-  box-shadow: 0px 4px 8px rgba(0,0,0,0.16);
-  -webkit-align-items: flex-start;
-  -webkit-box-align: flex-start;
-  -ms-flex-align: flex-start;
-  align-items: flex-start;
-  background: #fff;
-  border-radius: 4px;
-  border-top: 4px solid #15c046;
-  box-sizing: border-box;
-  color: #303030;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  left: 50%;
-  max-height: calc(100vh - 160px);
-  min-width: 400px;
-  outline: none;
-  position: fixed;
-  -webkit-transform: translate(-50%,0);
-  -ms-transform: translate(-50%,0);
-  transform: translate(-50%,0);
-  width: 400px;
-}
-
-.emotion-2.ReactModal__Content {
-  opacity: 0;
-  top: 0;
-}
-
-.emotion-2.animated {
-  -webkit-transition: opacity 0.2s ease-out, top 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
-  transition: opacity 0.2s ease-out, top 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
-}
-
-.emotion-2.ReactModal__Content--after-open {
-  top: 80px;
-  opacity: 1;
-}
-
-.emotion-2.ReactModal__Content--before-close {
-  opacity: 0;
-}
-
-.emotion-2 .left-section {
-  -webkit-flex: 0 0 28px;
-  -ms-flex: 0 0 28px;
-  flex: 0 0 28px;
-  padding: 14px;
-}
-
-.emotion-2 .left-section .alert-icon {
-  -webkit-align-items: flex-start;
-  -webkit-box-align: flex-start;
-  -ms-flex-align: flex-start;
-  align-items: flex-start;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-pack: center;
-  -webkit-justify-content: center;
-  -ms-flex-pack: center;
-  justify-content: center;
-}
-
-.emotion-2 .right-section {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex: 1 1 auto;
-  -ms-flex: 1 1 auto;
-  flex: 1 1 auto;
-  -webkit-flex-flow: column nowrap;
-  -ms-flex-flow: column nowrap;
-  flex-flow: column nowrap;
-}
-
-.emotion-2 .right-section .title-row {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  height: initial;
-  -webkit-box-pack: justify;
-  -webkit-justify-content: space-between;
-  -ms-flex-pack: justify;
-  justify-content: space-between;
-  padding: 14px 14px 14px 0;
-}
-
-.emotion-2 .right-section .title-row .title {
-  font-weight: 600;
-}
-
-.emotion-2 .right-section .description {
-  font-size: 14px;
-  font-weight: 300;
-  padding: 0 14px 14px 0;
-}
-
-.emotion-0 {
-  fill: #15c046;
-  cursor: inherit;
-  vertical-align: middle;
-}
-
 <body
   aria-hidden="true"
   class="ReactModal__Body--open"
@@ -879,13 +327,13 @@ exports[`Alert should render all alert types 3`] = `
     class="ReactModalPortal"
   >
     <div
-      class="ReactModal__Overlay ReactModal__Overlay--after-open emotion-3"
+      class="ReactModal__Overlay ReactModal__Overlay--after-open css-nx0pvz-modal-overlay"
     >
       <div
         aria-describedby="alert-description"
         aria-labelledby="alert-title"
         aria-modal="true"
-        class="ReactModal__Content ReactModal__Content--after-open emotion-2 denali-alert denali-alert-success animated"
+        class="ReactModal__Content ReactModal__Content--after-open css-15031y-alert denali-alert denali-alert-success animated"
         role="dialog"
         tabindex="-1"
       >
@@ -897,7 +345,7 @@ exports[`Alert should render all alert types 3`] = `
             data-testid="alert-icon"
           >
             <svg
-              class="emotion-0"
+              class="css-79iho6"
               data-testid="icon"
               height="28px"
               viewBox="0 0 1024 1024"
@@ -932,7 +380,7 @@ exports[`Alert should render all alert types 3`] = `
               class="close-button"
             >
               <svg
-                class="emotion-1"
+                class="css-180out3"
                 data-testid="icon"
                 height="28px"
                 viewBox="0 0 1024 1024"
@@ -955,144 +403,6 @@ exports[`Alert should render all alert types 3`] = `
 `;
 
 exports[`Alert should render all alert types 4`] = `
-.emotion-3 {
-  background-color: transparent;
-  bottom: 0;
-  left: 0;
-  position: fixed;
-  right: 0;
-  top: 0;
-  z-index: 5;
-}
-
-.emotion-1 {
-  fill: rgba(48,48,48,0.4);
-  cursor: pointer;
-  vertical-align: text-bottom;
-}
-
-.emotion-2 {
-  box-shadow: 0px 4px 8px rgba(0,0,0,0.16);
-  -webkit-align-items: flex-start;
-  -webkit-box-align: flex-start;
-  -ms-flex-align: flex-start;
-  align-items: flex-start;
-  background: #fff;
-  border-radius: 4px;
-  border-top: 4px solid #f4cb00;
-  box-sizing: border-box;
-  color: #303030;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  left: 50%;
-  max-height: calc(100vh - 160px);
-  min-width: 400px;
-  outline: none;
-  position: fixed;
-  -webkit-transform: translate(-50%,0);
-  -ms-transform: translate(-50%,0);
-  transform: translate(-50%,0);
-  width: 400px;
-}
-
-.emotion-2.ReactModal__Content {
-  opacity: 0;
-  top: 0;
-}
-
-.emotion-2.animated {
-  -webkit-transition: opacity 0.2s ease-out, top 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
-  transition: opacity 0.2s ease-out, top 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
-}
-
-.emotion-2.ReactModal__Content--after-open {
-  top: 80px;
-  opacity: 1;
-}
-
-.emotion-2.ReactModal__Content--before-close {
-  opacity: 0;
-}
-
-.emotion-2 .left-section {
-  -webkit-flex: 0 0 28px;
-  -ms-flex: 0 0 28px;
-  flex: 0 0 28px;
-  padding: 14px;
-}
-
-.emotion-2 .left-section .alert-icon {
-  -webkit-align-items: flex-start;
-  -webkit-box-align: flex-start;
-  -ms-flex-align: flex-start;
-  align-items: flex-start;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-pack: center;
-  -webkit-justify-content: center;
-  -ms-flex-pack: center;
-  justify-content: center;
-}
-
-.emotion-2 .right-section {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex: 1 1 auto;
-  -ms-flex: 1 1 auto;
-  flex: 1 1 auto;
-  -webkit-flex-flow: column nowrap;
-  -ms-flex-flow: column nowrap;
-  flex-flow: column nowrap;
-}
-
-.emotion-2 .right-section .title-row {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  height: initial;
-  -webkit-box-pack: justify;
-  -webkit-justify-content: space-between;
-  -ms-flex-pack: justify;
-  justify-content: space-between;
-  padding: 14px 14px 14px 0;
-}
-
-.emotion-2 .right-section .title-row .title {
-  font-weight: 600;
-}
-
-.emotion-2 .right-section .description {
-  font-size: 14px;
-  font-weight: 300;
-  padding: 0 14px 14px 0;
-}
-
-.emotion-0 {
-  fill: #f4cb00;
-  cursor: inherit;
-  vertical-align: middle;
-}
-
 <body
   aria-hidden="true"
   class="ReactModal__Body--open"
@@ -1115,13 +425,13 @@ exports[`Alert should render all alert types 4`] = `
     class="ReactModalPortal"
   >
     <div
-      class="ReactModal__Overlay ReactModal__Overlay--after-open emotion-3"
+      class="ReactModal__Overlay ReactModal__Overlay--after-open css-nx0pvz-modal-overlay"
     >
       <div
         aria-describedby="alert-description"
         aria-labelledby="alert-title"
         aria-modal="true"
-        class="ReactModal__Content ReactModal__Content--after-open emotion-2 denali-alert denali-alert-warning animated"
+        class="ReactModal__Content ReactModal__Content--after-open css-1q88pah-alert denali-alert denali-alert-warning animated"
         role="dialog"
         tabindex="-1"
       >
@@ -1133,7 +443,7 @@ exports[`Alert should render all alert types 4`] = `
             data-testid="alert-icon"
           >
             <svg
-              class="emotion-0"
+              class="css-1pqq6al"
               data-testid="icon"
               height="28px"
               viewBox="0 0 1024 1024"
@@ -1168,7 +478,7 @@ exports[`Alert should render all alert types 4`] = `
               class="close-button"
             >
               <svg
-                class="emotion-1"
+                class="css-180out3"
                 data-testid="icon"
                 height="28px"
                 viewBox="0 0 1024 1024"
@@ -1191,144 +501,6 @@ exports[`Alert should render all alert types 4`] = `
 `;
 
 exports[`Alert should render open state 1`] = `
-.emotion-3 {
-  background-color: transparent;
-  bottom: 0;
-  left: 0;
-  position: fixed;
-  right: 0;
-  top: 0;
-  z-index: 5;
-}
-
-.emotion-2 {
-  box-shadow: 0px 4px 8px rgba(0,0,0,0.16);
-  -webkit-align-items: flex-start;
-  -webkit-box-align: flex-start;
-  -ms-flex-align: flex-start;
-  align-items: flex-start;
-  background: #fff;
-  border-radius: 4px;
-  border-top: 4px solid #0066df;
-  box-sizing: border-box;
-  color: #303030;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  left: 50%;
-  max-height: calc(100vh - 160px);
-  min-width: 400px;
-  outline: none;
-  position: fixed;
-  -webkit-transform: translate(-50%,0);
-  -ms-transform: translate(-50%,0);
-  transform: translate(-50%,0);
-  width: 400px;
-}
-
-.emotion-2.ReactModal__Content {
-  opacity: 0;
-  top: 0;
-}
-
-.emotion-2.animated {
-  -webkit-transition: opacity 0.2s ease-out, top 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
-  transition: opacity 0.2s ease-out, top 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
-}
-
-.emotion-2.ReactModal__Content--after-open {
-  top: 80px;
-  opacity: 1;
-}
-
-.emotion-2.ReactModal__Content--before-close {
-  opacity: 0;
-}
-
-.emotion-2 .left-section {
-  -webkit-flex: 0 0 28px;
-  -ms-flex: 0 0 28px;
-  flex: 0 0 28px;
-  padding: 14px;
-}
-
-.emotion-2 .left-section .alert-icon {
-  -webkit-align-items: flex-start;
-  -webkit-box-align: flex-start;
-  -ms-flex-align: flex-start;
-  align-items: flex-start;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-pack: center;
-  -webkit-justify-content: center;
-  -ms-flex-pack: center;
-  justify-content: center;
-}
-
-.emotion-2 .right-section {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex: 1 1 auto;
-  -ms-flex: 1 1 auto;
-  flex: 1 1 auto;
-  -webkit-flex-flow: column nowrap;
-  -ms-flex-flow: column nowrap;
-  flex-flow: column nowrap;
-}
-
-.emotion-2 .right-section .title-row {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  height: initial;
-  -webkit-box-pack: justify;
-  -webkit-justify-content: space-between;
-  -ms-flex-pack: justify;
-  justify-content: space-between;
-  padding: 14px 14px 14px 0;
-}
-
-.emotion-2 .right-section .title-row .title {
-  font-weight: 600;
-}
-
-.emotion-2 .right-section .description {
-  font-size: 14px;
-  font-weight: 300;
-  padding: 0 14px 14px 0;
-}
-
-.emotion-0 {
-  fill: #0066df;
-  cursor: inherit;
-  vertical-align: middle;
-}
-
-.emotion-1 {
-  fill: rgba(48,48,48,0.4);
-  cursor: pointer;
-  vertical-align: text-bottom;
-}
-
 <body
   aria-hidden="true"
   class="ReactModal__Body--open"
@@ -1348,13 +520,13 @@ exports[`Alert should render open state 1`] = `
     class="ReactModalPortal"
   >
     <div
-      class="ReactModal__Overlay ReactModal__Overlay--after-open emotion-3"
+      class="ReactModal__Overlay ReactModal__Overlay--after-open css-nx0pvz-modal-overlay"
     >
       <div
         aria-describedby="alert-description"
         aria-labelledby="alert-title"
         aria-modal="true"
-        class="ReactModal__Content ReactModal__Content--after-open emotion-2 denali-alert denali-alert-info animated"
+        class="ReactModal__Content ReactModal__Content--after-open css-pr8fc2-alert denali-alert denali-alert-info animated"
         role="dialog"
         tabindex="-1"
       >
@@ -1366,7 +538,7 @@ exports[`Alert should render open state 1`] = `
             data-testid="alert-icon"
           >
             <svg
-              class="emotion-0"
+              class="css-1hsntjd"
               data-testid="icon"
               height="28px"
               viewBox="0 0 1024 1024"
@@ -1401,7 +573,7 @@ exports[`Alert should render open state 1`] = `
               class="close-button"
             >
               <svg
-                class="emotion-1"
+                class="css-180out3"
                 data-testid="icon"
                 height="28px"
                 viewBox="0 0 1024 1024"

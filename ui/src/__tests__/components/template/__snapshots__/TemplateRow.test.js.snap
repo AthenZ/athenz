@@ -1,82 +1,20 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TemplateRow should render templateRow 1`] = `
-.emotion-1 {
-  fill: #188fff;
-  cursor: pointer;
-  vertical-align: text-bottom;
-}
-
-.emotion-6 {
-  border: none;
-  border-radius: 2px;
-  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
-  box-sizing: border-box;
-  cursor: pointer;
-  display: inline-block;
-  font-family: Helvetica,Arial,sans-serif;
-  font-weight: 300;
-  font-size: 12px;
-  line-height: 1;
-  margin: 5px;
-  min-width: 70px;
-  outline: 0;
-  padding: 8px 18px;
-  text-align: center;
-  text-shadow: none;
-  text-transform: none;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-  vertical-align: baseline;
-  white-space: nowrap;
-  background: linear-gradient( to right, #3697f2, #3570f4 );
-  color: #fff;
-}
-
-.emotion-6:first-of-type {
-  margin-left: 0;
-}
-
-.emotion-6:disabled {
-  background: rgba(48,48,48,0.1);
-  color: rgba(48,48,48,0.2);
-  cursor: not-allowed;
-}
-
-.emotion-6:hover:not(:disabled) {
-  background: linear-gradient( to right, #3570f4, #3448f7 );
-}
-
-.emotion-0 {
-  background-color: #3570f40D;
-  text-align: left;
-  padding: 5px 0 5px 15px;
-  vertical-align: middle;
-  word-break: break-all;
-}
-
-.emotion-2 {
-  background-color: #3570f40D;
-  text-align: center;
-  padding: 5px 0 5px 15px;
-  vertical-align: middle;
-  word-break: break-all;
-}
-
 <tr
   data-testid="template-row"
 >
   <td
-    class="emotion-0"
+    class="css-18djig3"
     color="#3570f40D"
   />
   <td
-    class="emotion-2"
+    class="css-1s8u38g"
     color="#3570f40D"
   >
     <span>
       <svg
-        class="emotion-1"
+        class="css-u87f64"
         data-testid="icon"
         height="1.25em"
         viewBox="0 0 1024 1024"
@@ -98,27 +36,27 @@ exports[`TemplateRow should render templateRow 1`] = `
     </span>
   </td>
   <td
-    class="emotion-2"
+    class="css-1s8u38g"
     color="#3570f40D"
   >
     0
   </td>
   <td
-    class="emotion-2"
+    class="css-1s8u38g"
     color="#3570f40D"
   >
     1
   </td>
   <td
-    class="emotion-2"
+    class="css-1s8u38g"
     color="#3570f40D"
   />
   <td
-    class="emotion-2"
+    class="css-1s8u38g"
     color="#3570f40D"
   >
     <button
-      class="emotion-6 denali-button"
+      class="css-1n3qdwa-button denali-button"
       type="submit"
     >
       Update
@@ -129,89 +67,22 @@ exports[`TemplateRow should render templateRow 1`] = `
 `;
 
 exports[`TemplateRow should render templaterow with pop up 1`] = `
-.emotion-1 {
-  fill: #188fff;
-  cursor: pointer;
-  vertical-align: text-bottom;
-}
-
-.emotion-6 {
-  border: none;
-  border-radius: 2px;
-  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
-  box-sizing: border-box;
-  cursor: pointer;
-  display: inline-block;
-  font-family: Helvetica,Arial,sans-serif;
-  font-weight: 300;
-  font-size: 12px;
-  line-height: 1;
-  margin: 5px;
-  min-width: 70px;
-  outline: 0;
-  padding: 8px 18px;
-  text-align: center;
-  text-shadow: none;
-  text-transform: none;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-  vertical-align: baseline;
-  white-space: nowrap;
-  background: transparent;
-  box-shadow: 0 0 0 1px #3697f2 inset;
-  color: #3697f2;
-}
-
-.emotion-6:first-of-type {
-  margin-left: 0;
-}
-
-.emotion-6:disabled {
-  background: rgba(48,48,48,0.1);
-  color: rgba(48,48,48,0.2);
-  cursor: not-allowed;
-}
-
-.emotion-6:disabled {
-  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
-}
-
-.emotion-6:hover:not(:disabled) {
-  background: #d7e2fd;
-}
-
-.emotion-0 {
-  background-color: #3570f40D;
-  text-align: left;
-  padding: 5px 0 5px 15px;
-  vertical-align: middle;
-  word-break: break-all;
-}
-
-.emotion-2 {
-  background-color: #3570f40D;
-  text-align: center;
-  padding: 5px 0 5px 15px;
-  vertical-align: middle;
-  word-break: break-all;
-}
-
 <tr
   data-testid="template-row"
 >
   <td
-    class="emotion-0"
+    class="css-18djig3"
     color="#3570f40D"
   >
     aws
   </td>
   <td
-    class="emotion-2"
+    class="css-1s8u38g"
     color="#3570f40D"
   >
     <span>
       <svg
-        class="emotion-1"
+        class="css-u87f64"
         data-testid="icon"
         height="1.25em"
         viewBox="0 0 1024 1024"
@@ -233,27 +104,27 @@ exports[`TemplateRow should render templaterow with pop up 1`] = `
     </span>
   </td>
   <td
-    class="emotion-2"
+    class="css-1s8u38g"
     color="#3570f40D"
   >
     2
   </td>
   <td
-    class="emotion-2"
+    class="css-1s8u38g"
     color="#3570f40D"
   >
     2
   </td>
   <td
-    class="emotion-2"
+    class="css-1s8u38g"
     color="#3570f40D"
   />
   <td
-    class="emotion-2"
+    class="css-1s8u38g"
     color="#3570f40D"
   >
     <button
-      class="emotion-6 denali-button"
+      class="css-q0sfmk-button denali-button"
       type="submit"
     >
       Update
@@ -264,87 +135,20 @@ exports[`TemplateRow should render templaterow with pop up 1`] = `
 `;
 
 exports[`TemplateRow should render with description 1`] = `
-.emotion-1 {
-  fill: #188fff;
-  cursor: pointer;
-  vertical-align: text-bottom;
-}
-
-.emotion-6 {
-  border: none;
-  border-radius: 2px;
-  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
-  box-sizing: border-box;
-  cursor: pointer;
-  display: inline-block;
-  font-family: Helvetica,Arial,sans-serif;
-  font-weight: 300;
-  font-size: 12px;
-  line-height: 1;
-  margin: 5px;
-  min-width: 70px;
-  outline: 0;
-  padding: 8px 18px;
-  text-align: center;
-  text-shadow: none;
-  text-transform: none;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-  vertical-align: baseline;
-  white-space: nowrap;
-  background: transparent;
-  box-shadow: 0 0 0 1px #3697f2 inset;
-  color: #3697f2;
-}
-
-.emotion-6:first-of-type {
-  margin-left: 0;
-}
-
-.emotion-6:disabled {
-  background: rgba(48,48,48,0.1);
-  color: rgba(48,48,48,0.2);
-  cursor: not-allowed;
-}
-
-.emotion-6:disabled {
-  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
-}
-
-.emotion-6:hover:not(:disabled) {
-  background: #d7e2fd;
-}
-
-.emotion-0 {
-  background-color: #3570f40D;
-  text-align: left;
-  padding: 5px 0 5px 15px;
-  vertical-align: middle;
-  word-break: break-all;
-}
-
-.emotion-2 {
-  background-color: #3570f40D;
-  text-align: center;
-  padding: 5px 0 5px 15px;
-  vertical-align: middle;
-  word-break: break-all;
-}
-
 <tr
   data-testid="template-row"
 >
   <td
-    class="emotion-0"
+    class="css-18djig3"
     color="#3570f40D"
   />
   <td
-    class="emotion-2"
+    class="css-1s8u38g"
     color="#3570f40D"
   >
     <span>
       <svg
-        class="emotion-1"
+        class="css-u87f64"
         data-testid="icon"
         height="1.25em"
         viewBox="0 0 1024 1024"
@@ -366,27 +170,27 @@ exports[`TemplateRow should render with description 1`] = `
     </span>
   </td>
   <td
-    class="emotion-2"
+    class="css-1s8u38g"
     color="#3570f40D"
   >
     2
   </td>
   <td
-    class="emotion-2"
+    class="css-1s8u38g"
     color="#3570f40D"
   >
     2
   </td>
   <td
-    class="emotion-2"
+    class="css-1s8u38g"
     color="#3570f40D"
   />
   <td
-    class="emotion-2"
+    class="css-1s8u38g"
     color="#3570f40D"
   >
     <button
-      class="emotion-6 denali-button"
+      class="css-q0sfmk-button denali-button"
       type="submit"
     >
       Update
@@ -397,87 +201,20 @@ exports[`TemplateRow should render with description 1`] = `
 `;
 
 exports[`TemplateRow should render without pop up 1`] = `
-.emotion-1 {
-  fill: #188fff;
-  cursor: pointer;
-  vertical-align: text-bottom;
-}
-
-.emotion-6 {
-  border: none;
-  border-radius: 2px;
-  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
-  box-sizing: border-box;
-  cursor: pointer;
-  display: inline-block;
-  font-family: Helvetica,Arial,sans-serif;
-  font-weight: 300;
-  font-size: 12px;
-  line-height: 1;
-  margin: 5px;
-  min-width: 70px;
-  outline: 0;
-  padding: 8px 18px;
-  text-align: center;
-  text-shadow: none;
-  text-transform: none;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-  vertical-align: baseline;
-  white-space: nowrap;
-  background: transparent;
-  box-shadow: 0 0 0 1px #3697f2 inset;
-  color: #3697f2;
-}
-
-.emotion-6:first-of-type {
-  margin-left: 0;
-}
-
-.emotion-6:disabled {
-  background: rgba(48,48,48,0.1);
-  color: rgba(48,48,48,0.2);
-  cursor: not-allowed;
-}
-
-.emotion-6:disabled {
-  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
-}
-
-.emotion-6:hover:not(:disabled) {
-  background: #d7e2fd;
-}
-
-.emotion-0 {
-  background-color: #3570f40D;
-  text-align: left;
-  padding: 5px 0 5px 15px;
-  vertical-align: middle;
-  word-break: break-all;
-}
-
-.emotion-2 {
-  background-color: #3570f40D;
-  text-align: center;
-  padding: 5px 0 5px 15px;
-  vertical-align: middle;
-  word-break: break-all;
-}
-
 <tr
   data-testid="template-row"
 >
   <td
-    class="emotion-0"
+    class="css-18djig3"
     color="#3570f40D"
   />
   <td
-    class="emotion-2"
+    class="css-1s8u38g"
     color="#3570f40D"
   >
     <span>
       <svg
-        class="emotion-1"
+        class="css-u87f64"
         data-testid="icon"
         height="1.25em"
         viewBox="0 0 1024 1024"
@@ -499,27 +236,27 @@ exports[`TemplateRow should render without pop up 1`] = `
     </span>
   </td>
   <td
-    class="emotion-2"
+    class="css-1s8u38g"
     color="#3570f40D"
   >
     2
   </td>
   <td
-    class="emotion-2"
+    class="css-1s8u38g"
     color="#3570f40D"
   >
     2
   </td>
   <td
-    class="emotion-2"
+    class="css-1s8u38g"
     color="#3570f40D"
   />
   <td
-    class="emotion-2"
+    class="css-1s8u38g"
     color="#3570f40D"
   >
     <button
-      class="emotion-6 denali-button"
+      class="css-q0sfmk-button denali-button"
       type="submit"
     >
       Update

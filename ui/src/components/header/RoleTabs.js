@@ -51,7 +51,7 @@ export default class RoleTabs extends React.Component {
             case 'members':
                 this.props.api
                     .getStatus()
-                    .then(function() {
+                    .then(function () {
                         Router.pushRoute('members', {
                             domain: domain,
                             role: role,
@@ -66,7 +66,7 @@ export default class RoleTabs extends React.Component {
             case 'review':
                 this.props.api
                     .getStatus()
-                    .then(function() {
+                    .then(function () {
                         Router.pushRoute('review', {
                             domain: domain,
                             role: role,
@@ -81,7 +81,7 @@ export default class RoleTabs extends React.Component {
             case 'policies':
                 this.props.api
                     .getStatus()
-                    .then(function() {
+                    .then(function () {
                         Router.pushRoute('role-policy', {
                             domain: domain,
                             role: role,
@@ -96,7 +96,7 @@ export default class RoleTabs extends React.Component {
             case 'settings':
                 this.props.api
                     .getStatus()
-                    .then(function() {
+                    .then(function () {
                         Router.pushRoute('settings', {
                             domain: domain,
                             role: role,
@@ -111,7 +111,7 @@ export default class RoleTabs extends React.Component {
             case 'history':
                 this.props.api
                     .getStatus()
-                    .then(function() {
+                    .then(function () {
                         Router.pushRoute('role-history', {
                             domain: domain,
                             role: role,

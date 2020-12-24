@@ -20,36 +20,44 @@ const cookieSession = require('cookie-session');
 const csrf = require('csurf');
 const multer = require('multer');
 
-module.exports = function(expressApp, config, secrets) {
+module.exports = function (expressApp, config, secrets) {
     expressApp.use((req, res, next) => {
         const scriptSrc = [`'self'`];
+        const styleSrc = [`'self'`];
         // locally allow 'unsafe-inline', so HMR doesn't trigger the CSP
         if (config.env === 'local') {
             scriptSrc.push(`'unsafe-inline'`);
             scriptSrc.push(`'unsafe-eval'`);
+
+            styleSrc.push(`'unsafe-inline'`);
+            styleSrc.push(`'unsafe-eval'`);
         } else {
             scriptSrc.push(`'nonce-${req.headers.rid}'`);
+            styleSrc.push(`'nonce-${req.headers.rid}'`);
         }
         let cspOptions = {
-            contentSecurityPolicy: {
-                directives: {
-                    baseUri: [`'none'`],
-                    imgSrc: [`'self'`],
-                    // next.js sets up style-src for us
-                    scriptSrc,
-                },
+            directives: {
+                defaultSrc: [`'self'`],
+                baseUri: [`'none'`],
+                imgSrc: [`'self'`],
+                styleSrc,
+                scriptSrc,
             },
         };
+        //adding connectSrc only for local
+        if (config.env === 'local') {
+            const connectSrc = [`'self'`];
+            // to be used by local ZMS for ntoken based auth
+            connectSrc.push(`https://localhost:4443`);
+            cspOptions.directives.connectSrc = connectSrc;
+        }
         if (config.cspImgSrc && config.cspImgSrc !== '') {
-            cspOptions.contentSecurityPolicy.directives.imgSrc.push(
-                config.cspImgSrc
-            );
+            cspOptions.directives.imgSrc.push(config.cspImgSrc);
         }
         if (config.cspReportUri && config.cspReportUri !== '') {
-            cspOptions.contentSecurityPolicy.directives.reportUri =
-                config.cspReportUri;
+            cspOptions.directives.reportUri = config.cspReportUri;
         }
-        helmet(cspOptions)(req, res, next);
+        helmet.contentSecurityPolicy(cspOptions)(req, res, next);
     });
 
     // helmet disables the X-Powered-By response header, but next.js adds it again
@@ -76,7 +84,7 @@ module.exports = function(expressApp, config, secrets) {
 
     expressApp.use(csrf());
 
-    expressApp.use(function(err, req, res, next) {
+    expressApp.use(function (err, req, res, next) {
         if (err.code !== 'EBADCSRFTOKEN') {
             return next(err);
         }

@@ -25,7 +25,7 @@ import { cssDropShadow } from './styles/drop-shadow';
 import { colors } from './styles/colors';
 import { cssFontStyles, cssFontWeights } from './styles/fonts';
 import { cssLink } from './styles/link';
-import { css, cx, keyframes } from 'emotion';
+import { css, cx, keyframes } from '@emotion/css';
 import { rgba } from 'polished';
 
 const DEBOUNCE_MS = 300;

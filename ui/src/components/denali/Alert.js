@@ -23,7 +23,7 @@ import {
     cssFontStyles,
     cssFontWeights,
 } from '../denali/styles';
-import { css, cx } from 'emotion';
+import { css, cx } from '@emotion/css';
 import { rgba } from 'polished';
 
 const TYPE_COLOR_MAP = {

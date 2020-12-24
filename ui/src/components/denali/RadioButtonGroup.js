@@ -23,7 +23,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import RadioButton from './RadioButton';
-import { css, cx } from 'emotion';
+import { css, cx } from '@emotion/css';
 
 const makeCssRadioButtonGroup = (props) => css`
     display: inline-flex;

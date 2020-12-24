@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-module.exports = function(
+module.exports = function (
     req,
     resource,
     params,
@@ -34,7 +34,7 @@ module.exports = function(
         epoch: 'epoch timestamp',
         why: 'justification',
     });
-    history.sort(function(a, b) {
+    history.sort(function (a, b) {
         return b.epoch - a.epoch;
     });
     return callback(null, history);
