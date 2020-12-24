@@ -1,60 +1,38 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`MemberRow should render 1`] = `
-.emotion-4 {
-  fill: #188fff;
-  cursor: pointer;
-  vertical-align: text-bottom;
-}
-
-.emotion-0 {
-  background-color: #3570f40D;
-  text-align: left;
-  padding: 5px 0 5px 15px;
-  vertical-align: middle;
-  word-break: break-all;
-}
-
-.emotion-5 {
-  background-color: #3570f40D;
-  text-align: center;
-  padding: 5px 0 5px 15px;
-  vertical-align: middle;
-  word-break: break-all;
-}
-
 <tr
   data-testid="member-row"
 >
   <td
-    class="emotion-0"
+    class="css-18djig3"
     color="#3570f40D"
   >
     user.member
   </td>
   <td
-    class="emotion-0"
+    class="css-18djig3"
     color="#3570f40D"
   />
   <td
-    class="emotion-0"
+    class="css-18djig3"
     color="#3570f40D"
   >
     N/A
   </td>
   <td
-    class="emotion-0"
+    class="css-18djig3"
     color="#3570f40D"
   >
     N/A
   </td>
   <td
-    class="emotion-5"
+    class="css-1s8u38g"
     color="#3570f40D"
   >
     <span>
       <svg
-        class="emotion-4"
+        class="css-u87f64"
         data-testid="icon"
         height="1.25em"
         viewBox="0 0 1024 1024"

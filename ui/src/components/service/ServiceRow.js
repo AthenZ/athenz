@@ -21,7 +21,7 @@ import PublicKeyTable from '../service/PublicKeyTable';
 import ProviderTable from '../service/ProviderTable';
 import DateUtils from '../utils/DateUtils';
 import RequestUtils from '../utils/RequestUtils';
-import { keyframes, css } from '@emotion/core';
+import { keyframes, css } from '@emotion/react';
 
 const TdStyled = styled.td`
     background-color: ${(props) => props.color};

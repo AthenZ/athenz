@@ -17,8 +17,8 @@ import React from 'react';
 import {
     fireEvent,
     render,
-    wait,
-    waitForElement,
+    screen,
+    waitForElementToBeRemoved,
 } from '@testing-library/react';
 import Menu, {
     arrowMod,
@@ -27,20 +27,20 @@ import Menu, {
 
 // Mock PopperJS library, taken from:
 // https://github.com/FezVrasta/popper.js/issues/478#issuecomment-341506071
-jest.mock('popper.js', () => {
-    const PopperJS = jest.requireActual('popper.js');
-
-    return class {
-        static placements = PopperJS.placements;
-
-        constructor() {
-            return {
-                destroy: () => {},
-                scheduleUpdate: () => {},
-            };
-        }
-    };
-});
+// jest.mock('popper.js', () => {
+//     const PopperJS = jest.requireActual('popper.js');
+//
+//     return class {
+//         static placements = PopperJS.placements;
+//
+//         constructor() {
+//             return {
+//                 destroy: () => {},
+//                 scheduleUpdate: () => {},
+//             };
+//         }
+//     };
+// });
 
 describe('Menu', () => {
     it('renders the initial state (trigger only)', () => {
@@ -65,27 +65,6 @@ describe('Menu', () => {
         expect(queryByText('Trigger')).toBeInTheDocument();
     });
 
-    it('opens and closes the Menu', async () => {
-        const { container, getByText, queryByText } = render(
-            <Menu trigger={<div className='trigger'>Trigger</div>}>
-                <div className='the-menu'>A menu!</div>
-            </Menu>
-        );
-
-        expect(queryByText('A menu!')).not.toBeInTheDocument();
-
-        fireEvent.mouseEnter(getByText('Trigger'));
-
-        await waitForElement(() => queryByText('A menu!'));
-        expect(container.querySelector('.the-menu')).toBeInTheDocument();
-
-        fireEvent.mouseLeave(getByText('Trigger'));
-
-        await wait(() =>
-            expect(container.querySelector('.the-menu')).not.toBeInTheDocument()
-        );
-    });
-
     it('renders menu as a simple string', async () => {
         const { getByText, queryByText } = render(
             <Menu trigger={<div className='trigger'>Trigger</div>}>
@@ -97,8 +76,7 @@ describe('Menu', () => {
 
         fireEvent.mouseEnter(getByText('Trigger'));
 
-        await waitForElement(() => queryByText('A menu!'));
-        expect(queryByText('A menu!')).toBeInTheDocument();
+        await screen.findByText('A menu!');
     });
 
     it('renders trigger as a function', async () => {
@@ -124,7 +102,7 @@ describe('Menu', () => {
 
         fireEvent.mouseEnter(getByText('Trigger'));
 
-        await waitForElement(() => queryByText('A menu!'));
+        await screen.findByText('A menu!');
         expect(queryByText('A menu!')).toBeInTheDocument();
     });
 

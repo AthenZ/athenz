@@ -1,1082 +1,39 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`SettingPage should render 1`] = `
-.emotion-11 {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  background: #002339;
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  box-sizing: border-box;
-  color: #fff;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex: 0 0 60px;
-  -ms-flex: 0 0 60px;
-  flex: 0 0 60px;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  height: 60px;
-  -webkit-box-pack: start;
-  -webkit-justify-content: flex-start;
-  -ms-flex-pack: start;
-  justify-content: flex-start;
-  left: 0;
-  padding: 0 24px;
-  position: static;
-  right: 0;
-  top: 0;
-  z-index: 2;
-}
-
-.emotion-11.scrolled {
-  box-shadow: 0px 4px 8px rgba(0,0,0,0.16);
-}
-
-.emotion-11 .flush-right {
-  margin-left: auto;
-}
-
-.emotion-1 {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  box-sizing: border-box;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  height: 60px;
-  position: relative;
-}
-
-.emotion-1.simple {
-  color: #fff;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 16px;
-  padding: 0 12px;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-}
-
-.emotion-1.simple.nav-link {
-  cursor: pointer;
-}
-
-.emotion-1.simple.nav-link:hover {
-  color: rgba(255,255,255,0.75);
-}
-
-.emotion-1.simple.active {
-  box-shadow: inset 0 -4px 0 #3697f2;
-}
-
-.emotion-1.simple.nav-link.active:hover {
-  box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
-}
-
-.emotion-1 .nav-title {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  color: #fff;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 16px;
-  height: 100%;
-  padding: 0 12px;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-}
-
-.emotion-1.nav-link .nav-title {
-  cursor: pointer;
-}
-
-.emotion-1.active .nav-title,
-.emotion-1 .active.nav-title {
-  box-shadow: inset 0 -4px 0 #3697f2;
-}
-
-.emotion-1 .nav-title:hover {
-  color: rgba(255,255,255,0.75);
-}
-
-.emotion-1.nav-link.active .nav-title:hover,
-.emotion-1.nav-link .active.nav-title:hover {
-  box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
-}
-
-.emotion-1 img.nav-logo {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  height: 34px;
-}
-
-.emotion-1 .nav-icon,
-.emotion-1:hover .nav-icon {
-  width: 24px;
-  height: 24px;
-}
-
-.emotion-1 .nav-icon path,
-.emotion-1:hover .nav-icon path,
-.emotion-1 .nav-icon ellipse,
-.emotion-1:hover .nav-icon ellipse,
-.emotion-1 .nav-icon rect,
-.emotion-1:hover .nav-icon rect,
-.emotion-1 .nav-icon circle,
-.emotion-1:hover .nav-icon circle {
-  fill: #fff;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-}
-
-.emotion-1.nav-link:hover .nav-icon path,
-.emotion-1.nav-link:hover .nav-icon ellipse,
-.emotion-1.nav-link:hover .nav-icon rect,
-.emotion-1.nav-link:hover .nav-icon circle {
-  fill: rgba(255,255,255,0.75);
-}
-
-.emotion-4 {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  box-sizing: border-box;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  height: 60px;
-  position: relative;
-  width: 100%;
-}
-
-.emotion-4.simple {
-  color: #fff;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 16px;
-  padding: 0 12px;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-}
-
-.emotion-4.simple.nav-link {
-  cursor: pointer;
-}
-
-.emotion-4.simple.nav-link:hover {
-  color: rgba(255,255,255,0.75);
-}
-
-.emotion-4.simple.active {
-  box-shadow: inset 0 -4px 0 #3697f2;
-}
-
-.emotion-4.simple.nav-link.active:hover {
-  box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
-}
-
-.emotion-4 .nav-title {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  color: #fff;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 16px;
-  height: 100%;
-  padding: 0 12px;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-}
-
-.emotion-4.nav-link .nav-title {
-  cursor: pointer;
-}
-
-.emotion-4.active .nav-title,
-.emotion-4 .active.nav-title {
-  box-shadow: inset 0 -4px 0 #3697f2;
-}
-
-.emotion-4 .nav-title:hover {
-  color: rgba(255,255,255,0.75);
-}
-
-.emotion-4.nav-link.active .nav-title:hover,
-.emotion-4.nav-link .active.nav-title:hover {
-  box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
-}
-
-.emotion-4 img.nav-logo {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  height: 34px;
-}
-
-.emotion-4 .nav-icon,
-.emotion-4:hover .nav-icon {
-  width: 24px;
-  height: 24px;
-}
-
-.emotion-4 .nav-icon path,
-.emotion-4:hover .nav-icon path,
-.emotion-4 .nav-icon ellipse,
-.emotion-4:hover .nav-icon ellipse,
-.emotion-4 .nav-icon rect,
-.emotion-4:hover .nav-icon rect,
-.emotion-4 .nav-icon circle,
-.emotion-4:hover .nav-icon circle {
-  fill: #fff;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-}
-
-.emotion-4.nav-link:hover .nav-icon path,
-.emotion-4.nav-link:hover .nav-icon ellipse,
-.emotion-4.nav-link:hover .nav-icon rect,
-.emotion-4.nav-link:hover .nav-icon circle {
-  fill: rgba(255,255,255,0.75);
-}
-
-.emotion-41 {
-  box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  position: relative;
-  width: 100%;
-}
-
-.emotion-41 input {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  background: rgba(53,112,244,0.05);
-  border-top: 2px solid transparent;
-  border-bottom: 2px solid transparent;
-  border-right: transparent;
-  border-left: transparent;
-  border-radius: 2px;
-  box-shadow: none;
-  box-sizing: border-box;
-  color: #303030;
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-  font: inherit;
-  height: 36px;
-  margin: 0;
-  outline: none;
-  padding: 0 1rem;
-  text-align: left;
-  width: 100%;
-}
-
-.emotion-41.animated input {
-  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
-  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
-}
-
-.emotion-41 input::-webkit-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-41 input::-moz-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-41 input:-ms-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-41 input::placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-41 input.focused,
-.emotion-41 input:active,
-.emotion-41 input:focus {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #3570f4;
-  color: #303030;
-}
-
-.emotion-41 input:invalid {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #d01111;
-  color: #303030;
-}
-
-.emotion-41 .message {
-  font-size: 12px;
-  left: 0;
-  line-height: 1.8;
-  position: absolute;
-  top: 2.571rem;
-}
-
-.emotion-41.error input,
-.emotion-41.error input.focused,
-.emotion-41.error input:active,
-.emotion-41.error input:focus {
-  border-bottom: 2px solid #d01111;
-}
-
-.emotion-41.error .message {
-  color: #d01111;
-}
-
-.emotion-3 {
-  box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  position: relative;
-  width: 100%;
-}
-
-.emotion-3 input {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  background: rgba(53,112,244,0.05);
-  border-top: 2px solid transparent;
-  border-bottom: 2px solid transparent;
-  border-right: transparent;
-  border-left: transparent;
-  border-radius: 2px;
-  box-shadow: none;
-  box-sizing: border-box;
-  color: #303030;
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-  font: inherit;
-  height: 36px;
-  margin: 0;
-  outline: none;
-  padding: 0 1rem;
-  text-align: left;
-  width: 100%;
-}
-
-.emotion-3.animated input {
-  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
-  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
-}
-
-.emotion-3 input::-webkit-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-3 input::-moz-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-3 input:-ms-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-3 input::placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-3 input.focused,
-.emotion-3 input:active,
-.emotion-3 input:focus {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #3570f4;
-  color: #303030;
-}
-
-.emotion-3 input:invalid {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #d01111;
-  color: #303030;
-}
-
-.emotion-3 .message {
-  font-size: 12px;
-  left: 0;
-  line-height: 1.8;
-  position: absolute;
-  top: 2.571rem;
-}
-
-.emotion-3.error input,
-.emotion-3.error input.focused,
-.emotion-3.error input:active,
-.emotion-3.error input:focus {
-  border-bottom: 2px solid #d01111;
-}
-
-.emotion-3.error .message {
-  color: #d01111;
-}
-
-.emotion-3 input {
-  background: rgba(242,242,242,0.1);
-  color: #fff;
-}
-
-.emotion-3 input::-webkit-input-placeholder {
-  color: rgba(255,255,255,0.6);
-}
-
-.emotion-3 input::-moz-placeholder {
-  color: rgba(255,255,255,0.6);
-}
-
-.emotion-3 input:-ms-input-placeholder {
-  color: rgba(255,255,255,0.6);
-}
-
-.emotion-3 input::placeholder {
-  color: rgba(255,255,255,0.6);
-}
-
-.emotion-3 input.focused,
-.emotion-3 input:active,
-.emotion-3 input:focus {
-  background: rgba(242,242,242,0.1);
-  border-bottom: 2px solid #3570f4;
-  color: #fff;
-}
-
-.emotion-3 input {
-  padding-right: 36px;
-}
-
-.emotion-3 .input-icon {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  height: 36px;
-  position: absolute;
-  right: 6px;
-}
-
-.emotion-2 {
-  fill: #3570f4;
-  cursor: inherit;
-  vertical-align: text-bottom;
-}
-
-.emotion-6 {
-  fill: #fff;
-  cursor: pointer;
-  vertical-align: text-bottom;
-}
-
-.emotion-28 {
-  -webkit-align-items: stretch;
-  -webkit-box-align: stretch;
-  -ms-flex-align: stretch;
-  align-items: stretch;
-  background: #f5f8fe;
-  border-radius: 2px;
-  box-sizing: border-box;
-  display: inline-grid;
-  grid-template-columns: repeat(5,1fr);
-  margin-top: 0;
-  min-width: 80px;
-  position: relative;
-}
-
-.emotion-28.vertical {
-  background: #f5f8fe;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-direction: column;
-  -ms-flex-direction: column;
-  flex-direction: column;
-  height: 100%;
-  min-width: 300px;
-  overflow-y: scroll;
-  padding: 12px 0px 40px 0px;
-  width: 300px;
-}
-
-.emotion-23 {
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  background: #f5f8fe;
-  color: #3697f2;
-  cursor: pointer;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-pack: center;
-  -webkit-justify-content: center;
-  -ms-flex-pack: center;
-  justify-content: center;
-  padding: 8px 20px;
-  white-space: nowrap;
-  z-index: 1;
-}
-
-.emotion-23:hover {
-  color: #3570f4;
-}
-
-.emotion-23.active {
-  background: #fff;
-  border-top-left-radius: 2px;
-  border-top-right-radius: 2px;
-  color: #303030;
-  cursor: initial;
-}
-
-.emotion-23.active:hover {
-  color: #303030;
-}
-
-.emotion-23.vertical {
-  background: #f5f8fe;
-  border-left: solid 4px #f5f8fe;
-  height: 24px;
-  -webkit-box-pack: start;
-  -webkit-justify-content: flex-start;
-  -ms-flex-pack: start;
-  justify-content: flex-start;
-  padding: 12px 0px 12px 26px;
-  text-align: left;
-}
-
-.emotion-23.vertical.active {
-  background: #fff;
-  border-left: solid 4px #3697f2;
-  color: #303030;
-}
-
-.emotion-23.vertical.active:hover {
-  color: #303030;
-}
-
-.emotion-31 {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  height: 18px;
-  outline: 0;
-  position: relative;
-}
-
-.emotion-31 > input[type='checkbox'] {
-  box-sizing: border-box;
-  cursor: pointer;
-  position: absolute;
-  top: 0;
-  visibility: hidden;
-}
-
-.emotion-31 > input[type='checkbox'] + label {
-  box-sizing: border-box;
-  cursor: pointer;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  height: 18px;
-  line-height: 18px;
-  white-space: nowrap;
-}
-
-.emotion-31 > input[type='checkbox'] + label .label-content {
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  margin-left: 6px;
-}
-
-@-moz-document url-prefix()  {
-  .emotion-31 > input[type='checkbox'] + label .label-content {
-    margin-top: 1px;
-  }
-}
-
-.emotion-31 > input[type='checkbox'] + label:before {
-  background: #d5d5d5;
-  border-radius: 9px;
-  box-sizing: border-box;
-  content: '';
-  cursor: pointer;
-  display: inline-block;
-  height: 4px;
-  line-height: 16px;
-  margin: 7px 0 0 0;
-  -webkit-transition: all 0.25s;
-  transition: all 0.25s;
-  vertical-align: top;
-  width: 34px;
-}
-
-.emotion-31 > input[type='checkbox'] + label::after {
-  background-color: #fff;
-  border: 2px solid rgba(54,151,242,0.5);
-  border-radius: 50%;
-  box-sizing: border-box;
-  content: ' ';
-  cursor: pointer;
-  display: block;
-  height: 18px;
-  left: 0;
-  position: absolute;
-  -webkit-transition: all 0.25s ease;
-  transition: all 0.25s ease;
-  top: 0;
-  width: 18px;
-}
-
-.emotion-31 > input[type='checkbox']:checked + label::before {
-  background-color: rgba(21,192,70,0.45);
-}
-
-.emotion-31 > input[type='checkbox']:checked + label::after {
-  background-color: #15c046;
-  border-color: #15c046;
-  left: 16px;
-}
-
-.emotion-31 > input[type='checkbox']:disabled + label {
-  color: #9a9a9a;
-  cursor: not-allowed;
-}
-
-.emotion-31 > input[type='checkbox']:disabled + label::before {
-  background-color: #e8e8e8;
-  cursor: not-allowed;
-}
-
-.emotion-31 > input[type='checkbox']:disabled + label::after {
-  border-color: #d5d5d5;
-  cursor: not-allowed;
-}
-
-.emotion-31 > input[type='checkbox']:checked:disabled + label::after {
-  background: #d5d5d5;
-}
-
-.emotion-68 {
-  border: none;
-  border-radius: 2px;
-  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
-  box-sizing: border-box;
-  cursor: pointer;
-  display: inline-block;
-  font-family: Helvetica,Arial,sans-serif;
-  font-weight: 300;
-  font-size: 14px;
-  line-height: 1;
-  margin: 5px;
-  outline: 0;
-  padding: 10px 24px;
-  text-align: center;
-  text-shadow: none;
-  text-transform: none;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-  vertical-align: baseline;
-  white-space: nowrap;
-  background: transparent;
-  box-shadow: 0 0 0 1px #3697f2 inset;
-  color: #3697f2;
-}
-
-.emotion-68:first-of-type {
-  margin-left: 0;
-}
-
-.emotion-68:disabled {
-  background: rgba(48,48,48,0.1);
-  color: rgba(48,48,48,0.2);
-  cursor: not-allowed;
-}
-
-.emotion-68:disabled {
-  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
-}
-
-.emotion-68:hover:not(:disabled) {
-  background: #d7e2fd;
-}
-
-.emotion-75 {
-  fill: #303030;
-  cursor: inherit;
-  vertical-align: text-bottom;
-}
-
-.emotion-82 {
-  fill: #303030;
-  cursor: inherit;
-  vertical-align: baseline;
-}
-
-.emotion-12 {
-  height: 60px;
-  position: relative;
-}
-
-.emotion-0 {
-  height: 36px;
-  cursor: pointer;
-}
-
-.emotion-5 {
-  margin-left: 10%;
-  width: 50%;
-}
-
-.emotion-9 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-}
-
-.emotion-8 {
-  margin-left: 15px;
-}
-
-.emotion-93 {
-  -webkit-flex: 1 1 calc(100vh - 60px);
-  -ms-flex: 1 1 calc(100vh - 60px);
-  flex: 1 1 calc(100vh - 60px);
-  overflow: hidden;
-  font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
-}
-
-.emotion-92 {
-  -webkit-align-items: stretch;
-  -webkit-box-align: stretch;
-  -ms-flex-align: stretch;
-  align-items: stretch;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  height: 100%;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-pack: start;
-  -webkit-justify-content: flex-start;
-  -ms-flex-pack: start;
-  justify-content: flex-start;
-}
-
-.emotion-74 {
-  -webkit-align-items: stretch;
-  -webkit-box-align: stretch;
-  -ms-flex-align: stretch;
-  align-items: stretch;
-  -webkit-flex: 1 1;
-  -ms-flex: 1 1;
-  flex: 1 1;
-  height: calc(100vh - 60px);
-  overflow: auto;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-direction: column;
-  -ms-flex-direction: column;
-  flex-direction: column;
-}
-
-.emotion-29 {
-  background: linear-gradient(to top,#f2f2f2,#fff);
-  padding: 20px 30px 0;
-}
-
-.emotion-14 {
-  font: 600 20px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
-  margin-bottom: 10px;
-}
-
-.emotion-13 {
-  color: #3570f4;
-  -webkit-text-decoration: none;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.emotion-22 {
-  margin: 20px 0;
-}
-
-.emotion-21 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-}
-
-.emotion-17 {
-  padding-right: 50px;
-}
-
-.emotion-15 {
-  font-weight: 600;
-}
-
-.emotion-16 {
-  color: #9a9a9a;
-  font-size: 12px;
-  text-transform: uppercase;
-}
-
-.emotion-72 {
-  margin: 20px;
-}
-
-.emotion-71 {
-  width: 100%;
-  border-spacing: 0 20px;
-  display: table;
-  border-collapse: separate;
-  border-color: grey;
-}
-
-.emotion-34 {
-  box-sizing: border-box;
-  margin-top: 10px;
-  box-shadow: 0 1px 4px #d9d9d9;
-  border: 1px solid #fff;
-  -webkit-border-image: none;
-  border-image: none;
-  -webkit-border-image: initial;
-  border-image: initial;
-  height: 50px;
-}
-
-.emotion-30 {
-  text-align: left;
-  padding: 5px 0 5px 15px;
-  vertical-align: middle;
-  word-break: break-all;
-}
-
-.emotion-42 {
-  margin-top: 5px;
-}
-
-.emotion-70 {
-  padding-bottom: 20px;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-pack: justify;
-  -webkit-justify-content: space-between;
-  -ms-flex-pack: justify;
-  justify-content: space-between;
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-}
-
-.emotion-76 {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  background-color: #fff;
-  border-bottom: 1px solid #d5d5d5;
-  border-left: 1px solid #d5d5d5;
-  border-top: 1px solid #d5d5d5;
-  cursor: pointer;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  height: 20px;
-  -webkit-box-pack: center;
-  -webkit-justify-content: center;
-  -ms-flex-pack: center;
-  justify-content: center;
-  margin-left: -21px;
-  margin-top: 20px;
-  position: absolute;
-  text-align: center;
-  width: 20px;
-}
-
-.emotion-91 {
-  margin-right: 0;
-  border-left: 1px solid #d5d5d5;
-  -webkit-flex: 0 0 350px;
-  -ms-flex: 0 0 350px;
-  flex: 0 0 350px;
-  height: calc(100vh - 60px);
-  overflow: auto;
-  -webkit-transition: margin 0.4s ease-in-out;
-  transition: margin 0.4s ease-in-out;
-  display: block;
-  min-width: 350px;
-  width: 350px;
-}
-
-.emotion-81 {
-  -webkit-align-items: baseline;
-  -webkit-box-align: baseline;
-  -ms-flex-align: baseline;
-  align-items: baseline;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  -webkit-box-pack: justify;
-  -webkit-justify-content: space-between;
-  -ms-flex-pack: justify;
-  justify-content: space-between;
-  padding: 20px 30px 20px 15px;
-}
-
-.emotion-77 {
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.emotion-78 {
-  color: #3570f4;
-  -webkit-text-decoration: none;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.emotion-79 {
-  padding: 0 5px;
-  color: #d5d5d5;
-}
-
-.emotion-90 {
-  padding: 0 30px 0 15px;
-}
-
-.emotion-85 {
-  padding: 10px 0;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-}
-
-.emotion-83 {
-  font-size: 1.25em;
-  margin-right: 5px;
-}
-
 <div
   data-testid="setting"
 >
   <div
-    class="emotion-12"
+    class="css-u4qfx7"
     data-testid="header"
   >
     <div
-      class="emotion-11 denali-navbar"
+      class="css-194a6h5-navbar denali-navbar"
       data-testid="navbar"
     >
       <div
-        class="emotion-1 simple denali-navbar-item"
+        class="css-u5g9s-navbar-item simple denali-navbar-item"
         data-testid="navbar-item"
       >
         <a
           href="/"
         >
           <img
-            class="emotion-0"
+            class="css-1bb71e6"
             src="/static/athenz-logo-full.png"
           />
         </a>
       </div>
       <div
-        class="emotion-5"
+        class="css-1e128ow"
       >
         <div
-          class="emotion-4 simple denali-navbar-item"
+          class="css-1cyyi4u-navbar-item simple denali-navbar-item"
           data-testid="navbar-item"
         >
           <div
-            class="emotion-3 denali-input animated"
+            class="css-k4z0rl-input denali-input animated"
             data-testid="input-wrapper"
           >
             <input
@@ -1090,7 +47,7 @@ exports[`SettingPage should render 1`] = `
               class="input-icon"
             >
               <svg
-                class="emotion-2"
+                class="css-18jx5cr"
                 data-testid="icon"
                 height="24px"
                 viewBox="0 0 1024 1024"
@@ -1112,15 +69,15 @@ exports[`SettingPage should render 1`] = `
         </div>
       </div>
       <div
-        class="emotion-1 simple flush-right denali-navbar-item"
+        class="css-u5g9s-navbar-item simple flush-right denali-navbar-item"
         data-testid="navbar-item"
       >
         <div
-          class="emotion-9"
+          class="css-1mzzuk6"
           data-testid="header-menu"
         >
           <svg
-            class="emotion-6"
+            class="css-hjh1m6"
             data-testid="icon"
             height="25px"
             viewBox="0 0 1024 1024"
@@ -1134,10 +91,10 @@ exports[`SettingPage should render 1`] = `
             />
           </svg>
           <div
-            class="emotion-8"
+            class="css-11kem00"
           >
             <svg
-              class="emotion-6"
+              class="css-hjh1m6"
               data-testid="icon"
               height="25px"
               viewBox="0 0 1024 1024"
@@ -1162,28 +119,28 @@ exports[`SettingPage should render 1`] = `
     </div>
   </div>
   <div
-    class="emotion-93"
+    class="css-hs9ulc"
   >
     <div
-      class="emotion-92"
+      class="css-hq6zta"
     >
       <div
-        class="emotion-74"
+        class="css-r6ve5m"
       >
         <div
-          class="emotion-73"
+          class="css-0"
         >
           <div
-            class="emotion-29"
+            class="css-mqabsk"
           >
             <div
-              class="emotion-14"
+              class="css-btnvty"
               data-testid="role-name-header"
             >
               
               
               <a
-                class="emotion-13"
+                class="css-4c0528"
               >
                 dom
                  
@@ -1192,36 +149,36 @@ exports[`SettingPage should render 1`] = `
               roleName
             </div>
             <div
-              class="emotion-22"
+              class="css-18icqaw"
               data-testid="role-details"
             >
               <div
-                class="emotion-21"
+                class="css-16ehm7c"
               >
                 <div
-                  class="emotion-17"
+                  class="css-1fla85d"
                 >
                   <div
-                    class="emotion-15"
+                    class="css-rxg59x"
                   >
                     2020-02-12 21:44 UTC
                   </div>
                   <div
-                    class="emotion-16"
+                    class="css-19d5ki7"
                   >
                     MODIFIED DATE
                   </div>
                 </div>
                 <div
-                  class="emotion-17"
+                  class="css-1fla85d"
                 >
                   <div
-                    class="emotion-15"
+                    class="css-rxg59x"
                   >
                     N/A
                   </div>
                   <div
-                    class="emotion-16"
+                    class="css-19d5ki7"
                   >
                     REVIEWED DATE
                   </div>
@@ -1229,35 +186,35 @@ exports[`SettingPage should render 1`] = `
               </div>
             </div>
             <div
-              class="emotion-28 denali-tab-group"
+              class="css-zxa2dy-tab-group denali-tab-group"
               data-testid="tabgroup"
             >
               <div
-                class="emotion-23 denali-tab"
+                class="css-6swi8d-tab-group-tab denali-tab"
                 data-active="false"
               >
                 Members
               </div>
               <div
-                class="emotion-23 denali-tab"
+                class="css-6swi8d-tab-group-tab denali-tab"
                 data-active="false"
               >
                 Review
               </div>
               <div
-                class="emotion-23 denali-tab"
+                class="css-6swi8d-tab-group-tab denali-tab"
                 data-active="false"
               >
                 Policy Rules
               </div>
               <div
-                class="emotion-23 denali-tab active"
+                class="css-6swi8d-tab-group-tab denali-tab active"
                 data-active="true"
               >
                 Settings
               </div>
               <div
-                class="emotion-23 denali-tab"
+                class="css-6swi8d-tab-group-tab denali-tab"
                 data-active="false"
               >
                 History
@@ -1265,27 +222,27 @@ exports[`SettingPage should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-72"
+            class="css-oqpjdc"
             data-testid="setting-list"
           >
             <table
-              class="emotion-71"
+              class="css-1j9d9ir"
               data-testid="setting-table"
             >
               <tr
-                class="emotion-34"
+                class="css-37yie"
                 data-testid="setting-row"
               >
                 <td
-                  class="emotion-30"
+                  class="css-1vs2r4p"
                 >
                   Review
                 </td>
                 <td
-                  class="emotion-30"
+                  class="css-1vs2r4p"
                 >
                   <div
-                    class="emotion-31 denali-switch"
+                    class="css-v3lvlk-switch denali-switch"
                     data-testid="switch-wrapper"
                   >
                     <input
@@ -1300,25 +257,25 @@ exports[`SettingPage should render 1`] = `
                   </div>
                 </td>
                 <td
-                  class="emotion-30"
+                  class="css-1vs2r4p"
                 >
                   Flag indicates whether or not role updates require another review and approval
                 </td>
               </tr>
               <tr
-                class="emotion-34"
+                class="css-37yie"
                 data-testid="setting-row"
               >
                 <td
-                  class="emotion-30"
+                  class="css-1vs2r4p"
                 >
                   Self-Service
                 </td>
                 <td
-                  class="emotion-30"
+                  class="css-1vs2r4p"
                 >
                   <div
-                    class="emotion-31 denali-switch"
+                    class="css-v3lvlk-switch denali-switch"
                     data-testid="switch-wrapper"
                   >
                     <input
@@ -1333,28 +290,28 @@ exports[`SettingPage should render 1`] = `
                   </div>
                 </td>
                 <td
-                  class="emotion-30"
+                  class="css-1vs2r4p"
                 >
                   Flag indicates whether or not role allows self service
                 </td>
               </tr>
               <tr
-                class="emotion-34"
+                class="css-37yie"
                 data-testid="setting-row"
               >
                 <td
-                  class="emotion-30"
+                  class="css-1vs2r4p"
                 >
                   Member Expiry (Days)
                 </td>
                 <td
-                  class="emotion-30"
+                  class="css-1vs2r4p"
                 >
                   <div
-                    class="emotion-9"
+                    class="css-1mzzuk6"
                   >
                     <div
-                      class="emotion-41 denali-input animated emotion-42"
+                      class="css-1t9m0j6-input denali-input animated css-uvjnz5"
                       data-testid="input-wrapper"
                     >
                       <input
@@ -1373,28 +330,28 @@ exports[`SettingPage should render 1`] = `
                   </div>
                 </td>
                 <td
-                  class="emotion-30"
+                  class="css-1vs2r4p"
                 >
                   All user members in the role will have specified max expiry days
                 </td>
               </tr>
               <tr
-                class="emotion-34"
+                class="css-37yie"
                 data-testid="setting-row"
               >
                 <td
-                  class="emotion-30"
+                  class="css-1vs2r4p"
                 >
                   Service Expiry (Days)
                 </td>
                 <td
-                  class="emotion-30"
+                  class="css-1vs2r4p"
                 >
                   <div
-                    class="emotion-9"
+                    class="css-1mzzuk6"
                   >
                     <div
-                      class="emotion-41 denali-input animated emotion-42"
+                      class="css-1t9m0j6-input denali-input animated css-uvjnz5"
                       data-testid="input-wrapper"
                     >
                       <input
@@ -1413,28 +370,28 @@ exports[`SettingPage should render 1`] = `
                   </div>
                 </td>
                 <td
-                  class="emotion-30"
+                  class="css-1vs2r4p"
                 >
                   All services in the role will have specified max expiry days
                 </td>
               </tr>
               <tr
-                class="emotion-34"
+                class="css-37yie"
                 data-testid="setting-row"
               >
                 <td
-                  class="emotion-30"
+                  class="css-1vs2r4p"
                 >
                   Token Expiry (Mins)
                 </td>
                 <td
-                  class="emotion-30"
+                  class="css-1vs2r4p"
                 >
                   <div
-                    class="emotion-9"
+                    class="css-1mzzuk6"
                   >
                     <div
-                      class="emotion-41 denali-input animated emotion-42"
+                      class="css-1t9m0j6-input denali-input animated css-uvjnz5"
                       data-testid="input-wrapper"
                     >
                       <input
@@ -1453,28 +410,28 @@ exports[`SettingPage should render 1`] = `
                   </div>
                 </td>
                 <td
-                  class="emotion-30"
+                  class="css-1vs2r4p"
                 >
                   Tokens issued for this role will have specified max timeout in mins
                 </td>
               </tr>
               <tr
-                class="emotion-34"
+                class="css-37yie"
                 data-testid="setting-row"
               >
                 <td
-                  class="emotion-30"
+                  class="css-1vs2r4p"
                 >
                   Certificate Expiry (Mins)
                 </td>
                 <td
-                  class="emotion-30"
+                  class="css-1vs2r4p"
                 >
                   <div
-                    class="emotion-9"
+                    class="css-1mzzuk6"
                   >
                     <div
-                      class="emotion-41 denali-input animated emotion-42"
+                      class="css-1t9m0j6-input denali-input animated css-uvjnz5"
                       data-testid="input-wrapper"
                     >
                       <input
@@ -1493,23 +450,23 @@ exports[`SettingPage should render 1`] = `
                   </div>
                 </td>
                 <td
-                  class="emotion-30"
+                  class="css-1vs2r4p"
                 >
                   Certs issued for this role will have specified max timeout in mins
                 </td>
               </tr>
               <div
-                class="emotion-70"
+                class="css-1h3zjar"
               >
                 <div>
                   <button
-                    class="emotion-68 denali-button"
+                    class="css-1pobclq-button denali-button"
                   >
                     Submit
                   </button>
                   
                   <button
-                    class="emotion-68 denali-button"
+                    class="css-1pobclq-button denali-button"
                   >
                     Reset
                   </button>
@@ -1523,11 +480,11 @@ exports[`SettingPage should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-76"
+          class="css-1uc217s"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-75"
+            class="css-1pgzu7l"
             data-testid="icon"
             height="1em"
             viewBox="0 0 1024 1024"
@@ -1542,45 +499,45 @@ exports[`SettingPage should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-91"
+          class="css-1pydnsg"
         >
           <div
-            class="emotion-81"
+            class="css-1lkw3ie"
           >
             <div
-              class="emotion-77"
+              class="css-zfcvhg"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-78"
+                class="css-1vt9t7z"
               >
                 Create
               </a>
               <span
-                class="emotion-79"
+                class="css-1pzd0bj"
               >
                  | 
               </span>
               <a
-                class="emotion-78"
+                class="css-1vt9t7z"
               >
                 Manage
               </a>
             </div>
           </div>
           <div
-            class="emotion-90"
+            class="css-1odi5ol"
           >
             <div
-              class="emotion-85"
+              class="css-3zsmi"
             >
               <div
-                class="emotion-83"
+                class="css-zwnedx"
               >
                 <svg
-                  class="emotion-82"
+                  class="css-7xc0kv"
                   data-testid="icon"
                   height="1em"
                   viewBox="0 0 1024 1024"
@@ -1601,19 +558,19 @@ exports[`SettingPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-78"
+                class="css-1vt9t7z"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-85"
+              class="css-3zsmi"
             >
               <div
-                class="emotion-83"
+                class="css-zwnedx"
               >
                 <svg
-                  class="emotion-82"
+                  class="css-7xc0kv"
                   data-testid="icon"
                   height="1em"
                   viewBox="0 0 1024 1024"
@@ -1634,7 +591,7 @@ exports[`SettingPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-78"
+                class="css-1vt9t7z"
               >
                 athens.ci
               </a>

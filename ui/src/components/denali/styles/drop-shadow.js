@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { css } from 'emotion';
+import { css } from '@emotion/css';
 
 /**
  * Use around a div (eg. modal)

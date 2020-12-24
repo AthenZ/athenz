@@ -1,285 +1,48 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Button should disable animations 1`] = `
-.emotion-0 {
-  border: none;
-  border-radius: 2px;
-  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
-  box-sizing: border-box;
-  cursor: pointer;
-  display: inline-block;
-  font-family: Helvetica,Arial,sans-serif;
-  font-weight: 300;
-  font-size: 14px;
-  line-height: 1;
-  margin: 5px;
-  outline: 0;
-  padding: 10px 24px;
-  text-align: center;
-  text-shadow: none;
-  text-transform: none;
-  vertical-align: baseline;
-  white-space: nowrap;
-  background: transparent;
-  box-shadow: 0 0 0 1px #3697f2 inset;
-  color: #3697f2;
-}
-
-.emotion-0:first-of-type {
-  margin-left: 0;
-}
-
-.emotion-0:disabled {
-  background: rgba(48,48,48,0.1);
-  color: rgba(48,48,48,0.2);
-  cursor: not-allowed;
-}
-
-.emotion-0:disabled {
-  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
-}
-
-.emotion-0:hover:not(:disabled) {
-  background: #d7e2fd;
-}
-
 <button
-  class="emotion-0 denali-button"
+  class="css-nawv4-button denali-button"
 >
   A button
 </button>
 `;
 
 exports[`Button should render a button 1`] = `
-.emotion-0 {
-  border: none;
-  border-radius: 2px;
-  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
-  box-sizing: border-box;
-  cursor: pointer;
-  display: inline-block;
-  font-family: Helvetica,Arial,sans-serif;
-  font-weight: 300;
-  font-size: 14px;
-  line-height: 1;
-  margin: 5px;
-  outline: 0;
-  padding: 10px 24px;
-  text-align: center;
-  text-shadow: none;
-  text-transform: none;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-  vertical-align: baseline;
-  white-space: nowrap;
-  background: linear-gradient( to right, #3697f2, #3570f4 );
-  color: #fff;
-}
-
-.emotion-0:first-of-type {
-  margin-left: 0;
-}
-
-.emotion-0:disabled {
-  background: rgba(48,48,48,0.1);
-  color: rgba(48,48,48,0.2);
-  cursor: not-allowed;
-}
-
-.emotion-0:hover:not(:disabled) {
-  background: linear-gradient( to right, #3570f4, #3448f7 );
-}
-
 <button
-  class="emotion-0 denali-button"
+  class="css-1iukreu-button denali-button"
 >
   A button
 </button>
 `;
 
 exports[`Button should render a danger button 1`] = `
-.emotion-0 {
-  border: none;
-  border-radius: 2px;
-  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
-  box-sizing: border-box;
-  cursor: pointer;
-  display: inline-block;
-  font-family: Helvetica,Arial,sans-serif;
-  font-weight: 300;
-  font-size: 14px;
-  line-height: 1;
-  margin: 5px;
-  outline: 0;
-  padding: 10px 24px;
-  text-align: center;
-  text-shadow: none;
-  text-transform: none;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-  vertical-align: baseline;
-  white-space: nowrap;
-  background: #e21717;
-  color: #fff;
-}
-
-.emotion-0:first-of-type {
-  margin-left: 0;
-}
-
-.emotion-0:disabled {
-  background: rgba(48,48,48,0.1);
-  color: rgba(48,48,48,0.2);
-  cursor: not-allowed;
-}
-
-.emotion-0:hover:not(:disabled) {
-  background: #d01111;
-}
-
 <button
-  class="emotion-0 denali-button"
+  class="css-1q9pz65-button denali-button"
 >
   A button
 </button>
 `;
 
 exports[`Button should render a dark active button 1`] = `
-.emotion-0 {
-  border: none;
-  border-radius: 2px;
-  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
-  box-sizing: border-box;
-  cursor: pointer;
-  display: inline-block;
-  font-family: Helvetica,Arial,sans-serif;
-  font-weight: 300;
-  font-size: 14px;
-  line-height: 1;
-  margin: 5px;
-  outline: 0;
-  padding: 10px 24px;
-  text-align: center;
-  text-shadow: none;
-  text-transform: none;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-  vertical-align: baseline;
-  white-space: nowrap;
-  background: linear-gradient( to right, #3570f4, #3448f7 );
-  color: #fff;
-}
-
-.emotion-0:first-of-type {
-  margin-left: 0;
-}
-
-.emotion-0:disabled {
-  background: rgba(255,255,255,0.1);
-  color: rgba(255,255,255,0.2);
-  cursor: not-allowed;
-}
-
-.emotion-0:hover:not(:disabled) {
-  background: linear-gradient( to right, #3570f4, #3448f7 );
-}
-
 <button
-  class="emotion-0 denali-button"
+  class="css-vbc5pq-button denali-button"
 >
   A button
 </button>
 `;
 
 exports[`Button should render a dark danger button 1`] = `
-.emotion-0 {
-  border: none;
-  border-radius: 2px;
-  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
-  box-sizing: border-box;
-  cursor: pointer;
-  display: inline-block;
-  font-family: Helvetica,Arial,sans-serif;
-  font-weight: 300;
-  font-size: 14px;
-  line-height: 1;
-  margin: 5px;
-  outline: 0;
-  padding: 10px 24px;
-  text-align: center;
-  text-shadow: none;
-  text-transform: none;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-  vertical-align: baseline;
-  white-space: nowrap;
-  background: #e21717;
-  color: #fff;
-}
-
-.emotion-0:first-of-type {
-  margin-left: 0;
-}
-
-.emotion-0:disabled {
-  background: rgba(255,255,255,0.1);
-  color: rgba(255,255,255,0.2);
-  cursor: not-allowed;
-}
-
-.emotion-0:hover:not(:disabled) {
-  background: #d01111;
-}
-
 <button
-  class="emotion-0 denali-button"
+  class="css-1ulclz-button denali-button"
 >
   A button
 </button>
 `;
 
 exports[`Button should render a dark disable button 1`] = `
-.emotion-0 {
-  border: none;
-  border-radius: 2px;
-  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
-  box-sizing: border-box;
-  cursor: pointer;
-  display: inline-block;
-  font-family: Helvetica,Arial,sans-serif;
-  font-weight: 300;
-  font-size: 14px;
-  line-height: 1;
-  margin: 5px;
-  outline: 0;
-  padding: 10px 24px;
-  text-align: center;
-  text-shadow: none;
-  text-transform: none;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-  vertical-align: baseline;
-  white-space: nowrap;
-  background: linear-gradient( to right, #3697f2, #3570f4 );
-  color: #fff;
-}
-
-.emotion-0:first-of-type {
-  margin-left: 0;
-}
-
-.emotion-0:disabled {
-  background: rgba(255,255,255,0.1);
-  color: rgba(255,255,255,0.2);
-  cursor: not-allowed;
-}
-
-.emotion-0:hover:not(:disabled) {
-  background: linear-gradient( to right, #3570f4, #3448f7 );
-}
-
 <button
-  class="emotion-0 denali-button"
+  class="css-1nlmgo5-button denali-button"
   disabled=""
 >
   A button
@@ -287,203 +50,32 @@ exports[`Button should render a dark disable button 1`] = `
 `;
 
 exports[`Button should render a dark large button 1`] = `
-.emotion-0 {
-  border: none;
-  border-radius: 2px;
-  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
-  box-sizing: border-box;
-  cursor: pointer;
-  display: inline-block;
-  font-family: Helvetica,Arial,sans-serif;
-  font-weight: 300;
-  font-size: 18px;
-  line-height: 1;
-  margin: 5px;
-  outline: 0;
-  padding: 12px 28px;
-  text-align: center;
-  text-shadow: none;
-  text-transform: none;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-  vertical-align: baseline;
-  white-space: nowrap;
-  background: linear-gradient( to right, #3697f2, #3570f4 );
-  color: #fff;
-}
-
-.emotion-0:first-of-type {
-  margin-left: 0;
-}
-
-.emotion-0:disabled {
-  background: rgba(255,255,255,0.1);
-  color: rgba(255,255,255,0.2);
-  cursor: not-allowed;
-}
-
-.emotion-0:hover:not(:disabled) {
-  background: linear-gradient( to right, #3570f4, #3448f7 );
-}
-
 <button
-  class="emotion-0 denali-button"
+  class="css-1qn56ck-button denali-button"
 >
   A button
 </button>
 `;
 
 exports[`Button should render a dark secondary active button 1`] = `
-.emotion-0 {
-  border: none;
-  border-radius: 2px;
-  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
-  box-sizing: border-box;
-  cursor: pointer;
-  display: inline-block;
-  font-family: Helvetica,Arial,sans-serif;
-  font-weight: 300;
-  font-size: 14px;
-  line-height: 1;
-  margin: 5px;
-  outline: 0;
-  padding: 10px 24px;
-  text-align: center;
-  text-shadow: none;
-  text-transform: none;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-  vertical-align: baseline;
-  white-space: nowrap;
-  background: linear-gradient(to right,rgba(53,112,244,0.3),rgba(52,72,247,0.3));
-  box-shadow: 0 0 0 1px #3697f2 inset;
-  color: #fff;
-}
-
-.emotion-0:first-of-type {
-  margin-left: 0;
-}
-
-.emotion-0:disabled {
-  background: rgba(255,255,255,0.1);
-  color: rgba(255,255,255,0.2);
-  cursor: not-allowed;
-}
-
-.emotion-0:disabled {
-  box-shadow: 0 0 0 1px rgba(255,255,255,0.2) inset;
-}
-
-.emotion-0:hover:not(:disabled) {
-  background: linear-gradient(to right,rgba(53,112,244,0.3),rgba(52,72,247,0.3));
-}
-
 <button
-  class="emotion-0 denali-button"
+  class="css-1mkmhwq-button denali-button"
 >
   A button
 </button>
 `;
 
 exports[`Button should render a dark secondary button 1`] = `
-.emotion-0 {
-  border: none;
-  border-radius: 2px;
-  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
-  box-sizing: border-box;
-  cursor: pointer;
-  display: inline-block;
-  font-family: Helvetica,Arial,sans-serif;
-  font-weight: 300;
-  font-size: 14px;
-  line-height: 1;
-  margin: 5px;
-  outline: 0;
-  padding: 10px 24px;
-  text-align: center;
-  text-shadow: none;
-  text-transform: none;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-  vertical-align: baseline;
-  white-space: nowrap;
-  background: transparent;
-  box-shadow: 0 0 0 1px #3697f2 inset;
-  color: #fff;
-}
-
-.emotion-0:first-of-type {
-  margin-left: 0;
-}
-
-.emotion-0:disabled {
-  background: rgba(255,255,255,0.1);
-  color: rgba(255,255,255,0.2);
-  cursor: not-allowed;
-}
-
-.emotion-0:disabled {
-  box-shadow: 0 0 0 1px rgba(255,255,255,0.2) inset;
-}
-
-.emotion-0:hover:not(:disabled) {
-  background: linear-gradient(to right,rgba(53,112,244,0.3),rgba(52,72,247,0.3));
-}
-
 <button
-  class="emotion-0 denali-button"
+  class="css-1sx2370-button denali-button"
 >
   A button
 </button>
 `;
 
 exports[`Button should render a dark secondary disable button 1`] = `
-.emotion-0 {
-  border: none;
-  border-radius: 2px;
-  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
-  box-sizing: border-box;
-  cursor: pointer;
-  display: inline-block;
-  font-family: Helvetica,Arial,sans-serif;
-  font-weight: 300;
-  font-size: 14px;
-  line-height: 1;
-  margin: 5px;
-  outline: 0;
-  padding: 10px 24px;
-  text-align: center;
-  text-shadow: none;
-  text-transform: none;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-  vertical-align: baseline;
-  white-space: nowrap;
-  background: transparent;
-  box-shadow: 0 0 0 1px #3697f2 inset;
-  color: #fff;
-}
-
-.emotion-0:first-of-type {
-  margin-left: 0;
-}
-
-.emotion-0:disabled {
-  background: rgba(255,255,255,0.1);
-  color: rgba(255,255,255,0.2);
-  cursor: not-allowed;
-}
-
-.emotion-0:disabled {
-  box-shadow: 0 0 0 1px rgba(255,255,255,0.2) inset;
-}
-
-.emotion-0:hover:not(:disabled) {
-  background: linear-gradient(to right,rgba(53,112,244,0.3),rgba(52,72,247,0.3));
-}
-
 <button
-  class="emotion-0 denali-button"
+  class="css-1sx2370-button denali-button"
   disabled=""
 >
   A button
@@ -491,95 +83,16 @@ exports[`Button should render a dark secondary disable button 1`] = `
 `;
 
 exports[`Button should render a dark small button 1`] = `
-.emotion-0 {
-  border: none;
-  border-radius: 2px;
-  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
-  box-sizing: border-box;
-  cursor: pointer;
-  display: inline-block;
-  font-family: Helvetica,Arial,sans-serif;
-  font-weight: 300;
-  font-size: 12px;
-  line-height: 1;
-  margin: 5px;
-  min-width: 70px;
-  outline: 0;
-  padding: 8px 18px;
-  text-align: center;
-  text-shadow: none;
-  text-transform: none;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-  vertical-align: baseline;
-  white-space: nowrap;
-  background: linear-gradient( to right, #3697f2, #3570f4 );
-  color: #fff;
-}
-
-.emotion-0:first-of-type {
-  margin-left: 0;
-}
-
-.emotion-0:disabled {
-  background: rgba(255,255,255,0.1);
-  color: rgba(255,255,255,0.2);
-  cursor: not-allowed;
-}
-
-.emotion-0:hover:not(:disabled) {
-  background: linear-gradient( to right, #3570f4, #3448f7 );
-}
-
 <button
-  class="emotion-0 denali-button"
+  class="css-1jm2qag-button denali-button"
 >
   A button
 </button>
 `;
 
 exports[`Button should render a disabled button 1`] = `
-.emotion-0 {
-  border: none;
-  border-radius: 2px;
-  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
-  box-sizing: border-box;
-  cursor: pointer;
-  display: inline-block;
-  font-family: Helvetica,Arial,sans-serif;
-  font-weight: 300;
-  font-size: 14px;
-  line-height: 1;
-  margin: 5px;
-  outline: 0;
-  padding: 10px 24px;
-  text-align: center;
-  text-shadow: none;
-  text-transform: none;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-  vertical-align: baseline;
-  white-space: nowrap;
-  background: linear-gradient( to right, #3697f2, #3570f4 );
-  color: #fff;
-}
-
-.emotion-0:first-of-type {
-  margin-left: 0;
-}
-
-.emotion-0:disabled {
-  background: rgba(48,48,48,0.1);
-  color: rgba(48,48,48,0.2);
-  cursor: not-allowed;
-}
-
-.emotion-0:hover:not(:disabled) {
-  background: linear-gradient( to right, #3570f4, #3448f7 );
-}
-
 <button
-  class="emotion-0 denali-button"
+  class="css-1iukreu-button denali-button"
   disabled=""
 >
   A button
@@ -587,203 +100,32 @@ exports[`Button should render a disabled button 1`] = `
 `;
 
 exports[`Button should render a large button 1`] = `
-.emotion-0 {
-  border: none;
-  border-radius: 2px;
-  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
-  box-sizing: border-box;
-  cursor: pointer;
-  display: inline-block;
-  font-family: Helvetica,Arial,sans-serif;
-  font-weight: 300;
-  font-size: 18px;
-  line-height: 1;
-  margin: 5px;
-  outline: 0;
-  padding: 12px 28px;
-  text-align: center;
-  text-shadow: none;
-  text-transform: none;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-  vertical-align: baseline;
-  white-space: nowrap;
-  background: linear-gradient( to right, #3697f2, #3570f4 );
-  color: #fff;
-}
-
-.emotion-0:first-of-type {
-  margin-left: 0;
-}
-
-.emotion-0:disabled {
-  background: rgba(48,48,48,0.1);
-  color: rgba(48,48,48,0.2);
-  cursor: not-allowed;
-}
-
-.emotion-0:hover:not(:disabled) {
-  background: linear-gradient( to right, #3570f4, #3448f7 );
-}
-
 <button
-  class="emotion-0 denali-button"
+  class="css-ohfsds-button denali-button"
 >
   A button
 </button>
 `;
 
 exports[`Button should render a secondary active button 1`] = `
-.emotion-0 {
-  border: none;
-  border-radius: 2px;
-  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
-  box-sizing: border-box;
-  cursor: pointer;
-  display: inline-block;
-  font-family: Helvetica,Arial,sans-serif;
-  font-weight: 300;
-  font-size: 14px;
-  line-height: 1;
-  margin: 5px;
-  outline: 0;
-  padding: 10px 24px;
-  text-align: center;
-  text-shadow: none;
-  text-transform: none;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-  vertical-align: baseline;
-  white-space: nowrap;
-  background: #d7e2fd;
-  box-shadow: 0 0 0 1px #3697f2 inset;
-  color: #3697f2;
-}
-
-.emotion-0:first-of-type {
-  margin-left: 0;
-}
-
-.emotion-0:disabled {
-  background: rgba(48,48,48,0.1);
-  color: rgba(48,48,48,0.2);
-  cursor: not-allowed;
-}
-
-.emotion-0:disabled {
-  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
-}
-
-.emotion-0:hover:not(:disabled) {
-  background: #d7e2fd;
-}
-
 <button
-  class="emotion-0 denali-button"
+  class="css-so1m8l-button denali-button"
 >
   A button
 </button>
 `;
 
 exports[`Button should render a secondary button 1`] = `
-.emotion-0 {
-  border: none;
-  border-radius: 2px;
-  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
-  box-sizing: border-box;
-  cursor: pointer;
-  display: inline-block;
-  font-family: Helvetica,Arial,sans-serif;
-  font-weight: 300;
-  font-size: 14px;
-  line-height: 1;
-  margin: 5px;
-  outline: 0;
-  padding: 10px 24px;
-  text-align: center;
-  text-shadow: none;
-  text-transform: none;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-  vertical-align: baseline;
-  white-space: nowrap;
-  background: transparent;
-  box-shadow: 0 0 0 1px #3697f2 inset;
-  color: #3697f2;
-}
-
-.emotion-0:first-of-type {
-  margin-left: 0;
-}
-
-.emotion-0:disabled {
-  background: rgba(48,48,48,0.1);
-  color: rgba(48,48,48,0.2);
-  cursor: not-allowed;
-}
-
-.emotion-0:disabled {
-  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
-}
-
-.emotion-0:hover:not(:disabled) {
-  background: #d7e2fd;
-}
-
 <button
-  class="emotion-0 denali-button"
+  class="css-1pobclq-button denali-button"
 >
   A button
 </button>
 `;
 
 exports[`Button should render a secondary disable button 1`] = `
-.emotion-0 {
-  border: none;
-  border-radius: 2px;
-  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
-  box-sizing: border-box;
-  cursor: pointer;
-  display: inline-block;
-  font-family: Helvetica,Arial,sans-serif;
-  font-weight: 300;
-  font-size: 14px;
-  line-height: 1;
-  margin: 5px;
-  outline: 0;
-  padding: 10px 24px;
-  text-align: center;
-  text-shadow: none;
-  text-transform: none;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-  vertical-align: baseline;
-  white-space: nowrap;
-  background: transparent;
-  box-shadow: 0 0 0 1px #3697f2 inset;
-  color: #3697f2;
-}
-
-.emotion-0:first-of-type {
-  margin-left: 0;
-}
-
-.emotion-0:disabled {
-  background: rgba(48,48,48,0.1);
-  color: rgba(48,48,48,0.2);
-  cursor: not-allowed;
-}
-
-.emotion-0:disabled {
-  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
-}
-
-.emotion-0:hover:not(:disabled) {
-  background: #d7e2fd;
-}
-
 <button
-  class="emotion-0 denali-button"
+  class="css-1pobclq-button denali-button"
   disabled=""
 >
   A button
@@ -791,95 +133,16 @@ exports[`Button should render a secondary disable button 1`] = `
 `;
 
 exports[`Button should render a small button 1`] = `
-.emotion-0 {
-  border: none;
-  border-radius: 2px;
-  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
-  box-sizing: border-box;
-  cursor: pointer;
-  display: inline-block;
-  font-family: Helvetica,Arial,sans-serif;
-  font-weight: 300;
-  font-size: 12px;
-  line-height: 1;
-  margin: 5px;
-  min-width: 70px;
-  outline: 0;
-  padding: 8px 18px;
-  text-align: center;
-  text-shadow: none;
-  text-transform: none;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-  vertical-align: baseline;
-  white-space: nowrap;
-  background: linear-gradient( to right, #3697f2, #3570f4 );
-  color: #fff;
-}
-
-.emotion-0:first-of-type {
-  margin-left: 0;
-}
-
-.emotion-0:disabled {
-  background: rgba(48,48,48,0.1);
-  color: rgba(48,48,48,0.2);
-  cursor: not-allowed;
-}
-
-.emotion-0:hover:not(:disabled) {
-  background: linear-gradient( to right, #3570f4, #3448f7 );
-}
-
 <button
-  class="emotion-0 denali-button"
+  class="css-1n3qdwa-button denali-button"
 >
   A button
 </button>
 `;
 
 exports[`Button should render an active button 1`] = `
-.emotion-0 {
-  border: none;
-  border-radius: 2px;
-  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
-  box-sizing: border-box;
-  cursor: pointer;
-  display: inline-block;
-  font-family: Helvetica,Arial,sans-serif;
-  font-weight: 300;
-  font-size: 14px;
-  line-height: 1;
-  margin: 5px;
-  outline: 0;
-  padding: 10px 24px;
-  text-align: center;
-  text-shadow: none;
-  text-transform: none;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-  vertical-align: baseline;
-  white-space: nowrap;
-  background: linear-gradient( to right, #3570f4, #3448f7 );
-  color: #fff;
-}
-
-.emotion-0:first-of-type {
-  margin-left: 0;
-}
-
-.emotion-0:disabled {
-  background: rgba(48,48,48,0.1);
-  color: rgba(48,48,48,0.2);
-  cursor: not-allowed;
-}
-
-.emotion-0:hover:not(:disabled) {
-  background: linear-gradient( to right, #3570f4, #3448f7 );
-}
-
 <button
-  class="emotion-0 denali-button"
+  class="css-a8kbc-button denali-button"
 >
   A button
 </button>

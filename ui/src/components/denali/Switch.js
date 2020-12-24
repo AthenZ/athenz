@@ -15,7 +15,7 @@
  */
 import React from 'react';
 import PropTypes from 'prop-types';
-import { css, cx } from 'emotion';
+import { css, cx } from '@emotion/css';
 import { rgba } from 'polished';
 import { colors } from './styles/colors';
 import { cssFontStyles } from './styles/fonts';

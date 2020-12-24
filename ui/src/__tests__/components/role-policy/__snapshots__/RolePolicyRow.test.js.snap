@@ -1,48 +1,18 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`RolePolicyRow should render 1`] = `
-.emotion-0 {
-  fill: #188fff;
-  cursor: pointer;
-  vertical-align: text-bottom;
-}
-
-.emotion-3 {
-  box-sizing: border-box;
-  margin-top: 10px;
-  box-shadow: 0 1px 4px #d9d9d9;
-  border: 1px solid #fff;
-  -webkit-border-image: none;
-  border-image: none;
-  -webkit-border-image: initial;
-  border-image: initial;
-  height: 50px;
-}
-
-.emotion-2 {
-  text-align: left;
-  padding: 5px 0 5px 15px;
-  vertical-align: middle;
-  word-break: break-all;
-}
-
-.emotion-1 {
-  margin-right: 10px;
-  vertical-align: bottom;
-}
-
 <tr
-  class="emotion-3"
+  class="css-37yie"
   data-testid="role-policy-row"
 >
   <td
-    class="emotion-2"
+    class="css-1vs2r4p"
   >
     <span
-      class="emotion-1"
+      class="css-o4rgjs"
     >
       <svg
-        class="emotion-0"
+        class="css-u87f64"
         data-testid="icon"
         height="1.25em"
         viewBox="0 0 1024 1024"

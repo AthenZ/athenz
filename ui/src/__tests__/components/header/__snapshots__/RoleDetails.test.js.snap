@@ -1,65 +1,37 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`RoleDetails should render 1`] = `
-.emotion-7 {
-  margin: 20px 0;
-}
-
-.emotion-6 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-}
-
-.emotion-2 {
-  padding-right: 50px;
-}
-
-.emotion-0 {
-  font-weight: 600;
-}
-
-.emotion-1 {
-  color: #9a9a9a;
-  font-size: 12px;
-  text-transform: uppercase;
-}
-
 <div
-  class="emotion-7"
+  class="css-18icqaw"
   data-testid="role-details"
 >
   <div
-    class="emotion-6"
+    class="css-16ehm7c"
   >
     <div
-      class="emotion-2"
+      class="css-1fla85d"
     >
       <div
-        class="emotion-0"
+        class="css-rxg59x"
       >
         2020-02-12 21:44 UTC
       </div>
       <div
-        class="emotion-1"
+        class="css-19d5ki7"
       >
         MODIFIED DATE
       </div>
     </div>
     <div
-      class="emotion-2"
+      class="css-1fla85d"
     >
       <div
-        class="emotion-0"
+        class="css-rxg59x"
       >
         N/A
       </div>
       <div
-        class="emotion-1"
+        class="css-19d5ki7"
       >
         REVIEWED DATE
       </div>
@@ -69,65 +41,37 @@ exports[`RoleDetails should render 1`] = `
 `;
 
 exports[`RoleDetails should render with mock data 1`] = `
-.emotion-7 {
-  margin: 20px 0;
-}
-
-.emotion-6 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-}
-
-.emotion-2 {
-  padding-right: 50px;
-}
-
-.emotion-0 {
-  font-weight: 600;
-}
-
-.emotion-1 {
-  color: #9a9a9a;
-  font-size: 12px;
-  text-transform: uppercase;
-}
-
 <div
-  class="emotion-7"
+  class="css-18icqaw"
   data-testid="role-details"
 >
   <div
-    class="emotion-6"
+    class="css-16ehm7c"
   >
     <div
-      class="emotion-2"
+      class="css-1fla85d"
     >
       <div
-        class="emotion-0"
+        class="css-rxg59x"
       >
         2020-12-01 21:44 UTC
       </div>
       <div
-        class="emotion-1"
+        class="css-19d5ki7"
       >
         MODIFIED DATE
       </div>
     </div>
     <div
-      class="emotion-2"
+      class="css-1fla85d"
     >
       <div
-        class="emotion-0"
+        class="css-rxg59x"
       >
         2020-12-01 21:44 UTC
       </div>
       <div
-        class="emotion-1"
+        class="css-19d5ki7"
       >
         REVIEWED DATE
       </div>

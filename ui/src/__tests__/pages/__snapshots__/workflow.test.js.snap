@@ -1,931 +1,39 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`PendingApprovalPage should render 1`] = `
-.emotion-11 {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  background: #002339;
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  box-sizing: border-box;
-  color: #fff;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex: 0 0 60px;
-  -ms-flex: 0 0 60px;
-  flex: 0 0 60px;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  height: 60px;
-  -webkit-box-pack: start;
-  -webkit-justify-content: flex-start;
-  -ms-flex-pack: start;
-  justify-content: flex-start;
-  left: 0;
-  padding: 0 24px;
-  position: static;
-  right: 0;
-  top: 0;
-  z-index: 2;
-}
-
-.emotion-11.scrolled {
-  box-shadow: 0px 4px 8px rgba(0,0,0,0.16);
-}
-
-.emotion-11 .flush-right {
-  margin-left: auto;
-}
-
-.emotion-1 {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  box-sizing: border-box;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  height: 60px;
-  position: relative;
-}
-
-.emotion-1.simple {
-  color: #fff;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 16px;
-  padding: 0 12px;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-}
-
-.emotion-1.simple.nav-link {
-  cursor: pointer;
-}
-
-.emotion-1.simple.nav-link:hover {
-  color: rgba(255,255,255,0.75);
-}
-
-.emotion-1.simple.active {
-  box-shadow: inset 0 -4px 0 #3697f2;
-}
-
-.emotion-1.simple.nav-link.active:hover {
-  box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
-}
-
-.emotion-1 .nav-title {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  color: #fff;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 16px;
-  height: 100%;
-  padding: 0 12px;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-}
-
-.emotion-1.nav-link .nav-title {
-  cursor: pointer;
-}
-
-.emotion-1.active .nav-title,
-.emotion-1 .active.nav-title {
-  box-shadow: inset 0 -4px 0 #3697f2;
-}
-
-.emotion-1 .nav-title:hover {
-  color: rgba(255,255,255,0.75);
-}
-
-.emotion-1.nav-link.active .nav-title:hover,
-.emotion-1.nav-link .active.nav-title:hover {
-  box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
-}
-
-.emotion-1 img.nav-logo {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  height: 34px;
-}
-
-.emotion-1 .nav-icon,
-.emotion-1:hover .nav-icon {
-  width: 24px;
-  height: 24px;
-}
-
-.emotion-1 .nav-icon path,
-.emotion-1:hover .nav-icon path,
-.emotion-1 .nav-icon ellipse,
-.emotion-1:hover .nav-icon ellipse,
-.emotion-1 .nav-icon rect,
-.emotion-1:hover .nav-icon rect,
-.emotion-1 .nav-icon circle,
-.emotion-1:hover .nav-icon circle {
-  fill: #fff;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-}
-
-.emotion-1.nav-link:hover .nav-icon path,
-.emotion-1.nav-link:hover .nav-icon ellipse,
-.emotion-1.nav-link:hover .nav-icon rect,
-.emotion-1.nav-link:hover .nav-icon circle {
-  fill: rgba(255,255,255,0.75);
-}
-
-.emotion-4 {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  box-sizing: border-box;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  height: 60px;
-  position: relative;
-  width: 100%;
-}
-
-.emotion-4.simple {
-  color: #fff;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 16px;
-  padding: 0 12px;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-}
-
-.emotion-4.simple.nav-link {
-  cursor: pointer;
-}
-
-.emotion-4.simple.nav-link:hover {
-  color: rgba(255,255,255,0.75);
-}
-
-.emotion-4.simple.active {
-  box-shadow: inset 0 -4px 0 #3697f2;
-}
-
-.emotion-4.simple.nav-link.active:hover {
-  box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
-}
-
-.emotion-4 .nav-title {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  color: #fff;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 16px;
-  height: 100%;
-  padding: 0 12px;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-}
-
-.emotion-4.nav-link .nav-title {
-  cursor: pointer;
-}
-
-.emotion-4.active .nav-title,
-.emotion-4 .active.nav-title {
-  box-shadow: inset 0 -4px 0 #3697f2;
-}
-
-.emotion-4 .nav-title:hover {
-  color: rgba(255,255,255,0.75);
-}
-
-.emotion-4.nav-link.active .nav-title:hover,
-.emotion-4.nav-link .active.nav-title:hover {
-  box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
-}
-
-.emotion-4 img.nav-logo {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  height: 34px;
-}
-
-.emotion-4 .nav-icon,
-.emotion-4:hover .nav-icon {
-  width: 24px;
-  height: 24px;
-}
-
-.emotion-4 .nav-icon path,
-.emotion-4:hover .nav-icon path,
-.emotion-4 .nav-icon ellipse,
-.emotion-4:hover .nav-icon ellipse,
-.emotion-4 .nav-icon rect,
-.emotion-4:hover .nav-icon rect,
-.emotion-4 .nav-icon circle,
-.emotion-4:hover .nav-icon circle {
-  fill: #fff;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-}
-
-.emotion-4.nav-link:hover .nav-icon path,
-.emotion-4.nav-link:hover .nav-icon ellipse,
-.emotion-4.nav-link:hover .nav-icon rect,
-.emotion-4.nav-link:hover .nav-icon circle {
-  fill: rgba(255,255,255,0.75);
-}
-
-.emotion-3 {
-  box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  position: relative;
-  width: 100%;
-}
-
-.emotion-3 input {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  background: rgba(53,112,244,0.05);
-  border-top: 2px solid transparent;
-  border-bottom: 2px solid transparent;
-  border-right: transparent;
-  border-left: transparent;
-  border-radius: 2px;
-  box-shadow: none;
-  box-sizing: border-box;
-  color: #303030;
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-  font: inherit;
-  height: 36px;
-  margin: 0;
-  outline: none;
-  padding: 0 1rem;
-  text-align: left;
-  width: 100%;
-}
-
-.emotion-3.animated input {
-  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
-  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
-}
-
-.emotion-3 input::-webkit-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-3 input::-moz-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-3 input:-ms-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-3 input::placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-3 input.focused,
-.emotion-3 input:active,
-.emotion-3 input:focus {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #3570f4;
-  color: #303030;
-}
-
-.emotion-3 input:invalid {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #d01111;
-  color: #303030;
-}
-
-.emotion-3 .message {
-  font-size: 12px;
-  left: 0;
-  line-height: 1.8;
-  position: absolute;
-  top: 2.571rem;
-}
-
-.emotion-3.error input,
-.emotion-3.error input.focused,
-.emotion-3.error input:active,
-.emotion-3.error input:focus {
-  border-bottom: 2px solid #d01111;
-}
-
-.emotion-3.error .message {
-  color: #d01111;
-}
-
-.emotion-3 input {
-  background: rgba(242,242,242,0.1);
-  color: #fff;
-}
-
-.emotion-3 input::-webkit-input-placeholder {
-  color: rgba(255,255,255,0.6);
-}
-
-.emotion-3 input::-moz-placeholder {
-  color: rgba(255,255,255,0.6);
-}
-
-.emotion-3 input:-ms-input-placeholder {
-  color: rgba(255,255,255,0.6);
-}
-
-.emotion-3 input::placeholder {
-  color: rgba(255,255,255,0.6);
-}
-
-.emotion-3 input.focused,
-.emotion-3 input:active,
-.emotion-3 input:focus {
-  background: rgba(242,242,242,0.1);
-  border-bottom: 2px solid #3570f4;
-  color: #fff;
-}
-
-.emotion-3 input {
-  padding-right: 36px;
-}
-
-.emotion-3 .input-icon {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  height: 36px;
-  position: absolute;
-  right: 6px;
-}
-
-.emotion-2 {
-  fill: #3570f4;
-  cursor: inherit;
-  vertical-align: text-bottom;
-}
-
-.emotion-6 {
-  fill: #fff;
-  cursor: pointer;
-  vertical-align: text-bottom;
-}
-
-.emotion-15 {
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  box-sizing: border-box;
-  display: inline-block;
-  height: 16px;
-  line-height: 16px;
-  margin: 3px;
-  outline: 0;
-  position: relative;
-  vertical-align: middle;
-}
-
-.emotion-15 > input[type='checkbox'] {
-  box-sizing: border-box;
-  cursor: pointer;
-  display: inline-block;
-  position: absolute;
-  top: 0;
-  visibility: hidden;
-}
-
-.emotion-15 > input[type='checkbox'] + label {
-  box-sizing: border-box;
-  cursor: pointer;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  height: 16px;
-  line-height: 16px;
-  padding: 0 10px 0 0;
-  vertical-align: bottom;
-  white-space: nowrap;
-}
-
-.emotion-15 > input[type='checkbox'] + label:before {
-  background: #fff;
-  border: 2px solid rgba(54,151,242,0.5);
-  border-radius: 2px;
-  box-sizing: border-box;
-  content: '';
-  cursor: pointer;
-  display: inline-block;
-  height: 16px;
-  line-height: 16px;
-  margin: 0px 3px -3px 0px;
-  -webkit-transition: all 0.25s ease-in;
-  transition: all 0.25s ease-in;
-  width: 16px;
-}
-
-.emotion-15 > input[type='checkbox']:hover + label:before {
-  border: 2px solid #3697f2;
-}
-
-.emotion-15 > input[type='checkbox']:focus + label:before {
-  border: 2px solid rgba(54,151,242,0.5);
-}
-
-.emotion-15 > input[type='checkbox'][data-partial='true'] + label:before,
-.emotion-15 > input[type='checkbox']:checked + label:before {
-  border: 2px solid #3697f2;
-}
-
-.emotion-15 > input[type='checkbox']:disabled + label {
-  color: #d5d5d5;
-  cursor: not-allowed;
-}
-
-.emotion-15 > input[type='checkbox']:disabled + label:before {
-  border: 2px solid #d5d5d5;
-}
-
-.emotion-15 > input[type='checkbox']:checked:not([data-partial='true']) + label:before {
-  background: #3697f2;
-}
-
-.emotion-15 > input[type='checkbox'][data-partial='true'] + label:after {
-  border: solid #3697f2;
-  border-width: 2px 0 0 0;
-  box-sizing: border-box;
-  content: '';
-  cursor: pointer;
-  height: 16px;
-  line-height: 16px;
-  left: 4px;
-  opacity: 1;
-  position: absolute;
-  top: 7px;
-  width: 8px;
-}
-
-.emotion-15 > input[type='checkbox']:checked:not([data-partial='true']) + label:after {
-  border: solid #fff;
-  border-width: 0 2px 2px 0;
-  box-sizing: border-box;
-  content: '';
-  cursor: pointer;
-  display: block;
-  height: 9px;
-  line-height: 16px;
-  left: 6px;
-  opacity: 1;
-  position: absolute;
-  top: 3px;
-  -webkit-transform: rotate(45deg);
-  -ms-transform: rotate(45deg);
-  transform: rotate(45deg);
-  width: 4.5px;
-}
-
-.emotion-23 {
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  -webkit-flex-flow: column nowrap;
-  -ms-flex-flow: column nowrap;
-  flex-flow: column nowrap;
-  position: relative;
-  width: 100%;
-}
-
-.emotion-23 > textarea {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  background: rgba(53,112,244,0.05);
-  border-top: 2px solid transparent;
-  border-bottom: 2px solid transparent;
-  border-right: transparent;
-  border-left: transparent;
-  border-radius: 2px;
-  box-shadow: none;
-  box-sizing: border-box;
-  color: #303030;
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-  font: inherit;
-  height: 37px;
-  line-height: 1.5;
-  margin: 0;
-  outline: none;
-  padding: 0.25em 0.75rem;
-  text-align: left;
-  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-  width: auto;
-}
-
-.emotion-23 > textarea::-webkit-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-23 > textarea::-moz-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-23 > textarea:-ms-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-23 > textarea::placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-23 > textarea:active,
-.emotion-23 > textarea:focus {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #3570f4;
-  color: #303030;
-}
-
-.emotion-23 > textarea:invalid {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #d01111;
-  color: #303030;
-}
-
-.emotion-23 > textarea[disabled] {
-  background: rgba(48,48,48,0.05);
-  border-bottom: 2px solid rgba(48,48,48,0.05);
-  color: rgba(48,48,48,0.25);
-  cursor: not-allowed;
-}
-
-.emotion-23 .message {
-  font-size: 12px;
-  color: #303030;
-  left: 0;
-  line-height: 1.8;
-  position: absolute;
-  top: 2.571rem;
-}
-
-.emotion-26 {
-  fill: #188fff;
-  cursor: pointer;
-  vertical-align: text-bottom;
-}
-
-.emotion-29 {
-  fill: #d5d5d5;
-  cursor: pointer;
-  vertical-align: text-bottom;
-}
-
-.emotion-48 {
-  fill: #303030;
-  cursor: inherit;
-  vertical-align: text-bottom;
-}
-
-.emotion-12 {
-  height: 60px;
-  position: relative;
-}
-
-.emotion-0 {
-  height: 36px;
-  cursor: pointer;
-}
-
-.emotion-5 {
-  margin-left: 10%;
-  width: 50%;
-}
-
-.emotion-9 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-}
-
-.emotion-8 {
-  margin-left: 15px;
-}
-
-.emotion-51 {
-  -webkit-flex: 1 1 calc(100vh - 60px);
-  -ms-flex: 1 1 calc(100vh - 60px);
-  flex: 1 1 calc(100vh - 60px);
-  overflow: hidden;
-  font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
-}
-
-.emotion-50 {
-  -webkit-align-items: stretch;
-  -webkit-box-align: stretch;
-  -ms-flex-align: stretch;
-  align-items: stretch;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  height: 100%;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-pack: start;
-  -webkit-justify-content: flex-start;
-  -ms-flex-pack: start;
-  justify-content: flex-start;
-}
-
-.emotion-47 {
-  -webkit-flex: 1 1;
-  -ms-flex: 1 1;
-  flex: 1 1;
-}
-
-.emotion-46 {
-  -webkit-align-items: stretch;
-  -webkit-box-align: stretch;
-  -ms-flex-align: stretch;
-  align-items: stretch;
-  -webkit-flex: 1 1;
-  -ms-flex: 1 1;
-  flex: 1 1;
-  height: calc(100vh - 60px);
-  overflow: auto;
-}
-
-.emotion-14 {
-  padding: 20px 30px;
-}
-
-.emotion-13 {
-  font: 600 20px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
-}
-
-.emotion-45 {
-  padding: 0 30px 20px;
-}
-
-.emotion-44 {
-  margin-top: 20px;
-  width: 100%;
-  border-spacing: 0;
-}
-
-.emotion-16 {
-  border-bottom: 2px solid #d5d5d5;
-  color: #9a9a9a;
-  font-weight: 600;
-  padding-bottom: 5px;
-  vertical-align: middle;
-  text-transform: uppercase;
-  text-align: center;
-  border-right: none;
-  padding: 5px 0 5px 15px;
-  width: 1%;
-}
-
-.emotion-17 {
-  border-bottom: 2px solid #d5d5d5;
-  color: #9a9a9a;
-  font-weight: 600;
-  font-size: 0.7rem;
-  padding-bottom: 5px;
-  vertical-align: middle;
-  text-transform: uppercase;
-  padding: 5px 0 5px 0px;
-  text-align: left;
-}
-
-.emotion-18 {
-  border-bottom: 2px solid #d5d5d5;
-  color: #9a9a9a;
-  font-weight: 600;
-  font-size: 0.7rem;
-  padding-bottom: 5px;
-  vertical-align: top;
-  text-transform: uppercase;
-  padding: 5px 0 5px 15px;
-  text-align: left;
-}
-
-.emotion-25 {
-  border-bottom: 2px solid #d5d5d5;
-  font-weight: 600;
-  font-size: 0.7rem;
-  padding-bottom: 5px;
-  vertical-align: bottom;
-  padding: 5px 0 5px 15px;
-  text-align: left;
-}
-
-.emotion-24 > textarea {
-  resize: vertical;
-}
-
-.emotion-27 > div input {
-  position: relative;
-  font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
-  background-color: #d5d5d5;
-  box-shadow: none;
-  color: rgb(48,48,48);
-  height: 16px;
-  min-width: 50px;
-  text-align: left;
-  border-width: 2px;
-  border-style: solid;
-  border-color: transparent;
-  border-image: initial;
-  border-radius: 2px;
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-  margin: 0px;
-  margin-top: 5px;
-  outline: none;
-  padding: 0.6em 12px;
-  -webkit-transition: background-color 0.2s ease-in-out 0s, color 0.2s ease-in-out 0s,border 0.2s ease-in-out 0s;
-  transition: background-color 0.2s ease-in-out 0s, color 0.2s ease-in-out 0s,border 0.2s ease-in-out 0s;
-  width: 75%;
-}
-
-.emotion-30 {
-  border-bottom: 2px solid #d5d5d5;
-  color: #9a9a9a;
-  font-weight: 600;
-  padding-bottom: 5px;
-  vertical-align: middle;
-  text-transform: uppercase;
-  text-align: center;
-  padding: 5px 0 5px 15px;
-}
-
-.emotion-32 {
-  border-bottom: 2px solid #d5d5d5;
-  color: #9a9a9a;
-  font-weight: 600;
-  padding-bottom: 5px;
-  vertical-align: middle;
-  text-transform: uppercase;
-  text-align: center;
-  border-right: none;
-  padding: 5px 0 5px 15px;
-}
-
-.emotion-34 {
-  border-bottom: 2px solid #d5d5d5;
-  color: #9a9a9a;
-  font-weight: 600;
-  font-size: 0.7rem;
-  padding-bottom: 5px;
-  vertical-align: top;
-  text-transform: uppercase;
-  padding: 5px 0 5px 0px;
-  text-align: left;
-}
-
-.emotion-42 {
-  border-bottom: 2px solid #d5d5d5;
-  color: #9a9a9a;
-  font-weight: 600;
-  font-size: 0.7rem;
-  padding-bottom: 5px;
-  vertical-align: top;
-  text-transform: uppercase;
-  text-align: center;
-  padding: 5px 0 5px 15px;
-}
-
-.emotion-43 {
-  border-bottom: 2px solid #d5d5d5;
-  color: #9a9a9a;
-  font-weight: 600;
-  font-size: 0.7rem;
-  padding-bottom: 5px;
-  vertical-align: top;
-  text-transform: uppercase;
-  text-align: center;
-  border-right: none;
-  padding: 5px 0 5px 15px;
-}
-
-.emotion-49 {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  background-color: #fff;
-  border-bottom: 1px solid #d5d5d5;
-  border-left: 1px solid #d5d5d5;
-  border-top: 1px solid #d5d5d5;
-  cursor: pointer;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  height: 20px;
-  -webkit-box-pack: center;
-  -webkit-justify-content: center;
-  -ms-flex-pack: center;
-  justify-content: center;
-  margin-left: -21px;
-  margin-top: 20px;
-  position: absolute;
-  text-align: center;
-  width: 20px;
-}
-
 <div
   data-testid="pending-approval"
 >
   <div
-    class="emotion-12"
+    class="css-u4qfx7"
     data-testid="header"
   >
     <div
-      class="emotion-11 denali-navbar"
+      class="css-194a6h5-navbar denali-navbar"
       data-testid="navbar"
     >
       <div
-        class="emotion-1 simple denali-navbar-item"
+        class="css-u5g9s-navbar-item simple denali-navbar-item"
         data-testid="navbar-item"
       >
         <a
           href="/"
         >
           <img
-            class="emotion-0"
+            class="css-1bb71e6"
             src="/static/athenz-logo-full.png"
           />
         </a>
       </div>
       <div
-        class="emotion-5"
+        class="css-1e128ow"
       >
         <div
-          class="emotion-4 simple denali-navbar-item"
+          class="css-1cyyi4u-navbar-item simple denali-navbar-item"
           data-testid="navbar-item"
         >
           <div
-            class="emotion-3 denali-input animated"
+            class="css-k4z0rl-input denali-input animated"
             data-testid="input-wrapper"
           >
             <input
@@ -939,7 +47,7 @@ exports[`PendingApprovalPage should render 1`] = `
               class="input-icon"
             >
               <svg
-                class="emotion-2"
+                class="css-18jx5cr"
                 data-testid="icon"
                 height="24px"
                 viewBox="0 0 1024 1024"
@@ -961,15 +69,15 @@ exports[`PendingApprovalPage should render 1`] = `
         </div>
       </div>
       <div
-        class="emotion-1 simple flush-right denali-navbar-item"
+        class="css-u5g9s-navbar-item simple flush-right denali-navbar-item"
         data-testid="navbar-item"
       >
         <div
-          class="emotion-9"
+          class="css-1mzzuk6"
           data-testid="header-menu"
         >
           <svg
-            class="emotion-6"
+            class="css-hjh1m6"
             data-testid="icon"
             height="25px"
             viewBox="0 0 1024 1024"
@@ -983,10 +91,10 @@ exports[`PendingApprovalPage should render 1`] = `
             />
           </svg>
           <div
-            class="emotion-8"
+            class="css-11kem00"
           >
             <svg
-              class="emotion-6"
+              class="css-hjh1m6"
               data-testid="icon"
               height="25px"
               viewBox="0 0 1024 1024"
@@ -1011,32 +119,32 @@ exports[`PendingApprovalPage should render 1`] = `
     </div>
   </div>
   <div
-    class="emotion-51"
+    class="css-hs9ulc"
   >
     <div
-      class="emotion-50"
+      class="css-hq6zta"
     >
       <div
-        class="emotion-47"
+        class="css-1qb42ku"
       >
         <div
-          class="emotion-46"
+          class="css-jdadq3"
         >
           <div>
             <div
-              class="emotion-14"
+              class="css-1l99e7p"
             >
               <div
-                class="emotion-13"
+                class="css-1ebpula"
               >
                 Pending Items for Approval
               </div>
             </div>
             <div
-              class="emotion-45"
+              class="css-fascvn"
             >
               <table
-                class="emotion-44"
+                class="css-1l579dz"
                 data-testid="pending-approval-table"
               >
                 <thead>
@@ -1044,10 +152,10 @@ exports[`PendingApprovalPage should render 1`] = `
                     data-testid="pending-approval-table-header"
                   >
                     <th
-                      class="emotion-16"
+                      class="css-1mg9r70"
                     >
                       <div
-                        class="emotion-15 denali-checkbox"
+                        class="css-1xv7yfr-checkbox denali-checkbox"
                         data-testid="checkbox-wrapper"
                       >
                         <input
@@ -1062,33 +170,33 @@ exports[`PendingApprovalPage should render 1`] = `
                       </div>
                     </th>
                     <th
-                      class="emotion-17"
+                      class="css-vqd6b8"
                     >
                       <div>
                          Select All 
                       </div>
                     </th>
                     <th
-                      class="emotion-18"
+                      class="css-1blnpd1"
                     />
                     <th
-                      class="emotion-18"
+                      class="css-1blnpd1"
                     />
                     <th
-                      class="emotion-18"
+                      class="css-1blnpd1"
                       colspan="2"
                     />
                     <th
-                      class="emotion-18"
+                      class="css-1blnpd1"
                     />
                     <th
-                      class="emotion-18"
+                      class="css-1blnpd1"
                     />
                     <th
-                      class="emotion-25"
+                      class="css-bfjavh"
                     >
                       <div
-                        class="emotion-23 denali-textarea emotion-24"
+                        class="css-3xmu33-textarea denali-textarea css-6s8cn2"
                         data-testid="textarea-wrapper"
                       >
                         <textarea
@@ -1100,10 +208,10 @@ exports[`PendingApprovalPage should render 1`] = `
                       </div>
                     </th>
                     <th
-                      class="emotion-25"
+                      class="css-bfjavh"
                     >
                       <div
-                        class="emotion-27"
+                        class="css-tku2aw"
                         disabled=""
                       >
                         <div
@@ -1118,7 +226,7 @@ exports[`PendingApprovalPage should render 1`] = `
                             value=""
                           />
                           <input
-                            class="fp-workflowHeader form-control input"
+                            class=" form-control input"
                             placeholder="Expiration (Optional)"
                             readonly="readonly"
                             tabindex="0"
@@ -1128,7 +236,7 @@ exports[`PendingApprovalPage should render 1`] = `
                             data-clear=""
                           >
                             <svg
-                              class="emotion-26"
+                              class="css-u87f64"
                               data-testid="icon"
                               height="1.25em"
                               viewBox="0 0 1024 1024"
@@ -1146,10 +254,10 @@ exports[`PendingApprovalPage should render 1`] = `
                       </div>
                     </th>
                     <th
-                      class="emotion-30"
+                      class="css-ovlzmn"
                     >
                       <svg
-                        class="emotion-29"
+                        class="css-124cf9y"
                         data-testid="icon"
                         height="1.25em"
                         viewBox="0 0 1024 1024"
@@ -1167,10 +275,10 @@ exports[`PendingApprovalPage should render 1`] = `
                       </svg>
                     </th>
                     <th
-                      class="emotion-32"
+                      class="css-10o0jyb"
                     >
                       <svg
-                        class="emotion-29"
+                        class="css-124cf9y"
                         data-testid="icon"
                         height="1.25em"
                         viewBox="0 0 1024 1024"
@@ -1187,56 +295,56 @@ exports[`PendingApprovalPage should render 1`] = `
                   </tr>
                   <tr>
                     <th
-                      class="emotion-18"
+                      class="css-1blnpd1"
                     />
                     <th
-                      class="emotion-34"
+                      class="css-1tca1n5"
                     >
                       Domain
                     </th>
                     <th
-                      class="emotion-18"
+                      class="css-1blnpd1"
                     >
                       Role
                     </th>
                     <th
-                      class="emotion-18"
+                      class="css-1blnpd1"
                     >
                       User
                     </th>
                     <th
-                      class="emotion-18"
+                      class="css-1blnpd1"
                       colspan="2"
                     >
                       User Comment
                     </th>
                     <th
-                      class="emotion-18"
+                      class="css-1blnpd1"
                     >
                       Requester
                     </th>
                     <th
-                      class="emotion-18"
+                      class="css-1blnpd1"
                     >
                       Request Time
                     </th>
                     <th
-                      class="emotion-18"
+                      class="css-1blnpd1"
                     >
                       Audit Reference
                     </th>
                     <th
-                      class="emotion-18"
+                      class="css-1blnpd1"
                     >
                       Expiration Date
                     </th>
                     <th
-                      class="emotion-42"
+                      class="css-1ypliyj"
                     >
                       Approve
                     </th>
                     <th
-                      class="emotion-43"
+                      class="css-6cnd1t"
                     >
                       Reject
                     </th>
@@ -1252,11 +360,11 @@ exports[`PendingApprovalPage should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-49"
+          class="css-1uc217s"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-48"
+            class="css-1pgzu7l"
             data-testid="icon"
             height="1em"
             viewBox="0 0 1024 1024"

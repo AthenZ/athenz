@@ -1,127 +1,8 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`SearchInput should render 1`] = `
-.emotion-1 {
-  box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  position: relative;
-  width: 250px;
-}
-
-.emotion-1 input {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  background: rgba(53,112,244,0.05);
-  border-top: 2px solid transparent;
-  border-bottom: 2px solid transparent;
-  border-right: transparent;
-  border-left: transparent;
-  border-radius: 2px;
-  box-shadow: none;
-  box-sizing: border-box;
-  color: #303030;
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-  font: inherit;
-  height: 36px;
-  margin: 0;
-  outline: none;
-  padding: 0 1rem;
-  text-align: left;
-  width: 100%;
-}
-
-.emotion-1.animated input {
-  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
-  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out, border 0.2s ease-in-out;
-}
-
-.emotion-1 input::-webkit-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-1 input::-moz-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-1 input:-ms-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-1 input::placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-1 input.focused,
-.emotion-1 input:active,
-.emotion-1 input:focus {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #3570f4;
-  color: #303030;
-}
-
-.emotion-1 input:invalid {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #d01111;
-  color: #303030;
-}
-
-.emotion-1 .message {
-  font-size: 12px;
-  left: 0;
-  line-height: 1.8;
-  position: absolute;
-  top: 2.571rem;
-}
-
-.emotion-1.error input,
-.emotion-1.error input.focused,
-.emotion-1.error input:active,
-.emotion-1.error input:focus {
-  border-bottom: 2px solid #d01111;
-}
-
-.emotion-1.error .message {
-  color: #d01111;
-}
-
-.emotion-1 input {
-  padding-right: 36px;
-}
-
-.emotion-1 .input-icon {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  height: 36px;
-  position: absolute;
-  right: 6px;
-}
-
-.emotion-0 {
-  fill: #3570f4;
-  cursor: inherit;
-  vertical-align: text-bottom;
-}
-
 <div
-  class="emotion-1 denali-input animated"
+  class="css-1avh6g4-input denali-input animated"
   data-testid="input-wrapper"
 >
   <input
@@ -135,7 +16,7 @@ exports[`SearchInput should render 1`] = `
     class="input-icon"
   >
     <svg
-      class="emotion-0"
+      class="css-18jx5cr"
       data-testid="icon"
       height="24px"
       viewBox="0 0 1024 1024"

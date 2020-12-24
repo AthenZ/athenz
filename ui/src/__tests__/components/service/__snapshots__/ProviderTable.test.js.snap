@@ -1,98 +1,26 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ProviderTable should render 1`] = `
-.emotion-4 {
-  fill: #303030;
-  cursor: inherit;
-  vertical-align: text-bottom;
-}
-
-.emotion-8 {
-  padding: 20px;
-  text-align: left;
-  vertical-align: middle;
-  word-break: break-all;
-  font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
-  display: table-cell;
-}
-
-.emotion-7 {
-  display: table;
-  border-collapse: separate;
-  border-spacing: 2px;
-  border-color: #9a9a9a;
-}
-
-.emotion-2 {
-  display: table-header-group;
-}
-
-.emotion-0 {
-  border-bottom: 2px solid #d5d5d5;
-  color: #9a9a9a;
-  font-weight: 600;
-  font-size: 0.8rem;
-  padding-bottom: 5px;
-  vertical-align: top;
-  text-transform: uppercase;
-  text-align: left;
-  padding: 5px 0 5px 15px;
-  word-break: break-all;
-}
-
-.emotion-1 {
-  border-bottom: 2px solid #d5d5d5;
-  color: #9a9a9a;
-  font-weight: 600;
-  font-size: 0.8rem;
-  padding-bottom: 5px;
-  vertical-align: top;
-  text-transform: uppercase;
-  text-align: left;
-  padding: 5px 0 5px 15px;
-  word-break: break-all;
-  border-right: none;
-}
-
-.emotion-3 {
-  text-align: left;
-  padding: 5px 0 5px 15px;
-  vertical-align: middle;
-  word-break: break-all;
-}
-
-.emotion-6 {
-  text-align: left;
-  padding: 5px 0 5px 15px;
-  vertical-align: middle;
-  word-break: break-all;
-  border-right: none;
-}
-
-.emotion-5 {
-  margin-left: 30px;
-}
-
 <td
-  class="emotion-8"
+  class="css-nyswyy"
   color=""
   colspan="7"
   data-testid="provider-table"
 >
   <table
-    class="emotion-7"
+    class="css-60xxn3"
   >
     <thead
-      class="emotion-2"
+      class="css-u1199z"
     >
       <tr>
         <th
-          class="emotion-0"
+          class="css-zffc7n"
         >
           Provider
         </th>
         <th
-          class="emotion-1"
+          class="css-1ukpl68"
         >
           Status
         </th>
@@ -101,19 +29,19 @@ exports[`ProviderTable should render 1`] = `
     <tbody>
       <tr>
         <td
-          class="emotion-3"
+          class="css-1xbnz49"
         >
           AWS EC2/EKS/Fargate launches instances for the service
         </td>
         <td
-          class="emotion-6"
+          class="css-1hsx9ey"
           colspan="5"
         >
           <div
-            class="emotion-5"
+            class="css-1falvb6"
           >
             <svg
-              class="emotion-4"
+              class="css-1pgzu7l"
               data-testid="icon"
               height="1.25em"
               viewBox="0 0 1024 1024"

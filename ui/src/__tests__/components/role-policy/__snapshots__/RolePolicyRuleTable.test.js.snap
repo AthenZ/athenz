@@ -1,104 +1,14 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`PolicyRuleTable should render 1`] = `
-.emotion-12 {
-  fill: #188fff;
-  cursor: pointer;
-  vertical-align: text-bottom;
-}
-
-.emotion-14 {
-  width: 100%;
-  border-spacing: 0;
-  display: table;
-  border-collapse: separate;
-}
-
-.emotion-0 {
-  text-align: left;
-  border-bottom: 2px solid #d5d5d5;
-  color: #303030;
-  font-weight: 600;
-  font-size: 16px;
-  padding-bottom: 2px;
-  vertical-align: top;
-  padding: 10px 10px 0px 15px;
-  word-break: break-all;
-}
-
-.emotion-2 {
-  text-align: right;
-  border-bottom: 2px solid #d5d5d5;
-  color: #3570F4;
-  font-weight: 300;
-  font-size: 14px;
-  padding-bottom: 2px;
-  vertical-align: top;
-  padding: 10px 10px 0px 15px;
-  word-break: break-all;
-}
-
-.emotion-1 {
-  color: #3570f4;
-  -webkit-text-decoration: none;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.emotion-15 {
-  margin: 15px 0 0 0;
-}
-
-.emotion-3 {
-  border-bottom: 2px solid #d5d5d5;
-  color: #9a9a9a;
-  font-weight: 600;
-  font-size: 0.7rem;
-  padding-bottom: 5px;
-  vertical-align: top;
-  text-transform: uppercase;
-  padding: 5px 0 5px 15px;
-  text-align: left;
-  background-color: white;
-}
-
-.emotion-7 {
-  border-bottom: 2px solid #d5d5d5;
-  color: #9a9a9a;
-  font-weight: 600;
-  font-size: 0.8rem;
-  padding-bottom: 5px;
-  vertical-align: top;
-  text-transform: uppercase;
-  width: 120px;
-  text-align: center;
-  background-color: white;
-}
-
-.emotion-8 {
-  background-color: #3570f40D;
-  text-align: left;
-  padding: 5px 0 5px 15px;
-  vertical-align: middle;
-  word-break: break-all;
-}
-
-.emotion-13 {
-  background-color: #3570f40D;
-  text-align: center;
-  padding: 5px 0 5px 15px;
-  vertical-align: middle;
-  word-break: break-all;
-}
-
 <table
-  class="emotion-14"
+  class="css-1mj37j5"
   data-testid="role-policy-rule-table"
 >
   <tbody>
     <tr>
       <th
-        class="emotion-0"
+        class="css-vnseko"
         color="#303030"
       >
         Rule Details(
@@ -106,11 +16,11 @@ exports[`PolicyRuleTable should render 1`] = `
         )
       </th>
       <th
-        class="emotion-2"
+        class="css-o9v5qy"
         color="#3570F4"
       >
         <a
-          class="emotion-1"
+          class="css-4c0528"
         >
           Add rule
         </a>
@@ -126,70 +36,70 @@ exports[`PolicyRuleTable should render 1`] = `
         colspan="4"
       >
         <div
-          class="emotion-15"
+          class="css-tgbpgn"
         >
           <table
-            class="emotion-14"
+            class="css-1mj37j5"
           >
             <thead>
               <tr>
                 <th
-                  class="emotion-3"
+                  class="css-9kjbzg"
                 >
                   Effect
                 </th>
                 <th
-                  class="emotion-3"
+                  class="css-9kjbzg"
                 >
                   Action
                 </th>
                 <th
-                  class="emotion-3"
+                  class="css-9kjbzg"
                 >
                   Role
                 </th>
                 <th
-                  class="emotion-3"
+                  class="css-9kjbzg"
                 >
                   Resource
                 </th>
                 <th
-                  class="emotion-7"
+                  class="css-qxqcr1"
                 />
               </tr>
             </thead>
             <tbody>
               <tr>
                 <td
-                  class="emotion-8"
+                  class="css-18djig3"
                   color="#3570f40D"
                 >
                   ALLOW
                 </td>
                 <td
-                  class="emotion-8"
+                  class="css-18djig3"
                   color="#3570f40D"
                 >
                   aaa
                 </td>
                 <td
-                  class="emotion-8"
+                  class="css-18djig3"
                   color="#3570f40D"
                 >
                   home.pgote:role.allunixusers
                 </td>
                 <td
-                  class="emotion-8"
+                  class="css-18djig3"
                   color="#3570f40D"
                 >
                   home.pgote:aaaa
                 </td>
                 <td
-                  class="emotion-13"
+                  class="css-1s8u38g"
                   color="#3570f40D"
                 >
                   <svg
-                    class="emotion-12"
+                    class="css-u87f64"
                     data-testid="icon"
                     height="1.25em"
                     viewBox="0 0 1024 1024"
@@ -217,104 +127,14 @@ exports[`PolicyRuleTable should render 1`] = `
 `;
 
 exports[`PolicyRuleTable should render 2`] = `
-.emotion-12 {
-  fill: #188fff;
-  cursor: pointer;
-  vertical-align: text-bottom;
-}
-
-.emotion-14 {
-  width: 100%;
-  border-spacing: 0;
-  display: table;
-  border-collapse: separate;
-}
-
-.emotion-0 {
-  text-align: left;
-  border-bottom: 2px solid #d5d5d5;
-  color: #303030;
-  font-weight: 600;
-  font-size: 16px;
-  padding-bottom: 2px;
-  vertical-align: top;
-  padding: 10px 10px 0px 15px;
-  word-break: break-all;
-}
-
-.emotion-2 {
-  text-align: right;
-  border-bottom: 2px solid #d5d5d5;
-  color: #3570F4;
-  font-weight: 300;
-  font-size: 14px;
-  padding-bottom: 2px;
-  vertical-align: top;
-  padding: 10px 10px 0px 15px;
-  word-break: break-all;
-}
-
-.emotion-1 {
-  color: #3570f4;
-  -webkit-text-decoration: none;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.emotion-15 {
-  margin: 15px 0 0 0;
-}
-
-.emotion-3 {
-  border-bottom: 2px solid #d5d5d5;
-  color: #9a9a9a;
-  font-weight: 600;
-  font-size: 0.7rem;
-  padding-bottom: 5px;
-  vertical-align: top;
-  text-transform: uppercase;
-  padding: 5px 0 5px 15px;
-  text-align: left;
-  background-color: white;
-}
-
-.emotion-7 {
-  border-bottom: 2px solid #d5d5d5;
-  color: #9a9a9a;
-  font-weight: 600;
-  font-size: 0.8rem;
-  padding-bottom: 5px;
-  vertical-align: top;
-  text-transform: uppercase;
-  width: 120px;
-  text-align: center;
-  background-color: white;
-}
-
-.emotion-8 {
-  background-color: #3570f40D;
-  text-align: left;
-  padding: 5px 0 5px 15px;
-  vertical-align: middle;
-  word-break: break-all;
-}
-
-.emotion-13 {
-  background-color: #3570f40D;
-  text-align: center;
-  padding: 5px 0 5px 15px;
-  vertical-align: middle;
-  word-break: break-all;
-}
-
 <table
-  class="emotion-14"
+  class="css-1mj37j5"
   data-testid="role-policy-rule-table"
 >
   <tbody>
     <tr>
       <th
-        class="emotion-0"
+        class="css-vnseko"
         color="#303030"
       >
         Rule Details(
@@ -322,11 +142,11 @@ exports[`PolicyRuleTable should render 2`] = `
         )
       </th>
       <th
-        class="emotion-2"
+        class="css-o9v5qy"
         color="#3570F4"
       >
         <a
-          class="emotion-1"
+          class="css-4c0528"
         >
           Add rule
         </a>
@@ -342,70 +162,70 @@ exports[`PolicyRuleTable should render 2`] = `
         colspan="4"
       >
         <div
-          class="emotion-15"
+          class="css-tgbpgn"
         >
           <table
-            class="emotion-14"
+            class="css-1mj37j5"
           >
             <thead>
               <tr>
                 <th
-                  class="emotion-3"
+                  class="css-9kjbzg"
                 >
                   Effect
                 </th>
                 <th
-                  class="emotion-3"
+                  class="css-9kjbzg"
                 >
                   Action
                 </th>
                 <th
-                  class="emotion-3"
+                  class="css-9kjbzg"
                 >
                   Role
                 </th>
                 <th
-                  class="emotion-3"
+                  class="css-9kjbzg"
                 >
                   Resource
                 </th>
                 <th
-                  class="emotion-7"
+                  class="css-qxqcr1"
                 />
               </tr>
             </thead>
             <tbody>
               <tr>
                 <td
-                  class="emotion-8"
+                  class="css-18djig3"
                   color="#3570f40D"
                 >
                   ALLOW
                 </td>
                 <td
-                  class="emotion-8"
+                  class="css-18djig3"
                   color="#3570f40D"
                 >
                   aaa
                 </td>
                 <td
-                  class="emotion-8"
+                  class="css-18djig3"
                   color="#3570f40D"
                 >
                   home.pgote:role.allunixusers
                 </td>
                 <td
-                  class="emotion-8"
+                  class="css-18djig3"
                   color="#3570f40D"
                 >
                   home.pgote:aaaa
                 </td>
                 <td
-                  class="emotion-13"
+                  class="css-1s8u38g"
                   color="#3570f40D"
                 >
                   <svg
-                    class="emotion-12"
+                    class="css-u87f64"
                     data-testid="icon"
                     height="1.25em"
                     viewBox="0 0 1024 1024"

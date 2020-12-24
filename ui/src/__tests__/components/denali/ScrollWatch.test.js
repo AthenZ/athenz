@@ -18,11 +18,6 @@ import { fireEvent, render } from '@testing-library/react';
 import ScrollWatch from '../../../components/denali/ScrollWatch';
 import throttle from 'lodash/throttle';
 
-// NOTE: TLDR: Mocking is a pain. Originally, I wanted to have a lodash/throttle
-// mock for one test case, but that didn't work. So the current strategy is to
-// mock for every test case, but in the test where we want the real function,
-// we do a requireActual('lodash/throttle') there. See:
-// https://github.com/facebook/jest/issues/2649#issuecomment-360467278
 jest.mock('lodash/throttle');
 
 function mockThrottle(func) {
@@ -46,7 +41,7 @@ describe('ScrollWatch', () => {
 
     it('should handle scrolling with throttling', async () => {
         throttle.mockImplementationOnce(
-            require.requireActual('lodash/throttle')
+            jest.requireActual('lodash/throttle')
         );
         createRefSpy;
 
@@ -266,7 +261,7 @@ describe('ScrollWatch', () => {
 
     it('should ignore scrolledToBottom', () => {
         throttle.mockImplementationOnce(
-            require.requireActual('lodash/throttle')
+            jest.requireActual('lodash/throttle')
         );
         createRefSpy;
 
