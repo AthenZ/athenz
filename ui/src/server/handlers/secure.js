@@ -23,33 +23,33 @@ const multer = require('multer');
 module.exports = function (expressApp, config, secrets) {
     expressApp.use((req, res, next) => {
         const scriptSrc = [`'self'`];
-        const styleSrc = [`'self'`];
         // locally allow 'unsafe-inline', so HMR doesn't trigger the CSP
         if (config.env === 'local') {
             scriptSrc.push(`'unsafe-inline'`);
             scriptSrc.push(`'unsafe-eval'`);
-
-            styleSrc.push(`'unsafe-inline'`);
-            styleSrc.push(`'unsafe-eval'`);
         } else {
             scriptSrc.push(`'nonce-${req.headers.rid}'`);
-            styleSrc.push(`'nonce-${req.headers.rid}'`);
         }
         let cspOptions = {
             directives: {
                 defaultSrc: [`'self'`],
                 baseUri: [`'none'`],
                 imgSrc: [`'self'`],
-                styleSrc,
                 scriptSrc,
             },
         };
-        //adding connectSrc only for local
+        //adding styleSrc, connectSrc only for local
         if (config.env === 'local') {
-            const connectSrc = [`'self'`];
+            cspOptions.directives.styleSrc = [
+                `'self'`,
+                `'unsafe-inline'`,
+                `'unsafe-eval'`,
+            ];
             // to be used by local ZMS for ntoken based auth
-            connectSrc.push(`https://localhost:4443`);
-            cspOptions.directives.connectSrc = connectSrc;
+            cspOptions.directives.connectSrc = [
+                `'self'`,
+                `https://localhost:4443`,
+            ];
         }
         if (config.cspImgSrc && config.cspImgSrc !== '') {
             cspOptions.directives.imgSrc.push(config.cspImgSrc);
