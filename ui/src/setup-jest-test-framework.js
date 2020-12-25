@@ -15,29 +15,13 @@
  */
 // Add some helpful assertions for `react-testing-library`
 import '@testing-library/jest-dom/extend-expect';
-// import { emotion } from 'emotion';
-import { css } from '@emotion/css';
-import { createSerializer } from '@emotion/jest';
 import jsdom from 'jsdom';
 
 const dom = new jsdom.JSDOM('<!doctype html><html><body></body></html>');
-
-// Need to manually polyfill MutationObserver for 'react-popper-library':
-// https://github.com/kentcdodds/react-testing-library/issues/141#issuecomment-406317195
-global.window = dom.window;
-global.document = dom.window.document;
-global.navigator = dom.window.navigator;
 
 // new lines
 global.Node = dom.window.Node;
 require('mutationobserver-shim');
 global.MutationObserver = global.window.MutationObserver;
-
-// Add emotion support
-// https://github.com/emotion-js/emotion/blob/master/docs/testing.md
-// NOTE: To extend 'expect', this must be used under jest's
-// 'setupTestFrameworkScriptFile', as explained here:
-// https://github.com/FormidableLabs/enzyme-matchers/issues/96
-// expect.addSnapshotSerializer(createSerializer(emotion));
 
 process.env.APP_ENV = 'unittest';
