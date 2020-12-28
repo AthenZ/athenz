@@ -14,22 +14,31 @@
  * limitations under the License.
  */
 import Document, { Html, Head, Main, NextScript } from 'next/document';
+import { extractCritical } from '@emotion/server';
 
 export default class MyDocument extends Document {
     static async getInitialProps(ctx) {
         const initialProps = await Document.getInitialProps(ctx);
-        return { ...initialProps };
+        const styles = extractCritical(initialProps.html);
+        return {
+            ...initialProps,
+            styles: (
+                <>
+                    {initialProps.styles}
+                    <style
+                        data-emotion-css={styles.ids.join(' ')}
+                        nonce={`${ctx.req.headers.rid}`}
+                        dangerouslySetInnerHTML={{ __html: styles.css }}
+                    />
+                </>
+            ),
+        };
     }
 
     render() {
         return (
             <Html>
                 <Head>
-                    <link
-                        rel='stylesheet'
-                        type='text/css'
-                        href='/static/pure-min.css'
-                    />
                     <link
                         rel='icon'
                         type='image/x-icon'

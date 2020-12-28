@@ -1,29 +1,365 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`RoleList should render 1`] = `
+.emotion-0 {
+  margin: 20px;
+}
+
+.emotion-2 {
+  padding-bottom: 20px;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  justify-content: space-between;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+}
+
+.emotion-4 {
+  vertical-align: middle;
+}
+
+.emotion-6 {
+  -webkit-align-items: stretch;
+  -webkit-box-align: stretch;
+  -ms-flex-align: stretch;
+  align-items: stretch;
+  background: rgba(53,112,244,0.05);
+  border-radius: 2px;
+  box-sizing: border-box;
+  display: inline-grid;
+  grid-template-columns: repeat(2, 1fr);
+  height: 28px;
+  position: relative;
+}
+
+.emotion-6::before {
+  background: #fff;
+  border: 2px solid #0072df;
+  border-radius: 2px;
+  box-sizing: border-box;
+  content: '';
+  height: calc(100% + 4px);
+  margin: -2px -2px -2px calc(0% - 2px);
+  position: absolute;
+  -webkit-transition: all 0.3s ease-in;
+  transition: all 0.3s ease-in;
+  width: calc(50% + 4px);
+}
+
+.emotion-7 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  border-radius: 2px;
+  box-sizing: border-box;
+  color: #303030;
+  cursor: initial;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+  margin: 3px;
+  padding: 0 12px;
+  -webkit-transition: color 0.2s ease-in 0.1s;
+  transition: color 0.2s ease-in 0.1s;
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.emotion-7:hover {
+  color: #303030;
+}
+
+.emotion-8 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  border-radius: 2px;
+  box-sizing: border-box;
+  color: #3697f2;
+  cursor: pointer;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+  margin: 3px;
+  padding: 0 12px;
+  -webkit-transition: color 0.2s ease-in 0.1s;
+  transition: color 0.2s ease-in 0.1s;
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.emotion-8:hover {
+  color: #3570f4;
+}
+
+.emotion-9 {
+  width: 50%;
+}
+
+.emotion-11 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 100%;
+}
+
+.emotion-11 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-11.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-11 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-11 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-11 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-11 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-11 input.focused,
+.emotion-11 input:active,
+.emotion-11 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-11 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-11 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-11.error input,
+.emotion-11.error input.focused,
+.emotion-11.error input:active,
+.emotion-11.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-11.error .message {
+  color: #d01111;
+}
+
+.emotion-11 input {
+  padding-right: 36px;
+}
+
+.emotion-11 .input-icon {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 36px;
+  position: absolute;
+  right: 6px;
+}
+
+.emotion-12 {
+  fill: #3570f4;
+  cursor: inherit;
+  vertical-align: text-bottom;
+}
+
+.emotion-13 {
+  border: none;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  font-family: Helvetica,Arial,sans-serif;
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 1;
+  margin: 5px;
+  min-width: ;
+  outline: 0;
+  padding: 10px 24px;
+  text-align: center;
+  text-shadow: none;
+  text-transform: none;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  vertical-align: baseline;
+  white-space: nowrap;
+  background: transparent;
+  box-shadow: 0 0 0 1px #3697f2 inset;
+  color: #3697f2;
+}
+
+.emotion-13:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-13:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
+.emotion-13:disabled {
+  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
+}
+
+.emotion-13:hover:not(:disabled) {
+  background: #d7e2fd;
+}
+
+.emotion-15 {
+  width: 100%;
+  border-spacing: 0 15px;
+  display: table;
+  border-collapse: separate;
+  border-color: grey;
+}
+
+.emotion-17 {
+  text-align: left;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 35px;
+  word-break: break-all;
+}
+
+.emotion-19 {
+  text-align: left;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
+.emotion-23 {
+  text-align: center;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
 <div
-  class="css-oqpjdc"
+  class="emotion-0 emotion-1"
   data-testid="rolelist"
 >
   <div
-    class="css-1h3zjar"
+    class="emotion-2 emotion-3"
   >
     <div
-      class="css-3v0450"
+      class="emotion-4 emotion-5"
     >
       <div
-        class="css-d135nl-button-group-button-group-active-box denali-button-group"
+        class="emotion-6 denali-button-group"
         data-testid="buttongroup"
       >
         <div
-          class="css-ngjzew-button-group-button"
+          class="emotion-7"
           data-active="true"
           id="button-roles"
         >
           Roles
         </div>
         <div
-          class="css-u4ed4m-button-group-button"
+          class="emotion-8"
           data-active="false"
           id="button-users"
         >
@@ -32,10 +368,10 @@ exports[`RoleList should render 1`] = `
       </div>
     </div>
     <div
-      class="css-x1uyer"
+      class="emotion-9 emotion-10"
     >
       <div
-        class="css-1u6oono-input denali-input animated"
+        class="emotion-11 denali-input animated"
         data-testid="input-wrapper"
       >
         <input
@@ -49,7 +385,7 @@ exports[`RoleList should render 1`] = `
           class="input-icon"
         >
           <svg
-            class="css-18jx5cr"
+            class="emotion-12"
             data-testid="icon"
             height="24px"
             viewBox="0 0 1024 1024"
@@ -71,13 +407,13 @@ exports[`RoleList should render 1`] = `
     </div>
     <div>
       <button
-        class="css-1pobclq-button denali-button"
+        class="emotion-13 denali-button"
       >
         Add Role
       </button>
       
       <button
-        class="css-1pobclq-button denali-button"
+        class="emotion-13 denali-button"
       >
         Add Member
       </button>
@@ -85,48 +421,48 @@ exports[`RoleList should render 1`] = `
     </div>
   </div>
   <table
-    class="css-1cl04rh"
+    class="emotion-15 emotion-16"
     data-testid="roletable"
   >
     <thead>
       <tr>
         <th
-          class="css-ld9wv4"
+          class="emotion-17 emotion-18"
         >
           Role
         </th>
         <th
-          class="css-c37hkt"
+          class="emotion-19 emotion-20"
         >
           Modified Date
         </th>
         <th
-          class="css-c37hkt"
+          class="emotion-19 emotion-20"
         >
           Reviewed Date
         </th>
         <th
-          class="css-19r8pbt"
+          class="emotion-23 emotion-20"
         >
           Members
         </th>
         <th
-          class="css-19r8pbt"
+          class="emotion-23 emotion-20"
         >
           Review
         </th>
         <th
-          class="css-19r8pbt"
+          class="emotion-23 emotion-20"
         >
           Policy Rule
         </th>
         <th
-          class="css-19r8pbt"
+          class="emotion-23 emotion-20"
         >
           Settings
         </th>
         <th
-          class="css-19r8pbt"
+          class="emotion-23 emotion-20"
         >
           Delete
         </th>

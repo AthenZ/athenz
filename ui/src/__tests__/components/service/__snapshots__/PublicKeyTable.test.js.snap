@@ -1,29 +1,95 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`PublicKeyTable should reloadService after successful delete 1`] = `
+.emotion-0 {
+  padding: 20px;
+  text-align: left;
+  vertical-align: middle;
+  word-break: break-all;
+  font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
+  display: table-cell;
+  background-color: ;
+}
+
+.emotion-2 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  justify-content: space-between;
+  border-bottom: 2px solid #d5d5d5;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+}
+
+.emotion-4 {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.emotion-6 {
+  margin-bottom: 20px;
+}
+
+.emotion-8 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-flex-flow: row wrap;
+  -webkit-flex-flow: row wrap;
+  -ms-flex-flow: row wrap;
+  flex-flow: row wrap;
+  -webkit-box-pack: start;
+  -ms-flex-pack: start;
+  -webkit-justify-content: flex-start;
+  justify-content: flex-start;
+}
+
+.emotion-10 {
+  width: 150px;
+  font-weight: 400;
+  padding: 10px 0 10px 0;
+}
+
+.emotion-16 {
+  color: #3570f4;
+  -webkit-text-decoration: none;
+  text-decoration: none;
+  cursor: pointer;
+}
+
 <td
-  class="css-nyswyy"
+  class="emotion-0 emotion-1"
   color=""
   colspan="7"
   data-testid="public-key-table"
 >
   <div
-    class="css-1rrkdnp"
+    class="emotion-2 emotion-3"
   >
     <div
-      class="css-zfcvhg"
+      class="emotion-4 emotion-5"
     >
       Details
     </div>
   </div>
   <div
-    class="css-1gbujtk"
+    class="emotion-6 emotion-7"
   >
     <div
-      class="css-1tl5ru9"
+      class="emotion-8 emotion-9"
     >
       <span
-        class="css-1kupmom"
+        class="emotion-10 emotion-11"
       >
         Description
       </span>
@@ -33,52 +99,118 @@ exports[`PublicKeyTable should reloadService after successful delete 1`] = `
     </div>
   </div>
   <div
-    class="css-1rrkdnp"
+    class="emotion-2 emotion-3"
   >
     <div
-      class="css-zfcvhg"
+      class="emotion-4 emotion-5"
     >
       Public keys (
       0
       )
     </div>
     <a
-      class="css-4c0528"
+      class="emotion-16 emotion-17"
     >
       Add Key
     </a>
   </div>
   
   <div
-    class="css-1gbujtk"
+    class="emotion-6 emotion-7"
   />
 </td>
 `;
 
 exports[`PublicKeyTable should render 1`] = `
+.emotion-0 {
+  padding: 20px;
+  text-align: left;
+  vertical-align: middle;
+  word-break: break-all;
+  font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
+  display: table-cell;
+  background-color: ;
+}
+
+.emotion-2 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  justify-content: space-between;
+  border-bottom: 2px solid #d5d5d5;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+}
+
+.emotion-4 {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.emotion-6 {
+  margin-bottom: 20px;
+}
+
+.emotion-8 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-flex-flow: row wrap;
+  -webkit-flex-flow: row wrap;
+  -ms-flex-flow: row wrap;
+  flex-flow: row wrap;
+  -webkit-box-pack: start;
+  -ms-flex-pack: start;
+  -webkit-justify-content: flex-start;
+  justify-content: flex-start;
+}
+
+.emotion-10 {
+  width: 150px;
+  font-weight: 400;
+  padding: 10px 0 10px 0;
+}
+
+.emotion-16 {
+  color: #3570f4;
+  -webkit-text-decoration: none;
+  text-decoration: none;
+  cursor: pointer;
+}
+
 <td
-  class="css-nyswyy"
+  class="emotion-0 emotion-1"
   color=""
   colspan="7"
   data-testid="public-key-table"
 >
   <div
-    class="css-1rrkdnp"
+    class="emotion-2 emotion-3"
   >
     <div
-      class="css-zfcvhg"
+      class="emotion-4 emotion-5"
     >
       Details
     </div>
   </div>
   <div
-    class="css-1gbujtk"
+    class="emotion-6 emotion-7"
   >
     <div
-      class="css-1tl5ru9"
+      class="emotion-8 emotion-9"
     >
       <span
-        class="css-1kupmom"
+        class="emotion-10 emotion-11"
       >
         Description
       </span>
@@ -88,49 +220,395 @@ exports[`PublicKeyTable should render 1`] = `
     </div>
   </div>
   <div
-    class="css-1rrkdnp"
+    class="emotion-2 emotion-3"
   >
     <div
-      class="css-zfcvhg"
+      class="emotion-4 emotion-5"
     >
       Public keys (
       0
       )
     </div>
     <a
-      class="css-4c0528"
+      class="emotion-16 emotion-17"
     >
       Add Key
     </a>
   </div>
   
   <div
-    class="css-1gbujtk"
+    class="emotion-6 emotion-7"
   />
 </td>
 `;
 
 exports[`PublicKeyTable should render addKey after click addKey 1`] = `
+.emotion-0 {
+  width: 100%;
+  text-align: left;
+  background-color: #fff;
+}
+
+.emotion-2 {
+  -webkit-align-items: flex-start;
+  -webkit-box-align: flex-start;
+  -ms-flex-align: flex-start;
+  align-items: flex-start;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  padding: 10px 30px;
+}
+
+.emotion-4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #303030;
+  line-height: 36px;
+  white-space: nowrap;
+}
+
+.emotion-5 {
+  -webkit-flex: 0 0 100px;
+  -ms-flex: 0 0 100px;
+  flex: 0 0 100px;
+  margin-right: 2%;
+}
+
+.emotion-7 {
+  -webkit-flex: 1 1;
+  -ms-flex: 1 1;
+  flex: 1 1;
+  margin-right: 10px;
+}
+
+.emotion-9 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 250px;
+}
+
+.emotion-9 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-9.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-9 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-9 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-9 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-9 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-9 input.focused,
+.emotion-9 input:active,
+.emotion-9 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-9 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-9 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-9.error input,
+.emotion-9.error input.focused,
+.emotion-9.error input:active,
+.emotion-9.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-9.error .message {
+  color: #d01111;
+}
+
+.emotion-10 {
+  width: 500px;
+}
+
+.emotion-19 {
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: column nowrap;
+  -webkit-flex-flow: column nowrap;
+  -ms-flex-flow: column nowrap;
+  flex-flow: column nowrap;
+  position: relative;
+  width: 500px;
+}
+
+.emotion-19>textarea {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: auto;
+  line-height: 1.5;
+  margin: 0;
+  outline: none;
+  padding: 0.25em 0.75rem;
+  text-align: left;
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  width: auto;
+}
+
+.emotion-19>textarea::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-19>textarea::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-19>textarea:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-19>textarea::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-19>textarea:active,
+.emotion-19>textarea:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-19>textarea:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-19>textarea[disabled] {
+  background: rgba(48,48,48,0.05);
+  border-bottom: 2px solid rgba(48,48,48,0.05);
+  color: rgba(48,48,48,0.25);
+  cursor: not-allowed;
+}
+
+.emotion-19 .message {
+  font-size: 12px;
+  color: #303030;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-20>textarea {
+  resize: vertical;
+}
+
+.emotion-22 {
+  background-color: #fff;
+}
+
+.emotion-24 {
+  margin-left: 155px;
+}
+
+.emotion-26 {
+  border: none;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  font-family: Helvetica,Arial,sans-serif;
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 1;
+  margin: 5px;
+  min-width: ;
+  outline: 0;
+  padding: 10px 24px;
+  text-align: center;
+  text-shadow: none;
+  text-transform: none;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  vertical-align: baseline;
+  white-space: nowrap;
+  background: linear-gradient(
+              to right,
+              #3697f2,
+              #3570f4
+          );
+  color: #fff;
+}
+
+.emotion-26:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-26:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
+.emotion-26:hover:not(:disabled) {
+  background: linear-gradient(
+                  to right,
+                  #3570f4,
+                  #3448f7
+              );
+}
+
+.emotion-27 {
+  min-width: 8.5em;
+  min-height: 1em;
+}
+
+.emotion-29 {
+  border: none;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  font-family: Helvetica,Arial,sans-serif;
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 1;
+  margin: 5px;
+  min-width: ;
+  outline: 0;
+  padding: 10px 24px;
+  text-align: center;
+  text-shadow: none;
+  text-transform: none;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  vertical-align: baseline;
+  white-space: nowrap;
+  background: transparent;
+  box-shadow: 0 0 0 1px #3697f2 inset;
+  color: #3697f2;
+}
+
+.emotion-29:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-29:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
+.emotion-29:disabled {
+  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
+}
+
+.emotion-29:hover:not(:disabled) {
+  background: #d7e2fd;
+}
+
 <div
   autocomplete="off"
-  class="css-vcd2ur"
+  class="emotion-0 emotion-1"
   data-testid="add-key"
 >
   <div
-    class="css-y97ykc"
+    class="emotion-2 emotion-3"
     data-testid="add-key-id"
   >
     <label
-      class="css-fc0mv0-input-label denali-input-label css-9xcde0"
+      class="emotion-4 denali-input-label emotion-5 emotion-6"
       for="key-id"
     >
       Public Key Id
     </label>
     <div
-      class="css-1xqce5"
+      class="emotion-7 emotion-8"
     >
       <div
-        class="css-dqae60-input denali-input animated css-fvi5z5"
+        class="emotion-9 denali-input animated emotion-10 emotion-11"
         data-testid="input-wrapper"
       >
         <input
@@ -148,20 +626,20 @@ exports[`PublicKeyTable should render addKey after click addKey 1`] = `
     </div>
   </div>
   <div
-    class="css-y97ykc"
+    class="emotion-2 emotion-3"
     data-testid="add-key-value"
   >
     <label
-      class="css-fc0mv0-input-label denali-input-label css-9xcde0"
+      class="emotion-4 denali-input-label emotion-5 emotion-6"
       for="key-value"
     >
       Key Value
     </label>
     <div
-      class="css-1xqce5"
+      class="emotion-7 emotion-8"
     >
       <div
-        class="css-1bg1ido-textarea denali-textarea css-6s8cn2"
+        class="emotion-19 denali-textarea emotion-20 emotion-21"
         data-testid="textarea-wrapper"
       >
         <textarea
@@ -173,18 +651,18 @@ exports[`PublicKeyTable should render addKey after click addKey 1`] = `
     </div>
   </div>
   <div
-    class="css-15tqd4u"
+    class="emotion-22 emotion-23"
   >
     <div
-      class="css-8y931m"
+      class="emotion-24 emotion-25"
     >
       <button
-        class="css-1iukreu-button denali-button css-7y8rgk"
+        class="emotion-26 denali-button emotion-27 emotion-28"
       >
         Submit
       </button>
       <button
-        class="css-1pobclq-button denali-button css-7y8rgk"
+        class="emotion-29 denali-button emotion-27 emotion-28"
       >
         Cancel
       </button>

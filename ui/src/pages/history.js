@@ -26,6 +26,8 @@ import HistoryList from '../components/history/HistoryList';
 import Tabs from '../components/header/Tabs';
 import RequestUtils from '../components/utils/RequestUtils';
 import Error from './_error';
+import createCache from '@emotion/cache';
+import { CacheProvider } from '@emotion/react';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -98,12 +100,17 @@ export default class HistoryPage extends React.Component {
             roles: historyData[4],
             _csrf: historyData[5],
             pending: historyData[6],
+            nonce: props.req.headers.rid,
         };
     }
 
     constructor(props) {
         super(props);
         this.api = props.api || API();
+        this.cache = createCache({
+            key: 'athenz',
+            nonce: this.props.nonce,
+        });
     }
 
     render() {
@@ -123,53 +130,55 @@ export default class HistoryPage extends React.Component {
             return <Error err={this.props.error} />;
         }
         return (
-            <div data-testid='history'>
-                <Head>
-                    <title>Athenz</title>
-                </Head>
-                <Header
-                    showSearch={true}
-                    headerDetails={this.props.headerDetails}
-                    pending={this.props.pending}
-                />
-                <MainContentDiv>
-                    <AppContainerDiv>
-                        <HistoryContainerDiv>
-                            <HistoryContentDiv>
-                                <PageHeaderDiv>
-                                    <TitleDiv>{domain}</TitleDiv>
-                                    <DomainDetails
-                                        domainDetails={domainDetails}
-                                        api={this.api}
-                                        _csrf={_csrf}
-                                        productMasterLink={
-                                            this.props.headerDetails
-                                                .productMasterLink
-                                        }
-                                    />
-                                    <Tabs
+            <CacheProvider value={this.cache}>
+                <div data-testid='history'>
+                    <Head>
+                        <title>Athenz</title>
+                    </Head>
+                    <Header
+                        showSearch={true}
+                        headerDetails={this.props.headerDetails}
+                        pending={this.props.pending}
+                    />
+                    <MainContentDiv>
+                        <AppContainerDiv>
+                            <HistoryContainerDiv>
+                                <HistoryContentDiv>
+                                    <PageHeaderDiv>
+                                        <TitleDiv>{domain}</TitleDiv>
+                                        <DomainDetails
+                                            domainDetails={domainDetails}
+                                            api={this.api}
+                                            _csrf={_csrf}
+                                            productMasterLink={
+                                                this.props.headerDetails
+                                                    .productMasterLink
+                                            }
+                                        />
+                                        <Tabs
+                                            api={this.api}
+                                            domain={domain}
+                                            selectedName={'history'}
+                                        />
+                                    </PageHeaderDiv>
+                                    <HistoryList
                                         api={this.api}
                                         domain={domain}
-                                        selectedName={'history'}
+                                        roles={roles}
+                                        historyrows={historyrows}
+                                        _csrf={_csrf}
                                     />
-                                </PageHeaderDiv>
-                                <HistoryList
-                                    api={this.api}
-                                    domain={domain}
-                                    roles={roles}
-                                    historyrows={historyrows}
-                                    _csrf={_csrf}
-                                />
-                            </HistoryContentDiv>
-                        </HistoryContainerDiv>
-                        <UserDomains
-                            domains={this.props.domains}
-                            api={this.api}
-                            domain={domain}
-                        />
-                    </AppContainerDiv>
-                </MainContentDiv>
-            </div>
+                                </HistoryContentDiv>
+                            </HistoryContainerDiv>
+                            <UserDomains
+                                domains={this.props.domains}
+                                api={this.api}
+                                domain={domain}
+                            />
+                        </AppContainerDiv>
+                    </MainContentDiv>
+                </div>
+            </CacheProvider>
         );
     }
 }

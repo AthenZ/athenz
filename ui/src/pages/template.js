@@ -26,6 +26,8 @@ import TemplateList from '../components/template/TemplateList';
 import RequestUtils from '../components/utils/RequestUtils';
 import Tabs from '../components/header/Tabs';
 import Error from './_error';
+import createCache from '@emotion/cache';
+import { CacheProvider } from '@emotion/react';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -100,12 +102,17 @@ export default class TemplatePage extends React.Component {
             pending: domains[5],
             pageConfig: domains[6],
             domainTemplateDetails: domains[8],
+            nonce: props.req.headers.rid,
         };
     }
 
     constructor(props) {
         super(props);
         this.api = props.api || API();
+        this.cache = createCache({
+            key: 'athenz',
+            nonce: this.props.nonce,
+        });
     }
 
     render() {
@@ -125,55 +132,57 @@ export default class TemplatePage extends React.Component {
             return <Error err={this.props.error} />;
         }
         return (
-            <div data-testid='template'>
-                <Head>
-                    <title>Athenz for Template</title>
-                </Head>
-                <Header
-                    showSearch={true}
-                    headerDetails={this.props.headerDetails}
-                    pending={this.props.pending}
-                />
-                <MainContentDiv>
-                    <AppContainerDiv>
-                        <ServicesContainerDiv>
-                            <ServicesContentDiv>
-                                <PageHeaderDiv>
-                                    <TitleDiv>{domain}</TitleDiv>
-                                    <DomainDetails
-                                        domainDetails={domainDetails}
-                                        api={this.api}
-                                        _csrf={_csrf}
-                                        productMasterLink={
-                                            this.props.headerDetails
-                                                .productMasterLink
-                                        }
-                                    />
-                                    <Tabs
+            <CacheProvider value={this.cache}>
+                <div data-testid='template'>
+                    <Head>
+                        <title>Athenz for Template</title>
+                    </Head>
+                    <Header
+                        showSearch={true}
+                        headerDetails={this.props.headerDetails}
+                        pending={this.props.pending}
+                    />
+                    <MainContentDiv>
+                        <AppContainerDiv>
+                            <ServicesContainerDiv>
+                                <ServicesContentDiv>
+                                    <PageHeaderDiv>
+                                        <TitleDiv>{domain}</TitleDiv>
+                                        <DomainDetails
+                                            domainDetails={domainDetails}
+                                            api={this.api}
+                                            _csrf={_csrf}
+                                            productMasterLink={
+                                                this.props.headerDetails
+                                                    .productMasterLink
+                                            }
+                                        />
+                                        <Tabs
+                                            api={this.api}
+                                            domain={domain}
+                                            selectedName={'templates'}
+                                        />
+                                    </PageHeaderDiv>
+                                    <TemplateList
                                         api={this.api}
                                         domain={domain}
-                                        selectedName={'templates'}
+                                        domainTemplateDetails={
+                                            this.props.domainTemplateDetails
+                                        }
+                                        _csrf={this.props._csrf}
+                                        pageConfig={this.props.pageConfig}
                                     />
-                                </PageHeaderDiv>
-                                <TemplateList
-                                    api={this.api}
-                                    domain={domain}
-                                    domainTemplateDetails={
-                                        this.props.domainTemplateDetails
-                                    }
-                                    _csrf={this.props._csrf}
-                                    pageConfig={this.props.pageConfig}
-                                />
-                            </ServicesContentDiv>
-                        </ServicesContainerDiv>
-                        <UserDomains
-                            domains={this.props.domains}
-                            api={this.api}
-                            domain={domain}
-                        />
-                    </AppContainerDiv>
-                </MainContentDiv>
-            </div>
+                                </ServicesContentDiv>
+                            </ServicesContainerDiv>
+                            <UserDomains
+                                domains={this.props.domains}
+                                api={this.api}
+                                domain={domain}
+                            />
+                        </AppContainerDiv>
+                    </MainContentDiv>
+                </div>
+            </CacheProvider>
         );
     }
 }

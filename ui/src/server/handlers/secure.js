@@ -23,16 +23,18 @@ const multer = require('multer');
 module.exports = function (expressApp, config, secrets) {
     expressApp.use((req, res, next) => {
         const scriptSrc = [`'self'`];
+        const defaultSrc = [`'self'`];
         // locally allow 'unsafe-inline', so HMR doesn't trigger the CSP
         if (config.env === 'local') {
             scriptSrc.push(`'unsafe-inline'`);
             scriptSrc.push(`'unsafe-eval'`);
         } else {
             scriptSrc.push(`'nonce-${req.headers.rid}'`);
+            defaultSrc.push(`'nonce-${req.headers.rid}'`);
         }
         let cspOptions = {
             directives: {
-                defaultSrc: [`'self'`],
+                defaultSrc,
                 baseUri: [`'none'`],
                 imgSrc: [`'self'`],
                 scriptSrc,

@@ -1,24 +1,336 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`SettingTable should render setting table 1`] = `
+.emotion-0 {
+  width: 100%;
+  border-spacing: 0 20px;
+  display: table;
+  border-collapse: separate;
+  border-color: grey;
+}
+
+.emotion-2 {
+  box-sizing: border-box;
+  margin-top: 10px;
+  box-shadow: 0 1px 4px #d9d9d9;
+  border: 1px solid #fff;
+  -webkit-border-image: none;
+  border-image: none;
+  -webkit-border-image: initial;
+  border-image: initial;
+  height: 50px;
+}
+
+.emotion-4 {
+  background-color: ;
+  text-align: left;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+.emotion-8 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  height: 18px;
+  outline: 0;
+  position: relative;
+}
+
+.emotion-8>input[type='checkbox'] {
+  box-sizing: border-box;
+  cursor: pointer;
+  position: absolute;
+  top: 0;
+  visibility: hidden;
+}
+
+.emotion-8>input[type='checkbox']+label {
+  box-sizing: border-box;
+  cursor: pointer;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  height: 18px;
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+.emotion-8>input[type='checkbox']+label .label-content {
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  margin-left: 6px;
+}
+
+@-moz-document url-prefix() {
+  .emotion-8>input[type='checkbox']+label .label-content {
+    margin-top: 1px;
+  }
+}
+
+.emotion-8>input[type='checkbox']+label:before {
+  background: #d5d5d5;
+  border-radius: 9px;
+  box-sizing: border-box;
+  content: '';
+  cursor: pointer;
+  display: inline-block;
+  height: 4px;
+  line-height: 16px;
+  margin: 7px 0 0 0;
+  -webkit-transition: all 0.25s;
+  transition: all 0.25s;
+  vertical-align: top;
+  width: 34px;
+}
+
+.emotion-8>input[type='checkbox']+label::after {
+  background-color: #fff;
+  border: 2px solid rgba(54,151,242,0.5);
+  border-radius: 50%;
+  box-sizing: border-box;
+  content: ' ';
+  cursor: pointer;
+  display: block;
+  height: 18px;
+  left: 0;
+  position: absolute;
+  -webkit-transition: all 0.25s ease;
+  transition: all 0.25s ease;
+  top: 0;
+  width: 18px;
+}
+
+.emotion-8>input[type='checkbox']:checked+label::before {
+  background-color: rgba(21,192,70,0.45);
+}
+
+.emotion-8>input[type='checkbox']:checked+label::after {
+  background-color: #15c046;
+  border-color: #15c046;
+  left: 16px;
+}
+
+.emotion-8>input[type='checkbox']:disabled+label {
+  color: #9a9a9a;
+  cursor: not-allowed;
+}
+
+.emotion-8>input[type='checkbox']:disabled+label::before {
+  background-color: #e8e8e8;
+  cursor: not-allowed;
+}
+
+.emotion-8>input[type='checkbox']:disabled+label::after {
+  border-color: #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-8>input[type='checkbox']:checked:disabled+label::after {
+  background: #d5d5d5;
+}
+
+.emotion-26 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+}
+
+.emotion-28 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 100%;
+}
+
+.emotion-28 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-28.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-28 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-28 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-28 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-28 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-28 input.focused,
+.emotion-28 input:active,
+.emotion-28 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-28 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-28 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-28.error input,
+.emotion-28.error input.focused,
+.emotion-28.error input:active,
+.emotion-28.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-28.error .message {
+  color: #d01111;
+}
+
+.emotion-29 {
+  margin-top: 5px;
+}
+
+.emotion-72 {
+  padding-bottom: 20px;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  justify-content: space-between;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+}
+
+.emotion-74 {
+  border: none;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  font-family: Helvetica,Arial,sans-serif;
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 1;
+  margin: 5px;
+  min-width: ;
+  outline: 0;
+  padding: 10px 24px;
+  text-align: center;
+  text-shadow: none;
+  text-transform: none;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  vertical-align: baseline;
+  white-space: nowrap;
+  background: transparent;
+  box-shadow: 0 0 0 1px #3697f2 inset;
+  color: #3697f2;
+}
+
+.emotion-74:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-74:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
+.emotion-74:disabled {
+  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
+}
+
+.emotion-74:hover:not(:disabled) {
+  background: #d7e2fd;
+}
+
 <table
-  class="css-1j9d9ir"
+  class="emotion-0 emotion-1"
   data-testid="setting-table"
 >
   <tr
-    class="css-37yie"
+    class="emotion-2 emotion-3"
     data-testid="setting-row"
   >
     <td
-      class="css-1vs2r4p"
+      class="emotion-4 emotion-5"
     >
       Review
     </td>
     <td
-      class="css-1vs2r4p"
+      class="emotion-4 emotion-5"
     >
       <div
-        class="css-v3lvlk-switch denali-switch"
+        class="emotion-8 denali-switch"
         data-testid="switch-wrapper"
       >
         <input
@@ -34,25 +346,25 @@ exports[`SettingTable should render setting table 1`] = `
       </div>
     </td>
     <td
-      class="css-1vs2r4p"
+      class="emotion-4 emotion-5"
     >
       Flag indicates whether or not role updates require another review and approval
     </td>
   </tr>
   <tr
-    class="css-37yie"
+    class="emotion-2 emotion-3"
     data-testid="setting-row"
   >
     <td
-      class="css-1vs2r4p"
+      class="emotion-4 emotion-5"
     >
       Self-Service
     </td>
     <td
-      class="css-1vs2r4p"
+      class="emotion-4 emotion-5"
     >
       <div
-        class="css-v3lvlk-switch denali-switch"
+        class="emotion-8 denali-switch"
         data-testid="switch-wrapper"
       >
         <input
@@ -67,28 +379,28 @@ exports[`SettingTable should render setting table 1`] = `
       </div>
     </td>
     <td
-      class="css-1vs2r4p"
+      class="emotion-4 emotion-5"
     >
       Flag indicates whether or not role allows self service
     </td>
   </tr>
   <tr
-    class="css-37yie"
+    class="emotion-2 emotion-3"
     data-testid="setting-row"
   >
     <td
-      class="css-1vs2r4p"
+      class="emotion-4 emotion-5"
     >
       Member Expiry (Days)
     </td>
     <td
-      class="css-1vs2r4p"
+      class="emotion-4 emotion-5"
     >
       <div
-        class="css-1mzzuk6"
+        class="emotion-26 emotion-27"
       >
         <div
-          class="css-1t9m0j6-input denali-input animated css-uvjnz5"
+          class="emotion-28 denali-input animated emotion-29 emotion-30"
           data-testid="input-wrapper"
         >
           <input
@@ -107,28 +419,28 @@ exports[`SettingTable should render setting table 1`] = `
       </div>
     </td>
     <td
-      class="css-1vs2r4p"
+      class="emotion-4 emotion-5"
     >
       All user members in the role will have specified max expiry days
     </td>
   </tr>
   <tr
-    class="css-37yie"
+    class="emotion-2 emotion-3"
     data-testid="setting-row"
   >
     <td
-      class="css-1vs2r4p"
+      class="emotion-4 emotion-5"
     >
       Service Expiry (Days)
     </td>
     <td
-      class="css-1vs2r4p"
+      class="emotion-4 emotion-5"
     >
       <div
-        class="css-1mzzuk6"
+        class="emotion-26 emotion-27"
       >
         <div
-          class="css-1t9m0j6-input denali-input animated css-uvjnz5"
+          class="emotion-28 denali-input animated emotion-29 emotion-30"
           data-testid="input-wrapper"
         >
           <input
@@ -147,28 +459,28 @@ exports[`SettingTable should render setting table 1`] = `
       </div>
     </td>
     <td
-      class="css-1vs2r4p"
+      class="emotion-4 emotion-5"
     >
       All services in the role will have specified max expiry days
     </td>
   </tr>
   <tr
-    class="css-37yie"
+    class="emotion-2 emotion-3"
     data-testid="setting-row"
   >
     <td
-      class="css-1vs2r4p"
+      class="emotion-4 emotion-5"
     >
       Token Expiry (Mins)
     </td>
     <td
-      class="css-1vs2r4p"
+      class="emotion-4 emotion-5"
     >
       <div
-        class="css-1mzzuk6"
+        class="emotion-26 emotion-27"
       >
         <div
-          class="css-1t9m0j6-input denali-input animated css-uvjnz5"
+          class="emotion-28 denali-input animated emotion-29 emotion-30"
           data-testid="input-wrapper"
         >
           <input
@@ -187,28 +499,28 @@ exports[`SettingTable should render setting table 1`] = `
       </div>
     </td>
     <td
-      class="css-1vs2r4p"
+      class="emotion-4 emotion-5"
     >
       Tokens issued for this role will have specified max timeout in mins
     </td>
   </tr>
   <tr
-    class="css-37yie"
+    class="emotion-2 emotion-3"
     data-testid="setting-row"
   >
     <td
-      class="css-1vs2r4p"
+      class="emotion-4 emotion-5"
     >
       Certificate Expiry (Mins)
     </td>
     <td
-      class="css-1vs2r4p"
+      class="emotion-4 emotion-5"
     >
       <div
-        class="css-1mzzuk6"
+        class="emotion-26 emotion-27"
       >
         <div
-          class="css-1t9m0j6-input denali-input animated css-uvjnz5"
+          class="emotion-28 denali-input animated emotion-29 emotion-30"
           data-testid="input-wrapper"
         >
           <input
@@ -227,23 +539,23 @@ exports[`SettingTable should render setting table 1`] = `
       </div>
     </td>
     <td
-      class="css-1vs2r4p"
+      class="emotion-4 emotion-5"
     >
       Certs issued for this role will have specified max timeout in mins
     </td>
   </tr>
   <div
-    class="css-1h3zjar"
+    class="emotion-72 emotion-73"
   >
     <div>
       <button
-        class="css-1pobclq-button denali-button"
+        class="emotion-74 denali-button"
       >
         Submit
       </button>
       
       <button
-        class="css-1pobclq-button denali-button"
+        class="emotion-74 denali-button"
       >
         Reset
       </button>

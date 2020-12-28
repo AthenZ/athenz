@@ -24,6 +24,8 @@ import 'flatpickr/dist/themes/light.css';
 import CreateDomain from '../components/domain/CreateDomain';
 import RequestUtils from '../components/utils/RequestUtils';
 import Error from './_error';
+import createCache from '@emotion/cache';
+import { CacheProvider } from '@emotion/react';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -85,12 +87,17 @@ export default class CreateDomainPage extends React.Component {
             headerDetails: domains[1],
             domain: props.query.domain,
             _csrf: domains[2],
+            nonce: props.req.headers.rid,
         };
     }
 
     constructor(props) {
         super(props);
         this.api = props.api || API();
+        this.cache = createCache({
+            key: 'athenz',
+            nonce: this.props.nonce,
+        });
     }
 
     render() {
@@ -103,40 +110,42 @@ export default class CreateDomainPage extends React.Component {
             return <Error err={this.props.error} />;
         }
         return (
-            <div data-testid='create-domain'>
-                <Head>
-                    <title>Athenz</title>
-                </Head>
-                <Header
-                    showSearch={false}
-                    headerDetails={this.props.headerDetails}
-                    pending={this.props.pending}
-                />
-                <MainContentDiv>
-                    <AppContainerDiv>
-                        <CreateDomainContainerDiv>
-                            <CreateDomainContentDiv>
-                                <PageHeaderDiv>
-                                    <TitleDiv>Create New Domain</TitleDiv>
-                                </PageHeaderDiv>
-                                <CreateDomain
-                                    userId={this.props.headerDetails.userId}
-                                    _csrf={this.props._csrf}
-                                    api={this.api}
-                                    createDomainMessage={
-                                        this.props.headerDetails
-                                            .createDomainMessage
-                                    }
-                                />
-                            </CreateDomainContentDiv>
-                        </CreateDomainContainerDiv>
-                        <UserDomains
-                            domains={this.props.domains}
-                            api={this.api}
-                        />
-                    </AppContainerDiv>
-                </MainContentDiv>
-            </div>
+            <CacheProvider value={this.cache}>
+                <div data-testid='create-domain'>
+                    <Head>
+                        <title>Athenz</title>
+                    </Head>
+                    <Header
+                        showSearch={false}
+                        headerDetails={this.props.headerDetails}
+                        pending={this.props.pending}
+                    />
+                    <MainContentDiv>
+                        <AppContainerDiv>
+                            <CreateDomainContainerDiv>
+                                <CreateDomainContentDiv>
+                                    <PageHeaderDiv>
+                                        <TitleDiv>Create New Domain</TitleDiv>
+                                    </PageHeaderDiv>
+                                    <CreateDomain
+                                        userId={this.props.headerDetails.userId}
+                                        _csrf={this.props._csrf}
+                                        api={this.api}
+                                        createDomainMessage={
+                                            this.props.headerDetails
+                                                .createDomainMessage
+                                        }
+                                    />
+                                </CreateDomainContentDiv>
+                            </CreateDomainContainerDiv>
+                            <UserDomains
+                                domains={this.props.domains}
+                                api={this.api}
+                            />
+                        </AppContainerDiv>
+                    </MainContentDiv>
+                </div>
+            </CacheProvider>
         );
     }
 }

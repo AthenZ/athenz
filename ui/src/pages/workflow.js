@@ -24,6 +24,8 @@ import PendingApprovalTable from '../components/pending-approval/PendingApproval
 import 'flatpickr/dist/themes/light.css';
 import RequestUtils from '../components/utils/RequestUtils';
 import Error from './_error';
+import createCache from '@emotion/cache';
+import { CacheProvider } from '@emotion/react';
 
 const HomeContainerDiv = styled.div`
     flex: 1 1;
@@ -86,6 +88,7 @@ export default class Workflow extends React.Component {
             headerDetails: domains[1],
             pendingData: domains[3],
             _csrf: domains[2],
+            nonce: req.headers.rid,
         };
     }
 
@@ -96,6 +99,10 @@ export default class Workflow extends React.Component {
             selected: this.props.option || 'domain',
             searchText: '',
         };
+        this.cache = createCache({
+            key: 'athenz',
+            nonce: this.props.nonce,
+        });
     }
 
     render() {
@@ -107,48 +114,53 @@ export default class Workflow extends React.Component {
             return <Error err={this.props.error} />;
         }
         return (
-            <div data-testid='pending-approval'>
-                <Head>
-                    <title>Athenz</title>
-                </Head>
-                <Header
-                    showSearch={true}
-                    headerDetails={this.props.headerDetails}
-                    pending={this.props.pendingData}
-                />
-                <MainContentDiv>
-                    <AppContainerDiv>
-                        <HomeContainerDiv>
-                            <WorkFlowDiv>
-                                <div>
-                                    <PageHeaderDiv>
-                                        <TitleDiv>
-                                            Pending Items for Approval
-                                        </TitleDiv>
-                                    </PageHeaderDiv>
-                                    <WorkFlowSectionDiv>
-                                        <PendingApprovalTable
-                                            api={this.api}
-                                            principal={
-                                                'user.' +
-                                                this.props.headerDetails.userId
-                                            }
-                                            domains={this.props.domains}
-                                            pendingData={this.props.pendingData}
-                                            _csrf={this.props._csrf}
-                                        />
-                                    </WorkFlowSectionDiv>
-                                </div>
-                            </WorkFlowDiv>
-                        </HomeContainerDiv>
-                        <UserDomains
-                            domains={this.props.domains}
-                            api={this.api}
-                            hideDomains={true}
-                        />
-                    </AppContainerDiv>
-                </MainContentDiv>
-            </div>
+            <CacheProvider value={this.cache}>
+                <div data-testid='pending-approval'>
+                    <Head>
+                        <title>Athenz</title>
+                    </Head>
+                    <Header
+                        showSearch={true}
+                        headerDetails={this.props.headerDetails}
+                        pending={this.props.pendingData}
+                    />
+                    <MainContentDiv>
+                        <AppContainerDiv>
+                            <HomeContainerDiv>
+                                <WorkFlowDiv>
+                                    <div>
+                                        <PageHeaderDiv>
+                                            <TitleDiv>
+                                                Pending Items for Approval
+                                            </TitleDiv>
+                                        </PageHeaderDiv>
+                                        <WorkFlowSectionDiv>
+                                            <PendingApprovalTable
+                                                api={this.api}
+                                                principal={
+                                                    'user.' +
+                                                    this.props.headerDetails
+                                                        .userId
+                                                }
+                                                domains={this.props.domains}
+                                                pendingData={
+                                                    this.props.pendingData
+                                                }
+                                                _csrf={this.props._csrf}
+                                            />
+                                        </WorkFlowSectionDiv>
+                                    </div>
+                                </WorkFlowDiv>
+                            </HomeContainerDiv>
+                            <UserDomains
+                                domains={this.props.domains}
+                                api={this.api}
+                                hideDomains={true}
+                            />
+                        </AppContainerDiv>
+                    </MainContentDiv>
+                </div>
+            </CacheProvider>
         );
     }
 }

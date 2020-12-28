@@ -26,6 +26,8 @@ import PolicyList from '../components/policy/PolicyList';
 import RequestUtils from '../components/utils/RequestUtils';
 import Tabs from '../components/header/Tabs';
 import Error from './_error';
+import createCache from '@emotion/cache';
+import { CacheProvider } from '@emotion/react';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -96,12 +98,17 @@ export default class PolicyPage extends React.Component {
             policies: domains[3],
             _csrf: domains[4],
             pending: domains[5],
+            nonce: props.req.headers.rid,
         };
     }
 
     constructor(props) {
         super(props);
         this.api = props.api || API();
+        this.cache = createCache({
+            key: 'athenz',
+            nonce: this.props.nonce,
+        });
     }
 
     render() {
@@ -114,52 +121,54 @@ export default class PolicyPage extends React.Component {
             return <Error err={this.props.error} />;
         }
         return (
-            <div data-testid='policy'>
-                <Head>
-                    <title>Athenz</title>
-                </Head>
-                <Header
-                    showSearch={true}
-                    headerDetails={this.props.headerDetails}
-                    pending={this.props.pending}
-                />
-                <MainContentDiv>
-                    <AppContainerDiv>
-                        <PoliciesContainerDiv>
-                            <PoliciesContentDiv>
-                                <PageHeaderDiv>
-                                    <TitleDiv>{domain}</TitleDiv>
-                                    <DomainDetails
-                                        domainDetails={domainDetails}
-                                        api={this.api}
-                                        _csrf={_csrf}
-                                        productMasterLink={
-                                            this.props.headerDetails
-                                                .productMasterLink
-                                        }
-                                    />
-                                    <Tabs
+            <CacheProvider value={this.cache}>
+                <div data-testid='policy'>
+                    <Head>
+                        <title>Athenz</title>
+                    </Head>
+                    <Header
+                        showSearch={true}
+                        headerDetails={this.props.headerDetails}
+                        pending={this.props.pending}
+                    />
+                    <MainContentDiv>
+                        <AppContainerDiv>
+                            <PoliciesContainerDiv>
+                                <PoliciesContentDiv>
+                                    <PageHeaderDiv>
+                                        <TitleDiv>{domain}</TitleDiv>
+                                        <DomainDetails
+                                            domainDetails={domainDetails}
+                                            api={this.api}
+                                            _csrf={_csrf}
+                                            productMasterLink={
+                                                this.props.headerDetails
+                                                    .productMasterLink
+                                            }
+                                        />
+                                        <Tabs
+                                            api={this.api}
+                                            domain={domain}
+                                            selectedName={'policies'}
+                                        />
+                                    </PageHeaderDiv>
+                                    <PolicyList
                                         api={this.api}
                                         domain={domain}
-                                        selectedName={'policies'}
+                                        policies={policies}
+                                        _csrf={this.props._csrf}
                                     />
-                                </PageHeaderDiv>
-                                <PolicyList
-                                    api={this.api}
-                                    domain={domain}
-                                    policies={policies}
-                                    _csrf={this.props._csrf}
-                                />
-                            </PoliciesContentDiv>
-                        </PoliciesContainerDiv>
-                        <UserDomains
-                            domains={this.props.domains}
-                            api={this.api}
-                            domain={domain}
-                        />
-                    </AppContainerDiv>
-                </MainContentDiv>
-            </div>
+                                </PoliciesContentDiv>
+                            </PoliciesContainerDiv>
+                            <UserDomains
+                                domains={this.props.domains}
+                                api={this.api}
+                                domain={domain}
+                            />
+                        </AppContainerDiv>
+                    </MainContentDiv>
+                </div>
+            </CacheProvider>
         );
     }
 }
