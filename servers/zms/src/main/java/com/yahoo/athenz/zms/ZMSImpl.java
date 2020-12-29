@@ -3814,12 +3814,41 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         roleName = roleName.toLowerCase();
         memberName = memberName.toLowerCase();
 
+        final Principal principal = ((RsrcCtxWrapper) ctx).principal();
+
         // verify that request is properly authenticated for this request
 
-        verifyAuthorizedServiceRoleOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller, roleName);
+        verifyAuthorizedServiceRoleOperation(principal.getAuthorizedService(), caller, roleName);
 
-        dbService.executeDeleteMembership(ctx, domainName, roleName,
-                normalizeDomainAliasUser(memberName), auditRef, caller);
+        // extract our role object to get its attributes
+
+        AthenzDomain domain = getAthenzDomain(domainName, false);
+        Role role = getRoleFromDomain(roleName, domain);
+
+        if (role == null) {
+            throw ZMSUtils.notFoundError("Invalid domain/role name specified", caller);
+        }
+
+        // authorization check since we have 2 actions: update and update_members
+        // that allow access callers to manage members in a role
+
+        if (!isAllowedPutMembershipAccess(principal, domain, role.getName())) {
+            throw ZMSUtils.forbiddenError("deleteMembership: principal is not authorized to delete members", caller);
+        }
+
+        // if this is the admin role then we need to make sure
+        // the admin is not himself who happens to be the last
+        // member in the role
+
+        final String normalizedMember = normalizeDomainAliasUser(memberName);
+        if (ZMSConsts.ADMIN_ROLE_NAME.equals(roleName)) {
+            List<RoleMember> members = role.getRoleMembers();
+            if (members.size() == 1 && members.get(0).getMemberName().equals(normalizedMember)) {
+                throw ZMSUtils.forbiddenError("deleteMembership: Cannot delete last member of 'admin' role", caller);
+            }
+        }
+
+        dbService.executeDeleteMembership(ctx, domainName, roleName, normalizedMember, auditRef, caller);
     }
 
     public Quota getQuota(ResourceContext ctx, String domainName) {
@@ -7842,20 +7871,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     boolean isAllowedPutMembershipAccess(Principal principal, final AthenzDomain domain, final String roleName) {
 
-        // evaluate our domain's roles and policies to see if access
-        // is allowed or not for the given operation and resource
-        // our action are always converted to lowercase
+        // evaluate our domain's roles and policies to see if either update or update_members
+        // action is allowed for the given role (update allows access to manage both members
+        // and metadata while update_members only allows access to manage members).
 
-        return evaluateAccess(domain, principal.getFullName(), "update", roleName, null, null, principal) == AccessStatus.ALLOWED;
-    }
-
-    boolean isAllowedPutMembershipWithoutApproval(Principal principal, final AthenzDomain reqDomain, final Role role) {
-
-        if (role.getAuditEnabled() == Boolean.TRUE) {
-            return false;
-        }
-
-        return isAllowedPutMembershipAccess(principal, reqDomain, role.getName());
+        return evaluateAccess(domain, principal.getFullName(), "update", roleName, null, null, principal) == AccessStatus.ALLOWED ||
+                evaluateAccess(domain, principal.getFullName(), "update_members", roleName, null, null, principal) == AccessStatus.ALLOWED;
     }
 
     boolean isAllowedPutMembership(Principal principal, final AthenzDomain domain, final Role role,

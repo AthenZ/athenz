@@ -4154,7 +4154,7 @@ public class ZTSImplTest {
             zts.postRoleCertificateRequest(context, "coretech", "readers", req);
             fail();
         } catch (ResourceException ex) {
-            assertTrue(ex.getMessage().contains("No access to any roles by User and Proxy Principals"));
+            assertTrue(ex.getMessage().contains("principal user_domain.user1 is not included in the requested role"));
         }
     }
 

@@ -3854,18 +3854,92 @@ public class ZMSImplTest {
     }
 
     @Test
-    public void testDeleteMembership() {
+    public void testManageMembershipWithUpdateMembersAction() {
 
-        TopLevelDomain dom1 = createTopLevelDomainObject("MbrDelDom1",
-                "Test Domain1", "testOrg", adminUser);
+        final String domainName = "update-member-domain1";
+
+        Authority savedAuthority = zms.userAuthority;
+
+        Authority authority = Mockito.mock(Authority.class);
+        Mockito.when(authority.isValidUser(anyString())).thenReturn(true);
+        Mockito.when(authority.getDateAttribute(anyString(), anyString())).thenReturn(null);
+        Set<String> attrs = new HashSet<>();
+        attrs.add("elevated-clearance");
+        Mockito.when(authority.dateAttributesSupported()).thenReturn(attrs);
+        zms.userAuthority = authority;
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
-        Role role1 = createRoleObject("MbrDelDom1", "Role1", null,
-                "user.joe", "user.jane");
-        zms.putRole(mockDomRsrcCtx, "MbrDelDom1", "Role1", auditRef, role1);
-        zms.deleteMembership(mockDomRsrcCtx, "MbrDelDom1", "Role1", "user.joe", auditRef);
+        // role1 will have user.user1 through group1
 
-        Role role = zms.getRole(mockDomRsrcCtx, "MbrDelDom1", "Role1", false, false, false);
+        Role role1 = createRoleObject(domainName, "role1", null, "user.user1", "user.user2");
+        zms.putRole(mockDomRsrcCtx, domainName, "role1", auditRef, role1);
+
+        Policy policy1 = createPolicyObject(domainName, "policy1", "role1",
+                "update_members", domainName + ":role.role1", AssertionEffect.ALLOW);
+        zms.putPolicy(mockDomRsrcCtx, domainName, "policy1", auditRef, policy1);
+
+        // user1 has access to add members to a role1
+
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        Principal principal1 = principalAuthority.authenticate("v=U1;d=user;n=user1;s=signature",
+                "10.11.12.13", "GET", null);
+        ResourceContext rsrcCtx1 = createResourceContext(principal1);
+
+        Membership mbr = new Membership().setMemberName("user.user3");
+        zms.putMembership(rsrcCtx1, domainName, "role1", "user.user3", auditRef, mbr);
+
+        Membership mbrResponse = zms.getMembership(mockDomRsrcCtx, domainName, "role1", "user.user3", null);
+        assertNotNull(mbrResponse);
+        assertTrue(mbrResponse.getIsMember());
+        assertTrue(mbrResponse.getApproved());
+
+        // now delete the member
+
+        zms.deleteMembership(rsrcCtx1, domainName, "role1", "user.user3", auditRef);
+        mbrResponse = zms.getMembership(mockDomRsrcCtx, domainName, "role1", "user.user3", null);
+        assertNotNull(mbrResponse);
+        assertFalse(mbrResponse.getIsMember());
+
+        // a different user does not have access to a role
+
+        Principal principal4 = principalAuthority.authenticate("v=U1;d=user;n=user4;s=signature",
+                "10.11.12.13", "GET", null);
+        ResourceContext rsrcCtx4 = createResourceContext(principal4);
+        try {
+            zms.putMembership(rsrcCtx4, domainName, "role1", "user.user3", auditRef, mbr);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+
+        try {
+            zms.deleteMembership(rsrcCtx4, domainName, "role1", "user.user1", auditRef);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+
+        zms.userAuthority = savedAuthority;
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testDeleteMembership() {
+
+        final String domainName = "mbr-del-dom";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", "user.user1");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Role role1 = createRoleObject(domainName, "Role1", null,
+                "user.joe", "user.jane");
+        zms.putRole(mockDomRsrcCtx, domainName, "Role1", auditRef, role1);
+        zms.deleteMembership(mockDomRsrcCtx, domainName, "Role1", "user.joe", auditRef);
+
+        Role role = zms.getRole(mockDomRsrcCtx, domainName, "Role1", false, false, false);
         assertNotNull(role);
 
         List<RoleMember> members = role.getRoleMembers();
@@ -3885,30 +3959,30 @@ public class ZMSImplTest {
             fail("user.jane not found");
         }
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, "MbrDelDom1", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 
     @Test
     public void testDeleteMembershipMissingAuditRef() {
-        String domain = "testDeleteMembershipMissingAuditRef";
+        final String domainName = "testDeleteMembershipMissingAuditRef";
         TopLevelDomain dom = createTopLevelDomainObject(
-                domain, "Test Domain1", "testOrg", adminUser);
+                domainName, "Test Domain1", "testOrg", "user.user1");
         dom.setAuditEnabled(true);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom);
 
         Role role = createRoleObject(
-            domain, "Role1", null, "user.joe", "user.jane");
-        zms.putRole(mockDomRsrcCtx, domain, "Role1", auditRef, role);
+                domainName, "Role1", null, "user.joe", "user.jane");
+        zms.putRole(mockDomRsrcCtx, domainName, "Role1", auditRef, role);
 
         try {
-            zms.deleteMembership(mockDomRsrcCtx, domain, "Role1", "user.joe", null);
+            zms.deleteMembership(mockDomRsrcCtx, domainName, "Role1", "user.joe", null);
             fail("requesterror not thrown by deleteMembership.");
         } catch (ResourceException ex) {
             assertEquals(400, ex.getCode());
             assertTrue(ex.getMessage().contains("Audit reference required"));
-        } finally {
-            zms.deleteTopLevelDomain(mockDomRsrcCtx, domain, auditRef);
         }
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 
     @Test
@@ -3988,48 +4062,49 @@ public class ZMSImplTest {
     @Test
     public void testDeleteMembershipAdminRoleSingleMember() {
 
-        TestAuditLogger alogger = new TestAuditLogger();
-        ZMSImpl zmsImpl = getZmsImpl(alogger);
-
-        String domainName = "MbrGetRoleDom1";
-        String memberName1 = "user.john";
+        final String domainName = "del-mbr-single-role-member";
+        final String memberName1 = "user.user1";
+        final String adminRoleName = "admin";
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
-                "Test Domain1", "testOrg", adminUser);
-        zmsImpl.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+                "Test Domain1", "testOrg", memberName1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
-        // Test the deleteMembership() condition: if ("admin".equals(roleName))...
+        // deleting the single admin should throw an exception
+
         try {
-            String adminRoleName = "admin";
-
-            List<RoleMember> members = new ArrayList<>();
-            members.add(new RoleMember().setMemberName(memberName1));
-            Role role1 = createRoleObject(domainName, adminRoleName, null, members);
-            zmsImpl.putRole(mockDomRsrcCtx, domainName, adminRoleName, auditRef, role1);
-
-            // Can not delete the last admin role.
-            zmsImpl.deleteMembership(mockDomRsrcCtx, domainName, adminRoleName, memberName1, auditRef);
-            fail("forbiddenerror not thrown.");
+            zms.deleteMembership(mockDomRsrcCtx, domainName, adminRoleName, memberName1, auditRef);
+            fail("forbidden error not thrown.");
         } catch (ResourceException e) {
             assertEquals(e.getCode(), 403);
         }
 
-        zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        // deleting another non-members should return not found exception
+
+        try {
+            zms.deleteMembership(mockDomRsrcCtx, domainName, adminRoleName, "user.joe", auditRef);
+            fail("not found error not thrown.");
+        } catch (ResourceException e) {
+            assertEquals(e.getCode(), 404);
+        }
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 
     @Test
     public void testDeleteMembershipNormalizedUser() {
 
-        TopLevelDomain dom1 = createTopLevelDomainObject("MbrDelDom1",
-                "Test Domain1", "testOrg", adminUser);
+        final String domainName = "mbr-del-norm-user";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", "user.user1");
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
-        Role role1 = createRoleObject("MbrDelDom1", "Role1", null,
+        Role role1 = createRoleObject(domainName, "Role1", null,
                 "user.joe", "user.jane");
-        zms.putRole(mockDomRsrcCtx, "MbrDelDom1", "Role1", auditRef, role1);
-        zms.deleteMembership(mockDomRsrcCtx, "MbrDelDom1", "Role1", "user.joe", auditRef);
+        zms.putRole(mockDomRsrcCtx, domainName, "Role1", auditRef, role1);
+        zms.deleteMembership(mockDomRsrcCtx, domainName, "Role1", "user.joe", auditRef);
 
-        Role role = zms.getRole(mockDomRsrcCtx, "MbrDelDom1", "Role1", false, false, false);
+        Role role = zms.getRole(mockDomRsrcCtx, domainName, "Role1", false, false, false);
         assertNotNull(role);
 
         List<RoleMember> members = role.getRoleMembers();
@@ -4037,53 +4112,31 @@ public class ZMSImplTest {
         assertEquals(members.size(), 1);
         assertEquals(members.get(0).getMemberName(), "user.jane");
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, "MbrDelDom1", auditRef);
-    }
-
-    @Test
-    public void testDeleteMembershipNormalizeduser() {
-
-        TopLevelDomain dom1 = createTopLevelDomainObject("MbrDelDom1",
-                "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
-
-        Role role1 = createRoleObject("MbrDelDom1", "Role1", null,
-                "user.joe", "user.jane");
-        zms.putRole(mockDomRsrcCtx, "MbrDelDom1", "Role1", auditRef, role1);
-        zms.deleteMembership(mockDomRsrcCtx, "MbrDelDom1", "Role1", "user.joe", auditRef);
-
-        Role role = zms.getRole(mockDomRsrcCtx, "MbrDelDom1", "Role1", false, false, false);
-        assertNotNull(role);
-
-        List<RoleMember> members = role.getRoleMembers();
-        assertNotNull(members);
-        assertEquals(members.size(), 1);
-        assertEquals(members.get(0).getMemberName(), "user.jane");
-
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, "MbrDelDom1", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 
     @Test
     public void testDeleteMembershipNormalizedService() {
 
-        TopLevelDomain dom1 = createTopLevelDomainObject("MbrDelDom1",
-                "Test Domain1", "testOrg", adminUser);
+        final String domainName = "mbr-del-norm-svc";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", "user.user1");
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
         TopLevelDomain dom2 = createTopLevelDomainObject("coretech",
-                "Test Domain2", "testOrg", adminUser);
+                "Test Domain2", "testOrg", "user.user1");
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
 
         SubDomain subDom2 = createSubDomainObject("storage", "coretech",
-                "Test Domain2", "testOrg", adminUser);
+                "Test Domain2", "testOrg", "user.user1");
         zms.postSubDomain(mockDomRsrcCtx, "coretech", auditRef, subDom2);
 
-        Role role1 = createRoleObject("MbrDelDom1", "Role1", null,
+        Role role1 = createRoleObject(domainName, "Role1", null,
                 "user.joe", "coretech.storage");
-        zms.putRole(mockDomRsrcCtx, "MbrDelDom1", "Role1", auditRef, role1);
-        zms.deleteMembership(mockDomRsrcCtx, "MbrDelDom1", "Role1", "coretech.storage", auditRef);
+        zms.putRole(mockDomRsrcCtx, domainName, "Role1", auditRef, role1);
+        zms.deleteMembership(mockDomRsrcCtx, domainName, "Role1", "coretech.storage", auditRef);
 
-        Role role = zms.getRole(mockDomRsrcCtx, "MbrDelDom1", "Role1", false, false, false);
+        Role role = zms.getRole(mockDomRsrcCtx, domainName, "Role1", false, false, false);
         assertNotNull(role);
 
         List<RoleMember> members = role.getRoleMembers();
@@ -4093,7 +4146,7 @@ public class ZMSImplTest {
 
         zms.deleteSubDomain(mockDomRsrcCtx, "coretech", "storage", auditRef);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "coretech", auditRef);
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, "MbrDelDom1", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 
     @Test
@@ -18361,52 +18414,6 @@ public class ZMSImplTest {
         ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
 
         assertFalse(zms.isAllowedPutMembershipAccess(rsrcPrince, domain, role.getName()));// some random user does not have access
-
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, "testdomain1", auditRef);
-    }
-
-    @Test
-    public void testIsAllowedPutMembershipWithoutApproval() {
-
-        TopLevelDomain dom1 = createTopLevelDomainObject("testdomain1","Role Test Domain1", "testOrg", "user.user1");
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
-
-        Role role1 = createRoleObject("testdomain1", "testrole1", null,"user.john", "user.jane");
-        zms.putRole(mockDomRsrcCtx, "testdomain1", "testrole1", auditRef, role1);
-
-        AthenzDomain domain = zms.getAthenzDomain("testdomain1", false);
-        Role role = zms.getRoleFromDomain("testrole1", domain);
-
-        assertTrue(zms.isAllowedPutMembershipWithoutApproval(mockDomRestRsrcCtx.principal(), domain, role));//admin allowed
-
-        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
-        String unsignedCreds = "v=U1;d=user;n=john";
-        final Principal rsrcPrince = SimplePrincipal.create("user", "john", unsignedCreds + ";s=signature",0, principalAuthority);
-        assertNotNull(rsrcPrince);
-        ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
-
-        assertFalse(zms.isAllowedPutMembershipWithoutApproval(rsrcPrince, domain, role));//other user not allowed
-
-        DomainMeta meta = createDomainMetaObject("Domain Meta for Role Meta test", "testOrg",
-                true, true, "12345", 1001);
-        zms.putDomainMeta(mockDomRsrcCtx, "testdomain1", auditRef, meta);
-        zms.putDomainSystemMeta(mockDomRsrcCtx, "testdomain1", "auditenabled", auditRef, meta);
-
-        Role role2 = createRoleObject("testdomain1", "testrole2", null,"user.john", "user.jane");
-        zms.putRole(mockDomRsrcCtx, "testdomain1", "testrole2", auditRef, role2);
-
-        RoleSystemMeta rsm = createRoleSystemMetaObject(true);
-        zms.putRoleSystemMeta(mockDomRsrcCtx, "testdomain1", "testrole2", "auditenabled", auditRef, rsm);
-
-        Authority principalAuthority1 = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
-        String unsignedCreds1 = "v=U1;d=user;n=user1";
-        final Principal adminPrinc = SimplePrincipal.create("user", "user1", unsignedCreds + ";s=signature",0, principalAuthority1);
-        assertNotNull(adminPrinc);
-        ((SimplePrincipal) adminPrinc).setUnsignedCreds(unsignedCreds1);
-
-        domain = zms.getAthenzDomain("testdomain1", false);
-        role = zms.getRoleFromDomain("testrole2", domain);
-        assertFalse(zms.isAllowedPutMembershipWithoutApproval(adminPrinc, domain, role));//admin not allowed on audit enabled role
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "testdomain1", auditRef);
     }
