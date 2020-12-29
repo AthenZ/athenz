@@ -1064,7 +1064,7 @@ public class ZMSSchema {
 ;
 
         sb.resource("Membership", "PUT", "/domain/{domainName}/role/{roleName}/member/{memberName}")
-            .comment("Add the specified user to the role's member list. If the role is neither auditEnabled nor selfserve, then it will use authorize (\"update\", \"{domainName}:role.{roleName}\") otherwise membership will be sent for approval to either designated delegates ( in case of auditEnabled roles ) or to domain admins ( in case of selfserve roles )")
+            .comment("Add the specified user to the role's member list. If the role is neither auditEnabled nor selfserve, then it will use authorize (\"update\", \"{domainName}:role.{roleName}\") or (\"update_members\", \"{domainName}:role.{roleName}\"). This only allows access to members and not role attributes. otherwise membership will be sent for approval to either designated delegates ( in case of auditEnabled roles ) or to domain admins ( in case of selfserve roles )")
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("roleName", "EntityName", "name of the role")
             .pathParam("memberName", "MemberName", "name of the user to be added as a member")
@@ -1086,12 +1086,12 @@ public class ZMSSchema {
 ;
 
         sb.resource("Membership", "DELETE", "/domain/{domainName}/role/{roleName}/member/{memberName}")
-            .comment("Delete the specified role membership. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
+            .comment("Delete the specified role membership. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned). The required authorization includes two options: (\"update\", \"{domainName}:role.{roleName}\") or (\"update_members\", \"{domainName}:role.{roleName}\")")
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("roleName", "EntityName", "name of the role")
             .pathParam("memberName", "MemberName", "name of the user to be removed as a member")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
-            .auth("update", "{domainName}:role.{roleName}")
+            .auth("", "", true)
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 

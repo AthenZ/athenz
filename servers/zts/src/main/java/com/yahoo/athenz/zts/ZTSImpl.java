@@ -1889,8 +1889,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 roles, false);
         
         if (roles.isEmpty()) {
-            throw forbiddenError("postRoleCertificateRequest: No access to any roles in domain: "
-                    + domainName, caller, domainName, principalDomain);
+            throw forbiddenError(tokenErrorMessage(caller, principalName, domainName, requestedRoleList),
+                    caller, domainName, principalDomain);
         }
 
         // if this is proxy for operation then we want to make sure that
@@ -1909,7 +1909,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             // with an empty set
 
             if (roles.isEmpty()) {
-                throw forbiddenError("postRoleCertificateRequest: No access to any roles by User and Proxy Principals",
+                throw forbiddenError(tokenErrorMessage(caller, proxyForPrincipal, domainName, requestedRoleList),
                         caller, domainName, principalDomain);
             }
 

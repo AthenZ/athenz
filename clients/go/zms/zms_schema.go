@@ -1024,7 +1024,7 @@ func init() {
 	sb.AddResource(mGetPrincipalRoles.Build())
 
 	mPutMembership := rdl.NewResourceBuilder("Membership", "PUT", "/domain/{domainName}/role/{roleName}/member/{memberName}")
-	mPutMembership.Comment("Add the specified user to the role's member list. If the role is neither auditEnabled nor selfserve, then it will use authorize (\"update\", \"{domainName}:role.{roleName}\") otherwise membership will be sent for approval to either designated delegates ( in case of auditEnabled roles ) or to domain admins ( in case of selfserve roles )")
+	mPutMembership.Comment("Add the specified user to the role's member list. If the role is neither auditEnabled nor selfserve, then it will use authorize (\"update\", \"{domainName}:role.{roleName}\") or (\"update_members\", \"{domainName}:role.{roleName}\"). This only allows access to members and not role attributes. otherwise membership will be sent for approval to either designated delegates ( in case of auditEnabled roles ) or to domain admins ( in case of selfserve roles )")
 	mPutMembership.Input("domainName", "DomainName", true, "", "", false, nil, "name of the domain")
 	mPutMembership.Input("roleName", "EntityName", true, "", "", false, nil, "name of the role")
 	mPutMembership.Input("memberName", "MemberName", true, "", "", false, nil, "name of the user to be added as a member")
@@ -1041,12 +1041,12 @@ func init() {
 	sb.AddResource(mPutMembership.Build())
 
 	mDeleteMembership := rdl.NewResourceBuilder("Membership", "DELETE", "/domain/{domainName}/role/{roleName}/member/{memberName}")
-	mDeleteMembership.Comment("Delete the specified role membership. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
+	mDeleteMembership.Comment("Delete the specified role membership. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned). The required authorization includes two options: (\"update\", \"{domainName}:role.{roleName}\") or (\"update_members\", \"{domainName}:role.{roleName}\")")
 	mDeleteMembership.Input("domainName", "DomainName", true, "", "", false, nil, "name of the domain")
 	mDeleteMembership.Input("roleName", "EntityName", true, "", "", false, nil, "name of the role")
 	mDeleteMembership.Input("memberName", "MemberName", true, "", "", false, nil, "name of the user to be removed as a member")
 	mDeleteMembership.Input("auditRef", "String", false, "", "Y-Audit-Ref", false, nil, "Audit param required(not empty) if domain auditEnabled is true.")
-	mDeleteMembership.Auth("update", "{domainName}:role.{roleName}", false, "")
+	mDeleteMembership.Auth("", "", true, "")
 	mDeleteMembership.Expected("NO_CONTENT")
 	mDeleteMembership.Exception("BAD_REQUEST", "ResourceError", "")
 	mDeleteMembership.Exception("CONFLICT", "ResourceError", "")

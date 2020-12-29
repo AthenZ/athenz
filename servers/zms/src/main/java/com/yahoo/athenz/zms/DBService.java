@@ -1504,28 +1504,15 @@ public class DBService implements RolesProvider {
 
             try (ObjectStoreConnection con = store.getConnection(true, true)) {
 
-                String principal = getPrincipalName(ctx);
+                final String principal = getPrincipalName(ctx);
 
                 // first verify that auditing requirements are met
 
                 checkDomainAuditEnabled(con, domainName, auditRef, caller, principal, AUDIT_TYPE_ROLE);
 
-                // if this is the admin role then we need to make sure
-                // the admin is not himself who happens to be the last
-                // member in the role
-
-                if (ZMSConsts.ADMIN_ROLE_NAME.equals(roleName)) {
-                    List<RoleMember> members = con.listRoleMembers(domainName, roleName, false);
-                    if (members.size() == 1 && members.get(0).getMemberName().equals(normalizedMember)) {
-                        throw ZMSUtils.forbiddenError(caller +
-                                ": Cannot delete last member of 'admin' role", caller);
-                    }
-                }
-
                 // process our delete role member operation
 
-                if (!con.deleteRoleMember(domainName, roleName, normalizedMember,
-                        principal, auditRef)) {
+                if (!con.deleteRoleMember(domainName, roleName, normalizedMember, principal, auditRef)) {
                     con.rollbackChanges();
                     throw ZMSUtils.notFoundError(caller + ": unable to delete role member: " +
                             normalizedMember + " from role: " + roleName, caller);
@@ -5255,41 +5242,49 @@ public class DBService implements RolesProvider {
             Timestamp reviewDate = roleMember.getReviewReminder();
             boolean dueDateUpdated = false;
 
-            boolean bUser = ZMSUtils.isUserDomainPrincipal(roleMember.getMemberName(), zmsConfig.getUserDomainPrefix(),
-                    zmsConfig.getAddlUserCheckDomainPrefixList());
-            boolean bGroup = roleMember.getMemberName().contains(AuthorityConsts.GROUP_SEP);
+            switch (ZMSUtils.principalType(roleMember.getMemberName(), zmsConfig.getUserDomainPrefix(),
+                    zmsConfig.getAddlUserCheckDomainPrefixList())) {
 
-            if (bUser) {
-                if (isEarlierDueDate(userExpiryMillis, expiration)) {
-                    roleMember.setExpiration(userExpiration);
-                    dueDateUpdated = true;
-                }
-                if (isEarlierDueDate(userReviewMillis, reviewDate)) {
-                    roleMember.setReviewReminder(userReview);
-                    dueDateUpdated = true;
-                }
+                case USER:
 
-                // if we have a user filter and/or expiry configured we need
-                // to make sure that the user still satisfies the filter
-                // otherwise we'll just expire the user right away
+                    if (isEarlierDueDate(userExpiryMillis, expiration)) {
+                        roleMember.setExpiration(userExpiration);
+                        dueDateUpdated = true;
+                    }
+                    if (isEarlierDueDate(userReviewMillis, reviewDate)) {
+                        roleMember.setReviewReminder(userReview);
+                        dueDateUpdated = true;
+                    }
 
-                if (userAuthorityExpiry != null && updateUserAuthorityExpiry(roleMember, userAuthorityExpiry)) {
-                    dueDateUpdated = true;
-                }
-            } else if (bGroup) {
-                if (isEarlierDueDate(groupExpiryMillis, expiration)) {
-                    roleMember.setExpiration(groupExpiration);
-                    dueDateUpdated = true;
-                }
-            } else {
-                if (isEarlierDueDate(serviceExpiryMillis, expiration)) {
-                    roleMember.setExpiration(serviceExpiration);
-                    dueDateUpdated = true;
-                }
-                if (isEarlierDueDate(serviceReviewMillis, reviewDate)) {
-                    roleMember.setReviewReminder(serviceReview);
-                    dueDateUpdated = true;
-                }
+                    // if we have a user filter and/or expiry configured we need
+                    // to make sure that the user still satisfies the filter
+                    // otherwise we'll just expire the user right away
+
+                    if (userAuthorityExpiry != null && updateUserAuthorityExpiry(roleMember, userAuthorityExpiry)) {
+                        dueDateUpdated = true;
+                    }
+
+                    break;
+
+                case GROUP:
+
+                    if (isEarlierDueDate(groupExpiryMillis, expiration)) {
+                        roleMember.setExpiration(groupExpiration);
+                        dueDateUpdated = true;
+                    }
+                    break;
+
+                case SERVICE:
+
+                    if (isEarlierDueDate(serviceExpiryMillis, expiration)) {
+                        roleMember.setExpiration(serviceExpiration);
+                        dueDateUpdated = true;
+                    }
+                    if (isEarlierDueDate(serviceReviewMillis, reviewDate)) {
+                        roleMember.setReviewReminder(serviceReview);
+                        dueDateUpdated = true;
+                    }
+                    break;
             }
 
             if (dueDateUpdated) {
