@@ -16,8 +16,11 @@
 // Add some helpful assertions for `react-testing-library`
 import '@testing-library/jest-dom/extend-expect';
 import jsdom from 'jsdom';
+import { createSerializer } from '@emotion/jest';
 
 const dom = new jsdom.JSDOM('<!doctype html><html><body></body></html>');
+
+expect.addSnapshotSerializer(createSerializer());
 
 // new lines
 global.Node = dom.window.Node;

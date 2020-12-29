@@ -1,42 +1,80 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TemplateList should render 1`] = `
+.emotion-0 {
+  margin: 20px;
+}
+
+.emotion-2 {
+  width: 100%;
+  border-spacing: 0;
+  display: table;
+  border-collapse: separate;
+  border-color: #9a9a9a;
+}
+
+.emotion-4 {
+  text-align: left;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
+.emotion-8 {
+  text-align: center;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
 <div
-  class="css-oqpjdc"
+  class="emotion-0 emotion-1"
   data-testid="template-list"
 >
   <table
-    class="css-s7ocsu"
+    class="emotion-2 emotion-3"
   >
     <thead>
       <tr>
         <th
-          class="css-c37hkt"
+          class="emotion-4 emotion-5"
         >
           TEMPLATE
         </th>
         <th
-          class="css-c37hkt"
+          class="emotion-4 emotion-5"
         >
           INFO
         </th>
         <th
-          class="css-19r8pbt"
+          class="emotion-8 emotion-5"
         >
           CURRENT VERSION
         </th>
         <th
-          class="css-19r8pbt"
+          class="emotion-8 emotion-5"
         >
           LATEST VERSION
         </th>
         <th
-          class="css-19r8pbt"
+          class="emotion-8 emotion-5"
         >
           UPDATED DATE
         </th>
         <th
-          class="css-19r8pbt"
+          class="emotion-8 emotion-5"
         >
           UPDATE VERSION
         </th>
@@ -48,42 +86,80 @@ exports[`TemplateList should render 1`] = `
 `;
 
 exports[`TemplateList should render with metadata array 1`] = `
+.emotion-0 {
+  margin: 20px;
+}
+
+.emotion-2 {
+  width: 100%;
+  border-spacing: 0;
+  display: table;
+  border-collapse: separate;
+  border-color: #9a9a9a;
+}
+
+.emotion-4 {
+  text-align: left;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
+.emotion-8 {
+  text-align: center;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
 <div
-  class="css-oqpjdc"
+  class="emotion-0 emotion-1"
   data-testid="template-list"
 >
   <table
-    class="css-s7ocsu"
+    class="emotion-2 emotion-3"
   >
     <thead>
       <tr>
         <th
-          class="css-c37hkt"
+          class="emotion-4 emotion-5"
         >
           TEMPLATE
         </th>
         <th
-          class="css-c37hkt"
+          class="emotion-4 emotion-5"
         >
           INFO
         </th>
         <th
-          class="css-19r8pbt"
+          class="emotion-8 emotion-5"
         >
           CURRENT VERSION
         </th>
         <th
-          class="css-19r8pbt"
+          class="emotion-8 emotion-5"
         >
           LATEST VERSION
         </th>
         <th
-          class="css-19r8pbt"
+          class="emotion-8 emotion-5"
         >
           UPDATED DATE
         </th>
         <th
-          class="css-19r8pbt"
+          class="emotion-8 emotion-5"
         >
           UPDATE VERSION
         </th>

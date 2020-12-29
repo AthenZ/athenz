@@ -1,8 +1,13 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ServiceRow should render keys on click of key 1`] = `
+.emotion-0 {
+  font-size: 16px;
+  font-weight: 600;
+}
+
 <div
-  class="css-zfcvhg"
+  class="emotion-0 emotion-1"
 >
   Details
 </div>
@@ -15,8 +20,17 @@ exports[`ServiceRow should render keys on click of key 2`] = `
 `;
 
 exports[`ServiceRow should render keys on click of key 3`] = `
+.emotion-0 {
+  color: #303030;
+  font-weight: 600;
+  -webkit-flex: 1 1 100%;
+  -ms-flex: 1 1 100%;
+  flex: 1 1 100%;
+  margin-bottom: 5px;
+}
+
 <div
-  class="css-1huh9ez"
+  class="emotion-0 emotion-1"
 >
   Public Key Version: 
   0
@@ -24,8 +38,17 @@ exports[`ServiceRow should render keys on click of key 3`] = `
 `;
 
 exports[`ServiceRow should render keys on click of key 4`] = `
+.emotion-0 {
+  color: #303030;
+  font-weight: 600;
+  -webkit-flex: 1 1 100%;
+  -ms-flex: 1 1 100%;
+  flex: 1 1 100%;
+  margin-bottom: 5px;
+}
+
 <div
-  class="css-1huh9ez"
+  class="emotion-0 emotion-1"
 >
   Public Key Version: 
   1
@@ -33,36 +56,65 @@ exports[`ServiceRow should render keys on click of key 4`] = `
 `;
 
 exports[`ServiceRow should render providers on click of cloud 1`] = `
+.emotion-0 {
+  text-align: left;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
 <td
-  class="css-1xbnz49"
+  class="emotion-0 emotion-1"
 >
   AWS EC2/EKS/Fargate launches instances for the service
 </td>
 `;
 
 exports[`ServiceRow should render row 1`] = `
+.emotion-2 {
+  background-color: ;
+  text-align: left;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+.emotion-6 {
+  background-color: ;
+  text-align: center;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+.emotion-8 {
+  fill: #188fff;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
 <tr
-  class="css-wwiaj0"
+  class="emotion-0 emotion-1"
   data-testid="service-row"
 >
   <td
-    class="css-1vs2r4p"
+    class="emotion-2 emotion-3"
     color=""
   >
     serviceName
   </td>
   <td
-    class="css-1vs2r4p"
+    class="emotion-2 emotion-3"
     color=""
   >
     2017-12-19 20:24 UTC
   </td>
   <td
-    class="css-84znvz"
+    class="emotion-6 emotion-3"
     color=""
   >
     <svg
-      class="css-u87f64"
+      class="emotion-8"
       data-testid="icon"
       height="1.25em"
       viewBox="0 0 1024 1024"
@@ -77,11 +129,11 @@ exports[`ServiceRow should render row 1`] = `
     </svg>
   </td>
   <td
-    class="css-84znvz"
+    class="emotion-6 emotion-3"
     color=""
   >
     <svg
-      class="css-u87f64"
+      class="emotion-8"
       data-testid="icon"
       height="1.25em"
       viewBox="0 0 1024 1024"
@@ -96,11 +148,11 @@ exports[`ServiceRow should render row 1`] = `
     </svg>
   </td>
   <td
-    class="css-84znvz"
+    class="emotion-6 emotion-3"
     color=""
   >
     <svg
-      class="css-u87f64"
+      class="emotion-8"
       data-testid="icon"
       height="1.25em"
       viewBox="0 0 1024 1024"

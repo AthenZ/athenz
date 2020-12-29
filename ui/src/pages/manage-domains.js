@@ -26,6 +26,8 @@ import RequestUtils from '../components/utils/RequestUtils';
 import Alert from '../components/denali/Alert';
 import { MODAL_TIME_OUT } from '../components/constants/constants';
 import Error from './_error';
+import createCache from '@emotion/cache';
+import { CacheProvider } from '@emotion/react';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -89,6 +91,7 @@ export default class ManageDomainsPage extends React.Component {
             manageDomains: domains[2],
             pending: domains[3],
             _csrf: domains[4],
+            nonce: props.req.headers.rid,
         };
     }
 
@@ -101,6 +104,10 @@ export default class ManageDomainsPage extends React.Component {
             successMessage: '',
         };
         this.loadDomains = this.loadDomains.bind(this);
+        this.cache = createCache({
+            key: 'athenz',
+            nonce: this.props.nonce,
+        });
     }
 
     loadDomains(successMessage) {
@@ -143,45 +150,49 @@ export default class ManageDomainsPage extends React.Component {
             return <Error err={this.props.error} />;
         }
         return (
-            <div data-testid='page-manage-domains'>
-                <Head>
-                    <title>Athenz</title>
-                </Head>
-                <Header
-                    showSearch={false}
-                    headerDetails={this.props.headerDetails}
-                    pending={this.props.pending}
-                />
-                <MainContentDiv>
-                    <AppContainerDiv>
-                        <RolesContainerDiv>
-                            <RolesContentDiv>
-                                <PageHeaderDiv>
-                                    <TitleDiv>Manage My Domains</TitleDiv>
-                                </PageHeaderDiv>
-                                <ManageDomains
-                                    domains={this.state.manageDomains}
-                                    _csrf={this.props._csrf}
-                                    api={this.api}
-                                    loadDomains={this.loadDomains}
-                                />
-                                <Alert
-                                    isOpen={this.state.showSuccess}
-                                    title={this.state.successMessage}
-                                    onClose={() => {
-                                        this.setState({ showSuccess: false });
-                                    }}
-                                    type='success'
-                                />
-                            </RolesContentDiv>
-                        </RolesContainerDiv>
-                        <UserDomains
-                            domains={this.state.domains}
-                            api={this.api}
-                        />
-                    </AppContainerDiv>
-                </MainContentDiv>
-            </div>
+            <CacheProvider value={this.cache}>
+                <div data-testid='page-manage-domains'>
+                    <Head>
+                        <title>Athenz</title>
+                    </Head>
+                    <Header
+                        showSearch={false}
+                        headerDetails={this.props.headerDetails}
+                        pending={this.props.pending}
+                    />
+                    <MainContentDiv>
+                        <AppContainerDiv>
+                            <RolesContainerDiv>
+                                <RolesContentDiv>
+                                    <PageHeaderDiv>
+                                        <TitleDiv>Manage My Domains</TitleDiv>
+                                    </PageHeaderDiv>
+                                    <ManageDomains
+                                        domains={this.state.manageDomains}
+                                        _csrf={this.props._csrf}
+                                        api={this.api}
+                                        loadDomains={this.loadDomains}
+                                    />
+                                    <Alert
+                                        isOpen={this.state.showSuccess}
+                                        title={this.state.successMessage}
+                                        onClose={() => {
+                                            this.setState({
+                                                showSuccess: false,
+                                            });
+                                        }}
+                                        type='success'
+                                    />
+                                </RolesContentDiv>
+                            </RolesContainerDiv>
+                            <UserDomains
+                                domains={this.state.domains}
+                                api={this.api}
+                            />
+                        </AppContainerDiv>
+                    </MainContentDiv>
+                </div>
+            </CacheProvider>
         );
     }
 }

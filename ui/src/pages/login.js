@@ -25,6 +25,8 @@ import InputLabel from '../components/denali/InputLabel';
 import Input from '../components/denali/Input';
 import Button from '../components/denali/Button';
 import API from '../api';
+import { CacheProvider } from '@emotion/react';
+import createCache from '@emotion/cache';
 
 const HomeContainerDiv = styled.div`
     flex: 1 1;
@@ -122,6 +124,7 @@ export default class PageLogin extends React.Component {
         return {
             options,
             error,
+            nonce: props.req.headers.rid,
         };
     }
 
@@ -132,6 +135,10 @@ export default class PageLogin extends React.Component {
             password: '',
         };
         this.onSubmit = this.onSubmit.bind(this);
+        this.cache = createCache({
+            key: 'athenz',
+            nonce: this.props.nonce,
+        });
     }
 
     inputChanged(key, evt) {
@@ -177,72 +184,76 @@ export default class PageLogin extends React.Component {
 
     render() {
         return (
-            <div data-testid='home'>
-                <Head>
-                    <title>Athenz</title>
-                </Head>
-                <NavBarDiv data-testid='header'>
-                    <NavBar background={'#002339'}>
-                        <NavBarItem>
-                            <Link route='home'>
-                                <a>
-                                    <LogoStyled />
-                                </a>
-                            </Link>
-                        </NavBarItem>
-                    </NavBar>
-                </NavBarDiv>
-                <MainContentDiv>
-                    <AppContainerDiv>
-                        <HomeContainerDiv>
-                            <HomeContentDiv>
-                                <MainLogoDiv>
-                                    <SectionDiv>
-                                        <StyledInputLabel>
-                                            Username
-                                        </StyledInputLabel>
-                                        <ContentDiv>
-                                            <StyledInput
-                                                placeholder='Enter Username'
-                                                value={this.state.username}
-                                                onChange={this.inputChanged.bind(
-                                                    this,
-                                                    'username'
-                                                )}
-                                                noanim
-                                                fluid
-                                            />
-                                        </ContentDiv>
-                                    </SectionDiv>
-                                    <SectionDiv>
-                                        <StyledInputLabel>
-                                            Password
-                                        </StyledInputLabel>
-                                        <ContentDiv>
-                                            <StyledInput
-                                                placeholder='Enter Password'
-                                                value={this.state.password}
-                                                onChange={this.inputChanged.bind(
-                                                    this,
-                                                    'password'
-                                                )}
-                                                noanim
-                                                fluid
-                                                type='password'
-                                            />
-                                        </ContentDiv>
-                                    </SectionDiv>
-                                    <ButtonDiv>
-                                        <ModifiedButton onClick={this.onSubmit}>
-                                            Login
-                                        </ModifiedButton>
-                                    </ButtonDiv>
-                                </MainLogoDiv>
-                            </HomeContentDiv>
-                        </HomeContainerDiv>
-                    </AppContainerDiv>
-                </MainContentDiv>
-            </div>
+            <CacheProvider value={this.cache}>
+                <div data-testid='home'>
+                    <Head>
+                        <title>Athenz</title>
+                    </Head>
+                    <NavBarDiv data-testid='header'>
+                        <NavBar background={'#002339'}>
+                            <NavBarItem>
+                                <Link route='home'>
+                                    <a>
+                                        <LogoStyled />
+                                    </a>
+                                </Link>
+                            </NavBarItem>
+                        </NavBar>
+                    </NavBarDiv>
+                    <MainContentDiv>
+                        <AppContainerDiv>
+                            <HomeContainerDiv>
+                                <HomeContentDiv>
+                                    <MainLogoDiv>
+                                        <SectionDiv>
+                                            <StyledInputLabel>
+                                                Username
+                                            </StyledInputLabel>
+                                            <ContentDiv>
+                                                <StyledInput
+                                                    placeholder='Enter Username'
+                                                    value={this.state.username}
+                                                    onChange={this.inputChanged.bind(
+                                                        this,
+                                                        'username'
+                                                    )}
+                                                    noanim
+                                                    fluid
+                                                />
+                                            </ContentDiv>
+                                        </SectionDiv>
+                                        <SectionDiv>
+                                            <StyledInputLabel>
+                                                Password
+                                            </StyledInputLabel>
+                                            <ContentDiv>
+                                                <StyledInput
+                                                    placeholder='Enter Password'
+                                                    value={this.state.password}
+                                                    onChange={this.inputChanged.bind(
+                                                        this,
+                                                        'password'
+                                                    )}
+                                                    noanim
+                                                    fluid
+                                                    type='password'
+                                                />
+                                            </ContentDiv>
+                                        </SectionDiv>
+                                        <ButtonDiv>
+                                            <ModifiedButton
+                                                onClick={this.onSubmit}
+                                            >
+                                                Login
+                                            </ModifiedButton>
+                                        </ButtonDiv>
+                                    </MainLogoDiv>
+                                </HomeContentDiv>
+                            </HomeContainerDiv>
+                        </AppContainerDiv>
+                    </MainContentDiv>
+                </div>
+            </CacheProvider>
         );
     }
 }

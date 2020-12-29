@@ -1,39 +1,866 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`RolePolicyPage should render 1`] = `
+.emotion-0 {
+  height: 60px;
+  position: relative;
+}
+
+.emotion-2 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  background: #002339;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  color: #fff;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex: 0 0 60px;
+  -ms-flex: 0 0 60px;
+  flex: 0 0 60px;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  height: 60px;
+  -webkit-box-pack: start;
+  -ms-flex-pack: start;
+  -webkit-justify-content: flex-start;
+  justify-content: flex-start;
+  left: 0;
+  padding: 0 24px;
+  position: static;
+  right: 0;
+  top: 0;
+  z-index: 2;
+}
+
+.emotion-2.scrolled {
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.16);
+}
+
+.emotion-2 .flush-right {
+  margin-left: auto;
+}
+
+.emotion-3 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  box-sizing: border-box;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 60px;
+  position: relative;
+  width: ;
+}
+
+.emotion-3.simple {
+  color: #fff;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  padding: 0 12px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-3.simple.nav-link {
+  cursor: pointer;
+}
+
+.emotion-3.simple.nav-link:hover {
+  color: rgba(255,255,255,0.75);
+}
+
+.emotion-3.simple.active {
+  box-shadow: inset 0 -4px 0 #3697f2;
+}
+
+.emotion-3.simple.nav-link.active:hover {
+  box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
+}
+
+.emotion-3 .nav-title {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  color: #fff;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  height: 100%;
+  padding: 0 12px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-3.nav-link .nav-title {
+  cursor: pointer;
+}
+
+.emotion-3.active .nav-title,
+.emotion-3 .active.nav-title {
+  box-shadow: inset 0 -4px 0 #3697f2;
+}
+
+.emotion-3 .nav-title:hover {
+  color: rgba(255,255,255,0.75);
+}
+
+.emotion-3.nav-link.active .nav-title:hover,
+.emotion-3.nav-link .active.nav-title:hover {
+  box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
+}
+
+.emotion-3 img.nav-logo {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 34px;
+}
+
+.emotion-3 .nav-icon,
+.emotion-3:hover .nav-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.emotion-3 .nav-icon path,
+.emotion-3:hover .nav-icon path,
+.emotion-3 .nav-icon ellipse,
+.emotion-3:hover .nav-icon ellipse,
+.emotion-3 .nav-icon rect,
+.emotion-3:hover .nav-icon rect,
+.emotion-3 .nav-icon circle,
+.emotion-3:hover .nav-icon circle {
+  fill: #fff;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-3.nav-link:hover .nav-icon path,
+.emotion-3.nav-link:hover .nav-icon ellipse,
+.emotion-3.nav-link:hover .nav-icon rect,
+.emotion-3.nav-link:hover .nav-icon circle {
+  fill: rgba(255,255,255,0.75);
+}
+
+.emotion-4 {
+  height: 36px;
+  cursor: pointer;
+}
+
+.emotion-6 {
+  margin-left: 10%;
+  width: 50%;
+}
+
+.emotion-8 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  box-sizing: border-box;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 60px;
+  position: relative;
+  width: 100%;
+}
+
+.emotion-8.simple {
+  color: #fff;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  padding: 0 12px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-8.simple.nav-link {
+  cursor: pointer;
+}
+
+.emotion-8.simple.nav-link:hover {
+  color: rgba(255,255,255,0.75);
+}
+
+.emotion-8.simple.active {
+  box-shadow: inset 0 -4px 0 #3697f2;
+}
+
+.emotion-8.simple.nav-link.active:hover {
+  box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
+}
+
+.emotion-8 .nav-title {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  color: #fff;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  height: 100%;
+  padding: 0 12px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-8.nav-link .nav-title {
+  cursor: pointer;
+}
+
+.emotion-8.active .nav-title,
+.emotion-8 .active.nav-title {
+  box-shadow: inset 0 -4px 0 #3697f2;
+}
+
+.emotion-8 .nav-title:hover {
+  color: rgba(255,255,255,0.75);
+}
+
+.emotion-8.nav-link.active .nav-title:hover,
+.emotion-8.nav-link .active.nav-title:hover {
+  box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
+}
+
+.emotion-8 img.nav-logo {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 34px;
+}
+
+.emotion-8 .nav-icon,
+.emotion-8:hover .nav-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.emotion-8 .nav-icon path,
+.emotion-8:hover .nav-icon path,
+.emotion-8 .nav-icon ellipse,
+.emotion-8:hover .nav-icon ellipse,
+.emotion-8 .nav-icon rect,
+.emotion-8:hover .nav-icon rect,
+.emotion-8 .nav-icon circle,
+.emotion-8:hover .nav-icon circle {
+  fill: #fff;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-8.nav-link:hover .nav-icon path,
+.emotion-8.nav-link:hover .nav-icon ellipse,
+.emotion-8.nav-link:hover .nav-icon rect,
+.emotion-8.nav-link:hover .nav-icon circle {
+  fill: rgba(255,255,255,0.75);
+}
+
+.emotion-9 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 100%;
+}
+
+.emotion-9 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-9.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-9 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-9 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-9 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-9 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-9 input.focused,
+.emotion-9 input:active,
+.emotion-9 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-9 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-9 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-9.error input,
+.emotion-9.error input.focused,
+.emotion-9.error input:active,
+.emotion-9.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-9.error .message {
+  color: #d01111;
+}
+
+.emotion-9 input {
+  background: rgba(242,242,242,0.1);
+  color: #fff;
+}
+
+.emotion-9 input::-webkit-input-placeholder {
+  color: rgba(255,255,255,0.6);
+}
+
+.emotion-9 input::-moz-placeholder {
+  color: rgba(255,255,255,0.6);
+}
+
+.emotion-9 input:-ms-input-placeholder {
+  color: rgba(255,255,255,0.6);
+}
+
+.emotion-9 input::placeholder {
+  color: rgba(255,255,255,0.6);
+}
+
+.emotion-9 input.focused,
+.emotion-9 input:active,
+.emotion-9 input:focus {
+  background: rgba(242,242,242,0.1);
+  border-bottom: 2px solid #3570f4;
+  color: #fff;
+}
+
+.emotion-9 input {
+  padding-right: 36px;
+}
+
+.emotion-9 .input-icon {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 36px;
+  position: absolute;
+  right: 6px;
+}
+
+.emotion-10 {
+  fill: #3570f4;
+  cursor: inherit;
+  vertical-align: text-bottom;
+}
+
+.emotion-12 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+}
+
+.emotion-14 {
+  fill: #fff;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+.emotion-15 {
+  margin-left: 15px;
+}
+
+.emotion-18 {
+  -webkit-flex: 1 1 calc(100vh - 60px);
+  -ms-flex: 1 1 calc(100vh - 60px);
+  flex: 1 1 calc(100vh - 60px);
+  overflow: hidden;
+  font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
+}
+
+.emotion-20 {
+  -webkit-align-items: stretch;
+  -webkit-box-align: stretch;
+  -ms-flex-align: stretch;
+  align-items: stretch;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  height: 100%;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: start;
+  -ms-flex-pack: start;
+  -webkit-justify-content: flex-start;
+  justify-content: flex-start;
+}
+
+.emotion-22 {
+  -webkit-align-items: stretch;
+  -webkit-box-align: stretch;
+  -ms-flex-align: stretch;
+  align-items: stretch;
+  -webkit-flex: 1 1;
+  -ms-flex: 1 1;
+  flex: 1 1;
+  height: calc(100vh - 60px);
+  overflow: auto;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: column;
+  -ms-flex-direction: column;
+  flex-direction: column;
+}
+
+.emotion-26 {
+  background: linear-gradient(to top, #f2f2f2, #fff);
+  padding: 20px 30px 0;
+}
+
+.emotion-28 {
+  font: 600 20px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
+  margin-bottom: 10px;
+}
+
+.emotion-30 {
+  color: #3570f4;
+  -webkit-text-decoration: none;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.emotion-32 {
+  margin: 20px 0;
+}
+
+.emotion-34 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+}
+
+.emotion-36 {
+  padding-right: 50px;
+}
+
+.emotion-38 {
+  font-weight: 600;
+}
+
+.emotion-40 {
+  color: #9a9a9a;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.emotion-48 {
+  -webkit-align-items: stretch;
+  -webkit-box-align: stretch;
+  -ms-flex-align: stretch;
+  align-items: stretch;
+  background: #f5f8fe;
+  border-radius: 2px;
+  box-shadow: ;
+  box-sizing: border-box;
+  display: inline-grid;
+  grid-template-columns: repeat(5, 1fr);
+  margin-top: 0;
+  min-width: 80px;
+  position: relative;
+}
+
+.emotion-48.vertical {
+  background: #f5f8fe;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: column;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  height: 100%;
+  min-width: 300px;
+  overflow-y: scroll;
+  padding: 12px 0px 40px 0px;
+  width: 300px;
+}
+
+.emotion-49 {
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  background: #f5f8fe;
+  border-bottom: ;
+  color: #3697f2;
+  cursor: pointer;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+  padding: 8px 20px;
+  -webkit-transition: ;
+  transition: ;
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.emotion-49:hover {
+  color: #3570f4;
+}
+
+.emotion-49.active {
+  background: #fff;
+  border-bottom: ;
+  border-top-left-radius: 2px;
+  border-top-right-radius: 2px;
+  color: #303030;
+  cursor: initial;
+}
+
+.emotion-49.active:hover {
+  color: #303030;
+}
+
+.emotion-49.vertical {
+  background: #f5f8fe;
+  border-left: solid 4px #f5f8fe;
+  height: 24px;
+  -webkit-box-pack: start;
+  -ms-flex-pack: start;
+  -webkit-justify-content: flex-start;
+  justify-content: flex-start;
+  padding: 12px 0px 12px 26px;
+  text-align: left;
+}
+
+.emotion-49.vertical.active {
+  background: #fff;
+  border-left: solid 4px #3697f2;
+  color: #303030;
+}
+
+.emotion-49.vertical.active:hover {
+  color: #303030;
+}
+
+.emotion-54 {
+  margin: 20px;
+}
+
+.emotion-56 {
+  padding-bottom: 20px;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  justify-content: space-between;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  float: right;
+}
+
+.emotion-58 {
+  border: none;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  font-family: Helvetica,Arial,sans-serif;
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 1;
+  margin: 5px;
+  min-width: ;
+  outline: 0;
+  padding: 10px 24px;
+  text-align: center;
+  text-shadow: none;
+  text-transform: none;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  vertical-align: baseline;
+  white-space: nowrap;
+  background: transparent;
+  box-shadow: 0 0 0 1px #3697f2 inset;
+  color: #3697f2;
+}
+
+.emotion-58:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-58:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
+.emotion-58:disabled {
+  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
+}
+
+.emotion-58:hover:not(:disabled) {
+  background: #d7e2fd;
+}
+
+.emotion-59 {
+  width: 100%;
+  border-spacing: 0 15px;
+  display: table;
+  border-collapse: separate;
+  border-color: grey;
+}
+
+.emotion-61 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  background-color: #fff;
+  border-bottom: 1px solid #d5d5d5;
+  border-left: 1px solid #d5d5d5;
+  border-top: 1px solid #d5d5d5;
+  cursor: pointer;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 20px;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+  margin-left: -21px;
+  margin-top: 20px;
+  position: absolute;
+  text-align: center;
+  width: 20px;
+}
+
+.emotion-63 {
+  fill: #303030;
+  cursor: inherit;
+  vertical-align: text-bottom;
+}
+
+.emotion-64 {
+  margin-right: 0;
+  border-left: 1px solid #d5d5d5;
+  -webkit-flex: 0 0 350px;
+  -ms-flex: 0 0 350px;
+  flex: 0 0 350px;
+  height: calc(100vh - 60px);
+  overflow: auto;
+  -webkit-transition: margin 0.4s ease-in-out;
+  transition: margin 0.4s ease-in-out;
+  display: block;
+  min-width: 350px;
+  width: 350px;
+}
+
+.emotion-66 {
+  -webkit-align-items: baseline;
+  -webkit-box-align: baseline;
+  -ms-flex-align: baseline;
+  align-items: baseline;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  justify-content: space-between;
+  padding: 20px 30px 20px 15px;
+}
+
+.emotion-68 {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.emotion-70 {
+  color: #3570f4;
+  -webkit-text-decoration: none;
+  text-decoration: none;
+  cursor: pointer;
+  font-weight: ;
+}
+
+.emotion-72 {
+  padding: 0 5px;
+  color: #d5d5d5;
+}
+
+.emotion-76 {
+  padding: 0 30px 0 15px;
+}
+
+.emotion-78 {
+  padding: 10px 0;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+}
+
+.emotion-80 {
+  font-size: 1.25em;
+  margin-right: 5px;
+}
+
+.emotion-82 {
+  fill: #303030;
+  cursor: inherit;
+  vertical-align: baseline;
+}
+
 <div
   data-testid="role-policy"
 >
   <div
-    class="css-u4qfx7"
+    class="emotion-0 emotion-1"
     data-testid="header"
   >
     <div
-      class="css-194a6h5-navbar denali-navbar"
+      class="emotion-2 denali-navbar"
       data-testid="navbar"
     >
       <div
-        class="css-u5g9s-navbar-item simple denali-navbar-item"
+        class="emotion-3 simple denali-navbar-item"
         data-testid="navbar-item"
       >
         <a
           href="/"
         >
           <img
-            class="css-1bb71e6"
+            class="emotion-4 emotion-5"
             src="/static/athenz-logo-full.png"
           />
         </a>
       </div>
       <div
-        class="css-1e128ow"
+        class="emotion-6 emotion-7"
       >
         <div
-          class="css-1cyyi4u-navbar-item simple denali-navbar-item"
+          class="emotion-8 simple denali-navbar-item"
           data-testid="navbar-item"
         >
           <div
-            class="css-k4z0rl-input denali-input animated"
+            class="emotion-9 denali-input animated"
             data-testid="input-wrapper"
           >
             <input
@@ -47,7 +874,7 @@ exports[`RolePolicyPage should render 1`] = `
               class="input-icon"
             >
               <svg
-                class="css-18jx5cr"
+                class="emotion-10"
                 data-testid="icon"
                 height="24px"
                 viewBox="0 0 1024 1024"
@@ -69,15 +896,15 @@ exports[`RolePolicyPage should render 1`] = `
         </div>
       </div>
       <div
-        class="css-u5g9s-navbar-item simple flush-right denali-navbar-item"
+        class="emotion-3 simple flush-right denali-navbar-item"
         data-testid="navbar-item"
       >
         <div
-          class="css-1mzzuk6"
+          class="emotion-12 emotion-13"
           data-testid="header-menu"
         >
           <svg
-            class="css-hjh1m6"
+            class="emotion-14"
             data-testid="icon"
             height="25px"
             viewBox="0 0 1024 1024"
@@ -91,10 +918,10 @@ exports[`RolePolicyPage should render 1`] = `
             />
           </svg>
           <div
-            class="css-11kem00"
+            class="emotion-15 emotion-16"
           >
             <svg
-              class="css-hjh1m6"
+              class="emotion-14"
               data-testid="icon"
               height="25px"
               viewBox="0 0 1024 1024"
@@ -119,28 +946,28 @@ exports[`RolePolicyPage should render 1`] = `
     </div>
   </div>
   <div
-    class="css-hs9ulc"
+    class="emotion-18 emotion-19"
   >
     <div
-      class="css-hq6zta"
+      class="emotion-20 emotion-21"
     >
       <div
-        class="css-r6ve5m"
+        class="emotion-22 emotion-23"
       >
         <div
-          class="css-0"
+          class="emotion-24 emotion-25"
         >
           <div
-            class="css-mqabsk"
+            class="emotion-26 emotion-27"
           >
             <div
-              class="css-btnvty"
+              class="emotion-28 emotion-29"
               data-testid="role-name-header"
             >
               
               
               <a
-                class="css-4c0528"
+                class="emotion-30 emotion-31"
               >
                 dom
                  
@@ -148,36 +975,36 @@ exports[`RolePolicyPage should render 1`] = `
               / 
             </div>
             <div
-              class="css-18icqaw"
+              class="emotion-32 emotion-33"
               data-testid="role-details"
             >
               <div
-                class="css-16ehm7c"
+                class="emotion-34 emotion-35"
               >
                 <div
-                  class="css-1fla85d"
+                  class="emotion-36 emotion-37"
                 >
                   <div
-                    class="css-rxg59x"
+                    class="emotion-38 emotion-39"
                   >
                     2020-02-12 21:44 UTC
                   </div>
                   <div
-                    class="css-19d5ki7"
+                    class="emotion-40 emotion-41"
                   >
                     MODIFIED DATE
                   </div>
                 </div>
                 <div
-                  class="css-1fla85d"
+                  class="emotion-36 emotion-37"
                 >
                   <div
-                    class="css-rxg59x"
+                    class="emotion-38 emotion-39"
                   >
                     N/A
                   </div>
                   <div
-                    class="css-19d5ki7"
+                    class="emotion-40 emotion-41"
                   >
                     REVIEWED DATE
                   </div>
@@ -185,35 +1012,35 @@ exports[`RolePolicyPage should render 1`] = `
               </div>
             </div>
             <div
-              class="css-zxa2dy-tab-group denali-tab-group"
+              class="emotion-48 denali-tab-group"
               data-testid="tabgroup"
             >
               <div
-                class="css-6swi8d-tab-group-tab denali-tab"
+                class="emotion-49 denali-tab"
                 data-active="false"
               >
                 Members
               </div>
               <div
-                class="css-6swi8d-tab-group-tab denali-tab"
+                class="emotion-49 denali-tab"
                 data-active="false"
               >
                 Review
               </div>
               <div
-                class="css-6swi8d-tab-group-tab denali-tab active"
+                class="emotion-49 denali-tab active"
                 data-active="true"
               >
                 Policy Rules
               </div>
               <div
-                class="css-6swi8d-tab-group-tab denali-tab"
+                class="emotion-49 denali-tab"
                 data-active="false"
               >
                 Settings
               </div>
               <div
-                class="css-6swi8d-tab-group-tab denali-tab"
+                class="emotion-49 denali-tab"
                 data-active="false"
               >
                 History
@@ -221,15 +1048,15 @@ exports[`RolePolicyPage should render 1`] = `
             </div>
           </div>
           <div
-            class="css-oqpjdc"
+            class="emotion-54 emotion-55"
             data-testid="role-policy-list"
           >
             <div
-              class="css-27i382"
+              class="emotion-56 emotion-57"
             >
               <div>
                 <button
-                  class="css-1pobclq-button denali-button"
+                  class="emotion-58 denali-button"
                 >
                   Add Policy
                 </button>
@@ -237,7 +1064,7 @@ exports[`RolePolicyPage should render 1`] = `
               </div>
             </div>
             <table
-              class="css-1cl04rh"
+              class="emotion-59 emotion-60"
             >
               <tbody>
                 There is no policy related to this role
@@ -250,11 +1077,11 @@ exports[`RolePolicyPage should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="css-1uc217s"
+          class="emotion-61 emotion-62"
           data-testid="toggle-domain"
         >
           <svg
-            class="css-1pgzu7l"
+            class="emotion-63"
             data-testid="icon"
             height="1em"
             viewBox="0 0 1024 1024"
@@ -269,45 +1096,45 @@ exports[`RolePolicyPage should render 1`] = `
           </svg>
         </div>
         <div
-          class="css-1pydnsg"
+          class="emotion-64 emotion-65"
         >
           <div
-            class="css-1lkw3ie"
+            class="emotion-66 emotion-67"
           >
             <div
-              class="css-zfcvhg"
+              class="emotion-68 emotion-69"
             >
               My Domains
             </div>
             <div>
               <a
-                class="css-1vt9t7z"
+                class="emotion-70 emotion-71"
               >
                 Create
               </a>
               <span
-                class="css-1pzd0bj"
+                class="emotion-72 emotion-73"
               >
                  | 
               </span>
               <a
-                class="css-1vt9t7z"
+                class="emotion-70 emotion-71"
               >
                 Manage
               </a>
             </div>
           </div>
           <div
-            class="css-1odi5ol"
+            class="emotion-76 emotion-77"
           >
             <div
-              class="css-3zsmi"
+              class="emotion-78 emotion-79"
             >
               <div
-                class="css-zwnedx"
+                class="emotion-80 emotion-81"
               >
                 <svg
-                  class="css-7xc0kv"
+                  class="emotion-82"
                   data-testid="icon"
                   height="1em"
                   viewBox="0 0 1024 1024"
@@ -328,19 +1155,19 @@ exports[`RolePolicyPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="css-1vt9t7z"
+                class="emotion-70 emotion-71"
               >
                 athens
               </a>
             </div>
             <div
-              class="css-3zsmi"
+              class="emotion-78 emotion-79"
             >
               <div
-                class="css-zwnedx"
+                class="emotion-80 emotion-81"
               >
                 <svg
-                  class="css-7xc0kv"
+                  class="emotion-82"
                   data-testid="icon"
                   height="1em"
                   viewBox="0 0 1024 1024"
@@ -361,7 +1188,7 @@ exports[`RolePolicyPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="css-1vt9t7z"
+                class="emotion-70 emotion-71"
               >
                 athens.ci
               </a>

@@ -27,6 +27,8 @@ import RoleTabs from '../components/header/RoleTabs';
 import RoleNameHeader from '../components/header/RoleNameHeader';
 import RequestUtils from '../components/utils/RequestUtils';
 import Error from './_error';
+import createCache from '@emotion/cache';
+import { CacheProvider } from '@emotion/react';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -98,12 +100,17 @@ export default class RoleHistoryPage extends React.Component {
             historyrows: historyData[3].auditLog,
             pending: historyData[4],
             _csrf: historyData[5],
+            nonce: props.req.headers.rid,
         };
     }
 
     constructor(props) {
         super(props);
         this.api = props.api || API();
+        this.cache = createCache({
+            key: 'athenz',
+            nonce: this.props.nonce,
+        });
     }
 
     render() {
@@ -123,58 +130,60 @@ export default class RoleHistoryPage extends React.Component {
             return <Error err={this.props.error} />;
         }
         return (
-            <div data-testid='role-history'>
-                <Head>
-                    <title>Athenz</title>
-                </Head>
-                <Header
-                    showSearch={true}
-                    headerDetails={this.props.headerDetails}
-                    pending={this.props.pending}
-                />
-                <MainContentDiv>
-                    <AppContainerDiv>
-                        <RolesContainerDiv>
-                            <RolesContentDiv>
-                                <PageHeaderDiv>
-                                    <RoleNameHeader
+            <CacheProvider value={this.cache}>
+                <div data-testid='role-history'>
+                    <Head>
+                        <title>Athenz</title>
+                    </Head>
+                    <Header
+                        showSearch={true}
+                        headerDetails={this.props.headerDetails}
+                        pending={this.props.pending}
+                    />
+                    <MainContentDiv>
+                        <AppContainerDiv>
+                            <RolesContainerDiv>
+                                <RolesContentDiv>
+                                    <PageHeaderDiv>
+                                        <RoleNameHeader
+                                            domain={domain}
+                                            role={role}
+                                            roleDetails={roleDetails}
+                                        />
+                                        <RoleDetails
+                                            roleDetails={roleDetails}
+                                            api={this.api}
+                                            _csrf={_csrf}
+                                            productMasterLink={
+                                                this.props.headerDetails
+                                                    .productMasterLink
+                                            }
+                                        />
+                                        <RoleTabs
+                                            api={this.api}
+                                            domain={domain}
+                                            role={role}
+                                            selectedName={'history'}
+                                        />
+                                    </PageHeaderDiv>
+                                    <RoleHistoryList
+                                        api={this.api}
                                         domain={domain}
                                         role={role}
-                                        roleDetails={roleDetails}
-                                    />
-                                    <RoleDetails
-                                        roleDetails={roleDetails}
-                                        api={this.api}
+                                        historyrows={historyrows}
                                         _csrf={_csrf}
-                                        productMasterLink={
-                                            this.props.headerDetails
-                                                .productMasterLink
-                                        }
                                     />
-                                    <RoleTabs
-                                        api={this.api}
-                                        domain={domain}
-                                        role={role}
-                                        selectedName={'history'}
-                                    />
-                                </PageHeaderDiv>
-                                <RoleHistoryList
-                                    api={this.api}
-                                    domain={domain}
-                                    role={role}
-                                    historyrows={historyrows}
-                                    _csrf={_csrf}
-                                />
-                            </RolesContentDiv>
-                        </RolesContainerDiv>
-                        <UserDomains
-                            domains={this.props.domains}
-                            api={this.api}
-                            domain={domain}
-                        />
-                    </AppContainerDiv>
-                </MainContentDiv>
-            </div>
+                                </RolesContentDiv>
+                            </RolesContainerDiv>
+                            <UserDomains
+                                domains={this.props.domains}
+                                api={this.api}
+                                domain={domain}
+                            />
+                        </AppContainerDiv>
+                    </MainContentDiv>
+                </div>
+            </CacheProvider>
         );
     }
 }

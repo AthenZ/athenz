@@ -103,7 +103,6 @@ describe('Menu', () => {
         fireEvent.mouseEnter(getByText('Trigger'));
 
         await screen.findByText('A menu!');
-        expect(queryByText('A menu!')).toBeInTheDocument();
     });
 
     // We mocked out Popper, so modifiers don't get triggered. So manually test

@@ -1,8 +1,14 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Icon should render default icon with svg 1`] = `
+.emotion-0 {
+  fill: ;
+  cursor: inherit;
+  vertical-align: text-bottom;
+}
+
 <svg
-  class="css-1yvji7g"
+  class="emotion-0"
   data-testid="icon"
   height="1em"
   viewBox="0 0 1024 1024"

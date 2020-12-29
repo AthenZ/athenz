@@ -22,6 +22,8 @@ import 'flatpickr/dist/themes/light.css';
 import Color from '../components/denali/Color';
 import { Link } from '../routes';
 import NavBarItem from '../components/denali/NavBarItem';
+import { CacheProvider } from '@emotion/react';
+import createCache from '@emotion/cache';
 
 const HomeContainerDiv = styled.div`
     flex: 1 1;
@@ -63,9 +65,21 @@ const HomeDiv = styled.div`
 `;
 
 export default class Error extends React.Component {
-    static async getInitialProps({ res, err }) {
+    static async getInitialProps({ req, res, err }) {
         const statusCode = res ? res.statusCode : err ? err.statusCode : 404;
-        return { statusCode, err };
+        return {
+            statusCode,
+            err,
+            nonce: req.headers.rid,
+        };
+    }
+
+    constructor(props) {
+        super(props);
+        this.cache = createCache({
+            key: 'athenz',
+            nonce: this.props.nonce,
+        });
     }
 
     render() {
@@ -80,32 +94,34 @@ export default class Error extends React.Component {
         }
 
         return (
-            <div data-testid='error'>
-                <Head>
-                    <title>Athenz</title>
-                </Head>
-                <Header showSearch={false} userId={''} pending={[]} />
-                <MainContentDiv>
-                    <AppContainerDiv>
-                        <HomeContainerDiv>
-                            <HomeContentDiv>
-                                <DetailsDiv>
-                                    <span>
-                                        <Color name={'red600'}>
-                                            {errorMsg}
-                                        </Color>
-                                    </span>
-                                    <HomeDiv>
-                                        <Link route='home'>
-                                            <a>Athenz Home</a>
-                                        </Link>
-                                    </HomeDiv>
-                                </DetailsDiv>
-                            </HomeContentDiv>
-                        </HomeContainerDiv>
-                    </AppContainerDiv>
-                </MainContentDiv>
-            </div>
+            <CacheProvider value={this.cache}>
+                <div data-testid='error'>
+                    <Head>
+                        <title>Athenz</title>
+                    </Head>
+                    <Header showSearch={false} userId={''} pending={[]} />
+                    <MainContentDiv>
+                        <AppContainerDiv>
+                            <HomeContainerDiv>
+                                <HomeContentDiv>
+                                    <DetailsDiv>
+                                        <span>
+                                            <Color name={'red600'}>
+                                                {errorMsg}
+                                            </Color>
+                                        </span>
+                                        <HomeDiv>
+                                            <Link route='home'>
+                                                <a>Athenz Home</a>
+                                            </Link>
+                                        </HomeDiv>
+                                    </DetailsDiv>
+                                </HomeContentDiv>
+                            </HomeContainerDiv>
+                        </AppContainerDiv>
+                    </MainContentDiv>
+                </div>
+            </CacheProvider>
         );
     }
 }

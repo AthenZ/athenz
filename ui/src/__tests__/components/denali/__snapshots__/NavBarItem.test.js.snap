@@ -1,8 +1,122 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`NavBarItem should disable animations 1`] = `
+.emotion-0 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  box-sizing: border-box;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 60px;
+  position: relative;
+  width: ;
+}
+
+.emotion-0.simple {
+  color: #fff;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  padding: 0 12px;
+  -webkit-transition: ;
+  transition: ;
+}
+
+.emotion-0.simple.nav-link {
+  cursor: pointer;
+}
+
+.emotion-0.simple.nav-link:hover {
+  color: rgba(255,255,255,0.75);
+}
+
+.emotion-0.simple.active {
+  box-shadow: inset 0 -4px 0 #3697f2;
+}
+
+.emotion-0.simple.nav-link.active:hover {
+  box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
+}
+
+.emotion-0 .nav-title {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  color: #fff;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  height: 100%;
+  padding: 0 12px;
+  -webkit-transition: ;
+  transition: ;
+}
+
+.emotion-0.nav-link .nav-title {
+  cursor: pointer;
+}
+
+.emotion-0.active .nav-title,
+.emotion-0 .active.nav-title {
+  box-shadow: inset 0 -4px 0 #3697f2;
+}
+
+.emotion-0 .nav-title:hover {
+  color: rgba(255,255,255,0.75);
+}
+
+.emotion-0.nav-link.active .nav-title:hover,
+.emotion-0.nav-link .active.nav-title:hover {
+  box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
+}
+
+.emotion-0 img.nav-logo {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 34px;
+}
+
+.emotion-0 .nav-icon,
+.emotion-0:hover .nav-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.emotion-0 .nav-icon path,
+.emotion-0:hover .nav-icon path,
+.emotion-0 .nav-icon ellipse,
+.emotion-0:hover .nav-icon ellipse,
+.emotion-0 .nav-icon rect,
+.emotion-0:hover .nav-icon rect,
+.emotion-0 .nav-icon circle,
+.emotion-0:hover .nav-icon circle {
+  fill: #fff;
+  -webkit-transition: ;
+  transition: ;
+}
+
+.emotion-0.nav-link:hover .nav-icon path,
+.emotion-0.nav-link:hover .nav-icon ellipse,
+.emotion-0.nav-link:hover .nav-icon rect,
+.emotion-0.nav-link:hover .nav-icon circle {
+  fill: rgba(255,255,255,0.75);
+}
+
 <div
-  class="css-1rsaaz4-navbar-item simple denali-navbar-item"
+  class="emotion-0 simple denali-navbar-item"
   data-testid="navbar-item"
 >
   An item
@@ -10,8 +124,122 @@ exports[`NavBarItem should disable animations 1`] = `
 `;
 
 exports[`NavBarItem should render a basic item 1`] = `
+.emotion-0 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  box-sizing: border-box;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 60px;
+  position: relative;
+  width: ;
+}
+
+.emotion-0.simple {
+  color: #fff;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  padding: 0 12px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-0.simple.nav-link {
+  cursor: pointer;
+}
+
+.emotion-0.simple.nav-link:hover {
+  color: rgba(255,255,255,0.75);
+}
+
+.emotion-0.simple.active {
+  box-shadow: inset 0 -4px 0 #3697f2;
+}
+
+.emotion-0.simple.nav-link.active:hover {
+  box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
+}
+
+.emotion-0 .nav-title {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  color: #fff;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  height: 100%;
+  padding: 0 12px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-0.nav-link .nav-title {
+  cursor: pointer;
+}
+
+.emotion-0.active .nav-title,
+.emotion-0 .active.nav-title {
+  box-shadow: inset 0 -4px 0 #3697f2;
+}
+
+.emotion-0 .nav-title:hover {
+  color: rgba(255,255,255,0.75);
+}
+
+.emotion-0.nav-link.active .nav-title:hover,
+.emotion-0.nav-link .active.nav-title:hover {
+  box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
+}
+
+.emotion-0 img.nav-logo {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 34px;
+}
+
+.emotion-0 .nav-icon,
+.emotion-0:hover .nav-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.emotion-0 .nav-icon path,
+.emotion-0:hover .nav-icon path,
+.emotion-0 .nav-icon ellipse,
+.emotion-0:hover .nav-icon ellipse,
+.emotion-0 .nav-icon rect,
+.emotion-0:hover .nav-icon rect,
+.emotion-0 .nav-icon circle,
+.emotion-0:hover .nav-icon circle {
+  fill: #fff;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-0.nav-link:hover .nav-icon path,
+.emotion-0.nav-link:hover .nav-icon ellipse,
+.emotion-0.nav-link:hover .nav-icon rect,
+.emotion-0.nav-link:hover .nav-icon circle {
+  fill: rgba(255,255,255,0.75);
+}
+
 <div
-  class="css-u5g9s-navbar-item simple denali-navbar-item"
+  class="emotion-0 simple denali-navbar-item"
   data-testid="navbar-item"
 >
   An item
@@ -19,8 +247,122 @@ exports[`NavBarItem should render a basic item 1`] = `
 `;
 
 exports[`NavBarItem should render a complex active link item 1`] = `
+.emotion-0 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  box-sizing: border-box;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 60px;
+  position: relative;
+  width: ;
+}
+
+.emotion-0.simple {
+  color: #fff;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  padding: 0 12px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-0.simple.nav-link {
+  cursor: pointer;
+}
+
+.emotion-0.simple.nav-link:hover {
+  color: rgba(255,255,255,0.75);
+}
+
+.emotion-0.simple.active {
+  box-shadow: inset 0 -4px 0 #3697f2;
+}
+
+.emotion-0.simple.nav-link.active:hover {
+  box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
+}
+
+.emotion-0 .nav-title {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  color: #fff;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  height: 100%;
+  padding: 0 12px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-0.nav-link .nav-title {
+  cursor: pointer;
+}
+
+.emotion-0.active .nav-title,
+.emotion-0 .active.nav-title {
+  box-shadow: inset 0 -4px 0 #3697f2;
+}
+
+.emotion-0 .nav-title:hover {
+  color: rgba(255,255,255,0.75);
+}
+
+.emotion-0.nav-link.active .nav-title:hover,
+.emotion-0.nav-link .active.nav-title:hover {
+  box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
+}
+
+.emotion-0 img.nav-logo {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 34px;
+}
+
+.emotion-0 .nav-icon,
+.emotion-0:hover .nav-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.emotion-0 .nav-icon path,
+.emotion-0:hover .nav-icon path,
+.emotion-0 .nav-icon ellipse,
+.emotion-0:hover .nav-icon ellipse,
+.emotion-0 .nav-icon rect,
+.emotion-0:hover .nav-icon rect,
+.emotion-0 .nav-icon circle,
+.emotion-0:hover .nav-icon circle {
+  fill: #fff;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-0.nav-link:hover .nav-icon path,
+.emotion-0.nav-link:hover .nav-icon ellipse,
+.emotion-0.nav-link:hover .nav-icon rect,
+.emotion-0.nav-link:hover .nav-icon circle {
+  fill: rgba(255,255,255,0.75);
+}
+
 <div
-  class="css-u5g9s-navbar-item active nav-link denali-navbar-item"
+  class="emotion-0 active nav-link denali-navbar-item"
   data-testid="navbar-item"
 >
   <div
@@ -37,8 +379,122 @@ exports[`NavBarItem should render a complex active link item 1`] = `
 `;
 
 exports[`NavBarItem should render a complex item 1`] = `
+.emotion-0 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  box-sizing: border-box;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 60px;
+  position: relative;
+  width: ;
+}
+
+.emotion-0.simple {
+  color: #fff;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  padding: 0 12px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-0.simple.nav-link {
+  cursor: pointer;
+}
+
+.emotion-0.simple.nav-link:hover {
+  color: rgba(255,255,255,0.75);
+}
+
+.emotion-0.simple.active {
+  box-shadow: inset 0 -4px 0 #3697f2;
+}
+
+.emotion-0.simple.nav-link.active:hover {
+  box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
+}
+
+.emotion-0 .nav-title {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  color: #fff;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  height: 100%;
+  padding: 0 12px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-0.nav-link .nav-title {
+  cursor: pointer;
+}
+
+.emotion-0.active .nav-title,
+.emotion-0 .active.nav-title {
+  box-shadow: inset 0 -4px 0 #3697f2;
+}
+
+.emotion-0 .nav-title:hover {
+  color: rgba(255,255,255,0.75);
+}
+
+.emotion-0.nav-link.active .nav-title:hover,
+.emotion-0.nav-link .active.nav-title:hover {
+  box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
+}
+
+.emotion-0 img.nav-logo {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 34px;
+}
+
+.emotion-0 .nav-icon,
+.emotion-0:hover .nav-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.emotion-0 .nav-icon path,
+.emotion-0:hover .nav-icon path,
+.emotion-0 .nav-icon ellipse,
+.emotion-0:hover .nav-icon ellipse,
+.emotion-0 .nav-icon rect,
+.emotion-0:hover .nav-icon rect,
+.emotion-0 .nav-icon circle,
+.emotion-0:hover .nav-icon circle {
+  fill: #fff;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-0.nav-link:hover .nav-icon path,
+.emotion-0.nav-link:hover .nav-icon ellipse,
+.emotion-0.nav-link:hover .nav-icon rect,
+.emotion-0.nav-link:hover .nav-icon circle {
+  fill: rgba(255,255,255,0.75);
+}
+
 <div
-  class="css-u5g9s-navbar-item denali-navbar-item"
+  class="emotion-0 denali-navbar-item"
   data-testid="navbar-item"
 >
   <div
@@ -55,8 +511,122 @@ exports[`NavBarItem should render a complex item 1`] = `
 `;
 
 exports[`NavBarItem should render a link item 1`] = `
+.emotion-0 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  box-sizing: border-box;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 60px;
+  position: relative;
+  width: ;
+}
+
+.emotion-0.simple {
+  color: #fff;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  padding: 0 12px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-0.simple.nav-link {
+  cursor: pointer;
+}
+
+.emotion-0.simple.nav-link:hover {
+  color: rgba(255,255,255,0.75);
+}
+
+.emotion-0.simple.active {
+  box-shadow: inset 0 -4px 0 #3697f2;
+}
+
+.emotion-0.simple.nav-link.active:hover {
+  box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
+}
+
+.emotion-0 .nav-title {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  color: #fff;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  height: 100%;
+  padding: 0 12px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-0.nav-link .nav-title {
+  cursor: pointer;
+}
+
+.emotion-0.active .nav-title,
+.emotion-0 .active.nav-title {
+  box-shadow: inset 0 -4px 0 #3697f2;
+}
+
+.emotion-0 .nav-title:hover {
+  color: rgba(255,255,255,0.75);
+}
+
+.emotion-0.nav-link.active .nav-title:hover,
+.emotion-0.nav-link .active.nav-title:hover {
+  box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
+}
+
+.emotion-0 img.nav-logo {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 34px;
+}
+
+.emotion-0 .nav-icon,
+.emotion-0:hover .nav-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.emotion-0 .nav-icon path,
+.emotion-0:hover .nav-icon path,
+.emotion-0 .nav-icon ellipse,
+.emotion-0:hover .nav-icon ellipse,
+.emotion-0 .nav-icon rect,
+.emotion-0:hover .nav-icon rect,
+.emotion-0 .nav-icon circle,
+.emotion-0:hover .nav-icon circle {
+  fill: #fff;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-0.nav-link:hover .nav-icon path,
+.emotion-0.nav-link:hover .nav-icon ellipse,
+.emotion-0.nav-link:hover .nav-icon rect,
+.emotion-0.nav-link:hover .nav-icon circle {
+  fill: rgba(255,255,255,0.75);
+}
+
 <div
-  class="css-u5g9s-navbar-item simple nav-link denali-navbar-item"
+  class="emotion-0 simple nav-link denali-navbar-item"
   data-testid="navbar-item"
 >
   An item
@@ -64,8 +634,122 @@ exports[`NavBarItem should render a link item 1`] = `
 `;
 
 exports[`NavBarItem should render a right-aligned item 1`] = `
+.emotion-0 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  box-sizing: border-box;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 60px;
+  position: relative;
+  width: ;
+}
+
+.emotion-0.simple {
+  color: #fff;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  padding: 0 12px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-0.simple.nav-link {
+  cursor: pointer;
+}
+
+.emotion-0.simple.nav-link:hover {
+  color: rgba(255,255,255,0.75);
+}
+
+.emotion-0.simple.active {
+  box-shadow: inset 0 -4px 0 #3697f2;
+}
+
+.emotion-0.simple.nav-link.active:hover {
+  box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
+}
+
+.emotion-0 .nav-title {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  color: #fff;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  height: 100%;
+  padding: 0 12px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-0.nav-link .nav-title {
+  cursor: pointer;
+}
+
+.emotion-0.active .nav-title,
+.emotion-0 .active.nav-title {
+  box-shadow: inset 0 -4px 0 #3697f2;
+}
+
+.emotion-0 .nav-title:hover {
+  color: rgba(255,255,255,0.75);
+}
+
+.emotion-0.nav-link.active .nav-title:hover,
+.emotion-0.nav-link .active.nav-title:hover {
+  box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
+}
+
+.emotion-0 img.nav-logo {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 34px;
+}
+
+.emotion-0 .nav-icon,
+.emotion-0:hover .nav-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.emotion-0 .nav-icon path,
+.emotion-0:hover .nav-icon path,
+.emotion-0 .nav-icon ellipse,
+.emotion-0:hover .nav-icon ellipse,
+.emotion-0 .nav-icon rect,
+.emotion-0:hover .nav-icon rect,
+.emotion-0 .nav-icon circle,
+.emotion-0:hover .nav-icon circle {
+  fill: #fff;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-0.nav-link:hover .nav-icon path,
+.emotion-0.nav-link:hover .nav-icon ellipse,
+.emotion-0.nav-link:hover .nav-icon rect,
+.emotion-0.nav-link:hover .nav-icon circle {
+  fill: rgba(255,255,255,0.75);
+}
+
 <div
-  class="css-u5g9s-navbar-item simple flush-right denali-navbar-item"
+  class="emotion-0 simple flush-right denali-navbar-item"
   data-testid="navbar-item"
 >
   An item
@@ -73,8 +757,122 @@ exports[`NavBarItem should render a right-aligned item 1`] = `
 `;
 
 exports[`NavBarItem should render an active item 1`] = `
+.emotion-0 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  box-sizing: border-box;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 60px;
+  position: relative;
+  width: ;
+}
+
+.emotion-0.simple {
+  color: #fff;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  padding: 0 12px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-0.simple.nav-link {
+  cursor: pointer;
+}
+
+.emotion-0.simple.nav-link:hover {
+  color: rgba(255,255,255,0.75);
+}
+
+.emotion-0.simple.active {
+  box-shadow: inset 0 -4px 0 #3697f2;
+}
+
+.emotion-0.simple.nav-link.active:hover {
+  box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
+}
+
+.emotion-0 .nav-title {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  color: #fff;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  height: 100%;
+  padding: 0 12px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-0.nav-link .nav-title {
+  cursor: pointer;
+}
+
+.emotion-0.active .nav-title,
+.emotion-0 .active.nav-title {
+  box-shadow: inset 0 -4px 0 #3697f2;
+}
+
+.emotion-0 .nav-title:hover {
+  color: rgba(255,255,255,0.75);
+}
+
+.emotion-0.nav-link.active .nav-title:hover,
+.emotion-0.nav-link .active.nav-title:hover {
+  box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
+}
+
+.emotion-0 img.nav-logo {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 34px;
+}
+
+.emotion-0 .nav-icon,
+.emotion-0:hover .nav-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.emotion-0 .nav-icon path,
+.emotion-0:hover .nav-icon path,
+.emotion-0 .nav-icon ellipse,
+.emotion-0:hover .nav-icon ellipse,
+.emotion-0 .nav-icon rect,
+.emotion-0:hover .nav-icon rect,
+.emotion-0 .nav-icon circle,
+.emotion-0:hover .nav-icon circle {
+  fill: #fff;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-0.nav-link:hover .nav-icon path,
+.emotion-0.nav-link:hover .nav-icon ellipse,
+.emotion-0.nav-link:hover .nav-icon rect,
+.emotion-0.nav-link:hover .nav-icon circle {
+  fill: rgba(255,255,255,0.75);
+}
+
 <div
-  class="css-u5g9s-navbar-item simple active denali-navbar-item"
+  class="emotion-0 simple active denali-navbar-item"
   data-testid="navbar-item"
 >
   An item
@@ -82,8 +880,122 @@ exports[`NavBarItem should render an active item 1`] = `
 `;
 
 exports[`NavBarItem should render an active link item 1`] = `
+.emotion-0 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  box-sizing: border-box;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 60px;
+  position: relative;
+  width: ;
+}
+
+.emotion-0.simple {
+  color: #fff;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  padding: 0 12px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-0.simple.nav-link {
+  cursor: pointer;
+}
+
+.emotion-0.simple.nav-link:hover {
+  color: rgba(255,255,255,0.75);
+}
+
+.emotion-0.simple.active {
+  box-shadow: inset 0 -4px 0 #3697f2;
+}
+
+.emotion-0.simple.nav-link.active:hover {
+  box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
+}
+
+.emotion-0 .nav-title {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  color: #fff;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  height: 100%;
+  padding: 0 12px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-0.nav-link .nav-title {
+  cursor: pointer;
+}
+
+.emotion-0.active .nav-title,
+.emotion-0 .active.nav-title {
+  box-shadow: inset 0 -4px 0 #3697f2;
+}
+
+.emotion-0 .nav-title:hover {
+  color: rgba(255,255,255,0.75);
+}
+
+.emotion-0.nav-link.active .nav-title:hover,
+.emotion-0.nav-link .active.nav-title:hover {
+  box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
+}
+
+.emotion-0 img.nav-logo {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 34px;
+}
+
+.emotion-0 .nav-icon,
+.emotion-0:hover .nav-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.emotion-0 .nav-icon path,
+.emotion-0:hover .nav-icon path,
+.emotion-0 .nav-icon ellipse,
+.emotion-0:hover .nav-icon ellipse,
+.emotion-0 .nav-icon rect,
+.emotion-0:hover .nav-icon rect,
+.emotion-0 .nav-icon circle,
+.emotion-0:hover .nav-icon circle {
+  fill: #fff;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-0.nav-link:hover .nav-icon path,
+.emotion-0.nav-link:hover .nav-icon ellipse,
+.emotion-0.nav-link:hover .nav-icon rect,
+.emotion-0.nav-link:hover .nav-icon circle {
+  fill: rgba(255,255,255,0.75);
+}
+
 <div
-  class="css-u5g9s-navbar-item simple active nav-link denali-navbar-item"
+  class="emotion-0 simple active nav-link denali-navbar-item"
   data-testid="navbar-item"
 >
   An item
@@ -91,8 +1003,122 @@ exports[`NavBarItem should render an active link item 1`] = `
 `;
 
 exports[`NavBarItem should render an item with width 1`] = `
+.emotion-0 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  box-sizing: border-box;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 60px;
+  position: relative;
+  width: 100px;
+}
+
+.emotion-0.simple {
+  color: #fff;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  padding: 0 12px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-0.simple.nav-link {
+  cursor: pointer;
+}
+
+.emotion-0.simple.nav-link:hover {
+  color: rgba(255,255,255,0.75);
+}
+
+.emotion-0.simple.active {
+  box-shadow: inset 0 -4px 0 #3697f2;
+}
+
+.emotion-0.simple.nav-link.active:hover {
+  box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
+}
+
+.emotion-0 .nav-title {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  color: #fff;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  height: 100%;
+  padding: 0 12px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-0.nav-link .nav-title {
+  cursor: pointer;
+}
+
+.emotion-0.active .nav-title,
+.emotion-0 .active.nav-title {
+  box-shadow: inset 0 -4px 0 #3697f2;
+}
+
+.emotion-0 .nav-title:hover {
+  color: rgba(255,255,255,0.75);
+}
+
+.emotion-0.nav-link.active .nav-title:hover,
+.emotion-0.nav-link .active.nav-title:hover {
+  box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
+}
+
+.emotion-0 img.nav-logo {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 34px;
+}
+
+.emotion-0 .nav-icon,
+.emotion-0:hover .nav-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.emotion-0 .nav-icon path,
+.emotion-0:hover .nav-icon path,
+.emotion-0 .nav-icon ellipse,
+.emotion-0:hover .nav-icon ellipse,
+.emotion-0 .nav-icon rect,
+.emotion-0:hover .nav-icon rect,
+.emotion-0 .nav-icon circle,
+.emotion-0:hover .nav-icon circle {
+  fill: #fff;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-0.nav-link:hover .nav-icon path,
+.emotion-0.nav-link:hover .nav-icon ellipse,
+.emotion-0.nav-link:hover .nav-icon rect,
+.emotion-0.nav-link:hover .nav-icon circle {
+  fill: rgba(255,255,255,0.75);
+}
+
 <div
-  class="css-4zfxxl-navbar-item simple denali-navbar-item"
+  class="emotion-0 simple denali-navbar-item"
   data-testid="navbar-item"
 >
   An item

@@ -27,6 +27,8 @@ import RequestUtils from '../components/utils/RequestUtils';
 import Tabs from '../components/header/Tabs';
 import Error from './_error';
 import { MODAL_TIME_OUT } from '../components/constants/constants';
+import createCache from '@emotion/cache';
+import { CacheProvider } from '@emotion/react';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -100,12 +102,17 @@ export default class RolePage extends React.Component {
             pending: domains[4],
             _csrf: domains[5],
             prefixes: domains[7].allPrefixes,
+            nonce: props.req.headers.rid,
         };
     }
 
     constructor(props) {
         super(props);
         this.api = props.api || API();
+        this.cache = createCache({
+            key: 'athenz',
+            nonce: this.props.nonce,
+        });
     }
 
     render() {
@@ -127,61 +134,63 @@ export default class RolePage extends React.Component {
         }
 
         return (
-            <div data-testid='role'>
-                <Head>
-                    <title>Athenz</title>
-                </Head>
-                <Header
-                    showSearch={true}
-                    headerDetails={this.props.headerDetails}
-                    pending={this.props.pending}
-                />
-                <MainContentDiv>
-                    <AppContainerDiv>
-                        <RolesContainerDiv>
-                            <RolesContentDiv>
-                                <PageHeaderDiv>
-                                    <TitleDiv>{domain}</TitleDiv>
-                                    <DomainDetails
-                                        domainDetails={domainDetails}
-                                        api={this.api}
-                                        _csrf={_csrf}
-                                        productMasterLink={
-                                            this.props.headerDetails
-                                                .productMasterLink
-                                        }
-                                    />
-                                    <Tabs
+            <CacheProvider value={this.cache}>
+                <div data-testid='role'>
+                    <Head>
+                        <title>Athenz</title>
+                    </Head>
+                    <Header
+                        showSearch={true}
+                        headerDetails={this.props.headerDetails}
+                        pending={this.props.pending}
+                    />
+                    <MainContentDiv>
+                        <AppContainerDiv>
+                            <RolesContainerDiv>
+                                <RolesContentDiv>
+                                    <PageHeaderDiv>
+                                        <TitleDiv>{domain}</TitleDiv>
+                                        <DomainDetails
+                                            domainDetails={domainDetails}
+                                            api={this.api}
+                                            _csrf={_csrf}
+                                            productMasterLink={
+                                                this.props.headerDetails
+                                                    .productMasterLink
+                                            }
+                                        />
+                                        <Tabs
+                                            api={this.api}
+                                            domain={domain}
+                                            selectedName={'roles'}
+                                        />
+                                    </PageHeaderDiv>
+                                    <RoleList
                                         api={this.api}
                                         domain={domain}
-                                        selectedName={'roles'}
+                                        roles={roles}
+                                        users={users}
+                                        _csrf={_csrf}
+                                        prefixes={prefixes}
+                                        isDomainAuditEnabled={
+                                            domainDetails.auditEnabled
+                                        }
+                                        userProfileLink={
+                                            this.props.headerDetails.userData
+                                                .userLink
+                                        }
                                     />
-                                </PageHeaderDiv>
-                                <RoleList
-                                    api={this.api}
-                                    domain={domain}
-                                    roles={roles}
-                                    users={users}
-                                    _csrf={_csrf}
-                                    prefixes={prefixes}
-                                    isDomainAuditEnabled={
-                                        domainDetails.auditEnabled
-                                    }
-                                    userProfileLink={
-                                        this.props.headerDetails.userData
-                                            .userLink
-                                    }
-                                />
-                            </RolesContentDiv>
-                        </RolesContainerDiv>
-                        <UserDomains
-                            domains={this.props.domains}
-                            api={this.api}
-                            domain={domain}
-                        />
-                    </AppContainerDiv>
-                </MainContentDiv>
-            </div>
+                                </RolesContentDiv>
+                            </RolesContainerDiv>
+                            <UserDomains
+                                domains={this.props.domains}
+                                api={this.api}
+                                domain={domain}
+                            />
+                        </AppContainerDiv>
+                    </MainContentDiv>
+                </div>
+            </CacheProvider>
         );
     }
 }

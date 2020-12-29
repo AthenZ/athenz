@@ -1,48 +1,699 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`PageManageDomains should render 1`] = `
+.emotion-0 {
+  height: 60px;
+  position: relative;
+}
+
+.emotion-2 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  background: #002339;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  color: #fff;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex: 0 0 60px;
+  -ms-flex: 0 0 60px;
+  flex: 0 0 60px;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  height: 60px;
+  -webkit-box-pack: start;
+  -ms-flex-pack: start;
+  -webkit-justify-content: flex-start;
+  justify-content: flex-start;
+  left: 0;
+  padding: 0 24px;
+  position: static;
+  right: 0;
+  top: 0;
+  z-index: 2;
+}
+
+.emotion-2.scrolled {
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.16);
+}
+
+.emotion-2 .flush-right {
+  margin-left: auto;
+}
+
+.emotion-3 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  box-sizing: border-box;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 60px;
+  position: relative;
+  width: ;
+}
+
+.emotion-3.simple {
+  color: #fff;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  padding: 0 12px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-3.simple.nav-link {
+  cursor: pointer;
+}
+
+.emotion-3.simple.nav-link:hover {
+  color: rgba(255,255,255,0.75);
+}
+
+.emotion-3.simple.active {
+  box-shadow: inset 0 -4px 0 #3697f2;
+}
+
+.emotion-3.simple.nav-link.active:hover {
+  box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
+}
+
+.emotion-3 .nav-title {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  color: #fff;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  height: 100%;
+  padding: 0 12px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-3.nav-link .nav-title {
+  cursor: pointer;
+}
+
+.emotion-3.active .nav-title,
+.emotion-3 .active.nav-title {
+  box-shadow: inset 0 -4px 0 #3697f2;
+}
+
+.emotion-3 .nav-title:hover {
+  color: rgba(255,255,255,0.75);
+}
+
+.emotion-3.nav-link.active .nav-title:hover,
+.emotion-3.nav-link .active.nav-title:hover {
+  box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
+}
+
+.emotion-3 img.nav-logo {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 34px;
+}
+
+.emotion-3 .nav-icon,
+.emotion-3:hover .nav-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.emotion-3 .nav-icon path,
+.emotion-3:hover .nav-icon path,
+.emotion-3 .nav-icon ellipse,
+.emotion-3:hover .nav-icon ellipse,
+.emotion-3 .nav-icon rect,
+.emotion-3:hover .nav-icon rect,
+.emotion-3 .nav-icon circle,
+.emotion-3:hover .nav-icon circle {
+  fill: #fff;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-3.nav-link:hover .nav-icon path,
+.emotion-3.nav-link:hover .nav-icon ellipse,
+.emotion-3.nav-link:hover .nav-icon rect,
+.emotion-3.nav-link:hover .nav-icon circle {
+  fill: rgba(255,255,255,0.75);
+}
+
+.emotion-4 {
+  height: 36px;
+  cursor: pointer;
+}
+
+.emotion-6 {
+  margin-left: 10%;
+  width: 50%;
+}
+
+.emotion-8 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  box-sizing: border-box;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 60px;
+  position: relative;
+  width: 100%;
+}
+
+.emotion-8.simple {
+  color: #fff;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  padding: 0 12px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-8.simple.nav-link {
+  cursor: pointer;
+}
+
+.emotion-8.simple.nav-link:hover {
+  color: rgba(255,255,255,0.75);
+}
+
+.emotion-8.simple.active {
+  box-shadow: inset 0 -4px 0 #3697f2;
+}
+
+.emotion-8.simple.nav-link.active:hover {
+  box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
+}
+
+.emotion-8 .nav-title {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  color: #fff;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  height: 100%;
+  padding: 0 12px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-8.nav-link .nav-title {
+  cursor: pointer;
+}
+
+.emotion-8.active .nav-title,
+.emotion-8 .active.nav-title {
+  box-shadow: inset 0 -4px 0 #3697f2;
+}
+
+.emotion-8 .nav-title:hover {
+  color: rgba(255,255,255,0.75);
+}
+
+.emotion-8.nav-link.active .nav-title:hover,
+.emotion-8.nav-link .active.nav-title:hover {
+  box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
+}
+
+.emotion-8 img.nav-logo {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 34px;
+}
+
+.emotion-8 .nav-icon,
+.emotion-8:hover .nav-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.emotion-8 .nav-icon path,
+.emotion-8:hover .nav-icon path,
+.emotion-8 .nav-icon ellipse,
+.emotion-8:hover .nav-icon ellipse,
+.emotion-8 .nav-icon rect,
+.emotion-8:hover .nav-icon rect,
+.emotion-8 .nav-icon circle,
+.emotion-8:hover .nav-icon circle {
+  fill: #fff;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-8.nav-link:hover .nav-icon path,
+.emotion-8.nav-link:hover .nav-icon ellipse,
+.emotion-8.nav-link:hover .nav-icon rect,
+.emotion-8.nav-link:hover .nav-icon circle {
+  fill: rgba(255,255,255,0.75);
+}
+
+.emotion-10 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+}
+
+.emotion-12 {
+  fill: #fff;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+.emotion-13 {
+  margin-left: 15px;
+}
+
+.emotion-16 {
+  -webkit-flex: 1 1 calc(100vh - 60px);
+  -ms-flex: 1 1 calc(100vh - 60px);
+  flex: 1 1 calc(100vh - 60px);
+  overflow: hidden;
+  font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
+}
+
+.emotion-18 {
+  -webkit-align-items: stretch;
+  -webkit-box-align: stretch;
+  -ms-flex-align: stretch;
+  align-items: stretch;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  height: 100%;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: start;
+  -ms-flex-pack: start;
+  -webkit-justify-content: flex-start;
+  justify-content: flex-start;
+}
+
+.emotion-20 {
+  -webkit-align-items: stretch;
+  -webkit-box-align: stretch;
+  -ms-flex-align: stretch;
+  align-items: stretch;
+  -webkit-flex: 1 1;
+  -ms-flex: 1 1;
+  flex: 1 1;
+  height: calc(100vh - 60px);
+  overflow: auto;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: column;
+  -ms-flex-direction: column;
+  flex-direction: column;
+}
+
+.emotion-24 {
+  padding: 20px 30px 0;
+}
+
+.emotion-26 {
+  font: 600 20px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
+  margin-bottom: 10px;
+}
+
+.emotion-28 {
+  margin: 20px;
+}
+
+.emotion-30 {
+  padding-bottom: 20px;
+}
+
+.emotion-32 {
+  width: 100%;
+  border-spacing: 0;
+  display: table;
+  border-collapse: separate;
+  border-color: grey;
+}
+
+.emotion-34 {
+  text-align: left;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
+.emotion-40 {
+  text-align: center;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
+.emotion-48 {
+  background-color: #3570f40D;
+  text-align: left;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+.emotion-54 {
+  background-color: #3570f40D;
+  text-align: center;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+.emotion-58 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  height: 18px;
+  outline: 0;
+  position: relative;
+}
+
+.emotion-58>input[type='checkbox'] {
+  box-sizing: border-box;
+  cursor: pointer;
+  position: absolute;
+  top: 0;
+  visibility: hidden;
+}
+
+.emotion-58>input[type='checkbox']+label {
+  box-sizing: border-box;
+  cursor: pointer;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  height: 18px;
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+.emotion-58>input[type='checkbox']+label .label-content {
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  margin-left: 6px;
+}
+
+@-moz-document url-prefix() {
+  .emotion-58>input[type='checkbox']+label .label-content {
+    margin-top: 1px;
+  }
+}
+
+.emotion-58>input[type='checkbox']+label:before {
+  background: #d5d5d5;
+  border-radius: 9px;
+  box-sizing: border-box;
+  content: '';
+  cursor: pointer;
+  display: inline-block;
+  height: 4px;
+  line-height: 16px;
+  margin: 7px 0 0 0;
+  -webkit-transition: all 0.25s;
+  transition: all 0.25s;
+  vertical-align: top;
+  width: 34px;
+}
+
+.emotion-58>input[type='checkbox']+label::after {
+  background-color: #fff;
+  border: 2px solid rgba(54,151,242,0.5);
+  border-radius: 50%;
+  box-sizing: border-box;
+  content: ' ';
+  cursor: pointer;
+  display: block;
+  height: 18px;
+  left: 0;
+  position: absolute;
+  -webkit-transition: all 0.25s ease;
+  transition: all 0.25s ease;
+  top: 0;
+  width: 18px;
+}
+
+.emotion-58>input[type='checkbox']:checked+label::before {
+  background-color: rgba(21,192,70,0.45);
+}
+
+.emotion-58>input[type='checkbox']:checked+label::after {
+  background-color: #15c046;
+  border-color: #15c046;
+  left: 16px;
+}
+
+.emotion-58>input[type='checkbox']:disabled+label {
+  color: #9a9a9a;
+  cursor: not-allowed;
+}
+
+.emotion-58>input[type='checkbox']:disabled+label::before {
+  background-color: #e8e8e8;
+  cursor: not-allowed;
+}
+
+.emotion-58>input[type='checkbox']:disabled+label::after {
+  border-color: #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-58>input[type='checkbox']:checked:disabled+label::after {
+  background: #d5d5d5;
+}
+
+.emotion-63 {
+  background-color: ;
+  text-align: left;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+.emotion-69 {
+  background-color: ;
+  text-align: center;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+.emotion-78 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  background-color: #fff;
+  border-bottom: 1px solid #d5d5d5;
+  border-left: 1px solid #d5d5d5;
+  border-top: 1px solid #d5d5d5;
+  cursor: pointer;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 20px;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+  margin-left: -21px;
+  margin-top: 20px;
+  position: absolute;
+  text-align: center;
+  width: 20px;
+}
+
+.emotion-80 {
+  fill: #303030;
+  cursor: inherit;
+  vertical-align: text-bottom;
+}
+
+.emotion-81 {
+  margin-right: 0;
+  border-left: 1px solid #d5d5d5;
+  -webkit-flex: 0 0 350px;
+  -ms-flex: 0 0 350px;
+  flex: 0 0 350px;
+  height: calc(100vh - 60px);
+  overflow: auto;
+  -webkit-transition: margin 0.4s ease-in-out;
+  transition: margin 0.4s ease-in-out;
+  display: block;
+  min-width: 350px;
+  width: 350px;
+}
+
+.emotion-83 {
+  -webkit-align-items: baseline;
+  -webkit-box-align: baseline;
+  -ms-flex-align: baseline;
+  align-items: baseline;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  justify-content: space-between;
+  padding: 20px 30px 20px 15px;
+}
+
+.emotion-85 {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.emotion-87 {
+  color: #3570f4;
+  -webkit-text-decoration: none;
+  text-decoration: none;
+  cursor: pointer;
+  font-weight: ;
+}
+
+.emotion-89 {
+  padding: 0 5px;
+  color: #d5d5d5;
+}
+
+.emotion-93 {
+  padding: 0 30px 0 15px;
+}
+
+.emotion-95 {
+  padding: 10px 0;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+}
+
+.emotion-97 {
+  font-size: 1.25em;
+  margin-right: 5px;
+}
+
+.emotion-99 {
+  fill: #303030;
+  cursor: inherit;
+  vertical-align: baseline;
+}
+
 <div
   data-testid="page-manage-domains"
 >
   <div
-    class="css-u4qfx7"
+    class="emotion-0 emotion-1"
     data-testid="header"
   >
     <div
-      class="css-194a6h5-navbar denali-navbar"
+      class="emotion-2 denali-navbar"
       data-testid="navbar"
     >
       <div
-        class="css-u5g9s-navbar-item simple denali-navbar-item"
+        class="emotion-3 simple denali-navbar-item"
         data-testid="navbar-item"
       >
         <a
           href="/"
         >
           <img
-            class="css-1bb71e6"
+            class="emotion-4 emotion-5"
             src="/static/athenz-logo-full.png"
           />
         </a>
       </div>
       <div
-        class="css-1e128ow"
+        class="emotion-6 emotion-7"
       >
         <div
-          class="css-1cyyi4u-navbar-item simple denali-navbar-item"
+          class="emotion-8 simple denali-navbar-item"
           data-testid="navbar-item"
         />
       </div>
       <div
-        class="css-u5g9s-navbar-item simple flush-right denali-navbar-item"
+        class="emotion-3 simple flush-right denali-navbar-item"
         data-testid="navbar-item"
       >
         <div
-          class="css-1mzzuk6"
+          class="emotion-10 emotion-11"
           data-testid="header-menu"
         >
           <svg
-            class="css-hjh1m6"
+            class="emotion-12"
             data-testid="icon"
             height="25px"
             viewBox="0 0 1024 1024"
@@ -56,10 +707,10 @@ exports[`PageManageDomains should render 1`] = `
             />
           </svg>
           <div
-            class="css-11kem00"
+            class="emotion-13 emotion-14"
           >
             <svg
-              class="css-hjh1m6"
+              class="emotion-12"
               data-testid="icon"
               height="25px"
               viewBox="0 0 1024 1024"
@@ -84,70 +735,70 @@ exports[`PageManageDomains should render 1`] = `
     </div>
   </div>
   <div
-    class="css-hs9ulc"
+    class="emotion-16 emotion-17"
   >
     <div
-      class="css-hq6zta"
+      class="emotion-18 emotion-19"
     >
       <div
-        class="css-r6ve5m"
+        class="emotion-20 emotion-21"
       >
         <div
-          class="css-0"
+          class="emotion-22 emotion-23"
         >
           <div
-            class="css-bwkkw0"
+            class="emotion-24 emotion-25"
           >
             <div
-              class="css-btnvty"
+              class="emotion-26 emotion-27"
             >
               Manage My Domains
             </div>
           </div>
           <div
-            class="css-oqpjdc"
+            class="emotion-28 emotion-29"
             data-testid="manage-domains"
           >
             <div
-              class="css-7dgci6"
+              class="emotion-30 emotion-31"
             />
             <table
-              class="css-pg3j7d"
+              class="emotion-32 emotion-33"
             >
               <thead>
                 <tr>
                   <th
-                    class="css-c37hkt"
+                    class="emotion-34 emotion-35"
                   >
                     Name
                   </th>
                   <th
-                    class="css-c37hkt"
+                    class="emotion-34 emotion-35"
                   >
                     Type
                   </th>
                   <th
-                    class="css-c37hkt"
+                    class="emotion-34 emotion-35"
                   >
                     Modified Date
                   </th>
                   <th
-                    class="css-19r8pbt"
+                    class="emotion-40 emotion-35"
                   >
                     Product Master Id
                   </th>
                   <th
-                    class="css-19r8pbt"
+                    class="emotion-40 emotion-35"
                   >
                     Audit
                   </th>
                   <th
-                    class="css-19r8pbt"
+                    class="emotion-40 emotion-35"
                   >
                     AWS Account #
                   </th>
                   <th
-                    class="css-19r8pbt"
+                    class="emotion-40 emotion-35"
                   >
                     Delete
                   </th>
@@ -156,33 +807,33 @@ exports[`PageManageDomains should render 1`] = `
               <tbody>
                 <tr>
                   <td
-                    class="css-18djig3"
+                    class="emotion-48 emotion-49"
                     color="#3570f40D"
                   >
                     home.mujibur
                   </td>
                   <td
-                    class="css-18djig3"
+                    class="emotion-48 emotion-49"
                     color="#3570f40D"
                   >
                     Personal
                   </td>
                   <td
-                    class="css-18djig3"
+                    class="emotion-48 emotion-49"
                     color="#3570f40D"
                   >
                     2018-01-31 19:43 UTC
                   </td>
                   <td
-                    class="css-1s8u38g"
+                    class="emotion-54 emotion-49"
                     color="#3570f40D"
                   />
                   <td
-                    class="css-1s8u38g"
+                    class="emotion-54 emotion-49"
                     color="#3570f40D"
                   >
                     <div
-                      class="css-v3lvlk-switch denali-switch"
+                      class="emotion-58 denali-switch"
                       data-testid="switch-wrapper"
                     >
                       <input
@@ -198,45 +849,45 @@ exports[`PageManageDomains should render 1`] = `
                     </div>
                   </td>
                   <td
-                    class="css-1s8u38g"
+                    class="emotion-54 emotion-49"
                     color="#3570f40D"
                   >
                     111111
                   </td>
                   <td
-                    class="css-1s8u38g"
+                    class="emotion-54 emotion-49"
                     color="#3570f40D"
                   />
                 </tr>
                 <tr>
                   <td
-                    class="css-1vs2r4p"
+                    class="emotion-63 emotion-49"
                     color=""
                   >
                     home.pgote
                   </td>
                   <td
-                    class="css-1vs2r4p"
+                    class="emotion-63 emotion-49"
                     color=""
                   >
                     Personal
                   </td>
                   <td
-                    class="css-1vs2r4p"
+                    class="emotion-63 emotion-49"
                     color=""
                   >
                     2018-02-15 00:48 UTC
                   </td>
                   <td
-                    class="css-84znvz"
+                    class="emotion-69 emotion-49"
                     color=""
                   />
                   <td
-                    class="css-84znvz"
+                    class="emotion-69 emotion-49"
                     color=""
                   >
                     <div
-                      class="css-v3lvlk-switch denali-switch"
+                      class="emotion-58 denali-switch"
                       data-testid="switch-wrapper"
                     >
                       <input
@@ -252,13 +903,13 @@ exports[`PageManageDomains should render 1`] = `
                     </div>
                   </td>
                   <td
-                    class="css-84znvz"
+                    class="emotion-69 emotion-49"
                     color=""
                   >
                     14913436251
                   </td>
                   <td
-                    class="css-84znvz"
+                    class="emotion-69 emotion-49"
                     color=""
                   />
                 </tr>
@@ -271,11 +922,11 @@ exports[`PageManageDomains should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="css-1uc217s"
+          class="emotion-78 emotion-79"
           data-testid="toggle-domain"
         >
           <svg
-            class="css-1pgzu7l"
+            class="emotion-80"
             data-testid="icon"
             height="1em"
             viewBox="0 0 1024 1024"
@@ -290,45 +941,45 @@ exports[`PageManageDomains should render 1`] = `
           </svg>
         </div>
         <div
-          class="css-1pydnsg"
+          class="emotion-81 emotion-82"
         >
           <div
-            class="css-1lkw3ie"
+            class="emotion-83 emotion-84"
           >
             <div
-              class="css-zfcvhg"
+              class="emotion-85 emotion-86"
             >
               My Domains
             </div>
             <div>
               <a
-                class="css-1vt9t7z"
+                class="emotion-87 emotion-88"
               >
                 Create
               </a>
               <span
-                class="css-1pzd0bj"
+                class="emotion-89 emotion-90"
               >
                  | 
               </span>
               <a
-                class="css-1vt9t7z"
+                class="emotion-87 emotion-88"
               >
                 Manage
               </a>
             </div>
           </div>
           <div
-            class="css-1odi5ol"
+            class="emotion-93 emotion-94"
           >
             <div
-              class="css-3zsmi"
+              class="emotion-95 emotion-96"
             >
               <div
-                class="css-zwnedx"
+                class="emotion-97 emotion-98"
               >
                 <svg
-                  class="css-7xc0kv"
+                  class="emotion-99"
                   data-testid="icon"
                   height="1em"
                   viewBox="0 0 1024 1024"
@@ -349,19 +1000,19 @@ exports[`PageManageDomains should render 1`] = `
                 </svg>
               </div>
               <a
-                class="css-1vt9t7z"
+                class="emotion-87 emotion-88"
               >
                 athens
               </a>
             </div>
             <div
-              class="css-3zsmi"
+              class="emotion-95 emotion-96"
             >
               <div
-                class="css-zwnedx"
+                class="emotion-97 emotion-98"
               >
                 <svg
-                  class="css-7xc0kv"
+                  class="emotion-99"
                   data-testid="icon"
                   height="1em"
                   viewBox="0 0 1024 1024"
@@ -382,7 +1033,7 @@ exports[`PageManageDomains should render 1`] = `
                 </svg>
               </div>
               <a
-                class="css-1vt9t7z"
+                class="emotion-87 emotion-88"
               >
                 athens.ci
               </a>

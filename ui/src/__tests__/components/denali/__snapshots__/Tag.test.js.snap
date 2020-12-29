@@ -1,8 +1,70 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Tag should disable transitions 1`] = `
+.emotion-0 {
+  font-family: Helvetica,Arial,sans-serif;
+  background: rgba(53, 112, 244, 0.08);
+  border-radius: 14px;
+  border: 1px solid transparent;
+  box-sizing: border-box;
+  color: #303030;
+  cursor: ;
+  display: inline-block;
+  font-size: 14px;
+  height: 28px;
+  line-height: 26px;
+  margin: 3px;
+  min-width: 50px;
+  padding: 0 12px;
+  position: relative;
+  -webkit-text-decoration: none;
+  text-decoration: none;
+  -webkit-transition: ;
+  transition: ;
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+.emotion-0:hover {
+  background: #cbd9f9;
+}
+
+.emotion-0 .tag-remove {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  background: #cbd9f9;
+  border-radius: 0 14px 14px 0;
+  box-shadow: none;
+  box-sizing: border-box;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 28px;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+  opacity: 0;
+  padding-right: 2px;
+  position: absolute;
+  right: -14px;
+  top: -1px;
+  -webkit-transition: ;
+  transition: ;
+  width: 28px;
+}
+
+.emotion-0:hover .tag-remove {
+  box-shadow: -4px 0 5px -1px rgba(48,48,48,0.2);
+  opacity: 1;
+  right: 0;
+}
+
 <div
-  class="css-swmrco-tag denali-tag"
+  class="emotion-0 denali-tag"
   data-testid="tag"
 >
   A tag
@@ -10,8 +72,70 @@ exports[`Tag should disable transitions 1`] = `
 `;
 
 exports[`Tag should render 1`] = `
+.emotion-0 {
+  font-family: Helvetica,Arial,sans-serif;
+  background: rgba(53, 112, 244, 0.08);
+  border-radius: 14px;
+  border: 1px solid transparent;
+  box-sizing: border-box;
+  color: #303030;
+  cursor: ;
+  display: inline-block;
+  font-size: 14px;
+  height: 28px;
+  line-height: 26px;
+  margin: 3px;
+  min-width: 50px;
+  padding: 0 12px;
+  position: relative;
+  -webkit-text-decoration: none;
+  text-decoration: none;
+  -webkit-transition: all 0.2s ease-out;
+  transition: all 0.2s ease-out;
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+.emotion-0:hover {
+  background: #cbd9f9;
+}
+
+.emotion-0 .tag-remove {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  background: #cbd9f9;
+  border-radius: 0 14px 14px 0;
+  box-shadow: none;
+  box-sizing: border-box;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 28px;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+  opacity: 0;
+  padding-right: 2px;
+  position: absolute;
+  right: -14px;
+  top: -1px;
+  -webkit-transition: all 0.2s ease-out;
+  transition: all 0.2s ease-out;
+  width: 28px;
+}
+
+.emotion-0:hover .tag-remove {
+  box-shadow: -4px 0 5px -1px rgba(48,48,48,0.2);
+  opacity: 1;
+  right: 0;
+}
+
 <div
-  class="css-rkx23w-tag denali-tag"
+  class="emotion-0 denali-tag"
   data-testid="tag"
 >
   A tag
@@ -19,8 +143,70 @@ exports[`Tag should render 1`] = `
 `;
 
 exports[`Tag should render a disabled Tag 1`] = `
+.emotion-0 {
+  font-family: Helvetica,Arial,sans-serif;
+  background: rgba(48,48,48,0.1);
+  border-radius: 14px;
+  border: 1px solid transparent;
+  box-sizing: border-box;
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+  display: inline-block;
+  font-size: 14px;
+  height: 28px;
+  line-height: 26px;
+  margin: 3px;
+  min-width: 50px;
+  padding: 0 12px;
+  position: relative;
+  -webkit-text-decoration: none;
+  text-decoration: none;
+  -webkit-transition: all 0.2s ease-out;
+  transition: all 0.2s ease-out;
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+.emotion-0:hover {
+  background: rgba(48,48,48,0.1);
+}
+
+.emotion-0 .tag-remove {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  background: #cbd9f9;
+  border-radius: 0 14px 14px 0;
+  box-shadow: none;
+  box-sizing: border-box;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 28px;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+  opacity: 0;
+  padding-right: 2px;
+  position: absolute;
+  right: -14px;
+  top: -1px;
+  -webkit-transition: all 0.2s ease-out;
+  transition: all 0.2s ease-out;
+  width: 28px;
+}
+
+.emotion-0:hover .tag-remove {
+  box-shadow: -4px 0 5px -1px rgba(48,48,48,0.2);
+  opacity: 1;
+  right: 0;
+}
+
 <div
-  class="css-4qes7j-tag denali-tag"
+  class="emotion-0 denali-tag"
   data-testid="tag"
 >
   A tag
@@ -28,8 +214,76 @@ exports[`Tag should render a disabled Tag 1`] = `
 `;
 
 exports[`Tag should render a removable Tag 1`] = `
+.emotion-0 {
+  font-family: Helvetica,Arial,sans-serif;
+  background: rgba(53, 112, 244, 0.08);
+  border-radius: 14px;
+  border: 1px solid transparent;
+  box-sizing: border-box;
+  color: #303030;
+  cursor: ;
+  display: inline-block;
+  font-size: 14px;
+  height: 28px;
+  line-height: 26px;
+  margin: 3px;
+  min-width: 50px;
+  padding: 0 12px;
+  position: relative;
+  -webkit-text-decoration: none;
+  text-decoration: none;
+  -webkit-transition: all 0.2s ease-out;
+  transition: all 0.2s ease-out;
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+.emotion-0:hover {
+  background: #cbd9f9;
+}
+
+.emotion-0 .tag-remove {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  background: #cbd9f9;
+  border-radius: 0 14px 14px 0;
+  box-shadow: none;
+  box-sizing: border-box;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 28px;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+  opacity: 0;
+  padding-right: 2px;
+  position: absolute;
+  right: -14px;
+  top: -1px;
+  -webkit-transition: all 0.2s ease-out;
+  transition: all 0.2s ease-out;
+  width: 28px;
+}
+
+.emotion-0:hover .tag-remove {
+  box-shadow: -4px 0 5px -1px rgba(48,48,48,0.2);
+  opacity: 1;
+  right: 0;
+}
+
+.emotion-1 {
+  fill: rgba(48,48,48,0.6);
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
 <div
-  class="css-rkx23w-tag denali-tag"
+  class="emotion-0 denali-tag"
   data-testid="tag"
 >
   A tag
@@ -37,7 +291,7 @@ exports[`Tag should render a removable Tag 1`] = `
     class="tag-remove"
   >
     <svg
-      class="css-1gplbnp"
+      class="emotion-1"
       data-testid="icon"
       height="20px"
       viewBox="0 0 1024 1024"
@@ -55,8 +309,70 @@ exports[`Tag should render a removable Tag 1`] = `
 `;
 
 exports[`Tag should render a selectable Tag 1`] = `
+.emotion-0 {
+  font-family: Helvetica,Arial,sans-serif;
+  background: none;
+  border-radius: 14px;
+  border: 1px solid #3697f2;
+  box-sizing: border-box;
+  color: #3697f2;
+  cursor: pointer;
+  display: inline-block;
+  font-size: 14px;
+  height: 28px;
+  line-height: 26px;
+  margin: 3px;
+  min-width: 50px;
+  padding: 0 12px;
+  position: relative;
+  -webkit-text-decoration: none;
+  text-decoration: none;
+  -webkit-transition: all 0.2s ease-out;
+  transition: all 0.2s ease-out;
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+.emotion-0:hover {
+  background: #cbd9f9;
+}
+
+.emotion-0 .tag-remove {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  background: #cbd9f9;
+  border-radius: 0 14px 14px 0;
+  box-shadow: none;
+  box-sizing: border-box;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 28px;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+  opacity: 0;
+  padding-right: 2px;
+  position: absolute;
+  right: -14px;
+  top: -1px;
+  -webkit-transition: all 0.2s ease-out;
+  transition: all 0.2s ease-out;
+  width: 28px;
+}
+
+.emotion-0:hover .tag-remove {
+  box-shadow: -4px 0 5px -1px rgba(48,48,48,0.2);
+  opacity: 1;
+  right: 0;
+}
+
 <div
-  class="css-12zyr81-tag denali-tag"
+  class="emotion-0 denali-tag"
   data-testid="tag"
 >
   A tag
@@ -64,8 +380,76 @@ exports[`Tag should render a selectable Tag 1`] = `
 `;
 
 exports[`Tag should render a small Tag 1`] = `
+.emotion-0 {
+  font-family: Helvetica,Arial,sans-serif;
+  background: rgba(53, 112, 244, 0.08);
+  border-radius: 11px;
+  border: 1px solid transparent;
+  box-sizing: border-box;
+  color: #303030;
+  cursor: ;
+  display: inline-block;
+  font-size: 12px;
+  height: 22px;
+  line-height: 20px;
+  margin: 3px;
+  min-width: 50px;
+  padding: 0 12px;
+  position: relative;
+  -webkit-text-decoration: none;
+  text-decoration: none;
+  -webkit-transition: all 0.2s ease-out;
+  transition: all 0.2s ease-out;
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+.emotion-0:hover {
+  background: #cbd9f9;
+}
+
+.emotion-0 .tag-remove {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  background: #cbd9f9;
+  border-radius: 0 11px 11px 0;
+  box-shadow: none;
+  box-sizing: border-box;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 22px;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+  opacity: 0;
+  padding-right: 2px;
+  position: absolute;
+  right: -11px;
+  top: -1px;
+  -webkit-transition: all 0.2s ease-out;
+  transition: all 0.2s ease-out;
+  width: 22px;
+}
+
+.emotion-0:hover .tag-remove {
+  box-shadow: -4px 0 5px -1px rgba(48,48,48,0.2);
+  opacity: 1;
+  right: 0;
+}
+
+.emotion-1 {
+  fill: rgba(48,48,48,0.6);
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
 <div
-  class="css-1yl4e9y-tag denali-tag"
+  class="emotion-0 denali-tag"
   data-testid="tag"
 >
   A tag
@@ -73,7 +457,7 @@ exports[`Tag should render a small Tag 1`] = `
     class="tag-remove"
   >
     <svg
-      class="css-1gplbnp"
+      class="emotion-1"
       data-testid="icon"
       height="16px"
       viewBox="0 0 1024 1024"

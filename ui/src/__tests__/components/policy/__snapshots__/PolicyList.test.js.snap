@@ -1,16 +1,119 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`PolicyList should render 1`] = `
+.emotion-0 {
+  margin: 20px;
+}
+
+.emotion-2 {
+  padding-bottom: 20px;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  justify-content: space-between;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  float: right;
+}
+
+.emotion-4 {
+  border: none;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  font-family: Helvetica,Arial,sans-serif;
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 1;
+  margin: 5px;
+  min-width: ;
+  outline: 0;
+  padding: 10px 24px;
+  text-align: center;
+  text-shadow: none;
+  text-transform: none;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  vertical-align: baseline;
+  white-space: nowrap;
+  background: transparent;
+  box-shadow: 0 0 0 1px #3697f2 inset;
+  color: #3697f2;
+}
+
+.emotion-4:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-4:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
+.emotion-4:disabled {
+  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
+}
+
+.emotion-4:hover:not(:disabled) {
+  background: #d7e2fd;
+}
+
+.emotion-5 {
+  width: 100%;
+  border-spacing: 0;
+  display: table;
+  border-collapse: separate;
+  border-color: grey;
+}
+
+.emotion-7 {
+  text-align: left;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
+.emotion-11 {
+  text-align: center;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
 <div
-  class="css-oqpjdc"
+  class="emotion-0 emotion-1"
   data-testid="policylist"
 >
   <div
-    class="css-27i382"
+    class="emotion-2 emotion-3"
   >
     <div>
       <button
-        class="css-1pobclq-button denali-button"
+        class="emotion-4 denali-button"
       >
         Add Policy
       </button>
@@ -18,27 +121,27 @@ exports[`PolicyList should render 1`] = `
     </div>
   </div>
   <table
-    class="css-pg3j7d"
+    class="emotion-5 emotion-6"
   >
     <thead>
       <tr>
         <th
-          class="css-c37hkt"
+          class="emotion-7 emotion-8"
         >
           Policy
         </th>
         <th
-          class="css-c37hkt"
+          class="emotion-7 emotion-8"
         >
           Modified Date
         </th>
         <th
-          class="css-19r8pbt"
+          class="emotion-11 emotion-8"
         >
           Rules
         </th>
         <th
-          class="css-19r8pbt"
+          class="emotion-11 emotion-8"
         >
           Delete
         </th>

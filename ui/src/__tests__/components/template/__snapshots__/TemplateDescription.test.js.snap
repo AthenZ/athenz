@@ -1,21 +1,52 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TemplateDescription should render 1`] = `
+.emotion-0 {
+  padding: 20px;
+  text-align: left;
+  vertical-align: middle;
+  word-break: break-all;
+  font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
+  display: table-cell;
+  background-color:color: #3570f40D;
+}
+
+.emotion-2 {
+  display: table;
+  border-collapse: separate;
+  border-spacing: 2px;
+  border-color: #9a9a9a;
+}
+
+.emotion-4 {
+  background-color: ;
+}
+
+.emotion-6 {
+  padding: 20px;
+  text-align: left;
+  vertical-align: middle;
+  word-break: break-all;
+  font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
+  display: table-cell;
+  background-color: ;
+}
+
 <td
-  class="css-ibn3r9"
+  class="emotion-0 emotion-1"
   color="[object Object]"
   colspan="7"
   data-testid="provider-table"
 >
   <table
-    class="css-60xxn3"
+    class="emotion-2 emotion-3"
   >
     <thead>
       <tr
-        class="css-1alnbxl"
+        class="emotion-4 emotion-5"
       >
         <td
-          class="css-nyswyy"
+          class="emotion-6 emotion-1"
         >
           test description
         </td>

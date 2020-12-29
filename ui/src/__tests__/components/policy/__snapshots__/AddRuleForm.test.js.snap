@@ -1,30 +1,418 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AddRuleForm should render 1`] = `
+.emotion-0 {
+  width: 100%;
+  text-align: left;
+  background-color: #fff;
+}
+
+.emotion-2 {
+  -webkit-align-items: flex-start;
+  -webkit-box-align: flex-start;
+  -ms-flex-align: flex-start;
+  align-items: flex-start;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  padding: 10px 30px;
+}
+
+.emotion-4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #303030;
+  line-height: 36px;
+  white-space: nowrap;
+}
+
+.emotion-5 {
+  -webkit-flex: 0 0 100px;
+  -ms-flex: 0 0 100px;
+  flex: 0 0 100px;
+  margin-right: 2%;
+}
+
+.emotion-7 {
+  -webkit-flex: 1 1;
+  -ms-flex: 1 1;
+  flex: 1 1;
+  margin-right: 10px;
+}
+
+.emotion-9 {
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+}
+
+.emotion-9>* {
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+}
+
+.emotion-10 {
+  margin-top: 8px;
+}
+
+.emotion-12 {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  display: inline-block;
+  height: 16px;
+  line-height: 16px;
+  margin: 3px;
+  outline: 0px;
+  position: relative;
+  vertical-align: bottom;
+}
+
+.emotion-12>input[type='radio'] {
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  position: absolute;
+  top: 0;
+  visibility: hidden;
+}
+
+.emotion-12>input[type='radio']+label {
+  box-sizing: border-box;
+  cursor: pointer;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  height: 16px;
+  line-height: 16px;
+  padding: 0 10px 0 0;
+  vertical-align: bottom;
+  white-space: nowrap;
+}
+
+.emotion-12>input[type='radio']+label:before {
+  background: #fff;
+  border: 2px solid rgba(54,151,242,0.5);
+  border-radius: 50%;
+  box-sizing: border-box;
+  content: '';
+  cursor: pointer;
+  display: inline-block;
+  height: 16px;
+  line-height: 16px;
+  margin: 0px 3px -3px 0px;
+  -webkit-transition: all 0.25s ease-in;
+  transition: all 0.25s ease-in;
+  width: 16px;
+}
+
+.emotion-12>input[type='radio']:hover+label:before {
+  border: 2px solid #3697f2;
+}
+
+.emotion-12>input[type='radio']:focus+label:before {
+  border: 2px solid rgba(54,151,242,0.5);
+}
+
+.emotion-12>input[type='radio']:checked+label:before {
+  border: 2px solid #3697f2;
+}
+
+.emotion-12>input[type='radio']:disabled+label {
+  color: #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-12>input[type='radio']:disabled+label:before {
+  border: 2px solid #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-12>input[type='radio']:checked+label:after {
+  background-color: #3697f2;
+  border-radius: 50%;
+  box-sizing: border-box;
+  content: '';
+  height: 8px;
+  line-height: 8px;
+  left: 4px;
+  position: absolute;
+  top: 4px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  width: 8px;
+}
+
+.emotion-21 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 250px;
+}
+
+.emotion-21 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-21.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-21 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-21 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-21 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-21 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-21 input.focused,
+.emotion-21 input:active,
+.emotion-21 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-21 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-21 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-21.error input,
+.emotion-21.error input.focused,
+.emotion-21.error input:active,
+.emotion-21.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-21.error .message {
+  color: #d01111;
+}
+
+.emotion-22 {
+  width: 500px;
+}
+
+.emotion-31 {
+  position: relative;
+  width: 100%;
+}
+
+.emotion-31 input {
+  cursor: inherit;
+}
+
+.emotion-32 {
+  width: 500px;
+}
+
+.emotion-34 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 100%;
+}
+
+.emotion-34 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-34.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-34 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-34 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-34 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-34 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-34 input.focused,
+.emotion-34 input:active,
+.emotion-34 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-34 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-34 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-34.error input,
+.emotion-34.error input.focused,
+.emotion-34.error input:active,
+.emotion-34.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-34.error .message {
+  color: #d01111;
+}
+
+.emotion-34 input {
+  padding-right: 36px;
+}
+
+.emotion-34 .input-icon {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 36px;
+  position: absolute;
+  right: 6px;
+}
+
+.emotion-35 {
+  fill: #d5d5d5;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
 <div
   autocomplete="off"
-  class="css-vcd2ur"
+  class="emotion-0 emotion-1"
   data-testid="add-rule-form"
 >
   
   <div
-    class="css-y97ykc"
+    class="emotion-2 emotion-3"
   >
     <label
-      class="css-fc0mv0-input-label denali-input-label css-9xcde0"
+      class="emotion-4 denali-input-label emotion-5 emotion-6"
       for="rule-effect"
     >
       Rule Effect
     </label>
     <div
-      class="css-1xqce5"
+      class="emotion-7 emotion-8"
     >
       <div
-        class="css-9o2u2w-button-group denali-radiobutton-group css-1ldveyy"
+        class="emotion-9 denali-radiobutton-group emotion-10 emotion-11"
         data-testid="radiobuttongroup"
       >
         <div
-          class="css-fe5os4-radiobutton denali-radiobutton"
+          class="emotion-12 denali-radiobutton"
           data-testid="radiobutton-wrapper"
         >
           <input
@@ -41,7 +429,7 @@ exports[`AddRuleForm should render 1`] = `
           </label>
         </div>
         <div
-          class="css-fe5os4-radiobutton denali-radiobutton"
+          class="emotion-12 denali-radiobutton"
           data-testid="radiobutton-wrapper"
         >
           <input
@@ -60,19 +448,19 @@ exports[`AddRuleForm should render 1`] = `
     </div>
   </div>
   <div
-    class="css-y97ykc"
+    class="emotion-2 emotion-3"
   >
     <label
-      class="css-fc0mv0-input-label denali-input-label css-9xcde0"
+      class="emotion-4 denali-input-label emotion-5 emotion-6"
       for="rule-action"
     >
       Rule Action
     </label>
     <div
-      class="css-1xqce5"
+      class="emotion-7 emotion-8"
     >
       <div
-        class="css-dqae60-input denali-input animated css-fvi5z5"
+        class="emotion-21 denali-input animated emotion-22 emotion-23"
         data-testid="input-wrapper"
       >
         <input
@@ -91,27 +479,27 @@ exports[`AddRuleForm should render 1`] = `
     </div>
   </div>
   <div
-    class="css-y97ykc"
+    class="emotion-2 emotion-3"
   >
     <label
-      class="css-fc0mv0-input-label denali-input-label css-9xcde0"
+      class="emotion-4 denali-input-label emotion-5 emotion-6"
       for="rule-role"
     >
       Rule Role
     </label>
     <div
-      class="css-1xqce5"
+      class="emotion-7 emotion-8"
     >
       <div
         aria-expanded="false"
         aria-haspopup="listbox"
         aria-labelledby="downshift-0-label"
-        class="css-15vmjxv-input-dropdown denali-input-dropdown css-fvi5z5"
+        class="emotion-31 denali-input-dropdown emotion-32 emotion-33"
         data-testid="input-dropdown"
         role="combobox"
       >
         <div
-          class="css-1u6oono-input denali-input animated"
+          class="emotion-34 denali-input animated"
           data-testid="input-wrapper"
         >
           <input
@@ -131,7 +519,7 @@ exports[`AddRuleForm should render 1`] = `
           >
             
             <svg
-              class="css-124cf9y"
+              class="emotion-35"
               data-testid="icon"
               height="24px"
               viewBox="0 0 1024 1024"
@@ -154,19 +542,19 @@ exports[`AddRuleForm should render 1`] = `
     </div>
   </div>
   <div
-    class="css-y97ykc"
+    class="emotion-2 emotion-3"
   >
     <label
-      class="css-fc0mv0-input-label denali-input-label css-9xcde0"
+      class="emotion-4 denali-input-label emotion-5 emotion-6"
       for="rule-resource"
     >
       Rule Resource
     </label>
     <div
-      class="css-1xqce5"
+      class="emotion-7 emotion-8"
     >
       <div
-        class="css-dqae60-input denali-input animated css-fvi5z5"
+        class="emotion-21 denali-input animated emotion-22 emotion-23"
         data-testid="input-wrapper"
       >
         <input
@@ -187,30 +575,418 @@ exports[`AddRuleForm should render 1`] = `
 `;
 
 exports[`AddRuleForm should render failed to load roles 1`] = `
+.emotion-0 {
+  width: 100%;
+  text-align: left;
+  background-color: #fff;
+}
+
+.emotion-2 {
+  -webkit-align-items: flex-start;
+  -webkit-box-align: flex-start;
+  -ms-flex-align: flex-start;
+  align-items: flex-start;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  padding: 10px 30px;
+}
+
+.emotion-4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #303030;
+  line-height: 36px;
+  white-space: nowrap;
+}
+
+.emotion-5 {
+  -webkit-flex: 0 0 100px;
+  -ms-flex: 0 0 100px;
+  flex: 0 0 100px;
+  margin-right: 2%;
+}
+
+.emotion-7 {
+  -webkit-flex: 1 1;
+  -ms-flex: 1 1;
+  flex: 1 1;
+  margin-right: 10px;
+}
+
+.emotion-9 {
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+}
+
+.emotion-9>* {
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+}
+
+.emotion-10 {
+  margin-top: 8px;
+}
+
+.emotion-12 {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  display: inline-block;
+  height: 16px;
+  line-height: 16px;
+  margin: 3px;
+  outline: 0px;
+  position: relative;
+  vertical-align: bottom;
+}
+
+.emotion-12>input[type='radio'] {
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  position: absolute;
+  top: 0;
+  visibility: hidden;
+}
+
+.emotion-12>input[type='radio']+label {
+  box-sizing: border-box;
+  cursor: pointer;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  height: 16px;
+  line-height: 16px;
+  padding: 0 10px 0 0;
+  vertical-align: bottom;
+  white-space: nowrap;
+}
+
+.emotion-12>input[type='radio']+label:before {
+  background: #fff;
+  border: 2px solid rgba(54,151,242,0.5);
+  border-radius: 50%;
+  box-sizing: border-box;
+  content: '';
+  cursor: pointer;
+  display: inline-block;
+  height: 16px;
+  line-height: 16px;
+  margin: 0px 3px -3px 0px;
+  -webkit-transition: all 0.25s ease-in;
+  transition: all 0.25s ease-in;
+  width: 16px;
+}
+
+.emotion-12>input[type='radio']:hover+label:before {
+  border: 2px solid #3697f2;
+}
+
+.emotion-12>input[type='radio']:focus+label:before {
+  border: 2px solid rgba(54,151,242,0.5);
+}
+
+.emotion-12>input[type='radio']:checked+label:before {
+  border: 2px solid #3697f2;
+}
+
+.emotion-12>input[type='radio']:disabled+label {
+  color: #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-12>input[type='radio']:disabled+label:before {
+  border: 2px solid #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-12>input[type='radio']:checked+label:after {
+  background-color: #3697f2;
+  border-radius: 50%;
+  box-sizing: border-box;
+  content: '';
+  height: 8px;
+  line-height: 8px;
+  left: 4px;
+  position: absolute;
+  top: 4px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  width: 8px;
+}
+
+.emotion-21 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 250px;
+}
+
+.emotion-21 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-21.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-21 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-21 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-21 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-21 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-21 input.focused,
+.emotion-21 input:active,
+.emotion-21 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-21 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-21 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-21.error input,
+.emotion-21.error input.focused,
+.emotion-21.error input:active,
+.emotion-21.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-21.error .message {
+  color: #d01111;
+}
+
+.emotion-22 {
+  width: 500px;
+}
+
+.emotion-31 {
+  position: relative;
+  width: 100%;
+}
+
+.emotion-31 input {
+  cursor: inherit;
+}
+
+.emotion-32 {
+  width: 500px;
+}
+
+.emotion-34 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 100%;
+}
+
+.emotion-34 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-34.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-34 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-34 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-34 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-34 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-34 input.focused,
+.emotion-34 input:active,
+.emotion-34 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-34 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-34 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-34.error input,
+.emotion-34.error input.focused,
+.emotion-34.error input:active,
+.emotion-34.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-34.error .message {
+  color: #d01111;
+}
+
+.emotion-34 input {
+  padding-right: 36px;
+}
+
+.emotion-34 .input-icon {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 36px;
+  position: absolute;
+  right: 6px;
+}
+
+.emotion-35 {
+  fill: #d5d5d5;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
 <div
   autocomplete="off"
-  class="css-vcd2ur"
+  class="emotion-0 emotion-1"
   data-testid="add-rule-form"
 >
   
   <div
-    class="css-y97ykc"
+    class="emotion-2 emotion-3"
   >
     <label
-      class="css-fc0mv0-input-label denali-input-label css-9xcde0"
+      class="emotion-4 denali-input-label emotion-5 emotion-6"
       for="rule-effect"
     >
       Rule Effect
     </label>
     <div
-      class="css-1xqce5"
+      class="emotion-7 emotion-8"
     >
       <div
-        class="css-9o2u2w-button-group denali-radiobutton-group css-1ldveyy"
+        class="emotion-9 denali-radiobutton-group emotion-10 emotion-11"
         data-testid="radiobuttongroup"
       >
         <div
-          class="css-fe5os4-radiobutton denali-radiobutton"
+          class="emotion-12 denali-radiobutton"
           data-testid="radiobutton-wrapper"
         >
           <input
@@ -227,7 +1003,7 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
           </label>
         </div>
         <div
-          class="css-fe5os4-radiobutton denali-radiobutton"
+          class="emotion-12 denali-radiobutton"
           data-testid="radiobutton-wrapper"
         >
           <input
@@ -246,19 +1022,19 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
     </div>
   </div>
   <div
-    class="css-y97ykc"
+    class="emotion-2 emotion-3"
   >
     <label
-      class="css-fc0mv0-input-label denali-input-label css-9xcde0"
+      class="emotion-4 denali-input-label emotion-5 emotion-6"
       for="rule-action"
     >
       Rule Action
     </label>
     <div
-      class="css-1xqce5"
+      class="emotion-7 emotion-8"
     >
       <div
-        class="css-dqae60-input denali-input animated css-fvi5z5"
+        class="emotion-21 denali-input animated emotion-22 emotion-23"
         data-testid="input-wrapper"
       >
         <input
@@ -277,27 +1053,27 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
     </div>
   </div>
   <div
-    class="css-y97ykc"
+    class="emotion-2 emotion-3"
   >
     <label
-      class="css-fc0mv0-input-label denali-input-label css-9xcde0"
+      class="emotion-4 denali-input-label emotion-5 emotion-6"
       for="rule-role"
     >
       Rule Role
     </label>
     <div
-      class="css-1xqce5"
+      class="emotion-7 emotion-8"
     >
       <div
         aria-expanded="false"
         aria-haspopup="listbox"
         aria-labelledby="downshift-1-label"
-        class="css-15vmjxv-input-dropdown denali-input-dropdown css-fvi5z5"
+        class="emotion-31 denali-input-dropdown emotion-32 emotion-33"
         data-testid="input-dropdown"
         role="combobox"
       >
         <div
-          class="css-1u6oono-input denali-input animated"
+          class="emotion-34 denali-input animated"
           data-testid="input-wrapper"
         >
           <input
@@ -317,7 +1093,7 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
           >
             
             <svg
-              class="css-124cf9y"
+              class="emotion-35"
               data-testid="icon"
               height="24px"
               viewBox="0 0 1024 1024"
@@ -340,19 +1116,19 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
     </div>
   </div>
   <div
-    class="css-y97ykc"
+    class="emotion-2 emotion-3"
   >
     <label
-      class="css-fc0mv0-input-label denali-input-label css-9xcde0"
+      class="emotion-4 denali-input-label emotion-5 emotion-6"
       for="rule-resource"
     >
       Rule Resource
     </label>
     <div
-      class="css-1xqce5"
+      class="emotion-7 emotion-8"
     >
       <div
-        class="css-dqae60-input denali-input animated css-fvi5z5"
+        class="emotion-21 denali-input animated emotion-22 emotion-23"
         data-testid="input-wrapper"
       >
         <input

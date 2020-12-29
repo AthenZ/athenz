@@ -24,6 +24,8 @@ import 'flatpickr/dist/themes/light.css';
 import Search from '../components/search/Search';
 import RequestUtils from '../components/utils/RequestUtils';
 import Error from './_error';
+import createCache from '@emotion/cache';
+import { CacheProvider } from '@emotion/react';
 
 const HomeContainerDiv = styled.div`
     flex: 1 1;
@@ -106,12 +108,17 @@ export default class PageHome extends React.Component {
             domains: domains[0],
             headerDetails: domains[1],
             pending: domains[2],
+            nonce: req.headers.rid,
         };
     }
 
     constructor(props) {
         super(props);
         this.api = props.api || API();
+        this.cache = createCache({
+            key: 'athenz',
+            nonce: this.props.nonce,
+        });
     }
 
     render() {
@@ -123,52 +130,55 @@ export default class PageHome extends React.Component {
             return <Error err={this.props.error} />;
         }
         return (
-            <div data-testid='home'>
-                <Head>
-                    <title>Athenz</title>
-                </Head>
-                <Header
-                    showSearch={false}
-                    headerDetails={this.props.headerDetails}
-                    pending={this.props.pending}
-                />
-                <MainContentDiv>
-                    <AppContainerDiv>
-                        <HomeContainerDiv>
-                            <HomeContentDiv>
-                                <MainLogoDiv>
-                                    <LogoStyled />
-                                </MainLogoDiv>
-                                <DetailsDiv>
-                                    <span>
-                                        Athenz is an open source platform which
-                                        provides secure identity in the form of
-                                        X.509 certificate to every workload for
-                                        service authentication (mutual TLS
-                                        authentication) and provides
-                                        fine-grained Role Based Access Control
-                                        (RBAC) for authorization.
-                                    </span>
-                                    <StyledAnchor
-                                        rel='noopener'
-                                        target='_blank'
-                                        href='https://git.ouroath.com/pages/athens/athenz-guide/'
-                                    >
-                                        Learn more
-                                    </StyledAnchor>
-                                </DetailsDiv>
-                                <SearchContainerDiv>
-                                    <Search />
-                                </SearchContainerDiv>
-                            </HomeContentDiv>
-                        </HomeContainerDiv>
-                        <UserDomains
-                            domains={this.props.domains}
-                            api={this.api}
-                        />
-                    </AppContainerDiv>
-                </MainContentDiv>
-            </div>
+            <CacheProvider value={this.cache}>
+                <div data-testid='home'>
+                    <Head>
+                        <title>Athenz</title>
+                    </Head>
+                    <Header
+                        showSearch={false}
+                        headerDetails={this.props.headerDetails}
+                        pending={this.props.pending}
+                    />
+                    <MainContentDiv>
+                        <AppContainerDiv>
+                            <HomeContainerDiv>
+                                <HomeContentDiv>
+                                    <MainLogoDiv>
+                                        <LogoStyled />
+                                    </MainLogoDiv>
+                                    <DetailsDiv>
+                                        <span>
+                                            Athenz is an open source platform
+                                            which provides secure identity in
+                                            the form of X.509 certificate to
+                                            every workload for service
+                                            authentication (mutual TLS
+                                            authentication) and provides
+                                            fine-grained Role Based Access
+                                            Control (RBAC) for authorization.
+                                        </span>
+                                        <StyledAnchor
+                                            rel='noopener'
+                                            target='_blank'
+                                            href='https://git.ouroath.com/pages/athens/athenz-guide/'
+                                        >
+                                            Learn more
+                                        </StyledAnchor>
+                                    </DetailsDiv>
+                                    <SearchContainerDiv>
+                                        <Search />
+                                    </SearchContainerDiv>
+                                </HomeContentDiv>
+                            </HomeContainerDiv>
+                            <UserDomains
+                                domains={this.props.domains}
+                                api={this.api}
+                            />
+                        </AppContainerDiv>
+                    </MainContentDiv>
+                </div>
+            </CacheProvider>
         );
     }
 }

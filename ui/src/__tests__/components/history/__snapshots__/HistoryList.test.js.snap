@@ -1,33 +1,323 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`HistoryList should render 1`] = `
+.emotion-0 {
+  margin: 20px;
+}
+
+.emotion-2 {
+  display: grid;
+  grid-template-columns: 40% 15% 15% 15% 15%;
+  grid-gap: 10px;
+}
+
+.emotion-4 {
+  font-weight: bold;
+}
+
+.emotion-10 {
+  border: none;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  font-family: Helvetica,Arial,sans-serif;
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 1;
+  margin: 5px;
+  min-width: ;
+  outline: 0;
+  padding: 10px 24px;
+  text-align: center;
+  text-shadow: none;
+  text-transform: none;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  vertical-align: baseline;
+  white-space: nowrap;
+  background: linear-gradient(
+              to right,
+              #3697f2,
+              #3570f4
+          );
+  color: #fff;
+}
+
+.emotion-10:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-10:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
+.emotion-10:hover:not(:disabled) {
+  background: linear-gradient(
+                  to right,
+                  #3570f4,
+                  #3448f7
+              );
+}
+
+.emotion-11 {
+  position: relative;
+  width: 100%;
+}
+
+.emotion-11 input {
+  cursor: inherit;
+}
+
+.emotion-12 {
+  margin-top: 5px;
+}
+
+.emotion-14 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 100%;
+}
+
+.emotion-14 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-14.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-14 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-14 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-14 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-14 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-14 input.focused,
+.emotion-14 input:active,
+.emotion-14 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-14 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-14 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-14.error input,
+.emotion-14.error input.focused,
+.emotion-14.error input:active,
+.emotion-14.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-14.error .message {
+  color: #d01111;
+}
+
+.emotion-14 input {
+  padding-right: 36px;
+}
+
+.emotion-14 .input-icon {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 36px;
+  position: absolute;
+  right: 6px;
+}
+
+.emotion-15 {
+  fill: #d5d5d5;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+.emotion-16>div input {
+  position: relative;
+  font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
+  background-color: rgba(53, 112, 244, 0.05);
+  box-shadow: none;
+  color: rgb(48, 48, 48);
+  height: 16px;
+  min-width: 50px;
+  text-align: left;
+  border-width: 2px;
+  border-style: solid;
+  border-color: transparent;
+  border-image: initial;
+  border-radius: 2px;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  margin: 0px;
+  margin-top: 5px;
+  outline: none;
+  padding: 0.6em 12px;
+  -webkit-transition: background-color 0.2s ease-in-out 0s,color 0.2s ease-in-out 0s,border 0.2s ease-in-out 0s;
+  transition: background-color 0.2s ease-in-out 0s,color 0.2s ease-in-out 0s,border 0.2s ease-in-out 0s;
+  width: 80%;
+}
+
+.emotion-20 {
+  border: none;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  font-family: Helvetica,Arial,sans-serif;
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 1;
+  margin: 5px;
+  min-width: ;
+  outline: 0;
+  padding: 10px 24px;
+  text-align: center;
+  text-shadow: none;
+  text-transform: none;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  vertical-align: baseline;
+  white-space: nowrap;
+  background: transparent;
+  box-shadow: 0 0 0 1px #3697f2 inset;
+  color: #3697f2;
+}
+
+.emotion-20:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-20:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
+.emotion-20:disabled {
+  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
+}
+
+.emotion-20:hover:not(:disabled) {
+  background: #d7e2fd;
+}
+
+.emotion-21 {
+  width: 100%;
+  border-spacing: 0;
+  display: table;
+  border-collapse: separate;
+  border-color: grey;
+  table-layout: fixed;
+  padding-top: 20px;
+}
+
+.emotion-23 {
+  text-align: left;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
 <div
-  class="css-oqpjdc"
+  class="emotion-0 emotion-1"
   data-testid="history-list"
 >
   <div
-    class="css-tjv6pg"
+    class="emotion-2 emotion-3"
   >
     <div />
     <div
-      class="css-eizsos"
+      class="emotion-4 emotion-5"
     >
       Filter by Role
     </div>
     <div
-      class="css-eizsos"
+      class="emotion-4 emotion-5"
     >
       Start Date
     </div>
     <div
-      class="css-eizsos"
+      class="emotion-4 emotion-5"
     >
       End Date
     </div>
     <div />
     <div>
       <button
-        class="css-1iukreu-button denali-button"
+        class="emotion-10 denali-button"
       >
         Export to CSV
       </button>
@@ -37,12 +327,12 @@ exports[`HistoryList should render 1`] = `
         aria-expanded="false"
         aria-haspopup="listbox"
         aria-labelledby="downshift-0-label"
-        class="css-15vmjxv-input-dropdown denali-input-dropdown css-uvjnz5"
+        class="emotion-11 denali-input-dropdown emotion-12 emotion-13"
         data-testid="input-dropdown"
         role="combobox"
       >
         <div
-          class="css-1u6oono-input denali-input animated"
+          class="emotion-14 denali-input animated"
           data-testid="input-wrapper"
         >
           <input
@@ -62,7 +352,7 @@ exports[`HistoryList should render 1`] = `
           >
             
             <svg
-              class="css-124cf9y"
+              class="emotion-15"
               data-testid="icon"
               height="24px"
               viewBox="0 0 1024 1024"
@@ -84,7 +374,7 @@ exports[`HistoryList should render 1`] = `
       </div>
     </div>
     <div
-      class="css-1nf7ukz"
+      class="emotion-16 emotion-17"
     >
       <div
         class="fp-startDate"
@@ -107,7 +397,7 @@ exports[`HistoryList should render 1`] = `
       </div>
     </div>
     <div
-      class="css-1nf7ukz"
+      class="emotion-16 emotion-17"
     >
       <div
         class="fp-endDate"
@@ -131,44 +421,44 @@ exports[`HistoryList should render 1`] = `
     </div>
     <div>
       <button
-        class="css-1pobclq-button denali-button"
+        class="emotion-20 denali-button"
       >
         Submit
       </button>
     </div>
   </div>
   <table
-    class="css-p7qv2x"
+    class="emotion-21 emotion-22"
   >
     <thead>
       <tr>
         <th
-          class="css-c37hkt"
+          class="emotion-23 emotion-24"
         >
           ACTION
         </th>
         <th
-          class="css-c37hkt"
+          class="emotion-23 emotion-24"
         >
           ENTITY
         </th>
         <th
-          class="css-c37hkt"
+          class="emotion-23 emotion-24"
         >
           EXECUTED BY
         </th>
         <th
-          class="css-c37hkt"
+          class="emotion-23 emotion-24"
         >
           MODIFIED DATE
         </th>
         <th
-          class="css-c37hkt"
+          class="emotion-23 emotion-24"
         >
           DETAILS
         </th>
         <th
-          class="css-c37hkt"
+          class="emotion-23 emotion-24"
         >
           JUSTIFICATION
         </th>

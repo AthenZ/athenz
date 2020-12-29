@@ -1,17 +1,147 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`InputDropdown opens the dropdown 1`] = `
+.emotion-0 {
+  position: relative;
+  width: ;
+}
+
+.emotion-0 input {
+  cursor: pointer;
+}
+
+.emotion-1 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 250px;
+}
+
+.emotion-1 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-1.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-1 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input.focused,
+.emotion-1 input:active,
+.emotion-1 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-1 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-1 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-1.error input,
+.emotion-1.error input.focused,
+.emotion-1.error input:active,
+.emotion-1.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-1.error .message {
+  color: #d01111;
+}
+
+.emotion-1 input {
+  padding-right: 36px;
+}
+
+.emotion-1 .input-icon {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 36px;
+  position: absolute;
+  right: 6px;
+}
+
+.emotion-2 {
+  fill: #d5d5d5;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
 <div
   aria-expanded="true"
   aria-haspopup="listbox"
   aria-labelledby="downshift-7-label"
   aria-owns="downshift-7-menu"
-  class="css-9pg0wu-input-dropdown denali-input-dropdown"
+  class="emotion-0 denali-input-dropdown"
   data-testid="input-dropdown"
   role="combobox"
 >
   <div
-    class="css-1avh6g4-input denali-input animated"
+    class="emotion-1 denali-input animated"
     data-testid="input-wrapper"
   >
     <input
@@ -33,7 +163,7 @@ exports[`InputDropdown opens the dropdown 1`] = `
     >
       
       <svg
-        class="css-124cf9y"
+        class="emotion-2"
         data-testid="icon"
         height="24px"
         viewBox="0 0 1024 1024"
@@ -56,16 +186,146 @@ exports[`InputDropdown opens the dropdown 1`] = `
 `;
 
 exports[`InputDropdown renders a filterable dropdown 1`] = `
+.emotion-0 {
+  position: relative;
+  width: ;
+}
+
+.emotion-0 input {
+  cursor: inherit;
+}
+
+.emotion-1 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 250px;
+}
+
+.emotion-1 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-1.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-1 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input.focused,
+.emotion-1 input:active,
+.emotion-1 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-1 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-1 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-1.error input,
+.emotion-1.error input.focused,
+.emotion-1.error input:active,
+.emotion-1.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-1.error .message {
+  color: #d01111;
+}
+
+.emotion-1 input {
+  padding-right: 36px;
+}
+
+.emotion-1 .input-icon {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 36px;
+  position: absolute;
+  right: 6px;
+}
+
+.emotion-2 {
+  fill: #d5d5d5;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
 <div
   aria-expanded="false"
   aria-haspopup="listbox"
   aria-labelledby="downshift-13-label"
-  class="css-2fuzhm-input-dropdown denali-input-dropdown"
+  class="emotion-0 denali-input-dropdown"
   data-testid="input-dropdown"
   role="combobox"
 >
   <div
-    class="css-1avh6g4-input denali-input animated"
+    class="emotion-1 denali-input animated"
     data-testid="input-wrapper"
   >
     <input
@@ -84,7 +344,7 @@ exports[`InputDropdown renders a filterable dropdown 1`] = `
     >
       
       <svg
-        class="css-124cf9y"
+        class="emotion-2"
         data-testid="icon"
         height="24px"
         viewBox="0 0 1024 1024"
@@ -107,16 +367,146 @@ exports[`InputDropdown renders a filterable dropdown 1`] = `
 `;
 
 exports[`InputDropdown renders fluid dropdown 1`] = `
+.emotion-0 {
+  position: relative;
+  width: 100%;
+}
+
+.emotion-0 input {
+  cursor: pointer;
+}
+
+.emotion-1 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 100%;
+}
+
+.emotion-1 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-1.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-1 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input.focused,
+.emotion-1 input:active,
+.emotion-1 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-1 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-1 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-1.error input,
+.emotion-1.error input.focused,
+.emotion-1.error input:active,
+.emotion-1.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-1.error .message {
+  color: #d01111;
+}
+
+.emotion-1 input {
+  padding-right: 36px;
+}
+
+.emotion-1 .input-icon {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 36px;
+  position: absolute;
+  right: 6px;
+}
+
+.emotion-2 {
+  fill: #d5d5d5;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
 <div
   aria-expanded="false"
   aria-haspopup="listbox"
   aria-labelledby="downshift-1-label"
-  class="css-1ri172k-input-dropdown denali-input-dropdown"
+  class="emotion-0 denali-input-dropdown"
   data-testid="input-dropdown"
   role="combobox"
 >
   <div
-    class="css-1u6oono-input denali-input animated"
+    class="emotion-1 denali-input animated"
     data-testid="input-wrapper"
   >
     <input
@@ -136,7 +526,7 @@ exports[`InputDropdown renders fluid dropdown 1`] = `
     >
       
       <svg
-        class="css-124cf9y"
+        class="emotion-2"
         data-testid="icon"
         height="24px"
         viewBox="0 0 1024 1024"
@@ -159,16 +549,146 @@ exports[`InputDropdown renders fluid dropdown 1`] = `
 `;
 
 exports[`InputDropdown renders initial (closed) state 1`] = `
+.emotion-0 {
+  position: relative;
+  width: ;
+}
+
+.emotion-0 input {
+  cursor: pointer;
+}
+
+.emotion-1 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 250px;
+}
+
+.emotion-1 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-1.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-1 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input.focused,
+.emotion-1 input:active,
+.emotion-1 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-1 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-1 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-1.error input,
+.emotion-1.error input.focused,
+.emotion-1.error input:active,
+.emotion-1.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-1.error .message {
+  color: #d01111;
+}
+
+.emotion-1 input {
+  padding-right: 36px;
+}
+
+.emotion-1 .input-icon {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 36px;
+  position: absolute;
+  right: 6px;
+}
+
+.emotion-2 {
+  fill: #d5d5d5;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
 <div
   aria-expanded="false"
   aria-haspopup="listbox"
   aria-labelledby="downshift-0-label"
-  class="css-9pg0wu-input-dropdown denali-input-dropdown"
+  class="emotion-0 denali-input-dropdown"
   data-testid="input-dropdown"
   role="combobox"
 >
   <div
-    class="css-1avh6g4-input denali-input animated"
+    class="emotion-1 denali-input animated"
     data-testid="input-wrapper"
   >
     <input
@@ -188,7 +708,7 @@ exports[`InputDropdown renders initial (closed) state 1`] = `
     >
       
       <svg
-        class="css-124cf9y"
+        class="emotion-2"
         data-testid="icon"
         height="24px"
         viewBox="0 0 1024 1024"
@@ -211,16 +731,140 @@ exports[`InputDropdown renders initial (closed) state 1`] = `
 `;
 
 exports[`InputDropdown renders searchable input 1`] = `
+.emotion-0 {
+  position: relative;
+  width: ;
+}
+
+.emotion-0 input {
+  cursor: inherit;
+}
+
+.emotion-1 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 250px;
+}
+
+.emotion-1 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-1.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-1 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-1 input.focused,
+.emotion-1 input:active,
+.emotion-1 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-1 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-1 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-1.error input,
+.emotion-1.error input.focused,
+.emotion-1.error input:active,
+.emotion-1.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-1.error .message {
+  color: #d01111;
+}
+
+.emotion-1 input {
+  padding-right: 36px;
+}
+
+.emotion-1 .input-icon {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 36px;
+  position: absolute;
+  right: 6px;
+}
+
 <div
   aria-expanded="false"
   aria-haspopup="listbox"
   aria-labelledby="downshift-14-label"
-  class="css-2fuzhm-input-dropdown denali-input-dropdown"
+  class="emotion-0 denali-input-dropdown"
   data-testid="input-dropdown"
   role="combobox"
 >
   <div
-    class="css-1avh6g4-input denali-input animated"
+    class="emotion-1 denali-input animated"
     data-testid="input-wrapper"
   >
     <input

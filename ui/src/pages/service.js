@@ -26,6 +26,8 @@ import ServiceList from '../components/service/ServiceList';
 import RequestUtils from '../components/utils/RequestUtils';
 import Tabs from '../components/header/Tabs';
 import Error from './_error';
+import createCache from '@emotion/cache';
+import { CacheProvider } from '@emotion/react';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -98,12 +100,17 @@ export default class ServicePage extends React.Component {
             _csrf: domains[4],
             pending: domains[5],
             pageConfig: domains[6],
+            nonce: props.req.headers.rid,
         };
     }
 
     constructor(props) {
         super(props);
         this.api = props.api || API();
+        this.cache = createCache({
+            key: 'athenz',
+            nonce: this.props.nonce,
+        });
     }
 
     render() {
@@ -116,53 +123,55 @@ export default class ServicePage extends React.Component {
             return <Error err={this.props.error} />;
         }
         return (
-            <div data-testid='service'>
-                <Head>
-                    <title>Athenz</title>
-                </Head>
-                <Header
-                    showSearch={true}
-                    headerDetails={this.props.headerDetails}
-                    pending={this.props.pending}
-                />
-                <MainContentDiv>
-                    <AppContainerDiv>
-                        <ServicesContainerDiv>
-                            <ServicesContentDiv>
-                                <PageHeaderDiv>
-                                    <TitleDiv>{domain}</TitleDiv>
-                                    <DomainDetails
-                                        domainDetails={domainDetails}
-                                        api={this.api}
-                                        _csrf={_csrf}
-                                        productMasterLink={
-                                            this.props.headerDetails
-                                                .productMasterLink
-                                        }
-                                    />
-                                    <Tabs
+            <CacheProvider value={this.cache}>
+                <div data-testid='service'>
+                    <Head>
+                        <title>Athenz</title>
+                    </Head>
+                    <Header
+                        showSearch={true}
+                        headerDetails={this.props.headerDetails}
+                        pending={this.props.pending}
+                    />
+                    <MainContentDiv>
+                        <AppContainerDiv>
+                            <ServicesContainerDiv>
+                                <ServicesContentDiv>
+                                    <PageHeaderDiv>
+                                        <TitleDiv>{domain}</TitleDiv>
+                                        <DomainDetails
+                                            domainDetails={domainDetails}
+                                            api={this.api}
+                                            _csrf={_csrf}
+                                            productMasterLink={
+                                                this.props.headerDetails
+                                                    .productMasterLink
+                                            }
+                                        />
+                                        <Tabs
+                                            api={this.api}
+                                            domain={domain}
+                                            selectedName={'services'}
+                                        />
+                                    </PageHeaderDiv>
+                                    <ServiceList
                                         api={this.api}
                                         domain={domain}
-                                        selectedName={'services'}
+                                        services={services}
+                                        _csrf={this.props._csrf}
+                                        pageConfig={this.props.pageConfig}
                                     />
-                                </PageHeaderDiv>
-                                <ServiceList
-                                    api={this.api}
-                                    domain={domain}
-                                    services={services}
-                                    _csrf={this.props._csrf}
-                                    pageConfig={this.props.pageConfig}
-                                />
-                            </ServicesContentDiv>
-                        </ServicesContainerDiv>
-                        <UserDomains
-                            domains={this.props.domains}
-                            api={this.api}
-                            domain={domain}
-                        />
-                    </AppContainerDiv>
-                </MainContentDiv>
-            </div>
+                                </ServicesContentDiv>
+                            </ServicesContainerDiv>
+                            <UserDomains
+                                domains={this.props.domains}
+                                api={this.api}
+                                domain={domain}
+                            />
+                        </AppContainerDiv>
+                    </MainContentDiv>
+                </div>
+            </CacheProvider>
         );
     }
 }

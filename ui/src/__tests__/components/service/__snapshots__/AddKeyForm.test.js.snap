@@ -1,21 +1,160 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AddKeyForm should render 1`] = `
+.emotion-0 {
+  -webkit-align-items: flex-start;
+  -webkit-box-align: flex-start;
+  -ms-flex-align: flex-start;
+  align-items: flex-start;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  padding: 10px 30px;
+}
+
+.emotion-2 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #303030;
+  line-height: 36px;
+  white-space: nowrap;
+}
+
+.emotion-3 {
+  -webkit-flex: 0 0 100px;
+  -ms-flex: 0 0 100px;
+  flex: 0 0 100px;
+  margin-right: 2%;
+}
+
+.emotion-5 {
+  -webkit-flex: 1 1;
+  -ms-flex: 1 1;
+  flex: 1 1;
+  margin-right: 10px;
+}
+
+.emotion-7 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 250px;
+}
+
+.emotion-7 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-7.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-7 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-7 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-7 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-7 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-7 input.focused,
+.emotion-7 input:active,
+.emotion-7 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-7 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-7 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-7.error input,
+.emotion-7.error input.focused,
+.emotion-7.error input:active,
+.emotion-7.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-7.error .message {
+  color: #d01111;
+}
+
+.emotion-8 {
+  width: 500px;
+}
+
 <div
-  class="css-y97ykc"
+  class="emotion-0 emotion-1"
   data-testid="add-key-id"
 >
   <label
-    class="css-fc0mv0-input-label denali-input-label css-9xcde0"
+    class="emotion-2 denali-input-label emotion-3 emotion-4"
     for="key-id"
   >
     Public Key Id
   </label>
   <div
-    class="css-1xqce5"
+    class="emotion-5 emotion-6"
   >
     <div
-      class="css-dqae60-input denali-input animated css-fvi5z5"
+      class="emotion-7 denali-input animated emotion-8 emotion-9"
       data-testid="input-wrapper"
     >
       <input
@@ -35,21 +174,154 @@ exports[`AddKeyForm should render 1`] = `
 `;
 
 exports[`AddKeyForm should render 2`] = `
+.emotion-0 {
+  -webkit-align-items: flex-start;
+  -webkit-box-align: flex-start;
+  -ms-flex-align: flex-start;
+  align-items: flex-start;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  padding: 10px 30px;
+}
+
+.emotion-2 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #303030;
+  line-height: 36px;
+  white-space: nowrap;
+}
+
+.emotion-3 {
+  -webkit-flex: 0 0 100px;
+  -ms-flex: 0 0 100px;
+  flex: 0 0 100px;
+  margin-right: 2%;
+}
+
+.emotion-5 {
+  -webkit-flex: 1 1;
+  -ms-flex: 1 1;
+  flex: 1 1;
+  margin-right: 10px;
+}
+
+.emotion-7 {
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: column nowrap;
+  -webkit-flex-flow: column nowrap;
+  -ms-flex-flow: column nowrap;
+  flex-flow: column nowrap;
+  position: relative;
+  width: 500px;
+}
+
+.emotion-7>textarea {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: auto;
+  line-height: 1.5;
+  margin: 0;
+  outline: none;
+  padding: 0.25em 0.75rem;
+  text-align: left;
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  width: auto;
+}
+
+.emotion-7>textarea::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-7>textarea::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-7>textarea:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-7>textarea::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-7>textarea:active,
+.emotion-7>textarea:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-7>textarea:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-7>textarea[disabled] {
+  background: rgba(48,48,48,0.05);
+  border-bottom: 2px solid rgba(48,48,48,0.05);
+  color: rgba(48,48,48,0.25);
+  cursor: not-allowed;
+}
+
+.emotion-7 .message {
+  font-size: 12px;
+  color: #303030;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-8>textarea {
+  resize: vertical;
+}
+
 <div
-  class="css-y97ykc"
+  class="emotion-0 emotion-1"
   data-testid="add-key-value"
 >
   <label
-    class="css-fc0mv0-input-label denali-input-label css-9xcde0"
+    class="emotion-2 denali-input-label emotion-3 emotion-4"
     for="key-value"
   >
     Key Value
   </label>
   <div
-    class="css-1xqce5"
+    class="emotion-5 emotion-6"
   >
     <div
-      class="css-1bg1ido-textarea denali-textarea css-6s8cn2"
+      class="emotion-7 denali-textarea emotion-8 emotion-9"
       data-testid="textarea-wrapper"
     >
       <textarea

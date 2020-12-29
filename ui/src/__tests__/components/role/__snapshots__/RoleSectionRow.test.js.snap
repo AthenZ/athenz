@@ -1,41 +1,100 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`RoleRow should render 1`] = `
+.emotion-0 {
+  background-color: ;
+}
+
+.emotion-2 {
+  background-color: #3570f40D;
+  text-align: left;
+  padding: 5px 0 5px 0;
+  vertical-align: middle;
+  word-break: break-all;
+  width: 29%;
+}
+
+.emotion-4 {
+  padding-left: 20px;
+}
+
+.emotion-6 {
+  background-color: #3570f40D;
+  text-align: left;
+  padding: 5px 0 5px 0;
+  vertical-align: middle;
+  word-break: break-all;
+  width: 17%;
+}
+
+.emotion-8 {
+  background-color: #3570f40D;
+  text-align: left;
+  padding: 5px 0 5px 0;
+  vertical-align: middle;
+  word-break: break-all;
+  width: 12%;
+}
+
+.emotion-10 {
+  background-color: #3570f40D;
+  text-align: center;
+  padding: 5px 0 5px 0;
+  vertical-align: middle;
+  word-break: break-all;
+  width: 9%;
+}
+
+.emotion-12 {
+  fill: #188fff;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+.emotion-22 {
+  background-color: #3570f40D;
+  text-align: center;
+  padding: 5px 0 5px 0;
+  vertical-align: middle;
+  word-break: break-all;
+  width: 6%;
+}
+
 <tr
-  class="css-1alnbxl"
+  class="emotion-0 emotion-1"
   data-testid="role-section-row"
 >
   <td
-    class="css-1oskl8u"
+    class="emotion-2 emotion-3"
     color="#3570f40D"
   >
     
     
     <span
-      class="css-1i8xq3z"
+      class="emotion-4 emotion-5"
     >
        ztssia_cert_rotate
     </span>
   </td>
   <td
-    class="css-1cdlqwk"
+    class="emotion-6 emotion-7"
     color="#3570f40D"
   >
     2017-08-03 18:44 UTC
   </td>
   <td
-    class="css-2q2d9l"
+    class="emotion-8 emotion-9"
     color="#3570f40D"
   >
     N/A
   </td>
   <td
-    class="css-4ihwwk"
+    class="emotion-10 emotion-11"
     color="#3570f40D"
   >
     <span>
       <svg
-        class="css-u87f64"
+        class="emotion-12"
         data-testid="icon"
         height="1.25em"
         viewBox="0 0 1024 1024"
@@ -57,12 +116,12 @@ exports[`RoleRow should render 1`] = `
     </span>
   </td>
   <td
-    class="css-4ihwwk"
+    class="emotion-10 emotion-11"
     color="#3570f40D"
   >
     <span>
       <svg
-        class="css-u87f64"
+        class="emotion-12"
         data-testid="icon"
         height="1.25em"
         viewBox="0 0 1024 1024"
@@ -84,12 +143,12 @@ exports[`RoleRow should render 1`] = `
     </span>
   </td>
   <td
-    class="css-4ihwwk"
+    class="emotion-10 emotion-11"
     color="#3570f40D"
   >
     <span>
       <svg
-        class="css-u87f64"
+        class="emotion-12"
         data-testid="icon"
         height="1.25em"
         viewBox="0 0 1024 1024"
@@ -105,12 +164,12 @@ exports[`RoleRow should render 1`] = `
     </span>
   </td>
   <td
-    class="css-4ihwwk"
+    class="emotion-10 emotion-11"
     color="#3570f40D"
   >
     <span>
       <svg
-        class="css-u87f64"
+        class="emotion-12"
         data-testid="icon"
         height="1.25em"
         viewBox="0 0 1024 1024"
@@ -129,12 +188,12 @@ exports[`RoleRow should render 1`] = `
     </span>
   </td>
   <td
-    class="css-ksxoop"
+    class="emotion-22 emotion-23"
     color="#3570f40D"
   >
     <span>
       <svg
-        class="css-u87f64"
+        class="emotion-12"
         data-testid="icon"
         height="1.25em"
         viewBox="0 0 1024 1024"

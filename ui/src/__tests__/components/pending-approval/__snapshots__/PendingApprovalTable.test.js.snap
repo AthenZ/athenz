@@ -1,8 +1,366 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`PendingApprovalTable should render 1`] = `
+.emotion-0 {
+  margin-top: 20px;
+  width: 100%;
+  border-spacing: 0;
+}
+
+.emotion-2 {
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  padding-bottom: 5px;
+  vertical-align: middle;
+  text-transform: uppercase;
+  text-align: center;
+  border-right: none;
+  padding: 5px 0 5px 15px;
+  width: 1%;
+}
+
+.emotion-4 {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  display: inline-block;
+  height: 16px;
+  line-height: 16px;
+  margin: 3px;
+  outline: 0;
+  position: relative;
+  vertical-align: middle;
+}
+
+.emotion-4>input[type='checkbox'] {
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  position: absolute;
+  top: 0;
+  visibility: hidden;
+}
+
+.emotion-4>input[type='checkbox']+label {
+  box-sizing: border-box;
+  cursor: pointer;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  height: 16px;
+  line-height: 16px;
+  padding: 0 10px 0 0;
+  vertical-align: bottom;
+  white-space: nowrap;
+}
+
+.emotion-4>input[type='checkbox']+label:before {
+  background: #fff;
+  border: 2px solid rgba(54,151,242,0.5);
+  border-radius: 2px;
+  box-sizing: border-box;
+  content: '';
+  cursor: pointer;
+  display: inline-block;
+  height: 16px;
+  line-height: 16px;
+  margin: 0px 3px -3px 0px;
+  -webkit-transition: all 0.25s ease-in;
+  transition: all 0.25s ease-in;
+  width: 16px;
+}
+
+.emotion-4>input[type='checkbox']:hover+label:before {
+  border: 2px solid #3697f2;
+}
+
+.emotion-4>input[type='checkbox']:focus+label:before {
+  border: 2px solid rgba(54,151,242,0.5);
+}
+
+.emotion-4>input[type='checkbox'][data-partial='true']+label:before,
+.emotion-4>input[type='checkbox']:checked+label:before {
+  border: 2px solid #3697f2;
+}
+
+.emotion-4>input[type='checkbox']:disabled+label {
+  color: #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-4>input[type='checkbox']:disabled+label:before {
+  border: 2px solid #d5d5d5;
+}
+
+.emotion-4>input[type='checkbox']:checked:not([data-partial='true'])+label:before {
+  background: #3697f2;
+}
+
+.emotion-4>input[type='checkbox'][data-partial='true']+label:after {
+  border: solid #3697f2;
+  border-width: 2px 0 0 0;
+  box-sizing: border-box;
+  content: '';
+  cursor: pointer;
+  height: 16px;
+  line-height: 16px;
+  left: 4px;
+  opacity: 1;
+  position: absolute;
+  top: 7px;
+  width: 8px;
+}
+
+.emotion-4>input[type='checkbox']:checked:not([data-partial='true'])+label:after {
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  box-sizing: border-box;
+  content: '';
+  cursor: pointer;
+  display: block;
+  height: 9px;
+  line-height: 16px;
+  left: 6px;
+  opacity: 1;
+  position: absolute;
+  top: 3px;
+  -webkit-transform: rotate(45deg);
+  -moz-transform: rotate(45deg);
+  -ms-transform: rotate(45deg);
+  transform: rotate(45deg);
+  width: 4.5px;
+}
+
+.emotion-5 {
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.7rem;
+  padding-bottom: 5px;
+  vertical-align: middle;
+  text-transform: uppercase;
+  padding: 5px 0 5px 0px;
+  text-align: left;
+}
+
+.emotion-7 {
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.7rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  text-align: left;
+}
+
+.emotion-17 {
+  border-bottom: 2px solid #d5d5d5;
+  font-weight: 600;
+  font-size: 0.7rem;
+  padding-bottom: 5px;
+  vertical-align: bottom;
+  padding: 5px 0 5px 15px;
+  text-align: left;
+}
+
+.emotion-19 {
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: column nowrap;
+  -webkit-flex-flow: column nowrap;
+  -ms-flex-flow: column nowrap;
+  flex-flow: column nowrap;
+  position: relative;
+  width: 100%;
+}
+
+.emotion-19>textarea {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 37px;
+  line-height: 1.5;
+  margin: 0;
+  outline: none;
+  padding: 0.25em 0.75rem;
+  text-align: left;
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  width: auto;
+}
+
+.emotion-19>textarea::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-19>textarea::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-19>textarea:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-19>textarea::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-19>textarea:active,
+.emotion-19>textarea:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-19>textarea:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-19>textarea[disabled] {
+  background: rgba(48,48,48,0.05);
+  border-bottom: 2px solid rgba(48,48,48,0.05);
+  color: rgba(48,48,48,0.25);
+  cursor: not-allowed;
+}
+
+.emotion-19 .message {
+  font-size: 12px;
+  color: #303030;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-20>textarea {
+  resize: vertical;
+}
+
+.emotion-24>div input {
+  position: relative;
+  font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
+  background-color: #d5d5d5;
+  box-shadow: none;
+  color: rgb(48, 48, 48);
+  height: 16px;
+  min-width: 50px;
+  text-align: left;
+  border-width: 2px;
+  border-style: solid;
+  border-color: transparent;
+  border-image: initial;
+  border-radius: 2px;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  margin: 0px;
+  margin-top: 5px;
+  outline: none;
+  padding: 0.6em 12px;
+  -webkit-transition: background-color 0.2s ease-in-out 0s,color 0.2s ease-in-out 0s,border 0.2s ease-in-out 0s;
+  transition: background-color 0.2s ease-in-out 0s,color 0.2s ease-in-out 0s,border 0.2s ease-in-out 0s;
+  width: 75%;
+}
+
+.emotion-26 {
+  fill: #188fff;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+.emotion-27 {
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  padding-bottom: 5px;
+  vertical-align: middle;
+  text-transform: uppercase;
+  text-align: center;
+  padding: 5px 0 5px 15px;
+}
+
+.emotion-29 {
+  fill: #d5d5d5;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+.emotion-30 {
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  padding-bottom: 5px;
+  vertical-align: middle;
+  text-transform: uppercase;
+  text-align: center;
+  border-right: none;
+  padding: 5px 0 5px 15px;
+}
+
+.emotion-35 {
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.7rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 0px;
+  text-align: left;
+}
+
+.emotion-51 {
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.7rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  text-align: center;
+  padding: 5px 0 5px 15px;
+}
+
+.emotion-53 {
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.7rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  text-align: center;
+  border-right: none;
+  padding: 5px 0 5px 15px;
+}
+
 <table
-  class="css-1l579dz"
+  class="emotion-0 emotion-1"
   data-testid="pending-approval-table"
 >
   <thead>
@@ -10,10 +368,10 @@ exports[`PendingApprovalTable should render 1`] = `
       data-testid="pending-approval-table-header"
     >
       <th
-        class="css-1mg9r70"
+        class="emotion-2 emotion-3"
       >
         <div
-          class="css-1xv7yfr-checkbox denali-checkbox"
+          class="emotion-4 denali-checkbox"
           data-testid="checkbox-wrapper"
         >
           <input
@@ -28,33 +386,33 @@ exports[`PendingApprovalTable should render 1`] = `
         </div>
       </th>
       <th
-        class="css-vqd6b8"
+        class="emotion-5 emotion-6"
       >
         <div>
            Select All 
         </div>
       </th>
       <th
-        class="css-1blnpd1"
+        class="emotion-7 emotion-8"
       />
       <th
-        class="css-1blnpd1"
+        class="emotion-7 emotion-8"
       />
       <th
-        class="css-1blnpd1"
+        class="emotion-7 emotion-8"
         colspan="2"
       />
       <th
-        class="css-1blnpd1"
+        class="emotion-7 emotion-8"
       />
       <th
-        class="css-1blnpd1"
+        class="emotion-7 emotion-8"
       />
       <th
-        class="css-bfjavh"
+        class="emotion-17 emotion-18"
       >
         <div
-          class="css-3xmu33-textarea denali-textarea css-6s8cn2"
+          class="emotion-19 denali-textarea emotion-20 emotion-21"
           data-testid="textarea-wrapper"
         >
           <textarea
@@ -66,10 +424,10 @@ exports[`PendingApprovalTable should render 1`] = `
         </div>
       </th>
       <th
-        class="css-bfjavh"
+        class="emotion-17 emotion-18"
       >
         <div
-          class="css-tku2aw"
+          class="emotion-24 emotion-25"
           disabled=""
         >
           <div
@@ -94,7 +452,7 @@ exports[`PendingApprovalTable should render 1`] = `
               data-clear=""
             >
               <svg
-                class="css-u87f64"
+                class="emotion-26"
                 data-testid="icon"
                 height="1.25em"
                 viewBox="0 0 1024 1024"
@@ -112,10 +470,10 @@ exports[`PendingApprovalTable should render 1`] = `
         </div>
       </th>
       <th
-        class="css-ovlzmn"
+        class="emotion-27 emotion-28"
       >
         <svg
-          class="css-124cf9y"
+          class="emotion-29"
           data-testid="icon"
           height="1.25em"
           viewBox="0 0 1024 1024"
@@ -133,10 +491,10 @@ exports[`PendingApprovalTable should render 1`] = `
         </svg>
       </th>
       <th
-        class="css-10o0jyb"
+        class="emotion-30 emotion-31"
       >
         <svg
-          class="css-124cf9y"
+          class="emotion-29"
           data-testid="icon"
           height="1.25em"
           viewBox="0 0 1024 1024"
@@ -153,56 +511,56 @@ exports[`PendingApprovalTable should render 1`] = `
     </tr>
     <tr>
       <th
-        class="css-1blnpd1"
+        class="emotion-7 emotion-34"
       />
       <th
-        class="css-1tca1n5"
+        class="emotion-35 emotion-36"
       >
         Domain
       </th>
       <th
-        class="css-1blnpd1"
+        class="emotion-7 emotion-34"
       >
         Role
       </th>
       <th
-        class="css-1blnpd1"
+        class="emotion-7 emotion-34"
       >
         User
       </th>
       <th
-        class="css-1blnpd1"
+        class="emotion-7 emotion-34"
         colspan="2"
       >
         User Comment
       </th>
       <th
-        class="css-1blnpd1"
+        class="emotion-7 emotion-34"
       >
         Requester
       </th>
       <th
-        class="css-1blnpd1"
+        class="emotion-7 emotion-34"
       >
         Request Time
       </th>
       <th
-        class="css-1blnpd1"
+        class="emotion-7 emotion-34"
       >
         Audit Reference
       </th>
       <th
-        class="css-1blnpd1"
+        class="emotion-7 emotion-34"
       >
         Expiration Date
       </th>
       <th
-        class="css-1ypliyj"
+        class="emotion-51 emotion-52"
       >
         Approve
       </th>
       <th
-        class="css-6cnd1t"
+        class="emotion-53 emotion-54"
       >
         Reject
       </th>

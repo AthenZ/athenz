@@ -1,12 +1,20 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`RoleList should render 1`] = `
+.emotion-0 {
+  width: 100%;
+  border-spacing: 0;
+  display: table;
+  border-collapse: separate;
+  border-color: grey;
+}
+
 <td
   colspan="3"
   data-testid="roleusertable"
 >
   <table
-    class="css-pg3j7d"
+    class="emotion-0 emotion-1"
   />
 </td>
 `;

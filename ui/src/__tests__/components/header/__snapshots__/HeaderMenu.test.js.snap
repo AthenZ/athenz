@@ -1,12 +1,29 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`HeaderMenu should render 1`] = `
+.emotion-0 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+}
+
+.emotion-2 {
+  fill: #fff;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+.emotion-3 {
+  margin-left: 15px;
+}
+
 <div
-  class="css-1mzzuk6"
+  class="emotion-0 emotion-1"
   data-testid="header-menu"
 >
   <svg
-    class="css-hjh1m6"
+    class="emotion-2"
     data-testid="icon"
     height="25px"
     viewBox="0 0 1024 1024"
@@ -20,10 +37,10 @@ exports[`HeaderMenu should render 1`] = `
     />
   </svg>
   <div
-    class="css-11kem00"
+    class="emotion-3 emotion-4"
   >
     <svg
-      class="css-hjh1m6"
+      class="emotion-2"
       data-testid="icon"
       height="25px"
       viewBox="0 0 1024 1024"

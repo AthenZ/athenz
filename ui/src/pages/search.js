@@ -27,6 +27,8 @@ import { colors } from '../components/denali/styles';
 import Icon from '../components/denali/icons/Icon';
 import RequestUtils from '../components/utils/RequestUtils';
 import Error from './_error';
+import createCache from '@emotion/cache';
+import { CacheProvider } from '@emotion/react';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -127,6 +129,7 @@ class PageSearchDetails extends React.Component {
             headerDetails: values[2],
             error,
             reload,
+            nonce: props.req.headers.rid,
         };
     }
 
@@ -139,6 +142,10 @@ class PageSearchDetails extends React.Component {
             type: props.type,
             domain: props.domain,
         };
+        this.cache = createCache({
+            key: 'athenz',
+            nonce: this.props.nonce,
+        });
     }
 
     componentDidUpdate = (prevProps) => {
@@ -230,25 +237,27 @@ class PageSearchDetails extends React.Component {
             displayDomainResults = this.displayDomainResults();
         }
         return (
-            <div data-testid='search'>
-                <Head>
-                    <title>{this.state.domain} - Athenz</title>
-                </Head>
-                <Header
-                    showSearch={true}
-                    headerDetails={this.props.headerDetails}
-                    searchData={this.props.domain}
-                />
-                <MainContentDiv>
-                    <AppContainerDiv>
-                        {displayDomainResults}
-                        <UserDomains
-                            domains={this.state.domains}
-                            api={this.api}
-                        />
-                    </AppContainerDiv>
-                </MainContentDiv>
-            </div>
+            <CacheProvider value={this.cache}>
+                <div data-testid='search'>
+                    <Head>
+                        <title>{this.state.domain} - Athenz</title>
+                    </Head>
+                    <Header
+                        showSearch={true}
+                        headerDetails={this.props.headerDetails}
+                        searchData={this.props.domain}
+                    />
+                    <MainContentDiv>
+                        <AppContainerDiv>
+                            {displayDomainResults}
+                            <UserDomains
+                                domains={this.state.domains}
+                                api={this.api}
+                            />
+                        </AppContainerDiv>
+                    </MainContentDiv>
+                </div>
+            </CacheProvider>
         );
     }
 }

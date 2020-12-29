@@ -1,8 +1,14 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`DeleteModal should render 1`] = `
+.emotion-0 {
+  text-align: center;
+  font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
+  padding-bottom: 15px;
+}
+
 <div
-  class="css-1j49gd8"
+  class="emotion-0 emotion-1"
   data-testid="delete-modal-message"
 >
   test
@@ -14,8 +20,14 @@ exports[`DeleteModal should render 1`] = `
 `;
 
 exports[`DeleteModal should render with Domain input field 1`] = `
+.emotion-0 {
+  text-align: center;
+  font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
+  padding-bottom: 15px;
+}
+
 <div
-  class="css-1j49gd8"
+  class="emotion-0 emotion-1"
   data-testid="delete-modal-message"
 >
   test
