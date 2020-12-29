@@ -1,0 +1,218 @@
+## Global Docker image parameters
+## Please, note that this will override the image parameters, including dependencies, configured to use the global value
+## Current available global Docker image parameters: imageRegistry and imagePullSecrets
+##
+# global:
+#   imageRegistry: myRegistryName
+#   imagePullSecrets:
+#     - name: myRegistryKeySecretName
+
+## Athenz ZMS image version
+## ref: https://hub.docker.com/r/athenz/athenz-zms-server/tags
+##
+image:
+  registry: docker.io
+  repository: "athenz/athenz-zms-server"
+  tag: latest
+  ## Init. container image for creating keystore/truststore
+  ## Setting `existingTLSStoreSecret` will skip the init. containers
+  ##
+  setup:
+    repository: "athenz/athenz-setup-env"
+    tag: latest
+  ## Specify a imagePullPolicy
+  ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
+  ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
+  ##
+  pullPolicy: IfNotPresent
+  ## Optionally specify an array of imagePullSecrets.
+  ## Secrets must be manually created in the namespace.
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+  ##
+  # pullSecrets:
+  #   - name: myRegistryKeySecretName
+
+## Athenz ZMS passwords
+##
+password:
+  ## MySQL password
+  ##
+  jdbc: ""
+  ## MySQL (read-only) password
+  ##
+  jdbcRo: ""
+  ## Key store password (auto-generated if not set)
+  ##
+  # keystore: ""
+  ## Trust store password (auto-generated if not set)
+  ##
+  # truststore: ""
+
+## Athenz ZMS configuration files
+##
+files:
+  ## ZMS private key path
+  ##
+  zmsKey: "files/secrets/zms_private.pem"
+  tls:
+    ## ZMS server certificate path
+    ##
+    crt: "files/secrets/tls/zms_cert.pem"
+    ## ZMS server certificate private key path
+    ##
+    key: "files/secrets/tls/zms_key.pem"
+    ## ZMS trusted CA certificate paths
+    ##
+    ca:
+      - "files/secrets/tls/CAs/athenz_ca.pem"
+      - "files/secrets/tls/CAs/service_ca.pem"
+      - "files/secrets/tls/CAs/user_ca.pem"
+  ## ZMS config file path (wildcard)
+  ##
+  conf: "files/conf/*"
+
+## Use existing secret for password, keys: `zms_private.pem`, `jdbc`, `jdbcRo`, `keystore`, `truststore`
+##
+existingSecret: ""
+## Use existing secret for TLS certificate, keys: `tls.crt`, `tls.key`
+##
+existingTLSSecret: ""
+## Use existing secret as trusted certificates (all items will be added to the trust store)
+##
+existingTLSCASecret: ""
+
+## Use existing secret for key store & trust store, keys: `zms_keystore.pkcs12`, `zms_truststore.jks`
+## Will ignore values set in existingTLSSecret and existingTLSCASecret
+##
+existingTLSStoreSecret: ""
+
+## Service account of the deployment
+##
+serviceAccountName: ""
+## Number of ZMS Pods to run
+##
+replicaCount: 1
+
+## Set up update strategy for ZMS installation.
+## ref: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy
+## Example:
+## updateStrategy:
+##  type: RollingUpdate
+##  rollingUpdate:
+##    maxSurge: 25%
+##    maxUnavailable: 25%
+updateStrategy:
+  type: RollingUpdate
+
+## Use an alternate scheduler, e.g. "stork".
+## ref: https://kubernetes.io/docs/tasks/administer-cluster/configure-multiple-schedulers/
+##
+# schedulerName:
+
+## Pod annotations
+## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+##
+podAnnotations: {}
+
+## Affinity for pod assignment
+## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+##
+affinity: {}
+
+## Node labels for pod assignment. Evaluated as a template.
+## ref: https://kubernetes.io/docs/user-guide/node-selection/
+##
+nodeSelector: {}
+
+## Tolerations for pod assignment. Evaluated as a template.
+## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+##
+tolerations: []
+
+## K8s Security Context for ZMS pods
+## https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+##
+securityContext:
+  enabled: true
+  fsGroup: 1001
+  runAsGroup: 1001
+  runAsUser: 10001
+
+## ZMS pod extra options for liveness and readiness probes
+## ref: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#container-probes
+##
+livenessProbe:
+  initialDelaySeconds: 60
+  periodSeconds: 10
+  timeoutSeconds: 1
+  failureThreshold: 5
+  successThreshold: 1
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 60
+  periodSeconds: 10
+  timeoutSeconds: 1
+  failureThreshold: 2
+  successThreshold: 1
+
+## ZMS containers' resource requests and limits
+## The default values are for alpha env.
+## ref: http://kubernetes.io/docs/user-guide/compute-resources/
+##
+resources:
+  limits: {}
+  requests:
+    memory: 4096Mi
+    cpu: 500m
+
+## ZMS service configuration
+## For minikube, set this to NodePort, elsewhere use LoadBalancer or ClusterIP
+## ZMS requires mTLS for authentication. Direct TCP forwarding is preferred in ingress or load balancer.
+##
+service:
+  annotations: {}
+  port: 4443
+
+  # type: cluster
+  # clusterIP: ""
+
+  ## List of IP addresses at which the controller services are available
+  ## Ref: https://kubernetes.io/docs/user-guide/services/#external-ips
+  ##
+  externalIPs: []
+
+  # loadBalancerIP: ""
+  # loadBalancerSourceRanges: []
+
+  ## Set external traffic policy to: "Local" to preserve source IP
+  ## Ref: https://kubernetes.io/docs/tutorials/services/source-ip/#source-ip-for-services-with-typeloadbalancer
+  ##
+  # externalTrafficPolicy: ""
+
+  ## Must be either "None" or "ClientIP" if set. Kubernetes will default to "None".
+  ## Ref: https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies
+  ##
+  # sessionAffinity: ""
+
+  # Specifies the health check node port (numeric port number) for the service. If healthCheckNodePort isn’t specified,
+  # the service controller allocates a port from your cluster’s NodePort range.
+  # Ref: https://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip
+  ##
+  # healthCheckNodePort: 0
+
+  type: LoadBalancer
+
+  # type: NodePort
+  # nodePort: 0
+
+## Additional init. containers that run after default init. containers
+##
+# extraInitContainers: |
+
+## Additional sidecars
+##
+# sidecarContainers: |
+
+## Prometheus Metrics
+## ZMS has built-in support of prometheus.
+## Annotation will be injected automatically when the related properties are set in the config files.

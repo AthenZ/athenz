@@ -1,0 +1,131 @@
+image:
+  registry: your-registry
+  repository: athenz/athenz-zts-server
+  tag: '1.9.27'
+  setup:
+    repository: athenz/athenz-setup-env
+    tag: '1.9.27'
+
+# password:
+  # jdbc: "mariadbmariadb"
+  # keystore: "athenz"
+  # truststore: "athenz"
+  # signerKeystore: "athenz"
+  # signerTruststore: "athenz"
+  # zmsClientKeystore: "athenz"
+  # zmsClientTruststore: "athenz"
+
+# files:
+#   ztsKey: "files/secrets/zts_private.pem"
+#   tls:
+#     crt: "files/secrets/tls/zts_cert.pem"
+#     key: "files/secrets/tls/zts_key.pem"
+#     ca:
+#       - "files/secrets/tls/CAs/athenz_ca.pem"
+#       - "files/secrets/tls/CAs/service_ca.pem"
+#       - "files/secrets/tls/CAs/user_ca.pem"
+#   signer:
+#     crt: "files/secrets/signer/zts_signer_cert.pem"
+#     key: "files/secrets/signer/zts_signer_key.pem"
+#     ca:
+#       - "files/secrets/tls/CAs/athenz_ca.pem"
+#   zmsClient:
+#     crt: "files/secrets/zms-client/zms_client_cert_bundle.pem"
+#     key: "files/secrets/zms-client/zms_client_key.pem"
+#     ca:
+#       - "files/secrets/tls/CAs/athenz_ca.pem"
+#   conf: "files/conf/*"
+
+replicaCount: 1
+resources:
+  limits: {}
+  requests:
+    memory: 2048Mi
+    cpu: 250m
+
+service:
+  annotations: {}
+  nodePort: 30008
+
+extraInitContainers: |
+  - name: tls-echo
+    image: {{ template "athenz-zts.setup.image" . }}
+    imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+    env:
+      - name: ZTS_DB_ADMIN_PASS
+        valueFrom:
+          secretKeyRef:
+            name: {{ template "athenz-zts.secretName" . }}
+            key: jdbc
+      - name: ZTS_KEYSTORE_PASS
+        valueFrom:
+          secretKeyRef:
+            name: {{ template "athenz-zts.secretName" . }}
+            key: keystore
+      - name: ZTS_TRUSTSTORE_PASS
+        valueFrom:
+          secretKeyRef:
+            name: {{ template "athenz-zts.secretName" . }}
+            key: truststore
+      - name: ZTS_SIGNER_KEYSTORE_PASS
+        valueFrom:
+          secretKeyRef:
+            name: {{ template "athenz-zts.secretName" . }}
+            key: signerKeystore
+      - name: ZTS_SIGNER_TRUSTSTORE_PASS
+        valueFrom:
+          secretKeyRef:
+            name: {{ template "athenz-zts.secretName" . }}
+            key: signerTruststore
+      - name: ZMS_CLIENT_KEYSTORE_PASS
+        valueFrom:
+          secretKeyRef:
+            name: {{ template "athenz-zts.secretName" . }}
+            key: zmsClientKeystore
+      - name: ZMS_CLIENT_TRUSTSTORE_PASS
+        valueFrom:
+          secretKeyRef:
+            name: {{ template "athenz-zts.secretName" . }}
+            key: zmsClientTruststore
+      - name: ZTS_KEYSTORE_PATH
+        value: /opt/athenz/zts/var/certs/zts_keystore.pkcs12
+      - name: ZTS_TRUSTSTORE_PATH
+        value: /opt/athenz/zts/var/certs/zts_truststore.jks
+      - name: ZTS_SIGNER_KEYSTORE_PATH
+        value: /opt/athenz/zts/var/certs/zts_signer_keystore.pkcs12
+      - name: ZTS_SIGNER_TRUSTSTORE_PATH
+        value: /opt/athenz/zts/var/certs/zts_signer_truststore.jks
+      - name: ZMS_CLIENT_KEYSTORE_PATH
+        value: /opt/athenz/zts/var/certs/zms_client_keystore.pkcs12
+      - name: ZMS_CLIENT_TRUSTSTORE_PATH
+        value: /opt/athenz/zts/var/certs/zms_client_truststore.jks
+    command:
+      - "/bin/sh"
+      - "-c"
+      - >-
+        keytool -list -storepass "${ZTS_KEYSTORE_PASS}" -keystore "${ZTS_KEYSTORE_PATH}"; keytool -list -storepass "${ZTS_TRUSTSTORE_PASS}" -keystore "${ZTS_TRUSTSTORE_PATH}"; keytool -list -storepass "${ZTS_SIGNER_KEYSTORE_PASS}" -keystore "${ZTS_SIGNER_KEYSTORE_PATH}"; keytool -list -storepass "${ZTS_SIGNER_TRUSTSTORE_PASS}" -keystore "${ZTS_SIGNER_TRUSTSTORE_PATH}"; keytool -list -storepass "${ZMS_CLIENT_KEYSTORE_PASS}" -keystore "${ZMS_CLIENT_KEYSTORE_PATH}"; keytool -list -storepass "${ZMS_CLIENT_TRUSTSTORE_PASS}" -keystore "${ZMS_CLIENT_TRUSTSTORE_PATH}";
+    volumeMounts:
+      - name: tls-stores
+        mountPath: /opt/athenz/zts/var/certs/zts_keystore.pkcs12
+        subPath: zts_keystore.pkcs12
+        readOnly: true
+      - name: tls-stores
+        mountPath: /opt/athenz/zts/var/certs/zts_truststore.jks
+        subPath: zts_truststore.jks
+        readOnly: true
+      - name: signer-mtls-stores
+        mountPath: /opt/athenz/zts/var/certs/zts_signer_keystore.pkcs12
+        subPath: zts_signer_keystore.pkcs12
+        readOnly: true
+      - name: signer-mtls-stores
+        mountPath: /opt/athenz/zts/var/certs/zts_signer_truststore.jks
+        subPath: zts_signer_truststore.jks
+        readOnly: true
+      - name: zms-client-mtls-stores
+        mountPath: /opt/athenz/zts/var/certs/zms_client_keystore.pkcs12
+        subPath: zms_client_keystore.pkcs12
+        readOnly: true
+      - name: zms-client-mtls-stores
+        mountPath: /opt/athenz/zts/var/certs/zms_client_truststore.jks
+        subPath: zms_client_truststore.jks
+        readOnly: true

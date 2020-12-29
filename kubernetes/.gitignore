@@ -1,0 +1,4 @@
+**/*.jks
+**/*.pem
+**/*.pkcs12
+**/athenz_conf.json

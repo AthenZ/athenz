@@ -1,0 +1,63 @@
+image:
+  registry: your-registry
+  repository: athenz/athenz-zms-server
+  tag: '1.9.27'
+  setup:
+    repository: athenz/athenz-setup-env
+    tag: '1.9.27'
+
+# password:
+  # jdbc: "mariadbmariadb"
+  # jdbcRo: "mariadbmariadb"
+  # keystore: "athenz"
+  # truststore: "athenz"
+
+# files:
+#   zmsKey: "files/secrets/zms_private.pem"
+#   tls:
+#     crt: "files/secrets/tls/zms_cert.pem"
+#     key: "files/secrets/tls/zms_key.pem"
+#     ca:
+#       - "files/secrets/tls/CAs/athenz_ca.pem"
+#       - "files/secrets/tls/CAs/service_ca.pem"
+#       - "files/secrets/tls/CAs/user_ca.pem"
+#   conf: "files/conf/*"
+
+replicaCount: 1
+resources:
+  limits: {}
+  requests:
+    memory: 2048Mi
+    cpu: 250m
+
+service:
+  annotations: {}
+  nodePort: 30007
+
+extraInitContainers: |
+  - name: tls-echo
+    image: {{ template "athenz-zms.setup.image" . }}
+    imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+    env:
+      - name: ZMS_KEYSTORE_PATH
+        value: /opt/athenz/zms/var/certs/zms_keystore.pkcs12
+      - name: ZMS_KEYSTORE_PASS
+        valueFrom:
+          secretKeyRef:
+            name: {{ template "athenz-zms.secretName" . }}
+            key: keystore
+      - name: ZMS_TRUSTSTORE_PATH
+        value: /opt/athenz/zms/var/certs/zms_truststore.jks
+      - name: ZMS_TRUSTSTORE_PASS
+        valueFrom:
+          secretKeyRef:
+            name: {{ template "athenz-zms.secretName" . }}
+            key: truststore
+    command:
+      - "/bin/sh"
+      - "-c"
+      - >-
+        keytool -list -storepass "${ZMS_KEYSTORE_PASS}" -keystore "${ZMS_KEYSTORE_PATH}"; keytool -list -storepass "${ZMS_TRUSTSTORE_PASS}" -keystore "${ZMS_TRUSTSTORE_PATH}"
+    volumeMounts:
+      - name: tls-stores
+        mountPath: /opt/athenz/zms/var/certs

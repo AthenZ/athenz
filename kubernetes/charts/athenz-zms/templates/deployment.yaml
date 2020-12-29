@@ -1,0 +1,217 @@
+{{- $metricsPort := (include "athenz-zms.metrics.port" .) }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "athenz-zms.fullname" . }}
+  labels:
+    app: "{{ template "athenz-zms.name" . }}"
+    chart: "{{ template "athenz-zms.chart" . }}"
+    release: {{ .Release.Name | quote }}
+    heritage: {{ .Release.Service | quote }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ template "athenz-zms.name" . }}
+      release: {{ .Release.Name | quote }}
+  {{- if .Values.updateStrategy }}
+  strategy: {{ toYaml .Values.updateStrategy | nindent 4 }}
+  {{- end }}
+  {{- if .Values.serviceAccountName }}
+  serviceAccountName: {{ .Values.serviceAccountName }}
+  {{- end }}
+  replicas: {{ .Values.replicaCount }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "athenz-zms.name" . }}
+        chart: {{ template "athenz-zms.chart" . }}
+        release: {{ .Release.Name | quote }}
+      {{- if or .Values.podAnnotations $metricsPort }}
+      annotations:
+        {{- if .Values.podAnnotations }}
+        {{- toYaml .Values.podAnnotations | nindent 8 }}
+        {{- end }}
+        {{- if $metricsPort }}
+        prometheus.io/scrape: "true"
+        prometheus.io/port: {{ $metricsPort | quote }}
+        {{- end }}
+      {{- end }}
+    spec:
+{{- include "athenz-zms.imagePullSecrets" . | indent 6 }}
+      {{- if .Values.schedulerName }}
+      schedulerName: {{ .Values.schedulerName | quote }}
+      {{- end }}
+      {{- if .Values.affinity }}
+      affinity: {{ toYaml .Values.affinity | nindent 8 }}
+      {{- end }}
+      {{- if .Values.nodeSelector }}
+      nodeSelector: {{ toYaml .Values.nodeSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.tolerations }}
+      tolerations: {{ toYaml .Values.tolerations | nindent 8 }}
+      {{- end }}
+      {{- if .Values.securityContext.enabled }}
+      securityContext:
+        fsGroup: {{ .Values.securityContext.fsGroup }}
+        runAsGroup:  {{ .Values.securityContext.runAsGroup }}
+        runAsUser: {{ .Values.securityContext.runAsUser }}
+      {{- end }}
+
+      initContainers:
+        {{- if not .Values.existingTLSStoreSecret }}
+        - name: tls-keystore
+          image: {{ template "athenz-zms.setup.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+          env:
+            - name: ZMS_KEYSTORE_PATH
+              value: /opt/athenz/zms/var/certs/zms_keystore.pkcs12
+            - name: ZMS_KEYSTORE_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "athenz-zms.secretName" . }}
+                  key: keystore
+            - name: ZMS_CERT_PATH
+              value: /opt/athenz/zms/var/tls/tls.crt
+            - name: ZMS_CERT_KEY_PATH
+              value: /opt/athenz/zms/var/tls/tls.key
+          command:
+            - "/bin/sh"
+            - "-c"
+            - >-
+              openssl pkcs12 -export -noiter -nomaciter -out "${ZMS_KEYSTORE_PATH}" -passout "pass:${ZMS_KEYSTORE_PASS}" -in "${ZMS_CERT_PATH}" -inkey "${ZMS_CERT_KEY_PATH}"
+          volumeMounts:
+            - name: tls
+              mountPath: /opt/athenz/zms/var/tls
+            - name: tls-stores
+              mountPath: /opt/athenz/zms/var/certs
+        - name: tls-truststore
+          image: {{ template "athenz-zms.setup.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+          env:
+            - name: ZMS_TRUSTSTORE_PATH
+              value: /opt/athenz/zms/var/certs/zms_truststore.jks
+            - name: ZMS_TRUSTSTORE_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "athenz-zms.secretName" . }}
+                  key: truststore
+          command:
+            - "/bin/sh"
+            - "-c"
+            - >-
+              for ca in /opt/athenz/zms/var/tls/CAs/*.pem; do openssl x509 -outform pem -in "${ca}" | keytool -importcert -noprompt -keystore "${ZMS_TRUSTSTORE_PATH}" -storepass "${ZMS_TRUSTSTORE_PASS}" -storetype JKS -alias "$(basename ${ca})"; done
+          volumeMounts:
+            - name: tls-ca
+              mountPath: /opt/athenz/zms/var/tls/CAs
+            - name: tls-stores
+              mountPath: /opt/athenz/zms/var/certs
+        {{- end }}
+        {{- if .Values.extraInitContainers }}
+{{ tpl .Values.extraInitContainers . | indent 8 }}
+        {{- end }}
+      containers:
+        {{- if .Values.sidecarContainers }}
+{{ tpl .Values.sidecarContainers . | nindent 8 }}
+        {{- end }}
+        - name: zms
+          image: {{ template "athenz-zms.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+          env:
+            - name: ZMS_DB_ADMIN_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "athenz-zms.secretName" . }}
+                  key: jdbc
+            - name: ZMS_RODB_ADMIN_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "athenz-zms.secretName" . }}
+                  key: jdbcRo
+            - name: ZMS_KEYSTORE_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "athenz-zms.secretName" . }}
+                  key: keystore
+            - name: ZMS_TRUSTSTORE_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "athenz-zms.secretName" . }}
+                  key: truststore
+            - name: ZMS_PORT
+              value: "4443"
+          ports:
+            - name: zms
+              containerPort: 4443
+            {{- if $metricsPort }}
+            - name: metrics
+              containerPort: {{ $metricsPort }}
+            {{- end }}
+          livenessProbe:
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+            successThreshold: {{ .Values.livenessProbe.successThreshold }}
+            failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+            httpGet:
+              path: /zms/v1/status
+              port: zms
+              scheme: HTTPS
+          {{- if .Values.readinessProbe.enabled }}
+          readinessProbe:
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+            successThreshold: {{ .Values.readinessProbe.successThreshold }}
+            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+            httpGet:
+              path: /zms/v1/status
+              port: zms
+              scheme: HTTPS
+          {{- end }}
+          volumeMounts:
+            - name: config
+              mountPath: /opt/athenz/zms/conf/zms_server
+            - name: zms-key
+              mountPath: /opt/athenz/zms/var/keys
+            - name: tls-stores
+              mountPath: /opt/athenz/zms/var/certs
+            - name: log
+              mountPath: /opt/athenz/zms/logs/zms_server
+          {{- if .Values.resources }}
+          resources: {{ toYaml .Values.resources | nindent 12 }}
+          {{- end }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ template "athenz-zms.fullname" . }}-config
+        - name: zms-key
+          secret:
+            secretName: {{ template "athenz-zms.secretName" . }}
+            items:
+              - key: zms_private.pem
+                path: zms_private.pem
+                mode: 400
+        {{- if not .Values.existingTLSStoreSecret }}
+        - name: tls
+          secret:
+            secretName: {{ template "athenz-zms.tls.secretName" . }}
+        - name: tls-ca
+          secret:
+            secretName: {{ template "athenz-zms.tls.ca.secretName" . }}
+        {{- end }}
+        - name: tls-stores
+          {{- if .Values.existingTLSStoreSecret }}
+          secret:
+            secretName: {{ .Values.existingTLSStoreSecret }}
+            items:
+              - key: zms_keystore.pkcs12
+                path: zms_keystore.pkcs12
+                mode: 400
+              - key: zms_truststore.jks
+                path: zms_truststore.jks
+                mode: 400
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        - name: log
+          emptyDir: {}
