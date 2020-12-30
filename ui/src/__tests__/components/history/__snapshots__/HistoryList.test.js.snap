@@ -45,6 +45,10 @@ exports[`HistoryList should render 1`] = `
   color: #fff;
 }
 
+.emotion-10:first-of-type {
+  margin-left: 0;
+}
+
 .emotion-10:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
@@ -59,10 +63,6 @@ exports[`HistoryList should render 1`] = `
               );
 }
 
-.emotion-10:first-of-type {
-  margin-left: 0;
-}
-
 .emotion-11 {
   position: relative;
   width: 100%;
@@ -74,6 +74,58 @@ exports[`HistoryList should render 1`] = `
 
 .emotion-12 {
   margin-top: 5px;
+}
+
+.emotion-14 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 100%;
+}
+
+.emotion-14 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-14.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-14 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
 }
 
 .emotion-14 input::-moz-placeholder {
@@ -139,58 +191,6 @@ exports[`HistoryList should render 1`] = `
   right: 6px;
 }
 
-.emotion-14 {
-  box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  -webkit-box-flex-flow: row nowrap;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  position: relative;
-  width: 100%;
-}
-
-.emotion-14 input {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  -ms-appearance: none;
-  appearance: none;
-  background: rgba(53,112,244,0.05);
-  border-top: 2px solid transparent;
-  border-bottom: 2px solid transparent;
-  border-right: transparent;
-  border-left: transparent;
-  border-radius: 2px;
-  box-shadow: none;
-  box-sizing: border-box;
-  color: #303030;
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-  font: inherit;
-  height: 36px;
-  margin: 0;
-  outline: none;
-  padding: 0 1rem;
-  text-align: left;
-  width: 100%;
-}
-
-.emotion-14.animated input {
-  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-}
-
-.emotion-14 input::-webkit-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
 .emotion-15 {
   fill: #d5d5d5;
   cursor: pointer;
@@ -223,24 +223,6 @@ exports[`HistoryList should render 1`] = `
   width: 80%;
 }
 
-.emotion-20:disabled {
-  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
-}
-
-.emotion-20:hover:not(:disabled) {
-  background: #d7e2fd;
-}
-
-.emotion-20:disabled {
-  background: rgba(48,48,48,0.1);
-  color: rgba(48,48,48,0.2);
-  cursor: not-allowed;
-}
-
-.emotion-20:first-of-type {
-  margin-left: 0;
-}
-
 .emotion-20 {
   border: none;
   border-radius: 2px;
@@ -266,6 +248,24 @@ exports[`HistoryList should render 1`] = `
   background: transparent;
   box-shadow: 0 0 0 1px #3697f2 inset;
   color: #3697f2;
+}
+
+.emotion-20:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-20:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
+.emotion-20:disabled {
+  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
+}
+
+.emotion-20:hover:not(:disabled) {
+  background: #d7e2fd;
 }
 
 .emotion-21 {

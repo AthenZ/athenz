@@ -49,12 +49,6 @@ exports[`AddAssertionForRole should render 1`] = `
   margin-right: 10px;
 }
 
-.emotion-11>* {
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-}
-
 .emotion-11 {
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -66,28 +60,49 @@ exports[`AddAssertionForRole should render 1`] = `
   flex-flow: row nowrap;
 }
 
+.emotion-11>* {
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+}
+
 .emotion-12 {
   margin-top: 8px;
 }
 
-.emotion-14>input[type='radio']:checked+label:after {
-  background-color: #3697f2;
-  border-radius: 50%;
+.emotion-14 {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
   box-sizing: border-box;
-  content: '';
-  height: 8px;
-  line-height: 8px;
-  left: 4px;
-  position: absolute;
-  top: 4px;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-  width: 8px;
+  display: inline-block;
+  height: 16px;
+  line-height: 16px;
+  margin: 3px;
+  outline: 0px;
+  position: relative;
+  vertical-align: bottom;
 }
 
-.emotion-14>input[type='radio']:disabled+label:before {
-  border: 2px solid #d5d5d5;
-  cursor: not-allowed;
+.emotion-14>input[type='radio'] {
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  position: absolute;
+  top: 0;
+  visibility: hidden;
+}
+
+.emotion-14>input[type='radio']+label {
+  box-sizing: border-box;
+  cursor: pointer;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  height: 16px;
+  line-height: 16px;
+  padding: 0 10px 0 0;
+  vertical-align: bottom;
+  white-space: nowrap;
 }
 
 .emotion-14>input[type='radio']+label:before {
@@ -118,81 +133,29 @@ exports[`AddAssertionForRole should render 1`] = `
   border: 2px solid #3697f2;
 }
 
-.emotion-14>input[type='radio']+label {
-  box-sizing: border-box;
-  cursor: pointer;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  height: 16px;
-  line-height: 16px;
-  padding: 0 10px 0 0;
-  vertical-align: bottom;
-  white-space: nowrap;
-}
-
-.emotion-14>input[type='radio'] {
-  box-sizing: border-box;
-  cursor: pointer;
-  display: inline-block;
-  position: absolute;
-  top: 0;
-  visibility: hidden;
-}
-
-.emotion-14 {
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  box-sizing: border-box;
-  display: inline-block;
-  height: 16px;
-  line-height: 16px;
-  margin: 3px;
-  outline: 0px;
-  position: relative;
-  vertical-align: bottom;
-}
-
 .emotion-14>input[type='radio']:disabled+label {
   color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-23 input::placeholder {
-  color: rgba(48,48,48,0.6);
+.emotion-14>input[type='radio']:disabled+label:before {
+  border: 2px solid #d5d5d5;
+  cursor: not-allowed;
 }
 
-.emotion-23 input.focused,
-.emotion-23 input:active,
-.emotion-23 input:focus {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #3570f4;
-  color: #303030;
-}
-
-.emotion-23 input:invalid {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #d01111;
-  color: #303030;
-}
-
-.emotion-23 .message {
-  font-size: 12px;
-  left: 0;
-  line-height: 1.8;
+.emotion-14>input[type='radio']:checked+label:after {
+  background-color: #3697f2;
+  border-radius: 50%;
+  box-sizing: border-box;
+  content: '';
+  height: 8px;
+  line-height: 8px;
+  left: 4px;
   position: absolute;
-  top: 2.571rem;
-}
-
-.emotion-23.error input,
-.emotion-23.error input.focused,
-.emotion-23.error input:active,
-.emotion-23.error input:focus {
-  border-bottom: 2px solid #d01111;
-}
-
-.emotion-23.error .message {
-  color: #d01111;
+  top: 4px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  width: 8px;
 }
 
 .emotion-23 {
@@ -255,18 +218,49 @@ exports[`AddAssertionForRole should render 1`] = `
   color: rgba(48,48,48,0.6);
 }
 
+.emotion-23 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-23 input.focused,
+.emotion-23 input:active,
+.emotion-23 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-23 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-23 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-23.error input,
+.emotion-23.error input.focused,
+.emotion-23.error input:active,
+.emotion-23.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-23.error .message {
+  color: #d01111;
+}
+
 .emotion-24 {
   width: 500px;
 }
 
 .emotion-36 {
   margin-left: 155px;
-}
-
-.emotion-38:disabled {
-  background: rgba(48,48,48,0.1);
-  color: rgba(48,48,48,0.2);
-  cursor: not-allowed;
 }
 
 .emotion-38 {
@@ -299,6 +293,16 @@ exports[`AddAssertionForRole should render 1`] = `
   color: #fff;
 }
 
+.emotion-38:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-38:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
 .emotion-38:hover:not(:disabled) {
   background: linear-gradient(
                   to right,
@@ -307,17 +311,9 @@ exports[`AddAssertionForRole should render 1`] = `
               );
 }
 
-.emotion-38:first-of-type {
-  margin-left: 0;
-}
-
 .emotion-39 {
   min-width: 8.5em;
   min-height: 1em;
-}
-
-.emotion-41:disabled {
-  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
 .emotion-41 {
@@ -351,14 +347,18 @@ exports[`AddAssertionForRole should render 1`] = `
   margin-left: 0;
 }
 
-.emotion-41:hover:not(:disabled) {
-  background: #d7e2fd;
-}
-
 .emotion-41:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
+}
+
+.emotion-41:disabled {
+  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
+}
+
+.emotion-41:hover:not(:disabled) {
+  background: #d7e2fd;
 }
 
 <div
@@ -551,12 +551,6 @@ exports[`AddAssertionForRole should render failed to submit action is required 1
   margin-right: 10px;
 }
 
-.emotion-11>* {
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-}
-
 .emotion-11 {
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -568,28 +562,49 @@ exports[`AddAssertionForRole should render failed to submit action is required 1
   flex-flow: row nowrap;
 }
 
+.emotion-11>* {
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+}
+
 .emotion-12 {
   margin-top: 8px;
 }
 
-.emotion-14>input[type='radio']:checked+label:after {
-  background-color: #3697f2;
-  border-radius: 50%;
+.emotion-14 {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
   box-sizing: border-box;
-  content: '';
-  height: 8px;
-  line-height: 8px;
-  left: 4px;
-  position: absolute;
-  top: 4px;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-  width: 8px;
+  display: inline-block;
+  height: 16px;
+  line-height: 16px;
+  margin: 3px;
+  outline: 0px;
+  position: relative;
+  vertical-align: bottom;
 }
 
-.emotion-14>input[type='radio']:disabled+label:before {
-  border: 2px solid #d5d5d5;
-  cursor: not-allowed;
+.emotion-14>input[type='radio'] {
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  position: absolute;
+  top: 0;
+  visibility: hidden;
+}
+
+.emotion-14>input[type='radio']+label {
+  box-sizing: border-box;
+  cursor: pointer;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  height: 16px;
+  line-height: 16px;
+  padding: 0 10px 0 0;
+  vertical-align: bottom;
+  white-space: nowrap;
 }
 
 .emotion-14>input[type='radio']+label:before {
@@ -620,81 +635,29 @@ exports[`AddAssertionForRole should render failed to submit action is required 1
   border: 2px solid #3697f2;
 }
 
-.emotion-14>input[type='radio']+label {
-  box-sizing: border-box;
-  cursor: pointer;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  height: 16px;
-  line-height: 16px;
-  padding: 0 10px 0 0;
-  vertical-align: bottom;
-  white-space: nowrap;
-}
-
-.emotion-14>input[type='radio'] {
-  box-sizing: border-box;
-  cursor: pointer;
-  display: inline-block;
-  position: absolute;
-  top: 0;
-  visibility: hidden;
-}
-
-.emotion-14 {
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  box-sizing: border-box;
-  display: inline-block;
-  height: 16px;
-  line-height: 16px;
-  margin: 3px;
-  outline: 0px;
-  position: relative;
-  vertical-align: bottom;
-}
-
 .emotion-14>input[type='radio']:disabled+label {
   color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-23 input::placeholder {
-  color: rgba(48,48,48,0.6);
+.emotion-14>input[type='radio']:disabled+label:before {
+  border: 2px solid #d5d5d5;
+  cursor: not-allowed;
 }
 
-.emotion-23 input.focused,
-.emotion-23 input:active,
-.emotion-23 input:focus {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #3570f4;
-  color: #303030;
-}
-
-.emotion-23 input:invalid {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #d01111;
-  color: #303030;
-}
-
-.emotion-23 .message {
-  font-size: 12px;
-  left: 0;
-  line-height: 1.8;
+.emotion-14>input[type='radio']:checked+label:after {
+  background-color: #3697f2;
+  border-radius: 50%;
+  box-sizing: border-box;
+  content: '';
+  height: 8px;
+  line-height: 8px;
+  left: 4px;
   position: absolute;
-  top: 2.571rem;
-}
-
-.emotion-23.error input,
-.emotion-23.error input.focused,
-.emotion-23.error input:active,
-.emotion-23.error input:focus {
-  border-bottom: 2px solid #d01111;
-}
-
-.emotion-23.error .message {
-  color: #d01111;
+  top: 4px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  width: 8px;
 }
 
 .emotion-23 {
@@ -757,18 +720,49 @@ exports[`AddAssertionForRole should render failed to submit action is required 1
   color: rgba(48,48,48,0.6);
 }
 
+.emotion-23 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-23 input.focused,
+.emotion-23 input:active,
+.emotion-23 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-23 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-23 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-23.error input,
+.emotion-23.error input.focused,
+.emotion-23.error input:active,
+.emotion-23.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-23.error .message {
+  color: #d01111;
+}
+
 .emotion-24 {
   width: 500px;
 }
 
 .emotion-36 {
   margin-left: 155px;
-}
-
-.emotion-38:disabled {
-  background: rgba(48,48,48,0.1);
-  color: rgba(48,48,48,0.2);
-  cursor: not-allowed;
 }
 
 .emotion-38 {
@@ -801,6 +795,16 @@ exports[`AddAssertionForRole should render failed to submit action is required 1
   color: #fff;
 }
 
+.emotion-38:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-38:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
 .emotion-38:hover:not(:disabled) {
   background: linear-gradient(
                   to right,
@@ -809,17 +813,9 @@ exports[`AddAssertionForRole should render failed to submit action is required 1
               );
 }
 
-.emotion-38:first-of-type {
-  margin-left: 0;
-}
-
 .emotion-39 {
   min-width: 8.5em;
   min-height: 1em;
-}
-
-.emotion-41:disabled {
-  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
 .emotion-41 {
@@ -853,14 +849,18 @@ exports[`AddAssertionForRole should render failed to submit action is required 1
   margin-left: 0;
 }
 
-.emotion-41:hover:not(:disabled) {
-  background: #d7e2fd;
-}
-
 .emotion-41:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
+}
+
+.emotion-41:disabled {
+  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
+}
+
+.emotion-41:hover:not(:disabled) {
+  background: #d7e2fd;
 }
 
 <div

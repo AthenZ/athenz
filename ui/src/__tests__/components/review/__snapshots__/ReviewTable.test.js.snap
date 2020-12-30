@@ -70,9 +70,26 @@ exports[`ReviewTable should render review table 1`] = `
   border-bottom: 1px solid #d5d5d5;
 }
 
-.emotion-26>input[type='radio']:disabled+label:before {
-  border: 2px solid #d5d5d5;
-  cursor: not-allowed;
+.emotion-26 {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  display: inline-block;
+  height: 16px;
+  line-height: 16px;
+  margin: 3px;
+  outline: 0px;
+  position: relative;
+  vertical-align: bottom;
+}
+
+.emotion-26>input[type='radio'] {
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  position: absolute;
+  top: 0;
+  visibility: hidden;
 }
 
 .emotion-26>input[type='radio']+label {
@@ -86,28 +103,6 @@ exports[`ReviewTable should render review table 1`] = `
   padding: 0 10px 0 0;
   vertical-align: bottom;
   white-space: nowrap;
-}
-
-.emotion-26>input[type='radio'] {
-  box-sizing: border-box;
-  cursor: pointer;
-  display: inline-block;
-  position: absolute;
-  top: 0;
-  visibility: hidden;
-}
-
-.emotion-26 {
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  box-sizing: border-box;
-  display: inline-block;
-  height: 16px;
-  line-height: 16px;
-  margin: 3px;
-  outline: 0px;
-  position: relative;
-  vertical-align: bottom;
 }
 
 .emotion-26>input[type='radio']+label:before {
@@ -143,6 +138,11 @@ exports[`ReviewTable should render review table 1`] = `
   cursor: not-allowed;
 }
 
+.emotion-26>input[type='radio']:disabled+label:before {
+  border: 2px solid #d5d5d5;
+  cursor: not-allowed;
+}
+
 .emotion-26>input[type='radio']:checked+label:after {
   background-color: #3697f2;
   border-radius: 50%;
@@ -156,39 +156,6 @@ exports[`ReviewTable should render review table 1`] = `
   -webkit-transition: all 0.2s ease-in;
   transition: all 0.2s ease-in;
   width: 8px;
-}
-
-.emotion-84 input.focused,
-.emotion-84 input:active,
-.emotion-84 input:focus {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #3570f4;
-  color: #303030;
-}
-
-.emotion-84 input:invalid {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #d01111;
-  color: #303030;
-}
-
-.emotion-84 .message {
-  font-size: 12px;
-  left: 0;
-  line-height: 1.8;
-  position: absolute;
-  top: 2.571rem;
-}
-
-.emotion-84.error input,
-.emotion-84.error input.focused,
-.emotion-84.error input:active,
-.emotion-84.error input:focus {
-  border-bottom: 2px solid #d01111;
-}
-
-.emotion-84.error .message {
-  color: #d01111;
 }
 
 .emotion-84 {
@@ -255,6 +222,39 @@ exports[`ReviewTable should render review table 1`] = `
   color: rgba(48,48,48,0.6);
 }
 
+.emotion-84 input.focused,
+.emotion-84 input:active,
+.emotion-84 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-84 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-84 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-84.error input,
+.emotion-84.error input.focused,
+.emotion-84.error input:active,
+.emotion-84.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-84.error .message {
+  color: #d01111;
+}
+
 .emotion-85 {
   width: 300px;
   margin-top: 5px;
@@ -262,24 +262,6 @@ exports[`ReviewTable should render review table 1`] = `
 
 .emotion-87 {
   margin-top: 10px;
-}
-
-.emotion-89:hover:not(:disabled) {
-  background: #d7e2fd;
-}
-
-.emotion-89:disabled {
-  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
-}
-
-.emotion-89:disabled {
-  background: rgba(48,48,48,0.1);
-  color: rgba(48,48,48,0.2);
-  cursor: not-allowed;
-}
-
-.emotion-89:first-of-type {
-  margin-left: 0;
 }
 
 .emotion-89 {
@@ -307,6 +289,24 @@ exports[`ReviewTable should render review table 1`] = `
   background: transparent;
   box-shadow: 0 0 0 1px #3697f2 inset;
   color: #3697f2;
+}
+
+.emotion-89:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-89:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
+.emotion-89:disabled {
+  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
+}
+
+.emotion-89:hover:not(:disabled) {
+  background: #d7e2fd;
 }
 
 .emotion-90 {

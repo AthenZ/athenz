@@ -48,14 +48,40 @@ exports[`SettingPage should render 1`] = `
   margin-left: auto;
 }
 
-.emotion-3 .nav-icon,
-.emotion-3:hover .nav-icon {
-  width: 24px;
-  height: 24px;
+.emotion-3 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  box-sizing: border-box;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 60px;
+  position: relative;
+  width: ;
+}
+
+.emotion-3.simple {
+  color: #fff;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  padding: 0 12px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
 }
 
 .emotion-3.simple.nav-link {
   cursor: pointer;
+}
+
+.emotion-3.simple.nav-link:hover {
+  color: rgba(255,255,255,0.75);
+}
+
+.emotion-3.simple.active {
+  box-shadow: inset 0 -4px 0 #3697f2;
 }
 
 .emotion-3.simple.nav-link.active:hover {
@@ -110,8 +136,10 @@ exports[`SettingPage should render 1`] = `
   height: 34px;
 }
 
-.emotion-3.simple.active {
-  box-shadow: inset 0 -4px 0 #3697f2;
+.emotion-3 .nav-icon,
+.emotion-3:hover .nav-icon {
+  width: 24px;
+  height: 24px;
 }
 
 .emotion-3 .nav-icon path,
@@ -134,20 +162,17 @@ exports[`SettingPage should render 1`] = `
   fill: rgba(255,255,255,0.75);
 }
 
-.emotion-3.simple {
-  color: #fff;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 16px;
-  padding: 0 12px;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
+.emotion-4 {
+  height: 36px;
+  cursor: pointer;
 }
 
-.emotion-3.simple.nav-link:hover {
-  color: rgba(255,255,255,0.75);
+.emotion-6 {
+  margin-left: 10%;
+  width: 50%;
 }
 
-.emotion-3 {
+.emotion-8 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -159,17 +184,24 @@ exports[`SettingPage should render 1`] = `
   display: flex;
   height: 60px;
   position: relative;
-  width: ;
+  width: 100%;
 }
 
-.emotion-4 {
-  height: 36px;
+.emotion-8.simple {
+  color: #fff;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  padding: 0 12px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-8.simple.nav-link {
   cursor: pointer;
 }
 
-.emotion-6 {
-  margin-left: 10%;
-  width: 50%;
+.emotion-8.simple.nav-link:hover {
+  color: rgba(255,255,255,0.75);
 }
 
 .emotion-8.simple.active {
@@ -252,89 +284,6 @@ exports[`SettingPage should render 1`] = `
 .emotion-8.nav-link:hover .nav-icon rect,
 .emotion-8.nav-link:hover .nav-icon circle {
   fill: rgba(255,255,255,0.75);
-}
-
-.emotion-8.simple {
-  color: #fff;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 16px;
-  padding: 0 12px;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-}
-
-.emotion-8.simple.nav-link {
-  cursor: pointer;
-}
-
-.emotion-8 {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  box-sizing: border-box;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  height: 60px;
-  position: relative;
-  width: 100%;
-}
-
-.emotion-8.simple.nav-link:hover {
-  color: rgba(255,255,255,0.75);
-}
-
-.emotion-9 .input-icon {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  height: 36px;
-  position: absolute;
-  right: 6px;
-}
-
-.emotion-9 input {
-  padding-right: 36px;
-}
-
-.emotion-9 input.focused,
-.emotion-9 input:active,
-.emotion-9 input:focus {
-  background: rgba(242,242,242,0.1);
-  border-bottom: 2px solid #3570f4;
-  color: #fff;
-}
-
-.emotion-9 input::placeholder {
-  color: rgba(255,255,255,0.6);
-}
-
-.emotion-9 input:-ms-input-placeholder {
-  color: rgba(255,255,255,0.6);
-}
-
-.emotion-9 input::-moz-placeholder {
-  color: rgba(255,255,255,0.6);
-}
-
-.emotion-9 input::-webkit-input-placeholder {
-  color: rgba(255,255,255,0.6);
-}
-
-.emotion-9 input {
-  background: rgba(242,242,242,0.1);
-  color: #fff;
-}
-
-.emotion-9.error .message {
-  color: #d01111;
 }
 
 .emotion-9 {
@@ -428,6 +377,57 @@ exports[`SettingPage should render 1`] = `
 .emotion-9.error input:active,
 .emotion-9.error input:focus {
   border-bottom: 2px solid #d01111;
+}
+
+.emotion-9.error .message {
+  color: #d01111;
+}
+
+.emotion-9 input {
+  background: rgba(242,242,242,0.1);
+  color: #fff;
+}
+
+.emotion-9 input::-webkit-input-placeholder {
+  color: rgba(255,255,255,0.6);
+}
+
+.emotion-9 input::-moz-placeholder {
+  color: rgba(255,255,255,0.6);
+}
+
+.emotion-9 input:-ms-input-placeholder {
+  color: rgba(255,255,255,0.6);
+}
+
+.emotion-9 input::placeholder {
+  color: rgba(255,255,255,0.6);
+}
+
+.emotion-9 input.focused,
+.emotion-9 input:active,
+.emotion-9 input:focus {
+  background: rgba(242,242,242,0.1);
+  border-bottom: 2px solid #3570f4;
+  color: #fff;
+}
+
+.emotion-9 input {
+  padding-right: 36px;
+}
+
+.emotion-9 .input-icon {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 36px;
+  position: absolute;
+  right: 6px;
 }
 
 .emotion-10 {
@@ -578,33 +578,6 @@ exports[`SettingPage should render 1`] = `
   width: 300px;
 }
 
-.emotion-49:hover {
-  color: #3570f4;
-}
-
-.emotion-49.vertical.active {
-  background: #fff;
-  border-left: solid 4px #3697f2;
-  color: #303030;
-}
-
-.emotion-49.active:hover {
-  color: #303030;
-}
-
-.emotion-49.active {
-  background: #fff;
-  border-bottom: ;
-  border-top-left-radius: 2px;
-  border-top-right-radius: 2px;
-  color: #303030;
-  cursor: initial;
-}
-
-.emotion-49.vertical.active:hover {
-  color: #303030;
-}
-
 .emotion-49 {
   font-family: Helvetica,Arial,sans-serif;
   font-size: 14px;
@@ -632,6 +605,23 @@ exports[`SettingPage should render 1`] = `
   z-index: 1;
 }
 
+.emotion-49:hover {
+  color: #3570f4;
+}
+
+.emotion-49.active {
+  background: #fff;
+  border-bottom: ;
+  border-top-left-radius: 2px;
+  border-top-right-radius: 2px;
+  color: #303030;
+  cursor: initial;
+}
+
+.emotion-49.active:hover {
+  color: #303030;
+}
+
 .emotion-49.vertical {
   background: #f5f8fe;
   border-left: solid 4px #f5f8fe;
@@ -642,6 +632,16 @@ exports[`SettingPage should render 1`] = `
   justify-content: flex-start;
   padding: 12px 0px 12px 26px;
   text-align: left;
+}
+
+.emotion-49.vertical.active {
+  background: #fff;
+  border-left: solid 4px #3697f2;
+  color: #303030;
+}
+
+.emotion-49.vertical.active:hover {
+  color: #303030;
 }
 
 .emotion-54 {
@@ -676,13 +676,21 @@ exports[`SettingPage should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-64>input[type='checkbox']:disabled+label::after {
-  border-color: #d5d5d5;
-  cursor: not-allowed;
-}
-
-.emotion-64>input[type='checkbox']:checked:disabled+label::after {
-  background: #d5d5d5;
+.emotion-64 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  height: 18px;
+  outline: 0;
+  position: relative;
 }
 
 .emotion-64>input[type='checkbox'] {
@@ -704,9 +712,12 @@ exports[`SettingPage should render 1`] = `
   white-space: nowrap;
 }
 
-.emotion-64>input[type='checkbox']:disabled+label {
-  color: #9a9a9a;
-  cursor: not-allowed;
+.emotion-64>input[type='checkbox']+label .label-content {
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  margin-left: 6px;
 }
 
 @-moz-document url-prefix() {
@@ -758,21 +769,9 @@ exports[`SettingPage should render 1`] = `
   left: 16px;
 }
 
-.emotion-64 {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  height: 18px;
-  outline: 0;
-  position: relative;
+.emotion-64>input[type='checkbox']:disabled+label {
+  color: #9a9a9a;
+  cursor: not-allowed;
 }
 
 .emotion-64>input[type='checkbox']:disabled+label::before {
@@ -780,12 +779,13 @@ exports[`SettingPage should render 1`] = `
   cursor: not-allowed;
 }
 
-.emotion-64>input[type='checkbox']+label .label-content {
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  margin-left: 6px;
+.emotion-64>input[type='checkbox']:disabled+label::after {
+  border-color: #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-64>input[type='checkbox']:checked:disabled+label::after {
+  background: #d5d5d5;
 }
 
 .emotion-82 {
@@ -793,10 +793,6 @@ exports[`SettingPage should render 1`] = `
   display: -webkit-flex;
   display: -ms-flexbox;
   display: flex;
-}
-
-.emotion-84 input::-webkit-input-placeholder {
-  color: rgba(48,48,48,0.6);
 }
 
 .emotion-84 {
@@ -814,40 +810,6 @@ exports[`SettingPage should render 1`] = `
   font-weight: 300;
   position: relative;
   width: 100%;
-}
-
-.emotion-84.animated input {
-  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-}
-
-.emotion-84 input:invalid {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #d01111;
-  color: #303030;
-}
-
-.emotion-84 input.focused,
-.emotion-84 input:active,
-.emotion-84 input:focus {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #3570f4;
-  color: #303030;
-}
-
-.emotion-84.error input,
-.emotion-84.error input.focused,
-.emotion-84.error input:active,
-.emotion-84.error input:focus {
-  border-bottom: 2px solid #d01111;
-}
-
-.emotion-84 .message {
-  font-size: 12px;
-  left: 0;
-  line-height: 1.8;
-  position: absolute;
-  top: 2.571rem;
 }
 
 .emotion-84 input {
@@ -876,6 +838,15 @@ exports[`SettingPage should render 1`] = `
   width: 100%;
 }
 
+.emotion-84.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-84 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
 .emotion-84 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
@@ -886,6 +857,35 @@ exports[`SettingPage should render 1`] = `
 
 .emotion-84 input::placeholder {
   color: rgba(48,48,48,0.6);
+}
+
+.emotion-84 input.focused,
+.emotion-84 input:active,
+.emotion-84 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-84 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-84 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-84.error input,
+.emotion-84.error input.focused,
+.emotion-84.error input:active,
+.emotion-84.error input:focus {
+  border-bottom: 2px solid #d01111;
 }
 
 .emotion-84.error .message {
@@ -913,10 +913,6 @@ exports[`SettingPage should render 1`] = `
   -webkit-flex-flow: row nowrap;
   -ms-flex-flow: row nowrap;
   flex-flow: row nowrap;
-}
-
-.emotion-143:hover:not(:disabled) {
-  background: #d7e2fd;
 }
 
 .emotion-143 {
@@ -958,6 +954,10 @@ exports[`SettingPage should render 1`] = `
 
 .emotion-143:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
+}
+
+.emotion-143:hover:not(:disabled) {
+  background: #d7e2fd;
 }
 
 .emotion-145 {

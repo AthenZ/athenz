@@ -12,6 +12,41 @@ exports[`PendingApprovalTable should render 1`] = `
   padding: 5px 0px 5px 15px;
 }
 
+.emotion-4 {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  display: inline-block;
+  height: 16px;
+  line-height: 16px;
+  margin: 3px;
+  outline: 0;
+  position: relative;
+  vertical-align: middle;
+}
+
+.emotion-4>input[type='checkbox'] {
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  position: absolute;
+  top: 0;
+  visibility: hidden;
+}
+
+.emotion-4>input[type='checkbox']+label {
+  box-sizing: border-box;
+  cursor: pointer;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  height: 16px;
+  line-height: 16px;
+  padding: 0 10px 0 0;
+  vertical-align: bottom;
+  white-space: nowrap;
+}
+
 .emotion-4>input[type='checkbox']+label:before {
   background: #fff;
   border: 2px solid rgba(54,151,242,0.5);
@@ -50,17 +85,8 @@ exports[`PendingApprovalTable should render 1`] = `
   border: 2px solid #d5d5d5;
 }
 
-.emotion-4>input[type='checkbox']+label {
-  box-sizing: border-box;
-  cursor: pointer;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  height: 16px;
-  line-height: 16px;
-  padding: 0 10px 0 0;
-  vertical-align: bottom;
-  white-space: nowrap;
+.emotion-4>input[type='checkbox']:checked:not([data-partial='true'])+label:before {
+  background: #3697f2;
 }
 
 .emotion-4>input[type='checkbox'][data-partial='true']+label:after {
@@ -98,32 +124,6 @@ exports[`PendingApprovalTable should render 1`] = `
   width: 4.5px;
 }
 
-.emotion-4>input[type='checkbox'] {
-  box-sizing: border-box;
-  cursor: pointer;
-  display: inline-block;
-  position: absolute;
-  top: 0;
-  visibility: hidden;
-}
-
-.emotion-4 {
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  box-sizing: border-box;
-  display: inline-block;
-  height: 16px;
-  line-height: 16px;
-  margin: 3px;
-  outline: 0;
-  position: relative;
-  vertical-align: middle;
-}
-
-.emotion-4>input[type='checkbox']:checked:not([data-partial='true'])+label:before {
-  background: #3697f2;
-}
-
 .emotion-5 {
   text-align: left;
   vertical-align: middle;
@@ -135,43 +135,6 @@ exports[`PendingApprovalTable should render 1`] = `
   text-align: left;
   vertical-align: middle;
   padding: 5px 0px 5px 15px;
-}
-
-.emotion-21>textarea:-ms-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-21>textarea::placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-21>textarea:active,
-.emotion-21>textarea:focus {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #3570f4;
-  color: #303030;
-}
-
-.emotion-21>textarea:invalid {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #d01111;
-  color: #303030;
-}
-
-.emotion-21>textarea[disabled] {
-  background: rgba(48,48,48,0.05);
-  border-bottom: 2px solid rgba(48,48,48,0.05);
-  color: rgba(48,48,48,0.25);
-  cursor: not-allowed;
-}
-
-.emotion-21 .message {
-  font-size: 12px;
-  color: #303030;
-  left: 0;
-  line-height: 1.8;
-  position: absolute;
-  top: 2.571rem;
 }
 
 .emotion-21 {
@@ -226,6 +189,43 @@ exports[`PendingApprovalTable should render 1`] = `
 
 .emotion-21>textarea::-moz-placeholder {
   color: rgba(48,48,48,0.6);
+}
+
+.emotion-21>textarea:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-21>textarea::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-21>textarea:active,
+.emotion-21>textarea:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-21>textarea:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-21>textarea[disabled] {
+  background: rgba(48,48,48,0.05);
+  border-bottom: 2px solid rgba(48,48,48,0.05);
+  color: rgba(48,48,48,0.25);
+  cursor: not-allowed;
+}
+
+.emotion-21 .message {
+  font-size: 12px;
+  color: #303030;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
 }
 
 .emotion-22>textarea {

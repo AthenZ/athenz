@@ -1,23 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Switch should render checked state 1`] = `
-.emotion-0>input[type='checkbox']+label::after {
-  background-color: #fff;
-  border: 2px solid rgba(54,151,242,0.5);
-  border-radius: 50%;
-  box-sizing: border-box;
-  content: ' ';
-  cursor: pointer;
-  display: block;
-  height: 18px;
-  left: 0;
-  position: absolute;
-  -webkit-transition: all 0.25s ease;
-  transition: all 0.25s ease;
-  top: 0;
-  width: 18px;
-}
-
 .emotion-0 {
   -webkit-align-items: center;
   -webkit-box-align: center;
@@ -33,6 +16,14 @@ exports[`Switch should render checked state 1`] = `
   height: 18px;
   outline: 0;
   position: relative;
+}
+
+.emotion-0>input[type='checkbox'] {
+  box-sizing: border-box;
+  cursor: pointer;
+  position: absolute;
+  top: 0;
+  visibility: hidden;
 }
 
 .emotion-0>input[type='checkbox']+label {
@@ -76,12 +67,21 @@ exports[`Switch should render checked state 1`] = `
   width: 34px;
 }
 
-.emotion-0>input[type='checkbox'] {
+.emotion-0>input[type='checkbox']+label::after {
+  background-color: #fff;
+  border: 2px solid rgba(54,151,242,0.5);
+  border-radius: 50%;
   box-sizing: border-box;
+  content: ' ';
   cursor: pointer;
+  display: block;
+  height: 18px;
+  left: 0;
   position: absolute;
+  -webkit-transition: all 0.25s ease;
+  transition: all 0.25s ease;
   top: 0;
-  visibility: hidden;
+  width: 18px;
 }
 
 .emotion-0>input[type='checkbox']:checked+label::before {
@@ -137,23 +137,6 @@ exports[`Switch should render checked state 1`] = `
 `;
 
 exports[`Switch should render unchecked state 1`] = `
-.emotion-0>input[type='checkbox']+label::after {
-  background-color: #fff;
-  border: 2px solid rgba(54,151,242,0.5);
-  border-radius: 50%;
-  box-sizing: border-box;
-  content: ' ';
-  cursor: pointer;
-  display: block;
-  height: 18px;
-  left: 0;
-  position: absolute;
-  -webkit-transition: all 0.25s ease;
-  transition: all 0.25s ease;
-  top: 0;
-  width: 18px;
-}
-
 .emotion-0 {
   -webkit-align-items: center;
   -webkit-box-align: center;
@@ -169,6 +152,14 @@ exports[`Switch should render unchecked state 1`] = `
   height: 18px;
   outline: 0;
   position: relative;
+}
+
+.emotion-0>input[type='checkbox'] {
+  box-sizing: border-box;
+  cursor: pointer;
+  position: absolute;
+  top: 0;
+  visibility: hidden;
 }
 
 .emotion-0>input[type='checkbox']+label {
@@ -212,12 +203,21 @@ exports[`Switch should render unchecked state 1`] = `
   width: 34px;
 }
 
-.emotion-0>input[type='checkbox'] {
+.emotion-0>input[type='checkbox']+label::after {
+  background-color: #fff;
+  border: 2px solid rgba(54,151,242,0.5);
+  border-radius: 50%;
   box-sizing: border-box;
+  content: ' ';
   cursor: pointer;
+  display: block;
+  height: 18px;
+  left: 0;
   position: absolute;
+  -webkit-transition: all 0.25s ease;
+  transition: all 0.25s ease;
   top: 0;
-  visibility: hidden;
+  width: 18px;
 }
 
 .emotion-0>input[type='checkbox']:checked+label::before {

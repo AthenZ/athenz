@@ -49,12 +49,6 @@ exports[`AddAssertion should render 1`] = `
   margin-right: 10px;
 }
 
-.emotion-11>* {
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-}
-
 .emotion-11 {
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -66,48 +60,14 @@ exports[`AddAssertion should render 1`] = `
   flex-flow: row nowrap;
 }
 
+.emotion-11>* {
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+}
+
 .emotion-12 {
   margin-top: 8px;
-}
-
-.emotion-14>input[type='radio']:disabled+label:before {
-  border: 2px solid #d5d5d5;
-  cursor: not-allowed;
-}
-
-.emotion-14>input[type='radio']:checked+label:after {
-  background-color: #3697f2;
-  border-radius: 50%;
-  box-sizing: border-box;
-  content: '';
-  height: 8px;
-  line-height: 8px;
-  left: 4px;
-  position: absolute;
-  top: 4px;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-  width: 8px;
-}
-
-.emotion-14>input[type='radio']:hover+label:before {
-  border: 2px solid #3697f2;
-}
-
-.emotion-14>input[type='radio']+label:before {
-  background: #fff;
-  border: 2px solid rgba(54,151,242,0.5);
-  border-radius: 50%;
-  box-sizing: border-box;
-  content: '';
-  cursor: pointer;
-  display: inline-block;
-  height: 16px;
-  line-height: 16px;
-  margin: 0px 3px -3px 0px;
-  -webkit-transition: all 0.25s ease-in;
-  transition: all 0.25s ease-in;
-  width: 16px;
 }
 
 .emotion-14 {
@@ -132,19 +92,6 @@ exports[`AddAssertion should render 1`] = `
   visibility: hidden;
 }
 
-.emotion-14>input[type='radio']:disabled+label {
-  color: #d5d5d5;
-  cursor: not-allowed;
-}
-
-.emotion-14>input[type='radio']:checked+label:before {
-  border: 2px solid #3697f2;
-}
-
-.emotion-14>input[type='radio']:focus+label:before {
-  border: 2px solid rgba(54,151,242,0.5);
-}
-
 .emotion-14>input[type='radio']+label {
   box-sizing: border-box;
   cursor: pointer;
@@ -156,6 +103,59 @@ exports[`AddAssertion should render 1`] = `
   padding: 0 10px 0 0;
   vertical-align: bottom;
   white-space: nowrap;
+}
+
+.emotion-14>input[type='radio']+label:before {
+  background: #fff;
+  border: 2px solid rgba(54,151,242,0.5);
+  border-radius: 50%;
+  box-sizing: border-box;
+  content: '';
+  cursor: pointer;
+  display: inline-block;
+  height: 16px;
+  line-height: 16px;
+  margin: 0px 3px -3px 0px;
+  -webkit-transition: all 0.25s ease-in;
+  transition: all 0.25s ease-in;
+  width: 16px;
+}
+
+.emotion-14>input[type='radio']:hover+label:before {
+  border: 2px solid #3697f2;
+}
+
+.emotion-14>input[type='radio']:focus+label:before {
+  border: 2px solid rgba(54,151,242,0.5);
+}
+
+.emotion-14>input[type='radio']:checked+label:before {
+  border: 2px solid #3697f2;
+}
+
+.emotion-14>input[type='radio']:disabled+label {
+  color: #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-14>input[type='radio']:disabled+label:before {
+  border: 2px solid #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-14>input[type='radio']:checked+label:after {
+  background-color: #3697f2;
+  border-radius: 50%;
+  box-sizing: border-box;
+  content: '';
+  height: 8px;
+  line-height: 8px;
+  left: 4px;
+  position: absolute;
+  top: 4px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  width: 8px;
 }
 
 .emotion-23 {
@@ -173,31 +173,6 @@ exports[`AddAssertion should render 1`] = `
   font-weight: 300;
   position: relative;
   width: 250px;
-}
-
-.emotion-23 input:invalid {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #d01111;
-  color: #303030;
-}
-
-.emotion-23 .message {
-  font-size: 12px;
-  left: 0;
-  line-height: 1.8;
-  position: absolute;
-  top: 2.571rem;
-}
-
-.emotion-23.error input,
-.emotion-23.error input.focused,
-.emotion-23.error input:active,
-.emotion-23.error input:focus {
-  border-bottom: 2px solid #d01111;
-}
-
-.emotion-23.error .message {
-  color: #d01111;
 }
 
 .emotion-23 input {
@@ -255,30 +230,13 @@ exports[`AddAssertion should render 1`] = `
   color: #303030;
 }
 
-.emotion-24 {
-  width: 500px;
-}
-
-.emotion-33 input {
-  cursor: inherit;
-}
-
-.emotion-33 {
-  position: relative;
-  width: 100%;
-}
-
-.emotion-34 {
-  width: 500px;
-}
-
-.emotion-36 input:invalid {
+.emotion-23 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-36 .message {
+.emotion-23 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -286,33 +244,32 @@ exports[`AddAssertion should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-36.error input,
-.emotion-36.error input.focused,
-.emotion-36.error input:active,
-.emotion-36.error input:focus {
+.emotion-23.error input,
+.emotion-23.error input.focused,
+.emotion-23.error input:active,
+.emotion-23.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-36.error .message {
+.emotion-23.error .message {
   color: #d01111;
 }
 
-.emotion-36 input {
-  padding-right: 36px;
+.emotion-24 {
+  width: 500px;
 }
 
-.emotion-36 .input-icon {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  height: 36px;
-  position: absolute;
-  right: 6px;
+.emotion-33 {
+  position: relative;
+  width: 100%;
+}
+
+.emotion-33 input {
+  cursor: inherit;
+}
+
+.emotion-34 {
+  width: 500px;
 }
 
 .emotion-36 {
@@ -387,6 +344,49 @@ exports[`AddAssertion should render 1`] = `
   color: #303030;
 }
 
+.emotion-36 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-36 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-36.error input,
+.emotion-36.error input.focused,
+.emotion-36.error input:active,
+.emotion-36.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-36.error .message {
+  color: #d01111;
+}
+
+.emotion-36 input {
+  padding-right: 36px;
+}
+
+.emotion-36 .input-icon {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 36px;
+  position: absolute;
+  right: 6px;
+}
+
 .emotion-37 {
   fill: #d5d5d5;
   cursor: pointer;
@@ -395,12 +395,6 @@ exports[`AddAssertion should render 1`] = `
 
 .emotion-48 {
   margin-left: 155px;
-}
-
-.emotion-50:disabled {
-  background: rgba(48,48,48,0.1);
-  color: rgba(48,48,48,0.2);
-  cursor: not-allowed;
 }
 
 .emotion-50 {
@@ -433,6 +427,16 @@ exports[`AddAssertion should render 1`] = `
   color: #fff;
 }
 
+.emotion-50:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-50:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
 .emotion-50:hover:not(:disabled) {
   background: linear-gradient(
                   to right,
@@ -441,17 +445,9 @@ exports[`AddAssertion should render 1`] = `
               );
 }
 
-.emotion-50:first-of-type {
-  margin-left: 0;
-}
-
 .emotion-51 {
   min-width: 8.5em;
   min-height: 1em;
-}
-
-.emotion-53:hover:not(:disabled) {
-  background: #d7e2fd;
 }
 
 .emotion-53 {
@@ -493,6 +489,10 @@ exports[`AddAssertion should render 1`] = `
 
 .emotion-53:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
+}
+
+.emotion-53:hover:not(:disabled) {
+  background: #d7e2fd;
 }
 
 <div
@@ -748,12 +748,6 @@ exports[`AddAssertion should render failed to submit action is required 1`] = `
   margin-right: 10px;
 }
 
-.emotion-11>* {
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-}
-
 .emotion-11 {
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -765,48 +759,14 @@ exports[`AddAssertion should render failed to submit action is required 1`] = `
   flex-flow: row nowrap;
 }
 
+.emotion-11>* {
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+}
+
 .emotion-12 {
   margin-top: 8px;
-}
-
-.emotion-14>input[type='radio']:disabled+label:before {
-  border: 2px solid #d5d5d5;
-  cursor: not-allowed;
-}
-
-.emotion-14>input[type='radio']:checked+label:after {
-  background-color: #3697f2;
-  border-radius: 50%;
-  box-sizing: border-box;
-  content: '';
-  height: 8px;
-  line-height: 8px;
-  left: 4px;
-  position: absolute;
-  top: 4px;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-  width: 8px;
-}
-
-.emotion-14>input[type='radio']:hover+label:before {
-  border: 2px solid #3697f2;
-}
-
-.emotion-14>input[type='radio']+label:before {
-  background: #fff;
-  border: 2px solid rgba(54,151,242,0.5);
-  border-radius: 50%;
-  box-sizing: border-box;
-  content: '';
-  cursor: pointer;
-  display: inline-block;
-  height: 16px;
-  line-height: 16px;
-  margin: 0px 3px -3px 0px;
-  -webkit-transition: all 0.25s ease-in;
-  transition: all 0.25s ease-in;
-  width: 16px;
 }
 
 .emotion-14 {
@@ -831,19 +791,6 @@ exports[`AddAssertion should render failed to submit action is required 1`] = `
   visibility: hidden;
 }
 
-.emotion-14>input[type='radio']:disabled+label {
-  color: #d5d5d5;
-  cursor: not-allowed;
-}
-
-.emotion-14>input[type='radio']:checked+label:before {
-  border: 2px solid #3697f2;
-}
-
-.emotion-14>input[type='radio']:focus+label:before {
-  border: 2px solid rgba(54,151,242,0.5);
-}
-
 .emotion-14>input[type='radio']+label {
   box-sizing: border-box;
   cursor: pointer;
@@ -855,6 +802,59 @@ exports[`AddAssertion should render failed to submit action is required 1`] = `
   padding: 0 10px 0 0;
   vertical-align: bottom;
   white-space: nowrap;
+}
+
+.emotion-14>input[type='radio']+label:before {
+  background: #fff;
+  border: 2px solid rgba(54,151,242,0.5);
+  border-radius: 50%;
+  box-sizing: border-box;
+  content: '';
+  cursor: pointer;
+  display: inline-block;
+  height: 16px;
+  line-height: 16px;
+  margin: 0px 3px -3px 0px;
+  -webkit-transition: all 0.25s ease-in;
+  transition: all 0.25s ease-in;
+  width: 16px;
+}
+
+.emotion-14>input[type='radio']:hover+label:before {
+  border: 2px solid #3697f2;
+}
+
+.emotion-14>input[type='radio']:focus+label:before {
+  border: 2px solid rgba(54,151,242,0.5);
+}
+
+.emotion-14>input[type='radio']:checked+label:before {
+  border: 2px solid #3697f2;
+}
+
+.emotion-14>input[type='radio']:disabled+label {
+  color: #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-14>input[type='radio']:disabled+label:before {
+  border: 2px solid #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-14>input[type='radio']:checked+label:after {
+  background-color: #3697f2;
+  border-radius: 50%;
+  box-sizing: border-box;
+  content: '';
+  height: 8px;
+  line-height: 8px;
+  left: 4px;
+  position: absolute;
+  top: 4px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  width: 8px;
 }
 
 .emotion-23 {
@@ -872,31 +872,6 @@ exports[`AddAssertion should render failed to submit action is required 1`] = `
   font-weight: 300;
   position: relative;
   width: 250px;
-}
-
-.emotion-23 input:invalid {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #d01111;
-  color: #303030;
-}
-
-.emotion-23 .message {
-  font-size: 12px;
-  left: 0;
-  line-height: 1.8;
-  position: absolute;
-  top: 2.571rem;
-}
-
-.emotion-23.error input,
-.emotion-23.error input.focused,
-.emotion-23.error input:active,
-.emotion-23.error input:focus {
-  border-bottom: 2px solid #d01111;
-}
-
-.emotion-23.error .message {
-  color: #d01111;
 }
 
 .emotion-23 input {
@@ -954,30 +929,13 @@ exports[`AddAssertion should render failed to submit action is required 1`] = `
   color: #303030;
 }
 
-.emotion-24 {
-  width: 500px;
-}
-
-.emotion-33 input {
-  cursor: inherit;
-}
-
-.emotion-33 {
-  position: relative;
-  width: 100%;
-}
-
-.emotion-34 {
-  width: 500px;
-}
-
-.emotion-36 input:invalid {
+.emotion-23 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-36 .message {
+.emotion-23 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -985,33 +943,32 @@ exports[`AddAssertion should render failed to submit action is required 1`] = `
   top: 2.571rem;
 }
 
-.emotion-36.error input,
-.emotion-36.error input.focused,
-.emotion-36.error input:active,
-.emotion-36.error input:focus {
+.emotion-23.error input,
+.emotion-23.error input.focused,
+.emotion-23.error input:active,
+.emotion-23.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-36.error .message {
+.emotion-23.error .message {
   color: #d01111;
 }
 
-.emotion-36 input {
-  padding-right: 36px;
+.emotion-24 {
+  width: 500px;
 }
 
-.emotion-36 .input-icon {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  height: 36px;
-  position: absolute;
-  right: 6px;
+.emotion-33 {
+  position: relative;
+  width: 100%;
+}
+
+.emotion-33 input {
+  cursor: inherit;
+}
+
+.emotion-34 {
+  width: 500px;
 }
 
 .emotion-36 {
@@ -1086,6 +1043,49 @@ exports[`AddAssertion should render failed to submit action is required 1`] = `
   color: #303030;
 }
 
+.emotion-36 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-36 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-36.error input,
+.emotion-36.error input.focused,
+.emotion-36.error input:active,
+.emotion-36.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-36.error .message {
+  color: #d01111;
+}
+
+.emotion-36 input {
+  padding-right: 36px;
+}
+
+.emotion-36 .input-icon {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 36px;
+  position: absolute;
+  right: 6px;
+}
+
 .emotion-37 {
   fill: #d5d5d5;
   cursor: pointer;
@@ -1094,12 +1094,6 @@ exports[`AddAssertion should render failed to submit action is required 1`] = `
 
 .emotion-48 {
   margin-left: 155px;
-}
-
-.emotion-50:disabled {
-  background: rgba(48,48,48,0.1);
-  color: rgba(48,48,48,0.2);
-  cursor: not-allowed;
 }
 
 .emotion-50 {
@@ -1132,6 +1126,16 @@ exports[`AddAssertion should render failed to submit action is required 1`] = `
   color: #fff;
 }
 
+.emotion-50:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-50:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
 .emotion-50:hover:not(:disabled) {
   background: linear-gradient(
                   to right,
@@ -1140,17 +1144,9 @@ exports[`AddAssertion should render failed to submit action is required 1`] = `
               );
 }
 
-.emotion-50:first-of-type {
-  margin-left: 0;
-}
-
 .emotion-51 {
   min-width: 8.5em;
   min-height: 1em;
-}
-
-.emotion-53:hover:not(:disabled) {
-  background: #d7e2fd;
 }
 
 .emotion-53 {
@@ -1192,6 +1188,10 @@ exports[`AddAssertion should render failed to submit action is required 1`] = `
 
 .emotion-53:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
+}
+
+.emotion-53:hover:not(:disabled) {
+  background: #d7e2fd;
 }
 
 <div
@@ -1447,12 +1447,6 @@ exports[`AddAssertion should render failed to submit role name is required 1`] =
   margin-right: 10px;
 }
 
-.emotion-11>* {
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-}
-
 .emotion-11 {
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -1464,48 +1458,14 @@ exports[`AddAssertion should render failed to submit role name is required 1`] =
   flex-flow: row nowrap;
 }
 
+.emotion-11>* {
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+}
+
 .emotion-12 {
   margin-top: 8px;
-}
-
-.emotion-14>input[type='radio']:disabled+label:before {
-  border: 2px solid #d5d5d5;
-  cursor: not-allowed;
-}
-
-.emotion-14>input[type='radio']:checked+label:after {
-  background-color: #3697f2;
-  border-radius: 50%;
-  box-sizing: border-box;
-  content: '';
-  height: 8px;
-  line-height: 8px;
-  left: 4px;
-  position: absolute;
-  top: 4px;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-  width: 8px;
-}
-
-.emotion-14>input[type='radio']:hover+label:before {
-  border: 2px solid #3697f2;
-}
-
-.emotion-14>input[type='radio']+label:before {
-  background: #fff;
-  border: 2px solid rgba(54,151,242,0.5);
-  border-radius: 50%;
-  box-sizing: border-box;
-  content: '';
-  cursor: pointer;
-  display: inline-block;
-  height: 16px;
-  line-height: 16px;
-  margin: 0px 3px -3px 0px;
-  -webkit-transition: all 0.25s ease-in;
-  transition: all 0.25s ease-in;
-  width: 16px;
 }
 
 .emotion-14 {
@@ -1530,19 +1490,6 @@ exports[`AddAssertion should render failed to submit role name is required 1`] =
   visibility: hidden;
 }
 
-.emotion-14>input[type='radio']:disabled+label {
-  color: #d5d5d5;
-  cursor: not-allowed;
-}
-
-.emotion-14>input[type='radio']:checked+label:before {
-  border: 2px solid #3697f2;
-}
-
-.emotion-14>input[type='radio']:focus+label:before {
-  border: 2px solid rgba(54,151,242,0.5);
-}
-
 .emotion-14>input[type='radio']+label {
   box-sizing: border-box;
   cursor: pointer;
@@ -1554,6 +1501,59 @@ exports[`AddAssertion should render failed to submit role name is required 1`] =
   padding: 0 10px 0 0;
   vertical-align: bottom;
   white-space: nowrap;
+}
+
+.emotion-14>input[type='radio']+label:before {
+  background: #fff;
+  border: 2px solid rgba(54,151,242,0.5);
+  border-radius: 50%;
+  box-sizing: border-box;
+  content: '';
+  cursor: pointer;
+  display: inline-block;
+  height: 16px;
+  line-height: 16px;
+  margin: 0px 3px -3px 0px;
+  -webkit-transition: all 0.25s ease-in;
+  transition: all 0.25s ease-in;
+  width: 16px;
+}
+
+.emotion-14>input[type='radio']:hover+label:before {
+  border: 2px solid #3697f2;
+}
+
+.emotion-14>input[type='radio']:focus+label:before {
+  border: 2px solid rgba(54,151,242,0.5);
+}
+
+.emotion-14>input[type='radio']:checked+label:before {
+  border: 2px solid #3697f2;
+}
+
+.emotion-14>input[type='radio']:disabled+label {
+  color: #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-14>input[type='radio']:disabled+label:before {
+  border: 2px solid #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-14>input[type='radio']:checked+label:after {
+  background-color: #3697f2;
+  border-radius: 50%;
+  box-sizing: border-box;
+  content: '';
+  height: 8px;
+  line-height: 8px;
+  left: 4px;
+  position: absolute;
+  top: 4px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  width: 8px;
 }
 
 .emotion-23 {
@@ -1571,31 +1571,6 @@ exports[`AddAssertion should render failed to submit role name is required 1`] =
   font-weight: 300;
   position: relative;
   width: 250px;
-}
-
-.emotion-23 input:invalid {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #d01111;
-  color: #303030;
-}
-
-.emotion-23 .message {
-  font-size: 12px;
-  left: 0;
-  line-height: 1.8;
-  position: absolute;
-  top: 2.571rem;
-}
-
-.emotion-23.error input,
-.emotion-23.error input.focused,
-.emotion-23.error input:active,
-.emotion-23.error input:focus {
-  border-bottom: 2px solid #d01111;
-}
-
-.emotion-23.error .message {
-  color: #d01111;
 }
 
 .emotion-23 input {
@@ -1653,30 +1628,13 @@ exports[`AddAssertion should render failed to submit role name is required 1`] =
   color: #303030;
 }
 
-.emotion-24 {
-  width: 500px;
-}
-
-.emotion-33 input {
-  cursor: inherit;
-}
-
-.emotion-33 {
-  position: relative;
-  width: 100%;
-}
-
-.emotion-34 {
-  width: 500px;
-}
-
-.emotion-36 input:invalid {
+.emotion-23 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-36 .message {
+.emotion-23 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -1684,33 +1642,32 @@ exports[`AddAssertion should render failed to submit role name is required 1`] =
   top: 2.571rem;
 }
 
-.emotion-36.error input,
-.emotion-36.error input.focused,
-.emotion-36.error input:active,
-.emotion-36.error input:focus {
+.emotion-23.error input,
+.emotion-23.error input.focused,
+.emotion-23.error input:active,
+.emotion-23.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-36.error .message {
+.emotion-23.error .message {
   color: #d01111;
 }
 
-.emotion-36 input {
-  padding-right: 36px;
+.emotion-24 {
+  width: 500px;
 }
 
-.emotion-36 .input-icon {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  height: 36px;
-  position: absolute;
-  right: 6px;
+.emotion-33 {
+  position: relative;
+  width: 100%;
+}
+
+.emotion-33 input {
+  cursor: inherit;
+}
+
+.emotion-34 {
+  width: 500px;
 }
 
 .emotion-36 {
@@ -1785,6 +1742,49 @@ exports[`AddAssertion should render failed to submit role name is required 1`] =
   color: #303030;
 }
 
+.emotion-36 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-36 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-36.error input,
+.emotion-36.error input.focused,
+.emotion-36.error input:active,
+.emotion-36.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-36.error .message {
+  color: #d01111;
+}
+
+.emotion-36 input {
+  padding-right: 36px;
+}
+
+.emotion-36 .input-icon {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 36px;
+  position: absolute;
+  right: 6px;
+}
+
 .emotion-37 {
   fill: #d5d5d5;
   cursor: pointer;
@@ -1793,12 +1793,6 @@ exports[`AddAssertion should render failed to submit role name is required 1`] =
 
 .emotion-48 {
   margin-left: 155px;
-}
-
-.emotion-50:disabled {
-  background: rgba(48,48,48,0.1);
-  color: rgba(48,48,48,0.2);
-  cursor: not-allowed;
 }
 
 .emotion-50 {
@@ -1831,6 +1825,16 @@ exports[`AddAssertion should render failed to submit role name is required 1`] =
   color: #fff;
 }
 
+.emotion-50:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-50:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
 .emotion-50:hover:not(:disabled) {
   background: linear-gradient(
                   to right,
@@ -1839,17 +1843,9 @@ exports[`AddAssertion should render failed to submit role name is required 1`] =
               );
 }
 
-.emotion-50:first-of-type {
-  margin-left: 0;
-}
-
 .emotion-51 {
   min-width: 8.5em;
   min-height: 1em;
-}
-
-.emotion-53:hover:not(:disabled) {
-  background: #d7e2fd;
 }
 
 .emotion-53 {
@@ -1891,6 +1887,10 @@ exports[`AddAssertion should render failed to submit role name is required 1`] =
 
 .emotion-53:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
+}
+
+.emotion-53:hover:not(:disabled) {
+  background: #d7e2fd;
 }
 
 <div

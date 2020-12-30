@@ -48,10 +48,6 @@ exports[`RolePage should render 1`] = `
   margin-left: auto;
 }
 
-.emotion-3.simple.nav-link {
-  cursor: pointer;
-}
-
 .emotion-3 {
   -webkit-align-items: center;
   -webkit-box-align: center;
@@ -65,6 +61,27 @@ exports[`RolePage should render 1`] = `
   height: 60px;
   position: relative;
   width: ;
+}
+
+.emotion-3.simple {
+  color: #fff;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  padding: 0 12px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-3.simple.nav-link {
+  cursor: pointer;
+}
+
+.emotion-3.simple.nav-link:hover {
+  color: rgba(255,255,255,0.75);
+}
+
+.emotion-3.simple.active {
+  box-shadow: inset 0 -4px 0 #3697f2;
 }
 
 .emotion-3.simple.nav-link.active:hover {
@@ -145,23 +162,6 @@ exports[`RolePage should render 1`] = `
   fill: rgba(255,255,255,0.75);
 }
 
-.emotion-3.simple.nav-link:hover {
-  color: rgba(255,255,255,0.75);
-}
-
-.emotion-3.simple {
-  color: #fff;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 16px;
-  padding: 0 12px;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-}
-
-.emotion-3.simple.active {
-  box-shadow: inset 0 -4px 0 #3697f2;
-}
-
 .emotion-4 {
   height: 36px;
   cursor: pointer;
@@ -172,10 +172,44 @@ exports[`RolePage should render 1`] = `
   width: 50%;
 }
 
-.emotion-8 .nav-icon,
-.emotion-8:hover .nav-icon {
-  width: 24px;
-  height: 24px;
+.emotion-8 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  box-sizing: border-box;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 60px;
+  position: relative;
+  width: 100%;
+}
+
+.emotion-8.simple {
+  color: #fff;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  padding: 0 12px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-8.simple.nav-link {
+  cursor: pointer;
+}
+
+.emotion-8.simple.nav-link:hover {
+  color: rgba(255,255,255,0.75);
+}
+
+.emotion-8.simple.active {
+  box-shadow: inset 0 -4px 0 #3697f2;
+}
+
+.emotion-8.simple.nav-link.active:hover {
+  box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
 }
 
 .emotion-8 .nav-title {
@@ -226,8 +260,10 @@ exports[`RolePage should render 1`] = `
   height: 34px;
 }
 
-.emotion-8.simple.nav-link {
-  cursor: pointer;
+.emotion-8 .nav-icon,
+.emotion-8:hover .nav-icon {
+  width: 24px;
+  height: 24px;
 }
 
 .emotion-8 .nav-icon path,
@@ -250,42 +286,6 @@ exports[`RolePage should render 1`] = `
   fill: rgba(255,255,255,0.75);
 }
 
-.emotion-8.simple {
-  color: #fff;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 16px;
-  padding: 0 12px;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-}
-
-.emotion-8 {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  box-sizing: border-box;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  height: 60px;
-  position: relative;
-  width: 100%;
-}
-
-.emotion-8.simple.nav-link:hover {
-  color: rgba(255,255,255,0.75);
-}
-
-.emotion-8.simple.nav-link.active:hover {
-  box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
-}
-
-.emotion-8.simple.active {
-  box-shadow: inset 0 -4px 0 #3697f2;
-}
-
 .emotion-9 {
   box-sizing: border-box;
   display: -webkit-inline-box;
@@ -301,6 +301,45 @@ exports[`RolePage should render 1`] = `
   font-weight: 300;
   position: relative;
   width: 100%;
+}
+
+.emotion-9 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-9.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-9 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-9 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
 }
 
 .emotion-9 input:-ms-input-placeholder {
@@ -389,45 +428,6 @@ exports[`RolePage should render 1`] = `
   height: 36px;
   position: absolute;
   right: 6px;
-}
-
-.emotion-9 input {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  -ms-appearance: none;
-  appearance: none;
-  background: rgba(53,112,244,0.05);
-  border-top: 2px solid transparent;
-  border-bottom: 2px solid transparent;
-  border-right: transparent;
-  border-left: transparent;
-  border-radius: 2px;
-  box-shadow: none;
-  box-sizing: border-box;
-  color: #303030;
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-  font: inherit;
-  height: 36px;
-  margin: 0;
-  outline: none;
-  padding: 0 1rem;
-  text-align: left;
-  width: 100%;
-}
-
-.emotion-9.animated input {
-  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-}
-
-.emotion-9 input::-webkit-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-9 input::-moz-placeholder {
-  color: rgba(48,48,48,0.6);
 }
 
 .emotion-10 {
@@ -539,6 +539,42 @@ exports[`RolePage should render 1`] = `
   text-transform: uppercase;
 }
 
+.emotion-56 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  height: 18px;
+  outline: 0;
+  position: relative;
+}
+
+.emotion-56>input[type='checkbox'] {
+  box-sizing: border-box;
+  cursor: pointer;
+  position: absolute;
+  top: 0;
+  visibility: hidden;
+}
+
+.emotion-56>input[type='checkbox']+label {
+  box-sizing: border-box;
+  cursor: pointer;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  height: 18px;
+  line-height: 18px;
+  white-space: nowrap;
+}
+
 .emotion-56>input[type='checkbox']+label .label-content {
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -615,42 +651,6 @@ exports[`RolePage should render 1`] = `
   background: #d5d5d5;
 }
 
-.emotion-56 {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  height: 18px;
-  outline: 0;
-  position: relative;
-}
-
-.emotion-56>input[type='checkbox'] {
-  box-sizing: border-box;
-  cursor: pointer;
-  position: absolute;
-  top: 0;
-  visibility: hidden;
-}
-
-.emotion-56>input[type='checkbox']+label {
-  box-sizing: border-box;
-  cursor: pointer;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  height: 18px;
-  line-height: 18px;
-  white-space: nowrap;
-}
-
 .emotion-65 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
@@ -710,6 +710,23 @@ exports[`RolePage should render 1`] = `
   z-index: 1;
 }
 
+.emotion-66:hover {
+  color: #3570f4;
+}
+
+.emotion-66.active {
+  background: #fff;
+  border-bottom: ;
+  border-top-left-radius: 2px;
+  border-top-right-radius: 2px;
+  color: #303030;
+  cursor: initial;
+}
+
+.emotion-66.active:hover {
+  color: #303030;
+}
+
 .emotion-66.vertical {
   background: #f5f8fe;
   border-left: solid 4px #f5f8fe;
@@ -722,27 +739,10 @@ exports[`RolePage should render 1`] = `
   text-align: left;
 }
 
-.emotion-66:hover {
-  color: #3570f4;
-}
-
 .emotion-66.vertical.active {
   background: #fff;
   border-left: solid 4px #3697f2;
   color: #303030;
-}
-
-.emotion-66.active:hover {
-  color: #303030;
-}
-
-.emotion-66.active {
-  background: #fff;
-  border-bottom: ;
-  border-top-left-radius: 2px;
-  border-top-right-radius: 2px;
-  color: #303030;
-  cursor: initial;
 }
 
 .emotion-66.vertical.active:hover {
@@ -776,20 +776,6 @@ exports[`RolePage should render 1`] = `
   vertical-align: middle;
 }
 
-.emotion-78::before {
-  background: #fff;
-  border: 2px solid #0072df;
-  border-radius: 2px;
-  box-sizing: border-box;
-  content: '';
-  height: calc(100% + 4px);
-  margin: -2px -2px -2px calc(0% - 2px);
-  position: absolute;
-  -webkit-transition: all 0.3s ease-in;
-  transition: all 0.3s ease-in;
-  width: calc(50% + 4px);
-}
-
 .emotion-78 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
@@ -804,8 +790,18 @@ exports[`RolePage should render 1`] = `
   position: relative;
 }
 
-.emotion-79:hover {
-  color: #303030;
+.emotion-78::before {
+  background: #fff;
+  border: 2px solid #0072df;
+  border-radius: 2px;
+  box-sizing: border-box;
+  content: '';
+  height: calc(100% + 4px);
+  margin: -2px -2px -2px calc(0% - 2px);
+  position: absolute;
+  -webkit-transition: all 0.3s ease-in;
+  transition: all 0.3s ease-in;
+  width: calc(50% + 4px);
 }
 
 .emotion-79 {
@@ -834,6 +830,10 @@ exports[`RolePage should render 1`] = `
   transition: color 0.2s ease-in 0.1s;
   white-space: nowrap;
   z-index: 1;
+}
+
+.emotion-79:hover {
+  color: #303030;
 }
 
 .emotion-80 {
@@ -872,12 +872,6 @@ exports[`RolePage should render 1`] = `
   width: 50%;
 }
 
-.emotion-83 input:invalid {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #d01111;
-  color: #303030;
-}
-
 .emotion-83 {
   box-sizing: border-box;
   display: -webkit-inline-box;
@@ -893,6 +887,67 @@ exports[`RolePage should render 1`] = `
   font-weight: 300;
   position: relative;
   width: 100%;
+}
+
+.emotion-83 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-83.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-83 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-83 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-83 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-83 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-83 input.focused,
+.emotion-83 input:active,
+.emotion-83 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-83 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
 }
 
 .emotion-83 .message {
@@ -932,75 +987,6 @@ exports[`RolePage should render 1`] = `
   right: 6px;
 }
 
-.emotion-83.animated input {
-  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-}
-
-.emotion-83 input {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  -ms-appearance: none;
-  appearance: none;
-  background: rgba(53,112,244,0.05);
-  border-top: 2px solid transparent;
-  border-bottom: 2px solid transparent;
-  border-right: transparent;
-  border-left: transparent;
-  border-radius: 2px;
-  box-shadow: none;
-  box-sizing: border-box;
-  color: #303030;
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-  font: inherit;
-  height: 36px;
-  margin: 0;
-  outline: none;
-  padding: 0 1rem;
-  text-align: left;
-  width: 100%;
-}
-
-.emotion-83 input::-webkit-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-83 input::-moz-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-83 input:-ms-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-83 input::placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-83 input.focused,
-.emotion-83 input:active,
-.emotion-83 input:focus {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #3570f4;
-  color: #303030;
-}
-
-.emotion-85:disabled {
-  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
-}
-
-.emotion-85:disabled {
-  background: rgba(48,48,48,0.1);
-  color: rgba(48,48,48,0.2);
-  cursor: not-allowed;
-}
-
-.emotion-85:first-of-type {
-  margin-left: 0;
-}
-
 .emotion-85 {
   border: none;
   border-radius: 2px;
@@ -1026,6 +1012,20 @@ exports[`RolePage should render 1`] = `
   background: transparent;
   box-shadow: 0 0 0 1px #3697f2 inset;
   color: #3697f2;
+}
+
+.emotion-85:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-85:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
+.emotion-85:disabled {
+  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
 .emotion-85:hover:not(:disabled) {

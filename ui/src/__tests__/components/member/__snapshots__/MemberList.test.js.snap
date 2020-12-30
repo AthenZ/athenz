@@ -52,6 +52,10 @@ exports[`MemberList should render 1`] = `
   color: #3697f2;
 }
 
+.emotion-4:first-of-type {
+  margin-left: 0;
+}
+
 .emotion-4:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
@@ -64,10 +68,6 @@ exports[`MemberList should render 1`] = `
 
 .emotion-4:hover:not(:disabled) {
   background: #d7e2fd;
-}
-
-.emotion-4:first-of-type {
-  margin-left: 0;
 }
 
 .emotion-5 {
@@ -570,6 +570,10 @@ exports[`MemberList should render delegated role 1`] = `
   color: #3697f2;
 }
 
+.emotion-4:first-of-type {
+  margin-left: 0;
+}
+
 .emotion-4:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
@@ -582,10 +586,6 @@ exports[`MemberList should render delegated role 1`] = `
 
 .emotion-4:hover:not(:disabled) {
   background: #d7e2fd;
-}
-
-.emotion-4:first-of-type {
-  margin-left: 0;
 }
 
 .emotion-5 {

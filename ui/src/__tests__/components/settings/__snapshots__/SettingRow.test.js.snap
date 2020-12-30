@@ -28,30 +28,21 @@ exports[`SettingRow should render input type setting row 1`] = `
   display: flex;
 }
 
-.emotion-8 input:invalid {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #d01111;
-  color: #303030;
-}
-
-.emotion-8 input::-moz-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-8 input:-ms-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-8 input::placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-8 input.focused,
-.emotion-8 input:active,
-.emotion-8 input:focus {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #3570f4;
-  color: #303030;
+.emotion-8 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 100%;
 }
 
 .emotion-8 input {
@@ -80,6 +71,41 @@ exports[`SettingRow should render input type setting row 1`] = `
   width: 100%;
 }
 
+.emotion-8.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-8 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-8 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-8 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-8 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-8 input.focused,
+.emotion-8 input:active,
+.emotion-8 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-8 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
 .emotion-8 .message {
   font-size: 12px;
   left: 0;
@@ -97,32 +123,6 @@ exports[`SettingRow should render input type setting row 1`] = `
 
 .emotion-8.error .message {
   color: #d01111;
-}
-
-.emotion-8 {
-  box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  -webkit-box-flex-flow: row nowrap;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  position: relative;
-  width: 100%;
-}
-
-.emotion-8.animated input {
-  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-}
-
-.emotion-8 input::-webkit-input-placeholder {
-  color: rgba(48,48,48,0.6);
 }
 
 .emotion-9 {
@@ -191,6 +191,31 @@ exports[`SettingRow should render switch type setting row 1`] = `
   word-break: break-all;
 }
 
+.emotion-6 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  height: 18px;
+  outline: 0;
+  position: relative;
+}
+
+.emotion-6>input[type='checkbox'] {
+  box-sizing: border-box;
+  cursor: pointer;
+  position: absolute;
+  top: 0;
+  visibility: hidden;
+}
+
 .emotion-6>input[type='checkbox']+label {
   box-sizing: border-box;
   cursor: pointer;
@@ -249,12 +274,8 @@ exports[`SettingRow should render switch type setting row 1`] = `
   width: 18px;
 }
 
-.emotion-6>input[type='checkbox'] {
-  box-sizing: border-box;
-  cursor: pointer;
-  position: absolute;
-  top: 0;
-  visibility: hidden;
+.emotion-6>input[type='checkbox']:checked+label::before {
+  background-color: rgba(21,192,70,0.45);
 }
 
 .emotion-6>input[type='checkbox']:checked+label::after {
@@ -280,27 +301,6 @@ exports[`SettingRow should render switch type setting row 1`] = `
 
 .emotion-6>input[type='checkbox']:checked:disabled+label::after {
   background: #d5d5d5;
-}
-
-.emotion-6 {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  height: 18px;
-  outline: 0;
-  position: relative;
-}
-
-.emotion-6>input[type='checkbox']:checked+label::before {
-  background-color: rgba(21,192,70,0.45);
 }
 
 <tr

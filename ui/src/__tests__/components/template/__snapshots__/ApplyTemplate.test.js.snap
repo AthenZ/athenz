@@ -46,26 +46,6 @@ exports[`ApplyTemplate should render 1`] = `
   margin-right: 10px;
 }
 
-.emotion-9 input::-moz-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-9 input:-ms-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-9 input::placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-9 input.focused,
-.emotion-9 input:active,
-.emotion-9 input:focus {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #3570f4;
-  color: #303030;
-}
-
 .emotion-9 {
   box-sizing: border-box;
   display: -webkit-inline-box;
@@ -81,31 +61,6 @@ exports[`ApplyTemplate should render 1`] = `
   font-weight: 300;
   position: relative;
   width: 250px;
-}
-
-.emotion-9 .message {
-  font-size: 12px;
-  left: 0;
-  line-height: 1.8;
-  position: absolute;
-  top: 2.571rem;
-}
-
-.emotion-9.error input,
-.emotion-9.error input.focused,
-.emotion-9.error input:active,
-.emotion-9.error input:focus {
-  border-bottom: 2px solid #d01111;
-}
-
-.emotion-9.error .message {
-  color: #d01111;
-}
-
-.emotion-9 input:invalid {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #d01111;
-  color: #303030;
 }
 
 .emotion-9 input {
@@ -141,6 +96,51 @@ exports[`ApplyTemplate should render 1`] = `
 
 .emotion-9 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
+}
+
+.emotion-9 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-9 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-9 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-9 input.focused,
+.emotion-9 input:active,
+.emotion-9 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-9 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-9 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-9.error input,
+.emotion-9.error input.focused,
+.emotion-9.error input:active,
+.emotion-9.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-9.error .message {
+  color: #d01111;
 }
 
 .emotion-10 {
@@ -232,26 +232,6 @@ exports[`ApplyTemplate should render with keywords 1`] = `
   margin-right: 10px;
 }
 
-.emotion-9 input::-moz-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-9 input:-ms-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-9 input::placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-9 input.focused,
-.emotion-9 input:active,
-.emotion-9 input:focus {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #3570f4;
-  color: #303030;
-}
-
 .emotion-9 {
   box-sizing: border-box;
   display: -webkit-inline-box;
@@ -267,31 +247,6 @@ exports[`ApplyTemplate should render with keywords 1`] = `
   font-weight: 300;
   position: relative;
   width: 250px;
-}
-
-.emotion-9 .message {
-  font-size: 12px;
-  left: 0;
-  line-height: 1.8;
-  position: absolute;
-  top: 2.571rem;
-}
-
-.emotion-9.error input,
-.emotion-9.error input.focused,
-.emotion-9.error input:active,
-.emotion-9.error input:focus {
-  border-bottom: 2px solid #d01111;
-}
-
-.emotion-9.error .message {
-  color: #d01111;
-}
-
-.emotion-9 input:invalid {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #d01111;
-  color: #303030;
 }
 
 .emotion-9 input {
@@ -327,6 +282,51 @@ exports[`ApplyTemplate should render with keywords 1`] = `
 
 .emotion-9 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
+}
+
+.emotion-9 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-9 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-9 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-9 input.focused,
+.emotion-9 input:active,
+.emotion-9 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-9 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-9 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-9.error input,
+.emotion-9.error input.focused,
+.emotion-9.error input:active,
+.emotion-9.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-9.error .message {
+  color: #d01111;
 }
 
 .emotion-10 {

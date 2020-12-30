@@ -11,47 +11,6 @@ exports[`Alert should disable animations 1`] = `
   z-index: 5;
 }
 
-.emotion-1 .left-section .alert-icon {
-  -webkit-align-items: flex-start;
-  -webkit-box-align: flex-start;
-  -ms-flex-align: flex-start;
-  align-items: flex-start;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-pack: center;
-  -ms-flex-pack: center;
-  -webkit-justify-content: center;
-  justify-content: center;
-}
-
-.emotion-1.ReactModal__Content {
-  opacity: 0;
-  top: 0;
-}
-
-.emotion-1.animated {
-  -webkit-transition: opacity 0.2s ease-out,top 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  transition: opacity 0.2s ease-out,top 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.emotion-1.ReactModal__Content--after-open {
-  top: 80px;
-  opacity: 1;
-}
-
-.emotion-1.ReactModal__Content--before-close {
-  opacity: 0;
-}
-
-.emotion-1 .left-section {
-  -webkit-flex: 0 0 28px;
-  -ms-flex: 0 0 28px;
-  flex: 0 0 28px;
-  padding: 14px;
-}
-
 .emotion-1 {
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.16);
   -webkit-align-items: flex-start;
@@ -84,6 +43,47 @@ exports[`Alert should disable animations 1`] = `
   -ms-transform: translate(-50%, 0);
   transform: translate(-50%, 0);
   width: 400px;
+}
+
+.emotion-1.ReactModal__Content {
+  opacity: 0;
+  top: 0;
+}
+
+.emotion-1.animated {
+  -webkit-transition: opacity 0.2s ease-out,top 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: opacity 0.2s ease-out,top 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.emotion-1.ReactModal__Content--after-open {
+  top: 80px;
+  opacity: 1;
+}
+
+.emotion-1.ReactModal__Content--before-close {
+  opacity: 0;
+}
+
+.emotion-1 .left-section {
+  -webkit-flex: 0 0 28px;
+  -ms-flex: 0 0 28px;
+  flex: 0 0 28px;
+  padding: 14px;
+}
+
+.emotion-1 .left-section .alert-icon {
+  -webkit-align-items: flex-start;
+  -webkit-box-align: flex-start;
+  -ms-flex-align: flex-start;
+  align-items: flex-start;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  -webkit-justify-content: center;
+  justify-content: center;
 }
 
 .emotion-1 .right-section {
@@ -260,13 +260,6 @@ exports[`Alert should render all alert types 1`] = `
   z-index: 5;
 }
 
-.emotion-1 .left-section {
-  -webkit-flex: 0 0 28px;
-  -ms-flex: 0 0 28px;
-  flex: 0 0 28px;
-  padding: 14px;
-}
-
 .emotion-1 {
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.16);
   -webkit-align-items: flex-start;
@@ -320,10 +313,11 @@ exports[`Alert should render all alert types 1`] = `
   opacity: 0;
 }
 
-.emotion-1 .right-section .description {
-  font-size: 14px;
-  font-weight: 300;
-  padding: 0 14px 14px 0;
+.emotion-1 .left-section {
+  -webkit-flex: 0 0 28px;
+  -ms-flex: 0 0 28px;
+  flex: 0 0 28px;
+  padding: 14px;
 }
 
 .emotion-1 .left-section .alert-icon {
@@ -377,6 +371,12 @@ exports[`Alert should render all alert types 1`] = `
 
 .emotion-1 .right-section .title-row .title {
   font-weight: 600;
+}
+
+.emotion-1 .right-section .description {
+  font-size: 14px;
+  font-weight: 300;
+  padding: 0 14px 14px 0;
 }
 
 .emotion-2 {
@@ -499,47 +499,6 @@ exports[`Alert should render all alert types 2`] = `
   z-index: 5;
 }
 
-.emotion-1 .left-section .alert-icon {
-  -webkit-align-items: flex-start;
-  -webkit-box-align: flex-start;
-  -ms-flex-align: flex-start;
-  align-items: flex-start;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-pack: center;
-  -ms-flex-pack: center;
-  -webkit-justify-content: center;
-  justify-content: center;
-}
-
-.emotion-1.ReactModal__Content {
-  opacity: 0;
-  top: 0;
-}
-
-.emotion-1.animated {
-  -webkit-transition: opacity 0.2s ease-out,top 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  transition: opacity 0.2s ease-out,top 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.emotion-1.ReactModal__Content--after-open {
-  top: 80px;
-  opacity: 1;
-}
-
-.emotion-1.ReactModal__Content--before-close {
-  opacity: 0;
-}
-
-.emotion-1 .left-section {
-  -webkit-flex: 0 0 28px;
-  -ms-flex: 0 0 28px;
-  flex: 0 0 28px;
-  padding: 14px;
-}
-
 .emotion-1 {
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.16);
   -webkit-align-items: flex-start;
@@ -572,6 +531,47 @@ exports[`Alert should render all alert types 2`] = `
   -ms-transform: translate(-50%, 0);
   transform: translate(-50%, 0);
   width: 400px;
+}
+
+.emotion-1.ReactModal__Content {
+  opacity: 0;
+  top: 0;
+}
+
+.emotion-1.animated {
+  -webkit-transition: opacity 0.2s ease-out,top 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: opacity 0.2s ease-out,top 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.emotion-1.ReactModal__Content--after-open {
+  top: 80px;
+  opacity: 1;
+}
+
+.emotion-1.ReactModal__Content--before-close {
+  opacity: 0;
+}
+
+.emotion-1 .left-section {
+  -webkit-flex: 0 0 28px;
+  -ms-flex: 0 0 28px;
+  flex: 0 0 28px;
+  padding: 14px;
+}
+
+.emotion-1 .left-section .alert-icon {
+  -webkit-align-items: flex-start;
+  -webkit-box-align: flex-start;
+  -ms-flex-align: flex-start;
+  align-items: flex-start;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  -webkit-justify-content: center;
+  justify-content: center;
 }
 
 .emotion-1 .right-section {
@@ -738,13 +738,6 @@ exports[`Alert should render all alert types 3`] = `
   z-index: 5;
 }
 
-.emotion-1 .left-section {
-  -webkit-flex: 0 0 28px;
-  -ms-flex: 0 0 28px;
-  flex: 0 0 28px;
-  padding: 14px;
-}
-
 .emotion-1 {
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.16);
   -webkit-align-items: flex-start;
@@ -798,10 +791,11 @@ exports[`Alert should render all alert types 3`] = `
   opacity: 0;
 }
 
-.emotion-1 .right-section .description {
-  font-size: 14px;
-  font-weight: 300;
-  padding: 0 14px 14px 0;
+.emotion-1 .left-section {
+  -webkit-flex: 0 0 28px;
+  -ms-flex: 0 0 28px;
+  flex: 0 0 28px;
+  padding: 14px;
 }
 
 .emotion-1 .left-section .alert-icon {
@@ -855,6 +849,12 @@ exports[`Alert should render all alert types 3`] = `
 
 .emotion-1 .right-section .title-row .title {
   font-weight: 600;
+}
+
+.emotion-1 .right-section .description {
+  font-size: 14px;
+  font-weight: 300;
+  padding: 0 14px 14px 0;
 }
 
 .emotion-2 {
@@ -977,13 +977,6 @@ exports[`Alert should render all alert types 4`] = `
   z-index: 5;
 }
 
-.emotion-1 .left-section {
-  -webkit-flex: 0 0 28px;
-  -ms-flex: 0 0 28px;
-  flex: 0 0 28px;
-  padding: 14px;
-}
-
 .emotion-1 {
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.16);
   -webkit-align-items: flex-start;
@@ -1037,10 +1030,11 @@ exports[`Alert should render all alert types 4`] = `
   opacity: 0;
 }
 
-.emotion-1 .right-section .description {
-  font-size: 14px;
-  font-weight: 300;
-  padding: 0 14px 14px 0;
+.emotion-1 .left-section {
+  -webkit-flex: 0 0 28px;
+  -ms-flex: 0 0 28px;
+  flex: 0 0 28px;
+  padding: 14px;
 }
 
 .emotion-1 .left-section .alert-icon {
@@ -1094,6 +1088,12 @@ exports[`Alert should render all alert types 4`] = `
 
 .emotion-1 .right-section .title-row .title {
   font-weight: 600;
+}
+
+.emotion-1 .right-section .description {
+  font-size: 14px;
+  font-weight: 300;
+  padding: 0 14px 14px 0;
 }
 
 .emotion-2 {
@@ -1216,47 +1216,6 @@ exports[`Alert should render open state 1`] = `
   z-index: 5;
 }
 
-.emotion-1 .left-section .alert-icon {
-  -webkit-align-items: flex-start;
-  -webkit-box-align: flex-start;
-  -ms-flex-align: flex-start;
-  align-items: flex-start;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-pack: center;
-  -ms-flex-pack: center;
-  -webkit-justify-content: center;
-  justify-content: center;
-}
-
-.emotion-1.ReactModal__Content {
-  opacity: 0;
-  top: 0;
-}
-
-.emotion-1.animated {
-  -webkit-transition: opacity 0.2s ease-out,top 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  transition: opacity 0.2s ease-out,top 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.emotion-1.ReactModal__Content--after-open {
-  top: 80px;
-  opacity: 1;
-}
-
-.emotion-1.ReactModal__Content--before-close {
-  opacity: 0;
-}
-
-.emotion-1 .left-section {
-  -webkit-flex: 0 0 28px;
-  -ms-flex: 0 0 28px;
-  flex: 0 0 28px;
-  padding: 14px;
-}
-
 .emotion-1 {
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.16);
   -webkit-align-items: flex-start;
@@ -1289,6 +1248,47 @@ exports[`Alert should render open state 1`] = `
   -ms-transform: translate(-50%, 0);
   transform: translate(-50%, 0);
   width: 400px;
+}
+
+.emotion-1.ReactModal__Content {
+  opacity: 0;
+  top: 0;
+}
+
+.emotion-1.animated {
+  -webkit-transition: opacity 0.2s ease-out,top 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: opacity 0.2s ease-out,top 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.emotion-1.ReactModal__Content--after-open {
+  top: 80px;
+  opacity: 1;
+}
+
+.emotion-1.ReactModal__Content--before-close {
+  opacity: 0;
+}
+
+.emotion-1 .left-section {
+  -webkit-flex: 0 0 28px;
+  -ms-flex: 0 0 28px;
+  flex: 0 0 28px;
+  padding: 14px;
+}
+
+.emotion-1 .left-section .alert-icon {
+  -webkit-align-items: flex-start;
+  -webkit-box-align: flex-start;
+  -ms-flex-align: flex-start;
+  align-items: flex-start;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  -webkit-justify-content: center;
+  justify-content: center;
 }
 
 .emotion-1 .right-section {

@@ -45,6 +45,10 @@ exports[`RoleHistoryList should render 1`] = `
   color: #fff;
 }
 
+.emotion-8:first-of-type {
+  margin-left: 0;
+}
+
 .emotion-8:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
@@ -57,10 +61,6 @@ exports[`RoleHistoryList should render 1`] = `
                   #3570f4,
                   #3448f7
               );
-}
-
-.emotion-8:first-of-type {
-  margin-left: 0;
 }
 
 .emotion-9>div input {

@@ -25,24 +25,6 @@ exports[`ServiceList should render add service modal after click 1`] = `
   float: right;
 }
 
-.emotion-4:disabled {
-  background: rgba(48,48,48,0.1);
-  color: rgba(48,48,48,0.2);
-  cursor: not-allowed;
-}
-
-.emotion-4:disabled {
-  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
-}
-
-.emotion-4:hover:not(:disabled) {
-  background: #d7e2fd;
-}
-
-.emotion-4:first-of-type {
-  margin-left: 0;
-}
-
 .emotion-4 {
   border: none;
   border-radius: 2px;
@@ -68,6 +50,24 @@ exports[`ServiceList should render add service modal after click 1`] = `
   background: transparent;
   box-shadow: 0 0 0 1px #3697f2 inset;
   color: #3697f2;
+}
+
+.emotion-4:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-4:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
+.emotion-4:disabled {
+  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
+}
+
+.emotion-4:hover:not(:disabled) {
+  background: #d7e2fd;
 }
 
 .emotion-5 {
@@ -291,24 +291,6 @@ exports[`ServiceList should render delete service modal error(other) after click
   float: right;
 }
 
-.emotion-4:disabled {
-  background: rgba(48,48,48,0.1);
-  color: rgba(48,48,48,0.2);
-  cursor: not-allowed;
-}
-
-.emotion-4:disabled {
-  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
-}
-
-.emotion-4:hover:not(:disabled) {
-  background: #d7e2fd;
-}
-
-.emotion-4:first-of-type {
-  margin-left: 0;
-}
-
 .emotion-4 {
   border: none;
   border-radius: 2px;
@@ -334,6 +316,24 @@ exports[`ServiceList should render delete service modal error(other) after click
   background: transparent;
   box-shadow: 0 0 0 1px #3697f2 inset;
   color: #3697f2;
+}
+
+.emotion-4:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-4:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
+.emotion-4:disabled {
+  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
+}
+
+.emotion-4:hover:not(:disabled) {
+  background: #d7e2fd;
 }
 
 .emotion-5 {
@@ -548,24 +548,6 @@ exports[`ServiceList should render delete service modal error(refresh) after cli
   float: right;
 }
 
-.emotion-4:disabled {
-  background: rgba(48,48,48,0.1);
-  color: rgba(48,48,48,0.2);
-  cursor: not-allowed;
-}
-
-.emotion-4:disabled {
-  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
-}
-
-.emotion-4:hover:not(:disabled) {
-  background: #d7e2fd;
-}
-
-.emotion-4:first-of-type {
-  margin-left: 0;
-}
-
 .emotion-4 {
   border: none;
   border-radius: 2px;
@@ -591,6 +573,24 @@ exports[`ServiceList should render delete service modal error(refresh) after cli
   background: transparent;
   box-shadow: 0 0 0 1px #3697f2 inset;
   color: #3697f2;
+}
+
+.emotion-4:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-4:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
+.emotion-4:disabled {
+  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
+}
+
+.emotion-4:hover:not(:disabled) {
+  background: #d7e2fd;
 }
 
 .emotion-5 {
@@ -805,24 +805,6 @@ exports[`ServiceList should render serviceList again after cancel delete 1`] = `
   float: right;
 }
 
-.emotion-4:disabled {
-  background: rgba(48,48,48,0.1);
-  color: rgba(48,48,48,0.2);
-  cursor: not-allowed;
-}
-
-.emotion-4:disabled {
-  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
-}
-
-.emotion-4:hover:not(:disabled) {
-  background: #d7e2fd;
-}
-
-.emotion-4:first-of-type {
-  margin-left: 0;
-}
-
 .emotion-4 {
   border: none;
   border-radius: 2px;
@@ -848,6 +830,24 @@ exports[`ServiceList should render serviceList again after cancel delete 1`] = `
   background: transparent;
   box-shadow: 0 0 0 1px #3697f2 inset;
   color: #3697f2;
+}
+
+.emotion-4:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-4:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
+.emotion-4:disabled {
+  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
+}
+
+.emotion-4:hover:not(:disabled) {
+  background: #d7e2fd;
 }
 
 .emotion-5 {
@@ -1219,24 +1219,6 @@ exports[`ServiceList should render with services 1`] = `
   float: right;
 }
 
-.emotion-4:disabled {
-  background: rgba(48,48,48,0.1);
-  color: rgba(48,48,48,0.2);
-  cursor: not-allowed;
-}
-
-.emotion-4:disabled {
-  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
-}
-
-.emotion-4:hover:not(:disabled) {
-  background: #d7e2fd;
-}
-
-.emotion-4:first-of-type {
-  margin-left: 0;
-}
-
 .emotion-4 {
   border: none;
   border-radius: 2px;
@@ -1262,6 +1244,24 @@ exports[`ServiceList should render with services 1`] = `
   background: transparent;
   box-shadow: 0 0 0 1px #3697f2 inset;
   color: #3697f2;
+}
+
+.emotion-4:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-4:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
+.emotion-4:disabled {
+  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
+}
+
+.emotion-4:hover:not(:disabled) {
+  background: #d7e2fd;
 }
 
 .emotion-5 {

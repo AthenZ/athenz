@@ -59,39 +59,6 @@ exports[`ManageDomains should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-30>input[type='checkbox']:disabled+label::after {
-  border-color: #d5d5d5;
-  cursor: not-allowed;
-}
-
-.emotion-30>input[type='checkbox']:checked+label::after {
-  background-color: #15c046;
-  border-color: #15c046;
-  left: 16px;
-}
-
-.emotion-30>input[type='checkbox']:disabled+label {
-  color: #9a9a9a;
-  cursor: not-allowed;
-}
-
-.emotion-30>input[type='checkbox']:disabled+label::before {
-  background-color: #e8e8e8;
-  cursor: not-allowed;
-}
-
-.emotion-30>input[type='checkbox'] {
-  box-sizing: border-box;
-  cursor: pointer;
-  position: absolute;
-  top: 0;
-  visibility: hidden;
-}
-
-.emotion-30>input[type='checkbox']:checked:disabled+label::after {
-  background: #d5d5d5;
-}
-
 .emotion-30 {
   -webkit-align-items: center;
   -webkit-box-align: center;
@@ -107,6 +74,14 @@ exports[`ManageDomains should render 1`] = `
   height: 18px;
   outline: 0;
   position: relative;
+}
+
+.emotion-30>input[type='checkbox'] {
+  box-sizing: border-box;
+  cursor: pointer;
+  position: absolute;
+  top: 0;
+  visibility: hidden;
 }
 
 .emotion-30>input[type='checkbox']+label {
@@ -169,6 +144,31 @@ exports[`ManageDomains should render 1`] = `
 
 .emotion-30>input[type='checkbox']:checked+label::before {
   background-color: rgba(21,192,70,0.45);
+}
+
+.emotion-30>input[type='checkbox']:checked+label::after {
+  background-color: #15c046;
+  border-color: #15c046;
+  left: 16px;
+}
+
+.emotion-30>input[type='checkbox']:disabled+label {
+  color: #9a9a9a;
+  cursor: not-allowed;
+}
+
+.emotion-30>input[type='checkbox']:disabled+label::before {
+  background-color: #e8e8e8;
+  cursor: not-allowed;
+}
+
+.emotion-30>input[type='checkbox']:disabled+label::after {
+  border-color: #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-30>input[type='checkbox']:checked:disabled+label::after {
+  background: #d5d5d5;
 }
 
 .emotion-35 {
@@ -409,39 +409,6 @@ exports[`ManageDomains should render no domain 1`] = `
   word-break: break-all;
 }
 
-.emotion-30>input[type='checkbox']:disabled+label::after {
-  border-color: #d5d5d5;
-  cursor: not-allowed;
-}
-
-.emotion-30>input[type='checkbox']:checked+label::after {
-  background-color: #15c046;
-  border-color: #15c046;
-  left: 16px;
-}
-
-.emotion-30>input[type='checkbox']:disabled+label {
-  color: #9a9a9a;
-  cursor: not-allowed;
-}
-
-.emotion-30>input[type='checkbox']:disabled+label::before {
-  background-color: #e8e8e8;
-  cursor: not-allowed;
-}
-
-.emotion-30>input[type='checkbox'] {
-  box-sizing: border-box;
-  cursor: pointer;
-  position: absolute;
-  top: 0;
-  visibility: hidden;
-}
-
-.emotion-30>input[type='checkbox']:checked:disabled+label::after {
-  background: #d5d5d5;
-}
-
 .emotion-30 {
   -webkit-align-items: center;
   -webkit-box-align: center;
@@ -457,6 +424,14 @@ exports[`ManageDomains should render no domain 1`] = `
   height: 18px;
   outline: 0;
   position: relative;
+}
+
+.emotion-30>input[type='checkbox'] {
+  box-sizing: border-box;
+  cursor: pointer;
+  position: absolute;
+  top: 0;
+  visibility: hidden;
 }
 
 .emotion-30>input[type='checkbox']+label {
@@ -519,6 +494,31 @@ exports[`ManageDomains should render no domain 1`] = `
 
 .emotion-30>input[type='checkbox']:checked+label::before {
   background-color: rgba(21,192,70,0.45);
+}
+
+.emotion-30>input[type='checkbox']:checked+label::after {
+  background-color: #15c046;
+  border-color: #15c046;
+  left: 16px;
+}
+
+.emotion-30>input[type='checkbox']:disabled+label {
+  color: #9a9a9a;
+  cursor: not-allowed;
+}
+
+.emotion-30>input[type='checkbox']:disabled+label::before {
+  background-color: #e8e8e8;
+  cursor: not-allowed;
+}
+
+.emotion-30>input[type='checkbox']:disabled+label::after {
+  border-color: #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-30>input[type='checkbox']:checked:disabled+label::after {
+  background: #d5d5d5;
 }
 
 .emotion-35 {
@@ -783,39 +783,6 @@ exports[`ManageDomains should render personal domain 1`] = `
   word-break: break-all;
 }
 
-.emotion-30>input[type='checkbox']:disabled+label::after {
-  border-color: #d5d5d5;
-  cursor: not-allowed;
-}
-
-.emotion-30>input[type='checkbox']:checked+label::after {
-  background-color: #15c046;
-  border-color: #15c046;
-  left: 16px;
-}
-
-.emotion-30>input[type='checkbox']:disabled+label {
-  color: #9a9a9a;
-  cursor: not-allowed;
-}
-
-.emotion-30>input[type='checkbox']:disabled+label::before {
-  background-color: #e8e8e8;
-  cursor: not-allowed;
-}
-
-.emotion-30>input[type='checkbox'] {
-  box-sizing: border-box;
-  cursor: pointer;
-  position: absolute;
-  top: 0;
-  visibility: hidden;
-}
-
-.emotion-30>input[type='checkbox']:checked:disabled+label::after {
-  background: #d5d5d5;
-}
-
 .emotion-30 {
   -webkit-align-items: center;
   -webkit-box-align: center;
@@ -831,6 +798,14 @@ exports[`ManageDomains should render personal domain 1`] = `
   height: 18px;
   outline: 0;
   position: relative;
+}
+
+.emotion-30>input[type='checkbox'] {
+  box-sizing: border-box;
+  cursor: pointer;
+  position: absolute;
+  top: 0;
+  visibility: hidden;
 }
 
 .emotion-30>input[type='checkbox']+label {
@@ -893,6 +868,31 @@ exports[`ManageDomains should render personal domain 1`] = `
 
 .emotion-30>input[type='checkbox']:checked+label::before {
   background-color: rgba(21,192,70,0.45);
+}
+
+.emotion-30>input[type='checkbox']:checked+label::after {
+  background-color: #15c046;
+  border-color: #15c046;
+  left: 16px;
+}
+
+.emotion-30>input[type='checkbox']:disabled+label {
+  color: #9a9a9a;
+  cursor: not-allowed;
+}
+
+.emotion-30>input[type='checkbox']:disabled+label::before {
+  background-color: #e8e8e8;
+  cursor: not-allowed;
+}
+
+.emotion-30>input[type='checkbox']:disabled+label::after {
+  border-color: #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-30>input[type='checkbox']:checked:disabled+label::after {
+  background: #d5d5d5;
 }
 
 .emotion-35 {
@@ -1133,39 +1133,6 @@ exports[`ManageDomains should render top level domain 1`] = `
   word-break: break-all;
 }
 
-.emotion-30>input[type='checkbox']:disabled+label::after {
-  border-color: #d5d5d5;
-  cursor: not-allowed;
-}
-
-.emotion-30>input[type='checkbox']:checked+label::after {
-  background-color: #15c046;
-  border-color: #15c046;
-  left: 16px;
-}
-
-.emotion-30>input[type='checkbox']:disabled+label {
-  color: #9a9a9a;
-  cursor: not-allowed;
-}
-
-.emotion-30>input[type='checkbox']:disabled+label::before {
-  background-color: #e8e8e8;
-  cursor: not-allowed;
-}
-
-.emotion-30>input[type='checkbox'] {
-  box-sizing: border-box;
-  cursor: pointer;
-  position: absolute;
-  top: 0;
-  visibility: hidden;
-}
-
-.emotion-30>input[type='checkbox']:checked:disabled+label::after {
-  background: #d5d5d5;
-}
-
 .emotion-30 {
   -webkit-align-items: center;
   -webkit-box-align: center;
@@ -1181,6 +1148,14 @@ exports[`ManageDomains should render top level domain 1`] = `
   height: 18px;
   outline: 0;
   position: relative;
+}
+
+.emotion-30>input[type='checkbox'] {
+  box-sizing: border-box;
+  cursor: pointer;
+  position: absolute;
+  top: 0;
+  visibility: hidden;
 }
 
 .emotion-30>input[type='checkbox']+label {
@@ -1243,6 +1218,31 @@ exports[`ManageDomains should render top level domain 1`] = `
 
 .emotion-30>input[type='checkbox']:checked+label::before {
   background-color: rgba(21,192,70,0.45);
+}
+
+.emotion-30>input[type='checkbox']:checked+label::after {
+  background-color: #15c046;
+  border-color: #15c046;
+  left: 16px;
+}
+
+.emotion-30>input[type='checkbox']:disabled+label {
+  color: #9a9a9a;
+  cursor: not-allowed;
+}
+
+.emotion-30>input[type='checkbox']:disabled+label::before {
+  background-color: #e8e8e8;
+  cursor: not-allowed;
+}
+
+.emotion-30>input[type='checkbox']:disabled+label::after {
+  border-color: #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-30>input[type='checkbox']:checked:disabled+label::after {
+  background: #d5d5d5;
 }
 
 .emotion-35 {

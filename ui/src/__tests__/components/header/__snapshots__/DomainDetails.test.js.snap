@@ -30,6 +30,56 @@ exports[`DomainDetails should render 1`] = `
   text-transform: uppercase;
 }
 
+.emotion-26 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  height: 18px;
+  outline: 0;
+  position: relative;
+}
+
+.emotion-26>input[type='checkbox'] {
+  box-sizing: border-box;
+  cursor: pointer;
+  position: absolute;
+  top: 0;
+  visibility: hidden;
+}
+
+.emotion-26>input[type='checkbox']+label {
+  box-sizing: border-box;
+  cursor: pointer;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  height: 18px;
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+.emotion-26>input[type='checkbox']+label .label-content {
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  margin-left: 6px;
+}
+
+@-moz-document url-prefix() {
+  .emotion-26>input[type='checkbox']+label .label-content {
+    margin-top: 1px;
+  }
+}
+
 .emotion-26>input[type='checkbox']+label:before {
   background: #d5d5d5;
   border-radius: 9px;
@@ -73,12 +123,9 @@ exports[`DomainDetails should render 1`] = `
   left: 16px;
 }
 
-.emotion-26>input[type='checkbox'] {
-  box-sizing: border-box;
-  cursor: pointer;
-  position: absolute;
-  top: 0;
-  visibility: hidden;
+.emotion-26>input[type='checkbox']:disabled+label {
+  color: #9a9a9a;
+  cursor: not-allowed;
 }
 
 .emotion-26>input[type='checkbox']:disabled+label::before {
@@ -93,53 +140,6 @@ exports[`DomainDetails should render 1`] = `
 
 .emotion-26>input[type='checkbox']:checked:disabled+label::after {
   background: #d5d5d5;
-}
-
-.emotion-26 {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  height: 18px;
-  outline: 0;
-  position: relative;
-}
-
-.emotion-26>input[type='checkbox']+label {
-  box-sizing: border-box;
-  cursor: pointer;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  height: 18px;
-  line-height: 18px;
-  white-space: nowrap;
-}
-
-.emotion-26>input[type='checkbox']+label .label-content {
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  margin-left: 6px;
-}
-
-@-moz-document url-prefix() {
-  .emotion-26>input[type='checkbox']+label .label-content {
-    margin-top: 1px;
-  }
-}
-
-.emotion-26>input[type='checkbox']:disabled+label {
-  color: #9a9a9a;
-  cursor: not-allowed;
 }
 
 <div
@@ -274,56 +274,6 @@ exports[`DomainDetails should render with mock data 1`] = `
   cursor: pointer;
 }
 
-.emotion-28>input[type='checkbox']+label::after {
-  background-color: #fff;
-  border: 2px solid rgba(54,151,242,0.5);
-  border-radius: 50%;
-  box-sizing: border-box;
-  content: ' ';
-  cursor: pointer;
-  display: block;
-  height: 18px;
-  left: 0;
-  position: absolute;
-  -webkit-transition: all 0.25s ease;
-  transition: all 0.25s ease;
-  top: 0;
-  width: 18px;
-}
-
-.emotion-28>input[type='checkbox']:checked+label::before {
-  background-color: rgba(21,192,70,0.45);
-}
-
-.emotion-28>input[type='checkbox']:checked+label::after {
-  background-color: #15c046;
-  border-color: #15c046;
-  left: 16px;
-}
-
-.emotion-28>input[type='checkbox']:disabled+label {
-  color: #9a9a9a;
-  cursor: not-allowed;
-}
-
-.emotion-28>input[type='checkbox']:disabled+label::before {
-  background-color: #e8e8e8;
-  cursor: not-allowed;
-}
-
-.emotion-28>input[type='checkbox']:disabled+label::after {
-  border-color: #d5d5d5;
-  cursor: not-allowed;
-}
-
-.emotion-28>input[type='checkbox'] {
-  box-sizing: border-box;
-  cursor: pointer;
-  position: absolute;
-  top: 0;
-  visibility: hidden;
-}
-
 .emotion-28 {
   -webkit-align-items: center;
   -webkit-box-align: center;
@@ -339,6 +289,14 @@ exports[`DomainDetails should render with mock data 1`] = `
   height: 18px;
   outline: 0;
   position: relative;
+}
+
+.emotion-28>input[type='checkbox'] {
+  box-sizing: border-box;
+  cursor: pointer;
+  position: absolute;
+  top: 0;
+  visibility: hidden;
 }
 
 .emotion-28>input[type='checkbox']+label {
@@ -382,26 +340,50 @@ exports[`DomainDetails should render with mock data 1`] = `
   width: 34px;
 }
 
-.emotion-28>input[type='checkbox']:checked:disabled+label::after {
-  background: #d5d5d5;
+.emotion-28>input[type='checkbox']+label::after {
+  background-color: #fff;
+  border: 2px solid rgba(54,151,242,0.5);
+  border-radius: 50%;
+  box-sizing: border-box;
+  content: ' ';
+  cursor: pointer;
+  display: block;
+  height: 18px;
+  left: 0;
+  position: absolute;
+  -webkit-transition: all 0.25s ease;
+  transition: all 0.25s ease;
+  top: 0;
+  width: 18px;
 }
 
-.emotion-39:hover:not(:disabled) {
-  background: #d7e2fd;
+.emotion-28>input[type='checkbox']:checked+label::before {
+  background-color: rgba(21,192,70,0.45);
 }
 
-.emotion-39:disabled {
-  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
+.emotion-28>input[type='checkbox']:checked+label::after {
+  background-color: #15c046;
+  border-color: #15c046;
+  left: 16px;
 }
 
-.emotion-39:disabled {
-  background: rgba(48,48,48,0.1);
-  color: rgba(48,48,48,0.2);
+.emotion-28>input[type='checkbox']:disabled+label {
+  color: #9a9a9a;
   cursor: not-allowed;
 }
 
-.emotion-39:first-of-type {
-  margin-left: 0;
+.emotion-28>input[type='checkbox']:disabled+label::before {
+  background-color: #e8e8e8;
+  cursor: not-allowed;
+}
+
+.emotion-28>input[type='checkbox']:disabled+label::after {
+  border-color: #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-28>input[type='checkbox']:checked:disabled+label::after {
+  background: #d5d5d5;
 }
 
 .emotion-39 {
@@ -429,6 +411,24 @@ exports[`DomainDetails should render with mock data 1`] = `
   background: transparent;
   box-shadow: 0 0 0 1px #3697f2 inset;
   color: #3697f2;
+}
+
+.emotion-39:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-39:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
+.emotion-39:disabled {
+  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
+}
+
+.emotion-39:hover:not(:disabled) {
+  background: #d7e2fd;
 }
 
 <div

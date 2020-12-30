@@ -1,14 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`SearchInput should render 1`] = `
-.emotion-0 input.focused,
-.emotion-0 input:active,
-.emotion-0 input:focus {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #3570f4;
-  color: #303030;
-}
-
 .emotion-0 {
   box-sizing: border-box;
   display: -webkit-inline-box;
@@ -24,27 +16,6 @@ exports[`SearchInput should render 1`] = `
   font-weight: 300;
   position: relative;
   width: 250px;
-}
-
-.emotion-0.animated input {
-  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-}
-
-.emotion-0 input::-webkit-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-0 input::-moz-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-0 input:-ms-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-0 input::placeholder {
-  color: rgba(48,48,48,0.6);
 }
 
 .emotion-0 input {
@@ -71,6 +42,35 @@ exports[`SearchInput should render 1`] = `
   padding: 0 1rem;
   text-align: left;
   width: 100%;
+}
+
+.emotion-0.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-0 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-0 input.focused,
+.emotion-0 input:active,
+.emotion-0 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
 }
 
 .emotion-0 input:invalid {
