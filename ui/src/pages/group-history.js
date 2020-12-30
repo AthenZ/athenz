@@ -27,8 +27,8 @@ import NameHeader from '../components/header/NameHeader';
 import RequestUtils from '../components/utils/RequestUtils';
 import Error from './_error';
 import GroupTabs from '../components/header/GroupTabs';
-import createCache from "@emotion/cache";
-import {CacheProvider} from "@emotion/react";
+import createCache from '@emotion/cache';
+import { CacheProvider } from '@emotion/react';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -125,60 +125,64 @@ export default class GroupHistoryPage extends React.Component {
         }
         return (
             <CacheProvider value={this.cache}>
-            <div data-testid='member'>
-                <Head>
-                    <title>Athenz</title>
-                </Head>
-                <Header
-                    showSearch={true}
-                    headerDetails={this.props.headerDetails}
-                    pending={this.props.pending}
-                />
-                <MainContentDiv>
-                    <AppContainerDiv>
-                        <GroupsContainerDiv>
-                            <GroupsContentDiv>
-                                <PageHeaderDiv>
-                                    <NameHeader
-                                        category={'group'}
+                <div data-testid='member'>
+                    <Head>
+                        <title>Athenz</title>
+                    </Head>
+                    <Header
+                        showSearch={true}
+                        headerDetails={this.props.headerDetails}
+                        pending={this.props.pending}
+                    />
+                    <MainContentDiv>
+                        <AppContainerDiv>
+                            <GroupsContainerDiv>
+                                <GroupsContentDiv>
+                                    <PageHeaderDiv>
+                                        <NameHeader
+                                            category={'group'}
+                                            domain={domain}
+                                            collection={collection}
+                                            collectionDetails={
+                                                collectionDetails
+                                            }
+                                        />
+                                        <CollectionDetails
+                                            collectionDetails={
+                                                collectionDetails
+                                            }
+                                            api={this.api}
+                                            _csrf={_csrf}
+                                            productMasterLink={
+                                                this.props.headerDetails
+                                                    .productMasterLink
+                                            }
+                                        />
+                                        <GroupTabs
+                                            api={this.api}
+                                            domain={domain}
+                                            group={collection}
+                                            selectedName={'history'}
+                                        />
+                                    </PageHeaderDiv>
+                                    <CollectionHistoryList
+                                        api={this.api}
                                         domain={domain}
                                         collection={collection}
-                                        collectionDetails={collectionDetails}
-                                    />
-                                    <CollectionDetails
-                                        collectionDetails={collectionDetails}
-                                        api={this.api}
+                                        historyrows={historyrows}
                                         _csrf={_csrf}
-                                        productMasterLink={
-                                            this.props.headerDetails
-                                                .productMasterLink
-                                        }
+                                        category={'group'}
                                     />
-                                    <GroupTabs
-                                        api={this.api}
-                                        domain={domain}
-                                        group={collection}
-                                        selectedName={'history'}
-                                    />
-                                </PageHeaderDiv>
-                                <CollectionHistoryList
-                                    api={this.api}
-                                    domain={domain}
-                                    collection={collection}
-                                    historyrows={historyrows}
-                                    _csrf={_csrf}
-                                    category={'group'}
-                                />
-                            </GroupsContentDiv>
-                        </GroupsContainerDiv>
-                        <UserDomains
-                            domains={this.props.domains}
-                            api={this.api}
-                            domain={domain}
-                        />
-                    </AppContainerDiv>
-                </MainContentDiv>
-            </div>
+                                </GroupsContentDiv>
+                            </GroupsContainerDiv>
+                            <UserDomains
+                                domains={this.props.domains}
+                                api={this.api}
+                                domain={domain}
+                            />
+                        </AppContainerDiv>
+                    </MainContentDiv>
+                </div>
             </CacheProvider>
         );
     }

@@ -51,7 +51,7 @@ export default class GroupTabs extends React.Component {
             case 'members':
                 this.props.api
                     .getStatus()
-                    .then(function() {
+                    .then(function () {
                         Router.pushRoute('group-members', {
                             domain: domain,
                             group: group,
@@ -66,7 +66,7 @@ export default class GroupTabs extends React.Component {
             case 'review':
                 this.props.api
                     .getStatus()
-                    .then(function() {
+                    .then(function () {
                         Router.pushRoute('group-review', {
                             domain: domain,
                             group: group,
@@ -81,7 +81,7 @@ export default class GroupTabs extends React.Component {
             case 'roles':
                 this.props.api
                     .getStatus()
-                    .then(function() {
+                    .then(function () {
                         Router.pushRoute('group-roles', {
                             domain: domain,
                             group: group,
@@ -96,7 +96,7 @@ export default class GroupTabs extends React.Component {
             case 'settings':
                 this.props.api
                     .getStatus()
-                    .then(function() {
+                    .then(function () {
                         Router.pushRoute('group-settings', {
                             domain: domain,
                             group: group,
@@ -111,7 +111,7 @@ export default class GroupTabs extends React.Component {
             case 'history':
                 this.props.api
                     .getStatus()
-                    .then(function() {
+                    .then(function () {
                         Router.pushRoute('group-history', {
                             domain: domain,
                             group: group,

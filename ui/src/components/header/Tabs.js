@@ -79,7 +79,7 @@ export default class Tabs extends React.Component {
             case 'groups':
                 this.props.api
                     .getStatus()
-                    .then(function() {
+                    .then(function () {
                         Router.pushRoute('group', { domain });
                     })
                     .catch((err) => {

@@ -777,7 +777,7 @@ Fetchr.registerService({
             });
         };
 
-        req.clients.zms.getRole(params, function(err, data) {
+        req.clients.zms.getRole(params, function (err, data) {
             if (err) {
                 debug(
                     `principal: ${req.session.shortId} rid: ${
@@ -797,7 +797,7 @@ Fetchr.registerService({
                         expand: true,
                         pending: false,
                     },
-                    function(err, data) {
+                    function (err, data) {
                         if (err) {
                             debug(
                                 `principal: ${req.session.shortId} rid: ${
@@ -1305,7 +1305,7 @@ Fetchr.registerService({
 Fetchr.registerService({
     name: 'group',
     read(req, resource, params, config, callback) {
-        req.clients.zms.getGroup(params, function(err, data) {
+        req.clients.zms.getGroup(params, function (err, data) {
             if (err) {
                 debug(
                     `principal: ${req.session.shortId} rid: ${
@@ -1366,7 +1366,7 @@ Fetchr.registerService({
                     auditLog: false,
                     pending: true,
                 },
-                function(err, data) {
+                function (err, data) {
                     if (err) {
                         debug(
                             `principal: ${req.session.shortId} rid: ${
@@ -1426,7 +1426,7 @@ Fetchr.registerService({
                         pending: true,
                         expand: true,
                     },
-                    function(err, data) {
+                    function (err, data) {
                         if (err) {
                             debug(
                                 `principal: ${req.session.shortId} rid: ${
@@ -1521,7 +1521,7 @@ Fetchr.registerService({
                         pending: true,
                         expand: false,
                     },
-                    function(err, data) {
+                    function (err, data) {
                         if (err) {
                             debug(
                                 `principal: ${req.session.shortId} rid: ${
@@ -1589,7 +1589,7 @@ Fetchr.registerService({
 Fetchr.registerService({
     name: 'domain-role-member',
     read(req, resource, params, config, callback) {
-        req.clients.zms.getPrincipalRoles(params, function(err, data) {
+        req.clients.zms.getPrincipalRoles(params, function (err, data) {
             debug(
                 `principal: ${req.session.shortId} rid: ${
                     req.headers.rid

@@ -26,8 +26,8 @@ import RequestUtils from '../components/utils/RequestUtils';
 import Tabs from '../components/header/Tabs';
 import Error from './_error';
 import GroupList from '../components/group/GroupList';
-import createCache from "@emotion/cache";
-import {CacheProvider} from "@emotion/react";
+import createCache from '@emotion/cache';
+import { CacheProvider } from '@emotion/react';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -131,60 +131,60 @@ export default class GroupPage extends React.Component {
 
         return (
             <CacheProvider value={this.cache}>
-            <div data-testid='group'>
-                <Head>
-                    <title>Athenz</title>
-                </Head>
-                <Header
-                    showSearch={true}
-                    headerDetails={this.props.headerDetails}
-                    pending={this.props.pending}
-                />
-                <MainContentDiv>
-                    <AppContainerDiv>
-                        <GroupsContainerDiv>
-                            <GroupsContentDiv>
-                                <PageHeaderDiv>
-                                    <TitleDiv>{domain}</TitleDiv>
-                                    <DomainDetails
-                                        domainDetails={domainDetails}
-                                        api={this.api}
-                                        _csrf={_csrf}
-                                        productMasterLink={
-                                            this.props.headerDetails
-                                                .productMasterLink
-                                        }
-                                    />
-                                    <Tabs
+                <div data-testid='group'>
+                    <Head>
+                        <title>Athenz</title>
+                    </Head>
+                    <Header
+                        showSearch={true}
+                        headerDetails={this.props.headerDetails}
+                        pending={this.props.pending}
+                    />
+                    <MainContentDiv>
+                        <AppContainerDiv>
+                            <GroupsContainerDiv>
+                                <GroupsContentDiv>
+                                    <PageHeaderDiv>
+                                        <TitleDiv>{domain}</TitleDiv>
+                                        <DomainDetails
+                                            domainDetails={domainDetails}
+                                            api={this.api}
+                                            _csrf={_csrf}
+                                            productMasterLink={
+                                                this.props.headerDetails
+                                                    .productMasterLink
+                                            }
+                                        />
+                                        <Tabs
+                                            api={this.api}
+                                            domain={domain}
+                                            selectedName={'groups'}
+                                        />
+                                    </PageHeaderDiv>
+                                    <GroupList
                                         api={this.api}
                                         domain={domain}
-                                        selectedName={'groups'}
+                                        groups={groups}
+                                        users={users}
+                                        _csrf={_csrf}
+                                        isDomainAuditEnabled={
+                                            domainDetails.auditEnabled
+                                        }
+                                        userProfileLink={
+                                            this.props.headerDetails.userData
+                                                .userLink
+                                        }
                                     />
-                                </PageHeaderDiv>
-                                <GroupList
-                                    api={this.api}
-                                    domain={domain}
-                                    groups={groups}
-                                    users={users}
-                                    _csrf={_csrf}
-                                    isDomainAuditEnabled={
-                                        domainDetails.auditEnabled
-                                    }
-                                    userProfileLink={
-                                        this.props.headerDetails.userData
-                                            .userLink
-                                    }
-                                />
-                            </GroupsContentDiv>
-                        </GroupsContainerDiv>
-                        <UserDomains
-                            domains={this.props.domains}
-                            api={this.api}
-                            domain={domain}
-                        />
-                    </AppContainerDiv>
-                </MainContentDiv>
-            </div>
+                                </GroupsContentDiv>
+                            </GroupsContainerDiv>
+                            <UserDomains
+                                domains={this.props.domains}
+                                api={this.api}
+                                domain={domain}
+                            />
+                        </AppContainerDiv>
+                    </MainContentDiv>
+                </div>
             </CacheProvider>
         );
     }

@@ -123,60 +123,60 @@ export default class RoleHistoryPage extends React.Component {
         }
         return (
             <CacheProvider value={this.cache}>
-            <div data-testid='role-history'>
-                <Head>
-                    <title>Athenz</title>
-                </Head>
-                <Header
-                    showSearch={true}
-                    headerDetails={this.props.headerDetails}
-                    pending={this.props.pending}
-                />
-                <MainContentDiv>
-                    <AppContainerDiv>
-                        <RolesContainerDiv>
-                            <RolesContentDiv>
-                                <PageHeaderDiv>
-                                    <NameHeader
-                                        category={'role'}
+                <div data-testid='role-history'>
+                    <Head>
+                        <title>Athenz</title>
+                    </Head>
+                    <Header
+                        showSearch={true}
+                        headerDetails={this.props.headerDetails}
+                        pending={this.props.pending}
+                    />
+                    <MainContentDiv>
+                        <AppContainerDiv>
+                            <RolesContainerDiv>
+                                <RolesContentDiv>
+                                    <PageHeaderDiv>
+                                        <NameHeader
+                                            category={'role'}
+                                            domain={domain}
+                                            collection={role}
+                                            collectionDetails={roleDetails}
+                                        />
+                                        <CollectionDetails
+                                            collectionDetails={roleDetails}
+                                            api={this.api}
+                                            _csrf={_csrf}
+                                            productMasterLink={
+                                                this.props.headerDetails
+                                                    .productMasterLink
+                                            }
+                                        />
+                                        <RoleTabs
+                                            api={this.api}
+                                            domain={domain}
+                                            role={role}
+                                            selectedName={'history'}
+                                        />
+                                    </PageHeaderDiv>
+                                    <CollectionHistoryList
+                                        api={this.api}
                                         domain={domain}
                                         collection={role}
-                                        collectionDetails={roleDetails}
-                                    />
-                                    <CollectionDetails
-                                        collectionDetails={roleDetails}
-                                        api={this.api}
+                                        historyrows={historyrows}
+                                        category={'role'}
                                         _csrf={_csrf}
-                                        productMasterLink={
-                                            this.props.headerDetails
-                                                .productMasterLink
-                                        }
                                     />
-                                    <RoleTabs
-                                        api={this.api}
-                                        domain={domain}
-                                        role={role}
-                                        selectedName={'history'}
-                                    />
-                                </PageHeaderDiv>
-                                <CollectionHistoryList
-                                    api={this.api}
-                                    domain={domain}
-                                    collection={role}
-                                    historyrows={historyrows}
-                                    category={'role'}
-                                    _csrf={_csrf}
-                                />
-                            </RolesContentDiv>
-                        </RolesContainerDiv>
-                        <UserDomains
-                            domains={this.props.domains}
-                            api={this.api}
-                            domain={domain}
-                        />
-                    </AppContainerDiv>
-                </MainContentDiv>
-            </div>
+                                </RolesContentDiv>
+                            </RolesContainerDiv>
+                            <UserDomains
+                                domains={this.props.domains}
+                                api={this.api}
+                                domain={domain}
+                            />
+                        </AppContainerDiv>
+                    </MainContentDiv>
+                </div>
             </CacheProvider>
         );
     }

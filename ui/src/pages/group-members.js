@@ -27,8 +27,8 @@ import RequestUtils from '../components/utils/RequestUtils';
 import NameHeader from '../components/header/NameHeader';
 import Error from './_error';
 import GroupTabs from '../components/header/GroupTabs';
-import createCache from "@emotion/cache";
-import {CacheProvider} from "@emotion/react";
+import createCache from '@emotion/cache';
+import { CacheProvider } from '@emotion/react';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -126,66 +126,68 @@ export default class GroupMemberPage extends React.Component {
         }
         return (
             <CacheProvider value={this.cache}>
-            <div data-testid='group-members'>
-                <Head>
-                    <title>Athenz</title>
-                </Head>
-                <Header
-                    showSearch={true}
-                    headerDetails={this.props.headerDetails}
-                    pending={this.props.pending}
-                />
-                <MainContentDiv>
-                    <AppContainerDiv>
-                        <GroupsContainerDiv>
-                            <GroupsContentDiv>
-                                <PageHeaderDiv>
-                                    <NameHeader
+                <div data-testid='group-members'>
+                    <Head>
+                        <title>Athenz</title>
+                    </Head>
+                    <Header
+                        showSearch={true}
+                        headerDetails={this.props.headerDetails}
+                        pending={this.props.pending}
+                    />
+                    <MainContentDiv>
+                        <AppContainerDiv>
+                            <GroupsContainerDiv>
+                                <GroupsContentDiv>
+                                    <PageHeaderDiv>
+                                        <NameHeader
+                                            category={'group'}
+                                            domain={domain}
+                                            collection={group}
+                                            collectionDetails={groupDetails}
+                                        />
+                                        <CollectionDetails
+                                            collectionDetails={groupDetails}
+                                            api={this.api}
+                                            _csrf={_csrf}
+                                            productMasterLink={
+                                                this.props.headerDetails
+                                                    .productMasterLink
+                                            }
+                                        />
+                                        <GroupTabs
+                                            api={this.api}
+                                            domain={domain}
+                                            group={group}
+                                            selectedName={'members'}
+                                        />
+                                    </PageHeaderDiv>
+                                    <MemberList
                                         category={'group'}
+                                        api={this.api}
                                         domain={domain}
                                         collection={group}
                                         collectionDetails={groupDetails}
-                                    />
-                                    <CollectionDetails
-                                        collectionDetails={groupDetails}
-                                        api={this.api}
+                                        members={members}
                                         _csrf={_csrf}
-                                        productMasterLink={
-                                            this.props.headerDetails
-                                                .productMasterLink
+                                        isDomainAuditEnabled={
+                                            isDomainAuditEnabled
+                                        }
+                                        userProfileLink={
+                                            this.props.headerDetails.userData
+                                                .userLink
                                         }
                                     />
-                                    <GroupTabs
-                                        api={this.api}
-                                        domain={domain}
-                                        group={group}
-                                        selectedName={'members'}
-                                    />
-                                </PageHeaderDiv>
-                                <MemberList
-                                    category={'group'}
-                                    api={this.api}
-                                    domain={domain}
-                                    collection={group}
-                                    collectionDetails={groupDetails}
-                                    members={members}
-                                    _csrf={_csrf}
-                                    isDomainAuditEnabled={isDomainAuditEnabled}
-                                    userProfileLink={
-                                        this.props.headerDetails.userData
-                                            .userLink
-                                    }
-                                />
-                            </GroupsContentDiv>
-                        </GroupsContainerDiv>
-                        <UserDomains
-                            domains={this.props.domains}
-                            api={this.api}
-                            domain={domain}
-                        />
-                    </AppContainerDiv>
-                </MainContentDiv>
-            </div>
+                                </GroupsContentDiv>
+                            </GroupsContainerDiv>
+                            <UserDomains
+                                domains={this.props.domains}
+                                api={this.api}
+                                domain={domain}
+                            />
+                        </AppContainerDiv>
+                    </MainContentDiv>
+                </div>
             </CacheProvider>
         );
     }

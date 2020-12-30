@@ -127,7 +127,7 @@ export default class GroupMemberList extends React.Component {
         let groupName = this.props.groupName;
         this.api
             .getStatus()
-            .then(function() {
+            .then(function () {
                 Router.pushRoute('group-members', {
                     domain: groupName.split(':group.')[0],
                     group: groupName.split(':group.')[1],

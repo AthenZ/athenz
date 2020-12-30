@@ -29,8 +29,8 @@ import Error from './_error';
 import GroupTabs from '../components/header/GroupTabs';
 import GroupRoleTable from '../components/group/GroupRoleTable';
 import SearchInput from '../components/denali/SearchInput';
-import createCache from "@emotion/cache";
-import {CacheProvider} from "@emotion/react";
+import createCache from '@emotion/cache';
+import { CacheProvider } from '@emotion/react';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -172,84 +172,83 @@ export default class GroupRolesPage extends React.Component {
 
         return (
             <CacheProvider value={this.cache}>
-
-            <div data-testid='member'>
-                <Head>
-                    <title>Athenz</title>
-                </Head>
-                <Header
-                    showSearch={true}
-                    headerDetails={this.props.headerDetails}
-                    pending={this.props.pending}
-                />
-                <MainContentDiv>
-                    <AppContainerDiv>
-                        <RolesContainerDiv>
-                            <RolesContentDiv>
-                                <PageHeaderDiv>
-                                    <NameHeader
-                                        category={'group'}
-                                        domain={domain}
-                                        collection={group}
-                                        collectionDetails={groupDetails}
-                                    />
-                                    <CollectionDetails
-                                        collectionDetails={groupDetails}
-                                        api={this.api}
-                                        _csrf={_csrf}
-                                        productMasterLink={
-                                            this.props.headerDetails
-                                                .productMasterLink
-                                        }
-                                    />
-                                    <GroupTabs
-                                        api={this.api}
-                                        domain={domain}
-                                        group={group}
-                                        selectedName={'roles'}
-                                    />
-                                </PageHeaderDiv>
-                                <ContainerDiv>
-                                    <StyledSearchInputDiv>
-                                        <SearchInput
-                                            dark={false}
-                                            name='search'
-                                            fluid={true}
-                                            value={this.state.searchText}
-                                            placeholder={
-                                                this.state.showuser
-                                                    ? 'Enter user name'
-                                                    : 'Enter role name'
-                                            }
-                                            error={this.state.error}
-                                            onChange={(event) =>
-                                                this.setState({
-                                                    searchText:
-                                                        event.target.value,
-                                                    error: false,
-                                                })
+                <div data-testid='member'>
+                    <Head>
+                        <title>Athenz</title>
+                    </Head>
+                    <Header
+                        showSearch={true}
+                        headerDetails={this.props.headerDetails}
+                        pending={this.props.pending}
+                    />
+                    <MainContentDiv>
+                        <AppContainerDiv>
+                            <RolesContainerDiv>
+                                <RolesContentDiv>
+                                    <PageHeaderDiv>
+                                        <NameHeader
+                                            category={'group'}
+                                            domain={domain}
+                                            collection={group}
+                                            collectionDetails={groupDetails}
+                                        />
+                                        <CollectionDetails
+                                            collectionDetails={groupDetails}
+                                            api={this.api}
+                                            _csrf={_csrf}
+                                            productMasterLink={
+                                                this.props.headerDetails
+                                                    .productMasterLink
                                             }
                                         />
-                                    </StyledSearchInputDiv>
-                                </ContainerDiv>
-                                <TableDiv>
-                                    <GroupRoleTable
-                                        api={this.api}
-                                        domain={this.domain}
-                                        roles={roles}
-                                        prefixes={prefix}
-                                    />
-                                </TableDiv>
-                            </RolesContentDiv>
-                        </RolesContainerDiv>
-                        <UserDomains
-                            domains={this.props.domains}
-                            api={this.api}
-                            domain={domain}
-                        />
-                    </AppContainerDiv>
-                </MainContentDiv>
-            </div>
+                                        <GroupTabs
+                                            api={this.api}
+                                            domain={domain}
+                                            group={group}
+                                            selectedName={'roles'}
+                                        />
+                                    </PageHeaderDiv>
+                                    <ContainerDiv>
+                                        <StyledSearchInputDiv>
+                                            <SearchInput
+                                                dark={false}
+                                                name='search'
+                                                fluid={true}
+                                                value={this.state.searchText}
+                                                placeholder={
+                                                    this.state.showuser
+                                                        ? 'Enter user name'
+                                                        : 'Enter role name'
+                                                }
+                                                error={this.state.error}
+                                                onChange={(event) =>
+                                                    this.setState({
+                                                        searchText:
+                                                            event.target.value,
+                                                        error: false,
+                                                    })
+                                                }
+                                            />
+                                        </StyledSearchInputDiv>
+                                    </ContainerDiv>
+                                    <TableDiv>
+                                        <GroupRoleTable
+                                            api={this.api}
+                                            domain={this.domain}
+                                            roles={roles}
+                                            prefixes={prefix}
+                                        />
+                                    </TableDiv>
+                                </RolesContentDiv>
+                            </RolesContainerDiv>
+                            <UserDomains
+                                domains={this.props.domains}
+                                api={this.api}
+                                domain={domain}
+                            />
+                        </AppContainerDiv>
+                    </MainContentDiv>
+                </div>
             </CacheProvider>
         );
     }

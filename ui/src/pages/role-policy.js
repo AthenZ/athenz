@@ -28,8 +28,8 @@ import RoleTabs from '../components/header/RoleTabs';
 import NameHeader from '../components/header/NameHeader';
 import Error from './_error';
 import NameUtils from '../components/utils/NameUtils';
-import createCache from "@emotion/cache";
-import {CacheProvider} from "@emotion/react";
+import createCache from '@emotion/cache';
+import { CacheProvider } from '@emotion/react';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -150,59 +150,59 @@ export default class RolePolicyPage extends React.Component {
         }
         return (
             <CacheProvider value={this.cache}>
-            <div data-testid='role-policy'>
-                <Head>
-                    <title>Athenz</title>
-                </Head>
-                <Header
-                    showSearch={true}
-                    headerDetails={this.props.headerDetails}
-                    pending={this.props.pending}
-                />
-                <MainContentDiv>
-                    <AppContainerDiv>
-                        <PoliciesContainerDiv>
-                            <PoliciesContentDiv>
-                                <PageHeaderDiv>
-                                    <NameHeader
-                                        category={'role'}
-                                        domain={domain}
-                                        collection={role}
-                                        collectionDetails={roleDetails}
-                                    />
-                                    <CollectionDetails
-                                        collectionDetails={roleDetails}
-                                        api={this.api}
-                                        _csrf={_csrf}
-                                        productMasterLink={
-                                            this.props.headerDetails
-                                                .productMasterLink
-                                        }
-                                    />
-                                    <RoleTabs
+                <div data-testid='role-policy'>
+                    <Head>
+                        <title>Athenz</title>
+                    </Head>
+                    <Header
+                        showSearch={true}
+                        headerDetails={this.props.headerDetails}
+                        pending={this.props.pending}
+                    />
+                    <MainContentDiv>
+                        <AppContainerDiv>
+                            <PoliciesContainerDiv>
+                                <PoliciesContentDiv>
+                                    <PageHeaderDiv>
+                                        <NameHeader
+                                            category={'role'}
+                                            domain={domain}
+                                            collection={role}
+                                            collectionDetails={roleDetails}
+                                        />
+                                        <CollectionDetails
+                                            collectionDetails={roleDetails}
+                                            api={this.api}
+                                            _csrf={_csrf}
+                                            productMasterLink={
+                                                this.props.headerDetails
+                                                    .productMasterLink
+                                            }
+                                        />
+                                        <RoleTabs
+                                            api={this.api}
+                                            domain={domain}
+                                            role={role}
+                                            selectedName={'policies'}
+                                        />
+                                    </PageHeaderDiv>
+                                    <RolePolicyList
                                         api={this.api}
                                         domain={domain}
                                         role={role}
-                                        selectedName={'policies'}
+                                        policies={filteredPolicies}
+                                        _csrf={this.props._csrf}
                                     />
-                                </PageHeaderDiv>
-                                <RolePolicyList
-                                    api={this.api}
-                                    domain={domain}
-                                    role={role}
-                                    policies={filteredPolicies}
-                                    _csrf={this.props._csrf}
-                                />
-                            </PoliciesContentDiv>
-                        </PoliciesContainerDiv>
-                        <UserDomains
-                            domains={this.props.domains}
-                            api={this.api}
-                            domain={domain}
-                        />
-                    </AppContainerDiv>
-                </MainContentDiv>
-            </div>
+                                </PoliciesContentDiv>
+                            </PoliciesContainerDiv>
+                            <UserDomains
+                                domains={this.props.domains}
+                                api={this.api}
+                                domain={domain}
+                            />
+                        </AppContainerDiv>
+                    </MainContentDiv>
+                </div>
             </CacheProvider>
         );
     }
