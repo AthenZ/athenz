@@ -111,9 +111,25 @@
         {
             "StringTypeDef": {
                 "type": "String",
+                "name": "GroupName",
+                "comment": "A group name",
+                "pattern": "([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*:group\\.([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*"
+            }
+        },
+        {
+            "StringTypeDef": {
+                "type": "String",
+                "name": "GroupMemberName",
+                "comment": "A group member name",
+                "pattern": "([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*"
+            }
+        },
+        {
+            "StringTypeDef": {
+                "type": "String",
                 "name": "MemberName",
-                "comment": "Role Member name - could be one of three values: *, DomainName.* or ServiceName[*]",
-                "pattern": "\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*\\.\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*(\\*)?"
+                "comment": "Role Member name - could be one of four values: *, DomainName.* or ServiceName[*], or GroupNames",
+                "pattern": "\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*\\.\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*(\\*)?|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*:group\\.([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*"
             }
         },
         {
@@ -129,6 +145,22 @@
                 "type": "String",
                 "name": "AuthorityKeywords",
                 "pattern": "([a-zA-Z0-9_][a-zA-Z0-9_-]*,)*[a-zA-Z0-9_][a-zA-Z0-9_-]*"
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "StringList",
+                "fields": [
+                    {
+                        "name": "list",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "generic list of strings",
+                        "items": "CompoundName"
+                    }
+                ],
+                "closed": false
             }
         },
         {
@@ -167,7 +199,7 @@
                         "name": "account",
                         "type": "String",
                         "optional": true,
-                        "comment": "associated cloud (i.e. aws) account id (system attribute - uniqueness check)"
+                        "comment": "associated aws account id (system attribute - uniqueness check)"
                     },
                     {
                         "name": "ypmId",
@@ -221,7 +253,25 @@
                         "name": "serviceExpiryDays",
                         "type": "Int32",
                         "optional": true,
-                        "comment": "all services in the domain will have specified max expiry days"
+                        "comment": "all services in the domain roles will have specified max expiry days"
+                    },
+                    {
+                        "name": "groupExpiryDays",
+                        "type": "Int32",
+                        "optional": true,
+                        "comment": "all groups in the domain roles will have specified max expiry days"
+                    },
+                    {
+                        "name": "userAuthorityFilter",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "membership filtered based on user authority configured attributes"
+                    },
+                    {
+                        "name": "azureSubscription",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "associated azure subscription id (system attribute - uniqueness check)"
                     }
                 ],
                 "closed": false
@@ -401,6 +451,18 @@
                         "type": "Timestamp",
                         "optional": true,
                         "comment": "for pending membership requests, time when last notification was sent (for file store)"
+                    },
+                    {
+                        "name": "systemDisabled",
+                        "type": "Int32",
+                        "optional": true,
+                        "comment": "user disabled by system based on configured role setting"
+                    },
+                    {
+                        "name": "principalType",
+                        "type": "Int32",
+                        "optional": true,
+                        "comment": "server use only - principal type: unknown(0), user(1), service(2), or group(3)"
                     }
                 ],
                 "closed": false
@@ -470,21 +532,35 @@
                     },
                     {
                         "name": "notifyRoles",
-                        "type": "ResourceNames",
+                        "type": "String",
                         "optional": true,
                         "comment": "list of roles whose members should be notified for member review/approval"
                     },
                     {
                         "name": "userAuthorityFilter",
-                        "type": "AuthorityKeywords",
+                        "type": "String",
                         "optional": true,
                         "comment": "membership filtered based on user authority configured attributes"
                     },
                     {
                         "name": "userAuthorityExpiration",
-                        "type": "AuthorityKeyword",
+                        "type": "String",
                         "optional": true,
                         "comment": "expiration enforced by a user authority configured attribute"
+                    },
+                    {
+                        "name": "groupExpiryDays",
+                        "type": "Int32",
+                        "optional": true,
+                        "comment": "all groups in the domain roles will have specified max expiry days"
+                    },
+                    {
+                        "name": "tags",
+                        "type": "Map",
+                        "optional": true,
+                        "comment": "key-value pair tags, tag might contain multiple values",
+                        "items": "StringList",
+                        "keys": "CompoundName"
                     }
                 ],
                 "closed": false
@@ -631,6 +707,12 @@
                         "type": "ResourceName",
                         "optional": true,
                         "comment": "pending members only - name of the principal requesting the change"
+                    },
+                    {
+                        "name": "systemDisabled",
+                        "type": "Int32",
+                        "optional": true,
+                        "comment": "user disabled by system based on configured role setting"
                     }
                 ],
                 "closed": false
@@ -712,6 +794,12 @@
                         "type": "Timestamp",
                         "optional": true,
                         "comment": "for pending membership requests, the request time"
+                    },
+                    {
+                        "name": "systemDisabled",
+                        "type": "Int32",
+                        "optional": true,
+                        "comment": "user disabled by system based on configured role setting"
                     }
                 ],
                 "closed": false
@@ -829,6 +917,12 @@
                         "type": "Int64",
                         "optional": true,
                         "comment": "assertion id - auto generated by server. Not required during put operations."
+                    },
+                    {
+                        "name": "caseSensitive",
+                        "type": "Bool",
+                        "optional": true,
+                        "comment": "If true, we should store action and resource in their original case"
                     }
                 ],
                 "closed": false
@@ -858,6 +952,12 @@
                         "optional": false,
                         "comment": "list of defined assertions for this policy",
                         "items": "Assertion"
+                    },
+                    {
+                        "name": "caseSensitive",
+                        "type": "Bool",
+                        "optional": true,
+                        "comment": "If true, we should store action and resource in their original case"
                     }
                 ],
                 "closed": false
@@ -1411,6 +1511,386 @@
         {
             "StructTypeDef": {
                 "type": "Struct",
+                "name": "GroupAuditLog",
+                "comment": "An audit log entry for group membership change.",
+                "fields": [
+                    {
+                        "name": "member",
+                        "type": "GroupMemberName",
+                        "optional": false,
+                        "comment": "name of the group member"
+                    },
+                    {
+                        "name": "admin",
+                        "type": "ResourceName",
+                        "optional": false,
+                        "comment": "name of the principal executing the change"
+                    },
+                    {
+                        "name": "created",
+                        "type": "Timestamp",
+                        "optional": false,
+                        "comment": "timestamp of the entry"
+                    },
+                    {
+                        "name": "action",
+                        "type": "String",
+                        "optional": false,
+                        "comment": "log action - e.g. add, delete, approve, etc"
+                    },
+                    {
+                        "name": "auditRef",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "audit reference string for the change as supplied by admin"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "GroupMember",
+                "fields": [
+                    {
+                        "name": "memberName",
+                        "type": "GroupMemberName",
+                        "optional": true,
+                        "comment": "name of the member"
+                    },
+                    {
+                        "name": "groupName",
+                        "type": "ResourceName",
+                        "optional": true,
+                        "comment": "name of the group"
+                    },
+                    {
+                        "name": "domainName",
+                        "type": "DomainName",
+                        "optional": true,
+                        "comment": "name of the domain"
+                    },
+                    {
+                        "name": "expiration",
+                        "type": "Timestamp",
+                        "optional": true,
+                        "comment": "the expiration timestamp"
+                    },
+                    {
+                        "name": "active",
+                        "type": "Bool",
+                        "optional": true,
+                        "comment": "Flag to indicate whether membership is active",
+                        "default": true
+                    },
+                    {
+                        "name": "approved",
+                        "type": "Bool",
+                        "optional": true,
+                        "comment": "Flag to indicate whether membership is approved either by delegates ( in case of auditEnabled groups ) or by domain admins ( in case of selfserve groups )",
+                        "default": true
+                    },
+                    {
+                        "name": "auditRef",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "audit reference string for the change as supplied by admin"
+                    },
+                    {
+                        "name": "requestTime",
+                        "type": "Timestamp",
+                        "optional": true,
+                        "comment": "for pending membership requests, the request time"
+                    },
+                    {
+                        "name": "lastNotifiedTime",
+                        "type": "Timestamp",
+                        "optional": true,
+                        "comment": "for pending membership requests, time when last notification was sent"
+                    },
+                    {
+                        "name": "requestPrincipal",
+                        "type": "ResourceName",
+                        "optional": true,
+                        "comment": "pending members only - name of the principal requesting the change"
+                    },
+                    {
+                        "name": "reviewLastNotifiedTime",
+                        "type": "Timestamp",
+                        "optional": true,
+                        "comment": "for pending membership requests, time when last notification was sent (for file store)"
+                    },
+                    {
+                        "name": "systemDisabled",
+                        "type": "Int32",
+                        "optional": true,
+                        "comment": "user disabled by system based on configured group setting"
+                    },
+                    {
+                        "name": "principalType",
+                        "type": "Int32",
+                        "optional": true,
+                        "comment": "server use only - principal type: unknown(0), user(1) or service(2)"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "GroupMembership",
+                "comment": "The representation for a group membership.",
+                "fields": [
+                    {
+                        "name": "memberName",
+                        "type": "GroupMemberName",
+                        "optional": false,
+                        "comment": "name of the member"
+                    },
+                    {
+                        "name": "isMember",
+                        "type": "Bool",
+                        "optional": true,
+                        "comment": "flag to indicate whether or the user is a member or not",
+                        "default": true
+                    },
+                    {
+                        "name": "groupName",
+                        "type": "ResourceName",
+                        "optional": true,
+                        "comment": "name of the group"
+                    },
+                    {
+                        "name": "expiration",
+                        "type": "Timestamp",
+                        "optional": true,
+                        "comment": "the expiration timestamp"
+                    },
+                    {
+                        "name": "active",
+                        "type": "Bool",
+                        "optional": true,
+                        "comment": "Flag to indicate whether membership is active",
+                        "default": true
+                    },
+                    {
+                        "name": "approved",
+                        "type": "Bool",
+                        "optional": true,
+                        "comment": "Flag to indicate whether membership is approved either by delegates ( in case of auditEnabled groups ) or by domain admins ( in case of selfserve groups )",
+                        "default": true
+                    },
+                    {
+                        "name": "auditRef",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "audit reference string for the change as supplied by admin"
+                    },
+                    {
+                        "name": "requestPrincipal",
+                        "type": "ResourceName",
+                        "optional": true,
+                        "comment": "pending members only - name of the principal requesting the change"
+                    },
+                    {
+                        "name": "systemDisabled",
+                        "type": "Int32",
+                        "optional": true,
+                        "comment": "user disabled by system based on configured group setting"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "GroupMeta",
+                "comment": "Set of metadata attributes that all groups may have and can be changed by domain admins.",
+                "fields": [
+                    {
+                        "name": "selfServe",
+                        "type": "Bool",
+                        "optional": true,
+                        "comment": "Flag indicates whether or not group allows self service. Users can add themselves in the group, but it has to be approved by domain admins to be effective.",
+                        "default": false
+                    },
+                    {
+                        "name": "reviewEnabled",
+                        "type": "Bool",
+                        "optional": true,
+                        "comment": "Flag indicates whether or not group updates require another review and approval",
+                        "default": false
+                    },
+                    {
+                        "name": "notifyRoles",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "list of roles whose members should be notified for member review/approval"
+                    },
+                    {
+                        "name": "userAuthorityFilter",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "membership filtered based on user authority configured attributes"
+                    },
+                    {
+                        "name": "userAuthorityExpiration",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "expiration enforced by a user authority configured attribute"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "GroupMeta",
+                "name": "Group",
+                "comment": "The representation for a Group with set of members.",
+                "fields": [
+                    {
+                        "name": "name",
+                        "type": "ResourceName",
+                        "optional": false,
+                        "comment": "name of the group"
+                    },
+                    {
+                        "name": "modified",
+                        "type": "Timestamp",
+                        "optional": true,
+                        "comment": "last modification timestamp of the group"
+                    },
+                    {
+                        "name": "groupMembers",
+                        "type": "Array",
+                        "optional": true,
+                        "comment": "members with expiration",
+                        "items": "GroupMember"
+                    },
+                    {
+                        "name": "auditLog",
+                        "type": "Array",
+                        "optional": true,
+                        "comment": "an audit log for group membership changes",
+                        "items": "GroupAuditLog"
+                    },
+                    {
+                        "name": "auditEnabled",
+                        "type": "Bool",
+                        "optional": true,
+                        "comment": "Flag indicates whether or not group updates should require GRC approval. If true, the auditRef parameter must be supplied(not empty) for any API defining it",
+                        "default": false
+                    },
+                    {
+                        "name": "lastReviewedDate",
+                        "type": "Timestamp",
+                        "optional": true,
+                        "comment": "last review timestamp of the group"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "Groups",
+                "comment": "The representation for a list of groups with full details",
+                "fields": [
+                    {
+                        "name": "list",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "list of group objects",
+                        "items": "Group"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "DomainGroupMember",
+                "fields": [
+                    {
+                        "name": "memberName",
+                        "type": "GroupMemberName",
+                        "optional": false,
+                        "comment": "name of the member"
+                    },
+                    {
+                        "name": "memberGroups",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "groups for this member",
+                        "items": "GroupMember"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "DomainGroupMembers",
+                "fields": [
+                    {
+                        "name": "domainName",
+                        "type": "DomainName",
+                        "optional": false,
+                        "comment": "name of the domain"
+                    },
+                    {
+                        "name": "members",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "group members",
+                        "items": "DomainGroupMember"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "DomainGroupMembership",
+                "fields": [
+                    {
+                        "name": "domainGroupMembersList",
+                        "type": "Array",
+                        "optional": false,
+                        "items": "DomainGroupMembers"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "GroupSystemMeta",
+                "comment": "Set of system metadata attributes that all groups may have and can be changed by system admins.",
+                "fields": [
+                    {
+                        "name": "auditEnabled",
+                        "type": "Bool",
+                        "optional": true,
+                        "comment": "Flag indicates whether or not group updates should be approved by GRC. If true, the auditRef parameter must be supplied(not empty) for any API defining it.",
+                        "default": false
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
                 "name": "PolicyList",
                 "comment": "The representation for an enumeration of policies in the namespace, with pagination.",
                 "fields": [
@@ -1587,7 +2067,7 @@
                 "fields": [
                     {
                         "name": "principal",
-                        "type": "EntityName",
+                        "type": "ResourceName",
                         "optional": false
                     },
                     {
@@ -1706,6 +2186,13 @@
                         "items": "Entity"
                     },
                     {
+                        "name": "groups",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "list of groups in the domain",
+                        "items": "Group"
+                    },
+                    {
                         "name": "modified",
                         "type": "Timestamp",
                         "optional": false,
@@ -1771,7 +2258,7 @@
                         "optional": false
                     },
                     {
-                        "name": "protectedHeader",
+                        "name": "protected",
                         "type": "String",
                         "optional": false
                     },
@@ -1940,6 +2427,18 @@
                         "comment": "number of public keys per service"
                     },
                     {
+                        "name": "group",
+                        "type": "Int32",
+                        "optional": false,
+                        "comment": "number of groups per domain"
+                    },
+                    {
+                        "name": "groupMember",
+                        "type": "Int32",
+                        "optional": false,
+                        "comment": "number of members a group may have"
+                    },
+                    {
                         "name": "modified",
                         "type": "Timestamp",
                         "optional": true,
@@ -2100,6 +2599,15 @@
                     "comment": "restrict the domain names where the specified user is in this role - see roleMember",
                     "pathParam": false,
                     "queryParam": "role",
+                    "optional": true,
+                    "flag": false
+                },
+                {
+                    "name": "subscription",
+                    "type": "String",
+                    "comment": "restrict to domain names that have specified azure subscription name",
+                    "pathParam": false,
+                    "queryParam": "azure",
                     "optional": true,
                     "flag": false
                 },
@@ -3099,6 +3607,24 @@
                     "optional": false,
                     "flag": false,
                     "default": false
+                },
+                {
+                    "name": "tagKey",
+                    "type": "CompoundName",
+                    "comment": "flag to query all roles that have a given tagName",
+                    "pathParam": false,
+                    "queryParam": "tagKey",
+                    "optional": true,
+                    "flag": false
+                },
+                {
+                    "name": "tagValue",
+                    "type": "CompoundName",
+                    "comment": "flag to query all roles that have a given tag name and value",
+                    "pathParam": false,
+                    "queryParam": "tagValue",
+                    "optional": true,
+                    "flag": false
                 }
             ],
             "auth": {
@@ -3457,6 +3983,54 @@
                     "type": "ResourceError"
                 }
             }
+        },
+        {
+            "type": "DomainRoleMember",
+            "method": "GET",
+            "path": "/role",
+            "comment": "Fetch all the roles across domains by either calling or specified principal",
+            "inputs": [
+                {
+                    "name": "principal",
+                    "type": "ResourceName",
+                    "comment": "If not present, will return roles for the user making the call",
+                    "pathParam": false,
+                    "queryParam": "principal",
+                    "optional": true,
+                    "flag": false
+                },
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "If not present, will return roles from all domains",
+                    "pathParam": false,
+                    "queryParam": "domain",
+                    "optional": true,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": true
+            },
+            "expected": "OK",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            },
+            "name": "getPrincipalRoles"
         },
         {
             "type": "Membership",
@@ -4003,6 +4577,880 @@
                 }
             },
             "name": "PutRoleReview"
+        },
+        {
+            "type": "Groups",
+            "method": "GET",
+            "path": "/domain/{domainName}/groups",
+            "comment": "Get the list of all groups in a domain with optional flag whether or not include members",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "members",
+                    "type": "Bool",
+                    "comment": "return list of members in the group",
+                    "pathParam": false,
+                    "queryParam": "members",
+                    "optional": false,
+                    "flag": false,
+                    "default": false
+                }
+            ],
+            "auth": {
+                "authenticate": true
+            },
+            "expected": "OK",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                }
+            }
+        },
+        {
+            "type": "Group",
+            "method": "GET",
+            "path": "/domain/{domainName}/group/{groupName}",
+            "comment": "Get the specified group in the domain.",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "groupName",
+                    "type": "EntityName",
+                    "comment": "name of the group to be retrieved",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "auditLog",
+                    "type": "Bool",
+                    "comment": "flag to indicate whether or not to return group audit log",
+                    "pathParam": false,
+                    "queryParam": "auditLog",
+                    "optional": false,
+                    "flag": false,
+                    "default": false
+                },
+                {
+                    "name": "pending",
+                    "type": "Bool",
+                    "comment": "include pending members",
+                    "pathParam": false,
+                    "queryParam": "pending",
+                    "optional": false,
+                    "flag": false,
+                    "default": false
+                }
+            ],
+            "auth": {
+                "authenticate": true
+            },
+            "expected": "OK",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            }
+        },
+        {
+            "type": "Group",
+            "method": "PUT",
+            "path": "/domain/{domainName}/group/{groupName}",
+            "comment": "Create/update the specified group.",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "groupName",
+                    "type": "EntityName",
+                    "comment": "name of the group to be added/updated",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "auditRef",
+                    "type": "String",
+                    "comment": "Audit param required(not empty) if domain auditEnabled is true.",
+                    "pathParam": false,
+                    "header": "Y-Audit-Ref",
+                    "optional": true,
+                    "flag": false
+                },
+                {
+                    "name": "group",
+                    "type": "Group",
+                    "comment": "Group object to be added/updated in the domain",
+                    "pathParam": false,
+                    "optional": false,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": false,
+                "action": "update",
+                "resource": "{domainName}:group.{groupName}"
+            },
+            "expected": "NO_CONTENT",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "CONFLICT": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            }
+        },
+        {
+            "type": "Group",
+            "method": "DELETE",
+            "path": "/domain/{domainName}/group/{groupName}",
+            "comment": "Delete the specified group. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "groupName",
+                    "type": "EntityName",
+                    "comment": "name of the group to be deleted",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "auditRef",
+                    "type": "String",
+                    "comment": "Audit param required(not empty) if domain auditEnabled is true.",
+                    "pathParam": false,
+                    "header": "Y-Audit-Ref",
+                    "optional": true,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": false,
+                "action": "delete",
+                "resource": "{domainName}:group.{groupName}"
+            },
+            "expected": "NO_CONTENT",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "CONFLICT": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            }
+        },
+        {
+            "type": "GroupMembership",
+            "method": "GET",
+            "path": "/domain/{domainName}/group/{groupName}/member/{memberName}",
+            "comment": "Get the membership status for a specified user in a group.",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "groupName",
+                    "type": "EntityName",
+                    "comment": "name of the group",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "memberName",
+                    "type": "GroupMemberName",
+                    "comment": "user name to be checked for membership",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "expiration",
+                    "type": "String",
+                    "comment": "the expiration timestamp",
+                    "pathParam": false,
+                    "queryParam": "expiration",
+                    "optional": true,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": true
+            },
+            "expected": "OK",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            }
+        },
+        {
+            "type": "DomainGroupMember",
+            "method": "GET",
+            "path": "/group",
+            "comment": "Fetch all the groups across domains by either calling or specified principal",
+            "inputs": [
+                {
+                    "name": "principal",
+                    "type": "EntityName",
+                    "comment": "If not present, will return groups for the user making the call",
+                    "pathParam": false,
+                    "queryParam": "principal",
+                    "optional": true,
+                    "flag": false
+                },
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "If not present, will return groups from all domains",
+                    "pathParam": false,
+                    "queryParam": "domain",
+                    "optional": true,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": true
+            },
+            "expected": "OK",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            },
+            "name": "getPrincipalGroups"
+        },
+        {
+            "type": "GroupMembership",
+            "method": "PUT",
+            "path": "/domain/{domainName}/group/{groupName}/member/{memberName}",
+            "comment": "Add the specified user to the group's member list. If the group is neither auditEnabled nor selfserve, then it will use authorize (\"update\", \"{domainName}:group.{groupName}\") otherwise membership will be sent for approval to either designated delegates ( in case of auditEnabled groups ) or to domain admins ( in case of selfserve groups )",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "groupName",
+                    "type": "EntityName",
+                    "comment": "name of the group",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "memberName",
+                    "type": "GroupMemberName",
+                    "comment": "name of the user to be added as a member",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "auditRef",
+                    "type": "String",
+                    "comment": "Audit param required(not empty) if domain auditEnabled is true.",
+                    "pathParam": false,
+                    "header": "Y-Audit-Ref",
+                    "optional": true,
+                    "flag": false
+                },
+                {
+                    "name": "membership",
+                    "type": "GroupMembership",
+                    "comment": "Membership object (must contain group/member names as specified in the URI)",
+                    "pathParam": false,
+                    "optional": false,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": true
+            },
+            "expected": "NO_CONTENT",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "CONFLICT": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            }
+        },
+        {
+            "type": "GroupMembership",
+            "method": "DELETE",
+            "path": "/domain/{domainName}/group/{groupName}/member/{memberName}",
+            "comment": "Delete the specified group membership. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "groupName",
+                    "type": "EntityName",
+                    "comment": "name of the group",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "memberName",
+                    "type": "GroupMemberName",
+                    "comment": "name of the user to be removed as a member",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "auditRef",
+                    "type": "String",
+                    "comment": "Audit param required(not empty) if domain auditEnabled is true.",
+                    "pathParam": false,
+                    "header": "Y-Audit-Ref",
+                    "optional": true,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": false,
+                "action": "update",
+                "resource": "{domainName}:group.{groupName}"
+            },
+            "expected": "NO_CONTENT",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "CONFLICT": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            }
+        },
+        {
+            "type": "GroupMembership",
+            "method": "DELETE",
+            "path": "/domain/{domainName}/group/{groupName}/pendingmember/{memberName}",
+            "comment": "Delete the specified pending group membership. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned). Authorization will be completed within the server itself since there are two possibilities: 1) The domain admins can delete any pending requests 2) the requestor can also delete his/her own pending request.",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "groupName",
+                    "type": "EntityName",
+                    "comment": "name of the group",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "memberName",
+                    "type": "GroupMemberName",
+                    "comment": "name of the user to be removed as a pending member",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "auditRef",
+                    "type": "String",
+                    "comment": "Audit param required(not empty) if domain auditEnabled is true.",
+                    "pathParam": false,
+                    "header": "Y-Audit-Ref",
+                    "optional": true,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": true
+            },
+            "expected": "NO_CONTENT",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "CONFLICT": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            },
+            "name": "DeletePendingGroupMembership"
+        },
+        {
+            "type": "GroupSystemMeta",
+            "method": "PUT",
+            "path": "/domain/{domainName}/group/{groupName}/meta/system/{attribute}",
+            "comment": "Set the specified group metadata. Caller must have update privileges on the sys.auth domain. If the system attribute is one of the string attributes, then the caller must also have delete action on the same resource in order to reset the configured value",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "groupName",
+                    "type": "EntityName",
+                    "comment": "name of the group",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "attribute",
+                    "type": "SimpleName",
+                    "comment": "name of the system attribute to be modified",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "auditRef",
+                    "type": "String",
+                    "comment": "Audit param required(not empty) if domain auditEnabled is true.",
+                    "pathParam": false,
+                    "header": "Y-Audit-Ref",
+                    "optional": true,
+                    "flag": false
+                },
+                {
+                    "name": "detail",
+                    "type": "GroupSystemMeta",
+                    "comment": "GroupSystemMeta object with updated attribute values",
+                    "pathParam": false,
+                    "optional": false,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": false,
+                "action": "update",
+                "resource": "sys.auth:meta.group.{attribute}.{domainName}"
+            },
+            "expected": "NO_CONTENT",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "CONFLICT": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            }
+        },
+        {
+            "type": "GroupMeta",
+            "method": "PUT",
+            "path": "/domain/{domainName}/group/{groupName}/meta",
+            "comment": "Update the specified group metadata. Caller must have update privileges on the domain itself.",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain to be updated",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "groupName",
+                    "type": "EntityName",
+                    "comment": "name of the group",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "auditRef",
+                    "type": "String",
+                    "comment": "Audit param required(not empty) if domain auditEnabled is true.",
+                    "pathParam": false,
+                    "header": "Y-Audit-Ref",
+                    "optional": true,
+                    "flag": false
+                },
+                {
+                    "name": "detail",
+                    "type": "GroupMeta",
+                    "comment": "GroupMeta object with updated attribute values",
+                    "pathParam": false,
+                    "optional": false,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": false,
+                "action": "update",
+                "resource": "{domainName}:group.{groupName}"
+            },
+            "expected": "NO_CONTENT",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "CONFLICT": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            }
+        },
+        {
+            "type": "GroupMembership",
+            "method": "PUT",
+            "path": "/domain/{domainName}/group/{groupName}/member/{memberName}/decision",
+            "comment": "Approve or Reject the request to add specified user to group membership. This endpoint will be used by 2 use cases: 1. Audit enabled groups with authorize (\"update\", \"sys.auth:meta.group.{attribute}.{domainName}\") 2. Selfserve groups in any domain with authorize (\"update\", \"{domainName}:\")",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "groupName",
+                    "type": "EntityName",
+                    "comment": "name of the group",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "memberName",
+                    "type": "GroupMemberName",
+                    "comment": "name of the user to be added as a member",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "auditRef",
+                    "type": "String",
+                    "comment": "Audit param required(not empty) if domain auditEnabled is true.",
+                    "pathParam": false,
+                    "header": "Y-Audit-Ref",
+                    "optional": true,
+                    "flag": false
+                },
+                {
+                    "name": "membership",
+                    "type": "GroupMembership",
+                    "comment": "GroupMembership object (must contain group/member names as specified in the URI)",
+                    "pathParam": false,
+                    "optional": false,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": true
+            },
+            "expected": "NO_CONTENT",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "CONFLICT": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            },
+            "name": "PutGroupMembershipDecision"
+        },
+        {
+            "type": "Group",
+            "method": "PUT",
+            "path": "/domain/{domainName}/group/{groupName}/review",
+            "comment": "Review group membership and take action to either extend and/or delete existing members.",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "groupName",
+                    "type": "EntityName",
+                    "comment": "name of the group",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "auditRef",
+                    "type": "String",
+                    "comment": "Audit param required(not empty) if domain auditEnabled is true.",
+                    "pathParam": false,
+                    "header": "Y-Audit-Ref",
+                    "optional": true,
+                    "flag": false
+                },
+                {
+                    "name": "group",
+                    "type": "Group",
+                    "comment": "Group object with updated and/or deleted members",
+                    "pathParam": false,
+                    "optional": false,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": false,
+                "action": "update",
+                "resource": "{domainName}:group.{groupName}"
+            },
+            "expected": "NO_CONTENT",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "CONFLICT": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            },
+            "name": "PutGroupReview"
+        },
+        {
+            "type": "DomainGroupMembership",
+            "method": "GET",
+            "path": "/pending_group_members",
+            "comment": "List of domains containing groups and corresponding members to be approved by either calling or specified principal",
+            "inputs": [
+                {
+                    "name": "principal",
+                    "type": "EntityName",
+                    "comment": "If present, return pending list for this principal",
+                    "pathParam": false,
+                    "queryParam": "principal",
+                    "optional": true,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": true
+            },
+            "expected": "OK",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            },
+            "name": "getPendingDomainGroupMembersList"
         },
         {
             "type": "PolicyList",
@@ -5855,7 +7303,7 @@
             "inputs": [
                 {
                     "name": "principal",
-                    "type": "EntityName",
+                    "type": "ResourceName",
                     "comment": "specifies principal to query the resource list for",
                     "pathParam": false,
                     "queryParam": "principal",
