@@ -32,7 +32,7 @@ exports[`RoleDetails should render 1`] = `
 
 <div
   class="emotion-0 emotion-1"
-  data-testid="role-details"
+  data-testid="collection-details"
 >
   <div
     class="emotion-2 emotion-3"
@@ -101,7 +101,7 @@ exports[`RoleDetails should render with mock data 1`] = `
 
 <div
   class="emotion-0 emotion-1"
-  data-testid="role-details"
+  data-testid="collection-details"
 >
   <div
     class="emotion-2 emotion-3"

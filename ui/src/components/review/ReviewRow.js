@@ -44,8 +44,10 @@ export default class ReviewRow extends React.Component {
         super(props);
         this.api = this.props.api;
         this.onReview = this.onReview.bind(this);
+        let selectedOption =
+            this.props.category === 'group' ? 'no-action' : 'extend';
         this.state = {
-            selectedOption: 'extend',
+            selectedOption: selectedOption,
         };
         this.localDate = new DateUtils();
     }
@@ -72,7 +74,8 @@ export default class ReviewRow extends React.Component {
     componentDidUpdate = (prevProps) => {
         if (prevProps.submittedReview !== this.props.submittedReview) {
             this.setState({
-                selectedOption: 'extend',
+                selectedOption:
+                    this.props.category === 'group' ? 'no-action' : 'extend',
             });
         }
     };
@@ -83,10 +86,9 @@ export default class ReviewRow extends React.Component {
         let center = 'center';
         let member = this.props.details;
         let color = this.props.color;
-        let exp = member.expiration;
-        if (exp) {
-            exp = this.localDate.getLocalDate(exp, 'UTC', 'UTC');
-        }
+        let exp = member.expiration
+            ? this.localDate.getLocalDate(member.expiration, 'UTC', 'UTC')
+            : 'N/A';
 
         rows.push(
             <TrStyled key={this.props.idx} data-testid='review-row'>
@@ -96,20 +98,29 @@ export default class ReviewRow extends React.Component {
                 <TDStyled color={color} align={left}>
                     {member.memberFullName}
                 </TDStyled>
-                <TDStyled color={color} align={left}>
-                    {exp}
-                </TDStyled>
+                {this.props.category === 'group' && (
+                    <TDStyled color={color} align={left} colSpan={2}>
+                        {exp}
+                    </TDStyled>
+                )}
+                {this.props.category === 'role' && (
+                    <TDStyled color={color} align={left}>
+                        {exp}
+                    </TDStyled>
+                )}
+                {this.props.category === 'role' && (
+                    <TDStyled color={color} align={center}>
+                        <RadioButton
+                            name={this.props.collection + this.props.idx}
+                            value='extend'
+                            checked={this.state.selectedOption === 'extend'}
+                            onChange={this.onReview}
+                        />
+                    </TDStyled>
+                )}
                 <TDStyled color={color} align={center}>
                     <RadioButton
-                        name={this.props.role + this.props.idx}
-                        value='extend'
-                        checked={this.state.selectedOption === 'extend'}
-                        onChange={this.onReview}
-                    />
-                </TDStyled>
-                <TDStyled color={color} align={center}>
-                    <RadioButton
-                        name={this.props.role + this.props.idx}
+                        name={this.props.collection + this.props.idx}
                         value='no-action'
                         checked={this.state.selectedOption === 'no-action'}
                         onChange={this.onReview}
@@ -117,7 +128,7 @@ export default class ReviewRow extends React.Component {
                 </TDStyled>
                 <TDStyled color={color} align={center}>
                     <RadioButton
-                        name={this.props.role + this.props.idx}
+                        name={this.props.collection + this.props.idx}
                         value='delete'
                         checked={this.state.selectedOption === 'delete'}
                         onChange={this.onReview}

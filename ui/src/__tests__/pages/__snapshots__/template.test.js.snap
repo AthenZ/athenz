@@ -706,7 +706,7 @@ exports[`Template Page should render 1`] = `
   box-shadow: ;
   box-sizing: border-box;
   display: inline-grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   margin-top: 0;
   min-width: 80px;
   position: relative;
@@ -794,11 +794,11 @@ exports[`Template Page should render 1`] = `
   color: #303030;
 }
 
-.emotion-74 {
+.emotion-75 {
   margin: 20px;
 }
 
-.emotion-76 {
+.emotion-77 {
   width: 100%;
   border-spacing: 0;
   display: table;
@@ -806,7 +806,7 @@ exports[`Template Page should render 1`] = `
   border-color: #9a9a9a;
 }
 
-.emotion-78 {
+.emotion-79 {
   text-align: left;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -819,7 +819,7 @@ exports[`Template Page should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-82 {
+.emotion-83 {
   text-align: center;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -832,7 +832,7 @@ exports[`Template Page should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-90 {
+.emotion-91 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -858,13 +858,13 @@ exports[`Template Page should render 1`] = `
   width: 20px;
 }
 
-.emotion-92 {
+.emotion-93 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-93 {
+.emotion-94 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -879,7 +879,7 @@ exports[`Template Page should render 1`] = `
   width: 350px;
 }
 
-.emotion-95 {
+.emotion-96 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -898,12 +898,12 @@ exports[`Template Page should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-97 {
+.emotion-98 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-99 {
+.emotion-100 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
@@ -911,16 +911,16 @@ exports[`Template Page should render 1`] = `
   font-weight: ;
 }
 
-.emotion-101 {
+.emotion-102 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-105 {
+.emotion-106 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-107 {
+.emotion-108 {
   padding: 10px 0;
   display: -webkit-box;
   display: -webkit-flex;
@@ -928,12 +928,12 @@ exports[`Template Page should render 1`] = `
   display: flex;
 }
 
-.emotion-109 {
+.emotion-110 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-111 {
+.emotion-112 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -1192,6 +1192,12 @@ exports[`Template Page should render 1`] = `
                 class="emotion-69 denali-tab"
                 data-active="false"
               >
+                Groups
+              </div>
+              <div
+                class="emotion-69 denali-tab"
+                data-active="false"
+              >
                 Services
               </div>
               <div
@@ -1215,41 +1221,41 @@ exports[`Template Page should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-74 emotion-75"
+            class="emotion-75 emotion-76"
             data-testid="template-list"
           >
             <table
-              class="emotion-76 emotion-77"
+              class="emotion-77 emotion-78"
             >
               <thead>
                 <tr>
                   <th
-                    class="emotion-78 emotion-79"
+                    class="emotion-79 emotion-80"
                   >
                     TEMPLATE
                   </th>
                   <th
-                    class="emotion-78 emotion-79"
+                    class="emotion-79 emotion-80"
                   >
                     INFO
                   </th>
                   <th
-                    class="emotion-82 emotion-79"
+                    class="emotion-83 emotion-80"
                   >
                     CURRENT VERSION
                   </th>
                   <th
-                    class="emotion-82 emotion-79"
+                    class="emotion-83 emotion-80"
                   >
                     LATEST VERSION
                   </th>
                   <th
-                    class="emotion-82 emotion-79"
+                    class="emotion-83 emotion-80"
                   >
                     UPDATED DATE
                   </th>
                   <th
-                    class="emotion-82 emotion-79"
+                    class="emotion-83 emotion-80"
                   >
                     UPDATE VERSION
                   </th>
@@ -1264,11 +1270,11 @@ exports[`Template Page should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-90 emotion-91"
+          class="emotion-91 emotion-92"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-92"
+            class="emotion-93"
             data-testid="icon"
             height="1em"
             viewBox="0 0 1024 1024"
@@ -1283,45 +1289,45 @@ exports[`Template Page should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-93 emotion-94"
+          class="emotion-94 emotion-95"
         >
           <div
-            class="emotion-95 emotion-96"
+            class="emotion-96 emotion-97"
           >
             <div
-              class="emotion-97 emotion-98"
+              class="emotion-98 emotion-99"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-99 emotion-100"
+                class="emotion-100 emotion-101"
               >
                 Create
               </a>
               <span
-                class="emotion-101 emotion-102"
+                class="emotion-102 emotion-103"
               >
                  | 
               </span>
               <a
-                class="emotion-99 emotion-100"
+                class="emotion-100 emotion-101"
               >
                 Manage
               </a>
             </div>
           </div>
           <div
-            class="emotion-105 emotion-106"
+            class="emotion-106 emotion-107"
           >
             <div
-              class="emotion-107 emotion-108"
+              class="emotion-108 emotion-109"
             >
               <div
-                class="emotion-109 emotion-110"
+                class="emotion-110 emotion-111"
               >
                 <svg
-                  class="emotion-111"
+                  class="emotion-112"
                   data-testid="icon"
                   height="1em"
                   viewBox="0 0 1024 1024"
@@ -1342,19 +1348,19 @@ exports[`Template Page should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-99 emotion-100"
+                class="emotion-100 emotion-101"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-107 emotion-108"
+              class="emotion-108 emotion-109"
             >
               <div
-                class="emotion-109 emotion-110"
+                class="emotion-110 emotion-111"
               >
                 <svg
-                  class="emotion-111"
+                  class="emotion-112"
                   data-testid="icon"
                   height="1em"
                   viewBox="0 0 1024 1024"
@@ -1375,7 +1381,7 @@ exports[`Template Page should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-99 emotion-100"
+                class="emotion-100 emotion-101"
               >
                 athens.ci
               </a>

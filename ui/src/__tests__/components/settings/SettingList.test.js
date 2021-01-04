@@ -29,7 +29,7 @@ describe('SettingList', () => {
         }; 
 
         const { getByTestId } = render(
-            <SettingList api={API()} domain={domain} role={role} roleDetails={roleDetails} isDomainAuditEnabled={true}/>
+            <SettingList api={API()} domain={domain} collection={role} collectionDetails={roleDetails} isDomainAuditEnabled={true}/>
         );
         const settinglist = getByTestId('setting-list');
 

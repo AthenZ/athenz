@@ -15,16 +15,14 @@
  */
 import React from 'react';
 import { render } from '@testing-library/react';
-import RoleMember from '../../../components/role/RoleMember';
+import Member from '../../../components/member/Member';
 
-describe('RoleMember', () => {
+describe('Member', () => {
     it('should render', () => {
         let member = { memberName: 'user.test2' };
 
         const { getByTestId } = render(
-            <RoleMember
-                domain='testdom'
-                role='testrole'
+            <Member
                 item={member}
                 idx={0}
             />

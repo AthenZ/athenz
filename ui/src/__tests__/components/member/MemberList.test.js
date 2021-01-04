@@ -50,7 +50,7 @@ describe('MemberList', () => {
         members.push(user4);
 
         const { getByTestId } = render(
-            <MemberList api={API()} domain={domain} role={role} roleDetails={roleDetails} members={members} isDomainAuditEnabled={true}/>
+            <MemberList api={API()} domain={domain} collection={role} collectionDetails={roleDetails} members={members} isDomainAuditEnabled={true}/>
         );
         const memberlist = getByTestId('member-list');
 
@@ -87,7 +87,7 @@ describe('MemberList', () => {
         members.push(user4);
 
         const { getByTestId } = render(
-            <MemberList api={API()} domain={domain} role={role} roleDetails={roleDetails} members={members} isDomainAuditEnabled={true}/>
+            <MemberList api={API()} domain={domain} collection={role} collectionDetails={roleDetails} members={members} isDomainAuditEnabled={true}/>
         );
         const memberlist = getByTestId('member-list');
 

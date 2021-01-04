@@ -32,7 +32,7 @@ describe('SettingTable', () => {
         }
 
         const { getByTestId } = render(
-            <SettingTable api={API()} domain={domain} role={role} roleDetails={roleDetails} justificationRequired={true} />
+            <SettingTable api={API()} domain={domain} collection={role} collectionDetails={roleDetails} justificationRequired={true} />
         );
         const settingTable = getByTestId('setting-table');
 

@@ -36,6 +36,23 @@ const StyleTable = styled.table`
     height: 50px;
 `;
 
+const StyleDiv = styled.table`
+    width: 100%;
+    border-spacing: 0;
+    display: table;
+    border-collapse: separate;
+    border-color: grey;
+    box-sizing: border-box;
+    margin-top: 5px;
+    box-shadow: 0 1px 4px #d9d9d9;
+    border: 1px solid #fff;
+    -webkit-border-image: none;
+    border-image: none;
+    -webkit-border-image: initial;
+    border-image: initial;
+    height: 50px;
+`;
+
 const TableHeadStyled = styled.th`
     text-align: ${(props) => props.align};
     border-bottom: 2px solid #d5d5d5;
@@ -75,7 +92,7 @@ const TableCaptionStyled = styled.caption`
 
 const LeftMarginSpan = styled.span`
     margin-right: 10px;
-    vertical-align: bottom;
+    verticalalign: bottom;
 `;
 
 export default class MemberTable extends React.Component {
@@ -97,7 +114,7 @@ export default class MemberTable extends React.Component {
     render() {
         const center = 'center';
         const left = 'left';
-        const { domain, role, caption } = this.props;
+        const { domain, collection, caption } = this.props;
         const arrowup = 'arrowhead-up-circle-solid';
         const arrowdown = 'arrowhead-down-circle';
         let expandMembers = this.expandMembers.bind(this);
@@ -116,8 +133,9 @@ export default class MemberTable extends React.Component {
                     }
                     return (
                         <MemberRow
+                            category={this.props.category}
                             domain={domain}
-                            role={role}
+                            collection={collection}
                             pending={this.props.pending}
                             details={item}
                             idx={i}
@@ -184,12 +202,15 @@ export default class MemberTable extends React.Component {
                         <TableHeadStyled align={left}>
                             Name of User
                         </TableHeadStyled>
+
                         <TableHeadStyled align={left}>
                             Expiration Date
                         </TableHeadStyled>
-                        <TableHeadStyled align={left}>
-                            Review Reminder Date
-                        </TableHeadStyled>
+                        {this.props.category !== 'group' && (
+                            <TableHeadStyled align={left}>
+                                Review Reminder Date
+                            </TableHeadStyled>
+                        )}
                         <TableHeadStyled align={center}>Delete</TableHeadStyled>
                     </tr>
                 </thead>

@@ -35,4 +35,10 @@ module.exports = routes()
     .add('role-policy', '/domain/:domain/role/:role/policy')
     .add('policy', '/domain/:domain/policy')
     .add('settings', '/domain/:domain/role/:role/settings')
-    .add('role-history', '/domain/:domain/role/:role/history');
+    .add('role-history', '/domain/:domain/role/:role/history')
+    .add('group-members', '/domain/:domain/group/:group/members')
+    .add('group-settings', '/domain/:domain/group/:group/settings')
+    .add('group', '/domain/:domain/group')
+    .add('group-history', '/domain/:domain/group/:group/history')
+    .add('group-roles', '/domain/:domain/group/:group/roles')
+    .add('group-review', '/domain/:domain/group/:group/review');

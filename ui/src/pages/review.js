@@ -21,12 +21,13 @@ import styled from '@emotion/styled';
 import Head from 'next/head';
 // there is an issue with next-link and next-css if the css is not present then it doesnt load so adding this
 import 'flatpickr/dist/themes/light.css';
-import RoleDetails from '../components/header/RoleDetails';
+import CollectionDetails from '../components/header/CollectionDetails';
 import ReviewList from '../components/review/ReviewList';
 import RequestUtils from '../components/utils/RequestUtils';
 import RoleTabs from '../components/header/RoleTabs';
-import RoleNameHeader from '../components/header/RoleNameHeader';
+import NameHeader from '../components/header/NameHeader';
 import Error from './_error';
+import { MODAL_TIME_OUT } from '../components/constants/constants';
 import createCache from '@emotion/cache';
 import { CacheProvider } from '@emotion/react';
 
@@ -77,14 +78,7 @@ export default class ReviewPage extends React.Component {
                 false,
                 false
             ),
-            api.getRole(
-                props.query.domain,
-                props.query.role,
-                false,
-                true,
-                false
-            ),
-            api.getPendingDomainRoleMembersList(),
+            api.getPendingDomainMembersList(),
             api.getForm(),
         ]).catch((err) => {
             let response = RequestUtils.errorCheckHelper(err);
@@ -101,13 +95,12 @@ export default class ReviewPage extends React.Component {
             domain: props.query.domain,
             role: props.query.role,
             members: roles[3].roleMembers,
-            expandMembers: roles[4].roleMembers,
             headerDetails: roles[1],
             domainDeails: roles[2],
             auditEnabled: roles[2].auditEnabled,
             roleDetails: roles[3],
-            pending: roles[5],
-            _csrf: roles[6],
+            pending: roles[4],
+            _csrf: roles[5],
             nonce: props.req.headers.rid,
         };
     }
@@ -128,7 +121,6 @@ export default class ReviewPage extends React.Component {
             roleDetails,
             role,
             members,
-            expandMembers,
             isDomainAuditEnabled,
             _csrf,
         } = this.props;
@@ -139,9 +131,6 @@ export default class ReviewPage extends React.Component {
         if (this.props.error) {
             return <Error err={this.props.error} />;
         }
-
-        let roleMembers = roleDetails.trust ? expandMembers : members;
-
         return (
             <CacheProvider value={this.cache}>
                 <div data-testid='review'>
@@ -158,13 +147,14 @@ export default class ReviewPage extends React.Component {
                             <RolesContainerDiv>
                                 <RolesContentDiv>
                                     <PageHeaderDiv>
-                                        <RoleNameHeader
+                                        <NameHeader
+                                            category={'role'}
                                             domain={domain}
-                                            role={role}
-                                            roleDetails={roleDetails}
+                                            collection={role}
+                                            collectionDetails={roleDetails}
                                         />
-                                        <RoleDetails
-                                            roleDetails={roleDetails}
+                                        <CollectionDetails
+                                            collectionDetails={roleDetails}
                                             api={this.api}
                                             _csrf={_csrf}
                                             productMasterLink={
@@ -182,9 +172,9 @@ export default class ReviewPage extends React.Component {
                                     <ReviewList
                                         api={this.api}
                                         domain={domain}
-                                        role={role}
-                                        roleDetails={roleDetails}
-                                        members={roleMembers}
+                                        collection={role}
+                                        collectionDetails={roleDetails}
+                                        members={members}
                                         _csrf={_csrf}
                                         isDomainAuditEnabled={
                                             isDomainAuditEnabled
@@ -193,6 +183,7 @@ export default class ReviewPage extends React.Component {
                                             this.props.headerDetails.userData
                                                 .userLink
                                         }
+                                        category={'role'}
                                     />
                                 </RolesContentDiv>
                             </RolesContainerDiv>

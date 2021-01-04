@@ -159,7 +159,7 @@ exports[`RoleHistoryList should render 1`] = `
 
 <div
   class="emotion-0 emotion-1"
-  data-testid="role-history-list"
+  data-testid="collection-history-list"
 >
   <div
     class="emotion-2 emotion-3"

@@ -276,8 +276,8 @@ describe('Fetchr Client API Test', () => {
         });
         afterEach(() => fetchrStub.restore());
     });
-    describe('getPendingDomainRoleMembersList test', () => {
-        it('getPendingDomainRoleMembersList test success', async () => {
+    describe('getPendingDomainMembersList test', () => {
+        it('getPendingDomainMembersList test success', async () => {
             myDataService = {
                 name: 'pending-approval',
                 read: function (req, resource, params, config, callback){
@@ -286,10 +286,10 @@ describe('Fetchr Client API Test', () => {
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
-            result = await api.getPendingDomainRoleMembersList();
+            result = await api.getPendingDomainMembersList();
             expect(result).toEqual(DATA);
         });
-        it('getPendingDomainRoleMembersList test error', async () => {
+        it('getPendingDomainMembersList test error', async () => {
             myDataServiceErr = {
                 name: 'pending-approval',
                 read: function (req, resource, params, config, callback){
@@ -298,7 +298,7 @@ describe('Fetchr Client API Test', () => {
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
-            await api.getPendingDomainRoleMembersList().catch((err) => {
+            await api.getPendingDomainMembersList().catch((err) => {
                 expect(err).not.toBeNull();
             });
         });
@@ -1088,8 +1088,8 @@ describe('Fetchr Client API Test', () => {
         });
         afterEach(() => fetchrStub.restore());
     });
-    describe('putRoleMeta test', () => {
-        it('putRoleMeta test success', async () => {
+    describe('putMeta test', () => {
+        it('putMeta test success', async () => {
             myDataService = {
                 name: 'role-meta',
                 create: function (req, resource, params, body, config, callback){
@@ -1098,19 +1098,19 @@ describe('Fetchr Client API Test', () => {
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
-            result = await api.putRoleMeta('dummyDom', 'dummyRole', {}, 'dummyRef','1234');
+            result = await api.putMeta('dummyDom', 'dummyRole', {}, 'dummyRef','1234');
             expect(result).toEqual(DATA);
         });
-        it('putRoleMeta test error', async () => {
+        it('putMeta test error', async () => {
             myDataServiceErr = {
-                name: 'role-meta',
+                name: 'meta',
                 create: function (req, resource, params, body, config, callback){
                     return callback({}, null);
                 }
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
-            await api.putRoleMeta('dummyDom', 'dummyRole', {}, 'dummyRef','1234').catch((err) => {
+            await api.putMeta('dummyDom', 'dummyRole', {}, 'dummyRef','1234').catch((err) => {
                 expect(err).not.toBeNull();
             });
         });

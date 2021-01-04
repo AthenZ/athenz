@@ -172,7 +172,7 @@ export default class PendingApprovalTableHeader extends React.Component {
                 </TableHeaderSelectAll>
                 <TableHeader />
                 <TableHeader />
-                <TableHeader colSpan={2} />
+                <TableHeader colSpan={3} />
                 <TableHeader />
                 <TableHeader />
                 <SelectAllBoxTableHeader>

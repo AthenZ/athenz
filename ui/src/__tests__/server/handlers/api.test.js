@@ -88,8 +88,8 @@ describe('Fetchr Server API Test', () => {
                             params.forcefail
                                 ? callback({ status: 404 }, null)
                                 : callback(undefined, {
-                                      names: ['dom1', 'domabc1'],
-                                  }),
+                                    names: ['dom1', 'domabc1'],
+                                }),
                         getSignedDomains: (params, callback) =>
                             params.forcefail
                                 ? callback({ status: 404 }, null)
@@ -118,8 +118,8 @@ describe('Fetchr Server API Test', () => {
                             params.forcefail
                                 ? callback({ status: 404 }, null)
                                 : callback(undefined, {
-                                      list: [{ name: 'a' }, { name: 'b' }],
-                                  }),
+                                    list: [{ name: 'a' }, { name: 'b' }],
+                                }),
                         getPolicy: (params, callback) =>
                             params.forcefail
                                 ? callback({ status: 404 }, null)
@@ -136,17 +136,17 @@ describe('Fetchr Server API Test', () => {
                             params.forcefail
                                 ? callback({ status: 404 }, null)
                                 : callback(undefined, {
-                                      roleMembers: [
-                                          { memberName: 'user.user1' },
-                                      ],
-                                      auditLog: [
-                                          {
-                                              action: 'read',
-                                              member: 'user.user1',
-                                              admin: 'user.useradmin',
-                                          },
-                                      ],
-                                  }),
+                                    roleMembers: [
+                                        { memberName: 'user.user1' },
+                                    ],
+                                    auditLog: [
+                                        {
+                                            action: 'read',
+                                            member: 'user.user1',
+                                            admin: 'user.useradmin',
+                                        },
+                                    ],
+                                }),
                         putRole: (params, callback) =>
                             params.forcefail
                                 ? callback({ status: 404 }, null)
@@ -171,74 +171,78 @@ describe('Fetchr Server API Test', () => {
                             params.forcefail
                                 ? callback({ status: 404 }, null)
                                 : callback(undefined, { success: 'true' }),
+                        getPendingDomainGroupMembersList: (params, callback) =>
+                            params.forcefail
+                                ? callback({ status: 404 }, null)
+                                : callback(undefined, {domainGroupMembersList: []}),
                         getPendingDomainRoleMembersList: (params, callback) =>
                             params.forcefail
                                 ? callback({ status: 404 }, null)
                                 : callback(undefined, {
-                                      domainRoleMembersList: [
-                                          {
-                                              domainName: 'avtest',
-                                              members: [
-                                                  {
-                                                      memberName:
-                                                          'user.gurleenk',
-                                                      memberRoles: [
-                                                          {
-                                                              roleName:
-                                                                  'audit_enabled_role',
-                                                              expiration:
-                                                                  '2020-07-17T19:00:00.000Z',
-                                                              active: false,
-                                                              auditRef: 'ee',
-                                                              requestPrincipal:
-                                                                  'user.abhijetv',
-                                                              requestTime:
-                                                                  '2020-04-10T04:59:33.325Z',
-                                                          },
-                                                      ],
-                                                  },
-                                                  {
-                                                      memberName: 'user.jothip',
-                                                      memberRoles: [
-                                                          {
-                                                              roleName:
-                                                                  'audit_enabled_role2',
-                                                              active: false,
-                                                              auditRef:
-                                                                  'jothi no expiry',
-                                                              requestPrincipal:
-                                                                  'user.abhijetv',
-                                                              requestTime:
-                                                                  '2020-04-10T06:04:29.337Z',
-                                                          },
-                                                      ],
-                                                  },
-                                                  {
-                                                      memberName:
-                                                          'user.palakas',
-                                                      memberRoles: [
-                                                          {
-                                                              roleName:
-                                                                  'audit_enabled_role2',
-                                                              active: false,
-                                                              auditRef: 'ee',
-                                                              requestPrincipal:
-                                                                  'user.abhijetv',
-                                                              requestTime:
-                                                                  '2020-04-10T05:11:32.667Z',
-                                                          },
-                                                      ],
-                                                  },
-                                              ],
-                                          },
-                                      ],
-                                  }),
+                                    domainRoleMembersList: [
+                                        {
+                                            domainName: 'avtest',
+                                            members: [
+                                                {
+                                                    memberName:
+                                                        'user.gurleenk',
+                                                    memberRoles: [
+                                                        {
+                                                            roleName:
+                                                                'audit_enabled_role',
+                                                            expiration:
+                                                                '2020-07-17T19:00:00.000Z',
+                                                            active: false,
+                                                            auditRef: 'ee',
+                                                            requestPrincipal:
+                                                                'user.abhijetv',
+                                                            requestTime:
+                                                                '2020-04-10T04:59:33.325Z',
+                                                        },
+                                                    ],
+                                                },
+                                                {
+                                                    memberName: 'user.jothip',
+                                                    memberRoles: [
+                                                        {
+                                                            roleName:
+                                                                'audit_enabled_role2',
+                                                            active: false,
+                                                            auditRef:
+                                                                'jothi no expiry',
+                                                            requestPrincipal:
+                                                                'user.abhijetv',
+                                                            requestTime:
+                                                                '2020-04-10T06:04:29.337Z',
+                                                        },
+                                                    ],
+                                                },
+                                                {
+                                                    memberName:
+                                                        'user.palakas',
+                                                    memberRoles: [
+                                                        {
+                                                            roleName:
+                                                                'audit_enabled_role2',
+                                                            active: false,
+                                                            auditRef: 'ee',
+                                                            requestPrincipal:
+                                                                'user.abhijetv',
+                                                            requestTime:
+                                                                '2020-04-10T05:11:32.667Z',
+                                                        },
+                                                    ],
+                                                },
+                                            ],
+                                        },
+                                    ],
+                                }),
                         getServiceIdentities: (params, callback) =>
                             params.forcefail
                                 ? callback({ status: 404 }, null)
                                 : callback(undefined, {
-                                      list: [{ name: 'a' }, { name: 'b' }],
-                                  }),
+                                    list: [{ name: 'a' }, { name: 'b' }],
+                                }),
                         getServiceIdentity: (params, callback) =>
                             params.forcefail
                                 ? callback({ status: 404 }, null)
@@ -263,19 +267,19 @@ describe('Fetchr Server API Test', () => {
                             params.forcefail
                                 ? callback({ status: 404 }, null)
                                 : callback(undefined, {
-                                      metaData: [
-                                          {
-                                              templateName: 'aws',
-                                              description:
-                                                  'AWS access template',
-                                              currentVersion: 4,
-                                              latestVersion: 1,
-                                              timestamp:
-                                                  '2020-04-28T00:00:00.000Z',
-                                              autoUpdate: false,
-                                          },
-                                      ],
-                                  }),
+                                    metaData: [
+                                        {
+                                            templateName: 'aws',
+                                            description:
+                                                'AWS access template',
+                                            currentVersion: 4,
+                                            latestVersion: 1,
+                                            timestamp:
+                                                '2020-04-28T00:00:00.000Z',
+                                            autoUpdate: false,
+                                        },
+                                    ],
+                                }),
                     },
                 };
                 next();
@@ -474,17 +478,25 @@ describe('Fetchr Server API Test', () => {
                 });
         });
         it('putMembership test success', async () => {
+            let member = {
+                memberName: 'dummyMem',
+            }
             await request(expressApp)
                 .post('/api/v1')
                 .send({
                     requests: {
                         g0: {
+
                             resource: 'member',
                             operation: 'create',
                             params: {
+                                category: 'role',
                                 domainName: 'test',
-                                roleName: 'testrole',
+                                collectionName: 'testrole',
                                 memberName: 'dummyMem',
+                                membership: {
+                                    memberName: 'dummyMem'
+                                },
                             },
                         },
                     },
@@ -504,8 +516,9 @@ describe('Fetchr Server API Test', () => {
                             resource: 'member',
                             operation: 'delete',
                             params: {
+                                category: 'role',
                                 domainName: 'test',
-                                roleName: 'testrole',
+                                collectionName: 'testrole',
                                 memberName: 'dummyMem',
                             },
                         },
@@ -615,6 +628,7 @@ describe('Fetchr Server API Test', () => {
                             resource: 'process-pending',
                             operation: 'create',
                             params: {
+                                category: 'role',
                                 domainName: 'test',
                                 policyName: 'dummyPol',
                             },
@@ -750,11 +764,12 @@ describe('Fetchr Server API Test', () => {
                 .send({
                     requests: {
                         g0: {
-                            resource: 'role-meta',
+                            resource: 'meta',
                             operation: 'create',
                             params: {
+                                category: 'role',
                                 domainName: 'test',
-                                roleName: 'dummyRole',
+                                principalName: 'dummyRole',
                             },
                         },
                     },
@@ -790,6 +805,7 @@ describe('Fetchr Server API Test', () => {
                             roleName: 'audit_enabled_role',
                             userComment: 'ee',
                             auditRef: '',
+                            category: "role",
                             requestPrincipal: 'user.abhijetv',
                             requestTime: '2020-04-10T04:59:33.325Z',
                             expiryDate: '2020-07-17T19:00:00.000Z',
@@ -797,6 +813,7 @@ describe('Fetchr Server API Test', () => {
                         'avtestuser.jothipaudit_enabled_role2': {
                             domainName: 'avtest',
                             memberName: 'user.jothip',
+                            category: "role",
                             roleName: 'audit_enabled_role2',
                             userComment: 'jothi no expiry',
                             auditRef: '',
@@ -806,6 +823,7 @@ describe('Fetchr Server API Test', () => {
                         'avtestuser.palakasaudit_enabled_role2': {
                             domainName: 'avtest',
                             memberName: 'user.palakas',
+                            category: "role",
                             roleName: 'audit_enabled_role2',
                             userComment: 'ee',
                             auditRef: '',

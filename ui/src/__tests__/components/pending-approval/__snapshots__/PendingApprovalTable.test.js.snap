@@ -334,7 +334,7 @@ exports[`PendingApprovalTable should render 1`] = `
   text-align: left;
 }
 
-.emotion-51 {
+.emotion-53 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -346,7 +346,7 @@ exports[`PendingApprovalTable should render 1`] = `
   padding: 5px 0 5px 15px;
 }
 
-.emotion-53 {
+.emotion-55 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -400,7 +400,7 @@ exports[`PendingApprovalTable should render 1`] = `
       />
       <th
         class="emotion-7 emotion-8"
-        colspan="2"
+        colspan="3"
       />
       <th
         class="emotion-7 emotion-8"
@@ -521,12 +521,17 @@ exports[`PendingApprovalTable should render 1`] = `
       <th
         class="emotion-7 emotion-34"
       >
-        Role
+        Type
       </th>
       <th
         class="emotion-7 emotion-34"
       >
-        User
+        Name
+      </th>
+      <th
+        class="emotion-7 emotion-34"
+      >
+        Member
       </th>
       <th
         class="emotion-7 emotion-34"
@@ -555,12 +560,12 @@ exports[`PendingApprovalTable should render 1`] = `
         Expiration Date
       </th>
       <th
-        class="emotion-51 emotion-52"
+        class="emotion-53 emotion-54"
       >
         Approve
       </th>
       <th
-        class="emotion-53 emotion-54"
+        class="emotion-55 emotion-56"
       >
         Reject
       </th>

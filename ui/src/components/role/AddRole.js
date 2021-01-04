@@ -18,7 +18,7 @@ import Button from '../denali/Button';
 import ButtonGroup from '../denali/ButtonGroup';
 import Input from '../denali/Input';
 import InputLabel from '../denali/InputLabel';
-import RoleMember from './RoleMember';
+import Member from '../member/Member';
 import styled from '@emotion/styled';
 import Flatpicker from '../flatpicker/FlatPicker';
 import { colors } from '../denali/styles';
@@ -80,14 +80,13 @@ const StyledIncludedMembersDiv = styled.div`
 `;
 
 const SectionsDiv = styled.div`
-    width: 1085px;
+    width: 780px;
     text-align: left;
     background-color: ${colors.white};
 `;
 
 const FlatPickrStyled = styled.div`
     flex: 1 1;
-    margin-left: 10px;
     margin-right: 10px;
     & > div input {
         position: relative;
@@ -357,7 +356,7 @@ export default class AddRole extends React.Component {
                   item.approved = true;
                   let remove = this.deleteMember.bind(this, idx);
                   return (
-                      <RoleMember
+                      <Member
                           key={idx}
                           item={item}
                           onClickRemove={remove}
@@ -394,37 +393,49 @@ export default class AddRole extends React.Component {
                         <StyledInputLabel>Add Member(s)</StyledInputLabel>
                         <ContentDiv>
                             <AddMemberDiv>
-                                <StyledInputUser
-                                    placeholder='user.<userid> or <domain>.<service>'
+                                <StyledInput
+                                    placeholder='user.<userid> or <domain>.<service> or <domain>:group.<group>'
                                     value={this.state.newMemberName}
                                     onChange={memberNameChanged}
                                     noanim
                                     fluid
                                 />
-                                <FlatPickrStyled>
-                                    <Flatpicker
-                                        onChange={memberExpiryDateChanged}
-                                        clear={this.state.memberExpiry}
-                                        id='addrole'
-                                    />
-                                </FlatPickrStyled>
-                                <FlatPickrStyled>
-                                    <Flatpicker
-                                        onChange={
-                                            memberReviewReminderDateChanged
-                                        }
-                                        clear={this.state.memberReviewReminder}
-                                        id='addrole-reminder'
-                                        placeholder='Reminder (Optional)'
-                                    />
-                                </FlatPickrStyled>
-                                <ButtonDiv>
-                                    <StyledButton onClick={this.addMember}>
-                                        Add
-                                    </StyledButton>
-                                </ButtonDiv>
                             </AddMemberDiv>
                         </ContentDiv>
+                    </SectionDiv>
+                )}
+                {this.state.category === 'regular' && (
+                    <SectionDiv>
+                        <StyledInputLabel />
+                        <FlatPickrStyled>
+                            <Flatpicker
+                                onChange={memberExpiryDateChanged}
+                                clear={this.state.memberExpiry}
+                                id='addrole'
+                            />
+                        </FlatPickrStyled>
+                        <FlatPickrStyled>
+                            <Flatpicker
+                                onChange={memberReviewReminderDateChanged}
+                                clear={this.state.memberReviewReminder}
+                                id='addrole-reminder'
+                                placeholder='Reminder (Optional)'
+                            />
+                        </FlatPickrStyled>
+                    </SectionDiv>
+                )}
+                {this.state.category === 'regular' && (
+                    <SectionDiv>
+                        <StyledInputLabel />
+                        <ButtonDiv>
+                            <StyledButton
+                                secondary
+                                size={'small'}
+                                onClick={this.addMember}
+                            >
+                                Add
+                            </StyledButton>
+                        </ButtonDiv>
                     </SectionDiv>
                 )}
                 {this.state.category === 'regular' && (
@@ -435,11 +446,10 @@ export default class AddRole extends React.Component {
                         </StyledIncludedMembersDiv>
                     </SectionDiv>
                 )}
+
                 {this.state.category === 'delegated' && (
                     <SectionDiv>
-                        <StyledInputLabel>
-                            Delegated to ( Domain )
-                        </StyledInputLabel>
+                        <StyledInputLabel>Delegated to</StyledInputLabel>
                         <ContentDiv>
                             <StyledInput
                                 placeholder='Enter Domain for Delegate Role'

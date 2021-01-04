@@ -962,7 +962,7 @@ exports[`RolePolicyPage should render 1`] = `
           >
             <div
               class="emotion-28 emotion-29"
-              data-testid="role-name-header"
+              data-testid="collection-name-header"
             >
               
               
@@ -970,13 +970,14 @@ exports[`RolePolicyPage should render 1`] = `
                 class="emotion-30 emotion-31"
               >
                 dom
-                 
               </a>
-              / 
+              :
+              role
+              .
             </div>
             <div
               class="emotion-32 emotion-33"
-              data-testid="role-details"
+              data-testid="collection-details"
             >
               <div
                 class="emotion-34 emotion-35"

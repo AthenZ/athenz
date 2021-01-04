@@ -21,14 +21,12 @@ import styled from '@emotion/styled';
 import Head from 'next/head';
 // there is an issue with next-link and next-css if the css is not present then it doesnt load so adding this
 import 'flatpickr/dist/themes/light.css';
-import RoleDetails from '../components/header/RoleDetails';
-import RoleHistoryList from '../components/history/RoleHistoryList';
+import CollectionDetails from '../components/header/CollectionDetails';
+import CollectionHistoryList from '../components/history/CollectionHistoryList';
 import RoleTabs from '../components/header/RoleTabs';
-import RoleNameHeader from '../components/header/RoleNameHeader';
+import NameHeader from '../components/header/NameHeader';
 import RequestUtils from '../components/utils/RequestUtils';
 import Error from './_error';
-import createCache from '@emotion/cache';
-import { CacheProvider } from '@emotion/react';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -70,14 +68,8 @@ export default class RoleHistoryPage extends React.Component {
             api.listUserDomains(),
             api.getHeaderDetails(),
             api.getDomain(props.query.domain),
-            api.getRole(
-                props.query.domain,
-                props.query.role,
-                true,
-                false,
-                true
-            ),
-            api.getPendingDomainRoleMembersList(),
+            api.getRole(props.query.domain, props.query.role, true, true, true),
+            api.getPendingDomainMembersList(),
             api.getForm(),
         ]).catch((err) => {
             let response = RequestUtils.errorCheckHelper(err);
@@ -145,13 +137,14 @@ export default class RoleHistoryPage extends React.Component {
                             <RolesContainerDiv>
                                 <RolesContentDiv>
                                     <PageHeaderDiv>
-                                        <RoleNameHeader
+                                        <NameHeader
+                                            category={'role'}
                                             domain={domain}
-                                            role={role}
-                                            roleDetails={roleDetails}
+                                            collection={role}
+                                            collectionDetails={roleDetails}
                                         />
-                                        <RoleDetails
-                                            roleDetails={roleDetails}
+                                        <CollectionDetails
+                                            collectionDetails={roleDetails}
                                             api={this.api}
                                             _csrf={_csrf}
                                             productMasterLink={
@@ -166,11 +159,12 @@ export default class RoleHistoryPage extends React.Component {
                                             selectedName={'history'}
                                         />
                                     </PageHeaderDiv>
-                                    <RoleHistoryList
+                                    <CollectionHistoryList
                                         api={this.api}
                                         domain={domain}
-                                        role={role}
+                                        collection={role}
                                         historyrows={historyrows}
+                                        category={'role'}
                                         _csrf={_csrf}
                                     />
                                 </RolesContentDiv>

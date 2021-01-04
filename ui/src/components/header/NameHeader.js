@@ -38,13 +38,13 @@ const MenuDiv = styled.div`
     font-size: 12px;
 `;
 
-export default class RoleNameHeader extends React.Component {
+export default class NameHeader extends React.Component {
     constructor(props) {
         super(props);
     }
 
     render() {
-        const { domain, roleDetails, role } = this.props;
+        const { domain, collectionDetails, collection } = this.props;
 
         let iconDelegated = (
             <Menu
@@ -81,23 +81,23 @@ export default class RoleNameHeader extends React.Component {
                     </span>
                 }
             >
-                <MenuDiv>Audit Enabled Role</MenuDiv>
+                <MenuDiv>Audit Enabled {this.props.category}</MenuDiv>
             </Menu>
         );
 
-        let roleTypeIcon = roleDetails.trust ? iconDelegated : '';
-        let roleAuditIcon = roleDetails.auditEnabled ? iconAudit : '';
+        let roleTypeIcon = collectionDetails.trust ? iconDelegated : '';
+        let roleAuditIcon = collectionDetails.auditEnabled ? iconAudit : '';
 
-        if (roleDetails.trust) {
-            let deDomain = roleDetails.trust;
+        if (collectionDetails.trust) {
+            let deDomain = collectionDetails.trust;
             return (
-                <TitleDiv data-testid='role-name-header'>
+                <TitleDiv data-testid='collection-name-header'>
                     {roleTypeIcon}
                     {roleAuditIcon}
                     <Link route='role' params={{ domain: domain }}>
-                        <StyledAnchor>{domain} </StyledAnchor>
+                        <StyledAnchor>{domain}</StyledAnchor>
                     </Link>
-                    / {role}
+                    :role.{collection}
                     {' (Delegated by '}
                     <Link route='role' params={{ domain: deDomain }}>
                         <StyledAnchor>{deDomain}</StyledAnchor>
@@ -106,15 +106,26 @@ export default class RoleNameHeader extends React.Component {
                 </TitleDiv>
             );
         }
+        let link;
+        if (this.props.category === 'group') {
+            link = (
+                <Link route='group' params={{ domain: domain }}>
+                    <StyledAnchor>{domain}</StyledAnchor>
+                </Link>
+            );
+        } else if (this.props.category === 'role') {
+            link = (
+                <Link route='role' params={{ domain: domain }}>
+                    <StyledAnchor>{domain}</StyledAnchor>
+                </Link>
+            );
+        }
 
         return (
-            <TitleDiv data-testid='role-name-header'>
+            <TitleDiv data-testid='collection-name-header'>
                 {roleTypeIcon}
                 {roleAuditIcon}
-                <Link route='role' params={{ domain: domain }}>
-                    <StyledAnchor>{domain} </StyledAnchor>
-                </Link>
-                / {role}
+                {link}:{this.props.category}.{collection}
             </TitleDiv>
         );
     }

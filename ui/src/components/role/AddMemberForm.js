@@ -140,7 +140,7 @@ export default class AddMemberForm extends React.Component {
         this.api
             .addMember(
                 this.props.domain,
-                this.props.role,
+                this.props.principal,
                 this.state.newMember,
                 member,
                 this.state.justification

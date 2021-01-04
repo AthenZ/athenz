@@ -21,7 +21,7 @@ import { colors } from '../denali/styles';
 
 const LeftMarginSpan = styled.span`
     margin-right: 10px;
-    vertical-align: bottom;
+    verticalalign: bottom；;
 `;
 
 const TDStyled = styled.td`
@@ -105,6 +105,7 @@ export default class RoleGroup extends React.Component {
                     }
                     return (
                         <RoleSectionRow
+                            category={this.props.category}
                             api={this.api}
                             details={item}
                             idx={i}

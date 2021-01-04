@@ -76,7 +76,7 @@ export default class ServicePage extends React.Component {
             api.getDomain(props.query.domain),
             api.getServices(props.query.domain),
             api.getForm(),
-            api.getPendingDomainRoleMembersList(),
+            api.getPendingDomainMembersList(),
             api.getServicePageConfig(),
             api.isAWSTemplateApplied(props.query.domain),
         ]).catch((err) => {

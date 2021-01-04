@@ -23,7 +23,7 @@ exports[`RoleGroup should render 1`] = `
 
 .emotion-4 {
   margin-right: 10px;
-  vertical-align: bottom;
+  verticalalign: bottom；;
 }
 
 .emotion-6 {

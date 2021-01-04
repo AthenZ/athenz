@@ -21,11 +21,11 @@ import styled from '@emotion/styled';
 import Head from 'next/head';
 // there is an issue with next-link and next-css if the css is not present then it doesnt load so adding this
 import 'flatpickr/dist/themes/light.css';
-import RoleDetails from '../components/header/RoleDetails';
+import CollectionDetails from '../components/header/CollectionDetails';
 import SettingList from '../components/settings/SettingList';
 import RequestUtils from '../components/utils/RequestUtils';
 import RoleTabs from '../components/header/RoleTabs';
-import RoleNameHeader from '../components/header/RoleNameHeader';
+import NameHeader from '../components/header/NameHeader';
 import Error from './_error';
 import createCache from '@emotion/cache';
 import { CacheProvider } from '@emotion/react';
@@ -77,7 +77,7 @@ export default class SettingPage extends React.Component {
                 false,
                 false
             ),
-            api.getPendingDomainRoleMembersList(),
+            api.getPendingDomainMembersList(),
             api.getForm(),
         ]).catch((err) => {
             let response = RequestUtils.errorCheckHelper(err);
@@ -144,13 +144,14 @@ export default class SettingPage extends React.Component {
                             <RolesContainerDiv>
                                 <RolesContentDiv>
                                     <PageHeaderDiv>
-                                        <RoleNameHeader
+                                        <NameHeader
+                                            category={'role'}
                                             domain={domain}
-                                            role={role}
-                                            roleDetails={roleDetails}
+                                            collection={role}
+                                            collectionDetails={roleDetails}
                                         />
-                                        <RoleDetails
-                                            roleDetails={roleDetails}
+                                        <CollectionDetails
+                                            collectionDetails={roleDetails}
                                             api={this.api}
                                             _csrf={_csrf}
                                             productMasterLink={
@@ -168,8 +169,8 @@ export default class SettingPage extends React.Component {
                                     <SettingList
                                         api={this.api}
                                         domain={domain}
-                                        role={role}
-                                        roleDetails={roleDetails}
+                                        collection={role}
+                                        collectionDetails={roleDetails}
                                         _csrf={_csrf}
                                         isDomainAuditEnabled={
                                             isDomainAuditEnabled
@@ -178,6 +179,7 @@ export default class SettingPage extends React.Component {
                                             this.props.headerDetails.userData
                                                 .userLink
                                         }
+                                        category={'role'}
                                     />
                                 </RolesContentDiv>
                             </RolesContainerDiv>

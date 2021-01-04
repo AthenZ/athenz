@@ -73,7 +73,7 @@ export default class ManageDomainsPage extends React.Component {
             api.listUserDomains(),
             api.getHeaderDetails(),
             api.listAdminDomains(),
-            api.getPendingDomainRoleMembersList(),
+            api.getPendingDomainMembersList(),
             api.getForm(),
         ]).catch((err) => {
             let response = RequestUtils.errorCheckHelper(err);

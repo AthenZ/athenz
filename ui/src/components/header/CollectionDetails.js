@@ -40,13 +40,7 @@ const LabelDiv = styled.div`
     text-transform: uppercase;
 `;
 
-const StyledAnchorDiv = styled.div`
-    color: #3570f4;
-    text-decoration: none;
-    cursor: pointer;
-`;
-
-export default class RoleDetails extends React.Component {
+export default class CollectionDetails extends React.Component {
     constructor(props) {
         super(props);
         this.api = props.api;
@@ -55,19 +49,19 @@ export default class RoleDetails extends React.Component {
     render() {
         let localDate = new DateUtils();
         let modifiedDate = localDate.getLocalDate(
-            this.props.roleDetails.modified,
+            this.props.collectionDetails.modified,
             'UTC',
             'UTC'
         );
-        let lastReviewedDate = this.props.roleDetails.lastReviewedDate
+        let lastReviewedDate = this.props.collectionDetails.lastReviewedDate
             ? localDate.getLocalDate(
-                  this.props.roleDetails.lastReviewedDate,
+                  this.props.collectionDetails.lastReviewedDate,
                   'UTC',
                   'UTC'
               )
             : 'N/A';
         return (
-            <DomainSectionDiv data-testid='role-details'>
+            <DomainSectionDiv data-testid='collection-details'>
                 <DetailsDiv>
                     <SectionDiv>
                         <ValueDiv>{modifiedDate}</ValueDiv>

@@ -77,7 +77,7 @@ export default class HistoryPage extends React.Component {
             api.getHistory(props.query.domain, 'ALL', null, null),
             api.getRoles(props.query.domain),
             api.getForm(),
-            api.getPendingDomainRoleMembersList(),
+            api.getPendingDomainMembersList(),
             api.isAWSTemplateApplied(props.query.domain),
         ]).catch((err) => {
             let response = RequestUtils.errorCheckHelper(err);
@@ -129,6 +129,7 @@ export default class HistoryPage extends React.Component {
         if (this.props.error) {
             return <Error err={this.props.error} />;
         }
+
         return (
             <CacheProvider value={this.cache}>
                 <div data-testid='history'>

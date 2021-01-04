@@ -15,7 +15,7 @@
  */
 import React from 'react';
 import { render } from '@testing-library/react';
-import RoleDetails from '../../../components/header/RoleDetails';
+import CollectionDetails from '../../../components/header/CollectionDetails';
 
 describe('RoleDetails', () => {
     it('should render', () => {
@@ -24,9 +24,9 @@ describe('RoleDetails', () => {
         };
 
         const { getByTestId } = render(
-            <RoleDetails roleDetails={roleMetadata} />
+            <CollectionDetails collectionDetails={roleMetadata} />
         );
-        const domainDetails = getByTestId('role-details');
+        const domainDetails = getByTestId('collection-details');
         expect(domainDetails).toMatchSnapshot();
     });
     it('should render with mock data', () => {
@@ -36,9 +36,9 @@ describe('RoleDetails', () => {
         };
 
         const { getByTestId } = render(
-            <RoleDetails roleDetails={roleMetadata} />
+            <CollectionDetails collectionDetails={roleMetadata} />
         );
-        const roleDetails = getByTestId('role-details');
+        const roleDetails = getByTestId('collection-details');
         expect(roleDetails).toMatchSnapshot();
     });
 });

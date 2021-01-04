@@ -46,13 +46,12 @@ const MenuDiv = styled.div`
 
 const StyledAnchor = styled.a`
     text-decoration: none;
-    cursor: pointer;
 `;
 
 const StyledAnchorActiveInline = { color: colors.linkActive };
 const StyledTagFullNameExpiryActiveInline = { color: colors.black };
 
-export default class RoleMember extends React.Component {
+export default class Member extends React.Component {
     constructor(props) {
         super(props);
         this.onClickRemove = this.onClickRemove.bind(this);
@@ -99,6 +98,7 @@ export default class RoleMember extends React.Component {
                 </StyledTagFullNameExpiry>
             );
         }
+        //TODO link anchor to user profile link
         if (!this.props.item.approved) {
             return (
                 <StyledTag
@@ -112,12 +112,6 @@ export default class RoleMember extends React.Component {
                             this.props.item.systemDisabled
                                 ? {}
                                 : StyledAnchorActiveInline
-                        }
-                        onClick={() =>
-                            window.open(
-                                this.props.userProfileLink.url,
-                                this.props.userProfileLink.target
-                            )
                         }
                     >
                         {' '}
@@ -166,6 +160,7 @@ export default class RoleMember extends React.Component {
                 </StyledTag>
             );
         } else {
+            //TODO link anchor to user profile link
             return (
                 <Tag
                     data-testid={'role-member'}
@@ -179,12 +174,6 @@ export default class RoleMember extends React.Component {
                             this.props.item.systemDisabled
                                 ? {}
                                 : StyledAnchorActiveInline
-                        }
-                        onClick={() =>
-                            window.open(
-                                this.props.userProfileLink.url,
-                                this.props.userProfileLink.target
-                            )
                         }
                     >
                         {' '}

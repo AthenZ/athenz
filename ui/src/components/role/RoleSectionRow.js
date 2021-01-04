@@ -92,7 +92,9 @@ export default class RoleSectionRow extends React.Component {
         this.onClickDeleteCancel = this.onClickDeleteCancel.bind(this);
         this.saveJustification = this.saveJustification.bind(this);
         this.state = {
-            name: NameUtils.getShortName(':role.', this.props.details.name),
+            name:
+                this.props.details.roleName ||
+                NameUtils.getShortName(':role.', this.props.details.name),
             showDelete: false,
         };
         this.localDate = new DateUtils();
@@ -167,6 +169,7 @@ export default class RoleSectionRow extends React.Component {
         let center = 'center';
         let role = this.props.details;
         let color = this.props.color;
+        let idx = this.props.idx;
 
         let clickMembers = this.onClickFunction.bind(
             this,
@@ -246,123 +249,166 @@ export default class RoleSectionRow extends React.Component {
             ) : (
                 <span>{' ' + this.state.name}</span>
             );
-
-        rows.push(
-            <TrStyled key={this.state.name} data-testid='role-section-row'>
-                <TDName color={color} align={left}>
-                    {roleTypeIcon}
-                    {roleAuditIcon}
-                    {roleNameSpan}
-                </TDName>
-                <TDModified color={color} align={left}>
-                    {this.localDate.getLocalDate(role.modified, 'UTC', 'UTC')}
-                </TDModified>
-                <TDReview color={color} align={left}>
-                    {role.lastReviewedDate
-                        ? this.localDate.getLocalDate(
-                              role.lastReviewedDate,
-                              'UTC',
-                              'UTC'
-                          )
-                        : 'N/A'}
-                </TDReview>
-                <TDIcon color={color} align={center}>
-                    <Menu
-                        placement='bottom-start'
-                        trigger={
-                            <span>
-                                <Icon
-                                    icon={'user-group'}
-                                    onClick={clickMembers}
-                                    color={colors.icons}
-                                    isLink
-                                    size={'1.25em'}
-                                    verticalAlign={'text-bottom'}
-                                />
-                            </span>
-                        }
-                    >
-                        <MenuDiv>Members</MenuDiv>
-                    </Menu>
-                </TDIcon>
-                <TDIcon color={color} align={center}>
-                    <Menu
-                        placement='bottom-start'
-                        trigger={
-                            <span>
-                                <Icon
-                                    icon={'assignment-priority'}
-                                    onClick={clickReview}
-                                    color={colors.icons}
-                                    isLink
-                                    size={'1.25em'}
-                                    verticalAlign={'text-bottom'}
-                                />
-                            </span>
-                        }
-                    >
-                        <MenuDiv>Review Members</MenuDiv>
-                    </Menu>
-                </TDIcon>
-                <TDIcon color={color} align={center}>
-                    <Menu
-                        placement='bottom-start'
-                        trigger={
-                            <span>
-                                <Icon
-                                    icon={'list-check'}
-                                    onClick={clickPolicy}
-                                    color={colors.icons}
-                                    isLink
-                                    size={'1.25em'}
-                                    verticalAlign={'text-bottom'}
-                                />
-                            </span>
-                        }
-                    >
-                        <MenuDiv>Rule Policy</MenuDiv>
-                    </Menu>
-                </TDIcon>
-                <TDIcon color={color} align={center}>
-                    <Menu
-                        placement='bottom-start'
-                        trigger={
-                            <span>
-                                <Icon
-                                    icon={'setting'}
-                                    onClick={clickSettings}
-                                    color={colors.icons}
-                                    isLink
-                                    size={'1.25em'}
-                                    verticalAlign={'text-bottom'}
-                                />
-                            </span>
-                        }
-                    >
-                        <MenuDiv>Settings</MenuDiv>
-                    </Menu>
-                </TDIcon>
-                <TDDelete color={color} align={center}>
-                    <Menu
-                        placement='bottom-start'
-                        trigger={
-                            <span>
-                                <Icon
-                                    icon={'trash'}
-                                    onClick={clickDelete}
-                                    color={colors.icons}
-                                    isLink
-                                    size={'1.25em'}
-                                    verticalAlign={'text-bottom'}
-                                />
-                            </span>
-                        }
-                    >
-                        <MenuDiv>Delete Role</MenuDiv>
-                    </Menu>
-                </TDDelete>
-            </TrStyled>
-        );
+        if (this.props.category === 'group-roles') {
+            rows.push(
+                <TrStyled key={this.state.name} data-testid='role-section-row'>
+                    <TDName color={color} align={left}>
+                        {roleTypeIcon}
+                        {roleAuditIcon}
+                        {roleNameSpan}
+                    </TDName>
+                    <TDModified color={color} align={left}>
+                        {role.expiration
+                            ? this.localDate.getLocalDate(
+                                  role.expiration,
+                                  'UTC',
+                                  'UTC'
+                              )
+                            : 'N/A'}
+                    </TDModified>
+                    <TDIcon color={color} align={center}>
+                        <Menu
+                            placement='bottom-start'
+                            trigger={
+                                <span>
+                                    <Icon
+                                        icon={'user-group'}
+                                        onClick={clickMembers}
+                                        color={colors.icons}
+                                        isLink
+                                        size={'1.25em'}
+                                        verticalAlign={'text-bottom'}
+                                    />
+                                </span>
+                            }
+                        >
+                            <MenuDiv>Members</MenuDiv>
+                        </Menu>
+                    </TDIcon>
+                </TrStyled>
+            );
+        } else {
+            rows.push(
+                <TrStyled key={this.state.name} data-testid='role-section-row'>
+                    <TDName color={color} align={left}>
+                        {roleTypeIcon}
+                        {roleAuditIcon}
+                        {roleNameSpan}
+                    </TDName>
+                    <TDModified color={color} align={left}>
+                        {this.localDate.getLocalDate(
+                            role.modified,
+                            'UTC',
+                            'UTC'
+                        )}
+                    </TDModified>
+                    <TDReview color={color} align={left}>
+                        {role.lastReviewedDate
+                            ? this.localDate.getLocalDate(
+                                  role.lastReviewedDate,
+                                  'UTC',
+                                  'UTC'
+                              )
+                            : 'N/A'}
+                    </TDReview>
+                    <TDIcon color={color} align={center}>
+                        <Menu
+                            placement='bottom-start'
+                            trigger={
+                                <span>
+                                    <Icon
+                                        icon={'user-group'}
+                                        onClick={clickMembers}
+                                        color={colors.icons}
+                                        isLink
+                                        size={'1.25em'}
+                                        verticalAlign={'text-bottom'}
+                                    />
+                                </span>
+                            }
+                        >
+                            <MenuDiv>Members</MenuDiv>
+                        </Menu>
+                    </TDIcon>
+                    <TDIcon color={color} align={center}>
+                        <Menu
+                            placement='bottom-start'
+                            trigger={
+                                <span>
+                                    <Icon
+                                        icon={'assignment-priority'}
+                                        onClick={clickReview}
+                                        color={colors.icons}
+                                        isLink
+                                        size={'1.25em'}
+                                        verticalAlign={'text-bottom'}
+                                    />
+                                </span>
+                            }
+                        >
+                            <MenuDiv>Review Members</MenuDiv>
+                        </Menu>
+                    </TDIcon>
+                    <TDIcon color={color} align={center}>
+                        <Menu
+                            placement='bottom-start'
+                            trigger={
+                                <span>
+                                    <Icon
+                                        icon={'list-check'}
+                                        onClick={clickPolicy}
+                                        color={colors.icons}
+                                        isLink
+                                        size={'1.25em'}
+                                        verticalAlign={'text-bottom'}
+                                    />
+                                </span>
+                            }
+                        >
+                            <MenuDiv>Rule Policy</MenuDiv>
+                        </Menu>
+                    </TDIcon>
+                    <TDIcon color={color} align={center}>
+                        <Menu
+                            placement='bottom-start'
+                            trigger={
+                                <span>
+                                    <Icon
+                                        icon={'setting'}
+                                        onClick={clickSettings}
+                                        color={colors.icons}
+                                        isLink
+                                        size={'1.25em'}
+                                        verticalAlign={'text-bottom'}
+                                    />
+                                </span>
+                            }
+                        >
+                            <MenuDiv>Settings</MenuDiv>
+                        </Menu>
+                    </TDIcon>
+                    <TDDelete color={color} align={center}>
+                        <Menu
+                            placement='bottom-start'
+                            trigger={
+                                <span>
+                                    <Icon
+                                        icon={'trash'}
+                                        onClick={clickDelete}
+                                        color={colors.icons}
+                                        isLink
+                                        size={'1.25em'}
+                                        verticalAlign={'text-bottom'}
+                                    />
+                                </span>
+                            }
+                        >
+                            <MenuDiv>Delete Role</MenuDiv>
+                        </Menu>
+                    </TDDelete>
+                </TrStyled>
+            );
+        }
 
         if (this.state.showDelete) {
             rows.push(

@@ -21,11 +21,11 @@ import styled from '@emotion/styled';
 import Head from 'next/head';
 // there is an issue with next-link and next-css if the css is not present then it doesnt load so adding this
 import 'flatpickr/dist/themes/light.css';
-import RoleDetails from '../components/header/RoleDetails';
+import CollectionDetails from '../components/header/CollectionDetails';
 import RolePolicyList from '../components/role-policy/RolePolicyList';
 import RequestUtils from '../components/utils/RequestUtils';
 import RoleTabs from '../components/header/RoleTabs';
-import RoleNameHeader from '../components/header/RoleNameHeader';
+import NameHeader from '../components/header/NameHeader';
 import Error from './_error';
 import NameUtils from '../components/utils/NameUtils';
 import createCache from '@emotion/cache';
@@ -79,7 +79,7 @@ export default class RolePolicyPage extends React.Component {
             ),
             api.getPolicies(props.query.domain, true),
             api.getForm(),
-            api.getPendingDomainRoleMembersList(),
+            api.getPendingDomainMembersList(),
         ]).catch((err) => {
             let response = RequestUtils.errorCheckHelper(err);
             reload = response.reload;
@@ -164,13 +164,14 @@ export default class RolePolicyPage extends React.Component {
                             <PoliciesContainerDiv>
                                 <PoliciesContentDiv>
                                     <PageHeaderDiv>
-                                        <RoleNameHeader
+                                        <NameHeader
+                                            category={'role'}
                                             domain={domain}
-                                            role={role}
-                                            roleDetails={roleDetails}
+                                            collection={role}
+                                            collectionDetails={roleDetails}
                                         />
-                                        <RoleDetails
-                                            roleDetails={roleDetails}
+                                        <CollectionDetails
+                                            collectionDetails={roleDetails}
                                             api={this.api}
                                             _csrf={_csrf}
                                             productMasterLink={

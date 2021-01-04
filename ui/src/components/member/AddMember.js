@@ -20,11 +20,13 @@ import { colors } from '../denali/styles';
 import Input from '../denali/Input';
 import InputLabel from '../denali/InputLabel';
 import styled from '@emotion/styled';
+import Checkbox from '../denali/CheckBox';
 import DateUtils from '../utils/DateUtils';
+import NameUtils from '../utils/NameUtils';
 import RequestUtils from '../utils/RequestUtils';
 
 const SectionsDiv = styled.div`
-    width: 800px;
+    width: 760px;
     text-align: left;
     background-color: ${colors.white};
 `;
@@ -39,19 +41,19 @@ const SectionDiv = styled.div`
 const ContentDiv = styled.div`
     flex: 1 1;
     display: flex;
-    flex-flow: row wrap;
+    flex-flow: row nowrap;
 `;
 
 const StyledInputLabel = styled(InputLabel)`
-    flex: 0 0 150px;
+    flex: 0 0 90px;
     font-weight: 600;
     line-height: 36px;
 `;
 
 const StyledInput = styled(Input)`
-    max-width: 500px;
+    max-width: 800px;
     margin-right: 10px;
-    width: 300px;
+    width: ${(props) => (props.category === 'group' ? '500px' : '580px')};
 `;
 
 const FlatPickrInputDiv = styled.div`
@@ -85,7 +87,6 @@ const FlatPickrInputDiv = styled.div`
 
 const StyledJustification = styled(Input)`
     width: 300px;
-    margin-top: 5px;
 `;
 
 export default class AddMember extends React.Component {
@@ -138,12 +139,13 @@ export default class AddMember extends React.Component {
         this.api
             .addMember(
                 this.props.domain,
-                this.props.role,
+                this.props.collection,
                 this.state.memberName,
                 member,
                 this.state.justification
                     ? this.state.justification
                     : 'added using Athenz UI',
+                this.props.category,
                 this.props._csrf
             )
             .then(() => {
@@ -152,7 +154,7 @@ export default class AddMember extends React.Component {
                     justification: '',
                 });
                 this.props.onSubmit(
-                    `Successfully added ${this.state.memberName} to role: ${this.props.role}`
+                    `Successfully added ${this.state.memberName} to ${this.props.category}: ${this.props.collection}`
                 );
             })
             .catch((err) => {
@@ -168,13 +170,14 @@ export default class AddMember extends React.Component {
 
     render() {
         let sections = (
-            <SectionsDiv autoComplete={'off'}>
+            <SectionsDiv autoComplete={'off'} data-testid='add-member-form'>
                 <SectionDiv>
                     <StyledInputLabel htmlFor='member-name'>
                         Member
                     </StyledInputLabel>
                     <ContentDiv>
                         <StyledInput
+                            category={this.props.category}
                             id='member-name'
                             name='member-name'
                             value={this.state.memberName}
@@ -182,8 +185,17 @@ export default class AddMember extends React.Component {
                                 this,
                                 'memberName'
                             )}
-                            placeholder='user.<shortid> or <domain>.<service> or unix.<group>'
+                            placeholder={
+                                this.props.category === 'role'
+                                    ? 'user.<shortid> or <domain>.<service> or unix.<group> or <domain>:group.<group>'
+                                    : 'user.<shortid> or <domain>.<service> or unix.<group>'
+                            }
                         />
+                    </ContentDiv>
+                </SectionDiv>
+                <SectionDiv>
+                    <StyledInputLabel></StyledInputLabel>
+                    {this.props.category === 'role' && (
                         <FlatPickrInputDiv>
                             <FlatPicker
                                 onChange={(memberExpiry) => {
@@ -193,6 +205,8 @@ export default class AddMember extends React.Component {
                                 clear={this.state.memberExpiry}
                             />
                         </FlatPickrInputDiv>
+                    )}
+                    {this.props.category === 'role' && (
                         <FlatPickrInputDiv>
                             <FlatPicker
                                 onChange={(memberReviewReminder) => {
@@ -203,7 +217,13 @@ export default class AddMember extends React.Component {
                                 clear={this.state.memberReviewReminder}
                             />
                         </FlatPickrInputDiv>
-                        {this.props.justificationRequired && (
+                    )}
+                </SectionDiv>
+
+                {this.props.justificationRequired && (
+                    <SectionDiv>
+                        <StyledInputLabel>Justification</StyledInputLabel>
+                        <ContentDiv>
                             <StyledJustification
                                 id='justification'
                                 name='justification'
@@ -215,9 +235,9 @@ export default class AddMember extends React.Component {
                                 autoComplete={'off'}
                                 placeholder='Enter justification here'
                             />
-                        )}
-                    </ContentDiv>
-                </SectionDiv>
+                        </ContentDiv>
+                    </SectionDiv>
+                )}
             </SectionsDiv>
         );
 
@@ -227,7 +247,12 @@ export default class AddMember extends React.Component {
                     isOpen={this.state.showModal}
                     cancel={this.props.onCancel}
                     submit={this.onSubmit}
-                    title={'Add Member to Role: ' + this.props.role}
+                    title={
+                        'Add Member to ' +
+                        this.props.category +
+                        ': ' +
+                        this.props.collection
+                    }
                     errorMessage={this.state.errorMessage}
                     sections={sections}
                 />

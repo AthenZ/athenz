@@ -15,7 +15,7 @@
  */
 import React from 'react';
 import { render } from '@testing-library/react';
-import RoleNameHeader from '../../../components/header/RoleNameHeader';
+import NameHeader from '../../../components/header/NameHeader';
 
 describe('Header', () => {
     it('should render', () => {
@@ -26,9 +26,9 @@ describe('Header', () => {
             auditEnabled: false
         };
         const { getByTestId } = render(
-            <RoleNameHeader showSearch={false} domain={domain} role={role} roleDetails={roleDetails} />
+            <NameHeader showSearch={false} domain={domain} collection={role} collectionDetails={roleDetails} />
         );
-        const header = getByTestId('role-name-header');
+        const header = getByTestId('collection-name-header');
         expect(header).toMatchSnapshot();
     });
     it('should render audit enabled role', () => {
@@ -39,9 +39,9 @@ describe('Header', () => {
             auditEnabled: true
         };
         const { getByTestId } = render(
-            <RoleNameHeader showSearch={false} domain={domain} role={role} roleDetails={roleDetails} />
+            <NameHeader showSearch={false} domain={domain} collection={role} collectionDetails={roleDetails} />
         );
-        const header = getByTestId('role-name-header');
+        const header = getByTestId('collection-name-header');
         expect(header).toMatchSnapshot();
     });
     it('should render delegated role', () => {
@@ -52,9 +52,9 @@ describe('Header', () => {
             auditEnabled: false
         };
         const { getByTestId } = render(
-            <RoleNameHeader showSearch={false} domain={domain} role={role} roleDetails={roleDetails} />
+            <NameHeader showSearch={false} domain={domain} collection={role} collectionDetails={roleDetails} />
         );
-        const header = getByTestId('role-name-header');
+        const header = getByTestId('collection-name-header');
         expect(header).toMatchSnapshot();;
     });
 });

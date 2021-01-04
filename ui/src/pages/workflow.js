@@ -73,7 +73,7 @@ export default class Workflow extends React.Component {
             api.listUserDomains(),
             api.getHeaderDetails(),
             api.getForm(),
-            api.getPendingDomainRoleMembersList(),
+            api.getPendingDomainMembersList(),
         ]).catch((err) => {
             let response = RequestUtils.errorCheckHelper(err);
             reload = response.reload;

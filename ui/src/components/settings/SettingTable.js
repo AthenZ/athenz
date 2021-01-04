@@ -55,12 +55,13 @@ export default class SettingTable extends React.Component {
         this.onValueChange = this.onValueChange.bind(this);
 
         this.state = {
-            reviewEnabled: !!props.roleDetails.reviewEnabled,
-            selfServe: !!props.roleDetails.selfServe,
-            memberExpiryDays: props.roleDetails.memberExpiryDays,
-            serviceExpiryDays: props.roleDetails.serviceExpiryDays,
-            tokenExpiryMins: props.roleDetails.tokenExpiryMins,
-            certExpiryMins: props.roleDetails.certExpiryMins,
+            reviewEnabled: !!props.collectionDetails.reviewEnabled,
+            selfServe: !!props.collectionDetails.selfServe,
+            memberExpiryDays: props.collectionDetails.memberExpiryDays,
+            groupExpiryDays: props.collectionDetails.groupExpiryDays,
+            serviceExpiryDays: props.collectionDetails.serviceExpiryDays,
+            tokenExpiryMins: props.collectionDetails.tokenExpiryMins,
+            certExpiryMins: props.collectionDetails.certExpiryMins,
             showSubmit: false,
             showSuccess: false,
             errorMessage: null,
@@ -77,24 +78,28 @@ export default class SettingTable extends React.Component {
 
     toggleReset() {
         this.setState({
-            reviewEnabled: !!this.props.roleDetails.reviewEnabled,
-            selfServe: !!this.props.roleDetails.selfServe,
+            reviewEnabled: !!this.props.collectionDetails.reviewEnabled,
+            selfServe: !!this.props.collectionDetails.selfServe,
             memberExpiryDays:
-                this.props.roleDetails.memberExpiryDays === undefined
+                this.props.collectionDetails.memberExpiryDays === undefined
                     ? ''
-                    : this.props.roleDetails.memberExpiryDays,
+                    : this.props.collectionDetails.memberExpiryDays,
+            groupExpiryDays:
+                this.props.collectionDetails.groupExpiryDays === undefined
+                    ? ''
+                    : this.props.collectionDetails.groupExpiryDays,
             serviceExpiryDays:
-                this.props.roleDetails.serviceExpiryDays === undefined
+                this.props.collectionDetails.serviceExpiryDays === undefined
                     ? ''
-                    : this.props.roleDetails.serviceExpiryDays,
+                    : this.props.collectionDetails.serviceExpiryDays,
             tokenExpiryMins:
-                this.props.roleDetails.tokenExpiryMins === undefined
+                this.props.collectionDetails.tokenExpiryMins === undefined
                     ? ''
-                    : this.props.roleDetails.tokenExpiryMins,
+                    : this.props.collectionDetails.tokenExpiryMins,
             certExpiryMins:
-                this.props.roleDetails.certExpiryMins === undefined
+                this.props.collectionDetails.certExpiryMins === undefined
                     ? ''
-                    : this.props.roleDetails.certExpiryMins,
+                    : this.props.collectionDetails.certExpiryMins,
             showSubmit: false,
             showSuccess: false,
             errorMessage: null,
@@ -158,6 +163,11 @@ export default class SettingTable extends React.Component {
                     certExpiryMins: val,
                 });
                 break;
+            case 'groupExpiryDays':
+                this.setState({
+                    groupExpiryDays: val,
+                });
+                break;
             default:
                 break;
         }
@@ -171,22 +181,26 @@ export default class SettingTable extends React.Component {
     }
 
     updateRoleMeta() {
-        let roleMeta = {};
+        let collectionMeta = {};
 
-        roleMeta.reviewEnabled = this.state.reviewEnabled;
-        roleMeta.selfServe = this.state.selfServe;
-        roleMeta.memberExpiryDays = this.state.memberExpiryDays;
-        roleMeta.serviceExpiryDays = this.state.serviceExpiryDays;
-        roleMeta.tokenExpiryMins = this.state.tokenExpiryMins;
-        roleMeta.certExpiryMins = this.state.certExpiryMins;
+        collectionMeta.reviewEnabled = this.state.reviewEnabled;
+        collectionMeta.selfServe = this.state.selfServe;
+        if (this.props.category === 'role') {
+            collectionMeta.memberExpiryDays = this.state.memberExpiryDays;
+            collectionMeta.groupExpiryDays = this.state.groupExpiryDays;
+            collectionMeta.serviceExpiryDays = this.state.serviceExpiryDays;
+            collectionMeta.tokenExpiryMins = this.state.tokenExpiryMins;
+            collectionMeta.certExpiryMins = this.state.certExpiryMins;
+        }
 
         this.api
-            .putRoleMeta(
+            .putMeta(
                 this.props.domain,
-                this.props.role,
-                roleMeta,
-                'Updated Role Meta using Athenz UI',
-                this.props._csrf
+                this.props.collection,
+                collectionMeta,
+                'Updated' + this.props.category + 'Meta using Athenz UI',
+                this.props._csrf,
+                this.props.category
             )
             .then(() => {
                 this.setState({
@@ -202,18 +216,20 @@ export default class SettingTable extends React.Component {
     }
 
     render() {
-        const { domain, role, roleDetails } = this.props;
+        const { domain, collection } = this.props;
         let rows = [];
 
         let submitSettings = this.state.showSubmit ? (
             <UpdateModal
-                name={role}
+                name={collection}
                 isOpen={this.state.showSubmit}
                 cancel={this.onClickUpdateCancel}
                 submit={this.onSubmitUpdate}
                 key={this.state.updateName + '-update'}
                 message={
-                    'Are you sure you want to permanently change the setting for role '
+                    'Are you sure you want to permanently change the setting for' +
+                    this.props.category +
+                    ' '
                 }
                 showJustification={this.state.justificationRequired}
                 onJustification={this.saveJustification}
@@ -245,8 +261,6 @@ export default class SettingTable extends React.Component {
         rows.push(
             <StyledSettingRow
                 domain={domain}
-                role={role}
-                roleDetails={roleDetails}
                 name='reviewEnabled'
                 label='Review'
                 type='switch'
@@ -257,15 +271,12 @@ export default class SettingTable extends React.Component {
                 _csrf={this.props._csrf}
                 justificationRequired={this.props.justificationRequired}
                 userProfileLink={this.props.userProfileLink}
-                disabled={role.trim() === 'admin'}
             />
         );
 
         rows.push(
             <StyledSettingRow
                 domain={domain}
-                role={role}
-                roleDetails={roleDetails}
                 name='selfServe'
                 label='Self-Service'
                 type='switch'
@@ -279,81 +290,95 @@ export default class SettingTable extends React.Component {
             />
         );
 
-        rows.push(
-            <StyledSettingRow
-                domain={domain}
-                role={role}
-                roleDetails={roleDetails}
-                name='memberExpiryDays'
-                label='Member Expiry'
-                type='input'
-                desc='All user members in the role will have specified max expiry days'
-                unit='Days'
-                value={this.state.memberExpiryDays}
-                api={this.api}
-                onValueChange={this.onValueChange}
-                _csrf={this.props._csrf}
-                justificationRequired={this.props.justificationRequired}
-                userProfileLink={this.props.userProfileLink}
-            />
-        );
+        this.props.category === 'role' &&
+            rows.push(
+                <StyledSettingRow
+                    domain={domain}
+                    name='memberExpiryDays'
+                    label='User Expiry'
+                    type='input'
+                    desc='All user members in the role will have specified max expiry days'
+                    unit='Days'
+                    value={this.state.memberExpiryDays}
+                    api={this.api}
+                    onValueChange={this.onValueChange}
+                    _csrf={this.props._csrf}
+                    justificationRequired={this.props.justificationRequired}
+                    userProfileLink={this.props.userProfileLink}
+                />
+            );
 
-        rows.push(
-            <StyledSettingRow
-                domain={domain}
-                role={role}
-                roleDetails={roleDetails}
-                name='serviceExpiryDays'
-                label='Service Expiry'
-                type='input'
-                unit='Days'
-                desc='All services in the role will have specified max expiry days'
-                value={this.state.serviceExpiryDays}
-                api={this.api}
-                onValueChange={this.onValueChange}
-                _csrf={this.props._csrf}
-                justificationRequired={this.props.justificationRequired}
-                userProfileLink={this.props.userProfileLink}
-            />
-        );
+        this.props.category === 'role' &&
+            rows.push(
+                <StyledSettingRow
+                    domain={domain}
+                    name='groupExpiryDays'
+                    label='Group Expiry'
+                    type='input'
+                    desc='All group members in the role will have specified max expiry days'
+                    unit='Days'
+                    value={this.state.groupExpiryDays}
+                    api={this.api}
+                    onValueChange={this.onValueChange}
+                    _csrf={this.props._csrf}
+                    justificationRequired={this.props.justificationRequired}
+                    userProfileLink={this.props.userProfileLink}
+                />
+            );
 
-        rows.push(
-            <StyledSettingRow
-                domain={domain}
-                role={role}
-                roleDetails={roleDetails}
-                name='tokenExpiryMins'
-                label='Token Expiry'
-                type='input'
-                unit='Mins'
-                desc='Tokens issued for this role will have specified max timeout in mins'
-                value={this.state.tokenExpiryMins}
-                api={this.api}
-                onValueChange={this.onValueChange}
-                _csrf={this.props._csrf}
-                justificationRequired={this.props.justificationRequired}
-                userProfileLink={this.props.userProfileLink}
-            />
-        );
+        this.props.category === 'role' &&
+            rows.push(
+                <StyledSettingRow
+                    domain={domain}
+                    name='serviceExpiryDays'
+                    label='Service Expiry'
+                    type='input'
+                    unit='Days'
+                    desc='All services in the role will have specified max expiry days'
+                    value={this.state.serviceExpiryDays}
+                    api={this.api}
+                    onValueChange={this.onValueChange}
+                    _csrf={this.props._csrf}
+                    justificationRequired={this.props.justificationRequired}
+                    userProfileLink={this.props.userProfileLink}
+                />
+            );
 
-        rows.push(
-            <StyledSettingRow
-                domain={domain}
-                role={role}
-                roleDetails={roleDetails}
-                name='certExpiryMins'
-                label='Certificate Expiry'
-                type='input'
-                unit='Mins'
-                desc='Certs issued for this role will have specified max timeout in mins'
-                value={this.state.certExpiryMins}
-                api={this.api}
-                onValueChange={this.onValueChange}
-                _csrf={this.props._csrf}
-                justificationRequired={this.props.justificationRequired}
-                userProfileLink={this.props.userProfileLink}
-            />
-        );
+        this.props.category === 'role' &&
+            rows.push(
+                <StyledSettingRow
+                    domain={domain}
+                    name='tokenExpiryMins'
+                    label='Token Expiry'
+                    type='input'
+                    unit='Mins'
+                    desc='Tokens issued for this role will have specified max timeout in mins'
+                    value={this.state.tokenExpiryMins}
+                    api={this.api}
+                    onValueChange={this.onValueChange}
+                    _csrf={this.props._csrf}
+                    justificationRequired={this.props.justificationRequired}
+                    userProfileLink={this.props.userProfileLink}
+                />
+            );
+
+        this.props.category === 'role' &&
+            rows.push(
+                <StyledSettingRow
+                    domain={domain}
+                    name='certExpiryMins'
+                    label='Certificate Expiry'
+                    type='input'
+                    unit='Mins'
+                    desc='Certs issued for this role will have specified max timeout in mins'
+                    value={this.state.certExpiryMins}
+                    api={this.api}
+                    onValueChange={this.onValueChange}
+                    _csrf={this.props._csrf}
+                    justificationRequired={this.props.justificationRequired}
+                    userProfileLink={this.props.userProfileLink}
+                />
+            );
 
         rows.push(
             <AddContainerDiv>

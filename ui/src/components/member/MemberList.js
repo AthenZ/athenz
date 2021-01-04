@@ -58,8 +58,9 @@ export default class MemberList extends React.Component {
 
     componentDidUpdate = (prevProps) => {
         if (
-            prevProps.role !== this.props.role ||
-            prevProps.domain !== this.props.domain
+            prevProps.collection !== this.props.collection ||
+            prevProps.domain !== this.props.domain ||
+            prevProps.members !== this.props.members
         ) {
             this.setState({
                 members: this.props.members,
@@ -69,57 +70,34 @@ export default class MemberList extends React.Component {
     };
 
     reloadMembers(successMessage) {
-        if (this.props.roleDetails.trust) {
-            this.api
-                .getRole(this.props.domain, this.props.role, true, true, true)
-                .then((role) => {
-                    this.setState({
-                        members: role.roleMembers,
-                        showAddMember: false,
-                        showSuccess: true,
-                        successMessage,
-                        errorMessage: null,
-                    });
-                    // this is to close the success alert
-                    setTimeout(
-                        () =>
-                            this.setState({
-                                showSuccess: false,
-                            }),
-                        MODAL_TIME_OUT
-                    );
-                })
-                .catch((err) => {
-                    this.setState({
-                        errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                    });
+        this.api
+            .getCollectionMembers(
+                this.props.domain,
+                this.props.collection,
+                this.props.category,
+                this.props.collectionDetails.trust
+            )
+            .then((members) => {
+                this.setState({
+                    members: members,
+                    showAddMember: false,
+                    showSuccess: true,
+                    successMessage: successMessage,
+                    errorMessage: null,
                 });
-        } else {
-            this.api
-                .getRole(this.props.domain, this.props.role, true, false, true)
-                .then((role) => {
-                    this.setState({
-                        members: role.roleMembers,
-                        showAddMember: false,
-                        showSuccess: true,
-                        successMessage,
-                        errorMessage: null,
-                    });
-                    // this is to close the success alert
-                    setTimeout(
-                        () =>
-                            this.setState({
-                                showSuccess: false,
-                            }),
-                        MODAL_TIME_OUT
-                    );
-                })
-                .catch((err) => {
-                    this.setState({
-                        errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                    });
+                setTimeout(
+                    () =>
+                        this.setState({
+                            showSuccess: false,
+                        }),
+                    MODAL_TIME_OUT
+                );
+            })
+            .catch((err) => {
+                this.setState({
+                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
                 });
-        }
+            });
     }
 
     closeModal() {
@@ -127,21 +105,21 @@ export default class MemberList extends React.Component {
     }
 
     render() {
-        const { domain, role, roleDetails } = this.props;
-
+        const { domain, collection, collectionDetails } = this.props;
         let approvedMembers = [];
         let pendingMembers = [];
         let addMemberButton = '';
         let justificationReq =
             this.props.isDomainAuditEnabled ||
-            roleDetails.reviewEnabled ||
-            roleDetails.selfServe;
+            collectionDetails.reviewEnabled ||
+            collectionDetails.selfServe;
 
         let addMember = this.state.showAddMember ? (
             <AddMember
+                category={this.props.category}
                 api={this.api}
                 domain={this.props.domain}
-                role={this.props.role}
+                collection={this.props.collection}
                 onSubmit={this.reloadMembers}
                 onCancel={this.toggleAddMember}
                 _csrf={this.props._csrf}
@@ -151,8 +129,7 @@ export default class MemberList extends React.Component {
         ) : (
             ''
         );
-
-        if (roleDetails.trust) {
+        if (collectionDetails.trust) {
             approvedMembers = this.state.members;
         } else {
             approvedMembers = this.state.members
@@ -161,17 +138,17 @@ export default class MemberList extends React.Component {
             pendingMembers = this.state.members
                 ? this.state.members.filter((item) => !item.approved)
                 : [];
-            addMemberButton = (
-                <AddContainerDiv>
-                    <div>
-                        <Button secondary onClick={this.toggleAddMember}>
-                            Add Member
-                        </Button>
-                        {addMember}
-                    </div>
-                </AddContainerDiv>
-            );
         }
+        addMemberButton = (
+            <AddContainerDiv>
+                <div>
+                    <Button secondary onClick={this.toggleAddMember}>
+                        Add Member
+                    </Button>
+                    {addMember}
+                </div>
+            </AddContainerDiv>
+        );
 
         let showPending = pendingMembers.length > 0;
 
@@ -179,8 +156,9 @@ export default class MemberList extends React.Component {
             <MembersSectionDiv data-testid='member-list'>
                 {addMemberButton}
                 <MemberTable
+                    category={this.props.category}
                     domain={domain}
-                    role={role}
+                    collection={collection}
                     members={approvedMembers}
                     caption='Approved'
                     api={this.api}
@@ -192,8 +170,9 @@ export default class MemberList extends React.Component {
                 <br />
                 {showPending ? (
                     <MemberTable
+                        category={this.props.category}
                         domain={domain}
-                        role={role}
+                        collection={collection}
                         members={pendingMembers}
                         pending={true}
                         caption='Pending'

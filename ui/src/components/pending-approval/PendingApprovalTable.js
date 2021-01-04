@@ -162,7 +162,7 @@ export default class PendingApprovalTable extends React.Component {
 
     initialLoad() {
         this.api
-            .getPendingDomainRoleMembersList()
+            .getPendingDomainMembersList()
             .then((data) => {
                 this.setState({
                     pendingMap: data,
@@ -215,6 +215,7 @@ export default class PendingApprovalTable extends React.Component {
                             this.state.pendingMap[key].roleName,
                             this.state.pendingMap[key].memberName,
                             this.state.selectAllAudit,
+                            this.state.pendingMap[key].category,
                             membership,
                             this.props._csrf
                         )
@@ -250,6 +251,7 @@ export default class PendingApprovalTable extends React.Component {
                         this.state.pendingMap[key].roleName,
                         this.state.pendingMap[key].memberName,
                         this.state.pendingMap[key].auditRef,
+                        this.state.pendingMap[key].category,
                         membership,
                         this.props._csrf
                     )
@@ -275,6 +277,7 @@ export default class PendingApprovalTable extends React.Component {
             let i = 0;
             Object.keys(this.state.pendingMap).forEach((keyInMap) => {
                 let pending = this.state.pendingMap[keyInMap];
+                const category = pending.category;
                 const domainName = pending.domainName;
                 const memberName = pending.memberName;
                 const defaultExpiration = pending.expiryDate;
@@ -290,6 +293,7 @@ export default class PendingApprovalTable extends React.Component {
                 const userComment = pending.userComment;
                 contents.push(
                     <PendingApprovalTableRow
+                        category={category}
                         domainName={domainName}
                         memberName={memberName}
                         roleName={roleName}
@@ -342,8 +346,9 @@ export default class PendingApprovalTable extends React.Component {
                         <tr>
                             <TableHeader />
                             <TableHeaderDomain>Domain</TableHeaderDomain>
-                            <TableHeader>Role</TableHeader>
-                            <TableHeader>User</TableHeader>
+                            <TableHeader>Type</TableHeader>
+                            <TableHeader>Name</TableHeader>
+                            <TableHeader>Member</TableHeader>
                             <TableHeader colSpan={2}>User Comment</TableHeader>
                             <TableHeader>Requester</TableHeader>
                             <TableHeader>Request Time</TableHeader>

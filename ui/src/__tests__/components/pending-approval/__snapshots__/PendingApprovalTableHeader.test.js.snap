@@ -352,7 +352,7 @@ exports[`PendingApprovalTableHeader should render 1`] = `
   />
   <th
     class="emotion-5 emotion-6"
-    colspan="2"
+    colspan="3"
   />
   <th
     class="emotion-5 emotion-6"
